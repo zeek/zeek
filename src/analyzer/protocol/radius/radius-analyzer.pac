@@ -8,8 +8,8 @@ refine flow RADIUS_Flow += {
 		    return false;
 
 		RecordVal* result = new RecordVal(BifType::Record::RADIUS::Message);
-		result->Assign(0, new Val(${msg.code}, TYPE_COUNT));
-		result->Assign(1, new Val(${msg.trans_id}, TYPE_COUNT));
+		result->Assign(0, val_mgr->GetCount(${msg.code}));
+		result->Assign(1, val_mgr->GetCount(${msg.trans_id}));
 		result->Assign(2, bytestring_to_val(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
@@ -17,7 +17,7 @@ refine flow RADIUS_Flow += {
 			TableVal* attributes = new TableVal(BifType::Table::RADIUS::Attributes);
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i ) {
-				Val* index = new Val(${msg.attributes[i].code}, TYPE_COUNT);
+				Val* index = val_mgr->GetCount(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
                 Val* current = attributes->Lookup(index);

@@ -82,8 +82,8 @@ void Gnutella_Analyzer::Done()
 
 				vl->append(BuildConnVal());
 				vl->append(new StringVal(p->msg));
-				vl->append(new Val((i == 0), TYPE_BOOL));
-				vl->append(new Val(p->msg_pos, TYPE_COUNT));
+				vl->append(val_mgr->GetBool((i == 0)));
+				vl->append(val_mgr->GetCount(p->msg_pos));
 
 				ConnectionEvent(gnutella_partial_binary_msg, vl);
 				}
@@ -195,7 +195,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 				val_list* vl = new val_list;
 
 				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
+				vl->append(val_mgr->GetBool(orig));
 				vl->append(new StringVal(ms->headers.data()));
 
 				ConnectionEvent(gnutella_text_msg, vl);
@@ -240,17 +240,16 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 		val_list* vl = new val_list;
 
 		vl->append(BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new Val(p->msg_type, TYPE_COUNT));
-		vl->append(new Val(p->msg_ttl, TYPE_COUNT));
-		vl->append(new Val(p->msg_hops, TYPE_COUNT));
-		vl->append(new Val(p->msg_len, TYPE_COUNT));
+		vl->append(val_mgr->GetBool(is_orig));
+		vl->append(val_mgr->GetCount(p->msg_type));
+		vl->append(val_mgr->GetCount(p->msg_ttl));
+		vl->append(val_mgr->GetCount(p->msg_hops));
+		vl->append(val_mgr->GetCount(p->msg_len));
 		vl->append(new StringVal(p->payload));
-		vl->append(new Val(p->payload_len, TYPE_COUNT));
-		vl->append(new Val((p->payload_len <
-				    min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)),
-				   TYPE_BOOL));
-		vl->append(new Val((p->payload_left == 0), TYPE_BOOL));
+		vl->append(val_mgr->GetCount(p->payload_len));
+		vl->append(val_mgr->GetBool(
+		    (p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))));
+		vl->append(val_mgr->GetBool((p->payload_left == 0)));
 
 		ConnectionEvent(gnutella_binary_msg, vl);
 		}

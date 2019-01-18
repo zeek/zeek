@@ -104,15 +104,15 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);
 
-		r->Assign(0, new Val(${hdr.credit_charge}, TYPE_COUNT));
-		r->Assign(1, new Val(${hdr.status}, TYPE_COUNT));
-		r->Assign(2, new Val(${hdr.command}, TYPE_COUNT));
-		r->Assign(3, new Val(${hdr.credits}, TYPE_COUNT));
-		r->Assign(4, new Val(${hdr.flags}, TYPE_COUNT));
-		r->Assign(5, new Val(${hdr.message_id}, TYPE_COUNT));
-		r->Assign(6, new Val(${hdr.process_id}, TYPE_COUNT));
-		r->Assign(7, new Val(${hdr.tree_id}, TYPE_COUNT));
-		r->Assign(8, new Val(${hdr.session_id}, TYPE_COUNT));
+		r->Assign(0, val_mgr->GetCount(${hdr.credit_charge}));
+		r->Assign(1, val_mgr->GetCount(${hdr.status}));
+		r->Assign(2, val_mgr->GetCount(${hdr.command}));
+		r->Assign(3, val_mgr->GetCount(${hdr.credits}));
+		r->Assign(4, val_mgr->GetCount(${hdr.flags}));
+		r->Assign(5, val_mgr->GetCount(${hdr.message_id}));
+		r->Assign(6, val_mgr->GetCount(${hdr.process_id}));
+		r->Assign(7, val_mgr->GetCount(${hdr.tree_id}));
+		r->Assign(8, val_mgr->GetCount(${hdr.session_id}));
 		r->Assign(9, bytestring_to_val(${hdr.signature}));
 
 		return r;
@@ -122,8 +122,8 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::GUID);
 
-		r->Assign(0, new Val(${file_id.persistent}, TYPE_COUNT));
-		r->Assign(1, new Val(${file_id._volatile}, TYPE_COUNT));
+		r->Assign(0, val_mgr->GetCount(${file_id.persistent}));
+		r->Assign(1, val_mgr->GetCount(${file_id._volatile}));
 
 		return r;
 		%}
@@ -170,21 +170,21 @@ function smb2_file_attrs_to_bro(val: SMB2_file_attributes): BroVal
 	%{
 	RecordVal* r = new RecordVal(BifType::Record::SMB2::FileAttrs);
 
-	r->Assign(0, new Val(${val.read_only}, TYPE_BOOL));
-	r->Assign(1, new Val(${val.hidden}, TYPE_BOOL));
-	r->Assign(2, new Val(${val.system}, TYPE_BOOL));
-	r->Assign(3, new Val(${val.directory}, TYPE_BOOL));
-	r->Assign(4, new Val(${val.archive}, TYPE_BOOL));
-	r->Assign(5, new Val(${val.normal}, TYPE_BOOL));
-	r->Assign(6, new Val(${val.temporary}, TYPE_BOOL));
-	r->Assign(7, new Val(${val.sparse_file}, TYPE_BOOL));
-	r->Assign(8, new Val(${val.reparse_point}, TYPE_BOOL));
-	r->Assign(9, new Val(${val.compressed}, TYPE_BOOL));
-	r->Assign(10, new Val(${val.offline}, TYPE_BOOL));
-	r->Assign(11, new Val(${val.not_content_indexed}, TYPE_BOOL));
-	r->Assign(12, new Val(${val.encrypted}, TYPE_BOOL));
-	r->Assign(13, new Val(${val.integrity_stream}, TYPE_BOOL));
-	r->Assign(14, new Val(${val.no_scrub_data}, TYPE_BOOL));
+	r->Assign(0, val_mgr->GetBool(${val.read_only}));
+	r->Assign(1, val_mgr->GetBool(${val.hidden}));
+	r->Assign(2, val_mgr->GetBool(${val.system}));
+	r->Assign(3, val_mgr->GetBool(${val.directory}));
+	r->Assign(4, val_mgr->GetBool(${val.archive}));
+	r->Assign(5, val_mgr->GetBool(${val.normal}));
+	r->Assign(6, val_mgr->GetBool(${val.temporary}));
+	r->Assign(7, val_mgr->GetBool(${val.sparse_file}));
+	r->Assign(8, val_mgr->GetBool(${val.reparse_point}));
+	r->Assign(9, val_mgr->GetBool(${val.compressed}));
+	r->Assign(10, val_mgr->GetBool(${val.offline}));
+	r->Assign(11, val_mgr->GetBool(${val.not_content_indexed}));
+	r->Assign(12, val_mgr->GetBool(${val.encrypted}));
+	r->Assign(13, val_mgr->GetBool(${val.integrity_stream}));
+	r->Assign(14, val_mgr->GetBool(${val.no_scrub_data}));
 
 	return r;
 	%}

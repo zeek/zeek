@@ -1806,12 +1806,12 @@ void RemoteSerializer::PeerConnected(Peer* peer)
 RecordVal* RemoteSerializer::MakePeerVal(Peer* peer)
 	{
 	RecordVal* v = new RecordVal(::peer);
-	v->Assign(0, new Val(uint32(peer->id), TYPE_COUNT));
+	v->Assign(0, val_mgr->GetCount(uint32(peer->id)));
 	// Sic! Network order for AddrVal, host order for PortVal.
 	v->Assign(1, new AddrVal(peer->ip));
-	v->Assign(2, port_mgr->Get(peer->port, TRANSPORT_TCP));
-	v->Assign(3, new Val(false, TYPE_BOOL));
-	v->Assign(4, new StringVal(""));	// set when received
+	v->Assign(2, val_mgr->GetPort(peer->port, TRANSPORT_TCP));
+	v->Assign(3, val_mgr->GetFalse());
+	v->Assign(4, val_mgr->GetEmptyString());	// set when received
 	v->Assign(5, peer->peer_class.size() ?
 			new StringVal(peer->peer_class.c_str()) : 0);
 	return v;
@@ -2262,7 +2262,7 @@ bool RemoteSerializer::ProcessPongMsg()
 
 	val_list* vl = new val_list;
 	vl->append(current_peer->val->Ref());
-	vl->append(new Val((unsigned int) ntohl(args->seq), TYPE_COUNT));
+	vl->append(val_mgr->GetCount((unsigned int) ntohl(args->seq)));
 	vl->append(new Val(current_time(true) - ntohd(args->time1),
 				TYPE_INTERVAL));
 	vl->append(new Val(ntohd(args->time2), TYPE_INTERVAL));
@@ -2727,8 +2727,8 @@ bool RemoteSerializer::ProcessLogCreateWriter()
 
 	fmt.EndRead();
 
-	id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
-	writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
+	id_val = internal_type("Log::ID")->AsEnumType()->GetVal(id);
+	writer_val = internal_type("Log::Writer")->AsEnumType()->GetVal(writer);
 
 	if ( ! log_mgr->CreateWriterForRemoteLog(id_val, writer_val, info, num_fields, fields) )
 		{
@@ -2800,8 +2800,8 @@ bool RemoteSerializer::ProcessLogWrite()
 				}
 			}
 
-		id_val = new EnumVal(id, internal_type("Log::ID")->AsEnumType());
-		writer_val = new EnumVal(writer, internal_type("Log::Writer")->AsEnumType());
+		id_val = internal_type("Log::ID")->AsEnumType()->GetVal(id);
+		writer_val = internal_type("Log::Writer")->AsEnumType()->GetVal(writer);
 
 		success = log_mgr->WriteFromRemote(id_val, writer_val, path, num_fields, vals);
 
@@ -3008,16 +3008,16 @@ void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 		{
 		val_list* vl = new val_list();
 		vl->append(peer->val->Ref());
-		vl->append(new Val(level, TYPE_COUNT));
-		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(level));
+		vl->append(val_mgr->GetCount(src));
 		vl->append(new StringVal(msg));
 		mgr.QueueEvent(remote_log_peer, vl);
 		}
 	else
 		{
 		val_list* vl = new val_list();
-		vl->append(new Val(level, TYPE_COUNT));
-		vl->append(new Val(src, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(level));
+		vl->append(val_mgr->GetCount(src));
 		vl->append(new StringVal(msg));
 		mgr.QueueEvent(remote_log, vl);
 		}

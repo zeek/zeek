@@ -225,11 +225,11 @@ RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 
 		icmp_conn_val->Assign(0, new AddrVal(Conn()->OrigAddr()));
 		icmp_conn_val->Assign(1, new AddrVal(Conn()->RespAddr()));
-		icmp_conn_val->Assign(2, new Val(icmpp->icmp_type, TYPE_COUNT));
-		icmp_conn_val->Assign(3, new Val(icmpp->icmp_code, TYPE_COUNT));
-		icmp_conn_val->Assign(4, new Val(len, TYPE_COUNT));
-		icmp_conn_val->Assign(5, new Val(ip_hdr->TTL(), TYPE_COUNT));
-		icmp_conn_val->Assign(6, new Val(icmpv6, TYPE_BOOL));
+		icmp_conn_val->Assign(2, val_mgr->GetCount(icmpp->icmp_type));
+		icmp_conn_val->Assign(3, val_mgr->GetCount(icmpp->icmp_code));
+		icmp_conn_val->Assign(4, val_mgr->GetCount(len));
+		icmp_conn_val->Assign(5, val_mgr->GetCount(ip_hdr->TTL()));
+		icmp_conn_val->Assign(6, val_mgr->GetBool(icmpv6));
 		}
 
 	Ref(icmp_conn_val);
@@ -352,18 +352,18 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	RecordVal* id_val = new RecordVal(conn_id);
 
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, port_mgr->Get(src_port, proto));
+	id_val->Assign(1, val_mgr->GetPort(src_port, proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, port_mgr->Get(dst_port, proto));
+	id_val->Assign(3, val_mgr->GetPort(dst_port, proto));
 
 	iprec->Assign(0, id_val);
-	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
-	iprec->Assign(2, new Val(proto, TYPE_COUNT));
-	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
-	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
-	iprec->Assign(5, new Val(bad_checksum, TYPE_BOOL));
-	iprec->Assign(6, new Val(MF, TYPE_BOOL));
-	iprec->Assign(7, new Val(DF, TYPE_BOOL));
+	iprec->Assign(1, val_mgr->GetCount(ip_len));
+	iprec->Assign(2, val_mgr->GetCount(proto));
+	iprec->Assign(3, val_mgr->GetCount(frag_offset));
+	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
+	iprec->Assign(5, val_mgr->GetBool(bad_checksum));
+	iprec->Assign(6, val_mgr->GetBool(MF));
+	iprec->Assign(7, val_mgr->GetBool(DF));
 
 	return iprec;
 	}
@@ -411,19 +411,19 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	RecordVal* id_val = new RecordVal(conn_id);
 
 	id_val->Assign(0, new AddrVal(src_addr));
-	id_val->Assign(1, port_mgr->Get(src_port, proto));
+	id_val->Assign(1, val_mgr->GetPort(src_port, proto));
 	id_val->Assign(2, new AddrVal(dst_addr));
-	id_val->Assign(3, port_mgr->Get(dst_port, proto));
+	id_val->Assign(3, val_mgr->GetPort(dst_port, proto));
 
 	iprec->Assign(0, id_val);
-	iprec->Assign(1, new Val(ip_len, TYPE_COUNT));
-	iprec->Assign(2, new Val(proto, TYPE_COUNT));
-	iprec->Assign(3, new Val(frag_offset, TYPE_COUNT));
-	iprec->Assign(4, new Val(bad_hdr_len, TYPE_BOOL));
+	iprec->Assign(1, val_mgr->GetCount(ip_len));
+	iprec->Assign(2, val_mgr->GetCount(proto));
+	iprec->Assign(3, val_mgr->GetCount(frag_offset));
+	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
-	iprec->Assign(5, new Val(0, TYPE_BOOL));
-	iprec->Assign(6, new Val(MF, TYPE_BOOL));
-	iprec->Assign(7, new Val(DF, TYPE_BOOL));
+	iprec->Assign(5, val_mgr->GetBool(0));
+	iprec->Assign(6, val_mgr->GetBool(MF));
+	iprec->Assign(7, val_mgr->GetBool(DF));
 
 	return iprec;
 	}
@@ -471,14 +471,14 @@ void ICMP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
 	int size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, new Val(0, TYPE_COUNT));
-		endp->Assign(1, new Val(int(ICMP_INACTIVE), TYPE_COUNT));
+		endp->Assign(0, val_mgr->GetCount(0));
+		endp->Assign(1, val_mgr->GetCount(int(ICMP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, new Val(size, TYPE_COUNT));
-		endp->Assign(1, new Val(int(ICMP_ACTIVE), TYPE_COUNT));
+		endp->Assign(0, val_mgr->GetCount(size));
+		endp->Assign(1, val_mgr->GetCount(int(ICMP_ACTIVE)));
 		}
 	}
 
@@ -514,8 +514,8 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr));
-	vl->append(new Val(iid, TYPE_COUNT));
-	vl->append(new Val(iseq, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(iid));
+	vl->append(val_mgr->GetCount(iseq));
 	vl->append(new StringVal(payload));
 
 	ConnectionEvent(f, vl);
@@ -537,13 +537,13 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new Val(icmpp->icmp_num_addrs, TYPE_COUNT)); // Cur Hop Limit
-	vl->append(new Val(icmpp->icmp_wpa & 0x80, TYPE_BOOL)); // Managed
-	vl->append(new Val(icmpp->icmp_wpa & 0x40, TYPE_BOOL)); // Other
-	vl->append(new Val(icmpp->icmp_wpa & 0x20, TYPE_BOOL)); // Home Agent
-	vl->append(new Val((icmpp->icmp_wpa & 0x18)>>3, TYPE_COUNT)); // Pref
-	vl->append(new Val(icmpp->icmp_wpa & 0x04, TYPE_BOOL)); // Proxy
-	vl->append(new Val(icmpp->icmp_wpa & 0x02, TYPE_COUNT)); // Reserved
+	vl->append(val_mgr->GetCount(icmpp->icmp_num_addrs)); // Cur Hop Limit
+	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x80)); // Managed
+	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x40)); // Other
+	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x20)); // Home Agent
+	vl->append(val_mgr->GetCount((icmpp->icmp_wpa & 0x18)>>3)); // Pref
+	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x04)); // Proxy
+	vl->append(val_mgr->GetCount(icmpp->icmp_wpa & 0x02)); // Reserved
 	vl->append(new IntervalVal((double)ntohs(icmpp->icmp_lifetime), Seconds));
 	vl->append(new IntervalVal((double)ntohl(reachable), Milliseconds));
 	vl->append(new IntervalVal((double)ntohl(retrans), Milliseconds));
@@ -567,9 +567,9 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
 	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new Val(icmpp->icmp_num_addrs & 0x80, TYPE_BOOL)); // Router
-	vl->append(new Val(icmpp->icmp_num_addrs & 0x40, TYPE_BOOL)); // Solicited
-	vl->append(new Val(icmpp->icmp_num_addrs & 0x20, TYPE_BOOL)); // Override
+	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x80)); // Router
+	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x40)); // Solicited
+	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x20)); // Override
 	vl->append(new AddrVal(tgtaddr));
 
 	int opt_offset = sizeof(in6_addr);
@@ -660,7 +660,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(BuildICMPVal(icmpp, len, 0, ip_hdr));
-		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(icmpp->icmp_code));
 		vl->append(ExtractICMP4Context(caplen, data));
 		ConnectionEvent(f, vl);
 		}
@@ -700,7 +700,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-		vl->append(new Val(icmpp->icmp_code, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(icmpp->icmp_code));
 		vl->append(ExtractICMP6Context(caplen, data));
 		ConnectionEvent(f, vl);
 		}
@@ -740,8 +740,8 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			}
 
 		RecordVal* rv = new RecordVal(icmp6_nd_option_type);
-		rv->Assign(0, new Val(type, TYPE_COUNT));
-		rv->Assign(1, new Val(length, TYPE_COUNT));
+		rv->Assign(0, val_mgr->GetCount(type));
+		rv->Assign(1, val_mgr->GetCount(length));
 
 		// Adjust length to be in units of bytes, exclude type/length fields.
 		length = length * 8 - 2;
@@ -780,9 +780,9 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 				uint32 valid_life = *((const uint32*)(data + 2));
 				uint32 prefer_life = *((const uint32*)(data + 6));
 				in6_addr prefix = *((const in6_addr*)(data + 14));
-				info->Assign(0, new Val(prefix_len, TYPE_COUNT));
-				info->Assign(1, new Val(L_flag, TYPE_BOOL));
-				info->Assign(2, new Val(A_flag, TYPE_BOOL));
+				info->Assign(0, val_mgr->GetCount(prefix_len));
+				info->Assign(1, val_mgr->GetBool(L_flag));
+				info->Assign(2, val_mgr->GetBool(A_flag));
 				info->Assign(3, new IntervalVal((double)ntohl(valid_life), Seconds));
 				info->Assign(4, new IntervalVal((double)ntohl(prefer_life), Seconds));
 				info->Assign(5, new AddrVal(IPAddr(prefix)));
@@ -813,8 +813,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			// MTU option
 			{
 			if ( caplen >= 6 )
-				rv->Assign(5, new Val(ntohl(*((const uint32*)(data + 2))),
-				                      TYPE_COUNT));
+				rv->Assign(5, val_mgr->GetCount(ntohl(*((const uint32*)(data + 2)))));
 			else
 				set_payload_field = true;
 

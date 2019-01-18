@@ -49,8 +49,8 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(threshold, TYPE_COUNT));
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetCount(threshold));
+	vl->append(val_mgr->GetBool(is_orig));
 	ConnectionEvent(f, vl);
 	}
 
@@ -159,10 +159,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, new Val(orig_pkts, TYPE_COUNT));
-	orig_endp->Assign(bytesidx, new Val(orig_bytes, TYPE_COUNT));
-	resp_endp->Assign(pktidx, new Val(resp_pkts, TYPE_COUNT));
-	resp_endp->Assign(bytesidx, new Val(resp_bytes, TYPE_COUNT));
+	orig_endp->Assign(pktidx, val_mgr->GetCount(orig_pkts));
+	orig_endp->Assign(bytesidx, val_mgr->GetCount(orig_bytes));
+	resp_endp->Assign(pktidx, val_mgr->GetCount(resp_pkts));
+	resp_endp->Assign(bytesidx, val_mgr->GetCount(resp_bytes));
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

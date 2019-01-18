@@ -386,7 +386,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		loop_over_list(*args, i)
 			Unref((*args)[i]);
 
-		return Flavor() == FUNC_FLAVOR_HOOK ? new Val(true, TYPE_BOOL) : 0;
+		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
 
 	Frame* f = new Frame(frame_size, this, args);
@@ -464,7 +464,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			if ( flow == FLOW_BREAK )
 				{
 				// Short-circuit execution of remaining hook handler bodies.
-				result = new Val(false, TYPE_BOOL);
+				result = val_mgr->GetFalse();
 				break;
 				}
 			}
@@ -478,7 +478,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
-			result = new Val(true, TYPE_BOOL);
+			result = val_mgr->GetTrue();
 		}
 
 	// Warn if the function returns something, but we returned from

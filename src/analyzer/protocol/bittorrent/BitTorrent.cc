@@ -122,7 +122,7 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(orig));
 		vl->append(new StringVal(msg));
 		ConnectionEvent(bittorrent_peer_weird, vl);
 		}

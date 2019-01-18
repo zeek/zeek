@@ -96,7 +96,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, new Val((uint64) X509_get_version(ssl_cert) + 1, TYPE_COUNT));
+	pX509Cert->Assign(0, val_mgr->GetCount((uint64) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, new StringVal(len, buf));
@@ -204,7 +204,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, const char* 
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, new Val(length, TYPE_COUNT));
+			pX509Cert->Assign(10, val_mgr->GetCount(length));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -222,10 +222,10 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 	if ( constr )
 		{
 		RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
-		pBasicConstraint->Assign(0, new Val(constr->ca ? 1 : 0, TYPE_BOOL));
+		pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
 
 		if ( constr->pathlen )
-			pBasicConstraint->Assign(1, new Val((int32_t) ASN1_INTEGER_get(constr->pathlen), TYPE_COUNT));
+			pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());
@@ -365,7 +365,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		if ( ips != 0 )
 			sanExt->Assign(3, ips);
 
-		sanExt->Assign(4, new Val(otherfields, TYPE_BOOL));
+		sanExt->Assign(4, val_mgr->GetBool(otherfields));
 
 		val_list* vl = new val_list();
 		vl->append(GetFile()->GetVal()->Ref());

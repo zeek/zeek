@@ -30,7 +30,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		// lookups and limit the ID space so that that doesn't grow too
 		// large.
 		builtin_error(fmt("PCAP filter ids must remain below 100 (is %" PRId64 ")", id->AsInt()));
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	bool success = true;
@@ -47,7 +47,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 			success = false;
 		}
 
-	return new Val(success, TYPE_BOOL);
+	return val_mgr->GetBool(success);
 	%}
 
 ## Installs a PCAP filter that has been precompiled with
@@ -83,7 +83,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 			success = false;
 		}
 
-	return new Val(success, TYPE_BOOL);
+	return val_mgr->GetBool(success);
 	%}
 
 ## Returns a string representation of the last PCAP error.

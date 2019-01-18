@@ -38,7 +38,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		auto dst_port_val = port_mgr->Get(ntohs(tcp_analyzer->Conn()->RespPort()),
+		auto dst_port_val = val_mgr->GetPort(ntohs(tcp_analyzer->Conn()->RespPort()),
 					TRANSPORT_TCP);
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
@@ -138,9 +138,9 @@ void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 		{
 		val_list* vl = new val_list;
 		vl->append(dst_analyzer->BuildConnVal());
-		vl->append(new Val(IsOrig(), TYPE_BOOL));
-		vl->append(new Val(seq, TYPE_COUNT));
-		vl->append(new Val(len, TYPE_COUNT));
+		vl->append(val_mgr->GetBool(IsOrig()));
+		vl->append(val_mgr->GetCount(seq));
+		vl->append(val_mgr->GetCount(len));
 		dst_analyzer->ConnectionEvent(content_gap, vl);
 		}
 
@@ -337,7 +337,7 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 		{
 		val_list* vl = new val_list();
 		vl->append(Endpoint()->Conn()->BuildConnVal());
-		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(val_mgr->GetBool(IsOrig()));
 		vl->append(new StringVal("TCP reassembler content write failure"));
 		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
 		}
@@ -354,7 +354,7 @@ void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
 		{
 		val_list* vl = new val_list();
 		vl->append(Endpoint()->Conn()->BuildConnVal());
-		vl->append(new Val(IsOrig(), TYPE_BOOL));
+		vl->append(val_mgr->GetBool(IsOrig()));
 		vl->append(new StringVal("TCP reassembler gap write failure"));
 		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
 		}
@@ -598,8 +598,8 @@ void TCP_Reassembler::DeliverBlock(uint64 seq, int len, const u_char* data)
 		{
 		val_list* vl = new val_list();
 		vl->append(tcp_analyzer->BuildConnVal());
-		vl->append(new Val(IsOrig(), TYPE_BOOL));
-		vl->append(new Val(seq, TYPE_COUNT));
+		vl->append(val_mgr->GetBool(IsOrig()));
+		vl->append(val_mgr->GetCount(seq));
 		vl->append(new StringVal(len, (const char*) data));
 
 		tcp_analyzer->ConnectionEvent(tcp_contents, vl);

@@ -191,7 +191,7 @@ void PersistenceSerializer::RaiseFinishedSendState()
 	{
 	val_list* vl = new val_list;
 	vl->append(new AddrVal(htonl(remote_host)));
-	vl->append(port_mgr->Get(remote_port));
+	vl->append(val_mgr->GetPort(remote_port));
 
 	mgr.QueueEvent(finished_send_state, vl);
 	reporter->Log("Serialization done.");

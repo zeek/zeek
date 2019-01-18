@@ -141,10 +141,10 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 
 	val_list* vl = new val_list;
 
-	vl->append(new Val(id1, TYPE_INT));
+	vl->append(val_mgr->GetInt(id1));
 
 	if ( id2 >= 0 )
-		vl->append(new Val(id2, TYPE_INT));
+		vl->append(val_mgr->GetInt(id2));
 
 	endp->TCP()->ConnectionEvent(f, vl);
 	}
@@ -154,8 +154,8 @@ void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	val_list* vl = new val_list;
 
 	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(new Val(stp_id, TYPE_INT));
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetInt(stp_id));
+	vl->append(val_mgr->GetBool(is_orig));
 
 	endp->TCP()->ConnectionEvent(stp_create_endp, vl);
 	}

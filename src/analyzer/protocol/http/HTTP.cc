@@ -614,11 +614,11 @@ Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
 	RecordVal* stat = new RecordVal(http_message_stat);
 	int field = 0;
 	stat->Assign(field++, new Val(start_time, TYPE_TIME));
-	stat->Assign(field++, new Val(interrupted, TYPE_BOOL));
+	stat->Assign(field++, val_mgr->GetBool(interrupted));
 	stat->Assign(field++, new StringVal(msg));
-	stat->Assign(field++, new Val(body_length, TYPE_COUNT));
-	stat->Assign(field++, new Val(content_gap_length, TYPE_COUNT));
-	stat->Assign(field++, new Val(header_length, TYPE_COUNT));
+	stat->Assign(field++, val_mgr->GetCount(body_length));
+	stat->Assign(field++, val_mgr->GetCount(content_gap_length));
+	stat->Assign(field++, val_mgr->GetCount(header_length));
 	return stat;
 	}
 
@@ -648,7 +648,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 		{
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		vl->append(BuildMessageStat(interrupted, detail));
 		GetAnalyzer()->ConnectionEvent(http_message_done, vl);
 		}
@@ -681,7 +681,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 		{
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		analyzer->ConnectionEvent(http_begin_entity, vl);
 		}
 	}
@@ -698,7 +698,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 		{
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		analyzer->ConnectionEvent(http_end_entity, vl);
 		}
 
@@ -739,7 +739,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		{
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		vl->append(BuildHeaderTable(hlist));
 		analyzer->ConnectionEvent(http_all_headers, vl);
 		}
@@ -753,7 +753,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 
 		val_list* vl = new val_list();
 		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		vl->append(ty);
 		vl->append(subty);
 		analyzer->ConnectionEvent(http_content_type, vl);
@@ -1177,8 +1177,8 @@ void HTTP_Analyzer::GenStats()
 	if ( http_stats )
 		{
 		RecordVal* r = new RecordVal(http_stats_rec);
-		r->Assign(0, new Val(num_requests, TYPE_COUNT));
-		r->Assign(1, new Val(num_replies, TYPE_COUNT));
+		r->Assign(0, val_mgr->GetCount(num_requests));
+		r->Assign(1, val_mgr->GetCount(num_replies));
 		r->Assign(2, new Val(request_version, TYPE_DOUBLE));
 		r->Assign(3, new Val(reply_version, TYPE_DOUBLE));
 
@@ -1447,7 +1447,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
 		vl->append(new StringVal(fmt("%.1f", reply_version)));
-		vl->append(new Val(reply_code, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(reply_code));
 		if ( reply_reason_phrase )
 			vl->append(reply_reason_phrase->Ref());
 		else
@@ -1699,7 +1699,7 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 
 		val_list* vl = new val_list();
 		vl->append(BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		vl->append(mime::new_string_val(h->get_name())->ToUpper());
 		vl->append(mime::new_string_val(h->get_value()));
 		if ( DEBUG_http )
@@ -1835,8 +1835,8 @@ void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
 		{
 		val_list* vl = new val_list();
 		vl->append(BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new Val(entity_data->Len(), TYPE_COUNT));
+		vl->append(val_mgr->GetBool(is_orig));
+		vl->append(val_mgr->GetCount(entity_data->Len()));
 		vl->append(new StringVal(entity_data));
 		ConnectionEvent(http_entity_data, vl);
 		}

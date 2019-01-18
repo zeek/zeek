@@ -5,6 +5,7 @@
 
 #include <string>
 #include <set>
+#include <unordered_map>
 #include <map>
 #include <list>
 
@@ -75,6 +76,7 @@ class Serializer;
 class VectorType;
 class TypeType;
 class OpaqueType;
+class EnumVal;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -572,6 +574,8 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
+	EnumVal* GetVal(bro_int_t i);
+
 protected:
 	EnumType() { counter = 0; }
 
@@ -586,6 +590,9 @@ protected:
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
+
+	using ValMap = std::unordered_map<bro_int_t, EnumVal*>;
+	ValMap vals;
 
 	// The counter is initialized to 0 and incremented on every implicit
 	// auto-increment name that gets added (thus its > 0 if

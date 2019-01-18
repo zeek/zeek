@@ -21,6 +21,16 @@
 #include "StateAccess.h"
 #include "IPAddr.h"
 
+// We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
+// We distinguish between them based on the bits specified in the *_PORT_MASK
+// entries specified below.
+#define NUM_PORT_SPACES 4
+#define PORT_SPACE_MASK 0x30000
+
+#define TCP_PORT_MASK	0x10000
+#define UDP_PORT_MASK	0x20000
+#define ICMP_PORT_MASK	0x30000
+
 class Val;
 class Func;
 class BroFile;
@@ -52,7 +62,7 @@ typedef union {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
 
-	// Used for count, counter, port, subnet.
+	// Used for count, counter, port.
 	bro_uint_t uint_val;
 
 	// Used for addr
@@ -77,6 +87,7 @@ typedef union {
 
 class Val : public BroObj {
 public:
+	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(bool b, TypeTag t)
 		{
 		val.int_val = b;
@@ -86,6 +97,7 @@ public:
 #endif
 		}
 
+	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
@@ -95,6 +107,7 @@ public:
 #endif
 		}
 
+	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
@@ -104,6 +117,7 @@ public:
 #endif
 		}
 
+	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int64 i, TypeTag t)
 		{
 		val.int_val = i;
@@ -113,6 +127,7 @@ public:
 #endif
 		}
 
+	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint64 u, TypeTag t)
 		{
 		val.uint_val = u;
@@ -353,17 +368,33 @@ public:
 #endif
 
 protected:
-	Val(BroString* s, TypeTag t)
-		{
-		val.string_val = s;
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
+
+	friend class EnumType;
+	friend class ValManager;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
+
+	static Val* MakeBool(bool b)
+		{
+		auto rval = new Val(TYPE_BOOL);
+		rval->val.int_val = b;
+		return rval;
+		}
+
+	static Val* MakeInt(bro_int_t i)
+		{
+		auto rval = new Val(TYPE_INT);
+		rval->val.int_val = i;
+		return rval;
+		}
+
+	static Val* MakeCount(bro_uint_t u)
+		{
+		auto rval = new Val(TYPE_COUNT);
+		rval->val.uint_val = u;
+		return rval;
+		}
 
 	explicit Val(TypeTag t)
 		{
@@ -397,6 +428,78 @@ protected:
 #endif
 
 };
+
+class PortManager {
+public:
+	// Port number given in host order.
+	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	PortVal* Get(uint32 port_num, TransportProto port_type) const;
+
+	// Host-order port number already masked with port space protocol mask.
+	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	PortVal* Get(uint32 port_num) const;
+
+	// Returns a masked port number
+	BRO_DEPRECATED("use PortVal::Mask() instead")
+	uint32 Mask(uint32 port_num, TransportProto port_type) const;
+};
+
+extern PortManager* port_mgr;
+
+// Holds pre-allocated Val objects for those where it's more optimal to
+// re-use existing ones rather than allocate anew.
+class ValManager {
+public:
+
+	static constexpr bro_uint_t PREALLOCATED_COUNTS = 4096;
+	static constexpr bro_uint_t PREALLOCATED_INTS = 512;
+	static constexpr bro_int_t PREALLOCATED_INT_LOWEST = -255;
+	static constexpr bro_int_t PREALLOCATED_INT_HIGHEST =
+            PREALLOCATED_INT_LOWEST + PREALLOCATED_INTS - 1;
+
+	ValManager();
+
+	~ValManager();
+
+	inline Val* GetTrue() const
+		{ return b_true->Ref(); }
+
+	inline Val* GetFalse() const
+		{ return b_false->Ref(); }
+
+	inline Val* GetBool(bool b) const
+		{ return b ? b_true->Ref() : b_false->Ref(); }
+
+	inline Val* GetInt(int64 i) const
+		{
+		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
+		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
+		}
+
+	inline Val* GetCount(uint64 i) const
+		{
+		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i]->Ref();
+		}
+
+	StringVal* GetEmptyString() const;
+
+	// Port number given in host order.
+	PortVal* GetPort(uint32 port_num, TransportProto port_type) const;
+
+	// Host-order port number already masked with port space protocol mask.
+	PortVal* GetPort(uint32 port_num) const;
+
+private:
+
+	std::array<std::array<PortVal*, 65536>, NUM_PORT_SPACES> ports;
+	StringVal* empty_string;
+	Val* b_true;
+	Val* b_false;
+	Val** counts;
+	Val** ints;
+};
+
+extern ValManager* val_mgr;
 
 class MutableVal : public Val {
 public:
@@ -494,47 +597,17 @@ protected:
 };
 
 
-// We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
-// We distinguish between them based on the bits specified in the *_PORT_MASK
-// entries specified below.
-#define NUM_PORT_SPACES 4
-#define PORT_SPACE_MASK 0x30000
-
-#define TCP_PORT_MASK	0x10000
-#define UDP_PORT_MASK	0x20000
-#define ICMP_PORT_MASK	0x30000
-
-class PortManager {
-public:
-	PortManager();
-	~PortManager();
-
-	// Port number given in host order.
-	PortVal* Get(uint32 port_num, TransportProto port_type) const;
-
-	// Host-order port number already masked with port space protocol mask.
-	PortVal* Get(uint32 port_num) const;
-
-	// Returns a masked port number
-	uint32 Mask(uint32 port_num, TransportProto port_type) const;
-
-private:
-	std::array<std::array<PortVal*, 65536>, NUM_PORT_SPACES> ports;
-};
-
-extern PortManager* port_mgr;
-
 class PortVal : public Val {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use port_mgr->Get() instead")
+	BRO_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal(uint32 p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use port_mgr->Get() instead")
+	BRO_DEPRECATED("use val_mgr->GetPort() instead")
 	explicit PortVal(uint32 p);
 
-	Val* SizeVal() const override	{ return new Val(val.uint_val, TYPE_INT); }
+	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
 
 	// Returns the port number in host order (not including the mask).
 	uint32 Port() const;
@@ -556,9 +629,12 @@ public:
 			return TRANSPORT_UNKNOWN;
 		}
 
+	// Returns a masked port number
+	static uint32 Mask(uint32 port_num, TransportProto port_type);
+
 protected:
 	friend class Val;
-	friend class PortManager;
+	friend class ValManager;
 	PortVal()	{}
 	PortVal(uint32 p, bool unused);
 
@@ -628,7 +704,7 @@ public:
 	StringVal(int length, const char* s);
 
 	Val* SizeVal() const override
-		{ return new Val(val.string_val->Len(), TYPE_COUNT); }
+		{ return val_mgr->GetCount(val.string_val->Len()); }
 
 	int Len()		{ return AsString()->Len(); }
 	const u_char* Bytes()	{ return AsString()->Bytes(); }
@@ -681,7 +757,7 @@ public:
 
 	TypeTag BaseTag() const		{ return tag; }
 
-	Val* SizeVal() const override	{ return new Val(vals.length(), TYPE_COUNT); }
+	Val* SizeVal() const override	{ return val_mgr->GetCount(vals.length()); }
 
 	int Length() const		{ return vals.length(); }
 	Val* Index(const int n)		{ return vals[n]; }
@@ -789,7 +865,7 @@ public:
 	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
 	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
 
-	Val* SizeVal() const override	{ return new Val(Size(), TYPE_COUNT); }
+	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
 
 	// Add the entire contents of the table to the given value,
 	// which must also be a TableVal.
@@ -940,7 +1016,7 @@ public:
 	~RecordVal() override;
 
 	Val* SizeVal() const override
-		{ return new Val(record_type->NumFields(), TYPE_COUNT); }
+		{ return val_mgr->GetCount(record_type->NumFields()); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
@@ -1003,16 +1079,24 @@ protected:
 
 class EnumVal : public Val {
 public:
+
+	BRO_DEPRECATED("use t->GetVal(i) instead")
 	EnumVal(int i, EnumType* t) : Val(t)
 		{
 		val.int_val = i;
-		type = t;
 		}
 
-	Val* SizeVal() const override	{ return new Val(val.int_val, TYPE_INT); }
+	Val* SizeVal() const override	{ return val_mgr->GetInt(val.int_val); }
 
 protected:
 	friend class Val;
+	friend class EnumType;
+
+	EnumVal(EnumType* t, int i) : Val(t)
+		{
+		val.int_val = i;
+		}
+
 	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
@@ -1027,7 +1111,7 @@ public:
 	~VectorVal() override;
 
 	Val* SizeVal() const override
-		{ return new Val(uint32(val.vector_val->size()), TYPE_COUNT); }
+		{ return val_mgr->GetCount(uint32(val.vector_val->size())); }
 
 	// Returns false if the type of the argument was wrong.
 	// The vector will automatically grow to accomodate the index.

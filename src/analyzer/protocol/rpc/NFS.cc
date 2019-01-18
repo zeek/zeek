@@ -250,7 +250,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = new EnumVal(c->Proc(), BifType::Enum::NFS3::proc_t);
+			reply = BifType::Enum::NFS3::proc_t->GetVal(c->Proc());
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -329,20 +329,20 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
-		auxgids->Assign(i, new Val(c->AuxGIDs()[i], TYPE_COUNT));
+		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
 
 	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
-	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));
-	info->Assign(1, new EnumVal(nfs_status, BifType::Enum::NFS3::status_t));
+	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, BifType::Enum::NFS3::status_t->GetVal(nfs_status));
 	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
 	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
+	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
 	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
 	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, new Val(reply_len, TYPE_COUNT));
-	info->Assign(8, new Val(c->Uid(), TYPE_COUNT));
-	info->Assign(9, new Val(c->Gid(), TYPE_COUNT));
-	info->Assign(10, new Val(c->Stamp(), TYPE_COUNT));
+	info->Assign(7, val_mgr->GetCount(reply_len));
+	info->Assign(8, val_mgr->GetCount(c->Uid()));
+	info->Assign(9, val_mgr->GetCount(c->Gid()));
+	info->Assign(10, val_mgr->GetCount(c->Stamp()));
 	info->Assign(11, new StringVal(c->MachineName()));
 	info->Assign(12, auxgids);
 
@@ -436,13 +436,13 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 EnumVal* NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifType::Enum::NFS3::time_how_t);
+	return BifType::Enum::NFS3::time_how_t->GetVal(t);
 	}
 
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifType::Enum::NFS3::file_type_t);
+	return BifType::Enum::NFS3::file_type_t->GetVal(t);
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
@@ -531,7 +531,7 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(stable, BifType::Enum::NFS3::stable_how_t);
+	return BifType::Enum::NFS3::stable_how_t->GetVal(stable);
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
@@ -575,7 +575,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		bytes_read = extract_XDR_uint32(buf, n);
-		rep->Assign(1, new Val(bytes_read, TYPE_COUNT));
+		rep->Assign(1, val_mgr->GetCount(bytes_read));
 		rep->Assign(2, ExtractBool(buf, n));
 		rep->Assign(3, nfs3_file_data(buf, n, offset, bytes_read));
 		}
@@ -658,9 +658,9 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
-	writeargs->Assign(1, new Val(offset, TYPE_COUNT));  // offset
+	writeargs->Assign(1, val_mgr->GetCount(offset));  // offset
 	bytes = extract_XDR_uint32(buf, n);
-	writeargs->Assign(2, new Val(bytes, TYPE_COUNT));   // size
+	writeargs->Assign(2, val_mgr->GetCount(bytes));   // size
 
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
@@ -745,7 +745,7 @@ RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 	{
 	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
 
-	args->Assign(0, new Val(isplus, TYPE_BOOL));
+	args->Assign(0, val_mgr->GetBool(isplus));
 	args->Assign(1, nfs3_fh(buf, n));
 	args->Assign(2, ExtractUint64(buf,n));	// cookie
 	args->Assign(3, ExtractUint64(buf,n));	// cookieverf
@@ -762,7 +762,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	{
 	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readdir_reply_t);
 
-	rep->Assign(0, new Val(isplus, TYPE_BOOL));
+	rep->Assign(0, val_mgr->GetBool(isplus));
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -804,12 +804,12 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 
 Val* NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint32(buf, n), TYPE_COUNT);
+	return val_mgr->GetCount(extract_XDR_uint32(buf, n));
 	}
 
 Val* NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint64(buf, n), TYPE_COUNT);
+	return val_mgr->GetCount(extract_XDR_uint64(buf, n));
 	}
 
 Val* NFS_Interp::ExtractTime(const u_char*& buf, int& n)
@@ -824,7 +824,7 @@ Val* NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 
 Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint32(buf, n), TYPE_BOOL);
+	return val_mgr->GetBool(extract_XDR_uint32(buf, n));
 	}
 
 

@@ -24,7 +24,7 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 		if ( data )
 			vl->append(new StringVal(len, (const char*)data));
 		else
-			vl->append(new StringVal(""));
+			vl->append(val_mgr->GetEmptyString());
 
 		mgr.QueueEvent(signature_match, vl);
 		}

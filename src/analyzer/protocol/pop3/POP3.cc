@@ -929,7 +929,7 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	val_list* vl = new val_list;
 
 	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetBool(is_orig));
 	if ( arg1 )
 		vl->append(new StringVal(arg1));
 	if ( arg2 )

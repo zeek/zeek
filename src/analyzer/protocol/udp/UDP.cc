@@ -110,7 +110,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
-		auto port_val = port_mgr->Get(ntohs(up->uh_dport), TRANSPORT_UDP);
+		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
 		Val* result = 0;
 		bool do_udp_contents = false;
 
@@ -135,7 +135,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
-			vl->append(new Val(is_orig, TYPE_BOOL));
+			vl->append(val_mgr->GetBool(is_orig));
 			vl->append(new StringVal(len, (const char*) data));
 			ConnectionEvent(udp_contents, vl);
 			}
@@ -200,14 +200,14 @@ void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, new Val(0, TYPE_COUNT));
-		endp->Assign(1, new Val(int(UDP_INACTIVE), TYPE_COUNT));
+		endp->Assign(0, val_mgr->GetCount(0));
+		endp->Assign(1, val_mgr->GetCount(int(UDP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, new Val(size, TYPE_COUNT));
-		endp->Assign(1, new Val(int(UDP_ACTIVE), TYPE_COUNT));
+		endp->Assign(0, val_mgr->GetCount(size));
+		endp->Assign(1, val_mgr->GetCount(int(UDP_ACTIVE)));
 		}
 	}
 

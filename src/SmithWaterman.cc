@@ -94,13 +94,13 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 
 				RecordVal* align_val = new RecordVal(sw_align_type);
 				align_val->Assign(0, new StringVal(new BroString(*align.string)));
-				align_val->Assign(1, new Val(align.index, TYPE_COUNT));
+				align_val->Assign(1, val_mgr->GetCount(align.index));
 
 				aligns->Assign(j+1, align_val);
 				}
 
 			st_val->Assign(1, aligns);
-			st_val->Assign(2, new Val(bst->IsNewAlignment(), TYPE_BOOL));
+			st_val->Assign(2, val_mgr->GetBool(bst->IsNewAlignment()));
 			result->Assign(i+1, st_val);
 			}
 		}

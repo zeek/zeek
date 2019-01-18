@@ -85,8 +85,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
-		vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
+		vl->append(val_mgr->GetPort(local_port, TRANSPORT_TCP));
+		vl->append(val_mgr->GetPort(remote_port, TRANSPORT_TCP));
 
 		ConnectionEvent(ident_request, vl);
 
@@ -146,8 +146,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			{
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
-			vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
-			vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
+			vl->append(val_mgr->GetPort(local_port, TRANSPORT_TCP));
+			vl->append(val_mgr->GetPort(remote_port, TRANSPORT_TCP));
 			vl->append(new StringVal(end_of_line - line, line));
 
 			ConnectionEvent(ident_error, vl);
@@ -180,8 +180,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			val_list* vl = new val_list;
 			vl->append(BuildConnVal());
-			vl->append(port_mgr->Get(local_port, TRANSPORT_TCP));
-			vl->append(port_mgr->Get(remote_port, TRANSPORT_TCP));
+			vl->append(val_mgr->GetPort(local_port, TRANSPORT_TCP));
+			vl->append(val_mgr->GetPort(remote_port, TRANSPORT_TCP));
 			vl->append(new StringVal(end_of_line - line, line));
 			vl->append(new StringVal(sys_type_s));
 

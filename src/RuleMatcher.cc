@@ -65,8 +65,8 @@ Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 	RecordVal* val = new RecordVal(signature_state);
 	val->Assign(0, new StringVal(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->BuildConnVal());
-	val->Assign(2, new Val(state->is_orig, TYPE_BOOL));
-	val->Assign(3, new Val(state->payload_size, TYPE_COUNT));
+	val->Assign(2, val_mgr->GetBool(state->is_orig));
+	val->Assign(3, val_mgr->GetCount(state->payload_size));
 	return val;
 	}
 

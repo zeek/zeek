@@ -21,14 +21,14 @@ refine connection SMB_Conn += {
 		//	{ // do nothing
 		//	}
 
-		r->Assign(0, new Val(${hdr.command}, TYPE_COUNT));
-		r->Assign(1, new Val(${hdr.status}, TYPE_COUNT));
-		r->Assign(2, new Val(${hdr.flags}, TYPE_COUNT));
-		r->Assign(3, new Val(${hdr.flags2}, TYPE_COUNT));
-		r->Assign(4, new Val(${hdr.tid}, TYPE_COUNT));
-		r->Assign(5, new Val(${hdr.pid}, TYPE_COUNT));
-		r->Assign(6, new Val(${hdr.uid}, TYPE_COUNT));
-		r->Assign(7, new Val(${hdr.mid}, TYPE_COUNT));
+		r->Assign(0, val_mgr->GetCount(${hdr.command}));
+		r->Assign(1, val_mgr->GetCount(${hdr.status}));
+		r->Assign(2, val_mgr->GetCount(${hdr.flags}));
+		r->Assign(3, val_mgr->GetCount(${hdr.flags2}));
+		r->Assign(4, val_mgr->GetCount(${hdr.tid}));
+		r->Assign(5, val_mgr->GetCount(${hdr.pid}));
+		r->Assign(6, val_mgr->GetCount(${hdr.uid}));
+		r->Assign(7, val_mgr->GetCount(${hdr.mid}));
 
 		return r;
 		%}

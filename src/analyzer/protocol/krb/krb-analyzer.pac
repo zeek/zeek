@@ -10,19 +10,19 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
 	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Options);
 
-	rv->Assign(0, new Val(opts->forwardable(), TYPE_BOOL));
-	rv->Assign(1, new Val(opts->forwarded(), TYPE_BOOL));
-	rv->Assign(2, new Val(opts->proxiable(), TYPE_BOOL));
-	rv->Assign(3, new Val(opts->proxy(), TYPE_BOOL));
-	rv->Assign(4, new Val(opts->allow_postdate(), TYPE_BOOL));
-	rv->Assign(5, new Val(opts->postdated(), TYPE_BOOL));
-	rv->Assign(6, new Val(opts->renewable(), TYPE_BOOL));
-	rv->Assign(7, new Val(opts->opt_hardware_auth(), TYPE_BOOL));
-	rv->Assign(8, new Val(opts->disable_transited_check(), TYPE_BOOL));
-	rv->Assign(9, new Val(opts->renewable_ok(), TYPE_BOOL));
-	rv->Assign(10, new Val(opts->enc_tkt_in_skey(), TYPE_BOOL));
-	rv->Assign(11, new Val(opts->renew(), TYPE_BOOL));
-	rv->Assign(12, new Val(opts->validate(), TYPE_BOOL));
+	rv->Assign(0, val_mgr->GetBool(opts->forwardable()));
+	rv->Assign(1, val_mgr->GetBool(opts->forwarded()));
+	rv->Assign(2, val_mgr->GetBool(opts->proxiable()));
+	rv->Assign(3, val_mgr->GetBool(opts->proxy()));
+	rv->Assign(4, val_mgr->GetBool(opts->allow_postdate()));
+	rv->Assign(5, val_mgr->GetBool(opts->postdated()));
+	rv->Assign(6, val_mgr->GetBool(opts->renewable()));
+	rv->Assign(7, val_mgr->GetBool(opts->opt_hardware_auth()));
+	rv->Assign(8, val_mgr->GetBool(opts->disable_transited_check()));
+	rv->Assign(9, val_mgr->GetBool(opts->renewable_ok()));
+	rv->Assign(10, val_mgr->GetBool(opts->enc_tkt_in_skey()));
+	rv->Assign(11, val_mgr->GetBool(opts->renew()));
+	rv->Assign(12, val_mgr->GetBool(opts->validate()));
 
 	return rv;
 }
@@ -242,8 +242,8 @@ refine connection KRB_Conn += {
 		if ( krb_ap_request )
 			{
 			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
-			rv->Assign(0, new Val(${msg.ap_options.use_session_key}, TYPE_BOOL));
-			rv->Assign(1, new Val(${msg.ap_options.mutual_required}, TYPE_BOOL));
+			rv->Assign(0, val_mgr->GetBool(${msg.ap_options.use_session_key}));
+			rv->Assign(1, val_mgr->GetBool(${msg.ap_options.mutual_required}));
 
 			RecordVal* rvticket = proc_ticket(${msg.ticket});
 			StringVal* authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());

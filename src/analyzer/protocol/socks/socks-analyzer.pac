@@ -32,7 +32,7 @@ refine connection SOCKS_Conn += {
 		                                 4,
 		                                 ${request.command},
 		                                 sa,
-		                                 port_mgr->Get(${request.port} | TCP_PORT_MASK),
+		                                 val_mgr->GetPort(${request.port}, TRANSPORT_TCP),
 		                                 array_to_string(${request.user}));
 
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
@@ -50,7 +50,7 @@ refine connection SOCKS_Conn += {
 		                               4,
 		                               ${reply.status},
 		                               sa,
-		                               port_mgr->Get(${reply.port} | TCP_PORT_MASK));
+		                               val_mgr->GetPort(${reply.port}, TRANSPORT_TCP));
 
 		bro_analyzer()->ProtocolConfirmation();
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
@@ -102,8 +102,8 @@ refine connection SOCKS_Conn += {
 		                                 5,
 		                                 ${request.command},
 		                                 sa,
-		                                 port_mgr->Get(${request.port} | TCP_PORT_MASK),
-		                                 new StringVal(""));
+		                                 val_mgr->GetPort(${request.port}, TRANSPORT_TCP),
+		                                 val_mgr->GetEmptyString());
 
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
 
@@ -141,7 +141,7 @@ refine connection SOCKS_Conn += {
 		                               5,
 		                               ${reply.reply},
 		                               sa,
-		                               port_mgr->Get(${reply.port} | TCP_PORT_MASK));
+		                               val_mgr->GetPort(${reply.port}, TRANSPORT_TCP));
 
 		bro_analyzer()->ProtocolConfirmation();
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);

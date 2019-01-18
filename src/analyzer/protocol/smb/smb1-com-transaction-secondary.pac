@@ -6,14 +6,14 @@ refine connection SMB_Conn += {
 		return false;
 
 	RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans_Sec_Args);
-	args->Assign(0, new Val(${val.total_param_count}, TYPE_COUNT));
-	args->Assign(1, new Val(${val.total_data_count}, TYPE_COUNT));
-	args->Assign(2, new Val(${val.param_count}, TYPE_COUNT));
-	args->Assign(3, new Val(${val.param_offset}, TYPE_COUNT));
-	args->Assign(4, new Val(${val.param_displacement}, TYPE_COUNT));
-	args->Assign(5, new Val(${val.data_count}, TYPE_COUNT));
-	args->Assign(6, new Val(${val.data_offset}, TYPE_COUNT));
-	args->Assign(7, new Val(${val.data_displacement}, TYPE_COUNT));
+	args->Assign(0, val_mgr->GetCount(${val.total_param_count}));
+	args->Assign(1, val_mgr->GetCount(${val.total_data_count}));
+	args->Assign(2, val_mgr->GetCount(${val.param_count}));
+	args->Assign(3, val_mgr->GetCount(${val.param_offset}));
+	args->Assign(4, val_mgr->GetCount(${val.param_displacement}));
+	args->Assign(5, val_mgr->GetCount(${val.data_count}));
+	args->Assign(6, val_mgr->GetCount(${val.data_offset}));
+	args->Assign(7, val_mgr->GetCount(${val.data_displacement}));
 
 	StringVal* parameters = new StringVal(${val.parameters}.length(),
 	                                      (const char*)${val.parameters}.data());
@@ -42,7 +42,7 @@ refine connection SMB_Conn += {
 
 	if ( ! payload_str )
 		{
-		payload_str = new StringVal("");
+		payload_str = val_mgr->GetEmptyString();
 		}
 
 	BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),

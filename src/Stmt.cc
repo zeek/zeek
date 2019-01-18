@@ -1479,7 +1479,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
 			f->SetElement((*loop_vars)[0]->Offset(),
-					new Val(i, TYPE_COUNT));
+					val_mgr->GetCount(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 

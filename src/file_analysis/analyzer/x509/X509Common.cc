@@ -261,7 +261,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 		pX509Ext->Assign(1, new StringVal(short_name));
 
 	pX509Ext->Assign(2, new StringVal(oid));
-	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
+	pX509Ext->Assign(3, val_mgr->GetBool(critical));
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event
@@ -274,7 +274,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 	vl->append(GetFile()->GetVal()->Ref());
 	vl->append(pX509Ext);
 	if ( h == ocsp_extension )
-		vl->append(new Val(global ? 1 : 0, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(global ? 1 : 0));
 
 	mgr.QueueEvent(h, vl);
 
@@ -300,7 +300,7 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	char* buffer = (char*) malloc(length);

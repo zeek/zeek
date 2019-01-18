@@ -360,8 +360,8 @@ function setenv%(var: string, val: string%): bool
 	                    val->AsString()->CheckString(), 1);
 
 	if ( result < 0 )
-		return new Val(0, TYPE_BOOL);
-	return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(0);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Shuts down the Bro process immediately.
@@ -384,10 +384,10 @@ function exit%(code: int%): any
 function terminate%(%): bool
 	%{
 	if ( terminating )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	terminate_processing();
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 %%{
@@ -457,7 +457,7 @@ static int do_system(const char* s)
 function system%(str: string%): int
 	%{
 	int result = do_system(str->CheckString());
-	return new Val(result, TYPE_INT);
+	return val_mgr->GetInt(result);
 	%}
 
 ## Invokes a command via the ``system`` function of the OS with a prepared
@@ -478,17 +478,17 @@ function system_env%(str: string, env: table_string_of_string%): int
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
 		builtin_error("system_env() requires a table argument");
-		return new Val(-1, TYPE_INT);
+		return val_mgr->GetInt(-1);
 		}
 
 	if ( ! prepare_environment(env->AsTableVal(), true) )
-		return new Val(-1, TYPE_INT);
+		return val_mgr->GetInt(-1);
 
 	int result = do_system(str->CheckString());
 
 	prepare_environment(env->AsTableVal(), false);
 
-	return new Val(result, TYPE_INT);
+	return val_mgr->GetInt(result);
 	%}
 
 ## Opens a program with ``popen`` and writes a given string to the returned
@@ -509,7 +509,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( ! f )
 		{
 		reporter->Error("Failed to popen %s", prog);
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
 	const u_char* input_data = to_write->Bytes();
@@ -522,10 +522,10 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( bytes_written != input_data_len )
 		{
 		reporter->Error("Failed to write all given data to %s", prog);
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 %%{
@@ -699,7 +699,7 @@ function sha256_hash_init%(%): opaque of sha256
 function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return new Val(rc, TYPE_BOOL);
+	return val_mgr->GetBool(rc);
 	%}
 
 ## Updates the SHA1 value associated with a given index. It is required to
@@ -718,7 +718,7 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return new Val(rc, TYPE_BOOL);
+	return val_mgr->GetBool(rc);
 	%}
 
 ## Updates the SHA256 value associated with a given index. It is required to
@@ -737,7 +737,7 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return new Val(rc, TYPE_BOOL);
+	return val_mgr->GetBool(rc);
 	%}
 
 ## Returns the final MD5 digest of an incremental hash computation.
@@ -806,7 +806,7 @@ function fnv1a32%(input: any%): count
 		rval *= prime32;
 		}
 
-	return new Val(rval, TYPE_COUNT);
+	return val_mgr->GetCount(rval);
 	%}
 
 ## Calculates a weight value for use in a Rendezvous Hashing algorithm.
@@ -836,7 +836,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 	if ( rval < 0 )
 		rval += m; // [0, 2**31 - 1]
 
-	return new Val((uint64) rval, TYPE_COUNT);
+	return val_mgr->GetCount((uint64) rval);
 	%}
 
 ## Generates a random number.
@@ -854,7 +854,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 function rand%(max: count%): count
 	%{
 	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
-	return new Val(result, TYPE_COUNT);
+	return val_mgr->GetCount(result);
 	%}
 
 ## Sets the seed for subsequent :bro:id:`rand` calls.
@@ -1006,7 +1006,7 @@ function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%{
 	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
 	                                                     data->Len());
-	return new Val(status, TYPE_BOOL);
+	return val_mgr->GetBool(status);
 	%}
 
 ## Finishes an incremental entropy calculation. Before using this function,
@@ -1148,7 +1148,7 @@ function check_subnet%(search: subnet, t: any%): bool
 
 	void* res = pt->Lookup(search, true);
 
-	return new Val (res != nullptr, TYPE_BOOL);
+	return val_mgr->GetBool(res != nullptr);
 	%}
 
 ## Checks whether two objects reference the same internal object. This function
@@ -1162,7 +1162,7 @@ function check_subnet%(search: subnet, t: any%): bool
 ## Returns: True if *o1* and *o2* are equal.
 function same_object%(o1: any, o2: any%): bool
 	%{
-	return new Val(o1 == o2, TYPE_BOOL);
+	return val_mgr->GetBool(o1 == o2);
 	%}
 
 ## Returns the number of bytes that a value occupies in memory.
@@ -1172,7 +1172,7 @@ function same_object%(o1: any, o2: any%): bool
 ## Returns: The number of bytes that *v* occupies.
 function val_size%(v: any%): count
 	%{
-	return new Val(v->MemoryAllocation(), TYPE_COUNT);
+	return val_mgr->GetCount(v->MemoryAllocation());
 	%}
 
 ## Resizes a vector.
@@ -1190,7 +1190,7 @@ function resize%(aggr: any, newsize: count%) : count
 		return 0;
 		}
 
-	return new Val(aggr->AsVectorVal()->Resize(newsize), TYPE_COUNT);
+	return val_mgr->GetCount(aggr->AsVectorVal()->Resize(newsize));
 	%}
 
 ## Tests whether a boolean vector (``vector of bool``) has *any* true
@@ -1207,15 +1207,15 @@ function any_set%(v: any%) : bool
 	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("any_set() requires vector of bool");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
-			return new Val(true, TYPE_BOOL);
+			return val_mgr->GetTrue();
 
-	return new Val(false, TYPE_BOOL);
+	return val_mgr->GetFalse();
 	%}
 
 ## Tests whether *all* elements of a boolean vector (``vector of bool``) are
@@ -1236,15 +1236,15 @@ function all_set%(v: any%) : bool
 	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("all_set() requires vector of bool");
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 		}
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
-			return new Val(false, TYPE_BOOL);
+			return val_mgr->GetFalse();
 
-	return new Val(true, TYPE_BOOL);
+	return val_mgr->GetTrue();
 	%}
 
 %%{
@@ -1469,7 +1469,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, new Val(ind, TYPE_COUNT));
+		result_v->Assign(i, val_mgr->GetCount(ind));
 		}
 
 	return result_v;
@@ -1583,7 +1583,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 function fmt%(...%): string
 	%{
 	if ( @ARGC@ == 0 )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	Val* fmt_v = @ARG@[0];
 
@@ -1602,13 +1602,13 @@ function fmt%(...%): string
 	if ( n < @ARGC@ - 1 )
 		{
 		builtin_error("too many arguments for format", fmt_v);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	else if ( n >= @ARGC@ )
 		{
 		builtin_error("too few arguments for format", fmt_v);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
@@ -1707,7 +1707,7 @@ function log10%(d: double%): double
 ## Returns: True if *c* has been received externally.
 function is_external_connection%(c: connection%) : bool
 	%{
-	return new Val(c && c->IsExternal(), TYPE_BOOL);
+	return val_mgr->GetBool(c && c->IsExternal());
 	%}
 
 ## Returns the ID of the analyzer which raised the current event.
@@ -1716,7 +1716,7 @@ function is_external_connection%(c: connection%) : bool
 ##          none.
 function current_analyzer%(%) : count
 	%{
-	return new Val(mgr.CurrentAnalyzer(), TYPE_COUNT);
+	return val_mgr->GetCount(mgr.CurrentAnalyzer());
 	%}
 
 ## Returns Bro's process ID.
@@ -1724,7 +1724,7 @@ function current_analyzer%(%) : count
 ## Returns: Bro's process ID.
 function getpid%(%) : count
 	%{
-	return new Val(getpid(), TYPE_COUNT);
+	return val_mgr->GetCount(getpid());
 	%}
 
 %%{
@@ -1790,7 +1790,7 @@ function type_name%(t: any%): string
 ## .. bro:see:: reading_traces
 function reading_live_traffic%(%): bool
 	%{
-	return new Val(reading_live, TYPE_BOOL);
+	return val_mgr->GetBool(reading_live);
 	%}
 
 ## Checks whether Bro reads traffic from a trace file (as opposed to from a
@@ -1801,7 +1801,7 @@ function reading_live_traffic%(%): bool
 ## .. bro:see:: reading_live_traffic
 function reading_traces%(%): bool
 	%{
-	return new Val(reading_traces, TYPE_BOOL);
+	return val_mgr->GetBool(reading_traces);
 	%}
 
 
@@ -1822,8 +1822,7 @@ function global_sizes%(%): var_sizes
 		if ( id->HasVal() && ! id->IsInternalGlobal() )
 			{
 			Val* id_name = new StringVal(id->Name());
-			Val* id_size = new Val(id->ID_Val()->MemoryAllocation(),
-						TYPE_COUNT);
+			Val* id_size = val_mgr->GetCount(id->ID_Val()->MemoryAllocation());
 			sizes->Assign(id_name, id_size);
 			Unref(id_name);
 			}
@@ -1853,11 +1852,11 @@ function global_ids%(%): id_table
 
 		RecordVal* rec = new RecordVal(script_id);
 		rec->Assign(0, new StringVal(type_name(id->Type()->Tag())));
-		rec->Assign(1, new Val(id->IsExport(), TYPE_BOOL));
-		rec->Assign(2, new Val(id->IsConst(), TYPE_BOOL));
-		rec->Assign(3, new Val(id->IsEnumConst(), TYPE_BOOL));
-		rec->Assign(4, new Val(id->IsOption(), TYPE_BOOL));
-		rec->Assign(5, new Val(id->IsRedefinable(), TYPE_BOOL));
+		rec->Assign(1, val_mgr->GetBool(id->IsExport()));
+		rec->Assign(2, val_mgr->GetBool(id->IsConst()));
+		rec->Assign(3, val_mgr->GetBool(id->IsEnumConst()));
+		rec->Assign(4, val_mgr->GetBool(id->IsOption()));
+		rec->Assign(5, val_mgr->GetBool(id->IsRedefinable()));
 
 		if ( id->HasVal() )
 			{
@@ -1953,7 +1952,7 @@ function record_fields%(rec: any%): record_field_table
 		else
 			nr->Assign(0, new StringVal(type_name(ft->Tag())));
 
-		nr->Assign(1, new Val(logged, TYPE_BOOL));
+		nr->Assign(1, val_mgr->GetBool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, rt->FieldDefault(i));
 
@@ -1997,7 +1996,7 @@ function do_profiling%(%) : any
 function is_local_interface%(ip: addr%) : bool
 	%{
 	if ( ip->AsAddr().IsLoopback() )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 
 	list<IPAddr> addrs;
 
@@ -2029,10 +2028,10 @@ function is_local_interface%(ip: addr%) : bool
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
 		{
 		if ( *it == ip->AsAddr() )
-			return new Val(1, TYPE_BOOL);
+			return val_mgr->GetBool(1);
 		}
 
-	return new Val(0, TYPE_BOOL);
+	return val_mgr->GetBool(0);
 	%}
 
 ## Write rule matcher statistics (DFA states, transitions, memory usage, cache
@@ -2048,7 +2047,7 @@ function dump_rule_stats%(f: file%): bool
 	if ( rule_matcher )
 		rule_matcher->DumpStats(f);
 
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Checks if Bro is terminating.
@@ -2058,7 +2057,7 @@ function dump_rule_stats%(f: file%): bool
 ## .. bro:see:: terminate
 function bro_is_terminating%(%): bool
 	%{
-	return new Val(terminating, TYPE_BOOL);
+	return val_mgr->GetBool(terminating);
 	%}
 
 ## Returns the hostname of the machine Bro runs on.
@@ -2082,9 +2081,9 @@ function gethostname%(%) : string
 function is_v4_addr%(a: addr%): bool
 	%{
 	if ( a->AsAddr().GetFamily() == IPv4 )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	%}
 
 ## Returns whether an address is IPv6 or not.
@@ -2095,9 +2094,9 @@ function is_v4_addr%(a: addr%): bool
 function is_v6_addr%(a: addr%): bool
 	%{
 	if ( a->AsAddr().GetFamily() == IPv6 )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	%}
 
 ## Returns whether a subnet specification is IPv4 or not.
@@ -2108,9 +2107,9 @@ function is_v6_addr%(a: addr%): bool
 function is_v4_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv4 )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	%}
 
 ## Returns whether a subnet specification is IPv6 or not.
@@ -2121,9 +2120,9 @@ function is_v4_subnet%(s: subnet%): bool
 function is_v6_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv6 )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	%}
 
 
@@ -2178,7 +2177,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, new Val(ntohl(bytes[i]), TYPE_COUNT));
+		rval->Assign(i, val_mgr->GetCount(ntohl(bytes[i])));
 
 	return rval;
 	%}
@@ -2223,10 +2222,10 @@ function enum_to_int%(e: any%): int
 	if ( e->Type()->Tag() != TYPE_ENUM )
 		{
 		builtin_error("enum_to_int() requires enum value");
-		return new Val(-1, TYPE_INT);
+		return val_mgr->GetInt(-1);
 		}
 
-	return new Val(e->AsEnum(), TYPE_INT);
+	return val_mgr->GetInt(e->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`int`.
@@ -2250,7 +2249,7 @@ function to_int%(str: string%): int
 		builtin_error("bad conversion to integer", @ARG@[0]);
 #endif
 
-	return new Val(i, TYPE_INT);
+	return val_mgr->GetInt(i);
 	%}
 
 
@@ -2266,7 +2265,7 @@ function int_to_count%(n: int%): count
 		builtin_error("bad conversion to count", @ARG@[0]);
 		n = 0;
 		}
-	return new Val(n, TYPE_COUNT);
+	return val_mgr->GetCount(n);
 	%}
 
 ## Converts a :bro:type:`double` to a :bro:type:`count`.
@@ -2281,7 +2280,7 @@ function double_to_count%(d: double%): count
 	if ( d < 0.0 )
 		builtin_error("bad conversion to count", @ARG@[0]);
 
-	return new Val(bro_uint_t(rint(d)), TYPE_COUNT);
+	return val_mgr->GetCount(bro_uint_t(rint(d)));
 	%}
 
 ## Converts a :bro:type:`string` to a :bro:type:`count`.
@@ -2305,7 +2304,7 @@ function to_count%(str: string%): count
         u = 0;
         }
 
-	return new Val(u, TYPE_COUNT);
+	return val_mgr->GetCount(u);
 	%}
 
 ## Converts an :bro:type:`interval` to a :bro:type:`double`.
@@ -2365,7 +2364,7 @@ function double_to_interval%(d: double%): interval
 ## .. bro:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
-	return new Val(p->Port(), TYPE_COUNT);
+	return val_mgr->GetCount(p->Port());
 	%}
 
 ## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
@@ -2379,7 +2378,7 @@ function port_to_count%(p: port%): count
 ## .. bro:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return port_mgr->Get(num, (TransportProto)proto->AsEnum());
+	return val_mgr->GetPort(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :bro:type:`string` to an :bro:type:`addr`.
@@ -2451,7 +2450,7 @@ function subnet_to_addr%(sn: subnet%): addr
 ## .. bro:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
-	return new Val(sn->Width(), TYPE_COUNT);
+	return val_mgr->GetCount(sn->Width());
 	%}
 
 ## Converts a :bro:type:`string` to a :bro:type:`double`.
@@ -2539,16 +2538,16 @@ function to_port%(s: string%): port
             {
             ++slash;
             if ( streq(slash, "tcp") )
-                return port_mgr->Get(port, TRANSPORT_TCP);
+                return val_mgr->GetPort(port, TRANSPORT_TCP);
             else if ( streq(slash, "udp") )
-                return port_mgr->Get(port, TRANSPORT_UDP);
+                return val_mgr->GetPort(port, TRANSPORT_UDP);
             else if ( streq(slash, "icmp") )
-                return port_mgr->Get(port, TRANSPORT_ICMP);
+                return val_mgr->GetPort(port, TRANSPORT_ICMP);
             }
         }
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return port_mgr->Get(port, TRANSPORT_UNKNOWN);
+    return val_mgr->GetPort(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
@@ -2595,7 +2594,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		{
 		uint8 value = 0;
 		memcpy(&value, p, sizeof(uint8));
-		return new Val(value, TYPE_COUNT);
+		return val_mgr->GetCount(value);
 		}
 
 	case sizeof(uint16):
@@ -2615,7 +2614,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint16));
 
-		return new Val(value, TYPE_COUNT);
+		return val_mgr->GetCount(value);
 		}
 
 	case sizeof(uint32):
@@ -2635,7 +2634,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint32));
 
-		return new Val(value, TYPE_COUNT);
+		return val_mgr->GetCount(value);
 		}
 
 	case sizeof(uint64):
@@ -2655,12 +2654,12 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint64));
 
-		return new Val(value, TYPE_COUNT);
+		return val_mgr->GetCount(value);
 		}
 	}
 
 	builtin_error("unsupported byte length for bytestring_to_count");
-	return new Val(0, TYPE_COUNT);
+	return val_mgr->GetCount(0);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -2778,7 +2777,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	if ( len % 2 != 0 )
 		{
 		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	const char* bytes = hexstr->AsString()->CheckString();
@@ -2793,13 +2792,13 @@ function hexstr_to_bytestring%(hexstr: string%): string
 		if ( res == EOF )
 			{
 			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
-			return new StringVal("");
+			return val_mgr->GetEmptyString();
 			}
 
 		else if ( res != 1 )
 			{
 			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
-			return new StringVal("");
+			return val_mgr->GetEmptyString();
 			}
 
 		}
@@ -2825,7 +2824,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 	else
 		{
 		reporter->Error("Broker query has an invalid data store");
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 
@@ -2848,7 +2847,7 @@ function encode_base64_custom%(s: string, a: string%): string &deprecated
 	else
 		{
 		reporter->Error("error in encoding string %s", s->CheckString());
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 
@@ -2870,7 +2869,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 	else
 		{
 		reporter->Error("error in decoding string %s", s->CheckString());
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 
@@ -2894,7 +2893,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	if ( ! conn )
 		{
 		builtin_error("connection ID not a known connection", cid);
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 
 	BroString* t = decode_base64(s->AsString(), a->AsString(), conn);
@@ -2903,7 +2902,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	else
 		{
 		reporter->Error("error in decoding string %s", s->CheckString());
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 
@@ -2925,7 +2924,7 @@ function decode_base64_custom%(s: string, a: string%): string &deprecated
 	else
 		{
 		reporter->Error("error in decoding string %s", s->CheckString());
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 		}
 	%}
 
@@ -3178,7 +3177,7 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 ## .. bro:see:: is_udp_port is_icmp_port
 function is_tcp_port%(p: port%): bool
 	%{
-	return new Val(p->IsTCP(), TYPE_BOOL);
+	return val_mgr->GetBool(p->IsTCP());
 	%}
 
 ## Checks whether a given :bro:type:`port` has UDP as transport protocol.
@@ -3190,7 +3189,7 @@ function is_tcp_port%(p: port%): bool
 ## .. bro:see:: is_icmp_port is_tcp_port
 function is_udp_port%(p: port%): bool
 	%{
-	return new Val(p->IsUDP(), TYPE_BOOL);
+	return val_mgr->GetBool(p->IsUDP());
 	%}
 
 ## Checks whether a given :bro:type:`port` has ICMP as transport protocol.
@@ -3202,7 +3201,7 @@ function is_udp_port%(p: port%): bool
 ## .. bro:see:: is_tcp_port is_udp_port
 function is_icmp_port%(p: port%): bool
 	%{
-	return new Val(p->IsICMP(), TYPE_BOOL);
+	return val_mgr->GetBool(p->IsICMP());
 	%}
 
 %%{
@@ -3210,19 +3209,19 @@ EnumVal* map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return new EnumVal(0, transport_proto);
+		return transport_proto->GetVal(0);
 		break;
 
 	case TRANSPORT_TCP:
-		return new EnumVal(1, transport_proto);
+		return transport_proto->GetVal(1);
 		break;
 
 	case TRANSPORT_UDP:
-		return new EnumVal(2, transport_proto);
+		return transport_proto->GetVal(2);
 		break;
 
 	case TRANSPORT_ICMP:
-		return new EnumVal(3, transport_proto);
+		return transport_proto->GetVal(3);
 		break;
 
 	default:
@@ -3249,7 +3248,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return new EnumVal(0, transport_proto);
+		return transport_proto->GetVal(0);
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -3278,9 +3277,9 @@ function get_port_transport_proto%(p: port%): transport_proto
 function connection_exists%(c: conn_id%): bool
 	%{
 	if ( sessions->FindConnection(c) )
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	else
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 	%}
 
 ## Returns the :bro:type:`connection` record for a given connection identifier.
@@ -3305,18 +3304,18 @@ function lookup_connection%(cid: conn_id%): connection
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, new AddrVal((unsigned int) 0));
-	id_val->Assign(1, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(1, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, new AddrVal((unsigned int) 0));
-	id_val->Assign(3, port_mgr->Get(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(3, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
 	RecordVal* orig_endp = new RecordVal(endpoint);
-	orig_endp->Assign(0, new Val(0, TYPE_COUNT));
-	orig_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+	orig_endp->Assign(0, val_mgr->GetCount(0));
+	orig_endp->Assign(1, val_mgr->GetCount(int(0)));
 
 	RecordVal* resp_endp = new RecordVal(endpoint);
-	resp_endp->Assign(0, new Val(0, TYPE_COUNT));
-	resp_endp->Assign(1, new Val(int(0), TYPE_COUNT));
+	resp_endp->Assign(0, val_mgr->GetCount(0));
+	resp_endp->Assign(1, val_mgr->GetCount(int(0)));
 
 	c->Assign(1, orig_endp);
 	c->Assign(2, resp_endp);
@@ -3324,7 +3323,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(3, new Val(network_time, TYPE_TIME));
 	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
 	c->Assign(5, new TableVal(string_set));	// service
-	c->Assign(6, new StringVal(""));	// history
+	c->Assign(6, val_mgr->GetEmptyString());	// history
 
 	return c;
 	%}
@@ -3358,7 +3357,7 @@ function dump_current_packet%(file_name: string%) : bool
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
 		{
@@ -3374,7 +3373,7 @@ function dump_current_packet%(file_name: string%) : bool
 		addl_pkt_dumper->Dump(pkt);
 		}
 
-	return new Val( addl_pkt_dumper && ! addl_pkt_dumper->IsError(), TYPE_BOOL);
+	return val_mgr->GetBool( addl_pkt_dumper && ! addl_pkt_dumper->IsError());
 	%}
 
 ## Returns the currently processed PCAP packet.
@@ -3391,21 +3390,21 @@ function get_current_packet%(%) : pcap_packet
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&p) )
 		{
-		pkt->Assign(0, new Val(0, TYPE_COUNT));
-		pkt->Assign(1, new Val(0, TYPE_COUNT));
-		pkt->Assign(2, new Val(0, TYPE_COUNT));
-		pkt->Assign(3, new Val(0, TYPE_COUNT));
-		pkt->Assign(4, new StringVal(""));
-		pkt->Assign(5, new EnumVal(BifEnum::LINK_UNKNOWN, BifType::Enum::link_encap));
+		pkt->Assign(0, val_mgr->GetCount(0));
+		pkt->Assign(1, val_mgr->GetCount(0));
+		pkt->Assign(2, val_mgr->GetCount(0));
+		pkt->Assign(3, val_mgr->GetCount(0));
+		pkt->Assign(4, val_mgr->GetEmptyString());
+		pkt->Assign(5, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
-	pkt->Assign(0, new Val(uint32(p->ts.tv_sec), TYPE_COUNT));
-	pkt->Assign(1, new Val(uint32(p->ts.tv_usec), TYPE_COUNT));
-	pkt->Assign(2, new Val(p->cap_len, TYPE_COUNT));
-	pkt->Assign(3, new Val(p->len, TYPE_COUNT));
+	pkt->Assign(0, val_mgr->GetCount(uint32(p->ts.tv_sec)));
+	pkt->Assign(1, val_mgr->GetCount(uint32(p->ts.tv_usec)));
+	pkt->Assign(2, val_mgr->GetCount(p->cap_len));
+	pkt->Assign(3, val_mgr->GetCount(p->len));
 	pkt->Assign(4, new StringVal(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, new EnumVal(p->link_type, BifType::Enum::link_encap));
+	pkt->Assign(5, BifType::Enum::link_encap->GetVal(p->link_type));
 
 	return pkt;
 	%}
@@ -3469,7 +3468,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		addl_pkt_dumper->Dump(&p);
 		}
 
-	return new Val(addl_pkt_dumper && ! addl_pkt_dumper->IsError(), TYPE_BOOL);
+	return val_mgr->GetBool(addl_pkt_dumper && ! addl_pkt_dumper->IsError());
 	%}
 
 %%{
@@ -3857,7 +3856,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
-						return new Val(entry_data->uint32, TYPE_COUNT);
+						return val_mgr->GetCount(entry_data->uint32);
 
 					default:
 						break;
@@ -3939,9 +3938,9 @@ static bool mmdb_try_open_asn ()
 function mmdb_open_location_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
-	return new Val(mmdb_open_loc(f->CheckString()), TYPE_BOOL);
+	return val_mgr->GetBool(mmdb_open_loc(f->CheckString()));
 #else
-        return new Val(0, TYPE_BOOL);
+        return val_mgr->GetBool(0);
 #endif
 	%}
 
@@ -3956,9 +3955,9 @@ function mmdb_open_location_db%(f: string%) : bool
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
-	return new Val(mmdb_open_asn(f->CheckString()), TYPE_BOOL);
+	return val_mgr->GetBool(mmdb_open_asn(f->CheckString()));
 #else
-	return new Val(0, TYPE_BOOL);
+	return val_mgr->GetBool(0);
 #endif
 	%}
 
@@ -4069,7 +4068,7 @@ function lookup_asn%(a: addr%) : count
 				builtin_error("Failed to open GeoIP ASN database");
 				}
 
-			return new Val(0, TYPE_COUNT);
+			return val_mgr->GetCount(0);
 			}
 		}
 
@@ -4084,7 +4083,7 @@ function lookup_asn%(a: addr%) : count
 		status = MMDB_get_value(&result.entry, &entry_data,
 		                        "autonomous_system_number", nullptr);
 		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
-		return asn == nullptr ? new Val(0, TYPE_COUNT) : asn;
+		return asn == nullptr ? val_mgr->GetCount(0) : asn;
 		}
 
 #else // not USE_GEOIP
@@ -4100,7 +4099,7 @@ function lookup_asn%(a: addr%) : count
 	// We can get here even if we have GeoIP support, if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
-	return new Val(0, TYPE_COUNT);
+	return val_mgr->GetCount(0);
 	%}
 
 ## Calculates distance between two geographic locations using the haversine
@@ -4251,7 +4250,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! c )
 		{
 		reporter->Error("cannot find connection");
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
 	analyzer::Analyzer* a = c->FindAnalyzer(aid);
@@ -4259,11 +4258,11 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		{
 		if ( err_if_no_conn )
 			reporter->Error("connection does not have analyzer specified to disable");
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
 	a->Remove();
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Informs Bro that it should skip any further processing of the contents of
@@ -4284,10 +4283,10 @@ function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	c->SetSkip(1);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Controls whether packet contents belonging to a connection should be
@@ -4314,10 +4313,10 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	c->SetRecordPackets(do_record);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Sets an individual inactivity timeout for a connection and thus
@@ -4332,7 +4331,7 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_INTERVAL);
+		return new Val(0.0, TYPE_INTERVAL);
 
 	double old_timeout = c->InactivityTimeout();
 	c->SetInactivityTimeout(t);
@@ -4392,7 +4391,7 @@ function open_for_append%(f: string%): file
 ##              rmdir unlink rename
 function close%(f: file%): bool
 	%{
-	return new Val(f->Close(), TYPE_BOOL);
+	return val_mgr->GetBool(f->Close());
 	%}
 
 ## Writes data to an open file.
@@ -4409,10 +4408,9 @@ function close%(f: file%): bool
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
-	return new Val(f->Write((const char*) data->Bytes(), data->Len()),
-			TYPE_BOOL);
+	return val_mgr->GetBool(f->Write((const char*) data->Bytes(), data->Len()));
 	%}
 
 ## Alters the buffering behavior of a file.
@@ -4430,7 +4428,7 @@ function write_file%(f: file, data: string%): bool
 function set_buf%(f: file, buffered: bool%): any
 	%{
 	f->SetBuf(buffered);
-	return new Val(0, TYPE_VOID);
+	return val_mgr->GetTrue();
 	%}
 
 ## Flushes all open files to disk.
@@ -4442,7 +4440,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##              rmdir unlink rename
 function flush_all%(%): bool
 	%{
-	return new Val(fflush(0) == 0, TYPE_BOOL);
+	return val_mgr->GetBool(fflush(0) == 0);
 	%}
 
 ## Creates a new directory.
@@ -4466,14 +4464,14 @@ function mkdir%(f: string%): bool
 		// check if already exists and is directory.
 		if ( errno == EEXIST && stat(filename, &filestat) == 0
 		     && S_ISDIR(filestat.st_mode) )
-			return new Val(1, TYPE_BOOL);
+			return val_mgr->GetBool(1);
 
 		builtin_error(fmt("cannot create directory '%s': %s", filename,
 		                  strerror(error)));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 	else
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	%}
 
 
@@ -4495,10 +4493,10 @@ function rmdir%(d: string%): bool
 		{
 		builtin_error(fmt("cannot remove directory '%s': %s", dirname,
 		                  strerror(errno)));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 	else
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	%}
 
 ## Removes a file from a directory.
@@ -4519,10 +4517,10 @@ function unlink%(f: string%): bool
 		{
 		builtin_error(fmt("cannot unlink file '%s': %s", filename,
 		                  strerror(errno)));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 	else
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	%}
 
 ## Renames a file from src_f to dst_f.
@@ -4545,10 +4543,10 @@ function rename%(src_f: string, dst_f: string%): bool
 		{
 		builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
 		                  dst_filename, strerror(errno)));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 	else
-		return new Val(1, TYPE_BOOL);
+		return val_mgr->GetBool(1);
 	%}
 
 ## Checks whether a given file is open.
@@ -4560,7 +4558,7 @@ function rename%(src_f: string, dst_f: string%): bool
 ## .. todo:: Rename to ``is_open``.
 function active_file%(f: file%): bool
 	%{
-	return new Val(f->IsOpen(), TYPE_BOOL);
+	return val_mgr->GetBool(f->IsOpen());
 	%}
 
 ## Gets the filename associated with a file handle.
@@ -4573,7 +4571,7 @@ function active_file%(f: file%): bool
 function get_file_name%(f: file%): string
 	%{
 	if ( ! f )
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 
 	return new StringVal(f->Name());
 	%}
@@ -4594,10 +4592,10 @@ function rotate_file%(f: file%): rotate_info
 
 	// Record indicating error.
 	info = new RecordVal(rotate_info);
-	info->Assign(0, new StringVal(""));
-	info->Assign(1, new StringVal(""));
-	info->Assign(2, new Val(0, TYPE_TIME));
-	info->Assign(3, new Val(0, TYPE_TIME));
+	info->Assign(0, val_mgr->GetEmptyString());
+	info->Assign(1, val_mgr->GetEmptyString());
+	info->Assign(2, new Val(0.0, TYPE_TIME));
+	info->Assign(3, new Val(0.0, TYPE_TIME));
 
 	return info;
 	%}
@@ -4635,10 +4633,10 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( ! file )
 		{
 		// Record indicating error.
-		info->Assign(0, new StringVal(""));
-		info->Assign(1, new StringVal(""));
-		info->Assign(2, new Val(0, TYPE_TIME));
-		info->Assign(3, new Val(0, TYPE_TIME));
+		info->Assign(0, val_mgr->GetEmptyString());
+		info->Assign(1, val_mgr->GetEmptyString());
+		info->Assign(2, new Val(0.0, TYPE_TIME));
+		info->Assign(3, new Val(0.0, TYPE_TIME));
 		return info;
 		}
 
@@ -4751,7 +4749,7 @@ function enable_raw_output%(f: file%): any
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Installs a filter to drop packets originating from a given subnet with
@@ -4781,7 +4779,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Removes a source address filter.
@@ -4802,7 +4800,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()), TYPE_BOOL);
+	return val_mgr->GetBool(sessions->GetPacketFilter()->RemoveSrc(ip->AsAddr()));
 	%}
 
 ## Removes a source subnet filter.
@@ -4823,7 +4821,7 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_src_net_filter%(snet: subnet%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveSrc(snet), TYPE_BOOL);
+	return val_mgr->GetBool(sessions->GetPacketFilter()->RemoveSrc(snet));
 	%}
 
 ## Installs a filter to drop packets destined to a given IP address with
@@ -4856,7 +4854,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Installs a filter to drop packets destined to a given subnet with
@@ -4886,7 +4884,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 ## Removes a destination address filter.
@@ -4907,7 +4905,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()), TYPE_BOOL);
+	return val_mgr->GetBool(sessions->GetPacketFilter()->RemoveDst(ip->AsAddr()));
 	%}
 
 ## Removes a destination subnet filter.
@@ -4928,7 +4926,7 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_dst_net_filter%(snet: subnet%) : bool
 	%{
-	return new Val(sessions->GetPacketFilter()->RemoveDst(snet), TYPE_BOOL);
+	return val_mgr->GetBool(sessions->GetPacketFilter()->RemoveDst(snet));
 	%}
 
 # ===========================================================================
@@ -4966,7 +4964,7 @@ function enable_communication%(%): any &deprecated
 ## .. bro:see:: rescan_state
 function checkpoint_state%(%) : bool
 	%{
-	return new Val(persistence_serializer->WriteState(true), TYPE_BOOL);
+	return val_mgr->GetBool(persistence_serializer->WriteState(true));
 	%}
 
 ## Reads persistent state and populates the in-memory data structures
@@ -4978,7 +4976,7 @@ function checkpoint_state%(%) : bool
 ## .. bro:see:: checkpoint_state
 function rescan_state%(%) : bool
 	%{
-	return new Val(persistence_serializer->ReadAll(false, true), TYPE_BOOL);
+	return val_mgr->GetBool(persistence_serializer->ReadAll(false, true));
 	%}
 
 ## Writes the binary event stream generated by the core to a given file.
@@ -4996,8 +4994,8 @@ function capture_events%(filename: string%) : bool
 	else
 		event_serializer->Close();
 
-	return new Val(event_serializer->Open(
-		(const char*) filename->CheckString()), TYPE_BOOL);
+	return val_mgr->GetBool(event_serializer->Open(
+		(const char*) filename->CheckString()));
 	%}
 
 ## Writes state updates generated by :bro:attr:`&synchronized` variables to a
@@ -5015,8 +5013,8 @@ function capture_state_updates%(filename: string%) : bool
 	else
 		state_serializer->Close();
 
-	return new Val(state_serializer->Open(
-		(const char*) filename->CheckString()), TYPE_BOOL);
+	return val_mgr->GetBool(state_serializer->Open(
+		(const char*) filename->CheckString()));
 	%}
 
 ## Establishes a connection to a remote Bro or Broccoli instance.
@@ -5052,10 +5050,9 @@ function capture_state_updates%(filename: string%) : bool
 ##              send_id
 function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count &deprecated
 	%{
-	return new Val(uint32(remote_serializer->Connect(ip->AsAddr(),
+	return val_mgr->GetCount(uint32(remote_serializer->Connect(ip->AsAddr(),
 	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
-	               retry, ssl)),
-			TYPE_COUNT);
+	               retry, ssl)));
 	%}
 
 ## Terminate the connection with a peer.
@@ -5068,7 +5065,7 @@ function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: 
 function disconnect%(p: event_peer%) : bool &deprecated
     %{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->CloseConnection(id), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->CloseConnection(id));
 	%}
 
 ## Subscribes to all events from a remote peer whose names match a given
@@ -5086,8 +5083,7 @@ function disconnect%(p: event_peer%) : bool &deprecated
 function request_remote_events%(p: event_peer, handlers: pattern%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestEvents(id, handlers),
-			TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->RequestEvents(id, handlers));
 	%}
 
 ## Requests synchronization of IDs with a remote peer.
@@ -5105,7 +5101,7 @@ function request_remote_events%(p: event_peer, handlers: pattern%) : bool &depre
 function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestSync(id, auth), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->RequestSync(id, auth));
 	%}
 
 ## Requests logs from a remote peer.
@@ -5119,7 +5115,7 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
 function request_remote_logs%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->RequestLogs(id), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->RequestLogs(id));
 	%}
 
 ## Sets a boolean flag indicating whether Bro accepts state from a remote peer.
@@ -5136,8 +5132,7 @@ function request_remote_logs%(p: event_peer%) : bool &deprecated
 function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SetAcceptState(id, accept),
-			TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SetAcceptState(id, accept));
 	%}
 
 ## Sets the compression level of the session with a remote peer.
@@ -5153,8 +5148,7 @@ function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
 function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SetCompressionLevel(id, level),
-			TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SetCompressionLevel(id, level));
 	%}
 
 ## Listens on a given IP address and port for remote connections.
@@ -5179,7 +5173,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 ## .. bro:see:: connect disconnect
 function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool &deprecated
 	%{
-	return new Val(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval));
 	%}
 
 ## Checks whether the last raised event came from a remote peer.
@@ -5187,7 +5181,7 @@ function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retr
 ## Returns: True if the last raised event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return new Val(mgr.CurrentSource() != SOURCE_LOCAL, TYPE_BOOL);
+	return val_mgr->GetBool(mgr.CurrentSource() != SOURCE_LOCAL);
 	%}
 
 ## Sends all persistent state to a remote peer.
@@ -5200,7 +5194,7 @@ function is_remote_event%(%) : bool
 function send_state%(p: event_peer%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(persistence_serializer->SendState(id, true), TYPE_BOOL);
+	return val_mgr->GetBool(persistence_serializer->SendState(id, true));
 	%}
 
 ## Sends a global identifier to a remote peer, which then might install it
@@ -5221,11 +5215,11 @@ function send_id%(p: event_peer, id: string%) : bool &deprecated
 	if ( ! i )
 		{
 		reporter->Error("send_id: no global id %s", id->CheckString());
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 		}
 
 	SerialInfo info(remote_serializer);
-	return new Val(remote_serializer->SendID(&info, pid, *i), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SendID(&info, pid, *i));
 	%}
 
 ## Gracefully finishes communication by first making sure that all remaining
@@ -5234,7 +5228,7 @@ function send_id%(p: event_peer, id: string%) : bool &deprecated
 ## Returns: True if the termination process has been started successfully.
 function terminate_communication%(%) : bool &deprecated
 	%{
-	return new Val(remote_serializer->Terminate(), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->Terminate());
 	%}
 
 ## Signals a remote peer that the local Bro instance finished the initial
@@ -5246,7 +5240,7 @@ function terminate_communication%(%) : bool &deprecated
 function complete_handshake%(p: event_peer%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->CompleteHandshake(id), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->CompleteHandshake(id));
 	%}
 
 ## Sends a ping event to a remote peer. In combination with an event handler
@@ -5263,7 +5257,7 @@ function complete_handshake%(p: event_peer%) : bool &deprecated
 function send_ping%(p: event_peer, seq: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SendPing(id, seq), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SendPing(id, seq));
 	%}
 
 ## Sends the currently processed packet to a remote peer.
@@ -5280,12 +5274,12 @@ function send_current_packet%(p: event_peer%) : bool &deprecated
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
 
 	SerialInfo info(remote_serializer);
-	return new Val(remote_serializer->SendPacket(&info, id, *pkt), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SendPacket(&info, id, *pkt));
 	%}
 
 ## Returns the peer who generated the last event.
@@ -5355,7 +5349,7 @@ function get_local_event_peer%(%) : event_peer &deprecated
 function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return new Val(remote_serializer->SendCaptureFilter(id, s->CheckString()), TYPE_BOOL);
+	return val_mgr->GetBool(remote_serializer->SendCaptureFilter(id, s->CheckString()));
 	%}
 
 ## Stops Bro's packet processing. This function is used to synchronize
@@ -5411,12 +5405,12 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 				from_orig: bool, clear: bool%) : bool
 	%{
 	if ( ! rule_matcher )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->GetBool(0);
 
 	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
 			from_orig, bol, eol, clear);
 
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->GetBool(1);
 	%}
 
 # ===========================================================================

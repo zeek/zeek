@@ -249,7 +249,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 		{
 		val_list* vl = new val_list;
 		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(orig));
 		vl->append(new StringVal(msg));
 		ConnectionEvent(bt_tracker_weird, vl);
 		}
@@ -405,7 +405,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 				{
 				val_list* vl = new val_list;
 				vl->append(BuildConnVal());
-				vl->append(new Val(res_status, TYPE_COUNT));
+				vl->append(val_mgr->GetCount(res_status));
 				vl->append(res_val_headers);
 				ConnectionEvent(bt_tracker_response_not_ok, vl);
 				res_val_headers = 0;
@@ -482,7 +482,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 
 			RecordVal* peer = new RecordVal(bittorrent_peer);
 			peer->Assign(0, new AddrVal(ad));
-			peer->Assign(1, port_mgr->Get(pt, TRANSPORT_TCP));
+			peer->Assign(1, val_mgr->GetPort(pt, TRANSPORT_TCP));
 			res_val_peers->Assign(peer, 0);
 
 			Unref(peer);
@@ -505,7 +505,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	RecordVal* benc_value = new RecordVal(bittorrent_benc_value);
 	StringVal* name_ = new StringVal(name_len, name);
 
-	benc_value->Assign(type, new Val(value, TYPE_INT));
+	benc_value->Assign(type, val_mgr->GetInt(value));
 	res_val_benc->Assign(name_, benc_value);
 
 	Unref(name_);
@@ -791,7 +791,7 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 
 	val_list* vl = new val_list;
 	vl->append(BuildConnVal());
-	vl->append(new Val(res_status, TYPE_COUNT));
+	vl->append(val_mgr->GetCount(res_status));
 	vl->append(res_val_headers);
 	vl->append(res_val_peers);
 	vl->append(res_val_benc);

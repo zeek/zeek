@@ -16,10 +16,10 @@ refine connection NTLM_Conn += {
 	function build_version_record(val: NTLM_Version): BroVal
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Version);
-		result->Assign(0, new Val(${val.major_version}, TYPE_COUNT));
-		result->Assign(1, new Val(${val.minor_version}, TYPE_COUNT));
-		result->Assign(2, new Val(${val.build_number},  TYPE_COUNT));
-		result->Assign(3, new Val(${val.ntlm_revision}, TYPE_COUNT));
+		result->Assign(0, val_mgr->GetCount(${val.major_version}));
+		result->Assign(1, val_mgr->GetCount(${val.minor_version}));
+		result->Assign(2, val_mgr->GetCount(${val.build_number}));
+		result->Assign(3, val_mgr->GetCount(${val.ntlm_revision}));
 
 		return result;
 		%}
@@ -47,13 +47,13 @@ refine connection NTLM_Conn += {
 					result->Assign(4, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
-					result->Assign(5, new Val(${val.pairs[i].constrained_auth}, TYPE_BOOL));
+					result->Assign(5, val_mgr->GetBool(${val.pairs[i].constrained_auth}));
 					break;
 				case 7:
 					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
 					break;
 				case 8:
-					result->Assign(7, new Val(${val.pairs[i].single_host.machine_id}, TYPE_COUNT));
+					result->Assign(7, val_mgr->GetCount(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
 					result->Assign(8, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
@@ -66,28 +66,28 @@ refine connection NTLM_Conn += {
 	function build_negotiate_flag_record(val: NTLM_Negotiate_Flags): BroVal
 		%{
 		RecordVal* flags = new RecordVal(BifType::Record::NTLM::NegotiateFlags);
-		flags->Assign(0, new Val(${val.negotiate_56},                        TYPE_BOOL));
-		flags->Assign(1, new Val(${val.negotiate_key_exch},                  TYPE_BOOL));
-		flags->Assign(2, new Val(${val.negotiate_128},                       TYPE_BOOL));
-		flags->Assign(3, new Val(${val.negotiate_version},                   TYPE_BOOL));
-		flags->Assign(4, new Val(${val.negotiate_target_info},               TYPE_BOOL));
-		flags->Assign(5, new Val(${val.request_non_nt_session_key},          TYPE_BOOL));
-		flags->Assign(6, new Val(${val.negotiate_identify},                  TYPE_BOOL));
-		flags->Assign(7, new Val(${val.negotiate_extended_sessionsecurity},  TYPE_BOOL));
-		flags->Assign(8, new Val(${val.target_type_server},                  TYPE_BOOL));
-		flags->Assign(9, new Val(${val.target_type_domain},                  TYPE_BOOL));
-		flags->Assign(10, new Val(${val.negotiate_always_sign},              TYPE_BOOL));
-		flags->Assign(11, new Val(${val.negotiate_oem_workstation_supplied}, TYPE_BOOL));
-		flags->Assign(12, new Val(${val.negotiate_oem_domain_supplied},      TYPE_BOOL));
-		flags->Assign(13, new Val(${val.negotiate_anonymous_connection},     TYPE_BOOL));
-		flags->Assign(14, new Val(${val.negotiate_ntlm},                     TYPE_BOOL));
-		flags->Assign(15, new Val(${val.negotiate_lm_key},                   TYPE_BOOL));
-		flags->Assign(16, new Val(${val.negotiate_datagram},                 TYPE_BOOL));
-		flags->Assign(17, new Val(${val.negotiate_seal},                     TYPE_BOOL));
-		flags->Assign(18, new Val(${val.negotiate_sign},                     TYPE_BOOL));
-		flags->Assign(19, new Val(${val.request_target},                     TYPE_BOOL));
-		flags->Assign(20, new Val(${val.negotiate_oem},                      TYPE_BOOL));
-		flags->Assign(21, new Val(${val.negotiate_unicode},                  TYPE_BOOL));
+		flags->Assign(0, val_mgr->GetBool(${val.negotiate_56}));
+		flags->Assign(1, val_mgr->GetBool(${val.negotiate_key_exch}));
+		flags->Assign(2, val_mgr->GetBool(${val.negotiate_128}));
+		flags->Assign(3, val_mgr->GetBool(${val.negotiate_version}));
+		flags->Assign(4, val_mgr->GetBool(${val.negotiate_target_info}));
+		flags->Assign(5, val_mgr->GetBool(${val.request_non_nt_session_key}));
+		flags->Assign(6, val_mgr->GetBool(${val.negotiate_identify}));
+		flags->Assign(7, val_mgr->GetBool(${val.negotiate_extended_sessionsecurity}));
+		flags->Assign(8, val_mgr->GetBool(${val.target_type_server}));
+		flags->Assign(9, val_mgr->GetBool(${val.target_type_domain}));
+		flags->Assign(10, val_mgr->GetBool(${val.negotiate_always_sign}));
+		flags->Assign(11, val_mgr->GetBool(${val.negotiate_oem_workstation_supplied}));
+		flags->Assign(12, val_mgr->GetBool(${val.negotiate_oem_domain_supplied}));
+		flags->Assign(13, val_mgr->GetBool(${val.negotiate_anonymous_connection}));
+		flags->Assign(14, val_mgr->GetBool(${val.negotiate_ntlm}));
+		flags->Assign(15, val_mgr->GetBool(${val.negotiate_lm_key}));
+		flags->Assign(16, val_mgr->GetBool(${val.negotiate_datagram}));
+		flags->Assign(17, val_mgr->GetBool(${val.negotiate_seal}));
+		flags->Assign(18, val_mgr->GetBool(${val.negotiate_sign}));
+		flags->Assign(19, val_mgr->GetBool(${val.request_target}));
+		flags->Assign(20, val_mgr->GetBool(${val.negotiate_oem}));
+		flags->Assign(21, val_mgr->GetBool(${val.negotiate_unicode}));
 
 		return flags;
 		%}

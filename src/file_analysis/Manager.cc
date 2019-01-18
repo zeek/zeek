@@ -445,7 +445,7 @@ string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	val_list* vl = new val_list();
 	vl->append(tagval);
 	vl->append(c->BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl->append(val_mgr->GetBool(is_orig));
 
 	mgr.QueueEvent(get_file_handle, vl);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
@@ -457,7 +457,7 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
 
-	Val* index = new Val(bool(tag), TYPE_COUNT);
+	Val* index = val_mgr->GetCount(bool(tag));
 	Val* yield = disabled->Lookup(index);
 	Unref(index);
 
@@ -536,7 +536,7 @@ VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
 			{
-			element->Assign(0, new Val(it->first, TYPE_INT));
+			element->Assign(0, val_mgr->GetInt(it->first));
 			element->Assign(1, new StringVal(*it2));
 			}
 

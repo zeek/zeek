@@ -62,10 +62,10 @@ function get_net_stats%(%): NetStats
 	RecordVal* r = new RecordVal(NetStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(recv, TYPE_COUNT));
-	r->Assign(n++, new Val(drop, TYPE_COUNT));
-	r->Assign(n++, new Val(link, TYPE_COUNT));
-	r->Assign(n++, new Val(bytes_recv, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(recv));
+	r->Assign(n++, val_mgr->GetCount(drop));
+	r->Assign(n++, val_mgr->GetCount(link));
+	r->Assign(n++, val_mgr->GetCount(bytes_recv));
 
 	return r;
 	%}
@@ -91,17 +91,17 @@ function get_conn_stats%(%): ConnStats
 	RecordVal* r = new RecordVal(ConnStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(Connection::TotalConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(Connection::CurrentConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(Connection::CurrentExternalConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(sessions->CurrentConnections(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(Connection::TotalConnections()));
+	r->Assign(n++, val_mgr->GetCount(Connection::CurrentConnections()));
+	r->Assign(n++, val_mgr->GetCount(Connection::CurrentExternalConnections()));
+	r->Assign(n++, val_mgr->GetCount(sessions->CurrentConnections()));
 
 	SessionStats s;
 	if ( sessions )
 		sessions->GetStats(s);
 
 #define ADD_STAT(x) \
-	r->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(unsigned(sessions ? x : 0)));
 
 	ADD_STAT(s.num_packets);
 	ADD_STAT(s.num_fragments);
@@ -116,7 +116,7 @@ function get_conn_stats%(%): ConnStats
 	ADD_STAT(s.max_ICMP_conns);
 	ADD_STAT(s.cumulative_ICMP_conns);
 
-	r->Assign(n++, new Val(killed_by_inactivity, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(killed_by_inactivity));
 
 	return r;
 	%}
@@ -153,9 +153,9 @@ function get_proc_stats%(%): ProcStats
 		double(ru.ru_stime.tv_sec) + double(ru.ru_stime.tv_usec) / 1e6;
 
 #ifdef DEBUG
-	r->Assign(n++, new Val(1, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(1));
 #else
-	r->Assign(n++, new Val(0, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(0));
 #endif
 
 	r->Assign(n++, new Val(bro_start_time, TYPE_TIME));
@@ -166,14 +166,14 @@ function get_proc_stats%(%): ProcStats
 
 	uint64 total_mem;
 	get_memory_usage(&total_mem, NULL);
-	r->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(unsigned(total_mem)));
 
-	r->Assign(n++, new Val(unsigned(ru.ru_minflt), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_majflt), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_nswap), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_inblock), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_oublock), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_nivcsw), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_minflt)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_majflt)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_nswap)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_inblock)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_oublock)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(ru.ru_nivcsw)));
 
 	return r;
 	%}
@@ -199,8 +199,8 @@ function get_event_stats%(%): EventStats
 	RecordVal* r = new RecordVal(EventStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(num_events_queued, TYPE_COUNT));
-	r->Assign(n++, new Val(num_events_dispatched, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(num_events_queued));
+	r->Assign(n++, val_mgr->GetCount(num_events_dispatched));
 
 	return r;
 	%}
@@ -226,10 +226,10 @@ function get_reassembler_stats%(%): ReassemblerStats
 	RecordVal* r = new RecordVal(ReassemblerStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FILE), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FRAG), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_TCP), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_UNKNOWN), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(Reassembler::MemoryAllocation(REASSEM_FILE)));
+	r->Assign(n++, val_mgr->GetCount(Reassembler::MemoryAllocation(REASSEM_FRAG)));
+	r->Assign(n++, val_mgr->GetCount(Reassembler::MemoryAllocation(REASSEM_TCP)));
+	r->Assign(n++, val_mgr->GetCount(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)));
 
 	return r;
 	%}
@@ -258,12 +258,12 @@ function get_dns_stats%(%): DNSStats
 	DNS_Mgr::Stats dstats;
 	dns_mgr->GetStats(&dstats);
 
-	r->Assign(n++, new Val(unsigned(dstats.requests), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.successful), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.failed), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.pending), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.cached_hosts), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.cached_addresses), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.requests)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.successful)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.failed)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.pending)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.cached_hosts)));
+	r->Assign(n++, val_mgr->GetCount(unsigned(dstats.cached_addresses)));
 
 	return r;
 	%}
@@ -289,9 +289,9 @@ function get_timer_stats%(%): TimerStats
 	RecordVal* r = new RecordVal(TimerStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(unsigned(timer_mgr->Size()), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(timer_mgr->PeakSize()), TYPE_COUNT));
-	r->Assign(n++, new Val(timer_mgr->CumulativeNum(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(unsigned(timer_mgr->Size())));
+	r->Assign(n++, val_mgr->GetCount(unsigned(timer_mgr->PeakSize())));
+	r->Assign(n++, val_mgr->GetCount(timer_mgr->CumulativeNum()));
 
 	return r;
 	%}
@@ -317,9 +317,9 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 	RecordVal* r = new RecordVal(FileAnalysisStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(file_mgr->CurrentFiles(), TYPE_COUNT));
-	r->Assign(n++, new Val(file_mgr->MaxFiles(), TYPE_COUNT));
-	r->Assign(n++, new Val(file_mgr->CumulativeFiles(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(file_mgr->CurrentFiles()));
+	r->Assign(n++, val_mgr->GetCount(file_mgr->MaxFiles()));
+	r->Assign(n++, val_mgr->GetCount(file_mgr->CumulativeFiles()));
 
 	return r;
 	%}
@@ -345,7 +345,7 @@ function get_thread_stats%(%): ThreadStats
 	RecordVal* r = new RecordVal(ThreadStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(thread_mgr->NumThreads(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(thread_mgr->NumThreads()));
 
 	return r;
 	%}
@@ -371,10 +371,10 @@ function get_gap_stats%(%): GapStats
 	RecordVal* r = new RecordVal(GapStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(tot_ack_events, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_ack_bytes, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_gap_events, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_gap_bytes, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(tot_ack_events));
+	r->Assign(n++, val_mgr->GetCount(tot_ack_bytes));
+	r->Assign(n++, val_mgr->GetCount(tot_gap_events));
+	r->Assign(n++, val_mgr->GetCount(tot_gap_bytes));
 
 	return r;
 	%}
@@ -408,13 +408,13 @@ function get_matcher_stats%(%): MatcherStats
 	if ( rule_matcher )
 		rule_matcher->GetStats(&s);
 
-	r->Assign(n++, new Val(s.matchers, TYPE_COUNT));
-	r->Assign(n++, new Val(s.nfa_states, TYPE_COUNT));
-	r->Assign(n++, new Val(s.dfa_states, TYPE_COUNT));
-	r->Assign(n++, new Val(s.computed, TYPE_COUNT));
-	r->Assign(n++, new Val(s.mem, TYPE_COUNT));
-	r->Assign(n++, new Val(s.hits, TYPE_COUNT));
-	r->Assign(n++, new Val(s.misses, TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(s.matchers));
+	r->Assign(n++, val_mgr->GetCount(s.nfa_states));
+	r->Assign(n++, val_mgr->GetCount(s.dfa_states));
+	r->Assign(n++, val_mgr->GetCount(s.computed));
+	r->Assign(n++, val_mgr->GetCount(s.mem));
+	r->Assign(n++, val_mgr->GetCount(s.hits));
+	r->Assign(n++, val_mgr->GetCount(s.misses));
 
 	return r;
 	%}
@@ -442,15 +442,15 @@ function get_broker_stats%(%): BrokerStats
 	int n = 0;
 	
 	auto cs = broker_mgr->GetStatistics();
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_peers), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_stores), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_pending_queries), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_outgoing), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_outgoing), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_outgoing), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_peers)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_stores)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_pending_queries)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_events_incoming)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_events_outgoing)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_logs_incoming)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_logs_outgoing)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_ids_incoming)));
+	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_ids_outgoing)));
 
 	return r;
 	%}
@@ -481,11 +481,11 @@ function get_reporter_stats%(%): ReporterStats
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
 		Val* weird = new StringVal(kv.first);
-		weirds_by_type->Assign(weird, new Val(kv.second, TYPE_COUNT));
+		weirds_by_type->Assign(weird, val_mgr->GetCount(kv.second));
 		Unref(weird);
 		}
 
-	r->Assign(n++, new Val(reporter->GetWeirdCount(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->GetCount(reporter->GetWeirdCount()));
 	r->Assign(n++, weirds_by_type);
 
 	return r;

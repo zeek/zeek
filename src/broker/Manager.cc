@@ -1212,14 +1212,14 @@ void Manager::ProcessStatus(broker::status stat)
 		if ( ctx->network )
 			{
 			network_info->Assign(0, new StringVal(ctx->network->address.data()));
-			network_info->Assign(1, port_mgr->Get(ctx->network->port, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->GetPort(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
 			network_info->Assign(0, new StringVal("<unknown>"));
-			network_info->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 			}
 
 		endpoint_info->Assign(1, network_info);
@@ -1310,7 +1310,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	auto vl = new val_list;
-	vl->append(new EnumVal(ec, BifType::Enum::Broker::ErrorCode));
+	vl->append(BifType::Enum::Broker::ErrorCode->GetVal(ec));
 	vl->append(new StringVal(msg));
 	mgr.QueueEvent(Broker::error, vl);
 	}

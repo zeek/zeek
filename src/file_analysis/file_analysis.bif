@@ -12,28 +12,28 @@ type AnalyzerArgs: record;
 function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
 	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::enable_reassembly`.
 function Files::__enable_reassembly%(file_id: string%): bool
 	%{
 	bool result = file_mgr->EnableReassembly(file_id->CheckString());
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::disable_reassembly`.
 function Files::__disable_reassembly%(file_id: string%): bool
 	%{
 	bool result = file_mgr->DisableReassembly(file_id->CheckString());
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::set_reassembly_buffer_size`.
 function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 	%{
 	bool result = file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::add_analyzer`.
@@ -44,7 +44,7 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
 	                                    file_mgr->GetComponentTag(tag), rv);
 	Unref(rv);
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::remove_analyzer`.
@@ -55,14 +55,14 @@ function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%)
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
 	                                       file_mgr->GetComponentTag(tag) , rv);
 	Unref(rv);
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::stop`.
 function Files::__stop%(file_id: string%): bool
 	%{
 	bool result = file_mgr->IgnoreFile(file_id->CheckString());
-	return new Val(result, TYPE_BOOL);
+	return val_mgr->GetBool(result);
 	%}
 
 ## :bro:see:`Files::analyzer_name`.
@@ -75,9 +75,9 @@ function Files::__analyzer_name%(tag: Files::Tag%) : string
 function Files::__file_exists%(fuid: string%): bool
 	%{
 	if ( file_mgr->LookupFile(fuid->CheckString()) != nullptr )
-		return new Val(true, TYPE_BOOL);
+		return val_mgr->GetTrue();
 	else
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->GetFalse();
 	%}
 
 ## :bro:see:`Files::lookup_file`.

@@ -979,7 +979,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	ListVal* key = new ListVal(TYPE_ANY);
 	key->Append(new AddrVal(ip->SrcAddr()));
 	key->Append(new AddrVal(ip->DstAddr()));
-	key->Append(new Val(frag_id, TYPE_COUNT));
+	key->Append(val_mgr->GetCount(frag_id));
 
 	HashKey* h = ch->ComputeHash(key, 1);
 	if ( ! h )

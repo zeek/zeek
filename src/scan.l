@@ -470,8 +470,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(new Val(true, TYPE_BOOL))
-F	RET_CONST(new Val(false, TYPE_BOOL))
+T	RET_CONST(val_mgr->GetTrue())
+F	RET_CONST(val_mgr->GetFalse())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -480,8 +480,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
-		RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10)),
-			  TYPE_COUNT))
+		RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))))
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
@@ -492,7 +491,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_TCP))
+		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
 		}
 {D}"/udp"	{
 		uint32 p = atoi(yytext);
@@ -501,7 +500,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_UDP))
+		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
 		}
 {D}"/icmp"	{
 		uint32 p = atoi(yytext);
@@ -510,7 +509,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_ICMP))
+		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
 		}
 {D}"/unknown"	{
 		uint32 p = atoi(yytext);
@@ -519,7 +518,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_UNKNOWN))
+		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UNKNOWN))
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
@@ -529,7 +528,7 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
+"0x"{HEX}+	RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))))
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
 

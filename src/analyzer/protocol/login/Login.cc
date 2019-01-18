@@ -437,7 +437,7 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 
 	vl->append(BuildConnVal());
 	vl->append(username->Ref());
-	vl->append(client_name ? client_name->Ref() : new StringVal(""));
+	vl->append(client_name ? client_name->Ref() : val_mgr->GetEmptyString());
 	vl->append(password);
 	vl->append(new StringVal(line));
 
@@ -612,7 +612,7 @@ Val* Login_Analyzer::PopUserTextVal()
 	if ( s )
 		return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
 	else
-		return new StringVal("");
+		return val_mgr->GetEmptyString();
 	}
 
 int Login_Analyzer::MatchesTypeahead(const char* line) const

@@ -83,6 +83,7 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
+ValManager* val_mgr = 0;
 PortManager* port_mgr = 0;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
@@ -382,6 +383,7 @@ void terminate_bro()
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;
+	delete val_mgr;
 	delete port_mgr;
 
 	reporter = 0;
@@ -391,7 +393,6 @@ void termination_signal()
 	{
 	set_processing_status("TERMINATING", "termination_signal");
 
-	Val sval(signal_val, TYPE_COUNT);
 	reporter->Info("received termination signal");
 	net_get_final_stats();
 	done_with_network();
@@ -774,6 +775,7 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+	val_mgr = new ValManager();
 	port_mgr = new PortManager();
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
@@ -1174,7 +1176,7 @@ int main(int argc, char** argv)
 
 		val_list* vl = new val_list;
 		vl->append(new StringVal(i->name.c_str()));
-		vl->append(new Val(i->include_level, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(i->include_level));
 		mgr.QueueEvent(bro_script_loaded, vl);
 		}
 

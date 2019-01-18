@@ -526,29 +526,29 @@ RecordVal* Packet::BuildPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_ETHERNET, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, new Val(vlan, TYPE_COUNT));
+			l2_hdr->Assign(5, val_mgr->GetCount(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, new Val(inner_vlan, TYPE_COUNT));
+			l2_hdr->Assign(6, val_mgr->GetCount(inner_vlan));
 
-		l2_hdr->Assign(7, new Val(eth_type, TYPE_COUNT));
+		l2_hdr->Assign(7, val_mgr->GetCount(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_UNKNOWN, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, new Val(len, TYPE_COUNT));
-	l2_hdr->Assign(2, new Val(cap_len, TYPE_COUNT));
+	l2_hdr->Assign(1, val_mgr->GetCount(len));
+	l2_hdr->Assign(2, val_mgr->GetCount(cap_len));
 
-	l2_hdr->Assign(8, new EnumVal(l3, BifType::Enum::layer3_proto));
+	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetVal(l3));
 
 	pkt_hdr->Assign(0, l2_hdr);
 

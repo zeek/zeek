@@ -34,9 +34,9 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 	{
 	RecordVal* v = new RecordVal(conn_id);
 	v->Assign(0, new AddrVal(conn->OrigAddr()));
-	v->Assign(1, port_mgr->Get(ntohs(conn->OrigPort()), conn->ConnTransport()));
+	v->Assign(1, val_mgr->GetPort(ntohs(conn->OrigPort()), conn->ConnTransport()));
 	v->Assign(2, new AddrVal(conn->RespAddr()));
-	v->Assign(3, port_mgr->Get(ntohs(conn->RespPort()), conn->ConnTransport()));
+	v->Assign(3, val_mgr->GetPort(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
 
@@ -97,7 +97,7 @@ File::File(const string& file_id, const string& source_name, Connection* conn,
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, new Val(is_orig, TYPE_BOOL));
+		val->Assign(is_orig_idx, val_mgr->GetBool(is_orig));
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -157,7 +157,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		val_list* vl = new val_list();
 		vl->append(val->Ref());
 		vl->append(conn->BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
+		vl->append(val_mgr->GetBool(is_orig));
 		FileEvent(file_over_new_connection, vl);
 		}
 	}
@@ -230,13 +230,13 @@ bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
 void File::IncrementByteCount(uint64 size, int field_idx)
 	{
 	uint64 old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, new Val(old + size, TYPE_COUNT));
+	val->Assign(field_idx, val_mgr->GetCount(old + size));
 	}
 
 void File::SetTotalBytes(uint64 size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, new Val(size, TYPE_COUNT));
+	val->Assign(total_bytes_idx, val_mgr->GetCount(size));
 	}
 
 bool File::IsComplete() const
@@ -308,7 +308,7 @@ bool File::SetMime(const string& mime_type)
 	RecordVal* meta = new RecordVal(fa_metadata_type);
 	vl->append(meta);
 	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
-	meta->Assign(meta_inferred_idx, new Val(0, TYPE_BOOL));
+	meta->Assign(meta_inferred_idx, val_mgr->GetBool(0));
 	FileEvent(file_sniff, vl);
 	return true;
 	}
@@ -465,8 +465,8 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 				{
 				val_list* vl = new val_list();
 				vl->append(val->Ref());
-				vl->append(new Val(current_offset, TYPE_COUNT));
-				vl->append(new Val(gap_bytes, TYPE_COUNT));
+				vl->append(val_mgr->GetCount(current_offset));
+				vl->append(val_mgr->GetCount(gap_bytes));
 				FileEvent(file_reassembly_overflow, vl);
 				}
 			}
@@ -610,8 +610,8 @@ void File::Gap(uint64 offset, uint64 len)
 		{
 		val_list* vl = new val_list();
 		vl->append(val->Ref());
-		vl->append(new Val(offset, TYPE_COUNT));
-		vl->append(new Val(len, TYPE_COUNT));
+		vl->append(val_mgr->GetCount(offset));
+		vl->append(val_mgr->GetCount(len));
 		FileEvent(file_gap, vl);
 		}
 

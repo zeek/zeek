@@ -44,7 +44,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	val_list* args = new val_list;
 	args->append(GetFile()->GetVal()->Ref());
 	args->append(new StringVal(new BroString(data, len, 0)));
-	args->append(new Val(offset, TYPE_COUNT));
+	args->append(val_mgr->GetCount(offset));
 
 	mgr.QueueEvent(chunk_event, args);
 

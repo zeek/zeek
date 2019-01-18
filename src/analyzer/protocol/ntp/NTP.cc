@@ -66,11 +66,11 @@ void NTP_Analyzer::Message(const u_char* data, int len)
 
 	unsigned int code = ntp_data->status & 0x7;
 
-	msg->Assign(0, new Val((unsigned int) (ntohl(ntp_data->refid)), TYPE_COUNT));
-	msg->Assign(1, new Val(code, TYPE_COUNT));
-	msg->Assign(2, new Val((unsigned int) ntp_data->stratum, TYPE_COUNT));
-	msg->Assign(3, new Val((unsigned int) ntp_data->ppoll, TYPE_COUNT));
-	msg->Assign(4, new Val((unsigned int) ntp_data->precision, TYPE_INT));
+	msg->Assign(0, val_mgr->GetCount((unsigned int) (ntohl(ntp_data->refid))));
+	msg->Assign(1, val_mgr->GetCount(code));
+	msg->Assign(2, val_mgr->GetCount((unsigned int) ntp_data->stratum));
+	msg->Assign(3, val_mgr->GetCount((unsigned int) ntp_data->ppoll));
+	msg->Assign(4, val_mgr->GetInt((unsigned int) ntp_data->precision));
 	msg->Assign(5, new Val(ShortFloat(ntp_data->distance), TYPE_INTERVAL));
 	msg->Assign(6, new Val(ShortFloat(ntp_data->dispersion), TYPE_INTERVAL));
 	msg->Assign(7, new Val(LongFloat(ntp_data->reftime), TYPE_TIME));

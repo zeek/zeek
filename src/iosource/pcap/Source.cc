@@ -247,6 +247,11 @@ bool PcapSource::SetFilter(int index)
 		return false;
 		}
 
+	//if the filter matches anything, return true
+	if ( code->MatchesAnything() ) 
+		{
+		return true;
+		}
 	if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
 		{
 		PcapError();

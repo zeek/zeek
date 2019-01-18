@@ -92,6 +92,9 @@ int Packet::GetLinkHeaderSize(int link_type)
 	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
 		return 59;
 
+	case DLT_NFLOG:  //Linux netlink NETLINK NFLOG socket log messages
+		return 8;  //base l2 header up to TLV values
+
 	case DLT_RAW:
 		return 0;
 	}
@@ -393,6 +396,47 @@ void Packet::ProcessLayer2()
 		pdata += 2;
 
 		break;
+		}
+
+	case DLT_NFLOG:
+		{
+		
+		int protocol = pdata[0]; //https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
+		if ( protocol == AF_INET )
+			l3_proto = L3_IPV4;
+		else if ( protocol == AF_INET6 )
+			l3_proto = L3_IPV6;
+		//skip header to tlv structs
+		pdata += 4;
+
+		int tlv_len;
+		int tlv_type;
+
+		while(1){
+			if ( pdata >= end_of_data )
+			{
+				Weird("nflog_no_pcap_payload");
+				return;
+			}
+
+			tlv_len = (pdata[1] << 8 )+ pdata[0]; //lil' endian
+			tlv_type = (pdata[3] << 8) + pdata[2];
+
+			//tlv's are in groups of 8 bytes min padding apparently
+			if (tlv_len < 8){
+				tlv_len = 8;
+			}
+			//if 9, then raw packet is straight away after.
+			if (tlv_type == 9){ //type nflog payload
+				pdata += 4; //skip the tlv type and length to put the payload at the front of the buffer.
+				break;
+			}else{
+				pdata += tlv_len;
+			}
+
+		}
+		break;
+
 		}
 
 	default:

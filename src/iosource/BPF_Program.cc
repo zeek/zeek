@@ -104,6 +104,13 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
 	{
 	FreeCode();
 
+	if ( linktype == DLT_NFLOG ) //hacky way to support nflog but not bpf 
+		{
+		m_compiled = true;
+		m_matches_anything = true;
+		return true;
+		}
+
 #ifdef LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER
 	char my_error[PCAP_ERRBUF_SIZE];
 

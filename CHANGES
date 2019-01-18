@@ -1,4 +1,10 @@
 
+2.6-86 | 2019-01-17 18:03:10 -0600
+
+  * Improve ERSPAN Type III support (Jon Siwek, Corelight)
+
+  * Implement ERSPAN type II and ERSPAN type III support (Stu H)
+
 2.6-82 | 2019-01-17 14:09:29 -0600
 
   * Change doc/ subdir into a git submodule (Jon Siwek, Corelight)

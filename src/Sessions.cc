@@ -544,27 +544,66 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version == 0 )
 			{
-			if ( proto_typ == 0x6558 && len > gre_len + 14 )
+			if ( proto_typ == 0x6558 )
 				{
 				// transparent ethernet bridging
-				eth_len = 14;
-				proto_typ = ntohs(*((uint16*)(data + gre_len + 12)));
+				if ( len > gre_len + 14 )
+					{
+					eth_len = 14;
+					proto_typ = ntohs(*((uint16*)(data + gre_len + eth_len - 2)));
+					}
+				else
+					{
+					Weird("truncated_GRE", ip_hdr, encapsulation);
+					return;
+					}
 				}
 
-			if ( proto_typ == 0x88be && len > gre_len + 14 + 8)
+			else if ( proto_typ == 0x88be )
 				{
 				// ERSPAN type II
-				erspan_len = 8;
-				eth_len = 14;
-				proto_typ = ntohs(*((uint16*)(data + gre_len + 20)));
+				if ( len > gre_len + 14 + 8 )
+					{
+					erspan_len = 8;
+					eth_len = 14;
+					proto_typ = ntohs(*((uint16*)(data + gre_len + erspan_len + eth_len - 2)));
+					}
+				else
+					{
+					Weird("truncated_GRE", ip_hdr, encapsulation);
+					return;
+					}
 				}
 
-			if ( proto_typ == 0x22eb && len > gre_len + 14 + 12)
+			else if ( proto_typ == 0x22eb )
 				{
 				// ERSPAN type III
-				erspan_len = 12;
-				eth_len = 14;
-				proto_typ = ntohs(*((uint16*)(data + gre_len + 24)));
+				if ( len > gre_len + 14 + 12 )
+					{
+					erspan_len = 12;
+					eth_len = 14;
+
+					auto flags = data + erspan_len - 1;
+					bool have_opt_header = ((*flags & 0x01) == 0x01);
+
+					if ( have_opt_header  )
+						{
+						if ( len > gre_len + erspan_len + 8 + eth_len )
+							erspan_len += 8;
+						else
+							{
+							Weird("truncated_GRE", ip_hdr, encapsulation);
+							return;
+							}
+						}
+
+					proto_typ = ntohs(*((uint16*)(data + gre_len + erspan_len + eth_len - 2)));
+					}
+				else
+					{
+					Weird("truncated_GRE", ip_hdr, encapsulation);
+					return;
+					}
 				}
 
 			if ( proto_typ == 0x0800 )

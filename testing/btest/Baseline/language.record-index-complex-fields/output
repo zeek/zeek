@@ -10,18 +10,18 @@ a
 }
 }
 {
-[a=4, tags_v=[0, 1], tags_t={
-[two] = 2,
-[one] = 1
-}, tags_s={
-b,
-a
-}],
 [a=13, tags_v=[, , 2, 3], tags_t={
 [five] = 5,
 [four] = 4
 }, tags_s={
 c,
 d
+}],
+[a=4, tags_v=[0, 1], tags_t={
+[two] = 2,
+[one] = 1
+}, tags_s={
+b,
+a
 }]
 }

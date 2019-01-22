@@ -425,7 +425,7 @@ Val* Val::SizeVal() const
 		return val_mgr->GetCount(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
-		return new Val(fabs(val.double_val), TYPE_DOUBLE);
+		return new Val(fabs(val.double_val), type->Tag());
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )

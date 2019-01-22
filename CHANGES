@@ -1,4 +1,14 @@
 
+2.6-92 | 2019-01-22 08:53:36 -0800
+
+  * GH-151: fix hash calculation for nested sets
+
+    Hash key construction of nested sets depended on the order in
+    which their elements are iterated, which varied even between sets
+    containing equivalent elements.  The iteration order is now sorted
+    by each element's hash value (or, on collision, by full key) such
+    that equivalent sets no longer hash differently. (Jon Siwek, Corelight)
+
 2.6-89 | 2019-01-18 15:17:34 -0800
 
   * Pre-allocate and re-use Vals for bool, int, count, enum and empty string (Jon Siwek, Corelight)

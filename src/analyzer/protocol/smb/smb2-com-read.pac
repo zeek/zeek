@@ -55,6 +55,13 @@ refine connection SMB_Conn += {
 			                 bro_analyzer()->Conn(), h->is_orig());
 			}
 
+		if ( smb2_read_request )
+			{
+			BifEvent::generate_smb2_read_response(bro_analyzer(),
+			                                     bro_analyzer()->Conn(),
+			                                     BuildSMB2HeaderVal(h));
+			}
+
 		return true;
 		%}
 

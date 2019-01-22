@@ -16,3 +16,16 @@
 ##
 ## .. bro:see:: smb2_message
 event smb2_read_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count%);
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 requests of type *read*. This is sent by the server in response to a read request operation on
+## a specified file.
+##
+## For more information, see MS-SMB2:2.2.20
+##
+## c: The connection.
+##
+## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+##
+## .. bro:see:: smb2_message
+event smb2_read_response%(c: connection, hdr: SMB2::Header);

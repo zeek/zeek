@@ -1,4 +1,9 @@
 
+2.6-95 | 2019-01-23 09:49:35 -0800
+
+  * GH-219: fix |x| operator int overflow / floating point type inconsistency
+    (Jon Siwek, Corelight)
+
 2.6-92 | 2019-01-22 08:53:36 -0800
 
   * GH-151: fix hash calculation for nested sets

@@ -204,6 +204,11 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 	SMB::write_file_log(c$smb_state);
 	}
 
+event smb2_read_response(c: connection, hdr: SMB2::Header) &priority=-5
+	{ 
+	SMB::write_file_log(c$smb_state);
+	}
+
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
 	{
 	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
@@ -227,6 +232,11 @@ event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, 
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=-5
 	{
+	SMB::write_file_log(c$smb_state);
+	}
+
+event smb2_write_response(c: connection, hdr: SMB2::Header) &priority=-5
+	{ 
 	SMB::write_file_log(c$smb_state);
 	}
 

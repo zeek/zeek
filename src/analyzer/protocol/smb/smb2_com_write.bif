@@ -28,4 +28,4 @@ event smb2_write_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID,
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
 ## .. bro:see:: smb2_message
-event smb2_write_response%(c: connection, hdr: SMB2::Header);
+event smb2_write_response%(c: connection, hdr: SMB2::Header%);

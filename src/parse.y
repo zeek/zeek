@@ -728,7 +728,12 @@ expr:
 	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
-			$$ = new SizeExpr($2);
+			auto e = $2;
+
+			if ( IsIntegral(e->Type()->Tag()) )
+				e = new ArithCoerceExpr(e, TYPE_INT);
+
+			$$ = new SizeExpr(e);
 			}
 
 	|       expr TOK_AS type

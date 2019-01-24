@@ -64,6 +64,10 @@ print fmt("Boolean %s: %d", b, |b|);
 # Size of count: identity.
 print fmt("Count %s: %d", c, |c|);
 
+# Size of integral arithmetic expression should coerce to int before absolute
+# value operation to help prevent common unsigned int overflow situations.
+print fmt("Expr: %d", |5 - 9|);
+
 # Size of double: returns absolute value.
 print fmt("Double %s: %f", d, |d|);
 

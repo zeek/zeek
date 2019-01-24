@@ -1,4 +1,8 @@
 
+2.6-106 | 2019-01-24 17:53:03 -0600
+
+  * Fix building with LibreSSL again (Jon Siwek, Corelight)
+
 2.6-105 | 2019-01-24 15:22:31 -0800
 
   * GH-167: improve error message for unclosed function at EOF (Jon Siwek, Corelight)

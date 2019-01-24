@@ -1,4 +1,8 @@
 
+2.6-105 | 2019-01-24 15:22:31 -0800
+
+  * GH-167: improve error message for unclosed function at EOF (Jon Siwek, Corelight)
+
 2.6-103 | 2019-01-24 17:09:05 -0600
 
   * Change digest.h functions to use EVP_MD_CTX interface (Johanna Amann)

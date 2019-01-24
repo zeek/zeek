@@ -94,6 +94,9 @@
 #include <string>
 
 extern const char* filename;  // Absolute path of file currently being parsed.
+extern const char* last_filename; // Absolute path of last file parsed.
+extern const char* last_tok_filename;
+extern const char* last_last_tok_filename;
 
 YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
@@ -1723,19 +1726,27 @@ opt_deprecated:
 
 int yyerror(const char msg[])
 	{
-	char* msgbuf = new char[strlen(msg) + strlen(last_tok) + 128];
-
-	if ( last_tok[0] == '\n' )
-		sprintf(msgbuf, "%s, on previous line", msg);
-	else if ( last_tok[0] == '\0' )
-		sprintf(msgbuf, "%s, at end of file", msg);
-	else
-		sprintf(msgbuf, "%s, at or near \"%s\"", msg, last_tok);
-
 	if ( in_debug )
 		g_curr_debug_error = copy_string(msg);
 
-	reporter->Error("%s", msgbuf);
+	if ( last_tok[0] == '\n' )
+		reporter->Error("%s, on previous line", msg);
+	else if ( last_tok[0] == '\0' )
+		{
+		if ( last_filename )
+			reporter->Error("%s, at end of file %s", msg, last_filename);
+		else
+			reporter->Error("%s, at end of file", msg);
+		}
+	else
+		{
+		if ( last_last_tok_filename && last_tok_filename &&
+		     ! streq(last_last_tok_filename, last_tok_filename) )
+			reporter->Error("%s, at or near \"%s\" or end of file %s",
+			                msg, last_tok, last_last_tok_filename);
+		else
+			reporter->Error("%s, at or near \"%s\"", msg, last_tok);
+		}
 
 	return 0;
 	}

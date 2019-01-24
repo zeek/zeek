@@ -1360,7 +1360,10 @@ SizeExpr::SizeExpr(Expr* arg_op) : UnaryExpr(EXPR_SIZE, arg_op)
 	if ( IsError() )
 		return;
 
-	SetType(base_type(TYPE_COUNT));
+	if ( op->Type()->InternalType() == TYPE_INTERNAL_DOUBLE )
+		SetType(op->Type()->Ref());
+	else
+		SetType(base_type(TYPE_COUNT));
 	}
 
 Val* SizeExpr::Eval(Frame* f) const

@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <typeinfo>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 
 #include "Hasher.h"
 #include "NetVar.h"
@@ -15,24 +15,23 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	seed_t tmpseed;
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
+	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
 
 	assert(sizeof(tmpseed) == 16);
 
 	if ( data )
-		sha256_update(&ctx, data, size);
+		hash_update(ctx, data, size);
 
 	else if ( global_hash_seed && global_hash_seed->Len() > 0 )
-		sha256_update(&ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
+		hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
 
 	else
 		{
 		unsigned int first_seed = initial_seed();
-		sha256_update(&ctx, &first_seed, sizeof(first_seed));
+		hash_update(ctx, &first_seed, sizeof(first_seed));
 		}
 
-	sha256_final(&ctx, buf);
+	hash_final(ctx, buf);
 	memcpy(&tmpseed, buf, sizeof(tmpseed)); // Use the first bytes as seed.
 	return tmpseed;
 	}
@@ -123,13 +122,13 @@ Hasher::digest UHF::hash(const void* x, size_t n) const
 		Hasher::digest rval;
 	} u;
 
-	MD5(reinterpret_cast<const unsigned char*>(x), n, u.d);
+	internal_md5(reinterpret_cast<const unsigned char*>(x), n, u.d);
 
 	const unsigned char* s = reinterpret_cast<const unsigned char*>(&seed);
 	for ( size_t i = 0; i < 16; ++i )
 		u.d[i] ^= s[i % sizeof(seed)];
 
-	MD5(u.d, 16, u.d);
+	internal_md5(u.d, 16, u.d);
 	return u.rval;
 	}
 

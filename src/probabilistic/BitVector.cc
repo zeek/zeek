@@ -496,13 +496,12 @@ uint64 BitVector::Hash() const
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	uint64 digest;
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
+	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
 
 	for ( size_type i = 0; i < Blocks(); ++i )
-		sha256_update(&ctx, &bits[i], sizeof(bits[i]));
+		hash_update(ctx, &bits[i], sizeof(bits[i]));
 
-	sha256_final(&ctx, buf);
+	hash_final(ctx, buf);
 	memcpy(&digest, buf, sizeof(digest)); // Use the first bytes as digest
 	return digest;
 	}

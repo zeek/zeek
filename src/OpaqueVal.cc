@@ -81,10 +81,15 @@ MD5Val::MD5Val() : HashVal(md5_type)
 	{
 	}
 
+MD5Val::~MD5Val()
+	{
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+	}
+
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
 	{
-	MD5_CTX h;
-	md5_init(&h);
+	EVP_MD_CTX* h = hash_init(Hash_MD5);
 
 	loop_over_list(vlist, i)
 		{
@@ -92,17 +97,17 @@ void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
-			md5_update(&h, str->Bytes(), str->Len());
+			hash_update(h, str->Bytes(), str->Len());
 			}
 		else
 			{
 			ODesc d(DESC_BINARY);
 			v->Describe(&d);
-			md5_update(&h, (const u_char *) d.Bytes(), d.Len());
+			hash_update(h, (const u_char *) d.Bytes(), d.Len());
 			}
 		}
 
-	md5_final(&h, result);
+	hash_final(h, result);
 	}
 
 void MD5Val::hmac(val_list& vlist,
@@ -113,13 +118,13 @@ void MD5Val::hmac(val_list& vlist,
 	for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
 		result[i] ^= key[i];
 
-	MD5(result, MD5_DIGEST_LENGTH, result);
+	internal_md5(result, MD5_DIGEST_LENGTH, result);
 	}
 
 bool MD5Val::DoInit()
 	{
 	assert(! IsValid());
-	md5_init(&ctx);
+	ctx = hash_init(Hash_MD5);
 	return true;
 	}
 
@@ -128,7 +133,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	md5_update(&ctx, data, size);
+	hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -138,7 +143,7 @@ StringVal* MD5Val::DoGet()
 		return val_mgr->GetEmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
-	md5_final(&ctx, digest);
+	hash_final(ctx, digest);
 	return new StringVal(md5_digest_print(digest));
 	}
 
@@ -151,21 +156,23 @@ bool MD5Val::DoSerialize(SerialInfo* info) const
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (SERIALIZE(ctx.A) &&
-		SERIALIZE(ctx.B) &&
-		SERIALIZE(ctx.C) &&
-		SERIALIZE(ctx.D) &&
-		SERIALIZE(ctx.Nl) &&
-		SERIALIZE(ctx.Nh)) )
+	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! (SERIALIZE(md->A) &&
+		SERIALIZE(md->B) &&
+		SERIALIZE(md->C) &&
+		SERIALIZE(md->D) &&
+		SERIALIZE(md->Nl) &&
+		SERIALIZE(md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < MD5_LBLOCK; ++i )
 		{
-		if ( ! SERIALIZE(ctx.data[i]) )
+		if ( ! SERIALIZE(md->data[i]) )
 			return false;
 		}
 
-	if ( ! SERIALIZE(ctx.num) )
+	if ( ! SERIALIZE(md->num) )
 		return false;
 
 	return true;
@@ -178,21 +185,24 @@ bool MD5Val::DoUnserialize(UnserialInfo* info)
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (UNSERIALIZE(&ctx.A) &&
-		UNSERIALIZE(&ctx.B) &&
-		UNSERIALIZE(&ctx.C) &&
-		UNSERIALIZE(&ctx.D) &&
-		UNSERIALIZE(&ctx.Nl) &&
-		UNSERIALIZE(&ctx.Nh)) )
+	ctx = hash_init(Hash_MD5);
+	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! (UNSERIALIZE(&md->A) &&
+		UNSERIALIZE(&md->B) &&
+		UNSERIALIZE(&md->C) &&
+		UNSERIALIZE(&md->D) &&
+		UNSERIALIZE(&md->Nl) &&
+		UNSERIALIZE(&md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < MD5_LBLOCK; ++i )
 		{
-		if ( ! UNSERIALIZE(&ctx.data[i]) )
+		if ( ! UNSERIALIZE(&md->data[i]) )
 			return false;
 		}
 
-	if ( ! UNSERIALIZE(&ctx.num) )
+	if ( ! UNSERIALIZE(&md->num) )
 		return false;
 
 	return true;
@@ -202,10 +212,15 @@ SHA1Val::SHA1Val() : HashVal(sha1_type)
 	{
 	}
 
+SHA1Val::~SHA1Val()
+	{
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+	}
+
 void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
 	{
-	SHA_CTX h;
-	sha1_init(&h);
+	EVP_MD_CTX* h = hash_init(Hash_SHA1);
 
 	loop_over_list(vlist, i)
 		{
@@ -213,23 +228,23 @@ void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
-			sha1_update(&h, str->Bytes(), str->Len());
+			hash_update(h, str->Bytes(), str->Len());
 			}
 		else
 			{
 			ODesc d(DESC_BINARY);
 			v->Describe(&d);
-			sha1_update(&h, (const u_char *) d.Bytes(), d.Len());
+			hash_update(h, (const u_char *) d.Bytes(), d.Len());
 			}
 		}
 
-	sha1_final(&h, result);
+	hash_final(h, result);
 	}
 
 bool SHA1Val::DoInit()
 	{
 	assert(! IsValid());
-	sha1_init(&ctx);
+	ctx = hash_init(Hash_SHA1);
 	return true;
 	}
 
@@ -238,7 +253,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	sha1_update(&ctx, data, size);
+	hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -248,7 +263,7 @@ StringVal* SHA1Val::DoGet()
 		return val_mgr->GetEmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
-	sha1_final(&ctx, digest);
+	hash_final(ctx, digest);
 	return new StringVal(sha1_digest_print(digest));
 	}
 
@@ -261,22 +276,24 @@ bool SHA1Val::DoSerialize(SerialInfo* info) const
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (SERIALIZE(ctx.h0) &&
-		SERIALIZE(ctx.h1) &&
-		SERIALIZE(ctx.h2) &&
-		SERIALIZE(ctx.h3) &&
-		SERIALIZE(ctx.h4) &&
-		SERIALIZE(ctx.Nl) &&
-		SERIALIZE(ctx.Nh)) )
+	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! (SERIALIZE(md->h0) &&
+		SERIALIZE(md->h1) &&
+		SERIALIZE(md->h2) &&
+		SERIALIZE(md->h3) &&
+		SERIALIZE(md->h4) &&
+		SERIALIZE(md->Nl) &&
+		SERIALIZE(md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
 		{
-		if ( ! SERIALIZE(ctx.data[i]) )
+		if ( ! SERIALIZE(md->data[i]) )
 			return false;
 		}
 
-	if ( ! SERIALIZE(ctx.num) )
+	if ( ! SERIALIZE(md->num) )
 		return false;
 
 	return true;
@@ -289,22 +306,25 @@ bool SHA1Val::DoUnserialize(UnserialInfo* info)
 	if ( ! IsValid() )
 		return true;
 
-	if ( ! (UNSERIALIZE(&ctx.h0) &&
-		UNSERIALIZE(&ctx.h1) &&
-		UNSERIALIZE(&ctx.h2) &&
-		UNSERIALIZE(&ctx.h3) &&
-		UNSERIALIZE(&ctx.h4) &&
-		UNSERIALIZE(&ctx.Nl) &&
-		UNSERIALIZE(&ctx.Nh)) )
+	ctx = hash_init(Hash_SHA1);
+	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! (UNSERIALIZE(&md->h0) &&
+		UNSERIALIZE(&md->h1) &&
+		UNSERIALIZE(&md->h2) &&
+		UNSERIALIZE(&md->h3) &&
+		UNSERIALIZE(&md->h4) &&
+		UNSERIALIZE(&md->Nl) &&
+		UNSERIALIZE(&md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
 		{
-		if ( ! UNSERIALIZE(&ctx.data[i]) )
+		if ( ! UNSERIALIZE(&md->data[i]) )
 			return false;
 		}
 
-	if ( ! UNSERIALIZE(&ctx.num) )
+	if ( ! UNSERIALIZE(&md->num) )
 		return false;
 
 	return true;
@@ -314,10 +334,15 @@ SHA256Val::SHA256Val() : HashVal(sha256_type)
 	{
 	}
 
+SHA256Val::~SHA256Val()
+	{
+	if ( IsValid() )
+		EVP_MD_CTX_free(ctx);
+	}
+
 void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
 	{
-	SHA256_CTX h;
-	sha256_init(&h);
+	EVP_MD_CTX* h = hash_init(Hash_SHA256);
 
 	loop_over_list(vlist, i)
 		{
@@ -325,23 +350,23 @@ void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
-			sha256_update(&h, str->Bytes(), str->Len());
+			hash_update(h, str->Bytes(), str->Len());
 			}
 		else
 			{
 			ODesc d(DESC_BINARY);
 			v->Describe(&d);
-			sha256_update(&h, (const u_char *) d.Bytes(), d.Len());
+			hash_update(h, (const u_char *) d.Bytes(), d.Len());
 			}
 		}
 
-	sha256_final(&h, result);
+	hash_final(h, result);
 	}
 
 bool SHA256Val::DoInit()
 	{
 	assert( ! IsValid() );
-	sha256_init(&ctx);
+	ctx = hash_init(Hash_SHA256);
 	return true;
 	}
 
@@ -350,7 +375,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 	if ( ! IsValid() )
 		return false;
 
-	sha256_update(&ctx, data, size);
+	hash_update(ctx, data, size);
 	return true;
 	}
 
@@ -360,7 +385,7 @@ StringVal* SHA256Val::DoGet()
 		return val_mgr->GetEmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
-	sha256_final(&ctx, digest);
+	hash_final(ctx, digest);
 	return new StringVal(sha256_digest_print(digest));
 	}
 
@@ -373,24 +398,26 @@ bool SHA256Val::DoSerialize(SerialInfo* info) const
 	if ( ! IsValid() )
 		return true;
 
+	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
+
 	for ( int i = 0; i < 8; ++i )
 		{
-		if ( ! SERIALIZE(ctx.h[i]) )
+		if ( ! SERIALIZE(md->h[i]) )
 			return false;
 		}
 
-	if ( ! (SERIALIZE(ctx.Nl) &&
-		SERIALIZE(ctx.Nh)) )
+	if ( ! (SERIALIZE(md->Nl) &&
+		SERIALIZE(md->Nh)) )
 		return false;
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
 		{
-		if ( ! SERIALIZE(ctx.data[i]) )
+		if ( ! SERIALIZE(md->data[i]) )
 			return false;
 		}
 
-	if ( ! (SERIALIZE(ctx.num) &&
-		SERIALIZE(ctx.md_len)) )
+	if ( ! (SERIALIZE(md->num) &&
+		SERIALIZE(md->md_len)) )
 	     return false;
 
 	return true;
@@ -403,25 +430,28 @@ bool SHA256Val::DoUnserialize(UnserialInfo* info)
 	if ( ! IsValid() )
 		return true;
 
+	ctx = hash_init(Hash_SHA256);
+	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
+
 	for ( int i = 0; i < 8; ++i )
 		{
-		if ( ! UNSERIALIZE(&ctx.h[i]) )
+		if ( ! UNSERIALIZE(&md->h[i]) )
 			return false;
 		}
 
-	if ( ! (UNSERIALIZE(&ctx.Nl) &&
-		UNSERIALIZE(&ctx.Nh)) )
+	if ( ! (UNSERIALIZE(&md->Nl) &&
+		UNSERIALIZE(&md->Nh)) )
 	     return false;
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
 		{
-		if ( ! UNSERIALIZE(&ctx.data[i]) )
+		if ( ! UNSERIALIZE(&md->data[i]) )
 			return false;
 		}
 
 
-	if ( ! (UNSERIALIZE(&ctx.num) &&
-		UNSERIALIZE(&ctx.md_len)) )
+	if ( ! (UNSERIALIZE(&md->num) &&
+		UNSERIALIZE(&md->md_len)) )
 		return false;
 
 	return true;

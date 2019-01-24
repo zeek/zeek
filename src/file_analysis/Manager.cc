@@ -10,6 +10,7 @@
 #include "Var.h"
 #include "Event.h"
 #include "UID.h"
+#include "digest.h"
 
 #include "plugin/Manager.h"
 #include "analyzer/Manager.h"
@@ -93,7 +94,7 @@ string Manager::HashHandle(const string& handle) const
 	uint64 hash[2];
 	string msg(handle + salt);
 
-	MD5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
+	internal_md5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
 	    reinterpret_cast<u_char*>(hash));
 
 	return Bro::UID(bits_per_uid, hash, 2).Base62("F");

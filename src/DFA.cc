@@ -2,10 +2,9 @@
 
 #include "bro-config.h"
 
-#include <openssl/md5.h>
-
 #include "EquivClass.h"
 #include "DFA.h"
+#include "digest.h"
 
 unsigned int DFA_State::transition_counter = 0;
 
@@ -337,7 +336,7 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas,
 	// We use the short MD5 instead of the full string for the
 	// HashKey because the data is copied into the key.
 	u_char digest[16];
-	MD5(id_tag, p - id_tag, digest);
+	internal_md5(id_tag, p - id_tag, digest);
 
 	*hash = new HashKey(&digest, sizeof(digest));
 	CacheEntry* e = states.Lookup(*hash);
@@ -395,7 +394,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 	{
 	state_count = 0;
 
-	nfa = n; 
+	nfa = n;
 	Ref(n);
 
 	ec = arg_ec;

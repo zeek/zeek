@@ -1,4 +1,10 @@
 
+2.6-103 | 2019-01-24 17:09:05 -0600
+
+  * Change digest.h functions to use EVP_MD_CTX interface (Johanna Amann)
+
+  * Improve support for FIPS systems (Robert Clark)
+
 2.6-98 | 2019-01-24 12:52:18 -0800
 
   * Added ERSPAN III testing (Stu H)

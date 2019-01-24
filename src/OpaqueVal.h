@@ -45,6 +45,7 @@ public:
 			 u_char result[MD5_DIGEST_LENGTH]);
 
 	MD5Val();
+	~MD5Val();
 
 protected:
 	friend class Val;
@@ -56,7 +57,7 @@ protected:
 	DECLARE_SERIAL(MD5Val);
 
 private:
-	MD5_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class SHA1Val : public HashVal {
@@ -64,6 +65,7 @@ public:
 	static void digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH]);
 
 	SHA1Val();
+	~SHA1Val();
 
 protected:
 	friend class Val;
@@ -75,7 +77,7 @@ protected:
 	DECLARE_SERIAL(SHA1Val);
 
 private:
-	SHA_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class SHA256Val : public HashVal {
@@ -83,6 +85,7 @@ public:
 	static void digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH]);
 
 	SHA256Val();
+	~SHA256Val();
 
 protected:
 	friend class Val;
@@ -94,7 +97,7 @@ protected:
 	DECLARE_SERIAL(SHA256Val);
 
 private:
-	SHA256_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class EntropyVal : public OpaqueVal {

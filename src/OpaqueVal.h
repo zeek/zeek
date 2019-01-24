@@ -75,7 +75,7 @@ protected:
 	DECLARE_SERIAL(SHA1Val);
 
 private:
-	SHA_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class SHA256Val : public HashVal {
@@ -94,7 +94,7 @@ protected:
 	DECLARE_SERIAL(SHA256Val);
 
 private:
-	SHA256_CTX ctx;
+	EVP_MD_CTX* ctx;
 };
 
 class EntropyVal : public OpaqueVal {

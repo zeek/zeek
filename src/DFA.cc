@@ -2,8 +2,6 @@
 
 #include "bro-config.h"
 
-#include <openssl/md5.h>
-
 #include "EquivClass.h"
 #include "DFA.h"
 #include "digest.h"

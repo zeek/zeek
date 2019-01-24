@@ -1335,7 +1335,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 	if ( mime_content_hash )
 		{
 		compute_content_hash = 1;
-		md5_init(&md5_hash);
+		md5_hash = hash_init(Hash_MD5);
 		}
 	else
 		compute_content_hash = 0;
@@ -1355,7 +1355,7 @@ void MIME_Mail::Done()
 	if ( compute_content_hash && mime_content_hash )
 		{
 		u_char* digest = new u_char[16];
-		md5_final(md5_hash, digest);
+		hash_final(md5_hash, digest);
 
 		val_list* vl = new val_list;
 		vl->append(analyzer->BuildConnVal());
@@ -1456,7 +1456,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	if ( compute_content_hash )
 		{
 		content_hash_length += len;
-		md5_update(md5_hash, (const u_char*) buf, len);
+		hash_update(md5_hash, (const u_char*) buf, len);
 		}
 
 	if ( mime_entity_data || mime_all_data )

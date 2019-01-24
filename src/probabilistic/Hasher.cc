@@ -15,24 +15,23 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
 	seed_t tmpseed;
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
+	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
 
 	assert(sizeof(tmpseed) == 16);
 
 	if ( data )
-		sha256_update(&ctx, data, size);
+		hash_update(ctx, data, size);
 
 	else if ( global_hash_seed && global_hash_seed->Len() > 0 )
-		sha256_update(&ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
+		hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
 
 	else
 		{
 		unsigned int first_seed = initial_seed();
-		sha256_update(&ctx, &first_seed, sizeof(first_seed));
+		hash_update(ctx, &first_seed, sizeof(first_seed));
 		}
 
-	sha256_final(&ctx, buf);
+	hash_final(ctx, buf);
 	memcpy(&tmpseed, buf, sizeof(tmpseed)); // Use the first bytes as seed.
 	return tmpseed;
 	}

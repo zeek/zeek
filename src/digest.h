@@ -23,6 +23,8 @@ inline void *EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
 
 #include "Reporter.h"
 
+enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
+
 inline const char* digest_print(const u_char* digest, size_t n)
 	{
 	static char buf[256]; // big enough for any of md5/sha1/sha256
@@ -46,92 +48,65 @@ inline const char* sha256_digest_print(const u_char digest[SHA256_DIGEST_LENGTH]
 	return digest_print(digest, SHA256_DIGEST_LENGTH);
 	}
 
-inline void md5_init(EVP_MD_CTX** c)
+inline EVP_MD_CTX* hash_init(HashAlgorithm alg)
 	{
-	*c = EVP_MD_CTX_new();
+	EVP_MD_CTX *c = EVP_MD_CTX_new();
 	/* Allow this to work even if FIPS disables it */
+	const EVP_MD* md;
+	switch (alg)
+		{
+		case Hash_MD5:
 #ifdef EVP_MD_CTX_FLAG_NON_FIPS_ALLOW
-	EVP_MD_CTX_set_flags(*c, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
+			EVP_MD_CTX_set_flags(c, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
 #endif
-	if ( ! EVP_DigestInit_ex(*c, EVP_md5(), NULL) )
-		reporter->InternalError("MD5_Init failed");
+			md = EVP_md5();
+			break;
+		case Hash_SHA1:
+			md = EVP_sha1();
+			break;
+		case Hash_SHA224:
+			md = EVP_sha224();
+			break;
+		case Hash_SHA256:
+			md = EVP_sha256();
+			break;
+		case Hash_SHA384:
+			md = EVP_sha384();
+			break;
+		case Hash_SHA512:
+			md = EVP_sha512();
+			break;
+		default:
+			reporter->InternalError("Unknown hash algorithm passed to hash_init");
+		}
+	if ( ! EVP_DigestInit_ex(c, md, NULL) )
+		reporter->InternalError("EVP_DigestInit failed");
+	return c;
 	}
 
-inline void md5_update(EVP_MD_CTX* c, const void* data, unsigned long len)
+inline void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len)
 	{
 	if ( ! EVP_DigestUpdate(c, data, len) )
-		reporter->InternalError("MD5_Update failed");
+		reporter->InternalError("EVP_DigestUpdate failed");
 	}
 
-inline void md5_final(EVP_MD_CTX* c, u_char md[MD5_DIGEST_LENGTH])
+inline void hash_final(EVP_MD_CTX* c, u_char md[MD5_DIGEST_LENGTH])
 	{
 	if ( ! EVP_DigestFinal(c, md, NULL) )
-		reporter->InternalError("MD5_Final failed");
+		reporter->InternalError("EVP_DigestFinal failed");
+	EVP_MD_CTX_free(c);
 	}
 
-inline unsigned char* internal_md5(const unsigned char *d, size_t n, unsigned char *md)
+inline unsigned char* internal_md5(const unsigned char *data, unsigned long len, unsigned char *out)
 	{
-		EVP_MD_CTX *c;
-		static unsigned char m[MD5_DIGEST_LENGTH];
+	static unsigned char static_out[MD5_DIGEST_LENGTH];
+	if ( ! out )
+		out = static_out; // use static array for return, see OpenSSL man page
 
-		if (md == NULL)
-			md = m;
-		md5_init(&c);
-	#ifndef CHARSET_EBCDIC
-		md5_update(c, d, n);
-	#else
-		{
-			char temp[1024];
-			unsigned long chunk;
-
-			while (n > 0) {
-				chunk = (n > sizeof(temp)) ? sizeof(temp) : n;
-				ebcdic2ascii(temp, d, chunk);
-				md5_update(c, temp, chunk);
-				n -= chunk;
-				d += chunk;
-			}
-		}
-	#endif
-		md5_final(c, md);
-		EVP_MD_CTX_free(c);
-		return md;
-	}
-
-inline void sha1_init(SHA_CTX* c)
-	{
-	if ( ! SHA1_Init(c) )
-		reporter->InternalError("SHA_Init failed");
-	}
-
-inline void sha1_update(SHA_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! SHA1_Update(c, data, len) )
-		reporter->InternalError("SHA_Update failed");
-	}
-
-inline void sha1_final(SHA_CTX* c, u_char md[SHA_DIGEST_LENGTH])
-	{
-	if ( ! SHA1_Final(md, c) )
-		reporter->InternalError("SHA_Final failed");
-	}
-
-inline void sha256_init(SHA256_CTX* c)
-	{
-	if ( ! SHA256_Init(c) )
-		reporter->InternalError("SHA256_Init failed");
-	}
-
-inline void sha256_update(SHA256_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! SHA256_Update(c, data, len) )
-		reporter->InternalError("SHA256_Update failed");
-	}
-
-inline void sha256_final(SHA256_CTX* c, u_char md[SHA256_DIGEST_LENGTH])
-	{
-	if ( ! SHA256_Final(md, c) )
-		reporter->InternalError("SHA256_Final failed");
+	EVP_MD_CTX *c = hash_init(Hash_MD5);
+	hash_update(c, data, len);
+	hash_final(c, out);
+	return out;
 	}
 
 #endif //bro_digest_h

@@ -1,4 +1,8 @@
 
+2.6-98 | 2019-01-24 12:52:18 -0800
+
+  * Added ERSPAN III testing (Stu H)
+
 2.6-95 | 2019-01-23 09:49:35 -0800
 
   * GH-219: fix |x| operator int overflow / floating point type inconsistency

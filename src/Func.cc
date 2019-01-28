@@ -70,9 +70,32 @@ std::string render_call_stack()
 			rval += " | ";
 
 		auto& ci = *it;
-		auto loc = ci.call->GetLocationInfo();
 		auto name = ci.func->Name();
-		rval += fmt("#%d %s() at %s:%d", lvl, name, loc->filename, loc->first_line);
+		std::string arg_desc;
+
+		if ( ci.args )
+			{
+			loop_over_list(*ci.args, i)
+				{
+				ODesc d;
+				d.SetShort();
+				(*ci.args)[i]->Describe(&d);
+
+				if ( ! arg_desc.empty() )
+					arg_desc += ", ";
+
+				arg_desc += d.Description();
+				}
+			}
+
+		rval += fmt("#%d %s(%s)", lvl, name, arg_desc.data());
+
+		if ( ci.call )
+			{
+			auto loc = ci.call->GetLocationInfo();
+			rval += fmt(" at %s:%d", loc->filename, loc->first_line);
+			}
+
 		++lvl;
 		}
 
@@ -399,6 +422,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		}
 
 	g_frame_stack.push_back(f);	// used for backtracing
+	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
+	call_stack.emplace_back(CallInfo{call_expr, this, args});
 
 	if ( g_trace_state.DoTrace() )
 		{
@@ -469,6 +494,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 				}
 			}
 		}
+
+	call_stack.pop_back();
 
 	// We have an extra Ref for each argument (so that they don't get
 	// deleted between bodies), release that.
@@ -625,7 +652,11 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
+	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
+	call_stack.emplace_back(CallInfo{call_expr, this, args});
 	Val* result = func(parent, args);
+	call_stack.pop_back();
+
 	loop_over_list(*args, i)
 		Unref((*args)[i]);
 
@@ -663,9 +694,18 @@ bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
 
 void builtin_error(const char* msg, BroObj* arg)
 	{
+	auto emit = [=](const CallExpr* ce)
+		{
+		if ( ce )
+			ce->Error(msg, arg);
+		else
+			reporter->Error(msg, arg);
+		};
+
+
 	if ( call_stack.empty() )
 		{
-		reporter->Error(msg, arg);
+		emit(nullptr);
 		return;
 		}
 
@@ -674,13 +714,12 @@ void builtin_error(const char* msg, BroObj* arg)
 	if ( call_stack.size() < 2 )
 		{
 		// Don't need to check for wrapper function like "<module>::__<func>"
-		last_call.call->Error(msg, arg);
+		emit(last_call.call);
 		return;
 		}
 
 	auto starts_with_double_underscore = [](const std::string& name) -> bool
 		{ return name.size() > 2 && name[0] == '_' && name[1] == '_'; };
-	auto last_loc = last_call.call->GetLocationInfo();
 	std::string last_func = last_call.func->Name();
 
 	auto pos = last_func.find_first_of("::");
@@ -690,7 +729,7 @@ void builtin_error(const char* msg, BroObj* arg)
 		{
 		if ( ! starts_with_double_underscore(last_func) )
 			{
-			last_call.call->Error(msg, arg);
+			emit(last_call.call);
 			return;
 			}
 
@@ -703,7 +742,7 @@ void builtin_error(const char* msg, BroObj* arg)
 
 		if ( ! starts_with_double_underscore(func_name) )
 			{
-			last_call.call->Error(msg, arg);
+			emit(last_call.call);
 			return;
 			}
 
@@ -714,9 +753,9 @@ void builtin_error(const char* msg, BroObj* arg)
 	auto parent_func = parent_call.func->Name();
 
 	if ( wrapper_func == parent_func )
-		parent_call.call->Error(msg, arg);
+		emit(parent_call.call);
 	else
-		last_call.call->Error(msg, arg);
+		emit(last_call.call);
 	}
 
 #include "bro.bif.func_h"

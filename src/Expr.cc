@@ -4839,28 +4839,17 @@ Val* CallExpr::Eval(Frame* f) const
 		{
 		const ::Func* func = func_val->AsFunc();
 		const CallExpr* current_call = f ? f->GetCall() : 0;
-		call_stack.emplace_back(CallInfo{this, func});
 
 		if ( f )
 			f->SetCall(this);
 
-		try
-			{
-			ret = func->Call(v, f);
-			}
-		catch ( ... )
-			{
-			call_stack.pop_back();
-			throw;
-			}
+		ret = func->Call(v, f);
 
 		if ( f )
 			f->SetCall(current_call);
 
 		// Don't Unref() the arguments, as Func::Call already did that.
 		delete v;
-
-		call_stack.pop_back();
 		}
 	else
 		delete_vals(v);

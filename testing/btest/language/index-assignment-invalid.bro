@@ -13,7 +13,7 @@ type myrec: record {
 	c: string &optional;
 };
 
-function bar()
+function bar(c: count)
 	{
 	local rval: vector of string = vector();
 	Queue::get_vector(q, rval);
@@ -22,9 +22,9 @@ function bar()
 	print rval;
 	}
 
-function foo()
+function foo(s: string, c: count)
 	{
-	bar();
+	bar(c + 42);
 	}
 
 event bro_init()
@@ -36,5 +36,5 @@ event bro_init()
 	Queue::put(q, "asdf");
 	Queue::put(q, 3);
 	Queue::put(q, "jkl;");
-	foo();
+	foo("hi", 13);
 	}

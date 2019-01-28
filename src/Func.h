@@ -143,6 +143,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 struct CallInfo {
 	const CallExpr* call;
 	const Func* func;
+	const val_list* args;
 };
 
 extern vector<CallInfo> call_stack;

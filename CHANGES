@@ -1,4 +1,8 @@
 
+2.6-108 | 2019-01-28 14:11:19 -0600
+
+  * GH-210: improve call stack tracking w/ argument info (Jon Siwek, Corelight)
+
 2.6-106 | 2019-01-24 17:53:03 -0600
 
   * Fix building with LibreSSL again (Jon Siwek, Corelight)

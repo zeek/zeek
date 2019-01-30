@@ -1795,7 +1795,20 @@ Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	else
 		mask = static_cast<uint32>(v2->InternalInt());
 
-	return new SubNetVal(v1->AsAddr(), mask);
+	auto& a = v1->AsAddr();
+
+	if ( a.GetFamily() == IPv4 )
+		{
+		if ( mask > 32 )
+			RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+		}
+	else
+		{
+		if ( mask > 128 )
+			RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+		}
+
+	return new SubNetVal(a, mask);
 	}
 
 IMPLEMENT_SERIAL(DivideExpr, SER_DIVIDE_EXPR);

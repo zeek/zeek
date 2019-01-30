@@ -329,7 +329,7 @@ Functions
    :v: The boolean vector instance.
    
 
-   :returns: True iff all elements in *v* are true.
+   :returns: True iff all elements in *v* are true or there are no elements.
    
    .. bro:see:: any_set
    

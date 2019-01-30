@@ -90,6 +90,9 @@ Redefinable Options
 :bro:id:`Tunnel::ip_tunnel_timeout`: :bro:type:`interval` :bro:attr:`&redef`            How often to cleanup internal state for inactive IP tunnels
                                                                                         (includes GRE tunnels).
 :bro:id:`Tunnel::max_depth`: :bro:type:`count` :bro:attr:`&redef`                       The maximum depth of a tunnel to decapsulate until giving up.
+:bro:id:`allow_init_errors`: :bro:type:`bool` :bro:attr:`&redef`                        Whether errors, such as scripting mistakes, during initialization
+                                                                                        (:bro:see:`bro_init`) are allowed or whether they will cause the
+                                                                                        process to terminate before it enters the main, run-time loop.
 :bro:id:`backdoor_stat_backoff`: :bro:type:`double` :bro:attr:`&redef`                  Deprecated.
 :bro:id:`backdoor_stat_period`: :bro:type:`interval` :bro:attr:`&redef`                 Deprecated.
 :bro:id:`bits_per_uid`: :bro:type:`count` :bro:attr:`&redef`                            Number of bits in UIDs that are generated to identify connections and
@@ -1004,6 +1007,17 @@ Redefinable Options
 
    The maximum depth of a tunnel to decapsulate until giving up.
    Setting this to zero will disable all types of tunnel decapsulation.
+
+.. bro:id:: allow_init_errors
+
+   :Type: :bro:type:`bool`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``F``
+
+   Whether errors, such as scripting mistakes, during initialization
+   (:bro:see:`bro_init`) are allowed or whether they will cause the
+   process to terminate before it enters the main, run-time loop.
+   The ZEEK_ALLOW_INIT_ERRORS environment variable also controls this option.
 
 .. bro:id:: backdoor_stat_backoff
 

@@ -1,4 +1,8 @@
 
+2.6-111 | 2019-01-29 18:17:35 -0600
+
+  * Fix memory leak due to enum type/val circular references (Jon Siwek, Corelight)
+
 2.6-110 | 2019-01-29 14:49:10 -0800
 
   * Add fuid to SSL:Invalid_Server_Cert notice (Stephen Hosom)

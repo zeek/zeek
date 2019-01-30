@@ -1714,7 +1714,12 @@ bool EnumType::DoUnserialize(UnserialInfo* info)
 
 		names[name] = val;
 		delete [] name; // names[name] converts to std::string
-		vals[val] = new EnumVal(this, val);
+		// note: the 'vals' map gets populated lazily, which works fine and
+		// also happens to avoid a leak due to circular reference between the
+		// types and vals (there's a special case for unserializing a known
+		// type that will unserialze and then immediately want to unref the
+		// type if we already have it, except that won't delete it as intended
+		// if we've already created circular references to it here).
 		}
 
 	return true;

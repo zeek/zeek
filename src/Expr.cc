@@ -181,6 +181,27 @@ void Expr::ExprError(const char msg[])
 	SetError();
 	}
 
+void Expr::RuntimeError(const std::string& msg) const
+	{
+	reporter->ExprRuntimeError(this, "%s", msg.data());
+	}
+
+void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
+	{
+	auto rcs = render_call_stack();
+
+	if ( rcs.empty() )
+		reporter->ExprRuntimeError(this, "%s", msg.data());
+	else
+		{
+		ODesc d;
+		d.SetShort();
+		Describe(&d);
+		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
+		                       msg.data(), d.Description(), rcs.data());
+		}
+	}
+
 bool Expr::Serialize(SerialInfo* info) const
 	{
 	return SerialObj::Serialize(info);
@@ -272,7 +293,7 @@ Val* NameExpr::Eval(Frame* f) const
 		return v->Ref();
 	else
 		{
-		Error("value used but not set");
+		RuntimeError("value used but not set");
 		return 0;
 		}
 	}
@@ -580,7 +601,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		if ( v_op1->Size() != v_op2->Size() )
 			{
-			Error("vector operands are of different sizes");
+			RuntimeError("vector operands are of different sizes");
 			return 0;
 			}
 
@@ -707,7 +728,7 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		d2 = v2->InternalDouble();
 		}
 	else
-		Internal("bad type in BinaryExpr::Fold");
+		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
 	switch ( tag ) {
 #define DO_INT_FOLD(op) \
@@ -716,13 +737,13 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( is_unsigned ) \
 		u3 = u1 op u2; \
 	else \
-		Internal("bad type in BinaryExpr::Fold");
+		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
 #define DO_UINT_FOLD(op) \
 	if ( is_unsigned ) \
 		u3 = u1 op u2; \
 	else \
-		Internal("bad type in BinaryExpr::Fold");
+		RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
 #define DO_FOLD(op) \
 	if ( is_integral ) \
@@ -750,7 +771,7 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		if ( is_integral )
 			{
 			if ( i2 == 0 )
-				reporter->ExprRuntimeError(this, "division by zero");
+				RuntimeError("division by zero");
 
 			i3 = i1 / i2;
 			}
@@ -758,14 +779,14 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		else if ( is_unsigned )
 			{
 			if ( u2 == 0 )
-				reporter->ExprRuntimeError(this, "division by zero");
+				RuntimeError("division by zero");
 
 			u3 = u1 / u2;
 			}
 		else
 			{
 			if ( d2 == 0 )
-				reporter->ExprRuntimeError(this, "division by zero");
+				RuntimeError("division by zero");
 
 			d3 = d1 / d2;
 			}
@@ -778,7 +799,7 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		if ( is_integral )
 			{
 			if ( i2 == 0 )
-				reporter->ExprRuntimeError(this, "modulo by zero");
+				RuntimeError("modulo by zero");
 
 			i3 = i1 % i2;
 			}
@@ -786,13 +807,13 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 		else if ( is_unsigned )
 			{
 			if ( u2 == 0 )
-				reporter->ExprRuntimeError(this, "modulo by zero");
+				RuntimeError("modulo by zero");
 
 			u3 = u1 % u2;
 			}
 
 		else
-			Internal("bad type in BinaryExpr::Fold");
+			RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 		}
 
 		break;
@@ -1122,7 +1143,7 @@ Val* IncrExpr::DoSingleEval(Frame* f, Val* v) const
 
 		if ( k < 0 &&
 		     v->Type()->InternalType() == TYPE_INTERNAL_UNSIGNED )
-			Error("count underflow");
+			RuntimeError("count underflow");
 		}
 
 	 BroType* ret_type = Type();
@@ -1522,7 +1543,7 @@ Val* AddToExpr::Eval(Frame* f) const
 		{
 		VectorVal* vv = v1->AsVectorVal();
 		if ( ! vv->Assign(vv->Size(), v2) )
-			reporter->Error("type-checking failed in vector append");
+			RuntimeError("type-checking failed in vector append");
 		return v1;
 		}
 
@@ -1959,7 +1980,7 @@ Val* BoolExpr::Eval(Frame* f) const
 
 	if ( vec_v1->Size() != vec_v2->Size() )
 		{
-		Error("vector operands have different sizes");
+		RuntimeError("vector operands have different sizes");
 		return 0;
 		}
 
@@ -2344,7 +2365,7 @@ Val* CondExpr::Eval(Frame* f) const
 
 	if ( cond->Size() != a->Size() || a->Size() != b->Size() )
 		{
-		Error("vectors in conditional expression have different sizes");
+		RuntimeError("vectors in conditional expression have different sizes");
 		return 0;
 		}
 
@@ -2669,7 +2690,7 @@ Val* AssignExpr::Eval(Frame* f) const
 	{
 	if ( is_init )
 		{
-		Error("illegal assignment in initialization");
+		RuntimeError("illegal assignment in initialization");
 		return 0;
 		}
 
@@ -2709,7 +2730,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		{
 		if ( t->Tag() != TYPE_RECORD )
 			{
-			Error("not a record initializer", t);
+			RuntimeError("not a record initializer");
 			return;
 			}
 
@@ -2718,7 +2739,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 
 		if ( field < 0 )
 			{
-			Error("no such field");
+			RuntimeError("no such field");
 			return;
 			}
 
@@ -2732,7 +2753,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		}
 
 	if ( op1->Tag() != EXPR_LIST )
-		Error("bad table insertion");
+		RuntimeError("bad table insertion");
 
 	TableVal* tv = aggr->AsTableVal();
 
@@ -2742,7 +2763,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		return;
 
 	if ( ! tv->Assign(index, v) )
-		Error("type clash in table assignment");
+		RuntimeError("type clash in table assignment");
 
 	Unref(index);
 	}
@@ -3008,7 +3029,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			{
 			if ( v_v1->Size() != v_v2->Size() )
 				{
-				Error("size mismatch, boolean index and vector");
+				RuntimeError("size mismatch, boolean index and vector");
 				Unref(v_result);
 				return 0;
 				}
@@ -3096,14 +3117,14 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		}
 
 	default:
-		Error("type cannot be indexed");
+		RuntimeError("type cannot be indexed");
 		break;
 	}
 
 	if ( v )
 		return v->Ref();
 
-	Error("no such index");
+	RuntimeError("no such index");
 	return 0;
 	}
 
@@ -3136,12 +3157,12 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 				auto vt = v->Type();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				Internal(fmt(
+				RuntimeErrorWithCallStack(fmt(
 				  "vector index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
 				}
 			else
-				Internal("assignment failed with null value");
+				RuntimeErrorWithCallStack("assignment failed with null value");
 			}
 		break;
 
@@ -3155,21 +3176,21 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 				auto vt = v->Type();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				Internal(fmt(
+				RuntimeErrorWithCallStack(fmt(
 				  "table index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
 				}
 			else
-				Internal("assignment failed with null value");
+				RuntimeErrorWithCallStack("assignment failed with null value");
 			}
 		break;
 
 	case TYPE_STRING:
-		Internal("assignment via string index accessor not allowed");
+		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
 		break;
 
 	default:
-		Internal("bad index expression type in assignment");
+		RuntimeErrorWithCallStack("bad index expression type in assignment");
 		break;
 	}
 
@@ -3269,9 +3290,6 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 	if ( IsError() )
 		return;
 
-	if ( field < 0 )
-		ExprError("no such field in record");
-
 	Val* op_v = op->Eval(f);
 	if ( op_v )
 		{
@@ -3298,7 +3316,7 @@ Val* FieldExpr::Fold(Val* v) const
 		return def_attr->AttrExpr()->Eval(0);
 	else
 		{
-		reporter->ExprRuntimeError(this, "field value missing");
+		RuntimeError("field value missing");
 		assert(false);
 		return 0; // Will never get here, but compiler can't tell.
 		}
@@ -3483,7 +3501,7 @@ Val* RecordConstructorExpr::Fold(Val* v) const
 	RecordType* rt = type->AsRecordType();
 
 	if ( lv->Length() != rt->NumFields() )
-		Internal("inconsistency evaluating record constructor");
+		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
 	RecordVal* rv = new RecordVal(rt);
 
@@ -3838,7 +3856,7 @@ Val* VectorConstructorExpr::Eval(Frame* f) const
 		Val* v = e->Eval(f);
 		if ( ! vec->Assign(i, v) )
 			{
-			Error(fmt("type mismatch at index %d", i), e);
+			RuntimeError(fmt("type mismatch at index %d", i));
 			return 0;
 			}
 		}
@@ -3997,7 +4015,7 @@ Val* ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 		return val_mgr->GetCount(v->CoerceToUnsigned());
 
 	default:
-		Internal("bad type in CoerceExpr::Fold");
+		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
 		return 0;
 	}
 	}
@@ -4305,7 +4323,7 @@ Val* TableCoerceExpr::Fold(Val* v) const
 	TableVal* tv = v->AsTableVal();
 
 	if ( tv->Size() > 0 )
-		Internal("coercion of non-empty table/set");
+		RuntimeErrorWithCallStack("coercion of non-empty table/set");
 
 	return new TableVal(Type()->AsTableType(), tv->Attrs());
 	}
@@ -4349,7 +4367,7 @@ Val* VectorCoerceExpr::Fold(Val* v) const
 	VectorVal* vv = v->AsVectorVal();
 
 	if ( vv->Size() > 0 )
-		Internal("coercion of non-empty vector");
+		RuntimeErrorWithCallStack("coercion of non-empty vector");
 
 	return new VectorVal(Type()->Ref()->AsVectorType());
 	}
@@ -4410,7 +4428,7 @@ Val* FlattenExpr::Fold(Val* v) const
 			l->Append(fa->AttrExpr()->Eval(0));
 
 		else
-			reporter->ExprRuntimeError(this, "missing field value");
+			RuntimeError("missing field value");
 		}
 
 	return l;
@@ -5070,7 +5088,7 @@ Val* ListExpr::Eval(Frame* f) const
 		Val* ev = exprs[i]->Eval(f);
 		if ( ! ev )
 			{
-			Error("uninitialized list value");
+			RuntimeError("uninitialized list value");
 			Unref(v);
 			return 0;
 			}
@@ -5367,7 +5385,7 @@ void ListExpr::Assign(Frame* f, Val* v, Opcode op)
 	ListVal* lv = v->AsListVal();
 
 	if ( exprs.length() != lv->Vals()->length() )
-		ExprError("mismatch in list lengths");
+		RuntimeError("mismatch in list lengths");
 
 	loop_over_list(exprs, i)
 		exprs[i]->Assign(f, (*lv->Vals())[i]->Ref(), op);
@@ -5542,7 +5560,7 @@ Val* CastExpr::Eval(Frame* f) const
 		d.Add(" (nil $data field)");
 
 	Unref(v);
-	reporter->ExprRuntimeError(this, "%s", d.Description());
+	RuntimeError(d.Description());
 	return 0;  // not reached.
 	}
 

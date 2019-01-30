@@ -451,7 +451,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
-		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " [%s]", postfix);
+		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
 
 	bool raise_event = true;
 

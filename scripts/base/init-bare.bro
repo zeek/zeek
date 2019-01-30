@@ -4959,3 +4959,9 @@ const bits_per_uid: count = 96 &redef;
 ## and set up the old comm. system.  Deprecation warnings are still emitted
 ## when setting this flag, but they will not result in a fatal error.
 const old_comm_usage_is_ok: bool = F &redef;
+
+## Whether errors, such as scripting mistakes, during initialization
+## (:bro:see:`bro_init`) are allowed or whether they will cause the
+## process to terminate before it enters the main, run-time loop.
+## The ZEEK_ALLOW_INIT_ERRORS environment variable also controls this option.
+const allow_init_errors: bool = F &redef;

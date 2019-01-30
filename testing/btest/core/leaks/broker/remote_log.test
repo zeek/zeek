@@ -81,7 +81,7 @@ event do_write()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker peer added", endpoint$network;
+	print "Broker peer added", endpoint$network$address;
 	event do_write();
 	}
 

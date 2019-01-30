@@ -4,12 +4,19 @@
 global foo: vector of count = { 42 };
 global foo2: table[count] of count = { [0] = 13 };
 
-print "foo[0]", foo[0];
-print "foo[1]", foo[1];
-print "foo[2]", foo[2];
+event bro_init()
+	{
+	print "foo[0]", foo[0];
+	print "foo[1]", foo[1];
+	}
 
-print "foo2[0]", foo2[0];
-print "foo2[1]", foo2[1];
-print "foo2[2]", foo2[2];
+event bro_init()
+	{
+	print "foo2[0]", foo2[0];
+	print "foo2[1]", foo2[1];
+	}
 
-print "done";
+event bro_done()
+	{
+	print "done";
+	}

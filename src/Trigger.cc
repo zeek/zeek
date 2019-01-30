@@ -42,12 +42,20 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 		{
 		const IndexExpr* e = static_cast<const IndexExpr*>(expr);
 		BroObj::SuppressErrors no_errors;
-		Val* v = e->Eval(trigger->frame);
-		if ( v )
+
+		try
 			{
-			trigger->Register(v);
-			Unref(v);
+			Val* v = e->Eval(trigger->frame);
+
+			if ( v )
+				{
+				trigger->Register(v);
+				Unref(v);
+				}
 			}
+		catch ( InterpreterException& )
+			{ /* Already reported */ }
+
 		break;
 		}
 
@@ -132,7 +140,17 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		arg_frame->SetDelayed();
 		}
 
-	Val* timeout_val = arg_timeout ? arg_timeout->Eval(arg_frame) : 0;
+	Val* timeout_val = nullptr;
+
+	if ( arg_timeout )
+		{
+		try
+			{
+			timeout_val = arg_timeout->Eval(arg_frame);
+			}
+		catch ( InterpreterException& )
+			{ /* Already reported */ }
+		}
 
 	if ( timeout_val )
 		{
@@ -202,7 +220,16 @@ bool Trigger::Eval()
 	// constants.
 	Frame* f = frame->Clone();
 	f->SetTrigger(this);
-	Val* v = cond->Eval(f);
+
+	Val* v = nullptr;
+
+	try
+		{
+		v = cond->Eval(f);
+		}
+	catch ( InterpreterException& )
+		{ /* Already reported */ }
+
 	f->ClearTrigger();
 
 	if ( f->HasDelayed() )

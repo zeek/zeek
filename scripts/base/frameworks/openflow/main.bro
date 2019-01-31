@@ -150,7 +150,7 @@ export {
 global name_to_controller: table[string] of Controller;
 
 
-function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
+function match_conn(id: conn_id, reverse: bool): ofp_match
 	{
 	local dl_type = ETH_IPv4;
 	local proto = IP_TCP;
@@ -196,7 +196,7 @@ function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
 # local function to forge a flow_mod cookie for this framework.
 # all flow entries from the openflow framework should have the
 # 42 bit of the cookie set.
-function generate_cookie(cookie: count &default=0): count
+function generate_cookie(cookie: count): count
 	{
 	local c = BRO_COOKIE_ID * COOKIE_BID_START;
 

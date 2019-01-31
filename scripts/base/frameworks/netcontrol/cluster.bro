@@ -71,7 +71,7 @@ function add_rule(r: Rule) : string
 		}
 	}
 
-function delete_rule(id: string, reason: string &default="") : bool
+function delete_rule(id: string, reason: string) : bool
 	{
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		return delete_rule_impl(id, reason);
@@ -82,7 +82,7 @@ function delete_rule(id: string, reason: string &default="") : bool
 		}
 	}
 
-function remove_rule(id: string, reason: string &default="") : bool
+function remove_rule(id: string, reason: string) : bool
 	{
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		return remove_rule_impl(id, reason);

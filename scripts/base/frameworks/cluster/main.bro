@@ -373,7 +373,7 @@ event bro_init() &priority=5
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster"]);
 	}
 
-function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
+function create_store(name: string, persistent: bool): Cluster::StoreInfo
 	{
 	local info = stores[name];
 	info$name = name;

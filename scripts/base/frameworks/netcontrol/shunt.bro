@@ -41,7 +41,7 @@ event bro_init() &priority=5
 	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shunt, $path="netcontrol_shunt"]);
 	}
 
-function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
+function shunt_flow(f: flow_id, t: interval, location: string) : string
 	{
 	local flow = NetControl::Flow(
 		$src_h=addr_to_subnet(f$src_h),

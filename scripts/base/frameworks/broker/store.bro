@@ -720,16 +720,16 @@ export {
 
 module Broker;
 
-function create_master(name: string, b: BackendType &default = MEMORY,
-                       options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
+function create_master(name: string, b: BackendType,
+                       options: BackendOptions): opaque of Broker::Store
 	{
 	return __create_master(name, b, options);
 	}
 
 function create_clone(name: string,
-                      resync_interval: interval &default = default_clone_resync_interval,
-                      stale_interval: interval &default = default_clone_stale_interval,
-                      mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
+                      resync_interval: interval,
+                      stale_interval: interval,
+                      mutation_buffer_interval: interval): opaque of Broker::Store
 	{
 	return __create_clone(name, resync_interval, stale_interval,
 	                      mutation_buffer_interval);
@@ -761,7 +761,7 @@ function get(h: opaque of Broker::Store, k: any): QueryResult
 	}
 
 function put_unique(h: opaque of Broker::Store, k: any, v: any,
-             e: interval &default=0sec): QueryResult
+             e: interval): QueryResult
     {
     return __put_unique(h, k, v, e);
     }

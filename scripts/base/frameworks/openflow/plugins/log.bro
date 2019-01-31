@@ -65,7 +65,7 @@ function log_describe(state: ControllerState): string
 	return fmt("Log-%d", state$log_dpid);
 	}
 
-function log_new(dpid: count, success_event: bool &default=T): OpenFlow::Controller
+function log_new(dpid: count, success_event: bool): OpenFlow::Controller
 	{
 	local c = OpenFlow::Controller($state=OpenFlow::ControllerState($log_dpid=dpid, $log_success_event=success_event),
 		$flow_mod=log_flow_mod, $describe=log_describe, $supports_flow_removed=F);

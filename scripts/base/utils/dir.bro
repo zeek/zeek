@@ -57,7 +57,7 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
 	}
 
 function monitor(dir: string, callback: function(fname: string),
-                 poll_interval: interval &default=polling_interval)
+                 poll_interval: interval)
 	{
 	event Dir::monitor_ev(dir, set(), callback, poll_interval);
 	}

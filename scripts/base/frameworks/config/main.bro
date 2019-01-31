@@ -99,7 +99,7 @@ function set_value(ID: string, val: any, location: string &default = "" &optiona
 	return T;
 	}
 @else # Standalone implementation
-function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+function set_value(ID: string, val: any, location: string): bool
 	{
 	return Option::set(ID, val, location);
 	}

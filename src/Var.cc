@@ -304,30 +304,6 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 		id->SetAttrs(new Attributes(attr, tnew, false));
 	}
 
-static void transfer_arg_defaults(RecordType* args, RecordType* recv)
-	{
-	for ( int i = 0; i < args->NumFields(); ++i )
-		{
-		TypeDecl* args_i = args->FieldDecl(i);
-		TypeDecl* recv_i = recv->FieldDecl(i);
-
-		Attr* def = args_i->attrs ? args_i->attrs->FindAttr(ATTR_DEFAULT) : 0;
-
-		if ( ! def )
-			continue;
-
-		if ( ! recv_i->attrs )
-			{
-			attr_list* a = new attr_list();
-			a->append(def);
-			recv_i->attrs = new Attributes(a, recv_i->type, true);
-			}
-
-		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr(def);
-		}
-	}
-
 static bool has_attr(const attr_list* al, attr_tag tag)
 	{
 	if ( ! al )
@@ -358,14 +334,31 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		if ( ! same_type(id->Type(), t) )
 			id->Type()->Error("incompatible types", t);
 
-		// If a previous declaration of the function had &default params,
-		// automatically transfer any that are missing (convenience so that
-		// implementations don't need to specify the &default expression again).
-		transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
-		}
+		// Warn for &default parameters not specified in a declaration
+		// (first definition qualifies as declaration if no forward decl).
+		auto args = t->Args();
 
-	else if ( is_redef )
-		id->Error("redef of not-previously-declared value");
+		for ( int i = 0; i < args->NumFields(); ++i )
+			{
+			auto f = args->FieldDecl(i);
+
+			if ( f->attrs && f->attrs->FindAttr(ATTR_DEFAULT) )
+				{
+				reporter->PushLocation(args->GetLocationInfo());
+				reporter->Warning(
+				  "&default on '%s' parameter has no effect (not a %s declaration)",
+				  args->FieldName(i), t->FlavorString().data());
+				reporter->PopLocation();
+				}
+			}
+		}
+	else
+		{
+		if ( is_redef )
+			id->Error("redef of not-previously-declared value");
+
+		id->SetType(t);
+		}
 
 	if ( id->HasVal() )
 		{
@@ -393,8 +386,6 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			break;
 		}
 		}
-	else
-		id->SetType(t);
 
 	push_scope(id, attrs);
 

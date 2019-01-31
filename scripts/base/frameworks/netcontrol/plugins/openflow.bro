@@ -446,7 +446,7 @@ global openflow_plugin = Plugin(
 	$remove_rule = openflow_remove_rule
 	);
 
-function create_openflow(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState
+function create_openflow(controller: OpenFlow::Controller, config: OfConfig) : PluginState
 	{
 	local p: PluginState = [$plugin=openflow_plugin, $of_controller=controller, $of_config=config];
 

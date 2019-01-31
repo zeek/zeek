@@ -60,7 +60,7 @@ event bro_init() &priority=5
 	Log::create_stream(NetControl::DROP, [$columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop"]);
 	}
 
-function drop_connection(c: conn_id, t: interval, location: string &default="") : string
+function drop_connection(c: conn_id, t: interval, location: string) : string
 	{
 	local e: Entity = [$ty=CONNECTION, $conn=c];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
@@ -84,7 +84,7 @@ function drop_connection(c: conn_id, t: interval, location: string &default="") 
 	return id;
 	}
 
-function drop_address(a: addr, t: interval, location: string &default="") : string
+function drop_address(a: addr, t: interval, location: string) : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];

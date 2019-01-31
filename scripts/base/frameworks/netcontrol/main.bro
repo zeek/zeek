@@ -519,7 +519,7 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 	Log::write(LOG, info);
 	}
 
-function whitelist_address(a: addr, t: interval, location: string &default="") : string
+function whitelist_address(a: addr, t: interval, location: string) : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
 	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
@@ -527,7 +527,7 @@ function whitelist_address(a: addr, t: interval, location: string &default="") :
 	return add_rule(r);
 	}
 
-function whitelist_subnet(s: subnet, t: interval, location: string &default="") : string
+function whitelist_subnet(s: subnet, t: interval, location: string) : string
 	{
 	local e: Entity = [$ty=ADDRESS, $ip=s];
 	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
@@ -536,7 +536,7 @@ function whitelist_subnet(s: subnet, t: interval, location: string &default="") 
 	}
 
 
-function redirect_flow(f: flow_id, out_port: count, t: interval, location: string &default="") : string
+function redirect_flow(f: flow_id, out_port: count, t: interval, location: string) : string
 	{
 	local flow = NetControl::Flow(
 		$src_h=addr_to_subnet(f$src_h),
@@ -550,7 +550,7 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 	return add_rule(r);
 	}
 
-function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string
+function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interval, location: string) : vector of string
 	{
 	local orules: vector of string = vector();
 	local edrop: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected))];

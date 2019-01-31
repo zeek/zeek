@@ -260,7 +260,7 @@ function cr_check_rule(r: Rule): bool
 
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 
-event rule_added(r: Rule, p: PluginState, msg: string &default="")
+event rule_added(r: Rule, p: PluginState, msg: string)
 	{
 	if ( !cr_check_rule(r) )
 		return;
@@ -337,7 +337,7 @@ function get_catch_release_info(a: addr): BlockInfo
 	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
 	}
 
-function drop_address_catch_release(a: addr, location: string &default=""): BlockInfo
+function drop_address_catch_release(a: addr, location: string): BlockInfo
 	{
 	local bi: BlockInfo;
 	local log: CatchReleaseInfo;
@@ -401,7 +401,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 
 	}
 
-function unblock_address_catch_release(a: addr, reason: string &default=""): bool
+function unblock_address_catch_release(a: addr, reason: string): bool
 	{
 	if ( a !in blocks )
 		return F;

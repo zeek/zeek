@@ -316,6 +316,90 @@ static bool has_attr(const attr_list* al, attr_tag tag)
 	return false;
 	}
 
+static void func_type_check(FuncType* cur, FuncType* chk)
+	{
+	if ( cur->Flavor() != chk->Flavor() )
+		{
+		chk->Error("incompatible function type/flavor", cur);
+		return;
+		}
+
+	if ( chk->Flavor() == FUNC_FLAVOR_FUNCTION )
+		{
+		if ( ! same_type(cur, chk) )
+			chk->Error("incompatible function types", cur);
+
+		return;
+		}
+
+	// Type-checking for event/hook handlers (the logic below) allows for users
+	// to specify only a subset of the full parameter list that they are
+	// interested in.
+
+	auto cur_args = cur->Args();
+	auto chk_args = chk->Args();
+	auto flavor = chk->FlavorString();
+
+	if ( chk_args->NumFields() > cur_args->NumFields() )
+		{
+		chk->Error(fmt("previous %s declaration had fewer parameters",
+		               flavor.data()), cur);
+		return;
+		}
+
+	// If we can map the parameter names to the current function type's
+	// parameters, then we're good as long as those parameters have matching
+	// types.
+
+	bool need_ordered_type_check = false;
+	bool found_invalid_param  = false;
+
+	for ( auto i = 0; i < chk_args->NumFields(); ++i )
+		{
+		auto chk_field_name = chk_args->FieldName(i);
+		auto chk_field_type = chk_args->FieldType(i);
+		auto cur_field_type = cur_args->FieldType(chk_field_name);
+
+		if ( ! cur_field_type )
+			{
+			need_ordered_type_check = true;
+			continue;
+			}
+
+		if ( ! same_type(cur_field_type, chk_field_type) )
+			{
+			found_invalid_param  = true;
+			chk->Error(fmt(
+			  "parameter '%s' does not match type of previous declaration",
+			  chk_field_name), cur);
+			}
+
+		// TODO: add support for &deprecation of parameters
+		}
+
+	if ( found_invalid_param  )
+		return;
+
+	if ( ! need_ordered_type_check )
+		return;
+
+	// If the parameter names do not map to the current function type's
+	// parameters, then require matching parameter types in strict order.
+	for ( auto i = 0; i < chk_args->NumFields(); ++i )
+		{
+		auto chk_field_type = chk_args->FieldType(i);
+		auto cur_field_type = cur_args->FieldType(i);
+
+		if ( ! same_type(cur_field_type, chk_field_type) )
+			chk->Error(fmt(
+			  "parameter in slot %d, named '%s', does not match type in same"
+			  " slot of previous declaration", i, chk_args->FieldName(i)),
+			  cur);
+
+		// TODO: add support for &deprecation of parameters
+		}
+	}
+
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		int is_redef, FuncType* t, attr_list* attrs)
 	{
@@ -331,8 +415,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->Type() )
 		{
-		if ( ! same_type(id->Type(), t) )
-			id->Type()->Error("incompatible types", t);
+		func_type_check(id->Type()->AsFuncType(), t);
 
 		// Warn for &default parameters not specified in a declaration
 		// (first definition qualifies as declaration if no forward decl).
@@ -389,6 +472,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	push_scope(id, attrs);
 
+	auto full_args = id->Type()->AsFuncType()->Args();
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
 	for ( int i = 0; i < num_args; ++i )
@@ -402,6 +486,11 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		Unref(arg_id);
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
+		auto offset = full_args->FieldOffset(args->FieldName(i));
+
+		if ( offset >= 0 )
+			arg_id->SetOffset(offset);
+
 		arg_id->SetType(arg_i->type->Ref());
 		}
 

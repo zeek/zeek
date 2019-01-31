@@ -1,0 +1,12 @@
+my_hook same order/name, 42, foobar, 80/tcp
+my_hook different order, 42, foobar, 80/tcp
+my_hook subset, foobar
+my_hook empty
+my_hook different names, 42, foobar, 80/tcp
+my_hook different names subset, 42, foobar
+my_event same order/name, 42, foobar, 80/tcp
+my_event different order, 42, foobar, 80/tcp
+my_event subset, foobar
+my_event empty
+my_event different names, 42, foobar, 80/tcp
+my_event different names subset, 42, foobar

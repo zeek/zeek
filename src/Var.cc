@@ -491,15 +491,13 @@ void end_func(Stmt* body)
 		}
 
 	if ( id->HasVal() )
-		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
+		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority, scope);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size, priority);
+		Func* f = new BroFunc(id, body, inits, frame_size, priority, scope);
 		id->SetVal(new Val(f));
 		id->SetConst();
 		}
-
-	id->ID_Val()->AsFunc()->SetScope(scope);
 	}
 
 Val* internal_val(const char* name)

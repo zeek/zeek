@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "Val.h"
+#include "Scope.h"
 
 class BroFunc;
 class Trigger;
@@ -23,6 +24,9 @@ public:
 		Unref(frame[n]);
 		frame[n] = v;
 		}
+
+	Scope* GetScope() const { return this->scope; }
+	void SetScope(Scope* scope) { this->scope = scope; }
 
 	void Reset(int startIdx);
 	void Release();
@@ -80,6 +84,8 @@ protected:
 	Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
+
+	Scope* scope;
 };
 
 extern vector<Frame*> g_frame_stack;

@@ -30,8 +30,10 @@ public:
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
 
 	struct Body {
-		Stmt* stmts;
-		int priority;
+		Stmt* stmts = nullptr;
+		int priority = 0;
+		Scope* scope = nullptr;
+
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
 	};
@@ -44,10 +46,7 @@ public:
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(Stmt* new_body, id_list* new_inits,
-				int new_frame_size, int priority = 0);
-
-	virtual void SetScope(Scope* newscope)	{ scope = newscope; }
-	virtual Scope* GetScope() const		{ return scope; }
+				int new_frame_size, int priority = 0, Scope* scope = nullptr);
 
 	virtual FuncType* FType() const { return type->AsFuncType(); }
 
@@ -78,7 +77,6 @@ protected:
 	DECLARE_ABSTRACT_SERIAL(Func);
 
 	vector<Body> bodies;
-	Scope* scope;
 	Kind kind;
 	BroType* type;
 	string name;
@@ -89,14 +87,15 @@ protected:
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
+	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority,
+	        Scope* scope = nullptr);
 	~BroFunc() override;
 
 	int IsPure() const override;
 	Val* Call(val_list* args, Frame* parent) const override;
 
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
-			int priority) override;
+			int priority = 0, Scope* scope = nullptr) override;
 
 	int FrameSize() const {	return frame_size; }
 

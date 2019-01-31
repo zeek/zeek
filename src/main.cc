@@ -1160,6 +1160,7 @@ int main(int argc, char** argv)
 		{
 		stmt_flow_type flow;
 		Frame f(current_scope()->Length(), 0, 0);
+		f.SetScope(current_scope());
 		g_frame_stack.push_back(&f);
 		stmts->Exec(&f, flow);
 		g_frame_stack.pop_back();

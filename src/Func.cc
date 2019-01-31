@@ -105,13 +105,13 @@ std::string render_call_stack()
 	return rval;
 	}
 
-Func::Func() : scope(0), type(0)
+Func::Func() : type(0)
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
 	}
 
-Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), type(0)
+Func::Func(Kind arg_kind) : kind(arg_kind), type(0)
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
@@ -123,7 +123,7 @@ Func::~Func()
 	}
 
 void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
-			int /* new_frame_size */, int /* priority */)
+			int /* new_frame_size */, int /* priority */, Scope* /* scope */)
 	{
 	Internal("Func::AddBody called");
 	}
@@ -269,29 +269,47 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 
 TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
+	struct ScopeRestorer {
+		ScopeRestorer(Scope* scope, TraversalCallback* cb)
+			{
+			this->scope = scope;
+			this->cb = cb;
+			}
+
+		~ScopeRestorer()
+			{
+			this->cb->current_scope = this->scope;
+			}
+
+		Scope* scope;
+		TraversalCallback* cb;
+	};
+
 	// FIXME: Make a fake scope for builtins?
-	Scope* old_scope = cb->current_scope;
-	cb->current_scope = scope;
+	ScopeRestorer scope_restorer{cb->current_scope, cb};
+	cb->current_scope = nullptr;
 
 	TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.
-	if ( kind == BRO_FUNC && scope )
+	if ( kind == BRO_FUNC )
 		{
-		tc = scope->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
 		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
+			if ( bodies[i].scope )
+				{
+				cb->current_scope = bodies[i].scope;
+				tc = bodies[i].scope->Traverse(cb);
+				HANDLE_TC_STMT_PRE(tc);
+				}
+
 			tc = bodies[i].stmts->Traverse(cb);
 			HANDLE_TC_STMT_PRE(tc);
 			}
 		}
 
 	tc = cb->PostFunction(this);
-
-	cb->current_scope = old_scope;
 	HANDLE_TC_STMT_POST(tc);
 	}
 
@@ -350,7 +368,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size, int priority)
+		int arg_frame_size, int priority, Scope* scope)
 : Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
@@ -362,6 +380,7 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 		Body b;
 		b.stmts = AddInits(arg_body, aggr_inits);
 		b.priority = priority;
+		b.scope = scope;
 		bodies.push_back(b);
 		}
 	}
@@ -439,6 +458,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
+		f->SetScope(bodies[i].scope);
+
 		if ( sample_logger )
 			sample_logger->LocationSeen(
 				bodies[i].stmts->GetLocationInfo());
@@ -532,7 +553,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	}
 
 void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
-		int priority)
+		int priority, Scope* scope)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
@@ -551,6 +572,7 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 	Body b;
 	b.stmts = new_body;
 	b.priority = priority;
+	b.scope = scope;
 
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());

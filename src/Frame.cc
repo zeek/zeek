@@ -24,6 +24,8 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	call = 0;
 	delayed = false;
 
+	scope = nullptr;
+
 	Clear();
 	}
 
@@ -90,6 +92,7 @@ Frame* Frame::Clone()
 		Ref(trigger);
 	f->trigger = trigger;
 	f->call = call;
+	f->scope = scope;
 
 	return f;
 	}

@@ -961,9 +961,10 @@ Val* dbg_eval_expr(const char* expr)
 	if ( ! (frame)  )
 		reporter->InternalError("Assertion failed: frame");
 
-	const BroFunc* func = frame->GetFunction();
-	if ( func )
-		push_existing_scope(func->GetScope());
+	auto scope = frame->GetScope();
+
+	if ( scope )
+		push_existing_scope(scope);
 
 	// ### Possibly push a debugger-local scope?
 
@@ -995,7 +996,7 @@ Val* dbg_eval_expr(const char* expr)
 	else
 		result = g_curr_debug_expr->Eval(frame);
 
-	if ( func )
+	if ( scope )
 		pop_scope();
 
 	delete g_curr_debug_expr;

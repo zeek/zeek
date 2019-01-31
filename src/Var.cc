@@ -374,7 +374,12 @@ static void func_type_check(FuncType* cur, FuncType* chk)
 			  chk_field_name), cur);
 			}
 
-		// TODO: add support for &deprecation of parameters
+		auto fi = cur_args->FieldOffset(chk_field_name);
+		auto fd = cur_args->FieldDecl(fi);
+
+		if ( fd->attrs && fd->attrs->FindAttr(ATTR_DEPRECATED) )
+			chk->Warn(fmt("use of deprecated parameter '%s'", chk_field_name),
+			          cur);
 		}
 
 	if ( found_invalid_param  )
@@ -396,7 +401,11 @@ static void func_type_check(FuncType* cur, FuncType* chk)
 			  " slot of previous declaration", i, chk_args->FieldName(i)),
 			  cur);
 
-		// TODO: add support for &deprecation of parameters
+		auto fd = cur_args->FieldDecl(i);
+
+		if ( fd->attrs && fd->attrs->FindAttr(ATTR_DEPRECATED) )
+			chk->Warn(fmt("use of deprecated parameter '%s'",
+			              chk_args->FieldName(i)), cur);
 		}
 	}
 

@@ -493,7 +493,6 @@ static void find_old_comm_usages()
 
 int main(int argc, char** argv)
 	{
-
 	std::set_new_handler(bro_new_handler);
 
 	double time_start = current_time(true);

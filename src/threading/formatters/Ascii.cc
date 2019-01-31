@@ -227,9 +227,11 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	case TYPE_BOOL:
-		if ( s == "T" || s == "1" )
+		{
+		auto stripped = strstrip(s);
+		if ( stripped == "T" || stripped == "1" )
 			val->val.int_val = 1;
-		else if ( s == "F" || s == "0" )
+		else if ( stripped == "F" || stripped == "0" )
 			val->val.int_val = 0;
 		else
 			{
@@ -238,6 +240,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			goto parse_error;
 			}
 		break;
+		}
 
 	case TYPE_INT:
 		val->val.int_val = strtoll(start, &end, 10);
@@ -262,12 +265,13 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_PORT:
 		{
+		auto stripped = strstrip(s);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
-		pos = s.find('/');
+		pos = stripped.find('/');
 		string numberpart;
-		if ( pos != std::string::npos && s.length() > pos + 1 )
+		if ( pos != std::string::npos && stripped.length() > pos + 1 )
 			{
-			auto proto = s.substr(pos+1);
+			auto proto = stripped.substr(pos+1);
 			if ( strtolower(proto) == "tcp" )
 				val->val.port_val.proto = TRANSPORT_TCP;
 			else if ( strtolower(proto) == "udp" )
@@ -282,7 +286,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 		if ( pos != std::string::npos && pos > 0 )
 			{
-			numberpart = s.substr(0, pos);
+			numberpart = stripped.substr(0, pos);
 			start = numberpart.c_str();
 			}
 		val->val.port_val.port = strtoull(start, &end, 10);
@@ -293,7 +297,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_SUBNET:
 		{
-		string unescaped = get_unescaped_string(s);
+		string unescaped = strstrip(get_unescaped_string(s));
 		size_t pos = unescaped.find("/");
 		if ( pos == unescaped.npos )
 			{
@@ -316,7 +320,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_ADDR:
 		{
-		string unescaped = get_unescaped_string(s);
+		string unescaped = strstrip(get_unescaped_string(s));
 		val->val.addr_val = ParseAddr(unescaped);
 		break;
 		}

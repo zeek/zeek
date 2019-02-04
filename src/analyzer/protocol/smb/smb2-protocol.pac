@@ -100,6 +100,48 @@ refine connection SMB_Conn += {
 		std::map<uint64,uint64> smb2_request_tree_id;
 	%}
 
+	function BuildSMB2ContextVal(ncv: SMB3_negotiate_context_values): BroVal
+		%{
+		RecordVal* r = new RecordVal(BifType::Record::SMB2::context_value);
+
+		r->Assign(0, val_mgr->GetCount(${ncv.context_type}));
+		r->Assign(1, val_mgr->GetCount(${ncv.data_length}));
+
+		RecordVal* rpreauth = new RecordVal(BifType::Record::SMB2::preauth);
+		RecordVal* rencr = new RecordVal(BifType::Record::SMB2::encryption);
+		if (${ncv.context_type} == 1) // it is a preauth context type
+			{
+			rpreauth->Assign(0, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg_count}));
+			rpreauth->Assign(1, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.salt_length}));
+
+			VectorVal* ha = new VectorVal(internal_type("index_vec")->AsVectorType());
+			for ( int i = 0; i < (${ncv.preauth_integrity_capabilities.hash_alg_count}); ++i )
+					{
+					ha->Assign(i, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg[i]}));		
+					}
+
+			rpreauth->Assign(2, ha);
+			rpreauth->Assign(3, bytestring_to_val(${ncv.preauth_integrity_capabilities.salt}));
+			}
+		else if (${ncv.context_type} == 2) // it is a encryption context type
+			{
+			rencr->Assign(0, val_mgr->GetCount(${ncv.encryption_capabilities.cipher_count}));
+
+			VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
+			for ( int i = 0; i < (${ncv.encryption_capabilities.cipher_count}); ++i )
+					{
+					c->Assign(i, val_mgr->GetCount(${ncv.encryption_capabilities.ciphers[i]}));		
+					}
+
+			rencr->Assign(1, c);
+			}
+
+		r->Assign(2, rpreauth);
+		r->Assign(3, rencr);
+
+		return r;
+		%}
+
 	function BuildSMB2HeaderVal(hdr: SMB2_Header): BroVal
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);

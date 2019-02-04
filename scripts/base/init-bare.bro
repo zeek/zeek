@@ -3226,6 +3226,49 @@ export {
 		attrs      : SMB2::FileAttrs;
 	};
 
+	## Preauthentication information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1.1 
+	##
+	type SMB2::preauth: record {
+		## the number of hash algorithms
+		hash_alg_count : count;
+		## the salt length
+		salt_length : count;
+		## an array of hash algorithms (counts)
+		hash_alg : vector of count;
+		## the salt
+		salt : string;
+	};
+
+	## Encryption information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1.2 
+	##
+	type SMB2::encryption: record {
+		## the number of ciphers
+		cipher_count : count;
+		## an array of ciphers
+		ciphers : vector of count;
+	};
+
+	## The context type information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1
+	##
+	type SMB2::context_value: record {
+		## specifies the type of context (preauth or encryption)
+		context_type : count;
+		## the length in byte of the data field
+		data_length : count;
+		## the preauthentication information
+		preauth_info : SMB2::preauth;
+		## the encryption information
+		encryption_info : SMB2::encryption;
+	};
+
+	type SMB2::context_values: vector of context_value;
+
 	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
 	## what dialects of the SMB2 protocol the client understands.
 	##
@@ -3244,6 +3287,11 @@ export {
 		system_time       : time;
 		## The SMB2 server start time.
 		server_start_time : time;
+
+		## The number of negotiate context values in SMB v. 3.1.1, otherwise reserved to 0
+		negotiate_context_count : count;
+		## An array of context values in SMB v. 3.1.1
+		negotiate_context_values 	  : context_values;
 	};
 
 	## The request sent by the client to request a new authenticated session
@@ -3327,6 +3375,7 @@ export {
 		## The action taken in establishing the open.
 		create_action : count;
 	};
+
 }
 
 module GLOBAL;

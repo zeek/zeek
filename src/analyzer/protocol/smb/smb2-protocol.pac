@@ -281,7 +281,7 @@ type SMB2_error_response(header: SMB2_Header) = record {
 type SMB2_logoff_request(header: SMB2_Header) = record {
 	structure_size    : uint16;
 	reserved          : uint16;
-};
+}; 
 
 type SMB2_logoff_response(header: SMB2_Header) = record {
 	structure_size    : uint16;

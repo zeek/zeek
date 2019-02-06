@@ -1,4 +1,10 @@
 
+2.6-113 | 2019-02-06 13:17:39 -0600
+
+  * Add validity checking/warnings for Broker messages (Jon Siwek, Corelight)
+
+  * Fix crash when using debug.log. (Johanna Amann, Corelight)
+
 2.6-111 | 2019-01-29 18:17:35 -0600
 
   * Fix memory leak due to enum type/val circular references (Jon Siwek, Corelight)

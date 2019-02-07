@@ -35,6 +35,10 @@ Changed Functionality
   script behavior unless they were explicitly inspecting the variable's
   type (and there's typically no reason to do that).
 
+- The startup/initialization behavior has changed such that any errors
+  encountered while processing the ``bro_init()`` event will cause the
+  process to terminate rather than continue on the main run loop.
+
 Removed Functionality
 ---------------------
 

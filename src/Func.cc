@@ -467,7 +467,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		catch ( InterpreterException& e )
 			{
-			// Already reported, but we continue exec'ing remaining bodies.
+			// Already reported, but now determine whether to unwind further.
+			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
+				throw;
+
+			// Continue exec'ing remaining bodies of hooks/events.
 			continue;
 			}
 

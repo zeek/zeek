@@ -1,4 +1,18 @@
 
+2.6-116 | 2019-02-07 10:32:01 -0600
+
+  * GH-208: change invalid subnet expressions to a runtime error (Jon Siwek, Corelight)
+
+  * GH-211: improve consistency of how scripting errors are handled (Jon Siwek, Corelight)
+
+    Scripting errors/mistakes now consistently generate a runtime error
+    which have the behavior of unwinding the call stack all the way out of
+    the current event handler.
+
+    This also changes the behavior of the startup/initialization process
+    to abort if there's errors during bro_init() rather than continue on
+    to the main run loop.
+
 2.6-113 | 2019-02-06 13:17:39 -0600
 
   * Add validity checking/warnings for Broker messages (Jon Siwek, Corelight)

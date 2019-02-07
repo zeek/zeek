@@ -7,7 +7,7 @@ event bro_init()
 	local a = vector( T, F, T );
 	print all_set(a);
 
-	local b = vector();
+	local b: vector of bool = vector();
 	print all_set(b);
 
 	local c = vector( T );

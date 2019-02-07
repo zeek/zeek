@@ -1223,7 +1223,7 @@ function any_set%(v: any%) : bool
 ##
 ## v: The boolean vector instance.
 ##
-## Returns: True iff all elements in *v* are true.
+## Returns: True iff all elements in *v* are true or there are no elements.
 ##
 ## .. bro:see:: any_set
 ##

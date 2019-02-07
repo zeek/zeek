@@ -17,7 +17,6 @@ event bro_init()
 	print b[1];
 	print b[2];
 	print b[3];
-	print b[4];
 	print "---------------------";
 	print c[1];
 	print c[2];

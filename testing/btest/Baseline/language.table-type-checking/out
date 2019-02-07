@@ -4,7 +4,7 @@ error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.tab
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 10: inconsistent types in table constructor (table(one = 1))
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 17: type clash in assignment (gda = gda2)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 21 and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 4: index type doesn't match table (three and list of port)
-error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 21: type clash in table assignment (three = 3)
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 21: type clash in table assignment (three = 3)
 error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 26: type clash (port and thousand)
 error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 26: inconsistent types in table constructor (table(thousand = 1000))
 error in port and /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.table-type-checking/table-type-checking.bro, line 32: type clash (port and thousand-one)

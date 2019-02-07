@@ -216,7 +216,10 @@ IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length)
 	: prefix(in4), length(96 + length)
 	{
 	if ( length > 32 )
-		reporter->InternalError("Bad in4_addr IPPrefix length : %d", length);
+		{
+		reporter->Error("Bad in4_addr IPPrefix length : %d", length);
+		this->length = 0;
+		}
 
 	prefix.Mask(this->length);
 	}
@@ -225,7 +228,10 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 	: prefix(in6), length(length)
 	{
 	if ( length > 128 )
-		reporter->InternalError("Bad in6_addr IPPrefix length : %d", length);
+		{
+		reporter->Error("Bad in6_addr IPPrefix length : %d", length);
+		this->length = 0;
+		}
 
 	prefix.Mask(this->length);
 	}
@@ -236,19 +242,23 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	if ( prefix.GetFamily() == IPv4 && ! len_is_v6_relative )
 		{
 		if ( length > 32 )
-			reporter->InternalError("Bad IPAddr(v4) IPPrefix length : %d",
-			                        length);
-
-		this->length = length + 96;
+			{
+			reporter->Error("Bad IPAddr(v4) IPPrefix length : %d", length);
+			this->length = 0;
+			}
+		else
+			this->length = length + 96;
 		}
 
 	else
 		{
 		if ( length > 128 )
-			reporter->InternalError("Bad IPAddr(v6) IPPrefix length : %d",
-			                        length);
-
-		this->length = length;
+			{
+			reporter->Error("Bad IPAddr(v6) IPPrefix length : %d", length);
+			this->length = 0;
+			}
+		else
+			this->length = length;
 		}
 
 	prefix.Mask(this->length);

@@ -13,13 +13,20 @@ function cast_to_string(a: any)
 
 event bro_init()
 	{
+	cast_to_string(42);
+	}
+
+event bro_init()
+	{
 	local x: X;
 	x = [$a = 1.2.3.4, $b=1947/tcp];
-
-	cast_to_string(42);
 	cast_to_string(x);
-	cast_to_string(Broker::Data());
+	}
+
+event bro_init()
+	{
 	print "data is string", Broker::Data() is string;
+	cast_to_string(Broker::Data());
 	}
 
 

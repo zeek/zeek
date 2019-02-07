@@ -30,7 +30,7 @@ export BRO_SEED_FILE=$source_dir/testing/btest/random.seed
 
 function run_bro
     {
-    bro -X $conf_file broxygen >/dev/null 2>$bro_error_file
+    ZEEK_ALLOW_INIT_ERRORS=1 bro -X $conf_file broxygen >/dev/null 2>$bro_error_file
 
     if [ $? -ne 0 ]; then
         echo "Failed running bro with broxygen config file $conf_file"

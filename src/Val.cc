@@ -2391,9 +2391,18 @@ double TableVal::GetExpireTime()
 	if ( ! expire_time )
 		return -1;
 
-	Val* timeout = expire_time->Eval(0);
-	double interval = (timeout ? timeout->AsInterval() : -1);
-	Unref(timeout);
+	double interval;
+
+	try
+		{
+		Val* timeout = expire_time->Eval(0);
+		interval = (timeout ? timeout->AsInterval() : -1);
+		Unref(timeout);
+		}
+	catch ( InterpreterException& e )
+		{
+		interval = -1;
+		}
 
 	if ( interval >= 0 )
 		return interval;

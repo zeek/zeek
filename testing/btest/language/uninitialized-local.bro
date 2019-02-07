@@ -14,7 +14,6 @@ event testit()
 	local my_string: string;
 	local my_vector: vector of string;
 	my_vector[0] = my_string;
-	print "Continuing";
 	}
 
 event bro_init()

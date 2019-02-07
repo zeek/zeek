@@ -1161,7 +1161,16 @@ int main(int argc, char** argv)
 		stmt_flow_type flow;
 		Frame f(current_scope()->Length(), 0, 0);
 		g_frame_stack.push_back(&f);
-		stmts->Exec(&f, flow);
+
+		try
+			{
+			stmts->Exec(&f, flow);
+			}
+		catch ( InterpreterException& )
+			{
+			reporter->FatalError("failed to execute script statements at top-level scope");
+			}
+
 		g_frame_stack.pop_back();
 		}
 
@@ -1184,6 +1193,9 @@ int main(int argc, char** argv)
 
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
+
+	if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
+		reporter->FatalError("errors occurred while initializing");
 
 	broker_mgr->BroInitDone();
 	analyzer_mgr->DumpDebug();

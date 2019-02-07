@@ -60,7 +60,7 @@ global event_count = 0;
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	print "Broker peer added", endpoint$network;
+	print "Broker peer added", endpoint$network$address;
 	Broker::publish("bro/event/hi", event_handler, "ping", event_count);
 	++event_count;
 	}

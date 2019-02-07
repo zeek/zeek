@@ -13,7 +13,14 @@
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{
-	return init->InitVal(t, aggr);
+	try
+		{
+		return init->InitVal(t, aggr);
+		}
+	catch ( InterpreterException& e )
+		{
+		return nullptr;
+		}
 	}
 
 static void make_var(ID* id, BroType* t, init_class c, Expr* init,

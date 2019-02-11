@@ -2,40 +2,35 @@
 Bro::AF_Packet
 ==============
 
-This plugin provides native AF_Packet support
-(http://man7.org/linux/man-pages/man7/packet.7.html) for Bro.
+This plugin provides native AF_Packet support for Bro/Zeek
+(http://man7.org/linux/man-pages/man7/packet.7.html).
 
 Installation
 ------------
 
-Before installing the plugin, make sure the kernel headers are installed and your
-kernel supports PACKET_FANOUT [1]_ and TPACKET_V3.
+Before installing the plugin, make sure the kernel headers are installed and
+your kernel supports PACKET_FANOUT [1]_ and TPACKET_V3.
 
-Bro Package Manager
-```````````````````
-The plugin is available as package for the `Bro Package Manager
-<https://github.com/bro/package-manager>`_ and can be installed using the
+Package Manager
+```````````````
+The plugin is available as package for the `Bro/Zeek Package Manager
+<https://github.com/zeek/package-manager>`_ and can be installed using the
 following command::
 
     bro-pkg install bro-af_packet-plugin
 
-To install uncompiled plugins, Bro's source code must be available to the package manager
-(see package manager's `documentation <http://bro-package-manager.readthedocs.io/en/
-stable/quickstart.html#basic-configuration>`_ for more information).
-
 Manual Install
 ``````````````
-The following will compile and
-install the AF_Packet plugin alongside Bro, assuming it can find the
-kernel headers in a standard location::
+The following will compile and install the AF_Packet plugin alongside Bro/Zeek,
+assuming it can find the kernel headers in a standard location::
 
     # ./configure && make && make install
 
 If the headers are installed somewhere non-standard, add
-``--with-kernel=<kernel-header-directory>`` to the ``configure`` command. Furthermore,
-``--with-latest-kernel`` will use the latest headers available instead of looking for
-the headers matching the running kernel's version. If everything built and installed
-correctly, you should see this::
+``--with-kernel=<kernel-header-directory>`` to the ``configure`` command.
+Furthermore, ``--with-latest-kernel`` will use the latest headers available
+instead of looking for the headers matching the running kernel's version. If
+everything built and installed correctly, you should see this::
 
     # bro -NN Bro::AF_Packet
     Bro::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 1.3)
@@ -47,23 +42,23 @@ correctly, you should see this::
     [Constant] AF_Packet::fanout_mode
     [Constant] AF_Packet::fanout_id
 
-.. [1] Note that some kernel versions between 3.10 and 4.7 might exhibit a bug that
-   prevents the required symmetric hashing. The script available at
-   https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to verify
-   whether PACKET_FANOUT works as expected.
+.. [1] Note that some kernel versions between 3.10 and 4.7 might exhibit a bug
+   that prevents the required symmetric hashing. The script available at
+   https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to
+   verify whether PACKET_FANOUT works as expected.
 
 Usage
 -----
 
-Once installed, you can use AF_Packet interfaces/ports by prefixing them
-with ``af_packet::`` on the command line. For example, to use AF_Packet
-to monitor interface ``eth0``::
+Once installed, you can use AF_Packet interfaces/ports by prefixing them with
+``af_packet::`` on the command line. For example, to use AF_Packet to monitor
+interface ``eth0``::
 
     # bro -i af_packet::eth0
 
-To use AF_Packet, running Bro without root privileges, the Bro processes needs
-the CAP_NET_RAW capability. You can set it with the following command (on each
-sensor, after ``broctl install``)::
+To use AF_Packet, running Bro/Zeek without root privileges, the Bro processes
+need the CAP_NET_RAW capability. You can set it with the following command (on
+each sensor, after ``broctl install``)::
 
     # setcap cap_net_raw+eip <path_to_bro>/bin/bro
 
@@ -78,8 +73,8 @@ buffer size. See scripts/init.bro for the default values.
 Usage with ``broctl``
 ---------------------
 
-To use the AF_Packet plugin with ``broctl``, the ``custom`` load balance method can
-be utilized. The following shows an exemplary configuration::
+To use the AF_Packet plugin with ``broctl``, the ``custom`` load balance method
+can be utilized. The following shows an exemplary configuration::
 
     [manager]
     type=manager
@@ -101,13 +96,15 @@ be utilized. The following shows an exemplary configuration::
     af_packet_fanout_mode=AF_Packet::FANOUT_HASH
     af_packet_buffer_size=128*1024*1024
 
-If all interfaces using ``lb_method=custom`` should be configured for AF_Packet, the
-prefix can be globally definied by adding the following line to ``broctl.conf``::
+If all interfaces using ``lb_method=custom`` should be configured for
+AF_Packet, the prefix can be globally definied by adding the following
+line to ``broctl.conf``::
 
   lb_custom.InterfacePrefix=af_packet::
 
 Limitations
 -----------
 
-* Even using AF_Packet's ``ETH_P_ALL``, the kernel removes VLAN tags. While the tags
-  are provided spereately, there is no efficient way to pass them to Bro.
+* Even using AF_Packet's ``ETH_P_ALL``, the kernel removes VLAN tags.
+  While the tags are provided spereately, there is no efficient way to
+  pass them to Bro/Zeek.

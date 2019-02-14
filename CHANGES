@@ -1,4 +1,8 @@
 
+2.6-117 | 2019-02-13 16:14:50 -0800
+
+  * Improve format of conn_state docs (Jon Siwek, Corelight)
+
 2.6-116 | 2019-02-07 10:32:01 -0600
 
   * GH-208: change invalid subnet expressions to a runtime error (Jon Siwek, Corelight)

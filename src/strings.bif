@@ -900,7 +900,7 @@ function to_upper%(str: string%): string
 ##
 ## If the string does not yet have a trailing NUL, one is added internally.
 ##
-## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.` 
+## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.`
 ##
 ## str: The string to escape.
 ##
@@ -957,7 +957,7 @@ function is_ascii%(str: string%): bool
 ##     - values not in *[32, 126]* to ``\xXX``
 ##     - ``\`` to ``\\``
 ##
-## In contrast to :bro:id:`clean`, this encoding is fully reversible.` 
+## In contrast to :bro:id:`clean`, this encoding is fully reversible.`
 ##
 ## str: The string to escape.
 ##
@@ -1079,6 +1079,49 @@ function strip%(str: string%): string
 		++sp;
 
 	return new StringVal(new BroString(sp, (e - sp + 1), 1));
+	%}
+
+## Removes all combinations of characters in the chars argument starting at the
+## beginning of the string until first mismatch.
+##
+## str: The string to strip characters from
+## remove_str: A string consisting of the characters to be removed
+##
+## Returns: A copy of *str* with the characters in *remove_str* removed.
+function lstrip%(str: string, remove_str: string%): string
+	%{
+	const u_char* s = str->Bytes();
+	const u_char* r = remove_str->Bytes();
+	int n = str->Len();
+	int rn = str->Len();
+
+	if ( n == 0 )
+		// Empty string.
+		return new StringVal(new BroString(s, n, 1));
+
+	//pointers to beginning and end of string
+	const u_char* sp = s;
+	const u_char* e = sp + n - 1;
+	const u_char* rp = r;
+	const u_char* re = rp + rn - 1;
+
+	bool match = true;
+	while (sp < e && match) {
+		match = false;
+		// reset the r pointer to the beginning
+		rp = r;
+		// check if *s is one of matchable characters
+		while (rp <= re){
+			if (*rp == *sp) {
+				match = true;
+				break;
+			}
+			++rp;
+		}
+		sp++;
+	}
+
+	return new StringVal(new BroString(sp - 1, (e - sp + 2), 1));
 	%}
 
 ## Generates a string of a given size and fills it with repetitions of a source

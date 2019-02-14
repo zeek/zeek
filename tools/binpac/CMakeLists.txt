@@ -4,6 +4,9 @@ include(cmake/CommonCMakeConfig.cmake)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
 
+# Set default install paths
+include(GNUInstallDirs)
+
 ########################################################################
 ## Dependency Configuration
 

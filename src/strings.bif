@@ -1095,11 +1095,11 @@ function lstrip%(str: string, remove_str: string%): string
 	int n = str->Len();
 	int rn = str->Len();
 
+	// empty input string
 	if ( n == 0 )
-		// Empty string.
 		return new StringVal(new BroString(s, n, 1));
 
-	//pointers to beginning and end of string
+	// pointers to beginning and end of the input strings
 	const u_char* sp = s;
 	const u_char* e = sp + n - 1;
 	const u_char* rp = r;
@@ -1120,7 +1120,6 @@ function lstrip%(str: string, remove_str: string%): string
 		}
 		sp++;
 	}
-
 	return new StringVal(new BroString(sp - 1, (e - sp + 2), 1));
 	%}
 

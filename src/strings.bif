@@ -900,7 +900,7 @@ function to_upper%(str: string%): string
 ##
 ## If the string does not yet have a trailing NUL, one is added internally.
 ##
-## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.` 
+## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.`
 ##
 ## str: The string to escape.
 ##
@@ -957,7 +957,7 @@ function is_ascii%(str: string%): bool
 ##     - values not in *[32, 126]* to ``\xXX``
 ##     - ``\`` to ``\\``
 ##
-## In contrast to :bro:id:`clean`, this encoding is fully reversible.` 
+## In contrast to :bro:id:`clean`, this encoding is fully reversible.`
 ##
 ## str: The string to escape.
 ##
@@ -1057,7 +1057,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 ##
 ## Returns: A copy of *str* with leading and trailing whitespace removed.
 ##
-## .. bro:see:: sub gsub
+## .. bro:see:: sub gsub lstrip rstrip
 function strip%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -1079,6 +1079,81 @@ function strip%(str: string%): string
 		++sp;
 
 	return new StringVal(new BroString(sp, (e - sp + 1), 1));
+	%}
+
+%%{
+static bool should_strip(u_char c, const BroString* strip_chars)
+	{
+	auto strip_bytes = strip_chars->Bytes();
+
+	for ( auto i = 0; i < strip_chars->Len(); ++i )
+		if ( c == strip_bytes[i] )
+			return true;
+
+	return false;
+	}
+%%}
+
+## Removes all combinations of characters in the *chars* argument
+## starting at the beginning of the string until first mismatch.
+##
+## str: The string to strip characters from.
+##
+## chars: A string consisting of the characters to be removed.
+##        Defaults to all whitespace characters.
+##
+## Returns: A copy of *str* with the characters in *chars* removed from
+##          the beginning.
+##
+## .. bro:see:: sub gsub strip rstrip
+function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
+	%{
+	const u_char* s = str->Bytes();
+	int n = str->Len();
+
+	// empty input string
+	if ( n == 0 )
+		return new StringVal(new BroString(s, n, 1));
+
+	int i;
+	auto bs_chars = chars->AsString();
+
+	for ( i = 0; i < n; ++i )
+		if ( ! should_strip(s[i], bs_chars) )
+			break;
+
+	return new StringVal(new BroString(s + i, n - i, 1));
+	%}
+
+## Removes all combinations of characters in the *chars* argument
+## starting at the end of the string until first mismatch.
+##
+## str: The string to strip characters from.
+##
+## chars: A string consisting of the characters to be removed.
+##        Defaults to all whitespace characters.
+##
+## Returns: A copy of *str* with the characters in *chars* removed from
+##          the end.
+##
+## .. bro:see:: sub gsub strip lstrip
+function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
+	%{
+	const u_char* s = str->Bytes();
+	int n = str->Len();
+
+	// empty input string
+	if ( n == 0 )
+		return new StringVal(new BroString(s, n, 1));
+
+	int n_to_remove;
+	auto bs_chars = chars->AsString();
+
+	for ( n_to_remove = 0; n_to_remove < n; ++n_to_remove )
+		if ( ! should_strip(s[n - n_to_remove - 1], bs_chars) )
+			break;
+
+	return new StringVal(new BroString(s, n - n_to_remove, 1));
 	%}
 
 ## Generates a string of a given size and fills it with repetitions of a source

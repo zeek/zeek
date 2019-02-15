@@ -31,7 +31,11 @@ Functions
 :bro:id:`join_string_vec`: :bro:type:`function`                            Joins all values in the given vector of strings with a separator placed
                                                                            between each element.
 :bro:id:`levenshtein_distance`: :bro:type:`function`                       Calculates the Levenshtein distance between the two strings.
+:bro:id:`lstrip`: :bro:type:`function`                                     Removes all combinations of characters in the *chars* argument
+                                                                           starting at the beginning of the string until first mismatch.
 :bro:id:`reverse`: :bro:type:`function`                                    Returns a reversed copy of the string
+:bro:id:`rstrip`: :bro:type:`function`                                     Removes all combinations of characters in the *chars* argument
+                                                                           starting at the end of the string until first mismatch.
 :bro:id:`sort_string_array`: :bro:type:`function` :bro:attr:`&deprecated`  Sorts an array of strings.
 :bro:id:`split`: :bro:type:`function` :bro:attr:`&deprecated`              Splits a string into an array of strings according to a pattern.
 :bro:id:`split1`: :bro:type:`function` :bro:attr:`&deprecated`             Splits a string *once* into a two-element array of strings according to a
@@ -122,7 +126,7 @@ Functions
    
    If the string does not yet have a trailing NUL, one is added internally.
    
-   In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.` 
+   In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.`
    
 
    :str: The string to escape.
@@ -168,7 +172,7 @@ Functions
        - values not in *[32, 126]* to ``\xXX``
        - ``\`` to ``\\``
    
-   In contrast to :bro:id:`clean`, this encoding is fully reversible.` 
+   In contrast to :bro:id:`clean`, this encoding is fully reversible.`
    
 
    :str: The string to escape.
@@ -330,6 +334,26 @@ Functions
    :returns: The Levenshtein distance of two strings as a count.
    
 
+.. bro:id:: lstrip
+
+   :Type: :bro:type:`function` (str: :bro:type:`string`, chars: :bro:type:`string` :bro:attr:`&default` = ``" \x09\x0a\x0d\x0b\x0c"`` :bro:attr:`&optional`) : :bro:type:`string`
+
+   Removes all combinations of characters in the *chars* argument
+   starting at the beginning of the string until first mismatch.
+   
+
+   :str: The string to strip characters from.
+   
+
+   :chars: A string consisting of the characters to be removed.
+          Defaults to all whitespace characters.
+   
+
+   :returns: A copy of *str* with the characters in *chars* removed from
+            the beginning.
+   
+   .. bro:see:: sub gsub strip rstrip
+
 .. bro:id:: reverse
 
    :Type: :bro:type:`function` (str: :bro:type:`string`) : :bro:type:`string`
@@ -342,6 +366,26 @@ Functions
 
    :returns: A reversed copy of *str*
    
+
+.. bro:id:: rstrip
+
+   :Type: :bro:type:`function` (str: :bro:type:`string`, chars: :bro:type:`string` :bro:attr:`&default` = ``" \x09\x0a\x0d\x0b\x0c"`` :bro:attr:`&optional`) : :bro:type:`string`
+
+   Removes all combinations of characters in the *chars* argument
+   starting at the end of the string until first mismatch.
+   
+
+   :str: The string to strip characters from.
+   
+
+   :chars: A string consisting of the characters to be removed.
+          Defaults to all whitespace characters.
+   
+
+   :returns: A copy of *str* with the characters in *chars* removed from
+            the end.
+   
+   .. bro:see:: sub gsub strip lstrip
 
 .. bro:id:: sort_string_array
 
@@ -680,7 +724,7 @@ Functions
 
    :returns: A copy of *str* with leading and trailing whitespace removed.
    
-   .. bro:see:: sub gsub
+   .. bro:see:: sub gsub lstrip rstrip
 
 .. bro:id:: strstr
 

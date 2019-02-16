@@ -6,33 +6,24 @@
 #include "List.h"
 #include "util.h"
 
-static const int DEFAULT_CHUNK_SIZE = 10;
-
 BaseList::BaseList(int size)
 	{
-	chunk_size = DEFAULT_CHUNK_SIZE;
+	num_entries = 0;
+	max_entries = 0;
+	entry = 0;
 
-	if ( size < 0 )
-		{
-		num_entries = max_entries = 0;
-		entry = 0;
-		}
-	else
-		{
-		if ( size > 0 )
-			chunk_size = size;
+	if ( size <= 0 )
+		return;
 
-		num_entries = 0;
-		entry = (ent *) safe_malloc(chunk_size * sizeof(ent));
-		max_entries = chunk_size;
-		}
+	max_entries = size;
+
+	entry = (ent *) safe_malloc(max_entries * sizeof(ent));
 	}
 
 
 BaseList::BaseList(BaseList& b)
 	{
 	max_entries = b.max_entries;
-	chunk_size = b.chunk_size;
 	num_entries = b.num_entries;
 
 	if ( max_entries )
@@ -58,7 +49,6 @@ void BaseList::operator=(BaseList& b)
 		free(entry);
 
 	max_entries = b.max_entries;
-	chunk_size = b.chunk_size;
 	num_entries = b.num_entries;
 
 	if ( max_entries )
@@ -74,8 +64,8 @@ void BaseList::insert(ent a)
 	{
 	if ( num_entries == max_entries )
 		{
-		resize(max_entries + chunk_size);	// make more room
-		chunk_size *= 2;
+		int new_size = max_entries < 12 ? max_entries+2 : max_entries*1.5;
+		resize(new_size);	// make more room
 		}
 
 	for ( int i = num_entries; i > 0; --i )
@@ -95,8 +85,8 @@ void BaseList::sortedinsert(ent a, list_cmp_func cmp_func)
 	// First append element.
 	if ( num_entries == max_entries )
 		{
-		resize(max_entries + chunk_size);
-		chunk_size *= 2;
+		int new_size = max_entries < 12 ? max_entries+2 : max_entries*1.5;
+		resize(new_size);
 		}
 
 	entry[num_entries++] = a;
@@ -142,8 +132,8 @@ void BaseList::append(ent a)
 	{
 	if ( num_entries == max_entries )
 		{
-		resize(max_entries + chunk_size);	// make more room
-		chunk_size *= 2;
+		int new_size = max_entries < 12 ? max_entries+2 : max_entries*1.5;
+		resize(new_size);	// make more room
 		}
 
 	entry[num_entries++] = a;
@@ -168,7 +158,6 @@ void BaseList::clear()
 		}
 
 	num_entries = max_entries = 0;
-	chunk_size = DEFAULT_CHUNK_SIZE;
 	}
 
 ent BaseList::replace(int ent_index, ent new_ent)

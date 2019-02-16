@@ -32,7 +32,6 @@ public:
 
 	void clear();		// remove all entries
 	int length() const	{ return num_entries; }
-	int chunk() const	{ return chunk_size; }
 	int max() const		{ return max_entries; }
 	int resize(int = 0);	// 0 => size to fit current number of entries
 
@@ -79,7 +78,6 @@ protected:
 	void operator=(BaseList&);
 
 	ent* entry;
-	int chunk_size;		// increase size by this amount when necessary
 	int max_entries;
 	int num_entries;
 	};

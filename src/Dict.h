@@ -15,7 +15,7 @@ declare(PList,IterCookie);
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
-#define DEFAULT_DICT_SIZE 16
+#define DEFAULT_DICT_SIZE 1
 
 // Type indicating whether the dictionary should keep track of the order
 // of insertions.

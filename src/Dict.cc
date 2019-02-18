@@ -61,8 +61,6 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	else
 		order = 0;
 
-	SetDensityThresh(DEFAULT_DENSITY_THRESH);
-
 	delete_func = 0;
 	tbl_next_ind = 0;
 
@@ -382,6 +380,7 @@ void Dictionary::Init(int size)
 		tbl[i] = 0;
 
 	max_num_entries = num_entries = 0;
+	SetDensityThresh(DEFAULT_DENSITY_THRESH);
 	}
 
 void Dictionary::Init2(int size)

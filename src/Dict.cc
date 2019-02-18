@@ -53,7 +53,7 @@ public:
 
 Dictionary::Dictionary(dict_order ordering, int initial_size)
 	{
-	Init(initial_size);
+	tbl = 0;
 	tbl2 = 0;
 
 	if ( ordering == ORDERED )
@@ -61,14 +61,13 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	else
 		order = 0;
 
-	SetDensityThresh(DEFAULT_DENSITY_THRESH);
-
 	delete_func = 0;
 	tbl_next_ind = 0;
 
 	cumulative_entries = 0;
 	num_buckets2 = num_entries2 = max_num_entries2 = thresh_entries2 = 0;
 	den_thresh2 = 0;
+	max_num_entries = num_entries = 0;
 	}
 
 Dictionary::~Dictionary()
@@ -80,12 +79,14 @@ Dictionary::~Dictionary()
 void Dictionary::Clear()
 	{
 	DeInit();
-	Init(2);
+	tbl = 0;
 	tbl2 = 0;
 	}
 
 void Dictionary::DeInit()
 	{
+	if ( tbl == 0 )
+		return;
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{
@@ -127,6 +128,8 @@ void Dictionary::DeInit()
 
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 	{
+	if (tbl == 0 && tbl2 == 0 )
+		return 0;
 	hash_t h;
 	PList(DictEntry)* chain;
 
@@ -155,6 +158,8 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
 				int copy_key)
 	{
+	if ( tbl == 0 )
+		Init(DEFAULT_DICT_SIZE);
 	DictEntry* new_entry = new DictEntry(key, key_size, hash, val);
 	void* old_val = Insert(new_entry, copy_key);
 
@@ -179,6 +184,8 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
 void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 				bool dont_delete)
 	{
+	if ( tbl == 0 && tbl2 == 0 )
+		return 0;
 	hash_t h;
 	PList(DictEntry)* chain;
 	int* num_entries_ptr;
@@ -280,6 +287,13 @@ void Dictionary::StopIteration(IterCookie* cookie) const
 
 void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) const
 	{
+	if ( tbl == 0 && tbl2 == 0 )
+		{
+		const_cast<PList(IterCookie)*>(&cookies)->remove(cookie);
+		delete cookie;
+		cookie = 0;
+		return 0;
+		}
 	// If there are any inserted entries, return them first.
 	// That keeps the list small and helps avoiding searching
 	// a large list when deleting an entry.
@@ -366,6 +380,7 @@ void Dictionary::Init(int size)
 		tbl[i] = 0;
 
 	max_num_entries = num_entries = 0;
+	SetDensityThresh(DEFAULT_DENSITY_THRESH);
 	}
 
 void Dictionary::Init2(int size)
@@ -382,6 +397,8 @@ void Dictionary::Init2(int size)
 // private
 void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 	{
+	if ( tbl == 0 )
+		Init(DEFAULT_DICT_SIZE);
 	PList(DictEntry)** ttbl;
 	int* num_entries_ptr;
 	int* max_num_entries_ptr;
@@ -568,6 +585,8 @@ unsigned int Dictionary::MemoryAllocation() const
 	{
 	int size = padded_sizeof(*this);
 
+	if ( tbl == 0 )
+		return size;
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{

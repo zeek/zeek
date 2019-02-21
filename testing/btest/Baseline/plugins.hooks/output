@@ -658,6 +658,7 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_read.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_session_setup.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_set_info.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_transform_header.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Bro_SMB.smb2_com_write.bif.bro) -> -1
@@ -1553,6 +1554,7 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_read.bif.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_session_setup.bif.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_set_info.bif.bro)
+0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_transform_header.bif.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Bro_SMB.smb2_com_write.bif.bro)
@@ -2447,6 +2449,7 @@
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_read.bif.bro
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_session_setup.bif.bro
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_set_info.bif.bro
+0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_transform_header.bif.bro
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_tree_connect.bif.bro
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_tree_disconnect.bif.bro
 0.000000 | HookLoadFile  .<...>/Bro_SMB.smb2_com_write.bif.bro

@@ -4,8 +4,6 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Transform_header);
 
-		//r->Assign(0, uint8s_to_stringval(${hdr.signature}));
-		//r->Assign(1, uint8s_to_stringval(${hdr.nonce}));
 		r->Assign(0, bytestring_to_val(${hdr.signature}));
 		r->Assign(1, bytestring_to_val(${hdr.nonce}));	
 		r->Assign(2, val_mgr->GetCount(${hdr.orig_msg_size}));
@@ -30,8 +28,6 @@ refine connection SMB_Conn += {
 type SMB2_transform_header = record {
 	signature         : bytestring &length = 16;
 	nonce             : bytestring &length = 16;
-	#signature         : uint8[16];
-	#nonce             : uint8[16];
 	orig_msg_size     : uint32;
 	reserved          : uint16;
 	flags             : uint16;

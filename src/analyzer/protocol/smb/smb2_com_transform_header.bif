@@ -6,7 +6,7 @@
 ##
 ## c: The connection.
 ##
-## hdr: The parsed transformed header message, which is starting with \xfd534d42 and different from SMB1 and SMB2 headers.
+## hdr: The parsed transformed header message, which is starting with \xfdSMB and different from SMB1 and SMB2 headers.
 ##
 ## .. bro:see:: smb2_message
 event smb2_transform_header%(c: connection, hdr: SMB2::Transform_header%);

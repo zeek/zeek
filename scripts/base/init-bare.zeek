@@ -3521,6 +3521,18 @@ export {
 
 		## URL to find a proxy.pac for auto proxy config (Option 252)
 		auto_proxy_config: string &optional;
+
+		## 25
+		time_offset:	int &optional;
+
+		## 26
+		timeserver_list: 	DHCP::Addrs &optional;
+
+		## 27
+		nameserver_list: 	DHCP::Addrs &optional;
+
+		## 28
+		ntpserver_list:	DHCP::Addrs &optional;
 	};
 }
 

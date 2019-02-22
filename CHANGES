@@ -1,4 +1,8 @@
 
+2.6-130 | 2019-02-22 14:56:41 -0600
+
+  * Make input framework parse whitespace around various data types. (Johanna Amann, Corelight)
+
 2.6-128 | 2019-02-22 14:32:48 -0600
 
   * Add missing libkrb5 include dir to CMake config (Jon Siwek, Corelight)

@@ -92,19 +92,6 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
 			return;
 		}
 
-	if ( buf && len + offset >= buf_len )
-		{ // Make sure we have enough room to accommodate the new stuff.
-		int old_buf_len = buf_len;
-		buf_len = ((offset + len) * 3) / 2 + 1;
-
-		u_char* tmp = new u_char[buf_len];
-		for ( int i = 0; i < old_buf_len; ++i )
-			tmp[i] = buf[i];
-
-		delete [] buf;
-		buf = tmp;
-		}
-
 	DoDeliver(len, data);
 
 	seq += len;

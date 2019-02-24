@@ -53,6 +53,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	offset = 0;
 	instance_length = -1; // unspecified
 	send_size = true;
+	want_all_headers = (bool)http_all_headers;
 	}
 
 void HTTP_Entity::EndOfData()

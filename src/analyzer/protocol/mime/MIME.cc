@@ -537,6 +537,7 @@ MIME_Entity::MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entit
 	message = output_message;
 	if ( parent )
 		content_encoding = parent->ContentTransferEncoding();
+	want_all_headers = (bool)mime_all_headers;
 	}
 
 void MIME_Entity::init()
@@ -744,8 +745,11 @@ void MIME_Entity::FinishHeader()
 		{
 		ParseMIMEHeader(h);
 		SubmitHeader(h);
-		headers.push_back(h);
-		}
+		if(want_all_headers)
+			headers.push_back(h);
+		else
+			delete h;
+		} 
 	else
 		delete h;
 	}

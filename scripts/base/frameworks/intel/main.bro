@@ -268,16 +268,21 @@ function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any
 # Function to check for intelligence hits.
 function find(s: Seen): bool
 	{
-	local ds = have_full_data ? data_store : min_data_store;
-
 	if ( s?$host )
 		{
-		return ((s$host in ds$host_data) ||
-		        (|matching_subnets(addr_to_subnet(s$host), ds$subnet_data)| > 0));
+		if ( have_full_data )
+			return ((s$host in data_store$host_data) ||
+			        (|matching_subnets(addr_to_subnet(s$host), data_store$subnet_data)| > 0));
+		else
+			return ((s$host in min_data_store$host_data) ||
+			        (|matching_subnets(addr_to_subnet(s$host), min_data_store$subnet_data)| > 0));
 		}
 	else
 		{
-		return ([to_lower(s$indicator), s$indicator_type] in ds$string_data);
+		if ( have_full_data )
+			return ([to_lower(s$indicator), s$indicator_type] in data_store$string_data);
+		else
+			return ([to_lower(s$indicator), s$indicator_type] in min_data_store$string_data);
 		}
 	}
 
@@ -499,16 +504,17 @@ function insert(item: Item)
 # Function to check whether an item is present.
 function item_exists(item: Item): bool
 	{
-	local ds = have_full_data ? data_store : min_data_store;
-
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			return to_addr(item$indicator) in ds$host_data;
+			return have_full_data ? to_addr(item$indicator) in data_store$host_data :
+			                        to_addr(item$indicator) in min_data_store$host_data;
 		case SUBNET:
-			return to_subnet(item$indicator) in ds$subnet_data;
+			return have_full_data ? to_subnet(item$indicator) in data_store$subnet_data :
+			                        to_subnet(item$indicator) in min_data_store$subnet_data;
 		default:
-			return [item$indicator, item$indicator_type] in ds$string_data;
+			return have_full_data ? [item$indicator, item$indicator_type] in data_store$string_data :
+			                        [item$indicator, item$indicator_type] in min_data_store$string_data;
 		}
 	}
 

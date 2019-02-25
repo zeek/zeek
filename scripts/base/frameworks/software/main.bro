@@ -147,6 +147,22 @@ function parse(unparsed_version: string): Description
 		{
 		return parse_mozilla(unparsed_version);
 		}
+	else if ( /A\/[0-9\.]*\/Google\/Pixel/ in unparsed_version )
+		{
+		software_name = "Android (Google Pixel)";
+		local parts = split_string_all(unparsed_version, /\//);
+		if ( 2 in parts )
+			{
+			local vs = parts[2];
+
+			if ( "." in vs )
+				v = parse(vs)$version;
+			else
+				v = Version($major=extract_count(vs));
+
+			return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
+			}
+		}
 	else
 		{
 		# The regular expression should match the complete version number

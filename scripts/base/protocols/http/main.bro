@@ -263,6 +263,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		else if ( name == "ORIGIN" )
 			c$http$origin = value;
 
+		else if ( name == "USER-AGENT" )
+			c$http$user_agent = value;
+
 		else if ( name in proxy_headers )
 				{
 				if ( ! c$http?$proxied )

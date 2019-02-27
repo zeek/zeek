@@ -14,7 +14,7 @@ event file_new(f: fa_file)
             Intel::seen([$indicator=c$smb_state$current_file$name,
                         $indicator_type=Intel::FILE_NAME,
                         $f=f,
-                        $where=Files::IN_NAME]);
+                        $where=SMB::IN_FILE_NAME]);
             }
         }
     }

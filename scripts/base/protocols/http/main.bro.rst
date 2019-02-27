@@ -198,31 +198,37 @@ Types
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of file unique IDs.
+         Limited to :bro:see:`HTTP::max_files_orig` entries.
 
       orig_filenames: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of filenames from the client.
+         Limited to :bro:see:`HTTP::max_files_orig` entries.
 
       orig_mime_types: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of mime types.
+         Limited to :bro:see:`HTTP::max_files_orig` entries.
 
       resp_fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of file unique IDs.
+         Limited to :bro:see:`HTTP::max_files_resp` entries.
 
       resp_filenames: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of filenames from the server.
+         Limited to :bro:see:`HTTP::max_files_resp` entries.
 
       resp_mime_types: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)
 
          An ordered vector of mime types.
+         Limited to :bro:see:`HTTP::max_files_resp` entries.
 
       current_entity: :bro:type:`HTTP::Entity` :bro:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.bro` is loaded)

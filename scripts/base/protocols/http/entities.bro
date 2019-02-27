@@ -13,23 +13,45 @@ export {
 		filename: string &optional;
 	};
 
+	## Maximum number of originator files to log.
+	## :bro:see:`HTTP::max_files_policy` even is called once this
+	## limit is reached to determine if it's enforced.
+	option max_files_orig = 15;
+
+	## Maximum number of responder files to log.
+	## :bro:see:`HTTP::max_files_policy` even is called once this
+	## limit is reached to determine if it's enforced.
+	option max_files_resp = 15;
+
+	## Called when reaching the max number of files across a given HTTP
+	## connection according to :bro:see:`HTTP::max_files_orig`
+	## or :bro:see:`HTTP::max_files_resp`.  Break from the hook
+	## early to signal that the file limit should not be applied.
+	global max_files_policy: hook(f: fa_file, is_orig: bool);
+
 	redef record Info += {
 		## An ordered vector of file unique IDs.
+		## Limited to :bro:see:`HTTP::max_files_orig` entries.
 		orig_fuids:      vector of string &log &optional;
 
 		## An ordered vector of filenames from the client.
+		## Limited to :bro:see:`HTTP::max_files_orig` entries.
 		orig_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
+		## Limited to :bro:see:`HTTP::max_files_orig` entries.
 		orig_mime_types: vector of string &log &optional;
 
 		## An ordered vector of file unique IDs.
+		## Limited to :bro:see:`HTTP::max_files_resp` entries.
 		resp_fuids:      vector of string &log &optional;
 
 		## An ordered vector of filenames from the server.
+		## Limited to :bro:see:`HTTP::max_files_resp` entries.
 		resp_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
+		## Limited to :bro:see:`HTTP::max_files_resp` entries.
 		resp_mime_types: vector of string &log &optional;
 
 		## The current entity.
@@ -82,6 +104,23 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		if ( c$http?$current_entity && c$http$current_entity?$filename )
 			f$info$filename = c$http$current_entity$filename;
 
+		local size: count;
+		local max: count;
+
+		if ( f$is_orig )
+			{
+			size = f$http?$orig_fuids ? |f$http$orig_fuids| : 0;
+			max = max_files_orig;
+			}
+		else
+			{
+			size = f$http?$resp_fuids ? |f$http$resp_fuids| : 0;
+			max = max_files_resp;
+			}
+
+		if ( size >= max && hook HTTP::max_files_policy(f, f$is_orig) )
+			return;
+
 		if ( f$is_orig )
 			{
 			if ( ! c$http?$orig_fuids )
@@ -123,6 +162,23 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		return;
 
 	if ( ! meta?$mime_type )
+		return;
+
+	local size: count;
+	local max: count;
+
+	if ( f$is_orig )
+		{
+		size = f$http?$orig_mime_types ? |f$http$orig_mime_types| : 0;
+		max = max_files_orig;
+		}
+	else
+		{
+		size = f$http?$resp_mime_types ? |f$http$resp_mime_types| : 0;
+		max = max_files_resp;
+		}
+
+	if ( size >= max && hook HTTP::max_files_policy(f, f$is_orig) )
 		return;
 
 	if ( f$is_orig )

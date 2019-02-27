@@ -9,3 +9,4 @@
 @load ./smtp
 @load ./smtp-url-extraction
 @load ./x509
+@load ./smb-filenames

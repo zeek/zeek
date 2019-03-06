@@ -70,9 +70,9 @@ event bro_init()
 	test_case( "compare different time units", in13 >= in35 );
 	test_case( "add different time units", in13 + in14 == 4min );
 	test_case( "subtract different time units", in24 - in23 == 0sec );
-	test_case( "absolute value", |in25| == 2hr );
-	test_case( "absolute value", |in36| == 2.5day );
-	test_case( "absolute value", |5sec - 9sec| == 4sec );
+	test_case( "absolute value", |in25| == 2.0*3600 );
+	test_case( "absolute value", |in36| == 2.5*86400 );
+	test_case( "absolute value", |5sec - 9sec| == 4.0 );
 	in34 += 2hr;
 	test_case( "assignment operator", in34 == 122min );
 	in34 -= 2hr;

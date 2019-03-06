@@ -1,4 +1,8 @@
 
+2.6-132 | 2019-03-06 15:30:58 -0800
+
+  * GH-219: revert a breaking change to |x| operator for interval/time (Jon Siwek, Corelight)
+
 2.6-130 | 2019-02-22 14:56:41 -0600
 
   * Make input framework parse whitespace around various data types. (Johanna Amann, Corelight)

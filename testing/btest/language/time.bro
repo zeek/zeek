@@ -27,7 +27,7 @@ event bro_init()
 	test_case( "inequality", t1 != t3 );
 	test_case( "equality", t1 == t4 );
 	test_case( "subtract time", t2 - t1 == 3sec);
-	test_case( "size operator", |t5| == t5 );
+	test_case( "size operator", |t5| == 1234567890.0 );
 
 }
 

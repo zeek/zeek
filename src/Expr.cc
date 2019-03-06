@@ -1382,7 +1382,7 @@ SizeExpr::SizeExpr(Expr* arg_op) : UnaryExpr(EXPR_SIZE, arg_op)
 		return;
 
 	if ( op->Type()->InternalType() == TYPE_INTERNAL_DOUBLE )
-		SetType(op->Type()->Ref());
+		SetType(base_type(TYPE_DOUBLE));
 	else
 		SetType(base_type(TYPE_COUNT));
 	}

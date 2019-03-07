@@ -1,4 +1,8 @@
 
+2.6-135 | 2019-03-07 13:14:00 -0800
+
+  * Fix typos in dnp3-protocol.pac (g0nzu1)
+
 2.6-132 | 2019-03-06 15:30:58 -0800
 
   * GH-219: revert a breaking change to |x| operator for interval/time (Jon Siwek, Corelight)

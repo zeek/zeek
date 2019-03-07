@@ -73,7 +73,7 @@ type DNP3_Response = record {
 		default -> unknown: Debug_Byte;
 	};
 } &byteorder = bigendian
-  &length= 9 + addin_header.len - 5 - 1'
+  &length= 9 + addin_header.len - 5 - 1;
 
 type DNP3_Application_Request_Header = record {
 	empty: bytestring &length = 0; # Work-around BinPAC problem.
@@ -117,7 +117,7 @@ type Response_Objects(function_code: uint8) = record {
 		0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
 		0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )];
 		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )];
-		default -> ojbects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		default -> objects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 	};
 };
 

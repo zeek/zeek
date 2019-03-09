@@ -1,4 +1,8 @@
 
+2.6-140 | 2019-03-08 16:21:42 -0800
+
+  * Improve performance of DNS policy scripts (Justin Azoff, Corelight)
+
 2.6-135 | 2019-03-07 13:14:00 -0800
 
   * Fix typos in dnp3-protocol.pac (g0nzu1)

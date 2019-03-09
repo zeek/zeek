@@ -265,21 +265,34 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		if ( c$dns_state?$pending_query && c$dns_state$pending_query$trans_id == msg$id )
 			{
 			c$dns = c$dns_state$pending_query;
+			delete c$dns_state$pending_query;
 
-			if ( c$dns_state?$pending_queries && msg$id in c$dns_state$pending_queries &&
-			     Queue::len(c$dns_state$pending_queries[msg$id]) > 0 )
+			if ( c$dns_state?$pending_queries )
 				{
-				# Popping off the next available pending query to set as the
-				# the shortcut is necessary in order to preserve the overall
-				# queuing order of queries that happen to share the same
+				# Popping off an arbitrary, unpaired query to set as the
+				# new fastpath is necessary in order to preserve the overall
+				# queuing order of any pending queries that may share a
 				# transaction ID.  If we didn't fill c$dns_state$pending_query
-				# back in with the next element in the current queue, then
-				# it's possible a new query would jump ahead of the queue as
+				# back in, then it's possible a new query would jump ahead in
+				# the queue of some other pending query since
 				# c$dns_state$pending_query is filled first if available.
-				c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, msg$id);
+
+				if ( msg$id in c$dns_state$pending_queries &&
+				     Queue::len(c$dns_state$pending_queries[msg$id]) > 0 )
+					# Prioritize any pending query with matching ID to the one
+					# that just got paired with a response.
+					c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, msg$id);
+				else
+					{
+					# Just pick an arbitrary, unpaired query.
+					for ( trans_id in c$dns_state$pending_queries )
+						if ( Queue::len(c$dns_state$pending_queries[trans_id]) > 0 )
+							{
+							c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, trans_id);
+							break;
+							}
+					}
 				}
-			else
-				delete c$dns_state$pending_query;
 			}
 		else if ( c$dns_state?$pending_queries && msg$id in c$dns_state$pending_queries &&
 		     Queue::len(c$dns_state$pending_queries[msg$id]) > 0 )

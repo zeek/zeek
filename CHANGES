@@ -1,4 +1,8 @@
 
+2.6-141 | 2019-03-08 18:36:25 -0800
+
+  * Improve DNS query queuing logic (Jon Siwek, Corelight)
+
 2.6-140 | 2019-03-08 16:21:42 -0800
 
   * Improve performance of DNS policy scripts (Justin Azoff, Corelight)

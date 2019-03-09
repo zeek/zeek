@@ -39,6 +39,13 @@ Changed Functionality
   encountered while processing the ``bro_init()`` event will cause the
   process to terminate rather than continue on the main run loop.
 
+- The ``dns_state`` field within ``connection`` records has changed: the
+  ``pending_queries`` and ``pending_replies`` fields are now ``&optional``,
+  and there is a new field ``pending_query`` that is populated before
+  ``pending_queries``.  If you have scripts that access the ``pending_queries``
+  or ``pending_replies`` fields, they will need to be updated.
+  This change was made to improve performance.
+
 Removed Functionality
 ---------------------
 

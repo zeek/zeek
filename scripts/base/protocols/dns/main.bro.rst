@@ -205,11 +205,18 @@ Types
 
    :Type: :bro:type:`record`
 
-      pending_queries: :bro:type:`DNS::PendingMessages`
+      pending_query: :bro:type:`DNS::Info` :bro:attr:`&optional`
+         A single query that hasn't been matched with a response yet.
+         Note this is maintained separate from the *pending_queries*
+         field solely for performance reasons -- it's possible that
+         *pending_queries* contains further queries for which a response
+         has not yet been seen, even for the same transaction ID.
+
+      pending_queries: :bro:type:`DNS::PendingMessages` :bro:attr:`&optional`
          Indexed by query id, returns Info record corresponding to
          queries that haven't been matched with a response yet.
 
-      pending_replies: :bro:type:`DNS::PendingMessages`
+      pending_replies: :bro:type:`DNS::PendingMessages` :bro:attr:`&optional`
          Indexed by query id, returns Info record corresponding to
          replies that haven't been matched with a query yet.
 

@@ -27,6 +27,8 @@ New Functionality
   patch number.  For those that want to keep the unit test, simply adapt
   the unit test/baseline to include the new plugin patch number.
 
+- Support for decapsulating VXLAN tunnels.
+
 Changed Functionality
 ---------------------
 

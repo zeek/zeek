@@ -145,6 +145,8 @@ Protocol Analyzers
 
       .. bro:enum:: Analyzer::ANALYZER_UDP Analyzer::Tag
 
+      .. bro:enum:: Analyzer::ANALYZER_VXLAN Analyzer::Tag
+
       .. bro:enum:: Analyzer::ANALYZER_XMPP Analyzer::Tag
 
       .. bro:enum:: Analyzer::ANALYZER_ZIP Analyzer::Tag
@@ -14349,6 +14351,38 @@ Events
    
    .. bro:see::  udp_reply udp_request udp_session_done
       tcp_multiple_checksum_errors
+
+Bro::VXLAN
+----------
+
+VXLAN analyzer
+
+Components
+++++++++++
+
+:bro:enum:`Analyzer::ANALYZER_VXLAN`
+
+Events
+++++++
+
+.. bro:id:: vxlan_packet
+
+   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`pkt_hdr`, vni: :bro:type:`count`)
+
+   Generated for any packet encapsulated in a VXLAN tunnel.
+   See :rfc:`7348` for more information about the VXLAN protocol.
+   
+
+   :outer: The VXLAN tunnel connection.
+   
+
+   :inner: The VXLAN-encapsulated Ethernet packet header and transport header.
+   
+
+   :vni: VXLAN Network Identifier.
+   
+   .. note:: Since this event may be raised on a per-packet basis, handling
+      it may become particularly expensive for real-time analysis.
 
 Bro::XMPP
 ---------

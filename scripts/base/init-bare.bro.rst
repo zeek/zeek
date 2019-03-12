@@ -90,6 +90,8 @@ Redefinable Options
 :bro:id:`Tunnel::ip_tunnel_timeout`: :bro:type:`interval` :bro:attr:`&redef`            How often to cleanup internal state for inactive IP tunnels
                                                                                         (includes GRE tunnels).
 :bro:id:`Tunnel::max_depth`: :bro:type:`count` :bro:attr:`&redef`                       The maximum depth of a tunnel to decapsulate until giving up.
+:bro:id:`Tunnel::validate_vxlan_checksums`: :bro:type:`bool` :bro:attr:`&redef`         Whether to validate the checksum supplied in the outer UDP header
+                                                                                        of a VXLAN encapsulation.
 :bro:id:`backdoor_stat_backoff`: :bro:type:`double` :bro:attr:`&redef`                  Deprecated.
 :bro:id:`backdoor_stat_period`: :bro:type:`interval` :bro:attr:`&redef`                 Deprecated.
 :bro:id:`bits_per_uid`: :bro:type:`count` :bro:attr:`&redef`                            Number of bits in UIDs that are generated to identify connections and
@@ -313,6 +315,7 @@ Constants
 :bro:id:`TH_RST`: :bro:type:`count`                       RST.
 :bro:id:`TH_SYN`: :bro:type:`count`                       SYN.
 :bro:id:`TH_URG`: :bro:type:`count`                       URG.
+:bro:id:`Tunnel::vxlan_ports`: :bro:type:`set`            The set of UDP ports used for VXLAN traffic.
 :bro:id:`UDP_ACTIVE`: :bro:type:`count`                   Endpoint has sent something.
 :bro:id:`UDP_INACTIVE`: :bro:type:`count`                 Endpoint is still inactive.
 :bro:id:`trace_output_file`: :bro:type:`string`           Holds the filename of the trace file given with ``-w`` (empty if none).
@@ -1005,6 +1008,17 @@ Redefinable Options
    The maximum depth of a tunnel to decapsulate until giving up.
    Setting this to zero will disable all types of tunnel decapsulation.
 
+.. bro:id:: Tunnel::validate_vxlan_checksums
+
+   :Type: :bro:type:`bool`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``T``
+
+   Whether to validate the checksum supplied in the outer UDP header
+   of a VXLAN encapsulation.  The spec says the checksum should be
+   transmitted as zero, but if not, then the decapsulating destination
+   may choose whether to perform the validation.
+
 .. bro:id:: backdoor_stat_backoff
 
    :Type: :bro:type:`double`
@@ -1326,6 +1340,7 @@ Redefinable Options
          631/tcp,
          8000/tcp,
          161/udp,
+         4789/udp,
          6666/tcp,
          502/tcp,
          1080/tcp,
@@ -2637,6 +2652,22 @@ Constants
    :Default: ``32``
 
    URG.
+
+.. bro:id:: Tunnel::vxlan_ports
+
+   :Type: :bro:type:`set` [:bro:type:`port`]
+   :Default:
+
+   ::
+
+      {
+         4789/udp
+      }
+
+   The set of UDP ports used for VXLAN traffic.  Traffic using this
+   UDP destination port will attempt to be decapsulated.  Note that if
+   if you customize this, you may still want to manually ensure that
+   :bro:see:`likely_server_ports` also gets populated accordingly.
 
 .. bro:id:: UDP_ACTIVE
 

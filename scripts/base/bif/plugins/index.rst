@@ -292,6 +292,9 @@ Package: base/bif/plugins
 :doc:`/scripts/base/bif/plugins/Bro_UDP.events.bif.bro`
 
 
+:doc:`/scripts/base/bif/plugins/Bro_VXLAN.events.bif.bro`
+
+
 :doc:`/scripts/base/bif/plugins/Bro_XMPP.events.bif.bro`
 
 

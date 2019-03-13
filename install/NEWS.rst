@@ -27,6 +27,8 @@ New Functionality
   patch number.  For those that want to keep the unit test, simply adapt
   the unit test/baseline to include the new plugin patch number.
 
+- The default http.log not includes a field for the HTTP request Origin header.
+
 Changed Functionality
 ---------------------
 

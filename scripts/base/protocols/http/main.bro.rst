@@ -154,6 +154,9 @@ Types
       user_agent: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
          Value of the User-Agent header from the client.
 
+      origin: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+         Value of the Origin header from the client.
+
       request_body_len: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
          Actual uncompressed content size of the data transferred from
          the client.

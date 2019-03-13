@@ -51,6 +51,12 @@ Changed Functionality
   type. It was always assumed that they were, but code might have
   still worked even if not.
 
+- The "orig_fuids", "orig_filenames", "orig_mime_types" http.log fields
+  as well as their "resp" counterparts are now limited to having
+  "HTTP::max_files_orig" or "HTTP::max_files_resp" entries, which are 15
+  by default.  The limit can also be ignored case-by-case via the
+  "HTTP::max_files_policy" hook.
+
 Removed Functionality
 ---------------------
 

@@ -77,17 +77,8 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			{
-			// JSON doesn't support unsigned 64bit ints.
-			if ( val->val.uint_val >= INT64_MAX )
-				{
-				GetThread()->Error(GetThread()->Fmt("count value too large for JSON: %" PRIu64, val->val.uint_val));
-				desc->AddRaw("null", 4);
-				}
-			else
-				desc->Add(val->val.uint_val);
+			desc->Add(val->val.uint_val);
 			break;
-			}
 
 		case TYPE_PORT:
 			desc->Add(val->val.port_val.port);
@@ -149,16 +140,9 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 
 			else if ( timestamps == TS_MILLIS )
 				{
-				// ElasticSearch uses milliseconds for timestamps and json only
-				// supports signed ints (uints can be too large).
+				// ElasticSearch uses milliseconds for timestamps
 				uint64_t ts = (uint64_t) (val->val.double_val * 1000);
-				if ( ts < INT64_MAX )
-					desc->Add(ts);
-				else
-					{
-					GetThread()->Error(GetThread()->Fmt("time value too large for JSON milliseconds: %" PRIu64, ts));
-					desc->AddRaw("null", 4);
-					}
+				desc->Add(ts);
 				}
 
 			break;

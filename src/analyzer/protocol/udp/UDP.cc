@@ -7,6 +7,7 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "analyzer/protocol/udp/UDP.h"
+#include "analyzer/Manager.h"
 #include "Reporter.h"
 #include "Conn.h"
 
@@ -61,7 +62,30 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	if ( ! ignore_checksums && caplen >= len )
+	auto validate_checksum = ! ignore_checksums && caplen >=len;
+	constexpr auto vxlan_len = 8;
+	constexpr auto eth_len = 14;
+
+	if ( validate_checksum &&
+	     len > (sizeof(struct udphdr) + vxlan_len + eth_len) &&
+	     (data[0] & 0x08) == 0x08 )
+		{
+		auto& vxlan_ports = analyzer_mgr->GetVxlanPorts();
+
+		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(),
+		               ntohs(up->uh_dport)) != vxlan_ports.end() )
+			{
+			// Looks like VXLAN on a well-known port, so the checksum should be
+			// transmitted as zero, and we should accept that.  If not
+			// transmitted as zero, then validating the checksum is optional.
+			if ( chksum == 0 )
+				validate_checksum = false;
+			else
+				validate_checksum = BifConst::Tunnel::validate_vxlan_checksums;
+			}
+		}
+
+	if ( validate_checksum )
 		{
 		bool bad = false;
 

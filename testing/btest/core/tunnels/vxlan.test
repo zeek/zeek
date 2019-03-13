@@ -1,3 +1,0 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/vxlan-sample.pcap
-# @TEST-EXEC: btest-diff conn.log
-# @TEST-EXEC: btest-diff tunnel.log

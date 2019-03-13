@@ -96,6 +96,18 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
+	auto id = global_scope()->Lookup("Tunnel::vxlan_ports");
+
+	if ( ! (id && id->ID_Val()) )
+		reporter->FatalError("Tunnel::vxlan_ports not defined");
+
+	auto table_val = id->ID_Val()->AsTableVal();
+	auto port_list = table_val->ConvertToPureList();
+
+	for ( auto i = 0; i < port_list->Length(); ++i )
+		vxlan_ports.emplace_back(port_list->Index(i)->AsPortVal()->Port());
+
+	Unref(port_list);
 	}
 
 void Manager::DumpDebug()

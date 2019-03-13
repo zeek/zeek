@@ -46,6 +46,11 @@ Changed Functionality
   or ``pending_replies`` fields, they will need to be updated.
   This change was made to improve performance.
 
+- The ternary operator ("<expr> ? <alt1> : <alt2>") now enforces that
+  if "<alt1>" and "<alt2>" are both records, they are of the same
+  type. It was always assumed that they were, but code might have
+  still worked even if not.
+
 Removed Functionality
 ---------------------
 

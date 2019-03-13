@@ -1,5 +1,5 @@
 # @TEST-EXEC: bro %INPUT > output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff output
 
 module Software;
 
@@ -121,6 +121,16 @@ global matched_software: table[string] of Software::Description = {
 		[$name="QQ\xe9\x82\xae\xe7\xae\xb1", $version=[$major=5,$minor=3,$minor2=2,$minor3=8,$addl="CFNetwork/811"], $unparsed_version=""],
 	["Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Mobile Safari/537.36 Edge/15.15063"] =
 		[$name="Edge", $version=[$major=15,$minor=15063], $unparsed_version=""],
+	["A/8.0.0/Google/Pixel#XL/marlin/unknown/QCX3/l8100358318783302904/-/1456904160/-/google/662107/662098/-"] =
+		[$name="Android (Google Pixel)", $version=[$major=8,$minor=0,$minor2=0], $unparsed_version=""],
+	["A/8.1.0/Google/Pixel#2/walleye/unknown/QCX3/l10660929675510745862/-/104360422/-/google/3606/3607/-"] =
+		[$name="Android (Google Pixel)", $version=[$major=8,$minor=1,$minor2=0], $unparsed_version=""],
+	["A/9/Google/Pixel#2/walleye/unknown/QCX3/l17463753539612639959/-/2406658516/-/google/724998/724992/-"] =
+		[$name="Android (Google Pixel)", $version=[$major=9], $unparsed_version=""],
+	["A/9/Google/Pixel#2#XL/taimen/unknown/QCX3/l2640039522761750592/-/1061307257/-/google/1199700/1199701/-"] =
+		[$name="Android (Google Pixel)", $version=[$major=9], $unparsed_version=""],
+	["A/9/Google/Pixel#2/walleye/unknown/QCX3/l9335055540778241916/-/1576068601/-/google/63672/63666/00:BOOT.XF.1.2.2.c1-00036-M8998LZB-2+01:TZ.BF.4.0.6-00152+03:RPM.BF.1.7-00128+11:MPSS.AT.2.0.c4.5-00253-8998_GEN_PACK-1.172723.1.178350.2+12:ADSP.HT.3.0-00372-CB8998-1+14:VIDEO.VE.4.4-00033+15:SLPI.HB.2.0.c3-00016-M8998AZL-1"] =
+		[$name="Android (Google Pixel)", $version=[$major=9], $unparsed_version=""],
 };
 
 event bro_init()

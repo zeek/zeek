@@ -2337,7 +2337,13 @@ CondExpr::CondExpr(Expr* arg_op1, Expr* arg_op2, Expr* arg_op3)
 			ExprError("operands must be of the same type");
 
 		else
-			SetType(op2->Type()->Ref());
+			{
+			if ( IsRecord(bt2) && IsRecord(bt3) &&
+			     ! same_type(op2->Type(), op3->Type()) )
+				ExprError("operands must be of the same type");
+			else
+				SetType(op2->Type()->Ref());
+			}
 		}
 	}
 

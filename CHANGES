@@ -1,4 +1,8 @@
 
+2.6-152 | 2019-03-13 13:46:17 -0700
+
+  * Add field to the default http.log for the Origin header (Nate Guagenti)
+
 2.6-149 | 2019-03-13 18:21:59 +0000
 
   * GH-289: Add options to limit entries in http.log file fields. The

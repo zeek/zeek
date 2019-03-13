@@ -46,6 +46,8 @@ export {
 		version:		string	   &log &optional;
 		## Value of the User-Agent header from the client.
 		user_agent:              string    &log &optional;
+		## Value of the Origin header from the client.
+		origin:                  string    &log &optional;
 		## Actual uncompressed content size of the data transferred from
 		## the client.
 		request_body_len:        count     &log &default=0;
@@ -257,6 +259,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 
 		else if ( name == "RANGE" )
 			c$http$range_request = T;
+
+		else if ( name == "ORIGIN" )
+			c$http$origin = value;
 
 		else if ( name == "USER-AGENT" )
 			c$http$user_agent = value;

@@ -1,4 +1,23 @@
 
+2.6-149 | 2019-03-13 18:21:59 +0000
+
+  * GH-289: Add options to limit entries in http.log file fields. The
+    "orig_fuids", "orig_filenames", "orig_mime_types" http.log fields
+    as well as their "resp" counterparts are now limited to having
+    "HTTP::max_files_orig" or "HTTP::max_files_resp" entries, which
+    are 15 by default.  The limit can also be ignored case-by-case via
+    the "HTTP::max_files_policy" hook. (Jon Siwek, Corelight)
+
+  * GH-282: Remove JSON formatter's range restriction on numbers. It
+    now produces numbers as large as is required to match the data it
+    needs to represent. (Jon Siwek, Corelight)
+
+  * GH-281: Improve parsing of Google Pixel user agent. (Jon Siwek,
+    Corelight)
+
+  * GH-286: Check for record type mismatch in ternary operator. (Jon
+    Siwek, Corelight)
+
 2.6-141 | 2019-03-08 18:36:25 -0800
 
   * Improve DNS query queuing logic (Jon Siwek, Corelight)

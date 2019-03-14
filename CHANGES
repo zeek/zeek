@@ -1,4 +1,23 @@
 
+2.6-157 | 2019-03-14 16:18:13 +0000
+
+  * GH-250: Add VXLAN decapsulation support (Henrik Lund Kramshoej; Jon Siwek, Corelight)
+
+    Zeek now automatically decapsulates VXLAN traffic on UDP port
+    4789. It will log such sessions as Tunnel::VXLAN in tunnel.log and
+    proceed to analyze the inner payload. Two options allow to tune
+    the analysis:
+
+        * "Tunnel::vxlan_ports" allows to tune the set of VXLAN ports
+          to analyze/decapsulate.
+
+        * "Tunnel::validate_vxlan_checksums" allows for tuning of how
+          checksums associated with the outer UDP header of a possible
+          VXLAN tunnel are handled.
+
+    A new "vxlan_packet" event also provides per-packet access to
+    VXLAN traffic.
+
 2.6-154 | 2019-03-13 17:28:26 -0700
 
   * Decrease memory usage via deferred list/dict initialization (Justin Azoff, Corelight)

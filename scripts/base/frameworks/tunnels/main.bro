@@ -85,7 +85,7 @@ export {
 const ayiya_ports = { 5072/udp };
 const teredo_ports = { 3544/udp };
 const gtpv1_ports = { 2152/udp, 2123/udp };
-redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1_ports };
+redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1_ports, vxlan_ports };
 
 event bro_init() &priority=5
 	{
@@ -94,6 +94,7 @@ event bro_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_AYIYA, ayiya_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, teredo_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_GTPV1, gtpv1_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_VXLAN, vxlan_ports);
 	}
 
 function register_all(ecv: EncapsulatingConnVector)

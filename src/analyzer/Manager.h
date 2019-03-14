@@ -22,6 +22,7 @@
 #define ANALYZER_MANAGER_H
 
 #include <queue>
+#include <vector>
 
 #include "Analyzer.h"
 #include "Component.h"
@@ -335,6 +336,12 @@ public:
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			      Val* analyzer, double timeout);
 
+	/**
+	 * @return the UDP port numbers to be associated with VXLAN traffic.
+	 */
+	const std::vector<uint16>& GetVxlanPorts() const
+		{ return vxlan_ports; }
+
 private:
 	typedef set<Tag> tag_set;
 	typedef map<uint32, tag_set*> analyzer_map_by_port;
@@ -390,6 +397,7 @@ private:
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
+	std::vector<uint16> vxlan_ports;
 };
 
 }

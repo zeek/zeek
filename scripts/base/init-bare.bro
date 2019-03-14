@@ -4857,6 +4857,18 @@ export {
 	## How often to cleanup internal state for inactive IP tunnels
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
+
+	## Whether to validate the checksum supplied in the outer UDP header
+	## of a VXLAN encapsulation.  The spec says the checksum should be
+	## transmitted as zero, but if not, then the decapsulating destination
+	## may choose whether to perform the validation.
+	const validate_vxlan_checksums = T &redef;
+
+	## The set of UDP ports used for VXLAN traffic.  Traffic using this
+	## UDP destination port will attempt to be decapsulated.  Note that if
+	## if you customize this, you may still want to manually ensure that
+	## :bro:see:`likely_server_ports` also gets populated accordingly.
+	const vxlan_ports: set[port] = { 4789/udp } &redef;
 } # end export
 
 module Reporter;

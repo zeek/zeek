@@ -149,6 +149,7 @@
    base/bif/plugins/Bro_TCP.functions.bif.bro </scripts/base/bif/plugins/Bro_TCP.functions.bif.bro>
    base/bif/plugins/Bro_Teredo.events.bif.bro </scripts/base/bif/plugins/Bro_Teredo.events.bif.bro>
    base/bif/plugins/Bro_UDP.events.bif.bro </scripts/base/bif/plugins/Bro_UDP.events.bif.bro>
+   base/bif/plugins/Bro_VXLAN.events.bif.bro </scripts/base/bif/plugins/Bro_VXLAN.events.bif.bro>
    base/bif/plugins/Bro_XMPP.events.bif.bro </scripts/base/bif/plugins/Bro_XMPP.events.bif.bro>
    base/bif/plugins/Bro_FileEntropy.events.bif.bro </scripts/base/bif/plugins/Bro_FileEntropy.events.bif.bro>
    base/bif/plugins/Bro_FileExtract.events.bif.bro </scripts/base/bif/plugins/Bro_FileExtract.events.bif.bro>

@@ -296,6 +296,8 @@ Types
 
       .. bro:enum:: Tunnel::GRE Tunnel::Type
 
+      .. bro:enum:: Tunnel::VXLAN Tunnel::Type
+
 
 .. bro:type:: layer3_proto
 

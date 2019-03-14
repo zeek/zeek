@@ -29,6 +29,8 @@ New Functionality
 
 - The default http.log not includes a field for the HTTP request Origin header.
 
+- Support for decapsulating VXLAN tunnels.
+
 Changed Functionality
 ---------------------
 

@@ -1,4 +1,8 @@
 
+2.6-159 | 2019-03-14 16:39:52 -0700
+
+  * Move NEWS file back into main repo from zeek-docs (Jon Siwek, Corelight)
+
 2.6-158 | 2019-03-14 16:23:30 -0700
 
   * Fix signed/unsigned comparison compiler warning (Jon Siwek, Corelight)

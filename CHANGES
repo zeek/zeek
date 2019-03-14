@@ -1,4 +1,8 @@
 
+2.6-154 | 2019-03-13 17:28:26 -0700
+
+  * Decrease memory usage via deferred list/dict initialization (Justin Azoff, Corelight)
+
 2.6-152 | 2019-03-13 13:46:17 -0700
 
   * Add field to the default http.log for the Origin header (Nate Guagenti)

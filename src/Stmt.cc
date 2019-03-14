@@ -1421,11 +1421,47 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
+ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr, ID* val_var)
+	: ForStmt(arg_loop_vars, loop_expr)
+	  {
+		value_var = val_var;
+		// Valdate that key-value for loop is being used on a table
+		if ( e->Type()->Tag() == TYPE_TABLE )
+		  {
+			// Type of values table holds
+			BroType* yield_type = e->Type()->AsTableType()->YieldType();
+
+			// Verify value_vars type if its already been defined
+			if ( value_var->Type() )
+			  {
+				if ( ! same_type(value_var->Type(), yield_type) )
+				  {
+					value_var->Type()->Error("type clash in iteration", yield_type);
+				  }
+			  }
+			else
+			  {
+				delete add_local(value_var,
+						yield_type->Ref(), INIT_NONE,
+						0, 0, VAR_REGULAR);
+				}
+		  }
+		else
+		  {
+			e->Error("key value for loops only support iteration over tables");
+		  }
+	  }
+
 ForStmt::~ForStmt()
 	{
 	loop_over_list(*loop_vars, i)
 		Unref((*loop_vars)[i]);
 	delete loop_vars;
+
+	if (value_var)
+	  {
+		Unref(value_var);
+	  }
 
 	Unref(body);
 	}
@@ -1443,11 +1479,17 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			return 0;
 
 		HashKey* k;
+		TableEntryVal* current_tev;
 		IterCookie* c = loop_vals->InitForIteration();
-		while ( loop_vals->NextEntry(k, c) )
+		while ( (current_tev = loop_vals->NextEntry(k, c)) )
 			{
 			ListVal* ind_lv = tv->RecoverIndex(k);
 			delete k;
+
+			if (value_var)
+				{
+				f->SetElement(value_var->Offset(), current_tev->Value()->Ref());
+				}
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
 				f->SetElement((*loop_vars)[i]->Offset(), ind_lv->Index(i)->Ref());

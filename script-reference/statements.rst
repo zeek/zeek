@@ -359,6 +359,11 @@ Here are the statements that the Bro scripting language supports.
     loop variable must be specified as a comma-separated list of different
     loop variables (one for each index), enclosed in brackets.
 
+    If the expression is a table, keys and values can be iterated over at the
+    same time by specifying a key and value variable. The core exposes value
+    variables for free, so this should be preferred to accessing the values in a
+    separate lookup inside the loop.
+
     Note that the loop variable in a "for" statement is not allowed to be
     a global variable, and it does not need to be declared prior to the "for"
     statement.  The type will be inferred from the elements of the
@@ -380,10 +385,10 @@ Here are the statements that the Bro scripting language supports.
         for (p in myset)
             print p;
 
-        for ([i,j] in mytable) {
-            if (mytable[i,j] == "done")
+        for ([i,j], val in mytable) {
+            if (val == "done")
                 break;
-            if (mytable[i,j] == "skip")
+            if (val == "skip")
                 next;
             print i,j;
         }
@@ -720,4 +725,3 @@ Here are the statements that the Bro scripting language supports.
 
         if ( x == 2 )
             ;
-

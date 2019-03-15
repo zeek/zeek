@@ -35,8 +35,8 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 	if ( ! c$ssh?$direction )
 		return;
 
-	# Add the location data to the SSH record.
-	c$ssh$remote_location = get_location(c);
+	if ( ! c$ssh?$remote_location )
+		return;
 
 	if ( c$ssh$remote_location?$country_code && c$ssh$remote_location$country_code in watched_countries )
 		{
@@ -48,7 +48,7 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 		}
 	}
 
-event ssh_auth_failed(c: connection) &priority=3
+event ssh_auth_attempted(c: connection, authenticated: bool) &priority=3
 	{
 	if ( ! c$ssh?$direction )
 		return;

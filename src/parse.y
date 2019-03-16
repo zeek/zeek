@@ -1592,7 +1592,7 @@ for_head:
 			if ( loop_var )
 				{
 				if ( loop_var->IsGlobal() )
-					loop_var->Error("global used in for loop");
+					loop_var->Error("global variable used in for loop");
 				}
 
 			else
@@ -1606,8 +1606,62 @@ for_head:
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' TOK_IN expr ')'
-			{ $$ = new ForStmt($4, $7); }
-		;
+			{
+			$$ = new ForStmt($4, $7);
+			}
+	|
+		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
+			{
+			set_location(@1, @8);
+			const char* module = current_module.c_str();
+
+			// Check for previous definitions of key and
+			// value variables.
+			ID* key_var = lookup_ID($3, module);
+			ID* val_var = lookup_ID($5, module);
+
+			// Validate previous definitions as needed.
+			if ( key_var )
+				{
+				if ( key_var->IsGlobal() )
+					key_var->Error("global variable used in for loop");
+				}
+			else
+				key_var = install_ID($3, module, false, false);
+
+			if ( val_var )
+				{
+				if ( val_var->IsGlobal() )
+					val_var->Error("global variable used in for loop");
+				}
+			else
+				val_var = install_ID($5, module, false, false);
+
+			id_list* loop_vars = new id_list;
+			loop_vars->append(key_var);
+
+			$$ = new ForStmt(loop_vars, $7, val_var);
+			}
+	|
+		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
+			{
+			set_location(@1, @10);
+			const char* module = current_module.c_str();
+
+			// Validate value variable
+			ID* val_var = lookup_ID($7, module);
+
+			if ( val_var )
+				{
+				if ( val_var->IsGlobal() )
+					val_var->Error("global variable used in for loop");
+				}
+			else
+				val_var = install_ID($7, module, false, false);
+
+			$$ = new ForStmt($4, $9, val_var);
+			}
+	;
 
 local_id_list:
 		local_id_list ',' local_id

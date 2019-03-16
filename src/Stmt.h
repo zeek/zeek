@@ -337,6 +337,8 @@ protected:
 class ForStmt : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, Expr* loop_expr);
+	// Special constructor for key value for loop.
+	ForStmt(id_list* loop_vars, Expr* loop_expr, ID* val_var);
 	~ForStmt() override;
 
 	void AddBody(Stmt* arg_body)	{ body = arg_body; }
@@ -361,6 +363,9 @@ protected:
 
 	id_list* loop_vars;
 	Stmt* body;
+	// Stores the value variable being used for a key value for loop.
+	// Always set to nullptr unless special constructor is called.
+	ID* value_var = nullptr;
 };
 
 class NextStmt : public Stmt {

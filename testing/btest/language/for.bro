@@ -13,7 +13,7 @@ event bro_init()
 	local vv: vector of string = vector( "a", "b", "c" );
 	local ct: count = 0;
 
-	# Test a "for" loop without "break" or "next" 
+	# Test a "for" loop without "break" or "next"
 
 	ct = 0;
 	for ( i in vv ) ++ct;
@@ -40,5 +40,18 @@ event bro_init()
 		test_case("Error: this should not happen", F);
 	}
 	test_case("for loop with next", ct == 3 );
-}
 
+	# Test keys that are tuples
+
+	local t: table[count, count] of string = table();
+	t[1, 2] = "hi";
+
+	local s1: string = "";
+
+	for ( [i, j] in t )
+		s1 = fmt("%d %d %s", i, j, t[i,j]);
+
+	test_case("keys that are tuples", s1 == "1 2 hi");
+
+	# Tests for key value for loop are in key-value-for.bro
+}

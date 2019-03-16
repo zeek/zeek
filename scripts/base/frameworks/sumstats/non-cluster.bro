@@ -8,9 +8,9 @@ event SumStats::process_epoch_result(ss: SumStat, now: time, data: ResultTable)
 	local i = 50;
 	local keys_to_delete: vector of SumStats::Key = vector();
 
-	for ( key in data )
+	for ( key, res in data )
 		{
-		ss$epoch_result(now, key, data[key]);
+		ss$epoch_result(now, key, res);
 		keys_to_delete += key;
 
 		if ( --i == 0 )
@@ -37,8 +37,8 @@ event SumStats::finish_epoch(ss: SumStat)
 			local now = network_time();
 			if ( bro_is_terminating() )
 				{
-				for ( key in data )
-					ss$epoch_result(now, key, data[key]);
+				for ( key, val in data )
+					ss$epoch_result(now, key, val);
 
 				if ( ss?$epoch_finished )
 					ss$epoch_finished(now);

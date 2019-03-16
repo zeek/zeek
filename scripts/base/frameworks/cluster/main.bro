@@ -340,10 +340,8 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
-	for ( node_name in nodes )
+	for ( node_name, n in nodes )
 		{
-		local n = nodes[node_name];
-
 		if ( n?$id && n$id == endpoint$id )
 			{
 			Cluster::log(fmt("node down: %s", node_name));

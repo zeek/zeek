@@ -37,10 +37,10 @@ function describe_file(f: fa_file): string
 	if ( f$source != "FTP" )
 		return "";
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		if ( f$conns[cid]?$ftp )
-			return FTP::describe(f$conns[cid]$ftp);
+		if ( c?$ftp )
+			return FTP::describe(c$ftp);
 		}
 	return "";
 	}

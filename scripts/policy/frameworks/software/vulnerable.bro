@@ -111,8 +111,8 @@ function update_vulnerable_sw()
 	internal_vulnerable_versions = table();
 
 	# Copy the const vulnerable versions into the global modifiable one.
-	for ( sw in vulnerable_versions )
-		internal_vulnerable_versions[sw] = vulnerable_versions[sw];
+	for ( sw, vuln_range_set in vulnerable_versions )
+		internal_vulnerable_versions[sw] = vuln_range_set;
 
 	event grab_vulnerable_versions(1);
 	}

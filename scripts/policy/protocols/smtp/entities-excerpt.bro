@@ -24,10 +24,8 @@ event file_new(f: fa_file) &priority=5
 	if ( ! f?$bof_buffer ) return;
 	if ( ! f?$conns ) return;
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		local c: connection = f$conns[cid];
-
 		if ( ! c?$smtp ) next;
 
 		if ( default_entity_excerpt_len > 0 )

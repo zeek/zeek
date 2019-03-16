@@ -326,11 +326,11 @@ event connection_state_remove(c: connection) &priority=-5
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$http_state )
 		{
-		for ( r in c$http_state$pending )
+		for ( r, info in c$http_state$pending )
 			{
 			# We don't use pending elements at index 0.
 			if ( r == 0 ) next;
-			Log::write(HTTP::LOG, c$http_state$pending[r]);
+			Log::write(HTTP::LOG, info);
 			}
 		}
 	}

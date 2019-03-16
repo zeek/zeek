@@ -65,10 +65,8 @@ function log_dcc(f: fa_file)
 	{
 	if ( ! f?$conns ) return;
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		local c: connection = f$conns[cid];
-
 		if ( [cid$resp_h, cid$resp_p] !in dcc_expected_transfers ) next;
 
 		local irc = dcc_expected_transfers[cid$resp_h, cid$resp_p];

@@ -238,9 +238,8 @@ event file_state_remove(f: fa_file) &priority=-5
 	if ( f$source != "SMB" )
 		return;
 	
-	for ( id in f$conns )
+	for ( id, c in f$conns )
 		{
-		local c = f$conns[id];
 		if ( c?$smb_state && c$smb_state?$current_file)
 			{
 			write_file_log(c$smb_state);

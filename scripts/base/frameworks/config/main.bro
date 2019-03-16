@@ -159,9 +159,9 @@ event bro_init() &priority=10
 	# Iterate over all existing options and add ourselves as change handlers
 	# with a low priority so that we can log the changes.
 	local gids = global_ids();
-	for ( i in gids )
+	for ( i, gid in gids )
 		{
-		if ( ! gids[i]$option_value )
+		if ( ! gid$option_value )
 			next;
 
 		Option::set_change_handler(i, config_option_changed, -100);

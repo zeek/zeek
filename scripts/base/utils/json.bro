@@ -57,9 +57,8 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		local rec_parts: string_vec = vector();
 
 		local ft = record_fields(v);
-		for ( field in ft )
+		for ( field, field_desc in ft )
 			{
-			local field_desc = ft[field];
 			# replace the escape pattern in the field.
 			if( field_escape_pattern in field )
 				field = cat(sub(field, field_escape_pattern, ""));
@@ -87,11 +86,11 @@ function to_json(v: any, only_loggable: bool &default=F, field_escape_pattern: p
 		{
 		local tab_parts: vector of string = vector();
 		local ta: table[bool] of any = v;
-		for ( ti in ta )
+		for ( ti, tv in ta )
 			{
 			local ts = to_json(ti);
 			local if_quotes = (ts[0] == "\"") ? "" : "\"";
-			tab_parts += cat(if_quotes, ts, if_quotes, ": ", to_json(ta[ti], only_loggable));
+			tab_parts += cat(if_quotes, ts, if_quotes, ": ", to_json(tv, only_loggable));
 			}
 		return cat("{", join_string_vec(tab_parts, ", "), "}");
 		}

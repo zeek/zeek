@@ -235,8 +235,8 @@ function expire_host_data(data: table[addr] of MetaDataTable, idx: addr): interv
 	{
 	local meta_tbl: MetaDataTable = data[idx];
 	local metas: set[MetaData];
-	for ( src in meta_tbl )
-		add metas[meta_tbl[src]];
+	for ( src, md in meta_tbl )
+		add metas[md];
 
 	return expire_item(cat(idx), ADDR, metas);
 	}
@@ -245,8 +245,8 @@ function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): 
 	{
 	local meta_tbl: MetaDataTable = data[idx];
 	local metas: set[MetaData];
-	for ( src in meta_tbl )
-		add metas[meta_tbl[src]];
+	for ( src, md in meta_tbl )
+		add metas[md];
 
 	return expire_item(cat(idx), SUBNET, metas);
 	}
@@ -259,8 +259,8 @@ function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any
 
 	local meta_tbl: MetaDataTable = data[indicator, indicator_type];
 	local metas: set[MetaData];
-	for ( src in meta_tbl )
-		add metas[meta_tbl[src]];
+	for ( src, md in meta_tbl )
+		add metas[md];
 
 	return expire_item(indicator, indicator_type, metas);
 	}
@@ -306,20 +306,19 @@ function get_items(s: Seen): set[Item]
 		if ( s$host in data_store$host_data )
 			{
 			mt = data_store$host_data[s$host];
-			for ( m in mt )
+			for ( m, md in mt )
 				{
-				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=mt[m])];
+				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=md)];
 				}
 			}
 		# See if the host is part of a known subnet, which has meta values
 		local nets: table[subnet] of MetaDataTable;
 		nets = filter_subnet_table(addr_to_subnet(s$host), data_store$subnet_data);
-		for ( n in nets )
+		for ( n, mt in nets )
 			{
-				mt = nets[n];
-				for ( m in mt )
+				for ( m, md in mt )
 					{
-					add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=mt[m])];
+					add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=md)];
 					}
 			}
 		}
@@ -330,9 +329,9 @@ function get_items(s: Seen): set[Item]
 		if ( [lower_indicator, s$indicator_type] in data_store$string_data )
 			{
 			mt = data_store$string_data[lower_indicator, s$indicator_type];
-			for ( m in mt )
+			for ( m, md in mt )
 				{
-				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=mt[m])];
+				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=md)];
 				}
 			}
 		}

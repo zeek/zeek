@@ -215,9 +215,8 @@ event connection_state_remove(c: connection)
 		return;
 
 	# TODO: Go through any remaining dce_rpc requests that haven't been processed with replies.
-	for ( i in c$dce_rpc_backing )
+	for ( i, x in c$dce_rpc_backing )
 		{
-		local x = c$dce_rpc_backing[i];
 		set_state(c, x);
 
 		# In the event that the binding wasn't seen, but the pipe

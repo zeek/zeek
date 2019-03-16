@@ -66,11 +66,10 @@ function describe_file(f: fa_file): string
 	# are already populated).
 	#
 	# Just return a bit of our connection information and hope that that is good enough.
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		if ( f$conns[cid]?$ssl )
+		if ( c?$ssl )
 			{
-			local c = f$conns[cid];
 			return cat(c$id$resp_h, ":", c$id$resp_p);
 			}
 		}
@@ -103,12 +102,12 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	         || f$info$mime_type == "application/pkix-cert" ) )
 		return;
 
-	for ( cid in f$conns )
-		{
-		if ( ! f$conns[cid]?$ssl )
-			return;
+	local c: connection;
 
-		local c = f$conns[cid];
+	for ( cid, c in f$conns )
+		{
+		if ( ! c?$ssl )
+			return;
 		}
 
 	if ( ! c$ssl?$cert_chain )

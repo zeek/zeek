@@ -91,9 +91,8 @@ function get_pending_cmd(pc: PendingCmds, reply_code: count, reply_msg: string):
 	local best_seq = 0;
 	local best_score: int = -1;
 
-	for ( cmd_seq in pc )
+	for ( cmd_seq, cmd in pc )
 		{
-		local cmd = pc[cmd_seq];
 		local score: int = 0;
 		
 		# if the command is compatible with the reply code

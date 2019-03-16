@@ -38,11 +38,10 @@ function describe_file(f: fa_file): string
 	if ( f$source != "SMB" )
 		return "";
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		local info = f$conns[cid];
-		if ( info?$smb_state && info$smb_state?$current_file && info$smb_state$current_file?$name )
-			return info$smb_state$current_file$name;
+		if ( c?$smb_state && c$smb_state?$current_file && c$smb_state$current_file?$name )
+			return c$smb_state$current_file$name;
 		}
 	return "";
 	}

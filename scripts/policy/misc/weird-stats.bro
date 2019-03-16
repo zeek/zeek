@@ -33,14 +33,14 @@ function weird_epoch_results(ts: time, key: SumStats::Key, result: SumStats::Res
 
 function weird_epoch_finished(ts: time)
 	{
-	for ( n in this_epoch_weirds )
+	for ( n, v in this_epoch_weirds )
 		{
 		local last_count: double = 0.0;
 
 		if ( n in last_epoch_weirds )
 			last_count = last_epoch_weirds[n];
 
-		local num_seen: double = this_epoch_weirds[n] - last_count;
+		local num_seen: double = v - last_count;
 
 		if ( num_seen > 0.0 )
 			Log::write(LOG, Info($ts = ts, $name = n,
@@ -70,9 +70,9 @@ function observe_weird_stats()
 	{
 	local rs = get_reporter_stats();
 
-	for ( n in rs$weirds_by_type )
+	for ( n, v in rs$weirds_by_type )
 		SumStats::observe("weirds.encountered", SumStats::Key($str = n),
-		                  SumStats::Observation($dbl=rs$weirds_by_type[n]+0.0));
+		                  SumStats::Observation($dbl=(v + 0.0)));
 	}
 
 @if ( Cluster::is_enabled() )

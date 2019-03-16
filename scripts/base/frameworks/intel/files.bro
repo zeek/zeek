@@ -53,8 +53,8 @@ hook extend_match(info: Info, s: Seen, items: set[Item]) &priority=6
 
 		if ( s$f?$conns && |s$f$conns| == 1 )
 			{
-			for ( cid in s$f$conns )
-				s$conn = s$f$conns[cid];
+			for ( cid, c in s$f$conns )
+				s$conn = c;
 			}
 
 		if ( ! info?$file_mime_type && s$f?$info && s$f$info?$mime_type )

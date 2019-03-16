@@ -295,9 +295,9 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( ! c?$ftp ) return;
 
-	for ( ca in c$ftp$pending_commands )
+	for ( ca, cmdarg in c$ftp$pending_commands )
 		{
-		c$ftp$cmdarg = c$ftp$pending_commands[ca];
+		c$ftp$cmdarg = cmdarg;
 		ftp_message(c$ftp);
 		}
 	}

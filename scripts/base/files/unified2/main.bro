@@ -289,9 +289,9 @@ event file_state_remove(f: fa_file)
 		{
 		# In case any events never had matching packets, flush
 		# the extras to the log.
-		for ( i in f$u2_events )
+		for ( i, ev in f$u2_events )
 			{
-			Log::write(LOG, create_info(f$u2_events[i]));
+			Log::write(LOG, create_info(ev));
 			}
 		}
 	}

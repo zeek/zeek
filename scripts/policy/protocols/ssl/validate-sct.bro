@@ -95,12 +95,12 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 	if ( |f$conns| != 1 )
 		return;
 
-	for ( cid in f$conns )
-		{
-		if ( ! f$conns[cid]?$ssl )
-			return;
+	local c: connection;
 
-		local c = f$conns[cid];
+	for ( cid, c in f$conns )
+		{
+		if ( ! c?$ssl )
+			return;
 		}
 
 	c$ssl$ct_proofs += SctInfo($version=version, $logid=logid, $timestamp=timestamp, $sig_alg=signature_algorithm, $hash_alg=hash_algorithm, $signature=signature, $source=src);

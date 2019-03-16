@@ -51,12 +51,12 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=4
 		 || f$info$mime_type == "application/pkix-cert" ) )
 		return;
 
-	for ( cid in f$conns )
-		{
-		if ( ! f$conns[cid]?$ssl )
-			return;
+	local c: connection;
 
-		local c = f$conns[cid];
+	for ( cid, c in f$conns )
+		{
+		if ( ! c?$ssl )
+			return;
 		}
 
 	local chain: vector of string;

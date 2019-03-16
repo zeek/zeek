@@ -246,10 +246,8 @@ event Cluster::node_down(name: string, id: string) &priority=10
 
 function site_id_in_pool(pool: Pool, site_id: count): bool
 	{
-	for ( i in pool$nodes )
+	for ( i, pn in pool$nodes )
 		{
-		local pn = pool$nodes[i];
-
 		if ( pn$site_id == site_id )
 			return T;
 		}
@@ -395,10 +393,8 @@ event bro_init() &priority=-5
 		pet$excluded += pool$spec$max_nodes;
 		}
 
-	for ( nt in pool_eligibility )
+	for ( nt, pet in pool_eligibility )
 		{
-		pet = pool_eligibility[nt];
-
 		if ( pet$excluded > |pet$eligible_nodes| )
 			Reporter::fatal(fmt("not enough %s nodes to satisfy pool exclusivity requirements: need %d nodes", nt, pet$excluded));
 		}

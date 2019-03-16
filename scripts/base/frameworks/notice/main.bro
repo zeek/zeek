@@ -569,10 +569,10 @@ function create_file_info(f: fa_file): Notice::FileInfo
 		fi$mime = f$info$mime_type;
 
 	if ( f?$conns && |f$conns| == 1 )
-		for ( id in f$conns )
+		for ( id, c in f$conns )
 			{
 			fi$cid = id;
-			fi$cuid = f$conns[id]$uid;
+			fi$cuid = c$uid;
 			}
 
 	return fi;

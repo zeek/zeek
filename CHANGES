@@ -1,4 +1,10 @@
 
+2.6-164 | 2019-03-15 19:45:48 -0700
+
+  * Migrate table-based for-loops to key-value iteration (Jon Siwek, Corelight)
+
+  * GH-154: Extend for-loops to allow iteration over a table's key-value pairs (Zeke Medley)
+
 2.6-161 | 2019-03-15 12:59:31 -0700
 
   * Fix SSH remote_location geo-data not being logged for successful authNs. (Michael Dopheide)

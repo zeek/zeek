@@ -8,9 +8,8 @@ event intel_mime_data(f: fa_file, data: string)
 	if ( ! f?$conns )
 		return;
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		local c: connection = f$conns[cid];
 		local urls = find_all_urls_without_scheme(data);
 		for ( url in urls )
 			{

@@ -184,9 +184,9 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 
 function log_unmatched_msgs(msgs: PendingMessages)
 	{
-	for ( trans_id in msgs )
+	for ( trans_id, q in msgs )
 		{
-		log_unmatched_msgs_queue(msgs[trans_id]);
+		log_unmatched_msgs_queue(q);
 		}
 
 	clear_table(msgs);
@@ -285,8 +285,8 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 				else
 					{
 					# Just pick an arbitrary, unpaired query.
-					for ( trans_id in c$dns_state$pending_queries )
-						if ( Queue::len(c$dns_state$pending_queries[trans_id]) > 0 )
+					for ( trans_id, q in c$dns_state$pending_queries )
+						if ( Queue::len(q) > 0 )
 							{
 							c$dns_state$pending_query = pop_msg(c$dns_state$pending_queries, trans_id);
 							break;

@@ -31,9 +31,8 @@ function describe_file(f: fa_file): string
 	if ( f$source != "SMTP" )
 		return "";
 
-	for ( cid in f$conns )
+	for ( cid, c in f$conns )
 		{
-		local c = f$conns[cid];
 		return SMTP::describe(c$smtp);
 		}
 	return "";

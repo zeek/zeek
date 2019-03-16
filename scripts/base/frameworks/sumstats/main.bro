@@ -300,17 +300,17 @@ function compose_results(r1: Result, r2: Result): Result
 	{
 	local result: Result = table();
 
-	for ( id in r1 )
+	for ( id, rv in r1 )
 		{
-		result[id] = r1[id];
+		result[id] = rv;
 		}
 
-	for ( id in r2 )
+	for ( id, rv in r2 )
 		{
 		if ( id in r1 )
-			result[id] = compose_resultvals(r1[id], r2[id]);
+			result[id] = compose_resultvals(r1[id], rv);
 		else
-			result[id] = r2[id];
+			result[id] = rv;
 		}
 
 	return result;

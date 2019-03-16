@@ -162,16 +162,16 @@ event bro_init() &priority=5
 	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter"]);
 
 	# Preverify the capture and restrict filters to give more granular failure messages.
-	for ( id in capture_filters )
+	for ( id, cf in capture_filters )
 		{
-		if ( ! test_filter(capture_filters[id]) )
-			Reporter::fatal(fmt("Invalid capture_filter named '%s' - '%s'", id, capture_filters[id]));
+		if ( ! test_filter(cf) )
+			Reporter::fatal(fmt("Invalid capture_filter named '%s' - '%s'", id, cf));
 		}
 
-	for ( id in restrict_filters )
+	for ( id, rf in restrict_filters )
 		{
 		if ( ! test_filter(restrict_filters[id]) )
-			Reporter::fatal(fmt("Invalid restrict filter named '%s' - '%s'", id, restrict_filters[id]));
+			Reporter::fatal(fmt("Invalid restrict filter named '%s' - '%s'", id, rf));
 		}
 	}
 
@@ -234,20 +234,20 @@ function build(): string
 	if ( |capture_filters| == 0 && ! enable_auto_protocol_capture_filters )
 		cfilter = default_capture_filter;
 
-	for ( id in capture_filters )
-		cfilter = combine_filters(cfilter, "or", capture_filters[id]);
+	for ( id, cf in capture_filters )
+		cfilter = combine_filters(cfilter, "or", cf);
 
 	if ( enable_auto_protocol_capture_filters )
 		cfilter = combine_filters(cfilter, "or", Analyzer::get_bpf());
 
 	# Apply the restriction filters.
 	local rfilter = "";
-	for ( id in restrict_filters )
-		rfilter = combine_filters(rfilter, "and", restrict_filters[id]);
+	for ( id, rf in restrict_filters )
+		rfilter = combine_filters(rfilter, "and", rf);
 
 	# Apply the dynamic restriction filters.
-	for ( filt in dynamic_restrict_filters )
-		rfilter = combine_filters(rfilter, "and", string_cat("not (", dynamic_restrict_filters[filt], ")"));
+	for ( filt, drf in dynamic_restrict_filters )
+		rfilter = combine_filters(rfilter, "and", string_cat("not (", drf, ")"));
 
 	# Finally, join them into one filter.
 	local filter = combine_filters(cfilter, "and", rfilter);

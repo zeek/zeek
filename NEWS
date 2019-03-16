@@ -31,6 +31,17 @@ New Functionality
 
 - Support for decapsulating VXLAN tunnels.
 
+- The for-loop syntax now allows for iterating over key-value pairs of tables.
+  Previously, a separate lookup within the loop was required to obtain the
+  value at a given index/key, but now this works::
+
+      local t: table[count] of string = table();
+      t[1] = "hello";
+      t[55] = "goodbye";
+
+      for ( key, value in t )
+          print key, value;
+
 Changed Functionality
 ---------------------
 

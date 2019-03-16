@@ -149,13 +149,13 @@ function flush_pending(c: connection)
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$sip_state )
 		{
-		for ( r in c$sip_state$pending )
+		for ( r, info in c$sip_state$pending )
 			{
 			# We don't use pending elements at index 0.
 			if ( r == 0 )
 				next;
 
-			Log::write(SIP::LOG, c$sip_state$pending[r]);
+			Log::write(SIP::LOG, info);
 			}
 		}
 	}
@@ -293,9 +293,9 @@ event connection_state_remove(c: connection) &priority=-5
 	{
 	if ( c?$sip_state )
 		{
-		for ( r in c$sip_state$pending )
+		for ( r, info in c$sip_state$pending )
 			{
-			Log::write(SIP::LOG, c$sip_state$pending[r]);
+			Log::write(SIP::LOG, info);
 			}
 		}
 	}

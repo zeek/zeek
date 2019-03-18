@@ -1,4 +1,8 @@
 
+2.6-167 | 2019-03-18 13:58:28 -0700
+
+  * GH-307: Build binpac as a shared lib, not static by default (Jon Siwek, Corelight)
+
 2.6-166 | 2019-03-18 11:45:35 -0700
 
   * Add source file path control options for Input and Intel frameworks (Christian Kreibich, Corelight)

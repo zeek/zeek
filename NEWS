@@ -79,6 +79,10 @@ Changed Functionality
   by default.  The limit can also be ignored case-by-case via the
   "HTTP::max_files_policy" hook.
 
+- The binpac library is now only compiled as a shared library by default.
+  To revert back to compiling only a static library, there's the
+  ``--enable-static-binpac`` configure option.
+
 Removed Functionality
 ---------------------
 

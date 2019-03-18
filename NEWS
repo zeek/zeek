@@ -42,6 +42,13 @@ New Functionality
       for ( key, value in t )
           print key, value;
 
+- Added options for controlling the source path/prefix for Input and
+  Intel framework files:
+
+  - InputAscii::path_prefix
+  - InputBinary::path_prefix
+  - Intel::path_prefix
+
 Changed Functionality
 ---------------------
 

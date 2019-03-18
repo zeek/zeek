@@ -1,4 +1,15 @@
 
+2.6-166 | 2019-03-18 11:45:35 -0700
+
+  * Add source file path control options for Input and Intel frameworks (Christian Kreibich, Corelight)
+
+    This introduces the following redefinable string constants, empty by
+    default:
+
+    - InputAscii::path_prefix
+    - InputBinary::path_prefix
+    - Intel::path_prefix
+
 2.6-164 | 2019-03-15 19:45:48 -0700
 
   * Migrate table-based for-loops to key-value iteration (Jon Siwek, Corelight)

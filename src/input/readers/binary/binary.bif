@@ -2,3 +2,4 @@
 module InputBinary;
 
 const chunk_size: count;
+const path_prefix: string;

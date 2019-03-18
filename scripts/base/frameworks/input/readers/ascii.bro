@@ -47,4 +47,10 @@ export {
 	## fail_on_file_problem = T was the default behavior
 	## until Bro 2.6.
 	const fail_on_file_problem = F &redef;
+
+	## On input streams with a pathless or relative-path source filename,
+	## prefix the following path. This prefix can, but need not be, absolute.
+	## The default is to leave any filenames unchanged. This prefix has no
+	## effect if the source already is an absolute path.
+	const path_prefix = "" &redef;
 }

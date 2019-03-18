@@ -3,6 +3,20 @@ cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include(cmake/CommonCMakeConfig.cmake)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
+string(REPLACE "." " " _version_numbers ${BINPAC_VERSION})
+separate_arguments(_version_numbers)
+list(GET _version_numbers 0 BINPAC_VERSION_MAJOR)
+list(GET _version_numbers 1 BINPAC_VERSION_MINOR)
+
+# The SO number shall increase only if binary interface changes.
+set(BINPAC_SOVERSION 0)
+
+set(ENABLE_SHARED true)
+
+if ( ENABLE_STATIC_ONLY )
+  set(ENABLE_STATIC true)
+  set(ENABLE_SHARED false)
+endif ()
 
 # Set default install paths
 include(GNUInstallDirs)
@@ -43,11 +57,27 @@ if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
+macro(display test desc summary)
+  if ( ${test} )
+    set(${summary} ${desc})
+  else ()
+    set(${summary} no)
+  endif()
+endmacro()
+
+display(ENABLE_SHARED yes shared_summary)
+display(ENABLE_STATIC yes static_summary)
+
 message(
     "\n==================|  BinPAC Build Summary  |===================="
+    "\nVersion:           ${BINPAC_VERSION}"
+    "\nSO version:        ${BINPAC_SOVERSION}"
     "\n"
-    "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nBuild Type:        ${CMAKE_BUILD_TYPE}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nShared libs:       ${shared_summary}"
+    "\nStatic libs:       ${static_summary}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

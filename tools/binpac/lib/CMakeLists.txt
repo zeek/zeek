@@ -25,11 +25,21 @@ set(binpac_lib_SRCS
     ${binpac_headers}
 )
 
-add_library(binpac_lib STATIC ${binpac_lib_SRCS})
+if ( ENABLE_SHARED )
+  add_library(binpac_lib SHARED ${binpac_lib_SRCS})
+  set_target_properties(binpac_lib PROPERTIES
+                        SOVERSION ${BINPAC_SOVERSION}
+                        VERSION ${BINPAC_VERSION_MAJOR}.${BINPAC_VERSION_MINOR}
+                        MACOSX_RPATH true
+                        OUTPUT_NAME binpac)
+  install(TARGETS binpac_lib DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
 
-set_target_properties(binpac_lib PROPERTIES OUTPUT_NAME binpac)
-
-install(TARGETS binpac_lib DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if ( ENABLE_STATIC )
+  add_library(binpac_static STATIC ${binpac_lib_SRCS})
+  set_target_properties(binpac_static PROPERTIES OUTPUT_NAME binpac)
+  install(TARGETS binpac_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
 
 if ( BRO_ROOT_DIR )
     # Installed in binpac subdir just for organization purposes.
@@ -40,9 +50,11 @@ endif ()
 
 # This is set to assist superprojects that want to build BinPac
 # from source and rely on it as a target
-set(BinPAC_LIBRARY binpac_lib
-    CACHE STRING "BinPAC static library" FORCE
-)
+if ( ENABLE_SHARED )
+  set(BinPAC_LIBRARY binpac_lib CACHE STRING "BinPAC library" FORCE)
+else ()
+  set(BinPAC_LIBRARY binpac_static CACHE STRING "BinPAC library" FORCE)
+endif ()
 
 set(BinPAC_INCLUDE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}

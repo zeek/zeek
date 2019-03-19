@@ -2641,7 +2641,7 @@ export {
 		negotiate_lm_key       : bool;
 		## If set, requests connectionless authentication
 		negotiate_datagram     : bool;
-		## If set, requests session key negotiation for message 
+		## If set, requests session key negotiation for message
 		## confidentiality
 		negotiate_seal         : bool;
 		## If set, requests session key negotiation for message
@@ -2829,7 +2829,7 @@ export {
 		## The server supports compressed data transfer. Requires bulk_transfer.
 		## Note: No known implementations support this
 		compressed_data	   : bool;
-		## The server supports extended security exchanges	
+		## The server supports extended security exchanges
 		extended_security  : bool;
 	};
 
@@ -2922,7 +2922,7 @@ export {
 	};
 
 	type SMB1::NegotiateResponse: record {
-		## If the server does not understand any of the dialect strings, or if 
+		## If the server does not understand any of the dialect strings, or if
 		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
 		core	: SMB1::NegotiateResponseCore 	&optional;
 		## If the chosen dialect is greater than core up to and including
@@ -2973,7 +2973,7 @@ export {
 		## If challenge/response auth is not being used, this is the password.
 		## Otherwise, it's the response to the server's challenge.
 		## Note: Only set for pre NT LM 0.12
-		account_password	  : string &optional;		
+		account_password	  : string &optional;
 		## Client's primary domain, if known
 		## Note: not set for NT LM 0.12 with extended security
 		primary_domain		  : string &optional;
@@ -2991,7 +2991,7 @@ export {
 		## Note: only set for NT LM 0.12
 		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
 	};
-	
+
 	type SMB1::SessionSetupAndXResponse: record {
 		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 		word_count	: count;
@@ -4025,7 +4025,7 @@ type bt_tracker_headers: table[string] of string;
 ## for a range of modbus coils.
 type ModbusCoils: vector of bool;
 
-## A vector of count values that represent 16bit modbus 
+## A vector of count values that represent 16bit modbus
 ## register values.
 type ModbusRegisters: vector of count;
 
@@ -4857,18 +4857,6 @@ export {
 	## How often to cleanup internal state for inactive IP tunnels
 	## (includes GRE tunnels).
 	const ip_tunnel_timeout = 24hrs &redef;
-
-	## Whether to validate the checksum supplied in the outer UDP header
-	## of a VXLAN encapsulation.  The spec says the checksum should be
-	## transmitted as zero, but if not, then the decapsulating destination
-	## may choose whether to perform the validation.
-	const validate_vxlan_checksums = T &redef;
-
-	## The set of UDP ports used for VXLAN traffic.  Traffic using this
-	## UDP destination port will attempt to be decapsulated.  Note that if
-	## if you customize this, you may still want to manually ensure that
-	## :bro:see:`likely_server_ports` also gets populated accordingly.
-	const vxlan_ports: set[port] = { 4789/udp } &redef;
 } # end export
 
 module Reporter;
@@ -4971,3 +4959,159 @@ const bits_per_uid: count = 96 &redef;
 ## and set up the old comm. system.  Deprecation warnings are still emitted
 ## when setting this flag, but they will not result in a fatal error.
 const old_comm_usage_is_ok: bool = F &redef;
+
+
+module OPCUA;
+
+export{
+	type OPCUA::connection_parameters: record{
+		version:counter;
+		receive_buffer_size: counter;
+		send_buffer_size: counter;
+		max_msg_size: counter;
+		max_chunk_count: counter;
+	};
+	type OPCUA::node_id: record{
+		encoding_mask: counter;
+		token: any;
+	};
+	type OPCUA::request_header: record{
+		authentication_token: OPCUA::node_id;
+		timestamp: time;
+		request_handle: counter;
+		return_diagnostics: counter;
+		audit_entry_id: counter;
+		timeout_hint: counter;
+		additional_header: counter;
+	};
+	type OPCUA::response_header: record{
+		timestamp: time;
+		request_handle: counter;
+		service_result: counter;
+		service_diagnostics_flag: counter;
+		string_table: counter;
+		additional_header: counter;
+	};
+
+	type OPCUA::view: record{
+		node_id: counter;
+		timestamp: time;
+		view_version: counter;
+	};
+
+	type OPCUA::browse_description: record{
+		node_id: node_id;
+		browse_direction: counter;
+		reference_type_id: node_id;
+		include_subtype: counter;
+		node_class_mask: counter;
+		result_mask: counter;
+	};
+
+	type OPCUA::browse_description_vector: vector of OPCUA::browse_description;
+
+	type OPCUA::qualified_name: record{
+		id: counter;
+		name: string;
+	};
+
+	type OPCUA::localized_text: record{
+		encoding_mask: counter;
+		locale: string;
+		text: string;
+	};
+
+	type OPCUA::reference: record{
+		reference_type_id : node_id;
+		is_forward: bool;
+		node_id: counter;
+		browse_name: OPCUA::qualified_name;
+		display_name: OPCUA::localized_text;
+		node_class: counter;
+	};
+
+	type OPCUA::reference_vector: vector of OPCUA::reference;
+
+	type OPCUA::browse_result: record{
+		status_code: counter;
+		continuation_point: counter;
+		references: OPCUA::reference_vector;
+	};
+
+	type OPCUA::browse_result_vector: vector of OPCUA::browse_result;
+
+	type OPCUA::security_token: record{
+		channel_id: counter;
+		token_id: counter;
+		created_at: time;
+		revised_lifetime: counter;
+	};
+
+	type OPCUA::notification: record{
+		sequence_number: counter;
+		timestamp: time;
+		notification_data : counter &optional;
+	};
+
+	type OPCUA::data_value: record{
+		encoding_mask: counter;
+		variant_type: counter;
+		value: any;
+		status_code: counter;
+	};
+
+	type OPCUA::read: record{
+		node_id: OPCUA::node_id;
+		attribue_id: counter;
+		index_range: counter;
+		data_encoding: OPCUA::qualified_name;
+	};
+
+	type OPCUA::data_value_vector: vector of OPCUA::data_value;
+	type OPCUA::read_vector: vector of OPCUA::read;
+	type OPCUA::string_vector: vector of string;
+
+	type OPCUA::numeric: record{
+		namespace_index: counter;
+		identified_numeric: counter;
+	};
+
+	type OPCUA::security_params: record{
+		security_channel_id: counter;
+		security_token_id: counter;
+		security_sequence_number: counter;
+		security_request_id: counter;
+	};
+
+	type OPCUA::application_description: record{
+		application_uri: string;
+		product_uri: string;
+		application_name: OPCUA::localized_text;
+		application_type: count;
+		gateway_server_uri: string;
+		discovery_profile_uri: string;
+		discovery_url: OPCUA::string_vector;
+	};
+
+	type OPCUA::user_token_policy: record{
+		policy_id: string;
+		user_token_type: count;
+		issuer_token_type: string;
+		issuer_endpoint_url: string;
+	};
+
+	type OPCUA::user_token_policy_vector: vector of OPCUA::user_token_policy;
+
+	type OPCUA::endpoint_description: record{
+		endpoint_url: string;
+		server: OPCUA::application_description;
+		server_certificate: string;
+		message_security_mode: count;
+		security_policy_uri: string;
+		user_identity_tokens: OPCUA::user_token_policy_vector;
+		transport_profile_uri: string;
+		security_level: count;
+	};
+
+	type OPCUA::endpoint_description_vector: vector of OPCUA::endpoint_description;
+}

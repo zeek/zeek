@@ -49,6 +49,8 @@ New Functionality
   - InputBinary::path_prefix
   - Intel::path_prefix
 
+- Support for NFLOG link-layer type.
+
 Changed Functionality
 ---------------------
 

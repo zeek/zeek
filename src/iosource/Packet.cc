@@ -92,6 +92,14 @@ int Packet::GetLinkHeaderSize(int link_type)
 	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
 		return 59;
 
+	case DLT_NFLOG:
+		// Linux netlink NETLINK NFLOG socket log messages
+		// The actual header size is variable, but we return the minimum
+		// expected size here, which is 4 bytes for the main header plus at
+		// least 2 bytes each for the type and length values assoicated with
+		// the final TLV carrying the packet payload.
+		return 8;
+
 	case DLT_RAW:
 		return 0;
 	}
@@ -391,6 +399,85 @@ void Packet::ProcessLayer2()
 			return;
 			}
 		pdata += 2;
+
+		break;
+		}
+
+	case DLT_NFLOG:
+		{
+		// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
+
+		uint8 protocol = pdata[0];
+
+		if ( protocol == AF_INET )
+			l3_proto = L3_IPV4;
+		else if ( protocol == AF_INET6 )
+			l3_proto = L3_IPV6;
+		else
+			{
+			Weird("non_ip_in_nflog");
+			return;
+			}
+
+		uint8 version = pdata[1];
+
+		if ( version != 0 )
+			{
+			Weird("unknown_nflog_version");
+			return;
+			}
+
+		// Skip to TLVs.
+		pdata += 4;
+
+		uint16 tlv_len;
+		uint16 tlv_type;
+
+		while ( true )
+			{
+			if ( pdata + 4 >= end_of_data )
+				{
+				Weird("nflog_no_pcap_payload");
+				return;
+				}
+
+			// TLV Type and Length values are specified in host byte order
+			// (libpcap should have done any needed byteswapping already).
+
+			tlv_len = *(reinterpret_cast<const uint16*>(pdata));
+			tlv_type = *(reinterpret_cast<const uint16*>(pdata + 2));
+
+			auto constexpr nflog_type_payload = 9;
+
+			if ( tlv_type == nflog_type_payload )
+				{
+				// The raw packet payload follows this TLV.
+				pdata += 4;
+				break;
+				}
+			else
+				{
+				// The Length value includes the 4 octets for the Type and
+				// Length values, but TLVs are also implicitly padded to
+				// 32-bit alignments (that padding may not be included in
+				// the Length value).
+
+				if ( tlv_len < 4 )
+					{
+					Weird("nflog_bad_tlv_len");
+					return;
+					}
+				else
+					{
+					auto rem = tlv_len % 4;
+
+					if ( rem != 0 )
+						tlv_len += 4 - rem;
+					}
+
+				pdata += tlv_len;
+				}
+			}
 
 		break;
 		}

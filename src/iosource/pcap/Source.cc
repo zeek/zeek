@@ -247,10 +247,20 @@ bool PcapSource::SetFilter(int index)
 		return false;
 		}
 
-	if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
+	if ( LinkType() == DLT_NFLOG )
 		{
-		PcapError();
-		return false;
+		// No-op, NFLOG does not support BPF filters.
+		// Raising a warning might be good, but it would also be noisy
+		// since the default scripts will always attempt to compile
+		// and install a default filter
+		}
+	else
+		{
+		if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
+			{
+			PcapError();
+			return false;
+			}
 		}
 
 #ifndef HAVE_LINUX

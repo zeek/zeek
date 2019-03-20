@@ -1,4 +1,8 @@
 
+2.6-169 | 2019-03-19 19:12:47 -0700
+
+  * Add support for NFLOG link-layer type (Ryan Denniston)
+
 2.6-167 | 2019-03-18 13:58:28 -0700
 
   * GH-307: Build binpac as a shared lib, not static by default (Jon Siwek, Corelight)

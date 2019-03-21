@@ -346,6 +346,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Bro_SMB.smb2_com_write.bif.bro`
 
 
+:doc:`/scripts/base/bif/plugins/Bro_SMB.smb2_com_transform_header.bif.bro`
+
+
 :doc:`/scripts/base/bif/plugins/Bro_SMB.smb2_events.bif.bro`
 
 

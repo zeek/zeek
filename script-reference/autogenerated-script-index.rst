@@ -131,6 +131,7 @@
    base/bif/plugins/Bro_SMB.smb2_com_tree_connect.bif.bro </scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_connect.bif.bro>
    base/bif/plugins/Bro_SMB.smb2_com_tree_disconnect.bif.bro </scripts/base/bif/plugins/Bro_SMB.smb2_com_tree_disconnect.bif.bro>
    base/bif/plugins/Bro_SMB.smb2_com_write.bif.bro </scripts/base/bif/plugins/Bro_SMB.smb2_com_write.bif.bro>
+   base/bif/plugins/Bro_SMB.smb2_com_transform_header.bif.bro </scripts/base/bif/plugins/Bro_SMB.smb2_com_transform_header.bif.bro>
    base/bif/plugins/Bro_SMB.smb2_events.bif.bro </scripts/base/bif/plugins/Bro_SMB.smb2_events.bif.bro>
    base/bif/plugins/Bro_SMB.events.bif.bro </scripts/base/bif/plugins/Bro_SMB.events.bif.bro>
    base/bif/plugins/Bro_SMB.consts.bif.bro </scripts/base/bif/plugins/Bro_SMB.consts.bif.bro>

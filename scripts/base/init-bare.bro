@@ -3226,6 +3226,64 @@ export {
 		attrs      : SMB2::FileAttrs;
 	};
 
+	## Preauthentication information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1.1
+	##
+	type SMB2::PreAuthIntegrityCapabilities: record {
+		## The number of hash algorithms.
+		hash_alg_count : count;
+		## The salt length.
+		salt_length : count;
+		## An array of hash algorithms (counts).
+		hash_alg : vector of count;
+		## The salt.
+		salt : string;
+	};
+
+	## Encryption information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1.2
+	##
+	type SMB2::EncryptionCapabilities: record {
+		## The number of ciphers.
+		cipher_count : count;
+		## An array of ciphers.
+		ciphers : vector of count;
+	};
+
+	## Compression information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1.3
+	##
+	type SMB2::CompressionCapabilities: record {
+		## The number of algorithms.
+		alg_count : count;
+		## An array of compression algorithms.
+		algs : vector of count;
+	};
+
+	## The context type information as defined in SMB v. 3.1.1
+	##
+	## For more information, see MS-SMB2:2.3.1
+	##
+	type SMB2::NegotiateContextValue: record {
+		## Specifies the type of context (preauth or encryption).
+		context_type : count;
+		## The length in byte of the data field.
+		data_length : count;
+		## The preauthentication information.
+		preauth_info : SMB2::PreAuthIntegrityCapabilities &optional;
+		## The encryption information.
+		encryption_info : SMB2::EncryptionCapabilities &optional;
+		## The compression information.
+		compression_info : SMB2::CompressionCapabilities &optional;
+		## Indicates the server name the client must connect to.
+		netname: string &optional;
+	};
+
+	type SMB2::NegotiateContextValues: vector of SMB2::NegotiateContextValue;
+
 	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
 	## what dialects of the SMB2 protocol the client understands.
 	##
@@ -3244,6 +3302,11 @@ export {
 		system_time       : time;
 		## The SMB2 server start time.
 		server_start_time : time;
+
+		## The number of negotiate context values in SMB v. 3.1.1, otherwise reserved to 0.
+		negotiate_context_count : count;
+		## An array of context values in SMB v. 3.1.1.
+		negotiate_context_values 	  : SMB2::NegotiateContextValues;
 	};
 
 	## The request sent by the client to request a new authenticated session

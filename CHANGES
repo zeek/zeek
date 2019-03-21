@@ -1,4 +1,8 @@
 
+2.6-178 | 2019-03-21 14:10:44 -0700
+
+  * Add support for parsing SMB 3.1.1 NegotiateContextList response values (Mauro Palumbo)
+
 2.6-175 | 2019-03-20 19:25:11 -0700
 
   * Parse SMB2 TRANSFORM_HEADER messages and generate new smb2_transform_header event (Mauro Palumbo)

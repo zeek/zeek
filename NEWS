@@ -51,6 +51,16 @@ New Functionality
 
 - Support for NFLOG link-layer type.
 
+- Support for some SMB 3.x features
+
+  - An ``smb2_transform_header`` event is raised after parsing
+    TRANSFORM_HEADER structures associated with encrypted messages.
+
+  - The ``SMB2::NegotiateResponse`` record now contains
+    ``negotiate_context_count`` and ``negotiate_context_values`` fields
+    containing capability information found in an SMB 3.1.1 dialect's
+    negotiation message.
+
 Changed Functionality
 ---------------------
 

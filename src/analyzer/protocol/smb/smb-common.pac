@@ -1,6 +1,7 @@
 enum SMBVersion {
 	SMB1 = 0xff534d42, # \xffSMB
 	SMB2 = 0xfe534d42, # \xfeSMB
+	SMB3 = 0xfd534d42, # \xfdSMB (implies use of transform_header)
 };
 
 enum TransactionType {

@@ -64,5 +64,6 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 
 		if ( c$smb_state$current_file?$name )
 			f$info$filename = c$smb_state$current_file$name;
+		write_file_log(c$smb_state);
 		}
 	}

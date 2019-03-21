@@ -10275,6 +10275,12 @@ Types
       server_start_time: :bro:type:`time`
          The SMB2 server start time.
 
+      negotiate_context_count: :bro:type:`count`
+         The number of negotiate context values in SMB v. 3.1.1, otherwise reserved to 0.
+
+      negotiate_context_values: :bro:type:`SMB2::NegotiateContextValues`
+         An array of context values in SMB v. 3.1.1.
+
    The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
    what dialects of the SMB2 protocol the client understands.
    
@@ -10579,6 +10585,89 @@ Types
    For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
    
    .. bro:see:: smb2_create_response
+
+.. bro:type:: SMB2::PreAuthIntegrityCapabilities
+
+   :Type: :bro:type:`record`
+
+      hash_alg_count: :bro:type:`count`
+         The number of hash algorithms.
+
+      salt_length: :bro:type:`count`
+         The salt length.
+
+      hash_alg: :bro:type:`vector` of :bro:type:`count`
+         An array of hash algorithms (counts).
+
+      salt: :bro:type:`string`
+         The salt.
+
+   Preauthentication information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.1
+   
+
+.. bro:type:: SMB2::EncryptionCapabilities
+
+   :Type: :bro:type:`record`
+
+      cipher_count: :bro:type:`count`
+         The number of ciphers.
+
+      ciphers: :bro:type:`vector` of :bro:type:`count`
+         An array of ciphers.
+
+   Encryption information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.2
+   
+
+.. bro:type:: SMB2::CompressionCapabilities
+
+   :Type: :bro:type:`record`
+
+      alg_count: :bro:type:`count`
+         The number of algorithms.
+
+      algs: :bro:type:`vector` of :bro:type:`count`
+         An array of compression algorithms.
+
+   Compression information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.3
+   
+
+.. bro:type:: SMB2::NegotiateContextValue
+
+   :Type: :bro:type:`record`
+
+      context_type: :bro:type:`count`
+         Specifies the type of context (preauth or encryption).
+
+      data_length: :bro:type:`count`
+         The length in byte of the data field.
+
+      preauth_info: :bro:type:`SMB2::PreAuthIntegrityCapabilities` :bro:attr:`&optional`
+         The preauthentication information.
+
+      encryption_info: :bro:type:`SMB2::EncryptionCapabilities` :bro:attr:`&optional`
+         The encryption information.
+
+      compression_info: :bro:type:`SMB2::CompressionCapabilities` :bro:attr:`&optional`
+         The compression information.
+
+      netname: :bro:type:`string` :bro:attr:`&optional`
+         Indicates the server name the client must connect to.
+
+   The context type information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1
+   
+
+.. bro:type:: SMB2::NegotiateContextValues
+
+   :Type: :bro:type:`vector` of :bro:type:`SMB2::NegotiateContextValue`
+
 
 Events
 ++++++

@@ -474,14 +474,19 @@ Types
 :bro:type:`SMB1::Trans_Sec_Args`: :bro:type:`record`                       
 :bro:type:`SMB2::CloseResponse`: :bro:type:`record`                        The response to an SMB2 *close* request, which is used by the client to close an instance
                                                                            of a file that was opened previously.
+:bro:type:`SMB2::CompressionCapabilities`: :bro:type:`record`              Compression information as defined in SMB v.
 :bro:type:`SMB2::CreateRequest`: :bro:type:`record`                        The request sent by the client to request either creation of or access to a file.
 :bro:type:`SMB2::CreateResponse`: :bro:type:`record`                       The response to an SMB2 *create_request* request, which is sent by the client to request
                                                                            either creation of or access to a file.
+:bro:type:`SMB2::EncryptionCapabilities`: :bro:type:`record`               Encryption information as defined in SMB v.
 :bro:type:`SMB2::FileAttrs`: :bro:type:`record`                            A series of boolean flags describing basic and extended file attributes for SMB2.
 :bro:type:`SMB2::GUID`: :bro:type:`record`                                 An SMB2 globally unique identifier which identifies a file.
 :bro:type:`SMB2::Header`: :bro:type:`record`                               An SMB2 header.
+:bro:type:`SMB2::NegotiateContextValue`: :bro:type:`record`                The context type information as defined in SMB v.
+:bro:type:`SMB2::NegotiateContextValues`: :bro:type:`vector`               
 :bro:type:`SMB2::NegotiateResponse`: :bro:type:`record`                    The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
                                                                            what dialects of the SMB2 protocol the client understands.
+:bro:type:`SMB2::PreAuthIntegrityCapabilities`: :bro:type:`record`         Preauthentication information as defined in SMB v.
 :bro:type:`SMB2::SessionSetupFlags`: :bro:type:`record`                    A flags field that indicates additional information about the session that's sent in the
                                                                            *session_setup* response.
 :bro:type:`SMB2::SessionSetupRequest`: :bro:type:`record`                  The request sent by the client to request a new authenticated session
@@ -5558,6 +5563,21 @@ Types
    
    .. bro:see:: smb2_close_response
 
+.. bro:type:: SMB2::CompressionCapabilities
+
+   :Type: :bro:type:`record`
+
+      alg_count: :bro:type:`count`
+         The number of algorithms.
+
+      algs: :bro:type:`vector` of :bro:type:`count`
+         An array of compression algorithms.
+
+   Compression information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.3
+   
+
 .. bro:type:: SMB2::CreateRequest
 
    :Type: :bro:type:`record`
@@ -5602,6 +5622,21 @@ Types
    For more information, see MS-SMB2:2.2.14
    
    .. bro:see:: smb2_create_response
+
+.. bro:type:: SMB2::EncryptionCapabilities
+
+   :Type: :bro:type:`record`
+
+      cipher_count: :bro:type:`count`
+         The number of ciphers.
+
+      ciphers: :bro:type:`vector` of :bro:type:`count`
+         An array of ciphers.
+
+   Encryption information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.2
+   
 
 .. bro:type:: SMB2::FileAttrs
 
@@ -5737,6 +5772,38 @@ Types
       smb2_tree_connect_request smb2_tree_connect_response
       smb2_write_request
 
+.. bro:type:: SMB2::NegotiateContextValue
+
+   :Type: :bro:type:`record`
+
+      context_type: :bro:type:`count`
+         Specifies the type of context (preauth or encryption).
+
+      data_length: :bro:type:`count`
+         The length in byte of the data field.
+
+      preauth_info: :bro:type:`SMB2::PreAuthIntegrityCapabilities` :bro:attr:`&optional`
+         The preauthentication information.
+
+      encryption_info: :bro:type:`SMB2::EncryptionCapabilities` :bro:attr:`&optional`
+         The encryption information.
+
+      compression_info: :bro:type:`SMB2::CompressionCapabilities` :bro:attr:`&optional`
+         The compression information.
+
+      netname: :bro:type:`string` :bro:attr:`&optional`
+         Indicates the server name the client must connect to.
+
+   The context type information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1
+   
+
+.. bro:type:: SMB2::NegotiateContextValues
+
+   :Type: :bro:type:`vector` of :bro:type:`SMB2::NegotiateContextValue`
+
+
 .. bro:type:: SMB2::NegotiateResponse
 
    :Type: :bro:type:`record`
@@ -5757,12 +5824,39 @@ Types
       server_start_time: :bro:type:`time`
          The SMB2 server start time.
 
+      negotiate_context_count: :bro:type:`count`
+         The number of negotiate context values in SMB v. 3.1.1, otherwise reserved to 0.
+
+      negotiate_context_values: :bro:type:`SMB2::NegotiateContextValues`
+         An array of context values in SMB v. 3.1.1.
+
    The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
    what dialects of the SMB2 protocol the client understands.
    
    For more information, see MS-SMB2:2.2.4
    
    .. bro:see:: smb2_negotiate_response
+
+.. bro:type:: SMB2::PreAuthIntegrityCapabilities
+
+   :Type: :bro:type:`record`
+
+      hash_alg_count: :bro:type:`count`
+         The number of hash algorithms.
+
+      salt_length: :bro:type:`count`
+         The salt length.
+
+      hash_alg: :bro:type:`vector` of :bro:type:`count`
+         An array of hash algorithms (counts).
+
+      salt: :bro:type:`string`
+         The salt.
+
+   Preauthentication information as defined in SMB v. 3.1.1
+   
+   For more information, see MS-SMB2:2.3.1.1
+   
 
 .. bro:type:: SMB2::SessionSetupFlags
 

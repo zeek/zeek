@@ -173,6 +173,14 @@ export {
 	## be removed.
 	global item_expired: hook(indicator: string, indicator_type: Type, metas: set[MetaData]);
 
+	## This hook can be used to filter intelligence items that are about to be
+	## inserted into the internal data store. In case the hook execution is
+	## terminated using break, the item will not be (re)added to the internal
+	## data store.
+	##
+	## item: The intel item that should be inserted.
+	global filter_item: hook(item: Intel::Item);
+
 	global log_intel: event(rec: Info);
 }
 
@@ -496,8 +504,11 @@ function _insert(item: Item, first_dispatch: bool &default = T)
 
 function insert(item: Item)
 	{
-	# Insert possibly new item.
-	_insert(item, T);
+	if ( hook filter_item(item) )
+		{
+		# Insert possibly new item.
+		_insert(item, T);
+		}
 	}
 
 # Function to check whether an item is present.

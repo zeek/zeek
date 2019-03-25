@@ -25,6 +25,7 @@
 @load frameworks/intel/seen/http-headers.bro
 @load frameworks/intel/seen/http-url.bro
 @load frameworks/intel/seen/pubkey-hashes.bro
+@load frameworks/intel/seen/smb-filenames.bro
 @load frameworks/intel/seen/smtp-url-extraction.bro
 @load frameworks/intel/seen/smtp.bro
 @load frameworks/intel/seen/ssl.bro

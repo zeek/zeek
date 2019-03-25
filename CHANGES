@@ -1,4 +1,8 @@
 
+2.6-191 | 2019-03-25 16:43:10 -0700
+
+  * Add support for SMB filenames to the intel framework (Stephen Hosom)
+
 2.6-186 | 2019-03-25 09:41:57 -0700
 
   * Added policy script for intel removal. (Jan Grashoefer)

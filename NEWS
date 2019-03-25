@@ -64,6 +64,8 @@ New Functionality
 - Added a new hook, ``Intel::filter_item``, to assist in filtering and
   removal of intelligence items that are about to be inserted.
 
+- Add support for SMB filenames in the intel framework.
+
 Changed Functionality
 ---------------------
 

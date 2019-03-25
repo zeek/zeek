@@ -6,6 +6,7 @@
 @load ./http-url
 @load ./pubkey-hashes
 @load ./ssl
+@load ./smb-filenames
 @load ./smtp
 @load ./smtp-url-extraction
 @load ./x509

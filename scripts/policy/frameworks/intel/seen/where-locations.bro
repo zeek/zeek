@@ -26,5 +26,6 @@ export {
 		SSL::IN_SERVER_NAME,
 		SMTP::IN_HEADER,
 		X509::IN_CERT,
+		SMB::IN_FILE_NAME,
 	};
 }

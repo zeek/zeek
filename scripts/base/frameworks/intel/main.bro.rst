@@ -49,11 +49,13 @@ Events
 
 Hooks
 #####
-=============================================== ===================================================================
+=============================================== =======================================================================
 :bro:id:`Intel::extend_match`: :bro:type:`hook` This hook can be used to influence the logging of intelligence hits
                                                 (e.g.
+:bro:id:`Intel::filter_item`: :bro:type:`hook`  This hook can be used to filter intelligence items that are about to be
+                                                inserted into the internal data store.
 :bro:id:`Intel::item_expired`: :bro:type:`hook` This hook can be used to handle expiration of intelligence items.
-=============================================== ===================================================================
+=============================================== =======================================================================
 
 Functions
 #########
@@ -178,6 +180,11 @@ Types
          (present if :doc:`/scripts/policy/frameworks/intel/whitelist.bro` is loaded)
 
          A boolean value to indicate whether the item is whitelisted.
+
+      remove: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+         (present if :doc:`/scripts/policy/frameworks/intel/removal.bro` is loaded)
+
+         A boolean value to indicate whether the item should be removed.
 
       cif_impact: :bro:type:`string` :bro:attr:`&optional`
          (present if :doc:`/scripts/policy/integration/collective-intel/main.bro` is loaded)
@@ -483,6 +490,18 @@ Hooks
    
    In case the hook execution is terminated using break, the match will
    not be logged.
+
+.. bro:id:: Intel::filter_item
+
+   :Type: :bro:type:`hook` (item: :bro:type:`Intel::Item`) : :bro:type:`bool`
+
+   This hook can be used to filter intelligence items that are about to be
+   inserted into the internal data store. In case the hook execution is
+   terminated using break, the item will not be (re)added to the internal
+   data store.
+   
+
+   :item: The intel item that should be inserted.
 
 .. bro:id:: Intel::item_expired
 

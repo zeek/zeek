@@ -374,6 +374,7 @@
    policy/frameworks/intel/do_notice.bro </scripts/policy/frameworks/intel/do_notice.bro>
    policy/frameworks/intel/do_expire.bro </scripts/policy/frameworks/intel/do_expire.bro>
    policy/frameworks/intel/whitelist.bro </scripts/policy/frameworks/intel/whitelist.bro>
+   policy/frameworks/intel/removal.bro </scripts/policy/frameworks/intel/removal.bro>
    policy/frameworks/intel/seen/__load__.bro </scripts/policy/frameworks/intel/seen/__load__.bro>
    policy/frameworks/intel/seen/conn-established.bro </scripts/policy/frameworks/intel/seen/conn-established.bro>
    policy/frameworks/intel/seen/where-locations.bro </scripts/policy/frameworks/intel/seen/where-locations.bro>

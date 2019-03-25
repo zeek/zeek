@@ -1,4 +1,10 @@
 
+2.6-186 | 2019-03-25 09:41:57 -0700
+
+  * Added policy script for intel removal. (Jan Grashoefer)
+
+  * Added Intel::filter_item hook to filter intelligence items. (Jan Grashoefer)
+
 2.6-178 | 2019-03-21 14:10:44 -0700
 
   * Add support for parsing SMB 3.1.1 NegotiateContextList response values (Mauro Palumbo)

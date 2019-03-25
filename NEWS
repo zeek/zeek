@@ -61,6 +61,9 @@ New Functionality
     containing capability information found in an SMB 3.1.1 dialect's
     negotiation message.
 
+- Added a new hook, ``Intel::filter_item``, to assist in filtering and
+  removal of intelligence items that are about to be inserted.
+
 Changed Functionality
 ---------------------
 

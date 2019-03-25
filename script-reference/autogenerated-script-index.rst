@@ -385,6 +385,7 @@
    policy/frameworks/intel/seen/http-url.bro </scripts/policy/frameworks/intel/seen/http-url.bro>
    policy/frameworks/intel/seen/pubkey-hashes.bro </scripts/policy/frameworks/intel/seen/pubkey-hashes.bro>
    policy/frameworks/intel/seen/ssl.bro </scripts/policy/frameworks/intel/seen/ssl.bro>
+   policy/frameworks/intel/seen/smb-filenames.bro </scripts/policy/frameworks/intel/seen/smb-filenames.bro>
    policy/frameworks/intel/seen/smtp.bro </scripts/policy/frameworks/intel/seen/smtp.bro>
    policy/frameworks/intel/seen/smtp-url-extraction.bro </scripts/policy/frameworks/intel/seen/smtp-url-extraction.bro>
    policy/frameworks/intel/seen/x509.bro </scripts/policy/frameworks/intel/seen/x509.bro>

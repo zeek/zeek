@@ -440,6 +440,11 @@ Types
          (present if :doc:`/scripts/policy/frameworks/intel/seen/where-locations.bro` is loaded)
 
 
+      .. bro:enum:: SMB::IN_FILE_NAME Intel::Where
+
+         (present if :doc:`/scripts/policy/frameworks/intel/seen/where-locations.bro` is loaded)
+
+
       .. bro:enum:: SSH::SUCCESSFUL_LOGIN Intel::Where
 
          (present if :doc:`/scripts/policy/protocols/ssh/detect-bruteforcing.bro` is loaded)

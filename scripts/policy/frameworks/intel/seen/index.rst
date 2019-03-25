@@ -35,6 +35,9 @@ Scripts that send data to the intelligence framework.
 :doc:`/scripts/policy/frameworks/intel/seen/ssl.bro`
 
 
+:doc:`/scripts/policy/frameworks/intel/seen/smb-filenames.bro`
+
+
 :doc:`/scripts/policy/frameworks/intel/seen/smtp.bro`
 
 

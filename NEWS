@@ -106,6 +106,10 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``str_shell_escape` function is now deprecated, use ``safe_shell_quote``
+  instead.  The later will automatically return a value that is enclosed
+  in double-quotes.
+
 Bro 2.6
 =======
 

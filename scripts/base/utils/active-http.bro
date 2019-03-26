@@ -57,10 +57,10 @@ export {
 
 function request2curl(r: Request, bodyfile: string, headersfile: string): string
 	{
-	local cmd = fmt("curl -s -g -o \"%s\" -D \"%s\" -X \"%s\"",
-	                str_shell_escape(bodyfile),
-	                str_shell_escape(headersfile),
-	                str_shell_escape(r$method));
+	local cmd = fmt("curl -s -g -o %s -D %s -X %s",
+	                safe_shell_quote(bodyfile),
+	                safe_shell_quote(headersfile),
+	                safe_shell_quote(r$method));
 
 	cmd = fmt("%s -m %.0f", cmd, r$max_time);
 
@@ -70,9 +70,9 @@ function request2curl(r: Request, bodyfile: string, headersfile: string): string
 	if ( r?$addl_curl_args )
 		cmd = fmt("%s %s", cmd, r$addl_curl_args);
 
-	cmd = fmt("%s \"%s\"", cmd, str_shell_escape(r$url));
+	cmd = fmt("%s %s", cmd, safe_shell_quote(r$url));
 	# Make sure file will exist even if curl did not write one.
-	cmd = fmt("%s && touch %s", cmd, str_shell_escape(bodyfile));
+	cmd = fmt("%s && touch %s", cmd, safe_shell_quote(bodyfile));
 	return cmd;
 	}
 

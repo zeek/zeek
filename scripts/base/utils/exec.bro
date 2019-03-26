@@ -8,7 +8,7 @@ export {
 	type Command: record {
 		## The command line to execute.  Use care to avoid injection
 		## attacks (i.e., if the command uses untrusted/variable data,
-		## sanitize it with :bro:see:`str_shell_escape`).
+		## sanitize it with :bro:see:`safe_shell_quote`).
 		cmd:         string;
 		## Provide standard input to the program as a string.
 		stdin:       string      &default="";
@@ -122,7 +122,7 @@ event Input::end_of_data(orig_name: string, source:string)
 		delete pending_files[name][track_file];
 		if ( |pending_files[name]| == 0 )
 			delete pending_commands[name];
-		system(fmt("rm \"%s\"", str_shell_escape(track_file)));
+		system(fmt("rm %s", safe_shell_quote(track_file)));
 		}
 	}
 
@@ -191,5 +191,5 @@ event bro_done()
 	# We are punting here and just deleting any unprocessed files.
 	for ( uid in pending_files )
 		for ( fname in pending_files[uid] )
-			system(fmt("rm \"%s\"", str_shell_escape(fname)));
+			system(fmt("rm %s", safe_shell_quote(fname)));
 	}

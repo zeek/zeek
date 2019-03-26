@@ -1184,10 +1184,54 @@ function string_fill%(len: int, source: string%): string
 ##
 ## source: The string to escape.
 ##
+## Returns: A shell-escaped version of *source*.  Specifically, this
+##          backslash-escapes characters whose literal value is not otherwise
+##          preserved by enclosure in double-quotes (dollar-sign, backquote,
+##          backslash, and double-quote itself), and then encloses that
+##          backslash-escaped string in double-quotes to ultimately preserve
+##          the literal value of all input characters.
+##
+## .. bro:see:: system safe_shell_quote
+function safe_shell_quote%(source: string%): string
+	%{
+	unsigned j = 0;
+	const u_char* src = source->Bytes();
+	unsigned n = source->Len();
+	byte_vec dst = new u_char[n * 2 + 1 + 2];
+	dst[j++] = '"';
+
+	for ( unsigned i = 0; i < n; ++i )
+		{
+		switch ( src[i] ) {
+		case '`': case '"': case '\\': case '$':
+			dst[j++] = '\\';
+			break;
+		default:
+			break;
+		}
+
+		dst[j++] = src[i];
+		}
+
+	dst[j++] = '"';
+	dst[j] = '\0';
+	return new StringVal(new BroString(1, dst, j));
+	%}
+
+## Takes a string and escapes characters that would allow execution of
+## commands at the shell level. Must be used before including strings in
+## :bro:id:`system` or similar calls.  This function is deprecated, use
+## :bro:see:`safe_shell_quote` as a replacement.  The difference is that
+## :bro:see:`safe_shell_quote` automatically returns a value that is
+## wrapped in double-quotes, which is required to correctly and fully
+## escape any characters that might be interpreted by the shell.
+##
+## source: The string to escape.
+##
 ## Returns: A shell-escaped version of *source*.
 ##
-## .. bro:see:: system
-function str_shell_escape%(source: string%): string
+## .. bro:see:: system safe_shell_quote
+function str_shell_escape%(source: string%): string &deprecated
 	%{
 	unsigned j = 0;
 	const u_char* src = source->Bytes();

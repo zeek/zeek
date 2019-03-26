@@ -1,4 +1,8 @@
 
+2.6-192 | 2019-03-25 17:49:18 -0700
+
+  * Deprecate str_shell_escape, add safe_shell_quote replacement (Jon Siwek, Corelight)
+
 2.6-191 | 2019-03-25 16:43:10 -0700
 
   * Add support for SMB filenames to the intel framework (Stephen Hosom)

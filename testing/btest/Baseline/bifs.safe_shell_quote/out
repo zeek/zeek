@@ -1,0 +1,2 @@
+echo `pwd` ${TEST} > "my file"; echo -e "\n"
+"echo \`pwd\` \${TEST} > \"my file\"; echo -e \"\\n\""

@@ -3202,7 +3202,7 @@ Functions
    Invokes a command via the ``system`` function of the OS.
    The command runs in the background with ``stdout`` redirecting to
    ``stderr``. Here is a usage example:
-   ``system(fmt("rm \"%s\"", str_shell_escape(sniffed_data)));``
+   ``system(fmt("rm %s", safe_shell_quote(sniffed_data)));``
    
 
    :str: The command to execute.
@@ -3210,7 +3210,7 @@ Functions
 
    :returns: The return value from the OS ``system`` function.
    
-   .. bro:see:: system_env str_shell_escape piped_exec
+   .. bro:see:: system_env safe_shell_quote piped_exec
    
    .. note::
    
@@ -3238,7 +3238,7 @@ Functions
 
    :returns: The return value from the OS ``system`` function.
    
-   .. bro:see:: system str_shell_escape piped_exec
+   .. bro:see:: system safe_shell_quote piped_exec
 
 .. bro:id:: terminate
 

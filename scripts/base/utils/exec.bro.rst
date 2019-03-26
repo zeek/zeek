@@ -37,7 +37,7 @@ Types
       cmd: :bro:type:`string`
          The command line to execute.  Use care to avoid injection
          attacks (i.e., if the command uses untrusted/variable data,
-         sanitize it with :bro:see:`str_shell_escape`).
+         sanitize it with :bro:see:`safe_shell_quote`).
 
       stdin: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
          Provide standard input to the program as a string.

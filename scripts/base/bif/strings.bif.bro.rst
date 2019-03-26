@@ -36,6 +36,8 @@ Functions
 :bro:id:`reverse`: :bro:type:`function`                                    Returns a reversed copy of the string
 :bro:id:`rstrip`: :bro:type:`function`                                     Removes all combinations of characters in the *chars* argument
                                                                            starting at the end of the string until first mismatch.
+:bro:id:`safe_shell_quote`: :bro:type:`function`                           Takes a string and escapes characters that would allow execution of
+                                                                           commands at the shell level.
 :bro:id:`sort_string_array`: :bro:type:`function` :bro:attr:`&deprecated`  Sorts an array of strings.
 :bro:id:`split`: :bro:type:`function` :bro:attr:`&deprecated`              Splits a string into an array of strings according to a pattern.
 :bro:id:`split1`: :bro:type:`function` :bro:attr:`&deprecated`             Splits a string *once* into a two-element array of strings according to a
@@ -49,7 +51,7 @@ Functions
 :bro:id:`split_string_all`: :bro:type:`function`                           Splits a string into an array of strings according to a pattern.
 :bro:id:`split_string_n`: :bro:type:`function`                             Splits a string a given number of times into an array of strings according
                                                                            to a pattern.
-:bro:id:`str_shell_escape`: :bro:type:`function`                           Takes a string and escapes characters that would allow execution of
+:bro:id:`str_shell_escape`: :bro:type:`function` :bro:attr:`&deprecated`   Takes a string and escapes characters that would allow execution of
                                                                            commands at the shell level.
 :bro:id:`str_smith_waterman`: :bro:type:`function`                         Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
 :bro:id:`str_split`: :bro:type:`function`                                  Splits a string into substrings with the help of an index vector of cutting
@@ -387,6 +389,27 @@ Functions
    
    .. bro:see:: sub gsub strip lstrip
 
+.. bro:id:: safe_shell_quote
+
+   :Type: :bro:type:`function` (source: :bro:type:`string`) : :bro:type:`string`
+
+   Takes a string and escapes characters that would allow execution of
+   commands at the shell level. Must be used before including strings in
+   :bro:id:`system` or similar calls.
+   
+
+   :source: The string to escape.
+   
+
+   :returns: A shell-escaped version of *source*.  Specifically, this
+            backslash-escapes characters whose literal value is not otherwise
+            preserved by enclosure in double-quotes (dollar-sign, backquote,
+            backslash, and double-quote itself), and then encloses that
+            backslash-escaped string in double-quotes to ultimately preserve
+            the literal value of all input characters.
+   
+   .. bro:see:: system safe_shell_quote
+
 .. bro:id:: sort_string_array
 
    :Type: :bro:type:`function` (a: :bro:type:`string_array`) : :bro:type:`string_array`
@@ -603,10 +626,15 @@ Functions
 .. bro:id:: str_shell_escape
 
    :Type: :bro:type:`function` (source: :bro:type:`string`) : :bro:type:`string`
+   :Attributes: :bro:attr:`&deprecated`
 
    Takes a string and escapes characters that would allow execution of
    commands at the shell level. Must be used before including strings in
-   :bro:id:`system` or similar calls.
+   :bro:id:`system` or similar calls.  This function is deprecated, use
+   :bro:see:`safe_shell_quote` as a replacement.  The difference is that
+   :bro:see:`safe_shell_quote` automatically returns a value that is
+   wrapped in double-quotes, which is required to correctly and fully
+   escape any characters that might be interpreted by the shell.
    
 
    :source: The string to escape.
@@ -614,7 +642,7 @@ Functions
 
    :returns: A shell-escaped version of *source*.
    
-   .. bro:see:: system
+   .. bro:see:: system safe_shell_quote
 
 .. bro:id:: str_smith_waterman
 

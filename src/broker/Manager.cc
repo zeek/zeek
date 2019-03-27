@@ -918,8 +918,8 @@ void Manager::Process()
 		{
 		had_input = true;
 
-		auto& topic = message.first;
-		auto& msg = message.second;
+		auto& topic = broker::get_topic(message);
+		auto& msg = broker::get_data(message);
 
 		try
 			{

@@ -1,4 +1,11 @@
 
+2.6-193 | 2019-03-27 10:53:01 -0700
+
+  * Update now-broken Broker API usages (Jon Siwek, Corelight)
+
+    Related to https://github.com/zeek/broker/pull/38, see Broker's NEWS file
+    for C++ code migration hints.
+
 2.6-192 | 2019-03-25 17:49:18 -0700
 
   * Deprecate str_shell_escape, add safe_shell_quote replacement (Jon Siwek, Corelight)

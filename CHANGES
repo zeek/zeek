@@ -1,4 +1,8 @@
 
+2.6-195 | 2019-03-27 12:36:34 -0700
+
+  * Reduce weird-stats overhead (Justin Azoff, Corelight)
+
 2.6-193 | 2019-03-27 10:53:01 -0700
 
   * Update now-broken Broker API usages (Jon Siwek, Corelight)

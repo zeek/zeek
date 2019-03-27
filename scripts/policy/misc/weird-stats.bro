@@ -84,6 +84,8 @@ function observe_weird_stats()
 # less synchronized?
 event SumStats::cluster_ss_request(uid: string, ss_name: string, cleanup: bool) &priority=10
 	{
+	if ( ss_name != "weirds.statistics" )
+		return;
 	observe_weird_stats();
 	}
 

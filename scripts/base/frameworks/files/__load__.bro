@@ -1,2 +1,2 @@
-@load ./main.bro
+@load ./main
 @load ./magic

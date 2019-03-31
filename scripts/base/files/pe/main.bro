@@ -1,6 +1,6 @@
 module PE;
 
-@load ./consts.bro
+@load ./consts
 
 export {
 	redef enum Log::ID += { LOG };

@@ -12,4 +12,3 @@
 # data buffer.
 
 # @TEST-EXEC: bro -r $TRACES/modbus/4SICS-GeekLounge-151022-min.pcap
-# @TEST-EXEC: btest-diff weird.log

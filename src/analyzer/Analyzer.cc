@@ -223,7 +223,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64 seq,
 			}
 		catch ( binpac::Exception const &e )
 			{
-			Weird(e.c_msg());
+			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -246,7 +246,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			Weird(e.c_msg());
+			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}
@@ -269,7 +269,7 @@ void Analyzer::NextUndelivered(uint64 seq, int len, bool is_orig)
 			}
 		catch ( binpac::Exception const &e )
 			{
-			Weird(e.c_msg());
+			ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 			}
 		}
 	}

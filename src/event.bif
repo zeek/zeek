@@ -421,7 +421,7 @@ event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 ##
 ## addl: Optional additional context further describing the situation.
 ##
-## .. bro:see:: flow_weird net_weird
+## .. bro:see:: flow_weird net_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -444,7 +444,7 @@ event conn_weird%(name: string, c: connection, addl: string%);
 ##
 ## dst: The destination address corresponding to the activity.
 ##
-## .. bro:see:: conn_weird net_weird
+## .. bro:see:: conn_weird net_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -462,13 +462,34 @@ event flow_weird%(name: string, src: addr, dst: addr%);
 ##       scripts use this name in filtering policies that specify which
 ##       "weirds" are worth reporting.
 ##
-## .. bro:see:: flow_weird
+## .. bro:see:: flow_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
 event net_weird%(name: string%);
+
+## Generated for unexpected activity that is tied to a file.
+## When Bro's packet analysis encounters activity that
+## does not conform to a protocol's specification, it raises one of the
+## ``*_weird`` events to report that.
+##
+## name: A unique name for the specific type of "weird" situation. Bro's default
+##       scripts use this name in filtering policies that specify which
+##       "weirds" are worth reporting.
+##
+## f: The corresponding file.
+##
+## addl: Additional information related to the weird.
+##
+## .. bro:see:: flow_weird net_weird conn_weird
+##
+## .. note:: "Weird" activity is much more common in real-world network traffic
+##    than one would intuitively expect. While in principle, any protocol
+##    violation could be an attack attempt, it's much more likely that an
+##    endpoint's implementation interprets an RFC quite liberally.
+event file_weird%(name: string, f: fa_file, addl: string%);
 
 ## Generated regularly for the purpose of profiling Bro's processing. This event
 ## is raised for every :bro:id:`load_sample_freq` packet. For these packets,

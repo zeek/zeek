@@ -371,9 +371,9 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		}
 	}
 
-void RPC_Interpreter::Weird(const char* msg)
+void RPC_Interpreter::Weird(const char* msg, const char* addl)
 	{
-	analyzer->Weird(msg);
+	analyzer->Weird(msg, addl);
 	}
 
 
@@ -532,9 +532,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 				DEBUG_MSG("%.6f RPC resync: "
 						  "discard small pieces: %d\n",
 							  network_time, len);
-				Conn()->Weird(
-					fmt("RPC resync: discard %d bytes\n",
-						len));
+				Conn()->Weird("RPC_resync", fmt("discard %d bytes\n", len));
 				}
 
 			NeedResync();
@@ -677,7 +675,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 					//		network_time, IsOrig(), marker, last_frag, msg_buf.GetExpected(), msg_buf.GetProcessed(), len);
 
 				if ( ! msg_buf.AddToExpected(marker) )
-					Conn()->Weird(fmt("RPC_message_too_long (%" PRId64 ")" , msg_buf.GetExpected()));
+					Conn()->Weird("RPC_message_too_long", fmt("%" PRId64, msg_buf.GetExpected()));
 
 				if ( last_frag )
 					state = WAIT_FOR_LAST_DATA;

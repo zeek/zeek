@@ -1075,27 +1075,5 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 bool Connection::PermitWeird(const char* name, uint64 threshold, uint64 rate,
                              double duration)
 	{
-	auto& state = weird_state[name];
-	++state.count;
-
-	if ( state.count <= threshold )
-		return true;
-
-	if ( state.count == threshold + 1)
-		state.sampling_start_time = network_time;
-	else
-		{
-		if ( network_time > state.sampling_start_time + duration )
-			{
-			state.sampling_start_time = 0;
-			state.count = 1;
-			return true;
-			}
-		}
-
-	auto num_above_threshold = state.count - threshold;
-	if ( rate )
-		return num_above_threshold % rate == 0;
-	else
-		return false;
+	return ::PermitWeird(weird_state, name, threshold, rate, duration);
 	}

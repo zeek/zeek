@@ -127,6 +127,27 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 	return val_mgr->GetBool(1);
 	%}
 
+## Generates a "file" weird.
+##
+## name: the name of the weird.
+##
+## f: the file associated with the weird.
+##
+## addl: additional information to accompany the weird.
+##
+## Returns: true if the file was still valid, else false.
+function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
+	%{
+	auto fuid = f->AsRecordVal()->Lookup(0)->AsStringVal();
+	auto file = file_mgr->LookupFile(fuid->CheckString());
+
+	if ( ! file )
+		return val_mgr->GetBool(0);
+
+	reporter->Weird(file, name->CheckString(), addl->CheckString());
+	return val_mgr->GetBool(1);
+	%}
+
 ## Gets the weird sampling whitelist
 ##
 ## Returns: Current weird sampling whitelist

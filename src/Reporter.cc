@@ -13,6 +13,7 @@
 #include "Timer.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
+#include "file_analysis/File.h"
 
 #ifdef SYSLOG_INT
 extern "C" {
@@ -213,12 +214,14 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::File* f, const char* addl, const char* fmt_name, ...)
 	{
 	val_list* vl = new val_list(1);
 
 	if ( conn_val )
 		vl->append(conn_val);
+	else if ( f )
+		vl->append(f->GetVal()->Ref());
 
 	if ( addl )
 		vl->append(new StringVal(addl));
@@ -339,7 +342,21 @@ void Reporter::Weird(const char* name)
 			return;
 		}
 
-	WeirdHelper(net_weird, 0, 0, "%s", name);
+	WeirdHelper(net_weird, 0, 0, 0, "%s", name);
+	}
+
+void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
+	{
+	UpdateWeirdStats(name);
+
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! f->PermitWeird(name, weird_sampling_threshold,
+		                      weird_sampling_rate, weird_sampling_duration) )
+			return;
+		}
+
+	WeirdHelper(file_weird, 0, f, addl, "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
@@ -353,7 +370,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, conn->BuildConnVal(), addl, "%s", name);
+	WeirdHelper(conn_weird, conn->BuildConnVal(), 0, addl, "%s", name);
 	}
 
 void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)

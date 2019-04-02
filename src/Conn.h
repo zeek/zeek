@@ -17,6 +17,7 @@
 #include "IPAddr.h"
 #include "TunnelEncapsulation.h"
 #include "UID.h"
+#include "WeirdState.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
@@ -345,14 +346,7 @@ protected:
 	analyzer::pia::PIA* primary_PIA;
 
 	Bro::UID uid;	// Globally unique connection ID.
-
-	struct WeirdState {
-		WeirdState() { count = 0; sampling_start_time = 0; }
-		uint64 count = 0;
-		double sampling_start_time = 0;
-	};
-
-	std::unordered_map<std::string, WeirdState> weird_state;
+	WeirdStateMap weird_state;
 };
 
 class ConnectionTimer : public Timer {

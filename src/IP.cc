@@ -288,7 +288,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			}
 
 		default:
-			reporter->Weird(fmt("unknown_mobility_type", mob->ip6mob_type));
+			reporter->Weird("unknown_mobility_type");
 			break;
 		}
 

@@ -59,6 +59,7 @@ Events
 :bro:id:`file_state_remove`: :bro:type:`event`                           This event is generated each time file analysis is ending for a given file.
 :bro:id:`file_timeout`: :bro:type:`event`                                Indicates that file analysis has timed out because no activity was seen
                                                                          for the file in a while.
+:bro:id:`file_weird`: :bro:type:`event`                                  Generated for unexpected activity that is tied to a file.
 :bro:id:`finished_send_state`: :bro:type:`event`                         Generated after a call to :bro:id:`send_state` when all data has been
                                                                          successfully sent to the remote side.
 :bro:id:`flow_weird`: :bro:type:`event`                                  Generated for unexpected activity related to a pair of hosts, but independent
@@ -238,7 +239,7 @@ Events
 
    :addl: Optional additional context further describing the situation.
    
-   .. bro:see:: flow_weird net_weird
+   .. bro:see:: flow_weird net_weird file_weird
    
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
@@ -635,6 +636,33 @@ Events
       file_sniff file_state_remove default_file_timeout_interval
       Files::set_timeout_interval
 
+.. bro:id:: file_weird
+
+   :Type: :bro:type:`event` (name: :bro:type:`string`, f: :bro:type:`fa_file`, addl: :bro:type:`string`)
+
+   Generated for unexpected activity that is tied to a file.
+   When Bro's packet analysis encounters activity that
+   does not conform to a protocol's specification, it raises one of the
+   ``*_weird`` events to report that.
+   
+
+   :name: A unique name for the specific type of "weird" situation. Bro's default
+         scripts use this name in filtering policies that specify which
+         "weirds" are worth reporting.
+   
+
+   :f: The corresponding file.
+   
+
+   :addl: Additional information related to the weird.
+   
+   .. bro:see:: flow_weird net_weird conn_weird
+   
+   .. note:: "Weird" activity is much more common in real-world network traffic
+      than one would intuitively expect. While in principle, any protocol
+      violation could be an attack attempt, it's much more likely that an
+      endpoint's implementation interprets an RFC quite liberally.
+
 .. bro:id:: finished_send_state
 
    :Type: :bro:type:`event` (p: :bro:type:`event_peer`)
@@ -674,7 +702,7 @@ Events
 
    :dst: The destination address corresponding to the activity.
    
-   .. bro:see:: conn_weird net_weird
+   .. bro:see:: conn_weird net_weird file_weird
    
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
@@ -783,7 +811,7 @@ Events
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
    
-   .. bro:see:: flow_weird
+   .. bro:see:: flow_weird file_weird
    
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol

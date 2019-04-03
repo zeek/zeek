@@ -1,4 +1,9 @@
 
+2.6-197 | 2019-04-03 09:08:58 -0700
+
+  * Make Syslog analyzer accept non-conformant messages that omit Priority.
+    (Jon Siwek, Corelight)
+
 2.6-195 | 2019-03-27 12:36:34 -0700
 
   * Reduce weird-stats overhead (Justin Azoff, Corelight)

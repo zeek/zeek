@@ -35,6 +35,7 @@ protected:
 	binpac::RFB::RFB_Conn* interp;
 
 	bool had_gap;
+	bool invalid;
 
 };
 

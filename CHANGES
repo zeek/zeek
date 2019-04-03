@@ -1,4 +1,27 @@
 
+2.6-200 | 2019-04-03 09:44:53 -0700
+
+  * Fix reporter net_weird API usage for unknown_mobility_type
+    (Jon Siwek, Corelight)
+
+  * Remove variable content from weird names
+
+    This changes many weird names to move non-static content from the
+    weird name into the "addl" field to help ensure the total number of
+    weird names is reasonably bounded.  Note the net_weird and flow_weird
+    events do not have an "addl" parameter, so information may no longer
+    be available in those cases -- to make it available again we'd need
+    to either (1) define new events that contain such a parameter, or
+    (2) change net_weird/flow_weird event signature (which is a breaking
+    change for user-code at the moment).
+
+    Also, the generic handling of binpac exceptions for analyzers which
+    to not otherwise catch and handle them has been changed from a Weird
+    to a ProtocolViolation.
+
+    Finally, a new "file_weird" event has been added for reporting
+    weirdness found during file analysis. (Jon Siwek, Corelight)
+
 2.6-197 | 2019-04-03 09:08:58 -0700
 
   * Make Syslog analyzer accept non-conformant messages that omit Priority.

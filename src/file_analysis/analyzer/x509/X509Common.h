@@ -25,11 +25,13 @@ public:
 	 * @param bio the OpenSSL BIO to read. It will be freed by the function,
 	 * including when an error occurs.
 	 *
+	 * @param f an associated file, if any (used for error reporting).
+	 *
 	 * @return The X509 extension value.
 	 */
-	static StringVal* GetExtensionFromBIO(BIO* bio);
+	static StringVal* GetExtensionFromBIO(BIO* bio, File* f = 0);
 
-	static double GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, Reporter* reporter);
+	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 
 protected:
 	X509Common(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);

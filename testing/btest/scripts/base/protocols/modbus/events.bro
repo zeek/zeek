@@ -7,6 +7,7 @@
 # @TEST-EXEC: btest-diff coverage
 # @TEST-EXEC: btest-diff conn.log
 
+redef DPD::ignore_violations_after = 1;
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
 {

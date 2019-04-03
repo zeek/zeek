@@ -7,3 +7,5 @@
 
 @load protocols/modbus/known-masters-slaves.bro
 @load protocols/modbus/track-memmap.bro
+
+redef DPD::ignore_violations_after = 1;

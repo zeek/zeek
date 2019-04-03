@@ -172,7 +172,7 @@ refine connection Handshake_Conn += {
 				ServerName* servername = (*list)[i];
 				if ( servername->name_type() != 0 )
 					{
-					bro_analyzer()->Weird(fmt("Encountered unknown type in server name ssl extension: %d", servername->name_type()));
+					bro_analyzer()->Weird("ssl_ext_unknown_server_name_type", fmt("%d", servername->name_type()));
 					continue;
 					}
 

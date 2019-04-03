@@ -160,11 +160,11 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!req)
 			{
-			reporter->Weird(fmt("OPENSSL Could not parse OCSP request (fuid %s)", GetFile()->GetID().c_str()));
+			reporter->Weird(GetFile(), "openssl_ocsp_request_parse_error");
 			return false;
 			}
 
-		ParseRequest(req, GetFile()->GetID().c_str());
+		ParseRequest(req);
 		OCSP_REQUEST_free(req);
 		}
 	else
@@ -173,12 +173,12 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!resp)
 			{
-			reporter->Weird(fmt("OPENSSL Could not parse OCSP response (fuid %s)", GetFile()->GetID().c_str()));
+			reporter->Weird(GetFile(), "openssl_ocsp_response_parse_error");
 			return false;
 			}
 
 		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
-		ParseResponse(resp_val, GetFile()->GetID().c_str());
+		ParseResponse(resp_val);
 		Unref(resp_val);
 		}
 
@@ -412,7 +412,7 @@ static uint64 parse_request_version(OCSP_REQUEST* req)
 	}
 #endif
 
-void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
+void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	{
 	char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
@@ -453,7 +453,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
+void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 	{
 	OCSP_RESPONSE   *resp       = resp_val->GetResp();
 	//OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
@@ -532,7 +532,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl->append(new Val(GetTimeFromAsn1(produced_at, fid, reporter), TYPE_TIME));
+	vl->append(new Val(GetTimeFromAsn1(produced_at, GetFile(), reporter), TYPE_TIME));
 
 	// responses
 
@@ -579,7 +579,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl->append(new Val(GetTimeFromAsn1(revoke_time, fid, reporter), TYPE_TIME));
+			rvl->append(new Val(GetTimeFromAsn1(revoke_time, GetFile(), reporter), TYPE_TIME));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
@@ -596,12 +596,12 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			}
 
 		if ( this_update )
-			rvl->append(new Val(GetTimeFromAsn1(this_update, fid, reporter), TYPE_TIME));
+			rvl->append(new Val(GetTimeFromAsn1(this_update, GetFile(), reporter), TYPE_TIME));
 		else
 			rvl->append(new Val(0.0, TYPE_TIME));
 
 		if ( next_update )
-			rvl->append(new Val(GetTimeFromAsn1(next_update, fid, reporter), TYPE_TIME));
+			rvl->append(new Val(GetTimeFromAsn1(next_update, GetFile(), reporter), TYPE_TIME));
 		else
 			rvl->append(new Val(0.0, TYPE_TIME));
 

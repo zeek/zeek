@@ -253,8 +253,6 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 		vl->append(new StringVal(msg));
 		ConnectionEvent(bt_tracker_weird, vl);
 		}
-	else
-		Weird(msg);
 	}
 
 bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
@@ -326,8 +324,11 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
 
 	case BTT_REQ_DONE:
 		if ( *line )
-			DeliverWeird(fmt("Got post request data: %s\n", line),
-					true);
+			{
+			auto msg = fmt("Got post request data: %s\n", line);
+			Weird("bittorrent_tracker_data_post_request", msg);
+			DeliverWeird(msg, true);
+			}
 		break;
 
 	default:

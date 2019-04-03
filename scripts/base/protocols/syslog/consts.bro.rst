@@ -53,6 +53,7 @@ Constants
          [13] = "AUDIT",
          [18] = "LOCAL2",
          [21] = "LOCAL5",
+         [999] = "UNSPECIFIED",
          [16] = "LOCAL0",
          [20] = "LOCAL4"
       }
@@ -75,7 +76,8 @@ Constants
          [7] = "DEBUG",
          [5] = "NOTICE",
          [0] = "EMERG",
-         [3] = "ERR"
+         [3] = "ERR",
+         [999] = "UNSPECIFIED"
       }
 
    Mapping between the constants and string values for syslog severities.

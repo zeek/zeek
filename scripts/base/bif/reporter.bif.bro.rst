@@ -27,6 +27,7 @@ Functions
 :bro:id:`Reporter::fatal`: :bro:type:`function`                        Generates a fatal error on stderr and terminates program execution.
 :bro:id:`Reporter::fatal_error_with_core`: :bro:type:`function`        Generates a fatal error on stderr and terminates program execution
                                                                        after dumping a core file
+:bro:id:`Reporter::file_weird`: :bro:type:`function`                   Generates a "file" weird.
 :bro:id:`Reporter::flow_weird`: :bro:type:`function`                   Generates a "flow" weird.
 :bro:id:`Reporter::get_weird_sampling_duration`: :bro:type:`function`  Gets the current weird sampling duration.
 :bro:id:`Reporter::get_weird_sampling_rate`: :bro:type:`function`      Gets the current weird sampling rate.
@@ -103,6 +104,24 @@ Functions
    
 
    :returns: Always true.
+
+.. bro:id:: Reporter::file_weird
+
+   :Type: :bro:type:`function` (name: :bro:type:`string`, f: :bro:type:`fa_file`, addl: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`bool`
+
+   Generates a "file" weird.
+   
+
+   :name: the name of the weird.
+   
+
+   :f: the file associated with the weird.
+   
+
+   :addl: additional information to accompany the weird.
+   
+
+   :returns: true if the file was still valid, else false.
 
 .. bro:id:: Reporter::flow_weird
 

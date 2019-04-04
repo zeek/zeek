@@ -188,7 +188,7 @@ void usage()
 
 void init_alternative_mode()
 	{
-	fp_bro_init = open_output_file("bro");
+	fp_bro_init = open_output_file("zeek");
 	fp_func_h = open_output_file("h");
 	fp_func_def = open_output_file("cc");
 	fp_func_init = open_output_file("init.cc");
@@ -335,7 +335,7 @@ int main(int argc, char* argv[])
 
 		if ( ! alternative_mode )
 			{
-			fp_bro_init = open_output_file("bro");
+			fp_bro_init = open_output_file("zeek");
 			fp_func_h = open_output_file("func_h");
 			fp_func_def = open_output_file("func_def");
 			fp_func_init = open_output_file("func_init");
@@ -409,7 +409,7 @@ void err_exit(void)
 	{
 	close_all_output_files();
 	/* clean up. remove all output files we've generated so far */
-	remove_file("bro");
+	remove_file("zeek");
 	remove_file("func_h");
 	remove_file("func_def");
 	remove_file("func_init");

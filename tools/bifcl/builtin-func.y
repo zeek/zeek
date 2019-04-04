@@ -50,7 +50,7 @@ struct decl_struct {
 	string c_namespace_end;   // closing "}" for all the above namespaces
 	string c_fullname; // fully qualified name (namespace::....) for use in netvar_init
 	string bro_fullname; // fully qualified bro name, for netvar (and lookup_ID())
-	string bro_name;  // the name as we read it from input. What we write into the .bro file
+	string bro_name;  // the name as we read it from input. What we write into the .zeek file
 
 	// special cases for events. Events have an EventHandlerPtr
 	// and a generate_* function. This name is for the generate_* function
@@ -338,7 +338,7 @@ module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 	 // XXX: Add the netvar glue so that the event engine knows about
 	 // the type. One still has to define the type in bro.init.
 	 // Would be nice, if we could just define the record type here
-	 // and then copy to the .bif.bro file, but type declarations in
+	 // and then copy to the .bif.zeek file, but type declarations in
 	 // Bro can be quite powerful. Don't know whether it's worth it
 	 // extend the bif-language to be able to handle that all....
 	 // Or we just support a simple form of record type definitions

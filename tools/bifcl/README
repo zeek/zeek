@@ -5,7 +5,7 @@ Bro BIF Compiler
 ================
 
 The ``bifcl`` program simply takes a ``.bif`` file as input and
-generates C++ header/source files along with a ``.bro`` script
+generates C++ header/source files along with a ``.zeek`` script
 that all-together provide the declaration and implementation of Bro_
 Built-In-Functions (BIFs), which can then be compiled and shipped
 as part of a Bro plugin.

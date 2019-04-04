@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-09-05-20-33-08
+#open	2019-04-04-19-22-06
 #fields	name
 #types	string
 scripts/base/init-bare.bro
@@ -149,6 +149,7 @@ scripts/base/init-frameworks-and-bifs.bro
     build/scripts/base/bif/plugins/Bro_SSL.types.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.events.bif.bro
     build/scripts/base/bif/plugins/Bro_SSL.functions.bif.bro
+    build/scripts/base/bif/plugins/Bro_SSL.consts.bif.bro
     build/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro
     build/scripts/base/bif/plugins/Bro_Syslog.events.bif.bro
     build/scripts/base/bif/plugins/Bro_TCP.events.bif.bro
@@ -373,4 +374,4 @@ scripts/base/init-default.bro
   scripts/base/misc/find-filtered-trace.bro
   scripts/base/misc/version.bro
 scripts/policy/misc/loaded-scripts.bro
-#close	2018-09-05-20-33-08
+#close	2019-04-04-19-22-06

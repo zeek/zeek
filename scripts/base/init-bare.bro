@@ -4169,6 +4169,17 @@ export {
 		HashAlgorithm: count; ##< Hash algorithm number
 		SignatureAlgorithm: count; ##< Signature algorithm number
 	};
+
+
+## Number of non-DTLS frames that can occur in a DTLS connection before
+## parsing of the connection is suspended.
+## DTLS does not immediately stop parsing a connection because other protocols
+## might be interleaved in the same UDP "connection".
+const SSL::dtls_max_version_errors = 10 &redef;
+
+## Maximum number of invalid version errors to report in one DTLS connection.
+const SSL::dtls_max_reported_version_errors = 1 &redef;
+
 }
 
 module GLOBAL;

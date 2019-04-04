@@ -277,6 +277,9 @@ Package: base/bif/plugins
 :doc:`/scripts/base/bif/plugins/Bro_SSL.functions.bif.bro`
 
 
+:doc:`/scripts/base/bif/plugins/Bro_SSL.consts.bif.bro`
+
+
 :doc:`/scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro`
 
 

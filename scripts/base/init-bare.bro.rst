@@ -75,6 +75,9 @@ Redefinable Options
 :bro:id:`Reporter::info_to_stderr`: :bro:type:`bool` :bro:attr:`&redef`                 Tunable for sending reporter info messages to STDERR.
 :bro:id:`Reporter::warnings_to_stderr`: :bro:type:`bool` :bro:attr:`&redef`             Tunable for sending reporter warning messages to STDERR.
 :bro:id:`SMB::pipe_filenames`: :bro:type:`set` :bro:attr:`&redef`                       A set of file names used as named pipes over SMB.
+:bro:id:`SSL::dtls_max_reported_version_errors`: :bro:type:`count` :bro:attr:`&redef`   Maximum number of invalid version errors to report in one DTLS connection.
+:bro:id:`SSL::dtls_max_version_errors`: :bro:type:`count` :bro:attr:`&redef`            Number of non-DTLS frames that can occur in a DTLS connection before
+                                                                                        parsing of the connection is suspended.
 :bro:id:`Threading::heartbeat_interval`: :bro:type:`interval` :bro:attr:`&redef`        The heartbeat interval used by the threading framework.
 :bro:id:`Tunnel::delay_gtp_confirmation`: :bro:type:`bool` :bro:attr:`&redef`           With this set, the GTP analyzer waits until the most-recent upflow
                                                                                         and downflow packets are a valid GTPv1 encapsulation before
@@ -919,6 +922,25 @@ Redefinable Options
    pipes when the drive mapping wasn't seen by Bro.
    
    .. bro:see:: smb_pipe_connect_heuristic
+
+.. bro:id:: SSL::dtls_max_reported_version_errors
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``1``
+
+   Maximum number of invalid version errors to report in one DTLS connection.
+
+.. bro:id:: SSL::dtls_max_version_errors
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``10``
+
+   Number of non-DTLS frames that can occur in a DTLS connection before
+   parsing of the connection is suspended.
+   DTLS does not immediately stop parsing a connection because other protocols
+   might be interleaved in the same UDP "connection".
 
 .. bro:id:: Threading::heartbeat_interval
 

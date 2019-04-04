@@ -144,6 +144,7 @@
    base/bif/plugins/Bro_SSL.types.bif.bro </scripts/base/bif/plugins/Bro_SSL.types.bif.bro>
    base/bif/plugins/Bro_SSL.events.bif.bro </scripts/base/bif/plugins/Bro_SSL.events.bif.bro>
    base/bif/plugins/Bro_SSL.functions.bif.bro </scripts/base/bif/plugins/Bro_SSL.functions.bif.bro>
+   base/bif/plugins/Bro_SSL.consts.bif.bro </scripts/base/bif/plugins/Bro_SSL.consts.bif.bro>
    base/bif/plugins/Bro_SteppingStone.events.bif.bro </scripts/base/bif/plugins/Bro_SteppingStone.events.bif.bro>
    base/bif/plugins/Bro_Syslog.events.bif.bro </scripts/base/bif/plugins/Bro_Syslog.events.bif.bro>
    base/bif/plugins/Bro_TCP.events.bif.bro </scripts/base/bif/plugins/Bro_TCP.events.bif.bro>

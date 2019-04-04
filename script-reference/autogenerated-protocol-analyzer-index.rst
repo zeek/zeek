@@ -12889,6 +12889,28 @@ Components
 
 :bro:enum:`Analyzer::ANALYZER_SSL`
 
+Options/Constants
++++++++++++++++++
+
+.. bro:id:: SSL::dtls_max_version_errors
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``10``
+
+   Number of non-DTLS frames that can occur in a DTLS connection before
+   parsing of the connection is suspended.
+   DTLS does not immediately stop parsing a connection because other protocols
+   might be interleaved in the same UDP "connection".
+
+.. bro:id:: SSL::dtls_max_reported_version_errors
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``1``
+
+   Maximum number of invalid version errors to report in one DTLS connection.
+
 Types
 +++++
 

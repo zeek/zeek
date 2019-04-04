@@ -1,4 +1,11 @@
 
+2.6-203 | 2019-04-04 16:35:52 -0700
+
+  * Update DTLS error handling (Johanna Amann, Corelight)
+
+    - Adds tuning options: SSL::dtls_max_version_errors and
+      SSL::dtls_max_reported_version_errors
+
 2.6-200 | 2019-04-03 09:44:53 -0700
 
   * Fix reporter net_weird API usage for unknown_mobility_type

@@ -8,6 +8,7 @@ bro_plugin_cc(SSL.cc DTLS.cc Plugin.cc)
 bro_plugin_bif(types.bif)
 bro_plugin_bif(events.bif)
 bro_plugin_bif(functions.bif)
+bro_plugin_bif(consts.bif)
 bro_plugin_pac(tls-handshake.pac tls-handshake-protocol.pac tls-handshake-analyzer.pac ssl-defs.pac
 	proc-client-hello.pac
 	proc-server-hello.pac
@@ -16,7 +17,7 @@ bro_plugin_pac(tls-handshake.pac tls-handshake-protocol.pac tls-handshake-analyz
 )
 bro_plugin_pac(ssl.pac ssl-dtls-analyzer.pac ssl-analyzer.pac ssl-dtls-protocol.pac ssl-protocol.pac ssl-defs.pac
 	proc-client-hello.pac
-    proc-server-hello.pac
+	proc-server-hello.pac
 	proc-certificate.pac
 )
 bro_plugin_pac(dtls.pac ssl-dtls-analyzer.pac dtls-analyzer.pac ssl-dtls-protocol.pac dtls-protocol.pac ssl-defs.pac)

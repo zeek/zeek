@@ -893,7 +893,11 @@ int main(int argc, char** argv)
 
 	// Must come after plugin activation (and also after hash
 	// initialization).
-	binpac::init();
+	binpac::FlowBuffer::Policy flowbuffer_policy;
+	flowbuffer_policy.max_capacity = 10 * 1024 * 1024;
+	flowbuffer_policy.min_capacity = 512;
+	flowbuffer_policy.contract_threshold = 2 * 1024 * 1024;
+	binpac::init(&flowbuffer_policy);
 
 	init_event_handlers();
 

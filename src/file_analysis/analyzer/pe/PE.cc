@@ -20,7 +20,8 @@ PE::~PE()
 bool PE::DeliverStream(const u_char* data, uint64 len)
 	{
 	if ( conn->is_done() )
-		return true;
+		return false;
+
 	try
 		{
 		interp->NewData(data, data + len);
@@ -30,7 +31,7 @@ bool PE::DeliverStream(const u_char* data, uint64 len)
 		return false;
 		}
 
-	return true;
+	return ! conn->is_done();
 	}
 
 bool PE::EndOfFile()

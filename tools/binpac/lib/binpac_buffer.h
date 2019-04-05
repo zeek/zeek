@@ -8,6 +8,12 @@ namespace binpac {
 
 class FlowBuffer {
 public:
+	struct Policy {
+		int max_capacity;
+		int min_capacity;
+		int contract_threshold;
+	};
+
 	enum LineBreakStyle {
 		CR_OR_LF, 	// CR or LF or CRLF
 		STRICT_CRLF, 	// CR followed by LF
@@ -95,6 +101,9 @@ public:
 
 	bool have_pending_request() const { return have_pending_request_; }
 
+	static void init(Policy p)
+		{ policy = p; }
+
 protected:
 	// Reset the buffer for a new message
 	void NewMessage();
@@ -105,6 +114,13 @@ protected:
 	// are contents in the existing buffer, copy them to the new
 	// buffer.
 	void ExpandBuffer(int length);
+
+	// Contract the buffer to some minimum capacity.
+	// Existing contents in the buffer are preserved (but only usage
+	// at the time of creation this function is when the contents
+	// are being discarded due to parsing exception or have already been
+	// copied out after parsing a complete unit).
+	void ContractBuffer();
 
 	// Reset line state when transit from frame mode to line mode.
 	void ResetLineState();
@@ -153,6 +169,8 @@ protected:
 	int 	data_seq_at_orig_data_end_;
 	bool 	eof_;
 	bool    have_pending_request_;
+
+	static Policy policy;
 };
 
 typedef FlowBuffer *flow_buffer_t;

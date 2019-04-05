@@ -16,6 +16,15 @@ namespace {
 	const unsigned char LF = '\n';
 }
 
+binpac::FlowBuffer::Policy binpac::FlowBuffer::policy = {
+	// max_capacity
+	10 * 1024 * 1024,
+	// min_capacity
+	512,
+	// contract_threshold
+	2 * 1024 * 1024,
+};
+
 FlowBuffer::FlowBuffer(LineBreakStyle linebreak_style)
 	{
 	buffer_length_ = 0;
@@ -75,6 +84,7 @@ void FlowBuffer::NewMessage()
 
 	buffer_n_ = 0;
 	message_complete_ = false;
+	ContractBuffer();
 	}
 
 void FlowBuffer::ResetLineState()
@@ -99,23 +109,41 @@ void FlowBuffer::ExpandBuffer(int length)
 	{
 	if ( buffer_length_ >= length )
 		return;
-	// So length > 0
-	if ( length < 512 )
-		length = 512;
+
+	if ( length < policy.min_capacity )
+		length = policy.min_capacity;
 
 	if ( length < buffer_length_ * 2 )
 		length = buffer_length_ * 2;
 
+	if ( length > policy.max_capacity )
+		{
+		std::string reason = strfmt("expand past max capacity %d/%zu",
+		                            length, policy.max_capacity);
+		throw ExceptionFlowBufferAlloc(reason.c_str());
+		}
+
 	// Allocate a new buffer and copy the existing contents
 	buffer_length_ = length;
 	unsigned char* new_buf = (unsigned char *) realloc(buffer_, buffer_length_);
-	BINPAC_ASSERT(new_buf);
-#if 0
-	unsigned char* new_buf = new unsigned char[buffer_length_];
-	if ( buffer_ && buffer_n_ > 0 )
-		memcpy(new_buf, buffer_, buffer_n_);
-	delete [] buffer_;
-#endif
+
+	if ( ! new_buf )
+		throw ExceptionFlowBufferAlloc("expand realloc OOM");
+
+	buffer_ = new_buf;
+	}
+
+void FlowBuffer::ContractBuffer()
+	{
+	if ( buffer_length_ < policy.contract_threshold )
+		return;
+
+	buffer_length_ = policy.min_capacity;
+	unsigned char* new_buf = (unsigned char *) realloc(buffer_, buffer_length_);
+
+	if ( ! new_buf )
+		throw ExceptionFlowBufferAlloc("contract realloc OOM");
+
 	buffer_ = new_buf;
 	}
 
@@ -186,6 +214,7 @@ void FlowBuffer::DiscardData()
 
 	buffer_n_ = 0;
 	frame_length_ = 0;
+	ContractBuffer();
 	}
 
 void FlowBuffer::set_eof()

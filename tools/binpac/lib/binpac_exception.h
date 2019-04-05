@@ -116,6 +116,15 @@ public:
 		}
 };
 
+class ExceptionFlowBufferAlloc : public Exception
+{
+public:
+	ExceptionFlowBufferAlloc(const char* reason)
+		{
+		append(binpac_fmt("flowbuffer allocation failed: %s", reason));
+		}
+};
+
 }
 
 #endif  // binpac_exception_h

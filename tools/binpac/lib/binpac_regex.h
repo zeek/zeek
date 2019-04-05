@@ -13,7 +13,8 @@ namespace binpac
 //
 // Note, this must be declared/defined here, and inline, because the RE
 // functionality can only be used when compiling from inside Bro.
-inline void init();
+// A copy is made of any FlowBuffer policy struct data passed.
+inline void init(FlowBuffer::Policy* fbp = 0);
 
 // Internal vector recording not yet compiled matchers.
 extern std::vector<RE_Matcher*>* uncompiled_re_matchers;
@@ -42,7 +43,7 @@ public:
 		}
 
 private:
-	friend void ::binpac::init();
+	friend void ::binpac::init(FlowBuffer::Policy*);
 
 	// Function, and state, for compiling matchers.
 	static void init();
@@ -68,9 +69,12 @@ inline void RegExMatcher::init()
 	uncompiled_re_matchers->clear();
 	}
 
-inline void init()
+inline void init(FlowBuffer::Policy* fbp)
 	{
 	RegExMatcher::init();
+
+	if ( fbp )
+		FlowBuffer::init(*fbp);
 	}
 
 }  // namespace binpac

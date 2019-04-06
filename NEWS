@@ -3,8 +3,8 @@ This document summarizes the most important changes in the current Bro
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
-Bro 2.7
-=======
+Zeek 3.0.0
+==========
 
 New Functionality
 -----------------

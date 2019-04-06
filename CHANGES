@@ -1,4 +1,8 @@
 
+2.6-205 | 2019-04-05 17:06:26 -0700
+
+  * Add script to update external test repo commit pointers (Jon Siwek, Corelight)
+
 2.6-203 | 2019-04-04 16:35:52 -0700
 
   * Update DTLS error handling (Johanna Amann, Corelight)

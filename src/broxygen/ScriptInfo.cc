@@ -158,7 +158,7 @@ static string make_redef_details(const string& heading, char underline,
 ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
     : Info(),
       name(arg_name), path(arg_path),
-      is_pkg_loader(SafeBasename(name).result == PACKAGE_LOADER),
+      is_pkg_loader(is_package_loader(SafeBasename(name).result)),
       dependencies(), module_usages(), comments(), id_info(),
       redef_options(), constants(), state_vars(), types(), events(), hooks(),
       functions(), redefs()
@@ -314,7 +314,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const
 			if ( it != dependencies.begin() )
 				rval += ", ";
 
-			string path = find_file(*it, bro_path(), "bro");
+			string path = find_script_file(*it, bro_path());
 			string doc = *it;
 
 			if ( ! path.empty() && is_dir(path.c_str()) )
@@ -365,8 +365,13 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 		if ( ! info )
 			{
-			string pkg_name = *it + "/" + PACKAGE_LOADER;
-			info = broxygen_mgr->GetScriptInfo(pkg_name);
+			for (const string& ext : script_extensions)
+				{
+				string pkg_name = *it + "/__load__" + ext;
+				info = broxygen_mgr->GetScriptInfo(pkg_name);
+				if ( info )
+					break;
+				}
 
 			if ( ! info )
 				reporter->InternalWarning("Broxygen failed to get mtime of %s",

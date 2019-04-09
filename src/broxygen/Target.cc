@@ -410,7 +410,7 @@ void ScriptTarget::DoFindDependencies(const vector<Info*>& infos)
 
 	for ( size_t i = 0; i < script_deps.size(); ++i )
 		{
-		if ( SafeBasename(script_deps[i]->Name()).result == PACKAGE_LOADER )
+		if ( is_package_loader(SafeBasename(script_deps[i]->Name()).result) )
 			{
 			string pkg_dir = SafeDirname(script_deps[i]->Name()).result;
 			string target_file = Name() + pkg_dir + "/index.rst";

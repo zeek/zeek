@@ -13,6 +13,7 @@
 #include "../Reporter.h"
 #include "../Func.h"
 #include "../Event.h"
+#include "../util.h"
 
 using namespace plugin;
 
@@ -182,30 +183,44 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		add_to_bro_path(scripts);
 		}
 
-	// First load {scripts}/__preload__.bro automatically.
-	string init = dir + "scripts/__preload__.bro";
+	string init;
 
-	if ( is_file(init) )
+	// First load {scripts}/__preload__.bro automatically.
+	for (const string& ext : script_extensions)
 		{
-		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-		scripts_to_load.push_back(init);
+		init = dir + "scripts/__preload__" + ext;
+
+		if ( is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			scripts_to_load.push_back(init);
+			break;
+			}
 		}
 
 	// Load {bif,scripts}/__load__.bro automatically.
-	init = dir + "lib/bif/__load__.bro";
-
-	if ( is_file(init) )
+	for (const string& ext : script_extensions)
 		{
-		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-		scripts_to_load.push_back(init);
+		init = dir + "lib/bif/__load__" + ext;
+
+		if ( is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			scripts_to_load.push_back(init);
+			break;
+			}
 		}
 
-	init = dir + "scripts/__load__.bro";
-
-	if ( is_file(init) )
+	for (const string& ext : script_extensions)
 		{
-		DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-		scripts_to_load.push_back(init);
+		init = dir + "scripts/__load__" + ext;
+
+		if ( is_file(init) )
+			{
+			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			scripts_to_load.push_back(init);
+			break;
+			}
 		}
 
 	// Load shared libraries.

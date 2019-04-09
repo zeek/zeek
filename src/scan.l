@@ -77,6 +77,17 @@ static string find_relative_file(const string& filename, const string& ext)
 		return find_file(filename, bro_path(), ext);
 	}
 
+static string find_relative_script_file(const string& filename)
+	{
+	if ( filename.empty() )
+		return string();
+
+	if ( filename[0] == '.' )
+		return find_script_file(filename, SafeDirname(::filename).result);
+	else
+		return find_script_file(filename, bro_path());
+	}
+
 static ino_t get_inode_num(FILE* f, const string& path)
 	{
 	struct stat b;
@@ -363,14 +374,14 @@ when	return TOK_WHEN;
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
 	string loader = ::filename;  // load_files may change ::filename, save copy
-	string loading = find_relative_file(new_file, "bro");
+	string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
 	broxygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path = find_relative_file(file, "sig");
+	string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
@@ -430,7 +441,7 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path = find_relative_file(file, "bro");
+	string path = find_relative_script_file(file);
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
@@ -624,7 +635,7 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
-	string file_path = find_relative_file(orig_file, "bro");
+	string file_path = find_relative_script_file(orig_file);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
@@ -970,7 +981,7 @@ int yywrap()
 
 			string canon = without_bropath_component(it->name);
 			string flat = flatten_script_name(canon, prefixes[i]);
-			string path = find_relative_file(flat, "bro");
+			string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
 				{

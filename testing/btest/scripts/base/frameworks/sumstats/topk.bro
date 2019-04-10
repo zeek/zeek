@@ -5,6 +5,11 @@ event bro_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", 
 	                               $apply=set(SumStats::TOPK)];
+	# Merge two empty sets
+	local topk1: opaque of topk = topk_init(4);
+	local topk2: opaque of topk = topk_init(4);
+	topk_merge(topk1, topk2);
+
 	SumStats::create([$name="topk-test",
 	                  $epoch=3secs,
 	                  $reducers=set(r1),

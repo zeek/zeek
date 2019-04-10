@@ -1,4 +1,8 @@
 
+2.6-210 | 2019-04-10 09:54:27 -0700
+
+  * Add options to tune BinPAC flowbuffer policy (Jon Siwek, Corelight)
+
 2.6-208 | 2019-04-10 11:36:17 +0000
 
   * Improve PE file analysis (Jon Siwek, Corelight)

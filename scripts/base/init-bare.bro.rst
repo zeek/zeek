@@ -2,6 +2,7 @@
 
 base/init-bare.bro
 ==================
+.. bro:namespace:: BinPAC
 .. bro:namespace:: Cluster
 .. bro:namespace:: DCE_RPC
 .. bro:namespace:: DHCP
@@ -31,7 +32,7 @@ base/init-bare.bro
 .. bro:namespace:: X509
 
 
-:Namespaces: Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, NCP, NFS3, NTLM, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
+:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, NCP, NFS3, NTLM, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
 :Imports: :doc:`base/bif/bro.bif.bro </scripts/base/bif/bro.bif.bro>`, :doc:`base/bif/const.bif.bro </scripts/base/bif/const.bif.bro>`, :doc:`base/bif/event.bif.bro </scripts/base/bif/event.bif.bro>`, :doc:`base/bif/option.bif.bro </scripts/base/bif/option.bif.bro>`, :doc:`base/bif/plugins/Bro_KRB.types.bif.bro </scripts/base/bif/plugins/Bro_KRB.types.bif.bro>`, :doc:`base/bif/plugins/Bro_SNMP.types.bif.bro </scripts/base/bif/plugins/Bro_SNMP.types.bif.bro>`, :doc:`base/bif/reporter.bif.bro </scripts/base/bif/reporter.bif.bro>`, :doc:`base/bif/stats.bif.bro </scripts/base/bif/stats.bif.bro>`, :doc:`base/bif/strings.bif.bro </scripts/base/bif/strings.bif.bro>`, :doc:`base/bif/types.bif.bro </scripts/base/bif/types.bif.bro>`
 
 Summary
@@ -53,6 +54,13 @@ Runtime Options
 Redefinable Options
 ###################
 ======================================================================================= ================================================================================
+:bro:id:`BinPAC::flowbuffer_capacity_max`: :bro:type:`count` :bro:attr:`&redef`         Maximum capacity, in bytes, that the BinPAC flowbuffer is allowed to
+                                                                                        grow to for use with incremental parsing of a given connection/analyzer.
+:bro:id:`BinPAC::flowbuffer_capacity_min`: :bro:type:`count` :bro:attr:`&redef`         The initial capacity, in bytes, that will be allocated to the BinPAC
+                                                                                        flowbuffer of a given connection/analyzer.
+:bro:id:`BinPAC::flowbuffer_contract_threshold`: :bro:type:`count` :bro:attr:`&redef`   The threshold, in bytes, at which the BinPAC flowbuffer of a given
+                                                                                        connection/analyzer will have its capacity contracted to
+                                                                                        :bro:see:`BinPAC::flowbuffer_capacity_min` after parsing a full unit.
 :bro:id:`DCE_RPC::max_cmd_reassembly`: :bro:type:`count` :bro:attr:`&redef`             The maximum number of simultaneous fragmented commands that
                                                                                         the DCE_RPC analyzer will tolerate before the it will generate
                                                                                         a weird and skip further input.
@@ -785,6 +793,38 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. bro:id:: BinPAC::flowbuffer_capacity_max
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``10485760``
+
+   Maximum capacity, in bytes, that the BinPAC flowbuffer is allowed to
+   grow to for use with incremental parsing of a given connection/analyzer.
+
+.. bro:id:: BinPAC::flowbuffer_capacity_min
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``512``
+
+   The initial capacity, in bytes, that will be allocated to the BinPAC
+   flowbuffer of a given connection/analyzer.  If the buffer buffer is
+   later contracted, its capacity is also reduced to this size.
+
+.. bro:id:: BinPAC::flowbuffer_contract_threshold
+
+   :Type: :bro:type:`count`
+   :Attributes: :bro:attr:`&redef`
+   :Default: ``2097152``
+
+   The threshold, in bytes, at which the BinPAC flowbuffer of a given
+   connection/analyzer will have its capacity contracted to
+   :bro:see:`BinPAC::flowbuffer_capacity_min` after parsing a full unit.
+   I.e. this is the maximum capacity to reserve in between the parsing of
+   units.  If, after parsing a unit, the flowbuffer capacity is greater
+   than this value, it will be contracted.
+
 .. bro:id:: DCE_RPC::max_cmd_reassembly
 
    :Type: :bro:type:`count`

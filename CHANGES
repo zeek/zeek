@@ -1,4 +1,10 @@
 
+2.6-208 | 2019-04-10 11:36:17 +0000
+
+  * Improve PE file analysis (Jon Siwek, Corelight)
+
+  * Set PE analyzer CMake dependencies correctly (Jon Siwek, Corelight)
+
 2.6-205 | 2019-04-05 17:06:26 -0700
 
   * Add script to update external test repo commit pointers (Jon Siwek, Corelight)

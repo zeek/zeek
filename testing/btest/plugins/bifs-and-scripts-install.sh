@@ -9,7 +9,7 @@
 
 mkdir -p scripts/demo/foo/base/
 
-cat >scripts/__load__.bro <<EOF
+cat >scripts/__load__.zeek <<EOF
 @load ./demo/foo/base/at-startup.bro
 EOF
 

@@ -2266,7 +2266,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		if ( rt1->NumFields() != rt2->NumFields() )
 			return 0;
 
-		type_decl_list* tdl3 = new type_decl_list;
+		type_decl_list* tdl3 = new type_decl_list(rt1->NumFields());
 
 		for ( int i = 0; i < rt1->NumFields(); ++i )
 			{

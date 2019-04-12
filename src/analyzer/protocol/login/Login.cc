@@ -289,9 +289,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 		{
 		if ( authentication_skipped )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			ConnectionEvent(authentication_skipped, vl);
+			ConnectionEvent(authentication_skipped, {BuildConnVal()});
 			}
 
 		state = LOGIN_STATE_SKIP;
@@ -334,32 +332,26 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_terminal && streq(name, "TERM") )
 			{
-			val_list* vl = new val_list;
-
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(val));
-
-			ConnectionEvent(login_terminal, vl);
+			ConnectionEvent(login_terminal, {
+				BuildConnVal(),
+				new StringVal(val),
+			});
 			}
 
 		else if ( login_display && streq(name, "DISPLAY") )
 			{
-			val_list* vl = new val_list;
-
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(val));
-
-			ConnectionEvent(login_display, vl);
+			ConnectionEvent(login_display, {
+				BuildConnVal(),
+				new StringVal(val),
+			});
 			}
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
 			{
-			val_list* vl = new val_list;
-
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(val));
-
-			ConnectionEvent(login_prompt, vl);
+			ConnectionEvent(login_prompt, {
+				BuildConnVal(),
+				new StringVal(val),
+			});
 			}
 		}
 
@@ -433,15 +425,13 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 	Val* password = HaveTypeahead() ?
 				PopUserTextVal() : new StringVal("<none>");
 
-	val_list* vl = new val_list;
-
-	vl->append(BuildConnVal());
-	vl->append(username->Ref());
-	vl->append(client_name ? client_name->Ref() : val_mgr->GetEmptyString());
-	vl->append(password);
-	vl->append(new StringVal(line));
-
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		username->Ref(),
+		client_name ? client_name->Ref() : val_mgr->GetEmptyString(),
+		password,
+		new StringVal(line),
+	});
 	}
 
 const char* Login_Analyzer::GetUsername(const char* line) const
@@ -454,12 +444,10 @@ const char* Login_Analyzer::GetUsername(const char* line) const
 
 void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 	{
-	val_list* vl = new val_list;
-
-	vl->append(BuildConnVal());
-	vl->append(new StringVal(line));
-
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		new StringVal(line),
+	});
 	}
 
 
@@ -469,12 +457,11 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 
 	if ( login_confused )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(msg));
-		vl->append(new StringVal(line));
-
-		ConnectionEvent(login_confused, vl);
+		ConnectionEvent(login_confused, {
+			BuildConnVal(),
+			new StringVal(msg),
+			new StringVal(line),
+		});
 		}
 
 	if ( login_confused_text )
@@ -496,10 +483,10 @@ void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(line));
-		ConnectionEvent(login_confused_text, vl);
+		ConnectionEvent(login_confused_text, {
+			BuildConnVal(),
+			new StringVal(line),
+		});
 		}
 	}
 

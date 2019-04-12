@@ -141,7 +141,7 @@ Attributes::~Attributes()
 void Attributes::AddAttr(Attr* attr)
 	{
 	if ( ! attrs )
-		attrs = new attr_list;
+		attrs = new attr_list(1);
 
 	if ( ! attr->RedundantAttrOkay() )
 		// We overwrite old attributes by deleting them first.

@@ -199,20 +199,21 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
     {
 	if ( icmp_sent )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
-		ConnectionEvent(icmp_sent, vl);
+		ConnectionEvent(icmp_sent, {
+			BuildConnVal(),
+			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
+		});
 		}
 
 	if ( icmp_sent_payload )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, icmpv6, ip_hdr));
 		BroString* payload = new BroString(data, min(len, caplen), 0);
-		vl->append(new StringVal(payload));
-		ConnectionEvent(icmp_sent_payload, vl);
+
+		ConnectionEvent(icmp_sent_payload, {
+			BuildConnVal(),
+			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
+			new StringVal(payload),
+		});
 		}
 	}
 
@@ -511,14 +512,13 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 	BroString* payload = new BroString(data, caplen, 0);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr));
-	vl->append(val_mgr->GetCount(iid));
-	vl->append(val_mgr->GetCount(iseq));
-	vl->append(new StringVal(payload));
-
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
+		val_mgr->GetCount(iid),
+		val_mgr->GetCount(iseq),
+		new StringVal(payload),
+	});
 	}
 
 
@@ -534,24 +534,23 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	if ( caplen >= (int)sizeof(reachable) + (int)sizeof(retrans) )
 		memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(val_mgr->GetCount(icmpp->icmp_num_addrs)); // Cur Hop Limit
-	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x80)); // Managed
-	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x40)); // Other
-	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x20)); // Home Agent
-	vl->append(val_mgr->GetCount((icmpp->icmp_wpa & 0x18)>>3)); // Pref
-	vl->append(val_mgr->GetBool(icmpp->icmp_wpa & 0x04)); // Proxy
-	vl->append(val_mgr->GetCount(icmpp->icmp_wpa & 0x02)); // Reserved
-	vl->append(new IntervalVal((double)ntohs(icmpp->icmp_lifetime), Seconds));
-	vl->append(new IntervalVal((double)ntohl(reachable), Milliseconds));
-	vl->append(new IntervalVal((double)ntohl(retrans), Milliseconds));
-
 	int opt_offset = sizeof(reachable) + sizeof(retrans);
-	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		val_mgr->GetCount(icmpp->icmp_num_addrs), // Cur Hop Limit
+		val_mgr->GetBool(icmpp->icmp_wpa & 0x80), // Managed
+		val_mgr->GetBool(icmpp->icmp_wpa & 0x40), // Other
+		val_mgr->GetBool(icmpp->icmp_wpa & 0x20), // Home Agent
+		val_mgr->GetCount((icmpp->icmp_wpa & 0x18)>>3), // Pref
+		val_mgr->GetBool(icmpp->icmp_wpa & 0x04), // Proxy
+		val_mgr->GetCount(icmpp->icmp_wpa & 0x02), // Reserved
+		new IntervalVal((double)ntohs(icmpp->icmp_lifetime), Seconds),
+		new IntervalVal((double)ntohl(reachable), Milliseconds),
+		new IntervalVal((double)ntohl(retrans), Milliseconds),
+		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset),
+	});
 	}
 
 
@@ -564,18 +563,17 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	if ( caplen >= (int)sizeof(in6_addr) )
 		tgtaddr = IPAddr(*((const in6_addr*)data));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x80)); // Router
-	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x40)); // Solicited
-	vl->append(val_mgr->GetBool(icmpp->icmp_num_addrs & 0x20)); // Override
-	vl->append(new AddrVal(tgtaddr));
-
 	int opt_offset = sizeof(in6_addr);
-	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		val_mgr->GetBool(icmpp->icmp_num_addrs & 0x80), // Router
+		val_mgr->GetBool(icmpp->icmp_num_addrs & 0x40), // Solicited
+		val_mgr->GetBool(icmpp->icmp_num_addrs & 0x20), // Override
+		new AddrVal(tgtaddr),
+		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset),
+	});
 	}
 
 
@@ -588,15 +586,14 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 	if ( caplen >= (int)sizeof(in6_addr) )
 		tgtaddr = IPAddr(*((const in6_addr*)data));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new AddrVal(tgtaddr));
-
 	int opt_offset = sizeof(in6_addr);
-	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		new AddrVal(tgtaddr),
+		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset),
+	});
 	}
 
 
@@ -612,16 +609,15 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 	if ( caplen >= 2 * (int)sizeof(in6_addr) )
 		dstaddr = IPAddr(*((const in6_addr*)(data + sizeof(in6_addr))));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(new AddrVal(tgtaddr));
-	vl->append(new AddrVal(dstaddr));
-
 	int opt_offset = 2 * sizeof(in6_addr);
-	vl->append(BuildNDOptionsVal(caplen - opt_offset, data + opt_offset));
 
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		new AddrVal(tgtaddr),
+		new AddrVal(dstaddr),
+		BuildNDOptionsVal(caplen - opt_offset, data + opt_offset),
+	});
 	}
 
 
@@ -630,12 +626,11 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 	{
 	EventHandlerPtr f = icmp_router_solicitation;
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-	vl->append(BuildNDOptionsVal(caplen, data));
-
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, {
+		BuildConnVal(),
+		BuildICMPVal(icmpp, len, 1, ip_hdr),
+		BuildNDOptionsVal(caplen, data),
+	});
 	}
 
 
@@ -657,12 +652,12 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 
 	if ( f )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, 0, ip_hdr));
-		vl->append(val_mgr->GetCount(icmpp->icmp_code));
-		vl->append(ExtractICMP4Context(caplen, data));
-		ConnectionEvent(f, vl);
+		ConnectionEvent(f, {
+			BuildConnVal(),
+			BuildICMPVal(icmpp, len, 0, ip_hdr),
+			val_mgr->GetCount(icmpp->icmp_code),
+			ExtractICMP4Context(caplen, data),
+		});
 		}
 	}
 
@@ -697,12 +692,12 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 	if ( f )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(BuildICMPVal(icmpp, len, 1, ip_hdr));
-		vl->append(val_mgr->GetCount(icmpp->icmp_code));
-		vl->append(ExtractICMP6Context(caplen, data));
-		ConnectionEvent(f, vl);
+		ConnectionEvent(f, {
+			BuildConnVal(),
+			BuildICMPVal(icmpp, len, 1, ip_hdr),
+			val_mgr->GetCount(icmpp->icmp_code),
+			ExtractICMP6Context(caplen, data),
+		});
 		}
 	}
 

@@ -139,25 +139,20 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 	if ( ! f )
 		return;
 
-	val_list* vl = new val_list;
-
-	vl->append(val_mgr->GetInt(id1));
-
 	if ( id2 >= 0 )
-		vl->append(val_mgr->GetInt(id2));
+		endp->TCP()->ConnectionEvent(f, {val_mgr->GetInt(id1), val_mgr->GetInt(id2)});
+	else
+		endp->TCP()->ConnectionEvent(f, {val_mgr->GetInt(id1)});
 
-	endp->TCP()->ConnectionEvent(f, vl);
 	}
 
 void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	{
-	val_list* vl = new val_list;
-
-	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(val_mgr->GetInt(stp_id));
-	vl->append(val_mgr->GetBool(is_orig));
-
-	endp->TCP()->ConnectionEvent(stp_create_endp, vl);
+	endp->TCP()->ConnectionEvent(stp_create_endp, {
+		endp->TCP()->BuildConnVal(),
+		val_mgr->GetInt(stp_id),
+		val_mgr->GetBool(is_orig),
+	});
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)

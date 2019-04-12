@@ -325,8 +325,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 
 		if ( ! recv_i->attrs )
 			{
-			attr_list* a = new attr_list();
-			a->append(def);
+			attr_list* a = new attr_list{def};
 			recv_i->attrs = new Attributes(a, recv_i->type, true);
 			}
 

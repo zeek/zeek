@@ -261,10 +261,10 @@ uint32 PortmapperInterp::CheckPort(uint32 port)
 		{
 		if ( pm_bad_port )
 			{
-			val_list* vl = new val_list;
-			vl->append(analyzer->BuildConnVal());
-			vl->append(val_mgr->GetCount(port));
-			analyzer->ConnectionEvent(pm_bad_port, vl);
+			analyzer->ConnectionEvent(pm_bad_port, {
+				analyzer->BuildConnVal(),
+				val_mgr->GetCount(port),
+			});
 			}
 
 		port = 0;
@@ -282,25 +282,25 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		return;
 		}
 
-	val_list* vl = new val_list;
+	val_list vl;
 
-	vl->append(analyzer->BuildConnVal());
+	vl.append(analyzer->BuildConnVal());
 
 	if ( status == BifEnum::RPC_SUCCESS )
 		{
 		if ( request )
-			vl->append(request);
+			vl.append(request);
 		if ( reply )
-			vl->append(reply);
+			vl.append(reply);
 		}
 	else
 		{
-		vl->append(BifType::Enum::rpc_status->GetVal(status));
+		vl.append(BifType::Enum::rpc_status->GetVal(status));
 		if ( request )
-			vl->append(request);
+			vl.append(request);
 		}
 
-	analyzer->ConnectionEvent(f, vl);
+	analyzer->ConnectionEvent(f, std::move(vl));
 	}
 
 Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)

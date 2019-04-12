@@ -65,10 +65,8 @@ void RotateTimer::Dispatch(double t, int is_expire)
 		{
 		if ( raise )
 			{
-			val_list* vl = new val_list;
 			Ref(file);
-			vl->append(new Val(file));
-			mgr.QueueEvent(rotate_interval, vl);
+			mgr.QueueEvent(rotate_interval, {new Val(file)});
 			}
 
 		file->InstallRotateTimer();
@@ -641,19 +639,15 @@ void BroFile::CloseCachedFiles()
 		// Send final rotate events (immediately).
 		if ( f->rotate_interval )
 			{
-			val_list* vl = new val_list;
 			Ref(f);
-			vl->append(new Val(f));
-			Event* event = new Event(::rotate_interval, vl);
+			Event* event = new Event(::rotate_interval, {new Val(f)});
 			mgr.Dispatch(event, true);
 			}
 
 		if ( f->rotate_size )
 			{
-			val_list* vl = new val_list;
 			Ref(f);
-			vl->append(new Val(f));
-			Event* event = new ::Event(::rotate_size, vl);
+			Event* event = new ::Event(::rotate_size, {new Val(f)});
 			mgr.Dispatch(event, true);
 			}
 
@@ -801,9 +795,7 @@ int BroFile::Write(const char* data, int len)
 
 	if ( rotate_size && current_size < rotate_size && current_size + len >= rotate_size )
 		{
-		val_list* vl = new val_list;
-		vl->append(new Val(this));
-		mgr.QueueEvent(::rotate_size, vl);
+		mgr.QueueEvent(::rotate_size, {new Val(this)});
 		}
 
 	// This does not work if we seek around. But none of the logs does that
@@ -818,10 +810,8 @@ void BroFile::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	val_list* vl = new val_list;
 	Ref(this);
-	vl->append(new Val(this));
-	Event* event = new ::Event(::file_opened, vl);
+	Event* event = new ::Event(::file_opened, {new Val(this)});
 	mgr.Dispatch(event, true);
 	}
 

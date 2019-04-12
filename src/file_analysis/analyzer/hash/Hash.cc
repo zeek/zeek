@@ -48,10 +48,9 @@ void Hash::Finalize()
 	if ( ! hash->IsValid() || ! fed )
 		return;
 
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(new StringVal(kind));
-	vl->append(hash->Get());
-
-	mgr.QueueEvent(file_hash, vl);
+	mgr.QueueEvent(file_hash, {
+		GetFile()->GetVal()->Ref(),
+		new StringVal(kind),
+		hash->Get(),
+	});
 	}

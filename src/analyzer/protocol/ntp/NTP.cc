@@ -78,12 +78,11 @@ void NTP_Analyzer::Message(const u_char* data, int len)
 	msg->Assign(9, new Val(LongFloat(ntp_data->rec), TYPE_TIME));
 	msg->Assign(10, new Val(LongFloat(ntp_data->xmt), TYPE_TIME));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(msg);
-	vl->append(new StringVal(new BroString(data, len, 0)));
-
-	ConnectionEvent(ntp_message, vl);
+	ConnectionEvent(ntp_message, {
+		BuildConnVal(),
+		msg,
+		new StringVal(new BroString(data, len, 0)),
+	});
 	}
 
 double NTP_Analyzer::ShortFloat(struct s_fixedpt fp)

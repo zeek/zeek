@@ -237,11 +237,11 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 
 			if ( contents_file_write_failure )
 				{
-				val_list* vl = new val_list();
-				vl->append(Conn()->BuildConnVal());
-				vl->append(val_mgr->GetBool(IsOrig()));
-				vl->append(new StringVal(buf));
-				tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+				tcp_analyzer->ConnectionEvent(contents_file_write_failure, {
+					Conn()->BuildConnVal(),
+					val_mgr->GetBool(IsOrig()),
+					new StringVal(buf),
+				});
 				}
 			}
 		}

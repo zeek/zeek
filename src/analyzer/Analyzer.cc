@@ -665,11 +665,11 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 	Ref(tval);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(tval);
-	vl->append(val_mgr->GetCount(id));
-	mgr.QueueEvent(protocol_confirmation, vl);
+	mgr.QueueEvent(protocol_confirmation, {
+		BuildConnVal(),
+		tval,
+		val_mgr->GetCount(id),
+	});
 
 	protocol_confirmed = true;
 	}
@@ -692,12 +692,12 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	EnumVal* tval = tag.AsEnumVal();
 	Ref(tval);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(tval);
-	vl->append(val_mgr->GetCount(id));
-	vl->append(r);
-	mgr.QueueEvent(protocol_violation, vl);
+	mgr.QueueEvent(protocol_violation, {
+		BuildConnVal(),
+		tval,
+		val_mgr->GetCount(id),
+		r,
+	});
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
@@ -780,6 +780,11 @@ void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 	{
 	conn->ConnectionEvent(f, this, vl);
+	}
+
+void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
+	{
+	conn->ConnectionEvent(f, this, std::move(vl));
 	}
 
 void Analyzer::Weird(const char* name, const char* addl)

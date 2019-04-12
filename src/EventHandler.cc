@@ -172,11 +172,10 @@ void EventHandler::NewEvent(val_list* vl)
 		vargs->Assign(i, rec);
 		}
 
-	val_list* mvl = new val_list(2);
-	mvl->append(new StringVal(name));
-	mvl->append(vargs);
-
-	Event* ev = new Event(new_event, mvl);
+	Event* ev = new Event(new_event, {
+		new StringVal(name),
+		vargs,
+	});
 	mgr.Dispatch(ev);
 	}
 

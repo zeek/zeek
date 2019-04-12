@@ -258,8 +258,7 @@ void ID::MakeDeprecated()
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list;
-	attr->append(new Attr(ATTR_DEPRECATED));
+	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED)};
 	AddAttrs(new Attributes(attr, Type(), false));
 	}
 
@@ -305,8 +304,7 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		attr_list* attr = new attr_list;
-		attr->append(new Attr(ATTR_REDEF));
+		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
 		AddAttrs(new Attributes(attr, Type(), false));
 		}
 	}

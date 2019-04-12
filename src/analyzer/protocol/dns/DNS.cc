@@ -46,13 +46,12 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	if ( dns_message )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_query));
-		vl->append(msg.BuildHdrVal());
-		vl->append(val_mgr->GetCount(len));
-
-		analyzer->ConnectionEvent(dns_message, vl);
+		analyzer->ConnectionEvent(dns_message, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_query),
+			msg.BuildHdrVal(),
+			val_mgr->GetCount(len),
+		});
 		}
 
 	// There is a great deal of non-DNS traffic that runs on port 53.
@@ -133,11 +132,10 @@ int DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 int DNS_Interpreter::EndMessage(DNS_MsgInfo* msg)
 	{
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	analyzer->ConnectionEvent(dns_end, vl);
+	analyzer->ConnectionEvent(dns_end, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+	});
 
 	return 1;
 	}
@@ -336,11 +334,11 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 			if ( dns_unknown_reply && ! msg->skip_event )
 				{
-				val_list* vl = new val_list;
-				vl->append(analyzer->BuildConnVal());
-				vl->append(msg->BuildHdrVal());
-				vl->append(msg->BuildAnswerVal());
-				analyzer->ConnectionEvent(dns_unknown_reply, vl);
+				analyzer->ConnectionEvent(dns_unknown_reply, {
+					analyzer->BuildConnVal(),
+					msg->BuildHdrVal(),
+					msg->BuildAnswerVal(),
+				});
 				}
 
 			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
@@ -551,14 +549,12 @@ int DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 
 	if ( reply_event && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(new BroString(name, name_end - name, 1)));
-
-		analyzer->ConnectionEvent(reply_event, vl);
+		analyzer->ConnectionEvent(reply_event, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			new StringVal(new BroString(name, name_end - name, 1)),
+		});
 		}
 
 	return 1;
@@ -598,14 +594,7 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 
 	if ( dns_SOA_reply && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-
 		RecordVal* r = new RecordVal(dns_soa);
-
 		r->Assign(0, new StringVal(new BroString(mname, mname_end - mname, 1)));
 		r->Assign(1, new StringVal(new BroString(rname, rname_end - rname, 1)));
 		r->Assign(2, val_mgr->GetCount(serial));
@@ -614,9 +603,12 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 		r->Assign(5, new IntervalVal(double(expire), Seconds));
 		r->Assign(6, new IntervalVal(double(minimum), Seconds));
 
-		vl->append(r);
-
-		analyzer->ConnectionEvent(dns_SOA_reply, vl);
+		analyzer->ConnectionEvent(dns_SOA_reply, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			r
+		});
 		}
 
 	return 1;
@@ -642,15 +634,13 @@ int DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 
 	if ( dns_MX_reply && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(new BroString(name, name_end - name, 1)));
-		vl->append(val_mgr->GetCount(preference));
-
-		analyzer->ConnectionEvent(dns_MX_reply, vl);
+		analyzer->ConnectionEvent(dns_MX_reply, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			new StringVal(new BroString(name, name_end - name, 1)),
+			val_mgr->GetCount(preference),
+		});
 		}
 
 	return 1;
@@ -687,16 +677,15 @@ int DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 
 	if ( dns_SRV_reply && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new StringVal(new BroString(name, name_end - name, 1)));
-		vl->append(val_mgr->GetCount(priority));
-		vl->append(val_mgr->GetCount(weight));
-		vl->append(val_mgr->GetCount(port));
-
-		analyzer->ConnectionEvent(dns_SRV_reply, vl);
+		analyzer->ConnectionEvent(dns_SRV_reply, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			new StringVal(new BroString(name, name_end - name, 1)),
+			val_mgr->GetCount(priority),
+			val_mgr->GetCount(weight),
+			val_mgr->GetCount(port),
+		});
 		}
 
 	return 1;
@@ -711,12 +700,11 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildEDNS_Val());
-		analyzer->ConnectionEvent(dns_EDNS_addl, vl);
+		analyzer->ConnectionEvent(dns_EDNS_addl, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildEDNS_Val(),
+		});
 		}
 
 	// Currently EDNS supports the movement of type:data pairs
@@ -789,13 +777,11 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	msg->tsig->orig_id = orig_id;
 	msg->tsig->rr_error = rr_error;
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildTSIG_Val());
-
-	analyzer->ConnectionEvent(dns_TSIG_addl, vl);
+	analyzer->ConnectionEvent(dns_TSIG_addl, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildTSIG_Val(),
+	});
 
 	return 1;
 	}
@@ -889,14 +875,12 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 	rrsig.signer_name = new BroString(name, name_end - name, 1);
 	rrsig.signature = sign;
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(msg->BuildRRSIG_Val(&rrsig));
-
-	analyzer->ConnectionEvent(dns_RRSIG, vl);
+	analyzer->ConnectionEvent(dns_RRSIG, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		msg->BuildRRSIG_Val(&rrsig),
+	});
 
 	return 1;
 	}
@@ -983,14 +967,12 @@ int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	dnskey.dprotocol = dprotocol;
 	dnskey.public_key = key;
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(msg->BuildDNSKEY_Val(&dnskey));
-
-	analyzer->ConnectionEvent(dns_DNSKEY, vl);
+	analyzer->ConnectionEvent(dns_DNSKEY, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		msg->BuildDNSKEY_Val(&dnskey),
+	});
 
 	return 1;
 	}
@@ -1035,15 +1017,13 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 		typebitmaps_len = typebitmaps_len - (2 + bmlen);
 		}
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(new StringVal(new BroString(name, name_end - name, 1)));
-	vl->append(char_strings);
-
-	analyzer->ConnectionEvent(dns_NSEC, vl);
+	analyzer->ConnectionEvent(dns_NSEC, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		new StringVal(new BroString(name, name_end - name, 1)),
+		char_strings,
+	});
 
 	return 1;
 	}
@@ -1121,14 +1101,12 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 	nsec3.nsec_hash = hash_val;
 	nsec3.bitmaps = char_strings;
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(msg->BuildNSEC3_Val(&nsec3));
-
-	analyzer->ConnectionEvent(dns_NSEC3, vl);
+	analyzer->ConnectionEvent(dns_NSEC3, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		msg->BuildNSEC3_Val(&nsec3),
+	});
 
 	return 1;
 	}
@@ -1178,14 +1156,12 @@ int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 	ds.digest_type = ds_dtype;
 	ds.digest_val = ds_digest;
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(msg->BuildDS_Val(&ds));
-
-	analyzer->ConnectionEvent(dns_DS, vl);
+	analyzer->ConnectionEvent(dns_DS, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		msg->BuildDS_Val(&ds),
+	});
 
 	return 1;
 	}
@@ -1203,14 +1179,12 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 
 	if ( dns_A_reply && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new AddrVal(htonl(addr)));
-
-		analyzer->ConnectionEvent(dns_A_reply, vl);
+		analyzer->ConnectionEvent(dns_A_reply, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			new AddrVal(htonl(addr)),
+		});
 		}
 
 	return 1;
@@ -1242,13 +1216,12 @@ int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 		event = dns_A6_reply;
 	if ( event && ! msg->skip_event )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(msg->BuildHdrVal());
-		vl->append(msg->BuildAnswerVal());
-		vl->append(new AddrVal(addr));
-		analyzer->ConnectionEvent(event, vl);
+		analyzer->ConnectionEvent(event, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			new AddrVal(addr),
+		});
 		}
 
 	return 1;
@@ -1317,14 +1290,12 @@ int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
 		char_strings->Assign(char_strings->Size(), char_string);
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(char_strings);
-
-	analyzer->ConnectionEvent(dns_TXT_reply, vl);
+	analyzer->ConnectionEvent(dns_TXT_reply, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		char_strings,
+	});
 
 	return rdlength == 0;
 	}
@@ -1359,16 +1330,14 @@ int DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 	data += value->Len();
 	rdlength -= value->Len();
 
-	val_list* vl = new val_list;
-
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(msg->BuildAnswerVal());
-	vl->append(val_mgr->GetCount(flags));
-	vl->append(new StringVal(tag));
-	vl->append(new StringVal(value));
-
-	analyzer->ConnectionEvent(dns_CAA_reply, vl);
+	analyzer->ConnectionEvent(dns_CAA_reply, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		msg->BuildAnswerVal(),
+		val_mgr->GetCount(flags),
+		new StringVal(tag),
+		new StringVal(value),
+	});
 
 	return rdlength == 0;
 	}
@@ -1382,14 +1351,13 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
 
-	val_list* vl = new val_list;
-	vl->append(analyzer->BuildConnVal());
-	vl->append(msg->BuildHdrVal());
-	vl->append(new StringVal(question_name));
-	vl->append(val_mgr->GetCount(qtype));
-	vl->append(val_mgr->GetCount(qclass));
-
-	analyzer->ConnectionEvent(event, vl);
+	analyzer->ConnectionEvent(event, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		new StringVal(question_name),
+		val_mgr->GetCount(qtype),
+		val_mgr->GetCount(qclass),
+	});
 	}
 
 
@@ -1737,10 +1705,10 @@ void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		{
 		if ( ! interp->ParseMessage(data, len, 1) && non_dns_request )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(len, (const char*) data));
-			ConnectionEvent(non_dns_request, vl);
+			ConnectionEvent(non_dns_request, {
+				BuildConnVal(),
+				new StringVal(len, (const char*) data),
+			});
 			}
 		}
 

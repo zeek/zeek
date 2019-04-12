@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "util.h"
-#include "BroList.h"
+#include "List.h"
 #include "Dict.h"
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
@@ -22,6 +22,9 @@ class Func;
 class EventHandler;
 class RecordType;
 class DNS_Mgr_Request;
+
+declare(PList,DNS_Mgr_Request);
+typedef PList(DNS_Mgr_Request) DNS_mgr_request_list;
 
 struct nb_dns_info;
 struct nb_dns_result;
@@ -96,8 +99,8 @@ protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
-	void Event(EventHandlerPtr e, DNS_Mapping* dm,
-			ListVal* l1 = 0, ListVal* l2 = 0);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2);
 	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
 	Val* BuildMappingVal(DNS_Mapping* dm);

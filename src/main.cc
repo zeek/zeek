@@ -284,12 +284,11 @@ void done_with_network()
 
 	if ( net_done )
 		{
-		val_list* args = new val_list;
-		args->append(new Val(timer_mgr->Time(), TYPE_TIME));
 		mgr.Drain();
-
 		// Don't propagate this event to remote clients.
-		mgr.Dispatch(new Event(net_done, args), true);
+		mgr.Dispatch(new Event(net_done,
+		                       {new Val(timer_mgr->Time(), TYPE_TIME)}),
+		             true);
 		}
 
 	// Save state before expiring the remaining events/timers.
@@ -341,7 +340,7 @@ void terminate_bro()
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
-		mgr.QueueEvent(bro_done, new val_list);
+		mgr.QueueEvent(bro_done, val_list{});
 
 	timer_mgr->Expire();
 	mgr.Drain();
@@ -1137,8 +1136,9 @@ int main(int argc, char** argv)
 		net_update_time(current_time());
 
 	EventHandlerPtr bro_init = internal_handler("bro_init");
-	if ( bro_init )	//### this should be a function
-		mgr.QueueEvent(bro_init, new val_list);
+
+	if ( bro_init )
+		mgr.QueueEvent(bro_init, val_list{});
 
 	EventRegistry::string_list* dead_handlers =
 		event_registry->UnusedHandlers();
@@ -1190,10 +1190,10 @@ int main(int argc, char** argv)
 		if ( i->skipped )
 			continue;
 
-		val_list* vl = new val_list;
-		vl->append(new StringVal(i->name.c_str()));
-		vl->append(val_mgr->GetCount(i->include_level));
-		mgr.QueueEvent(bro_script_loaded, vl);
+		mgr.QueueEvent(bro_script_loaded, {
+			new StringVal(i->name.c_str()),
+			val_mgr->GetCount(i->include_level),
+		});
 		}
 
 	reporter->ReportViaEvents(true);

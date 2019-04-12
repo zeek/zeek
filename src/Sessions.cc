@@ -171,11 +171,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		{
-		val_list* vl = new val_list();
-		vl->append(pkt->BuildPktHdrVal());
-		mgr.QueueEvent(raw_packet, vl);
-		}
+		mgr.QueueEvent(raw_packet, {pkt->BuildPktHdrVal()});
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -415,11 +411,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = 1;
 		if ( esp_packet )
-			{
-			val_list* vl = new val_list();
-			vl->append(ip_hdr->BuildPktHdrVal());
-			mgr.QueueEvent(esp_packet, vl);
-			}
+			mgr.QueueEvent(esp_packet, {ip_hdr->BuildPktHdrVal()});
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -439,11 +431,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			{
-			val_list* vl = new val_list();
-			vl->append(ip_hdr->BuildPktHdrVal());
-			mgr.QueueEvent(mobile_ipv6_message, vl);
-			}
+			mgr.QueueEvent(mobile_ipv6_message, {ip_hdr->BuildPktHdrVal()});
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);
@@ -1329,10 +1317,10 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 
 		if ( external )
 			{
-			val_list* vl = new val_list(2);
-			vl->append(conn->BuildConnVal());
-			vl->append(new StringVal(conn->GetTimerMgr()->GetTag().c_str()));
-			conn->ConnectionEvent(connection_external, 0, vl);
+			conn->ConnectionEvent(connection_external, 0, {
+				conn->BuildConnVal(),
+				new StringVal(conn->GetTimerMgr()->GetTag().c_str()),
+			});
 			}
 		}
 

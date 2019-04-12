@@ -353,7 +353,7 @@ protected:
 	// Next event waiting to be dispatched.
 	double ne_time;
 	EventHandlerPtr ne_handler;
-	val_list* ne_args;
+	val_list ne_args;
 
 };
 

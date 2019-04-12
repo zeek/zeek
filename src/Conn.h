@@ -176,8 +176,11 @@ public:
 
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = 0);
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = 0);
+
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
+	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+				val_list vl);
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }

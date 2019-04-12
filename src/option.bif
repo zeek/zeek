@@ -15,10 +15,12 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			val_list vl(2);
+			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
+			val_list vl(2 + add_loc);
 			vl.append(name->Ref());
 			vl.append(val);
-			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
+
+			if ( add_loc )
 				vl.append(location->Ref());
 
 			val = handler_function->Call(&vl); // consumed by next call.

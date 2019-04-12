@@ -53,9 +53,6 @@ void Entropy::Finalize()
 	if ( ! fed )
 		return;
 
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-
 	double montepi, scc, ent, mean, chisq;
 	montepi = scc = ent = mean = chisq = 0.0;
 	entropy->Get(&ent, &chisq, &mean, &montepi, &scc);
@@ -67,6 +64,8 @@ void Entropy::Finalize()
 	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
 	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
 
-	vl->append(ent_result);
-	mgr.QueueEvent(file_entropy, vl);
+	mgr.QueueEvent(file_entropy, {
+		GetFile()->GetVal()->Ref(),
+		ent_result,
+	});
 	}

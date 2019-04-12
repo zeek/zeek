@@ -11,12 +11,17 @@
 
 class EventMgr;
 
+// We don't Unref() the individual arguments by using delete_vals()
+// in a dtor because Func::Call already does that.
 class Event : public BroObj {
 public:
+	Event(EventHandlerPtr handler, val_list args,
+		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+		TimerMgr* mgr = 0, BroObj* obj = 0);
+
 	Event(EventHandlerPtr handler, val_list* args,
 		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 		TimerMgr* mgr = 0, BroObj* obj = 0);
-	~Event() override;
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
@@ -25,7 +30,7 @@ public:
 	analyzer::ID Analyzer() const	{ return aid; }
 	TimerMgr* Mgr() const		{ return mgr; }
 	EventHandlerPtr Handler() const	{ return handler; }
-	val_list* Args() const	{ return args; }
+	const val_list* Args() const	{ return &args; }
 
 	void Describe(ODesc* d) const override;
 
@@ -37,7 +42,7 @@ protected:
 	void Dispatch(bool no_remote = false);
 
 	EventHandlerPtr handler;
-	val_list* args;
+	val_list args;
 	SourceID src;
 	analyzer::ID aid;
 	TimerMgr* mgr;
@@ -53,14 +58,25 @@ public:
 	EventMgr();
 	~EventMgr() override;
 
-	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
+	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0)
 		{
 		if ( h )
-			QueueEvent(new Event(h, vl, src, aid, mgr, obj));
+			QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
 		else
-			delete_vals(vl);
+			{
+			loop_over_list(vl, i)
+				Unref(vl[i]);
+			}
+		}
+
+	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
+			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+			TimerMgr* mgr = 0, BroObj* obj = 0)
+		{
+		QueueEvent(h, std::move(*vl), src, aid, mgr, obj);
+		delete vl;
 		}
 
 	void Dispatch(Event* event, bool no_remote = false)

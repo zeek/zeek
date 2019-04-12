@@ -540,9 +540,11 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	val_list vl(2);
-	vl.append(stream->Ref());
-	vl.append(new StringVal(path));
+	val_list vl{
+		stream->Ref(),
+		new StringVal(path),
+	};
+
 	Val* v = log_topic_func->Call(&vl);
 
 	if ( ! v )
@@ -993,7 +995,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		return;
 		}
 
-	auto vl = new val_list;
+	val_list vl(args.size());
 
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
@@ -1002,7 +1004,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl->append(val);
+			vl.append(val);
 		else
 			{
 			reporter->Warning("failed to convert remote event '%s' arg #%d,"
@@ -1013,10 +1015,13 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 			}
 		}
 
-	if ( static_cast<size_t>(vl->length()) == args.size() )
-		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
+	if ( static_cast<size_t>(vl.length()) == args.size() )
+		mgr.QueueEvent(handler, std::move(vl), SOURCE_BROKER);
 	else
-		delete_vals(vl);
+		{
+		loop_over_list(vl, i)
+			Unref(vl[i]);
+		}
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
@@ -1270,11 +1275,7 @@ void Manager::ProcessStatus(broker::status stat)
 	auto str = stat.message();
 	auto msg = new StringVal(str ? *str : "");
 
-	auto vl = new val_list;
-	vl->append(endpoint_info);
-	vl->append(msg);
-
-	mgr.QueueEvent(event, vl);
+	mgr.QueueEvent(event, {endpoint_info, msg});
 	}
 
 void Manager::ProcessError(broker::error err)
@@ -1351,10 +1352,10 @@ void Manager::ProcessError(broker::error err)
 		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
-	auto vl = new val_list;
-	vl->append(BifType::Enum::Broker::ErrorCode->GetVal(ec));
-	vl->append(new StringVal(msg));
-	mgr.QueueEvent(Broker::error, vl);
+	mgr.QueueEvent(Broker::error, {
+		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		new StringVal(msg),
+	});
 	}
 
 void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response response)

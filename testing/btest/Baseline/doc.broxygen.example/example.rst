@@ -1,7 +1,7 @@
 :tocdepth: 3
 
-broxygen/example.bro
-====================
+broxygen/example.zeek
+=====================
 .. bro:namespace:: BroxygenExample
 
 This is an example script that demonstrates Broxygen-style
@@ -27,7 +27,7 @@ And a custom directive does the equivalent references:
 .. bro:see:: BroxygenExample::a_var BroxygenExample::ONE SSH::Info
 
 :Namespace: BroxygenExample
-:Imports: :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`, :doc:`base/protocols/http </scripts/base/protocols/http/index>`, :doc:`policy/frameworks/software/vulnerable.bro </scripts/policy/frameworks/software/vulnerable.bro>`
+:Imports: :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`, :doc:`base/protocols/http </scripts/base/protocols/http/index>`, :doc:`policy/frameworks/software/vulnerable.zeek </scripts/policy/frameworks/software/vulnerable.zeek>`
 
 Summary
 ~~~~~~~

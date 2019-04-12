@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff testing.log
 
-@load tuning/json-logs.bro
+@load tuning/json-logs
 
 module testing;
 

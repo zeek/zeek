@@ -8,10 +8,10 @@ reference documentation for all Bro scripts (i.e. "Broxygen").  Its only
 purpose is to provide an easy way to load all known Bro scripts plus any
 extra scripts needed or used by the documentation process.
 
-:doc:`/scripts/broxygen/__load__.bro`
+:doc:`/scripts/broxygen/__load__.zeek`
 
 
-:doc:`/scripts/broxygen/example.bro`
+:doc:`/scripts/broxygen/example.zeek`
 
    This is an example script that demonstrates Broxygen-style
    documentation.  It generally will make most sense when viewing

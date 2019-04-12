@@ -4,4 +4,4 @@
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-x509-names | $SCRIPTS/diff-remove-timestamps" btest-diff ssl-all.log
 
-@load protocols/ssl/validate-certs.bro
+@load protocols/ssl/validate-certs

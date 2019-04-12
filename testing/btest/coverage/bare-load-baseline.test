@@ -1,6 +1,6 @@
 # This test is meant to cover whether the set of scripts that get loaded by
 # default in bare mode matches a baseline of known defaults.  The baseline
-# should only need updating if something new is @load'd from init-bare.bro
+# should only need updating if something new is @load'd from init-bare.zeek
 # (or from an @load'd descendent of it).
 #
 # As the output has absolute paths in it, we need to remove the common

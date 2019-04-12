@@ -28,7 +28,7 @@ def find_scripts():
 
     for r, d, f in os.walk(scriptdir):
         for fname in f:
-            if fname.endswith(".bro"):
+            if fname.endswith(".zeek") or fname.endswith(".bro"):
                 scripts.append(os.path.join(r, fname))
 
     return scripts

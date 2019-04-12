@@ -16,7 +16,7 @@
 
 @load base/protocols/ssl
 @load base/files/x509
-@load protocols/ssl/extract-certs-pem.bro
+@load protocols/ssl/extract-certs-pem
 
 module SSL;
 

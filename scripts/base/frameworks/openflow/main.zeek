@@ -251,7 +251,7 @@ function controller_init_done(controller: Controller)
 	event OpenFlow::controller_activated(controller$state$_name, controller);
 	}
 
-# Functions that are called from cluster.bro and non-cluster.bro
+# Functions that are called from cluster.zeek and non-cluster.zeek
 
 function register_controller_impl(tpe: OpenFlow::Plugin, name: string, controller: Controller)
 	{

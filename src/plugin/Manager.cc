@@ -185,7 +185,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	string init;
 
-	// First load {scripts}/__preload__.bro automatically.
+	// First load {scripts}/__preload__.zeek automatically.
 	for (const string& ext : script_extensions)
 		{
 		init = dir + "scripts/__preload__" + ext;
@@ -198,7 +198,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			}
 		}
 
-	// Load {bif,scripts}/__load__.bro automatically.
+	// Load {bif,scripts}/__load__.zeek automatically.
 	for (const string& ext : script_extensions)
 		{
 		init = dir + "lib/bif/__load__" + ext;

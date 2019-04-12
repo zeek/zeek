@@ -480,7 +480,7 @@ type NetStats: record {
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
-	## :doc:`/scripts/base/frameworks/packet-filter/main.bro`. Depending on the
+	## :doc:`/scripts/base/frameworks/packet-filter/main.zeek`. Depending on the
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
@@ -4629,13 +4629,13 @@ const log_max_size = 0.0 &redef;
 const log_encryption_key = "<undefined>" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
-## activate profiling is loading :doc:`/scripts/policy/misc/profiling.bro`.
+## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
 ## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
-## profiling is loading  :doc:`/scripts/policy/misc/profiling.bro`.
+## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
 ## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling
 const profiling_interval = 0 secs &redef;

@@ -43,8 +43,8 @@ export {
 	# ### High-level API.
 	# ###
 
-	# ### Note - other high level primitives are in catch-and-release.bro, shunt.bro and
-	# ### drop.bro
+	# ### Note - other high level primitives are in catch-and-release.zeek,
+	# ### shunt.zeek and drop.zeek
 
 	## Allows all traffic involving a specific IP address to be forwarded.
 	##

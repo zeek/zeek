@@ -309,7 +309,7 @@ std::string implode_string_vector(const std::vector<std::string>& v,
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
- * @param file A path to a Bro script.  If it is a __load__.bro, that part
+ * @param file A path to a Bro script.  If it is a __load__.zeek, that part
  *             is discarded when constructing the flattened the name.
  * @param prefix A string to prepend to the flattened script name.
  * @return The flattened script name.

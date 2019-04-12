@@ -1,6 +1,6 @@
 ##! A framework for establishing and controlling a cluster of Bro instances.
 ##! In order to use the cluster framework, a script named
-##! ``cluster-layout.bro`` must exist somewhere in Bro's script search path
+##! ``cluster-layout.zeek`` must exist somewhere in Bro's script search path
 ##! which has a cluster definition of the :bro:id:`Cluster::nodes` variable.
 ##! The ``CLUSTER_NODE`` environment variable or :bro:id:`Cluster::node`
 ##! must also be sent and the cluster framework loaded as a package like
@@ -192,7 +192,7 @@ export {
 	global worker_count: count = 0;
 
 	## The cluster layout definition.  This should be placed into a filter
-	## named cluster-layout.bro somewhere in the BROPATH.  It will be
+	## named cluster-layout.zeek somewhere in the BROPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that BroControl handles all of this automatically.
 	## The table is typically indexed by node names/labels (e.g. "manager"
@@ -200,7 +200,7 @@ export {
 	const nodes: table[string] of Node = {} &redef;
 
 	## Indicates whether or not the manager will act as the logger and receive
-	## logs.  This value should be set in the cluster-layout.bro script (the
+	## logs.  This value should be set in the cluster-layout.zeek script (the
 	## value should be true only if no logger is specified in Cluster::nodes).
 	## Note that BroControl handles this automatically.
 	const manager_is_logger = T &redef;

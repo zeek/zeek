@@ -35,7 +35,7 @@ function get_identifier_comments%(name: string%): string
 ##
 ## name: the name of a Bro script.  It must be a relative path to where
 ##       it is located within a particular component of BROPATH and use
-##       the same file name extension/suffix as the actual file (e.g. ".bro").
+##       the same file name extension/suffix as the actual file (e.g. ".zeek").
 ##
 ## Returns: summary comments associated with script with *name*.  If
 ##          *name* is not a known script, an empty string is returned.

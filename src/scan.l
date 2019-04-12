@@ -923,7 +923,7 @@ int yywrap()
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is init-bare.bro, and after it it's safe to initialize
+		// we parse is init-bare.zeek, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -961,7 +961,7 @@ int yywrap()
 	// prefixed and flattened version of the loaded file in BROPATH. The
 	// flattening involves taking the path in BROPATH in which the
 	// scanned file lives and replacing '/' path separators with a '.' If
-	// the scanned file is "__load__.bro", that part of the flattened
+	// the scanned file is "__load__.zeek", that part of the flattened
 	// file name is discarded. If the prefix is non-empty, it gets placed
 	// in front of the flattened path, separated with another '.'
 	std::list<ScannedFile>::iterator it;

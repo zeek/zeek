@@ -181,6 +181,8 @@ public:
 				val_list* vl);
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
+	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+				val_list vl);
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }

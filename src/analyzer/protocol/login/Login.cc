@@ -289,7 +289,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 		{
 		if ( authentication_skipped )
 			{
-			ConnectionEvent(authentication_skipped, {BuildConnVal()});
+			ConnectionEventFast(authentication_skipped, {BuildConnVal()});
 			}
 
 		state = LOGIN_STATE_SKIP;
@@ -332,7 +332,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_terminal && streq(name, "TERM") )
 			{
-			ConnectionEvent(login_terminal, {
+			ConnectionEventFast(login_terminal, {
 				BuildConnVal(),
 				new StringVal(val),
 			});
@@ -340,7 +340,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_display && streq(name, "DISPLAY") )
 			{
-			ConnectionEvent(login_display, {
+			ConnectionEventFast(login_display, {
 				BuildConnVal(),
 				new StringVal(val),
 			});
@@ -348,7 +348,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
 			{
-			ConnectionEvent(login_prompt, {
+			ConnectionEventFast(login_prompt, {
 				BuildConnVal(),
 				new StringVal(val),
 			});
@@ -425,7 +425,7 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 	Val* password = HaveTypeahead() ?
 				PopUserTextVal() : new StringVal("<none>");
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		username->Ref(),
 		client_name ? client_name->Ref() : val_mgr->GetEmptyString(),
@@ -444,7 +444,10 @@ const char* Login_Analyzer::GetUsername(const char* line) const
 
 void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 	{
-	ConnectionEvent(f, {
+	if ( ! f )
+		return;
+
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		new StringVal(line),
 	});
@@ -457,7 +460,7 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 
 	if ( login_confused )
 		{
-		ConnectionEvent(login_confused, {
+		ConnectionEventFast(login_confused, {
 			BuildConnVal(),
 			new StringVal(msg),
 			new StringVal(line),
@@ -483,7 +486,7 @@ void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
 		{
-		ConnectionEvent(login_confused_text, {
+		ConnectionEventFast(login_confused_text, {
 			BuildConnVal(),
 			new StringVal(line),
 		});

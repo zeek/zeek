@@ -833,7 +833,8 @@ void POP3_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	ConnectionEvent(pop3_starttls, {BuildConnVal()});
+	if ( pop3_starttls )
+		ConnectionEventFast(pop3_starttls, {BuildConnVal()});
 	}
 
 void POP3_Analyzer::AuthSuccessfull()
@@ -932,5 +933,5 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	if ( arg2 )
 		vl.append(new StringVal(arg2));
 
-	ConnectionEvent(event, std::move(vl));
+	ConnectionEventFast(event, std::move(vl));
 	}

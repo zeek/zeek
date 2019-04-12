@@ -299,7 +299,7 @@ static void passive_fingerprint(TCP_Analyzer* tcp, bool is_orig,
 
 			if ( OS_val )
 				{ // found new OS version
-				tcp->ConnectionEvent(OS_version_found, {
+				tcp->ConnectionEventFast(OS_version_found, {
 					tcp->BuildConnVal(),
 					src_addr_val->Ref(),
 					OS_val,
@@ -965,7 +965,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 					const u_char* data, int len, int caplen,
 					int is_orig, TCP_Flags flags)
 	{
-	ConnectionEvent(tcp_packet, {
+	ConnectionEventFast(tcp_packet, {
 		BuildConnVal(),
 		val_mgr->GetBool(is_orig),
 		new StringVal(flags.AsString()),
@@ -1280,7 +1280,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( connection_SYN_packet )
 			{
-			ConnectionEvent(connection_SYN_packet, {
+			ConnectionEventFast(connection_SYN_packet, {
 				BuildConnVal(),
 				SYN_vals->Ref(),
 			});
@@ -1500,7 +1500,7 @@ int TCP_Analyzer::TCPOptionEvent(unsigned int opt,
 	{
 	if ( tcp_option )
 		{
-		analyzer->ConnectionEvent(tcp_option, {
+		analyzer->ConnectionEventFast(tcp_option, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			val_mgr->GetCount(opt),
@@ -1821,7 +1821,7 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
 	if ( connection_EOF )
 		{
-		ConnectionEvent(connection_EOF, {
+		ConnectionEventFast(connection_EOF, {
 			BuildConnVal(),
 			val_mgr->GetBool(endp->IsOrig()),
 		});
@@ -2103,7 +2103,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 
 		if ( tcp_rexmit )
 			{
-			endp->TCP()->ConnectionEvent(tcp_rexmit, {
+			endp->TCP()->ConnectionEventFast(tcp_rexmit, {
 				endp->TCP()->BuildConnVal(),
 				val_mgr->GetBool(endp->IsOrig()),
 				val_mgr->GetCount(seq),
@@ -2158,11 +2158,12 @@ void TCPStats_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
-	ConnectionEvent(conn_stats, {
-		BuildConnVal(),
-		orig_stats->BuildStats(),
-		resp_stats->BuildStats(),
-	});
+	if ( conn_stats )
+		ConnectionEventFast(conn_stats, {
+			BuildConnVal(),
+			orig_stats->BuildStats(),
+			resp_stats->BuildStats(),
+		});
 	}
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)

@@ -646,7 +646,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 
 	if ( http_message_done )
 		{
-		GetAnalyzer()->ConnectionEvent(http_message_done, {
+		GetAnalyzer()->ConnectionEventFast(http_message_done, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			BuildMessageStat(interrupted, detail),
@@ -679,7 +679,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 
 	if ( http_begin_entity )
 		{
-		analyzer->ConnectionEvent(http_begin_entity, {
+		analyzer->ConnectionEventFast(http_begin_entity, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 		});
@@ -696,7 +696,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 
 	if ( http_end_entity )
 		{
-		analyzer->ConnectionEvent(http_end_entity, {
+		analyzer->ConnectionEventFast(http_end_entity, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 		});
@@ -737,7 +737,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	{
 	if ( http_all_headers )
 		{
-		analyzer->ConnectionEvent(http_all_headers, {
+		analyzer->ConnectionEventFast(http_all_headers, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			BuildHeaderTable(hlist),
@@ -751,7 +751,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		ty->Ref();
 		subty->Ref();
 
-		analyzer->ConnectionEvent(http_content_type, {
+		analyzer->ConnectionEventFast(http_content_type, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			ty,
@@ -1183,7 +1183,7 @@ void HTTP_Analyzer::GenStats()
 		r->Assign(3, new Val(reply_version, TYPE_DOUBLE));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
-		ConnectionEvent(http_stats, {BuildConnVal(), r});
+		ConnectionEventFast(http_stats, {BuildConnVal(), r});
 		}
 	}
 
@@ -1381,7 +1381,7 @@ void HTTP_Analyzer::HTTP_Event(const char* category, StringVal* detail)
 	if ( http_event )
 		{
 		// DEBUG_MSG("%.6f http_event\n", network_time);
-		ConnectionEvent(http_event, {
+		ConnectionEventFast(http_event, {
 			BuildConnVal(),
 			new StringVal(category),
 			detail,
@@ -1424,7 +1424,7 @@ void HTTP_Analyzer::HTTP_Request()
 		Ref(request_method);
 
 		// DEBUG_MSG("%.6f http_request\n", network_time);
-		ConnectionEvent(http_request, {
+		ConnectionEventFast(http_request, {
 			BuildConnVal(),
 			request_method,
 			TruncateURI(request_URI->AsStringVal()),
@@ -1438,7 +1438,7 @@ void HTTP_Analyzer::HTTP_Reply()
 	{
 	if ( http_reply )
 		{
-		ConnectionEvent(http_reply, {
+		ConnectionEventFast(http_reply, {
 			BuildConnVal(),
 			new StringVal(fmt("%.1f", reply_version)),
 			val_mgr->GetCount(reply_code),
@@ -1517,7 +1517,7 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 
 		if ( http_connection_upgrade )
 			{
-			ConnectionEvent(http_connection_upgrade, {
+			ConnectionEventFast(http_connection_upgrade, {
 				BuildConnVal(),
 				new StringVal(upgrade_protocol),
 			});
@@ -1693,7 +1693,7 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 		if ( DEBUG_http )
 			DEBUG_MSG("%.6f http_header\n", network_time);
 
-		ConnectionEvent(http_header, {
+		ConnectionEventFast(http_header, {
 			BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			mime::new_string_val(h->get_name())->ToUpper(),
@@ -1827,7 +1827,7 @@ void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
 	{
 	if ( http_entity_data )
 		{
-		ConnectionEvent(http_entity_data, {
+		ConnectionEventFast(http_entity_data, {
 			BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			val_mgr->GetCount(entity_data->Len()),

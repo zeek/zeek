@@ -140,15 +140,18 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 		return;
 
 	if ( id2 >= 0 )
-		endp->TCP()->ConnectionEvent(f, {val_mgr->GetInt(id1), val_mgr->GetInt(id2)});
+		endp->TCP()->ConnectionEventFast(f, {val_mgr->GetInt(id1), val_mgr->GetInt(id2)});
 	else
-		endp->TCP()->ConnectionEvent(f, {val_mgr->GetInt(id1)});
+		endp->TCP()->ConnectionEventFast(f, {val_mgr->GetInt(id1)});
 
 	}
 
 void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	{
-	endp->TCP()->ConnectionEvent(stp_create_endp, {
+	if ( ! stp_create_endp )
+		return;
+
+	endp->TCP()->ConnectionEventFast(stp_create_endp, {
 		endp->TCP()->BuildConnVal(),
 		val_mgr->GetInt(stp_id),
 		val_mgr->GetBool(is_orig),

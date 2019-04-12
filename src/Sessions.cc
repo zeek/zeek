@@ -171,7 +171,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.QueueEvent(raw_packet, {pkt->BuildPktHdrVal()});
+		mgr.QueueEventFast(raw_packet, {pkt->BuildPktHdrVal()});
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -411,7 +411,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = 1;
 		if ( esp_packet )
-			mgr.QueueEvent(esp_packet, {ip_hdr->BuildPktHdrVal()});
+			mgr.QueueEventFast(esp_packet, {ip_hdr->BuildPktHdrVal()});
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -1315,9 +1315,9 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		{
 		conn->Event(new_connection, 0);
 
-		if ( external )
+		if ( external && connection_external )
 			{
-			conn->ConnectionEvent(connection_external, 0, {
+			conn->ConnectionEventFast(connection_external, 0, {
 				conn->BuildConnVal(),
 				new StringVal(conn->GetTimerMgr()->GetTag().c_str()),
 			});

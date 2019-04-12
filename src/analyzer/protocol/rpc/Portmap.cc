@@ -261,7 +261,7 @@ uint32 PortmapperInterp::CheckPort(uint32 port)
 		{
 		if ( pm_bad_port )
 			{
-			analyzer->ConnectionEvent(pm_bad_port, {
+			analyzer->ConnectionEventFast(pm_bad_port, {
 				analyzer->BuildConnVal(),
 				val_mgr->GetCount(port),
 			});
@@ -300,7 +300,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 			vl.append(request);
 		}
 
-	analyzer->ConnectionEvent(f, std::move(vl));
+	analyzer->ConnectionEventFast(f, std::move(vl));
 	}
 
 Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)

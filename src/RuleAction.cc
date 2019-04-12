@@ -17,7 +17,7 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 	{
 	if ( signature_match )
 		{
-		mgr.QueueEvent(signature_match, {
+		mgr.QueueEventFast(signature_match, {
 			rule_matcher->BuildRuleStateValue(parent, state),
 			new StringVal(msg),
 			data ? new StringVal(len, (const char*)data) : val_mgr->GetEmptyString(),

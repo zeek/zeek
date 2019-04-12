@@ -506,9 +506,9 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			}
 
 		if ( conn )
-			conn->ConnectionEvent(event, 0, std::move(vl));
+			conn->ConnectionEventFast(event, 0, std::move(vl));
 		else
-			mgr.QueueEvent(event, std::move(vl));
+			mgr.QueueEventFast(event, std::move(vl));
 		}
 	else
 		{

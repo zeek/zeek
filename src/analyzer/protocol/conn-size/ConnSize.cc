@@ -47,7 +47,7 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool
 	if ( ! f )
 		return;
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		val_mgr->GetCount(threshold),
 		val_mgr->GetBool(is_orig),

@@ -415,7 +415,7 @@ void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
 		{
-		mgr.QueueEvent(anonymization_mapping, {
+		mgr.QueueEventFast(anonymization_mapping, {
 			new AddrVal(input),
 			new AddrVal(output)
 		});

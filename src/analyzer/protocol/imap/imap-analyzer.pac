@@ -43,7 +43,9 @@ refine connection IMAP_Conn += {
 			if ( commands == "ok" )
 				{
 				bro_analyzer()->StartTLS();
-				BifEvent::generate_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
+
+				if ( imap_starttls )
+					BifEvent::generate_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
 				}
 			else
 				reporter->Weird(bro_analyzer()->Conn(), "IMAP: server refused StartTLS");
@@ -54,6 +56,9 @@ refine connection IMAP_Conn += {
 
 	function proc_server_capability(capabilities: Capability[]): bool
 		%{
+		if ( ! imap_capabilities )
+			return true;
+
 		VectorVal* capv = new VectorVal(internal_type("string_vec")->AsVectorType());
 		for ( unsigned int i = 0; i< capabilities->size(); i++ )
 			{

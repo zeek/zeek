@@ -237,7 +237,7 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 
 			if ( contents_file_write_failure )
 				{
-				tcp_analyzer->ConnectionEvent(contents_file_write_failure, {
+				tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
 					Conn()->BuildConnVal(),
 					val_mgr->GetBool(IsOrig()),
 					new StringVal(buf),

@@ -41,7 +41,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
 	if ( ! chunk_event ) return true;
 
-	mgr.QueueEvent(chunk_event, {
+	mgr.QueueEventFast(chunk_event, {
 		GetFile()->GetVal()->Ref(),
 		new StringVal(new BroString(data, len, 0)),
 		val_mgr->GetCount(offset),
@@ -54,7 +54,7 @@ bool DataEvent::DeliverStream(const u_char* data, uint64 len)
 	{
 	if ( ! stream_event ) return true;
 
-	mgr.QueueEvent(stream_event, {
+	mgr.QueueEventFast(stream_event, {
 		GetFile()->GetVal()->Ref(),
 		new StringVal(new BroString(data, len, 0)),
 	});

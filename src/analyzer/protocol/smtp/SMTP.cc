@@ -220,7 +220,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 			if ( smtp_data && ! skip_data )
 				{
-				ConnectionEvent(smtp_data, {
+				ConnectionEventFast(smtp_data, {
 					BuildConnVal(),
 					val_mgr->GetBool(orig),
 					new StringVal(data_len, line),
@@ -350,7 +350,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 						break;
 				}
 
-				ConnectionEvent(smtp_reply, {
+				ConnectionEventFast(smtp_reply, {
 					BuildConnVal(),
 					val_mgr->GetBool(orig),
 					val_mgr->GetCount(reply_code),
@@ -410,7 +410,8 @@ void SMTP_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	ConnectionEvent(smtp_starttls, {BuildConnVal()});
+	if ( smtp_starttls )
+		ConnectionEventFast(smtp_starttls, {BuildConnVal()});
 	}
 
 
@@ -852,12 +853,14 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 				int arg_len, const char* arg)
 	{
 	ProtocolConfirmation();
-	ConnectionEvent(smtp_request, {
-		BuildConnVal(),
-		val_mgr->GetBool(orig_is_sender),
-		(new StringVal(cmd_len, cmd))->ToUpper(),
-		new StringVal(arg_len, arg),
-	});
+
+	if ( smtp_request )
+		ConnectionEventFast(smtp_request, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig_is_sender),
+			(new StringVal(cmd_len, cmd))->ToUpper(),
+			new StringVal(arg_len, arg),
+		});
 	}
 
 void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
@@ -872,7 +875,7 @@ void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
 		if ( ! orig_is_sender )
 			is_orig = ! is_orig;
 
-		ConnectionEvent(smtp_unexpected, {
+		ConnectionEventFast(smtp_unexpected, {
 			BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			new StringVal(msg),

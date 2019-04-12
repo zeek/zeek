@@ -59,9 +59,9 @@ void Gnutella_Analyzer::Done()
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
 		if ( Established() && gnutella_establish )
-			ConnectionEvent(gnutella_establish, {BuildConnVal()});
+			ConnectionEventFast(gnutella_establish, {BuildConnVal()});
 		else if ( ! Established () && gnutella_not_establish )
-			ConnectionEvent(gnutella_not_establish, {BuildConnVal()});
+			ConnectionEventFast(gnutella_not_establish, {BuildConnVal()});
 		}
 
 	if ( gnutella_partial_binary_msg )
@@ -72,7 +72,7 @@ void Gnutella_Analyzer::Done()
 			{
 			if ( ! p->msg_sent && p->msg_pos )
 				{
-				ConnectionEvent(gnutella_partial_binary_msg, {
+				ConnectionEventFast(gnutella_partial_binary_msg, {
 					BuildConnVal(),
 					new StringVal(p->msg),
 					val_mgr->GetBool((i == 0)),
@@ -121,7 +121,7 @@ int Gnutella_Analyzer::IsHTTP(string header)
 
 	if ( gnutella_http_notify )
 		{
-		ConnectionEvent(gnutella_http_notify, {BuildConnVal()});
+		ConnectionEventFast(gnutella_http_notify, {BuildConnVal()});
 		}
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
@@ -181,7 +181,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 			{
 			if ( gnutella_text_msg )
 				{
-				ConnectionEvent(gnutella_text_msg, {
+				ConnectionEventFast(gnutella_text_msg, {
 					BuildConnVal(),
 					val_mgr->GetBool(orig),
 					new StringVal(ms->headers.data()),
@@ -195,7 +195,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 				{
 				sent_establish = 1;
 
-				ConnectionEvent(gnutella_establish, {BuildConnVal()});
+				ConnectionEventFast(gnutella_establish, {BuildConnVal()});
 				}
 			}
 		}
@@ -221,7 +221,7 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 
 	if ( gnutella_binary_msg )
 		{
-		ConnectionEvent(gnutella_binary_msg, {
+		ConnectionEventFast(gnutella_binary_msg, {
 			BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			val_mgr->GetCount(p->msg_type),

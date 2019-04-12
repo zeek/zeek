@@ -83,7 +83,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
-		ConnectionEvent(ident_request, {
+		ConnectionEventFast(ident_request, {
 			BuildConnVal(),
 			val_mgr->GetPort(local_port, TRANSPORT_TCP),
 			val_mgr->GetPort(remote_port, TRANSPORT_TCP),
@@ -143,12 +143,13 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 		if ( is_error )
 			{
-			ConnectionEvent(ident_error, {
-				BuildConnVal(),
-				val_mgr->GetPort(local_port, TRANSPORT_TCP),
-				val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-				new StringVal(end_of_line - line, line),
-			});
+			if ( ident_error )
+				ConnectionEventFast(ident_error, {
+					BuildConnVal(),
+					val_mgr->GetPort(local_port, TRANSPORT_TCP),
+					val_mgr->GetPort(remote_port, TRANSPORT_TCP),
+					new StringVal(end_of_line - line, line),
+				});
 			}
 
 		else
@@ -176,7 +177,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			line = skip_whitespace(colon + 1, end_of_line);
 
-			ConnectionEvent(ident_reply, {
+			ConnectionEventFast(ident_reply, {
 				BuildConnVal(),
 				val_mgr->GetPort(local_port, TRANSPORT_TCP),
 				val_mgr->GetPort(remote_port, TRANSPORT_TCP),

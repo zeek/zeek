@@ -48,7 +48,10 @@ void Hash::Finalize()
 	if ( ! hash->IsValid() || ! fed )
 		return;
 
-	mgr.QueueEvent(file_hash, {
+	if ( ! file_hash )
+		return;
+
+	mgr.QueueEventFast(file_hash, {
 		GetFile()->GetVal()->Ref(),
 		new StringVal(kind),
 		hash->Get(),

@@ -662,16 +662,19 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	if ( protocol_confirmed )
 		return;
 
+	protocol_confirmed = true;
+
+	if ( ! protocol_confirmation )
+		return;
+
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 	Ref(tval);
 
-	mgr.QueueEvent(protocol_confirmation, {
+	mgr.QueueEventFast(protocol_confirmation, {
 		BuildConnVal(),
 		tval,
 		val_mgr->GetCount(id),
 	});
-
-	protocol_confirmed = true;
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -689,10 +692,13 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	else
 		r = new StringVal(reason);
 
+	if ( ! protocol_violation )
+		return;
+
 	EnumVal* tval = tag.AsEnumVal();
 	Ref(tval);
 
-	mgr.QueueEvent(protocol_violation, {
+	mgr.QueueEventFast(protocol_violation, {
 		BuildConnVal(),
 		tval,
 		val_mgr->GetCount(id),
@@ -785,6 +791,11 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 	{
 	conn->ConnectionEvent(f, this, std::move(vl));
+	}
+
+void Analyzer::ConnectionEventFast(EventHandlerPtr f, val_list vl)
+	{
+	conn->ConnectionEventFast(f, this, std::move(vl));
 	}
 
 void Analyzer::Weird(const char* name, const char* addl)

@@ -1016,7 +1016,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		}
 
 	if ( static_cast<size_t>(vl.length()) == args.size() )
-		mgr.QueueEvent(handler, std::move(vl), SOURCE_BROKER);
+		mgr.QueueEventFast(handler, std::move(vl), SOURCE_BROKER);
 	else
 		{
 		loop_over_list(vl, i)
@@ -1247,6 +1247,9 @@ void Manager::ProcessStatus(broker::status stat)
 		break;
 	}
 
+	if ( ! event )
+		return;
+
 	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
 	auto endpoint_info = new RecordVal(ei);
 
@@ -1275,7 +1278,7 @@ void Manager::ProcessStatus(broker::status stat)
 	auto str = stat.message();
 	auto msg = new StringVal(str ? *str : "");
 
-	mgr.QueueEvent(event, {endpoint_info, msg});
+	mgr.QueueEventFast(event, {endpoint_info, msg});
 	}
 
 void Manager::ProcessError(broker::error err)
@@ -1352,7 +1355,7 @@ void Manager::ProcessError(broker::error err)
 		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
-	mgr.QueueEvent(Broker::error, {
+	mgr.QueueEventFast(Broker::error, {
 		BifType::Enum::Broker::ErrorCode->GetVal(ec),
 		new StringVal(msg),
 	});

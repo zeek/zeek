@@ -183,11 +183,11 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		else
 			vl.append(val_mgr->GetFalse());
 
-		ConnectionEvent(rsh_request, std::move(vl));
+		ConnectionEventFast(rsh_request, std::move(vl));
 		}
 
 	else
-		ConnectionEvent(rsh_reply, std::move(vl));
+		ConnectionEventFast(rsh_reply, std::move(vl));
 	}
 
 void Rsh_Analyzer::ClientUserName(const char* s)

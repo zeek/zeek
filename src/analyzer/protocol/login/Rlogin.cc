@@ -244,7 +244,7 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	{
 	if ( login_terminal )
 		{
-		ConnectionEvent(login_terminal, {
+		ConnectionEventFast(login_terminal, {
 			BuildConnVal(),
 			new StringVal(s),
 		});

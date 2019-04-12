@@ -199,7 +199,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
     {
 	if ( icmp_sent )
 		{
-		ConnectionEvent(icmp_sent, {
+		ConnectionEventFast(icmp_sent, {
 			BuildConnVal(),
 			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
 		});
@@ -209,7 +209,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 		{
 		BroString* payload = new BroString(data, min(len, caplen), 0);
 
-		ConnectionEvent(icmp_sent_payload, {
+		ConnectionEventFast(icmp_sent_payload, {
 			BuildConnVal(),
 			BuildICMPVal(icmpp, len, icmpv6, ip_hdr),
 			new StringVal(payload),
@@ -512,7 +512,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 
 	BroString* payload = new BroString(data, caplen, 0);
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr),
 		val_mgr->GetCount(iid),
@@ -526,6 +526,10 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_router_advertisement;
+
+	if ( ! f )
+		return;
+
 	uint32 reachable = 0, retrans = 0;
 
 	if ( caplen >= (int)sizeof(reachable) )
@@ -536,7 +540,7 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 
 	int opt_offset = sizeof(reachable) + sizeof(retrans);
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		val_mgr->GetCount(icmpp->icmp_num_addrs), // Cur Hop Limit
@@ -558,6 +562,10 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_advertisement;
+
+	if ( ! f )
+		return;
+
 	IPAddr tgtaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
@@ -565,7 +573,7 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 
 	int opt_offset = sizeof(in6_addr);
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		val_mgr->GetBool(icmpp->icmp_num_addrs & 0x80), // Router
@@ -581,6 +589,10 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_neighbor_solicitation;
+
+	if ( ! f )
+		return;
+
 	IPAddr tgtaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
@@ -588,7 +600,7 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 
 	int opt_offset = sizeof(in6_addr);
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		new AddrVal(tgtaddr),
@@ -601,6 +613,10 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 			 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	EventHandlerPtr f = icmp_redirect;
+
+	if ( ! f )
+		return;
+
 	IPAddr tgtaddr, dstaddr;
 
 	if ( caplen >= (int)sizeof(in6_addr) )
@@ -611,7 +627,7 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 
 	int opt_offset = 2 * sizeof(in6_addr);
 
-	ConnectionEvent(f, {
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		new AddrVal(tgtaddr),
@@ -626,7 +642,10 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 	{
 	EventHandlerPtr f = icmp_router_solicitation;
 
-	ConnectionEvent(f, {
+	if ( ! f )
+		return;
+
+	ConnectionEventFast(f, {
 		BuildConnVal(),
 		BuildICMPVal(icmpp, len, 1, ip_hdr),
 		BuildNDOptionsVal(caplen, data),
@@ -652,7 +671,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 
 	if ( f )
 		{
-		ConnectionEvent(f, {
+		ConnectionEventFast(f, {
 			BuildConnVal(),
 			BuildICMPVal(icmpp, len, 0, ip_hdr),
 			val_mgr->GetCount(icmpp->icmp_code),
@@ -692,7 +711,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 	if ( f )
 		{
-		ConnectionEvent(f, {
+		ConnectionEventFast(f, {
 			BuildConnVal(),
 			BuildICMPVal(icmpp, len, 1, ip_hdr),
 			val_mgr->GetCount(icmpp->icmp_code),

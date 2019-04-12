@@ -182,7 +182,7 @@ public:
 	Val* BuildHdrVal();
 	Val* BuildAnswerVal();
 	Val* BuildEDNS_Val();
-	Val* BuildTSIG_Val();
+	Val* BuildTSIG_Val(struct TSIG_DATA*);
 	Val* BuildRRSIG_Val(struct RRSIG_DATA*);
 	Val* BuildDNSKEY_Val(struct DNSKEY_DATA*);
 	Val* BuildNSEC3_Val(struct NSEC3_DATA*);
@@ -214,10 +214,6 @@ public:
 				///< identical answer, there may be problems
 	// uint32* addr;	///< cache value to pass back results
 				///< for forward lookups
-
-	// More values for spesific DNS types.
-	//struct EDNS_ADDITIONAL* edns;
-	struct TSIG_DATA* tsig;
 };
 
 

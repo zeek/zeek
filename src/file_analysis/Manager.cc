@@ -443,7 +443,7 @@ string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	EnumVal* tagval = tag.AsEnumVal();
 	Ref(tagval);
 
-	mgr.QueueEvent(get_file_handle, {
+	mgr.QueueEventFast(get_file_handle, {
 		tagval,
 		c->BuildConnVal(),
 		val_mgr->GetBool(is_orig),

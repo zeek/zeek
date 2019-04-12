@@ -704,7 +704,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	if ( ! e )
 		return;
 
-	mgr.QueueEvent(e, {BuildMappingVal(dm)});
+	mgr.QueueEventFast(e, {BuildMappingVal(dm)});
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2)
@@ -715,7 +715,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2
 	Unref(l1);
 	Unref(l2);
 
-	mgr.QueueEvent(e, {
+	mgr.QueueEventFast(e, {
 		BuildMappingVal(dm),
 		l1->ConvertToSet(),
 		l2->ConvertToSet(),
@@ -727,7 +727,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	if ( ! e )
 		return;
 
-	mgr.QueueEvent(e, {
+	mgr.QueueEventFast(e, {
 		BuildMappingVal(old_dm),
 		BuildMappingVal(new_dm),
 	});

@@ -369,11 +369,12 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 					const Location* /* loc */,
 					double dtime, int dmem)
 	{
-	mgr.QueueEvent(load_sample, {
-		load_samples->Ref(),
-		new IntervalVal(dtime, Seconds),
-		val_mgr->GetInt(dmem)
-	});
+	if ( load_sample )
+		mgr.QueueEventFast(load_sample, {
+			load_samples->Ref(),
+			new IntervalVal(dtime, Seconds),
+			val_mgr->GetInt(dmem)
+		});
 	}
 
 void SegmentProfiler::Init()

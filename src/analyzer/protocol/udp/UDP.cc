@@ -157,7 +157,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( do_udp_contents )
 			{
-			ConnectionEvent(udp_contents, {
+			ConnectionEventFast(udp_contents, {
 				BuildConnVal(),
 				val_mgr->GetBool(is_orig),
 				new StringVal(len, (const char*) data),

@@ -190,7 +190,7 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 	if ( ! bad_arp )
 		return;
 
-	mgr.QueueEvent(bad_arp, {
+	mgr.QueueEventFast(bad_arp, {
 		ConstructAddrVal(ar_spa(hdr)),
 		EthAddrToStr((const u_char*) ar_sha(hdr)),
 		ConstructAddrVal(ar_tpa(hdr)),
@@ -212,7 +212,7 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 	if ( ! e )
 		return;
 
-	mgr.QueueEvent(e, {
+	mgr.QueueEventFast(e, {
 		EthAddrToStr(src),
 		EthAddrToStr(dst),
 		ConstructAddrVal(spa),

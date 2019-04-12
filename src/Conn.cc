@@ -325,7 +325,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		// and at this stage it's not a *multiple* instance.
 		return;
 
-	ConnectionEvent(e, 0, {
+	ConnectionEventFast(e, 0, {
 		BuildConnVal(),
 		val_mgr->GetBool(is_orig),
 		val_mgr->GetCount(threshold)
@@ -389,7 +389,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	ConnectionEvent(connection_status_update, 0, { BuildConnVal() });
+	ConnectionEventFast(connection_status_update, 0, { BuildConnVal() });
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -627,7 +627,7 @@ int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 		{
 		if ( software_parse_error )
 			{
-			ConnectionEvent(software_parse_error, analyzer, {
+			ConnectionEventFast(software_parse_error, analyzer, {
 				BuildConnVal(),
 				new AddrVal(addr),
 				new StringVal(len, s),
@@ -638,7 +638,7 @@ int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 
 	if ( software_version_found )
 		{
-		ConnectionEvent(software_version_found, 0, {
+		ConnectionEventFast(software_version_found, 0, {
 			BuildConnVal(),
 			new AddrVal(addr),
 			val,
@@ -666,7 +666,7 @@ int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
 
 	if ( software_unparsed_version_found )
 		{
-		ConnectionEvent(software_unparsed_version_found, analyzer, {
+		ConnectionEventFast(software_unparsed_version_found, analyzer, {
 			BuildConnVal(),
 			new AddrVal(addr),
 			new StringVal(len, full),
@@ -682,9 +682,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		return;
 
 	if ( name )
-		ConnectionEvent(f, analyzer, {new StringVal(name), BuildConnVal()});
+		ConnectionEventFast(f, analyzer, {new StringVal(name), BuildConnVal()});
 	else
-		ConnectionEvent(f, analyzer, {BuildConnVal()});
+		ConnectionEventFast(f, analyzer, {BuildConnVal()});
 
 	}
 
@@ -698,9 +698,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		}
 
 	if ( v2 )
-		ConnectionEvent(f, analyzer, {BuildConnVal(), v1, v2});
+		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1, v2});
 	else
-		ConnectionEvent(f, analyzer, {BuildConnVal(), v1});
+		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1});
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
@@ -717,6 +717,13 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 
 	// "this" is passed as a cookie for the event
 	mgr.QueueEvent(f, std::move(vl), SOURCE_LOCAL,
+			a ? a->GetID() : 0, GetTimerMgr(), this);
+	}
+
+void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+	{
+	// "this" is passed as a cookie for the event
+	mgr.QueueEventFast(f, std::move(vl), SOURCE_LOCAL,
 			a ? a->GetID() : 0, GetTimerMgr(), this);
 	}
 
@@ -1053,7 +1060,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			ConnectionEvent(connection_flow_label_changed, 0, {
+			ConnectionEventFast(connection_flow_label_changed, 0, {
 				BuildConnVal(),
 				val_mgr->GetBool(is_orig),
 				val_mgr->GetCount(my_flow_label),

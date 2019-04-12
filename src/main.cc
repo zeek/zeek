@@ -340,7 +340,7 @@ void terminate_bro()
 
 	EventHandlerPtr bro_done = internal_handler("bro_done");
 	if ( bro_done )
-		mgr.QueueEvent(bro_done, val_list{});
+		mgr.QueueEventFast(bro_done, val_list{});
 
 	timer_mgr->Expire();
 	mgr.Drain();
@@ -1138,7 +1138,7 @@ int main(int argc, char** argv)
 	EventHandlerPtr bro_init = internal_handler("bro_init");
 
 	if ( bro_init )
-		mgr.QueueEvent(bro_init, val_list{});
+		mgr.QueueEventFast(bro_init, val_list{});
 
 	EventRegistry::string_list* dead_handlers =
 		event_registry->UnusedHandlers();
@@ -1184,16 +1184,19 @@ int main(int argc, char** argv)
 	if ( override_ignore_checksums )
 		ignore_checksums = 1;
 
-	// Queue events reporting loaded scripts.
-	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+	if ( bro_script_loaded )
 		{
-		if ( i->skipped )
-			continue;
+		// Queue events reporting loaded scripts.
+		for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+			{
+			if ( i->skipped )
+				continue;
 
-		mgr.QueueEvent(bro_script_loaded, {
-			new StringVal(i->name.c_str()),
-			val_mgr->GetCount(i->include_level),
-		});
+			mgr.QueueEventFast(bro_script_loaded, {
+				new StringVal(i->name.c_str()),
+				val_mgr->GetCount(i->include_level),
+			});
+			}
 		}
 
 	reporter->ReportViaEvents(true);

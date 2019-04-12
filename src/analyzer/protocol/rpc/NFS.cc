@@ -149,7 +149,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		{
 		auto vl = event_common_vl(c, rpc_status, nfs_status,
 					       start_time, last_time, reply_len, 0);
-		analyzer->ConnectionEvent(nfs_reply_status, std::move(vl));
+		analyzer->ConnectionEventFast(nfs_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -285,7 +285,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		if ( reply )
 			vl.append(reply);
 
-		analyzer->ConnectionEvent(event, std::move(vl));
+		analyzer->ConnectionEventFast(event, std::move(vl));
 		}
 	else
 		Unref(reply);

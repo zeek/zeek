@@ -246,7 +246,10 @@ void BackDoorEndpoint::RloginSignatureFound(int len)
 
 	rlogin_checking_done = 1;
 
-	endp->TCP()->ConnectionEvent(rlogin_signature_found, {
+	if ( ! rlogin_signature_found )
+		return;
+
+	endp->TCP()->ConnectionEventFast(rlogin_signature_found, {
 		endp->TCP()->BuildConnVal(),
 		val_mgr->GetBool(endp->IsOrig()),
 		val_mgr->GetCount(rlogin_num_null),
@@ -337,7 +340,10 @@ void BackDoorEndpoint::CheckForTelnet(uint64 /* seq */, int len, const u_char* d
 
 void BackDoorEndpoint::TelnetSignatureFound(int len)
 	{
-	endp->TCP()->ConnectionEvent(telnet_signature_found, {
+	if ( ! telnet_signature_found )
+		return;
+
+	endp->TCP()->ConnectionEventFast(telnet_signature_found, {
 		endp->TCP()->BuildConnVal(),
 		val_mgr->GetBool(endp->IsOrig()),
 		val_mgr->GetCount(len),
@@ -641,12 +647,15 @@ void BackDoorEndpoint::CheckForHTTPProxy(uint64 /* seq */, int len,
 
 void BackDoorEndpoint::SignatureFound(EventHandlerPtr e, int do_orig)
 	{
+	if ( ! e )
+		return;
+
 	if ( do_orig )
-		endp->TCP()->ConnectionEvent(e,
+		endp->TCP()->ConnectionEventFast(e,
 		    {endp->TCP()->BuildConnVal(), val_mgr->GetBool(endp->IsOrig())});
 
 	else
-		endp->TCP()->ConnectionEvent(e, {endp->TCP()->BuildConnVal()});
+		endp->TCP()->ConnectionEventFast(e, {endp->TCP()->BuildConnVal()});
 	}
 
 
@@ -773,7 +782,10 @@ void BackDoor_Analyzer::StatTimer(double t, int is_expire)
 
 void BackDoor_Analyzer::StatEvent()
 	{
-	TCP()->ConnectionEvent(backdoor_stats, {
+	if ( ! backdoor_stats )
+		return;
+
+	TCP()->ConnectionEventFast(backdoor_stats, {
 		TCP()->BuildConnVal(),
 		orig_endp->BuildStats(),
 		resp_endp->BuildStats(),
@@ -782,7 +794,10 @@ void BackDoor_Analyzer::StatEvent()
 
 void BackDoor_Analyzer::RemoveEvent()
 	{
-	TCP()->ConnectionEvent(backdoor_remove_conn, {TCP()->BuildConnVal()});
+	if ( ! backdoor_remove_conn )
+		return;
+
+	TCP()->ConnectionEventFast(backdoor_remove_conn, {TCP()->BuildConnVal()});
 	}
 
 BackDoorTimer::BackDoorTimer(double t, BackDoor_Analyzer* a)

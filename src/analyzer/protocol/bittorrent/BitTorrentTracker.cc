@@ -247,7 +247,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
 		{
-		ConnectionEvent(bt_tracker_weird, {
+		ConnectionEventFast(bt_tracker_weird, {
 			BuildConnVal(),
 			val_mgr->GetBool(orig),
 			new StringVal(msg),
@@ -348,11 +348,12 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 	{
 	ProtocolConfirmation();
 
-	ConnectionEvent(bt_tracker_request, {
-		BuildConnVal(),
-		req_val_uri,
-		req_val_headers,
-	});
+	if ( bt_tracker_request )
+		ConnectionEventFast(bt_tracker_request, {
+			BuildConnVal(),
+			req_val_uri,
+			req_val_headers,
+		});
 
 	req_val_uri = 0;
 	req_val_headers = 0;
@@ -401,11 +402,12 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			{
 			if ( res_status != 200 )
 				{
-				ConnectionEvent(bt_tracker_response_not_ok, {
-					BuildConnVal(),
-					val_mgr->GetCount(res_status),
-					res_val_headers,
-				});
+				if ( bt_tracker_response_not_ok )
+					ConnectionEventFast(bt_tracker_response_not_ok, {
+						BuildConnVal(),
+						val_mgr->GetCount(res_status),
+						res_val_headers,
+					});
 				res_val_headers = 0;
 				res_buf_pos = res_buf + res_buf_len;
 				res_state = BTT_RES_DONE;
@@ -787,13 +789,14 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	{
 	ProtocolConfirmation();
 
-	ConnectionEvent(bt_tracker_response, {
-		BuildConnVal(),
-		val_mgr->GetCount(res_status),
-		res_val_headers,
-		res_val_peers,
-		res_val_benc,
-	});
+	if ( bt_tracker_response )
+		ConnectionEventFast(bt_tracker_response, {
+			BuildConnVal(),
+			val_mgr->GetCount(res_status),
+			res_val_headers,
+			res_val_peers,
+			res_val_benc,
+		});
 
 	res_val_headers = 0;
 	res_val_peers = 0;

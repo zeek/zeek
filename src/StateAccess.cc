@@ -536,7 +536,7 @@ void StateAccess::Replay()
 
 	if ( remote_state_access_performed )
 		{
-		mgr.QueueEvent(remote_state_access_performed, {
+		mgr.QueueEventFast(remote_state_access_performed, {
 			new StringVal(target.id->Name()),
 			target.id->ID_Val()->Ref(),
 		});

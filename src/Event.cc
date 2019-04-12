@@ -128,7 +128,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		QueueEvent(event_queue_flush_point, val_list{});
+		QueueEventFast(event_queue_flush_point, val_list{});
 
 	SegmentProfiler(segment_logger, "draining-events");
 

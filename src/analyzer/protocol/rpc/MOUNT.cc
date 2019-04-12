@@ -95,7 +95,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		{
 		auto vl = event_common_vl(c, rpc_status, mount_status,
 					   start_time, last_time, reply_len, 0);
-		analyzer->ConnectionEvent(mount_reply_status, std::move(vl));
+		analyzer->ConnectionEventFast(mount_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -173,7 +173,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		if ( reply )
 			vl.append(reply);
 
-		analyzer->ConnectionEvent(event, std::move(vl));
+		analyzer->ConnectionEventFast(event, std::move(vl));
 		}
 	else
 		Unref(reply);

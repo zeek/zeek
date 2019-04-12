@@ -427,10 +427,11 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	// TODO: try to parse out general name ?
 #endif
 
-	mgr.QueueEvent(ocsp_request, {
-		GetFile()->GetVal()->Ref(),
-		val_mgr->GetCount(version),
-	});
+	if ( ocsp_request )
+		mgr.QueueEventFast(ocsp_request, {
+			GetFile()->GetVal()->Ref(),
+			val_mgr->GetCount(version),
+		});
 
 	BIO *bio = BIO_new(BIO_s_mem());
 
@@ -470,10 +471,11 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
 	StringVal* status_val = new StringVal(strlen(status_str), status_str);
 
-	mgr.QueueEvent(ocsp_response_status, {
-		GetFile()->GetVal()->Ref(),
-		status_val->Ref(),
-	});
+	if ( ocsp_response_status )
+		mgr.QueueEventFast(ocsp_response_status, {
+			GetFile()->GetVal()->Ref(),
+			status_val->Ref(),
+		});
 
 	//if (!resp_bytes)
 	//	{
@@ -491,12 +493,18 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 	// get the basic response
 	basic_resp = OCSP_response_get1_basic(resp);
 	if ( !basic_resp )
+		{
+		Unref(status_val);
 		goto clean_up;
+		}
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	resp_data = basic_resp->tbsResponseData;
 	if ( !resp_data )
+		{
+		Unref(status_val);
 		goto clean_up;
+		}
 #endif
 
 	vl.append(GetFile()->GetVal()->Ref());

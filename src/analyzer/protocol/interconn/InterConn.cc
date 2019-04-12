@@ -241,16 +241,18 @@ void InterConn_Analyzer::StatTimer(double t, int is_expire)
 
 void InterConn_Analyzer::StatEvent()
 	{
-	Conn()->ConnectionEvent(interconn_stats, this, {
-		Conn()->BuildConnVal(),
-		orig_endp->BuildStats(),
-		resp_endp->BuildStats(),
-	});
+	if ( interconn_stats )
+		Conn()->ConnectionEventFast(interconn_stats, this, {
+			Conn()->BuildConnVal(),
+			orig_endp->BuildStats(),
+			resp_endp->BuildStats(),
+		});
 	}
 
 void InterConn_Analyzer::RemoveEvent()
 	{
-	Conn()->ConnectionEvent(interconn_remove_conn, this, {Conn()->BuildConnVal()});
+	if ( interconn_remove_conn )
+		Conn()->ConnectionEventFast(interconn_remove_conn, this, {Conn()->BuildConnVal()});
 	}
 
 InterConnTimer::InterConnTimer(double t, InterConn_Analyzer* a)

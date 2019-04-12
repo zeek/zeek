@@ -136,7 +136,7 @@ void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 
 	if ( report_gap(endp, endp->peer) )
 		{
-		dst_analyzer->ConnectionEvent(content_gap, {
+		dst_analyzer->ConnectionEventFast(content_gap, {
 			dst_analyzer->BuildConnVal(),
 			val_mgr->GetBool(IsOrig()),
 			val_mgr->GetCount(seq),
@@ -335,7 +335,7 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 
 	if ( contents_file_write_failure )
 		{
-		tcp_analyzer->ConnectionEvent(contents_file_write_failure, {
+		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
 			Endpoint()->Conn()->BuildConnVal(),
 			val_mgr->GetBool(IsOrig()),
 			new StringVal("TCP reassembler content write failure"),
@@ -352,7 +352,7 @@ void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
 
 	if ( contents_file_write_failure )
 		{
-		tcp_analyzer->ConnectionEvent(contents_file_write_failure, {
+		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
 			Endpoint()->Conn()->BuildConnVal(),
 			val_mgr->GetBool(IsOrig()),
 			new StringVal("TCP reassembler gap write failure"),
@@ -425,7 +425,7 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		BroString* b1_s = new BroString((const u_char*) b1, n, 0);
 		BroString* b2_s = new BroString((const u_char*) b2, n, 0);
 
-		tcp_analyzer->ConnectionEvent(rexmit_inconsistency, {
+		tcp_analyzer->ConnectionEventFast(rexmit_inconsistency, {
 			tcp_analyzer->BuildConnVal(),
 			new StringVal(b1_s),
 			new StringVal(b2_s),
@@ -596,7 +596,7 @@ void TCP_Reassembler::DeliverBlock(uint64 seq, int len, const u_char* data)
 
 	if ( deliver_tcp_contents )
 		{
-		tcp_analyzer->ConnectionEvent(tcp_contents, {
+		tcp_analyzer->ConnectionEventFast(tcp_contents, {
 			tcp_analyzer->BuildConnVal(),
 			val_mgr->GetBool(IsOrig()),
 			val_mgr->GetCount(seq),

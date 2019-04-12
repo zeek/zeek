@@ -58,7 +58,7 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 	{
 	if ( netbios_session_message )
 		{
-		analyzer->ConnectionEvent(netbios_session_message, {
+		analyzer->ConnectionEventFast(netbios_session_message, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_query),
 			val_mgr->GetCount(type),
@@ -330,14 +330,14 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 
 	if ( is_orig >= 0 )
 		{
-		analyzer->ConnectionEvent(event, {
+		analyzer->ConnectionEventFast(event, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetBool(is_orig),
 			new StringVal(new BroString(data, len, 0)),
 		});
 		}
 	else
-		analyzer->ConnectionEvent(event, {
+		analyzer->ConnectionEventFast(event, {
 			analyzer->BuildConnVal(),
 			new StringVal(new BroString(data, len, 0)),
 		});

@@ -637,7 +637,7 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 
 void File::FileEvent(EventHandlerPtr h, val_list vl)
 	{
-	mgr.QueueEvent(h, std::move(vl));
+	mgr.QueueEventFast(h, std::move(vl));
 
 	if ( h == file_new || h == file_over_new_connection ||
 	     h == file_sniff ||

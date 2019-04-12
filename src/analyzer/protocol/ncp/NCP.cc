@@ -63,7 +63,7 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 		{
 		if ( frame->is_orig() )
 			{
-			analyzer->ConnectionEvent(f, {
+			analyzer->ConnectionEventFast(f, {
 				analyzer->BuildConnVal(),
 				val_mgr->GetCount(frame->frame_type()),
 				val_mgr->GetCount(frame->body_length()),
@@ -72,7 +72,7 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 			}
 		else
 			{
-			analyzer->ConnectionEvent(f, {
+			analyzer->ConnectionEventFast(f, {
 				analyzer->BuildConnVal(),
 				val_mgr->GetCount(frame->frame_type()),
 				val_mgr->GetCount(frame->body_length()),

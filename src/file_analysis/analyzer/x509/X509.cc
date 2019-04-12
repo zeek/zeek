@@ -221,16 +221,20 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 
 	if ( constr )
 		{
-		RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
-		pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
+		if ( x509_ext_basic_constraints )
+			{
+			RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
+			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
 
-		if ( constr->pathlen )
-			pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+			if ( constr->pathlen )
+				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
-		mgr.QueueEvent(x509_ext_basic_constraints, {
-			GetFile()->GetVal()->Ref(),
-			pBasicConstraint,
-		});
+			mgr.QueueEventFast(x509_ext_basic_constraints, {
+				GetFile()->GetVal()->Ref(),
+				pBasicConstraint,
+			});
+			}
+
 		BASIC_CONSTRAINTS_free(constr);
 		}
 

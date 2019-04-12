@@ -58,6 +58,13 @@ public:
 	EventMgr();
 	~EventMgr() override;
 
+	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
+			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+			TimerMgr* mgr = 0, BroObj* obj = 0)
+		{
+		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+		}
+
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0)

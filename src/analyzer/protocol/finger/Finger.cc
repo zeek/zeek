@@ -68,7 +68,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 
 		if ( finger_request )
 			{
-			ConnectionEvent(finger_request, {
+			ConnectionEventFast(finger_request, {
 				BuildConnVal(),
 				val_mgr->GetBool(long_cnt),
 				new StringVal(at - line, line),
@@ -87,7 +87,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_reply )
 			return;
 
-		ConnectionEvent(finger_reply, {
+		ConnectionEventFast(finger_reply, {
 			BuildConnVal(),
 			new StringVal(end_of_line - line, line),
 		});

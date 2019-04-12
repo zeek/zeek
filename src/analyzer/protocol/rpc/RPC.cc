@@ -330,7 +330,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 	{
 	if ( rpc_dialogue )
 		{
-		analyzer->ConnectionEvent(rpc_dialogue, {
+		analyzer->ConnectionEventFast(rpc_dialogue, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetCount(c->Program()),
 			val_mgr->GetCount(c->Version()),
@@ -347,7 +347,7 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	{
 	if ( rpc_call )
 		{
-		analyzer->ConnectionEvent(rpc_call, {
+		analyzer->ConnectionEventFast(rpc_call, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetCount(c->XID()),
 			val_mgr->GetCount(c->Program()),
@@ -362,7 +362,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 	{
 	if ( rpc_reply )
 		{
-		analyzer->ConnectionEvent(rpc_reply, {
+		analyzer->ConnectionEventFast(rpc_reply, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetCount(xid),
 			BifType::Enum::rpc_status->GetVal(status),

@@ -78,10 +78,11 @@ void File_Analyzer::Identify()
 	string match = matches.empty() ? "<unknown>"
 	                               : *(matches.begin()->second.begin());
 
-	ConnectionEvent(file_transferred, {
-		BuildConnVal(),
-		new StringVal(buffer_len, buffer),
-		new StringVal("<unknown>"),
-		new StringVal(match),
-	});
+	if ( file_transferred )
+		ConnectionEventFast(file_transferred, {
+			BuildConnVal(),
+			new StringVal(buffer_len, buffer),
+			new StringVal("<unknown>"),
+			new StringVal(match),
+		});
 	}

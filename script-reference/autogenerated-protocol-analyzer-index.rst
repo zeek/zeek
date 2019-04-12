@@ -11800,6 +11800,27 @@ Events
    
    .. bro:see:: smb2_message
 
+.. bro:id:: smb2_write_response
+
+   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, length: :bro:type:`count`)
+
+   Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+   version 2 requests of type *write*. This is sent by the server in response to a write request or
+   named pipe on the server.
+   
+   For more information, see MS-SMB2:2.2.22
+   
+
+   :c: The connection.
+   
+
+   :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
+   
+
+   :length: The number of bytes of the file being written.
+   
+   .. bro:see:: smb2_message
+
 .. bro:id:: smb2_transform_header
 
    :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Transform_header`)

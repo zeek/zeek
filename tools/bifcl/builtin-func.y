@@ -230,15 +230,15 @@ void print_event_c_body(FILE *fp)
 	fprintf(fp, "\t// allocation.\n");
 	fprintf(fp, "\n");
 
-	fprintf(fp, "\tval_list* vl = new val_list;\n\n");
-	BuiltinFuncArg *connection_arg = 0;
+	BuiltinFuncArg* connection_arg = 0;
+
+	fprintf(fp, "\tmgr.QueueEventFast(%s, val_list{\n", decl.c_fullname.c_str());
 
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
-		fprintf(fp, "\t");
-		fprintf(fp, "vl->append(");
+		fprintf(fp, "\t        ");
 		args[i]->PrintBroValConstructor(fp);
-		fprintf(fp, ");\n");
+		fprintf(fp, ",\n");
 
 		if ( args[i]->Type() == TYPE_CONNECTION )
 			{
@@ -254,9 +254,7 @@ void print_event_c_body(FILE *fp)
 			}
 		}
 
-	fprintf(fp, "\n");
-	fprintf(fp, "\tmgr.QueueEvent(%s, vl, SOURCE_LOCAL, analyzer->GetID(), timer_mgr",
-		decl.c_fullname.c_str());
+	fprintf(fp, "\t        },\n\t    SOURCE_LOCAL, analyzer->GetID(), timer_mgr");
 
 	if ( connection_arg )
 		// Pass the connection to the EventMgr as the "cookie"

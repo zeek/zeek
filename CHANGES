@@ -1,4 +1,8 @@
 
+2.6-212 | 2019-04-12 10:12:31 -0700
+
+  * smb2_write_response event added (Mauro Palumbo)
+
 2.6-210 | 2019-04-10 09:54:27 -0700
 
   * Add options to tune BinPAC flowbuffer policy (Jon Siwek, Corelight)

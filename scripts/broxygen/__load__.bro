@@ -11,7 +11,7 @@
 
 @load ./example.bro
 
-event bro_init()
+event zeek_init()
 	{
 	terminate();
 	}

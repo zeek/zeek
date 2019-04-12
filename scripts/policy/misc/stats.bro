@@ -82,7 +82,7 @@ export {
 	global log_stats: event(rec: Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats"]);
 	}
@@ -149,7 +149,7 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	schedule report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	schedule report_interval { check_stats(network_time(), get_net_stats(), get_conn_stats(), get_proc_stats(), get_event_stats(), get_reassembler_stats(), get_timer_stats(), get_file_analysis_stats(), get_dns_stats()) };
 	}

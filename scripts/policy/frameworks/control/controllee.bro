@@ -12,7 +12,7 @@
 
 module Control;
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	Broker::subscribe(Control::topic_prefix + "/" + Broker::node_id());
 	Broker::auto_publish(Control::topic_prefix + "/id_value_response",

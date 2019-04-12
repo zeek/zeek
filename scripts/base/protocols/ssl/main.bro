@@ -137,7 +137,7 @@ const dtls_ports = { 443/udp };
 
 redef likely_server_ports += { ssl_ports, dtls_ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);

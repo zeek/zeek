@@ -86,7 +86,7 @@ redef record connection += {
 const ports = { 3389/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);

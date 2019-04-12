@@ -189,6 +189,6 @@ type PrivateRecord: record {
 
 # Event handlers are also an implementation detail of a script, so they
 # don't show up anywhere in the generated documentation.
-event bro_init()
+event zeek_init()
     {
     }

@@ -76,7 +76,7 @@ redef record connection += {
 	rfb: Info &optional;
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(RFB::LOG, [$columns=Info, $ev=log_rfb, $path="rfb"]);
 	}

@@ -34,7 +34,7 @@ redef record connection += {
 const ports = { 514/udp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Syslog::LOG, [$columns=Info, $path="syslog"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);

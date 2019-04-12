@@ -139,7 +139,7 @@ const ports = {
 redef likely_server_ports += { ports };
 
 # Initialize the HTTP logging stream and ports.
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http, $path="http"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);

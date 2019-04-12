@@ -15,7 +15,7 @@ export {
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 # Workers need ability to forward commands to manager.
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, OpenFlow::cluster_flow_mod);
 	Broker::auto_publish(Cluster::manager_topic, OpenFlow::cluster_flow_clear);

@@ -27,7 +27,7 @@ event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: 
 	Intel::insert(item);
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	if ( ! Cluster::is_enabled() ||
 	     Cluster::local_node_type() == Cluster::MANAGER )

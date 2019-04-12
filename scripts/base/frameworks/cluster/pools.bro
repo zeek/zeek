@@ -324,7 +324,7 @@ function mark_pool_node_dead(pool: Pool, name: string): bool
 	return T;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	worker_pool = register_pool(worker_pool_spec);
 	proxy_pool = register_pool(proxy_pool_spec);
@@ -344,8 +344,8 @@ function pool_sorter(a: Pool, b: Pool): int
 	return strcmp(a$spec$topic, b$spec$topic);
 	}
 
-# Needs to execute before the bro_init in setup-connections
-event bro_init() &priority=-5
+# Needs to execute before the zeek_init in setup-connections
+event zeek_init() &priority=-5
 	{
 	if ( ! Cluster::is_enabled() )
 		return;

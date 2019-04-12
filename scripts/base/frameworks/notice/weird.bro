@@ -296,7 +296,7 @@ const notice_actions = {
 	ACTION_NOTICE_ONCE,
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird, $path="weird"]);
 	}

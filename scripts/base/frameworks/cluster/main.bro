@@ -359,7 +359,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 		}
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	# If a node is given, but it's an unknown name we need to fail.
 	if ( node != "" && node !in nodes )

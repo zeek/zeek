@@ -270,7 +270,7 @@ function add_observe_plugin_dependency(calc: Calculation, depends_on: Calculatio
 	calc_deps[calc] += depends_on;
 	}
 
-event bro_init() &priority=100000
+event zeek_init() &priority=100000
 	{
 	# Call all of the plugin registration hooks
 	hook register_observe_plugins();

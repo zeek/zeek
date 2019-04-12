@@ -39,7 +39,7 @@ export {
 	const ignore_guessers: table[subnet] of subnet &redef;
 }
 
-event bro_init()
+event zeek_init()
 	{
 	local r1: SumStats::Reducer = [$stream="ssh.login.failure", $apply=set(SumStats::SUM, SumStats::SAMPLE), $num_samples=5];
 	SumStats::create([$name="detect-ssh-bruteforcing",

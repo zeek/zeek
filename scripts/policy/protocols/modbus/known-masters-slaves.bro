@@ -33,7 +33,7 @@ export {
 	global log_known_modbus: event(rec: ModbusInfo);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Known::MODBUS_LOG, [$columns=ModbusInfo, $ev=log_known_modbus, $path="known_modbus"]);
 	}

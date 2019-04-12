@@ -55,7 +55,7 @@ redef record fa_file += {
 
 const pe_mime_types = { "application/x-dosexec" };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Files::register_for_mime_types(Files::ANALYZER_PE, pe_mime_types);
 	Log::create_stream(LOG, [$columns=Info, $ev=log_pe, $path="pe"]);

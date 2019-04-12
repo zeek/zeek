@@ -55,7 +55,7 @@ export {
 	global log_netcontrol_drop: event(rec: DropInfo);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(NetControl::DROP, [$columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop"]);
 	}

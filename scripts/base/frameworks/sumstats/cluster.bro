@@ -61,7 +61,7 @@ global recent_global_view_keys: set[string, Key] &create_expire=1min;
 
 @if ( Cluster::local_node_type() != Cluster::MANAGER )
 
-event bro_init() &priority=100
+event zeek_init() &priority=100
 	{
 	Broker::auto_publish(Cluster::manager_topic, SumStats::cluster_send_result);
 	Broker::auto_publish(Cluster::manager_topic, SumStats::cluster_key_intermediate_response);
@@ -209,7 +209,7 @@ function request_key(ss_name: string, key: Key): Result
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-event bro_init() &priority=100
+event zeek_init() &priority=100
 	{
 	Broker::auto_publish(Cluster::worker_topic, SumStats::cluster_ss_request);
 	Broker::auto_publish(Cluster::worker_topic, SumStats::cluster_get_result);

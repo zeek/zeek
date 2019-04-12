@@ -188,7 +188,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 	else
 		// have_pending_timers = 1, possibly.  We don't set
 		// that here, though, because at this point we don't know
-		// whether the user's bro_init() event will indeed set
+		// whether the user's zeek_init() event will indeed set
 		// a timer.
 		reading_traces = reading_live = 0;
 

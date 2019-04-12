@@ -324,7 +324,7 @@ global mime_type_to_analyzers: table[string] of set[Files::Tag];
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Files::LOG, [$columns=Info, $ev=log_files, $path="files"]);
 	}

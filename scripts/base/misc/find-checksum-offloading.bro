@@ -62,7 +62,7 @@ event ChecksumOffloading::check()
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	schedule check_interval { ChecksumOffloading::check() };
 	}
@@ -81,7 +81,7 @@ event conn_weird(name: string, c: connection, addl: string)
 		++bad_udp_checksums;
 	}
 
-event bro_done()
+event zeek_done()
 	{
 	event ChecksumOffloading::check();
 	}

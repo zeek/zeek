@@ -117,14 +117,14 @@ redef record Info += {
 const ports = { 67/udp, 68/udp, 4011/udp };
 redef likely_server_ports += { 67/udp };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp, $path="dhcp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
 @if ( Cluster::is_enabled() )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, DHCP::aggregate_msgs);
 	}
@@ -264,7 +264,7 @@ event dhcp_message(c: connection, is_orig: bool, msg: DHCP::Msg, options: DHCP::
 	event DHCP::aggregate_msgs(network_time(), c$id, c$uid, is_orig, msg, options);
 	}
 
-event bro_done() &priority=-5
+event zeek_done() &priority=-5
 	{
 	# Log any remaining data that hasn't already been logged!
 	for ( i in DHCP::join_data )

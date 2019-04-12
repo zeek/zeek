@@ -31,7 +31,7 @@ function host_certs_only(rec: X509::Info): bool
 	return rec$logcert;
 	}
 
-event bro_init() &priority=2
+event zeek_init() &priority=2
 	{
 	local f = Log::get_filter(X509::LOG, "default");
 	Log::remove_filter(X509::LOG, "default"); # disable default logging

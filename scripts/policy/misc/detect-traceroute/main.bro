@@ -53,7 +53,7 @@ export {
 	global log_traceroute: event(rec: Traceroute::Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Traceroute::LOG, [$columns=Info, $ev=log_traceroute, $path="traceroute"]);
 

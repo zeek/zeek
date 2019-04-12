@@ -52,7 +52,7 @@ redef record Modbus::Info += {
 	track_address: count &default=0;
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo, $path="modbus_register_change"]);
 	}

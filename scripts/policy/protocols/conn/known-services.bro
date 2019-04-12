@@ -80,7 +80,7 @@ redef record connection += {
 };
 
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Known::use_service_store )
 		return;
@@ -216,7 +216,7 @@ event connection_state_remove(c: connection) &priority=-5
 	known_services_done(c);
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
 	                                         $ev=log_known_services,

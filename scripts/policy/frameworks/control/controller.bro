@@ -12,7 +12,7 @@
 module Control;
 
 # Do some sanity checking and rework the communication nodes.
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	# We know that some command was given because this script wouldn't be
 	# loaded if there wasn't so we can feel free to throw an error here and

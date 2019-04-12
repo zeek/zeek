@@ -385,7 +385,7 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 	return T;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice"]);
 
@@ -531,7 +531,7 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
 	suppressing[note, identifier] = suppress_until;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Cluster::is_enabled() )
 		return;

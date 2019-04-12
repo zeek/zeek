@@ -12,7 +12,7 @@ redef profiling_interval = 15 secs;
 ## :bro:id:`profiling_interval`).
 redef expensive_profiling_multiple = 20;
 
-event bro_init()
+event zeek_init()
 	{
 	set_buf(profiling_file, F);
 	}

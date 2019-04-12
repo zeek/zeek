@@ -59,7 +59,7 @@ redef record connection += {
 const ports = { 135/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(DCE_RPC::LOG, [$columns=Info, $path="dce_rpc"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DCE_RPC, ports);

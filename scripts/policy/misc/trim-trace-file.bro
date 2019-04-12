@@ -30,7 +30,7 @@ event TrimTraceFile::go(first_trim: bool)
 	schedule trim_interval { TrimTraceFile::go(F) };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	if ( trim_interval > 0 secs )
 		schedule trim_interval { TrimTraceFile::go(T) };

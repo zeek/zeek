@@ -2994,8 +2994,8 @@ function uuid_to_string%(uuid: string%): string
 ##
 ## .. note::
 ##
-##      This function must be called at Bro startup time, e.g., in the event
-##      :bro:id:`bro_init`.
+##      This function must be called at Zeek startup time, e.g., in the event
+##      :bro:id:`zeek_init`.
 function merge_pattern%(p1: pattern, p2: pattern%): pattern &deprecated
 	%{
 	RE_Matcher* re = new RE_Matcher();
@@ -3061,8 +3061,8 @@ function convert_for_pattern%(s: string%): string
 ##
 ## .. note::
 ##
-##      This function must be called at Bro startup time, e.g., in the event
-##      :bro:id:`bro_init`.
+##      This function must be called at Zeek startup time, e.g., in the event
+##      :bro:id:`zeek_init`.
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
 	const char* ss = (const char*) (s->Bytes());
@@ -4953,7 +4953,7 @@ function enable_communication%(%): any &deprecated
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_error("communication must be enabled in bro_init");
+		builtin_error("communication must be enabled in zeek_init");
 		return 0;
 		}
 

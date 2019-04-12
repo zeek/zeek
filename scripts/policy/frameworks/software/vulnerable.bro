@@ -117,7 +117,7 @@ function update_vulnerable_sw()
 	event grab_vulnerable_versions(1);
 	}
 
-event bro_init() &priority=3
+event zeek_init() &priority=3
 	{
 	update_vulnerable_sw();
 	}

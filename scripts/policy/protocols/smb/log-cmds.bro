@@ -25,7 +25,7 @@ const deferred_logging_cmds: set[string] = {
 	"TREE_CONNECT_ANDX",
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd"]);
 	}

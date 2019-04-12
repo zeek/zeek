@@ -136,7 +136,7 @@ redef record connection += {
 const ports = { 22/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
 	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh, $path="ssh"]);

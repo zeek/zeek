@@ -121,7 +121,7 @@ export {
 	global register: event(info: Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software"]);
 	}

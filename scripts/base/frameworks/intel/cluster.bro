@@ -16,7 +16,7 @@ redef have_full_data = F;
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, remove_indicator);
 	}
@@ -67,7 +67,7 @@ event Intel::match_remote(s: Seen) &priority=5
 @endif
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, match_remote);
 	Broker::auto_publish(Cluster::manager_topic, remove_item);

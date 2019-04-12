@@ -150,7 +150,7 @@ function config_option_changed(ID: string, new_value: any, location: string): an
 	return new_value;
 	}
 
-event bro_init() &priority=10
+event zeek_init() &priority=10
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config"]);
 

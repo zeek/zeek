@@ -154,7 +154,7 @@ redef record connection += {
 const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);

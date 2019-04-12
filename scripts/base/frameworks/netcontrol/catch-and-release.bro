@@ -163,7 +163,7 @@ export {
 # Set that is used to only send seen notifications to the master every ~30 seconds.
 global catch_release_recently_notified: set[addr] &create_expire=30secs;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release"]);
 	}
@@ -227,13 +227,13 @@ global blocks: table[addr] of BlockInfo = {}
 @if ( Cluster::is_enabled() )
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_new);
 	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_delete);
 	}
 @else
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_add);
 	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_delete);

@@ -46,7 +46,7 @@ function describe_file(f: fa_file): string
 	return "";
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_SMB,
 	                         [$get_file_handle = SMB::get_file_handle,

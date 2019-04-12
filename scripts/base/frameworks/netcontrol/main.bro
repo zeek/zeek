@@ -262,7 +262,7 @@ export {
 	##### Plugin functions
 
 	## Function called by plugins once they finished their activation. After all
-	## plugins defined in bro_init finished to activate, rules will start to be sent
+	## plugins defined in zeek_init finished to activate, rules will start to be sent
 	## to the plugins. Rules that scripts try to set before the backends are ready
 	## will be discarded.
 	global plugin_activated: function(p: PluginState);
@@ -338,13 +338,13 @@ redef record Rule += {
 };
 
 # Variable tracking the state of plugin activation. Once all plugins that
-# have been added in bro_init are activated, this will switch to T and
+# have been added in zeek_init are activated, this will switch to T and
 # the event NetControl::init_done will be raised.
 global plugins_active: bool = F;
 
-# Set to true at the end of bro_init (with very low priority).
+# Set to true at the end of zeek_init (with very low priority).
 # Used to track when plugin activation could potentially be finished
-global bro_init_done: bool = F;
+global zeek_init_done: bool = F;
 
 # The counters that are used to generate the rule and plugin IDs
 global rule_counter: count = 1;
@@ -364,7 +364,7 @@ global rules_by_subnets: table[subnet] of set[string];
 # There always only can be one rule of each type for one entity.
 global rule_entities: table[Entity, RuleType] of Rule;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol"]);
 	}
@@ -613,18 +613,18 @@ function plugin_activated(p: PluginState)
 	plugin_ids[id]$_activated = T;
 	log_msg("activation finished", p);
 
-	if ( bro_init_done )
+	if ( zeek_init_done )
 		check_plugins();
 	}
 
-event bro_init() &priority=-5
+event zeek_init() &priority=-5
 	{
 	event NetControl::init();
 	}
 
 event NetControl::init() &priority=-20
 	{
-	bro_init_done = T;
+	zeek_init_done = T;
 
 	check_plugins();
 

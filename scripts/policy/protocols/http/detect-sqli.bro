@@ -67,7 +67,7 @@ function format_sqli_samples(samples: vector of SumStats::Observation): string
 	return ret;
 	}
 
-event bro_init() &priority=3
+event zeek_init() &priority=3
 	{
 	# Add filters to the metrics so that the metrics framework knows how to
 	# determine when it looks like an actual attack and how to respond when

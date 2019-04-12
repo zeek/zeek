@@ -36,7 +36,7 @@ export {
 	global log_netcontrol_shunt: event(rec: ShuntInfo);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(NetControl::SHUNT, [$columns=ShuntInfo, $ev=log_netcontrol_shunt, $path="netcontrol_shunt"]);
 	}

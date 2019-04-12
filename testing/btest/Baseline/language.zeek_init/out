@@ -1,0 +1,4 @@
+zeek init at priority 10!
+bro init at priority 5!
+zeek init at priority 0!
+bro init at priority -10!

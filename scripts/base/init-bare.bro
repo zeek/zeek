@@ -3370,6 +3370,8 @@ export {
 		disposition    : count;
 		## Specifies the options to be applied when creating or opening the file.
 		create_options : count;
+		## Specifies the desired access mask (the level of access) for file/pipe/print.
+        access_mask : count;
 	};
 
 	## The response to an SMB2 *create_request* request, which is sent by the client to request

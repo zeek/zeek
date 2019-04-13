@@ -17,6 +17,7 @@ refine connection SMB_Conn += {
 			requestinfo->Assign(0, filename);
 			requestinfo->Assign(1, val_mgr->GetCount(${val.disposition}));
 			requestinfo->Assign(2, val_mgr->GetCount(${val.create_options}));
+			requestinfo->Assign(3, val_mgr->GetCount(${val.access_mask}));
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
 			                                       BuildSMB2HeaderVal(h),

@@ -7,7 +7,7 @@ type MyRecord: record {
 	c: bool &default = T;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local rec: MyRecord = record($a = "a string", $b = 6);
 	local rec2: MyRecord = (F) ? MyRecord($a = "a string", $b = 6) :

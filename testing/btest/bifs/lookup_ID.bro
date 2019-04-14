@@ -12,5 +12,5 @@ event zeek_init()
 	print lookup_ID("");
 	print lookup_ID("xyz");
 	print lookup_ID("b");
-	print type_name( lookup_ID("bro_init") );
+	print type_name( lookup_ID("zeek_init") );
 	}

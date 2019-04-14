@@ -66,10 +66,10 @@ event zeek_init()
 
 	schedule 1sec { set_flag() };
 
-	when ( local result = async_func("from bro_init()") )
+	when ( local result = async_func("from zeek_init()") )
 		{
-		print "async_func() return result in bro_init()", result;
-		print local_dummy("from bro_init() when block");
+		print "async_func() return result in zeek_init()", result;
+		print local_dummy("from zeek_init() when block");
 		print anon("hi");
 		if ( result == "timeout" ) terminate();
 		schedule 10msec { do_another() };

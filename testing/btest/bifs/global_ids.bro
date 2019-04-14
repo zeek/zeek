@@ -8,7 +8,7 @@ event zeek_init()
 	for ( i in a )
 		{
 		# the table is quite large, so just print one item we expect
-		if ( i == "bro_init" )
+		if ( i == "zeek_init" )
 			print a[i]$type_name;
 
 		}

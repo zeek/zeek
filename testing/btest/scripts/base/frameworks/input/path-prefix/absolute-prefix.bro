@@ -22,7 +22,7 @@
 @load path-prefix-common-table.bro
 redef InputAscii::path_prefix = "@path_prefix@";
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_table([$source="input.data", $name="input", $idx=Idx, $val=Val,
 			  $destination=destination, $want_record=F]);
@@ -35,7 +35,7 @@ event bro_init()
 @load path-prefix-common-event.bro
 redef InputAscii::path_prefix = "@path_prefix@";
 
-event bro_init()
+event zeek_init()
 	{
         Input::add_event([$source="input.data", $name="input",
 			  $fields=Val, $ev=inputev]);
@@ -48,7 +48,7 @@ event bro_init()
 @load path-prefix-common-analysis.bro
 redef InputBinary::path_prefix = "@path_prefix@";
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_analysis([$source="input.data", $name="input"]);
 	}

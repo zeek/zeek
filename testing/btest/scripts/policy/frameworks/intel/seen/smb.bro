@@ -11,7 +11,7 @@ pythonfile	Intel::FILE_NAME	source1	test entry	http://some-data-distributor.com/
 
 redef Intel::read_files += { "intel.dat" };
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}

@@ -33,17 +33,17 @@ function bar()
 	print "bar done";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	bar();
 	# Unreachable
-	print "bro_init done";
+	print "zeek_init done";
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	# Reachable
-	print "other bro_init";
+	print "other zeek_init";
 	}
 @TEST-END-FILE
 
@@ -65,11 +65,11 @@ function foo()
 	print "foo done";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	foo();
 	# Unreachable
-	print "bro_init done";
+	print "zeek_init done";
 	}
 
 @TEST-END-FILE
@@ -84,12 +84,12 @@ function foo(v: vector of any)
 	print "foo done";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local v: vector of count;
 	v += 1;
 	foo(v);
 	# Unreachable
-	print "bro_init done", v;
+	print "zeek_init done", v;
 	}
 @TEST-END-FILE

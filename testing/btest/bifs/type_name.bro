@@ -69,5 +69,5 @@ event zeek_init()
 	print type_name(y); # result is "file of string" which is a bit odd;
                             # we should remove the (apparently unused) type argument 
                             # from files.
-	print type_name(bro_init);
+	print type_name(zeek_init);
 	}

@@ -38,8 +38,8 @@ event zeek_init()
 	event e1();
 
 	# Test calling an event with "schedule" statement
-	schedule 1 sec { e2("in bro_init") };
-	schedule 3 sec { e2("another in bro_init") };
+	schedule 1 sec { e2("in zeek_init") };
+	schedule 3 sec { e2("another in zeek_init") };
 
 	# Test calling an event that has two separate definitions
 	event e3("foo");

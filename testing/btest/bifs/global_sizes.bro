@@ -8,8 +8,8 @@ event zeek_init()
 	for ( i in a )
 		{
 		# the table is quite large, so just look for one item we expect
-		if ( i == "bro_init" )
-			print "found bro_init";
+		if ( i == "zeek_init" )
+			print "found zeek_init";
 
 		}
 

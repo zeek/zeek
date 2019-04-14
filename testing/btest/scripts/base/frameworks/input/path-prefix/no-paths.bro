@@ -13,7 +13,7 @@
 
 @load path-prefix-common-table.bro
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_table([$source="input.data", $name="input", $idx=Idx, $val=Val,
 			  $destination=destination, $want_record=F]);
@@ -25,7 +25,7 @@ event bro_init()
 
 @load path-prefix-common-event.bro
 
-event bro_init()
+event zeek_init()
 	{
         Input::add_event([$source="input.data", $name="input",
                           $fields=Val, $ev=inputev]);
@@ -37,7 +37,7 @@ event bro_init()
 
 @load path-prefix-common-analysis.bro
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_analysis([$source="input.data", $name="input"]);
 	}

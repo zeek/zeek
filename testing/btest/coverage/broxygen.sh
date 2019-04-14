@@ -2,7 +2,7 @@
 # loadable script is referenced there.  The only additional check here is
 # that the broxygen package should even load scripts that are commented
 # out in test-all-policy.bro because the broxygen package is only loaded
-# when generated documentation and will terminate has soon as bro_init
+# when generated documentation and will terminate has soon as zeek_init
 # is handled, even if a script will e.g. put Bro into listen mode or otherwise
 # cause it to not terminate after scripts are parsed.
 

@@ -6,7 +6,7 @@
 @TEST-START-FILE a.bro
 module A;
 
-event bro_init()
+event zeek_init()
 	{
 	print "a";
 @TEST-END-FILE
@@ -14,7 +14,7 @@ event bro_init()
 @TEST-START-FILE b.bro
 module B;
 
-event bro_init()
+event zeek_init()
 	{
 	print "b";
 	}

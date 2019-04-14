@@ -3,8 +3,8 @@ This document summarizes the most important changes in the current Bro
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
-Bro 2.7
-=======
+Zeek 3.0.0
+==========
 
 New Functionality
 -----------------
@@ -66,6 +66,8 @@ New Functionality
 
 - Add support for SMB filenames in the intel framework.
 
+- Added a new event for weirdness found via file analysis: ``file_weird``.
+
 Changed Functionality
 ---------------------
 
@@ -102,6 +104,50 @@ Changed Functionality
 
 - The Broker C++ API has some breaking changes, see it's own NEWS file for
   details on how to migrate old code.
+
+- Some Weirds associated with generic binpac parsing exceptions in analyzers
+  that didn't otherwise handle them (like syslog, modbus, dnp3) are now
+  a ProtocolViolation instead
+
+- Weird names that contained variable content and may result in an unbounded
+  number of weird names have been renamed to remove the variable content
+  (which has been made available in the "addl" field of conn_weirds):
+
+    - "unknown_dce_rpc_auth_type_%d" -> unknown_dce_rpc_auth_type
+    - "gtp_invalid_info_element_%d" -> gtp_invalid_info_element
+    - "unknown_netbios_type:" 0x%x -> unknown_netbios_type
+    - "excess_netbios_hdr_len" (%d > %d) -> excess_netbios_hdr_len
+    - "deficit_netbios_hdr_len" (%d > %d) -> deficit_netbios_hdr_len
+    - "bad_RPC_program (%d)" -> bad_RPC_program
+    - "unknown_MOUNT_request(%u)" -> unknown_MOUNT_request
+    - "unknown_NFS_request(%u)" -> unknown_NFS_request
+    - "RPC resync: discard %d bytes\n" -> RPC_resync
+    - "RPC_message_too_long (%d64)" -> RPC_message_too_long
+    - "socks5_unsupported_authentication_method_%d" -> socks5_unsupported_authentication_method
+    - "socks5_unsupported_authentication_%d_%d" -> socks5_unsupported_authentication
+    - "ssh_unknown_kex_algorithm=%s" -> ssh_unknown_kex_algorithm
+    - "Encountered unknown type in server name ssl extension: %d" -> ssl_ext_unknown_server_name_type
+    - "UDP_datagram_length_mismatch(%d!=%d)" -> UDP_datagram_length_mismatch
+    - "OPENSSL Could not parse OCSP request (fuid %s)" -> openssl_ocsp_request_parse_error
+    - "OPENSSL Could not parse OCSP response (fuid %s)" -> openssl_ocsp_response_parse_error
+    - "Could not parse X509 certificate (fuid %s)" -> x509_cert_parse_error
+    - "Certificate with invalid BasicConstraint. fuid %s" -> x509_invalid_basic_constraint
+    - "Could not parse subject alternative names. fuid %s" -> x509_san_parse_error
+    - "DNS-field does not contain an IA5String. fuid %s" -> x509_san_non_string
+    - "Weird IP address length %d in subject alternative name. fuid %s" -> x509_san_ip_length
+    - "Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length" -> x509_utc_length
+    - "Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)" -> x509_utc_format
+    - "Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length" -> x509_gen_time_length
+    - "Invalid time type in X509 certificate (fuid %s)" -> x509_invalid_time_type
+    - "Could not parse time in X509 certificate (fuid %s) -- additional char after time" -> x509_time_add_char
+    - "Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset" -> x509_time_offset_underflow
+    - "Could not parse time in X509 certificate (fuid %s) -- unknown offset type" -> x509_time_offset_type
+    - "X509::GetExtensionFromBIO: %s" -> x509_get_ext_from_bio
+    - "unknown_mobility_type_%d" -> unknown_mobility_type
+    - "unknown_routing_type_%d" -> unknown_routing_type
+    - "unknown_protocol_%d" ->  unknown_protocol
+    - "unknown_gre_version_%d" -> unknown_gre_version
+    - "unknown_gre_protocol_%u16" -> unknown_gre_protocol
 
 Removed Functionality
 ---------------------

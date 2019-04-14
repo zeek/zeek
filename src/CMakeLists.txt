@@ -319,6 +319,7 @@ set(bro_SRCS
     UID.cc
     Val.cc
     Var.cc
+    WeirdState.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c

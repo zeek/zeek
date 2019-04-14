@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2018-09-05-20-33-08
+#open	2019-04-04-19-22-06
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -373,4 +373,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2018-09-05-20-33-08
+#close	2019-04-04-19-22-06

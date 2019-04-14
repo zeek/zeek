@@ -422,3 +422,13 @@ event net_weird(name: string)
 	local i = Info($ts=network_time(), $name=name);
 	weird(i);
 	}
+
+event file_weird(name: string, f: fa_file, addl: string)
+	{
+	local i = Info($ts=network_time(), $name=name, $addl=f$id);
+
+	if ( addl != "" )
+		i$addl += fmt(": %s", addl);
+
+	weird(i);
+	}

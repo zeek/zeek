@@ -20,9 +20,16 @@ X509Common::X509Common(file_analysis::Tag arg_tag, RecordVal* arg_args, File* ar
 	{
 	}
 
-double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, Reporter* reporter)
+static void EmitWeird(const char* name, File* file, const char* addl = "")
 	{
-	const char *fid = arg_fid ? arg_fid : "";
+	if ( file )
+		reporter->Weird(file, name, addl);
+	else
+		reporter->Weird(name);
+	}
+
+double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter)
+	{
 	time_t lResult = 0;
 
 	char lBuffer[26];
@@ -35,14 +42,14 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		{
 		if ( remaining < 11 || remaining > 17 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length", fid));
+			EmitWeird("x509_utc_length", f);
 			return 0;
 			}
 
 		if ( pString[remaining-1] != 'Z' )
 			{
 			// not valid according to RFC 2459 4.1.2.5.1
-			reporter->Weird(fmt("Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)", fid));
+			EmitWeird("x509_utc_format", f);
 			return 0;
 			}
 
@@ -71,7 +78,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 
 		if ( remaining < 12 || remaining > 23 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length", fid));
+			EmitWeird("x509_gen_time_length", f);
 			return 0;
 			}
 
@@ -82,7 +89,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		}
 	else
 		{
-		reporter->Weird(fmt("Invalid time type in X509 certificate (fuid %s)", fid));
+		EmitWeird("x509_invalid_time_type", f);
 		return 0;
 		}
 
@@ -115,7 +122,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 
 	else
 		{
-		reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- additional char after time", fid));
+		EmitWeird("x509_time_add_char", f);
 		return 0;
 		}
 
@@ -130,13 +137,13 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		{
 		if ( remaining < 5 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset", fid));
+			EmitWeird("x509_time_offset_underflow", f);
 			return 0;
 			}
 
 		if ((*pString != '+') && (*pString != '-'))
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- unknown offset type", fid));
+			EmitWeird("x509_time_offset_type", f);
 			return 0;
 			}
 
@@ -249,7 +256,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 			}
 		}
 
-	StringVal* ext_val = GetExtensionFromBIO(bio);
+	StringVal* ext_val = GetExtensionFromBIO(bio, GetFile());
 
 	if ( ! ext_val )
 		ext_val = new StringVal(0, "");
@@ -282,7 +289,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
+StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -292,7 +299,7 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
 		{
 		char tmp[120];
 		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
-		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
+		EmitWeird("x509_get_ext_from_bio", f, tmp);
 		BIO_free_all(bio);
 		return 0;
 		}

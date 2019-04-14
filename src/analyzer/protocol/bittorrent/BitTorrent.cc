@@ -126,6 +126,4 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 		vl->append(new StringVal(msg));
 		ConnectionEvent(bittorrent_peer_weird, vl);
 		}
-	else
-		Weird(msg);
 	}

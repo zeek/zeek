@@ -1,4 +1,57 @@
 
+2.6-212 | 2019-04-12 10:12:31 -0700
+
+  * smb2_write_response event added (Mauro Palumbo)
+
+2.6-210 | 2019-04-10 09:54:27 -0700
+
+  * Add options to tune BinPAC flowbuffer policy (Jon Siwek, Corelight)
+
+2.6-208 | 2019-04-10 11:36:17 +0000
+
+  * Improve PE file analysis (Jon Siwek, Corelight)
+
+  * Set PE analyzer CMake dependencies correctly (Jon Siwek, Corelight)
+
+2.6-205 | 2019-04-05 17:06:26 -0700
+
+  * Add script to update external test repo commit pointers (Jon Siwek, Corelight)
+
+2.6-203 | 2019-04-04 16:35:52 -0700
+
+  * Update DTLS error handling (Johanna Amann, Corelight)
+
+    - Adds tuning options: SSL::dtls_max_version_errors and
+      SSL::dtls_max_reported_version_errors
+
+2.6-200 | 2019-04-03 09:44:53 -0700
+
+  * Fix reporter net_weird API usage for unknown_mobility_type
+    (Jon Siwek, Corelight)
+
+  * Remove variable content from weird names
+
+    This changes many weird names to move non-static content from the
+    weird name into the "addl" field to help ensure the total number of
+    weird names is reasonably bounded.  Note the net_weird and flow_weird
+    events do not have an "addl" parameter, so information may no longer
+    be available in those cases -- to make it available again we'd need
+    to either (1) define new events that contain such a parameter, or
+    (2) change net_weird/flow_weird event signature (which is a breaking
+    change for user-code at the moment).
+
+    Also, the generic handling of binpac exceptions for analyzers which
+    to not otherwise catch and handle them has been changed from a Weird
+    to a ProtocolViolation.
+
+    Finally, a new "file_weird" event has been added for reporting
+    weirdness found during file analysis. (Jon Siwek, Corelight)
+
+2.6-197 | 2019-04-03 09:08:58 -0700
+
+  * Make Syslog analyzer accept non-conformant messages that omit Priority.
+    (Jon Siwek, Corelight)
+
 2.6-195 | 2019-03-27 12:36:34 -0700
 
   * Reduce weird-stats overhead (Justin Azoff, Corelight)

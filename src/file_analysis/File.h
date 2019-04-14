@@ -13,6 +13,7 @@
 #include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
+#include "WeirdState.h"
 
 namespace file_analysis {
 
@@ -192,6 +193,13 @@ public:
 	 */
 	bool SetMime(const string& mime_type);
 
+	/**
+	 * Whether to permit a weird to carry on through the full reporter/weird
+	 * framework.
+	 */
+	bool PermitWeird(const char* name, uint64 threshold, uint64 rate,
+	                 double duration);
+
 protected:
 	friend class Manager;
 	friend class FileReassembler;
@@ -324,6 +332,8 @@ protected:
 		uint64 size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
+
+	WeirdStateMap weird_state;
 
 	static int id_idx;
 	static int parent_id_idx;

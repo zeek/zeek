@@ -4169,6 +4169,17 @@ export {
 		HashAlgorithm: count; ##< Hash algorithm number
 		SignatureAlgorithm: count; ##< Signature algorithm number
 	};
+
+
+## Number of non-DTLS frames that can occur in a DTLS connection before
+## parsing of the connection is suspended.
+## DTLS does not immediately stop parsing a connection because other protocols
+## might be interleaved in the same UDP "connection".
+const SSL::dtls_max_version_errors = 10 &redef;
+
+## Maximum number of invalid version errors to report in one DTLS connection.
+const SSL::dtls_max_reported_version_errors = 1 &redef;
+
 }
 
 module GLOBAL;
@@ -5038,6 +5049,26 @@ export {
 	## and unthrottle its rate-limiting until it once again exceeds the
 	## threshold.
 	option sampling_duration = 10min;
+}
+
+module BinPAC;
+export {
+	## Maximum capacity, in bytes, that the BinPAC flowbuffer is allowed to
+	## grow to for use with incremental parsing of a given connection/analyzer.
+	const flowbuffer_capacity_max = 10 * 1024 * 1024 &redef;
+
+	## The initial capacity, in bytes, that will be allocated to the BinPAC
+	## flowbuffer of a given connection/analyzer.  If the buffer buffer is
+	## later contracted, its capacity is also reduced to this size.
+	const flowbuffer_capacity_min = 512 &redef;
+
+	## The threshold, in bytes, at which the BinPAC flowbuffer of a given
+	## connection/analyzer will have its capacity contracted to
+	## :bro:see:`BinPAC::flowbuffer_capacity_min` after parsing a full unit.
+	## I.e. this is the maximum capacity to reserve in between the parsing of
+	## units.  If, after parsing a unit, the flowbuffer capacity is greater
+	## than this value, it will be contracted.
+	const flowbuffer_contract_threshold = 2 * 1024 * 1024 &redef;
 }
 
 module GLOBAL;

@@ -123,7 +123,7 @@ protected:
 	void Event_RPC_Call(RPC_CallInfo* c);
 	void Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, int reply_len);
 
-	void Weird(const char* name);
+	void Weird(const char* name, const char* addl = "");
 
 	PDict(RPC_CallInfo) calls;
 	analyzer::Analyzer* analyzer;

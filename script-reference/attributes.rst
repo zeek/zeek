@@ -71,7 +71,7 @@ Here is a more detailed explanation of each attribute:
     event handler. Higher values are executed before lower ones. The
     default value is 0.  Example::
 
-        event bro_init() &priority=10
+        event zeek_init() &priority=10
         {
             print "high priority";
         }

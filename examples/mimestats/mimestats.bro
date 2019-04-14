@@ -28,7 +28,7 @@ export {
 	const break_interval = 5mins &redef;
 }
 
-event bro_init() &priority=3
+event zeek_init() &priority=3
 	{
 	Log::create_stream(MimeMetrics::LOG, [$columns=Info, $path="mime_metrics"]);
 	local r1: SumStats::Reducer = [$stream="mime.bytes",

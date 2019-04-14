@@ -422,7 +422,7 @@ correctly::
     # @TEST-EXEC: bro %INPUT >output
     # @TEST-EXEC: btest-diff output
 
-    event bro_init()
+    event zeek_init()
         {
         print Demo::rot13("Hello");
         }

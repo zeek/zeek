@@ -8,7 +8,7 @@ type Val: record {
 
 global hostslist: table[addr] of Val = table();
 
-event bro_init()
+event zeek_init()
     {
     Input::add_table([$source="/var/db/hosts",
         $name="hosts",

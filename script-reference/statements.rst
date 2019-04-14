@@ -516,7 +516,7 @@ Here are the statements that the Bro scripting language supports.
                   }
             }
 
-      event bro_init()
+      event zeek_init()
             {
             # Installs a trigger which fires if a() returns 42.
             when ( a() == 42 )

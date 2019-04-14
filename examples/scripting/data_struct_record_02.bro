@@ -25,7 +25,7 @@ function print_system(sys: System)
         print_service(s);
     }
 
-event bro_init()
+event zeek_init()
     {
     local server01: System;
     server01$name = "morlock";

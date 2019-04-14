@@ -2,7 +2,7 @@ redef exit_only_after_terminate = T;
 global my_event: event(msg: string, c: count);
 global my_auto_event: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::peer("127.0.0.1");
 	Broker::auto_publish("bro/event/my_auto_event", my_auto_event);

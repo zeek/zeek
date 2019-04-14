@@ -135,7 +135,7 @@ shown in the following example.
         option host_port: table[addr] of port = {};
     }
 
-    event bro_init() {
+    event zeek_init() {
         local t: table[addr] of port = { [10.0.0.2] = 123/tcp };
         Config::set_value("TestModule::host_port", t);
     }
@@ -169,7 +169,7 @@ accordingly):
         return new_value;
         }
 
-    event bro_init()
+    event zeek_init()
         {
         Option::set_change_handler("TestModule::testaddr", change_addr);
         }

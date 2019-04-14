@@ -8,7 +8,7 @@ function factorial(n: count): count
         return ( n * factorial(n - 1) );
     }
 
-event bro_init()
+event zeek_init()
     {
     local numbers: vector of count = vector(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     

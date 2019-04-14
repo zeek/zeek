@@ -3,7 +3,7 @@ global msg_count = 0;
 global my_event: event(msg: string, c: count);
 global my_auto_event: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/event/");
 	Broker::listen("127.0.0.1");

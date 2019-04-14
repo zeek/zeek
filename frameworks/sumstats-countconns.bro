@@ -10,7 +10,7 @@ event connection_established(c: connection)
 	                  SumStats::Observation($num=1));
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Create the reducer.
 	# The reducer attaches to the "conn established" observation stream

@@ -1,4 +1,4 @@
-event bro_init()
+event zeek_init()
     {
     # Declaration of the table.
     local ssl_services: table[string] of port;

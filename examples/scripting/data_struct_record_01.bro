@@ -12,7 +12,7 @@ function print_service(serv: Service)
         print fmt("  port: %s", p);
     }
 
-event bro_init()
+event zeek_init()
     {
     local dns: Service = [$name="dns", $ports=set(53/udp, 53/tcp), $rfc=1035];
     local http: Service = [$name="http", $ports=set(80/tcp, 8080/tcp), $rfc=2616];

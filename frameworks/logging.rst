@@ -93,7 +93,7 @@ a new log stream.
     # This event is handled at a priority higher than zero so that if
     # users modify this stream in another script, they can do so at the
     # default priority of zero.
-    event bro_init() &priority=5
+    event zeek_init() &priority=5
         {
         # Create the stream. This adds a default filter automatically.
         Log::create_stream(Foo::LOG, [$columns=Info, $path="foo"]);
@@ -234,7 +234,7 @@ need to modify the example module shown above to look something like this:
         global log_foo: event(rec: Info);
     }
 
-    event bro_init() &priority=5
+    event zeek_init() &priority=5
         {
         # Specify the "log_foo" event here in order for Bro to raise it.
         Log::create_stream(Foo::LOG, [$columns=Info, $ev=log_foo,
@@ -275,7 +275,7 @@ example, the following example will prevent the conn.log from being written:
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         Log::disable_stream(Conn::LOG);
         }
@@ -310,7 +310,7 @@ field.  In this example, "conn.log" will be changed to "myconn.log":
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         # Replace default filter for the Conn::LOG stream in order to
         # change the log filename.
@@ -335,7 +335,7 @@ two fields to a new log file:
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         # Add a new filter to the Conn::LOG stream that logs only
         # timestamp and originator address.
@@ -366,7 +366,7 @@ remove the default filter:
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         # Remove the filter called "default".
         Log::remove_filter(Conn::LOG, "default");
@@ -394,7 +394,7 @@ and use the "path_func" filter attribute:
         return fmt("%s-%s", path, r);
         }
 
-    event bro_init()
+    event zeek_init()
         {
         local filter: Log::Filter = [$name="conn-split",
                  $path_func=myfunc, $include=set("ts", "id.orig_h")];
@@ -440,7 +440,7 @@ predicate that will be called for each log record:
         return rec?$service && rec$service == "http";
         }
 
-    event bro_init()
+    event zeek_init()
         {
         local filter: Log::Filter = [$name="http-only", $path="conn-http",
                                      $pred=http_only];
@@ -464,7 +464,7 @@ their ``interv`` field.  Here's an example of changing just the
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         local f = Log::get_filter(Conn::LOG, "default");
         f$interv = 1 min;
@@ -511,7 +511,7 @@ format of the ``conn.log`` only:
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         local f = Log::get_filter(Conn::LOG, "default");
         # Use tab-separated-value mode

@@ -53,7 +53,7 @@ observers for the other two values.
 
 Next, we create the reducers. The first will accumulate file sizes
 and the second will make sure we only store a host ID once. Below is
-the partial code from a :bro:see:`bro_init` handler.
+the partial code from a :bro:see:`zeek_init` handler.
 
 .. literalinclude:: mimestats.bro
    :caption:

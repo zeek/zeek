@@ -9,7 +9,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	h = Broker::create_master("mystore");
 

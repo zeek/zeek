@@ -29,7 +29,7 @@ event do_it()
 	             $where=SOMEWHERE]);
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	schedule 1sec { do_it() };
 	}

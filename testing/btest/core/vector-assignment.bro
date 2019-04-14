@@ -13,7 +13,7 @@ function set_me(val: any) {
 	print a;
 }
 
-event bro_init() {
+event zeek_init() {
 	local b: vector of count = {1, 2, 3};
 	set_me(b);
 }

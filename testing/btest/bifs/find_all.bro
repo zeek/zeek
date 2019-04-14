@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local a = "this is a test";
 	local pat = /hi|es/;

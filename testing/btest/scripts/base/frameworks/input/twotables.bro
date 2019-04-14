@@ -81,7 +81,7 @@ event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, r
 #	print event_out, right;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event_out = open ("../event.out");
 	pred1_out = open ("../pred1.out");

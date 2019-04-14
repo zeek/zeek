@@ -3,7 +3,7 @@
 
 module Foo;
 
-event bro_init() {
+event zeek_init() {
 
     Log::remove_default_filter(HTTP::LOG);
 

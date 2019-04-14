@@ -32,7 +32,7 @@ function foo_func(fc: FooContainer)
         print fc;
         }
 
-event bro_init()
+event zeek_init()
         {
         for ( sw in matched_software )
                 print matched_software[sw]$version;

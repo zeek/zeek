@@ -34,7 +34,7 @@ cat >scripts/demo/foo/__load__.bro <<EOF
 EOF
 
 cat >scripts/demo/foo/manually.bro <<EOF
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
         {
         print "plugin: manually loaded";
         print "calling bif", hello_plugin_world();
@@ -42,7 +42,7 @@ event bro_init() &priority=-10
 EOF
 
 cat >scripts/demo/foo/base/at-startup.bro <<EOF
-event bro_init() &priority=10
+event zeek_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
         }

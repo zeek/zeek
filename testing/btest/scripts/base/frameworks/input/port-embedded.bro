@@ -32,7 +32,7 @@ event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, r
 	print left, right;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $ev=line, $destination=servers]);
 	}

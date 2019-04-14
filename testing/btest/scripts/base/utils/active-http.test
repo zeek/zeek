@@ -35,7 +35,7 @@ function test_request(label: string, req: ActiveHTTP::Request)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_request("test1", [$url="127.0.0.1:32123"]);
 	test_request("test2", [$url="127.0.0.1:32123/empty", $method="POST"]);

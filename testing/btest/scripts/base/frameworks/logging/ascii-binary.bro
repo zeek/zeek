@@ -15,7 +15,7 @@ export {
 
 redef LogAscii::separator = "|";
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Info]);
 	Log::write(SSH::LOG, [$data="abc\n\xffdef", $data2="DATA2"]);

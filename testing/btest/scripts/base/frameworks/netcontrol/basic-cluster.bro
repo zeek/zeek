@@ -26,7 +26,7 @@ redef Log::default_rotation_interval = 0secs;
 @load base/frameworks/netcontrol
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}

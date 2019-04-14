@@ -17,7 +17,7 @@ export {
 	} &log;
 }
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 	Log::write(SSH::LOG, [

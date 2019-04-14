@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-diff conn.log
 
 # dcc mime types are irrelevant to this test, so filter it out
-event bro_init()
+event zeek_init()
 	{
 	Log::remove_default_filter(IRC::LOG);
 	Log::add_filter(IRC::LOG, [$name="remove-mime", $exclude=set("dcc_mime_type")]);

@@ -6,7 +6,7 @@
 
 redef Analyzer::disabled_analyzers += { Analyzer::ANALYZER_SSH };
 
-event bro_init()
+event zeek_init()
 	{
 	Analyzer::disable_analyzer(Analyzer::ANALYZER_DNS);
 	}

@@ -13,7 +13,7 @@ export {
 	};
 }
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Info]);
 	Log::write(Test::LOG, [$data="Test1"]);

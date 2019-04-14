@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-diff testfile2
 # @TEST-EXEC: test -f testdir/testfile4
 
-event bro_init()
+event zeek_init()
 	{
 	# Test that creating a file works as expected
 	local a = open("testfile");

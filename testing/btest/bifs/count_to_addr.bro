@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local a = "1";
 	print count_to_v4_addr(to_count(a));

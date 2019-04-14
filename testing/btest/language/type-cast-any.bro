@@ -27,7 +27,7 @@ function cast_to_X(a: any, b: X)
 	print a, P, P is X, fmt("%s==%s => %s", b, P, Cmp);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local x: X;
 	x = [$a = 1.2.3.4, $b=1947/tcp];

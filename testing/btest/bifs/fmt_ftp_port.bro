@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local a = 192.168.0.2;
 	local b = 257/tcp;

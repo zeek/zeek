@@ -9,7 +9,7 @@ type myrecord: record {
   s: string;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local a = "foo";
 	local b = 3;

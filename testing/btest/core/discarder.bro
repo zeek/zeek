@@ -6,7 +6,7 @@
 
 @TEST-START-FILE discarder-ip.bro
 
-event bro_init()
+event zeek_init()
 	{
 	print "################ IP Discarder ################";
 	}
@@ -28,7 +28,7 @@ event new_packet(c: connection, p: pkt_hdr)
 
 @TEST-START-FILE discarder-tcp.bro
 
-event bro_init()
+event zeek_init()
     {
     print "################ TCP Discarder ################";
     }
@@ -50,7 +50,7 @@ event new_packet(c: connection, p: pkt_hdr)
 
 @TEST-START-FILE discarder-udp.bro
 
-event bro_init()
+event zeek_init()
     {
     print "################ UDP Discarder ################";
     }
@@ -72,7 +72,7 @@ event new_packet(c: connection, p: pkt_hdr)
 
 @TEST-START-FILE discarder-icmp.bro
 
-event bro_init()
+event zeek_init()
     {
     print "################ ICMP Discarder ################";
     }

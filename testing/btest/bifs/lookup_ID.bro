@@ -4,7 +4,7 @@
 
 global a = "bro test";
 
-event bro_init()
+event zeek_init()
 	{
 	local b = "local value";
 

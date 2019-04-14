@@ -67,7 +67,7 @@ function test_return(): vector of string
 	return rval;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_noop();
 	test_it();

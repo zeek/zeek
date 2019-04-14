@@ -31,7 +31,7 @@ event new_packet(c: connection, p: pkt_hdr)
 	# print fmt("num=%d agg_delta_network=%.1f agg_delta_real=%.1f", cnt, an, ac);
 	}
 
-event bro_done()
+event zeek_done()
 	{
 	local d = (an - ac);
 	if ( d < 0 secs)

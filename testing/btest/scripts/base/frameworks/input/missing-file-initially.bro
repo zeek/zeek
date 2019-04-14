@@ -50,7 +50,7 @@ event line2(description: Input::EventDescription, tpe: Input::Event, v: Val)
 	}
 
 
-event bro_init()
+event zeek_init()
 	{
 	Input::add_event([$source="../does-not-exist.dat", $name="input", $reader=Input::READER_ASCII, $mode=Input::REREAD, $fields=Val, $ev=line, $want_record=T]);
 	Input::add_event([$source="../does-not-exist.dat", $name="inputstream", $reader=Input::READER_ASCII, $mode=Input::STREAM, $fields=Val, $ev=line, $want_record=T]);

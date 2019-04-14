@@ -32,7 +32,7 @@ event e3(test: string)
 
 global e5: event(num: count);
 
-event bro_init()
+event zeek_init()
 {
 	# Test calling an event with "event" statement
 	event e1();

@@ -58,7 +58,7 @@ event do_another()
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local local_dummy = dummyfunc;
 

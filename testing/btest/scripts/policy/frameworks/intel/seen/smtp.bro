@@ -16,7 +16,7 @@ name-addr@example.com	Intel::EMAIL	source1	test entry	http://some-data-distribut
 
 redef Intel::read_files += { "intel.dat" };
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}

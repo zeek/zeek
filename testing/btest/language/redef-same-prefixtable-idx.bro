@@ -10,7 +10,7 @@ redef my_table[3.0.0.0/8] = 2.0.0.0/8;
 # redef my_table += { [3.0.0.0/8] = 1.0.0.0/8 };
 # redef my_table += { [3.0.0.0/8] = 2.0.0.0/8 };
 
-event bro_init()
+event zeek_init()
 	{
 	print my_table;
 	print my_table[3.0.0.0/8];

@@ -11,7 +11,7 @@ function cast_to_string(a: any)
 	print a as string;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	cast_to_string(42);
 	}

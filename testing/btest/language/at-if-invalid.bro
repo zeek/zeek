@@ -6,7 +6,7 @@ function foo(c: count): bool
 
 global TRUE_CONDITION = T;
 
-event bro_init()
+event zeek_init()
 	{
 	local xyz = 0;
 	local local_true_condition = T;

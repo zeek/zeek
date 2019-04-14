@@ -5,7 +5,7 @@
 
 redef Analyzer::disable_all = T;
 
-event bro_init()
+event zeek_init()
 	{
 	Analyzer::enable_analyzer(Analyzer::ANALYZER_DNS);
 	}

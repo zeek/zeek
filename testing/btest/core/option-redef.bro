@@ -9,7 +9,7 @@ redef testopt = 6;
 option anotheropt = 6;
 redef anotheropt = 7;
 
-event bro_init() {
+event zeek_init() {
 	print testopt;
 	print anotheropt;
 }

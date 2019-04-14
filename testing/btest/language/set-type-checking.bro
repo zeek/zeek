@@ -11,7 +11,7 @@ global gen: MySet = MySet(1); # type clash in init
 
 # global, type deduction, anon ctor
 global gda = set(2); # fine
-event bro_init()
+event zeek_init()
 	{
 	gda = MySet(2);  # type clash in assignment
 	}
@@ -20,26 +20,26 @@ event bro_init()
 global gea: MySet = set(3); # type clash
 
 # local, type deduction, named ctor
-event bro_init()
+event zeek_init()
     {
     local ldn = MySet(1000); # type clash
     }
 
 # local, type explicit, named ctor
-event bro_init()
+event zeek_init()
     {
     local len: MySet = MySet(1001); # type clash
     }
 
 # local, type deduction, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lda = set(1002);   # fine
     lda = MySet(1002);    # type clash
     }
 
 # local, type explicit, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lea: MySet = set(1003); # type clash
     }
@@ -53,7 +53,7 @@ type MyRecord: record {
 
 global set_of_records: set[MyRecord];
 
-event bro_init()
+event zeek_init()
 	{
 	# Set ctor w/ anonymous record ctor should coerce.
 	set_of_records = set([$user="testuser", $host="testhost", $path="testpath"]);

@@ -8,7 +8,7 @@ type R: record  {
     c: count;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local cr = Broker::record_create(3);
 	print Broker::record_size(cr);

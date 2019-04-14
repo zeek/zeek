@@ -108,7 +108,7 @@ event file_state_remove(f: fa_file)
 		print fmt("SHA256: %s", f$info$sha256);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	add test_file_analyzers[Files::ANALYZER_MD5];
 	add test_file_analyzers[Files::ANALYZER_SHA1];

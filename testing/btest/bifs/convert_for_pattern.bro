@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	print convert_for_pattern("foo");
 	print convert_for_pattern("");

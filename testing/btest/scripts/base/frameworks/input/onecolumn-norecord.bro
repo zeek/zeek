@@ -28,7 +28,7 @@ type Val: record {
 
 global servers: table[int] of bool = table();
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=servers, $want_record=F]);

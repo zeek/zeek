@@ -10,7 +10,7 @@ function dc(s: string)
 	print "";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	dc("https://www.bro.org:42/documentation/faq.html?k1=v1&k2=v2");
 	dc("");

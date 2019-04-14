@@ -26,7 +26,7 @@ event mod_count(a: count, b: count)
 	print a % b;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event div_int(10, 0);
 	event div_count(10, 0);

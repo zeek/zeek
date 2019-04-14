@@ -8,7 +8,7 @@
 
 # first check local variable of file type w/ &raw_output
 
-event bro_init()
+event zeek_init()
     {
     local myfile: file;
     myfile = open("myfile");

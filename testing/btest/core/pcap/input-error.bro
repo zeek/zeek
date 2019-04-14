@@ -5,7 +5,7 @@
 
 redef enum PcapFilterID += { A };
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Pcap::precompile_pcap_filter(A, "kaputt, too") )
 		print "error", Pcap::error();

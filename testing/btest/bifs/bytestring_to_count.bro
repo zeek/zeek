@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 
 
-event bro_init()
+event zeek_init()
 	{
 
 	# unsupported byte lengths

@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT
 # @TEST-EXEC: btest-diff testfile
 
-event bro_init()
+event zeek_init()
 	{
 	local vars: table[string] of string = { ["TESTBRO"] = "helloworld" };
 

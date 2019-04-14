@@ -21,7 +21,7 @@ function f2(): bool
 	}
 
 
-event bro_init()
+event zeek_init()
 {
 	local a: count;
 	local b: count;

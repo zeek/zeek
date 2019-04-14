@@ -18,7 +18,7 @@ redef test_get_file_name = function(f: fa_file): string
 T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
 @TEST-END-FILE
 
-event bro_init()
+event zeek_init()
 	{
 	local source: string = "../input.log";
 	Input::add_analysis([$source=source, $reader=Input::READER_BINARY,

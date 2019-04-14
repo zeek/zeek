@@ -13,7 +13,7 @@ redef record Outer += {
 	inner: Inner &optional;
 };
 
-event bro_init() {
+event zeek_init() {
 	local o = Outer();
 	print o;
 	print type_name(o);

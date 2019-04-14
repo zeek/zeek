@@ -61,7 +61,7 @@ hook Intel::item_expired(indicator: string, indicator_type: Intel::Type,
 	print fmt("Expired: %s", indicator);
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	schedule 1.5sec { do_it() };
 	}

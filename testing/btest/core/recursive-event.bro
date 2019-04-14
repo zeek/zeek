@@ -26,7 +26,7 @@ event test()
         event test();
         }
 
-event bro_init()
+event zeek_init()
         {
         event test();
         }

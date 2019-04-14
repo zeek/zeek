@@ -19,7 +19,7 @@ event test()
 	print "var_b is", var_b;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event test();
 	}

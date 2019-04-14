@@ -33,7 +33,7 @@ function table_expire_func(t: table[string] of count, s: string): interval
 	return 0 secs;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local s="ashish";
 	t[s] = 1 ;

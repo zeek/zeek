@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: test -f testfile
 
-event bro_init()
+event zeek_init()
 	{
 	print capture_state_updates("testfile");
 	}

@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local s1: string = "a\ty";    # tab
 	local s2: string = "a\nb";    # newline

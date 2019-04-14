@@ -219,7 +219,7 @@ function test_switch(actual: string, expect: string)
 		print fmt("%s != %s", actual, expect);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_switch( switch_bool(T) , "true" );
 	test_switch( switch_bool(F) , "false" );

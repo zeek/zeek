@@ -30,7 +30,7 @@ signature my_ftp_server {
 
 @load base/utils/addrs
 
-event bro_init()
+event zeek_init()
 	{
 	# no analyzer attached to any port by default, depends entirely on sigs
 	print "|Analyzer::all_registered_ports()|", |Analyzer::all_registered_ports()|;

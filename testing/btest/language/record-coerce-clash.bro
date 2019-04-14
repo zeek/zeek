@@ -7,7 +7,7 @@ type myrec: record {
 	cid: conn_id;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local mr: myrec;
 	mr = [$cid = [$orig_h=1.2.3.4,$orig_p=0/tcp,$resp_h=0.0.0.0,$resp_p=wrong]];

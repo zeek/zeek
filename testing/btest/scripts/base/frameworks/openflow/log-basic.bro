@@ -8,7 +8,7 @@ global of_controller: OpenFlow::Controller;
 
 global cookie_id: count = 42;
 
-event bro_init()
+event zeek_init()
 	{
 	of_controller = OpenFlow::log_new(42);
 

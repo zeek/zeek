@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro -r $TRACES/http/get.trace %INPUT 2>&1
 # @TEST-EXEC: btest-diff .stdout
 
-event bro_init()
+event zeek_init()
 	{
 	print "This should fail but not crash";
 	print Files::lookup_file("asdf");

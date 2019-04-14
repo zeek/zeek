@@ -8,7 +8,7 @@ function test_case(msg: string, expect: bool)
 
 
 
-event bro_init()
+event zeek_init()
 {
 	local vv: vector of string = vector( "a", "b", "c" );
 	local ct: count = 0;

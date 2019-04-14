@@ -45,7 +45,7 @@ function f7(test: string): bool
 	return F;
 	}
 
-event bro_init()
+event zeek_init()
 {
 	f1();
 	f2();

@@ -22,7 +22,7 @@ redef Log::default_rotation_interval = 0secs;
 global of_controller: OpenFlow::Controller;
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}
@@ -33,7 +33,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	}
 @endif
 
-event bro_init()
+event zeek_init()
 	{
 	of_controller = OpenFlow::log_new(42);
 	}

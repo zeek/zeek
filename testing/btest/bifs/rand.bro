@@ -6,7 +6,7 @@
 
 const do_seed = T &redef;
 
-event bro_init()
+event zeek_init()
 	{
 	local a = rand(1000);
 	local b = rand(1000);

@@ -8,7 +8,7 @@ type FOO: record {
         b: count &optional;
 };
 
-event bro_init()
+event zeek_init()
         {
         local set_of_foo: set[FOO] = set();
 

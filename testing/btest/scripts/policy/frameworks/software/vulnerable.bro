@@ -11,7 +11,7 @@ redef Software::vulnerable_versions += {
         ["Java"] = set(java_1_6_vuln, java_1_7_vuln)
 };
 
-event bro_init()
+event zeek_init()
 	{
 	Software::found([$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp], 
 	                [$name="Java", $host=1.2.3.4, $version=[$major=1, $minor=7, $minor2=0, $minor3=15]]);

@@ -4,7 +4,7 @@
 # This script tests "next" being called during the last iteration of a
 # for loop
 
-event bro_done()
+event zeek_done()
   {
 
         local number_set: set[count];

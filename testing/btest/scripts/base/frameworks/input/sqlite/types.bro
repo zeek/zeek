@@ -73,7 +73,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, p: SSH::Log)
 	print outfile, |p$vs|;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from ssh;",

@@ -49,7 +49,7 @@ event inserted()
         schedule 2secs { done() };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish("bro/events", done);
 	Broker::subscribe("bro/");
@@ -127,7 +127,7 @@ event done()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish("bro/events", inserted);
 	Broker::subscribe("bro/");

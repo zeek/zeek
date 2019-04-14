@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local p1: port = 1/icmp;
 	local p2: port = 2/udp;

@@ -10,7 +10,7 @@ function test_case(msg: string, expect: bool)
 # Note: only global vectors can be initialized with curly braces
 global vg1: vector of string = { "curly", "braces" };
 
-event bro_init()
+event zeek_init()
 {
 	local v1: vector of string = vector( "test", "example" );
 	local v2: vector of string = vector();

@@ -4,7 +4,7 @@
 global crashMe: function(): string;
 global x: int;
 
-event bro_init()
+event zeek_init()
 	{
 	when( local result = crashMe() )
 		{

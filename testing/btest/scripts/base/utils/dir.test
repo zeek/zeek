@@ -47,7 +47,7 @@ function new_file(fname: string)
 		terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Dir::monitor("../testdir", new_file, .25sec);
 	}

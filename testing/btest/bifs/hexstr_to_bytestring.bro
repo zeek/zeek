@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-event bro_init()
+event zeek_init()
 	{
 	print hexstr_to_bytestring("3034");
 	print hexstr_to_bytestring("");

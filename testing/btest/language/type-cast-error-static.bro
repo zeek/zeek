@@ -6,7 +6,7 @@ type X: record  {
     b: port;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local x: X;
 	x = [$a = 1.2.3.4, $b=1947/tcp];

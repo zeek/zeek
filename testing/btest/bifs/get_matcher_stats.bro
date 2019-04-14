@@ -10,7 +10,7 @@ signature my_ftp_client {
 }
 @TEST-END-FILE
 
-event bro_init()
+event zeek_init()
 	{
 	local a = get_matcher_stats();
 	if ( a$matchers == 0 )

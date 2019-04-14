@@ -34,7 +34,7 @@ function test_bloom_filter()
   
   }
 
-event bro_init()
+event zeek_init()
   {
   test_bloom_filter();
   }

@@ -26,7 +26,7 @@ redef record Log += {
 } &log;
 
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 

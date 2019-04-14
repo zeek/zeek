@@ -2,7 +2,7 @@
 # @TEST-EXEC: TESTBRO=testvalue bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local a = getenv("NOTDEFINED");
 	local b = getenv("TESTBRO");

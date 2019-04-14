@@ -4,7 +4,7 @@
 
 global a: table[count] of count;
 
-event bro_init()
+event zeek_init()
 {
     print a[2];
 }

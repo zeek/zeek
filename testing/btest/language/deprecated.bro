@@ -24,7 +24,7 @@ type my_other_enum: enum {
 	TWO = 2 &deprecated
 };
 
-event bro_init()
+event zeek_init()
 	{
 	print ZERO;
 	print ONE;

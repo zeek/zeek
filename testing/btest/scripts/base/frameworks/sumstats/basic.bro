@@ -4,7 +4,7 @@
 
 redef exit_only_after_terminate=T;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", 
 	                               $apply=set(SumStats::SUM, 

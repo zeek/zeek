@@ -7,7 +7,7 @@ function f1(test: string)
 	;  # null statement in function
 	}
 
-event bro_init()
+event zeek_init()
 {
 	local s1: set[string] = set( "this", "test" );
 

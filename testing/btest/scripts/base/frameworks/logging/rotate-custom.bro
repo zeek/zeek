@@ -28,7 +28,7 @@ function custom_rotate(info: Log::RotationInfo) : bool
     return T;
 }
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
 	Log::add_filter(Test::LOG, [$name="2nd", $path="test2", $interv=30mins, $postprocessor=custom_rotate]);

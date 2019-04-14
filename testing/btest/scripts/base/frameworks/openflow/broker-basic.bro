@@ -15,7 +15,7 @@ redef exit_only_after_terminate = T;
 
 global of_controller: OpenFlow::Controller;
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, to_port(getenv("BROKER_PORT")), "bro/openflow", 42);
@@ -80,7 +80,7 @@ event die()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/openflow");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));

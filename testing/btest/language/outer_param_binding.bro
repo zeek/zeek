@@ -21,7 +21,7 @@ function bar(b: string, c: string)
 	print f$x("2");
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	bar("1", "20");
 	}

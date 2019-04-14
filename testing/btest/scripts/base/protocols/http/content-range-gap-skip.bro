@@ -19,7 +19,7 @@ event content_gap(c: connection, is_orig: bool, seq: count, length: count)
 	got_gap = T;
 	}
 
-event bro_done()
+event zeek_done()
 	{
 	if ( ! got_data_after_gap )
 		exit(1);

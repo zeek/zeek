@@ -22,7 +22,7 @@ type Val: record {
 
 global etable: table[int] of Log::ID = table();
 
-event bro_init()
+event zeek_init()
 	{
 	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="enum", $idx=Idx, $val=Val, $destination=etable, $want_record=F]);

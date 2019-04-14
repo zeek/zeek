@@ -55,7 +55,7 @@ event fully_connected(n: string)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::logger_topic, fully_connected);
 	}

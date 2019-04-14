@@ -59,7 +59,7 @@ export {
 	option test_vector: vector of count = {};
 }
 
-event bro_init()
+event zeek_init()
 	{
 	Config::read_config("../configfile");
 	}
@@ -75,7 +75,7 @@ function option_changed(ID: string, new_value: any, location: string): any
 	return new_value;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Option::set_change_handler("testport", option_changed, -100);
 	Option::set_change_handler("teststring", option_changed, -100);

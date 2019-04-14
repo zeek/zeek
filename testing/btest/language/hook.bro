@@ -91,7 +91,7 @@ function printMe(s: string): bool
 	return T;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	print hook myhook([$a=1156, $b="hello world"]);
 

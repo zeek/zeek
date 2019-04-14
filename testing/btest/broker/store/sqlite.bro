@@ -27,7 +27,7 @@ event done()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	h = Broker::create_master("master", Broker::SQLITE);
 

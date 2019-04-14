@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local i1: int = 3;
 	local i2: int = +3;

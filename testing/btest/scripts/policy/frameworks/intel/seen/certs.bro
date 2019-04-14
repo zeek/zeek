@@ -17,7 +17,7 @@ www.dresdner-privat.de	Intel::DOMAIN	source1	test entry	http://some-data-distrib
 
 redef Intel::read_files += { "intel.dat" };
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}

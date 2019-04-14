@@ -79,7 +79,7 @@ event term_me()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from ssh;",

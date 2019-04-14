@@ -7,7 +7,7 @@ function test(la1: double, lo1: double, la2: double, lo2: double)
 	print fmt("%.4e", haversine_distance(la1, lo1, la2, lo2));
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Test two arbitrary locations.
 	test(37.866798, -122.253601, 48.25, 11.65);

@@ -32,7 +32,7 @@ type Info: record {
 	num: count &log;
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Test::LOG, [$columns=Info, $path="test"]);
 	}

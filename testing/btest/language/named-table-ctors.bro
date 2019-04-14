@@ -17,7 +17,7 @@ global mytablecomp: FooTableComp = FooTableComp(["test", 1] = "test1", ["cool",
 2] = "cool2");
 global mytabley: FooTableY = FooTableY(["one"] = 1, ["two"] = 2, ["three"] = 3) &default=0;
 
-event bro_init()
+event zeek_init()
 	{
 	print mytable;
 	print mytablerec;

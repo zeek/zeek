@@ -79,7 +79,7 @@ function g(do_exception: bool): bool
 	return F;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local cmd = Exec::Command($cmd="echo 'bro_init()'");
 	local stall = Exec::Command($cmd="sleep 30");

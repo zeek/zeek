@@ -20,7 +20,7 @@ export {
 	} &log;
 }
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 	Log::add_filter(SSH::LOG, [$name="f1", $path="ssh.failure", $pred=function(rec: Log): bool { return rec$status == "failure"; }]);

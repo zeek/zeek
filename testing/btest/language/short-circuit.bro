@@ -21,7 +21,7 @@ function f_func(): bool
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local res: bool;
 

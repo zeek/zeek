@@ -13,7 +13,7 @@ global gren: MyRec = MyRec($a = 1); # type clash in init
 
 # global, type deduction, anon ctor
 global grda = [$a = 2]; # fine
-event bro_init()
+event zeek_init()
 	{
 	grda = MyRec($a = 2);  # type clash in assignment
 	}
@@ -22,26 +22,26 @@ event bro_init()
 global grea: MyRec = [$a = 3]; # type clash
 
 # local, type deduction, named ctor
-event bro_init()
+event zeek_init()
     {
     local lrdn = MyRec($a = 1000); # type clash
     }
 
 # local, type explicit, named ctor
-event bro_init()
+event zeek_init()
     {
     local lren: MyRec = MyRec($a = 1001); # type clash
     }
 
 # local, type deduction, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lrda = [$a = 1002];   # fine
     lrda = MyRec($a = 1002);    # type clash
     }
 
 # local, type explicit, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lrea: MyRec = [$a = 1003]; # type clash
     }

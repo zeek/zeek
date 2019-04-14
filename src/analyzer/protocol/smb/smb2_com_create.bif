@@ -32,3 +32,5 @@ event smb2_create_response%(c: connection, hdr: SMB2::Header, response: SMB2::Cr
 
 type SMB2::CreateRequest: record;
 type SMB2::CreateResponse: record;
+type SMB2::CreateContextValue: record;
+type SMB2::CreateContextValues: vector;

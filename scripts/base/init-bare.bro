@@ -3358,6 +3358,24 @@ export {
 		share_type: count;
 	};
 
+
+	## The create context type information as defined for SMB2_create_request messages.
+	##
+	## For more information, see MS-SMB2:2.2.13.2
+	##
+	type SMB2::CreateContextValue: record {
+		next_offset : count;
+		name_offset : count;
+		name_len    : count;
+		data_offset : count;
+		data_len    : count;
+		name        : string;
+		data        : string;
+	};
+
+	type SMB2::CreateContextValues: vector of SMB2::CreateContextValue;
+
+
 	## The request sent by the client to request either creation of or access to a file.
 	##
 	## For more information, see MS-SMB2:2.2.13
@@ -3372,6 +3390,14 @@ export {
 		create_options : count;
 		## Specifies the desired access mask (the level of access) for file/pipe/print.
         access_mask : count;
+        share_access : count;
+        filename_offset : count;
+        filename_len : count;
+        context_offset      : count;
+        context_len         : count;
+        context_pad         : count;
+        #contexts : SMB2::CreateContextValue;
+        contexts : vector of SMB2::CreateContextValue;
 	};
 
 	## The response to an SMB2 *create_request* request, which is sent by the client to request

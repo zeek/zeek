@@ -3363,10 +3363,10 @@ export {
 	## For more information, see MS-SMB2:2.2.13.2
 	##
 	type SMB2::CreateContextValue: record {
-        ## The structure name indicates what information is encoded by the data payload.
-        ## Possible values are: ExtA, SecD, DHnQ, etc.
-	    name        : string;
-	    ## The data payload of the type specified in the structure name.
+        	## The structure name indicates what information is encoded by the data payload.
+        	## Possible values are: ExtA, SecD, DHnQ, etc.
+		name        : string;
+	    	## The data payload of the type specified in the structure name.
 		data        : string;
 	};
 
@@ -3385,11 +3385,11 @@ export {
 		## Specifies the options to be applied when creating or opening the file.
 		create_options : count;
 		## Specifies the desired access mask (the level of access) for file/pipe/print.
-        access_mask : count;
-        ## Specifies the sharing mode for the open.
-        share_access : count;
-        ## A vector of Create Context Values as defined in MS-SMB2:2.2.13.2.
-        contexts : vector of SMB2::CreateContextValue;
+        	access_mask : count;
+        	## Specifies the sharing mode for the open.
+        	share_access : count;
+        	## A vector of Create Context Values as defined in MS-SMB2:2.2.13.2.
+        	contexts : vector of SMB2::CreateContextValue;
 	};
 
 	## The response to an SMB2 *create_request* request, which is sent by the client to request

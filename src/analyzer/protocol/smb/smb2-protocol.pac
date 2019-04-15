@@ -101,14 +101,14 @@ refine connection SMB_Conn += {
 	%}
 
 	function BuildSMB2CreateContextVal(cc: SMB2_create_context_value): BroVal
-    	%{
-    	RecordVal* r = new RecordVal(BifType::Record::SMB2::CreateContextValue);
+    		%{
+    		RecordVal* r = new RecordVal(BifType::Record::SMB2::CreateContextValue);
 
-    	r->Assign(0, bytestring_to_val(${cc.name}));
-        r->Assign(1, bytestring_to_val(${cc.data}));
+    		r->Assign(0, bytestring_to_val(${cc.name}));
+        	r->Assign(1, bytestring_to_val(${cc.data}));
 
-    	return r;
-        %}
+    		return r;
+        	%}
 
 	function BuildSMB2ContextVal(ncv: SMB3_negotiate_context_value): BroVal
 		%{

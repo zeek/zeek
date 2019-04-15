@@ -6,14 +6,14 @@ enum smb2_create_extrainfo {
 	SMB2_CREATE_ALLOCATION_SIZE                  = 0x416c5369,
 	SMB2_CREATE_QUERY_MAXIMAL_ACCESS_REQUEST     = 0x4d784163,
 	SMB2_CREATE_TIMEWARP_TOKEN                   = 0x54577270,
-    SMB2_CREATE_QUERY_ON_DISK_ID                 = 0x51466964,
+    	SMB2_CREATE_QUERY_ON_DISK_ID                 = 0x51466964,
 	SMB2_CREATE_REQUEST_LEASE                    = 0x52714c73,
 	SMB2_CREATE_REQUEST_LEASE_V2                 = 0x52714c73,
 	SMB2_CREATE_DURABLE_HANDLE_REQUEST_V2        = 0x44483251,
 	SMB2_CREATE_DURABLE_HANDLE_RECONNECT_V2      = 0x44483243,
-    SMB2_CREATE_APP_INSTANCE_ID                  = 0x45BCA66AEFA7F74A9008FA462E144D74,
-    SMB2_CREATE_APP_INSTANCE_VERSION             = 0xB982D0B73B56074FA07B524A8116A010,
-    SVHDX_OPEN_DEVICE_CONTEXT                    = 0x9CCBCF9E04C1E643980E158DA1F6EC83,
+    	SMB2_CREATE_APP_INSTANCE_ID                  = 0x45BCA66AEFA7F74A9008FA462E144D74,
+    	SMB2_CREATE_APP_INSTANCE_VERSION             = 0xB982D0B73B56074FA07B524A8116A010,
+    	SVHDX_OPEN_DEVICE_CONTEXT                    = 0x9CCBCF9E04C1E643980E158DA1F6EC83,
 };
 
 
@@ -39,15 +39,14 @@ refine connection SMB_Conn += {
 			requestinfo->Assign(3, val_mgr->GetCount(${val.access_mask}));
 			requestinfo->Assign(4, val_mgr->GetCount(${val.share_access}));
 
-            if (${val.contexts})
-                {
-                VectorVal* cv = new VectorVal(BifType::Vector::SMB2::CreateContextValues);
+            		if (${val.contexts})
+                		{
+                		VectorVal* cv = new VectorVal(BifType::Vector::SMB2::CreateContextValues);
 
-		        for ( auto i = 0u; i < ${val.contexts}->size(); ++i )
-	                cv->Assign(i, BuildSMB2CreateContextVal(${val.contexts[i]}));
-
-                requestinfo->Assign(5, cv);
-                }
+		        	for ( auto i = 0u; i < ${val.contexts}->size(); ++i )
+	                		cv->Assign(i, BuildSMB2CreateContextVal(${val.contexts[i]}));
+                		requestinfo->Assign(5, cv);
+                		}
 
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),

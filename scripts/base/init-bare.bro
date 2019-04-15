@@ -3358,23 +3358,19 @@ export {
 		share_type: count;
 	};
 
-
 	## The create context type information as defined for SMB2_create_request messages.
 	##
 	## For more information, see MS-SMB2:2.2.13.2
 	##
 	type SMB2::CreateContextValue: record {
-		next_offset : count;
-		name_offset : count;
-		name_len    : count;
-		data_offset : count;
-		data_len    : count;
-		name        : string;
+        ## The structure name indicates what information is encoded by the data payload.
+        ## Possible values are: ExtA, SecD, DHnQ, etc.
+	    name        : string;
+	    ## The data payload of the type specified in the structure name.
 		data        : string;
 	};
 
 	type SMB2::CreateContextValues: vector of SMB2::CreateContextValue;
-
 
 	## The request sent by the client to request either creation of or access to a file.
 	##
@@ -3390,13 +3386,9 @@ export {
 		create_options : count;
 		## Specifies the desired access mask (the level of access) for file/pipe/print.
         access_mask : count;
+        ## Specifies the sharing mode for the open.
         share_access : count;
-        filename_offset : count;
-        filename_len : count;
-        context_offset      : count;
-        context_len         : count;
-        context_pad         : count;
-        #contexts : SMB2::CreateContextValue;
+        ## A vector of Create Context Values as defined in MS-SMB2:2.2.13.2.
         contexts : vector of SMB2::CreateContextValue;
 	};
 

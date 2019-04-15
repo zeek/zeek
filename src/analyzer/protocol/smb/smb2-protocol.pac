@@ -104,15 +104,8 @@ refine connection SMB_Conn += {
     	%{
     	RecordVal* r = new RecordVal(BifType::Record::SMB2::CreateContextValue);
 
-    	r->Assign(0, val_mgr->GetCount(${cc.next_offset}));
-    	r->Assign(1, val_mgr->GetCount(${cc.name_offset}));
-    	r->Assign(2, val_mgr->GetCount(${cc.name_len}));
-    	r->Assign(3, val_mgr->GetCount(${cc.data_offset}));
-    	r->Assign(4, val_mgr->GetCount(${cc.data_len}));
-    	r->Assign(5, bytestring_to_val(${cc.name}));
-        r->Assign(6, bytestring_to_val(${cc.data}));
-    	//r->Assign(5, smb2_string2stringval(${cc.name}));
-    	//r->Assign(6, smb2_string2stringval(${cc.data}));
+    	r->Assign(0, bytestring_to_val(${cc.name}));
+        r->Assign(1, bytestring_to_val(${cc.data}));
 
     	return r;
         %}

@@ -1,4 +1,4 @@
-@load policy/protocols/ssh/interesting-hostnames.bro
+@load policy/protocols/ssh/interesting-hostnames.zeek
 @load base/protocols/ssh/
 
 redef Notice::emailed_types += {

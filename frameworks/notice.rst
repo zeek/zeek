@@ -89,14 +89,14 @@ Here's a simple example which tells Bro to send an email for all notices of
 type :bro:see:`SSH::Password_Guessing` if the guesser attempted to log in to
 the server at 192.168.56.103:
 
-.. literalinclude:: notice_ssh_guesser.bro
+.. literalinclude:: notice_ssh_guesser.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap notice_ssh_guesser.bro
+   $ bro -C -r ssh/sshguess.pcap notice_ssh_guesser.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,

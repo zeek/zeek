@@ -25,7 +25,7 @@ start by defining a threshold for the number of attempts, a monitoring
 interval (in minutes), and a new notice type.
 
 .. sourcecode:: bro
-   :caption: detect-bruteforcing.bro
+   :caption: detect-bruteforcing.zeek
 
    module FTP;
 
@@ -54,7 +54,7 @@ function to break down the reply code and check if the first digit is a
 <sumstats-framework>` to keep track of the number of failed attempts.
 
 .. sourcecode:: bro
-   :caption: detect-bruteforcing.bro
+   :caption: detect-bruteforcing.zeek
 
    event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
        {
@@ -71,7 +71,7 @@ the number of failed attempts exceeds the specified threshold during the
 measuring interval.
 
 .. sourcecode:: bro
-   :caption: detect-bruteforcing.bro
+   :caption: detect-bruteforcing.zeek
 
    event bro_init()
        {
@@ -100,7 +100,7 @@ measuring interval.
 Below is the final code for our script.
 
 .. sourcecode:: bro
-   :caption: detect-bruteforcing.bro
+   :caption: detect-bruteforcing.zeek
 
    ##! FTP brute-forcing detector, triggering when too many rejected usernames or
    ##! failed passwords have occurred from a single address.
@@ -165,7 +165,7 @@ Below is the final code for our script.
 
 .. sourcecode:: console
 
-   $ bro -r ftp/bruteforce.pcap protocols/ftp/detect-bruteforcing.bro
+   $ bro -r ftp/bruteforce.pcap protocols/ftp/detect-bruteforcing.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,

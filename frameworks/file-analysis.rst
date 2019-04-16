@@ -34,14 +34,14 @@ bytes have been transferred so far, and its MIME type.
 
 Here's a simple example:
 
-.. literalinclude:: file_analysis_01.bro
+.. literalinclude:: file_analysis_01.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/get.trace file_analysis_01.bro
+   $ bro -r http/get.trace file_analysis_01.zeek
    file_state_remove
    FakNcS1Jfe01uljb3
    CHhAvVGS1DHFjwGM9
@@ -81,14 +81,14 @@ explicit attachment decision.
 Here's a simple example of how to use the MD5 file analyzer to
 calculate the MD5 of plain text files:
 
-.. literalinclude:: file_analysis_02.bro
+.. literalinclude:: file_analysis_02.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/get.trace file_analysis_02.bro
+   $ bro -r http/get.trace file_analysis_02.zeek
    new file, FakNcS1Jfe01uljb3
    file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
 
@@ -124,7 +124,7 @@ in the same way it analyzes files that it sees coming over traffic from
 a network interface it's monitoring.  It only requires a call to
 :bro:see:`Input::add_analysis`:
 
-.. literalinclude:: file_analysis_03.bro
+.. literalinclude:: file_analysis_03.zeek
    :caption:
    :language: bro
    :linenos:
@@ -138,7 +138,7 @@ Example output of the above script may be:
 .. sourcecode:: console
 
    $ echo "Hello world" > myfile
-   $ bro file_analysis_03.bro
+   $ bro file_analysis_03.zeek
    new file, FZedLu4Ajcvge02jA8
    file_hash, FZedLu4Ajcvge02jA8, md5, f0ef7081e1539ac00ef5b761b4fb01b3
    file_state_remove

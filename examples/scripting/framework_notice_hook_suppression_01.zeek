@@ -1,4 +1,4 @@
-@load policy/protocols/ssl/expiring-certs.bro
+@load policy/protocols/ssl/expiring-certs.zeek
 
 hook Notice::policy(n: Notice::Info) 
    {

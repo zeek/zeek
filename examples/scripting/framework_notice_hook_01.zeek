@@ -1,4 +1,4 @@
-@load policy/protocols/ssh/interesting-hostnames.bro
+@load policy/protocols/ssh/interesting-hostnames.zeek
 
 hook Notice::policy(n: Notice::Info)
   {

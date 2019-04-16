@@ -175,7 +175,7 @@ Bro Diagnostics
 | packet_filter.log          | List packet filters that were applied | :bro:type:`PacketFilter::Info`  |
 +----------------------------+---------------------------------------+---------------------------------+
 | prof.log                   | Profiling statistics (to create this  | N/A                             |
-|                            | log, load policy/misc/profiling.bro)  |                                 |
+|                            | log, load policy/misc/profiling.zeek  |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | reporter.log               | Internal error/warning/info messages  | :bro:type:`Reporter::Info`      |
 +----------------------------+---------------------------------------+---------------------------------+

@@ -41,21 +41,21 @@ executed.  Directives are evaluated before script execution begins.
 
     Loads the specified Bro script, specified as the relative pathname
     of the file (relative to one of the directories in Bro's file search path).
-    If the Bro script filename ends with ".bro", then you don't need to
+    If the Bro script filename ends with ".zeek", then you don't need to
     specify the file extension.  The filename cannot contain any whitespace.
 
     In this example, Bro will try to load a script
-    "policy/misc/capture-loss.bro" by looking in each directory in the file
+    "policy/misc/capture-loss.zeek" by looking in each directory in the file
     search path (the file search path can be changed by setting the BROPATH
     environment variable)::
 
         @load policy/misc/capture-loss
 
     If you specify the name of a directory instead of a filename, then
-    Bro will try to load a file in that directory called "__load__.bro"
+    Bro will try to load a file in that directory called "__load__.zeek"
     (presumably that file will contain additional "@load" directives).
 
-    In this example, Bro will try to load a file "tuning/defaults/__load__.bro"
+    In this example, Bro will try to load a file "tuning/defaults/__load__.zeek"
     by looking in each directory in the file search path::
 
         @load tuning/defaults
@@ -109,7 +109,7 @@ executed.  Directives are evaluated before script execution begins.
     if the specified script has already been loaded, then this directive
     has no affect.
 
-    In the following example, if the "policy/misc/capture-loss.bro" script
+    In the following example, if the "policy/misc/capture-loss.zeek" script
     has not been loaded yet, then Bro will not load it::
 
         @unload policy/misc/capture-loss
@@ -139,9 +139,9 @@ executed.  Directives are evaluated before script execution begins.
     directory in Bro's file search path.  If a matching file is found, then
     the file is automatically loaded.
 
-    For example, if a script called "local.bro" has been loaded, and a prefix
+    For example, if a script called "local.zeek" has been loaded, and a prefix
     of "test" was specified, then Bro will look for a file named
-    "test.local.bro" in each directory of Bro's file search path.
+    "test.local.zeek" in each directory of Bro's file search path.
 
     An alternative way to specify prefixes is to use the "-p" Bro
     command-line option.

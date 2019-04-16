@@ -84,14 +84,14 @@ use this to identify a proxy server.
 We can write a basic script in Bro to handle the http_reply event and
 detect a reply for a ``GET http://`` request.
 
-.. literalinclude:: http_proxy_01.bro
+.. literalinclude:: http_proxy_01.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_01.bro
+   $ bro -r http/proxy.pcap http_proxy_01.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 Basically, the script is checking for a "200 OK" status code on a reply
@@ -99,27 +99,27 @@ for a request that includes "http:" (case insensitive). In reality, the
 HTTP protocol defines several success status codes other than 200, so we
 will extend our basic script to also consider the additional codes.
 
-.. literalinclude:: http_proxy_02.bro
+.. literalinclude:: http_proxy_02.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_02.bro
+   $ bro -r http/proxy.pcap http_proxy_02.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 Next, we will make sure that the responding proxy is part of our local
 network.
 
-.. literalinclude:: http_proxy_03.bro
+.. literalinclude:: http_proxy_03.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_03.bro
+   $ bro -r http/proxy.pcap http_proxy_03.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 .. note::
@@ -135,14 +135,14 @@ we will tag the traffic accordingly and define a new ``Open_Proxy``
 notification has been fired, we will further suppress it for one day.
 Below is the complete script.
 
-.. literalinclude:: http_proxy_04.bro
+.. literalinclude:: http_proxy_04.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_04.bro
+   $ bro -r http/proxy.pcap http_proxy_04.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -173,14 +173,14 @@ instruct Bro to create a copy of all files of certain types that it sees
 using the :ref:`File Analysis Framework <file-analysis-framework>`
 (introduced with Bro 2.2):
 
-.. literalinclude:: file_extraction.bro
+.. literalinclude:: file_extraction.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r bro.org.pcap file_extraction.bro
+   $ bro -r bro.org.pcap file_extraction.zeek
    Extracting file HTTP-FiIpIB2hRQSDBOSJRg.html
    Extracting file HTTP-FMG4bMmVV64eOsCb.txt
    Extracting file HTTP-FnaT2a3UDd093opCB9.txt

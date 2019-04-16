@@ -162,7 +162,7 @@ Bro Scripts
 Bro ships with many pre-written scripts that are highly customizable
 to support traffic analysis for your specific environment.  By
 default, these will be installed into ``$PREFIX/share/bro`` and can be
-identified by the use of a ``.bro`` file name extension.  These files
+identified by the use of a ``.zeek`` file name extension.  These files
 should **never** be edited directly as changes will be lost when
 upgrading to newer versions of Bro.  The exception to this rule is the
 directory ``$PREFIX/share/bro/site`` where local site-specific files
@@ -177,7 +177,7 @@ functionality without any performance cost.  Scripts under the
 must explicitly choose if they want to load them.
 
 The main entry point for the default analysis configuration of a standalone
-Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.bro``
+Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.zeek``
 script.  We'll be adding to that in the following sections, but first
 we have to figure out what to add.
 
@@ -208,7 +208,7 @@ we see that it advertises:
         const ignored_types: set[Notice::Type] = {} &redef;
     }
 
-That's exactly what we want to do for the first notice.  Add to ``local.bro``:
+That's exactly what we want to do for the first notice.  Add to ``local.zeek``:
 
 .. sourcecode:: bro
 
@@ -233,9 +233,9 @@ is valid before installing it and then restarting the Bro instance.  The
    removing old policies in /usr/local/bro/spool/installed-scripts-do-not-touch/auto ...
    creating policy directories ...
    installing site policies ...
-   generating standalone-layout.bro ...
-   generating local-networks.bro ...
-   generating broctl-config.bro ...
+   generating standalone-layout.zeek ...
+   generating local-networks.zeek ...
+   generating broctl-config.zeek ...
    generating broctl-config.sh ...
    stopping ...
    stopping bro ...
@@ -251,16 +251,16 @@ used to implement the simple functionality of ``ignored_types`` and
 ``emailed_types``, but it's extensible such that the condition and
 action taken on notices can be user-defined.
 
-In ``local.bro``, let's define a new ``policy`` hook handler body:
+In ``local.zeek``, let's define a new ``policy`` hook handler body:
 
-.. literalinclude:: conditional-notice.bro
+.. literalinclude:: conditional-notice.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r tls/tls-expired-cert.trace conditional-notice.bro
+   $ bro -r tls/tls-expired-cert.trace conditional-notice.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -377,7 +377,7 @@ A command-line invocation of Bro typically looks like:
    bro <options> <scripts...>
 
 Where the last arguments are the specific policy scripts that this Bro
-instance will load.  These arguments don't have to include the ``.bro``
+instance will load.  These arguments don't have to include the ``.zeek``
 file extension, and if the corresponding script resides in the default
 search path, then it requires no path qualification.  The following 
 directories are included in the default search path for Bro scripts::
@@ -394,7 +394,7 @@ These prefix paths can be used to load scripts like this:
    bro -r mypackets.trace frameworks/files/extract-all
 
 This will load the 
-``<prefix>/share/bro/policy/frameworks/files/extract-all.bro`` script which will
+``<prefix>/share/bro/policy/frameworks/files/extract-all.zeek`` script which will
 cause Bro to extract all of the files it discovers in the PCAP.
 
 .. note:: If one wants Bro to be able to load scripts that live outside the
@@ -407,7 +407,7 @@ This directive is similar to the ``#include`` of C/C++, except the semantics
 are, "load this script if it hasn't already been loaded."
 
 Further, a directory of scripts can be specified as
-an argument to be loaded as a "package" if it contains a ``__load__.bro``
+an argument to be loaded as a "package" if it contains a ``__load__.zeek``
 script that defines the scripts that are part of the package.
 
 Local site customization
@@ -415,7 +415,7 @@ Local site customization
 
 There is one script that is installed which is considered "local site 
 customization" and is not overwritten when upgrades take place. To use 
-the site-specific ``local.bro`` script, just add it to the command-line (can
+the site-specific ``local.zeek`` script, just add it to the command-line (can
 also be loaded through scripts with @load):
 
 .. sourcecode:: console

@@ -28,14 +28,14 @@ Quick Start
 
 Refer to the "Loading Intelligence" section below to see the format
 for Intelligence Framework text files, then load those text files with
-this line in local.bro::
+this line in local.zeek::
 
 	redef Intel::read_files += { "/somewhere/yourdata.txt" };
 
 The text files need to reside only on the manager if running in a
 cluster.
 
-Add the following line to local.bro in order to load the scripts
+Add the following line to local.zeek in order to load the scripts
 that send "seen" data into the Intelligence Framework to be checked against
 the loaded intelligence data::
 
@@ -75,14 +75,14 @@ For a list of all built-in `indicator_type` values, please refer to the
 documentation of :bro:see:`Intel::Type`.
 
 Note that if you are using data from the Collective Intelligence Framework,
-then you will need to add the following line to your local.bro in order
+then you will need to add the following line to your local.zeek in order
 to support additional metadata fields used by CIF::
 
 	@load policy/integration/collective-intel
 
 There is a simple mechanism to raise a Bro notice (of type Intel::Notice)
 for user-specified intelligence matches.  To use this feature, add the
-following line to local.bro in order to support additional metadata fields
+following line to local.zeek in order to support additional metadata fields
 (documented in the :bro:see:`Intel::MetaData` record)::
 
 	@load policy/frameworks/intel/do_notice
@@ -110,7 +110,7 @@ typically users won't need to work with this function due to the
 scripts included with Bro that will call this function.
 
 To load all of the scripts included with Bro for sending "seen" data to
-the intelligence framework, just add this line to local.bro::
+the intelligence framework, just add this line to local.zeek::
 
 	@load policy/frameworks/intel/seen
 

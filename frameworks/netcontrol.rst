@@ -131,7 +131,7 @@ start sending the rules to the added backend(s). To give a very simple example,
 the following script will simply block the traffic of all connections that it
 sees being established:
 
-.. literalinclude:: netcontrol-1-drop-with-debug.bro
+.. literalinclude:: netcontrol-1-drop-with-debug.zeek
    :caption:
    :language: bro
    :linenos:
@@ -143,7 +143,7 @@ which contains information about all actions that are taken by NetControl:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -196,14 +196,14 @@ high-level API gives an easy way to take action, for example when a host is
 identified doing some harmful activity. To give a more realistic example, the
 following code automatically blocks a recognized SSH guesser:
 
-.. literalinclude:: netcontrol-2-ssh-guesser.bro
+.. literalinclude:: netcontrol-2-ssh-guesser.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.bro
+   $ bro -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=1.0 hr, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -226,14 +226,14 @@ following code automatically blocks a recognized SSH guesser:
 Note that in this case, instead of calling NetControl directly, we also can use
 the :bro:see:`Notice::ACTION_DROP` action of the notice framework:
 
-.. literalinclude:: netcontrol-3-ssh-guesser.bro
+.. literalinclude:: netcontrol-3-ssh-guesser.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.bro
+   $ bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=ACTION_DROP: T, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -319,14 +319,14 @@ that the NetControl function has additional functionality, e.g. for logging.
 Once again, we are going to test our function with a simple example that simply
 drops all connections on the network:
 
-.. literalinclude:: netcontrol-4-drop.bro
+.. literalinclude:: netcontrol-4-drop.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-4-drop.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-4-drop.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=<uninitialized>, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -379,14 +379,14 @@ discarded before further processing.
 Here is a simple example which tells Bro to discard all rules for connections
 originating from the 192.168.* network:
 
-.. literalinclude:: netcontrol-5-hook.bro
+.. literalinclude:: netcontrol-5-hook.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-5-hook.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-5-hook.zeek
    netcontrol debug (Debug-All): init
    Ignored connection from, 192.168.18.50
 
@@ -458,14 +458,14 @@ Here is a simple example, which uses a trace that contains two connections from
 the same IP address. After the first connection, the script recognizes that the
 address is already blocked in the second connection.
 
-.. literalinclude:: netcontrol-6-find.bro
+.. literalinclude:: netcontrol-6-find.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/google-duplicate.trace netcontrol-6-find.bro
+   $ bro -C -r tls/google-duplicate.trace netcontrol-6-find.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.4.149, orig_p=60623/tcp, resp_h=74.125.239.129, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
    Rule added
@@ -512,14 +512,14 @@ release is contained in the file
 Using catch and release in your scripts is easy; just use
 :bro:see:`NetControl::drop_address_catch_release` like in this example:
 
-.. literalinclude:: netcontrol-7-catch-release.bro
+.. literalinclude:: netcontrol-7-catch-release.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-7-catch-release.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-7-catch-release.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -657,14 +657,14 @@ the 192.168.17.0/24 network; all other rules will be passed on to the debug
 plugin. We manually block a few addresses in the
 :bro:see:`NetControl::init_done` event to verify the correct functionality.
 
-.. literalinclude:: netcontrol-8-multiple.bro
+.. literalinclude:: netcontrol-8-multiple.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro netcontrol-8-multiple.bro
+   $ bro netcontrol-8-multiple.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.17.2/32, mac=<uninitialized>], expire=1.0 min, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=3, cid=3, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -777,7 +777,7 @@ raise the :bro:see:`NetControl::rule_added` and
 :bro:see:`NetControl::rule_removed` events in your plugin to let NetControl know
 when a rule was added and removed successfully.
 
-.. literalinclude:: netcontrol-9-skeleton.bro
+.. literalinclude:: netcontrol-9-skeleton.zeek
    :caption:
    :language: bro
    :linenos:
@@ -785,14 +785,14 @@ when a rule was added and removed successfully.
 This example is already fully functional and we can use it with a script similar
 to our very first example:
 
-.. literalinclude:: netcontrol-10-use-skeleton.bro
+.. literalinclude:: netcontrol-10-use-skeleton.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.bro
+   $ bro -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.zeek
    add, [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={
 
    }, _active_plugin_ids={

@@ -37,14 +37,14 @@ in the MIME type, size of the file ("response_body_len"), and the
 originator host ("orig_h"). We use the MIME type as our key and create
 observers for the other two values.
 
-.. literalinclude:: mimestats.bro
+.. literalinclude:: mimestats.zeek
    :caption:
    :language: bro
    :linenos:
    :lines: 6-29
    :lineno-start: 6
 
-.. literalinclude:: mimestats.bro
+.. literalinclude:: mimestats.zeek
    :caption:
    :language: bro
    :linenos:
@@ -55,7 +55,7 @@ Next, we create the reducers. The first will accumulate file sizes
 and the second will make sure we only store a host ID once. Below is
 the partial code from a :bro:see:`bro_init` handler.
 
-.. literalinclude:: mimestats.bro
+.. literalinclude:: mimestats.zeek
    :caption:
    :language: bro
    :linenos:
@@ -66,7 +66,7 @@ In our final step, we create the SumStats where we check for the
 observation interval.  Once it expires, we populate the record
 (defined above) with all the relevant data and write it to a log.
 
-.. literalinclude:: mimestats.bro
+.. literalinclude:: mimestats.zeek
    :caption:
    :language: bro
    :linenos:
@@ -76,14 +76,14 @@ observation interval.  Once it expires, we populate the record
 After putting the three pieces together we end up with the following
 final code for our script.
 
-.. literalinclude:: mimestats.bro
+.. literalinclude:: mimestats.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -r http/bro.org.pcap mimestats.bro
+   $ bro -r http/bro.org.pcap mimestats.zeek
    #separator \x09
    #set_separator    ,
    #empty_field      (empty)

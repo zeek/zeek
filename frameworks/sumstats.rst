@@ -71,7 +71,7 @@ Sumstats provides a simple way of approaching the problem of trying to count
 the number of connections over a given time interval.  Here is a script with
 inline documentation that does this with the Sumstats framework:
 
-.. literalinclude:: sumstats-countconns.bro
+.. literalinclude:: sumstats-countconns.zeek
    :caption:
    :language: bro
    :linenos:
@@ -81,7 +81,7 @@ is created:
 
 .. sourcecode:: console
 
-   $ bro -r workshop_2011_browse.trace sumstats-countconns.bro
+   $ bro -r workshop_2011_browse.trace sumstats-countconns.zeek
    Number of connections established: 6
 
 Toy scan detection
@@ -93,7 +93,7 @@ demonstrate how thresholding works in Sumstats and is not meant to be a
 real-world functional example, that is left to the
 :doc:`/scripts/policy/misc/scan.zeek` script that is included with Bro.
 
-.. literalinclude:: sumstats-toy-scan.bro
+.. literalinclude:: sumstats-toy-scan.zeek
    :caption:
    :language: bro
    :linenos:
@@ -103,7 +103,7 @@ containing a host running nmap:
 
 .. sourcecode:: console
 
-   $ bro -r nmap-vsn.trace sumstats-toy-scan.bro
+   $ bro -r nmap-vsn.trace sumstats-toy-scan.zeek
    192.168.1.71 attempted 5 or more connections
 
 It seems the host running nmap was detected!

@@ -209,13 +209,13 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
     ``BROPATH``, so that any scripts/modules inside can be
     "@load"ed.
 
-``scripts``/__load__.bro
+``scripts``/__load__.zeek
     A Bro script that will be loaded when the plugin gets activated.
     When this script executes, any BiF elements that the plugin
     defines will already be available. See below for more information
     on activating plugins.
 
-``scripts``/__preload__.bro
+``scripts``/__preload__.zeek
     A Bro script that will be loaded when the plugin gets activated,
     but before any BiF elements become available. See below for more
     information on activating plugins.
@@ -227,8 +227,8 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
 Any other files in ``<base>`` are ignored by Bro.
 
 By convention, a plugin should put its custom scripts into sub folders
-of ``scripts/``, i.e., ``scripts/<plugin-namespace>/<plugin-name>/<script>.bro``
-to avoid conflicts. As usual, you can then put a ``__load__.bro`` in
+of ``scripts/``, i.e., ``scripts/<plugin-namespace>/<plugin-name>/<script>.zeek``
+to avoid conflicts. As usual, you can then put a ``__load__.zeek`` in
 there as well so that, e.g., ``@load Demo/Rot13`` could load a whole
 module in the form of multiple individual scripts.
 
@@ -287,9 +287,9 @@ Activating a plugin will:
     1. Load the dynamic module
     2. Make any bif items available
     3. Add the ``scripts/`` directory to ``BROPATH``
-    4. Load ``scripts/__preload__.bro``
+    4. Load ``scripts/__preload__.zeek``
     5. Make BiF elements available to scripts.
-    6. Load ``scripts/__load__.bro``
+    6. Load ``scripts/__load__.zeek``
 
 By default, Bro will automatically activate all dynamic plugins found
 in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
@@ -417,7 +417,7 @@ Now let's add a custom test that ensures that our bif works
 correctly::
 
     # cd tests
-    # cat >rot13/bif-rot13.bro
+    # cat >rot13/bif-rot13.zeek
 
     # @TEST-EXEC: bro %INPUT >output
     # @TEST-EXEC: btest-diff output
@@ -429,7 +429,7 @@ correctly::
 
 Check the output::
 
-    # btest -d rot13/bif-rot13.bro
+    # btest -d rot13/bif-rot13.zeek
     [  0%] rot13.bif-rot13 ... failed
     % 'btest-diff output' failed unexpectedly (exit code 100)
     % cat .diag
@@ -445,7 +445,7 @@ Check the output::
 
 Install the baseline::
 
-    # btest -U rot13/bif-rot13.bro
+    # btest -U rot13/bif-rot13.zeek
     all 1 tests successful
 
 Run the test-suite::

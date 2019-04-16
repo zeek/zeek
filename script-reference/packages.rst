@@ -4,7 +4,7 @@ Bro Package Index
 =================
 
 Bro has the following script packages (e.g. collections of related scripts in
-a common directory).  If the package directory contains a ``__load__.bro``
+a common directory).  If the package directory contains a ``__load__.zeek``
 script, it supports being loaded in mass as a whole directory for convenience.
 
 Packages/scripts in the ``base/`` directory are all loaded by default, while

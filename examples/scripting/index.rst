@@ -40,7 +40,7 @@ that is responsible for generating the
 appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
 .. sourcecode:: bro
-   :caption: detect-MHR.bro
+   :caption: detect-MHR.zeek
 
    ##! Detect file downloads that have hash values matching files in Team
    ##! Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
@@ -125,14 +125,14 @@ understand every section of the script; we'll cover the basics of the
 script and much more in following sections.
 
 .. sourcecode:: bro
-   :caption: detect-MHR.bro
+   :caption: detect-MHR.zeek
 
    @load base/frameworks/files
    @load base/frameworks/notice
    @load frameworks/files/hash-all-files
 
 The first part of the script consists of ``@load`` directives which 
-process the ``__load__.bro`` script in the
+process the ``__load__.zeek`` script in the
 respective directories being loaded.  The ``@load`` directives are
 often considered good practice or even just good manners when writing
 Bro scripts to make sure they can be used on their own. While it's unlikely that in a
@@ -144,7 +144,7 @@ are ensuring the Files framework, the Notice framework and the script to hash al
 been loaded by Bro.
 
 .. sourcecode:: bro
-   :caption: detect-MHR.bro
+   :caption: detect-MHR.zeek
 
    export {
        redef enum Notice::Type += {
@@ -195,7 +195,7 @@ the next section, the script starts to define instructions to take in
 a given event.
 
 .. sourcecode:: bro
-   :caption: detect-MHR.bro
+   :caption: detect-MHR.zeek
 
    function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
        {
@@ -392,7 +392,7 @@ remove this event from memory, effectively forgetting about it.  Let's
 take a look at a simple example script, that will output the connection record
 for a single connection.
 
-.. literalinclude:: connection_record_01.bro
+.. literalinclude:: connection_record_01.zeek
    :caption:
    :language: bro
    :linenos:
@@ -413,7 +413,7 @@ overly populated.
 
 .. sourcecode:: console
 
-   $ bro -b -r http/get.trace connection_record_01.bro
+   $ bro -b -r http/get.trace connection_record_01.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
 
    }, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, conn=[ts=1362692526.869344, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=<uninitialized>, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
@@ -442,14 +442,14 @@ proper format of a dereferenced variable in scripts. In the output of
 the script above, groups of information are collected between
 brackets, which would correspond to the ``$``-delimiter in a Bro script.  
 
-.. literalinclude:: connection_record_02.bro
+.. literalinclude:: connection_record_02.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $bro -b -r http/get.trace connection_record_02.bro
+   $bro -b -r http/get.trace connection_record_02.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.211484, service={
 
    }, history=ShADadFf, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, conn=[ts=1362692526.869344, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], proto=tcp, service=<uninitialized>, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>], extract_orig=F, extract_resp=F, thresholds=<uninitialized>, http=[ts=1362692526.939527, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={
@@ -488,7 +488,7 @@ each of which produce the same result if ``EXPRESSION`` evaluates to the
 same type as ``TYPE``.  The decision as to which type of declaration to
 use is likely to be dictated by personal preference and readability. 
 
-.. literalinclude:: data_type_declaration.bro
+.. literalinclude:: data_type_declaration.zeek
    :caption:
    :language: bro
    :linenos:
@@ -532,16 +532,16 @@ decrypted from HTTP streams is stored in
 :bro:see:`HTTP::default_capture_password` as shown in the stripped down
 excerpt from :doc:`/scripts/base/protocols/http/main.zeek` below.
 
-.. literalinclude:: http_main.bro
+.. literalinclude:: http_main.zeek
    :caption:
    :language: bro
    :linenos:
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
-following line to our ``site/local.bro`` file before firing up Bro.
+following line to our ``site/local.zeek`` file before firing up Bro.
 
-.. literalinclude:: data_type_const_simple.bro
+.. literalinclude:: data_type_const_simple.zeek
    :caption:
    :language: bro
    :linenos:
@@ -555,14 +555,14 @@ in a :bro:id:`bro_init` event.  Were we to try to alter the table in
 an event handler, Bro would notify the user of an error and the script
 would fail.
 
-.. literalinclude:: data_type_const.bro
+.. literalinclude:: data_type_const.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -b data_type_const.bro
+   $ bro -b data_type_const.zeek
    {
    [80/tcp] = WWW,
    [6666/tcp] = IRC
@@ -580,7 +580,7 @@ of a script passes beyond that scope and no longer used, the variable
 is deleted. Bro maintains names of locals separately from globally
 visible ones, an example of which is illustrated below.
 
-.. literalinclude:: data_type_local.bro
+.. literalinclude:: data_type_local.zeek
    :caption:
    :language: bro
    :linenos:
@@ -656,7 +656,7 @@ for information that is already naturally unique such as ports or IP
 addresses.  The code snippet below shows both an explicit and implicit
 declaration of a locally scoped set.
 
-.. literalinclude:: data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.zeek
    :caption:
    :language: bro
    :linenos:
@@ -671,7 +671,7 @@ the ``in`` operator.  In the case of iterating over a set, combining the
 ``for`` statement and the ``in`` operator will allow you to sequentially
 process each element of the set as seen below.  
 
-.. literalinclude:: data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.zeek
    :caption:
    :language: bro
    :linenos:
@@ -695,7 +695,7 @@ negate the in operator itself.  While the functionality is the same,
 using the ``!in`` is more efficient as well as a more natural construct
 which will aid in the readability of your script. 
 
-.. literalinclude:: data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.zeek
    :caption:
    :language: bro
    :linenos:
@@ -704,14 +704,14 @@ which will aid in the readability of your script.
 
 You can see the full script and its output below.
 
-.. literalinclude:: data_struct_set_declaration.bro
+.. literalinclude:: data_struct_set_declaration.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro data_struct_set_declaration.bro
+   $ bro data_struct_set_declaration.zeek
    SSL Port: 22/tcp
    SSL Port: 443/tcp
    SSL Port: 587/tcp
@@ -728,14 +728,14 @@ A table in Bro is a mapping of a key to a value or yield.  While the
 values don't have to be unique, each key in the table must be unique
 to preserve a one-to-one mapping of keys to values.
 
-.. literalinclude:: data_struct_table_declaration.bro
+.. literalinclude:: data_struct_table_declaration.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro data_struct_table_declaration.bro
+   $ bro data_struct_table_declaration.zeek
    Service Name:  SSH - Common Port: 22/tcp
    Service Name:  HTTPS - Common Port: 443/tcp
    Service Name:  SMTPS - Common Port: 587/tcp
@@ -764,14 +764,14 @@ Bro implies a cost in complexity for the person writing the scripts
 but pays off in effectiveness given the power of Bro as a network
 security platform.
 
-.. literalinclude:: data_struct_table_complex.bro
+.. literalinclude:: data_struct_table_complex.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -b data_struct_table_complex.bro
+   $ bro -b data_struct_table_complex.zeek
    Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
    Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
    Tasogare Seibei was released in 2002 by Eisei Gekijo studios, directed by Yoji Yamada and starring Hiroyuki Sanada
@@ -817,14 +817,14 @@ the vector name between two vertical pipes to get the vector's current
 length before printing the contents of both Vectors and their current
 lengths.
 
-.. literalinclude:: data_struct_vector_declaration.bro
+.. literalinclude:: data_struct_vector_declaration.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro data_struct_vector_declaration.bro
+   $ bro data_struct_vector_declaration.zeek
    contents of v1: [1, 2, 3, 4]
    length of v1: 4
    contents of v2: [1, 2, 3, 4]
@@ -839,14 +839,14 @@ called ``i`` which will hold the index of the current element in the
 vector. Using ``i`` as an index to addr_vector we can access the
 current item in the vector with ``addr_vector[i]``.  
 
-.. literalinclude:: data_struct_vector_iter.bro
+.. literalinclude:: data_struct_vector_iter.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro -b data_struct_vector_iter.bro
+   $ bro -b data_struct_vector_iter.zeek
    1.2.0.0/18
    2.3.0.0/18
    3.4.0.0/18
@@ -902,7 +902,7 @@ your scripts.  The following example below uses a Bro script to
 determine if a series of IP addresses are within a set of subnets
 using a 20 bit subnet mask. 
 
-.. literalinclude:: data_type_subnets.bro
+.. literalinclude:: data_type_subnets.zeek
    :caption:
    :language: bro
    :linenos:
@@ -923,7 +923,7 @@ which it belongs.
 
 .. sourcecode:: console
 
-   $ bro data_type_subnets.bro
+   $ bro data_type_subnets.zeek
    172.16.4.56 belongs to subnet 172.16.0.0/20
    172.16.47.254 belongs to subnet 172.16.32.0/20
    172.16.22.45 belongs to subnet 172.16.16.0/20
@@ -949,7 +949,7 @@ timestamp and an indication of who the originator and responder were.
 We use the ``strftime`` format string of ``%Y%M%d %H:%m:%S`` to
 produce a common date time formatted time stamp.
 
-.. literalinclude:: data_type_time.bro
+.. literalinclude:: data_type_time.zeek
    :caption:
    :language: bro
    :linenos:
@@ -959,7 +959,7 @@ established connections.
 
 .. sourcecode:: console
 
-   $ bro -r wikipedia.trace data_type_time.bro
+   $ bro -r wikipedia.trace data_type_time.zeek
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118\x0a
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3\x0a
@@ -998,7 +998,7 @@ operator.  The script below amends the script started in the section
 above to include a time delta value printed along with the connection
 establishment report.
 
-.. literalinclude:: data_type_interval.bro
+.. literalinclude:: data_type_interval.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1009,7 +1009,7 @@ connection.
 
 .. sourcecode:: console
 
-   $ bro -r wikipedia.trace data_type_interval.bro
+   $ bro -r wikipedia.trace data_type_interval.zeek
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
         Time since last connection: 132.0 msecs 97.0 usecs
@@ -1043,7 +1043,7 @@ adheres to a strict format, requiring the regular expression or
 pattern constant to be on the left side of the ``in`` operator and the
 string against which it will be tested to be on the right.
 
-.. literalinclude:: data_type_pattern_01.bro
+.. literalinclude:: data_type_pattern_01.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1064,7 +1064,7 @@ in the script will print the contents of the table in order.
 
 .. sourcecode:: console
 
-   $ bro data_type_pattern_01.bro
+   $ bro data_type_pattern_01.zeek
    The
     brown fox jumps over the
     dog.
@@ -1077,11 +1077,11 @@ ternary conditional statements to illustrate the use of the ``==``
 operator with patterns.  The output is altered based
 on the result of the comparison between the pattern and the string.  
 
-.. literalinclude:: data_type_pattern_02.bro
+.. literalinclude:: data_type_pattern_02.zeek
 
 .. sourcecode:: console
 
-   $ bro data_type_pattern_02.bro
+   $ bro data_type_pattern_02.zeek
    equality and /^?(equal)$?/ are not equal
    equality and /^?(equality)$?/ are equal
 
@@ -1103,7 +1103,7 @@ example of the ``record`` data type in the earlier sections, the
 :bro:type:`Conn::Info`, which corresponds to the fields logged into
 ``conn.log``, is shown by the excerpt below.
 
-.. literalinclude:: data_type_record.bro
+.. literalinclude:: data_type_record.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1119,14 +1119,14 @@ that make up the record.  The individual fields that make up the new
 record are not limited in type or number as long as the name for each
 field is unique.
 
-.. literalinclude:: data_struct_record_01.bro
+.. literalinclude:: data_struct_record_01.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro data_struct_record_01.bro
+   $ bro data_struct_record_01.zeek
    Service: dns(RFC1035)
      port: 53/udp
      port: 53/tcp
@@ -1149,11 +1149,11 @@ records are even valid as fields within another record.  We can extend
 the example above to include another record that contains a Service
 record.
 
-.. literalinclude:: data_struct_record_02.bro
+.. literalinclude:: data_struct_record_02.zeek
 
 .. sourcecode:: console
 
-   $ bro data_struct_record_02.bro
+   $ bro data_struct_record_02.zeek
    System: morlock
      Service: http(RFC2616)
        port: 8080/tcp
@@ -1172,7 +1172,7 @@ structure to a more descriptive name.  The example below shows an
 example of this from Bro's own type definitions file.
 
 .. sourcecode:: bro
-   :caption: init-bare.bro
+   :caption: init-bare.zeek
 
    type string_array: table[count] of string;
    type string_set: set[string];
@@ -1233,14 +1233,14 @@ It's always best to work through the problem once, simulating the
 desired output with ``print`` and ``fmt`` before attempting to dive
 into the Logging Framework.
 
-.. literalinclude:: framework_logging_factorial_01.bro
+.. literalinclude:: framework_logging_factorial_01.zeek
    :caption:
    :language: bro
    :linenos:
 
 .. sourcecode:: console
 
-   $ bro framework_logging_factorial_01.bro
+   $ bro framework_logging_factorial_01.zeek
    1
    2
    6
@@ -1260,7 +1260,7 @@ calculations correctly as well get an idea of the answers ourselves.
 The output of the script aligns with what we expect so now it's time
 to integrate the Logging Framework.
 
-.. literalinclude:: framework_logging_factorial_02.bro
+.. literalinclude:: framework_logging_factorial_02.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1297,7 +1297,7 @@ output is all in ``factor.log``, properly formatted and organized.
 
 .. sourcecode:: console
 
-   $ bro framework_logging_factorial_02.bro
+   $ bro framework_logging_factorial_02.zeek
    $ cat factor.log
    #separator \x09
    #set_separator    ,
@@ -1345,7 +1345,7 @@ example we've been using, let's extend it so as to write any factorial
 which is a factor of 5 to an alternate file, while writing the
 remaining logs to factor.log.  
 
-.. literalinclude:: framework_logging_factorial_03.bro
+.. literalinclude:: framework_logging_factorial_03.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1371,7 +1371,7 @@ included all factorials.
 
 .. sourcecode:: console
 
-   $ bro framework_logging_factorial_03.bro
+   $ bro framework_logging_factorial_03.zeek
    $ cat factor-mod5.log
    #separator \x09
    #set_separator    ,
@@ -1402,7 +1402,7 @@ convention these events are usually in the format ``log_x`` where x is
 the name of the logging stream; as such the event raised for every log
 sent to the Logging Framework by the HTTP parser would be
 ``log_http``.  In fact, we've already seen a script handle the
-``log_http`` event when we broke down how the ``detect-MHR.bro``
+``log_http`` event when we broke down how the ``detect-MHR.zeek``
 script worked.  In that example, as each log entry was sent to the
 logging framework, post-processing was taking place in the
 ``log_http`` event.  Instead of using an external script to parse the
@@ -1417,7 +1417,7 @@ block and define the value to be passed to it, in this case the
 ``Factor::Info`` record.  We then list the ``log_factor`` function as
 the ``$ev`` field in the call to ``Log::create_stream``
 
-.. literalinclude:: framework_logging_factorial_04.bro
+.. literalinclude:: framework_logging_factorial_04.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1472,7 +1472,7 @@ Policy, but the script attempts to supply as much information as
 possible while staying concise.  
 
 .. sourcecode:: bro
-   :caption: scripts/policy/protocols/ssh/interesting-hostnames.bro
+   :caption: scripts/policy/protocols/ssh/interesting-hostnames.zeek
 
    ##! This script will generate a notice if an apparent SSH login originates
    ##! or heads to a host with a reverse hostname that looks suspicious.  By
@@ -1562,7 +1562,7 @@ action based on the answer.  The hook below adds the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
 :doc:`/scripts/policy/protocols/ssh/interesting-hostnames.zeek` script.
 
-.. literalinclude:: framework_notice_hook_01.bro
+.. literalinclude:: framework_notice_hook_01.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1603,7 +1603,7 @@ from the connection relative to the behavior that has been observed by
 Bro.  
 
 .. sourcecode:: bro
-   :caption: scripts/policy/protocols/ssl/expiring-certs.bro
+   :caption: scripts/policy/protocols/ssl/expiring-certs.zeek
 
    NOTICE([$note=Certificate_Expires_Soon,
            $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
@@ -1623,7 +1623,7 @@ entities used for the identifier, for example the certificate hash, we
 could be setting our suppression too broadly, causing an analyst to
 miss a notice that should have been raised.  Depending on the
 available data for the identifier, it can be useful to set the
-``$suppress_for`` variable as well.  The ``expiring-certs.bro`` script
+``$suppress_for`` variable as well.  The ``expiring-certs.zeek`` script
 sets ``$suppress_for`` to ``1day``, telling the Notice Framework to
 suppress the notice for 24 hours after the first notice is raised.
 Once that time limit has passed, another notice can be raised which
@@ -1636,11 +1636,11 @@ over exposure, ignore it.
 The ``$suppress_for`` variable can also be altered in a
 ``Notice::policy`` hook, allowing a deployment to better suit the
 environment in which it is be run.  Using the example of
-``expiring-certs.bro``, we can write a ``Notice::policy`` hook for
+``expiring-certs.zeek``, we can write a ``Notice::policy`` hook for
 ``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for``
 variable to a shorter time.  
 
-.. literalinclude:: framework_notice_hook_suppression_01.bro
+.. literalinclude:: framework_notice_hook_suppression_01.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1656,7 +1656,7 @@ means of a group of data structures that map specific, predefined
 details and actions to the effective name of a notice.  Primarily
 implemented as a set or table of enumerables of :bro:type:`Notice::Type`,
 Notice Policy shortcuts can be placed as a single directive in your
-``local.bro`` file as a concise readable configuration.  As these
+``local.zeek`` file as a concise readable configuration.  As these
 variables are all constants, it bears mentioning that these variables
 are all set at parse-time before Bro is fully up and running and not
 set dynamically.
@@ -1690,7 +1690,7 @@ suppression from a notice while ``Notice::type_suppression_intervals``
 can be used to alter the suppression interval defined by $suppress_for
 in the call to ``NOTICE``.
 
-.. literalinclude:: framework_notice_shortcuts_01.bro
+.. literalinclude:: framework_notice_shortcuts_01.zeek
    :caption:
    :language: bro
    :linenos:
@@ -1700,7 +1700,7 @@ The Notice Policy shortcut above adds the ``Notice::Type`` of
 ``Notice::emailed_types`` set while the shortcut below alters the length
 of time for which those notices will be suppressed.
 
-.. literalinclude:: framework_notice_shortcuts_02.bro
+.. literalinclude:: framework_notice_shortcuts_02.zeek
    :caption:
    :language: bro
    :linenos:

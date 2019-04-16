@@ -36,7 +36,7 @@ You have to define a filter which specifies SQLite as the writer.
 
 The following example code adds SQLite as a filter for the connection log:
 
-.. literalinclude:: sqlite-conn-filter.bro
+.. literalinclude:: sqlite-conn-filter.zeek
    :caption:
    :language: bro
    :linenos:
@@ -111,7 +111,7 @@ The SQLite commands to create the schema are as follows::
 After creating a file called ``hosts.sqlite`` with this content, we can
 read the resulting table into Bro:
 
-.. literalinclude:: sqlite-read-table.bro
+.. literalinclude:: sqlite-read-table.zeek
    :caption:
    :language: bro
    :linenos:
@@ -158,7 +158,7 @@ of files that are transmitted over the network. For each hash, a SQL-query
 is run against SQLite. If the query returns with a result, we had a hit
 against our malware-database and output the matching hash.
 
-.. literalinclude:: sqlite-read-events.bro
+.. literalinclude:: sqlite-read-events.zeek
    :caption:
    :language: bro
    :linenos:

@@ -294,15 +294,15 @@ Connecting to Peers
 
 Bro can accept incoming connections by calling :bro:see:`Broker::listen`.
 
-.. literalinclude:: broker/connecting-listener.bro
-   :caption: connecting-listener.bro
+.. literalinclude:: broker/connecting-listener.zeek
+   :caption: connecting-listener.zeek
    :language: bro
    :linenos:
 
 Bro can initiate outgoing connections by calling :bro:see:`Broker::peer`.
 
-.. literalinclude:: broker/connecting-connector.bro
-   :caption: connecting-connector.bro
+.. literalinclude:: broker/connecting-connector.zeek
+   :caption: connecting-connector.zeek
    :language: bro
    :linenos:
 
@@ -321,8 +321,8 @@ more on how topics work and are chosen.
 Use the :bro:see:`Broker::subscribe` function to subscribe to topics and
 define any event handlers for events that peers will send.
 
-.. literalinclude:: broker/events-listener.bro
-   :caption: events-listener.bro
+.. literalinclude:: broker/events-listener.zeek
+   :caption: events-listener.zeek
    :language: bro
    :linenos:
 
@@ -340,8 +340,8 @@ whenever the event is called locally via the normal event invocation syntax.
 When auto-publishing events, local event handlers for the event are called
 in addition to sending the event to any subscribed peers.
 
-.. literalinclude:: broker/events-connector.bro
-   :caption: events-connector.bro
+.. literalinclude:: broker/events-connector.zeek
+   :caption: events-connector.zeek
    :language: bro
    :linenos:
 
@@ -352,8 +352,8 @@ to topic names  "bro/events/foo" and "bro/events/bar" but not "bro/misc".
 Remote Logging
 --------------
 
-.. literalinclude:: broker/testlog.bro
-   :caption: testlog.bro
+.. literalinclude:: broker/testlog.zeek
+   :caption: testlog.zeek
    :language: bro
    :linenos:
 
@@ -362,13 +362,13 @@ Use the :bro:see:`Broker::subscribe` function to advertise interest
 in logs written by peers.  The topic names that Bro uses are determined by
 :bro:see:`Broker::log_topic`.
 
-.. literalinclude:: broker/logs-listener.bro
-   :caption: logs-listener.bro
+.. literalinclude:: broker/logs-listener.zeek
+   :caption: logs-listener.zeek
    :language: bro
    :linenos:
 
-.. literalinclude:: broker/logs-connector.bro
-   :caption: logs-connector.bro
+.. literalinclude:: broker/logs-connector.zeek
+   :caption: logs-connector.zeek
    :language: bro
    :linenos:
 
@@ -398,13 +398,13 @@ use.  E.g. In-memory versus SQLite for persistence.
 Data stores also support expiration on a per-key basis using an amount of
 time relative to the entry's last modification time.
 
-.. literalinclude:: broker/stores-listener.bro
-   :caption: stores-listener.bro
+.. literalinclude:: broker/stores-listener.zeek
+   :caption: stores-listener.zeek
    :language: bro
    :linenos:
 
-.. literalinclude:: broker/stores-connector.bro
-   :caption: stores-connector.bro
+.. literalinclude:: broker/stores-connector.zeek
+   :caption: stores-connector.zeek
    :language: bro
    :linenos:
 

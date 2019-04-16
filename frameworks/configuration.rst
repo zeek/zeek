@@ -84,7 +84,7 @@ Configuration files can be specified by adding them
 to :bro:id:`Config::config_files`.  Note that in a cluster configuration,
 only the manager node attempts to read the specified configuration files.
 
-For example, simply add something like this to local.bro:
+For example, simply add something like this to local.zeek:
 
 .. sourcecode:: bro
 

@@ -48,7 +48,7 @@ specific details of the task.
 For more information about how to handle the HTTP protocol in Bro,
 including a complete list of the fields available in http.log, go to
 Bro's :doc:`HTTP script reference
-</scripts/base/protocols/http/main.bro>`.
+</scripts/base/protocols/http/main.zeek>`.
 
 ------------------------
 Detecting a Proxy Server

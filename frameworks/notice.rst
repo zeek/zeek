@@ -295,7 +295,7 @@ information to suppress duplicates for a configurable period of time.
 The ``$identifier`` field is typically comprised of several pieces of
 data related to the notice that when combined represent a unique
 instance of that notice. Here is an example of the script
-:doc:`/scripts/policy/protocols/ssl/validate-certs.bro` raising a notice
+:doc:`/scripts/policy/protocols/ssl/validate-certs.zeek` raising a notice
 for session negotiations where the certificate or certificate chain did
 not validate successfully against the available certificate authority
 certificates.

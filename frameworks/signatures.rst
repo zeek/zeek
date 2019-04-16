@@ -41,7 +41,7 @@ signature's event statement (``Found root!``), and data is the last
 piece of payload which triggered the pattern match.
 
 To turn such :bro:id:`signature_match` events into actual alarms, you can
-load Bro's :doc:`/scripts/base/frameworks/signatures/main.bro` script.
+load Bro's :doc:`/scripts/base/frameworks/signatures/main.zeek` script.
 This script contains a default event handler that raises
 :bro:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).

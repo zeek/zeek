@@ -8,10 +8,10 @@ signatures are not Bro's preferred detection tool, they sometimes come in
 handy and are closer to what many people are familiar with from using
 other NIDS.
 
-:doc:`/scripts/base/frameworks/signatures/__load__.bro`
+:doc:`/scripts/base/frameworks/signatures/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/signatures/main.bro`
+:doc:`/scripts/base/frameworks/signatures/main.zeek`
 
    Script level signature support.  See the
    :doc:`signature documentation </frameworks/signatures>` for more

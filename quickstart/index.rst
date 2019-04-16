@@ -195,7 +195,7 @@ the variable's value may not change at run-time, but whose initial value can be
 modified via the ``redef`` operator at parse-time.
 
 Let's continue on our path to modify the behavior for the two SSL
-notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.bro`,
+notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.zeek`,
 we see that it advertises:
 
 .. sourcecode:: bro

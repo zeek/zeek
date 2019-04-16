@@ -35,7 +35,7 @@ Hash registry includes the ability to do a host lookup on a domain with the form
 Team Cymru also populates the TXT record of their DNS responses with both a "first seen"
 timestamp and a numerical "detection rate".  The important aspect to understand is Bro already
 generating hashes for files via the Files framework, but it is the
-script :doc:`/scripts/policy/frameworks/files/detect-MHR.bro`
+script :doc:`/scripts/policy/frameworks/files/detect-MHR.zeek`
 that is responsible for generating the
 appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
@@ -530,7 +530,7 @@ constants are used in Bro scripts as containers for configuration
 options.  For example, the configuration option to log passwords
 decrypted from HTTP streams is stored in
 :bro:see:`HTTP::default_capture_password` as shown in the stripped down
-excerpt from :doc:`/scripts/base/protocols/http/main.bro` below.
+excerpt from :doc:`/scripts/base/protocols/http/main.zeek` below.
 
 .. literalinclude:: http_main.bro
    :caption:
@@ -1560,7 +1560,7 @@ passing in the ``Notice::Info`` record.  The simplest kind of
 action based on the answer.  The hook below adds the
 :bro:enum:`Notice::ACTION_EMAIL` action for the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
-:doc:`/scripts/policy/protocols/ssh/interesting-hostnames.bro` script.
+:doc:`/scripts/policy/protocols/ssh/interesting-hostnames.zeek` script.
 
 .. literalinclude:: framework_notice_hook_01.bro
    :caption:
@@ -1611,7 +1611,7 @@ Bro.
            $identifier=cat(c$id$resp_h, c$id$resp_p, hash),
            $fuid=fuid]);
 
-In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.bro` script
+In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.zeek` script
 which identifies when SSL certificates are set to expire and raises
 notices when it crosses a predefined threshold, the call to
 ``NOTICE`` above also sets the ``$identifier`` entry by concatenating

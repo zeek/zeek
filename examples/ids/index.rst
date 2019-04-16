@@ -178,8 +178,8 @@ Below is the final code for our script.
    1389721084.522861 -       -       -       -       -       -       -       -       -       FTP::Bruteforcing       192.168.56.1 had 20 failed logins on 1 FTP server in 0m37s      -       192.168.56.1    -       -       -       -       Notice::ACTION_LOG      3600.000000     F       -       -       -       -       -
    #close    2018-12-13-22-56-21
 
-As a final note, the :doc:`detect-bruteforcing.bro
-</scripts/policy/protocols/ftp/detect-bruteforcing.bro>` script above is
+As a final note, the :doc:`detect-bruteforcing.zeek
+</scripts/policy/protocols/ftp/detect-bruteforcing.zeek>` script above is
 included with Bro out of the box.  Use this feature by loading this script
 during startup.
 
@@ -197,7 +197,7 @@ Files transmitted on your network could either be completely harmless or
 contain viruses and other threats. One possible action against this
 threat is to compute the hashes of the files and compare them against a
 list of known malware hashes. Bro simplifies this task by offering a
-:doc:`detect-MHR.bro </scripts/policy/frameworks/files/detect-MHR.bro>`
+:doc:`detect-MHR.zeek </scripts/policy/frameworks/files/detect-MHR.zeek>`
 script that creates and compares hashes against the `Malware Hash
 Registry <https://www.team-cymru.org/Services/MHR/>`_ maintained by Team
 Cymru. Use this feature by loading this script during startup.

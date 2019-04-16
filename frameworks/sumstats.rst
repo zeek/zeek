@@ -91,7 +91,7 @@ Taking the previous example even further, we can implement a simple detection
 to demonstrate the thresholding functionality.  This example is a toy to
 demonstrate how thresholding works in Sumstats and is not meant to be a
 real-world functional example, that is left to the
-:doc:`/scripts/policy/misc/scan.bro` script that is included with Bro.
+:doc:`/scripts/policy/misc/scan.zeek` script that is included with Bro.
 
 .. literalinclude:: sumstats-toy-scan.bro
    :caption:

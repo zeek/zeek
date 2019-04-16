@@ -5,10 +5,10 @@ Package: base/frameworks/logging/postprocessors
 
 Support for postprocessors in the logging framework.
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/__load__.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/scp.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/scp.zeek`
 
    This script defines a postprocessing function that can be applied
    to a logging filter in order to automatically SCP (secure copy)
@@ -25,7 +25,7 @@ Support for postprocessors in the logging framework.
       writer/path pair which defines a set of :bro:type:`Log::SCPDestination`
       records.
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/sftp.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/sftp.zeek`
 
    This script defines a postprocessing function that can be applied
    to a logging filter in order to automatically SFTP

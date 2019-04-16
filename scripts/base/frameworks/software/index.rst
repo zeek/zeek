@@ -8,10 +8,10 @@ of software versions seen on the network. The version parsing itself
 is carried out by external protocol-specific scripts that feed into
 this framework.
 
-:doc:`/scripts/base/frameworks/software/__load__.bro`
+:doc:`/scripts/base/frameworks/software/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/software/main.bro`
+:doc:`/scripts/base/frameworks/software/main.zeek`
 
    This script provides the framework for software version detection and
    parsing but doesn't actually do any detection on it's own.  It relies on

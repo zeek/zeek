@@ -43,7 +43,7 @@ General Porting Tips
   ``@load base/frameworks/communication`` indicates use of the
   old communication framework, consider porting to
   ``@load base/frameworks/broker`` and using the Broker API:
-  :doc:`/scripts/base/frameworks/broker/main.bro`
+  :doc:`/scripts/base/frameworks/broker/main.zeek`
 
 - The ``&synchronized`` and ``&persistent`` attributes are deprecated,
   consider using `Data Stores`_ instead.
@@ -184,7 +184,7 @@ Data Partitioning
 -----------------
 
 New data partitioning strategies are available using the API in
-:doc:`/scripts/base/frameworks/cluster/pools.bro`.  Using that API, developers
+:doc:`/scripts/base/frameworks/cluster/pools.zeek`.  Using that API, developers
 of custom Bro scripts can define a custom pool of nodes that best fits the
 needs of their script.
 
@@ -215,7 +215,7 @@ Broker Framework Examples
 The broker framework provides basic facilities for connecting Bro instances
 to each other and exchanging messages, like events or logs.
 
-See :doc:`/scripts/base/frameworks/broker/main.bro` for an overview
+See :doc:`/scripts/base/frameworks/broker/main.zeek` for an overview
 of the main Broker API.
 
 .. _broker_topic_naming:
@@ -267,7 +267,7 @@ by the cluster framework.  For scripts that are meant to establish
 communication flows unrelated to Bro cluster, new topics are declared
 (examples being the NetControl and Control frameworks).
 
-For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.bro`
+For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.zeek`
 for a list of topics that are useful for steering published events to
 the various node classes.  E.g. you have the ability to broadcast
 to all nodes of a given class (e.g. just workers) or just send to a
@@ -380,7 +380,7 @@ the :bro:see:`Log::write` and not automatically published to peers.
 Distributed Data Stores
 -----------------------
 
-See :doc:`/scripts/base/frameworks/broker/store.bro` for an overview
+See :doc:`/scripts/base/frameworks/broker/store.zeek` for an overview
 of the Broker data store API.
 
 There are two flavors of key-value data store interfaces: master and clone.

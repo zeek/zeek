@@ -7,10 +7,10 @@ The analyzer framework allows to dynamically enable or disable Bro's
 protocol analyzers, as well as to manage the well-known ports which
 automatically activate a particular analyzer for new connections.
 
-:doc:`/scripts/base/frameworks/analyzer/__load__.bro`
+:doc:`/scripts/base/frameworks/analyzer/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/analyzer/main.bro`
+:doc:`/scripts/base/frameworks/analyzer/main.zeek`
 
    Framework for managing Bro's protocol analyzers.
    

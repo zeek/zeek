@@ -192,7 +192,7 @@ at that time that sets our field correctly:
 
 Now ``conn.log`` will show a new field ``is_private`` of type
 ``bool``.  If you look at the Bro script which defines the connection
-log stream :doc:`/scripts/base/protocols/conn/main.bro`, you will see
+log stream :doc:`/scripts/base/protocols/conn/main.zeek`, you will see
 that ``Log::write`` gets called in an event handler for the
 same event as used in this example to set the additional fields, but at a
 lower priority than the one used in this example (i.e., the log record gets
@@ -493,7 +493,7 @@ describes the format of the log file, the "path" of the log (i.e., the log
 filename without file extension), and also specifies the time that the log
 was created and the time when Bro finished writing to it.
 The ASCII writer has a number of options for customizing the format of its
-output, see :doc:`/scripts/base/frameworks/logging/writers/ascii.bro`.
+output, see :doc:`/scripts/base/frameworks/logging/writers/ascii.zeek`.
 If you change the output format options, then be careful to check whether
 your postprocessing scripts can still recognize your log files.
 

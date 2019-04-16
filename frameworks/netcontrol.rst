@@ -42,7 +42,7 @@ tracks rules throughout their entire lifecycle and reports the status (like
 success, failure and timeouts) back to the user scripts.
 
 The backends are implemented as Bro scripts using a plugin based API; an example
-for this is :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.bro`. This
+for this is :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek`. This
 document will show how to write plugins in
 :ref:`framework-netcontrol-plugins`.
 
@@ -292,7 +292,7 @@ The following figure shows the main components of NetControl rules:
     NetControl Rule overview (click to enlarge).
 
 The types that are used to make up a rule are defined in
-:doc:`/scripts/base/frameworks/netcontrol/types.bro`.
+:doc:`/scripts/base/frameworks/netcontrol/types.zeek`.
 
 Rules are defined as a :bro:see:`NetControl::Rule` record. Rules have a *type*,
 which specifies what kind of action is taken. The possible actions are to
@@ -507,7 +507,7 @@ In contrast to the other high-level functions that we documented so far, the
 catch and release functionality is much more complex and adds a number of
 different specialized functions to NetControl. The documentation for catch and
 release is contained in the file
-:doc:`/scripts/base/frameworks/netcontrol/catch-and-release.bro`.
+:doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek`.
 
 Using catch and release in your scripts is easy; just use
 :bro:see:`NetControl::drop_address_catch_release` like in this example:
@@ -587,31 +587,31 @@ The plugins that currently ship with NetControl are:
     * - OpenFlow plugin
       - This is the most fully featured plugin which allows the NetControl
         framework to be interfaced with OpenFlow switches. The source of this
-        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/openflow.bro`.
+        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/openflow.zeek`.
 
     * - Broker plugin
       - This plugin provides a generic way to send NetControl commands using the
         new Bro communication library (Broker). External programs can receive
         the rules and take action; we provide an example script that calls
         command-line programs triggered by NetControl. The source of this
-        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.bro`.
+        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek`.
 
     * - acld plugin
       - This plugin adds support for the acld daemon, which can interface with
         several switches and routers. The current version of acld is available
         from the `LBL ftp server <ftp://ftp.ee.lbl.gov/acld.tar.gz>`_. The source of this
-        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.bro`.
+        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.zeek`.
 
     * - PacketFilter plugin
       - This plugin uses the Bro process-level packet filter (see
         :bro:see:`install_src_net_filter` and
         :bro:see:`install_dst_net_filter`). Since the functionality of the
         PacketFilter is limited, this plugin is mostly for demonstration purposes. The source of this
-        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/packetfilter.bro`.
+        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek`.
 
     * - Debug plugin
       - The debug plugin simply outputs its action to the standard output. The source of this
-        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/debug.bro`.
+        plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/debug.zeek`.
 
 Activating plugins
 ******************

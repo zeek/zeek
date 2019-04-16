@@ -5,20 +5,20 @@ Package: base/frameworks/logging
 
 The logging framework provides a flexible key-value based logging interface.
 
-:doc:`/scripts/base/frameworks/logging/__load__.bro`
+:doc:`/scripts/base/frameworks/logging/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/logging/main.bro`
+:doc:`/scripts/base/frameworks/logging/main.zeek`
 
    The Bro logging interface.
    
    See :doc:`/frameworks/logging` for an introduction to Bro's
    logging framework.
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/__load__.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/scp.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/scp.zeek`
 
    This script defines a postprocessing function that can be applied
    to a logging filter in order to automatically SCP (secure copy)
@@ -35,7 +35,7 @@ The logging framework provides a flexible key-value based logging interface.
       writer/path pair which defines a set of :bro:type:`Log::SCPDestination`
       records.
 
-:doc:`/scripts/base/frameworks/logging/postprocessors/sftp.bro`
+:doc:`/scripts/base/frameworks/logging/postprocessors/sftp.zeek`
 
    This script defines a postprocessing function that can be applied
    to a logging filter in order to automatically SFTP
@@ -52,7 +52,7 @@ The logging framework provides a flexible key-value based logging interface.
       writer/path pair which defines a set of :bro:type:`Log::SFTPDestination`
       records.
 
-:doc:`/scripts/base/frameworks/logging/writers/ascii.bro`
+:doc:`/scripts/base/frameworks/logging/writers/ascii.zeek`
 
    Interface for the ASCII log writer.  Redefinable options are available
    to tweak the output format of ASCII logs.
@@ -68,7 +68,7 @@ The logging framework provides a flexible key-value based logging interface.
                               $config = table(["tsv"] = "T")];
    
 
-:doc:`/scripts/base/frameworks/logging/writers/sqlite.bro`
+:doc:`/scripts/base/frameworks/logging/writers/sqlite.zeek`
 
    Interface for the SQLite log writer. Redefinable options are available
    to tweak the output format of the SQLite reader.
@@ -81,7 +81,7 @@ The logging framework provides a flexible key-value based logging interface.
    or created in the SQLite database. An example for this is given in the
    introduction mentioned above.
 
-:doc:`/scripts/base/frameworks/logging/writers/none.bro`
+:doc:`/scripts/base/frameworks/logging/writers/none.zeek`
 
    Interface for the None log writer. This writer is mainly for debugging.
 

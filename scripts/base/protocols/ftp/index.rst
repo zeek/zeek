@@ -5,31 +5,31 @@ Package: base/protocols/ftp
 
 Support for File Transfer Protocol (FTP) analysis.
 
-:doc:`/scripts/base/protocols/ftp/__load__.bro`
+:doc:`/scripts/base/protocols/ftp/__load__.zeek`
 
 
-:doc:`/scripts/base/protocols/ftp/utils-commands.bro`
+:doc:`/scripts/base/protocols/ftp/utils-commands.zeek`
 
 
-:doc:`/scripts/base/protocols/ftp/info.bro`
+:doc:`/scripts/base/protocols/ftp/info.zeek`
 
    Defines data structures for tracking and logging FTP sessions.
 
-:doc:`/scripts/base/protocols/ftp/main.bro`
+:doc:`/scripts/base/protocols/ftp/main.zeek`
 
    The logging this script does is primarily focused on logging FTP commands
    along with metadata.  For example, if files are transferred, the argument
    will take on the full path that the client is at along with the requested
    file name.
 
-:doc:`/scripts/base/protocols/ftp/utils.bro`
+:doc:`/scripts/base/protocols/ftp/utils.zeek`
 
    Utilities specific for FTP processing.
 
-:doc:`/scripts/base/protocols/ftp/files.bro`
+:doc:`/scripts/base/protocols/ftp/files.zeek`
 
 
-:doc:`/scripts/base/protocols/ftp/gridftp.bro`
+:doc:`/scripts/base/protocols/ftp/gridftp.zeek`
 
    A detection script for GridFTP data and control channels.
    

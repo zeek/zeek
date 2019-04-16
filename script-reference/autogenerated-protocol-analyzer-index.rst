@@ -10374,7 +10374,7 @@ Types
    
    For more information, see MS-SMB2:2.2.41
    
-   .. bro:see:: smb2_header smb2_message smb2_close_request smb2_close_response
+   .. bro:see:: smb2_transform_header smb2_message smb2_close_request smb2_close_response
       smb2_create_request smb2_create_response smb2_negotiate_request
       smb2_negotiate_response smb2_read_request
       smb2_session_setup_request smb2_session_setup_response

@@ -6,10 +6,10 @@ Package: base/frameworks/reporter
 This framework is intended to create an output and filtering path for
 internally generated messages/warnings/errors.
 
-:doc:`/scripts/base/frameworks/reporter/__load__.bro`
+:doc:`/scripts/base/frameworks/reporter/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/reporter/main.bro`
+:doc:`/scripts/base/frameworks/reporter/main.zeek`
 
    This framework is intended to create an output and filtering path for
    internal messages/warnings/errors.  It should typically be loaded to
@@ -22,5 +22,5 @@ internally generated messages/warnings/errors.
    Note that this framework deals with the handling of internally generated
    reporter messages, for the interface
    into actually creating reporter messages from the scripting layer, use
-   the built-in functions in :doc:`/scripts/base/bif/reporter.bif.bro`.
+   the built-in functions in :doc:`/scripts/base/bif/reporter.bif.zeek`.
 

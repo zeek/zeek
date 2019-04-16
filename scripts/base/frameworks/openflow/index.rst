@@ -6,18 +6,18 @@ Package: base/frameworks/openflow
 The OpenFlow framework exposes the data structures and functions
 necessary to interface to OpenFlow capable hardware.
 
-:doc:`/scripts/base/frameworks/openflow/__load__.bro`
+:doc:`/scripts/base/frameworks/openflow/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/openflow/consts.bro`
+:doc:`/scripts/base/frameworks/openflow/consts.zeek`
 
    Constants used by the OpenFlow framework.
 
-:doc:`/scripts/base/frameworks/openflow/types.bro`
+:doc:`/scripts/base/frameworks/openflow/types.zeek`
 
    Types used by the OpenFlow framework.
 
-:doc:`/scripts/base/frameworks/openflow/main.bro`
+:doc:`/scripts/base/frameworks/openflow/main.zeek`
 
    Bro's OpenFlow control framework.
    
@@ -29,22 +29,22 @@ necessary to interface to OpenFlow capable hardware.
    for shunting, please look at the NetControl framework, which provides higher
    level functions and can use the OpenFlow framework as a backend.
 
-:doc:`/scripts/base/frameworks/openflow/plugins/__load__.bro`
+:doc:`/scripts/base/frameworks/openflow/plugins/__load__.zeek`
 
 
-:doc:`/scripts/base/frameworks/openflow/plugins/ryu.bro`
+:doc:`/scripts/base/frameworks/openflow/plugins/ryu.zeek`
 
    OpenFlow plugin for the Ryu controller.
 
-:doc:`/scripts/base/frameworks/openflow/plugins/log.bro`
+:doc:`/scripts/base/frameworks/openflow/plugins/log.zeek`
 
    OpenFlow plugin that outputs flow-modification commands
    to a Bro log file.
 
-:doc:`/scripts/base/frameworks/openflow/plugins/broker.bro`
+:doc:`/scripts/base/frameworks/openflow/plugins/broker.zeek`
 
    OpenFlow plugin for interfacing to controllers via Broker.
 
-:doc:`/scripts/base/frameworks/openflow/non-cluster.bro`
+:doc:`/scripts/base/frameworks/openflow/non-cluster.zeek`
 
 

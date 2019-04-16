@@ -1,4 +1,8 @@
 
+2.6-225 | 2019-04-16 16:07:49 -0700
+
+  * Use .zeek file suffix in unit tests (Jon Siwek, Corelight)
+
 2.6-223 | 2019-04-16 11:56:00 -0700
 
   * Update tests and baselines due to renaming all scripts (Daniel Thayer)

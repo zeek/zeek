@@ -16,6 +16,9 @@ from sphinx.roles import XRefRole
 from sphinx.util.nodes import make_refnode
 from sphinx import version_info
 
+from sphinx.util import logging
+logger = logging.getLogger(__name__)
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
 from docutils.parsers.rst import directives
@@ -53,8 +56,7 @@ def process_see_nodes(app, doctree, fromdocname):
 
             if name not in app.env.domaindata['bro']['idtypes']:
                 # Just create the text and issue warning
-                app.env.warn(fromdocname,
-                             'unknown target for ".. bro:see:: %s"' % (name))
+                logger.warning('%s: unknown target for ".. bro:see:: %s"', fromdocname, name, location=node)
                 para += nodes.Text(link_txt, link_txt)
             else:
                 # Create a reference
@@ -92,12 +94,11 @@ class BroGeneric(ObjectDescription):
             key = (self.objtype, name)
             if ( key in objects and self.objtype != "id" and
                  self.objtype != "type" ):
-                self.env.warn(self.env.docname,
-                              'duplicate description of %s %s, ' %
-                              (self.objtype, name) +
-                              'other instance in ' +
-                              self.env.doc2path(objects[key]),
-                              self.lineno)
+                logger.warning('%s: duplicate description of %s %s, ' %
+                        (self.env.docname, self.objtype, name) +
+                        'other instance in ' +
+                        self.env.doc2path(objects[key]),
+                        self.lineno)
             objects[key] = self.env.docname
             self.update_type_map(name)
 
@@ -162,8 +163,7 @@ class BroEnum(BroGeneric):
         m = sig.split()
 
         if len(m) < 2:
-            self.env.warn(self.env.docname,
-                          "bro:enum directive missing argument(s)")
+            logger.warning("%s: bro:enum directive missing argument(s)", self.env.docname)
             return
 
         if m[1] == "Notice::Type":
@@ -273,8 +273,7 @@ class BroDomain(Domain):
         objects = self.data['objects']
         if typ == "see":
             if target not in self.data['idtypes']:
-                self.env.warn(fromdocname,
-                              'unknown target for ":bro:see:`%s`"' % (target))
+                logger.warning('%s: unknown target for ":bro:see:`%s`"', fromdocname, target)
                 return []
             objtype = self.data['idtypes'][target]
             return make_refnode(builder, fromdocname,
@@ -290,8 +289,7 @@ class BroDomain(Domain):
                                         objtype + '-' + target,
                                         contnode, target + ' ' + objtype)
                 else:
-                    self.env.warn(fromdocname,
-                        'unknown target for ":bro:%s:`%s`"' % (typ, target))
+                    logger.warning('%s: unknown target for ":bro:%s:`%s`"', fromdocname, typ, target)
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].items():

@@ -5,4 +5,4 @@
 # @TEST-EXEC: btest-diff output
 
 @unload base/misc/version
-@load base/init-default.bro
+@load base/init-default

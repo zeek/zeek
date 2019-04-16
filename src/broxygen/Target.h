@@ -41,7 +41,7 @@ struct TargetFile {
 /**
  * A Broxygen target abstract base class.  A target is generally any portion of
  * documentation that Bro can build.  It's identified by a type (e.g. script,
- * identifier, package), a pattern (e.g. "example.bro", "HTTP::Info"), and
+ * identifier, package), a pattern (e.g. "example.zeek", "HTTP::Info"), and
  * a path to an output file.
  */
 class Target {

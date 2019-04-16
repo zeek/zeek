@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff test.rst
 
 @TEST-START-FILE broxygen.config
-script_summary	broxygen/example.bro	test.rst
+script_summary	broxygen/example.zeek	test.rst
 @TEST-END-FILE
 
 @load broxygen

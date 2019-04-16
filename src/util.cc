@@ -20,6 +20,7 @@
 #endif
 
 #include <string>
+#include <array>
 #include <vector>
 #include <algorithm>
 #include <ctype.h>
@@ -1007,7 +1008,20 @@ string bro_prefixes()
 	return rval;
 	}
 
-const char* PACKAGE_LOADER = "__load__.bro";
+const array<string, 2> script_extensions = {".zeek", ".bro"};
+
+bool is_package_loader(const string& path)
+	{
+	string filename(std::move(SafeBasename(path).result));
+
+	for ( const string& ext : script_extensions )
+		{
+		if ( filename == "__load__" + ext )
+			return true;
+		}
+
+	return false;
+	}
 
 FILE* open_file(const string& path, const string& mode)
 	{
@@ -1034,13 +1048,22 @@ static bool can_read(const string& path)
 FILE* open_package(string& path, const string& mode)
 	{
 	string arg_path = path;
-	path.append("/").append(PACKAGE_LOADER);
+	path.append("/__load__");
 
-	if ( can_read(path) )
-		return open_file(path, mode);
+	for ( const string& ext : script_extensions )
+		{
+		string p = path + ext;
+		if ( can_read(p) )
+			{
+			path.append(ext);
+			return open_file(path, mode);
+			}
+		}
 
+	path.append(script_extensions[0]);
+	string package_loader = "__load__" + script_extensions[0];
 	reporter->Error("Failed to open package '%s': missing '%s' file",
-	                arg_path.c_str(), PACKAGE_LOADER);
+	                arg_path.c_str(), package_loader.c_str());
 	return 0;
 	}
 
@@ -1123,7 +1146,7 @@ string flatten_script_name(const string& name, const string& prefix)
 	if ( ! rval.empty() )
 		rval.append(".");
 
-	if ( SafeBasename(name).result == PACKAGE_LOADER )
+	if ( is_package_loader(name) )
 		rval.append(SafeDirname(name).result);
 	else
 		rval.append(name);
@@ -1221,7 +1244,7 @@ string without_bropath_component(const string& path)
 	}
 
 static string find_file_in_path(const string& filename, const string& path,
-                                const string& opt_ext = "")
+                                const vector<string>& opt_ext)
 	{
 	if ( filename.empty() )
 		return string();
@@ -1239,10 +1262,13 @@ static string find_file_in_path(const string& filename, const string& path,
 
 	if ( ! opt_ext.empty() )
 		{
-		string with_ext = abs_path + '.' + opt_ext;
+		for ( const string& ext : opt_ext )
+			{
+			string with_ext = abs_path + ext;
 
-		if ( can_read(with_ext) )
-			return with_ext;
+			if ( can_read(with_ext) )
+				return with_ext;
+			}
 		}
 
 	if ( can_read(abs_path) )
@@ -1257,9 +1283,31 @@ string find_file(const string& filename, const string& path_set,
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
+	vector<string> ext;
+	if ( ! opt_ext.empty() )
+		ext.push_back(opt_ext);
+
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
-		string f = find_file_in_path(filename, paths[n], opt_ext);
+		string f = find_file_in_path(filename, paths[n], ext);
+
+		if ( ! f.empty() )
+			return f;
+		}
+
+	return string();
+	}
+
+string find_script_file(const string& filename, const string& path_set)
+	{
+	vector<string> paths;
+	tokenize_string(path_set, ":", &paths);
+
+	vector<string> ext(script_extensions.begin(), script_extensions.end());
+
+	for ( size_t n = 0; n < paths.size(); ++n )
+		{
+		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
 			return f;

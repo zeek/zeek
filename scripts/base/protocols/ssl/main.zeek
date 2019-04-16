@@ -69,7 +69,7 @@ export {
 		logged:           bool             &default=F;
 	};
 
-	## The default root CA bundle.  By default, the mozilla-ca-list.bro
+	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
 	## script sets this to Mozilla's root CA list.
 	const root_certs: table[string] of string = {} &redef;
 
@@ -88,7 +88,7 @@ export {
 		url:                   string;
 	};
 
-	## The Certificate Transparency log bundle. By default, the ct-list.bro
+	## The Certificate Transparency log bundle. By default, the ct-list.zeek
 	## script sets this to the current list of known logs. Entries
 	## are indexed by (binary) log-id.
 	option ct_logs: table[string] of CTInfo = {};

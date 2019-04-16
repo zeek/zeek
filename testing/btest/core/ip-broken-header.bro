@@ -4,4 +4,4 @@
 # @TEST-EXEC: gunzip -c $TRACES/trunc/mpls-6in6-broken.pcap.gz | bro -C -b -r - %INPUT
 # @TEST-EXEC: btest-diff weird.log
 
-@load base/frameworks/notice/weird.bro
+@load base/frameworks/notice/weird

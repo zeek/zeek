@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff bro/weird_stats.log
 
-@load misc/weird-stats.bro
+@load misc/weird-stats
 
 redef exit_only_after_terminate = T;
 redef WeirdStats::weird_stat_interval = 5sec;

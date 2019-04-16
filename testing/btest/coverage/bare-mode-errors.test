@@ -5,5 +5,5 @@
 # when writing a new bro scripts.
 #
 # @TEST-EXEC: test -d $DIST/scripts
-# @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.bro`; do bro -b --parse-only $script >>errors 2>&1; done
+# @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.zeek`; do bro -b --parse-only $script >>errors 2>&1; done
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff errors

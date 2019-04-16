@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-diff known_modbus.log
 #
 
-@load protocols/modbus/known-masters-slaves.bro
-@load protocols/modbus/track-memmap.bro
+@load protocols/modbus/known-masters-slaves
+@load protocols/modbus/track-memmap
 
 redef DPD::ignore_violations_after = 1;

@@ -1,4 +1,22 @@
 
+2.6-223 | 2019-04-16 11:56:00 -0700
+
+  * Update tests and baselines due to renaming all scripts (Daniel Thayer)
+
+  * Rename all scripts to have ".zeek" file extension (Daniel Thayer)
+
+  * Add test cases to verify new file extension is recognized (Daniel Thayer)
+
+  * Fix the core/load-duplicates.bro test (Daniel Thayer)
+
+  * Update script search logic for new .zeek file extension (Daniel Thayer)
+
+    When searching for script files, look for both the new and old file
+    extensions.  If a file with ".zeek" can't be found, then search for
+    a file with ".bro" as a fallback.
+
+  * Remove unnecessary ".bro" from @load directives (Daniel Thayer)
+
 2.6-212 | 2019-04-12 10:12:31 -0700
 
   * smb2_write_response event added (Mauro Palumbo)

@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <array>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
@@ -248,15 +249,15 @@ static const SourceID SOURCE_BROKER = 0xffffffff;
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
-// Contains the name of the script file that gets read
-// when a package is loaded (i.e., "__load__.bro).
-extern const char* PACKAGE_LOADER;
-
 extern const std::string& bro_path();
 extern const char* bro_magic_path();
 extern const char* bro_plugin_path();
 extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
+
+extern const std::array<std::string, 2> script_extensions;
+
+bool is_package_loader(const std::string& path);
 
 extern void add_to_bro_path(const std::string& dir);
 
@@ -308,7 +309,7 @@ std::string implode_string_vector(const std::vector<std::string>& v,
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
- * @param file A path to a Bro script.  If it is a __load__.bro, that part
+ * @param file A path to a Bro script.  If it is a __load__.zeek, that part
  *             is discarded when constructing the flattened the name.
  * @param prefix A string to prepend to the flattened script name.
  * @return The flattened script name.
@@ -340,6 +341,14 @@ std::string without_bropath_component(const std::string& path);
  */
 std::string find_file(const std::string& filename, const std::string& path_set,
                       const std::string& opt_ext = "");
+
+/**
+ * Locate a script file within a given search path.
+ * @param filename Name of a file to find.
+ * @param path_set Colon-delimited set of paths to search for the file.
+ * @return Path to the found file, or an empty string if not found.
+ */
+std::string find_script_file(const std::string& filename, const std::string& path_set);
 
 // Wrapper around fopen(3).  Emits an error when failing to open.
 FILE* open_file(const std::string& path, const std::string& mode = "r");

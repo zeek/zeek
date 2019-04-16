@@ -12,7 +12,7 @@ export {
 
 	## Heuristic detection of named pipes when the pipe
 	## mapping isn't seen. This variable is defined in
-	## init-bare.bro.
+	## init-bare.zeek.
 	redef SMB::pipe_filenames = {
 		"spoolss",
 		"winreg",

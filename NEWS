@@ -71,6 +71,21 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- ``$prefix/share/bro/site/local.bro`` has been renamed to
+  ``local.zeek``.  If you have made customizations to that file, it
+  will no longer be loaded by default by BroControl (ZeekControl),
+  but you can simply copy it to ``local.zeek`.  You may also want to
+  remove old ``local.bro`` files to avoid potential confusion.
+
+- All scripts ending in ``.bro`` that ship with the Zeek source tree have
+  been renamed to ``.zeek``.
+
+- The search logic for the ``@load`` script directive now prefers files
+  ending in ``.zeek``, but will fallback to loading a ``.bro`` file if it
+  exists.  E.g. ``@load foo`` will check for ``foo.zeek`` and then ``foo.bro``.
+  Note that ``@load foo.bro`` will not automatically check for
+  ``@load foo.zeek``.
+
 - The for-loop index variable for vectors has been changed from
   'int' to 'count' type.  It's unlikely this would alter/break any
   script behavior unless they were explicitly inspecting the variable's

@@ -77,7 +77,7 @@ public:
 		{ redefs.insert(info); }
 
 	/**
-	 * @return Whether the script is a package loader (i.e. "__load__.bro").
+	 * @return Whether the script is a package loader (i.e. "__load__.zeek").
 	 */
 	bool IsPkgLoader() const
 		{ return is_pkg_loader; }

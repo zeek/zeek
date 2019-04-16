@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-x509-names | $SCRIPTS/diff-remove-timestamps" btest-diff ssl-all.log
 
-@load protocols/ssl/validate-sct.bro
+@load protocols/ssl/validate-sct
 
 module SSL;
 

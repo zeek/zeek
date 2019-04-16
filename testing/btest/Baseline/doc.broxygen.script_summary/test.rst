@@ -1,4 +1,4 @@
-:doc:`/scripts/broxygen/example.bro`
+:doc:`/scripts/broxygen/example.zeek`
     This is an example script that demonstrates Broxygen-style
     documentation.  It generally will make most sense when viewing
     the script's raw source code and comparing to the HTML-rendered

@@ -2,7 +2,7 @@
 
 module RADIUS;
 
-@load ./consts.bro
+@load ./consts
 @load base/utils/addrs
 
 export {

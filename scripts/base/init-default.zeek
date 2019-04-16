@@ -25,7 +25,7 @@
 @load base/utils/urls
 
 # This has some deep interplay between types and BiFs so it's
-# loaded in base/init-bare.bro
+# loaded in base/init-bare.zeek
 #@load base/frameworks/logging
 @load base/frameworks/notice
 @load base/frameworks/analyzer

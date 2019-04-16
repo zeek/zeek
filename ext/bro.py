@@ -10,7 +10,7 @@ def setup(Sphinx):
 
 from sphinx import addnodes
 from sphinx.domains import Domain, ObjType, Index
-from sphinx.locale import l_, _
+from sphinx.locale import _
 from sphinx.directives import ObjectDescription
 from sphinx.roles import XRefRole
 from sphinx.util.nodes import make_refnode
@@ -199,8 +199,8 @@ class BroNotices(Index):
     """
 
     name = 'noticeindex'
-    localname = l_('Bro Notice Index')
-    shortname = l_('notices')
+    localname = _('Bro Notice Index')
+    shortname = _('notices')
 
     def generate(self, docnames=None):
         content = {}
@@ -223,12 +223,12 @@ class BroDomain(Domain):
     label = 'Bro'
 
     object_types = {
-        'type':             ObjType(l_('type'),             'type'),
-        'namespace':        ObjType(l_('namespace'),        'namespace'),
-        'id':               ObjType(l_('id'),               'id'),
-        'keyword':          ObjType(l_('keyword'),          'keyword'),
-        'enum':             ObjType(l_('enum'),             'enum'),
-        'attr':             ObjType(l_('attr'),             'attr'),
+        'type':             ObjType(_('type'),             'type'),
+        'namespace':        ObjType(_('namespace'),        'namespace'),
+        'id':               ObjType(_('id'),               'id'),
+        'keyword':          ObjType(_('keyword'),          'keyword'),
+        'enum':             ObjType(_('enum'),             'enum'),
+        'attr':             ObjType(_('attr'),             'attr'),
     }
 
     directives = {

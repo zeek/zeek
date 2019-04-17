@@ -1321,6 +1321,14 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		PacketWithRST();
 		}
 
+	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
+	endpoint->last_time = current_timestamp;
+
+	int do_close;
+	int gen_event;
+	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
+	                   len, delta_last, is_orig, flags, do_close, gen_event);
+
 	uint64 rel_ack = 0;
 
 	if ( flags.ACK() )
@@ -1350,20 +1358,12 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				Weird("TCP_ack_underflow_or_misorder");
 				}
 			else if ( ! flags.RST() )
-				// Don't trust ack's in RSt packets.
+				// Don't trust ack's in RST packets.
 				update_ack_seq(peer, ack_seq);
 			}
 
 		peer->AckReceived(rel_ack);
 		}
-
-	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
-	endpoint->last_time = current_timestamp;
-
-	int do_close;
-	int gen_event;
-	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
-	                   len, delta_last, is_orig, flags, do_close, gen_event);
 
 	if ( tcp_packet )
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,

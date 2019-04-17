@@ -134,6 +134,9 @@ void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 	// The one opportunity we lose here is on clean FIN
 	// handshakes, but Oh Well.
 
+	if ( established(endp, endp->peer) )
+		endp->Gap(seq, len);
+
 	if ( report_gap(endp, endp->peer) )
 		{
 		val_list* vl = new val_list;

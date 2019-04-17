@@ -1298,6 +1298,14 @@ string find_file(const string& filename, const string& path_set,
 	return string();
 	}
 
+static bool ends_with(const std::string& s, const std::string& ending)
+	{
+	if ( ending.size() > s.size() )
+		return false;
+
+	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
+	}
+
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
@@ -1311,6 +1319,14 @@ string find_script_file(const string& filename, const string& path_set)
 
 		if ( ! f.empty() )
 			return f;
+		}
+
+	if ( ends_with(filename, ".bro") )
+		{
+		// We were looking for a file explicitly ending in .bro and didn't
+		// find it, so fall back to one ending in .zeek, if it exists.
+		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
+		return find_script_file(fallback, path_set);
 		}
 
 	return string();

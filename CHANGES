@@ -1,4 +1,11 @@
 
+2.6-227 | 2019-04-16 17:44:31 -0700
+
+  * GH-237: add `@load foo.bro` -> foo.zeek fallback (Jon Siwek, Corelight)
+
+    When failing to locate a script with explicit .bro suffix, check for
+    whether one with a .zeek suffix exists and use it instead.
+
 2.6-225 | 2019-04-16 16:07:49 -0700
 
   * Use .zeek file suffix in unit tests (Jon Siwek, Corelight)

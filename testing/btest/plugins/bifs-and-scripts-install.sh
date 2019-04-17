@@ -4,20 +4,20 @@
 # @TEST-EXEC: make
 # @TEST-EXEC: make install
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro -NN Demo::Foo >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro Demo/Foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
-mkdir -p scripts/demo/foo/base/
+mkdir -p scripts/Demo/Foo/base/
 
 cat >scripts/__load__.zeek <<EOF
-@load ./demo/foo/base/at-startup.bro
+@load ./Demo/Foo/base/at-startup.zeek
 EOF
 
-cat >scripts/demo/foo/__load__.bro <<EOF
-@load ./manually.bro
+cat >scripts/Demo/Foo/__load__.zeek <<EOF
+@load ./manually.zeek
 EOF
 
-cat >scripts/demo/foo/manually.bro <<EOF
+cat >scripts/Demo/Foo/manually.zeek <<EOF
 event bro_init() &priority=-10
         {
         print "plugin: manually loaded";
@@ -25,7 +25,7 @@ event bro_init() &priority=-10
         }
 EOF
 
-cat >scripts/demo/foo/base/at-startup.bro <<EOF
+cat >scripts/Demo/Foo/base/at-startup.zeek <<EOF
 event bro_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
@@ -41,7 +41,7 @@ function hello_plugin_world%(%): string
 event plugin_event%(foo: count%);
 EOF
 
-cat >activate.bro <<EOF
+cat >activate.zeek <<EOF
 @load-plugin Demo::Foo
 EOF
 

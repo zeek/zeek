@@ -1,4 +1,8 @@
 
+2.6-230 | 2019-04-17 16:44:16 -0700
+
+  * Fix unit test failures on case-insensitive file systems (Jon Siwek, Corelight)
+
 2.6-227 | 2019-04-16 17:44:31 -0700
 
   * GH-237: add `@load foo.bro` -> foo.zeek fallback (Jon Siwek, Corelight)

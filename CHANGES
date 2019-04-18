@@ -1,4 +1,8 @@
 
+2.6-232 | 2019-04-18 09:34:13 +0200
+
+  * Prevent topk_merge from crashing when second argument is empty set (Jeff Barber)
+
 2.6-230 | 2019-04-17 16:44:16 -0700
 
   * Fix unit test failures on case-insensitive file systems (Jon Siwek, Corelight)

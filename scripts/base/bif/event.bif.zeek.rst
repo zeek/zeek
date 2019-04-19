@@ -22,7 +22,7 @@ Events
 :bro:id:`anonymization_mapping`: :bro:type:`event`                       Deprecated.
 :bro:id:`bro_done`: :bro:type:`event` :bro:attr:`&deprecated`            Deprecated synonym for ``zeek_done``.
 :bro:id:`bro_init`: :bro:type:`event` :bro:attr:`&deprecated`            Deprecated synonym for ``zeek_init``.
-:bro:id:`bro_script_loaded`: :bro:type:`event`                           Raised for each policy script loaded by the script interpreter.
+:bro:id:`bro_script_loaded`: :bro:type:`event` :bro:attr:`&deprecated`   Deprecated synonym for ``zeek_script_loaded``.
 :bro:id:`conn_stats`: :bro:type:`event`                                  Generated when a TCP connection terminated, passing on statistics about the
                                                                          two endpoints.
 :bro:id:`conn_weird`: :bro:type:`event`                                  Generated for unexpected activity related to a specific connection.
@@ -116,6 +116,7 @@ Events
 :bro:id:`udp_session_done`: :bro:type:`event`                            Generated when a UDP session for a supported protocol has finished.
 :bro:id:`zeek_done`: :bro:type:`event`                                   Generated at Zeek termination time.
 :bro:id:`zeek_init`: :bro:type:`event`                                   Generated at Zeek initialization time.
+:bro:id:`zeek_script_loaded`: :bro:type:`event`                          Raised for each policy script loaded by the script interpreter.
 ======================================================================== =============================================================================
 
 
@@ -172,15 +173,11 @@ Events
 .. bro:id:: bro_script_loaded
 
    :Type: :bro:type:`event` (path: :bro:type:`string`, level: :bro:type:`count`)
+   :Attributes: :bro:attr:`&deprecated`
 
-   Raised for each policy script loaded by the script interpreter.
+   Deprecated synonym for ``zeek_script_loaded``.
    
-
-   :path: The full path to the script loaded.
-   
-
-   :level: The "nesting level": zero for a top-level Bro script and incremented
-          recursively for each ``@load``.
+   .. bro:see: zeek_script_loaded
 
 .. bro:id:: conn_stats
 
@@ -1551,5 +1548,18 @@ Events
       around that is to ignore the first time the timer fires and immediately
       reschedule.
    
+
+.. bro:id:: zeek_script_loaded
+
+   :Type: :bro:type:`event` (path: :bro:type:`string`, level: :bro:type:`count`)
+
+   Raised for each policy script loaded by the script interpreter.
+   
+
+   :path: The full path to the script loaded.
+   
+
+   :level: The "nesting level": zero for a top-level Zeek script and incremented
+          recursively for each ``@load``.
 
 

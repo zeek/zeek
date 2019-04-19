@@ -52,7 +52,7 @@ event do_term() {
 	terminate();
 }
 
-event bro_init() {
+event zeek_init() {
 	schedule 1sec { 
 	 do() 
 	};

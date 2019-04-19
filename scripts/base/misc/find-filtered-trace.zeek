@@ -36,7 +36,7 @@ event connection_state_remove(c: connection)
 		saw_tcp_conn_with_data = T;
 	}
 
-event bro_done()
+event zeek_done()
 	{
 	if ( ! enable )
 		return;

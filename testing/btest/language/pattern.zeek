@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local p1: pattern = /foo|bar/; 
 	local p2: pattern = /oob/; 

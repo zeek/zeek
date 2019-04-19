@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local a: string_array = { 
 		[0] = "this", [1] = "is", [2] = "a", [3] = "test" 

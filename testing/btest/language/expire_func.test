@@ -9,7 +9,7 @@ function inform_me(s: set[string], idx: string): interval
 
 global s: set[string] &create_expire=1secs &expire_func=inform_me;
 
-event bro_init()
+event zeek_init()
     {
     add s["i"];
     add s["am"];

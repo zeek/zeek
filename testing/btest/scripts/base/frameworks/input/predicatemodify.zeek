@@ -31,7 +31,7 @@ type Val: record {
 
 global servers: table[int, string] of Val = table();
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 

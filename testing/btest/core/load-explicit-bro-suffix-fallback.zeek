@@ -5,7 +5,7 @@
 @load foo.bro
 
 @TEST-START-FILE foo.zeek
-event bro_init()
+event zeek_init()
 	{
 	print "loaded foo.zeek";
 	}

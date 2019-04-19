@@ -24,7 +24,7 @@ export {
 	global pid2cid: function(p: PacketID): conn_id;
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Barnyard2::LOG, [$columns=Info, $path="barnyard2"]);
 	}

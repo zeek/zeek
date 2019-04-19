@@ -17,7 +17,7 @@ export {
 
 redef Log::enable_local_logging = F;
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 

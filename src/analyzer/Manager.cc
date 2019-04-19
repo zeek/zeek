@@ -113,7 +113,7 @@ void Manager::InitPostScript()
 void Manager::DumpDebug()
 	{
 #ifdef DEBUG
-	DBG_LOG(DBG_ANALYZER, "Available analyzers after bro_init():");
+	DBG_LOG(DBG_ANALYZER, "Available analyzers after zeek_init():");
 	list<Component*> all_analyzers = GetComponents();
 	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),

@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out2
 
 
-event bro_init()
+event zeek_init()
 {
 	local f1: file = open( "out1" );
 	print f1, 20;

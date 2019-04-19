@@ -3,14 +3,14 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff logger-test.log
 
-event bro_init()
+event zeek_init()
 {
     Reporter::info("init test-info");
     Reporter::warning("init test-warning");
     Reporter::error("init test-error");
 }
 
-event bro_done()
+event zeek_done()
 {
     Reporter::info("done test-info");
     Reporter::warning("done test-warning");

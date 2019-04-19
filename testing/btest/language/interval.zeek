@@ -12,7 +12,7 @@ function approx_equal(x: double, y: double): bool
 	return |(x - y)/x| < 1e-6 ? T : F;
 	}
 
-event bro_init()
+event zeek_init()
 {
 	# Constants without space and no letter "s"
 

@@ -148,7 +148,7 @@ function get_emails(a: addr): string
 	return fmt_email_string(find_all_emails(a));
 	}
 
-event bro_init() &priority=10
+event zeek_init() &priority=10
 	{
 	# Double backslashes are needed due to string parsing.
 	local_dns_suffix_regex = set_to_regex(local_zones, "(^\\.?|\\.)(~~)$");

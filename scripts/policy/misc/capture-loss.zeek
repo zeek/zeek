@@ -74,7 +74,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	schedule watch_interval { CaptureLoss::take_measurement(now, g$ack_events, g$gap_events) };
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(LOG, [$columns=Info, $path="capture_loss"]);
 

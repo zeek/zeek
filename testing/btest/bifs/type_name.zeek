@@ -9,7 +9,7 @@ type myrecord: record {
   s: string;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local a = "foo";
 	local b = 3;
@@ -69,5 +69,5 @@ event bro_init()
 	print type_name(y); # result is "file of string" which is a bit odd;
                             # we should remove the (apparently unused) type argument 
                             # from files.
-	print type_name(bro_init);
+	print type_name(zeek_init);
 	}

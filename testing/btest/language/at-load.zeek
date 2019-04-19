@@ -5,7 +5,7 @@
 
 @load secondtestfile
 
-event bro_init()
+event zeek_init()
 {
 	test_case( "function", T );
 	test_case( "global variable", num == 123 );

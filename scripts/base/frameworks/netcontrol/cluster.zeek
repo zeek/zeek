@@ -17,7 +17,7 @@ export {
 }
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_added);
 	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_removed);
@@ -28,7 +28,7 @@ event bro_init()
 	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_destroyed);
 	}
 @else
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule);
 	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule);

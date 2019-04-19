@@ -5,7 +5,7 @@
 # @TEST-EXEC: bro -C -r $TRACES/tcp/reassembly.pcap %INPUT >>output
 # @TEST-EXEC: btest-diff output
 
-event bro_init()
+event zeek_init()
 	{
 	print "----------------------";
 	}

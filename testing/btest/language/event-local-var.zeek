@@ -7,7 +7,7 @@ event e1(num: count)
 	print fmt("event 1: %s", num);
 	}
 
-event bro_init()
+event zeek_init()
 {
 	# Test assigning a local event variable to an event
 	local v: event(num: count);

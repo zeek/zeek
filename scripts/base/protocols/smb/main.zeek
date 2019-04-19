@@ -177,7 +177,7 @@ redef record FileInfo += {
 const ports = { 139/tcp, 445/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files"]);
 	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping"]);

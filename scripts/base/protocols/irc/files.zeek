@@ -23,7 +23,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 	return cat(Analyzer::ANALYZER_IRC_DATA, c$start_time, c$id, is_orig);
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_IRC_DATA,
 	                         [$get_file_handle = IRC::get_file_handle]);

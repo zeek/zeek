@@ -3,7 +3,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff master/out
 
 
-event bro_init()
+event zeek_init()
 	{
 	local cv = Broker::vector_create();
 	print Broker::vector_size(cv);

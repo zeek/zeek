@@ -14,7 +14,7 @@ type color: enum { Red, White, Blue, };
 type city: enum { Rome, Paris };
 
 
-event bro_init()
+event zeek_init()
 {
 	local e1: color = Blue;
 	local e2: color = White;

@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-event bro_init()
+event zeek_init()
 	{
 	local c1 = hll_cardinality_init(0.01, 0.95);
 	local c2 = hll_cardinality_init(0.01, 0.95);

@@ -20,7 +20,7 @@ type myrec: record {
 
 global bar: event(x: any);
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("test");
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -91,7 +91,7 @@ event bar(x: any)
 	process(x);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("test");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));

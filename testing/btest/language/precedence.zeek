@@ -9,7 +9,7 @@ function test_case(msg: string, expect: bool)
 # This is an incomplete set of tests to demonstrate the order of precedence
 # of bro script operators
 
-event bro_init()
+event zeek_init()
 {
 	local n1: int;
 	local n2: int;

@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT | sed 's/; charset=.*//g' >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	# plain text
 	local a = "This is a test";

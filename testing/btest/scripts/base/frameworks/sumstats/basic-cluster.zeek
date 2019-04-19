@@ -21,7 +21,7 @@ redef Log::default_rotation_interval = 0secs;
 
 global n = 0;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SUM, SumStats::MIN, SumStats::MAX, SumStats::AVERAGE, SumStats::STD_DEV, SumStats::VARIANCE, SumStats::UNIQUE, SumStats::HLL_UNIQUE)];
 	SumStats::create([$name="test",
@@ -71,7 +71,7 @@ event ready_for_data()
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-event bro_init() &priority=100
+event zeek_init() &priority=100
 	{
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 	}

@@ -17,7 +17,7 @@ export {
 redef Log::default_rotation_interval = 1hr;
 redef LogAscii::gzip_level = 1;
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
 

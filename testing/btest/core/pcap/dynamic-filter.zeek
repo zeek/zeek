@@ -21,7 +21,7 @@ event new_packet(c: connection, p: pkt_hdr)
 			print "error 4";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Pcap::precompile_pcap_filter(A, "port 80") )
 		print "error 1";

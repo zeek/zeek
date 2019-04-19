@@ -38,7 +38,7 @@ function describe_file(f: fa_file): string
 	return "";
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_SMTP,
 	                         [$get_file_handle = SMTP::get_file_handle,

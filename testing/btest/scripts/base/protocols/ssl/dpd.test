@@ -9,7 +9,7 @@
 @load base/frameworks/signatures
 @load-sigs base/protocols/ssl/dpd.sig
 
-event bro_init()
+event zeek_init()
   {
 	print "Start test run";
 	}

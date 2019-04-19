@@ -46,7 +46,7 @@ export {
 	global log_openflow: event(rec: Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(OpenFlow::LOG, [$columns=Info, $ev=log_openflow, $path="openflow"]);
 	}

@@ -5,7 +5,7 @@
 # @TEST-EXEC: bro -r ${TRACES}/ssh/ssh-on-port-80.trace dpd_buffer_size=0;
 # @TEST-EXEC: cat conn.log | bro-cut service | grep -vq ssh
 
-event bro_init()
+event zeek_init()
 	{
 	Analyzer::register_for_port(Analyzer::ANALYZER_SSH, 80/tcp);
 	}

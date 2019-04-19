@@ -24,7 +24,7 @@ function fail(rec: Log): bool
 	return rec$status != "success";
 	}
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
 	Log::remove_default_filter(Test::LOG);

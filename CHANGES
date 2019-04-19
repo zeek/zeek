@@ -1,4 +1,12 @@
 
+2.6-236 | 2019-04-19 11:16:35 -0700
+
+  * Add zeek_init/zeek_done events and deprecate bro_init/bro_done (Seth Hall, Corelight)
+
+    Any existing handlers for bro_init and bro_done will automatically alias
+    to the new zeek_init and zeek_done events such that code will not break,
+    but will emit a deprecation warning.
+
 2.6-232 | 2019-04-18 09:34:13 +0200
 
   * Prevent topk_merge from crashing when second argument is empty set (Jeff Barber)

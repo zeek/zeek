@@ -27,7 +27,7 @@ event Broker::error(code: Broker::ErrorCode, msg: string)
     print "error", code, msg;
     }
 
-event bro_init()
+event zeek_init()
     {
     Broker::subscribe("bro/event/my_topic");
     

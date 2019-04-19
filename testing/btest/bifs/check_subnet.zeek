@@ -30,7 +30,7 @@ function check_member(s: subnet)
 
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	check_member(10.2.0.2/32);
 	check_member(10.2.0.2/31);

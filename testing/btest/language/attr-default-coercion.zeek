@@ -16,7 +16,7 @@ function foo(i: int &default = 237, d: double &default = 101)
 	print i, d;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	print t["nope"];
 	print r;

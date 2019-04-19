@@ -79,7 +79,7 @@ function describe_file(f: fa_file): string
 		f$info$x509$certificate$issuer);
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_SSL,
 	                         [$get_file_handle = SSL::get_file_handle,

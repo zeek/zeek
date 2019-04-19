@@ -19,7 +19,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, i: int, b: b
 	{
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	try = 0;
 	outfile = open("../out");

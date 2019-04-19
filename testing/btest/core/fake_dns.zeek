@@ -19,7 +19,7 @@ function check_terminate()
 		terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	print addrs;
 

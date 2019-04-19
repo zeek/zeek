@@ -223,7 +223,7 @@ type MinDataStore: record {
 global min_data_store: MinDataStore &redef;
 
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel"]);
 	}

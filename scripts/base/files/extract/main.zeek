@@ -75,7 +75,7 @@ event file_extraction_limit(f: fa_file, args: Files::AnalyzerArgs, limit: count,
 	f$info$extracted_size = limit;
 	}
 
-event bro_init() &priority=10
+event zeek_init() &priority=10
 	{
 	Files::register_analyzer_add_callback(Files::ANALYZER_EXTRACT, on_add);
 	}

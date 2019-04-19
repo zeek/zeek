@@ -13,7 +13,7 @@ global sg2: set[port, string, bool] = { [10/udp, "curly", F],
 		[11/udp, "braces", T] };
 global sg3 = { "more", "curly", "braces" };
 
-event bro_init()
+event zeek_init()
 {
 	local s1: set[string] = set( "test", "example" );
 	local s2: set[string] = set();

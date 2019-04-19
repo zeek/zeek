@@ -3,7 +3,7 @@
 
 redef likely_server_ports += { 524/tcp };
 
-event bro_init()
+event zeek_init()
 	{
 	const ports = { 524/tcp };
 	Analyzer::register_for_ports(Analyzer::ANALYZER_NCP, ports);

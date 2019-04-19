@@ -4,7 +4,7 @@
 global nfs_ports: set[port] = { 2049/tcp, 2049/udp } &redef;
 redef ignore_checksums = T;
 
-event bro_init()
+event zeek_init()
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_NFS, nfs_ports);
 	Analyzer::enable_analyzer(Analyzer::ANALYZER_NFS);

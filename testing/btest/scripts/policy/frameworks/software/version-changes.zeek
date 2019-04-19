@@ -34,7 +34,7 @@ event new_software()
 		event new_software();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event new_software();
 	}

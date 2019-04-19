@@ -36,7 +36,7 @@ function switch_one(v: any)
 	}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	switch_one("My StrIng");
 	switch_one(42);

@@ -95,7 +95,7 @@ function pp_postprocessor(info: Log::RotationInfo): bool
 	return T;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! want_pp() )
 		return;

@@ -44,7 +44,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 global ready_for_data: event();
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 	}
@@ -84,7 +84,7 @@ function option_changed(ID: string, new_value: any, location: string): any
 	return new_value;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Option::set_change_handler("testport", option_changed, -100);
 	Option::set_change_handler("teststring", option_changed, -100);

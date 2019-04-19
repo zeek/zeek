@@ -7,7 +7,7 @@ redef Reporter::errors_to_stderr = F;
 
 global test: table[count] of string = {};
 
-event bro_init()
+event zeek_init()
 	{
 	print test[3];
 	}

@@ -16,7 +16,7 @@ redef exit_only_after_terminate = T;
 global event_handler: event(msg: string, c: count);
 global auto_event_handler: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/event/");
 	Broker::auto_publish("bro/event/my_topic", auto_event_handler);
@@ -50,7 +50,7 @@ redef exit_only_after_terminate = T;
 global event_handler: event(msg: string, c: count);
 global auto_event_handler: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/event/my_topic");
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")), 1secs);

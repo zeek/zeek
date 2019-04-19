@@ -24,7 +24,7 @@ event gen_weirds(n: count, done: bool &default = F)
 		schedule 5sec { die() };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event gen_weirds(1000);
 	schedule 7.5sec { gen_weirds(2000) } ;

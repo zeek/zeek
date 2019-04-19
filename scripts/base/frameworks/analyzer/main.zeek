@@ -135,7 +135,7 @@ export {
 
 global ports: table[Analyzer::Tag] of set[port];
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	if ( disable_all )
 		__disable_all_analyzers();

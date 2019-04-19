@@ -1,7 +1,7 @@
 #
 # @TEST-EXEC: bro -b %INPUT
 
-event bro_init()
+event zeek_init()
 	{
 	local a = current_analyzer();
 	if ( a != 0 )

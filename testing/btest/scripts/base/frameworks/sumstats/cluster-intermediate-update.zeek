@@ -18,7 +18,7 @@ redef Cluster::nodes = {
 
 redef Log::default_rotation_interval = 0secs;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test.metric", $apply=set(SumStats::SUM)];
 	SumStats::create([$name="test",

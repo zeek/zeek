@@ -10,7 +10,7 @@ function test_case(msg: string, expect: bool)
 # type is not explicitly specified
 global tg1 = { [1] = "type", [2] = "inference", [3] = "test" };
 
-event bro_init()
+event zeek_init()
 {
 	local t1: table[count] of string = table( [5] = "test", [0] = "example" );
 	local t2: table[count] of string = table();

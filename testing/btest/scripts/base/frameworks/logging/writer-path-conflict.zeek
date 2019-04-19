@@ -7,7 +7,7 @@
 
 @load base/protocols/http
 
-event bro_init()
+event zeek_init()
 	{
 	# Both the default filter for the http stream and this new one will
 	# attempt to have the same writer write to path "http", which will

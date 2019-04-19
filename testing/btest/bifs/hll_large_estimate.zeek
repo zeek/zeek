@@ -6,7 +6,7 @@
 # @TEST-EXEC: head -n1 out2 >> out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local cp: opaque of cardinality = hll_cardinality_init(0.1, 1.0);
 	local base: count = 2130706432; # 127.0.0.0

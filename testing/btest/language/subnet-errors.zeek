@@ -1,7 +1,7 @@
 # @TEST-EXEC: bro -b %INPUT >out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local i = 32;
 	print 1.2.3.4/i;
@@ -10,7 +10,7 @@ event bro_init()
 	print "init 1";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local i = 128;
 	print [::]/i;
@@ -19,7 +19,7 @@ event bro_init()
 	print "init 1";
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	print "init last";
 	}

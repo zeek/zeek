@@ -28,7 +28,7 @@ export {
 
 @if ( Cluster::is_enabled() )
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	if ( method != AUTO_BPF )
 		return;

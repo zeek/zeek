@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local s1 = "\x43\x26\x4f\xa0\x71\x30\x80\x00"; # 3.14e15
 	local s2 = "\xc3\x26\x4f\xa0\x71\x30\x80\x00"; #-3.14e15

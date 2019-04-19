@@ -51,7 +51,7 @@ function weird_epoch_finished(ts: time)
 	this_epoch_weirds = table();
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(WeirdStats::LOG,
 	                   [$columns = Info, $ev = log_weird_stats,

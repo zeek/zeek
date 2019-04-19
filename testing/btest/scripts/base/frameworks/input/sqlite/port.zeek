@@ -35,7 +35,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, p: port)
 	print outfile, p;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select port as p, proto from port;",

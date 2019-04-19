@@ -3,7 +3,7 @@
 
 global test = md5_hash_init();
 
-event bro_init()
+event zeek_init()
 	{
 	md5_hash_update(test, "one");
 	md5_hash_update(test, "two");

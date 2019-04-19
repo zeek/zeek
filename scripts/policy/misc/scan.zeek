@@ -51,7 +51,7 @@ export {
 	global Scan::port_scan_policy: hook(scanner: addr, victim: addr, scanned_port: port);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="scan.addr.fail", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(addr_scan_threshold+2)];
 	SumStats::create([$name="addr-scan",

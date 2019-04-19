@@ -62,7 +62,7 @@ export {
 global intermediate_cache: table[string] of vector of opaque of x509;
 
 @if ( Cluster::is_enabled() )
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, SSL::intermediate_add);
 	Broker::auto_publish(Cluster::manager_topic, SSL::new_intermediate);

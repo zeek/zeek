@@ -63,7 +63,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	try = 0;

@@ -6,7 +6,7 @@ global global_table: table[count] of string = {
 	[2] = "two"
 } &default = "global table default";
 
-event bro_init()
+event zeek_init()
     {
     local local_table: table[count] of string = {
          [3] = "three",

@@ -7,7 +7,7 @@ type myrecord: record {
   str1: string;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	print record_type_to_vector("myrecord");
 	}

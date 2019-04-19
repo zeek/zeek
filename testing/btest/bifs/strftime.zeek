@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-event bro_init()
+event zeek_init()
 	{
 	local f1 = "%Y-%m-%d %H:%M:%S";
 	local f2 = "%H%M%S %Y%m%d";

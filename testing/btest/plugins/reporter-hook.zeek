@@ -11,7 +11,7 @@ type TestType: record {
 	a: bool &optional;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	Reporter::info("Some Info");
 	Reporter::warning("A warning");

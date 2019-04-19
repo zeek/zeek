@@ -69,7 +69,7 @@ export {
 global recently_validated_scts: table[string] of bool = table()
 	&read_expire=5mins &redef;
 
-event bro_init()
+event zeek_init()
 	{
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
 	}

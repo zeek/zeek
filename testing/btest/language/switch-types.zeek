@@ -30,7 +30,7 @@ function switch_one_no_default(v: any): string
 	}
 
 
-event bro_init()
+event zeek_init()
 	{
 	print switch_one("string");
 	print switch_one(42);

@@ -28,7 +28,7 @@ function path_func(id: Log::ID, path: string, rec: Log) : string
 	return fmt("%s-%d-%s", path, c, rec$country);
 	}
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 	Log::remove_default_filter(SSH::LOG);

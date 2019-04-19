@@ -51,7 +51,7 @@ global inception_table2: table[count] of table[count] of string = {
     [0] = table([13] = "bar") &default="forty-two",
 } &default=table() &default="we need to go deeper";
 
-event bro_init()
+event zeek_init()
 	{
 	print "my_set_ctor_init";
 	print my_set_ctor_init;

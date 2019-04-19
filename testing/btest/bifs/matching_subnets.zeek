@@ -16,7 +16,7 @@ global testt: set[subnet] = {
 	[2607:f8b0:4007:807::200e]/128
 };
 
-event bro_init()
+event zeek_init()
 	{
 	print testt;
 	local c = matching_subnets(10.2.0.2/32, testt);

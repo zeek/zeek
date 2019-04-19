@@ -46,7 +46,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, v: Val)
 	print outfile, "Event", v;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	# first read in the old stuff into the table...

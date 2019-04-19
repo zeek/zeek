@@ -30,7 +30,7 @@ function expired(tbl: table[int] of string, idx: int): interval
 	return 0sec;
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	data[0] = "some data";
 	schedule 4sec { do_it() };

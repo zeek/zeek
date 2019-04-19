@@ -21,7 +21,7 @@ redef foo = 10;
 
 const bar = 9;
 
-event bro_init()
+event zeek_init()
 	{
 	const baz = 7;
 	local i = foo;
@@ -48,7 +48,7 @@ redef foo = 10;
 
 const bar = 9;
 
-event bro_init()
+event zeek_init()
 	{
 	const baz = 7;
 	local s = 0;

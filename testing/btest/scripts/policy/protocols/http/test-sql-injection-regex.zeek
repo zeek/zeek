@@ -3,8 +3,8 @@
 
 @load protocols/http/detect-sqli
 
-event bro_init () 
-{
+event zeek_init()
+	{
 	local positive_matches: set[string];
 	local negative_matches: set[string];
 

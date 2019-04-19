@@ -12,7 +12,7 @@ global gen: MyVec = MyVec("one"); # type clash in init
 # global, type deduction, anon ctor
 global gda = vector("two"); # fine
 global gda2 = MyVec(2); # fine
-event bro_init()
+event zeek_init()
 	{
 	gda = gda2; # type clash
 	}
@@ -21,26 +21,26 @@ event bro_init()
 global gea: MyVec = vector("three"); # type clash
 
 # local, type deduction, named ctor
-event bro_init()
+event zeek_init()
     {
     local ldn = MyVec("thousand"); # type clash
     }
 
 # local, type explicit, named ctor
-event bro_init()
+event zeek_init()
     {
     local len: MyVec = MyVec("thousand-one"); # type clash
     }
 
 # local, type deduction, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lda = vector("thousand-two");   # fine
     lda = MyVec("thousand-two");    # type clash
     }
 
 # local, type explicit, anon ctor
-event bro_init()
+event zeek_init()
     {
     local lea: MyVec = vector("thousand-three"); # type clash
     }

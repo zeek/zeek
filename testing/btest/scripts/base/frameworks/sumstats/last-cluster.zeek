@@ -27,7 +27,7 @@ event do_observe()
 	schedule 0.1secs { do_observe() };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local r1 = SumStats::Reducer($stream="test",
 	                             $apply=set(SumStats::LAST),

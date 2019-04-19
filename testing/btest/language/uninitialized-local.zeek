@@ -16,7 +16,7 @@ event testit()
 	my_vector[0] = my_string;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event testit();
 	}

@@ -30,7 +30,7 @@ event testevent(msg: string)
 
 # In this source file, we try to access each exported object from the module
 
-event bro_init()
+event zeek_init()
 {
 	thisisatest::test_case( "function", T );
 	thisisatest::test_case( "global variable", thisisatest::num == 123 );

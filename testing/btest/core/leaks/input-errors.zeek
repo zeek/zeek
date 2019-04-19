@@ -152,7 +152,7 @@ event kill_me()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("out");
 	Input::add_event([$source="input.log", $name="file", $fields=FileVal, $ev=line_file, $want_record=T]);

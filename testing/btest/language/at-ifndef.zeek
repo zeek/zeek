@@ -8,7 +8,7 @@ function test_case(msg: string, expect: bool)
 
 global thisisdefined = 123;
 
-event bro_init()
+event zeek_init()
 {
 	local xyz = 0;
 

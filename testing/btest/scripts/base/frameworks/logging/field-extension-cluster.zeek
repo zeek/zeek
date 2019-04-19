@@ -55,7 +55,7 @@ event kill_worker()
 	Broker::publish("death", slow_death);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	if ( Cluster::node == "worker-1" )
 		{

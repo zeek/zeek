@@ -41,7 +41,7 @@ redef record connection += {
 const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);

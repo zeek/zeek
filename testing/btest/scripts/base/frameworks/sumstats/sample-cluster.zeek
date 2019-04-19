@@ -18,7 +18,7 @@ redef Cluster::nodes = {
 
 redef Log::default_rotation_interval = 0secs;
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	local r1: SumStats::Reducer = [$stream="test", $apply=set(SumStats::SAMPLE), $num_samples=5];
 	SumStats::create([$name="test",
@@ -47,7 +47,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 global ready_for_data: event();
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 

@@ -50,7 +50,7 @@ event servers(desc: Input::EventDescription, tpe: Input::Event, item: Val)
 	print outfile, item;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	# first read in the old stuff into the table...

@@ -32,7 +32,7 @@ event Intel::log_intel(rec: Intel::Info)
 		terminate();
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	schedule 1sec { do_it() };
 	}

@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff out
 
 
-event bro_init()
+event zeek_init()
 	{
 	# Test single keys
 

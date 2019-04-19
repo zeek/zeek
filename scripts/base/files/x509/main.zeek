@@ -29,7 +29,7 @@ export {
 	global log_x509: event(rec: Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509"]);
 

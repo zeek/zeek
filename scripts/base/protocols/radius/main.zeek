@@ -56,7 +56,7 @@ redef record connection += {
 const ports = { 1812/udp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius, $path="radius"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RADIUS, ports);

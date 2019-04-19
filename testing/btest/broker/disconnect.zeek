@@ -24,7 +24,7 @@ event my_event(i: count)
 	print "sender got event", i;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe(test_topic);
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -60,7 +60,7 @@ event my_event(i: count)
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe(test_topic);
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));

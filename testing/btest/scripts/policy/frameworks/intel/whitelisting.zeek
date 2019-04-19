@@ -23,7 +23,7 @@ redef Intel::read_files += {
 
 global total_files_read = 0;
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}

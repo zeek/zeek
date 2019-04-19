@@ -72,7 +72,7 @@ export {
 	global log_known_certs: event(rec: CertsInfo);
 }
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Known::use_cert_store )
 		return;
@@ -193,7 +193,7 @@ event ssl_established(c: connection) &priority=3
 	event Known::cert_found(info, hash);
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs"]);
 	}

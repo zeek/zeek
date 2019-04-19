@@ -16,7 +16,7 @@ type sample_function: record {
 	f: function(str: string): string;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	local test_sf: sample_function;
 	test_sf$s = "Brogrammers, like bowties, are cool.";

@@ -133,7 +133,7 @@ global matched_software: table[string] of Software::Description = {
 		[$name="Android (Google Pixel)", $version=[$major=9], $unparsed_version=""],
 };
 
-event bro_init()
+event zeek_init()
 	{
 	for ( sw in matched_software )
 		{

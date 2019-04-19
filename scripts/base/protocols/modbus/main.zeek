@@ -32,7 +32,7 @@ redef record connection += {
 const ports = { 502/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus, $path="modbus"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MODBUS, ports);

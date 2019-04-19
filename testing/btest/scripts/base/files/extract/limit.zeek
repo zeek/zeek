@@ -39,7 +39,7 @@ event file_extraction_limit(f: fa_file, args: any, limit: count, len: count)
 		print outfile, FileExtract::set_limit(f, args, 0);
     }
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open(fmt("%s.out", efname));
 	}

@@ -87,7 +87,7 @@ const teredo_ports = { 3544/udp };
 const gtpv1_ports = { 2152/udp, 2123/udp };
 redef likely_server_ports += { ayiya_ports, teredo_ports, gtpv1_ports, vxlan_ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Tunnel::LOG, [$columns=Info, $path="tunnel"]);
 

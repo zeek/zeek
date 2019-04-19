@@ -39,7 +39,7 @@ redef record connection += {
 	dpd: Info &optional;
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd"]);
 	}

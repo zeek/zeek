@@ -31,7 +31,7 @@ function test_cmd(label: string, cmd: Exec::Command)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_cmd("test1", [$cmd="bash ../somescript.sh",
 	                   $read_files=set("out1", "out2")]);

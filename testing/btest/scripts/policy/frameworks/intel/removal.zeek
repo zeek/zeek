@@ -38,7 +38,7 @@ event Intel::log_intel(rec: Intel::Info)
 		terminate();
 	}
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	Intel::insert([$indicator="10.0.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
 	Intel::insert([$indicator="10.0.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);

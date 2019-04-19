@@ -8,7 +8,7 @@ function test_case(msg: string, expect: bool)
 
 
 
-event bro_init()
+event zeek_init()
 {
 	# Test "if" without "else"
 

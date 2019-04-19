@@ -23,7 +23,7 @@ event reporter_error(t: time, msg: string, location: string)
         }
 }
 
-event bro_init()
+event zeek_init()
 {
     print a[1];
 }

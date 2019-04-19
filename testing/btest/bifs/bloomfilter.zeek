@@ -88,7 +88,7 @@ function test_counting_bloom_filter()
   print bloomfilter_lookup(bf_merged, "baz");
   }
 
-event bro_init()
+event zeek_init()
   {
   test_basic_bloom_filter();
   test_counting_bloom_filter();

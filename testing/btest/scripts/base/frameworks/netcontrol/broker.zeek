@@ -15,7 +15,7 @@ redef exit_only_after_terminate = T;
 global have_peer = F;
 global did_init = F;
 
-event bro_init()
+event zeek_init()
 	{
 	suspend_processing();
 	}
@@ -90,7 +90,7 @@ event die()
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/event/netcontroltest");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));

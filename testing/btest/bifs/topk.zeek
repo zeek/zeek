@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-event bro_init() 
+event zeek_init() 
 	{
 	local k1 = topk_init(2);
 	

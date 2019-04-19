@@ -4,7 +4,7 @@
 
 global a = "bro test";
 
-event bro_init()
+event zeek_init()
 	{
 	local b = "local value";
 
@@ -12,5 +12,5 @@ event bro_init()
 	print lookup_ID("");
 	print lookup_ID("xyz");
 	print lookup_ID("b");
-	print type_name( lookup_ID("bro_init") );
+	print type_name( lookup_ID("zeek_init") );
 	}

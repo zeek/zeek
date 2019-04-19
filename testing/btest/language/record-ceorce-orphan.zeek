@@ -12,7 +12,7 @@ function myfunc(rec: myrec)
 	print rec;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Orhpaned fields in a record coercion reflect a programming error, like a typo, so should
 	# be reported at parse-time to prevent unexpected run-time behavior.

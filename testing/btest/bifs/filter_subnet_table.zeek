@@ -32,7 +32,7 @@ global testb: table[subnet] of string = {
 };
 
 
-event bro_init()
+event zeek_init()
 	{
 	local c = filter_subnet_table(10.2.0.2/32, testa);
 	print c;

@@ -35,7 +35,7 @@ function weird_option_change_interval(ID: string, new_value: interval, location:
 	return new_value;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Option::set_change_handler("Weird::sampling_whitelist", weird_option_change_sampling_whitelist, 5);
 	Option::set_change_handler("Weird::sampling_threshold", weird_option_change_count, 5);

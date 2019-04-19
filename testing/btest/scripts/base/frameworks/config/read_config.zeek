@@ -51,7 +51,7 @@ event Input::end_of_data(name: string, source:string)
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Config::read_config("../configfile");
 	}

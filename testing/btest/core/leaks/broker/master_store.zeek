@@ -85,7 +85,7 @@ event pk1()
 	schedule 1sec { pk2() };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	h = Broker::create_master("master");
 	Broker::put(h, "one", "110");

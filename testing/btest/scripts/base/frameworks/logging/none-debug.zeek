@@ -20,7 +20,7 @@ export {
 	} &log;
 }
 
-event bro_init()
+event zeek_init()
 {
         local config: table[string] of string;
         config["foo"]="bar";

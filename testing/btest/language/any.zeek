@@ -11,7 +11,7 @@ function anyarg(arg1: any, arg1type: string)
 	test_case( arg1type, type_name(arg1) == arg1type );
 	}
 
-event bro_init()
+event zeek_init()
 {
 	local any1: any = 5;
 	local any2: any = "bar";

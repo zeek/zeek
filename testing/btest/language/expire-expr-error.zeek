@@ -20,7 +20,7 @@ event do_it()
 	}
 
 
-event bro_init() &priority=-10
+event zeek_init() &priority=-10
 	{
 	data[0] = "some data";
 	schedule 1sec { do_it() };

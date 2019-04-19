@@ -15,7 +15,7 @@ export {
 
 const foo_log = open_log_file("Foo") &redef;
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 	Log::write(SSH::LOG, [$t=network_time(), $f=foo_log]);

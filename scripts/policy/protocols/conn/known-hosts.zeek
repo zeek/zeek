@@ -61,7 +61,7 @@ export {
 	global log_known_hosts: event(rec: HostsInfo);
 }
 
-event bro_init()
+event zeek_init()
 	{
 	if ( ! Known::use_host_store )
 		return;
@@ -145,7 +145,7 @@ event Known::host_found(info: HostsInfo)
 	event known_host_add(info);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
 	}

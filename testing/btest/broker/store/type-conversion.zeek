@@ -11,7 +11,7 @@ type R2: record {
     r1: R1;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	### Print every broker data type
 	print Broker::data_type(Broker::data(T));

@@ -15,7 +15,7 @@ global event_count = 0;
 
 global ping: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
     {
     Broker::subscribe("bro/event/my_topic");
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -64,7 +64,7 @@ global auto_handler: event(msg: string, c: count);
 
 global pong: event(msg: string, c: count);
 
-event bro_init()
+event zeek_init()
         {
         Broker::subscribe("bro/event/my_topic");
         Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));

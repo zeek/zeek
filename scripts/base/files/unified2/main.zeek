@@ -193,7 +193,7 @@ event Input::end_of_data(name: string, source: string)
 		start_watching();
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Unified2::LOG, [$columns=Info, $ev=log_unified2, $path="unified2"]);
 

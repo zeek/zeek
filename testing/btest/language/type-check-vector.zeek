@@ -9,7 +9,7 @@ function check(a: any)
 	print a as myvec;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local v = myvec("one", "two", 3);
 	check(v);

@@ -31,7 +31,7 @@ global hll_data: event(data: opaque of cardinality);
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, hll_data);
 	}
@@ -94,7 +94,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 global result_count = 0;
 global hll: opaque of cardinality;
 
-event bro_init()
+event zeek_init()
 	{
 	hll = hll_cardinality_init(0.01, 0.95);
 	}

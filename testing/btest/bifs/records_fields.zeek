@@ -24,7 +24,7 @@ type r: record {
 
 type mystring: string;
 
-event bro_init()
+event zeek_init()
 {
     local x: r = [$a=42, $d="Bar", $e=tt];
     print x;

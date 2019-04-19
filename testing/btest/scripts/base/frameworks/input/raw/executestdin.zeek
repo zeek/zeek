@@ -72,7 +72,7 @@ function more_input(name_prefix: string)
 	                  $config=config_strings]);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	++total_processes;

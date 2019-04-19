@@ -50,7 +50,7 @@ redef record connection += {
 const ports = { 21/tcp, 2811/tcp };
 redef likely_server_ports += { ports };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp"]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);

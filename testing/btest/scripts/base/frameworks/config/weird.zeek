@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff config.log
 
-event bro_init()
+event zeek_init()
 	{
 	Config::set_value("Weird::sampling_duration", 5sec);
 	Config::set_value("Weird::sampling_threshold", 10);
@@ -11,7 +11,7 @@ event bro_init()
 	print "Config values set";
 	}
 
-event bro_init() &priority = -10
+event zeek_init() &priority = -10
 	{
 	print Reporter::get_weird_sampling_whitelist();
 	print Reporter::get_weird_sampling_rate();

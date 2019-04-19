@@ -14,7 +14,7 @@ event f(a: int) &priority=-5
 	print "f2", a;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	event f(1);
 	}

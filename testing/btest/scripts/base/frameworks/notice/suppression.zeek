@@ -15,7 +15,7 @@ event second_notice()
 	NOTICE([$note=Test_Notice, $msg="another test", $identifier="static"]);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	NOTICE([$note=Test_Notice, $msg="test", $identifier="static"]);
 	schedule 1msec { second_notice() };

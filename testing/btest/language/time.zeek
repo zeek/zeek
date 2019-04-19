@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	local t1: time = current_time();
 	local t2: time = t1 + 3 sec;

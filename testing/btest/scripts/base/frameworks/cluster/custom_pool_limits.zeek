@@ -36,7 +36,7 @@ redef Cluster::proxy_pool_spec =
 			$max_nodes = 1 
 			);
 
-event bro_init()
+event zeek_init()
 	{
 	my_pool = Cluster::register_pool(my_pool_spec);
 	}

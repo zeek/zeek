@@ -86,7 +86,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, r: Conn::Inf
 	print outfile, |r$tunnel_parents|; # to make sure I got empty right
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local config_strings: table[string] of string = {
 		 ["query"] = "select * from conn;",

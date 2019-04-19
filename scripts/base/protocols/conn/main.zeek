@@ -155,7 +155,7 @@ redef record connection += {
 	conn: Info &optional;
 };
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn"]);
 	}

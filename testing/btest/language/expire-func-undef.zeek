@@ -29,7 +29,7 @@ event new_connection(c: connection)
 
 } 
 
-event bro_done()
+event zeek_done()
 {
 
 	for (o in distinct_peers)

@@ -45,7 +45,7 @@ type min_length: record {
 global min_lengths: vector of min_length = vector();
 global min_lengths_tls11: vector of min_length = vector();
 
-event bro_init()
+event zeek_init()
 	{
 	# Minimum length a heartbeat packet must have for different cipher suites.
 	# Note - tls 1.1f and 1.0 have different lengths :(

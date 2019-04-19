@@ -29,7 +29,7 @@ type Val: record {
 
 global servers: table[int] of Val = table();
 
-event bro_init()
+event zeek_init()
 	{
     outfile = open("../out");
 	# first read in the old stuff into the table...

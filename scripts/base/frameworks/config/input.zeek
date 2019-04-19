@@ -34,7 +34,7 @@ event config_line(description: Input::EventDescription, tpe: Input::Event, p: Ev
 	{
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 		return;

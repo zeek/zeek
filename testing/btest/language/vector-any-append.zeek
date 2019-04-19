@@ -11,7 +11,7 @@ function append(v: vector of any)
 	v += |v|;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local v: vector of count;
 	assign(v);

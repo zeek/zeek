@@ -16,7 +16,7 @@ function option_changed_two(ID: string, new_value: bool, location: string): bool
 	return T;
 }
 
-event bro_init()
+event zeek_init()
 	{
 	print "Old value", testbool;
 	Option::set_change_handler("testbool", option_changed);

@@ -14,7 +14,7 @@ export {
 	} &log;
 }
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(test::LOG, [$columns=Log]);
 

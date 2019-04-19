@@ -10,7 +10,7 @@
 
 const test_var = "init" &redef;
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
@@ -44,7 +44,7 @@ event check_var()
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	print "intial val", test_var;
 	Broker::subscribe("bro/ids");

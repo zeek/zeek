@@ -11,16 +11,16 @@ const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 redef test_var = "NEW VALUE (this should be printed out second)";
 @TEST-END-FILE
 
-event bro_init()
+event zeek_init()
 	{
 	print test_var;
-	Reporter::info("handle bro_init");
+	Reporter::info("handle zeek_init");
 	}
 	
-event bro_done()
+event zeek_done()
 	{
 	print test_var;
-	Reporter::info("handle bro_done");
+	Reporter::info("handle zeek_done");
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

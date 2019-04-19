@@ -14,7 +14,7 @@ type Bar: record {
 	b: count &log;
 };
 
-event bro_init()
+event zeek_init()
 {
     Log::create_stream(TESTING, [$columns=Bar]);
 

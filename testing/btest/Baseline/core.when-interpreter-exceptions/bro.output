@@ -6,7 +6,7 @@ received termination signal
 [f(F)]
 f() done, no exception, T
 [f(T)]
-[bro_init()]
+[zeek_init()]
 timeout g(), T
 timeout
 timeout g(), F

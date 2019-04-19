@@ -42,7 +42,7 @@ event file_opened(f: file)
 	print f, "opened";
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	for ( i in iterations )
 		write_to_file(iterations[i]);

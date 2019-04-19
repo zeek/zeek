@@ -6,7 +6,7 @@ event foo(a: string)
 {
 }
 
-event bro_init()
+event zeek_init()
 {
     event foo(42);
 }

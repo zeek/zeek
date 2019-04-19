@@ -27,7 +27,7 @@ function foo(s: string, c: count)
 	bar(c + 42);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Queue::put(q, "hello");
 	Queue::put(q, "goodbye");

@@ -186,7 +186,7 @@ function run(cmd: Command): Result
 		}
 	}
 
-event bro_done()
+event zeek_done()
 	{
 	# We are punting here and just deleting any unprocessed files.
 	for ( uid in pending_files )

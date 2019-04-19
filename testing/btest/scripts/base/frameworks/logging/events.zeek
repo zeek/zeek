@@ -20,7 +20,7 @@ export {
 
 global ssh_log: event(rec: Log);
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log, $ev=ssh_log]);
 

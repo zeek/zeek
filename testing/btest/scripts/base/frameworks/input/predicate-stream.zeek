@@ -64,7 +64,7 @@ event line(description: Input::TableDescription, tpe: Input::Event, left: Idx, r
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
     outfile = open("../out");
 	ct = 0;

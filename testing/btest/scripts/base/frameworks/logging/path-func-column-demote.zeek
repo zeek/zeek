@@ -16,7 +16,7 @@ function split_log(id: Log::ID, path: string, rec: record {id:conn_id;}): string
 	return Site::is_local_addr(rec$id$orig_h) ? "local" : "remote";
 }
 
-event bro_init()
+event zeek_init()
 {
 	# Add a new filter to the Conn::LOG stream that logs only
 	# timestamp and originator address.

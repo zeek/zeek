@@ -33,7 +33,7 @@ event net_stats_update(last_stat: NetStats)
 	schedule stats_collection_interval { net_stats_update(ns) };
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Since this currently only calculates packet drops, let's skip the stats
 	# collection if reading traces.

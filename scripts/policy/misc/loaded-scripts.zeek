@@ -27,7 +27,7 @@ function get_indent(level: count): string
 	return out;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(LoadedScripts::LOG, [$columns=Info, $path="loaded_scripts"]);
 	}

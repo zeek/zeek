@@ -7,7 +7,7 @@ type MyRecordType: record
 	b: count;
 	};
 
-event bro_init()
+event zeek_init()
 	{
 	local x = MyRecordType($a=1, $b=2);
 

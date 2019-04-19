@@ -4,7 +4,7 @@
 
 type color: enum { Red, Blue };
 
-event bro_init()
+event zeek_init()
 	{
 	local a = Blue;
 	local b = vector( 1, 2, 3);

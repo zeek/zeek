@@ -6,7 +6,7 @@
 
 global of_controller: OpenFlow::Controller;
 
-event bro_init()
+event zeek_init()
 	{
 	of_controller = OpenFlow::ryu_new(127.0.0.1, 8080, 42);
 	of_controller$state$ryu_debug=T;

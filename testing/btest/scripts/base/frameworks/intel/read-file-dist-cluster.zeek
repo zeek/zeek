@@ -45,7 +45,7 @@ event do_it()
 	Intel::seen([$indicator="e@mail.com", $indicator_type=Intel::EMAIL, $where=Intel::IN_A_TEST]);
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Delay the workers searching for hits briefly to allow for the data distribution
 	# mechanism to distribute the data to the workers.

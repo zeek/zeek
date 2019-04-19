@@ -20,7 +20,7 @@ function myfunc2(a: double, b: double): int
 		return 1;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	# Tests without supplying a comparison function
 

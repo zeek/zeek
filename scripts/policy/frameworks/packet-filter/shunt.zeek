@@ -76,7 +76,7 @@ function shunt_filters()
 		PacketFilter::exclude("shunt_filters", filter);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	register_filter_plugin([
 		$func()={ return shunt_filters(); }

@@ -75,7 +75,7 @@ global servers: table[int, string] of Val = table();
 global outfile: file;
 global try: count;
 
-event bro_init()
+event zeek_init()
 	{
 	try = 0;
 	outfile = open("../out");

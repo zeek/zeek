@@ -4,7 +4,7 @@
 # Demo policy for string functions
 #
 
-event bro_init()
+event zeek_init()
 {
 	local s1: string = "broisaveryneatids";
 

@@ -54,7 +54,7 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 		terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	local config_strings: table[string] of string = {
 		["read_stderr"] = "1"

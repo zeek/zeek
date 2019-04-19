@@ -157,7 +157,7 @@ event filter_change_tracking()
 	schedule 5min { filter_change_tracking() };
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter"]);
 
@@ -175,7 +175,7 @@ event bro_init() &priority=5
 		}
 	}
 
-event bro_init() &priority=-5
+event zeek_init() &priority=-5
 	{
 	install();
 

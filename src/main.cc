@@ -339,9 +339,9 @@ void terminate_bro()
 
 	brofiler.WriteStats();
 
-	EventHandlerPtr bro_done = internal_handler("bro_done");
-	if ( bro_done )
-		mgr.QueueEvent(bro_done, new val_list);
+	EventHandlerPtr zeek_done = internal_handler("zeek_done");
+	if ( zeek_done )
+		mgr.QueueEvent(zeek_done, new val_list);
 
 	timer_mgr->Expire();
 	mgr.Drain();
@@ -1136,9 +1136,9 @@ int main(int argc, char** argv)
 		// we don't have any other source for it.
 		net_update_time(current_time());
 
-	EventHandlerPtr bro_init = internal_handler("bro_init");
-	if ( bro_init )	//### this should be a function
-		mgr.QueueEvent(bro_init, new val_list);
+	EventHandlerPtr zeek_init = internal_handler("zeek_init");
+	if ( zeek_init )	//### this should be a function
+		mgr.QueueEvent(zeek_init, new val_list);
 
 	EventRegistry::string_list* dead_handlers =
 		event_registry->UnusedHandlers();
@@ -1204,7 +1204,7 @@ int main(int argc, char** argv)
 	if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
 		reporter->FatalError("errors occurred while initializing");
 
-	broker_mgr->BroInitDone();
+	broker_mgr->ZeekInitDone();
 	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;

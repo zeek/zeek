@@ -58,7 +58,7 @@ event Input::end_of_data(name: string, source:string)
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);

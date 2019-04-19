@@ -12,7 +12,7 @@ export {
 	} &log;
 }
 
-event bro_init()
+event zeek_init()
 {
 	local a = "abc\0def";
 	local b = escape_string(a);

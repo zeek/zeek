@@ -35,7 +35,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, i: int, b: b
 	print outfile, b;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out");
 	Input::add_event([$source="../input.log", $name="input", $fields=Val, $ev=line, $want_record=F]);

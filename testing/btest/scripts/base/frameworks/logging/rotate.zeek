@@ -21,7 +21,7 @@ export {
 redef Log::default_rotation_interval = 1hr;
 redef Log::default_rotation_postprocessor_cmd = "echo";
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(Test::LOG, [$columns=Log]);
 }

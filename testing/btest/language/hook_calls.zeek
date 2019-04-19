@@ -33,7 +33,7 @@ global t: table[count] of hook(i: count) = {
     [0] = myhook,
 };
 
-event bro_init()
+event zeek_init()
 	{
 	hook myhook(3);
 	print hook myhook(3);
@@ -66,7 +66,7 @@ hook myhook(i: count)
 	if ( i == 0 ) break;
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	myhook(3);
 	print myhook(3);

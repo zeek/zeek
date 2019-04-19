@@ -23,7 +23,7 @@ function logwrite(val: double)
 	Log::write(Test::LOG, [$d=val]);
 }
 
-event bro_init()
+event zeek_init()
 {
 	local d: double;
 	local dmax: double = 1.79e308;

@@ -32,7 +32,7 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string)
 	terminate();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	outfile = open("../out.tmp");
 	Input::add_event([$source="wc -l ../input.log |", $reader=Input::READER_RAW, $name="input", $fields=Val, $ev=line, $want_record=F]);

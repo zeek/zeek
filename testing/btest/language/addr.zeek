@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 
-event bro_init()
+event zeek_init()
 {
 	# IPv4 addresses
 	local a1: addr = 0.0.0.0;

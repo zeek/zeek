@@ -41,7 +41,7 @@ function foo(i : count) : string
 		return "Bar";
 	}
 
-event bro_init()
+event zeek_init()
 {
 	Log::create_stream(SSH::LOG, [$columns=Log]);
 

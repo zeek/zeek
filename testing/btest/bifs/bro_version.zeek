@@ -1,7 +1,7 @@
 #
 # @TEST-EXEC: bro -b %INPUT
 
-event bro_init()
+event zeek_init()
 	{
 	local a = bro_version();
 	if ( |a| == 0 )

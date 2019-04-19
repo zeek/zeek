@@ -25,7 +25,7 @@ export {
 	};
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Test::LOG, [$columns=Test::Info]);
 	}
@@ -42,7 +42,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 @load ./common
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::subscribe("bro/");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -61,7 +61,7 @@ event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 
 @load ./common
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}

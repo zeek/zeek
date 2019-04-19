@@ -18,7 +18,7 @@ event file_hash(f: fa_file, kind: string, hash: string)
     print "file_hash", f$id, kind, hash;
     }
 
-event bro_init()
+event zeek_init()
     {
     local source: string = "./myfile";
     Input::add_analysis([$source=source, $name=source]);

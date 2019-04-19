@@ -1,4 +1,4 @@
-event bro_init()
+event zeek_init()
     {
     local v1: vector of count;
     local v2 = vector(1, 2, 3, 4);

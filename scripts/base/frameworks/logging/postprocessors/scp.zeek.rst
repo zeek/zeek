@@ -8,7 +8,7 @@ This script defines a postprocessing function that can be applied
 to a logging filter in order to automatically SCP (secure copy)
 a log stream (or a subset of it) to a remote host at configurable
 rotation time intervals.  Generally, to use this functionality
-you must handle the :bro:id:`bro_init` event and do the following
+you must handle the :bro:id:`zeek_init` event and do the following
 in your handler:
 
 1) Create a new :bro:type:`Log::Filter` record that defines a name/path,

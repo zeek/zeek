@@ -3,7 +3,7 @@
 redef exit_only_after_terminate = T;
 global n = 0;
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::peer("127.0.0.1");
 	}

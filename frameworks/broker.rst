@@ -441,7 +441,7 @@ For example, this will likely not work as expected:
         print "got my event";
         }
 
-    event bro_init()
+    event zeek_init()
         {
         event my_event();
         schedule 10sec { my_event() };
@@ -450,11 +450,11 @@ For example, this will likely not work as expected:
 This code runs without errors, however, the local ``my_event`` handler
 will never be called and also not any remote handlers either, even if
 :bro:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
-minimum you would need change the ``bro_init()`` handler:
+minimum you would need change the ``zeek_init()`` handler:
 
 .. sourcecode:: bro
 
-    event bro_init()
+    event zeek_init()
         {
         event MyModule::my_event();
         schedule 10sec { MyModule::my_event() };
@@ -476,7 +476,7 @@ explicit module namespace scoping and you can't go wrong:
         print "got my event";
         }
 
-    event bro_init()
+    event zeek_init()
         {
         event MyModule::my_event();
         schedule 10sec { MyModule::my_event() };

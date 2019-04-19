@@ -1,4 +1,4 @@
-event bro_init()
+event zeek_init()
     {
     local samurai_flicks: table[string, string, count, string] of string;
     

@@ -1,4 +1,4 @@
-event bro_init()
+event zeek_init()
     {
     local ssl_ports: set[port];
     local non_ssl_ports = set( 23/tcp, 80/tcp, 143/tcp, 25/tcp );

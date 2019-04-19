@@ -11,7 +11,7 @@ export {
 	global log_test: event(rec: Test::Info);
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Test::LOG, [$columns=Test::Info, $ev=log_test, $path="test"]);
 	}

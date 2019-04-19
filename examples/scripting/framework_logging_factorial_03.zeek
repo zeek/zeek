@@ -18,7 +18,7 @@ function factorial(n: count): count
         return (n * factorial(n - 1));
     }
 
-event bro_done()
+event zeek_done()
     {
     local numbers: vector of count = vector(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);    
     for ( n in numbers )
@@ -35,7 +35,7 @@ function mod5(id: Log::ID, path: string, rec: Factor::Info) : string
         return "factor-non5";
     }
 
-event bro_init()
+event zeek_init()
     {
     Log::create_stream(LOG, [$columns=Info, $path="factor"]);
     

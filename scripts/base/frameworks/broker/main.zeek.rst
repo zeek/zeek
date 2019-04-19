@@ -667,7 +667,7 @@ Functions
 
    Register interest in all peer event messages that use a certain topic
    prefix.  Note that subscriptions may not be altered immediately after
-   calling (except during :bro:see:`bro_init`).
+   calling (except during :bro:see:`zeek_init`).
    
 
    :topic_prefix: a prefix to match against remote message topics.
@@ -706,7 +706,7 @@ Functions
 
    Unregister interest in all peer event messages that use a topic prefix.
    Note that subscriptions may not be altered immediately after calling
-   (except during :bro:see:`bro_init`).
+   (except during :bro:see:`zeek_init`).
    
 
    :topic_prefix: a prefix previously supplied to a successful call to

@@ -20,8 +20,8 @@ Events
 ======================================================================== =============================================================================
 :bro:id:`OS_version_found`: :bro:type:`event`                            Generated when an operating system has been fingerprinted.
 :bro:id:`anonymization_mapping`: :bro:type:`event`                       Deprecated.
-:bro:id:`bro_done`: :bro:type:`event`                                    Generated at Bro termination time.
-:bro:id:`bro_init`: :bro:type:`event`                                    Generated at Bro initialization time.
+:bro:id:`bro_done`: :bro:type:`event` :bro:attr:`&deprecated`            Deprecated synonym for ``zeek_done``.
+:bro:id:`bro_init`: :bro:type:`event` :bro:attr:`&deprecated`            Deprecated synonym for ``zeek_init``.
 :bro:id:`bro_script_loaded`: :bro:type:`event`                           Raised for each policy script loaded by the script interpreter.
 :bro:id:`conn_stats`: :bro:type:`event`                                  Generated when a TCP connection terminated, passing on statistics about the
                                                                          two endpoints.
@@ -114,6 +114,8 @@ Events
                                                                          used on a system.
 :bro:id:`tunnel_changed`: :bro:type:`event`                              Generated for a connection whose tunneling has changed.
 :bro:id:`udp_session_done`: :bro:type:`event`                            Generated when a UDP session for a supported protocol has finished.
+:bro:id:`zeek_done`: :bro:type:`event`                                   Generated at Zeek termination time.
+:bro:id:`zeek_init`: :bro:type:`event`                                   Generated at Zeek initialization time.
 ======================================================================== =============================================================================
 
 
@@ -152,39 +154,20 @@ Events
 .. bro:id:: bro_done
 
    :Type: :bro:type:`event` ()
+   :Attributes: :bro:attr:`&deprecated`
 
-   Generated at Bro termination time. The event engine generates this event when
-   Bro is about to terminate, either due to having exhausted reading its input
-   trace file(s), receiving a termination signal, or because Bro was run without
-   a network input source and has finished executing any global statements.
+   Deprecated synonym for ``zeek_done``.
    
-   .. bro:see:: bro_init
-   
-   .. note::
-   
-      If Bro terminates due to an invocation of :bro:id:`exit`, then this event
-      is not generated.
+   .. bro:see: zeek_done
 
 .. bro:id:: bro_init
 
    :Type: :bro:type:`event` ()
+   :Attributes: :bro:attr:`&deprecated`
 
-   Generated at Bro initialization time. The event engine generates this
-   event just before normal input processing begins. It can be used to execute
-   one-time initialization code at startup. At the time a handler runs, Bro will
-   have executed any global initializations and statements.
+   Deprecated synonym for ``zeek_init``.
    
-   .. bro:see:: bro_done
-   
-   .. note::
-   
-      When a ``bro_init`` handler executes, Bro has not yet seen any input
-      packets and therefore :bro:id:`network_time` is not initialized yet. An
-      artifact of that is that any timer installed in a ``bro_init`` handler
-      will fire immediately with the first packet. The standard way to work
-      around that is to ignore the first time the timer fires and immediately
-      reschedule.
-   
+   .. bro:see: zeek_init
 
 .. bro:id:: bro_script_loaded
 
@@ -1531,5 +1514,42 @@ Events
    :u: The connection record for the corresponding UDP flow.
    
    .. bro:see:: udp_contents udp_reply udp_request
+
+.. bro:id:: zeek_done
+
+   :Type: :bro:type:`event` ()
+
+   Generated at Zeek termination time. The event engine generates this event when
+   Zeek is about to terminate, either due to having exhausted reading its input
+   trace file(s), receiving a termination signal, or because Zeek was run without
+   a network input source and has finished executing any global statements.
+   
+   .. bro:see:: zeek_init
+   
+   .. note::
+   
+      If Zeek terminates due to an invocation of :bro:id:`exit`, then this event
+      is not generated.
+
+.. bro:id:: zeek_init
+
+   :Type: :bro:type:`event` ()
+
+   Generated at Zeek initialization time. The event engine generates this
+   event just before normal input processing begins. It can be used to execute
+   one-time initialization code at startup. At the time a handler runs, Zeek will
+   have executed any global initializations and statements.
+   
+   .. bro:see:: zeek_done
+   
+   .. note::
+   
+      When a ``zeek_init`` handler executes, Zeek has not yet seen any input
+      packets and therefore :bro:id:`network_time` is not initialized yet. An
+      artifact of that is that any timer installed in a ``zeek_init`` handler
+      will fire immediately with the first packet. The standard way to work
+      around that is to ignore the first time the timer fires and immediately
+      reschedule.
+   
 
 

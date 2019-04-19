@@ -1,4 +1,4 @@
-event bro_init()
+event zeek_init()
     {
     local test_string = "The quick brown fox jumps over the lazy dog.";
     local test_pattern = /quick|lazy/;

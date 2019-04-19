@@ -229,7 +229,7 @@ Events
       connection_first_ACK connection_half_finished connection_partial_close
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
-      new_connection new_connection_contents partial_connection bro_done
+      new_connection new_connection_contents partial_connection zeek_done
 
 .. bro:id:: connection_rejected
 

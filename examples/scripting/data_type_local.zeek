@@ -5,7 +5,7 @@ function add_two(i: count): count
     return added_two;
     }
 
-event bro_init()
+event zeek_init()
     {
     local test = add_two(10);
     }

@@ -64,7 +64,7 @@ event check_keys()
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer added";
-	# We could create a clone early, like in bro_init and it will periodically
+	# We could create a clone early, like in zeek_init and it will periodically
 	# try to synchronize with its master once it connects, however, we just
 	# create it now since we know the peer w/ the master store has just
 	# connected.
@@ -73,7 +73,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	event check_keys();
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::listen("127.0.0.1");
 	}

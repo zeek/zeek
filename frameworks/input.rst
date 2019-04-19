@@ -74,7 +74,7 @@ The log file is read into the table with a simple call of the
 
         global blacklist: table[addr] of Val = table();
 
-        event bro_init() {
+        event zeek_init() {
             Input::add_table([$source="blacklist.file", $name="blacklist",
                               $idx=Idx, $val=Val, $destination=blacklist]);
             Input::remove("blacklist");
@@ -319,7 +319,7 @@ For example:
                 print "data:", data;
         }
 
-        event bro_init() {
+        event zeek_init() {
                 Input::add_event([$source="blacklist.file", $name="blacklist",
                                   $fields=Val, $ev=blacklistentry]);
         }

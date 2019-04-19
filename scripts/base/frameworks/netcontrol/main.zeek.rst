@@ -436,7 +436,7 @@ Functions
    :Type: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`) : :bro:type:`void`
 
    Function called by plugins once they finished their activation. After all
-   plugins defined in bro_init finished to activate, rules will start to be sent
+   plugins defined in zeek_init finished to activate, rules will start to be sent
    to the plugins. Rules that scripts try to set before the backends are ready
    will be discarded.
 

@@ -2149,8 +2149,8 @@ Functions
    
    .. note::
    
-        This function must be called at Bro startup time, e.g., in the event
-        :bro:id:`bro_init`.
+        This function must be called at Zeek startup time, e.g., in the event
+        :bro:id:`zeek_init`.
 
 .. bro:id:: mkdir
 
@@ -3119,8 +3119,8 @@ Functions
    
    .. note::
    
-        This function must be called at Bro startup time, e.g., in the event
-        :bro:id:`bro_init`.
+        This function must be called at Zeek startup time, e.g., in the event
+        :bro:id:`zeek_init`.
 
 .. bro:id:: strptime
 

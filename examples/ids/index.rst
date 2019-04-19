@@ -73,7 +73,7 @@ measuring interval.
 .. sourcecode:: bro
    :caption: detect-bruteforcing.zeek
 
-   event bro_init()
+   event zeek_init()
        {
        local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(bruteforce_threshold+2)];
        SumStats::create([$name="ftp-detect-bruteforcing",
@@ -129,7 +129,7 @@ Below is the final code for our script.
    }
 
 
-   event bro_init()
+   event zeek_init()
        {
        local r1: SumStats::Reducer = [$stream="ftp.failed_auth", $apply=set(SumStats::UNIQUE), $unique_max=double_to_count(bruteforce_threshold+2)];
        SumStats::create([$name="ftp-detect-bruteforcing",

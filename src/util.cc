@@ -53,11 +53,13 @@
 #include "iosource/Manager.h"
 
 /**
- * Return IP address without enclosing brackets and any leading 0x.
+ * Return IP address without enclosing brackets and any leading 0x.  Also
+ * trims leading/trailing whitespace.
  */
 std::string extract_ip(const std::string& i)
 	{
-	std::string s(skip_whitespace(i.c_str()));
+	std::string s(strstrip(i));
+
 	if ( s.size() > 0 && s[0] == '[' )
 		s.erase(0, 1);
 

@@ -1,4 +1,11 @@
 
+2.6-237 | 2019-04-19 12:00:37 -0700
+
+  * GH-236: Add zeek_script_loaded event, deprecate bro_script_loaded (Jon Siwek, Corelight)
+
+    Existing handlers for bro_script_loaded automatically alias to the new
+    zeek_script_loaded event, but emit a deprecation warning.
+
 2.6-236 | 2019-04-19 11:16:35 -0700
 
   * Add zeek_init/zeek_done events and deprecate bro_init/bro_done (Seth Hall, Corelight)

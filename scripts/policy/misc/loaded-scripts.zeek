@@ -32,7 +32,7 @@ event zeek_init() &priority=5
 	Log::create_stream(LoadedScripts::LOG, [$columns=Info, $path="loaded_scripts"]);
 	}
 
-event bro_script_loaded(path: string, level: count)
+event zeek_script_loaded(path: string, level: count)
 	{
 	Log::write(LoadedScripts::LOG, [$name=cat(get_indent(level), compress_path(path))]);
 	}

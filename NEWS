@@ -176,11 +176,12 @@ Deprecated Functionality
   instead.  The later will automatically return a value that is enclosed
   in double-quotes.
 
-- The ``bro_init`` and ``bro_done`` events are now deprecated, use
-  ``zeek_init`` and ``zeek_done`` instead.  Any existing handlers for
-  ``bro_init`` and ``bro_done`` will automatically alias to the new
-  ``zeek_init`` and ``zeek_done`` events such that existing code will
-  not break, but will emit a deprecation warning.
+- The ``bro_init``, ``bro_done``, and ``bro_script_loaded`` events are now
+  deprecated, use ``zeek_init``, ``zeek_done``, and
+  ``zeek_script_loaded`` instead.  Any existing event handlers for
+  the deprecated versions will automatically alias to the new events
+  such that existing code will not break, but will emit a deprecation
+  warning.
 
 Bro 2.6
 =======

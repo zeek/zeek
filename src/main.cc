@@ -1193,7 +1193,7 @@ int main(int argc, char** argv)
 		val_list* vl = new val_list;
 		vl->append(new StringVal(i->name.c_str()));
 		vl->append(val_mgr->GetCount(i->include_level));
-		mgr.QueueEvent(bro_script_loaded, vl);
+		mgr.QueueEvent(zeek_script_loaded, vl);
 		}
 
 	reporter->ReportViaEvents(true);

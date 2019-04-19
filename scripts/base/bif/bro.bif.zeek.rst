@@ -133,6 +133,7 @@ Functions
 :bro:id:`is_v4_subnet`: :bro:type:`function`                                    Returns whether a subnet specification is IPv4 or not.
 :bro:id:`is_v6_addr`: :bro:type:`function`                                      Returns whether an address is IPv6 or not.
 :bro:id:`is_v6_subnet`: :bro:type:`function`                                    Returns whether a subnet specification is IPv6 or not.
+:bro:id:`is_valid_ip`: :bro:type:`function`                                     Checks if a string is a valid IPv4 or IPv6 address.
 :bro:id:`listen`: :bro:type:`function` :bro:attr:`&deprecated`                  Listens on a given IP address and port for remote connections.
 :bro:id:`ln`: :bro:type:`function`                                              Computes the natural logarithm of a number.
 :bro:id:`log10`: :bro:type:`function`                                           Computes the common logarithm of a number.
@@ -1824,6 +1825,18 @@ Functions
    
 
    :returns: true if *s* is an IPv6 subnet, else false.
+
+.. bro:id:: is_valid_ip
+
+   :Type: :bro:type:`function` (ip: :bro:type:`string`) : :bro:type:`bool`
+
+   Checks if a string is a valid IPv4 or IPv6 address.
+   
+
+   :ip: the string to check for valid IP formatting.
+   
+
+   :returns: T if the string is a valid IPv4 or IPv6 address format.
 
 .. bro:id:: listen
 

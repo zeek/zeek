@@ -175,7 +175,7 @@ public:
 	// Called to inform endpoint that it has offered a zero window.
 	void ZeroWindow();
 
-	// Called to inform endpoint that it a gap occurred.
+	// Called to inform endpoint that a gap occurred.
 	void Gap(uint64 seq, uint64 len);
 
 	// Returns true if the data was used (and hence should be recorded

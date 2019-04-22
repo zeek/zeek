@@ -1,4 +1,12 @@
 
+2.6-241 | 2019-04-22 12:38:06 -0700
+
+  * Add 'g' character to conn.log history field to flag content gaps (Vern Paxson, Corelight)
+
+    There's also a small change to TCP state machine that distrusts ACKs
+    appearing at the end of connections (in FIN or RST) such that they won't
+    count towards revealing a true content gap.
+
 2.6-237 | 2019-04-19 12:00:37 -0700
 
   * GH-236: Add zeek_script_loaded event, deprecate bro_script_loaded (Jon Siwek, Corelight)

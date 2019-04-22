@@ -68,6 +68,10 @@ New Functionality
 
 - Added a new event for weirdness found via file analysis: ``file_weird``.
 
+- The conn.log "history" field supports a new character 'G' or 'g'
+  (capital for originator, lowercase responder) to indicate a content
+  gap in the TCP stream.  These are recorded logarithmically.
+
 Changed Functionality
 ---------------------
 
@@ -165,6 +169,11 @@ Changed Functionality
     - "unknown_protocol_%d" ->  unknown_protocol
     - "unknown_gre_version_%d" -> unknown_gre_version
     - "unknown_gre_protocol_%u16" -> unknown_gre_protocol
+
+- The "missed_bytes" field of conn.log can be calculated slightly differently
+  in some cases: ACKs that reveal a content gap, but also come at
+  the end of a connection (in a FIN or RST) are considered unreliable
+  and aren't counted as true gaps.
 
 Removed Functionality
 ---------------------

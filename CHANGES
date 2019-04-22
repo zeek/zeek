@@ -1,4 +1,8 @@
 
+2.6-242 | 2019-04-22 22:43:09 +0200
+
+  * update SSL consts from TLS 1.3 (Johanna Amann)
+
 2.6-241 | 2019-04-22 12:38:06 -0700
 
   * Add 'g' character to conn.log history field to flag content gaps (Vern Paxson, Corelight)

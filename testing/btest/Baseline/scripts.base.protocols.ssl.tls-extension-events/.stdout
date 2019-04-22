@@ -33,9 +33,9 @@ signature_algorithm, 192.168.6.240, 139.162.123.134
 sha256, ecdsa
 sha384, ecdsa
 sha512, ecdsa
-unknown-8, unknown-4
-unknown-8, unknown-5
-unknown-8, unknown-6
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
 sha256, rsa
 sha384, rsa
 sha512, rsa
@@ -66,9 +66,9 @@ signature_algorithm, 192.168.6.240, 139.162.123.134
 sha256, ecdsa
 sha384, ecdsa
 sha512, ecdsa
-unknown-8, unknown-4
-unknown-8, unknown-5
-unknown-8, unknown-6
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
 sha256, rsa
 sha384, rsa
 sha512, rsa

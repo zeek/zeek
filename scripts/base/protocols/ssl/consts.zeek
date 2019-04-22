@@ -78,6 +78,7 @@ export {
 		[4] = "sha256",
 		[5] = "sha384",
 		[6] = "sha512",
+		[8] = "Intrinsic",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable strings for signature
@@ -87,6 +88,16 @@ export {
 		[1] = "rsa",
 		[2] = "dsa",
 		[3] = "ecdsa",
+		[4] = "rsa_pss_sha256",
+		[5] = "rsa_pss_sha384",
+		[6] = "rsa_pss_sha512",
+		[7] = "ed25519",
+		[8] = "ed448",
+		[9] = "rsa_pss_sha256",
+		[10] = "rsa_pss_sha384",
+		[11] = "rsa_pss_sha512",
+		[64] = "gostr34102012_256",
+		[65] = "gostr34102012_256",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable strings for alert

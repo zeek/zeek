@@ -145,6 +145,7 @@ Types
          f       packet with FIN bit set
          r       packet with RST bit set
          c       packet with a bad checksum (applies to UDP too)
+         g       a content gap
          t       packet with retransmitted payload
          w       packet with a zero window advertisement
          i       inconsistent packet (e.g. FIN+RST bits set)
@@ -160,7 +161,7 @@ Types
          's' can be recorded multiple times for either direction
          if the associated sequence number differs from the
          last-seen packet of the same flag type.
-         'c', 't' and 'w' are recorded in a logarithmic fashion:
+         'c', 'g', 't' and 'w' are recorded in a logarithmic fashion:
          the second instance represents that the event was seen
          (at least) 10 times; the third instance, 100 times; etc.
 

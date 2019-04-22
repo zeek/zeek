@@ -14207,7 +14207,7 @@ Events
    :threshold: the threshold that was crossed
    
    .. bro:see::  udp_multiple_checksum_errors
-      tcp_multiple_zero_windows tcp_multiple_retransmissions
+      tcp_multiple_zero_windows tcp_multiple_retransmissions tcp_multiple_gap
 
 .. bro:id:: tcp_multiple_zero_windows
 
@@ -14225,7 +14225,7 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions
+   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions tcp_multiple_gap
 
 .. bro:id:: tcp_multiple_retransmissions
 
@@ -14243,7 +14243,25 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows
+   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_gap
+
+.. bro:id:: tcp_multiple_gap
+
+   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+
+   Generated if a TCP flow crosses a gap threshold, per 'G'/'g' history
+   reporting.
+   
+
+   :c: The connection record for the TCP connection.
+   
+
+   :is_orig: True if the event is raised for the originator side.
+   
+
+   :threshold: the threshold that was crossed
+   
+   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_retransmissions
 
 .. bro:id:: contents_file_write_failure
 

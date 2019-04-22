@@ -182,6 +182,9 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##    ssl_rsa_client_pms ssl_server_signature
 event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
 
+event ssl_extension_pre_shared_key_client_hello%(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec%);
+event ssl_extension_pre_shared_key_server_hello%(c: connection, is_orig: bool, selected_identity: count%);
+
 ## Generated if a named curve is chosen by the server for an SSL/TLS connection.
 ## The curve is sent by the server in the ServerKeyExchange message as defined
 ## in :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.

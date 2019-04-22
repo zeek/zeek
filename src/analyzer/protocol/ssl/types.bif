@@ -1,5 +1,6 @@
 module SSL;
 
 type SignatureAndHashAlgorithm: record;
+type PSKIdentity: record;
 
 module GLOBAL;

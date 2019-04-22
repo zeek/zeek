@@ -411,6 +411,50 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_pre_shared_key_server_hello(rec: HandshakeRecord, identities: PSKIdentitiesList, binders: PSKBindersList) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_server_hello )
+			return true;
+
+		VectorVal* slist = new VectorVal(internal_type("psk_identity_vec")->AsVectorType());
+
+		if ( identities && identities->identities() )
+			{
+			uint32 i = 0;
+			for ( auto&& identity : *(identities->identities()) )
+				{
+				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
+				el->Assign(0, new StringVal(identity->identity().length(), (const char*) identity->identity().data()));
+				el->Assign(1, val_mgr->GetCount(identity->obfuscated_ticket_age()));
+				slist->Assign(i++, el);
+				}
+			}
+
+		VectorVal* blist = new VectorVal(internal_type("string_vec")->AsVectorType());
+		if ( binders && binders->binders() )
+			{
+			uint32 i = 0;
+			for ( auto&& binder : *(binders->binders()) )
+				blist->Assign(i++, new StringVal(binder->binder().length(), (const char*) binder->binder().data()));
+			}
+
+		BifEvent::generate_ssl_extension_pre_shared_key_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, slist, blist);
+
+		return true;
+		%}
+
+	function proc_pre_shared_key_client_hello(rec: HandshakeRecord, selected_identity: uint16) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_client_hello )
+			return true;
+
+		BifEvent::generate_ssl_extension_pre_shared_key_server_hello(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, selected_identity);
+
+		return true;
+		%}
+
 };
 
 refine typeattr ClientHello += &let {
@@ -518,6 +562,14 @@ refine typeattr OneSupportedVersion += &let {
 
 refine typeattr PSKKeyExchangeModes += &let {
 	proc : bool = $context.connection.proc_psk_key_exchange_modes(rec, modes);
+};
+
+refine typeattr OfferedPsks += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_server_hello(rec, identities, binders);
+};
+
+refine typeattr SelectedPreSharedKeyIdentity += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_client_hello(rec, selected_identity);
 };
 
 refine typeattr Handshake += &let {

@@ -778,6 +778,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
 		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
 		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
+		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -860,6 +861,43 @@ type ClientHelloKeyShare(rec: HandshakeRecord) = record {
 type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
 	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
 	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShare(rec);
+	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
+	default -> other : bytestring &restofdata &transient;
+};
+
+type SelectedPreSharedKeyIdentity(rec: HandshakeRecord) = record {
+	selected_identity: uint16;
+};
+
+type PSKIdentity() = record {
+	length: uint16;
+	identity: bytestring &length=length;
+	obfuscated_ticket_age: uint32;
+};
+
+type PSKIdentitiesList() = record {
+	length: uint16;
+	identities: PSKIdentity[] &until($input.length() == 0);
+} &length=length+2;
+
+type PSKBinder() = record {
+	length: uint8;
+	binder: bytestring &length=length;
+};
+
+type PSKBindersList() = record {
+	length: uint16;
+	binders: PSKBinder[] &until($input.length() == 0);
+} &length=length+2;
+
+type OfferedPsks(rec: HandshakeRecord) = record {
+	identities: PSKIdentitiesList;
+	binders: PSKBindersList;
+};
+
+type PreSharedKey(rec: HandshakeRecord) = case rec.msg_type of {
+	CLIENT_HELLO -> offered_psks : OfferedPsks(rec);
+	SERVER_HELLO -> selected_identity : SelectedPreSharedKeyIdentity(rec);
 	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
 	default -> other : bytestring &restofdata &transient;
 };

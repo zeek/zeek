@@ -3499,6 +3499,7 @@ Constants
          [6] = "sha512",
          [4] = "sha256",
          [1] = "md5",
+         [8] = "Intrinsic",
          [5] = "sha384",
          [0] = "none",
          [3] = "sha224"
@@ -3517,8 +3518,18 @@ Constants
 
       {
          [2] = "dsa",
+         [9] = "rsa_pss_sha256",
+         [6] = "rsa_pss_sha512",
+         [11] = "rsa_pss_sha512",
+         [4] = "rsa_pss_sha256",
          [1] = "rsa",
+         [8] = "ed448",
+         [7] = "ed25519",
+         [5] = "rsa_pss_sha384",
+         [10] = "rsa_pss_sha384",
+         [64] = "gostr34102012_256",
          [0] = "anonymous",
+         [65] = "gostr34102012_256",
          [3] = "ecdsa"
       }
 

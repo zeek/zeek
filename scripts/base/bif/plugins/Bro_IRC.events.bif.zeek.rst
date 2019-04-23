@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_IRC.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,51 +11,51 @@ Summary
 ~~~~~~~
 Events
 ######
-==================================================== ===================================================================
-:bro:id:`irc_channel_info`: :bro:type:`event`        Generated for an IRC reply of type *luserchannels*.
-:bro:id:`irc_channel_topic`: :bro:type:`event`       Generated for an IRC reply of type *topic*.
-:bro:id:`irc_dcc_message`: :bro:type:`event`         Generated for IRC messages of type *dcc*.
-:bro:id:`irc_error_message`: :bro:type:`event`       Generated for IRC messages of type *error*.
-:bro:id:`irc_global_users`: :bro:type:`event`        Generated for an IRC reply of type *globalusers*.
-:bro:id:`irc_invalid_nick`: :bro:type:`event`        Generated when a server rejects an IRC nickname.
-:bro:id:`irc_invite_message`: :bro:type:`event`      Generated for IRC messages of type *invite*.
-:bro:id:`irc_join_message`: :bro:type:`event`        Generated for IRC messages of type *join*.
-:bro:id:`irc_kick_message`: :bro:type:`event`        Generated for IRC messages of type *kick*.
-:bro:id:`irc_message`: :bro:type:`event`             Generated for IRC commands forwarded from the server to the client.
-:bro:id:`irc_mode_message`: :bro:type:`event`        Generated for IRC messages of type *mode*.
-:bro:id:`irc_names_info`: :bro:type:`event`          Generated for an IRC reply of type *namereply*.
-:bro:id:`irc_network_info`: :bro:type:`event`        Generated for an IRC reply of type *luserclient*.
-:bro:id:`irc_nick_message`: :bro:type:`event`        Generated for IRC messages of type *nick*.
-:bro:id:`irc_notice_message`: :bro:type:`event`      Generated for IRC messages of type *notice*.
-:bro:id:`irc_oper_message`: :bro:type:`event`        Generated for IRC messages of type *oper*.
-:bro:id:`irc_oper_response`: :bro:type:`event`       Generated for IRC replies of type *youreoper* and *nooperhost*.
-:bro:id:`irc_part_message`: :bro:type:`event`        Generated for IRC messages of type *part*.
-:bro:id:`irc_password_message`: :bro:type:`event`    Generated for IRC messages of type *password*.
-:bro:id:`irc_privmsg_message`: :bro:type:`event`     Generated for IRC messages of type *privmsg*.
-:bro:id:`irc_quit_message`: :bro:type:`event`        Generated for IRC messages of type *quit*.
-:bro:id:`irc_reply`: :bro:type:`event`               Generated for all IRC replies.
-:bro:id:`irc_request`: :bro:type:`event`             Generated for all client-side IRC commands.
-:bro:id:`irc_server_info`: :bro:type:`event`         Generated for an IRC reply of type *luserme*.
-:bro:id:`irc_squery_message`: :bro:type:`event`      Generated for IRC messages of type *squery*.
-:bro:id:`irc_squit_message`: :bro:type:`event`       Generated for IRC messages of type *squit*.
-:bro:id:`irc_starttls`: :bro:type:`event`            Generated if an IRC connection switched to TLS using STARTTLS.
-:bro:id:`irc_user_message`: :bro:type:`event`        Generated for IRC messages of type *user*.
-:bro:id:`irc_who_line`: :bro:type:`event`            Generated for an IRC reply of type *whoreply*.
-:bro:id:`irc_who_message`: :bro:type:`event`         Generated for IRC messages of type *who*.
-:bro:id:`irc_whois_channel_line`: :bro:type:`event`  Generated for an IRC reply of type *whoischannels*.
-:bro:id:`irc_whois_message`: :bro:type:`event`       Generated for IRC messages of type *whois*.
-:bro:id:`irc_whois_operator_line`: :bro:type:`event` Generated for an IRC reply of type *whoisoperator*.
-:bro:id:`irc_whois_user_line`: :bro:type:`event`     Generated for an IRC reply of type *whoisuser*.
-==================================================== ===================================================================
+====================================================== ===================================================================
+:zeek:id:`irc_channel_info`: :zeek:type:`event`        Generated for an IRC reply of type *luserchannels*.
+:zeek:id:`irc_channel_topic`: :zeek:type:`event`       Generated for an IRC reply of type *topic*.
+:zeek:id:`irc_dcc_message`: :zeek:type:`event`         Generated for IRC messages of type *dcc*.
+:zeek:id:`irc_error_message`: :zeek:type:`event`       Generated for IRC messages of type *error*.
+:zeek:id:`irc_global_users`: :zeek:type:`event`        Generated for an IRC reply of type *globalusers*.
+:zeek:id:`irc_invalid_nick`: :zeek:type:`event`        Generated when a server rejects an IRC nickname.
+:zeek:id:`irc_invite_message`: :zeek:type:`event`      Generated for IRC messages of type *invite*.
+:zeek:id:`irc_join_message`: :zeek:type:`event`        Generated for IRC messages of type *join*.
+:zeek:id:`irc_kick_message`: :zeek:type:`event`        Generated for IRC messages of type *kick*.
+:zeek:id:`irc_message`: :zeek:type:`event`             Generated for IRC commands forwarded from the server to the client.
+:zeek:id:`irc_mode_message`: :zeek:type:`event`        Generated for IRC messages of type *mode*.
+:zeek:id:`irc_names_info`: :zeek:type:`event`          Generated for an IRC reply of type *namereply*.
+:zeek:id:`irc_network_info`: :zeek:type:`event`        Generated for an IRC reply of type *luserclient*.
+:zeek:id:`irc_nick_message`: :zeek:type:`event`        Generated for IRC messages of type *nick*.
+:zeek:id:`irc_notice_message`: :zeek:type:`event`      Generated for IRC messages of type *notice*.
+:zeek:id:`irc_oper_message`: :zeek:type:`event`        Generated for IRC messages of type *oper*.
+:zeek:id:`irc_oper_response`: :zeek:type:`event`       Generated for IRC replies of type *youreoper* and *nooperhost*.
+:zeek:id:`irc_part_message`: :zeek:type:`event`        Generated for IRC messages of type *part*.
+:zeek:id:`irc_password_message`: :zeek:type:`event`    Generated for IRC messages of type *password*.
+:zeek:id:`irc_privmsg_message`: :zeek:type:`event`     Generated for IRC messages of type *privmsg*.
+:zeek:id:`irc_quit_message`: :zeek:type:`event`        Generated for IRC messages of type *quit*.
+:zeek:id:`irc_reply`: :zeek:type:`event`               Generated for all IRC replies.
+:zeek:id:`irc_request`: :zeek:type:`event`             Generated for all client-side IRC commands.
+:zeek:id:`irc_server_info`: :zeek:type:`event`         Generated for an IRC reply of type *luserme*.
+:zeek:id:`irc_squery_message`: :zeek:type:`event`      Generated for IRC messages of type *squery*.
+:zeek:id:`irc_squit_message`: :zeek:type:`event`       Generated for IRC messages of type *squit*.
+:zeek:id:`irc_starttls`: :zeek:type:`event`            Generated if an IRC connection switched to TLS using STARTTLS.
+:zeek:id:`irc_user_message`: :zeek:type:`event`        Generated for IRC messages of type *user*.
+:zeek:id:`irc_who_line`: :zeek:type:`event`            Generated for an IRC reply of type *whoreply*.
+:zeek:id:`irc_who_message`: :zeek:type:`event`         Generated for IRC messages of type *who*.
+:zeek:id:`irc_whois_channel_line`: :zeek:type:`event`  Generated for an IRC reply of type *whoischannels*.
+:zeek:id:`irc_whois_message`: :zeek:type:`event`       Generated for IRC messages of type *whois*.
+:zeek:id:`irc_whois_operator_line`: :zeek:type:`event` Generated for an IRC reply of type *whoisoperator*.
+:zeek:id:`irc_whois_user_line`: :zeek:type:`event`     Generated for an IRC reply of type *whoisuser*.
+====================================================== ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: irc_channel_info
+.. zeek:id:: irc_channel_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, chans: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, chans: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserchannels*.
    
@@ -72,15 +72,15 @@ Events
 
    :chans: The number of channels as returned in the reply.
    
-   .. bro:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
+   .. zeek:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_channel_topic
+.. zeek:id:: irc_channel_topic
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, channel: :bro:type:`string`, topic: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, channel: :zeek:type:`string`, topic: :zeek:type:`string`)
 
    Generated for an IRC reply of type *topic*.
    
@@ -100,15 +100,15 @@ Events
 
    :topic: The topic specified in the reply.
    
-   .. bro:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
+   .. zeek:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_dcc_message
+.. zeek:id:: irc_dcc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, target: :bro:type:`string`, dcc_type: :bro:type:`string`, argument: :bro:type:`string`, address: :bro:type:`addr`, dest_port: :bro:type:`count`, size: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, target: :zeek:type:`string`, dcc_type: :zeek:type:`string`, argument: :zeek:type:`string`, address: :zeek:type:`addr`, dest_port: :zeek:type:`count`, size: :zeek:type:`count`)
 
    Generated for IRC messages of type *dcc*. This event is generated for
    messages coming from both the client and the server.
@@ -145,15 +145,15 @@ Events
 
    :size: The size specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
+   .. zeek:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_error_message
+.. zeek:id:: irc_error_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *error*. This event is generated for
    messages coming from both the client and the server.
@@ -175,15 +175,15 @@ Events
 
    :message: The textual description specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_global_users
+.. zeek:id:: irc_global_users
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for an IRC reply of type *globalusers*.
    
@@ -204,15 +204,15 @@ Events
 
    :msg: The message coming with the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_invalid_nick
+.. zeek:id:: irc_invalid_nick
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated when a server rejects an IRC nickname.
    
@@ -226,15 +226,15 @@ Events
    :is_orig: True if the command was sent by the originator of the TCP
             connection.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users  irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_invite_message
+.. zeek:id:: irc_invite_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, nickname: :bro:type:`string`, channel: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, nickname: :zeek:type:`string`, channel: :zeek:type:`string`)
 
    Generated for IRC messages of type *invite*. This event is generated for
    messages coming from both the client and the server.
@@ -259,15 +259,15 @@ Events
 
    :channel: The channel specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick  irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_join_message
+.. zeek:id:: irc_join_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, info_list: :bro:type:`irc_join_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, info_list: :zeek:type:`irc_join_list`)
 
    Generated for IRC messages of type *join*. This event is generated for
    messages coming from both the client and the server.
@@ -285,15 +285,15 @@ Events
 
    :info_list: The user information coming with the command.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_kick_message
+.. zeek:id:: irc_kick_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, chans: :bro:type:`string`, users: :bro:type:`string`, comment: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, chans: :zeek:type:`string`, users: :zeek:type:`string`, comment: :zeek:type:`string`)
 
    Generated for IRC messages of type *kick*. This event is generated for
    messages coming from both the client and the server.
@@ -321,15 +321,15 @@ Events
 
    :comment: The comment specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_message
+.. zeek:id:: irc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, command: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC commands forwarded from the server to the client.
    
@@ -352,7 +352,7 @@ Events
 
    :message: TODO.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message  irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -362,11 +362,11 @@ Events
    
       This event is generated only for messages that are forwarded by the server
       to the client. Commands coming from client trigger the
-      :bro:id:`irc_request` event instead.
+      :zeek:id:`irc_request` event instead.
 
-.. bro:id:: irc_mode_message
+.. zeek:id:: irc_mode_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, params: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, params: :zeek:type:`string`)
 
    Generated for IRC messages of type *mode*. This event is generated for
    messages coming from both the client and the server.
@@ -388,15 +388,15 @@ Events
 
    :params: The parameters coming with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message  irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_names_info
+.. zeek:id:: irc_names_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, c_type: :bro:type:`string`, channel: :bro:type:`string`, users: :bro:type:`string_set`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, c_type: :zeek:type:`string`, channel: :zeek:type:`string`, users: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *namereply*.
    
@@ -419,15 +419,15 @@ Events
 
    :users: The set of users.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message  irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_network_info
+.. zeek:id:: irc_network_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, users: :bro:type:`count`, services: :bro:type:`count`, servers: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserclient*.
    
@@ -450,15 +450,15 @@ Events
 
    :servers: The number of servers as returned in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_nick_message
+.. zeek:id:: irc_nick_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, who: :bro:type:`string`, newnick: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, who: :zeek:type:`string`, newnick: :zeek:type:`string`)
 
    Generated for IRC messages of type *nick*. This event is generated for
    messages coming from both the client and the server.
@@ -479,15 +479,15 @@ Events
 
    :newnick: The new nickname.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_notice_message
+.. zeek:id:: irc_notice_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *notice*. This event is generated for
    messages coming from both the client and the server.
@@ -511,15 +511,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message  irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_oper_message
+.. zeek:id:: irc_oper_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for IRC messages of type *oper*. This event is generated for
    messages coming from both the client and the server.
@@ -540,15 +540,15 @@ Events
 
    :password: The password specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message  irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_oper_response
+.. zeek:id:: irc_oper_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, got_oper: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, got_oper: :zeek:type:`bool`)
 
    Generated for IRC replies of type *youreoper* and *nooperhost*.
    
@@ -566,15 +566,15 @@ Events
    :got_oper: True if the *oper* command was executed successfully
              (*youreport*) and false otherwise (*nooperhost*).
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_part_message
       irc_password_message
 
-.. bro:id:: irc_part_message
+.. zeek:id:: irc_part_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, chans: :bro:type:`string_set`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, chans: :zeek:type:`string_set`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *part*. This event is generated for
    messages coming from both the client and the server.
@@ -598,15 +598,15 @@ Events
 
    :message: The text coming with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_password_message
 
-.. bro:id:: irc_password_message
+.. zeek:id:: irc_password_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, password: :zeek:type:`string`)
 
    Generated for IRC messages of type *password*. This event is generated for
    messages coming from both the client and the server.
@@ -624,15 +624,15 @@ Events
 
    :password: The password specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message
 
-.. bro:id:: irc_privmsg_message
+.. zeek:id:: irc_privmsg_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *privmsg*. This event is generated for
    messages coming from both the client and the server.
@@ -656,15 +656,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_quit_message
+.. zeek:id:: irc_quit_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *quit*. This event is generated for
    messages coming from both the client and the server.
@@ -685,15 +685,15 @@ Events
 
    :message: The text included with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_reply
+.. zeek:id:: irc_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, code: :bro:type:`count`, params: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, code: :zeek:type:`count`, params: :zeek:type:`string`)
 
    Generated for all IRC replies. IRC replies are sent in response to a
    request and come with a reply code.
@@ -718,15 +718,15 @@ Events
 
    :params: The reply's parameters.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_request
+.. zeek:id:: irc_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, command: :bro:type:`string`, arguments: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, arguments: :zeek:type:`string`)
 
    Generated for all client-side IRC commands.
    
@@ -749,7 +749,7 @@ Events
 
    :arguments: The arguments for the command.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -757,11 +757,11 @@ Events
    
    .. note:: This event is generated only for messages that originate
       at the client-side. Commands coming in from remote trigger
-      the :bro:id:`irc_message` event instead.
+      the :zeek:id:`irc_message` event instead.
 
-.. bro:id:: irc_server_info
+.. zeek:id:: irc_server_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, users: :bro:type:`count`, services: :bro:type:`count`, servers: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserme*.
    
@@ -784,15 +784,15 @@ Events
 
    :servers: The number of servers as returned in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_squery_message
+.. zeek:id:: irc_squery_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *squery*. This event is generated for
    messages coming from both the client and the server.
@@ -816,15 +816,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_squit_message
+.. zeek:id:: irc_squit_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, server: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, server: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *squit*. This event is generated for
    messages coming from both the client and the server.
@@ -849,15 +849,15 @@ Events
 
    :message: The textual description specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_starttls
+.. zeek:id:: irc_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated if an IRC connection switched to TLS using STARTTLS. After this
    event no more IRC events will be raised for the connection. See the SSL
@@ -866,9 +866,9 @@ Events
 
    :c: The connection.
 
-.. bro:id:: irc_user_message
+.. zeek:id:: irc_user_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, host: :bro:type:`string`, server: :bro:type:`string`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, host: :zeek:type:`string`, server: :zeek:type:`string`, real_name: :zeek:type:`string`)
 
    Generated for IRC messages of type *user*. This event is generated for
    messages coming from both the client and the server.
@@ -895,15 +895,15 @@ Events
 
    :real_name: The real name specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_who_line
+.. zeek:id:: irc_who_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, target_nick: :bro:type:`string`, channel: :bro:type:`string`, user: :bro:type:`string`, host: :bro:type:`string`, server: :bro:type:`string`, nick: :bro:type:`string`, params: :bro:type:`string`, hops: :bro:type:`count`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, target_nick: :zeek:type:`string`, channel: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, server: :zeek:type:`string`, nick: :zeek:type:`string`, params: :zeek:type:`string`, hops: :zeek:type:`count`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoreply*.
    
@@ -944,15 +944,15 @@ Events
 
    :real_name: The real name.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_who_message
+.. zeek:id:: irc_who_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, mask: :bro:type:`string`, oper: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, mask: :zeek:type:`string`, oper: :zeek:type:`bool`)
 
    Generated for IRC messages of type *who*. This event is generated for
    messages coming from both the client and the server.
@@ -973,15 +973,15 @@ Events
 
    :oper: True if the operator flag was set.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_channel_line
+.. zeek:id:: irc_whois_channel_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, chans: :bro:type:`string_set`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, chans: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *whoischannels*.
    
@@ -1001,15 +1001,15 @@ Events
 
    :chans: The set of channels returned.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_message
+.. zeek:id:: irc_whois_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, server: :bro:type:`string`, users: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, server: :zeek:type:`string`, users: :zeek:type:`string`)
 
    Generated for IRC messages of type *whois*. This event is generated for
    messages coming from both the client and the server.
@@ -1030,15 +1030,15 @@ Events
 
    :users: TODO.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_operator_line
+.. zeek:id:: irc_whois_operator_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisoperator*.
    
@@ -1055,15 +1055,15 @@ Events
 
    :nick: The nickname specified in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_user_line
+.. zeek:id:: irc_whois_user_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, user: :bro:type:`string`, host: :bro:type:`string`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisuser*.
    
@@ -1089,7 +1089,7 @@ Events
 
    :real_name: The real name specified in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response

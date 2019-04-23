@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_query_information.bif.zeek
 ============================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-=========================================================== ===========================================================================================
-:bro:id:`smb1_query_information_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                            version 1 requests of type *query information*.
-=========================================================== ===========================================================================================
+============================================================= ===========================================================================================
+:zeek:id:`smb1_query_information_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                              version 1 requests of type *query information*.
+============================================================= ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_query_information_request
+.. zeek:id:: smb1_query_information_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, filename: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, filename: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *query information*. This is a deprecated command which
@@ -41,6 +41,6 @@ Events
 
    :filename: The filename that the client is querying.
    
-   .. bro:see:: smb1_message smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request
 
 

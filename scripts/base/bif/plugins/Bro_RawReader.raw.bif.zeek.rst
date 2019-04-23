@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_RawReader.raw.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: InputRaw
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: InputRaw
 
 
 :Namespaces: GLOBAL, InputRaw

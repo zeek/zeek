@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/heartbleed.zeek
 ====================================
-.. bro:namespace:: Heartbleed
+.. zeek:namespace:: Heartbleed
 
 Detect the TLS heartbleed attack. See http://heartbleed.com for more.
 
@@ -13,11 +13,11 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-==================================================================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum`                                           
-:bro:type:`SSL::Info`: :bro:type:`record`                                            
-:bro:id:`SSL::disable_analyzer_after_detection`: :bro:type:`bool` :bro:attr:`&redef` 
-==================================================================================== =
+======================================================================================= =
+:zeek:type:`Notice::Type`: :zeek:type:`enum`                                            
+:zeek:type:`SSL::Info`: :zeek:type:`record`                                             
+:zeek:id:`SSL::disable_analyzer_after_detection`: :zeek:type:`bool` :zeek:attr:`&redef` 
+======================================================================================= =
 
 
 Detailed Interface

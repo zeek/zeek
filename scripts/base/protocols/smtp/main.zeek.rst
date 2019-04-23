@@ -2,7 +2,7 @@
 
 base/protocols/smtp/main.zeek
 =============================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 
 :Namespace: SMTP
@@ -12,46 +12,46 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-====================================================================== ===================================================
-:bro:id:`SMTP::mail_path_capture`: :bro:type:`Host` :bro:attr:`&redef` Direction to capture the full "Received from" path.
-====================================================================== ===================================================
+========================================================================= ===================================================
+:zeek:id:`SMTP::mail_path_capture`: :zeek:type:`Host` :zeek:attr:`&redef` Direction to capture the full "Received from" path.
+========================================================================= ===================================================
 
 Types
 #####
-=========================================== =
-:bro:type:`SMTP::Info`: :bro:type:`record`  
-:bro:type:`SMTP::State`: :bro:type:`record` 
-=========================================== =
+============================================= =
+:zeek:type:`SMTP::Info`: :zeek:type:`record`  
+:zeek:type:`SMTP::State`: :zeek:type:`record` 
+============================================= =
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-=========================================== =
-:bro:id:`SMTP::log_smtp`: :bro:type:`event` 
-=========================================== =
+============================================= =
+:zeek:id:`SMTP::log_smtp`: :zeek:type:`event` 
+============================================= =
 
 Functions
 #########
-============================================== ===========================================================
-:bro:id:`SMTP::describe`: :bro:type:`function` Create an extremely shortened representation of a log line.
-============================================== ===========================================================
+================================================ ===========================================================
+:zeek:id:`SMTP::describe`: :zeek:type:`function` Create an extremely shortened representation of a log line.
+================================================ ===========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMTP::mail_path_capture
+.. zeek:id:: SMTP::mail_path_capture
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``ALL_HOSTS``
 
    Direction to capture the full "Received from" path.
@@ -62,116 +62,116 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: SMTP::Info
+.. zeek:type:: SMTP::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time when the message was first seen.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      trans_depth: :bro:type:`count` :bro:attr:`&log`
+      trans_depth: :zeek:type:`count` :zeek:attr:`&log`
          A count to represent the depth of this message transaction in
          a single connection where multiple messages were transferred.
 
-      helo: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      helo: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Helo header.
 
-      mailfrom: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      mailfrom: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Email addresses found in the From header.
 
-      rcptto: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&log` :bro:attr:`&optional`
+      rcptto: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
          Email addresses found in the Rcpt header.
 
-      date: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      date: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Date header.
 
-      from: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      from: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the From header.
 
-      to: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&log` :bro:attr:`&optional`
+      to: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the To header.
 
-      cc: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&log` :bro:attr:`&optional`
+      cc: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the CC header.
 
-      reply_to: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      reply_to: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the ReplyTo header.
 
-      msg_id: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      msg_id: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the MsgID header.
 
-      in_reply_to: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      in_reply_to: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the In-Reply-To header.
 
-      subject: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Subject header.
 
-      x_originating_ip: :bro:type:`addr` :bro:attr:`&log` :bro:attr:`&optional`
+      x_originating_ip: :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the X-Originating-IP header.
 
-      first_received: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      first_received: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the first Received header.
 
-      second_received: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      second_received: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the second Received header.
 
-      last_reply: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      last_reply: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The last message that the server sent to the client.
 
-      path: :bro:type:`vector` of :bro:type:`addr` :bro:attr:`&log` :bro:attr:`&optional`
+      path: :zeek:type:`vector` of :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&optional`
          The message transmission path, as extracted from the headers.
 
-      user_agent: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      user_agent: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the User-Agent header from the client.
 
-      tls: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      tls: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Indicates that the connection has switched to using TLS.
 
-      process_received_from: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      process_received_from: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Indicates if the "Received: from" headers should still be
          processed.
 
-      has_client_activity: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      has_client_activity: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Indicates if client activity has been seen, but not yet logged.
 
-      entity: :bro:type:`SMTP::Entity` :bro:attr:`&optional`
+      entity: :zeek:type:`SMTP::Entity` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/smtp/entities.zeek` is loaded)
 
          The current entity being seen.
 
-      fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&default` = ``[]`` :bro:attr:`&optional`
+      fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/smtp/files.zeek` is loaded)
 
          An ordered vector of file unique IDs seen attached to
          the message.
 
-      is_webmail: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      is_webmail: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/smtp/software.zeek` is loaded)
 
          Boolean indicator of if the message was sent through a
          webmail interface.
 
 
-.. bro:type:: SMTP::State
+.. zeek:type:: SMTP::State
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      helo: :bro:type:`string` :bro:attr:`&optional`
+      helo: :zeek:type:`string` :zeek:attr:`&optional`
 
-      messages_transferred: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      messages_transferred: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Count the number of individual messages transmitted during
          this SMTP session.  Note, this is not the number of
          recipients, but the number of message bodies transferred.
 
-      pending_messages: :bro:type:`set` [:bro:type:`SMTP::Info`] :bro:attr:`&optional`
+      pending_messages: :zeek:type:`set` [:zeek:type:`SMTP::Info`] :zeek:attr:`&optional`
 
-      mime_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/smtp/entities.zeek` is loaded)
 
          Track the number of MIME encoded files transferred
@@ -180,16 +180,16 @@ Types
 
 Events
 ######
-.. bro:id:: SMTP::log_smtp
+.. zeek:id:: SMTP::log_smtp
 
-   :Type: :bro:type:`event` (rec: :bro:type:`SMTP::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`SMTP::Info`)
 
 
 Functions
 #########
-.. bro:id:: SMTP::describe
+.. zeek:id:: SMTP::describe
 
-   :Type: :bro:type:`function` (rec: :bro:type:`SMTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`SMTP::Info`) : :zeek:type:`string`
 
    Create an extremely shortened representation of a log line.
 

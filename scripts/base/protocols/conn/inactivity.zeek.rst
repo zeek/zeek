@@ -2,7 +2,7 @@
 
 base/protocols/conn/inactivity.zeek
 ===================================
-.. bro:namespace:: Conn
+.. zeek:namespace:: Conn
 
 Adjust the inactivity timeouts for interactive services which could
 very possibly have long delays between packets.
@@ -13,21 +13,21 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================================== ==================================================================
-:bro:id:`Conn::analyzer_inactivity_timeouts`: :bro:type:`table` :bro:attr:`&redef` Define inactivity timeouts by the service detected being used over
-                                                                                   the connection.
-:bro:id:`Conn::port_inactivity_timeouts`: :bro:type:`table` :bro:attr:`&redef`     Define inactivity timeouts based on common protocol ports.
-================================================================================== ==================================================================
+===================================================================================== ==================================================================
+:zeek:id:`Conn::analyzer_inactivity_timeouts`: :zeek:type:`table` :zeek:attr:`&redef` Define inactivity timeouts by the service detected being used over
+                                                                                      the connection.
+:zeek:id:`Conn::port_inactivity_timeouts`: :zeek:type:`table` :zeek:attr:`&redef`     Define inactivity timeouts based on common protocol ports.
+===================================================================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Conn::analyzer_inactivity_timeouts
+.. zeek:id:: Conn::analyzer_inactivity_timeouts
 
-   :Type: :bro:type:`table` [:bro:type:`Analyzer::Tag`] of :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`Analyzer::Tag`] of :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -40,10 +40,10 @@ Runtime Options
    Define inactivity timeouts by the service detected being used over
    the connection.
 
-.. bro:id:: Conn::port_inactivity_timeouts
+.. zeek:id:: Conn::port_inactivity_timeouts
 
-   :Type: :bro:type:`table` [:bro:type:`port`] of :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`port`] of :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

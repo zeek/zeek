@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_nt_cancel.bif.zeek
 ====================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-=================================================== ===========================================================================================
-:bro:id:`smb1_nt_cancel_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                    version 1 requests of type *nt cancel*.
-=================================================== ===========================================================================================
+===================================================== ===========================================================================================
+:zeek:id:`smb1_nt_cancel_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                      version 1 requests of type *nt cancel*.
+===================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_nt_cancel_request
+.. zeek:id:: smb1_nt_cancel_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *nt cancel*. This is sent by the client to request that a currently
@@ -37,6 +37,6 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
 

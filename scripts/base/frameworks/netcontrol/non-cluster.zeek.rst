@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/non-cluster.zeek
 ===========================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 
 :Namespace: NetControl

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Gnutella.events.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,30 +11,30 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================== =====
-:bro:id:`gnutella_binary_msg`: :bro:type:`event`         TODO.
-:bro:id:`gnutella_establish`: :bro:type:`event`          TODO.
-:bro:id:`gnutella_http_notify`: :bro:type:`event`        TODO.
-:bro:id:`gnutella_not_establish`: :bro:type:`event`      TODO.
-:bro:id:`gnutella_partial_binary_msg`: :bro:type:`event` TODO.
-:bro:id:`gnutella_text_msg`: :bro:type:`event`           TODO.
-======================================================== =====
+========================================================== =====
+:zeek:id:`gnutella_binary_msg`: :zeek:type:`event`         TODO.
+:zeek:id:`gnutella_establish`: :zeek:type:`event`          TODO.
+:zeek:id:`gnutella_http_notify`: :zeek:type:`event`        TODO.
+:zeek:id:`gnutella_not_establish`: :zeek:type:`event`      TODO.
+:zeek:id:`gnutella_partial_binary_msg`: :zeek:type:`event` TODO.
+:zeek:id:`gnutella_text_msg`: :zeek:type:`event`           TODO.
+========================================================== =====
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: gnutella_binary_msg
+.. zeek:id:: gnutella_binary_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, msg_type: :bro:type:`count`, ttl: :bro:type:`count`, hops: :bro:type:`count`, msg_len: :bro:type:`count`, payload: :bro:type:`string`, payload_len: :bro:type:`count`, trunc: :bro:type:`bool`, complete: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, ttl: :zeek:type:`count`, hops: :zeek:type:`count`, msg_len: :zeek:type:`count`, payload: :zeek:type:`string`, payload_len: :zeek:type:`count`, trunc: :zeek:type:`bool`, complete: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
+   .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -42,16 +42,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_establish
+.. zeek:id:: gnutella_establish
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
+   .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -59,16 +59,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_http_notify
+.. zeek:id:: gnutella_http_notify
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -76,16 +76,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_not_establish
+.. zeek:id:: gnutella_not_establish
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -93,16 +93,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_partial_binary_msg
+.. zeek:id:: gnutella_partial_binary_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, msg: :bro:type:`string`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg: :zeek:type:`string`, len: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish  gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -110,16 +110,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_text_msg
+.. zeek:id:: gnutella_text_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, headers: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, headers: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
    
    

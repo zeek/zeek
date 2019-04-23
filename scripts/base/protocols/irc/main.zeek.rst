@@ -2,7 +2,7 @@
 
 base/protocols/irc/main.zeek
 ============================
-.. bro:namespace:: IRC
+.. zeek:namespace:: IRC
 
 Implements the core IRC analysis support.  The logging model is to log
 IRC commands along with the associated response and some additional 
@@ -14,74 +14,74 @@ Summary
 ~~~~~~~
 Types
 #####
-========================================= =
-:bro:type:`IRC::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`IRC::Info`: :zeek:type:`record` 
+=========================================== =
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-========================================= ====================================================================
-:bro:id:`IRC::irc_log`: :bro:type:`event` Event that can be handled to access the IRC record as it is sent on 
-                                          to the logging framework.
-========================================= ====================================================================
+=========================================== ====================================================================
+:zeek:id:`IRC::irc_log`: :zeek:type:`event` Event that can be handled to access the IRC record as it is sent on 
+                                            to the logging framework.
+=========================================== ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: IRC::Info
+.. zeek:type:: IRC::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp when the command was seen.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      nick: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      nick: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Nickname given for the connection.
 
-      user: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      user: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Username given for the connection.
 
-      command: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      command: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Command given by the client.
 
-      value: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      value: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value for the command given by the client.
 
-      addl: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      addl: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Any additional data for the command.
 
-      dcc_file_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      dcc_file_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/irc/dcc-send.zeek` is loaded)
 
          DCC filename requested.
 
-      dcc_file_size: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      dcc_file_size: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/irc/dcc-send.zeek` is loaded)
 
          Size of the DCC transfer as indicated by the sender.
 
-      dcc_mime_type: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      dcc_mime_type: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/irc/dcc-send.zeek` is loaded)
 
          Sniffed mime type of the file.
 
-      fuid: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      fuid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/irc/files.zeek` is loaded)
 
          File unique ID.
@@ -89,9 +89,9 @@ Types
 
 Events
 ######
-.. bro:id:: IRC::irc_log
+.. zeek:id:: IRC::irc_log
 
-   :Type: :bro:type:`event` (rec: :bro:type:`IRC::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`IRC::Info`)
 
    Event that can be handled to access the IRC record as it is sent on 
    to the logging framework.

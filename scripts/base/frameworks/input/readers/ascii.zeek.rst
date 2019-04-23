@@ -2,7 +2,7 @@
 
 base/frameworks/input/readers/ascii.zeek
 ========================================
-.. bro:namespace:: InputAscii
+.. zeek:namespace:: InputAscii
 
 Interface for the ascii input reader.
 
@@ -14,34 +14,34 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================ ==================================================================
-:bro:id:`InputAscii::empty_field`: :bro:type:`string` :bro:attr:`&redef`         String to use for empty fields.
-:bro:id:`InputAscii::fail_on_file_problem`: :bro:type:`bool` :bro:attr:`&redef`  Fail on file read problems.
-:bro:id:`InputAscii::fail_on_invalid_lines`: :bro:type:`bool` :bro:attr:`&redef` Fail on invalid lines.
-:bro:id:`InputAscii::path_prefix`: :bro:type:`string` :bro:attr:`&redef`         On input streams with a pathless or relative-path source filename,
-                                                                                 prefix the following path.
-:bro:id:`InputAscii::separator`: :bro:type:`string` :bro:attr:`&redef`           Separator between fields.
-:bro:id:`InputAscii::set_separator`: :bro:type:`string` :bro:attr:`&redef`       Separator between set and vector elements.
-:bro:id:`InputAscii::unset_field`: :bro:type:`string` :bro:attr:`&redef`         String to use for an unset &optional field.
-================================================================================ ==================================================================
+=================================================================================== ==================================================================
+:zeek:id:`InputAscii::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`         String to use for empty fields.
+:zeek:id:`InputAscii::fail_on_file_problem`: :zeek:type:`bool` :zeek:attr:`&redef`  Fail on file read problems.
+:zeek:id:`InputAscii::fail_on_invalid_lines`: :zeek:type:`bool` :zeek:attr:`&redef` Fail on invalid lines.
+:zeek:id:`InputAscii::path_prefix`: :zeek:type:`string` :zeek:attr:`&redef`         On input streams with a pathless or relative-path source filename,
+                                                                                    prefix the following path.
+:zeek:id:`InputAscii::separator`: :zeek:type:`string` :zeek:attr:`&redef`           Separator between fields.
+:zeek:id:`InputAscii::set_separator`: :zeek:type:`string` :zeek:attr:`&redef`       Separator between set and vector elements.
+:zeek:id:`InputAscii::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`         String to use for an unset &optional field.
+=================================================================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: InputAscii::empty_field
+.. zeek:id:: InputAscii::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"(empty)"``
 
    String to use for empty fields.
 
-.. bro:id:: InputAscii::fail_on_file_problem
+.. zeek:id:: InputAscii::fail_on_file_problem
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    Fail on file read problems. If set to true, the ascii
@@ -60,10 +60,10 @@ Redefinable Options
    fail_on_file_problem = T was the default behavior
    until Bro 2.6.
 
-.. bro:id:: InputAscii::fail_on_invalid_lines
+.. zeek:id:: InputAscii::fail_on_invalid_lines
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    Fail on invalid lines. If set to false, the ascii
@@ -77,10 +77,10 @@ Redefinable Options
    fail_on_invalid_lines = T was the default behavior
    until Bro 2.6.
 
-.. bro:id:: InputAscii::path_prefix
+.. zeek:id:: InputAscii::path_prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    On input streams with a pathless or relative-path source filename,
@@ -88,28 +88,28 @@ Redefinable Options
    The default is to leave any filenames unchanged. This prefix has no
    effect if the source already is an absolute path.
 
-.. bro:id:: InputAscii::separator
+.. zeek:id:: InputAscii::separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"\x09"``
 
    Separator between fields.
    Please note that the separator has to be exactly one character long.
 
-.. bro:id:: InputAscii::set_separator
+.. zeek:id:: InputAscii::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Separator between set and vector elements.
    Please note that the separator has to be exactly one character long.
 
-.. bro:id:: InputAscii::unset_field
+.. zeek:id:: InputAscii::unset_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"-"``
 
    String to use for an unset &optional field.

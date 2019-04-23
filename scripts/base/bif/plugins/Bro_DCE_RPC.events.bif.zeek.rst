@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_DCE_RPC.events.bif.zeek
 ============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================= ==============================================================================================================================
-:bro:id:`dce_rpc_alter_context`: :bro:type:`event`      Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
-:bro:id:`dce_rpc_alter_context_resp`: :bro:type:`event` Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
-:bro:id:`dce_rpc_bind`: :bro:type:`event`               Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
-:bro:id:`dce_rpc_bind_ack`: :bro:type:`event`           Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
-:bro:id:`dce_rpc_message`: :bro:type:`event`            Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` message.
-:bro:id:`dce_rpc_request`: :bro:type:`event`            Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
-:bro:id:`dce_rpc_response`: :bro:type:`event`           Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
-======================================================= ==============================================================================================================================
+========================================================= ==============================================================================================================================
+:zeek:id:`dce_rpc_alter_context`: :zeek:type:`event`      Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
+:zeek:id:`dce_rpc_alter_context_resp`: :zeek:type:`event` Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
+:zeek:id:`dce_rpc_bind`: :zeek:type:`event`               Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
+:zeek:id:`dce_rpc_bind_ack`: :zeek:type:`event`           Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
+:zeek:id:`dce_rpc_message`: :zeek:type:`event`            Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` message.
+:zeek:id:`dce_rpc_request`: :zeek:type:`event`            Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
+:zeek:id:`dce_rpc_response`: :zeek:type:`event`           Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
+========================================================= ==============================================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: dce_rpc_alter_context
+.. zeek:id:: dce_rpc_alter_context
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, uuid: :bro:type:`string`, ver_major: :bro:type:`count`, ver_minor: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, uuid: :zeek:type:`string`, ver_major: :zeek:type:`count`, ver_minor: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
    Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
@@ -54,11 +54,11 @@ Events
 
    :ver_minor: The minor version of the endpoint being requested.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
 
-.. bro:id:: dce_rpc_alter_context_resp
+.. zeek:id:: dce_rpc_alter_context_resp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
    
@@ -70,11 +70,11 @@ Events
         message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
         not transported over a pipe.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
 
-.. bro:id:: dce_rpc_bind
+.. zeek:id:: dce_rpc_bind
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, uuid: :bro:type:`string`, ver_major: :bro:type:`count`, ver_minor: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, uuid: :zeek:type:`string`, ver_major: :zeek:type:`count`, ver_minor: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
    Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
@@ -100,11 +100,11 @@ Events
 
    :ver_minor: The minor version of the endpoint being requested.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_bind_ack
+.. zeek:id:: dce_rpc_bind_ack
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, sec_addr: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, sec_addr: :zeek:type:`string`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
    
@@ -119,11 +119,11 @@ Events
 
    :sec_addr: Secondary address for the ack.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_message
+.. zeek:id:: dce_rpc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, fid: :bro:type:`count`, ptype_id: :bro:type:`count`, ptype: :bro:type:`DCE_RPC::PType`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, fid: :zeek:type:`count`, ptype_id: :zeek:type:`count`, ptype: :zeek:type:`DCE_RPC::PType`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` message.
    
@@ -144,11 +144,11 @@ Events
 
    :ptype: Enum representation of the prodecure type of the message.
    
-   .. bro:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_request
+.. zeek:id:: dce_rpc_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, opnum: :bro:type:`count`, stub_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub_len: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
    
@@ -169,11 +169,11 @@ Events
 
    :stub_len: Length of the data for the request.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
 
-.. bro:id:: dce_rpc_response
+.. zeek:id:: dce_rpc_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, opnum: :bro:type:`count`, stub_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub_len: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
    
@@ -193,6 +193,6 @@ Events
 
    :stub_len: Length of the data for the response.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
 
 

@@ -2,7 +2,7 @@
 
 base/protocols/mysql/consts.zeek
 ================================
-.. bro:namespace:: MySQL
+.. zeek:namespace:: MySQL
 
 
 :Namespace: MySQL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Constants
 #########
-============================================================================================================== =
-:bro:id:`MySQL::commands`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` 
-============================================================================================================== =
+=================================================================================================================== =
+:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
+=================================================================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: MySQL::commands
+.. zeek:id:: MySQL::commands
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::

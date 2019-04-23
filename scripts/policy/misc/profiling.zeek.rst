@@ -2,7 +2,7 @@
 
 policy/misc/profiling.zeek
 ==========================
-.. bro:namespace:: Profiling
+.. zeek:namespace:: Profiling
 
 Turns on profiling of Bro resource consumption.
 
@@ -12,12 +12,12 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================================ =================================================
-:bro:id:`expensive_profiling_multiple`: :bro:type:`count` :bro:attr:`&redef` Set the expensive profiling interval (multiple of
-                                                                             :bro:id:`profiling_interval`).
-:bro:id:`profiling_file`: :bro:type:`file` :bro:attr:`&redef`                Set the profiling output file.
-:bro:id:`profiling_interval`: :bro:type:`interval` :bro:attr:`&redef`        Set the cheap profiling interval.
-============================================================================ =================================================
+=============================================================================== =================================================
+:zeek:id:`expensive_profiling_multiple`: :zeek:type:`count` :zeek:attr:`&redef` Set the expensive profiling interval (multiple of
+                                                                                :zeek:id:`profiling_interval`).
+:zeek:id:`profiling_file`: :zeek:type:`file` :zeek:attr:`&redef`                Set the profiling output file.
+:zeek:id:`profiling_interval`: :zeek:type:`interval` :zeek:attr:`&redef`        Set the cheap profiling interval.
+=============================================================================== =================================================
 
 
 Detailed Interface

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SOCKS.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================= ===========================================================================
-:bro:id:`socks_login_userpass_reply`: :bro:type:`event`   Generated when a SOCKS server replies to a username/password login attempt.
-:bro:id:`socks_login_userpass_request`: :bro:type:`event` Generated when a SOCKS client performs username and password based login.
-:bro:id:`socks_reply`: :bro:type:`event`                  Generated when a SOCKS reply is analyzed.
-:bro:id:`socks_request`: :bro:type:`event`                Generated when a SOCKS request is analyzed.
-========================================================= ===========================================================================
+=========================================================== ===========================================================================
+:zeek:id:`socks_login_userpass_reply`: :zeek:type:`event`   Generated when a SOCKS server replies to a username/password login attempt.
+:zeek:id:`socks_login_userpass_request`: :zeek:type:`event` Generated when a SOCKS client performs username and password based login.
+:zeek:id:`socks_reply`: :zeek:type:`event`                  Generated when a SOCKS reply is analyzed.
+:zeek:id:`socks_request`: :zeek:type:`event`                Generated when a SOCKS request is analyzed.
+=========================================================== ===========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: socks_login_userpass_reply
+.. zeek:id:: socks_login_userpass_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`)
 
    Generated when a SOCKS server replies to a username/password login attempt.
    
@@ -35,9 +35,9 @@ Events
 
    :code: The response code for the attempted login.
 
-.. bro:id:: socks_login_userpass_request
+.. zeek:id:: socks_login_userpass_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated when a SOCKS client performs username and password based login.
    
@@ -50,9 +50,9 @@ Events
 
    :password: The given password.
 
-.. bro:id:: socks_reply
+.. zeek:id:: socks_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, reply: :bro:type:`count`, sa: :bro:type:`SOCKS::Address`, p: :bro:type:`port`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, reply: :zeek:type:`count`, sa: :zeek:type:`SOCKS::Address`, p: :zeek:type:`port`)
 
    Generated when a SOCKS reply is analyzed.
    
@@ -71,9 +71,9 @@ Events
 
    :p: The destination port for the proxied traffic.
 
-.. bro:id:: socks_request
+.. zeek:id:: socks_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, request_type: :bro:type:`count`, sa: :bro:type:`SOCKS::Address`, p: :bro:type:`port`, user: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, request_type: :zeek:type:`count`, sa: :zeek:type:`SOCKS::Address`, p: :zeek:type:`port`, user: :zeek:type:`string`)
 
    Generated when a SOCKS request is analyzed.
    

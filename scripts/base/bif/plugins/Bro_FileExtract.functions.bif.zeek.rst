@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_FileExtract.functions.bif.zeek
 ===================================================
-.. bro:namespace:: FileExtract
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: FileExtract
+.. zeek:namespace:: GLOBAL
 
 Internal functions used by the extraction file analyzer.
 
@@ -13,19 +13,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-======================================================== ==================================
-:bro:id:`FileExtract::__set_limit`: :bro:type:`function` :bro:see:`FileExtract::set_limit`.
-======================================================== ==================================
+========================================================== ===================================
+:zeek:id:`FileExtract::__set_limit`: :zeek:type:`function` :zeek:see:`FileExtract::set_limit`.
+========================================================== ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: FileExtract::__set_limit
+.. zeek:id:: FileExtract::__set_limit
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, args: :bro:type:`any`, n: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, args: :zeek:type:`any`, n: :zeek:type:`count`) : :zeek:type:`bool`
 
-   :bro:see:`FileExtract::set_limit`.
+   :zeek:see:`FileExtract::set_limit`.
 
 

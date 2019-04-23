@@ -2,9 +2,9 @@
 
 base/bif/messaging.bif.zeek
 ===========================
-.. bro:namespace:: Broker
-.. bro:namespace:: Cluster
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: Broker
+.. zeek:namespace:: Cluster
+.. zeek:namespace:: GLOBAL
 
 Functions for peering and various messaging patterns.
 
@@ -14,69 +14,69 @@ Summary
 ~~~~~~~
 Functions
 #########
-======================================================== ===================================================================
-:bro:id:`Broker::__auto_publish`: :bro:type:`function`   
-:bro:id:`Broker::__auto_unpublish`: :bro:type:`function` 
-:bro:id:`Broker::__flush_logs`: :bro:type:`function`     
-:bro:id:`Broker::__forward`: :bro:type:`function`        
-:bro:id:`Broker::__publish_id`: :bro:type:`function`     
-:bro:id:`Broker::__subscribe`: :bro:type:`function`      
-:bro:id:`Broker::__unsubscribe`: :bro:type:`function`    
-:bro:id:`Broker::make_event`: :bro:type:`function`       Create a data structure that may be used to send a remote event via
-                                                         :bro:see:`Broker::publish`.
-:bro:id:`Broker::publish`: :bro:type:`function`          Publishes an event at a given topic.
-:bro:id:`Cluster::publish_hrw`: :bro:type:`function`     Publishes an event to a node within a pool according to Rendezvous
-                                                         (Highest Random Weight) hashing strategy.
-:bro:id:`Cluster::publish_rr`: :bro:type:`function`      Publishes an event to a node within a pool according to Round-Robin
-                                                         distribution strategy.
-======================================================== ===================================================================
+========================================================== ===================================================================
+:zeek:id:`Broker::__auto_publish`: :zeek:type:`function`   
+:zeek:id:`Broker::__auto_unpublish`: :zeek:type:`function` 
+:zeek:id:`Broker::__flush_logs`: :zeek:type:`function`     
+:zeek:id:`Broker::__forward`: :zeek:type:`function`        
+:zeek:id:`Broker::__publish_id`: :zeek:type:`function`     
+:zeek:id:`Broker::__subscribe`: :zeek:type:`function`      
+:zeek:id:`Broker::__unsubscribe`: :zeek:type:`function`    
+:zeek:id:`Broker::make_event`: :zeek:type:`function`       Create a data structure that may be used to send a remote event via
+                                                           :zeek:see:`Broker::publish`.
+:zeek:id:`Broker::publish`: :zeek:type:`function`          Publishes an event at a given topic.
+:zeek:id:`Cluster::publish_hrw`: :zeek:type:`function`     Publishes an event to a node within a pool according to Rendezvous
+                                                           (Highest Random Weight) hashing strategy.
+:zeek:id:`Cluster::publish_rr`: :zeek:type:`function`      Publishes an event to a node within a pool according to Round-Robin
+                                                           distribution strategy.
+========================================================== ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Broker::__auto_publish
+.. zeek:id:: Broker::__auto_publish
 
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, ev: :bro:type:`any`) : :bro:type:`bool`
-
-
-.. bro:id:: Broker::__auto_unpublish
-
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, ev: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, ev: :zeek:type:`any`) : :zeek:type:`bool`
 
 
-.. bro:id:: Broker::__flush_logs
+.. zeek:id:: Broker::__auto_unpublish
 
-   :Type: :bro:type:`function` () : :bro:type:`count`
-
-
-.. bro:id:: Broker::__forward
-
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, ev: :zeek:type:`any`) : :zeek:type:`bool`
 
 
-.. bro:id:: Broker::__publish_id
+.. zeek:id:: Broker::__flush_logs
 
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, id: :bro:type:`string`) : :bro:type:`bool`
-
-
-.. bro:id:: Broker::__subscribe
-
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` () : :zeek:type:`count`
 
 
-.. bro:id:: Broker::__unsubscribe
+.. zeek:id:: Broker::__forward
 
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
-.. bro:id:: Broker::make_event
+.. zeek:id:: Broker::__publish_id
 
-   :Type: :bro:type:`function` (...) : :bro:type:`Broker::Event`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, id: :zeek:type:`string`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Broker::__subscribe
+
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Broker::__unsubscribe
+
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Broker::make_event
+
+   :Type: :zeek:type:`function` (...) : :zeek:type:`Broker::Event`
 
    Create a data structure that may be used to send a remote event via
-   :bro:see:`Broker::publish`.
+   :zeek:see:`Broker::publish`.
    
 
    :args: an event, followed by a list of argument values that may be used
@@ -86,9 +86,9 @@ Functions
    :returns: opaque communication data that may be used to send a remote
             event.
 
-.. bro:id:: Broker::publish
+.. zeek:id:: Broker::publish
 
-   :Type: :bro:type:`function` (...) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 
    Publishes an event at a given topic.
    
@@ -97,15 +97,15 @@ Functions
    
 
    :args: Either the event arguments as already made by
-         :bro:see:`Broker::make_event` or the argument list to pass along
+         :zeek:see:`Broker::make_event` or the argument list to pass along
          to it.
    
 
    :returns: true if the message is sent.
 
-.. bro:id:: Cluster::publish_hrw
+.. zeek:id:: Cluster::publish_hrw
 
-   :Type: :bro:type:`function` (...) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 
    Publishes an event to a node within a pool according to Rendezvous
    (Highest Random Weight) hashing strategy.
@@ -119,15 +119,15 @@ Functions
    
 
    :args: Either the event arguments as already made by
-         :bro:see:`Broker::make_event` or the argument list to pass along
+         :zeek:see:`Broker::make_event` or the argument list to pass along
          to it.
    
 
    :returns: true if the message is sent.
 
-.. bro:id:: Cluster::publish_rr
+.. zeek:id:: Cluster::publish_rr
 
-   :Type: :bro:type:`function` (...) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 
    Publishes an event to a node within a pool according to Round-Robin
    distribution strategy.
@@ -142,7 +142,7 @@ Functions
    
 
    :args: Either the event arguments as already made by
-         :bro:see:`Broker::make_event` or the argument list to pass along
+         :zeek:see:`Broker::make_event` or the argument list to pass along
          to it.
    
 

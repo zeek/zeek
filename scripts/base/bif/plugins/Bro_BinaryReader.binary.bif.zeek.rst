@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_BinaryReader.binary.bif.zeek
 =================================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: InputBinary
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: InputBinary
 
 
 :Namespaces: GLOBAL, InputBinary

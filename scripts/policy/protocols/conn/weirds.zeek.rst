@@ -2,7 +2,7 @@
 
 policy/protocols/conn/weirds.zeek
 =================================
-.. bro:namespace:: Conn
+.. zeek:namespace:: Conn
 
 This script handles core generated connection related "weird" events to 
 push weird information about connections into the weird framework.
@@ -17,9 +17,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface

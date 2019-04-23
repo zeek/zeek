@@ -2,7 +2,7 @@
 
 base/frameworks/notice/weird.zeek
 =================================
-.. bro:namespace:: Weird
+.. zeek:namespace:: Weird
 
 This script provides a default set of actions to take for "weird activity"
 events generated from Bro's event engine.  Weird activity is defined as
@@ -20,74 +20,74 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================================ ==============================================================
-:bro:id:`Weird::ignore_hosts`: :bro:type:`set` :bro:attr:`&redef`                To completely ignore a specific weird for a host, add the host
-                                                                                 and weird name into this set.
-:bro:id:`Weird::weird_do_not_ignore_repeats`: :bro:type:`set` :bro:attr:`&redef` Don't ignore repeats for weirds in this set.
-================================================================================ ==============================================================
+=================================================================================== ==============================================================
+:zeek:id:`Weird::ignore_hosts`: :zeek:type:`set` :zeek:attr:`&redef`                To completely ignore a specific weird for a host, add the host
+                                                                                    and weird name into this set.
+:zeek:id:`Weird::weird_do_not_ignore_repeats`: :zeek:type:`set` :zeek:attr:`&redef` Don't ignore repeats for weirds in this set.
+=================================================================================== ==============================================================
 
 Redefinable Options
 ###################
-================================================================================================================================= ==============================================================
-:bro:id:`Weird::actions`: :bro:type:`table` :bro:attr:`&default` = ``Weird::ACTION_LOG`` :bro:attr:`&optional` :bro:attr:`&redef` A table specifying default/recommended actions per weird type.
-================================================================================================================================= ==============================================================
+====================================================================================================================================== ==============================================================
+:zeek:id:`Weird::actions`: :zeek:type:`table` :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&optional` :zeek:attr:`&redef` A table specifying default/recommended actions per weird type.
+====================================================================================================================================== ==============================================================
 
 State Variables
 ###############
-============================================================================================================ ====================================================================
-:bro:id:`Weird::did_log`: :bro:type:`set` :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`        A state set which tracks unique weirds solely by name to reduce
-                                                                                                             duplicate logging.
-:bro:id:`Weird::did_notice`: :bro:type:`set` :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`     A state set which tracks unique weirds solely by name to reduce
-                                                                                                             duplicate notices from being raised.
-:bro:id:`Weird::weird_ignore`: :bro:type:`set` :bro:attr:`&create_expire` = ``10.0 mins`` :bro:attr:`&redef` This table is used to track identifier and name pairs that should be
-                                                                                                             temporarily ignored because the problem has already been reported.
-============================================================================================================ ====================================================================
+================================================================================================================ ====================================================================
+:zeek:id:`Weird::did_log`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`        A state set which tracks unique weirds solely by name to reduce
+                                                                                                                 duplicate logging.
+:zeek:id:`Weird::did_notice`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`     A state set which tracks unique weirds solely by name to reduce
+                                                                                                                 duplicate notices from being raised.
+:zeek:id:`Weird::weird_ignore`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``10.0 mins`` :zeek:attr:`&redef` This table is used to track identifier and name pairs that should be
+                                                                                                                 temporarily ignored because the problem has already been reported.
+================================================================================================================ ====================================================================
 
 Types
 #####
-=========================================== =======================================================================
-:bro:type:`Weird::Action`: :bro:type:`enum` Types of actions that may be taken when handling weird activity events.
-:bro:type:`Weird::Info`: :bro:type:`record` The record which is used for representing and logging weirds.
-=========================================== =======================================================================
+============================================= =======================================================================
+:zeek:type:`Weird::Action`: :zeek:type:`enum` Types of actions that may be taken when handling weird activity events.
+:zeek:type:`Weird::Info`: :zeek:type:`record` The record which is used for representing and logging weirds.
+============================================= =======================================================================
 
 Redefinitions
 #############
-========================================== ====================================
-:bro:type:`Log::ID`: :bro:type:`enum`      The weird logging stream identifier.
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== ====================================
+============================================ ====================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      The weird logging stream identifier.
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ ====================================
 
 Events
 ######
-============================================= ==============================================================
-:bro:id:`Weird::log_weird`: :bro:type:`event` Handlers of this event are invoked once per write to the weird
-                                              logging stream before the data is actually written.
-============================================= ==============================================================
+=============================================== ==============================================================
+:zeek:id:`Weird::log_weird`: :zeek:type:`event` Handlers of this event are invoked once per write to the weird
+                                                logging stream before the data is actually written.
+=============================================== ==============================================================
 
 Functions
 #########
-============================================ =
-:bro:id:`Weird::weird`: :bro:type:`function` 
-============================================ =
+============================================== =
+:zeek:id:`Weird::weird`: :zeek:type:`function` 
+============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Weird::ignore_hosts
+.. zeek:id:: Weird::ignore_hosts
 
-   :Type: :bro:type:`set` [:bro:type:`addr`, :bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    To completely ignore a specific weird for a host, add the host
    and weird name into this set.
 
-.. bro:id:: Weird::weird_do_not_ignore_repeats
+.. zeek:id:: Weird::weird_do_not_ignore_repeats
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -104,10 +104,10 @@ Runtime Options
 
 Redefinable Options
 ###################
-.. bro:id:: Weird::actions
+.. zeek:id:: Weird::actions
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`Weird::Action`
-   :Attributes: :bro:attr:`&default` = ``Weird::ACTION_LOG`` :bro:attr:`&optional` :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Weird::Action`
+   :Attributes: :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&optional` :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -271,29 +271,29 @@ Redefinable Options
 
 State Variables
 ###############
-.. bro:id:: Weird::did_log
+.. zeek:id:: Weird::did_log
 
-   :Type: :bro:type:`set` [:bro:type:`string`, :bro:type:`string`]
-   :Attributes: :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
+   :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    A state set which tracks unique weirds solely by name to reduce
    duplicate logging.  This is deliberately not synchronized because it
    could cause overload during storms.
 
-.. bro:id:: Weird::did_notice
+.. zeek:id:: Weird::did_notice
 
-   :Type: :bro:type:`set` [:bro:type:`string`, :bro:type:`string`]
-   :Attributes: :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
+   :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    A state set which tracks unique weirds solely by name to reduce
    duplicate notices from being raised.
 
-.. bro:id:: Weird::weird_ignore
+.. zeek:id:: Weird::weird_ignore
 
-   :Type: :bro:type:`set` [:bro:type:`string`, :bro:type:`string`]
-   :Attributes: :bro:attr:`&create_expire` = ``10.0 mins`` :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
+   :Attributes: :zeek:attr:`&create_expire` = ``10.0 mins`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    This table is used to track identifier and name pairs that should be
@@ -303,85 +303,85 @@ State Variables
 
 Types
 #####
-.. bro:type:: Weird::Action
+.. zeek:type:: Weird::Action
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Weird::ACTION_UNSPECIFIED Weird::Action
+      .. zeek:enum:: Weird::ACTION_UNSPECIFIED Weird::Action
 
          A dummy action indicating the user does not care what
          internal decision is made regarding a given type of weird.
 
-      .. bro:enum:: Weird::ACTION_IGNORE Weird::Action
+      .. zeek:enum:: Weird::ACTION_IGNORE Weird::Action
 
          No action is to be taken.
 
-      .. bro:enum:: Weird::ACTION_LOG Weird::Action
+      .. zeek:enum:: Weird::ACTION_LOG Weird::Action
 
          Log the weird event every time it occurs.
 
-      .. bro:enum:: Weird::ACTION_LOG_ONCE Weird::Action
+      .. zeek:enum:: Weird::ACTION_LOG_ONCE Weird::Action
 
          Log the weird event only once.
 
-      .. bro:enum:: Weird::ACTION_LOG_PER_CONN Weird::Action
+      .. zeek:enum:: Weird::ACTION_LOG_PER_CONN Weird::Action
 
          Log the weird event once per connection.
 
-      .. bro:enum:: Weird::ACTION_LOG_PER_ORIG Weird::Action
+      .. zeek:enum:: Weird::ACTION_LOG_PER_ORIG Weird::Action
 
          Log the weird event once per originator host.
 
-      .. bro:enum:: Weird::ACTION_NOTICE Weird::Action
+      .. zeek:enum:: Weird::ACTION_NOTICE Weird::Action
 
          Always generate a notice associated with the weird event.
 
-      .. bro:enum:: Weird::ACTION_NOTICE_ONCE Weird::Action
+      .. zeek:enum:: Weird::ACTION_NOTICE_ONCE Weird::Action
 
          Generate a notice associated with the weird event only once.
 
-      .. bro:enum:: Weird::ACTION_NOTICE_PER_CONN Weird::Action
+      .. zeek:enum:: Weird::ACTION_NOTICE_PER_CONN Weird::Action
 
          Generate a notice for the weird event once per connection.
 
-      .. bro:enum:: Weird::ACTION_NOTICE_PER_ORIG Weird::Action
+      .. zeek:enum:: Weird::ACTION_NOTICE_PER_ORIG Weird::Action
 
          Generate a notice for the weird event once per originator host.
 
    Types of actions that may be taken when handling weird activity events.
 
-.. bro:type:: Weird::Info
+.. zeek:type:: Weird::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          The time when the weird occurred.
 
-      uid: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      uid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          If a connection is associated with this weird, this will be
          the connection's unique ID.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log` :bro:attr:`&optional`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log` :zeek:attr:`&optional`
          conn_id for the optional connection.
 
-      conn: :bro:type:`connection` :bro:attr:`&optional`
+      conn: :zeek:type:`connection` :zeek:attr:`&optional`
          A shorthand way of giving the uid and id to a weird.
 
-      name: :bro:type:`string` :bro:attr:`&log`
+      name: :zeek:type:`string` :zeek:attr:`&log`
          The name of the weird that occurred.
 
-      addl: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      addl: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Additional information accompanying the weird if any.
 
-      notice: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      notice: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Indicate if this weird was also turned into a notice.
 
-      peer: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional` :bro:attr:`&default` = :bro:see:`peer_description`
+      peer: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional` :zeek:attr:`&default` = :zeek:see:`peer_description`
          The peer that originated this weird.  This is helpful in
          cluster deployments if a particular cluster node is having
          trouble to help identify which node is having trouble.
 
-      identifier: :bro:type:`string` :bro:attr:`&optional`
+      identifier: :zeek:type:`string` :zeek:attr:`&optional`
          This field is to be provided when a weird is generated for
          the purpose of deduplicating weirds. The identifier string
          should be unique for a single instance of the weird. This field
@@ -392,9 +392,9 @@ Types
 
 Events
 ######
-.. bro:id:: Weird::log_weird
+.. zeek:id:: Weird::log_weird
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Weird::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Weird::Info`)
 
    Handlers of this event are invoked once per write to the weird
    logging stream before the data is actually written.
@@ -404,9 +404,9 @@ Events
 
 Functions
 #########
-.. bro:id:: Weird::weird
+.. zeek:id:: Weird::weird
 
-   :Type: :bro:type:`function` (w: :bro:type:`Weird::Info`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (w: :zeek:type:`Weird::Info`) : :zeek:type:`void`
 
 
 

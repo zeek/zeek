@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_NetBIOS.events.bif.zeek
 ============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,25 +11,25 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================= =====================================================================
-:bro:id:`netbios_session_accepted`: :bro:type:`event`     Generated for NetBIOS messages of type *positive session response*.
-:bro:id:`netbios_session_keepalive`: :bro:type:`event`    Generated for NetBIOS messages of type *keep-alive*.
-:bro:id:`netbios_session_message`: :bro:type:`event`      Generated for all NetBIOS SSN and DGM messages.
-:bro:id:`netbios_session_raw_message`: :bro:type:`event`  Generated for NetBIOS messages of type *session message* that are not
-                                                          carrying an SMB payload.
-:bro:id:`netbios_session_rejected`: :bro:type:`event`     Generated for NetBIOS messages of type *negative session response*.
-:bro:id:`netbios_session_request`: :bro:type:`event`      Generated for NetBIOS messages of type *session request*.
-:bro:id:`netbios_session_ret_arg_resp`: :bro:type:`event` Generated for NetBIOS messages of type *retarget response*.
-========================================================= =====================================================================
+=========================================================== =====================================================================
+:zeek:id:`netbios_session_accepted`: :zeek:type:`event`     Generated for NetBIOS messages of type *positive session response*.
+:zeek:id:`netbios_session_keepalive`: :zeek:type:`event`    Generated for NetBIOS messages of type *keep-alive*.
+:zeek:id:`netbios_session_message`: :zeek:type:`event`      Generated for all NetBIOS SSN and DGM messages.
+:zeek:id:`netbios_session_raw_message`: :zeek:type:`event`  Generated for NetBIOS messages of type *session message* that are not
+                                                            carrying an SMB payload.
+:zeek:id:`netbios_session_rejected`: :zeek:type:`event`     Generated for NetBIOS messages of type *negative session response*.
+:zeek:id:`netbios_session_request`: :zeek:type:`event`      Generated for NetBIOS messages of type *session request*.
+:zeek:id:`netbios_session_ret_arg_resp`: :zeek:type:`event` Generated for NetBIOS messages of type *retarget response*.
+=========================================================== =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: netbios_session_accepted
+.. zeek:id:: netbios_session_accepted
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *positive session response*. Bro's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
@@ -47,7 +47,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see::  netbios_session_keepalive netbios_session_message
+   .. zeek:see::  netbios_session_keepalive netbios_session_message
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -60,9 +60,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_keepalive
+.. zeek:id:: netbios_session_keepalive
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *keep-alive*. Bro's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
@@ -80,7 +80,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_message
+   .. zeek:see:: netbios_session_accepted netbios_session_message
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -93,9 +93,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_message
+.. zeek:id:: netbios_session_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg_type: :bro:type:`count`, data_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, data_len: :zeek:type:`count`)
 
    Generated for all NetBIOS SSN and DGM messages. Bro's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
@@ -119,7 +119,7 @@ Events
 
    :data_len: The length of the message's payload.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
@@ -132,9 +132,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_raw_message
+.. zeek:id:: netbios_session_raw_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *session message* that are not
    carrying an SMB payload.
@@ -157,7 +157,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header (i.e., the ``user_data``).
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -173,9 +173,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_rejected
+.. zeek:id:: netbios_session_rejected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *negative session response*. Bro's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
@@ -193,7 +193,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -206,9 +206,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_request
+.. zeek:id:: netbios_session_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *session request*. Bro's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
@@ -226,7 +226,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_rejected
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -239,9 +239,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_ret_arg_resp
+.. zeek:id:: netbios_session_ret_arg_resp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *retarget response*. Bro's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
@@ -259,7 +259,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_rejected
       netbios_session_request decode_netbios_name decode_netbios_name_type
    

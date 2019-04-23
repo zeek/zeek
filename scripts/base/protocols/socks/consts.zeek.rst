@@ -2,7 +2,7 @@
 
 base/protocols/socks/consts.zeek
 ================================
-.. bro:namespace:: SOCKS
+.. zeek:namespace:: SOCKS
 
 
 :Namespace: SOCKS
@@ -11,27 +11,27 @@ Summary
 ~~~~~~~
 Constants
 #########
-=============================================================================================================================== =
-:bro:id:`SOCKS::v4_status`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`                 
-:bro:id:`SOCKS::v5_authentication_methods`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` 
-:bro:id:`SOCKS::v5_status`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`                 
-=============================================================================================================================== =
+==================================================================================================================================== =
+:zeek:id:`SOCKS::v4_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`                 
+:zeek:id:`SOCKS::v5_authentication_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
+:zeek:id:`SOCKS::v5_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`                 
+==================================================================================================================================== =
 
 Types
 #####
-================================================ =
-:bro:type:`SOCKS::RequestType`: :bro:type:`enum` 
-================================================ =
+================================================== =
+:zeek:type:`SOCKS::RequestType`: :zeek:type:`enum` 
+================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: SOCKS::v4_status
+.. zeek:id:: SOCKS::v4_status
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -44,10 +44,10 @@ Constants
       }
 
 
-.. bro:id:: SOCKS::v5_authentication_methods
+.. zeek:id:: SOCKS::v5_authentication_methods
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -65,10 +65,10 @@ Constants
       }
 
 
-.. bro:id:: SOCKS::v5_status
+.. zeek:id:: SOCKS::v5_status
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -88,15 +88,15 @@ Constants
 
 Types
 #####
-.. bro:type:: SOCKS::RequestType
+.. zeek:type:: SOCKS::RequestType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: SOCKS::CONNECTION SOCKS::RequestType
+      .. zeek:enum:: SOCKS::CONNECTION SOCKS::RequestType
 
-      .. bro:enum:: SOCKS::PORT SOCKS::RequestType
+      .. zeek:enum:: SOCKS::PORT SOCKS::RequestType
 
-      .. bro:enum:: SOCKS::UDP_ASSOCIATE SOCKS::RequestType
+      .. zeek:enum:: SOCKS::UDP_ASSOCIATE SOCKS::RequestType
 
 
 

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_session_setup_andx.bif.zeek
 =============================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================================= ===========================================================================================
-:bro:id:`smb1_session_setup_andx_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                              version 1 requests of type *setup andx*.
-:bro:id:`smb1_session_setup_andx_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                              version 1 responses of type *setup andx*.
-============================================================= ===========================================================================================
+=============================================================== ===========================================================================================
+:zeek:id:`smb1_session_setup_andx_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                version 1 requests of type *setup andx*.
+:zeek:id:`smb1_session_setup_andx_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                version 1 responses of type *setup andx*.
+=============================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_session_setup_andx_request
+.. zeek:id:: smb1_session_setup_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, request: :bro:type:`SMB1::SessionSetupAndXRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, request: :zeek:type:`SMB1::SessionSetupAndXRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *setup andx*. This is sent by the client to configure an SMB session.
@@ -41,11 +41,11 @@ Events
 
    :request: The parsed request data of the SMB message. See init-bare for more details.
    
-   .. bro:see:: smb1_message smb1_session_setup_andx_response
+   .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
-.. bro:id:: smb1_session_setup_andx_response
+.. zeek:id:: smb1_session_setup_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, response: :bro:type:`SMB1::SessionSetupAndXResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::SessionSetupAndXResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *setup andx*. This is the server response to the *setup andx* request.
@@ -61,6 +61,6 @@ Events
 
    :response: The parsed response data of the SMB message. See init-bare for more details.
    
-   .. bro:see:: smb1_message smb1_session_setup_andx_request
+   .. zeek:see:: smb1_message smb1_session_setup_andx_request
 
 

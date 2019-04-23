@@ -2,7 +2,7 @@
 
 base/frameworks/config/input.zeek
 =================================
-.. bro:namespace:: Config
+.. zeek:namespace:: Config
 
 File input for the configuration framework using the input framework.
 
@@ -13,26 +13,26 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================== ===============================================
-:bro:id:`Config::config_files`: :bro:type:`set` :bro:attr:`&redef` Configuration files that will be read off disk.
-================================================================== ===============================================
+===================================================================== ===============================================
+:zeek:id:`Config::config_files`: :zeek:type:`set` :zeek:attr:`&redef` Configuration files that will be read off disk.
+===================================================================== ===============================================
 
 Functions
 #########
-=================================================== ===================================================================
-:bro:id:`Config::read_config`: :bro:type:`function` Read specified configuration file and apply values; updates to file
-                                                    are not tracked.
-=================================================== ===================================================================
+===================================================== ===================================================================
+:zeek:id:`Config::read_config`: :zeek:type:`function` Read specified configuration file and apply values; updates to file
+                                                      are not tracked.
+===================================================== ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Config::config_files
+.. zeek:id:: Config::config_files
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    Configuration files that will be read off disk. Files are reread
@@ -44,9 +44,9 @@ Redefinable Options
 
 Functions
 #########
-.. bro:id:: Config::read_config
+.. zeek:id:: Config::read_config
 
-   :Type: :bro:type:`function` (filename: :bro:type:`string`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (filename: :zeek:type:`string`) : :zeek:type:`void`
 
    Read specified configuration file and apply values; updates to file
    are not tracked.

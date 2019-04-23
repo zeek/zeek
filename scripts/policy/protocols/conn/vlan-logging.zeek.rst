@@ -2,7 +2,7 @@
 
 policy/protocols/conn/vlan-logging.zeek
 =======================================
-.. bro:namespace:: Conn
+.. zeek:namespace:: Conn
 
 This script adds VLAN information to the connection log.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Conn::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`Conn::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

@@ -10,12 +10,12 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-======================================================================= =
-:bro:id:`Known::cert_tracking`: :bro:type:`Host` :bro:attr:`&redef`     
-:bro:id:`Known::host_tracking`: :bro:type:`Host` :bro:attr:`&redef`     
-:bro:id:`Known::service_tracking`: :bro:type:`Host` :bro:attr:`&redef`  
-:bro:id:`Software::asset_tracking`: :bro:type:`Host` :bro:attr:`&redef` 
-======================================================================= =
+========================================================================== =
+:zeek:id:`Known::cert_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`     
+:zeek:id:`Known::host_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`     
+:zeek:id:`Known::service_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`  
+:zeek:id:`Software::asset_tracking`: :zeek:type:`Host` :zeek:attr:`&redef` 
+========================================================================== =
 
 
 Detailed Interface

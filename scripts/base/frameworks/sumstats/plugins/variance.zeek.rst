@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/variance.zeek
 ==============================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Calculate the variance.
 
@@ -13,11 +13,11 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 
 Detailed Interface

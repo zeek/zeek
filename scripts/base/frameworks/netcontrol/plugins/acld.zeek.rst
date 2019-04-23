@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/plugins/acld.zeek
 ============================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 Acld plugin for the netcontrol framework.
 
@@ -13,78 +13,78 @@ Summary
 ~~~~~~~
 Types
 #####
-====================================================== =
-:bro:type:`NetControl::AclRule`: :bro:type:`record`    
-:bro:type:`NetControl::AcldConfig`: :bro:type:`record` 
-====================================================== =
+======================================================== =
+:zeek:type:`NetControl::AclRule`: :zeek:type:`record`    
+:zeek:type:`NetControl::AcldConfig`: :zeek:type:`record` 
+======================================================== =
 
 Redefinitions
 #############
-======================================================= =
-:bro:type:`NetControl::PluginState`: :bro:type:`record` 
-======================================================= =
+========================================================= =
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
+========================================================= =
 
 Events
 ######
-========================================================== =======================================
-:bro:id:`NetControl::acld_add_rule`: :bro:type:`event`     Events that are sent from us to Broker.
-:bro:id:`NetControl::acld_remove_rule`: :bro:type:`event`  
-:bro:id:`NetControl::acld_rule_added`: :bro:type:`event`   Events that are sent from Broker to us.
-:bro:id:`NetControl::acld_rule_error`: :bro:type:`event`   
-:bro:id:`NetControl::acld_rule_exists`: :bro:type:`event`  
-:bro:id:`NetControl::acld_rule_removed`: :bro:type:`event` 
-========================================================== =======================================
+============================================================ =======================================
+:zeek:id:`NetControl::acld_add_rule`: :zeek:type:`event`     Events that are sent from us to Broker.
+:zeek:id:`NetControl::acld_remove_rule`: :zeek:type:`event`  
+:zeek:id:`NetControl::acld_rule_added`: :zeek:type:`event`   Events that are sent from Broker to us.
+:zeek:id:`NetControl::acld_rule_error`: :zeek:type:`event`   
+:zeek:id:`NetControl::acld_rule_exists`: :zeek:type:`event`  
+:zeek:id:`NetControl::acld_rule_removed`: :zeek:type:`event` 
+============================================================ =======================================
 
 Hooks
 #####
-======================================================== ==============================================================
-:bro:id:`NetControl::acld_rule_policy`: :bro:type:`hook` Hook that is called after a rule is converted to an acld rule.
-======================================================== ==============================================================
+========================================================== ==============================================================
+:zeek:id:`NetControl::acld_rule_policy`: :zeek:type:`hook` Hook that is called after a rule is converted to an acld rule.
+========================================================== ==============================================================
 
 Functions
 #########
-======================================================= =============================
-:bro:id:`NetControl::create_acld`: :bro:type:`function` Instantiates the acld plugin.
-======================================================= =============================
+========================================================= =============================
+:zeek:id:`NetControl::create_acld`: :zeek:type:`function` Instantiates the acld plugin.
+========================================================= =============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NetControl::AclRule
+.. zeek:type:: NetControl::AclRule
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      command: :bro:type:`string`
+      command: :zeek:type:`string`
 
-      cookie: :bro:type:`count`
+      cookie: :zeek:type:`count`
 
-      arg: :bro:type:`string`
+      arg: :zeek:type:`string`
 
-      comment: :bro:type:`string` :bro:attr:`&optional`
+      comment: :zeek:type:`string` :zeek:attr:`&optional`
 
 
-.. bro:type:: NetControl::AcldConfig
+.. zeek:type:: NetControl::AcldConfig
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      acld_topic: :bro:type:`string`
+      acld_topic: :zeek:type:`string`
          The acld topic to send events to.
 
-      acld_host: :bro:type:`addr`
+      acld_host: :zeek:type:`addr`
          Broker host to connect to.
 
-      acld_port: :bro:type:`port`
+      acld_port: :zeek:type:`port`
          Broker port to connect to.
 
-      monitor: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      monitor: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Do we accept rules for the monitor path? Default false.
 
-      forward: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      forward: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Do we accept rules for the forward path? Default true.
 
-      check_pred: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`) : :bro:type:`bool` :bro:attr:`&optional`
+      check_pred: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Predicate that is called on rule insertion or removal.
          
 
@@ -99,43 +99,43 @@ Types
 
 Events
 ######
-.. bro:id:: NetControl::acld_add_rule
+.. zeek:id:: NetControl::acld_add_rule
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, ar: :bro:type:`NetControl::AclRule`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, ar: :zeek:type:`NetControl::AclRule`)
 
    Events that are sent from us to Broker.
 
-.. bro:id:: NetControl::acld_remove_rule
+.. zeek:id:: NetControl::acld_remove_rule
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, ar: :bro:type:`NetControl::AclRule`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, ar: :zeek:type:`NetControl::AclRule`)
 
 
-.. bro:id:: NetControl::acld_rule_added
+.. zeek:id:: NetControl::acld_rule_added
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
 
    Events that are sent from Broker to us.
 
-.. bro:id:: NetControl::acld_rule_error
+.. zeek:id:: NetControl::acld_rule_error
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
-
-
-.. bro:id:: NetControl::acld_rule_exists
-
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
 
 
-.. bro:id:: NetControl::acld_rule_removed
+.. zeek:id:: NetControl::acld_rule_exists
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
+
+
+.. zeek:id:: NetControl::acld_rule_removed
+
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
 
 
 Hooks
 #####
-.. bro:id:: NetControl::acld_rule_policy
+.. zeek:id:: NetControl::acld_rule_policy
 
-   :Type: :bro:type:`hook` (p: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`, ar: :bro:type:`NetControl::AclRule`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`, ar: :zeek:type:`NetControl::AclRule`) : :zeek:type:`bool`
 
    Hook that is called after a rule is converted to an acld rule.
    The hook may modify the rule before it is sent to acld.
@@ -153,9 +153,9 @@ Hooks
 
 Functions
 #########
-.. bro:id:: NetControl::create_acld
+.. zeek:id:: NetControl::create_acld
 
-   :Type: :bro:type:`function` (config: :bro:type:`NetControl::AcldConfig`) : :bro:type:`NetControl::PluginState`
+   :Type: :zeek:type:`function` (config: :zeek:type:`NetControl::AcldConfig`) : :zeek:type:`NetControl::PluginState`
 
    Instantiates the acld plugin.
 

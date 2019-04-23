@@ -2,7 +2,7 @@
 
 base/frameworks/input/readers/sqlite.zeek
 =========================================
-.. bro:namespace:: InputSQLite
+.. zeek:namespace:: InputSQLite
 
 Interface for the SQLite input reader. Redefinable options are available
 to tweak the input format of the SQLite reader.
@@ -20,38 +20,38 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=========================================================================== ===========================================
-:bro:id:`InputSQLite::empty_field`: :bro:type:`string` :bro:attr:`&redef`   String to use for empty fields.
-:bro:id:`InputSQLite::set_separator`: :bro:type:`string` :bro:attr:`&redef` Separator between set elements.
-:bro:id:`InputSQLite::unset_field`: :bro:type:`string` :bro:attr:`&redef`   String to use for an unset &optional field.
-=========================================================================== ===========================================
+============================================================================== ===========================================
+:zeek:id:`InputSQLite::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`   String to use for empty fields.
+:zeek:id:`InputSQLite::set_separator`: :zeek:type:`string` :zeek:attr:`&redef` Separator between set elements.
+:zeek:id:`InputSQLite::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`   String to use for an unset &optional field.
+============================================================================== ===========================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: InputSQLite::empty_field
+.. zeek:id:: InputSQLite::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"(empty)"``
 
    String to use for empty fields.
 
-.. bro:id:: InputSQLite::set_separator
+.. zeek:id:: InputSQLite::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Separator between set elements.
    Please note that the separator has to be exactly one character long.
 
-.. bro:id:: InputSQLite::unset_field
+.. zeek:id:: InputSQLite::unset_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"-"``
 
    String to use for an unset &optional field.

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_XMPP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================== ==================================================================
-:bro:id:`xmpp_starttls`: :bro:type:`event` Generated when a XMPP connection goes encrypted after a successful
-                                           StartTLS exchange between the client and the server.
-========================================== ==================================================================
+============================================ ==================================================================
+:zeek:id:`xmpp_starttls`: :zeek:type:`event` Generated when a XMPP connection goes encrypted after a successful
+                                             StartTLS exchange between the client and the server.
+============================================ ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: xmpp_starttls
+.. zeek:id:: xmpp_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a XMPP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.

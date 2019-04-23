@@ -2,7 +2,7 @@
 
 base/frameworks/logging/writers/sqlite.zeek
 ===========================================
-.. bro:namespace:: LogSQLite
+.. zeek:namespace:: LogSQLite
 
 Interface for the SQLite log writer. Redefinable options are available
 to tweak the output format of the SQLite reader.
@@ -21,38 +21,38 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-========================================================================= ===========================================
-:bro:id:`LogSQLite::empty_field`: :bro:type:`string` :bro:attr:`&redef`   String to use for empty fields.
-:bro:id:`LogSQLite::set_separator`: :bro:type:`string` :bro:attr:`&redef` Separator between set elements.
-:bro:id:`LogSQLite::unset_field`: :bro:type:`string` :bro:attr:`&redef`   String to use for an unset &optional field.
-========================================================================= ===========================================
+============================================================================ ===========================================
+:zeek:id:`LogSQLite::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`   String to use for empty fields.
+:zeek:id:`LogSQLite::set_separator`: :zeek:type:`string` :zeek:attr:`&redef` Separator between set elements.
+:zeek:id:`LogSQLite::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`   String to use for an unset &optional field.
+============================================================================ ===========================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: LogSQLite::empty_field
+.. zeek:id:: LogSQLite::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"(empty)"``
 
    String to use for empty fields. This should be different from
    *unset_field* to make the output unambiguous.
 
-.. bro:id:: LogSQLite::set_separator
+.. zeek:id:: LogSQLite::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Separator between set elements.
 
-.. bro:id:: LogSQLite::unset_field
+.. zeek:id:: LogSQLite::unset_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"-"``
 
    String to use for an unset &optional field.

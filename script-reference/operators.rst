@@ -8,11 +8,11 @@ details, see the documentation about the `data types <types.html>`_.
 Relational operators
 --------------------
 
-The relational operators evaluate to type :bro:type:`bool`.
+The relational operators evaluate to type :zeek:type:`bool`.
 
 In addition to numeric operands, the relational operators also work with
-operands of type :bro:type:`interval`, :bro:type:`time`, :bro:type:`string`,
-:bro:type:`port`, :bro:type:`addr`, and :bro:type:`set`.
+operands of type :zeek:type:`interval`, :zeek:type:`time`, :zeek:type:`string`,
+:zeek:type:`port`, :zeek:type:`addr`, and :zeek:type:`set`.
 
 
 +------------------------------+--------------+
@@ -35,8 +35,8 @@ operands of type :bro:type:`interval`, :bro:type:`time`, :bro:type:`string`,
 Logical operators
 -----------------
 
-The logical operators require operands of type :bro:type:`bool`, and
-evaluate to type :bro:type:`bool`.
+The logical operators require operands of type :zeek:type:`bool`, and
+evaluate to type :zeek:type:`bool`.
 
 +------------------------------+--------------+
 | Name                         | Syntax       |
@@ -55,7 +55,7 @@ Arithmetic operators
 +------------------------------+-------------+-------------------------------+
 | Name                         | Syntax      | Notes                         |
 +==============================+=============+===============================+
-| Addition                     | *a* + *b*   | For :bro:type:`string`        |
+| Addition                     | *a* + *b*   | For :zeek:type:`string`       |
 |                              |             | operands, this performs       |
 |                              |             | string concatenation.         |
 +------------------------------+-------------+-------------------------------+
@@ -63,8 +63,8 @@ Arithmetic operators
 +------------------------------+-------------+-------------------------------+
 | Multiplication               | *a* \* *b*  |                               |
 +------------------------------+-------------+-------------------------------+
-| Division                     | *a* / *b*   | For :bro:type:`int` or        |
-|                              |             | :bro:type:`count` operands,   |
+| Division                     | *a* / *b*   | For :zeek:type:`int` or       |
+|                              |             | :zeek:type:`count` operands,  |
 |                              |             | the fractional part of the    |
 |                              |             | result is dropped.            |
 +------------------------------+-------------+-------------------------------+
@@ -82,10 +82,10 @@ Arithmetic operators
 |                              |             | "double".                     |
 +------------------------------+-------------+-------------------------------+
 | Absolute value               | \| *a* \|   | If operand is                 |
-|                              |             | :bro:type:`string`,           |
-|                              |             | :bro:type:`set`,              |
-|                              |             | :bro:type:`table`, or         |
-|                              |             | :bro:type:`vector`, this      |
+|                              |             | :zeek:type:`string`,          |
+|                              |             | :zeek:type:`set`,             |
+|                              |             | :zeek:type:`table`, or        |
+|                              |             | :zeek:type:`vector`, this     |
 |                              |             | evaluates to number           |
 |                              |             | of elements.                  |
 +------------------------------+-------------+-------------------------------+
@@ -93,7 +93,7 @@ Arithmetic operators
 Bitwise operators
 -----------------
 
-The bitwise operators work with operands of type :bro:type:`count` or
+The bitwise operators work with operands of type :zeek:type:`count` or
 ``vector of count``, but the bitwise complement operator works with ``count``
 only.
 
@@ -144,7 +144,7 @@ vector.  For example, ``v += e`` is equivalent to ``v[|v|] = e``.
 Record field operators
 ----------------------
 
-The record field operators take a :bro:type:`record` as the first operand,
+The record field operators take a :zeek:type:`record` as the first operand,
 and a field name as the second operand.  For both operators, the specified
 field name must be in the declaration of the record type.
 
@@ -154,7 +154,7 @@ field name must be in the declaration of the record type.
 | Field access                 | *a* $ *b*   |                               |
 +------------------------------+-------------+-------------------------------+
 | Field value existence test   | *a* ?$ *b*  | Evaluates to type             |
-|                              |             | :bro:type:`bool`.             |
+|                              |             | :zeek:type:`bool`.            |
 |                              |             | True if the specified field   |
 |                              |             | has been assigned a value, or |
 |                              |             | false if not.                 |
@@ -211,8 +211,8 @@ or user-defined).
 
 Only the following kinds of type casts are supported currently:
 
-- Broker values (i.e., :bro:see:`Broker::Data` values returned from
-  functions such as :bro:id:`Broker::data`) can be casted to their
+- Broker values (i.e., :zeek:see:`Broker::Data` values returned from
+  functions such as :zeek:id:`Broker::data`) can be casted to their
   corresponding Bro script types.
 - A value of declared type "any" can be casted to its actual underlying type.
 - All values can be casted to their declared types (i.e., this is a no-op).
@@ -235,17 +235,18 @@ Other operators
 | Name                           | Syntax            | Notes                  |
 +================================+===================+========================+
 | Membership test                | *a* in *b*        |Evaluates to type       |
-|                                |                   |:bro:type:`bool`. Works |
-|                                |                   |with :bro:type:`string`,|
-|                                |                   |:bro:type:`pattern`,    |
-|                                |                   |:bro:type:`subnet`,     |
-|                                |                   |:bro:type:`set`,        |
-|                                |                   |:bro:type:`table`, or   |
-|                                |                   |:bro:type:`vector`      |
+|                                |                   |:zeek:type:`bool`.      |
+|                                |                   |Works with              |
+|                                |                   |:zeek:type:`string`,    |
+|                                |                   |:zeek:type:`pattern`,   |
+|                                |                   |:zeek:type:`subnet`,    |
+|                                |                   |:zeek:type:`set`,       |
+|                                |                   |:zeek:type:`table`, or  |
+|                                |                   |:zeek:type:`vector`     |
 |                                |                   |operands.  Do not       |
 |                                |                   |confuse this use of "in"|
 |                                |                   |with that used in a     |
-|                                |                   |:bro:keyword:`for`      |
+|                                |                   |:zeek:keyword:`for`     |
 |                                |                   |statement.              |
 +--------------------------------+-------------------+------------------------+
 | Non-membership test            | *a* !in *b*       |This is the logical NOT |
@@ -256,24 +257,24 @@ Other operators
 +--------------------------------+-------------------+------------------------+
 | Table or vector element access | *a* [ *b* ]       |This operator can also  |
 |                                |                   |be used with a          |
-|                                |                   |:bro:type:`set`, but    |
+|                                |                   |:zeek:type:`set`, but   |
 |                                |                   |only with the           |
-|                                |                   |:bro:keyword:`add` or   |
-|                                |                   |:bro:keyword:`delete`   |
+|                                |                   |:zeek:keyword:`add` or  |
+|                                |                   |:zeek:keyword:`delete`  |
 |                                |                   |statement.              |
 +--------------------------------+-------------------+------------------------+
 | Substring extraction           | *a* [ *b* : *c* ] |See the                 |
-|                                |                   |:bro:type:`string` type |
+|                                |                   |:zeek:type:`string` type|
 |                                |                   |for more details.       |
 +--------------------------------+-------------------+------------------------+
 | Create a deep copy             | copy ( *a* )      |This is relevant only   |
 |                                |                   |for data types that are |
 |                                |                   |assigned by reference,  |
 |                                |                   |such as                 |
-|                                |                   |:bro:type:`vector`,     |
-|                                |                   |:bro:type:`set`,        |
-|                                |                   |:bro:type:`table`,      |
-|                                |                   |and :bro:type:`record`. |
+|                                |                   |:zeek:type:`vector`,    |
+|                                |                   |:zeek:type:`set`,       |
+|                                |                   |:zeek:type:`table`,     |
+|                                |                   |and :zeek:type:`record`.|
 +--------------------------------+-------------------+------------------------+
 | Module namespace access        | *a* \:\: *b*      |The first operand is the|
 |                                |                   |module name, and the    |
@@ -287,7 +288,7 @@ Other operators
 +--------------------------------+-------------------+------------------------+
 | Conditional                    | *a* ? *b* : *c*   |The first operand must  |
 |                                |                   |evaluate to type        |
-|                                |                   |:bro:type:`bool`.       |
+|                                |                   |:zeek:type:`bool`.      |
 |                                |                   |If true, then the       |
 |                                |                   |second expression is    |
 |                                |                   |evaluated and is the    |

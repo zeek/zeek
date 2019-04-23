@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_FileExtract.events.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================== ================================================================
-:bro:id:`file_extraction_limit`: :bro:type:`event` This event is generated when a file extraction analyzer is about
-                                                   to exceed the maximum permitted file size allowed by the
-                                                   *extract_limit* field of :bro:see:`Files::AnalyzerArgs`.
-================================================== ================================================================
+==================================================== ================================================================
+:zeek:id:`file_extraction_limit`: :zeek:type:`event` This event is generated when a file extraction analyzer is about
+                                                     to exceed the maximum permitted file size allowed by the
+                                                     *extract_limit* field of :zeek:see:`Files::AnalyzerArgs`.
+==================================================== ================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: file_extraction_limit
+.. zeek:id:: file_extraction_limit
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, args: :bro:type:`Files::AnalyzerArgs`, limit: :bro:type:`count`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, args: :zeek:type:`Files::AnalyzerArgs`, limit: :zeek:type:`count`, len: :zeek:type:`count`)
 
    This event is generated when a file extraction analyzer is about
    to exceed the maximum permitted file size allowed by the
-   *extract_limit* field of :bro:see:`Files::AnalyzerArgs`.
+   *extract_limit* field of :zeek:see:`Files::AnalyzerArgs`.
    The analyzer is automatically removed from file *f*.
    
 
@@ -37,7 +37,7 @@ Events
 
    :args: Arguments that identify a particular file extraction analyzer.
          This is only provided to be able to pass along to
-         :bro:see:`FileExtract::set_limit`.
+         :zeek:see:`FileExtract::set_limit`.
    
 
    :limit: The limit, in bytes, the extracted file is about to breach.
@@ -45,6 +45,6 @@ Events
 
    :len: The length of the file chunk about to be written.
    
-   .. bro:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
+   .. zeek:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
 
 

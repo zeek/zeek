@@ -2,7 +2,7 @@
 
 base/frameworks/dpd/main.zeek
 =============================
-.. bro:namespace:: DPD
+.. zeek:namespace:: DPD
 
 Activates port-independent protocol detection and selectively disables
 analyzers if protocol violations occur.
@@ -13,33 +13,33 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================ ===============================================================
-:bro:id:`DPD::ignore_violations`: :bro:type:`set` :bro:attr:`&redef`         Analyzers which you don't want to throw 
-:bro:id:`DPD::ignore_violations_after`: :bro:type:`count` :bro:attr:`&redef` Ignore violations which go this many bytes into the connection.
-============================================================================ ===============================================================
+=============================================================================== ===============================================================
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef`         Analyzers which you don't want to throw 
+:zeek:id:`DPD::ignore_violations_after`: :zeek:type:`count` :zeek:attr:`&redef` Ignore violations which go this many bytes into the connection.
+=============================================================================== ===============================================================
 
 Types
 #####
-========================================= ======================================================================
-:bro:type:`DPD::Info`: :bro:type:`record` The record type defining the columns to log in the DPD logging stream.
-========================================= ======================================================================
+=========================================== ======================================================================
+:zeek:type:`DPD::Info`: :zeek:type:`record` The record type defining the columns to log in the DPD logging stream.
+=========================================== ======================================================================
 
 Redefinitions
 #############
-========================================== ======================================
-:bro:type:`Log::ID`: :bro:type:`enum`      Add the DPD logging stream identifier.
-:bro:type:`connection`: :bro:type:`record` 
-========================================== ======================================
+============================================ ======================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      Add the DPD logging stream identifier.
+:zeek:type:`connection`: :zeek:type:`record` 
+============================================ ======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: DPD::ignore_violations
+.. zeek:id:: DPD::ignore_violations
 
-   :Type: :bro:type:`set` [:bro:type:`Analyzer::Tag`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`Analyzer::Tag`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -51,10 +51,10 @@ Runtime Options
 
    Analyzers which you don't want to throw 
 
-.. bro:id:: DPD::ignore_violations_after
+.. zeek:id:: DPD::ignore_violations_after
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``10240``
 
    Ignore violations which go this many bytes into the connection.
@@ -62,33 +62,33 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: DPD::Info
+.. zeek:type:: DPD::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when protocol analysis failed.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Connection unique ID.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          Connection ID containing the 4-tuple which identifies endpoints.
 
-      proto: :bro:type:`transport_proto` :bro:attr:`&log`
+      proto: :zeek:type:`transport_proto` :zeek:attr:`&log`
          Transport protocol for the violation.
 
-      analyzer: :bro:type:`string` :bro:attr:`&log`
+      analyzer: :zeek:type:`string` :zeek:attr:`&log`
          The analyzer that generated the violation.
 
-      failure_reason: :bro:type:`string` :bro:attr:`&log`
+      failure_reason: :zeek:type:`string` :zeek:attr:`&log`
          The textual reason for the analysis failure.
 
-      disabled_aids: :bro:type:`set` [:bro:type:`count`]
+      disabled_aids: :zeek:type:`set` [:zeek:type:`count`]
          Disabled analyzer IDs.  This is only for internal tracking
          so as to not attempt to disable analyzers multiple times.
 
-      packet_segment: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      packet_segment: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/policy/frameworks/dpd/packet-segment-logging.zeek` is loaded)
 
          A chunk of the payload that most likely resulted in the

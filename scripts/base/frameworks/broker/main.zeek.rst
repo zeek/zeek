@@ -2,7 +2,7 @@
 
 base/frameworks/broker/main.zeek
 ================================
-.. bro:namespace:: Broker
+.. zeek:namespace:: Broker
 
 The Broker-based communication API and its various options.
 
@@ -13,104 +13,104 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================== =================================================================
-:bro:id:`Broker::peer_counts_as_iosource`: :bro:type:`bool` :bro:attr:`&redef` Whether calling :bro:see:`Broker::peer` will register the Broker
-                                                                               system as an I/O source that will block the process from shutting
-                                                                               down.
-============================================================================== =================================================================
+================================================================================= =================================================================
+:zeek:id:`Broker::peer_counts_as_iosource`: :zeek:type:`bool` :zeek:attr:`&redef` Whether calling :zeek:see:`Broker::peer` will register the Broker
+                                                                                  system as an I/O source that will block the process from shutting
+                                                                                  down.
+================================================================================= =================================================================
 
 Redefinable Options
 ###################
-================================================================================= ======================================================================
-:bro:id:`Broker::aggressive_interval`: :bro:type:`count` :bro:attr:`&redef`       Frequency of work-stealing polling attempts for Broker/CAF threads
-                                                                                  in "aggressive" mode.
-:bro:id:`Broker::aggressive_polls`: :bro:type:`count` :bro:attr:`&redef`          Number of work-stealing polling attempts for Broker/CAF threads
-                                                                                  in "aggressive" mode.
-:bro:id:`Broker::congestion_queue_size`: :bro:type:`count` :bro:attr:`&redef`     The number of buffered messages at the Broker/CAF layer after which
-                                                                                  a subscriber considers themselves congested (i.e.
-:bro:id:`Broker::default_connect_retry`: :bro:type:`interval` :bro:attr:`&redef`  Default interval to retry connecting to a peer if it cannot be made to
-                                                                                  work initially, or if it ever becomes disconnected.
-:bro:id:`Broker::default_listen_address`: :bro:type:`string` :bro:attr:`&redef`   Default address on which to listen.
-:bro:id:`Broker::default_listen_retry`: :bro:type:`interval` :bro:attr:`&redef`   Default interval to retry listening on a port if it's currently in
-                                                                                  use already.
-:bro:id:`Broker::default_log_topic_prefix`: :bro:type:`string` :bro:attr:`&redef` The default topic prefix where logs will be published.
-:bro:id:`Broker::default_port`: :bro:type:`port` :bro:attr:`&redef`               Default port for Broker communication.
-:bro:id:`Broker::disable_ssl`: :bro:type:`bool` :bro:attr:`&redef`                If true, do not use SSL for network connections.
-:bro:id:`Broker::forward_messages`: :bro:type:`bool` :bro:attr:`&redef`           Forward all received messages to subscribing peers.
-:bro:id:`Broker::max_threads`: :bro:type:`count` :bro:attr:`&redef`               Max number of threads to use for Broker/CAF functionality.
-:bro:id:`Broker::moderate_interval`: :bro:type:`count` :bro:attr:`&redef`         Frequency of work-stealing polling attempts for Broker/CAF threads
-                                                                                  in "moderate" mode.
-:bro:id:`Broker::moderate_polls`: :bro:type:`count` :bro:attr:`&redef`            Number of work-stealing polling attempts for Broker/CAF threads
-                                                                                  in "moderate" mode.
-:bro:id:`Broker::moderate_sleep`: :bro:type:`interval` :bro:attr:`&redef`         Interval of time for under-utilized Broker/CAF threads to sleep
-                                                                                  when in "moderate" mode.
-:bro:id:`Broker::relaxed_interval`: :bro:type:`count` :bro:attr:`&redef`          Frequency of work-stealing polling attempts for Broker/CAF threads
-                                                                                  in "relaxed" mode.
-:bro:id:`Broker::relaxed_sleep`: :bro:type:`interval` :bro:attr:`&redef`          Interval of time for under-utilized Broker/CAF threads to sleep
-                                                                                  when in "relaxed" mode.
-:bro:id:`Broker::ssl_cafile`: :bro:type:`string` :bro:attr:`&redef`               Path to a file containing concatenated trusted certificates 
-                                                                                  in PEM format.
-:bro:id:`Broker::ssl_capath`: :bro:type:`string` :bro:attr:`&redef`               Path to an OpenSSL-style directory of trusted certificates.
-:bro:id:`Broker::ssl_certificate`: :bro:type:`string` :bro:attr:`&redef`          Path to a file containing a X.509 certificate for this
-                                                                                  node in PEM format.
-:bro:id:`Broker::ssl_keyfile`: :bro:type:`string` :bro:attr:`&redef`              Path to the file containing the private key for this node's
-                                                                                  certificate.
-:bro:id:`Broker::ssl_passphrase`: :bro:type:`string` :bro:attr:`&redef`           Passphrase to decrypt the private key specified by
-                                                                                  :bro:see:`Broker::ssl_keyfile`.
-================================================================================= ======================================================================
+==================================================================================== ======================================================================
+:zeek:id:`Broker::aggressive_interval`: :zeek:type:`count` :zeek:attr:`&redef`       Frequency of work-stealing polling attempts for Broker/CAF threads
+                                                                                     in "aggressive" mode.
+:zeek:id:`Broker::aggressive_polls`: :zeek:type:`count` :zeek:attr:`&redef`          Number of work-stealing polling attempts for Broker/CAF threads
+                                                                                     in "aggressive" mode.
+:zeek:id:`Broker::congestion_queue_size`: :zeek:type:`count` :zeek:attr:`&redef`     The number of buffered messages at the Broker/CAF layer after which
+                                                                                     a subscriber considers themselves congested (i.e.
+:zeek:id:`Broker::default_connect_retry`: :zeek:type:`interval` :zeek:attr:`&redef`  Default interval to retry connecting to a peer if it cannot be made to
+                                                                                     work initially, or if it ever becomes disconnected.
+:zeek:id:`Broker::default_listen_address`: :zeek:type:`string` :zeek:attr:`&redef`   Default address on which to listen.
+:zeek:id:`Broker::default_listen_retry`: :zeek:type:`interval` :zeek:attr:`&redef`   Default interval to retry listening on a port if it's currently in
+                                                                                     use already.
+:zeek:id:`Broker::default_log_topic_prefix`: :zeek:type:`string` :zeek:attr:`&redef` The default topic prefix where logs will be published.
+:zeek:id:`Broker::default_port`: :zeek:type:`port` :zeek:attr:`&redef`               Default port for Broker communication.
+:zeek:id:`Broker::disable_ssl`: :zeek:type:`bool` :zeek:attr:`&redef`                If true, do not use SSL for network connections.
+:zeek:id:`Broker::forward_messages`: :zeek:type:`bool` :zeek:attr:`&redef`           Forward all received messages to subscribing peers.
+:zeek:id:`Broker::max_threads`: :zeek:type:`count` :zeek:attr:`&redef`               Max number of threads to use for Broker/CAF functionality.
+:zeek:id:`Broker::moderate_interval`: :zeek:type:`count` :zeek:attr:`&redef`         Frequency of work-stealing polling attempts for Broker/CAF threads
+                                                                                     in "moderate" mode.
+:zeek:id:`Broker::moderate_polls`: :zeek:type:`count` :zeek:attr:`&redef`            Number of work-stealing polling attempts for Broker/CAF threads
+                                                                                     in "moderate" mode.
+:zeek:id:`Broker::moderate_sleep`: :zeek:type:`interval` :zeek:attr:`&redef`         Interval of time for under-utilized Broker/CAF threads to sleep
+                                                                                     when in "moderate" mode.
+:zeek:id:`Broker::relaxed_interval`: :zeek:type:`count` :zeek:attr:`&redef`          Frequency of work-stealing polling attempts for Broker/CAF threads
+                                                                                     in "relaxed" mode.
+:zeek:id:`Broker::relaxed_sleep`: :zeek:type:`interval` :zeek:attr:`&redef`          Interval of time for under-utilized Broker/CAF threads to sleep
+                                                                                     when in "relaxed" mode.
+:zeek:id:`Broker::ssl_cafile`: :zeek:type:`string` :zeek:attr:`&redef`               Path to a file containing concatenated trusted certificates 
+                                                                                     in PEM format.
+:zeek:id:`Broker::ssl_capath`: :zeek:type:`string` :zeek:attr:`&redef`               Path to an OpenSSL-style directory of trusted certificates.
+:zeek:id:`Broker::ssl_certificate`: :zeek:type:`string` :zeek:attr:`&redef`          Path to a file containing a X.509 certificate for this
+                                                                                     node in PEM format.
+:zeek:id:`Broker::ssl_keyfile`: :zeek:type:`string` :zeek:attr:`&redef`              Path to the file containing the private key for this node's
+                                                                                     certificate.
+:zeek:id:`Broker::ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`           Passphrase to decrypt the private key specified by
+                                                                                     :zeek:see:`Broker::ssl_keyfile`.
+==================================================================================== ======================================================================
 
 Types
 #####
-==================================================== ====================================================================
-:bro:type:`Broker::Data`: :bro:type:`record`         Opaque communication data.
-:bro:type:`Broker::DataVector`: :bro:type:`vector`   Opaque communication data sequence.
-:bro:type:`Broker::EndpointInfo`: :bro:type:`record` 
-:bro:type:`Broker::ErrorCode`: :bro:type:`enum`      Enumerates the possible error types.
-:bro:type:`Broker::Event`: :bro:type:`record`        Opaque event communication data.
-:bro:type:`Broker::NetworkInfo`: :bro:type:`record`  
-:bro:type:`Broker::PeerInfo`: :bro:type:`record`     
-:bro:type:`Broker::PeerInfos`: :bro:type:`vector`    
-:bro:type:`Broker::PeerStatus`: :bro:type:`enum`     The possible states of a peer endpoint.
-:bro:type:`Broker::TableItem`: :bro:type:`record`    Opaque communication data used as a convenient way to wrap key-value
-                                                     pairs that comprise table entries.
-==================================================== ====================================================================
+====================================================== ====================================================================
+:zeek:type:`Broker::Data`: :zeek:type:`record`         Opaque communication data.
+:zeek:type:`Broker::DataVector`: :zeek:type:`vector`   Opaque communication data sequence.
+:zeek:type:`Broker::EndpointInfo`: :zeek:type:`record` 
+:zeek:type:`Broker::ErrorCode`: :zeek:type:`enum`      Enumerates the possible error types.
+:zeek:type:`Broker::Event`: :zeek:type:`record`        Opaque event communication data.
+:zeek:type:`Broker::NetworkInfo`: :zeek:type:`record`  
+:zeek:type:`Broker::PeerInfo`: :zeek:type:`record`     
+:zeek:type:`Broker::PeerInfos`: :zeek:type:`vector`    
+:zeek:type:`Broker::PeerStatus`: :zeek:type:`enum`     The possible states of a peer endpoint.
+:zeek:type:`Broker::TableItem`: :zeek:type:`record`    Opaque communication data used as a convenient way to wrap key-value
+                                                       pairs that comprise table entries.
+====================================================== ====================================================================
 
 Functions
 #########
-==================================================================== =======================================================================
-:bro:id:`Broker::auto_publish`: :bro:type:`function`                 Automatically send an event to any interested peers whenever it is
-                                                                     locally dispatched.
-:bro:id:`Broker::auto_unpublish`: :bro:type:`function`               Stop automatically sending an event to peers upon local dispatch.
-:bro:id:`Broker::default_log_topic`: :bro:type:`function`            The default implementation for :bro:see:`Broker::log_topic`.
-:bro:id:`Broker::flush_logs`: :bro:type:`function`                   Sends all pending log messages to remote peers.
-:bro:id:`Broker::forward`: :bro:type:`function`                      Register a topic prefix subscription for events that should only be
-                                                                     forwarded to any subscribing peers and not raise any event handlers
-                                                                     on the receiving/forwarding node.
-:bro:id:`Broker::listen`: :bro:type:`function`                       Listen for remote connections.
-:bro:id:`Broker::log_topic`: :bro:type:`function` :bro:attr:`&redef` A function that will be called for each log entry to determine what
-                                                                     broker topic string will be used for sending it to peers.
-:bro:id:`Broker::node_id`: :bro:type:`function`                      Get a unique identifier for the local broker endpoint.
-:bro:id:`Broker::peer`: :bro:type:`function`                         Initiate a remote connection.
-:bro:id:`Broker::peers`: :bro:type:`function`                        Get a list of all peer connections.
-:bro:id:`Broker::publish_id`: :bro:type:`function`                   Publishes the value of an identifier to a given topic.
-:bro:id:`Broker::subscribe`: :bro:type:`function`                    Register interest in all peer event messages that use a certain topic
-                                                                     prefix.
-:bro:id:`Broker::unpeer`: :bro:type:`function`                       Remove a remote connection.
-:bro:id:`Broker::unsubscribe`: :bro:type:`function`                  Unregister interest in all peer event messages that use a topic prefix.
-==================================================================== =======================================================================
+======================================================================= =======================================================================
+:zeek:id:`Broker::auto_publish`: :zeek:type:`function`                  Automatically send an event to any interested peers whenever it is
+                                                                        locally dispatched.
+:zeek:id:`Broker::auto_unpublish`: :zeek:type:`function`                Stop automatically sending an event to peers upon local dispatch.
+:zeek:id:`Broker::default_log_topic`: :zeek:type:`function`             The default implementation for :zeek:see:`Broker::log_topic`.
+:zeek:id:`Broker::flush_logs`: :zeek:type:`function`                    Sends all pending log messages to remote peers.
+:zeek:id:`Broker::forward`: :zeek:type:`function`                       Register a topic prefix subscription for events that should only be
+                                                                        forwarded to any subscribing peers and not raise any event handlers
+                                                                        on the receiving/forwarding node.
+:zeek:id:`Broker::listen`: :zeek:type:`function`                        Listen for remote connections.
+:zeek:id:`Broker::log_topic`: :zeek:type:`function` :zeek:attr:`&redef` A function that will be called for each log entry to determine what
+                                                                        broker topic string will be used for sending it to peers.
+:zeek:id:`Broker::node_id`: :zeek:type:`function`                       Get a unique identifier for the local broker endpoint.
+:zeek:id:`Broker::peer`: :zeek:type:`function`                          Initiate a remote connection.
+:zeek:id:`Broker::peers`: :zeek:type:`function`                         Get a list of all peer connections.
+:zeek:id:`Broker::publish_id`: :zeek:type:`function`                    Publishes the value of an identifier to a given topic.
+:zeek:id:`Broker::subscribe`: :zeek:type:`function`                     Register interest in all peer event messages that use a certain topic
+                                                                        prefix.
+:zeek:id:`Broker::unpeer`: :zeek:type:`function`                        Remove a remote connection.
+:zeek:id:`Broker::unsubscribe`: :zeek:type:`function`                   Unregister interest in all peer event messages that use a topic prefix.
+======================================================================= =======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Broker::peer_counts_as_iosource
+.. zeek:id:: Broker::peer_counts_as_iosource
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
-   Whether calling :bro:see:`Broker::peer` will register the Broker
+   Whether calling :zeek:see:`Broker::peer` will register the Broker
    system as an I/O source that will block the process from shutting
    down.  For example, set this to false when you are reading pcaps,
    but also want to initaiate a Broker peering and still shutdown after
@@ -118,89 +118,89 @@ Runtime Options
 
 Redefinable Options
 ###################
-.. bro:id:: Broker::aggressive_interval
+.. zeek:id:: Broker::aggressive_interval
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``4``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
    in "aggressive" mode.
 
-.. bro:id:: Broker::aggressive_polls
+.. zeek:id:: Broker::aggressive_polls
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5``
 
    Number of work-stealing polling attempts for Broker/CAF threads
    in "aggressive" mode.
 
-.. bro:id:: Broker::congestion_queue_size
+.. zeek:id:: Broker::congestion_queue_size
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``200``
 
    The number of buffered messages at the Broker/CAF layer after which
    a subscriber considers themselves congested (i.e. tune the congestion
    control mechanisms).
 
-.. bro:id:: Broker::default_connect_retry
+.. zeek:id:: Broker::default_connect_retry
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30.0 secs``
 
    Default interval to retry connecting to a peer if it cannot be made to
    work initially, or if it ever becomes disconnected.  Use of the
    BRO_DEFAULT_CONNECT_RETRY environment variable (set as number of
    seconds) will override this option and also any values given to
-   :bro:see:`Broker::peer`.
+   :zeek:see:`Broker::peer`.
 
-.. bro:id:: Broker::default_listen_address
+.. zeek:id:: Broker::default_listen_address
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Default address on which to listen.
    
-   .. bro:see:: Broker::listen
+   .. zeek:see:: Broker::listen
 
-.. bro:id:: Broker::default_listen_retry
+.. zeek:id:: Broker::default_listen_retry
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30.0 secs``
 
    Default interval to retry listening on a port if it's currently in
    use already.  Use of the BRO_DEFAULT_LISTEN_RETRY environment variable
    (set as a number of seconds) will override this option and also
-   any values given to :bro:see:`Broker::listen`.
+   any values given to :zeek:see:`Broker::listen`.
 
-.. bro:id:: Broker::default_log_topic_prefix
+.. zeek:id:: Broker::default_log_topic_prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"bro/logs/"``
 
    The default topic prefix where logs will be published.  The log's stream
    id is appended when writing to a particular stream.
 
-.. bro:id:: Broker::default_port
+.. zeek:id:: Broker::default_port
 
-   :Type: :bro:type:`port`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`port`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``9999/tcp``
 
    Default port for Broker communication. Where not specified
    otherwise, this is the port to connect to and listen on.
 
-.. bro:id:: Broker::disable_ssl
+.. zeek:id:: Broker::disable_ssl
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    If true, do not use SSL for network connections. By default, SSL will
@@ -208,290 +208,290 @@ Redefinable Options
    (which is the default) the communication will be encrypted, but not
    authenticated.
 
-.. bro:id:: Broker::forward_messages
+.. zeek:id:: Broker::forward_messages
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    Forward all received messages to subscribing peers.
 
-.. bro:id:: Broker::max_threads
+.. zeek:id:: Broker::max_threads
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1``
 
    Max number of threads to use for Broker/CAF functionality.  The
    BRO_BROKER_MAX_THREADS environment variable overrides this setting.
 
-.. bro:id:: Broker::moderate_interval
+.. zeek:id:: Broker::moderate_interval
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``2``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
    in "moderate" mode.
 
-.. bro:id:: Broker::moderate_polls
+.. zeek:id:: Broker::moderate_polls
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5``
 
    Number of work-stealing polling attempts for Broker/CAF threads
    in "moderate" mode.
 
-.. bro:id:: Broker::moderate_sleep
+.. zeek:id:: Broker::moderate_sleep
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``16.0 msecs``
 
    Interval of time for under-utilized Broker/CAF threads to sleep
    when in "moderate" mode.
 
-.. bro:id:: Broker::relaxed_interval
+.. zeek:id:: Broker::relaxed_interval
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
    in "relaxed" mode.
 
-.. bro:id:: Broker::relaxed_sleep
+.. zeek:id:: Broker::relaxed_sleep
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``64.0 msecs``
 
    Interval of time for under-utilized Broker/CAF threads to sleep
    when in "relaxed" mode.
 
-.. bro:id:: Broker::ssl_cafile
+.. zeek:id:: Broker::ssl_cafile
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Path to a file containing concatenated trusted certificates 
    in PEM format. If set, Bro will require valid certificates for
    all peers.
 
-.. bro:id:: Broker::ssl_capath
+.. zeek:id:: Broker::ssl_capath
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Path to an OpenSSL-style directory of trusted certificates.
    If set, Bro will require valid certificates for
    all peers.
 
-.. bro:id:: Broker::ssl_certificate
+.. zeek:id:: Broker::ssl_certificate
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Path to a file containing a X.509 certificate for this
    node in PEM format. If set, Bro will require valid certificates for
    all peers.
 
-.. bro:id:: Broker::ssl_keyfile
+.. zeek:id:: Broker::ssl_keyfile
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Path to the file containing the private key for this node's
    certificate. If set, Bro will require valid certificates for
    all peers.
 
-.. bro:id:: Broker::ssl_passphrase
+.. zeek:id:: Broker::ssl_passphrase
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Passphrase to decrypt the private key specified by
-   :bro:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+   :zeek:see:`Broker::ssl_keyfile`. If set, Bro will require valid
    certificates for all peers.
 
 Types
 #####
-.. bro:type:: Broker::Data
+.. zeek:type:: Broker::Data
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      data: :bro:type:`opaque` of Broker::Data :bro:attr:`&optional`
+      data: :zeek:type:`opaque` of Broker::Data :zeek:attr:`&optional`
 
    Opaque communication data.
 
-.. bro:type:: Broker::DataVector
+.. zeek:type:: Broker::DataVector
 
-   :Type: :bro:type:`vector` of :bro:type:`Broker::Data`
+   :Type: :zeek:type:`vector` of :zeek:type:`Broker::Data`
 
    Opaque communication data sequence.
 
-.. bro:type:: Broker::EndpointInfo
+.. zeek:type:: Broker::EndpointInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      id: :bro:type:`string`
+      id: :zeek:type:`string`
          A unique identifier of the node.
 
-      network: :bro:type:`Broker::NetworkInfo` :bro:attr:`&optional`
+      network: :zeek:type:`Broker::NetworkInfo` :zeek:attr:`&optional`
          Network-level information.
 
 
-.. bro:type:: Broker::ErrorCode
+.. zeek:type:: Broker::ErrorCode
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Broker::UNSPECIFIED Broker::ErrorCode
+      .. zeek:enum:: Broker::UNSPECIFIED Broker::ErrorCode
 
          The unspecified default error code.
 
-      .. bro:enum:: Broker::PEER_INCOMPATIBLE Broker::ErrorCode
+      .. zeek:enum:: Broker::PEER_INCOMPATIBLE Broker::ErrorCode
 
          Version incompatibility.
 
-      .. bro:enum:: Broker::PEER_INVALID Broker::ErrorCode
+      .. zeek:enum:: Broker::PEER_INVALID Broker::ErrorCode
 
          Referenced peer does not exist.
 
-      .. bro:enum:: Broker::PEER_UNAVAILABLE Broker::ErrorCode
+      .. zeek:enum:: Broker::PEER_UNAVAILABLE Broker::ErrorCode
 
          Remote peer not listening.
 
-      .. bro:enum:: Broker::PEER_TIMEOUT Broker::ErrorCode
+      .. zeek:enum:: Broker::PEER_TIMEOUT Broker::ErrorCode
 
          A peering request timed out.
 
-      .. bro:enum:: Broker::MASTER_EXISTS Broker::ErrorCode
+      .. zeek:enum:: Broker::MASTER_EXISTS Broker::ErrorCode
 
          Master with given name already exists.
 
-      .. bro:enum:: Broker::NO_SUCH_MASTER Broker::ErrorCode
+      .. zeek:enum:: Broker::NO_SUCH_MASTER Broker::ErrorCode
 
          Master with given name does not exist.
 
-      .. bro:enum:: Broker::NO_SUCH_KEY Broker::ErrorCode
+      .. zeek:enum:: Broker::NO_SUCH_KEY Broker::ErrorCode
 
          The given data store key does not exist.
 
-      .. bro:enum:: Broker::REQUEST_TIMEOUT Broker::ErrorCode
+      .. zeek:enum:: Broker::REQUEST_TIMEOUT Broker::ErrorCode
 
          The store operation timed out.
 
-      .. bro:enum:: Broker::TYPE_CLASH Broker::ErrorCode
+      .. zeek:enum:: Broker::TYPE_CLASH Broker::ErrorCode
 
          The operation expected a different type than provided.
 
-      .. bro:enum:: Broker::INVALID_DATA Broker::ErrorCode
+      .. zeek:enum:: Broker::INVALID_DATA Broker::ErrorCode
 
          The data value cannot be used to carry out the desired operation.
 
-      .. bro:enum:: Broker::BACKEND_FAILURE Broker::ErrorCode
+      .. zeek:enum:: Broker::BACKEND_FAILURE Broker::ErrorCode
 
          The storage backend failed to execute the operation.
 
-      .. bro:enum:: Broker::STALE_DATA Broker::ErrorCode
+      .. zeek:enum:: Broker::STALE_DATA Broker::ErrorCode
 
          The storage backend failed to execute the operation.
 
-      .. bro:enum:: Broker::CAF_ERROR Broker::ErrorCode
+      .. zeek:enum:: Broker::CAF_ERROR Broker::ErrorCode
 
          Catch-all for a CAF-level problem.
 
    Enumerates the possible error types. 
 
-.. bro:type:: Broker::Event
+.. zeek:type:: Broker::Event
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string` :bro:attr:`&optional`
+      name: :zeek:type:`string` :zeek:attr:`&optional`
          The name of the event.  Not set if invalid event or arguments.
 
-      args: :bro:type:`Broker::DataVector`
+      args: :zeek:type:`Broker::DataVector`
          The arguments to the event.
 
    Opaque event communication data.
 
-.. bro:type:: Broker::NetworkInfo
+.. zeek:type:: Broker::NetworkInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      address: :bro:type:`string` :bro:attr:`&log`
+      address: :zeek:type:`string` :zeek:attr:`&log`
          The IP address or hostname where the endpoint listens.
 
-      bound_port: :bro:type:`port` :bro:attr:`&log`
+      bound_port: :zeek:type:`port` :zeek:attr:`&log`
          The port where the endpoint is bound to.
 
 
-.. bro:type:: Broker::PeerInfo
+.. zeek:type:: Broker::PeerInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      peer: :bro:type:`Broker::EndpointInfo`
+      peer: :zeek:type:`Broker::EndpointInfo`
 
-      status: :bro:type:`Broker::PeerStatus`
-
-
-.. bro:type:: Broker::PeerInfos
-
-   :Type: :bro:type:`vector` of :bro:type:`Broker::PeerInfo`
+      status: :zeek:type:`Broker::PeerStatus`
 
 
-.. bro:type:: Broker::PeerStatus
+.. zeek:type:: Broker::PeerInfos
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`vector` of :zeek:type:`Broker::PeerInfo`
 
-      .. bro:enum:: Broker::INITIALIZING Broker::PeerStatus
+
+.. zeek:type:: Broker::PeerStatus
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: Broker::INITIALIZING Broker::PeerStatus
 
          The peering process is initiated.
 
-      .. bro:enum:: Broker::CONNECTING Broker::PeerStatus
+      .. zeek:enum:: Broker::CONNECTING Broker::PeerStatus
 
          Connection establishment in process.
 
-      .. bro:enum:: Broker::CONNECTED Broker::PeerStatus
+      .. zeek:enum:: Broker::CONNECTED Broker::PeerStatus
 
          Connection established, peering pending.
 
-      .. bro:enum:: Broker::PEERED Broker::PeerStatus
+      .. zeek:enum:: Broker::PEERED Broker::PeerStatus
 
          Successfully peered.
 
-      .. bro:enum:: Broker::DISCONNECTED Broker::PeerStatus
+      .. zeek:enum:: Broker::DISCONNECTED Broker::PeerStatus
 
          Connection to remote peer lost.
 
-      .. bro:enum:: Broker::RECONNECTING Broker::PeerStatus
+      .. zeek:enum:: Broker::RECONNECTING Broker::PeerStatus
 
          Reconnecting to peer after a lost connection.
 
    The possible states of a peer endpoint.
 
-.. bro:type:: Broker::TableItem
+.. zeek:type:: Broker::TableItem
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      key: :bro:type:`Broker::Data`
+      key: :zeek:type:`Broker::Data`
 
-      val: :bro:type:`Broker::Data`
+      val: :zeek:type:`Broker::Data`
 
    Opaque communication data used as a convenient way to wrap key-value
    pairs that comprise table entries.
 
 Functions
 #########
-.. bro:id:: Broker::auto_publish
+.. zeek:id:: Broker::auto_publish
 
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, ev: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, ev: :zeek:type:`any`) : :zeek:type:`bool`
 
    Automatically send an event to any interested peers whenever it is
    locally dispatched. (For example, using "event my_event(...);" in a
@@ -508,44 +508,44 @@ Functions
 
    :returns: true if automatic event sending is now enabled.
 
-.. bro:id:: Broker::auto_unpublish
+.. zeek:id:: Broker::auto_unpublish
 
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, ev: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, ev: :zeek:type:`any`) : :zeek:type:`bool`
 
    Stop automatically sending an event to peers upon local dispatch.
    
 
-   :topic: a topic originally given to :bro:see:`Broker::auto_publish`.
+   :topic: a topic originally given to :zeek:see:`Broker::auto_publish`.
    
 
-   :ev: an event originally given to :bro:see:`Broker::auto_publish`.
+   :ev: an event originally given to :zeek:see:`Broker::auto_publish`.
    
 
    :returns: true if automatic events will not occur for the topic/event
             pair.
 
-.. bro:id:: Broker::default_log_topic
+.. zeek:id:: Broker::default_log_topic
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, path: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, path: :zeek:type:`string`) : :zeek:type:`string`
 
-   The default implementation for :bro:see:`Broker::log_topic`.
+   The default implementation for :zeek:see:`Broker::log_topic`.
 
-.. bro:id:: Broker::flush_logs
+.. zeek:id:: Broker::flush_logs
 
-   :Type: :bro:type:`function` () : :bro:type:`count`
+   :Type: :zeek:type:`function` () : :zeek:type:`count`
 
    Sends all pending log messages to remote peers.  This normally
    doesn't need to be used except for test cases that are time-sensitive.
 
-.. bro:id:: Broker::forward
+.. zeek:id:: Broker::forward
 
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
    Register a topic prefix subscription for events that should only be
    forwarded to any subscribing peers and not raise any event handlers
    on the receiving/forwarding node.  i.e. it's the same as
-   :bro:see:`Broker::subscribe` except matching events are not raised
-   on the receiver, just forwarded.  Use :bro:see:`Broker::unsubscribe`
+   :zeek:see:`Broker::subscribe` except matching events are not raised
+   on the receiver, just forwarded.  Use :zeek:see:`Broker::unsubscribe`
    with the same argument to undo this operation.
    
 
@@ -556,9 +556,9 @@ Functions
 
    :returns: true if a new event forwarding/subscription is now registered.
 
-.. bro:id:: Broker::listen
+.. zeek:id:: Broker::listen
 
-   :Type: :bro:type:`function` (a: :bro:type:`string` :bro:attr:`&default` = :bro:see:`Broker::default_listen_address` :bro:attr:`&optional`, p: :bro:type:`port` :bro:attr:`&default` = :bro:see:`Broker::default_port` :bro:attr:`&optional`, retry: :bro:type:`interval` :bro:attr:`&default` = :bro:see:`Broker::default_listen_retry` :bro:attr:`&optional`) : :bro:type:`port`
+   :Type: :zeek:type:`function` (a: :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Broker::default_listen_address` :zeek:attr:`&optional`, p: :zeek:type:`port` :zeek:attr:`&default` = :zeek:see:`Broker::default_port` :zeek:attr:`&optional`, retry: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Broker::default_listen_retry` :zeek:attr:`&optional`) : :zeek:type:`port`
 
    Listen for remote connections.
    
@@ -579,17 +579,17 @@ Functions
 
    :returns: the bound port or 0/? on failure.
    
-   .. bro:see:: Broker::status
+   .. zeek:see:: Broker::status
 
-.. bro:id:: Broker::log_topic
+.. zeek:id:: Broker::log_topic
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, path: :bro:type:`string`) : :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, path: :zeek:type:`string`) : :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
 
    A function that will be called for each log entry to determine what
    broker topic string will be used for sending it to peers.  The
    default implementation will return a value based on
-   :bro:see:`Broker::default_log_topic_prefix`.
+   :zeek:see:`Broker::default_log_topic_prefix`.
    
 
    :id: the ID associated with the log stream entry that will be sent.
@@ -601,18 +601,18 @@ Functions
    :returns: a string representing the broker topic to which the log
             will be sent.
 
-.. bro:id:: Broker::node_id
+.. zeek:id:: Broker::node_id
 
-   :Type: :bro:type:`function` () : :bro:type:`string`
+   :Type: :zeek:type:`function` () : :zeek:type:`string`
 
    Get a unique identifier for the local broker endpoint.
    
 
    :returns: a unique identifier for the local broker endpoint.
 
-.. bro:id:: Broker::peer
+.. zeek:id:: Broker::peer
 
-   :Type: :bro:type:`function` (a: :bro:type:`string`, p: :bro:type:`port` :bro:attr:`&default` = :bro:see:`Broker::default_port` :bro:attr:`&optional`, retry: :bro:type:`interval` :bro:attr:`&default` = :bro:see:`Broker::default_connect_retry` :bro:attr:`&optional`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port` :zeek:attr:`&default` = :zeek:see:`Broker::default_port` :zeek:attr:`&optional`, retry: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Broker::default_connect_retry` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Initiate a remote connection.
    
@@ -634,20 +634,20 @@ Functions
             it's a new peer. The actual connection may not be established
             until a later point in time.
    
-   .. bro:see:: Broker::status
+   .. zeek:see:: Broker::status
 
-.. bro:id:: Broker::peers
+.. zeek:id:: Broker::peers
 
-   :Type: :bro:type:`function` () : :bro:type:`vector` of :bro:type:`Broker::PeerInfo`
+   :Type: :zeek:type:`function` () : :zeek:type:`vector` of :zeek:type:`Broker::PeerInfo`
 
    Get a list of all peer connections.
    
 
    :returns: a list of all peer connections.
 
-.. bro:id:: Broker::publish_id
+.. zeek:id:: Broker::publish_id
 
-   :Type: :bro:type:`function` (topic: :bro:type:`string`, id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic: :zeek:type:`string`, id: :zeek:type:`string`) : :zeek:type:`bool`
 
    Publishes the value of an identifier to a given topic.  The subscribers
    will update their local value for that identifier on receipt.
@@ -661,13 +661,13 @@ Functions
 
    :returns: true if the message is sent.
 
-.. bro:id:: Broker::subscribe
+.. zeek:id:: Broker::subscribe
 
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
    Register interest in all peer event messages that use a certain topic
    prefix.  Note that subscriptions may not be altered immediately after
-   calling (except during :bro:see:`zeek_init`).
+   calling (except during :zeek:see:`zeek_init`).
    
 
    :topic_prefix: a prefix to match against remote message topics.
@@ -677,9 +677,9 @@ Functions
 
    :returns: true if it's a new event subscription and it is now registered.
 
-.. bro:id:: Broker::unpeer
+.. zeek:id:: Broker::unpeer
 
-   :Type: :bro:type:`function` (a: :bro:type:`string`, p: :bro:type:`port`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
 
    Remove a remote connection.
    
@@ -688,29 +688,29 @@ Functions
    unless peering resumes later.
    
 
-   :a: the address used in previous successful call to :bro:see:`Broker::peer`.
+   :a: the address used in previous successful call to :zeek:see:`Broker::peer`.
    
 
-   :p: the port used in previous successful call to :bro:see:`Broker::peer`.
+   :p: the port used in previous successful call to :zeek:see:`Broker::peer`.
    
 
    :returns: true if the arguments match a previously successful call to
-            :bro:see:`Broker::peer`.
+            :zeek:see:`Broker::peer`.
    
 
    :TODO: We do not have a function yet to terminate a connection.
 
-.. bro:id:: Broker::unsubscribe
+.. zeek:id:: Broker::unsubscribe
 
-   :Type: :bro:type:`function` (topic_prefix: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
    Unregister interest in all peer event messages that use a topic prefix.
    Note that subscriptions may not be altered immediately after calling
-   (except during :bro:see:`zeek_init`).
+   (except during :zeek:see:`zeek_init`).
    
 
    :topic_prefix: a prefix previously supplied to a successful call to
-                 :bro:see:`Broker::subscribe` or :bro:see:`Broker::forward`.
+                 :zeek:see:`Broker::subscribe` or :zeek:see:`Broker::forward`.
    
 
    :returns: true if interest in the topic prefix is no longer advertised.

@@ -3,60 +3,60 @@ Attributes
 
 The Bro scripting language supports the following attributes.
 
-+-----------------------------+-----------------------------------------------+
-| Name                        | Description                                   |
-+=============================+===============================================+
-| :bro:attr:`&redef`          |Redefine a global constant or extend a type.   |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&priority`       |Specify priority for event handler or hook.    |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&log`            |Mark a record field as to be written to a log. |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&optional`       |Allow a record field value to be missing.      |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&default`        |Specify a default value.                       |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&add_func`       |Specify a function to call for each "redef +=".|
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&delete_func`    |Same as "&add_func", except for "redef -=".    |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&expire_func`    |Specify a function to call when container      |
-|                             |element expires.                               |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&read_expire`    |Specify a read timeout interval.               |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&write_expire`   |Specify a write timeout interval.              |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&create_expire`  |Specify a creation timeout interval.           |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&synchronized`   |Synchronize a variable across nodes.           |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&persistent`     |Make a variable persistent (written to disk).  |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&rotate_interval`|Rotate a file after specified interval.        |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&rotate_size`    |Rotate a file after specified file size.       |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&encrypt`        |Encrypt a file when writing to disk.           |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&raw_output`     |Open file in raw mode (chars. are not escaped).|
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&mergeable`      |Prefer set union for synchronized state.       |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&error_handler`  |Used internally for reporter framework events. |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&type_column`    |Used by input framework for "port" type.       |
-+-----------------------------+-----------------------------------------------+
-| :bro:attr:`&deprecated`     |Marks an identifier as deprecated.             |
-+-----------------------------+-----------------------------------------------+
++------------------------------+-----------------------------------------------+
+| Name                         | Description                                   |
++==============================+===============================================+
+| :zeek:attr:`&redef`          |Redefine a global constant or extend a type.   |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&priority`       |Specify priority for event handler or hook.    |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&log`            |Mark a record field as to be written to a log. |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&optional`       |Allow a record field value to be missing.      |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&default`        |Specify a default value.                       |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&add_func`       |Specify a function to call for each "redef +=".|
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&delete_func`    |Same as "&add_func", except for "redef -=".    |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&expire_func`    |Specify a function to call when container      |
+|                              |element expires.                               |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&read_expire`    |Specify a read timeout interval.               |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&write_expire`   |Specify a write timeout interval.              |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&create_expire`  |Specify a creation timeout interval.           |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&synchronized`   |Synchronize a variable across nodes.           |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&persistent`     |Make a variable persistent (written to disk).  |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&rotate_interval`|Rotate a file after specified interval.        |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&rotate_size`    |Rotate a file after specified file size.       |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&encrypt`        |Encrypt a file when writing to disk.           |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&raw_output`     |Open file in raw mode (chars. are not escaped).|
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&mergeable`      |Prefer set union for synchronized state.       |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&error_handler`  |Used internally for reporter framework events. |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&type_column`    |Used by input framework for "port" type.       |
++------------------------------+-----------------------------------------------+
+| :zeek:attr:`&deprecated`     |Marks an identifier as deprecated.             |
++------------------------------+-----------------------------------------------+
 
 Here is a more detailed explanation of each attribute:
 
-.. bro:attr:: &redef
+.. zeek:attr:: &redef
 
-    Allows use of a :bro:keyword:`redef` to redefine initial values of
-    global variables (i.e., variables declared either :bro:keyword:`global`
-    or :bro:keyword:`const`).  Example::
+    Allows use of a :zeek:keyword:`redef` to redefine initial values of
+    global variables (i.e., variables declared either :zeek:keyword:`global`
+    or :zeek:keyword:`const`).  Example::
 
         const clever = T &redef;
         global cache_size = 256 &redef;
@@ -65,7 +65,7 @@ Here is a more detailed explanation of each attribute:
     with assignment statements (doesn't matter if it has the "&redef"
     attribute or not).
 
-.. bro:attr:: &priority
+.. zeek:attr:: &priority
 
     Specifies the execution priority (as a signed integer) of a hook or
     event handler. Higher values are executed before lower ones. The
@@ -76,11 +76,11 @@ Here is a more detailed explanation of each attribute:
             print "high priority";
         }
 
-.. bro:attr:: &log
+.. zeek:attr:: &log
 
-    Writes a :bro:type:`record` field to the associated log stream.
+    Writes a :zeek:type:`record` field to the associated log stream.
 
-.. bro:attr:: &optional
+.. zeek:attr:: &optional
 
     Allows a record field value to be missing (i.e., neither initialized nor
     ever assigned a value).
@@ -94,7 +94,7 @@ Here is a more detailed explanation of each attribute:
     not (it returns a ``bool`` value of ``T`` if the field has a value,
     and ``F`` if not).
 
-.. bro:attr:: &default
+.. zeek:attr:: &default
 
     Specifies a default value for a record field, container element, or a
     function/hook/event parameter.
@@ -119,7 +119,7 @@ Here is a more detailed explanation of each attribute:
             print a, b;
         }
 
-.. bro:attr:: &add_func
+.. zeek:attr:: &add_func
 
     Can be applied to an identifier with &redef to specify a function to
     be called any time a "redef <id> += ..." declaration is parsed.  The
@@ -129,95 +129,95 @@ Here is a more detailed explanation of each attribute:
     return value of the function will be the actual new value of the
     variable after the "redef" declaration is parsed.
 
-.. bro:attr:: &delete_func
+.. zeek:attr:: &delete_func
 
-    Same as :bro:attr:`&add_func`, except for :bro:keyword:`redef` declarations
+    Same as :zeek:attr:`&add_func`, except for :zeek:keyword:`redef` declarations
     that use the "-=" operator.
 
-.. bro:attr:: &expire_func
+.. zeek:attr:: &expire_func
 
     Called right before a container element expires.  The function's
     first parameter is of the same type of the container and the second
     parameter the same type of the container's index.  The return
-    value is an :bro:type:`interval` indicating the amount of additional
+    value is an :zeek:type:`interval` indicating the amount of additional
     time to wait before expiring the container element at the given
     index (which will trigger another execution of this function).
 
-.. bro:attr:: &read_expire
+.. zeek:attr:: &read_expire
 
     Specifies a read expiration timeout for container elements. That is,
     the element expires after the given amount of time since the last
     time it has been read. Note that a write also counts as a read.
 
-.. bro:attr:: &write_expire
+.. zeek:attr:: &write_expire
 
     Specifies a write expiration timeout for container elements. That
     is, the element expires after the given amount of time since the
     last time it has been written.
 
-.. bro:attr:: &create_expire
+.. zeek:attr:: &create_expire
 
     Specifies a creation expiration timeout for container elements. That
     is, the element expires after the given amount of time since it has
     been inserted into the container, regardless of any reads or writes.
 
-.. bro:attr:: &synchronized
+.. zeek:attr:: &synchronized
 
     Synchronizes variable accesses across nodes. The value of a
     ``&synchronized`` variable is automatically propagated to all peers
     when it changes.
 
-.. bro:attr:: &persistent
+.. zeek:attr:: &persistent
 
     Makes a variable persistent, i.e., its value is written to disk (per
     default at shutdown time).
 
-.. bro:attr:: &rotate_interval
+.. zeek:attr:: &rotate_interval
 
     Rotates a file after a specified interval.
 
     Note: This attribute is deprecated and will be removed in a future release.
 
-.. bro:attr:: &rotate_size
+.. zeek:attr:: &rotate_size
 
     Rotates a file after it has reached a given size in bytes.
 
     Note: This attribute is deprecated and will be removed in a future release.
 
-.. bro:attr:: &encrypt
+.. zeek:attr:: &encrypt
 
     Encrypts files right before writing them to disk.
 
     Note: This attribute is deprecated and will be removed in a future release.
 
-.. bro:attr:: &raw_output
+.. zeek:attr:: &raw_output
 
     Opens a file in raw mode, i.e., non-ASCII characters are not
     escaped.
 
-.. bro:attr:: &mergeable
+.. zeek:attr:: &mergeable
 
     Prefers merging sets on assignment for synchronized state. This
-    attribute is used in conjunction with :bro:attr:`&synchronized`
+    attribute is used in conjunction with :zeek:attr:`&synchronized`
     container types: when the same container is updated at two peers
     with different values, the propagation of the state causes a race
     condition, where the last update succeeds. This can cause
     inconsistencies and can be avoided by unifying the two sets, rather
     than merely overwriting the old value.
 
-.. bro:attr:: &error_handler
+.. zeek:attr:: &error_handler
 
     Internally set on the events that are associated with the reporter
-    framework: :bro:id:`reporter_info`, :bro:id:`reporter_warning`, and
-    :bro:id:`reporter_error`.  It prevents any handlers of those events
+    framework: :zeek:id:`reporter_info`, :zeek:id:`reporter_warning`, and
+    :zeek:id:`reporter_error`.  It prevents any handlers of those events
     from being able to generate reporter messages that go through any of
     those events (i.e., it prevents an infinite event recursion).  Instead,
     such nested reporter messages are output to stderr.
 
-.. bro:attr:: &type_column
+.. zeek:attr:: &type_column
 
     Used by the input framework. It can be used on columns of type
-    :bro:type:`port` (such a column only contains the port number) and
+    :zeek:type:`port` (such a column only contains the port number) and
     specifies the name of an additional column in
     the input file which specifies the protocol of the port (tcp/udp/icmp).
 
@@ -234,7 +234,7 @@ Here is a more detailed explanation of each attribute:
             msg: string;
         };
 
-.. bro:attr:: &deprecated
+.. zeek:attr:: &deprecated
 
     The associated identifier is marked as deprecated and will be
     removed in a future version of Bro.  Look in the NEWS file for more

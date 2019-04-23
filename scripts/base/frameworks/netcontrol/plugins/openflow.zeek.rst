@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/plugins/openflow.zeek
 ================================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 OpenFlow plugin for the NetControl framework.
 
@@ -13,50 +13,50 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-======================================================================================= ===============================================================================
-:bro:id:`NetControl::openflow_flow_timeout`: :bro:type:`interval` :bro:attr:`&redef`    The time interval after we consider a flow timed out.
-:bro:id:`NetControl::openflow_message_timeout`: :bro:type:`interval` :bro:attr:`&redef` The time interval after which an openflow message is considered to be timed out
-                                                                                        and we delete it from our internal tracking.
-======================================================================================= ===============================================================================
+========================================================================================== ===============================================================================
+:zeek:id:`NetControl::openflow_flow_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`    The time interval after we consider a flow timed out.
+:zeek:id:`NetControl::openflow_message_timeout`: :zeek:type:`interval` :zeek:attr:`&redef` The time interval after which an openflow message is considered to be timed out
+                                                                                           and we delete it from our internal tracking.
+========================================================================================== ===============================================================================
 
 Types
 #####
-==================================================== =================================================================================================
-:bro:type:`NetControl::OfConfig`: :bro:type:`record` This record specifies the configuration that is passed to :bro:see:`NetControl::create_openflow`.
-:bro:type:`NetControl::OfTable`: :bro:type:`record`  
-==================================================== =================================================================================================
+====================================================== ==================================================================================================
+:zeek:type:`NetControl::OfConfig`: :zeek:type:`record` This record specifies the configuration that is passed to :zeek:see:`NetControl::create_openflow`.
+:zeek:type:`NetControl::OfTable`: :zeek:type:`record`  
+====================================================== ==================================================================================================
 
 Redefinitions
 #############
-======================================================= =
-:bro:type:`NetControl::PluginState`: :bro:type:`record` 
-======================================================= =
+========================================================= =
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
+========================================================= =
 
 Functions
 #########
-=========================================================== =============================================================
-:bro:id:`NetControl::create_openflow`: :bro:type:`function` Instantiates an openflow plugin for the NetControl framework.
-=========================================================== =============================================================
+============================================================= =============================================================
+:zeek:id:`NetControl::create_openflow`: :zeek:type:`function` Instantiates an openflow plugin for the NetControl framework.
+============================================================= =============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: NetControl::openflow_flow_timeout
+.. zeek:id:: NetControl::openflow_flow_timeout
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 day``
 
    The time interval after we consider a flow timed out. This should be fairly high (or
    even disabled) if you expect a lot of long flows. However, one also will have state
    buildup for quite a while if keeping this around...
 
-.. bro:id:: NetControl::openflow_message_timeout
+.. zeek:id:: NetControl::openflow_message_timeout
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``20.0 secs``
 
    The time interval after which an openflow message is considered to be timed out
@@ -64,26 +64,26 @@ Redefinable Options
 
 Types
 #####
-.. bro:type:: NetControl::OfConfig
+.. zeek:type:: NetControl::OfConfig
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      monitor: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      monitor: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Accept rules that target the monitor path.
 
-      forward: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      forward: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Accept rules that target the forward path.
 
-      idle_timeout: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      idle_timeout: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Default OpenFlow idle timeout.
 
-      table_id: :bro:type:`count` :bro:attr:`&optional`
+      table_id: :zeek:type:`count` :zeek:attr:`&optional`
          Default OpenFlow table ID.
 
-      priority_offset: :bro:type:`int` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      priority_offset: :zeek:type:`int` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Add this to all rule priorities. Can be useful if you want the openflow priorities be offset from the netcontrol priorities without having to write a filter function.
 
-      check_pred: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`) : :bro:type:`bool` :bro:attr:`&optional`
+      check_pred: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Predicate that is called on rule insertion or removal.
          
 
@@ -95,7 +95,7 @@ Types
 
          :returns: T if the rule can be handled by the current backend, F otherwise.
 
-      match_pred: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`, e: :bro:type:`NetControl::Entity`, m: :bro:type:`vector` of :bro:type:`OpenFlow::ofp_match`) : :bro:type:`vector` of :bro:type:`OpenFlow::ofp_match` :bro:attr:`&optional`
+      match_pred: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, e: :zeek:type:`NetControl::Entity`, m: :zeek:type:`vector` of :zeek:type:`OpenFlow::ofp_match`) : :zeek:type:`vector` of :zeek:type:`OpenFlow::ofp_match` :zeek:attr:`&optional`
          This predicate is called each time an OpenFlow match record is created.
          The predicate can modify the match structure before it is sent on to the
          device.
@@ -112,7 +112,7 @@ Types
 
          :returns: The modified OpenFlow match structures that will be used in place of the structures passed in m.
 
-      flow_mod_pred: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`, m: :bro:type:`OpenFlow::ofp_flow_mod`) : :bro:type:`OpenFlow::ofp_flow_mod` :bro:attr:`&optional`
+      flow_mod_pred: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`, m: :zeek:type:`OpenFlow::ofp_flow_mod`) : :zeek:type:`OpenFlow::ofp_flow_mod` :zeek:attr:`&optional`
          This predicate is called before a FlowMod message is sent to the OpenFlow
          device. It can modify the FlowMod message before it is passed on.
          
@@ -128,30 +128,30 @@ Types
 
          :returns: The modified FlowMod message that is used in lieu of m.
 
-   This record specifies the configuration that is passed to :bro:see:`NetControl::create_openflow`.
+   This record specifies the configuration that is passed to :zeek:see:`NetControl::create_openflow`.
 
-.. bro:type:: NetControl::OfTable
+.. zeek:type:: NetControl::OfTable
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      p: :bro:type:`NetControl::PluginState`
+      p: :zeek:type:`NetControl::PluginState`
 
-      r: :bro:type:`NetControl::Rule`
+      r: :zeek:type:`NetControl::Rule`
 
-      c: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      c: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
 
-      packet_count: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      packet_count: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
 
-      byte_count: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      byte_count: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
 
-      duration_sec: :bro:type:`double` :bro:attr:`&default` = ``0.0`` :bro:attr:`&optional`
+      duration_sec: :zeek:type:`double` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`
 
 
 Functions
 #########
-.. bro:id:: NetControl::create_openflow
+.. zeek:id:: NetControl::create_openflow
 
-   :Type: :bro:type:`function` (controller: :bro:type:`OpenFlow::Controller`, config: :bro:type:`NetControl::OfConfig` :bro:attr:`&default` = ``[]`` :bro:attr:`&optional`) : :bro:type:`NetControl::PluginState`
+   :Type: :zeek:type:`function` (controller: :zeek:type:`OpenFlow::Controller`, config: :zeek:type:`NetControl::OfConfig` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`) : :zeek:type:`NetControl::PluginState`
 
    Instantiates an openflow plugin for the NetControl framework.
 

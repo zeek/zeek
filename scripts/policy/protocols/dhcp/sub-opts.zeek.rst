@@ -2,7 +2,7 @@
 
 policy/protocols/dhcp/sub-opts.zeek
 ===================================
-.. bro:namespace:: DHCP
+.. zeek:namespace:: DHCP
 
 
 :Namespace: DHCP
@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`DHCP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`DHCP::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

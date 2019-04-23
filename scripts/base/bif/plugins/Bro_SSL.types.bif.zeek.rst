@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_SSL.types.bif.zeek
 =======================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: SSL
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: SSL
 
 
 :Namespaces: GLOBAL, SSL

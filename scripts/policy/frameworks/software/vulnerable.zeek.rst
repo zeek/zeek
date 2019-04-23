@@ -2,7 +2,7 @@
 
 policy/frameworks/software/vulnerable.zeek
 ==========================================
-.. bro:namespace:: Software
+.. zeek:namespace:: Software
 
 Provides a variable to define vulnerable versions of software and if
 a version of that software is as old or older than the defined version a
@@ -15,51 +15,51 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================================================ =============================================================
-:bro:id:`Software::vulnerable_versions_update_endpoint`: :bro:type:`string` :bro:attr:`&redef`   The DNS zone where runtime vulnerable software updates will
-                                                                                                 be loaded from.
-:bro:id:`Software::vulnerable_versions_update_interval`: :bro:type:`interval` :bro:attr:`&redef` The interval at which vulnerable versions should grab updates
-                                                                                                 over DNS.
-================================================================================================ =============================================================
+=================================================================================================== =============================================================
+:zeek:id:`Software::vulnerable_versions_update_endpoint`: :zeek:type:`string` :zeek:attr:`&redef`   The DNS zone where runtime vulnerable software updates will
+                                                                                                    be loaded from.
+:zeek:id:`Software::vulnerable_versions_update_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The interval at which vulnerable versions should grab updates
+                                                                                                    over DNS.
+=================================================================================================== =============================================================
 
 Redefinable Options
 ###################
-============================================================================= ===============================================================
-:bro:id:`Software::vulnerable_versions`: :bro:type:`table` :bro:attr:`&redef` This is a table of software versions indexed by the name of the
-                                                                              software and a set of version ranges that are declared to be
-                                                                              vulnerable for that software.
-============================================================================= ===============================================================
+================================================================================ ===============================================================
+:zeek:id:`Software::vulnerable_versions`: :zeek:type:`table` :zeek:attr:`&redef` This is a table of software versions indexed by the name of the
+                                                                                 software and a set of version ranges that are declared to be
+                                                                                 vulnerable for that software.
+================================================================================ ===============================================================
 
 Types
 #####
-================================================================ =
-:bro:type:`Software::VulnerableVersionRange`: :bro:type:`record` 
-================================================================ =
+================================================================== =
+:zeek:type:`Software::VulnerableVersionRange`: :zeek:type:`record` 
+================================================================== =
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Software::vulnerable_versions_update_endpoint
+.. zeek:id:: Software::vulnerable_versions_update_endpoint
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    The DNS zone where runtime vulnerable software updates will
    be loaded from.
 
-.. bro:id:: Software::vulnerable_versions_update_interval
+.. zeek:id:: Software::vulnerable_versions_update_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 hr``
 
    The interval at which vulnerable versions should grab updates
@@ -67,10 +67,10 @@ Runtime Options
 
 Redefinable Options
 ###################
-.. bro:id:: Software::vulnerable_versions
+.. zeek:id:: Software::vulnerable_versions
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`set` [:bro:type:`Software::VulnerableVersionRange`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`set` [:zeek:type:`Software::VulnerableVersionRange`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    This is a table of software versions indexed by the name of the
@@ -79,16 +79,16 @@ Redefinable Options
 
 Types
 #####
-.. bro:type:: Software::VulnerableVersionRange
+.. zeek:type:: Software::VulnerableVersionRange
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      min: :bro:type:`Software::Version` :bro:attr:`&optional`
+      min: :zeek:type:`Software::Version` :zeek:attr:`&optional`
          The minimal version of a vulnerable version range.  This
          field can be undefined if all previous versions of a piece
          of software are vulnerable.
 
-      max: :bro:type:`Software::Version`
+      max: :zeek:type:`Software::Version`
          The maximum vulnerable version.  This field is deliberately
          not optional because a maximum vulnerable version must
          always be defined.  This assumption may become incorrect

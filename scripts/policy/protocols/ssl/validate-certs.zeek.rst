@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/validate-certs.zeek
 ========================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 Perform full certificate chain validation for SSL certificates.
 
@@ -13,50 +13,50 @@ Summary
 ~~~~~~~
 State Variables
 ###############
-===================================================================================================================== ==================================================================
-:bro:id:`SSL::recently_validated_certs`: :bro:type:`table` :bro:attr:`&read_expire` = ``5.0 mins`` :bro:attr:`&redef` Result values for recently validated chains along with the
-                                                                                                                      validation status are kept in this table to avoid constant
-                                                                                                                      validation every time the same certificate chain is seen.
-:bro:id:`SSL::ssl_cache_intermediate_ca`: :bro:type:`bool` :bro:attr:`&redef`                                         Use intermediate CA certificate caching when trying to validate
-                                                                                                                      certificates.
-:bro:id:`SSL::ssl_store_valid_chain`: :bro:type:`bool` :bro:attr:`&redef`                                             Store the valid chain in c$ssl$valid_chain if validation succeeds.
-===================================================================================================================== ==================================================================
+========================================================================================================================= ==================================================================
+:zeek:id:`SSL::recently_validated_certs`: :zeek:type:`table` :zeek:attr:`&read_expire` = ``5.0 mins`` :zeek:attr:`&redef` Result values for recently validated chains along with the
+                                                                                                                          validation status are kept in this table to avoid constant
+                                                                                                                          validation every time the same certificate chain is seen.
+:zeek:id:`SSL::ssl_cache_intermediate_ca`: :zeek:type:`bool` :zeek:attr:`&redef`                                          Use intermediate CA certificate caching when trying to validate
+                                                                                                                          certificates.
+:zeek:id:`SSL::ssl_store_valid_chain`: :zeek:type:`bool` :zeek:attr:`&redef`                                              Store the valid chain in c$ssl$valid_chain if validation succeeds.
+========================================================================================================================= ==================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-:bro:type:`SSL::Info`: :bro:type:`record`  
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+:zeek:type:`SSL::Info`: :zeek:type:`record`  
+============================================ =
 
 Events
 ######
-================================================== ===============================================================
-:bro:id:`SSL::intermediate_add`: :bro:type:`event` Event from a manager to workers when encountering a new, valid
-                                                   intermediate.
-:bro:id:`SSL::new_intermediate`: :bro:type:`event` Event from workers to the manager when a new intermediate chain
-                                                   is to be added.
-================================================== ===============================================================
+==================================================== ===============================================================
+:zeek:id:`SSL::intermediate_add`: :zeek:type:`event` Event from a manager to workers when encountering a new, valid
+                                                     intermediate.
+:zeek:id:`SSL::new_intermediate`: :zeek:type:`event` Event from workers to the manager when a new intermediate chain
+                                                     is to be added.
+==================================================== ===============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 State Variables
 ###############
-.. bro:id:: SSL::recently_validated_certs
+.. zeek:id:: SSL::recently_validated_certs
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`X509::Result`
-   :Attributes: :bro:attr:`&read_expire` = ``5.0 mins`` :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`X509::Result`
+   :Attributes: :zeek:attr:`&read_expire` = ``5.0 mins`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    Result values for recently validated chains along with the
    validation status are kept in this table to avoid constant
    validation every time the same certificate chain is seen.
 
-.. bro:id:: SSL::ssl_cache_intermediate_ca
+.. zeek:id:: SSL::ssl_cache_intermediate_ca
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    Use intermediate CA certificate caching when trying to validate
@@ -70,10 +70,10 @@ State Variables
    Disabling this will usually greatly increase the number of validation warnings
    that you encounter. Only disable if you want to find misconfigured servers.
 
-.. bro:id:: SSL::ssl_store_valid_chain
+.. zeek:id:: SSL::ssl_store_valid_chain
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    Store the valid chain in c$ssl$valid_chain if validation succeeds.
@@ -82,16 +82,16 @@ State Variables
 
 Events
 ######
-.. bro:id:: SSL::intermediate_add
+.. zeek:id:: SSL::intermediate_add
 
-   :Type: :bro:type:`event` (key: :bro:type:`string`, value: :bro:type:`vector` of :bro:type:`opaque` of x509)
+   :Type: :zeek:type:`event` (key: :zeek:type:`string`, value: :zeek:type:`vector` of :zeek:type:`opaque` of x509)
 
    Event from a manager to workers when encountering a new, valid
    intermediate.
 
-.. bro:id:: SSL::new_intermediate
+.. zeek:id:: SSL::new_intermediate
 
-   :Type: :bro:type:`event` (key: :bro:type:`string`, value: :bro:type:`vector` of :bro:type:`opaque` of x509)
+   :Type: :zeek:type:`event` (key: :zeek:type:`string`, value: :zeek:type:`vector` of :zeek:type:`opaque` of x509)
 
    Event from workers to the manager when a new intermediate chain
    is to be added.

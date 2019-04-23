@@ -2,7 +2,7 @@
 
 base/bif/stats.bif.zeek
 =======================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,37 +11,37 @@ Summary
 ~~~~~~~
 Functions
 #########
-======================================================= =======================================================
-:bro:id:`get_broker_stats`: :bro:type:`function`        Returns statistics about Broker communication.
-:bro:id:`get_conn_stats`: :bro:type:`function`          Returns Bro traffic statistics.
-:bro:id:`get_dns_stats`: :bro:type:`function`           Returns statistics about DNS lookup activity.
-:bro:id:`get_event_stats`: :bro:type:`function`         Returns statistics about the event engine.
-:bro:id:`get_file_analysis_stats`: :bro:type:`function` Returns statistics about file analysis.
-:bro:id:`get_gap_stats`: :bro:type:`function`           Returns statistics about TCP gaps.
-:bro:id:`get_matcher_stats`: :bro:type:`function`       Returns statistics about the regular expression engine.
-:bro:id:`get_net_stats`: :bro:type:`function`           Returns packet capture statistics.
-:bro:id:`get_proc_stats`: :bro:type:`function`          Returns Bro process statistics.
-:bro:id:`get_reassembler_stats`: :bro:type:`function`   Returns statistics about reassembler usage.
-:bro:id:`get_reporter_stats`: :bro:type:`function`      Returns statistics about reporter messages and weirds.
-:bro:id:`get_thread_stats`: :bro:type:`function`        Returns statistics about thread usage.
-:bro:id:`get_timer_stats`: :bro:type:`function`         Returns statistics about timer usage.
-======================================================= =======================================================
+========================================================= =======================================================
+:zeek:id:`get_broker_stats`: :zeek:type:`function`        Returns statistics about Broker communication.
+:zeek:id:`get_conn_stats`: :zeek:type:`function`          Returns Bro traffic statistics.
+:zeek:id:`get_dns_stats`: :zeek:type:`function`           Returns statistics about DNS lookup activity.
+:zeek:id:`get_event_stats`: :zeek:type:`function`         Returns statistics about the event engine.
+:zeek:id:`get_file_analysis_stats`: :zeek:type:`function` Returns statistics about file analysis.
+:zeek:id:`get_gap_stats`: :zeek:type:`function`           Returns statistics about TCP gaps.
+:zeek:id:`get_matcher_stats`: :zeek:type:`function`       Returns statistics about the regular expression engine.
+:zeek:id:`get_net_stats`: :zeek:type:`function`           Returns packet capture statistics.
+:zeek:id:`get_proc_stats`: :zeek:type:`function`          Returns Bro process statistics.
+:zeek:id:`get_reassembler_stats`: :zeek:type:`function`   Returns statistics about reassembler usage.
+:zeek:id:`get_reporter_stats`: :zeek:type:`function`      Returns statistics about reporter messages and weirds.
+:zeek:id:`get_thread_stats`: :zeek:type:`function`        Returns statistics about thread usage.
+:zeek:id:`get_timer_stats`: :zeek:type:`function`         Returns statistics about timer usage.
+========================================================= =======================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: get_broker_stats
+.. zeek:id:: get_broker_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`BrokerStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`BrokerStats`
 
    Returns statistics about Broker communication.
    
 
    :returns: A record with Broker statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -55,16 +55,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_conn_stats
+.. zeek:id:: get_conn_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`ConnStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`ConnStats`
 
    Returns Bro traffic statistics.
    
 
    :returns: A record with connection and packet statistics.
    
-   .. bro:see:: get_dns_stats
+   .. zeek:see:: get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
                 get_gap_stats
@@ -77,16 +77,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_dns_stats
+.. zeek:id:: get_dns_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`DNSStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`DNSStats`
 
    Returns statistics about DNS lookup activity.
    
 
    :returns: A record with DNS lookup statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_event_stats
                 get_file_analysis_stats
                 get_gap_stats
@@ -99,16 +99,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_event_stats
+.. zeek:id:: get_event_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`EventStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`EventStats`
 
    Returns statistics about the event engine.
    
 
    :returns: A record with event engine statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_file_analysis_stats
                 get_gap_stats
@@ -121,16 +121,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_file_analysis_stats
+.. zeek:id:: get_file_analysis_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`FileAnalysisStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`FileAnalysisStats`
 
    Returns statistics about file analysis.
    
 
    :returns: A record with file analysis statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_gap_stats
@@ -143,16 +143,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_gap_stats
+.. zeek:id:: get_gap_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`GapStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`GapStats`
 
    Returns statistics about TCP gaps.
    
 
    :returns: A record with TCP gap statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -165,9 +165,9 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_matcher_stats
+.. zeek:id:: get_matcher_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`MatcherStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`MatcherStats`
 
    Returns statistics about the regular expression engine. Statistics include
    the number of distinct matchers, DFA states, DFA state transitions, memory
@@ -177,7 +177,7 @@ Functions
 
    :returns: A record with matcher statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -190,9 +190,9 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_net_stats
+.. zeek:id:: get_net_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`NetStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`NetStats`
 
    Returns packet capture statistics. Statistics include the number of
    packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
@@ -201,7 +201,7 @@ Functions
 
    :returns: A record of packet statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -214,16 +214,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_proc_stats
+.. zeek:id:: get_proc_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`ProcStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`ProcStats`
 
    Returns Bro process statistics.
    
 
    :returns: A record with process statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -236,16 +236,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_reassembler_stats
+.. zeek:id:: get_reassembler_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`ReassemblerStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`ReassemblerStats`
 
    Returns statistics about reassembler usage.
    
 
    :returns: A record with reassembler statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -258,16 +258,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_reporter_stats
+.. zeek:id:: get_reporter_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`ReporterStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`ReporterStats`
 
    Returns statistics about reporter messages and weirds.
    
 
    :returns: A record with reporter statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -280,16 +280,16 @@ Functions
                 get_timer_stats
                 get_broker_stats
 
-.. bro:id:: get_thread_stats
+.. zeek:id:: get_thread_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`ThreadStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`ThreadStats`
 
    Returns statistics about thread usage.
    
 
    :returns: A record with thread usage statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -302,16 +302,16 @@ Functions
                 get_broker_stats
                 get_reporter_stats
 
-.. bro:id:: get_timer_stats
+.. zeek:id:: get_timer_stats
 
-   :Type: :bro:type:`function` () : :bro:type:`TimerStats`
+   :Type: :zeek:type:`function` () : :zeek:type:`TimerStats`
 
    Returns statistics about timer usage.
    
 
    :returns: A record with timer usage statistics.
    
-   .. bro:see:: get_conn_stats
+   .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
                 get_file_analysis_stats

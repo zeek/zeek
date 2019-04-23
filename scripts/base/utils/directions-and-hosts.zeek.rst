@@ -10,74 +10,74 @@ Summary
 ~~~~~~~
 Types
 #####
-======================================= =
-:bro:type:`Direction`: :bro:type:`enum` 
-:bro:type:`Host`: :bro:type:`enum`      
-======================================= =
+========================================= =
+:zeek:type:`Direction`: :zeek:type:`enum` 
+:zeek:type:`Host`: :zeek:type:`enum`      
+========================================= =
 
 Functions
 #########
-==================================================== ======================================================================
-:bro:id:`addr_matches_host`: :bro:type:`function`    Checks whether a given host (IP address) matches a given host type.
-:bro:id:`id_matches_direction`: :bro:type:`function` Checks whether a given connection is of a given direction with respect
-                                                     to the locally-monitored network.
-==================================================== ======================================================================
+====================================================== ======================================================================
+:zeek:id:`addr_matches_host`: :zeek:type:`function`    Checks whether a given host (IP address) matches a given host type.
+:zeek:id:`id_matches_direction`: :zeek:type:`function` Checks whether a given connection is of a given direction with respect
+                                                       to the locally-monitored network.
+====================================================== ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: Direction
+.. zeek:type:: Direction
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: INBOUND Direction
+      .. zeek:enum:: INBOUND Direction
 
          The connection originator is not within the locally-monitored
          network, but the other endpoint is.
 
-      .. bro:enum:: OUTBOUND Direction
+      .. zeek:enum:: OUTBOUND Direction
 
          The connection originator is within the locally-monitored network,
          but the other endpoint is not.
 
-      .. bro:enum:: BIDIRECTIONAL Direction
+      .. zeek:enum:: BIDIRECTIONAL Direction
 
          Only one endpoint is within the locally-monitored network, meaning
          the connection is either outbound or inbound.
 
-      .. bro:enum:: NO_DIRECTION Direction
+      .. zeek:enum:: NO_DIRECTION Direction
 
          This value doesn't match any connection.
 
 
-.. bro:type:: Host
+.. zeek:type:: Host
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: LOCAL_HOSTS Host
+      .. zeek:enum:: LOCAL_HOSTS Host
 
          A host within the locally-monitored network.
 
-      .. bro:enum:: REMOTE_HOSTS Host
+      .. zeek:enum:: REMOTE_HOSTS Host
 
          A host not within the locally-monitored network.
 
-      .. bro:enum:: ALL_HOSTS Host
+      .. zeek:enum:: ALL_HOSTS Host
 
          Any host.
 
-      .. bro:enum:: NO_HOSTS Host
+      .. zeek:enum:: NO_HOSTS Host
 
          This value doesn't match any host.
 
 
 Functions
 #########
-.. bro:id:: addr_matches_host
+.. zeek:id:: addr_matches_host
 
-   :Type: :bro:type:`function` (ip: :bro:type:`addr`, h: :bro:type:`Host`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (ip: :zeek:type:`addr`, h: :zeek:type:`Host`) : :zeek:type:`bool`
 
    Checks whether a given host (IP address) matches a given host type.
    
@@ -90,9 +90,9 @@ Functions
 
    :returns: T if the given host matches the given type, else F.
 
-.. bro:id:: id_matches_direction
+.. zeek:id:: id_matches_direction
 
-   :Type: :bro:type:`function` (id: :bro:type:`conn_id`, d: :bro:type:`Direction`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`conn_id`, d: :zeek:type:`Direction`) : :zeek:type:`bool`
 
    Checks whether a given connection is of a given direction with respect
    to the locally-monitored network.

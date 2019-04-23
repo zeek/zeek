@@ -2,7 +2,7 @@
 
 base/utils/dir.zeek
 ===================
-.. bro:namespace:: Dir
+.. zeek:namespace:: Dir
 
 
 :Namespace: Dir
@@ -12,37 +12,37 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-======================================================================== =====================================================================
-:bro:id:`Dir::polling_interval`: :bro:type:`interval` :bro:attr:`&redef` The default interval this module checks for files in directories when
-                                                                         using the :bro:see:`Dir::monitor` function.
-======================================================================== =====================================================================
+=========================================================================== =====================================================================
+:zeek:id:`Dir::polling_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The default interval this module checks for files in directories when
+                                                                            using the :zeek:see:`Dir::monitor` function.
+=========================================================================== =====================================================================
 
 Functions
 #########
-============================================ ==============================================================
-:bro:id:`Dir::monitor`: :bro:type:`function` Register a directory to monitor with a callback that is called
-                                             every time a previously unseen file is seen.
-============================================ ==============================================================
+============================================== ==============================================================
+:zeek:id:`Dir::monitor`: :zeek:type:`function` Register a directory to monitor with a callback that is called
+                                               every time a previously unseen file is seen.
+============================================== ==============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Dir::polling_interval
+.. zeek:id:: Dir::polling_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30.0 secs``
 
    The default interval this module checks for files in directories when
-   using the :bro:see:`Dir::monitor` function.
+   using the :zeek:see:`Dir::monitor` function.
 
 Functions
 #########
-.. bro:id:: Dir::monitor
+.. zeek:id:: Dir::monitor
 
-   :Type: :bro:type:`function` (dir: :bro:type:`string`, callback: :bro:type:`function` (fname: :bro:type:`string`) : :bro:type:`void`, poll_interval: :bro:type:`interval` :bro:attr:`&default` = :bro:see:`Dir::polling_interval` :bro:attr:`&optional`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (dir: :zeek:type:`string`, callback: :zeek:type:`function` (fname: :zeek:type:`string`) : :zeek:type:`void`, poll_interval: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Dir::polling_interval` :zeek:attr:`&optional`) : :zeek:type:`void`
 
    Register a directory to monitor with a callback that is called
    every time a previously unseen file is seen.  If a file is deleted

@@ -2,7 +2,7 @@
 
 policy/frameworks/intel/do_notice.zeek
 ======================================
-.. bro:namespace:: Intel
+.. zeek:namespace:: Intel
 
 This script enables notice generation for intelligence matches.
 
@@ -13,10 +13,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=============================================== =
-:bro:type:`Intel::MetaData`: :bro:type:`record` 
-:bro:type:`Notice::Type`: :bro:type:`enum`      
-=============================================== =
+================================================= =
+:zeek:type:`Intel::MetaData`: :zeek:type:`record` 
+:zeek:type:`Notice::Type`: :zeek:type:`enum`      
+================================================= =
 
 
 Detailed Interface

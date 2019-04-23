@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_RADIUS.events.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ====================================
-:bro:id:`radius_attribute`: :bro:type:`event` Generated for each RADIUS attribute.
-:bro:id:`radius_message`: :bro:type:`event`   Generated for RADIUS messages.
-============================================= ====================================
+=============================================== ====================================
+:zeek:id:`radius_attribute`: :zeek:type:`event` Generated for each RADIUS attribute.
+:zeek:id:`radius_message`: :zeek:type:`event`   Generated for RADIUS messages.
+=============================================== ====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: radius_attribute
+.. zeek:id:: radius_attribute
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, attr_type: :bro:type:`count`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, attr_type: :zeek:type:`count`, value: :zeek:type:`string`)
 
    Generated for each RADIUS attribute.
    
@@ -40,9 +40,9 @@ Events
    :value: The data/value bound to the attribute.
    
 
-.. bro:id:: radius_message
+.. zeek:id:: radius_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`RADIUS::Message`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`RADIUS::Message`)
 
    Generated for RADIUS messages.
    

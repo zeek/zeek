@@ -2,7 +2,7 @@
 
 base/frameworks/notice/actions/drop.zeek
 ========================================
-.. bro:namespace:: Notice
+.. zeek:namespace:: Notice
 
 This script extends the built in notice code to implement the IP address
 dropping functionality.
@@ -14,10 +14,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`Notice::Action`: :bro:type:`enum` 
-:bro:type:`Notice::Info`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`Notice::Action`: :zeek:type:`enum` 
+:zeek:type:`Notice::Info`: :zeek:type:`record` 
+============================================== =
 
 
 Detailed Interface

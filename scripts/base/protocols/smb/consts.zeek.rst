@@ -2,9 +2,9 @@
 
 base/protocols/smb/consts.zeek
 ==============================
-.. bro:namespace:: SMB
-.. bro:namespace:: SMB1
-.. bro:namespace:: SMB2
+.. zeek:namespace:: SMB
+.. zeek:namespace:: SMB1
+.. zeek:namespace:: SMB2
 
 
 :Namespaces: SMB, SMB1, SMB2
@@ -13,48 +13,48 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=================================================================================================================================== ============================================
-:bro:id:`SMB::rpc_sub_cmds`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` The subcommands for RPC endpoints.
-:bro:id:`SMB::rpc_uuids`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`    The UUIDs used by the various RPC endpoints.
-:bro:id:`SMB::srv_cmds`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`     Server service sub commands.
-:bro:id:`SMB::statuses`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`     
-:bro:id:`SMB::wksta_cmds`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`   Workstation service sub commands.
-=================================================================================================================================== ============================================
+========================================================================================================================================= ============================================
+:zeek:id:`SMB::rpc_sub_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` The subcommands for RPC endpoints.
+:zeek:id:`SMB::rpc_uuids`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`    The UUIDs used by the various RPC endpoints.
+:zeek:id:`SMB::srv_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     Server service sub commands.
+:zeek:id:`SMB::statuses`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     
+:zeek:id:`SMB::wksta_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`   Workstation service sub commands.
+========================================================================================================================================= ============================================
 
 Constants
 #########
-======================================================================================================================== =
-:bro:id:`SMB1::commands`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`            
-:bro:id:`SMB1::trans2_sub_commands`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` 
-:bro:id:`SMB1::trans_sub_commands`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`  
-:bro:id:`SMB2::commands`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`            
-:bro:id:`SMB2::dialects`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`            
-:bro:id:`SMB2::share_types`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`         
-======================================================================================================================== =
+============================================================================================================================= =
+:zeek:id:`SMB1::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`            
+:zeek:id:`SMB1::trans2_sub_commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
+:zeek:id:`SMB1::trans_sub_commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  
+:zeek:id:`SMB2::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`            
+:zeek:id:`SMB2::dialects`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`            
+:zeek:id:`SMB2::share_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`         
+============================================================================================================================= =
 
 Types
 #####
-================================================= =
-:bro:type:`SMB::StatusCode`: :bro:type:`record`   
-:bro:type:`SMB::rpc_cmd_table`: :bro:type:`table` 
-================================================= =
+=================================================== =
+:zeek:type:`SMB::StatusCode`: :zeek:type:`record`   
+:zeek:type:`SMB::rpc_cmd_table`: :zeek:type:`table` 
+=================================================== =
 
 Redefinitions
 #############
-================================================================= ================================================
-:bro:id:`SMB::pipe_filenames`: :bro:type:`set` :bro:attr:`&redef` Heuristic detection of named pipes when the pipe
-                                                                  mapping isn't seen.
-================================================================= ================================================
+==================================================================== ================================================
+:zeek:id:`SMB::pipe_filenames`: :zeek:type:`set` :zeek:attr:`&redef` Heuristic detection of named pipes when the pipe
+                                                                     mapping isn't seen.
+==================================================================== ================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: SMB::rpc_sub_cmds
+.. zeek:id:: SMB::rpc_sub_cmds
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`SMB::rpc_cmd_table`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`SMB::rpc_cmd_table`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -136,10 +136,10 @@ Redefinable Options
 
    The subcommands for RPC endpoints.
 
-.. bro:id:: SMB::rpc_uuids
+.. zeek:id:: SMB::rpc_uuids
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -151,10 +151,10 @@ Redefinable Options
 
    The UUIDs used by the various RPC endpoints.
 
-.. bro:id:: SMB::srv_cmds
+.. zeek:id:: SMB::srv_cmds
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -211,10 +211,10 @@ Redefinable Options
 
    Server service sub commands.
 
-.. bro:id:: SMB::statuses
+.. zeek:id:: SMB::statuses
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`SMB::StatusCode`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SMB::StatusCode`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2133,10 +2133,10 @@ Redefinable Options
       }
 
 
-.. bro:id:: SMB::wksta_cmds
+.. zeek:id:: SMB::wksta_cmds
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2169,10 +2169,10 @@ Redefinable Options
 
 Constants
 #########
-.. bro:id:: SMB1::commands
+.. zeek:id:: SMB1::commands
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2253,10 +2253,10 @@ Constants
       }
 
 
-.. bro:id:: SMB1::trans2_sub_commands
+.. zeek:id:: SMB1::trans2_sub_commands
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2282,10 +2282,10 @@ Constants
       }
 
 
-.. bro:id:: SMB1::trans_sub_commands
+.. zeek:id:: SMB1::trans_sub_commands
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2305,10 +2305,10 @@ Constants
       }
 
 
-.. bro:id:: SMB2::commands
+.. zeek:id:: SMB2::commands
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2336,10 +2336,10 @@ Constants
       }
 
 
-.. bro:id:: SMB2::dialects
+.. zeek:id:: SMB2::dialects
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2354,10 +2354,10 @@ Constants
       }
 
 
-.. bro:id:: SMB2::share_types
+.. zeek:id:: SMB2::share_types
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -2371,18 +2371,18 @@ Constants
 
 Types
 #####
-.. bro:type:: SMB::StatusCode
+.. zeek:type:: SMB::StatusCode
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      id: :bro:type:`string`
+      id: :zeek:type:`string`
 
-      desc: :bro:type:`string`
+      desc: :zeek:type:`string`
 
 
-.. bro:type:: SMB::rpc_cmd_table
+.. zeek:type:: SMB::rpc_cmd_table
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
 
 
 

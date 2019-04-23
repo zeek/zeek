@@ -2,7 +2,7 @@
 
 policy/protocols/http/var-extraction-cookies.zeek
 =================================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Extracts and logs variable names from cookies sent by clients.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`HTTP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`HTTP::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

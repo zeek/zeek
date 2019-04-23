@@ -39,7 +39,7 @@ Bro to be customized to the different needs that sites have.
 
    Adds a new notice action type which can be used to email notices
    to the administrators of a particular address space as set by
-   :bro:id:`Site::local_admins` if the notice contains a source
+   :zeek:id:`Site::local_admins` if the notice contains a source
    or destination address that lies within their space.
 
 :doc:`/scripts/base/frameworks/notice/actions/page.zeek`

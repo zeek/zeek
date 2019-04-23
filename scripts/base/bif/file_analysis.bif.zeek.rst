@@ -2,8 +2,8 @@
 
 base/bif/file_analysis.bif.zeek
 ===============================
-.. bro:namespace:: Files
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: Files
+.. zeek:namespace:: GLOBAL
 
 Internal functions and types used by the file analysis framework.
 
@@ -13,92 +13,92 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================================== ===================================================================
-:bro:id:`Files::__add_analyzer`: :bro:type:`function`          :bro:see:`Files::add_analyzer`.
-:bro:id:`Files::__analyzer_name`: :bro:type:`function`         :bro:see:`Files::analyzer_name`.
-:bro:id:`Files::__disable_reassembly`: :bro:type:`function`    :bro:see:`Files::disable_reassembly`.
-:bro:id:`Files::__enable_reassembly`: :bro:type:`function`     :bro:see:`Files::enable_reassembly`.
-:bro:id:`Files::__file_exists`: :bro:type:`function`           :bro:see:`Files::file_exists`.
-:bro:id:`Files::__lookup_file`: :bro:type:`function`           :bro:see:`Files::lookup_file`.
-:bro:id:`Files::__remove_analyzer`: :bro:type:`function`       :bro:see:`Files::remove_analyzer`.
-:bro:id:`Files::__set_reassembly_buffer`: :bro:type:`function` :bro:see:`Files::set_reassembly_buffer_size`.
-:bro:id:`Files::__set_timeout_interval`: :bro:type:`function`  :bro:see:`Files::set_timeout_interval`.
-:bro:id:`Files::__stop`: :bro:type:`function`                  :bro:see:`Files::stop`.
-:bro:id:`set_file_handle`: :bro:type:`function`                For use within a :bro:see:`get_file_handle` handler to set a unique
-                                                               identifier to associate with the current input to the file analysis
-                                                               framework.
-============================================================== ===================================================================
+================================================================ ====================================================================
+:zeek:id:`Files::__add_analyzer`: :zeek:type:`function`          :zeek:see:`Files::add_analyzer`.
+:zeek:id:`Files::__analyzer_name`: :zeek:type:`function`         :zeek:see:`Files::analyzer_name`.
+:zeek:id:`Files::__disable_reassembly`: :zeek:type:`function`    :zeek:see:`Files::disable_reassembly`.
+:zeek:id:`Files::__enable_reassembly`: :zeek:type:`function`     :zeek:see:`Files::enable_reassembly`.
+:zeek:id:`Files::__file_exists`: :zeek:type:`function`           :zeek:see:`Files::file_exists`.
+:zeek:id:`Files::__lookup_file`: :zeek:type:`function`           :zeek:see:`Files::lookup_file`.
+:zeek:id:`Files::__remove_analyzer`: :zeek:type:`function`       :zeek:see:`Files::remove_analyzer`.
+:zeek:id:`Files::__set_reassembly_buffer`: :zeek:type:`function` :zeek:see:`Files::set_reassembly_buffer_size`.
+:zeek:id:`Files::__set_timeout_interval`: :zeek:type:`function`  :zeek:see:`Files::set_timeout_interval`.
+:zeek:id:`Files::__stop`: :zeek:type:`function`                  :zeek:see:`Files::stop`.
+:zeek:id:`set_file_handle`: :zeek:type:`function`                For use within a :zeek:see:`get_file_handle` handler to set a unique
+                                                                 identifier to associate with the current input to the file analysis
+                                                                 framework.
+================================================================ ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Files::__add_analyzer
+.. zeek:id:: Files::__add_analyzer
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, tag: :bro:type:`Files::Tag`, args: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`any`) : :zeek:type:`bool`
 
-   :bro:see:`Files::add_analyzer`.
+   :zeek:see:`Files::add_analyzer`.
 
-.. bro:id:: Files::__analyzer_name
+.. zeek:id:: Files::__analyzer_name
 
-   :Type: :bro:type:`function` (tag: :bro:type:`Files::Tag`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`string`
 
-   :bro:see:`Files::analyzer_name`.
+   :zeek:see:`Files::analyzer_name`.
 
-.. bro:id:: Files::__disable_reassembly
+.. zeek:id:: Files::__disable_reassembly
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`) : :zeek:type:`bool`
 
-   :bro:see:`Files::disable_reassembly`.
+   :zeek:see:`Files::disable_reassembly`.
 
-.. bro:id:: Files::__enable_reassembly
+.. zeek:id:: Files::__enable_reassembly
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`) : :zeek:type:`bool`
 
-   :bro:see:`Files::enable_reassembly`.
+   :zeek:see:`Files::enable_reassembly`.
 
-.. bro:id:: Files::__file_exists
+.. zeek:id:: Files::__file_exists
 
-   :Type: :bro:type:`function` (fuid: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (fuid: :zeek:type:`string`) : :zeek:type:`bool`
 
-   :bro:see:`Files::file_exists`.
+   :zeek:see:`Files::file_exists`.
 
-.. bro:id:: Files::__lookup_file
+.. zeek:id:: Files::__lookup_file
 
-   :Type: :bro:type:`function` (fuid: :bro:type:`string`) : :bro:type:`fa_file`
+   :Type: :zeek:type:`function` (fuid: :zeek:type:`string`) : :zeek:type:`fa_file`
 
-   :bro:see:`Files::lookup_file`.
+   :zeek:see:`Files::lookup_file`.
 
-.. bro:id:: Files::__remove_analyzer
+.. zeek:id:: Files::__remove_analyzer
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, tag: :bro:type:`Files::Tag`, args: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`any`) : :zeek:type:`bool`
 
-   :bro:see:`Files::remove_analyzer`.
+   :zeek:see:`Files::remove_analyzer`.
 
-.. bro:id:: Files::__set_reassembly_buffer
+.. zeek:id:: Files::__set_reassembly_buffer
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, max: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, max: :zeek:type:`count`) : :zeek:type:`bool`
 
-   :bro:see:`Files::set_reassembly_buffer_size`.
+   :zeek:see:`Files::set_reassembly_buffer_size`.
 
-.. bro:id:: Files::__set_timeout_interval
+.. zeek:id:: Files::__set_timeout_interval
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, t: :bro:type:`interval`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, t: :zeek:type:`interval`) : :zeek:type:`bool`
 
-   :bro:see:`Files::set_timeout_interval`.
+   :zeek:see:`Files::set_timeout_interval`.
 
-.. bro:id:: Files::__stop
+.. zeek:id:: Files::__stop
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`) : :zeek:type:`bool`
 
-   :bro:see:`Files::stop`.
+   :zeek:see:`Files::stop`.
 
-.. bro:id:: set_file_handle
+.. zeek:id:: set_file_handle
 
-   :Type: :bro:type:`function` (handle: :bro:type:`string`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`string`) : :zeek:type:`any`
 
-   For use within a :bro:see:`get_file_handle` handler to set a unique
+   For use within a :zeek:see:`get_file_handle` handler to set a unique
    identifier to associate with the current input to the file analysis
    framework.  Using an empty string for the handle signifies that the
    input will be ignored/discarded.
@@ -106,6 +106,6 @@ Functions
 
    :handle: A string that uniquely identifies a file.
    
-   .. bro:see:: get_file_handle
+   .. zeek:see:: get_file_handle
 
 

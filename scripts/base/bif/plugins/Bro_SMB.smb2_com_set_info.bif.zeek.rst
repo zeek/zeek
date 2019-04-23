@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_set_info.bif.zeek
 ===================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,23 +11,23 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ===========================================================================================
-:bro:id:`smb2_file_delete`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                              version 2 requests of type *set_info* of the *delete* subtype.
-:bro:id:`smb2_file_rename`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                              version 2 requests of type *set_info* of the *rename* subtype.
-:bro:id:`smb2_file_sattr`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                              version 2 requests of type *set_info* of the *file* subtype
-============================================= ===========================================================================================
+=============================================== ===========================================================================================
+:zeek:id:`smb2_file_delete`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                version 2 requests of type *set_info* of the *delete* subtype.
+:zeek:id:`smb2_file_rename`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                version 2 requests of type *set_info* of the *rename* subtype.
+:zeek:id:`smb2_file_sattr`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                version 2 requests of type *set_info* of the *file* subtype
+=============================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_file_delete
+.. zeek:id:: smb2_file_delete
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, delete_pending: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, delete_pending: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *delete* subtype.
@@ -47,11 +47,11 @@ Events
    :delete_pending: A boolean value to indicate that a file should be deleted 
                    when it's closed if set to T.
    
-   .. bro:see:: smb2_message smb2_file_rename smb2_file_sattr
+   .. zeek:see:: smb2_message smb2_file_rename smb2_file_sattr
 
-.. bro:id:: smb2_file_rename
+.. zeek:id:: smb2_file_rename
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, dst_filename: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, dst_filename: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *rename* subtype.
@@ -70,11 +70,11 @@ Events
 
    :dst_filename: The filename to rename the file into.
    
-   .. bro:see:: smb2_message smb2_file_delete smb2_file_sattr
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr
 
-.. bro:id:: smb2_file_sattr
+.. zeek:id:: smb2_file_sattr
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, times: :bro:type:`SMB::MACTimes`, attrs: :bro:type:`SMB2::FileAttrs`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, times: :zeek:type:`SMB::MACTimes`, attrs: :zeek:type:`SMB2::FileAttrs`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *file* subtype
@@ -96,6 +96,6 @@ Events
 
    :attrs: File attributes.
    
-   .. bro:see:: smb2_message smb2_file_rename smb2_file_delete
+   .. zeek:see:: smb2_message smb2_file_rename smb2_file_delete
 
 

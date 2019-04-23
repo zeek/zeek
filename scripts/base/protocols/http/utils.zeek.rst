@@ -2,7 +2,7 @@
 
 base/protocols/http/utils.zeek
 ==============================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Utilities specific for HTTP processing.
 
@@ -13,54 +13,54 @@ Summary
 ~~~~~~~
 Functions
 #########
-==================================================== ====================================================================
-:bro:id:`HTTP::build_url`: :bro:type:`function`      Creates a URL from an :bro:type:`HTTP::Info` record.
-:bro:id:`HTTP::build_url_http`: :bro:type:`function` Creates a URL from an :bro:type:`HTTP::Info` record.
-:bro:id:`HTTP::describe`: :bro:type:`function`       Create an extremely shortened representation of a log line.
-:bro:id:`HTTP::extract_keys`: :bro:type:`function`   Given a string containing a series of key-value pairs separated
-                                                     by "=", this function can be used to parse out all of the key names.
-==================================================== ====================================================================
+====================================================== ====================================================================
+:zeek:id:`HTTP::build_url`: :zeek:type:`function`      Creates a URL from an :zeek:type:`HTTP::Info` record.
+:zeek:id:`HTTP::build_url_http`: :zeek:type:`function` Creates a URL from an :zeek:type:`HTTP::Info` record.
+:zeek:id:`HTTP::describe`: :zeek:type:`function`       Create an extremely shortened representation of a log line.
+:zeek:id:`HTTP::extract_keys`: :zeek:type:`function`   Given a string containing a series of key-value pairs separated
+                                                       by "=", this function can be used to parse out all of the key names.
+====================================================== ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: HTTP::build_url
+.. zeek:id:: HTTP::build_url
 
-   :Type: :bro:type:`function` (rec: :bro:type:`HTTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`HTTP::Info`) : :zeek:type:`string`
 
-   Creates a URL from an :bro:type:`HTTP::Info` record.  This should
+   Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
    handle edge cases such as proxied requests appropriately.
    
 
-   :rec: An :bro:type:`HTTP::Info` record.
+   :rec: An :zeek:type:`HTTP::Info` record.
    
 
    :returns: A URL, not prefixed by ``"http://"``.
 
-.. bro:id:: HTTP::build_url_http
+.. zeek:id:: HTTP::build_url_http
 
-   :Type: :bro:type:`function` (rec: :bro:type:`HTTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`HTTP::Info`) : :zeek:type:`string`
 
-   Creates a URL from an :bro:type:`HTTP::Info` record.  This should
+   Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
    handle edge cases such as proxied requests appropriately.
    
 
-   :rec: An :bro:type:`HTTP::Info` record.
+   :rec: An :zeek:type:`HTTP::Info` record.
    
 
    :returns: A URL prefixed with ``"http://"``.
 
-.. bro:id:: HTTP::describe
+.. zeek:id:: HTTP::describe
 
-   :Type: :bro:type:`function` (rec: :bro:type:`HTTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`HTTP::Info`) : :zeek:type:`string`
 
    Create an extremely shortened representation of a log line.
 
-.. bro:id:: HTTP::extract_keys
+.. zeek:id:: HTTP::extract_keys
 
-   :Type: :bro:type:`function` (data: :bro:type:`string`, kv_splitter: :bro:type:`pattern`) : :bro:type:`string_vec`
+   :Type: :zeek:type:`function` (data: :zeek:type:`string`, kv_splitter: :zeek:type:`pattern`) : :zeek:type:`string_vec`
 
    Given a string containing a series of key-value pairs separated
    by "=", this function can be used to parse out all of the key names.

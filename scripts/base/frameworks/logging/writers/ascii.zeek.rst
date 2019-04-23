@@ -2,7 +2,7 @@
 
 base/frameworks/logging/writers/ascii.zeek
 ==========================================
-.. bro:namespace:: LogAscii
+.. zeek:namespace:: LogAscii
 
 Interface for the ASCII log writer.  Redefinable options are available
 to tweak the output format of ASCII logs.
@@ -24,37 +24,37 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-========================================================================================= =====================================================================
-:bro:id:`LogAscii::empty_field`: :bro:type:`string` :bro:attr:`&redef`                    String to use for empty fields.
-:bro:id:`LogAscii::gzip_level`: :bro:type:`count` :bro:attr:`&redef`                      Define the gzip level to compress the logs.
-:bro:id:`LogAscii::include_meta`: :bro:type:`bool` :bro:attr:`&redef`                     If true, include lines with log meta information such as column names
-                                                                                          with types, the values of ASCII logging options that are in use, and
-                                                                                          the time when the file was opened and closed (the latter at the end).
-:bro:id:`LogAscii::json_timestamps`: :bro:type:`JSON::TimestampFormat` :bro:attr:`&redef` Format of timestamps when writing out JSON.
-:bro:id:`LogAscii::meta_prefix`: :bro:type:`string` :bro:attr:`&redef`                    Prefix for lines with meta information.
-:bro:id:`LogAscii::output_to_stdout`: :bro:type:`bool` :bro:attr:`&redef`                 If true, output everything to stdout rather than
-                                                                                          into files.
-:bro:id:`LogAscii::separator`: :bro:type:`string` :bro:attr:`&redef`                      Separator between fields.
-:bro:id:`LogAscii::set_separator`: :bro:type:`string` :bro:attr:`&redef`                  Separator between set elements.
-:bro:id:`LogAscii::unset_field`: :bro:type:`string` :bro:attr:`&redef`                    String to use for an unset &optional field.
-:bro:id:`LogAscii::use_json`: :bro:type:`bool` :bro:attr:`&redef`                         If true, the default will be to write logs in a JSON format.
-========================================================================================= =====================================================================
+============================================================================================ =====================================================================
+:zeek:id:`LogAscii::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`                    String to use for empty fields.
+:zeek:id:`LogAscii::gzip_level`: :zeek:type:`count` :zeek:attr:`&redef`                      Define the gzip level to compress the logs.
+:zeek:id:`LogAscii::include_meta`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, include lines with log meta information such as column names
+                                                                                             with types, the values of ASCII logging options that are in use, and
+                                                                                             the time when the file was opened and closed (the latter at the end).
+:zeek:id:`LogAscii::json_timestamps`: :zeek:type:`JSON::TimestampFormat` :zeek:attr:`&redef` Format of timestamps when writing out JSON.
+:zeek:id:`LogAscii::meta_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                    Prefix for lines with meta information.
+:zeek:id:`LogAscii::output_to_stdout`: :zeek:type:`bool` :zeek:attr:`&redef`                 If true, output everything to stdout rather than
+                                                                                             into files.
+:zeek:id:`LogAscii::separator`: :zeek:type:`string` :zeek:attr:`&redef`                      Separator between fields.
+:zeek:id:`LogAscii::set_separator`: :zeek:type:`string` :zeek:attr:`&redef`                  Separator between set elements.
+:zeek:id:`LogAscii::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`                    String to use for an unset &optional field.
+:zeek:id:`LogAscii::use_json`: :zeek:type:`bool` :zeek:attr:`&redef`                         If true, the default will be to write logs in a JSON format.
+============================================================================================ =====================================================================
 
 Redefinitions
 #############
-==================================================================================== =
-:bro:id:`Log::default_rotation_postprocessors`: :bro:type:`table` :bro:attr:`&redef` 
-==================================================================================== =
+======================================================================================= =
+:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef` 
+======================================================================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: LogAscii::empty_field
+.. zeek:id:: LogAscii::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"(empty)"``
 
    String to use for empty fields. This should be different from
@@ -62,10 +62,10 @@ Redefinable Options
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::gzip_level
+.. zeek:id:: LogAscii::gzip_level
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``0``
 
    Define the gzip level to compress the logs.  If 0, then no gzip
@@ -74,10 +74,10 @@ Redefinable Options
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::include_meta
+.. zeek:id:: LogAscii::include_meta
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, include lines with log meta information such as column names
@@ -86,10 +86,10 @@ Redefinable Options
    
    If writing in JSON format, this is implicitly disabled.
 
-.. bro:id:: LogAscii::json_timestamps
+.. zeek:id:: LogAscii::json_timestamps
 
-   :Type: :bro:type:`JSON::TimestampFormat`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`JSON::TimestampFormat`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``JSON::TS_EPOCH``
 
    Format of timestamps when writing out JSON. By default, the JSON
@@ -98,20 +98,20 @@ Redefinable Options
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::meta_prefix
+.. zeek:id:: LogAscii::meta_prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"#"``
 
    Prefix for lines with meta information.
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::output_to_stdout
+.. zeek:id:: LogAscii::output_to_stdout
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    If true, output everything to stdout rather than
@@ -119,40 +119,40 @@ Redefinable Options
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::separator
+.. zeek:id:: LogAscii::separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"\x09"``
 
    Separator between fields.
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::set_separator
+.. zeek:id:: LogAscii::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Separator between set elements.
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::unset_field
+.. zeek:id:: LogAscii::unset_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"-"``
 
    String to use for an unset &optional field.
    
    This option is also available as a per-filter ``$config`` option.
 
-.. bro:id:: LogAscii::use_json
+.. zeek:id:: LogAscii::use_json
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, the default will be to write logs in a JSON format.

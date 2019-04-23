@@ -2,7 +2,7 @@
 
 base/frameworks/cluster/pools.zeek
 ==================================
-.. bro:namespace:: Cluster
+.. zeek:namespace:: Cluster
 
 Defines an interface for managing pools of cluster nodes.  Pools are
 a useful way to distribute work or data among nodes within a cluster.
@@ -14,42 +14,42 @@ Summary
 ~~~~~~~
 State Variables
 ###############
-===================================================================================== ======================================================
-:bro:id:`Cluster::logger_pool`: :bro:type:`Cluster::Pool`                             A pool containing all the logger nodes of a cluster.
-:bro:id:`Cluster::logger_pool_spec`: :bro:type:`Cluster::PoolSpec` :bro:attr:`&redef` The specification for :bro:see:`Cluster::logger_pool`.
-:bro:id:`Cluster::proxy_pool`: :bro:type:`Cluster::Pool`                              A pool containing all the proxy nodes of a cluster.
-:bro:id:`Cluster::proxy_pool_spec`: :bro:type:`Cluster::PoolSpec` :bro:attr:`&redef`  The specification for :bro:see:`Cluster::proxy_pool`.
-:bro:id:`Cluster::worker_pool`: :bro:type:`Cluster::Pool`                             A pool containing all the worker nodes of a cluster.
-:bro:id:`Cluster::worker_pool_spec`: :bro:type:`Cluster::PoolSpec` :bro:attr:`&redef` The specification for :bro:see:`Cluster::worker_pool`.
-===================================================================================== ======================================================
+======================================================================================== =======================================================
+:zeek:id:`Cluster::logger_pool`: :zeek:type:`Cluster::Pool`                              A pool containing all the logger nodes of a cluster.
+:zeek:id:`Cluster::logger_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef` The specification for :zeek:see:`Cluster::logger_pool`.
+:zeek:id:`Cluster::proxy_pool`: :zeek:type:`Cluster::Pool`                               A pool containing all the proxy nodes of a cluster.
+:zeek:id:`Cluster::proxy_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`  The specification for :zeek:see:`Cluster::proxy_pool`.
+:zeek:id:`Cluster::worker_pool`: :zeek:type:`Cluster::Pool`                              A pool containing all the worker nodes of a cluster.
+:zeek:id:`Cluster::worker_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef` The specification for :zeek:see:`Cluster::worker_pool`.
+======================================================================================== =======================================================
 
 Types
 #####
-======================================================= ===========================================================
-:bro:type:`Cluster::PoolNode`: :bro:type:`record`       Store state of a cluster within the context of a work pool.
-:bro:type:`Cluster::PoolNodeTable`: :bro:type:`table`   
-:bro:type:`Cluster::PoolSpec`: :bro:type:`record`       A pool specification.
-:bro:type:`Cluster::RoundRobinTable`: :bro:type:`table` 
-======================================================= ===========================================================
+========================================================= ===========================================================
+:zeek:type:`Cluster::PoolNode`: :zeek:type:`record`       Store state of a cluster within the context of a work pool.
+:zeek:type:`Cluster::PoolNodeTable`: :zeek:type:`table`   
+:zeek:type:`Cluster::PoolSpec`: :zeek:type:`record`       A pool specification.
+:zeek:type:`Cluster::RoundRobinTable`: :zeek:type:`table` 
+========================================================= ===========================================================
 
 Functions
 #########
-====================================================== ======================================================================
-:bro:id:`Cluster::hrw_topic`: :bro:type:`function`     Retrieve the topic associated with the node mapped via Rendezvous hash
-                                                       of an arbitrary key.
-:bro:id:`Cluster::register_pool`: :bro:type:`function` Registers and initializes a pool.
-:bro:id:`Cluster::rr_log_topic`: :bro:type:`function`  Distributes log message topics among logger nodes via round-robin.
-:bro:id:`Cluster::rr_topic`: :bro:type:`function`      Retrieve the topic associated with the node in a round-robin fashion.
-====================================================== ======================================================================
+======================================================== ======================================================================
+:zeek:id:`Cluster::hrw_topic`: :zeek:type:`function`     Retrieve the topic associated with the node mapped via Rendezvous hash
+                                                         of an arbitrary key.
+:zeek:id:`Cluster::register_pool`: :zeek:type:`function` Registers and initializes a pool.
+:zeek:id:`Cluster::rr_log_topic`: :zeek:type:`function`  Distributes log message topics among logger nodes via round-robin.
+:zeek:id:`Cluster::rr_topic`: :zeek:type:`function`      Retrieve the topic associated with the node in a round-robin fashion.
+======================================================== ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 State Variables
 ###############
-.. bro:id:: Cluster::logger_pool
+.. zeek:id:: Cluster::logger_pool
 
-   :Type: :bro:type:`Cluster::Pool`
+   :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
    ::
@@ -73,10 +73,10 @@ State Variables
    The pool's node membership/availability is automatically
    maintained by the cluster framework.
 
-.. bro:id:: Cluster::logger_pool_spec
+.. zeek:id:: Cluster::logger_pool_spec
 
-   :Type: :bro:type:`Cluster::PoolSpec`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Cluster::PoolSpec`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -88,11 +88,11 @@ State Variables
          exclusive=F
       }
 
-   The specification for :bro:see:`Cluster::logger_pool`.
+   The specification for :zeek:see:`Cluster::logger_pool`.
 
-.. bro:id:: Cluster::proxy_pool
+.. zeek:id:: Cluster::proxy_pool
 
-   :Type: :bro:type:`Cluster::Pool`
+   :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
    ::
@@ -116,10 +116,10 @@ State Variables
    The pool's node membership/availability is automatically
    maintained by the cluster framework.
 
-.. bro:id:: Cluster::proxy_pool_spec
+.. zeek:id:: Cluster::proxy_pool_spec
 
-   :Type: :bro:type:`Cluster::PoolSpec`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Cluster::PoolSpec`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -131,11 +131,11 @@ State Variables
          exclusive=F
       }
 
-   The specification for :bro:see:`Cluster::proxy_pool`.
+   The specification for :zeek:see:`Cluster::proxy_pool`.
 
-.. bro:id:: Cluster::worker_pool
+.. zeek:id:: Cluster::worker_pool
 
-   :Type: :bro:type:`Cluster::Pool`
+   :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
    ::
@@ -159,10 +159,10 @@ State Variables
    The pool's node membership/availability is automatically
    maintained by the cluster framework.
 
-.. bro:id:: Cluster::worker_pool_spec
+.. zeek:id:: Cluster::worker_pool_spec
 
-   :Type: :bro:type:`Cluster::PoolSpec`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Cluster::PoolSpec`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -174,67 +174,67 @@ State Variables
          exclusive=F
       }
 
-   The specification for :bro:see:`Cluster::worker_pool`.
+   The specification for :zeek:see:`Cluster::worker_pool`.
 
 Types
 #####
-.. bro:type:: Cluster::PoolNode
+.. zeek:type:: Cluster::PoolNode
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string`
+      name: :zeek:type:`string`
          The node name (e.g. "manager").
 
-      alias: :bro:type:`string`
+      alias: :zeek:type:`string`
          An alias of *name* used to prevent hashing collisions when creating
          *site_id*.
 
-      site_id: :bro:type:`count`
+      site_id: :zeek:type:`count`
          A 32-bit unique identifier for the pool node, derived from name/alias.
 
-      alive: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      alive: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Whether the node is currently alive and can receive work.
 
    Store state of a cluster within the context of a work pool.
 
-.. bro:type:: Cluster::PoolNodeTable
+.. zeek:type:: Cluster::PoolNodeTable
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`Cluster::PoolNode`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Cluster::PoolNode`
 
 
-.. bro:type:: Cluster::PoolSpec
+.. zeek:type:: Cluster::PoolSpec
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      topic: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      topic: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          A topic string that can be used to reach all nodes within a pool.
 
-      node_type: :bro:type:`Cluster::NodeType` :bro:attr:`&default` = ``Cluster::PROXY`` :bro:attr:`&optional`
+      node_type: :zeek:type:`Cluster::NodeType` :zeek:attr:`&default` = ``Cluster::PROXY`` :zeek:attr:`&optional`
          The type of nodes that are contained within the pool.
 
-      max_nodes: :bro:type:`count` :bro:attr:`&optional`
+      max_nodes: :zeek:type:`count` :zeek:attr:`&optional`
          The maximum number of nodes that may belong to the pool.
          If not set, then all available nodes will be added to the pool,
          else the cluster framework will automatically limit the pool
          membership according to the threshhold.
 
-      exclusive: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      exclusive: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Whether the pool requires exclusive access to nodes.  If true,
          then *max_nodes* nodes will not be assigned to any other pool.
          When using this flag, *max_nodes* must also be set.
 
    A pool specification.
 
-.. bro:type:: Cluster::RoundRobinTable
+.. zeek:type:: Cluster::RoundRobinTable
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`int`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`int`
 
 
 Functions
 #########
-.. bro:id:: Cluster::hrw_topic
+.. zeek:id:: Cluster::hrw_topic
 
-   :Type: :bro:type:`function` (pool: :bro:type:`Cluster::Pool`, key: :bro:type:`any`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (pool: :zeek:type:`Cluster::Pool`, key: :zeek:type:`any`) : :zeek:type:`string`
 
    Retrieve the topic associated with the node mapped via Rendezvous hash
    of an arbitrary key.
@@ -250,25 +250,25 @@ Functions
    :returns: a topic string associated with a cluster node that is alive
             or an empty string if nothing is alive.
 
-.. bro:id:: Cluster::register_pool
+.. zeek:id:: Cluster::register_pool
 
-   :Type: :bro:type:`function` (spec: :bro:type:`Cluster::PoolSpec`) : :bro:type:`Cluster::Pool`
+   :Type: :zeek:type:`function` (spec: :zeek:type:`Cluster::PoolSpec`) : :zeek:type:`Cluster::Pool`
 
    Registers and initializes a pool.
 
-.. bro:id:: Cluster::rr_log_topic
+.. zeek:id:: Cluster::rr_log_topic
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, path: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, path: :zeek:type:`string`) : :zeek:type:`string`
 
    Distributes log message topics among logger nodes via round-robin.
-   This will be automatically assigned to :bro:see:`Broker::log_topic`
-   if :bro:see:`Cluster::enable_round_robin_logging` is enabled.
+   This will be automatically assigned to :zeek:see:`Broker::log_topic`
+   if :zeek:see:`Cluster::enable_round_robin_logging` is enabled.
    If no logger nodes are active, then this will return the value
-   of :bro:see:`Broker::default_log_topic`.
+   of :zeek:see:`Broker::default_log_topic`.
 
-.. bro:id:: Cluster::rr_topic
+.. zeek:id:: Cluster::rr_topic
 
-   :Type: :bro:type:`function` (pool: :bro:type:`Cluster::Pool`, key: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (pool: :zeek:type:`Cluster::Pool`, key: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Retrieve the topic associated with the node in a round-robin fashion.
    

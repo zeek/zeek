@@ -51,13 +51,13 @@ Streams
 In order to log data to a new log stream, all of the following needs to be
 done:
 
-- A :bro:type:`record` type must be defined which consists of all the
+- A :zeek:type:`record` type must be defined which consists of all the
   fields that will be logged (by convention, the name of this record type is
   usually "Info").
-- A log stream ID (an :bro:type:`enum` with type name "Log::ID") must be
+- A log stream ID (an :zeek:type:`enum` with type name "Log::ID") must be
   defined that uniquely identifies the new log stream.
-- A log stream must be created using the :bro:id:`Log::create_stream` function.
-- When the data to be logged becomes available, the :bro:id:`Log::write`
+- A log stream must be created using the :zeek:id:`Log::create_stream` function.
+- When the data to be logged becomes available, the :zeek:id:`Log::write`
   function must be called.
 
 In the following example, we create a new module "Foo" which creates
@@ -100,18 +100,18 @@ a new log stream.
         }
 
 In the definition of the "Info" record above, notice that each field has the
-:bro:attr:`&log` attribute.  Without this attribute, a field will not appear in
-the log output. Also notice one field has the :bro:attr:`&optional` attribute.
+:zeek:attr:`&log` attribute.  Without this attribute, a field will not appear in
+the log output. Also notice one field has the :zeek:attr:`&optional` attribute.
 This indicates that the field might not be assigned any value before the
-log record is written.  Finally, a field with the :bro:attr:`&default`
+log record is written.  Finally, a field with the :zeek:attr:`&default`
 attribute has a default value assigned to it automatically.
 
-At this point, the only thing missing is a call to the :bro:id:`Log::write`
+At this point, the only thing missing is a call to the :zeek:id:`Log::write`
 function to send data to the logging framework.  The actual event handler
 where this should take place will depend on where your data becomes available.
-In this example, the :bro:id:`connection_established` event provides our data,
+In this example, the :zeek:id:`connection_established` event provides our data,
 and we also store a copy of the data being logged into the
-:bro:type:`connection` record:
+:zeek:type:`connection` record:
 
 .. sourcecode:: bro
 
@@ -129,7 +129,7 @@ and we also store a copy of the data being logged into the
 If you run Bro with this script, a new log file ``foo.log`` will be created.
 Although we only specified four fields in the "Info" record above, the
 log output will actually contain seven fields because one of the fields
-(the one named "id") is itself a record type.  Since a :bro:type:`conn_id`
+(the one named "id") is itself a record type.  Since a :zeek:type:`conn_id`
 record has four fields, then each of these fields is a separate column in
 the log output.  Note that the way that such fields are named in the log
 output differs slightly from the way we would refer to the same field
@@ -138,7 +138,7 @@ to access the first field of a ``conn_id`` in a Bro script we would use
 the notation ``id$orig_h``, but that field is named ``id.orig_h``
 in the log output.
 
-When you are developing scripts that add data to the :bro:type:`connection`
+When you are developing scripts that add data to the :zeek:type:`connection`
 record, care must be given to when and how long data is stored.
 Normally data saved to the connection record will remain there for the
 duration of the connection and from a practical perspective it's not
@@ -153,7 +153,7 @@ type that defines its content, and setting a value for the new fields
 before each log record is written.
 
 Let's say we want to add a boolean field ``is_private`` to
-:bro:type:`Conn::Info` that indicates whether the originator IP address
+:zeek:type:`Conn::Info` that indicates whether the originator IP address
 is part of the :rfc:`1918` space:
 
 .. sourcecode:: bro
@@ -201,9 +201,9 @@ written after we assign the ``is_private`` field).
 For extending logs this way, one needs a bit of knowledge about how
 the script that creates the log stream is organizing its state
 keeping. Most of the standard Bro scripts attach their log state to
-the :bro:type:`connection` record where it can then be accessed, just
+the :zeek:type:`connection` record where it can then be accessed, just
 like ``c$conn`` above. For example, the HTTP analysis adds a field
-``http`` of type :bro:type:`HTTP::Info` to the :bro:type:`connection`
+``http`` of type :zeek:type:`HTTP::Info` to the :zeek:type:`connection`
 record.
 
 
@@ -242,7 +242,7 @@ need to modify the example module shown above to look something like this:
         }
 
 All of Bro's default log streams define such an event. For example, the
-connection log stream raises the event :bro:id:`Conn::log_conn`. You
+connection log stream raises the event :zeek:id:`Conn::log_conn`. You
 could use that for example for flagging when a connection to a
 specific destination exceeds a certain duration:
 
@@ -292,7 +292,7 @@ A stream has one or more filters attached to it (a stream without any filters
 will not produce any log output).  When a stream is created, it automatically
 gets a default filter attached to it.  This default filter can be removed
 or replaced, or other filters can be added to the stream.  This is accomplished
-by using either the :bro:id:`Log::add_filter` or :bro:id:`Log::remove_filter`
+by using either the :zeek:id:`Log::add_filter` or :zeek:id:`Log::remove_filter`
 function.  This section shows how to use filters to do such tasks as
 rename a log file, split the output into multiple files, control which
 records are written, and set a custom rotation interval.
@@ -348,7 +348,7 @@ two fields to a new log file:
 
 Notice how the "include" filter attribute specifies a set that limits the
 fields to the ones given. The names correspond to those in the
-:bro:type:`Conn::Info` record (however, because the "id" field is itself a
+:zeek:type:`Conn::Info` record (however, because the "id" field is itself a
 record, we can specify an individual field of "id" by the dot notation
 shown in the example).
 
@@ -409,7 +409,7 @@ address. Be careful, however, as it is easy to create many files very
 quickly.
 
 The ``myfunc`` function has one drawback: it can be used
-only with the :bro:enum:`Conn::LOG` stream as the record type is hardcoded
+only with the :zeek:enum:`Conn::LOG` stream as the record type is hardcoded
 into its argument list. However, Bro allows to do a more generic
 variant:
 
@@ -454,13 +454,13 @@ Rotation
 --------
 
 The log rotation interval is globally controllable for all
-filters by redefining the :bro:id:`Log::default_rotation_interval` option
+filters by redefining the :zeek:id:`Log::default_rotation_interval` option
 (note that when using BroControl, this option is set automatically via
 the BroControl configuration).
 
-Or specifically for certain :bro:type:`Log::Filter` instances by setting
+Or specifically for certain :zeek:type:`Log::Filter` instances by setting
 their ``interv`` field.  Here's an example of changing just the
-:bro:enum:`Conn::LOG` stream's default filter rotation.
+:zeek:enum:`Conn::LOG` stream's default filter rotation.
 
 .. sourcecode:: bro
 
@@ -478,7 +478,7 @@ Each filter has a writer.  If you do not specify a writer when adding a
 filter to a stream, then the ASCII writer is the default.
 
 There are two ways to specify a non-default writer.  To change the default
-writer for all log filters, just redefine the :bro:id:`Log::default_writer`
+writer for all log filters, just redefine the :zeek:id:`Log::default_writer`
 option.  Alternatively, you can specify the writer to use on a per-filter
 basis by setting a value for the filter's "writer" field.  Consult the
 documentation of the writer to use to see if there are other options that are

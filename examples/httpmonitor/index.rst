@@ -124,7 +124,7 @@ network.
 
 .. note::
 
-    The redefinition of :bro:see:`Site::local_nets` is only done inside
+    The redefinition of :zeek:see:`Site::local_nets` is only done inside
     this script to make it a self-contained example.  It's typically
     redefined somewhere else.
 
@@ -158,7 +158,7 @@ Below is the complete script.
 Note that this script only logs the presence of the proxy to
 ``notice.log``, but if an additional email is desired (and email
 functionality is enabled), then that's done simply by redefining
-:bro:see:`Notice::emailed_types` to add the ``Open_proxy`` notice type
+:zeek:see:`Notice::emailed_types` to add the ``Open_proxy`` notice type
 to it.
 
 ----------------
@@ -191,6 +191,6 @@ using the :ref:`File Analysis Framework <file-analysis-framework>`
 Here, the ``mime_to_ext`` table serves two purposes.  It defines which
 mime types to extract and also the file suffix of the extracted files.
 Extracted files are written to a new ``extract_files`` subdirectory.
-Also note that the first conditional in the :bro:see:`file_new` event
+Also note that the first conditional in the :zeek:see:`file_new` event
 handler can be removed to make this behavior generic to other protocols
 besides HTTP.

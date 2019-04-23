@@ -16,4 +16,4 @@ Script Reference
    file-analyzers
    packages
    scripts
-   Broxygen Example Script </scripts/broxygen/example.zeek>
+   Zeexygen Example Script </scripts/zeexygen/example.zeek>

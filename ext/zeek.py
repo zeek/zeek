@@ -1,11 +1,11 @@
 """
-    The Bro domain for Sphinx.
+    The Zeek domain for Sphinx.
 """
 
 def setup(Sphinx):
-    Sphinx.add_domain(BroDomain)
+    Sphinx.add_domain(ZeekDomain)
     Sphinx.add_node(see)
-    Sphinx.add_directive_to_domain('bro', 'see', SeeDirective)
+    Sphinx.add_directive_to_domain('zeek', 'see', SeeDirective)
     Sphinx.connect('doctree-resolved', process_see_nodes)
 
 from sphinx import addnodes
@@ -54,14 +54,14 @@ def process_see_nodes(app, doctree, fromdocname):
                 join_str  = ", "
             link_txt = join_str + name;
 
-            if name not in app.env.domaindata['bro']['idtypes']:
+            if name not in app.env.domaindata['zeek']['idtypes']:
                 # Just create the text and issue warning
-                logger.warning('%s: unknown target for ".. bro:see:: %s"', fromdocname, name, location=node)
+                logger.warning('%s: unknown target for ".. zeek:see:: %s"', fromdocname, name, location=node)
                 para += nodes.Text(link_txt, link_txt)
             else:
                 # Create a reference
-                typ = app.env.domaindata['bro']['idtypes'][name]
-                todocname = app.env.domaindata['bro']['objects'][(typ, name)]
+                typ = app.env.domaindata['zeek']['idtypes'][name]
+                todocname = app.env.domaindata['zeek']['objects'][(typ, name)]
 
                 newnode = nodes.reference('', '')
                 innernode = nodes.literal(_(name), _(name))
@@ -76,11 +76,11 @@ def process_see_nodes(app, doctree, fromdocname):
         content.append(para)
         node.replace_self(content)
 
-class BroGeneric(ObjectDescription):
+class ZeekGeneric(ObjectDescription):
     def update_type_map(self, idname):
-        if 'idtypes' not in self.env.domaindata['bro']:
-            self.env.domaindata['bro']['idtypes'] = {}
-        self.env.domaindata['bro']['idtypes'][idname] = self.objtype
+        if 'idtypes' not in self.env.domaindata['zeek']:
+            self.env.domaindata['zeek']['idtypes'] = {}
+        self.env.domaindata['zeek']['idtypes'][idname] = self.objtype
 
     def add_target_and_index(self, name, sig, signode):
         targetname = self.objtype + '-' + name
@@ -90,7 +90,7 @@ class BroGeneric(ObjectDescription):
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
 
-            objects = self.env.domaindata['bro']['objects']
+            objects = self.env.domaindata['zeek']['objects']
             key = (self.objtype, name)
             if ( key in objects and self.objtype != "id" and
                  self.objtype != "type" ):
@@ -115,7 +115,7 @@ class BroGeneric(ObjectDescription):
         signode += addnodes.desc_name("", sig)
         return sig
 
-class BroNamespace(BroGeneric):
+class ZeekNamespace(ZeekGeneric):
     def add_target_and_index(self, name, sig, signode):
         targetname = self.objtype + '-' + name
         if targetname not in self.state.document.ids:
@@ -124,7 +124,7 @@ class BroNamespace(BroGeneric):
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
 
-            objects = self.env.domaindata['bro']['objects']
+            objects = self.env.domaindata['zeek']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
             self.update_type_map(name)
@@ -143,7 +143,7 @@ class BroNamespace(BroGeneric):
         signode += addnodes.desc_name("", sig)
         return sig
 
-class BroEnum(BroGeneric):
+class ZeekEnum(ZeekGeneric):
     def add_target_and_index(self, name, sig, signode):
         targetname = self.objtype + '-' + name
         if targetname not in self.state.document.ids:
@@ -152,7 +152,7 @@ class BroEnum(BroGeneric):
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
 
-            objects = self.env.domaindata['bro']['objects']
+            objects = self.env.domaindata['zeek']['objects']
             key = (self.objtype, name)
             objects[key] = self.env.docname
             self.update_type_map(name)
@@ -163,13 +163,13 @@ class BroEnum(BroGeneric):
         m = sig.split()
 
         if len(m) < 2:
-            logger.warning("%s: bro:enum directive missing argument(s)", self.env.docname)
+            logger.warning("%s: zeek:enum directive missing argument(s)", self.env.docname)
             return
 
         if m[1] == "Notice::Type":
-            if 'notices' not in self.env.domaindata['bro']:
-                self.env.domaindata['bro']['notices'] = []
-            self.env.domaindata['bro']['notices'].append(
+            if 'notices' not in self.env.domaindata['zeek']:
+                self.env.domaindata['zeek']['notices'] = []
+            self.env.domaindata['zeek']['notices'].append(
                                 (m[0], self.env.docname, targetname))
         self.indexnode['entries'].append(make_index_tuple('single',
                                           "%s (enum values); %s" % (m[1], m[0]),
@@ -181,34 +181,34 @@ class BroEnum(BroGeneric):
         signode += addnodes.desc_name("", name)
         return name
 
-class BroIdentifier(BroGeneric):
+class ZeekIdentifier(ZeekGeneric):
     def get_index_text(self, objectname, name):
         return name
 
-class BroKeyword(BroGeneric):
+class ZeekKeyword(ZeekGeneric):
     def get_index_text(self, objectname, name):
         return name
 
-class BroAttribute(BroGeneric):
+class ZeekAttribute(ZeekGeneric):
     def get_index_text(self, objectname, name):
         return _('%s (attribute)') % (name)
 
-class BroNotices(Index):
+class ZeekNotices(Index):
     """
-    Index subclass to provide the Bro notices index.
+    Index subclass to provide the Zeek notices index.
     """
 
     name = 'noticeindex'
-    localname = _('Bro Notice Index')
+    localname = _('Zeek Notice Index')
     shortname = _('notices')
 
     def generate(self, docnames=None):
         content = {}
 
-        if 'notices' not in self.domain.env.domaindata['bro']:
+        if 'notices' not in self.domain.env.domaindata['zeek']:
             return content, False
 
-        for n in self.domain.env.domaindata['bro']['notices']:
+        for n in self.domain.env.domaindata['zeek']['notices']:
             modname = n[0].split("::")[0]
             entries = content.setdefault(modname, [])
             entries.append([n[0], 0, n[1], n[2], '', '', ''])
@@ -217,10 +217,10 @@ class BroNotices(Index):
 
         return content, False
 
-class BroDomain(Domain):
-    """Bro domain."""
-    name = 'bro'
-    label = 'Bro'
+class ZeekDomain(Domain):
+    """Zeek domain."""
+    name = 'zeek'
+    label = 'Zeek'
 
     object_types = {
         'type':             ObjType(_('type'),             'type'),
@@ -232,12 +232,12 @@ class BroDomain(Domain):
     }
 
     directives = {
-        'type':             BroGeneric,
-        'namespace':        BroNamespace,
-        'id':               BroIdentifier,
-        'keyword':          BroKeyword,
-        'enum':             BroEnum,
-        'attr':             BroAttribute,
+        'type':             ZeekGeneric,
+        'namespace':        ZeekNamespace,
+        'id':               ZeekIdentifier,
+        'keyword':          ZeekKeyword,
+        'enum':             ZeekEnum,
+        'attr':             ZeekAttribute,
     }
 
     roles = {
@@ -251,7 +251,7 @@ class BroDomain(Domain):
     }
 
     indices = [
-        BroNotices,
+        ZeekNotices,
     ]
 
     initial_data = {
@@ -273,7 +273,7 @@ class BroDomain(Domain):
         objects = self.data['objects']
         if typ == "see":
             if target not in self.data['idtypes']:
-                logger.warning('%s: unknown target for ":bro:see:`%s`"', fromdocname, target)
+                logger.warning('%s: unknown target for ":zeek:see:`%s`"', fromdocname, target)
                 return []
             objtype = self.data['idtypes'][target]
             return make_refnode(builder, fromdocname,
@@ -289,7 +289,7 @@ class BroDomain(Domain):
                                         objtype + '-' + target,
                                         contnode, target + ' ' + objtype)
                 else:
-                    logger.warning('%s: unknown target for ":bro:%s:`%s`"', fromdocname, typ, target)
+                    logger.warning('%s: unknown target for ":zeek:%s:`%s`"', fromdocname, typ, target)
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].items():

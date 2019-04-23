@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_SSH.types.bif.zeek
 =======================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: SSH
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: SSH
 
 
 :Namespaces: GLOBAL, SSH

@@ -2,7 +2,7 @@
 
 policy/frameworks/files/detect-MHR.zeek
 =======================================
-.. bro:namespace:: TeamCymruMalwareHashRegistry
+.. zeek:namespace:: TeamCymruMalwareHashRegistry
 
 Detect file downloads that have hash values matching files in Team
 Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
@@ -14,29 +14,29 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================================================ ====================================================================
-:bro:id:`TeamCymruMalwareHashRegistry::match_file_types`: :bro:type:`pattern` :bro:attr:`&redef` File types to attempt matching against the Malware Hash Registry.
-:bro:id:`TeamCymruMalwareHashRegistry::match_sub_url`: :bro:type:`string` :bro:attr:`&redef`     The Match notice has a sub message with a URL where you can get more
-                                                                                                 information about the file.
-:bro:id:`TeamCymruMalwareHashRegistry::notice_threshold`: :bro:type:`count` :bro:attr:`&redef`   The malware hash registry runs each malware sample through several
-                                                                                                 A/V engines.
-================================================================================================ ====================================================================
+=================================================================================================== ====================================================================
+:zeek:id:`TeamCymruMalwareHashRegistry::match_file_types`: :zeek:type:`pattern` :zeek:attr:`&redef` File types to attempt matching against the Malware Hash Registry.
+:zeek:id:`TeamCymruMalwareHashRegistry::match_sub_url`: :zeek:type:`string` :zeek:attr:`&redef`     The Match notice has a sub message with a URL where you can get more
+                                                                                                    information about the file.
+:zeek:id:`TeamCymruMalwareHashRegistry::notice_threshold`: :zeek:type:`count` :zeek:attr:`&redef`   The malware hash registry runs each malware sample through several
+                                                                                                    A/V engines.
+=================================================================================================== ====================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: TeamCymruMalwareHashRegistry::match_file_types
+.. zeek:id:: TeamCymruMalwareHashRegistry::match_file_types
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -45,20 +45,20 @@ Runtime Options
 
    File types to attempt matching against the Malware Hash Registry.
 
-.. bro:id:: TeamCymruMalwareHashRegistry::match_sub_url
+.. zeek:id:: TeamCymruMalwareHashRegistry::match_sub_url
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"https://www.virustotal.com/en/search/?query=%s"``
 
    The Match notice has a sub message with a URL where you can get more
    information about the file. The %s will be replaced with the SHA-1
    hash of the file.
 
-.. bro:id:: TeamCymruMalwareHashRegistry::notice_threshold
+.. zeek:id:: TeamCymruMalwareHashRegistry::notice_threshold
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``10``
 
    The malware hash registry runs each malware sample through several

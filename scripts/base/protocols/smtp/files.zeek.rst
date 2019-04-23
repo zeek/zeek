@@ -2,7 +2,7 @@
 
 base/protocols/smtp/files.zeek
 ==============================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 
 :Namespace: SMTP
@@ -12,31 +12,31 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`SMTP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`SMTP::Info`: :zeek:type:`record` 
+============================================ =
 
 Functions
 #########
-===================================================== ======================================
-:bro:id:`SMTP::describe_file`: :bro:type:`function`   Default file describer for SMTP.
-:bro:id:`SMTP::get_file_handle`: :bro:type:`function` Default file handle provider for SMTP.
-===================================================== ======================================
+======================================================= ======================================
+:zeek:id:`SMTP::describe_file`: :zeek:type:`function`   Default file describer for SMTP.
+:zeek:id:`SMTP::get_file_handle`: :zeek:type:`function` Default file handle provider for SMTP.
+======================================================= ======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: SMTP::describe_file
+.. zeek:id:: SMTP::describe_file
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
    Default file describer for SMTP.
 
-.. bro:id:: SMTP::get_file_handle
+.. zeek:id:: SMTP::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for SMTP.
 

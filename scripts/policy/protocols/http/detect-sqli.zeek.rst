@@ -2,7 +2,7 @@
 
 policy/protocols/http/detect-sqli.zeek
 ======================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 SQL injection attack detection in HTTP.
 
@@ -13,50 +13,50 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=============================================================================== ================================================================
-:bro:id:`HTTP::collect_SQLi_samples`: :bro:type:`count` :bro:attr:`&redef`      Collecting samples will add extra data to notice emails
-                                                                                by collecting some sample SQL injection url paths.
-:bro:id:`HTTP::match_sql_injection_uri`: :bro:type:`pattern` :bro:attr:`&redef` Regular expression is used to match URI based SQL injections.
-:bro:id:`HTTP::sqli_requests_interval`: :bro:type:`interval` :bro:attr:`&redef` Interval at which to watch for the
-                                                                                :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
-:bro:id:`HTTP::sqli_requests_threshold`: :bro:type:`double` :bro:attr:`&redef`  Defines the threshold that determines if an SQL injection attack
-                                                                                is ongoing based on the number of requests that appear to be SQL
-                                                                                injection attacks.
-=============================================================================== ================================================================
+================================================================================== ================================================================
+:zeek:id:`HTTP::collect_SQLi_samples`: :zeek:type:`count` :zeek:attr:`&redef`      Collecting samples will add extra data to notice emails
+                                                                                   by collecting some sample SQL injection url paths.
+:zeek:id:`HTTP::match_sql_injection_uri`: :zeek:type:`pattern` :zeek:attr:`&redef` Regular expression is used to match URI based SQL injections.
+:zeek:id:`HTTP::sqli_requests_interval`: :zeek:type:`interval` :zeek:attr:`&redef` Interval at which to watch for the
+                                                                                   :zeek:id:`HTTP::sqli_requests_threshold` variable to be crossed.
+:zeek:id:`HTTP::sqli_requests_threshold`: :zeek:type:`double` :zeek:attr:`&redef`  Defines the threshold that determines if an SQL injection attack
+                                                                                   is ongoing based on the number of requests that appear to be SQL
+                                                                                   injection attacks.
+================================================================================== ================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`HTTP::Tags`: :bro:type:`enum`   
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`HTTP::Tags`: :zeek:type:`enum`   
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 Hooks
 #####
-============================================= =======================================================================
-:bro:id:`HTTP::sqli_policy`: :bro:type:`hook` A hook that can be used to prevent specific requests from being counted
-                                              as an injection attempt.
-============================================= =======================================================================
+=============================================== =======================================================================
+:zeek:id:`HTTP::sqli_policy`: :zeek:type:`hook` A hook that can be used to prevent specific requests from being counted
+                                                as an injection attempt.
+=============================================== =======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: HTTP::collect_SQLi_samples
+.. zeek:id:: HTTP::collect_SQLi_samples
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5``
 
    Collecting samples will add extra data to notice emails
    by collecting some sample SQL injection url paths.  Disable
    sample collection by setting this value to 0.
 
-.. bro:id:: HTTP::match_sql_injection_uri
+.. zeek:id:: HTTP::match_sql_injection_uri
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -65,20 +65,20 @@ Redefinable Options
 
    Regular expression is used to match URI based SQL injections.
 
-.. bro:id:: HTTP::sqli_requests_interval
+.. zeek:id:: HTTP::sqli_requests_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5.0 mins``
 
    Interval at which to watch for the
-   :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
+   :zeek:id:`HTTP::sqli_requests_threshold` variable to be crossed.
    At the end of each interval the counter is reset.
 
-.. bro:id:: HTTP::sqli_requests_threshold
+.. zeek:id:: HTTP::sqli_requests_threshold
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``50.0``
 
    Defines the threshold that determines if an SQL injection attack
@@ -87,9 +87,9 @@ Redefinable Options
 
 Hooks
 #####
-.. bro:id:: HTTP::sqli_policy
+.. zeek:id:: HTTP::sqli_policy
 
-   :Type: :bro:type:`hook` (c: :bro:type:`connection`, method: :bro:type:`string`, unescaped_URI: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, method: :zeek:type:`string`, unescaped_URI: :zeek:type:`string`) : :zeek:type:`bool`
 
    A hook that can be used to prevent specific requests from being counted
    as an injection attempt.  Use a 'break' statement to exit the hook

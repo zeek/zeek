@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_File.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ========================================================================
-:bro:id:`file_transferred`: :bro:type:`event` Generated when a TCP connection associated w/ file data transfer is seen
-                                              (e.g.
-============================================= ========================================================================
+=============================================== ========================================================================
+:zeek:id:`file_transferred`: :zeek:type:`event` Generated when a TCP connection associated w/ file data transfer is seen
+                                                (e.g.
+=============================================== ========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: file_transferred
+.. zeek:id:: file_transferred
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, prefix: :bro:type:`string`, descr: :bro:type:`string`, mime_type: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prefix: :zeek:type:`string`, descr: :zeek:type:`string`, mime_type: :zeek:type:`string`)
 
    Generated when a TCP connection associated w/ file data transfer is seen
    (e.g. as happens w/ FTP or IRC).

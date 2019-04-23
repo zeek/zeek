@@ -2,8 +2,8 @@
 
 base/bif/input.bif.zeek
 =======================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: Input
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: Input
 
 Internal functions and types used by the input framework.
 
@@ -13,42 +13,42 @@ Summary
 ~~~~~~~
 Functions
 #########
-=============================================================== =
-:bro:id:`Input::__create_analysis_stream`: :bro:type:`function` 
-:bro:id:`Input::__create_event_stream`: :bro:type:`function`    
-:bro:id:`Input::__create_table_stream`: :bro:type:`function`    
-:bro:id:`Input::__force_update`: :bro:type:`function`           
-:bro:id:`Input::__remove_stream`: :bro:type:`function`          
-=============================================================== =
+================================================================= =
+:zeek:id:`Input::__create_analysis_stream`: :zeek:type:`function` 
+:zeek:id:`Input::__create_event_stream`: :zeek:type:`function`    
+:zeek:id:`Input::__create_table_stream`: :zeek:type:`function`    
+:zeek:id:`Input::__force_update`: :zeek:type:`function`           
+:zeek:id:`Input::__remove_stream`: :zeek:type:`function`          
+================================================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Input::__create_analysis_stream
+.. zeek:id:: Input::__create_analysis_stream
 
-   :Type: :bro:type:`function` (description: :bro:type:`Input::AnalysisDescription`) : :bro:type:`bool`
-
-
-.. bro:id:: Input::__create_event_stream
-
-   :Type: :bro:type:`function` (description: :bro:type:`Input::EventDescription`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (description: :zeek:type:`Input::AnalysisDescription`) : :zeek:type:`bool`
 
 
-.. bro:id:: Input::__create_table_stream
+.. zeek:id:: Input::__create_event_stream
 
-   :Type: :bro:type:`function` (description: :bro:type:`Input::TableDescription`) : :bro:type:`bool`
-
-
-.. bro:id:: Input::__force_update
-
-   :Type: :bro:type:`function` (id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (description: :zeek:type:`Input::EventDescription`) : :zeek:type:`bool`
 
 
-.. bro:id:: Input::__remove_stream
+.. zeek:id:: Input::__create_table_stream
 
-   :Type: :bro:type:`function` (id: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (description: :zeek:type:`Input::TableDescription`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Input::__force_update
+
+   :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Input::__remove_stream
+
+   :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 

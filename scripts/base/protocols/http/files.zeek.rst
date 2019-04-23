@@ -2,7 +2,7 @@
 
 base/protocols/http/files.zeek
 ==============================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 
 :Namespace: HTTP
@@ -12,25 +12,25 @@ Summary
 ~~~~~~~
 Functions
 #########
-===================================================== ======================================
-:bro:id:`HTTP::describe_file`: :bro:type:`function`   Default file describer for HTTP.
-:bro:id:`HTTP::get_file_handle`: :bro:type:`function` Default file handle provider for HTTP.
-===================================================== ======================================
+======================================================= ======================================
+:zeek:id:`HTTP::describe_file`: :zeek:type:`function`   Default file describer for HTTP.
+:zeek:id:`HTTP::get_file_handle`: :zeek:type:`function` Default file handle provider for HTTP.
+======================================================= ======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: HTTP::describe_file
+.. zeek:id:: HTTP::describe_file
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
    Default file describer for HTTP.
 
-.. bro:id:: HTTP::get_file_handle
+.. zeek:id:: HTTP::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for HTTP.
 

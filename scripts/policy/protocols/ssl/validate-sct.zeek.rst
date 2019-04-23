@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/validate-sct.zeek
 ======================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 Perform validation of Signed Certificate Timestamps, as used
 for Certificate Transparency. See RFC6962 for more details.
@@ -14,73 +14,73 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================ ================================================================
-:bro:type:`SSL::SctInfo`: :bro:type:`record` This record is used to store information about the SCTs that are
-                                             encountered in a SSL connection.
-:bro:type:`SSL::SctSource`: :bro:type:`enum` List of the different sources for Signed Certificate Timestamp
-============================================ ================================================================
+============================================== ================================================================
+:zeek:type:`SSL::SctInfo`: :zeek:type:`record` This record is used to store information about the SCTs that are
+                                               encountered in a SSL connection.
+:zeek:type:`SSL::SctSource`: :zeek:type:`enum` List of the different sources for Signed Certificate Timestamp
+============================================== ================================================================
 
 Redefinitions
 #############
-========================================================================= =
-:bro:type:`SSL::Info`: :bro:type:`record`                                 
-:bro:id:`SSL::ssl_store_valid_chain`: :bro:type:`bool` :bro:attr:`&redef` 
-========================================================================= =
+============================================================================ =
+:zeek:type:`SSL::Info`: :zeek:type:`record`                                  
+:zeek:id:`SSL::ssl_store_valid_chain`: :zeek:type:`bool` :zeek:attr:`&redef` 
+============================================================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: SSL::SctInfo
+.. zeek:type:: SSL::SctInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      version: :bro:type:`count`
+      version: :zeek:type:`count`
          The version of the encountered SCT (should always be 0 for v1).
 
-      logid: :bro:type:`string`
+      logid: :zeek:type:`string`
          The ID of the log issuing this SCT.
 
-      timestamp: :bro:type:`count`
+      timestamp: :zeek:type:`count`
          The timestamp at which this SCT was issued measured since the
          epoch (January 1, 1970, 00:00), ignoring leap seconds, in
          milliseconds. Not converted to a Bro timestamp because we need
          the exact value for validation.
 
-      sig_alg: :bro:type:`count`
+      sig_alg: :zeek:type:`count`
          The signature algorithm used for this sct.
 
-      hash_alg: :bro:type:`count`
+      hash_alg: :zeek:type:`count`
          The hash algorithm used for this sct.
 
-      signature: :bro:type:`string`
+      signature: :zeek:type:`string`
          The signature of this SCT.
 
-      source: :bro:type:`SSL::SctSource`
+      source: :zeek:type:`SSL::SctSource`
          Source of this SCT.
 
-      valid: :bro:type:`bool` :bro:attr:`&optional`
+      valid: :zeek:type:`bool` :zeek:attr:`&optional`
          Validation result of this SCT.
 
    This record is used to store information about the SCTs that are
    encountered in a SSL connection.
 
-.. bro:type:: SSL::SctSource
+.. zeek:type:: SSL::SctSource
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: SSL::SCT_X509_EXT SSL::SctSource
+      .. zeek:enum:: SSL::SCT_X509_EXT SSL::SctSource
 
          Signed Certificate Timestamp was encountered in the extension of
          an X.509 certificate.
 
-      .. bro:enum:: SSL::SCT_TLS_EXT SSL::SctSource
+      .. zeek:enum:: SSL::SCT_TLS_EXT SSL::SctSource
 
          Signed Certificate Timestamp was encountered in an TLS session
          extension.
 
-      .. bro:enum:: SSL::SCT_OCSP_EXT SSL::SctSource
+      .. zeek:enum:: SSL::SCT_OCSP_EXT SSL::SctSource
 
          Signed Certificate Timestamp was encountered in the extension of
          an stapled OCSP reply.

@@ -2,7 +2,7 @@
 
 base/protocols/ftp/utils-commands.zeek
 ======================================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 
 :Namespace: FTP
@@ -11,28 +11,28 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================= ===========================================================
-:bro:id:`FTP::cmd_reply_code`: :bro:type:`set` :bro:attr:`&redef` Possible response codes for a wide variety of FTP commands.
-================================================================= ===========================================================
+==================================================================== ===========================================================
+:zeek:id:`FTP::cmd_reply_code`: :zeek:type:`set` :zeek:attr:`&redef` Possible response codes for a wide variety of FTP commands.
+==================================================================== ===========================================================
 
 Types
 #####
-=============================================== ====================================================================
-:bro:type:`FTP::CmdArg`: :bro:type:`record`     
-:bro:type:`FTP::PendingCmds`: :bro:type:`table` Structure for tracking pending commands in the event that the client
-                                                sends a large number of commands before the server has a chance to 
-                                                reply.
-=============================================== ====================================================================
+================================================= ====================================================================
+:zeek:type:`FTP::CmdArg`: :zeek:type:`record`     
+:zeek:type:`FTP::PendingCmds`: :zeek:type:`table` Structure for tracking pending commands in the event that the client
+                                                  sends a large number of commands before the server has a chance to 
+                                                  reply.
+================================================= ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: FTP::cmd_reply_code
+.. zeek:id:: FTP::cmd_reply_code
 
-   :Type: :bro:type:`set` [:bro:type:`string`, :bro:type:`count`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`count`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -369,26 +369,26 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: FTP::CmdArg
+.. zeek:type:: FTP::CmdArg
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time`
+      ts: :zeek:type:`time`
          Time when the command was sent.
 
-      cmd: :bro:type:`string` :bro:attr:`&default` = ``"<unknown>"`` :bro:attr:`&optional`
+      cmd: :zeek:type:`string` :zeek:attr:`&default` = ``"<unknown>"`` :zeek:attr:`&optional`
          Command.
 
-      arg: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      arg: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          Argument for the command if one was given.
 
-      seq: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      seq: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Counter to track how many commands have been executed.
 
 
-.. bro:type:: FTP::PendingCmds
+.. zeek:type:: FTP::PendingCmds
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`FTP::CmdArg`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`FTP::CmdArg`
 
    Structure for tracking pending commands in the event that the client
    sends a large number of commands before the server has a chance to 

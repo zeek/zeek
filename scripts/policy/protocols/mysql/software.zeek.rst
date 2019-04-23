@@ -2,7 +2,7 @@
 
 policy/protocols/mysql/software.zeek
 ====================================
-.. bro:namespace:: MySQL
+.. zeek:namespace:: MySQL
 
 Software identification and extraction for MySQL traffic.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface

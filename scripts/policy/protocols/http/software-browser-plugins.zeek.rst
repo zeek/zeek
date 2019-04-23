@@ -2,7 +2,7 @@
 
 policy/protocols/http/software-browser-plugins.zeek
 ===================================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Detect browser plugins as they leak through requests to Omniture
 advertising servers.
@@ -14,10 +14,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`HTTP::Info`: :bro:type:`record`   
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`HTTP::Info`: :zeek:type:`record`   
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface

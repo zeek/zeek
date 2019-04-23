@@ -2,7 +2,7 @@
 
 base/protocols/smtp/entities.zeek
 =================================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 Analysis and logging for MIME entities found in SMTP sessions.
 
@@ -13,30 +13,30 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================ =
-:bro:type:`SMTP::Entity`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`SMTP::Entity`: :zeek:type:`record` 
+============================================== =
 
 Redefinitions
 #############
-=========================================== =
-:bro:type:`SMTP::Info`: :bro:type:`record`  
-:bro:type:`SMTP::State`: :bro:type:`record` 
-=========================================== =
+============================================= =
+:zeek:type:`SMTP::Info`: :zeek:type:`record`  
+:zeek:type:`SMTP::State`: :zeek:type:`record` 
+============================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: SMTP::Entity
+.. zeek:type:: SMTP::Entity
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      filename: :bro:type:`string` :bro:attr:`&optional`
+      filename: :zeek:type:`string` :zeek:attr:`&optional`
          Filename for the entity if discovered from a header.
 
-      excerpt: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      excerpt: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/smtp/entities-excerpt.zeek` is loaded)
 
          The entity body excerpt.

@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/plugins/broker.zeek
 ==============================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 Broker plugin for the NetControl framework. Sends the raw data structures
 used in NetControl on to Broker to allow for easy handling, e.g., of
@@ -15,59 +15,59 @@ Summary
 ~~~~~~~
 Types
 #####
-======================================================== ===============================================================================================
-:bro:type:`NetControl::BrokerConfig`: :bro:type:`record` This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
-======================================================== ===============================================================================================
+========================================================== ================================================================================================
+:zeek:type:`NetControl::BrokerConfig`: :zeek:type:`record` This record specifies the configuration that is passed to :zeek:see:`NetControl::create_broker`.
+========================================================== ================================================================================================
 
 Redefinitions
 #############
-======================================================= =
-:bro:type:`NetControl::PluginState`: :bro:type:`record` 
-======================================================= =
+========================================================= =
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
+========================================================= =
 
 Events
 ######
-============================================================ =
-:bro:id:`NetControl::broker_add_rule`: :bro:type:`event`     
-:bro:id:`NetControl::broker_remove_rule`: :bro:type:`event`  
-:bro:id:`NetControl::broker_rule_added`: :bro:type:`event`   
-:bro:id:`NetControl::broker_rule_error`: :bro:type:`event`   
-:bro:id:`NetControl::broker_rule_exists`: :bro:type:`event`  
-:bro:id:`NetControl::broker_rule_removed`: :bro:type:`event` 
-:bro:id:`NetControl::broker_rule_timeout`: :bro:type:`event` 
-============================================================ =
+============================================================== =
+:zeek:id:`NetControl::broker_add_rule`: :zeek:type:`event`     
+:zeek:id:`NetControl::broker_remove_rule`: :zeek:type:`event`  
+:zeek:id:`NetControl::broker_rule_added`: :zeek:type:`event`   
+:zeek:id:`NetControl::broker_rule_error`: :zeek:type:`event`   
+:zeek:id:`NetControl::broker_rule_exists`: :zeek:type:`event`  
+:zeek:id:`NetControl::broker_rule_removed`: :zeek:type:`event` 
+:zeek:id:`NetControl::broker_rule_timeout`: :zeek:type:`event` 
+============================================================== =
 
 Functions
 #########
-========================================================= ===============================
-:bro:id:`NetControl::create_broker`: :bro:type:`function` Instantiates the broker plugin.
-========================================================= ===============================
+=========================================================== ===============================
+:zeek:id:`NetControl::create_broker`: :zeek:type:`function` Instantiates the broker plugin.
+=========================================================== ===============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NetControl::BrokerConfig
+.. zeek:type:: NetControl::BrokerConfig
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      topic: :bro:type:`string` :bro:attr:`&optional`
+      topic: :zeek:type:`string` :zeek:attr:`&optional`
          The broker topic to send events to.
 
-      host: :bro:type:`addr` :bro:attr:`&optional`
+      host: :zeek:type:`addr` :zeek:attr:`&optional`
          Broker host to connect to.
 
-      bport: :bro:type:`port` :bro:attr:`&optional`
+      bport: :zeek:type:`port` :zeek:attr:`&optional`
          Broker port to connect to.
 
-      monitor: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      monitor: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Do we accept rules for the monitor path? Default true.
 
-      forward: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      forward: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Do we accept rules for the forward path? Default true.
 
-      check_pred: :bro:type:`function` (p: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`) : :bro:type:`bool` :bro:attr:`&optional`
+      check_pred: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Predicate that is called on rule insertion or removal.
          
 
@@ -79,50 +79,50 @@ Types
 
          :returns: T if the rule can be handled by the current backend, F otherwise.
 
-   This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
+   This record specifies the configuration that is passed to :zeek:see:`NetControl::create_broker`.
 
 Events
 ######
-.. bro:id:: NetControl::broker_add_rule
+.. zeek:id:: NetControl::broker_add_rule
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`)
-
-
-.. bro:id:: NetControl::broker_remove_rule
-
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, reason: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`)
 
 
-.. bro:id:: NetControl::broker_rule_added
+.. zeek:id:: NetControl::broker_remove_rule
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
-
-
-.. bro:id:: NetControl::broker_rule_error
-
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, reason: :zeek:type:`string`)
 
 
-.. bro:id:: NetControl::broker_rule_exists
+.. zeek:id:: NetControl::broker_rule_added
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
-
-
-.. bro:id:: NetControl::broker_rule_removed
-
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
 
 
-.. bro:id:: NetControl::broker_rule_timeout
+.. zeek:id:: NetControl::broker_rule_error
 
-   :Type: :bro:type:`event` (id: :bro:type:`count`, r: :bro:type:`NetControl::Rule`, i: :bro:type:`NetControl::FlowInfo`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
+
+
+.. zeek:id:: NetControl::broker_rule_exists
+
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
+
+
+.. zeek:id:: NetControl::broker_rule_removed
+
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, msg: :zeek:type:`string`)
+
+
+.. zeek:id:: NetControl::broker_rule_timeout
+
+   :Type: :zeek:type:`event` (id: :zeek:type:`count`, r: :zeek:type:`NetControl::Rule`, i: :zeek:type:`NetControl::FlowInfo`)
 
 
 Functions
 #########
-.. bro:id:: NetControl::create_broker
+.. zeek:id:: NetControl::create_broker
 
-   :Type: :bro:type:`function` (config: :bro:type:`NetControl::BrokerConfig`, can_expire: :bro:type:`bool`) : :bro:type:`NetControl::PluginState`
+   :Type: :zeek:type:`function` (config: :zeek:type:`NetControl::BrokerConfig`, can_expire: :zeek:type:`bool`) : :zeek:type:`NetControl::PluginState`
 
    Instantiates the broker plugin.
 

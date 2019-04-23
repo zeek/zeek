@@ -39,7 +39,7 @@ Support for File Transfer Protocol (FTP) analysis.
    indicating the GSI mechanism for GSSAPI was used.  This analysis
    is all supported internally, this script simply adds the "gridftp"
    label to the *service* field of the control channel's
-   :bro:type:`connection` record.
+   :zeek:type:`connection` record.
    
    GridFTP data channels are identified by a heuristic that relies on
    the fact that default settings for GridFTP clients typically

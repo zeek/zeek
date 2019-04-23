@@ -29,7 +29,7 @@ Let's look at an example signature first::
 
 This signature asks Bro to match the regular expression ``.*root`` on
 all TCP connections going to port 80. When the signature triggers, Bro
-will raise an event :bro:id:`signature_match` of the form:
+will raise an event :zeek:id:`signature_match` of the form:
 
 .. sourcecode:: bro
 
@@ -40,16 +40,16 @@ triggered the match, ``msg`` is the string specified by the
 signature's event statement (``Found root!``), and data is the last
 piece of payload which triggered the pattern match.
 
-To turn such :bro:id:`signature_match` events into actual alarms, you can
+To turn such :zeek:id:`signature_match` events into actual alarms, you can
 load Bro's :doc:`/scripts/base/frameworks/signatures/main.zeek` script.
 This script contains a default event handler that raises
-:bro:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
+:zeek:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).
 
 As signatures are independent of Bro's policy scripts, they are put into
 their own file(s). There are three ways to specify which files contain
 signatures: By using the ``-s`` flag when you invoke Bro, or by
-extending the Bro variable :bro:id:`signature_files` using the ``+=``
+extending the Bro variable :zeek:id:`signature_files` using the ``+=``
 operator, or by using the ``@load-sigs`` directive inside a Bro script.
 If a signature file is given without a full path, it is searched for
 along the normal ``BROPATH``.  Additionally, the ``@load-sigs``
@@ -229,7 +229,7 @@ matched. The following context conditions are defined:
     cond(state: signature_state, data: string): bool``. Here,
     ``data`` may contain the most recent content chunk available at
     the time the signature was matched. If no such chunk is available,
-    ``data`` will be the empty string. See :bro:type:`signature_state`
+    ``data`` will be the empty string. See :zeek:type:`signature_state`
     for its definition.
 
 ``payload-size <cmp> <integer>``
@@ -258,7 +258,7 @@ Actions define what to do if a signature matches. Currently, there are
 two actions defined:
 
 ``event <string>``
-    Raises a :bro:id:`signature_match` event. The event handler has the
+    Raises a :zeek:id:`signature_match` event. The event handler has the
     following type:
 
     .. sourcecode:: bro
@@ -282,7 +282,7 @@ The signature framework can also be used to identify MIME types of files
 irrespective of the network protocol/connection over which the file is
 transferred.  A special type of signature can be written for this
 purpose and will be used automatically by the :doc:`Files Framework
-<file-analysis>` or by Bro scripts that use the :bro:see:`file_magic`
+<file-analysis>` or by Bro scripts that use the :zeek:see:`file_magic`
 built-in function.
 
 Conditions
@@ -373,7 +373,7 @@ Things to keep in mind when writing signatures
   See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 
-* The data argument of the :bro:id:`signature_match` handler might not carry
+* The data argument of the :zeek:id:`signature_match` handler might not carry
   the full text matched by the regular expression. Bro performs the
   matching incrementally as packets come in; when the signature
   eventually fires, it can only pass on the most recent chunk of data.

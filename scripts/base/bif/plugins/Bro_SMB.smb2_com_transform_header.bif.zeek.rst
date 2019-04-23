@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_transform_header.bif.zeek
 ===========================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================== ===========================================================================================
-:bro:id:`smb2_transform_header`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                   version 3.x *transform_header*.
-================================================== ===========================================================================================
+==================================================== ===========================================================================================
+:zeek:id:`smb2_transform_header`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                     version 3.x *transform_header*.
+==================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_transform_header
+.. zeek:id:: smb2_transform_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Transform_header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Transform_header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 3.x *transform_header*. This is used by the client or server when sending
@@ -37,6 +37,6 @@ Events
 
    :hdr: The parsed transformed header message, which is starting with \xfdSMB and different from SMB1 and SMB2 headers.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
 

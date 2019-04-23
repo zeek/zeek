@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_DNS.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,46 +11,46 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================== ================================================================================
-:bro:id:`dns_A6_reply`: :bro:type:`event`      Generated for DNS replies of type *A6*.
-:bro:id:`dns_AAAA_reply`: :bro:type:`event`    Generated for DNS replies of type *AAAA*.
-:bro:id:`dns_A_reply`: :bro:type:`event`       Generated for DNS replies of type *A*.
-:bro:id:`dns_CAA_reply`: :bro:type:`event`     Generated for DNS replies of type *CAA* (Certification Authority Authorization).
-:bro:id:`dns_CNAME_reply`: :bro:type:`event`   Generated for DNS replies of type *CNAME*.
-:bro:id:`dns_DNSKEY`: :bro:type:`event`        Generated for DNS replies of type *DNSKEY*.
-:bro:id:`dns_DS`: :bro:type:`event`            Generated for DNS replies of type *DS*.
-:bro:id:`dns_EDNS_addl`: :bro:type:`event`     Generated for DNS replies of type *EDNS*.
-:bro:id:`dns_HINFO_reply`: :bro:type:`event`   Generated for DNS replies of type *HINFO*.
-:bro:id:`dns_MX_reply`: :bro:type:`event`      Generated for DNS replies of type *MX*.
-:bro:id:`dns_NSEC`: :bro:type:`event`          Generated for DNS replies of type *NSEC*.
-:bro:id:`dns_NSEC3`: :bro:type:`event`         Generated for DNS replies of type *NSEC3*.
-:bro:id:`dns_NS_reply`: :bro:type:`event`      Generated for DNS replies of type *NS*.
-:bro:id:`dns_PTR_reply`: :bro:type:`event`     Generated for DNS replies of type *PTR*.
-:bro:id:`dns_RRSIG`: :bro:type:`event`         Generated for DNS replies of type *RRSIG*.
-:bro:id:`dns_SOA_reply`: :bro:type:`event`     Generated for DNS replies of type *CNAME*.
-:bro:id:`dns_SRV_reply`: :bro:type:`event`     Generated for DNS replies of type *SRV*.
-:bro:id:`dns_TSIG_addl`: :bro:type:`event`     Generated for DNS replies of type *TSIG*.
-:bro:id:`dns_TXT_reply`: :bro:type:`event`     Generated for DNS replies of type *TXT*.
-:bro:id:`dns_WKS_reply`: :bro:type:`event`     Generated for DNS replies of type *WKS*.
-:bro:id:`dns_end`: :bro:type:`event`           Generated at the end of processing a DNS packet.
-:bro:id:`dns_full_request`: :bro:type:`event`  Deprecated.
-:bro:id:`dns_message`: :bro:type:`event`       Generated for all DNS messages.
-:bro:id:`dns_query_reply`: :bro:type:`event`   Generated for each entry in the Question section of a DNS reply.
-:bro:id:`dns_rejected`: :bro:type:`event`      Generated for DNS replies that reject a query.
-:bro:id:`dns_request`: :bro:type:`event`       Generated for DNS requests.
-:bro:id:`dns_unknown_reply`: :bro:type:`event` Generated on DNS reply resource records when the type of record is not one
-                                               that Bro knows how to parse and generate another more specific event.
-:bro:id:`non_dns_request`: :bro:type:`event`   msg: The raw DNS payload.
-============================================== ================================================================================
+================================================ ================================================================================
+:zeek:id:`dns_A6_reply`: :zeek:type:`event`      Generated for DNS replies of type *A6*.
+:zeek:id:`dns_AAAA_reply`: :zeek:type:`event`    Generated for DNS replies of type *AAAA*.
+:zeek:id:`dns_A_reply`: :zeek:type:`event`       Generated for DNS replies of type *A*.
+:zeek:id:`dns_CAA_reply`: :zeek:type:`event`     Generated for DNS replies of type *CAA* (Certification Authority Authorization).
+:zeek:id:`dns_CNAME_reply`: :zeek:type:`event`   Generated for DNS replies of type *CNAME*.
+:zeek:id:`dns_DNSKEY`: :zeek:type:`event`        Generated for DNS replies of type *DNSKEY*.
+:zeek:id:`dns_DS`: :zeek:type:`event`            Generated for DNS replies of type *DS*.
+:zeek:id:`dns_EDNS_addl`: :zeek:type:`event`     Generated for DNS replies of type *EDNS*.
+:zeek:id:`dns_HINFO_reply`: :zeek:type:`event`   Generated for DNS replies of type *HINFO*.
+:zeek:id:`dns_MX_reply`: :zeek:type:`event`      Generated for DNS replies of type *MX*.
+:zeek:id:`dns_NSEC`: :zeek:type:`event`          Generated for DNS replies of type *NSEC*.
+:zeek:id:`dns_NSEC3`: :zeek:type:`event`         Generated for DNS replies of type *NSEC3*.
+:zeek:id:`dns_NS_reply`: :zeek:type:`event`      Generated for DNS replies of type *NS*.
+:zeek:id:`dns_PTR_reply`: :zeek:type:`event`     Generated for DNS replies of type *PTR*.
+:zeek:id:`dns_RRSIG`: :zeek:type:`event`         Generated for DNS replies of type *RRSIG*.
+:zeek:id:`dns_SOA_reply`: :zeek:type:`event`     Generated for DNS replies of type *CNAME*.
+:zeek:id:`dns_SRV_reply`: :zeek:type:`event`     Generated for DNS replies of type *SRV*.
+:zeek:id:`dns_TSIG_addl`: :zeek:type:`event`     Generated for DNS replies of type *TSIG*.
+:zeek:id:`dns_TXT_reply`: :zeek:type:`event`     Generated for DNS replies of type *TXT*.
+:zeek:id:`dns_WKS_reply`: :zeek:type:`event`     Generated for DNS replies of type *WKS*.
+:zeek:id:`dns_end`: :zeek:type:`event`           Generated at the end of processing a DNS packet.
+:zeek:id:`dns_full_request`: :zeek:type:`event`  Deprecated.
+:zeek:id:`dns_message`: :zeek:type:`event`       Generated for all DNS messages.
+:zeek:id:`dns_query_reply`: :zeek:type:`event`   Generated for each entry in the Question section of a DNS reply.
+:zeek:id:`dns_rejected`: :zeek:type:`event`      Generated for DNS replies that reject a query.
+:zeek:id:`dns_request`: :zeek:type:`event`       Generated for DNS requests.
+:zeek:id:`dns_unknown_reply`: :zeek:type:`event` Generated on DNS reply resource records when the type of record is not one
+                                                 that Bro knows how to parse and generate another more specific event.
+:zeek:id:`non_dns_request`: :zeek:type:`event`   msg: The raw DNS payload.
+================================================ ================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: dns_A6_reply
+.. zeek:id:: dns_A6_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *A6*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -72,7 +72,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -80,9 +80,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_AAAA_reply
+.. zeek:id:: dns_AAAA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *AAAA*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -104,7 +104,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -112,9 +112,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_A_reply
+.. zeek:id:: dns_A_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *A*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -136,7 +136,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
+   .. zeek:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
       dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -144,9 +144,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_CAA_reply
+.. zeek:id:: dns_CAA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, flags: :bro:type:`count`, tag: :bro:type:`string`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, flags: :zeek:type:`count`, tag: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Generated for DNS replies of type *CAA* (Certification Authority Authorization).
    For replies with multiple answers, an individual event of the corresponding type
@@ -172,9 +172,9 @@ Events
 
    :value: The property value of the CAA reply.
 
-.. bro:id:: dns_CNAME_reply
+.. zeek:id:: dns_CNAME_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -196,7 +196,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -204,9 +204,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_DNSKEY
+.. zeek:id:: dns_DNSKEY
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, dnskey: :bro:type:`dns_dnskey_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, dnskey: :zeek:type:`dns_dnskey_rr`)
 
    Generated for DNS replies of type *DNSKEY*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -224,9 +224,9 @@ Events
 
    :dnskey: The parsed DNSKEY record.
 
-.. bro:id:: dns_DS
+.. zeek:id:: dns_DS
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, ds: :bro:type:`dns_ds_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, ds: :zeek:type:`dns_ds_rr`)
 
    Generated for DNS replies of type *DS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -244,9 +244,9 @@ Events
 
    :ds: The parsed RDATA of DS record.
 
-.. bro:id:: dns_EDNS_addl
+.. zeek:id:: dns_EDNS_addl
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_edns_additional`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_edns_additional`)
 
    Generated for DNS replies of type *EDNS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -265,7 +265,7 @@ Events
 
    :ans: The parsed EDNS reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -273,9 +273,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_HINFO_reply
+.. zeek:id:: dns_HINFO_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated for DNS replies of type *HINFO*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -294,7 +294,7 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -302,9 +302,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_MX_reply
+.. zeek:id:: dns_MX_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`, preference: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`, preference: :zeek:type:`count`)
 
    Generated for DNS replies of type *MX*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -329,7 +329,7 @@ Events
 
    :preference: The preference for *name* specified by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -337,9 +337,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_NSEC
+.. zeek:id:: dns_NSEC
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, next_name: :bro:type:`string`, bitmaps: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, next_name: :zeek:type:`string`, bitmaps: :zeek:type:`string_vec`)
 
    Generated for DNS replies of type *NSEC*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -360,9 +360,9 @@ Events
 
    :bitmaps: vector of strings in hex for the bit maps present.
 
-.. bro:id:: dns_NSEC3
+.. zeek:id:: dns_NSEC3
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, nsec3: :bro:type:`dns_nsec3_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, nsec3: :zeek:type:`dns_nsec3_rr`)
 
    Generated for DNS replies of type *NSEC3*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -380,9 +380,9 @@ Events
 
    :nsec3: The parsed RDATA of Nsec3 record.
 
-.. bro:id:: dns_NS_reply
+.. zeek:id:: dns_NS_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *NS*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -404,7 +404,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -412,9 +412,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_PTR_reply
+.. zeek:id:: dns_PTR_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *PTR*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -436,7 +436,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -444,9 +444,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_RRSIG
+.. zeek:id:: dns_RRSIG
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, rrsig: :bro:type:`dns_rrsig_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, rrsig: :zeek:type:`dns_rrsig_rr`)
 
    Generated for DNS replies of type *RRSIG*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -464,9 +464,9 @@ Events
 
    :rrsig: The parsed RRSIG record.
 
-.. bro:id:: dns_SOA_reply
+.. zeek:id:: dns_SOA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, soa: :bro:type:`dns_soa`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, soa: :zeek:type:`dns_soa`)
 
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -488,7 +488,7 @@ Events
 
    :soa: The parsed SOA value.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -496,9 +496,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_SRV_reply
+.. zeek:id:: dns_SRV_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, target: :bro:type:`string`, priority: :bro:type:`count`, weight: :bro:type:`count`, p: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, target: :zeek:type:`string`, priority: :zeek:type:`count`, weight: :zeek:type:`count`, p: :zeek:type:`count`)
 
    Generated for DNS replies of type *SRV*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -533,7 +533,7 @@ Events
    :p: Port of the SRV response -- the TCP or UDP port on which the
       service is to be found.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -541,9 +541,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_TSIG_addl
+.. zeek:id:: dns_TSIG_addl
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_tsig_additional`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_tsig_additional`)
 
    Generated for DNS replies of type *TSIG*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -562,7 +562,7 @@ Events
 
    :ans: The parsed TSIG reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply  dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -570,9 +570,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_TXT_reply
+.. zeek:id:: dns_TXT_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, strs: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, strs: :zeek:type:`string_vec`)
 
    Generated for DNS replies of type *TXT*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -594,7 +594,7 @@ Events
 
    :strs: The textual information returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -602,9 +602,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_WKS_reply
+.. zeek:id:: dns_WKS_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated for DNS replies of type *WKS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -623,7 +623,7 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply  dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -631,9 +631,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_end
+.. zeek:id:: dns_end
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`)
 
    Generated at the end of processing a DNS packet. This event is the last
    ``dns_*`` event that will be raised for a DNS query/reply and signals that
@@ -650,7 +650,7 @@ Events
 
    :msg: The parsed DNS message header.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -658,18 +658,18 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_full_request
+.. zeek:id:: dns_full_request
 
-   :Type: :bro:type:`event` ()
+   :Type: :zeek:type:`event` ()
 
    Deprecated. Will be removed.
    
    .. todo:: Unclear what this event is for; it's never raised. We should just
       remove it.
 
-.. bro:id:: dns_message
+.. zeek:id:: dns_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`dns_msg`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`dns_msg`, len: :zeek:type:`count`)
 
    Generated for all DNS messages.
    
@@ -690,7 +690,7 @@ Events
 
    :len: The length of the message's raw representation (i.e., the DNS payload).
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -698,9 +698,9 @@ Events
       dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_query_reply
+.. zeek:id:: dns_query_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for each entry in the Question section of a DNS reply.
    
@@ -724,7 +724,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -732,9 +732,9 @@ Events
       dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_rejected
+.. zeek:id:: dns_rejected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for DNS replies that reject a query. This event is raised if a DNS
    reply indicates failure because it does not pass on any
@@ -761,7 +761,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -769,9 +769,9 @@ Events
       dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_request
+.. zeek:id:: dns_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for DNS requests. For requests with multiple queries, this event
    is raised once for each.
@@ -796,7 +796,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -804,9 +804,9 @@ Events
       dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_unknown_reply
+.. zeek:id:: dns_unknown_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated on DNS reply resource records when the type of record is not one
    that Bro knows how to parse and generate another more specific event.
@@ -821,13 +821,13 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_SRV_reply dns_end
 
-.. bro:id:: non_dns_request
+.. zeek:id:: non_dns_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
 
    :msg: The raw DNS payload.

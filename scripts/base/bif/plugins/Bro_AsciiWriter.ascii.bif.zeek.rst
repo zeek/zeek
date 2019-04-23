@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_AsciiWriter.ascii.bif.zeek
 ===============================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: LogAscii
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: LogAscii
 
 
 :Namespaces: GLOBAL, LogAscii

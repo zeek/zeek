@@ -2,7 +2,7 @@
 
 policy/misc/dump-events.zeek
 ============================
-.. bro:namespace:: DumpEvents
+.. zeek:namespace:: DumpEvents
 
 This script dumps the events that Bro raises out to standard output in a
 readable form. This is for debugging only and allows to understand events and
@@ -15,20 +15,20 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-======================================================================= ===========================================================
-:bro:id:`DumpEvents::include`: :bro:type:`pattern` :bro:attr:`&redef`   Only include events matching the given pattern into output.
-:bro:id:`DumpEvents::include_args`: :bro:type:`bool` :bro:attr:`&redef` If true, include event arguments in output.
-======================================================================= ===========================================================
+========================================================================== ===========================================================
+:zeek:id:`DumpEvents::include`: :zeek:type:`pattern` :zeek:attr:`&redef`   Only include events matching the given pattern into output.
+:zeek:id:`DumpEvents::include_args`: :zeek:type:`bool` :zeek:attr:`&redef` If true, include event arguments in output.
+========================================================================== ===========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: DumpEvents::include
+.. zeek:id:: DumpEvents::include
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -38,10 +38,10 @@ Runtime Options
    Only include events matching the given pattern into output. By default, the
    pattern matches all events.
 
-.. bro:id:: DumpEvents::include_args
+.. zeek:id:: DumpEvents::include_args
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, include event arguments in output.

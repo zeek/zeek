@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_check_directory.bif.zeek
 ==========================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================== ===========================================================================================
-:bro:id:`smb1_check_directory_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                           version 1 requests of type *check directory*.
-:bro:id:`smb1_check_directory_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                           version 1 responses of type *check directory*.
-========================================================== ===========================================================================================
+============================================================ ===========================================================================================
+:zeek:id:`smb1_check_directory_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                             version 1 requests of type *check directory*.
+:zeek:id:`smb1_check_directory_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                             version 1 responses of type *check directory*.
+============================================================ ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_check_directory_request
+.. zeek:id:: smb1_check_directory_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, directory_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, directory_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *check directory*. This is used by the client to verify that
@@ -42,11 +42,11 @@ Events
 
    :directory_name: The directory name to check for existence.
    
-   .. bro:see:: smb1_message smb1_check_directory_response
+   .. zeek:see:: smb1_message smb1_check_directory_response
 
-.. bro:id:: smb1_check_directory_response
+.. zeek:id:: smb1_check_directory_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *check directory*. This is the server response to the
@@ -60,6 +60,6 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
    
-   .. bro:see:: smb1_message smb1_check_directory_request
+   .. zeek:see:: smb1_message smb1_check_directory_request
 
 

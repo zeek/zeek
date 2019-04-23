@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/shunt.zeek
 =====================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 Implementation of the shunt functionality for NetControl.
 
@@ -13,68 +13,68 @@ Summary
 ~~~~~~~
 Types
 #####
-===================================================== =
-:bro:type:`NetControl::ShuntInfo`: :bro:type:`record` 
-===================================================== =
+======================================================= =
+:zeek:type:`NetControl::ShuntInfo`: :zeek:type:`record` 
+======================================================= =
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 Events
 ######
-============================================================= =========================================================================
-:bro:id:`NetControl::log_netcontrol_shunt`: :bro:type:`event` Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
-                                                              record as it is sent on to the logging framework.
-============================================================= =========================================================================
+=============================================================== ==========================================================================
+:zeek:id:`NetControl::log_netcontrol_shunt`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
+                                                                record as it is sent on to the logging framework.
+=============================================================== ==========================================================================
 
 Functions
 #########
-====================================================== =========================================================
-:bro:id:`NetControl::shunt_flow`: :bro:type:`function` Stops forwarding a uni-directional flow's packets to Bro.
-====================================================== =========================================================
+======================================================== =========================================================
+:zeek:id:`NetControl::shunt_flow`: :zeek:type:`function` Stops forwarding a uni-directional flow's packets to Bro.
+======================================================== =========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NetControl::ShuntInfo
+.. zeek:type:: NetControl::ShuntInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time at which the recorded activity occurred.
 
-      rule_id: :bro:type:`string` :bro:attr:`&log`
+      rule_id: :zeek:type:`string` :zeek:attr:`&log`
          ID of the rule; unique during each Bro run.
 
-      f: :bro:type:`flow_id` :bro:attr:`&log`
+      f: :zeek:type:`flow_id` :zeek:attr:`&log`
          Flow ID of the shunted flow.
 
-      expire: :bro:type:`interval` :bro:attr:`&log`
+      expire: :zeek:type:`interval` :zeek:attr:`&log`
          Expiry time of the shunt.
 
-      location: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      location: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Location where the underlying action was triggered.
 
 
 Events
 ######
-.. bro:id:: NetControl::log_netcontrol_shunt
+.. zeek:id:: NetControl::log_netcontrol_shunt
 
-   :Type: :bro:type:`event` (rec: :bro:type:`NetControl::ShuntInfo`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`NetControl::ShuntInfo`)
 
-   Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
+   Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
    record as it is sent on to the logging framework.
 
 Functions
 #########
-.. bro:id:: NetControl::shunt_flow
+.. zeek:id:: NetControl::shunt_flow
 
-   :Type: :bro:type:`function` (f: :bro:type:`flow_id`, t: :bro:type:`interval`, location: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`flow_id`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops forwarding a uni-directional flow's packets to Bro.
    

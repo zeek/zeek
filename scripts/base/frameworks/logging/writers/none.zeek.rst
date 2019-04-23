@@ -2,7 +2,7 @@
 
 base/frameworks/logging/writers/none.zeek
 =========================================
-.. bro:namespace:: LogNone
+.. zeek:namespace:: LogNone
 
 Interface for the None log writer. This writer is mainly for debugging.
 
@@ -12,26 +12,26 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-============================================================= ============================================================
-:bro:id:`LogNone::debug`: :bro:type:`bool` :bro:attr:`&redef` If true, output debugging output that can be useful for unit
-                                                              testing the logging framework.
-============================================================= ============================================================
+================================================================ ============================================================
+:zeek:id:`LogNone::debug`: :zeek:type:`bool` :zeek:attr:`&redef` If true, output debugging output that can be useful for unit
+                                                                 testing the logging framework.
+================================================================ ============================================================
 
 Redefinitions
 #############
-==================================================================================== =
-:bro:id:`Log::default_rotation_postprocessors`: :bro:type:`table` :bro:attr:`&redef` 
-==================================================================================== =
+======================================================================================= =
+:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef` 
+======================================================================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: LogNone::debug
+.. zeek:id:: LogNone::debug
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    If true, output debugging output that can be useful for unit

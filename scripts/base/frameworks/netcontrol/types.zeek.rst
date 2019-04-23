@@ -2,11 +2,11 @@
 
 base/frameworks/netcontrol/types.zeek
 =====================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 This file defines the types that are used by the NetControl framework.
 
-The most important type defined in this file is :bro:see:`NetControl::Rule`,
+The most important type defined in this file is :zeek:see:`NetControl::Rule`,
 which is used to describe all rules that can be expressed by the NetControl framework. 
 
 :Namespace: NetControl
@@ -15,143 +15,143 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-========================================================================== ======================================================
-:bro:id:`NetControl::default_priority`: :bro:type:`int` :bro:attr:`&redef` The default priority that is used when creating rules.
-========================================================================== ======================================================
+============================================================================= ======================================================
+:zeek:id:`NetControl::default_priority`: :zeek:type:`int` :zeek:attr:`&redef` The default priority that is used when creating rules.
+============================================================================= ======================================================
 
 Redefinable Options
 ###################
-============================================================================ ====================================================================================
-:bro:id:`NetControl::whitelist_priority`: :bro:type:`int` :bro:attr:`&redef` The default priority that is used when using the high-level functions to
-                                                                             push whitelist entries to the backends (:bro:see:`NetControl::whitelist_address` and
-                                                                             :bro:see:`NetControl::whitelist_subnet`).
-============================================================================ ====================================================================================
+=============================================================================== =====================================================================================
+:zeek:id:`NetControl::whitelist_priority`: :zeek:type:`int` :zeek:attr:`&redef` The default priority that is used when using the high-level functions to
+                                                                                push whitelist entries to the backends (:zeek:see:`NetControl::whitelist_address` and
+                                                                                :zeek:see:`NetControl::whitelist_subnet`).
+=============================================================================== =====================================================================================
 
 Types
 #####
-==================================================== ====================================================================================================
-:bro:type:`NetControl::Entity`: :bro:type:`record`   Type defining the entity a rule is operating on.
-:bro:type:`NetControl::EntityType`: :bro:type:`enum` Type defining the entity that a rule applies to.
-:bro:type:`NetControl::Flow`: :bro:type:`record`     Flow is used in :bro:type:`NetControl::Entity` together with :bro:enum:`NetControl::FLOW` to specify
-                                                     a uni-directional flow that a rule applies to.
-:bro:type:`NetControl::FlowInfo`: :bro:type:`record` Information of a flow that can be provided by switches when the flow times out.
-:bro:type:`NetControl::FlowMod`: :bro:type:`record`  Type for defining a flow modification action.
-:bro:type:`NetControl::Rule`: :bro:type:`record`     A rule for the framework to put in place.
-:bro:type:`NetControl::RuleType`: :bro:type:`enum`   Type of rules that the framework supports.
-:bro:type:`NetControl::TargetType`: :bro:type:`enum` Type defining the target of a rule.
-==================================================== ====================================================================================================
+====================================================== ======================================================================================================
+:zeek:type:`NetControl::Entity`: :zeek:type:`record`   Type defining the entity a rule is operating on.
+:zeek:type:`NetControl::EntityType`: :zeek:type:`enum` Type defining the entity that a rule applies to.
+:zeek:type:`NetControl::Flow`: :zeek:type:`record`     Flow is used in :zeek:type:`NetControl::Entity` together with :zeek:enum:`NetControl::FLOW` to specify
+                                                       a uni-directional flow that a rule applies to.
+:zeek:type:`NetControl::FlowInfo`: :zeek:type:`record` Information of a flow that can be provided by switches when the flow times out.
+:zeek:type:`NetControl::FlowMod`: :zeek:type:`record`  Type for defining a flow modification action.
+:zeek:type:`NetControl::Rule`: :zeek:type:`record`     A rule for the framework to put in place.
+:zeek:type:`NetControl::RuleType`: :zeek:type:`enum`   Type of rules that the framework supports.
+:zeek:type:`NetControl::TargetType`: :zeek:type:`enum` Type defining the target of a rule.
+====================================================== ======================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: NetControl::default_priority
+.. zeek:id:: NetControl::default_priority
 
-   :Type: :bro:type:`int`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`int`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``0``
 
    The default priority that is used when creating rules.
 
 Redefinable Options
 ###################
-.. bro:id:: NetControl::whitelist_priority
+.. zeek:id:: NetControl::whitelist_priority
 
-   :Type: :bro:type:`int`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`int`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5``
 
    The default priority that is used when using the high-level functions to
-   push whitelist entries to the backends (:bro:see:`NetControl::whitelist_address` and
-   :bro:see:`NetControl::whitelist_subnet`).
+   push whitelist entries to the backends (:zeek:see:`NetControl::whitelist_address` and
+   :zeek:see:`NetControl::whitelist_subnet`).
    
    Note that this priority is not automatically used when manually creating rules
-   that have a :bro:see:`NetControl::RuleType` of :bro:enum:`NetControl::WHITELIST`.
+   that have a :zeek:see:`NetControl::RuleType` of :zeek:enum:`NetControl::WHITELIST`.
 
 Types
 #####
-.. bro:type:: NetControl::Entity
+.. zeek:type:: NetControl::Entity
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ty: :bro:type:`NetControl::EntityType`
+      ty: :zeek:type:`NetControl::EntityType`
          Type of entity.
 
-      conn: :bro:type:`conn_id` :bro:attr:`&optional`
-         Used with :bro:enum:`NetControl::CONNECTION`.
+      conn: :zeek:type:`conn_id` :zeek:attr:`&optional`
+         Used with :zeek:enum:`NetControl::CONNECTION`.
 
-      flow: :bro:type:`NetControl::Flow` :bro:attr:`&optional`
-         Used with :bro:enum:`NetControl::FLOW`.
+      flow: :zeek:type:`NetControl::Flow` :zeek:attr:`&optional`
+         Used with :zeek:enum:`NetControl::FLOW`.
 
-      ip: :bro:type:`subnet` :bro:attr:`&optional`
-         Used with :bro:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
+      ip: :zeek:type:`subnet` :zeek:attr:`&optional`
+         Used with :zeek:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
 
-      mac: :bro:type:`string` :bro:attr:`&optional`
-         Used with :bro:enum:`NetControl::MAC`.
+      mac: :zeek:type:`string` :zeek:attr:`&optional`
+         Used with :zeek:enum:`NetControl::MAC`.
 
    Type defining the entity a rule is operating on.
 
-.. bro:type:: NetControl::EntityType
+.. zeek:type:: NetControl::EntityType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: NetControl::ADDRESS NetControl::EntityType
+      .. zeek:enum:: NetControl::ADDRESS NetControl::EntityType
 
          Activity involving a specific IP address.
 
-      .. bro:enum:: NetControl::CONNECTION NetControl::EntityType
+      .. zeek:enum:: NetControl::CONNECTION NetControl::EntityType
 
          Activity involving all of a bi-directional connection's activity.
 
-      .. bro:enum:: NetControl::FLOW NetControl::EntityType
+      .. zeek:enum:: NetControl::FLOW NetControl::EntityType
 
          Activity involving a uni-directional flow's activity. Can contain wildcards.
 
-      .. bro:enum:: NetControl::MAC NetControl::EntityType
+      .. zeek:enum:: NetControl::MAC NetControl::EntityType
 
          Activity involving a MAC address.
 
    Type defining the entity that a rule applies to.
 
-.. bro:type:: NetControl::Flow
+.. zeek:type:: NetControl::Flow
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      src_h: :bro:type:`subnet` :bro:attr:`&optional`
+      src_h: :zeek:type:`subnet` :zeek:attr:`&optional`
          The source IP address/subnet.
 
-      src_p: :bro:type:`port` :bro:attr:`&optional`
+      src_p: :zeek:type:`port` :zeek:attr:`&optional`
          The source port number.
 
-      dst_h: :bro:type:`subnet` :bro:attr:`&optional`
+      dst_h: :zeek:type:`subnet` :zeek:attr:`&optional`
          The destination IP address/subnet.
 
-      dst_p: :bro:type:`port` :bro:attr:`&optional`
+      dst_p: :zeek:type:`port` :zeek:attr:`&optional`
          The destination port number.
 
-      src_m: :bro:type:`string` :bro:attr:`&optional`
+      src_m: :zeek:type:`string` :zeek:attr:`&optional`
          The source MAC address.
 
-      dst_m: :bro:type:`string` :bro:attr:`&optional`
+      dst_m: :zeek:type:`string` :zeek:attr:`&optional`
          The destination MAC address.
 
-   Flow is used in :bro:type:`NetControl::Entity` together with :bro:enum:`NetControl::FLOW` to specify
+   Flow is used in :zeek:type:`NetControl::Entity` together with :zeek:enum:`NetControl::FLOW` to specify
    a uni-directional flow that a rule applies to.
    
    If optional fields are not set, they are interpreted as wildcarded.
 
-.. bro:type:: NetControl::FlowInfo
+.. zeek:type:: NetControl::FlowInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      duration: :bro:type:`interval` :bro:attr:`&optional`
+      duration: :zeek:type:`interval` :zeek:attr:`&optional`
          Total duration of the rule.
 
-      packet_count: :bro:type:`count` :bro:attr:`&optional`
+      packet_count: :zeek:type:`count` :zeek:attr:`&optional`
          Number of packets exchanged over connections matched by the rule.
 
-      byte_count: :bro:type:`count` :bro:attr:`&optional`
+      byte_count: :zeek:type:`count` :zeek:attr:`&optional`
          Total bytes exchanged over connections matched by the rule.
 
    Information of a flow that can be provided by switches when the flow times out.
@@ -159,82 +159,82 @@ Types
    That being said - their design makes sense and this is probably the data one
    can expect to be available.
 
-.. bro:type:: NetControl::FlowMod
+.. zeek:type:: NetControl::FlowMod
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      src_h: :bro:type:`addr` :bro:attr:`&optional`
+      src_h: :zeek:type:`addr` :zeek:attr:`&optional`
          The source IP address.
 
-      src_p: :bro:type:`count` :bro:attr:`&optional`
+      src_p: :zeek:type:`count` :zeek:attr:`&optional`
          The source port number.
 
-      dst_h: :bro:type:`addr` :bro:attr:`&optional`
+      dst_h: :zeek:type:`addr` :zeek:attr:`&optional`
          The destination IP address.
 
-      dst_p: :bro:type:`count` :bro:attr:`&optional`
+      dst_p: :zeek:type:`count` :zeek:attr:`&optional`
          The destination port number.
 
-      src_m: :bro:type:`string` :bro:attr:`&optional`
+      src_m: :zeek:type:`string` :zeek:attr:`&optional`
          The source MAC address.
 
-      dst_m: :bro:type:`string` :bro:attr:`&optional`
+      dst_m: :zeek:type:`string` :zeek:attr:`&optional`
          The destination MAC address.
 
-      redirect_port: :bro:type:`count` :bro:attr:`&optional`
+      redirect_port: :zeek:type:`count` :zeek:attr:`&optional`
 
    Type for defining a flow modification action.
 
-.. bro:type:: NetControl::Rule
+.. zeek:type:: NetControl::Rule
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ty: :bro:type:`NetControl::RuleType`
+      ty: :zeek:type:`NetControl::RuleType`
          Type of rule.
 
-      target: :bro:type:`NetControl::TargetType`
+      target: :zeek:type:`NetControl::TargetType`
          Where to apply rule.
 
-      entity: :bro:type:`NetControl::Entity`
+      entity: :zeek:type:`NetControl::Entity`
          Entity to apply rule to.
 
-      expire: :bro:type:`interval` :bro:attr:`&optional`
+      expire: :zeek:type:`interval` :zeek:attr:`&optional`
          Timeout after which to expire the rule.
 
-      priority: :bro:type:`int` :bro:attr:`&default` = :bro:see:`NetControl::default_priority` :bro:attr:`&optional`
+      priority: :zeek:type:`int` :zeek:attr:`&default` = :zeek:see:`NetControl::default_priority` :zeek:attr:`&optional`
          Priority if multiple rules match an entity (larger value is higher priority).
 
-      location: :bro:type:`string` :bro:attr:`&optional`
+      location: :zeek:type:`string` :zeek:attr:`&optional`
          Optional string describing where/what installed the rule.
 
-      out_port: :bro:type:`count` :bro:attr:`&optional`
-         Argument for :bro:enum:`NetControl::REDIRECT` rules.
+      out_port: :zeek:type:`count` :zeek:attr:`&optional`
+         Argument for :zeek:enum:`NetControl::REDIRECT` rules.
 
-      mod: :bro:type:`NetControl::FlowMod` :bro:attr:`&optional`
-         Argument for :bro:enum:`NetControl::MODIFY` rules.
+      mod: :zeek:type:`NetControl::FlowMod` :zeek:attr:`&optional`
+         Argument for :zeek:enum:`NetControl::MODIFY` rules.
 
-      id: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      id: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          Internally determined unique ID for this rule. Will be set when added.
 
-      cid: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      cid: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Internally determined unique numeric ID for this rule. Set when added.
 
-      _plugin_ids: :bro:type:`set` [:bro:type:`count`] :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional`
+      _plugin_ids: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
 
          Internally set to the plugins handling the rule.
 
-      _active_plugin_ids: :bro:type:`set` [:bro:type:`count`] :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional`
+      _active_plugin_ids: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
 
          Internally set to the plugins on which the rule is currently active.
 
-      _no_expire_plugins: :bro:type:`set` [:bro:type:`count`] :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional`
+      _no_expire_plugins: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
 
          Internally set to plugins where the rule should not be removed upon timeout.
 
-      _added: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      _added: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
 
          Track if the rule was added successfully by all responsible plugins.
@@ -243,30 +243,30 @@ Types
    place, the first match will be taken, sorted by priority. All
    further rules will be ignored.
 
-.. bro:type:: NetControl::RuleType
+.. zeek:type:: NetControl::RuleType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: NetControl::DROP NetControl::RuleType
+      .. zeek:enum:: NetControl::DROP NetControl::RuleType
 
          Stop forwarding all packets matching the entity.
          
          No additional arguments.
 
-      .. bro:enum:: NetControl::MODIFY NetControl::RuleType
+      .. zeek:enum:: NetControl::MODIFY NetControl::RuleType
 
          Modify all packets matching entity. The packets
          will be modified according to the `mod` entry of
          the rule.
          
 
-      .. bro:enum:: NetControl::REDIRECT NetControl::RuleType
+      .. zeek:enum:: NetControl::REDIRECT NetControl::RuleType
 
          Redirect all packets matching entity to a different switch port,
          given in the `out_port` argument of the rule.
          
 
-      .. bro:enum:: NetControl::WHITELIST NetControl::RuleType
+      .. zeek:enum:: NetControl::WHITELIST NetControl::RuleType
 
          Whitelists all packets of an entity, meaning no restrictions will be applied.
          While whitelisting is the default if no rule matches, this type can be
@@ -274,17 +274,17 @@ Types
          entity.
 
    Type of rules that the framework supports. Each type lists the extra
-   :bro:type:`NetControl::Rule` fields it uses, if any.
+   :zeek:type:`NetControl::Rule` fields it uses, if any.
    
    Plugins may extend this type to define their own.
 
-.. bro:type:: NetControl::TargetType
+.. zeek:type:: NetControl::TargetType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: NetControl::FORWARD NetControl::TargetType
+      .. zeek:enum:: NetControl::FORWARD NetControl::TargetType
 
-      .. bro:enum:: NetControl::MONITOR NetControl::TargetType
+      .. zeek:enum:: NetControl::MONITOR NetControl::TargetType
 
    Type defining the target of a rule.
    

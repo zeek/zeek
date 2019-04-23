@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_read.bif.zeek
 ===============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================== ===========================================================================================
-:bro:id:`smb2_read_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                               version 2 requests of type *read*.
-============================================== ===========================================================================================
+================================================ ===========================================================================================
+:zeek:id:`smb2_read_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                 version 2 requests of type *read*.
+================================================ ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_read_request
+.. zeek:id:: smb2_read_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, offset: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, offset: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *read*. This is sent by the client to request a read operation on
@@ -46,6 +46,6 @@ Events
 
    :length: The number of bytes of the file being read.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
 

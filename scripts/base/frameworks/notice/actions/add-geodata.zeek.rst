@@ -2,7 +2,7 @@
 
 base/frameworks/notice/actions/add-geodata.zeek
 ===============================================
-.. bro:namespace:: Notice
+.. zeek:namespace:: Notice
 
 This script adds geographic location data to notices for the "remote"
 host in a connection.  It does make the assumption that one of the 
@@ -17,26 +17,26 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=========================================================================== ===============================================================
-:bro:id:`Notice::lookup_location_types`: :bro:type:`set` :bro:attr:`&redef` Notice types which should have the "remote" location looked up.
-=========================================================================== ===============================================================
+============================================================================== ===============================================================
+:zeek:id:`Notice::lookup_location_types`: :zeek:type:`set` :zeek:attr:`&redef` Notice types which should have the "remote" location looked up.
+============================================================================== ===============================================================
 
 Redefinitions
 #############
-============================================ =
-:bro:type:`Notice::Action`: :bro:type:`enum` 
-:bro:type:`Notice::Info`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`Notice::Action`: :zeek:type:`enum` 
+:zeek:type:`Notice::Info`: :zeek:type:`record` 
+============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Notice::lookup_location_types
+.. zeek:id:: Notice::lookup_location_types
 
-   :Type: :bro:type:`set` [:bro:type:`Notice::Type`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`Notice::Type`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    Notice types which should have the "remote" location looked up.

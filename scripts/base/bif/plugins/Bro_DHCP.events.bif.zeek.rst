@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_DHCP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================= ================================
-:bro:id:`dhcp_message`: :bro:type:`event` Generated for all DHCP messages.
-========================================= ================================
+=========================================== ================================
+:zeek:id:`dhcp_message`: :zeek:type:`event` Generated for all DHCP messages.
+=========================================== ================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: dhcp_message
+.. zeek:id:: dhcp_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`DHCP::Msg`, options: :bro:type:`DHCP::Options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCP::Msg`, options: :zeek:type:`DHCP::Options`)
 
    Generated for all DHCP messages.
    

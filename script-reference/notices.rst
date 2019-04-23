@@ -5,4 +5,4 @@
 Notices
 =======
 
-See the `Bro Notice Index <../bro-noticeindex.html>`_.
+See the `Zeek Notice Index <../zeek-noticeindex.html>`_.

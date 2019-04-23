@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_AsciiReader.ascii.bif.zeek
 ===============================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: InputAscii
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: InputAscii
 
 
 :Namespaces: GLOBAL, InputAscii

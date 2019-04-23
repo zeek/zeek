@@ -17,7 +17,7 @@ The packet filter framework supports how Bro sets its BPF capture filter.
    Bro sets a capture filter that allows all traffic.  If a filter
    is set on the command line, that filter takes precedence over the default
    open filter and all filters defined in Bro scripts with the
-   :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
+   :zeek:id:`capture_filters` and :zeek:id:`restrict_filters` variables.
 
 :doc:`/scripts/base/frameworks/packet-filter/netstats.zeek`
 

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_DCE_RPC.consts.bif.zeek
 ============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL

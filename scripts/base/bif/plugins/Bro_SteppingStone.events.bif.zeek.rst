@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SteppingStone.events.bif.zeek
 ==================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,46 +11,46 @@ Summary
 ~~~~~~~
 Events
 ######
-=============================================== ==============================================
-:bro:id:`stp_correlate_pair`: :bro:type:`event` Event internal to the stepping stone detector.
-:bro:id:`stp_create_endp`: :bro:type:`event`    Deprecated.
-:bro:id:`stp_remove_endp`: :bro:type:`event`    Event internal to the stepping stone detector.
-:bro:id:`stp_remove_pair`: :bro:type:`event`    Event internal to the stepping stone detector.
-:bro:id:`stp_resume_endp`: :bro:type:`event`    Event internal to the stepping stone detector.
-=============================================== ==============================================
+================================================= ==============================================
+:zeek:id:`stp_correlate_pair`: :zeek:type:`event` Event internal to the stepping stone detector.
+:zeek:id:`stp_create_endp`: :zeek:type:`event`    Deprecated.
+:zeek:id:`stp_remove_endp`: :zeek:type:`event`    Event internal to the stepping stone detector.
+:zeek:id:`stp_remove_pair`: :zeek:type:`event`    Event internal to the stepping stone detector.
+:zeek:id:`stp_resume_endp`: :zeek:type:`event`    Event internal to the stepping stone detector.
+================================================= ==============================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: stp_correlate_pair
+.. zeek:id:: stp_correlate_pair
 
-   :Type: :bro:type:`event` (e1: :bro:type:`int`, e2: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e1: :zeek:type:`int`, e2: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 
-.. bro:id:: stp_create_endp
+.. zeek:id:: stp_create_endp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, e: :bro:type:`int`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, e: :zeek:type:`int`, is_orig: :zeek:type:`bool`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: stp_remove_endp
+.. zeek:id:: stp_remove_endp
 
-   :Type: :bro:type:`event` (e: :bro:type:`int`)
-
-   Event internal to the stepping stone detector.
-
-.. bro:id:: stp_remove_pair
-
-   :Type: :bro:type:`event` (e1: :bro:type:`int`, e2: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 
-.. bro:id:: stp_resume_endp
+.. zeek:id:: stp_remove_pair
 
-   :Type: :bro:type:`event` (e: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e1: :zeek:type:`int`, e2: :zeek:type:`int`)
+
+   Event internal to the stepping stone detector.
+
+.. zeek:id:: stp_resume_endp
+
+   :Type: :zeek:type:`event` (e: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 

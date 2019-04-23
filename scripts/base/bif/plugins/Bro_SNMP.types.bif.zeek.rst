@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_SNMP.types.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: SNMP
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: SNMP
 
 
 :Namespaces: GLOBAL, SNMP

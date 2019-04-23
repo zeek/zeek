@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_NTP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================== ===============================
-:bro:id:`ntp_message`: :bro:type:`event` Generated for all NTP messages.
-======================================== ===============================
+========================================== ===============================
+:zeek:id:`ntp_message`: :zeek:type:`event` Generated for all NTP messages.
+========================================== ===============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ntp_message
+.. zeek:id:: ntp_message
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`, msg: :bro:type:`ntp_msg`, excess: :bro:type:`string`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`, msg: :zeek:type:`ntp_msg`, excess: :zeek:type:`string`)
 
    Generated for all NTP messages. Different from many other of Bro's events,
    this one is generated for both client-side and server-side messages.
@@ -40,7 +40,7 @@ Events
    :excess: The raw bytes of any optional parts of the NTP packet. Bro does not
            further parse any optional fields.
    
-   .. bro:see:: ntp_session_timeout
+   .. zeek:see:: ntp_session_timeout
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

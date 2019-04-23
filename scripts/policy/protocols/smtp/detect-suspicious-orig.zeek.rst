@@ -2,7 +2,7 @@
 
 policy/protocols/smtp/detect-suspicious-orig.zeek
 =================================================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 
 :Namespace: SMTP
@@ -12,37 +12,37 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================================== ===================================================================
-:bro:id:`SMTP::suspicious_origination_countries`: :bro:type:`set` :bro:attr:`&redef` Places where it's suspicious for mail to originate from represented
-                                                                                     as all-capital, two character country codes (e.g., US).
-:bro:id:`SMTP::suspicious_origination_networks`: :bro:type:`set` :bro:attr:`&redef`  
-==================================================================================== ===================================================================
+======================================================================================= ===================================================================
+:zeek:id:`SMTP::suspicious_origination_countries`: :zeek:type:`set` :zeek:attr:`&redef` Places where it's suspicious for mail to originate from represented
+                                                                                        as all-capital, two character country codes (e.g., US).
+:zeek:id:`SMTP::suspicious_origination_networks`: :zeek:type:`set` :zeek:attr:`&redef`  
+======================================================================================= ===================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMTP::suspicious_origination_countries
+.. zeek:id:: SMTP::suspicious_origination_countries
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    Places where it's suspicious for mail to originate from represented
    as all-capital, two character country codes (e.g., US).  It requires
    Bro to be built with GeoIP support.
 
-.. bro:id:: SMTP::suspicious_origination_networks
+.. zeek:id:: SMTP::suspicious_origination_networks
 
-   :Type: :bro:type:`set` [:bro:type:`subnet`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`subnet`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
 

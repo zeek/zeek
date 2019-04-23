@@ -2,7 +2,7 @@
 
 policy/protocols/ftp/detect.zeek
 ================================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 Detect various potentially bad FTP activities.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface

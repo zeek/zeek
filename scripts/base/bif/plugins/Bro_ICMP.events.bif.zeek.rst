@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_ICMP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,33 +11,33 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================== ====================================================================
-:bro:id:`icmp_echo_reply`: :bro:type:`event`             Generated for ICMP *echo reply* messages.
-:bro:id:`icmp_echo_request`: :bro:type:`event`           Generated for ICMP *echo request* messages.
-:bro:id:`icmp_error_message`: :bro:type:`event`          Generated for all ICMPv6 error messages that are not handled
-                                                         separately with dedicated events.
-:bro:id:`icmp_neighbor_advertisement`: :bro:type:`event` Generated for ICMP *neighbor advertisement* messages.
-:bro:id:`icmp_neighbor_solicitation`: :bro:type:`event`  Generated for ICMP *neighbor solicitation* messages.
-:bro:id:`icmp_packet_too_big`: :bro:type:`event`         Generated for ICMPv6 *packet too big* messages.
-:bro:id:`icmp_parameter_problem`: :bro:type:`event`      Generated for ICMPv6 *parameter problem* messages.
-:bro:id:`icmp_redirect`: :bro:type:`event`               Generated for ICMP *redirect* messages.
-:bro:id:`icmp_router_advertisement`: :bro:type:`event`   Generated for ICMP *router advertisement* messages.
-:bro:id:`icmp_router_solicitation`: :bro:type:`event`    Generated for ICMP *router solicitation* messages.
-:bro:id:`icmp_sent`: :bro:type:`event`                   Generated for all ICMP messages that are not handled separately with
-                                                         dedicated ICMP events.
-:bro:id:`icmp_sent_payload`: :bro:type:`event`           The same as :bro:see:`icmp_sent` except containing the ICMP payload.
-:bro:id:`icmp_time_exceeded`: :bro:type:`event`          Generated for ICMP *time exceeded* messages.
-:bro:id:`icmp_unreachable`: :bro:type:`event`            Generated for ICMP *destination unreachable* messages.
-======================================================== ====================================================================
+========================================================== =====================================================================
+:zeek:id:`icmp_echo_reply`: :zeek:type:`event`             Generated for ICMP *echo reply* messages.
+:zeek:id:`icmp_echo_request`: :zeek:type:`event`           Generated for ICMP *echo request* messages.
+:zeek:id:`icmp_error_message`: :zeek:type:`event`          Generated for all ICMPv6 error messages that are not handled
+                                                           separately with dedicated events.
+:zeek:id:`icmp_neighbor_advertisement`: :zeek:type:`event` Generated for ICMP *neighbor advertisement* messages.
+:zeek:id:`icmp_neighbor_solicitation`: :zeek:type:`event`  Generated for ICMP *neighbor solicitation* messages.
+:zeek:id:`icmp_packet_too_big`: :zeek:type:`event`         Generated for ICMPv6 *packet too big* messages.
+:zeek:id:`icmp_parameter_problem`: :zeek:type:`event`      Generated for ICMPv6 *parameter problem* messages.
+:zeek:id:`icmp_redirect`: :zeek:type:`event`               Generated for ICMP *redirect* messages.
+:zeek:id:`icmp_router_advertisement`: :zeek:type:`event`   Generated for ICMP *router advertisement* messages.
+:zeek:id:`icmp_router_solicitation`: :zeek:type:`event`    Generated for ICMP *router solicitation* messages.
+:zeek:id:`icmp_sent`: :zeek:type:`event`                   Generated for all ICMP messages that are not handled separately with
+                                                           dedicated ICMP events.
+:zeek:id:`icmp_sent_payload`: :zeek:type:`event`           The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
+:zeek:id:`icmp_time_exceeded`: :zeek:type:`event`          Generated for ICMP *time exceeded* messages.
+:zeek:id:`icmp_unreachable`: :zeek:type:`event`            Generated for ICMP *destination unreachable* messages.
+========================================================== =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: icmp_echo_reply
+.. zeek:id:: icmp_echo_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, id: :bro:type:`count`, seq: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, id: :zeek:type:`count`, seq: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for ICMP *echo reply* messages.
    
@@ -62,11 +62,11 @@ Events
    :payload: The message-specific data of the packet payload, i.e., everything
             after the first 8 bytes of the ICMP header.
    
-   .. bro:see:: icmp_echo_request
+   .. zeek:see:: icmp_echo_request
 
-.. bro:id:: icmp_echo_request
+.. zeek:id:: icmp_echo_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, id: :bro:type:`count`, seq: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, id: :zeek:type:`count`, seq: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for ICMP *echo request* messages.
    
@@ -91,11 +91,11 @@ Events
    :payload: The message-specific data of the packet payload, i.e., everything
             after the first 8 bytes of the ICMP header.
    
-   .. bro:see:: icmp_echo_reply
+   .. zeek:see:: icmp_echo_reply
 
-.. bro:id:: icmp_error_message
+.. zeek:id:: icmp_error_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for all ICMPv6 error messages that are not handled
    separately with dedicated events. Bro's ICMP analyzer handles a number
@@ -120,12 +120,12 @@ Events
    :context: A record with specifics of the original packet that the message
             refers to.
    
-   .. bro:see:: icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_unreachable icmp_packet_too_big
       icmp_time_exceeded icmp_parameter_problem
 
-.. bro:id:: icmp_neighbor_advertisement
+.. zeek:id:: icmp_neighbor_advertisement
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, router: :bro:type:`bool`, solicited: :bro:type:`bool`, override: :bro:type:`bool`, tgt: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, router: :zeek:type:`bool`, solicited: :zeek:type:`bool`, override: :zeek:type:`bool`, tgt: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *neighbor advertisement* messages.
    
@@ -156,12 +156,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_solicitation icmp_redirect
 
-.. bro:id:: icmp_neighbor_solicitation
+.. zeek:id:: icmp_neighbor_solicitation
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, tgt: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, tgt: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *neighbor solicitation* messages.
    
@@ -182,12 +182,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_packet_too_big
+.. zeek:id:: icmp_packet_too_big
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMPv6 *packet too big* messages.
    
@@ -213,12 +213,12 @@ Events
             a partial IP header for some reason, no fields of *context* will
             be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable
+   .. zeek:see:: icmp_error_message icmp_unreachable
       icmp_time_exceeded icmp_parameter_problem
 
-.. bro:id:: icmp_parameter_problem
+.. zeek:id:: icmp_parameter_problem
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMPv6 *parameter problem* messages.
    
@@ -244,12 +244,12 @@ Events
             includes only a partial IP header for some reason, no fields
             of *context* will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
       icmp_time_exceeded
 
-.. bro:id:: icmp_redirect
+.. zeek:id:: icmp_redirect
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, tgt: :bro:type:`addr`, dest: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, tgt: :zeek:type:`addr`, dest: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *redirect* messages.
    
@@ -274,12 +274,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_solicitation icmp_neighbor_advertisement
 
-.. bro:id:: icmp_router_advertisement
+.. zeek:id:: icmp_router_advertisement
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, cur_hop_limit: :bro:type:`count`, managed: :bro:type:`bool`, other: :bro:type:`bool`, home_agent: :bro:type:`bool`, pref: :bro:type:`count`, proxy: :bro:type:`bool`, rsv: :bro:type:`count`, router_lifetime: :bro:type:`interval`, reachable_time: :bro:type:`interval`, retrans_timer: :bro:type:`interval`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, cur_hop_limit: :zeek:type:`count`, managed: :zeek:type:`bool`, other: :zeek:type:`bool`, home_agent: :zeek:type:`bool`, pref: :zeek:type:`count`, proxy: :zeek:type:`bool`, rsv: :zeek:type:`count`, router_lifetime: :zeek:type:`interval`, reachable_time: :zeek:type:`interval`, retrans_timer: :zeek:type:`interval`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *router advertisement* messages.
    
@@ -328,12 +328,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation
+   .. zeek:see:: icmp_router_solicitation
       icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_router_solicitation
+.. zeek:id:: icmp_router_solicitation
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *router solicitation* messages.
    
@@ -351,12 +351,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_advertisement
+   .. zeek:see:: icmp_router_advertisement
       icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_sent
+.. zeek:id:: icmp_sent
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`)
 
    Generated for all ICMP messages that are not handled separately with
    dedicated ICMP events. Bro's ICMP analyzer handles a number of ICMP messages
@@ -374,13 +374,13 @@ Events
    :icmp: Additional ICMP-specific information augmenting the standard
          connection record *c*.
    
-   .. bro:see:: icmp_error_message icmp_sent_payload
+   .. zeek:see:: icmp_error_message icmp_sent_payload
 
-.. bro:id:: icmp_sent_payload
+.. zeek:id:: icmp_sent_payload
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, payload: :zeek:type:`string`)
 
-   The same as :bro:see:`icmp_sent` except containing the ICMP payload.
+   The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
    
 
    :c: The connection record for the corresponding ICMP flow.
@@ -392,11 +392,11 @@ Events
 
    :payload: The payload of the ICMP message.
    
-   .. bro:see:: icmp_error_message icmp_sent_payload
+   .. zeek:see:: icmp_error_message icmp_sent_payload
 
-.. bro:id:: icmp_time_exceeded
+.. zeek:id:: icmp_time_exceeded
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMP *time exceeded* messages.
    
@@ -422,12 +422,12 @@ Events
             only a partial IP header for some reason, no fields of *context*
             will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
       icmp_parameter_problem
 
-.. bro:id:: icmp_unreachable
+.. zeek:id:: icmp_unreachable
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMP *destination unreachable* messages.
    
@@ -453,7 +453,7 @@ Events
             includes only a partial IP header for some reason, no
             fields of *context* will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_packet_too_big
       icmp_time_exceeded icmp_parameter_problem
 
 

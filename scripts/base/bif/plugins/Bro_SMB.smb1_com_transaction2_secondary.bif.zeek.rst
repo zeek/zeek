@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_transaction2_secondary.bif.zeek
 =================================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================================ ===========================================================================================
-:bro:id:`smb1_transaction2_secondary_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                                 version 1 requests of type *transaction2 secondary*.
-================================================================ ===========================================================================================
+================================================================== ===========================================================================================
+:zeek:id:`smb1_transaction2_secondary_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                   version 1 requests of type *transaction2 secondary*.
+================================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_transaction2_secondary_request
+.. zeek:id:: smb1_transaction2_secondary_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Trans2_Sec_Args`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans2_Sec_Args`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction2 secondary*.

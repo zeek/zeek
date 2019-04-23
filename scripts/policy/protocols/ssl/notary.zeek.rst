@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/notary.zeek
 ================================
-.. bro:namespace:: CertNotary
+.. zeek:namespace:: CertNotary
 
 
 :Namespace: CertNotary
@@ -12,48 +12,48 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=================================================================== ===========================
-:bro:id:`CertNotary::domain`: :bro:type:`string` :bro:attr:`&redef` The notary domain to query.
-=================================================================== ===========================
+====================================================================== ===========================
+:zeek:id:`CertNotary::domain`: :zeek:type:`string` :zeek:attr:`&redef` The notary domain to query.
+====================================================================== ===========================
 
 Types
 #####
-==================================================== ============================================
-:bro:type:`CertNotary::Response`: :bro:type:`record` A response from the ICSI certificate notary.
-==================================================== ============================================
+====================================================== ============================================
+:zeek:type:`CertNotary::Response`: :zeek:type:`record` A response from the ICSI certificate notary.
+====================================================== ============================================
 
 Redefinitions
 #############
-========================================= =
-:bro:type:`SSL::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`SSL::Info`: :zeek:type:`record` 
+=========================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: CertNotary::domain
+.. zeek:id:: CertNotary::domain
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"notary.icsi.berkeley.edu"``
 
    The notary domain to query.
 
 Types
 #####
-.. bro:type:: CertNotary::Response
+.. zeek:type:: CertNotary::Response
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      first_seen: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      first_seen: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      last_seen: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      last_seen: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      times_seen: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      times_seen: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      valid: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      valid: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
 
    A response from the ICSI certificate notary.
 

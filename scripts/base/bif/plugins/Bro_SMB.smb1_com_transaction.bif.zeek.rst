@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_transaction.bif.zeek
 ======================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-====================================================== ===========================================================================================
-:bro:id:`smb1_transaction_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                       version 1 requests of type *transaction*.
-:bro:id:`smb1_transaction_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                       version 1 requests of type *transaction*.
-====================================================== ===========================================================================================
+======================================================== ===========================================================================================
+:zeek:id:`smb1_transaction_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                         version 1 requests of type *transaction*.
+:zeek:id:`smb1_transaction_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                         version 1 requests of type *transaction*.
+======================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_transaction_request
+.. zeek:id:: smb1_transaction_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, name: :bro:type:`string`, sub_cmd: :bro:type:`count`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, name: :zeek:type:`string`, sub_cmd: :zeek:type:`count`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction*. This command serves as the transport for the
@@ -53,11 +53,11 @@ Events
 
    :data: content of the SMB_Data.Trans_Data field
    
-   .. bro:see:: smb1_message smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request
 
-.. bro:id:: smb1_transaction_response
+.. zeek:id:: smb1_transaction_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction*. This command serves as the transport for the

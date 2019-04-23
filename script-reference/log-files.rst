@@ -12,60 +12,60 @@ Network Protocols
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| conn.log                   | TCP/UDP/ICMP connections              | :bro:type:`Conn::Info`          |
+| conn.log                   | TCP/UDP/ICMP connections              | :zeek:type:`Conn::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| dce_rpc.log                | Distributed Computing Environment/RPC | :bro:type:`DCE_RPC::Info`       |
+| dce_rpc.log                | Distributed Computing Environment/RPC | :zeek:type:`DCE_RPC::Info`      |
 +----------------------------+---------------------------------------+---------------------------------+
-| dhcp.log                   | DHCP leases                           | :bro:type:`DHCP::Info`          |
+| dhcp.log                   | DHCP leases                           | :zeek:type:`DHCP::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| dnp3.log                   | DNP3 requests and replies             | :bro:type:`DNP3::Info`          |
+| dnp3.log                   | DNP3 requests and replies             | :zeek:type:`DNP3::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| dns.log                    | DNS activity                          | :bro:type:`DNS::Info`           |
+| dns.log                    | DNS activity                          | :zeek:type:`DNS::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| ftp.log                    | FTP activity                          | :bro:type:`FTP::Info`           |
+| ftp.log                    | FTP activity                          | :zeek:type:`FTP::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| http.log                   | HTTP requests and replies             | :bro:type:`HTTP::Info`          |
+| http.log                   | HTTP requests and replies             | :zeek:type:`HTTP::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| irc.log                    | IRC commands and responses            | :bro:type:`IRC::Info`           |
+| irc.log                    | IRC commands and responses            | :zeek:type:`IRC::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| kerberos.log               | Kerberos                              | :bro:type:`KRB::Info`           |
+| kerberos.log               | Kerberos                              | :zeek:type:`KRB::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| modbus.log                 | Modbus commands and responses         | :bro:type:`Modbus::Info`        |
+| modbus.log                 | Modbus commands and responses         | :zeek:type:`Modbus::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| modbus_register_change.log | Tracks changes to Modbus holding      | :bro:type:`Modbus::MemmapInfo`  |
+| modbus_register_change.log | Tracks changes to Modbus holding      | :zeek:type:`Modbus::MemmapInfo` |
 |                            | registers                             |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
-| mysql.log                  | MySQL                                 | :bro:type:`MySQL::Info`         |
+| mysql.log                  | MySQL                                 | :zeek:type:`MySQL::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| ntlm.log                   | NT LAN Manager (NTLM)                 | :bro:type:`NTLM::Info`          |
+| ntlm.log                   | NT LAN Manager (NTLM)                 | :zeek:type:`NTLM::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| radius.log                 | RADIUS authentication attempts        | :bro:type:`RADIUS::Info`        |
+| radius.log                 | RADIUS authentication attempts        | :zeek:type:`RADIUS::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| rdp.log                    | RDP                                   | :bro:type:`RDP::Info`           |
+| rdp.log                    | RDP                                   | :zeek:type:`RDP::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| rfb.log                    | Remote Framebuffer (RFB)              | :bro:type:`RFB::Info`           |
+| rfb.log                    | Remote Framebuffer (RFB)              | :zeek:type:`RFB::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| sip.log                    | SIP                                   | :bro:type:`SIP::Info`           |
+| sip.log                    | SIP                                   | :zeek:type:`SIP::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| smb_cmd.log                | SMB commands                          | :bro:type:`SMB::CmdInfo`        |
+| smb_cmd.log                | SMB commands                          | :zeek:type:`SMB::CmdInfo`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| smb_files.log              | SMB files                             | :bro:type:`SMB::FileInfo`       |
+| smb_files.log              | SMB files                             | :zeek:type:`SMB::FileInfo`      |
 +----------------------------+---------------------------------------+---------------------------------+
-| smb_mapping.log            | SMB trees                             | :bro:type:`SMB::TreeInfo`       |
+| smb_mapping.log            | SMB trees                             | :zeek:type:`SMB::TreeInfo`      |
 +----------------------------+---------------------------------------+---------------------------------+
-| smtp.log                   | SMTP transactions                     | :bro:type:`SMTP::Info`          |
+| smtp.log                   | SMTP transactions                     | :zeek:type:`SMTP::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| snmp.log                   | SNMP messages                         | :bro:type:`SNMP::Info`          |
+| snmp.log                   | SNMP messages                         | :zeek:type:`SNMP::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
-| socks.log                  | SOCKS proxy requests                  | :bro:type:`SOCKS::Info`         |
+| socks.log                  | SOCKS proxy requests                  | :zeek:type:`SOCKS::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| ssh.log                    | SSH connections                       | :bro:type:`SSH::Info`           |
+| ssh.log                    | SSH connections                       | :zeek:type:`SSH::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| ssl.log                    | SSL/TLS handshake info                | :bro:type:`SSL::Info`           |
+| ssl.log                    | SSL/TLS handshake info                | :zeek:type:`SSL::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| syslog.log                 | Syslog messages                       | :bro:type:`Syslog::Info`        |
+| syslog.log                 | Syslog messages                       | :zeek:type:`Syslog::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| tunnel.log                 | Tunneling protocol events             | :bro:type:`Tunnel::Info`        |
+| tunnel.log                 | Tunneling protocol events             | :zeek:type:`Tunnel::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
 
 Files
@@ -74,15 +74,15 @@ Files
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| files.log                  | File analysis results                 | :bro:type:`Files::Info`         |
+| files.log                  | File analysis results                 | :zeek:type:`Files::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| ocsp.log                   | Online Certificate Status Protocol    | :bro:type:`OCSP::Info`          |
+| ocsp.log                   | Online Certificate Status Protocol    | :zeek:type:`OCSP::Info`         |
 |                            | (OCSP). Only created if policy script |                                 |
 |                            | is loaded.                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
-| pe.log                     | Portable Executable (PE)              | :bro:type:`PE::Info`            |
+| pe.log                     | Portable Executable (PE)              | :zeek:type:`PE::Info`           |
 +----------------------------+---------------------------------------+---------------------------------+
-| x509.log                   | X.509 certificate info                | :bro:type:`X509::Info`          |
+| x509.log                   | X.509 certificate info                | :zeek:type:`X509::Info`         |
 +----------------------------+---------------------------------------+---------------------------------+
 
 NetControl
@@ -91,15 +91,15 @@ NetControl
 +------------------------------+---------------------------------------+------------------------------------------+
 | Log File                     | Description                           | Field Descriptions                       |
 +==============================+=======================================+==========================================+
-| netcontrol.log               | NetControl actions                    | :bro:type:`NetControl::Info`             |
+| netcontrol.log               | NetControl actions                    | :zeek:type:`NetControl::Info`            |
 +------------------------------+---------------------------------------+------------------------------------------+
-| netcontrol_drop.log          | NetControl actions                    | :bro:type:`NetControl::DropInfo`         |
+| netcontrol_drop.log          | NetControl actions                    | :zeek:type:`NetControl::DropInfo`        |
 +------------------------------+---------------------------------------+------------------------------------------+
-| netcontrol_shunt.log         | NetControl shunt actions              | :bro:type:`NetControl::ShuntInfo`        |
+| netcontrol_shunt.log         | NetControl shunt actions              | :zeek:type:`NetControl::ShuntInfo`       |
 +------------------------------+---------------------------------------+------------------------------------------+
-| netcontrol_catch_release.log | NetControl catch and release actions  | :bro:type:`NetControl::CatchReleaseInfo` |
+| netcontrol_catch_release.log | NetControl catch and release actions  | :zeek:type:`NetControl::CatchReleaseInfo`|
 +------------------------------+---------------------------------------+------------------------------------------+
-| openflow.log                 | OpenFlow debug log                    | :bro:type:`OpenFlow::Info`               |
+| openflow.log                 | OpenFlow debug log                    | :zeek:type:`OpenFlow::Info`              |
 +------------------------------+---------------------------------------+------------------------------------------+
 
 Detection
@@ -108,15 +108,15 @@ Detection
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| intel.log                  | Intelligence data matches             | :bro:type:`Intel::Info`         |
+| intel.log                  | Intelligence data matches             | :zeek:type:`Intel::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| notice.log                 | Bro notices                           | :bro:type:`Notice::Info`        |
+| notice.log                 | Bro notices                           | :zeek:type:`Notice::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| notice_alarm.log           | The alarm stream                      | :bro:type:`Notice::Info`        |
+| notice_alarm.log           | The alarm stream                      | :zeek:type:`Notice::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| signatures.log             | Signature matches                     | :bro:type:`Signatures::Info`    |
+| signatures.log             | Signature matches                     | :zeek:type:`Signatures::Info`   |
 +----------------------------+---------------------------------------+---------------------------------+
-| traceroute.log             | Traceroute detection                  | :bro:type:`Traceroute::Info`    |
+| traceroute.log             | Traceroute detection                  | :zeek:type:`Traceroute::Info`   |
 +----------------------------+---------------------------------------+---------------------------------+
 
 
@@ -126,16 +126,16 @@ Network Observations
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| known_certs.log            | SSL certificates                      | :bro:type:`Known::CertsInfo`    |
+| known_certs.log            | SSL certificates                      | :zeek:type:`Known::CertsInfo`   |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_hosts.log            | Hosts that have completed TCP         | :bro:type:`Known::HostsInfo`    |
+| known_hosts.log            | Hosts that have completed TCP         | :zeek:type:`Known::HostsInfo`   |
 |                            | handshakes                            |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_modbus.log           | Modbus masters and slaves             | :bro:type:`Known::ModbusInfo`   |
+| known_modbus.log           | Modbus masters and slaves             | :zeek:type:`Known::ModbusInfo`  |
 +----------------------------+---------------------------------------+---------------------------------+
-| known_services.log         | Services running on hosts             | :bro:type:`Known::ServicesInfo` |
+| known_services.log         | Services running on hosts             | :zeek:type:`Known::ServicesInfo`|
 +----------------------------+---------------------------------------+---------------------------------+
-| software.log               | Software being used on the network    | :bro:type:`Software::Info`      |
+| software.log               | Software being used on the network    | :zeek:type:`Software::Info`     |
 +----------------------------+---------------------------------------+---------------------------------+
 
 Miscellaneous
@@ -144,15 +144,15 @@ Miscellaneous
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| barnyard2.log              | Alerts received from Barnyard2        | :bro:type:`Barnyard2::Info`     |
+| barnyard2.log              | Alerts received from Barnyard2        | :zeek:type:`Barnyard2::Info`    |
 +----------------------------+---------------------------------------+---------------------------------+
-| dpd.log                    | Dynamic protocol detection failures   | :bro:type:`DPD::Info`           |
+| dpd.log                    | Dynamic protocol detection failures   | :zeek:type:`DPD::Info`          |
 +----------------------------+---------------------------------------+---------------------------------+
-| unified2.log               | Interprets Snort's unified output     | :bro:type:`Unified2::Info`      |
+| unified2.log               | Interprets Snort's unified output     | :zeek:type:`Unified2::Info`     |
 +----------------------------+---------------------------------------+---------------------------------+
-| weird.log                  | Unexpected network-level activity     | :bro:type:`Weird::Info`         |
+| weird.log                  | Unexpected network-level activity     | :zeek:type:`Weird::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
-| weird_stats.log            | Statistics about unexpected activity  | :bro:type:`WeirdStats::Info`    |
+| weird_stats.log            | Statistics about unexpected activity  | :zeek:type:`WeirdStats::Info`   |
 +----------------------------+---------------------------------------+---------------------------------+
 
 Bro Diagnostics
@@ -161,25 +161,25 @@ Bro Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | Log File                   | Description                           | Field Descriptions              |
 +============================+=======================================+=================================+
-| broker.log                 | Peering status events between Bro or  | :bro:type:`Broker::Info`        |
+| broker.log                 | Peering status events between Bro or  | :zeek:type:`Broker::Info`       |
 |                            | Broker-enabled processes              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
-| capture_loss.log           | Packet loss rate                      | :bro:type:`CaptureLoss::Info`   |
+| capture_loss.log           | Packet loss rate                      | :zeek:type:`CaptureLoss::Info`  |
 +----------------------------+---------------------------------------+---------------------------------+
-| cluster.log                | Bro cluster messages                  | :bro:type:`Cluster::Info`       |
+| cluster.log                | Bro cluster messages                  | :zeek:type:`Cluster::Info`      |
 +----------------------------+---------------------------------------+---------------------------------+
-| config.log                 | Configuration option changes          | :bro:type:`Config::Info`        |
+| config.log                 | Configuration option changes          | :zeek:type:`Config::Info`       |
 +----------------------------+---------------------------------------+---------------------------------+
-| loaded_scripts.log         | Shows all scripts loaded by Bro       | :bro:type:`LoadedScripts::Info` |
+| loaded_scripts.log         | Shows all scripts loaded by Bro       | :zeek:type:`LoadedScripts::Info`|
 +----------------------------+---------------------------------------+---------------------------------+
-| packet_filter.log          | List packet filters that were applied | :bro:type:`PacketFilter::Info`  |
+| packet_filter.log          | List packet filters that were applied | :zeek:type:`PacketFilter::Info` |
 +----------------------------+---------------------------------------+---------------------------------+
 | prof.log                   | Profiling statistics (to create this  | N/A                             |
 |                            | log, load policy/misc/profiling.zeek  |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
-| reporter.log               | Internal error/warning/info messages  | :bro:type:`Reporter::Info`      |
+| reporter.log               | Internal error/warning/info messages  | :zeek:type:`Reporter::Info`     |
 +----------------------------+---------------------------------------+---------------------------------+
-| stats.log                  | Memory/event/packet/lag statistics    | :bro:type:`Stats::Info`         |
+| stats.log                  | Memory/event/packet/lag statistics    | :zeek:type:`Stats::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
 | stderr.log                 | Captures standard error when Bro is   | N/A                             |
 |                            | started from BroControl               |                                 |

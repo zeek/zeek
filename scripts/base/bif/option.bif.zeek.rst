@@ -2,8 +2,8 @@
 
 base/bif/option.bif.zeek
 ========================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: Option
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: Option
 
 Definitions of built-in functions that allow the scripting layer to
 change the value of options and to be notified when option values change.
@@ -14,19 +14,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-========================================================== ===================================
-:bro:id:`Option::set`: :bro:type:`function`                Set an option to a new value.
-:bro:id:`Option::set_change_handler`: :bro:type:`function` Set a change handler for an option.
-========================================================== ===================================
+============================================================ ===================================
+:zeek:id:`Option::set`: :zeek:type:`function`                Set an option to a new value.
+:zeek:id:`Option::set_change_handler`: :zeek:type:`function` Set a change handler for an option.
+============================================================ ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Option::set
+.. zeek:id:: Option::set
 
-   :Type: :bro:type:`function` (ID: :bro:type:`string`, val: :bro:type:`any`, location: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (ID: :zeek:type:`string`, val: :zeek:type:`any`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Set an option to a new value. This change will also cause the option change
    handlers to be called.
@@ -43,19 +43,19 @@ Functions
 
    :returns: true on success, false when an error occurred.
    
-   .. bro:see:: Option::set_change_handler Config::set_value
+   .. zeek:see:: Option::set_change_handler Config::set_value
    
-   .. note:: :bro:id:`Option::set` only works on one node and does not distribute
-             new values across a cluster. The higher-level :bro:id:`Config::set_value`
+   .. note:: :zeek:id:`Option::set` only works on one node and does not distribute
+             new values across a cluster. The higher-level :zeek:id:`Config::set_value`
              supports clusterization and should typically be used instead of this
              lower-level function.
 
-.. bro:id:: Option::set_change_handler
+.. zeek:id:: Option::set_change_handler
 
-   :Type: :bro:type:`function` (ID: :bro:type:`string`, on_change: :bro:type:`any`, priority: :bro:type:`int` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (ID: :zeek:type:`string`, on_change: :zeek:type:`any`, priority: :zeek:type:`int` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Set a change handler for an option. The change handler will be
-   called anytime :bro:id:`Option::set` is called for the option.
+   called anytime :zeek:id:`Option::set` is called for the option.
    
 
    :ID: The ID of the option for which change notifications are desired.
@@ -81,6 +81,6 @@ Functions
 
    :returns: true when the change handler was set, false when an error occurred.
    
-   .. bro:see:: Option::set
+   .. zeek:see:: Option::set
 
 

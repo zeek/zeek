@@ -2,7 +2,7 @@
 
 base/protocols/modbus/main.zeek
 ===============================
-.. bro:namespace:: Modbus
+.. zeek:namespace:: Modbus
 
 Base Modbus analysis script.
 
@@ -13,59 +13,59 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================ =
-:bro:type:`Modbus::Info`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`Modbus::Info`: :zeek:type:`record` 
+============================================== =
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-=============================================== ===================================================================
-:bro:id:`Modbus::log_modbus`: :bro:type:`event` Event that can be handled to access the Modbus record as it is sent
-                                                on to the logging framework.
-=============================================== ===================================================================
+================================================= ===================================================================
+:zeek:id:`Modbus::log_modbus`: :zeek:type:`event` Event that can be handled to access the Modbus record as it is sent
+                                                  on to the logging framework.
+================================================= ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: Modbus::Info
+.. zeek:type:: Modbus::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time of the request.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique identifier for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          Identifier for the connection.
 
-      func: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      func: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The name of the function message that was sent.
 
-      exception: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      exception: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The exception if the response was a failure.
 
-      track_address: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      track_address: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/modbus/track-memmap.zeek` is loaded)
 
 
 
 Events
 ######
-.. bro:id:: Modbus::log_modbus
+.. zeek:id:: Modbus::log_modbus
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Modbus::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Modbus::Info`)
 
    Event that can be handled to access the Modbus record as it is sent
    on to the logging framework.

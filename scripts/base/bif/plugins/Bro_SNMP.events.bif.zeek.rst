@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SNMP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,33 +11,33 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================== ==========================================================================
-:bro:id:`snmp_encrypted_pdu`: :bro:type:`event`          An SNMPv3 encrypted PDU message.
-:bro:id:`snmp_get_bulk_request`: :bro:type:`event`       An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
-:bro:id:`snmp_get_next_request`: :bro:type:`event`       An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
-                                                         :rfc:`3416`.
-:bro:id:`snmp_get_request`: :bro:type:`event`            An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
-:bro:id:`snmp_inform_request`: :bro:type:`event`         An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
-:bro:id:`snmp_report`: :bro:type:`event`                 An SNMP ``Report-PDU`` message from :rfc:`3416`.
-:bro:id:`snmp_response`: :bro:type:`event`               An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
-                                                         ``Response-PDU`` from :rfc:`3416`.
-:bro:id:`snmp_set_request`: :bro:type:`event`            An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
-:bro:id:`snmp_trap`: :bro:type:`event`                   An SNMP ``Trap-PDU`` message from :rfc:`1157`.
-:bro:id:`snmp_trapV2`: :bro:type:`event`                 An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
-:bro:id:`snmp_unknown_header_version`: :bro:type:`event` A datagram with an unknown SNMP version.
-:bro:id:`snmp_unknown_pdu`: :bro:type:`event`            An SNMP PDU message of unknown type.
-:bro:id:`snmp_unknown_scoped_pdu`: :bro:type:`event`     An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
-                                                         an encrypted PDU was in the datagram).
-======================================================== ==========================================================================
+========================================================== ==========================================================================
+:zeek:id:`snmp_encrypted_pdu`: :zeek:type:`event`          An SNMPv3 encrypted PDU message.
+:zeek:id:`snmp_get_bulk_request`: :zeek:type:`event`       An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
+:zeek:id:`snmp_get_next_request`: :zeek:type:`event`       An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
+                                                           :rfc:`3416`.
+:zeek:id:`snmp_get_request`: :zeek:type:`event`            An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
+:zeek:id:`snmp_inform_request`: :zeek:type:`event`         An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
+:zeek:id:`snmp_report`: :zeek:type:`event`                 An SNMP ``Report-PDU`` message from :rfc:`3416`.
+:zeek:id:`snmp_response`: :zeek:type:`event`               An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
+                                                           ``Response-PDU`` from :rfc:`3416`.
+:zeek:id:`snmp_set_request`: :zeek:type:`event`            An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
+:zeek:id:`snmp_trap`: :zeek:type:`event`                   An SNMP ``Trap-PDU`` message from :rfc:`1157`.
+:zeek:id:`snmp_trapV2`: :zeek:type:`event`                 An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
+:zeek:id:`snmp_unknown_header_version`: :zeek:type:`event` A datagram with an unknown SNMP version.
+:zeek:id:`snmp_unknown_pdu`: :zeek:type:`event`            An SNMP PDU message of unknown type.
+:zeek:id:`snmp_unknown_scoped_pdu`: :zeek:type:`event`     An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
+                                                           an encrypted PDU was in the datagram).
+========================================================== ==========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: snmp_encrypted_pdu
+.. zeek:id:: snmp_encrypted_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`)
 
    An SNMPv3 encrypted PDU message.
    
@@ -51,9 +51,9 @@ Events
    :header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
 
-.. bro:id:: snmp_get_bulk_request
+.. zeek:id:: snmp_get_bulk_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::BulkPDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::BulkPDU`)
 
    An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
    
@@ -70,9 +70,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_get_next_request
+.. zeek:id:: snmp_get_next_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
    :rfc:`3416`.
@@ -90,9 +90,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_get_request
+.. zeek:id:: snmp_get_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
    
@@ -109,9 +109,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_inform_request
+.. zeek:id:: snmp_inform_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
    
@@ -128,9 +128,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_report
+.. zeek:id:: snmp_report
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``Report-PDU`` message from :rfc:`3416`.
    
@@ -147,9 +147,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_response
+.. zeek:id:: snmp_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
    ``Response-PDU`` from :rfc:`3416`.
@@ -167,9 +167,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_set_request
+.. zeek:id:: snmp_set_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
    
@@ -186,9 +186,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_trap
+.. zeek:id:: snmp_trap
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::TrapPDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::TrapPDU`)
 
    An SNMP ``Trap-PDU`` message from :rfc:`1157`.
    
@@ -205,9 +205,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_trapV2
+.. zeek:id:: snmp_trapV2
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
    
@@ -224,9 +224,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_unknown_header_version
+.. zeek:id:: snmp_unknown_header_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, version: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`)
 
    A datagram with an unknown SNMP version.
    
@@ -239,9 +239,9 @@ Events
 
    :version: The value of the unknown SNMP version.
 
-.. bro:id:: snmp_unknown_pdu
+.. zeek:id:: snmp_unknown_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, tag: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMP PDU message of unknown type.
    
@@ -258,9 +258,9 @@ Events
 
    :tag: The tag of the unknown SNMP PDU.
 
-.. bro:id:: snmp_unknown_scoped_pdu
+.. zeek:id:: snmp_unknown_scoped_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, tag: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
    an encrypted PDU was in the datagram).

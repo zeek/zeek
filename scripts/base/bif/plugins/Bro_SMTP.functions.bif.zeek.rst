@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMTP.functions.bif.zeek
 ============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================== =====================================================
-:bro:id:`skip_smtp_data`: :bro:type:`function` Skips SMTP data until the next email in a connection.
-============================================== =====================================================
+================================================ =====================================================
+:zeek:id:`skip_smtp_data`: :zeek:type:`function` Skips SMTP data until the next email in a connection.
+================================================ =====================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: skip_smtp_data
+.. zeek:id:: skip_smtp_data
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`any`
 
    Skips SMTP data until the next email in a connection.
    
 
    :c: The SMTP connection.
    
-   .. bro:see:: skip_http_entity_data
+   .. zeek:see:: skip_http_entity_data
 
 

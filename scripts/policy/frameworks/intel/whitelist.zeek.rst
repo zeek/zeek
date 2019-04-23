@@ -2,7 +2,7 @@
 
 policy/frameworks/intel/whitelist.zeek
 ======================================
-.. bro:namespace:: Intel
+.. zeek:namespace:: Intel
 
 This script enables whitelisting for intelligence items.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=============================================== =
-:bro:type:`Intel::MetaData`: :bro:type:`record` 
-=============================================== =
+================================================= =
+:zeek:type:`Intel::MetaData`: :zeek:type:`record` 
+================================================= =
 
 
 Detailed Interface

@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_DHCP.types.bif.zeek
 ========================================
-.. bro:namespace:: DHCP
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: DHCP
+.. zeek:namespace:: GLOBAL
 
 
 :Namespaces: DHCP, GLOBAL

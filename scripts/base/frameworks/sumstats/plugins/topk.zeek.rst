@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/topk.zeek
 ==========================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Keep the top-k (i.e., most frequently occurring) observations.
 
@@ -13,11 +13,11 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::Reducer`: :bro:type:`record`   
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 
 Detailed Interface

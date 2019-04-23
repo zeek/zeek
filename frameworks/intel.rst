@@ -72,7 +72,7 @@ hyphen are considered to be null values. ::
 	a.b.com	Intel::DOMAIN	source2	Name used for data exfiltration	-
 
 For a list of all built-in `indicator_type` values, please refer to the
-documentation of :bro:see:`Intel::Type`.
+documentation of :zeek:see:`Intel::Type`.
 
 Note that if you are using data from the Collective Intelligence Framework,
 then you will need to add the following line to your local.zeek in order
@@ -83,7 +83,7 @@ to support additional metadata fields used by CIF::
 There is a simple mechanism to raise a Bro notice (of type Intel::Notice)
 for user-specified intelligence matches.  To use this feature, add the
 following line to local.zeek in order to support additional metadata fields
-(documented in the :bro:see:`Intel::MetaData` record)::
+(documented in the :zeek:see:`Intel::MetaData` record)::
 
 	@load policy/frameworks/intel/do_notice
 
@@ -105,7 +105,7 @@ When some bit of data is extracted (such as an email address in the
 "From" header in a message over SMTP), the Intelligence Framework
 needs to be informed that this data was discovered so that its presence
 will be checked within the loaded intelligence data.  This is
-accomplished through the :bro:see:`Intel::seen` function, however
+accomplished through the :zeek:see:`Intel::seen` function, however
 typically users won't need to work with this function due to the
 scripts included with Bro that will call this function.
 
@@ -117,7 +117,7 @@ the intelligence framework, just add this line to local.zeek::
 Alternatively, specific scripts in that directory can be loaded.
 Keep in mind that as more data is sent into the
 intelligence framework, the CPU load consumed by Bro will increase
-depending on how many times the :bro:see:`Intel::seen` function is
+depending on how many times the :zeek:see:`Intel::seen` function is
 being called which is heavily traffic dependent.
 
 
@@ -127,7 +127,7 @@ Intelligence Matches
 Against all hopes, most networks will eventually have a hit on
 intelligence data which could indicate a possible compromise or other
 unwanted activity.  The Intelligence Framework provides an event that
-is generated whenever a match is discovered named :bro:see:`Intel::match`.
+is generated whenever a match is discovered named :zeek:see:`Intel::match`.
 
 Due to design restrictions placed upon
 the intelligence framework, there is no assurance as to where this
@@ -138,6 +138,6 @@ assured since the host where the data was seen may not be where
 ``Intel::match`` is handled.
 
 Intelligence matches are logged to the intel.log file.  For a description of
-each field in that file, see the documentation for the :bro:see:`Intel::Info`
+each field in that file, see the documentation for the :zeek:see:`Intel::Info`
 record.
 

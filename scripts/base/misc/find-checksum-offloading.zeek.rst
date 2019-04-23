@@ -2,7 +2,7 @@
 
 base/misc/find-checksum-offloading.zeek
 =======================================
-.. bro:namespace:: ChecksumOffloading
+.. zeek:namespace:: ChecksumOffloading
 
 Discover cases where the local interface is sniffed and outbound packets
 have checksum offloading.  Load this script to receive a notice if it's
@@ -16,20 +16,20 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-===================================================================================== =========================================================
-:bro:id:`ChecksumOffloading::check_interval`: :bro:type:`interval` :bro:attr:`&redef` The interval which is used for checking packet statistics
-                                                                                      to see if checksum offloading is affecting analysis.
-===================================================================================== =========================================================
+======================================================================================== =========================================================
+:zeek:id:`ChecksumOffloading::check_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The interval which is used for checking packet statistics
+                                                                                         to see if checksum offloading is affecting analysis.
+======================================================================================== =========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: ChecksumOffloading::check_interval
+.. zeek:id:: ChecksumOffloading::check_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``10.0 secs``
 
    The interval which is used for checking packet statistics

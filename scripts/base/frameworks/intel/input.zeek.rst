@@ -2,7 +2,7 @@
 
 base/frameworks/intel/input.zeek
 ================================
-.. bro:namespace:: Intel
+.. zeek:namespace:: Intel
 
 Input handling for the intelligence framework. This script implements the
 import of intelligence data from files using the input framework.
@@ -14,20 +14,20 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=================================================================== ==============================================
-:bro:id:`Intel::path_prefix`: :bro:type:`string` :bro:attr:`&redef` An optional path prefix for intel files.
-:bro:id:`Intel::read_files`: :bro:type:`set` :bro:attr:`&redef`     Intelligence files that will be read off disk.
-=================================================================== ==============================================
+====================================================================== ==============================================
+:zeek:id:`Intel::path_prefix`: :zeek:type:`string` :zeek:attr:`&redef` An optional path prefix for intel files.
+:zeek:id:`Intel::read_files`: :zeek:type:`set` :zeek:attr:`&redef`     Intelligence files that will be read off disk.
+====================================================================== ==============================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Intel::path_prefix
+.. zeek:id:: Intel::path_prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    An optional path prefix for intel files. This prefix can, but
@@ -39,10 +39,10 @@ Redefinable Options
    any path_prefix specified in the input framework will apply
    additionally.
 
-.. bro:id:: Intel::read_files
+.. zeek:id:: Intel::read_files
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    Intelligence files that will be read off disk. The files are

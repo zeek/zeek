@@ -2,7 +2,7 @@
 
 base/protocols/smb/files.zeek
 =============================
-.. bro:namespace:: SMB
+.. zeek:namespace:: SMB
 
 
 :Namespace: SMB
@@ -12,25 +12,25 @@ Summary
 ~~~~~~~
 Functions
 #########
-==================================================== =====================================
-:bro:id:`SMB::describe_file`: :bro:type:`function`   Default file describer for SMB.
-:bro:id:`SMB::get_file_handle`: :bro:type:`function` Default file handle provider for SMB.
-==================================================== =====================================
+====================================================== =====================================
+:zeek:id:`SMB::describe_file`: :zeek:type:`function`   Default file describer for SMB.
+:zeek:id:`SMB::get_file_handle`: :zeek:type:`function` Default file handle provider for SMB.
+====================================================== =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: SMB::describe_file
+.. zeek:id:: SMB::describe_file
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
    Default file describer for SMB.
 
-.. bro:id:: SMB::get_file_handle
+.. zeek:id:: SMB::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for SMB.
 

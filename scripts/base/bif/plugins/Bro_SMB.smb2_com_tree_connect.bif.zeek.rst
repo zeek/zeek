@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_tree_connect.bif.zeek
 =======================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================= ===========================================================================================
-:bro:id:`smb2_tree_connect_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                        version 2 requests of type *tree_connect*.
-:bro:id:`smb2_tree_connect_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                        version 2 responses of type *tree_connect*.
-======================================================= ===========================================================================================
+========================================================= ===========================================================================================
+:zeek:id:`smb2_tree_connect_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                          version 2 requests of type *tree_connect*.
+:zeek:id:`smb2_tree_connect_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                          version 2 responses of type *tree_connect*.
+========================================================= ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_tree_connect_request
+.. zeek:id:: smb2_tree_connect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, path: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, path: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree_connect*. This is sent by a client to request access to a
@@ -42,11 +42,11 @@ Events
 
    :path: Path of the requested tree.
    
-   .. bro:see:: smb2_message smb2_tree_connect_response
+   .. zeek:see:: smb2_message smb2_tree_connect_response
 
-.. bro:id:: smb2_tree_connect_response
+.. zeek:id:: smb2_tree_connect_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::TreeConnectResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::TreeConnectResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *tree_connect*. This is sent by the server when a *tree_connect*
@@ -63,6 +63,6 @@ Events
 
    :response: A record with more information related to the response.
    
-   .. bro:see:: smb2_message smb2_tree_connect_request
+   .. zeek:see:: smb2_message smb2_tree_connect_request
 
 

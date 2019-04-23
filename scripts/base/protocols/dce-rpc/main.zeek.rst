@@ -2,7 +2,7 @@
 
 base/protocols/dce-rpc/main.zeek
 ================================
-.. bro:namespace:: DCE_RPC
+.. zeek:namespace:: DCE_RPC
 
 
 :Namespace: DCE_RPC
@@ -12,37 +12,37 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=========================================================================== ===============================================================
-:bro:id:`DCE_RPC::ignored_operations`: :bro:type:`table` :bro:attr:`&redef` These are DCE-RPC operations that are ignored, typically due to
-                                                                            the operations being noisy and low value on most networks.
-=========================================================================== ===============================================================
+============================================================================== ===============================================================
+:zeek:id:`DCE_RPC::ignored_operations`: :zeek:type:`table` :zeek:attr:`&redef` These are DCE-RPC operations that are ignored, typically due to
+                                                                               the operations being noisy and low value on most networks.
+============================================================================== ===============================================================
 
 Types
 #####
-===================================================== =
-:bro:type:`DCE_RPC::BackingState`: :bro:type:`record` 
-:bro:type:`DCE_RPC::Info`: :bro:type:`record`         
-:bro:type:`DCE_RPC::State`: :bro:type:`record`        
-===================================================== =
+======================================================= =
+:zeek:type:`DCE_RPC::BackingState`: :zeek:type:`record` 
+:zeek:type:`DCE_RPC::Info`: :zeek:type:`record`         
+:zeek:type:`DCE_RPC::State`: :zeek:type:`record`        
+======================================================= =
 
 Redefinitions
 #############
-==================================================================== =
-:bro:id:`DPD::ignore_violations`: :bro:type:`set` :bro:attr:`&redef` 
-:bro:type:`Log::ID`: :bro:type:`enum`                                
-:bro:type:`connection`: :bro:type:`record`                           
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef`    
-==================================================================== =
+======================================================================= =
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef` 
+:zeek:type:`Log::ID`: :zeek:type:`enum`                                 
+:zeek:type:`connection`: :zeek:type:`record`                            
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef`    
+======================================================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: DCE_RPC::ignored_operations
+.. zeek:id:: DCE_RPC::ignored_operations
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -72,52 +72,52 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: DCE_RPC::BackingState
+.. zeek:type:: DCE_RPC::BackingState
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      info: :bro:type:`DCE_RPC::Info`
+      info: :zeek:type:`DCE_RPC::Info`
 
-      state: :bro:type:`DCE_RPC::State`
+      state: :zeek:type:`DCE_RPC::State`
 
 
-.. bro:type:: DCE_RPC::Info
+.. zeek:type:: DCE_RPC::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the event happened.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      rtt: :bro:type:`interval` :bro:attr:`&log` :bro:attr:`&optional`
+      rtt: :zeek:type:`interval` :zeek:attr:`&log` :zeek:attr:`&optional`
          Round trip time from the request to the response.
          If either the request or response wasn't seen, 
          this will be null.
 
-      named_pipe: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      named_pipe: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Remote pipe name.
 
-      endpoint: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      endpoint: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Endpoint name looked up from the uuid.
 
-      operation: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      operation: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Operation seen in the call.
 
 
-.. bro:type:: DCE_RPC::State
+.. zeek:type:: DCE_RPC::State
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      uuid: :bro:type:`string` :bro:attr:`&optional`
+      uuid: :zeek:type:`string` :zeek:attr:`&optional`
 
-      named_pipe: :bro:type:`string` :bro:attr:`&optional`
+      named_pipe: :zeek:type:`string` :zeek:attr:`&optional`
 
-      ctx_to_uuid: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string` :bro:attr:`&optional`
+      ctx_to_uuid: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string` :zeek:attr:`&optional`
 
 
 

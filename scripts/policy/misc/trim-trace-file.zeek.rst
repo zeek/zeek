@@ -2,7 +2,7 @@
 
 policy/misc/trim-trace-file.zeek
 ================================
-.. bro:namespace:: TrimTraceFile
+.. zeek:namespace:: TrimTraceFile
 
 Deletes the ``-w`` tracefile at regular intervals and starts a new file
 from scratch.
@@ -13,43 +13,43 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=============================================================================== ================================================================
-:bro:id:`TrimTraceFile::trim_interval`: :bro:type:`interval` :bro:attr:`&redef` The interval between times that the output tracefile is rotated.
-=============================================================================== ================================================================
+================================================================================== ================================================================
+:zeek:id:`TrimTraceFile::trim_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The interval between times that the output tracefile is rotated.
+================================================================================== ================================================================
 
 Events
 ######
-============================================== ===================================================================
-:bro:id:`TrimTraceFile::go`: :bro:type:`event` This event can be generated externally to this script if on-demand
-                                               tracefile rotation is required with the caveat that the script
-                                               doesn't currently attempt to get back on schedule automatically and
-                                               the next trim likely won't happen on the
-                                               :bro:id:`TrimTraceFile::trim_interval`.
-============================================== ===================================================================
+================================================ ===================================================================
+:zeek:id:`TrimTraceFile::go`: :zeek:type:`event` This event can be generated externally to this script if on-demand
+                                                 tracefile rotation is required with the caveat that the script
+                                                 doesn't currently attempt to get back on schedule automatically and
+                                                 the next trim likely won't happen on the
+                                                 :zeek:id:`TrimTraceFile::trim_interval`.
+================================================ ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: TrimTraceFile::trim_interval
+.. zeek:id:: TrimTraceFile::trim_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``10.0 mins``
 
    The interval between times that the output tracefile is rotated.
 
 Events
 ######
-.. bro:id:: TrimTraceFile::go
+.. zeek:id:: TrimTraceFile::go
 
-   :Type: :bro:type:`event` (first_trim: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (first_trim: :zeek:type:`bool`)
 
    This event can be generated externally to this script if on-demand
    tracefile rotation is required with the caveat that the script
    doesn't currently attempt to get back on schedule automatically and
    the next trim likely won't happen on the
-   :bro:id:`TrimTraceFile::trim_interval`.
+   :zeek:id:`TrimTraceFile::trim_interval`.
 
 

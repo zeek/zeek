@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/sample.zeek
 ============================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Keep a random sample of values.
 
@@ -13,12 +13,12 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::Reducer`: :bro:type:`record`   
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 
 Detailed Interface

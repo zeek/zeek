@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_BenchmarkReader.benchmark.bif.zeek
 =======================================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: InputBenchmark
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: InputBenchmark
 
 
 :Namespaces: GLOBAL, InputBenchmark

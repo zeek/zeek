@@ -2,7 +2,7 @@
 
 base/protocols/dhcp/consts.zeek
 ===============================
-.. bro:namespace:: DHCP
+.. zeek:namespace:: DHCP
 
 Types, errors, and fields for analyzing DHCP data.  A helper file
 for DHCP analysis scripts.
@@ -13,20 +13,20 @@ Summary
 ~~~~~~~
 Constants
 #########
-================================================================================================================== ===================================
-:bro:id:`DHCP::message_types`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` Types of DHCP messages.
-:bro:id:`DHCP::option_types`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`  Option types mapped to their names.
-================================================================================================================== ===================================
+======================================================================================================================= ===================================
+:zeek:id:`DHCP::message_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Types of DHCP messages.
+:zeek:id:`DHCP::option_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  Option types mapped to their names.
+======================================================================================================================= ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: DHCP::message_types
+.. zeek:id:: DHCP::message_types
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -55,10 +55,10 @@ Constants
    Types of DHCP messages. See :rfc:`1533`, :rfc:`3203`,
    :rfc:`4388`, :rfc:`6926`, and :rfc:`7724`.
 
-.. bro:id:: DHCP::option_types
+.. zeek:id:: DHCP::option_types
 
-   :Type: :bro:type:`table` [:bro:type:`int`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`int`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::

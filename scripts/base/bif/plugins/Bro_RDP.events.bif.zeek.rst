@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_RDP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,25 +11,25 @@ Summary
 ~~~~~~~
 Events
 ######
-=========================================================== ================================================
-:bro:id:`rdp_begin_encryption`: :bro:type:`event`           Generated when an RDP session becomes encrypted.
-:bro:id:`rdp_client_core_data`: :bro:type:`event`           Generated for MCS client requests.
-:bro:id:`rdp_connect_request`: :bro:type:`event`            Generated for X.224 client requests.
-:bro:id:`rdp_gcc_server_create_response`: :bro:type:`event` Generated for MCS server responses.
-:bro:id:`rdp_negotiation_failure`: :bro:type:`event`        Generated for RDP Negotiation Failure messages.
-:bro:id:`rdp_negotiation_response`: :bro:type:`event`       Generated for RDP Negotiation Response messages.
-:bro:id:`rdp_server_certificate`: :bro:type:`event`         Generated for a server certificate section.
-:bro:id:`rdp_server_security`: :bro:type:`event`            Generated for MCS server responses.
-=========================================================== ================================================
+============================================================= ================================================
+:zeek:id:`rdp_begin_encryption`: :zeek:type:`event`           Generated when an RDP session becomes encrypted.
+:zeek:id:`rdp_client_core_data`: :zeek:type:`event`           Generated for MCS client requests.
+:zeek:id:`rdp_connect_request`: :zeek:type:`event`            Generated for X.224 client requests.
+:zeek:id:`rdp_gcc_server_create_response`: :zeek:type:`event` Generated for MCS server responses.
+:zeek:id:`rdp_negotiation_failure`: :zeek:type:`event`        Generated for RDP Negotiation Failure messages.
+:zeek:id:`rdp_negotiation_response`: :zeek:type:`event`       Generated for RDP Negotiation Response messages.
+:zeek:id:`rdp_server_certificate`: :zeek:type:`event`         Generated for a server certificate section.
+:zeek:id:`rdp_server_security`: :zeek:type:`event`            Generated for MCS server responses.
+============================================================= ================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: rdp_begin_encryption
+.. zeek:id:: rdp_begin_encryption
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, security_protocol: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 
    Generated when an RDP session becomes encrypted.
    
@@ -39,9 +39,9 @@ Events
 
    :security_protocol: The security protocol being used for the session.
 
-.. bro:id:: rdp_client_core_data
+.. zeek:id:: rdp_client_core_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, data: :bro:type:`RDP::ClientCoreData`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientCoreData`)
 
    Generated for MCS client requests.
    
@@ -51,9 +51,9 @@ Events
 
    :data: The data contained in the client core data structure.
 
-.. bro:id:: rdp_connect_request
+.. zeek:id:: rdp_connect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cookie: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`)
 
    Generated for X.224 client requests.
    
@@ -63,9 +63,9 @@ Events
 
    :cookie: The cookie included in the request.
 
-.. bro:id:: rdp_gcc_server_create_response
+.. zeek:id:: rdp_gcc_server_create_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`count`)
 
    Generated for MCS server responses.
    
@@ -75,9 +75,9 @@ Events
 
    :result: The 8-bit integer representing the GCC Conference Create Response result.
 
-.. bro:id:: rdp_negotiation_failure
+.. zeek:id:: rdp_negotiation_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, failure_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`)
 
    Generated for RDP Negotiation Failure messages.
    
@@ -87,9 +87,9 @@ Events
 
    :failure_code: The failure code sent by the server.
 
-.. bro:id:: rdp_negotiation_response
+.. zeek:id:: rdp_negotiation_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, security_protocol: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 
    Generated for RDP Negotiation Response messages.
    
@@ -99,9 +99,9 @@ Events
 
    :security_protocol: The security protocol selected by the server.
 
-.. bro:id:: rdp_server_certificate
+.. zeek:id:: rdp_server_certificate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cert_type: :bro:type:`count`, permanently_issued: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cert_type: :zeek:type:`count`, permanently_issued: :zeek:type:`bool`)
 
    Generated for a server certificate section.  If multiple X.509 
    certificates are included in chain, this event will still
@@ -116,9 +116,9 @@ Events
 
    :permanently_issued: Value will be true is the certificate(s) is permanent on the server.
 
-.. bro:id:: rdp_server_security
+.. zeek:id:: rdp_server_security
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, encryption_method: :bro:type:`count`, encryption_level: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, encryption_method: :zeek:type:`count`, encryption_level: :zeek:type:`count`)
 
    Generated for MCS server responses.
    

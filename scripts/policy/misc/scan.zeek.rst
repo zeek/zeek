@@ -2,7 +2,7 @@
 
 policy/misc/scan.zeek
 =====================
-.. bro:namespace:: Scan
+.. zeek:namespace:: Scan
 
 TCP Scan detection.
 
@@ -13,68 +13,68 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=========================================================================== ==================================================================
-:bro:id:`Scan::addr_scan_interval`: :bro:type:`interval` :bro:attr:`&redef` Failed connection attempts are tracked over this time interval for
-                                                                            the address scan detection.
-:bro:id:`Scan::addr_scan_threshold`: :bro:type:`double` :bro:attr:`&redef`  The threshold of the unique number of hosts a scanning host has to
-                                                                            have failed connections with on a single port.
-:bro:id:`Scan::port_scan_interval`: :bro:type:`interval` :bro:attr:`&redef` Failed connection attempts are tracked over this time interval for
-                                                                            the port scan detection.
-:bro:id:`Scan::port_scan_threshold`: :bro:type:`double` :bro:attr:`&redef`  The threshold of the number of unique ports a scanning host has to
-                                                                            have failed connections with on a single victim host.
-=========================================================================== ==================================================================
+============================================================================== ==================================================================
+:zeek:id:`Scan::addr_scan_interval`: :zeek:type:`interval` :zeek:attr:`&redef` Failed connection attempts are tracked over this time interval for
+                                                                               the address scan detection.
+:zeek:id:`Scan::addr_scan_threshold`: :zeek:type:`double` :zeek:attr:`&redef`  The threshold of the unique number of hosts a scanning host has to
+                                                                               have failed connections with on a single port.
+:zeek:id:`Scan::port_scan_interval`: :zeek:type:`interval` :zeek:attr:`&redef` Failed connection attempts are tracked over this time interval for
+                                                                               the port scan detection.
+:zeek:id:`Scan::port_scan_threshold`: :zeek:type:`double` :zeek:attr:`&redef`  The threshold of the number of unique ports a scanning host has to
+                                                                               have failed connections with on a single victim host.
+============================================================================== ==================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 Hooks
 #####
-================================================== =
-:bro:id:`Scan::addr_scan_policy`: :bro:type:`hook` 
-:bro:id:`Scan::port_scan_policy`: :bro:type:`hook` 
-================================================== =
+==================================================== =
+:zeek:id:`Scan::addr_scan_policy`: :zeek:type:`hook` 
+:zeek:id:`Scan::port_scan_policy`: :zeek:type:`hook` 
+==================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Scan::addr_scan_interval
+.. zeek:id:: Scan::addr_scan_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5.0 mins``
 
    Failed connection attempts are tracked over this time interval for
    the address scan detection.  A higher interval will detect slower
    scanners, but may also yield more false positives.
 
-.. bro:id:: Scan::addr_scan_threshold
+.. zeek:id:: Scan::addr_scan_threshold
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``25.0``
 
    The threshold of the unique number of hosts a scanning host has to
    have failed connections with on a single port.
 
-.. bro:id:: Scan::port_scan_interval
+.. zeek:id:: Scan::port_scan_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``5.0 mins``
 
    Failed connection attempts are tracked over this time interval for
    the port scan detection.  A higher interval will detect slower
    scanners, but may also yield more false positives.
 
-.. bro:id:: Scan::port_scan_threshold
+.. zeek:id:: Scan::port_scan_threshold
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0``
 
    The threshold of the number of unique ports a scanning host has to
@@ -82,14 +82,14 @@ Redefinable Options
 
 Hooks
 #####
-.. bro:id:: Scan::addr_scan_policy
+.. zeek:id:: Scan::addr_scan_policy
 
-   :Type: :bro:type:`hook` (scanner: :bro:type:`addr`, victim: :bro:type:`addr`, scanned_port: :bro:type:`port`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (scanner: :zeek:type:`addr`, victim: :zeek:type:`addr`, scanned_port: :zeek:type:`port`) : :zeek:type:`bool`
 
 
-.. bro:id:: Scan::port_scan_policy
+.. zeek:id:: Scan::port_scan_policy
 
-   :Type: :bro:type:`hook` (scanner: :bro:type:`addr`, victim: :bro:type:`addr`, scanned_port: :bro:type:`port`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (scanner: :zeek:type:`addr`, victim: :zeek:type:`addr`, scanned_port: :zeek:type:`port`) : :zeek:type:`bool`
 
 
 

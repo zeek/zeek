@@ -2,7 +2,7 @@
 
 base/files/x509/main.zeek
 =========================
-.. bro:namespace:: X509
+.. zeek:namespace:: X509
 
 
 :Namespace: X509
@@ -12,55 +12,55 @@ Summary
 ~~~~~~~
 Types
 #####
-========================================== ===========================================================
-:bro:type:`X509::Info`: :bro:type:`record` The record type which contains the fields of the X.509 log.
-========================================== ===========================================================
+============================================ ===========================================================
+:zeek:type:`X509::Info`: :zeek:type:`record` The record type which contains the fields of the X.509 log.
+============================================ ===========================================================
 
 Redefinitions
 #############
-============================================================== =
-:bro:type:`Files::Info`: :bro:type:`record` :bro:attr:`&redef` 
-:bro:type:`Log::ID`: :bro:type:`enum`                          
-============================================================== =
+================================================================= =
+:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef` 
+:zeek:type:`Log::ID`: :zeek:type:`enum`                           
+================================================================= =
 
 Events
 ######
-=========================================== ===================================
-:bro:id:`X509::log_x509`: :bro:type:`event` Event for accessing logged records.
-=========================================== ===================================
+============================================= ===================================
+:zeek:id:`X509::log_x509`: :zeek:type:`event` Event for accessing logged records.
+============================================= ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: X509::Info
+.. zeek:type:: X509::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Current timestamp.
 
-      id: :bro:type:`string` :bro:attr:`&log`
+      id: :zeek:type:`string` :zeek:attr:`&log`
          File id of this certificate.
 
-      certificate: :bro:type:`X509::Certificate` :bro:attr:`&log`
+      certificate: :zeek:type:`X509::Certificate` :zeek:attr:`&log`
          Basic information about the certificate.
 
-      handle: :bro:type:`opaque` of x509
+      handle: :zeek:type:`opaque` of x509
          The opaque wrapping the certificate. Mainly used
          for the verify operations.
 
-      extensions: :bro:type:`vector` of :bro:type:`X509::Extension` :bro:attr:`&default` = ``[]`` :bro:attr:`&optional`
+      extensions: :zeek:type:`vector` of :zeek:type:`X509::Extension` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`
          All extensions that were encountered in the certificate.
 
-      san: :bro:type:`X509::SubjectAlternativeName` :bro:attr:`&optional` :bro:attr:`&log`
+      san: :zeek:type:`X509::SubjectAlternativeName` :zeek:attr:`&optional` :zeek:attr:`&log`
          Subject alternative name extension of the certificate.
 
-      basic_constraints: :bro:type:`X509::BasicConstraints` :bro:attr:`&optional` :bro:attr:`&log`
+      basic_constraints: :zeek:type:`X509::BasicConstraints` :zeek:attr:`&optional` :zeek:attr:`&log`
          Basic constraints extension of the certificate.
 
-      logcert: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      logcert: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/log-hostcerts-only.zeek` is loaded)
 
          Logging of certificate is suppressed if set to F
@@ -69,9 +69,9 @@ Types
 
 Events
 ######
-.. bro:id:: X509::log_x509
+.. zeek:id:: X509::log_x509
 
-   :Type: :bro:type:`event` (rec: :bro:type:`X509::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`X509::Info`)
 
    Event for accessing logged records.
 

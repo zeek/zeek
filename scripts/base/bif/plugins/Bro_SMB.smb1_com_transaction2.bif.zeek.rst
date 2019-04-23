@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_transaction2.bif.zeek
 =======================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,25 +11,25 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================================= ===========================================================================================
-:bro:id:`smb1_trans2_find_first2_request`: :bro:type:`event`      Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                                  version 1 *transaction2* requests of subtype *find first2*.
-:bro:id:`smb1_trans2_get_dfs_referral_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                                  version 1 *transaction2* requests of subtype *get DFS referral*.
-:bro:id:`smb1_trans2_query_path_info_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                                  version 1 *transaction2* requests of subtype *query path info*.
-:bro:id:`smb1_transaction2_request`: :bro:type:`event`            Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                                  version 1 requests of type *transaction2*.
-================================================================= ===========================================================================================
+=================================================================== ===========================================================================================
+:zeek:id:`smb1_trans2_find_first2_request`: :zeek:type:`event`      Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                    version 1 *transaction2* requests of subtype *find first2*.
+:zeek:id:`smb1_trans2_get_dfs_referral_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                    version 1 *transaction2* requests of subtype *get DFS referral*.
+:zeek:id:`smb1_trans2_query_path_info_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                    version 1 *transaction2* requests of subtype *query path info*.
+:zeek:id:`smb1_transaction2_request`: :zeek:type:`event`            Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                                    version 1 requests of type *transaction2*.
+=================================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_trans2_find_first2_request
+.. zeek:id:: smb1_trans2_find_first2_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Find_First2_Request_Args`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Find_First2_Request_Args`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *find first2*. This transaction is used to begin
@@ -46,12 +46,12 @@ Events
 
    :args: A record data structure with arguments given to the command.
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request
 
-.. bro:id:: smb1_trans2_get_dfs_referral_request
+.. zeek:id:: smb1_trans2_get_dfs_referral_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *get DFS referral*. This transaction is used
@@ -68,12 +68,12 @@ Events
 
    :file_name: File name the request is in reference to.
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_query_path_info_request
 
-.. bro:id:: smb1_trans2_query_path_info_request
+.. zeek:id:: smb1_trans2_query_path_info_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *query path info*. This transaction is used to
@@ -90,12 +90,12 @@ Events
 
    :file_name: File name the request is in reference to. 
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_get_dfs_referral_request
 
-.. bro:id:: smb1_transaction2_request
+.. zeek:id:: smb1_transaction2_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Trans2_Args`, sub_cmd: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans2_Args`, sub_cmd: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction2*. This command serves as the transport for the
@@ -116,7 +116,7 @@ Events
 
    :sub_cmd: The sub command, some are parsed and have their own events.
    
-   .. bro:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
+   .. zeek:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request smb1_transaction_request
 
 

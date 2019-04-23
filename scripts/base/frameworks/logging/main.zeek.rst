@@ -2,7 +2,7 @@
 
 base/frameworks/logging/main.zeek
 =================================
-.. bro:namespace:: Log
+.. zeek:namespace:: Log
 
 The Bro logging interface.
 
@@ -16,108 +16,108 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-======================================================================================== =====================================================================
-:bro:id:`Log::default_ext_prefix`: :bro:type:`string` :bro:attr:`&redef`                 A prefix for extension fields which can be optionally prefixed
-                                                                                         on all log lines by setting the `ext_func` field in the
-                                                                                         log filter.
-:bro:id:`Log::default_field_name_map`: :bro:type:`table` :bro:attr:`&redef`              Default field name mapping for renaming fields in a logging framework
-                                                                                         filter.
-:bro:id:`Log::default_mail_alarms_interval`: :bro:type:`interval` :bro:attr:`&redef`     Default alarm summary mail interval.
-:bro:id:`Log::default_rotation_date_format`: :bro:type:`string` :bro:attr:`&redef`       Default naming format for timestamps embedded into filenames.
-:bro:id:`Log::default_rotation_interval`: :bro:type:`interval` :bro:attr:`&redef`        Default rotation interval to use for filters that do not specify
-                                                                                         an interval.
-:bro:id:`Log::default_rotation_postprocessor_cmd`: :bro:type:`string` :bro:attr:`&redef` Default shell command to run on rotated files.
-:bro:id:`Log::default_rotation_postprocessors`: :bro:type:`table` :bro:attr:`&redef`     Specifies the default postprocessor function per writer type.
-:bro:id:`Log::default_scope_sep`: :bro:type:`string` :bro:attr:`&redef`                  Default separator for log field scopes when logs are unrolled and
-                                                                                         flattened.
-:bro:id:`Log::default_writer`: :bro:type:`Log::Writer` :bro:attr:`&redef`                Default writer to use if a filter does not specify anything else.
-:bro:id:`Log::empty_field`: :bro:type:`string` :bro:attr:`&redef`                        Default string to use for empty fields.
-:bro:id:`Log::enable_local_logging`: :bro:type:`bool` :bro:attr:`&redef`                 If true, local logging is by default enabled for all filters.
-:bro:id:`Log::enable_remote_logging`: :bro:type:`bool` :bro:attr:`&redef`                If true, remote logging is by default enabled for all filters.
-:bro:id:`Log::separator`: :bro:type:`string` :bro:attr:`&redef`                          Default separator to use between fields.
-:bro:id:`Log::set_separator`: :bro:type:`string` :bro:attr:`&redef`                      Default separator to use between elements of a set.
-:bro:id:`Log::unset_field`: :bro:type:`string` :bro:attr:`&redef`                        Default string to use for an unset &optional field.
-======================================================================================== =====================================================================
+=========================================================================================== =====================================================================
+:zeek:id:`Log::default_ext_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                 A prefix for extension fields which can be optionally prefixed
+                                                                                            on all log lines by setting the `ext_func` field in the
+                                                                                            log filter.
+:zeek:id:`Log::default_field_name_map`: :zeek:type:`table` :zeek:attr:`&redef`              Default field name mapping for renaming fields in a logging framework
+                                                                                            filter.
+:zeek:id:`Log::default_mail_alarms_interval`: :zeek:type:`interval` :zeek:attr:`&redef`     Default alarm summary mail interval.
+:zeek:id:`Log::default_rotation_date_format`: :zeek:type:`string` :zeek:attr:`&redef`       Default naming format for timestamps embedded into filenames.
+:zeek:id:`Log::default_rotation_interval`: :zeek:type:`interval` :zeek:attr:`&redef`        Default rotation interval to use for filters that do not specify
+                                                                                            an interval.
+:zeek:id:`Log::default_rotation_postprocessor_cmd`: :zeek:type:`string` :zeek:attr:`&redef` Default shell command to run on rotated files.
+:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef`     Specifies the default postprocessor function per writer type.
+:zeek:id:`Log::default_scope_sep`: :zeek:type:`string` :zeek:attr:`&redef`                  Default separator for log field scopes when logs are unrolled and
+                                                                                            flattened.
+:zeek:id:`Log::default_writer`: :zeek:type:`Log::Writer` :zeek:attr:`&redef`                Default writer to use if a filter does not specify anything else.
+:zeek:id:`Log::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`                        Default string to use for empty fields.
+:zeek:id:`Log::enable_local_logging`: :zeek:type:`bool` :zeek:attr:`&redef`                 If true, local logging is by default enabled for all filters.
+:zeek:id:`Log::enable_remote_logging`: :zeek:type:`bool` :zeek:attr:`&redef`                If true, remote logging is by default enabled for all filters.
+:zeek:id:`Log::separator`: :zeek:type:`string` :zeek:attr:`&redef`                          Default separator to use between fields.
+:zeek:id:`Log::set_separator`: :zeek:type:`string` :zeek:attr:`&redef`                      Default separator to use between elements of a set.
+:zeek:id:`Log::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`                        Default string to use for an unset &optional field.
+=========================================================================================== =====================================================================
 
 Constants
 #########
-================================================= =========================================================================
-:bro:id:`Log::no_filter`: :bro:type:`Log::Filter` Sentinel value for indicating that a filter was not found when looked up.
-================================================= =========================================================================
+=================================================== =========================================================================
+:zeek:id:`Log::no_filter`: :zeek:type:`Log::Filter` Sentinel value for indicating that a filter was not found when looked up.
+=================================================== =========================================================================
 
 State Variables
 ###############
-================================================ ========================================================
-:bro:id:`Log::active_streams`: :bro:type:`table` The streams which are currently active and not disabled.
-================================================ ========================================================
+================================================== ========================================================
+:zeek:id:`Log::active_streams`: :zeek:type:`table` The streams which are currently active and not disabled.
+================================================== ========================================================
 
 Types
 #####
-================================================= =========================================================
-:bro:type:`Log::Filter`: :bro:type:`record`       A filter type describes how to customize logging streams.
-:bro:type:`Log::ID`: :bro:type:`enum`             Type that defines an ID unique to each log stream.
-:bro:type:`Log::RotationInfo`: :bro:type:`record` Information passed into rotation callback functions.
-:bro:type:`Log::Stream`: :bro:type:`record`       Type defining the content of a logging stream.
-:bro:type:`Log::Writer`: :bro:type:`enum`         
-================================================= =========================================================
+=================================================== =========================================================
+:zeek:type:`Log::Filter`: :zeek:type:`record`       A filter type describes how to customize logging streams.
+:zeek:type:`Log::ID`: :zeek:type:`enum`             Type that defines an ID unique to each log stream.
+:zeek:type:`Log::RotationInfo`: :zeek:type:`record` Information passed into rotation callback functions.
+:zeek:type:`Log::Stream`: :zeek:type:`record`       Type defining the content of a logging stream.
+:zeek:type:`Log::Writer`: :zeek:type:`enum`         
+=================================================== =========================================================
 
 Functions
 #########
-========================================================================= =========================================================================
-:bro:id:`Log::add_default_filter`: :bro:type:`function`                   Adds a default :bro:type:`Log::Filter` record with ``name`` field
-                                                                          set as "default" to a given logging stream.
-:bro:id:`Log::add_filter`: :bro:type:`function`                           Adds a custom filter to an existing logging stream.
-:bro:id:`Log::create_stream`: :bro:type:`function`                        Creates a new logging stream with the default filter.
-:bro:id:`Log::default_ext_func`: :bro:type:`function` :bro:attr:`&redef`  Default log extension function in the case that you would like to
-                                                                          apply the same extensions to all logs.
-:bro:id:`Log::default_path_func`: :bro:type:`function` :bro:attr:`&redef` Builds the default path values for log filters if not otherwise
-                                                                          specified by a filter.
-:bro:id:`Log::disable_stream`: :bro:type:`function`                       Disables a currently enabled logging stream.
-:bro:id:`Log::enable_stream`: :bro:type:`function`                        Enables a previously disabled logging stream.
-:bro:id:`Log::flush`: :bro:type:`function`                                Flushes any currently buffered output for all the writers of a given
-                                                                          logging stream.
-:bro:id:`Log::get_filter`: :bro:type:`function`                           Gets a filter associated with an existing logging stream.
-:bro:id:`Log::get_filter_names`: :bro:type:`function`                     Gets the names of all filters associated with an existing
-                                                                          logging stream.
-:bro:id:`Log::remove_default_filter`: :bro:type:`function`                Removes the :bro:type:`Log::Filter` with ``name`` field equal to
-                                                                          "default".
-:bro:id:`Log::remove_filter`: :bro:type:`function`                        Removes a filter from an existing logging stream.
-:bro:id:`Log::remove_stream`: :bro:type:`function`                        Removes a logging stream completely, stopping all the threads.
-:bro:id:`Log::run_rotation_postprocessor_cmd`: :bro:type:`function`       Runs a command given by :bro:id:`Log::default_rotation_postprocessor_cmd`
-                                                                          on a rotated file.
-:bro:id:`Log::set_buf`: :bro:type:`function`                              Sets the buffering status for all the writers of a given logging stream.
-:bro:id:`Log::write`: :bro:type:`function`                                Writes a new log line/entry to a logging stream.
-========================================================================= =========================================================================
+============================================================================ ==========================================================================
+:zeek:id:`Log::add_default_filter`: :zeek:type:`function`                    Adds a default :zeek:type:`Log::Filter` record with ``name`` field
+                                                                             set as "default" to a given logging stream.
+:zeek:id:`Log::add_filter`: :zeek:type:`function`                            Adds a custom filter to an existing logging stream.
+:zeek:id:`Log::create_stream`: :zeek:type:`function`                         Creates a new logging stream with the default filter.
+:zeek:id:`Log::default_ext_func`: :zeek:type:`function` :zeek:attr:`&redef`  Default log extension function in the case that you would like to
+                                                                             apply the same extensions to all logs.
+:zeek:id:`Log::default_path_func`: :zeek:type:`function` :zeek:attr:`&redef` Builds the default path values for log filters if not otherwise
+                                                                             specified by a filter.
+:zeek:id:`Log::disable_stream`: :zeek:type:`function`                        Disables a currently enabled logging stream.
+:zeek:id:`Log::enable_stream`: :zeek:type:`function`                         Enables a previously disabled logging stream.
+:zeek:id:`Log::flush`: :zeek:type:`function`                                 Flushes any currently buffered output for all the writers of a given
+                                                                             logging stream.
+:zeek:id:`Log::get_filter`: :zeek:type:`function`                            Gets a filter associated with an existing logging stream.
+:zeek:id:`Log::get_filter_names`: :zeek:type:`function`                      Gets the names of all filters associated with an existing
+                                                                             logging stream.
+:zeek:id:`Log::remove_default_filter`: :zeek:type:`function`                 Removes the :zeek:type:`Log::Filter` with ``name`` field equal to
+                                                                             "default".
+:zeek:id:`Log::remove_filter`: :zeek:type:`function`                         Removes a filter from an existing logging stream.
+:zeek:id:`Log::remove_stream`: :zeek:type:`function`                         Removes a logging stream completely, stopping all the threads.
+:zeek:id:`Log::run_rotation_postprocessor_cmd`: :zeek:type:`function`        Runs a command given by :zeek:id:`Log::default_rotation_postprocessor_cmd`
+                                                                             on a rotated file.
+:zeek:id:`Log::set_buf`: :zeek:type:`function`                               Sets the buffering status for all the writers of a given logging stream.
+:zeek:id:`Log::write`: :zeek:type:`function`                                 Writes a new log line/entry to a logging stream.
+============================================================================ ==========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Log::default_ext_prefix
+.. zeek:id:: Log::default_ext_prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"_"``
 
    A prefix for extension fields which can be optionally prefixed
    on all log lines by setting the `ext_func` field in the
    log filter.
 
-.. bro:id:: Log::default_field_name_map
+.. zeek:id:: Log::default_field_name_map
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    Default field name mapping for renaming fields in a logging framework
    filter.  This is typically used to ease integration with external
    data storage and analysis systems.
 
-.. bro:id:: Log::default_mail_alarms_interval
+.. zeek:id:: Log::default_mail_alarms_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``0 secs``
 
    Default alarm summary mail interval. Zero disables alarm summary
@@ -126,19 +126,19 @@ Redefinable Options
    Note that this is overridden by the BroControl MailAlarmsInterval
    option.
 
-.. bro:id:: Log::default_rotation_date_format
+.. zeek:id:: Log::default_rotation_date_format
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"%Y-%m-%d-%H-%M-%S"``
 
    Default naming format for timestamps embedded into filenames.
    Uses a ``strftime()`` style.
 
-.. bro:id:: Log::default_rotation_interval
+.. zeek:id:: Log::default_rotation_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``0 secs``
 
    Default rotation interval to use for filters that do not specify
@@ -147,18 +147,18 @@ Redefinable Options
    Note that this is overridden by the BroControl LogRotationInterval
    option.
 
-.. bro:id:: Log::default_rotation_postprocessor_cmd
+.. zeek:id:: Log::default_rotation_postprocessor_cmd
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Default shell command to run on rotated files. Empty for none.
 
-.. bro:id:: Log::default_rotation_postprocessors
+.. zeek:id:: Log::default_rotation_postprocessors
 
-   :Type: :bro:type:`table` [:bro:type:`Log::Writer`] of :bro:type:`function` (info: :bro:type:`Log::RotationInfo`) : :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`Log::Writer`] of :zeek:type:`function` (info: :zeek:type:`Log::RotationInfo`) : :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -184,10 +184,10 @@ Redefinable Options
    Specifies the default postprocessor function per writer type.
    Entries in this table are initialized by each writer type.
 
-.. bro:id:: Log::default_scope_sep
+.. zeek:id:: Log::default_scope_sep
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"."``
 
    Default separator for log field scopes when logs are unrolled and
@@ -195,62 +195,62 @@ Redefinable Options
    For example, setting this to "_" will cause the typical field
    "id.orig_h" to turn into "id_orig_h".
 
-.. bro:id:: Log::default_writer
+.. zeek:id:: Log::default_writer
 
-   :Type: :bro:type:`Log::Writer`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Log::Writer`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``Log::WRITER_ASCII``
 
    Default writer to use if a filter does not specify anything else.
 
-.. bro:id:: Log::empty_field
+.. zeek:id:: Log::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"(empty)"``
 
    Default string to use for empty fields. This should be different
    from *unset_field* to make the output unambiguous.
    Individual writers can use a different value.
 
-.. bro:id:: Log::enable_local_logging
+.. zeek:id:: Log::enable_local_logging
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, local logging is by default enabled for all filters.
 
-.. bro:id:: Log::enable_remote_logging
+.. zeek:id:: Log::enable_remote_logging
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, remote logging is by default enabled for all filters.
 
-.. bro:id:: Log::separator
+.. zeek:id:: Log::separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"\x09"``
 
    Default separator to use between fields.
    Individual writers can use a different value.
 
-.. bro:id:: Log::set_separator
+.. zeek:id:: Log::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Default separator to use between elements of a set.
    Individual writers can use a different value.
 
-.. bro:id:: Log::unset_field
+.. zeek:id:: Log::unset_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"-"``
 
    Default string to use for an unset &optional field.
@@ -258,9 +258,9 @@ Redefinable Options
 
 Constants
 #########
-.. bro:id:: Log::no_filter
+.. zeek:id:: Log::no_filter
 
-   :Type: :bro:type:`Log::Filter`
+   :Type: :zeek:type:`Log::Filter`
    :Default:
 
    ::
@@ -293,9 +293,9 @@ Constants
 
 State Variables
 ###############
-.. bro:id:: Log::active_streams
+.. zeek:id:: Log::active_streams
 
-   :Type: :bro:type:`table` [:bro:type:`Log::ID`] of :bro:type:`Log::Stream`
+   :Type: :zeek:type:`table` [:zeek:type:`Log::ID`] of :zeek:type:`Log::Stream`
    :Default: ``{}``
 
    The streams which are currently active and not disabled.
@@ -304,17 +304,17 @@ State Variables
 
 Types
 #####
-.. bro:type:: Log::Filter
+.. zeek:type:: Log::Filter
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string`
+      name: :zeek:type:`string`
          Descriptive name to reference this filter.
 
-      writer: :bro:type:`Log::Writer` :bro:attr:`&default` = :bro:see:`Log::default_writer` :bro:attr:`&optional`
+      writer: :zeek:type:`Log::Writer` :zeek:attr:`&default` = :zeek:see:`Log::default_writer` :zeek:attr:`&optional`
          The logging writer implementation to use.
 
-      pred: :bro:type:`function` (rec: :bro:type:`any`) : :bro:type:`bool` :bro:attr:`&optional`
+      pred: :zeek:type:`function` (rec: :zeek:type:`any`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Indicates whether a log entry should be recorded.
          If not given, all entries are recorded.
          
@@ -325,7 +325,7 @@ Types
 
          :returns: True if the entry is to be recorded.
 
-      path: :bro:type:`string` :bro:attr:`&optional`
+      path: :zeek:type:`string` :zeek:attr:`&optional`
          Output path for recording entries matching this
          filter.
          
@@ -341,7 +341,7 @@ Types
          or equal to 2 that allows the corrected path name to not
          conflict with another filter's.
 
-      path_func: :bro:type:`function` (id: :bro:type:`Log::ID`, path: :bro:type:`string`, rec: :bro:type:`any`) : :bro:type:`string` :bro:attr:`&optional`
+      path_func: :zeek:type:`function` (id: :zeek:type:`Log::ID`, path: :zeek:type:`string`, rec: :zeek:type:`any`) : :zeek:type:`string` :zeek:attr:`&optional`
          A function returning the output path for recording entries
          matching this filter. This is similar to *path* yet allows
          to compute the string dynamically. It is ok to return
@@ -349,7 +349,7 @@ Types
          easy to flood the disk by returning a new string for each
          connection.  Upon adding a filter to a stream, if neither
          ``path`` nor ``path_func`` is explicitly set by them, then
-         :bro:see:`Log::default_path_func` is used.
+         :zeek:see:`Log::default_path_func` is used.
          
 
          :id: The ID associated with the log stream.
@@ -368,116 +368,116 @@ Types
 
          :returns: The path to be used for the filter, which will be
                   subject to the same automatic correction rules as
-                  the *path* field of :bro:type:`Log::Filter` in the
+                  the *path* field of :zeek:type:`Log::Filter` in the
                   case of conflicts with other filters trying to use
                   the same writer/path pair.
 
-      include: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&optional`
+      include: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
          Subset of column names to record. If not given, all
          columns are recorded.
 
-      exclude: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&optional`
+      exclude: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
          Subset of column names to exclude from recording. If not
          given, all columns are recorded.
 
-      log_local: :bro:type:`bool` :bro:attr:`&default` = :bro:see:`Log::enable_local_logging` :bro:attr:`&optional`
+      log_local: :zeek:type:`bool` :zeek:attr:`&default` = :zeek:see:`Log::enable_local_logging` :zeek:attr:`&optional`
          If true, entries are recorded locally.
 
-      log_remote: :bro:type:`bool` :bro:attr:`&default` = :bro:see:`Log::enable_remote_logging` :bro:attr:`&optional`
+      log_remote: :zeek:type:`bool` :zeek:attr:`&default` = :zeek:see:`Log::enable_remote_logging` :zeek:attr:`&optional`
          If true, entries are passed on to remote peers.
 
-      field_name_map: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string` :bro:attr:`&default` = :bro:see:`Log::default_field_name_map` :bro:attr:`&optional`
+      field_name_map: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Log::default_field_name_map` :zeek:attr:`&optional`
          Field name map to rename fields before the fields are written
          to the output.
 
-      scope_sep: :bro:type:`string` :bro:attr:`&default` = :bro:see:`Log::default_scope_sep` :bro:attr:`&optional`
+      scope_sep: :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Log::default_scope_sep` :zeek:attr:`&optional`
          A string that is used for unrolling and flattening field names
          for nested record types.
 
-      ext_prefix: :bro:type:`string` :bro:attr:`&default` = :bro:see:`Log::default_ext_prefix` :bro:attr:`&optional`
+      ext_prefix: :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Log::default_ext_prefix` :zeek:attr:`&optional`
          Default prefix for all extension fields. It's typically
          prudent to set this to something that Bro's logging
          framework can't normally write out in a field name.
 
-      ext_func: :bro:type:`function` (path: :bro:type:`string`) : :bro:type:`any` :bro:attr:`&default` = :bro:see:`Log::default_ext_func` :bro:attr:`&optional`
+      ext_func: :zeek:type:`function` (path: :zeek:type:`string`) : :zeek:type:`any` :zeek:attr:`&default` = :zeek:see:`Log::default_ext_func` :zeek:attr:`&optional`
          Function to collect a log extension value.  If not specified,
          no log extension will be provided for the log.
          The return value from the function *must* be a record.
 
-      interv: :bro:type:`interval` :bro:attr:`&default` = :bro:see:`Log::default_rotation_interval` :bro:attr:`&optional`
+      interv: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Log::default_rotation_interval` :zeek:attr:`&optional`
          Rotation interval. Zero disables rotation.
 
-      postprocessor: :bro:type:`function` (info: :bro:type:`Log::RotationInfo`) : :bro:type:`bool` :bro:attr:`&optional`
+      postprocessor: :zeek:type:`function` (info: :zeek:type:`Log::RotationInfo`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Callback function to trigger for rotated files. If not set, the
-         default comes out of :bro:id:`Log::default_rotation_postprocessors`.
+         default comes out of :zeek:id:`Log::default_rotation_postprocessors`.
 
-      config: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string` :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional`
+      config: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string` :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          A key/value table that will be passed on to the writer.
          Interpretation of the values is left to the writer, but
          usually they will be used for configuration purposes.
 
    A filter type describes how to customize logging streams.
 
-.. bro:type:: Log::ID
+.. zeek:type:: Log::ID
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Log::UNKNOWN Log::ID
+      .. zeek:enum:: Log::UNKNOWN Log::ID
 
          Dummy place-holder.
 
-      .. bro:enum:: Broker::LOG Log::ID
+      .. zeek:enum:: Broker::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/broker/log.zeek` is loaded)
 
 
-      .. bro:enum:: Files::LOG Log::ID
+      .. zeek:enum:: Files::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/files/main.zeek` is loaded)
 
 
          Logging stream for file analysis.
 
-      .. bro:enum:: Reporter::LOG Log::ID
+      .. zeek:enum:: Reporter::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/reporter/main.zeek` is loaded)
 
 
-      .. bro:enum:: Cluster::LOG Log::ID
+      .. zeek:enum:: Cluster::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/cluster/main.zeek` is loaded)
 
 
-      .. bro:enum:: Notice::LOG Log::ID
+      .. zeek:enum:: Notice::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/notice/main.zeek` is loaded)
 
 
          This is the primary logging stream for notices.
 
-      .. bro:enum:: Notice::ALARM_LOG Log::ID
+      .. zeek:enum:: Notice::ALARM_LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/notice/main.zeek` is loaded)
 
 
          This is the alarm stream.
 
-      .. bro:enum:: Weird::LOG Log::ID
+      .. zeek:enum:: Weird::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/notice/weird.zeek` is loaded)
 
 
-      .. bro:enum:: NetControl::LOG Log::ID
+      .. zeek:enum:: NetControl::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
 
 
-      .. bro:enum:: OpenFlow::LOG Log::ID
+      .. zeek:enum:: OpenFlow::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/openflow/plugins/log.zeek` is loaded)
 
 
-      .. bro:enum:: NetControl::DROP Log::ID
+      .. zeek:enum:: NetControl::DROP Log::ID
 
          (present if :doc:`/scripts/base/frameworks/netcontrol/types.zeek` is loaded)
 
@@ -486,259 +486,259 @@ Types
          
          No additional arguments.
 
-      .. bro:enum:: NetControl::SHUNT Log::ID
+      .. zeek:enum:: NetControl::SHUNT Log::ID
 
          (present if :doc:`/scripts/base/frameworks/netcontrol/shunt.zeek` is loaded)
 
 
-      .. bro:enum:: NetControl::CATCH_RELEASE Log::ID
+      .. zeek:enum:: NetControl::CATCH_RELEASE Log::ID
 
          (present if :doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek` is loaded)
 
 
-      .. bro:enum:: DPD::LOG Log::ID
+      .. zeek:enum:: DPD::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/dpd/main.zeek` is loaded)
 
 
-      .. bro:enum:: Signatures::LOG Log::ID
+      .. zeek:enum:: Signatures::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/signatures/main.zeek` is loaded)
 
 
-      .. bro:enum:: PacketFilter::LOG Log::ID
+      .. zeek:enum:: PacketFilter::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/packet-filter/main.zeek` is loaded)
 
 
-      .. bro:enum:: Software::LOG Log::ID
+      .. zeek:enum:: Software::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/software/main.zeek` is loaded)
 
 
-      .. bro:enum:: Intel::LOG Log::ID
+      .. zeek:enum:: Intel::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/intel/main.zeek` is loaded)
 
 
-      .. bro:enum:: Config::LOG Log::ID
+      .. zeek:enum:: Config::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/config/main.zeek` is loaded)
 
 
-      .. bro:enum:: Tunnel::LOG Log::ID
+      .. zeek:enum:: Tunnel::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/tunnels/main.zeek` is loaded)
 
 
-      .. bro:enum:: Conn::LOG Log::ID
+      .. zeek:enum:: Conn::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/conn/main.zeek` is loaded)
 
 
-      .. bro:enum:: DCE_RPC::LOG Log::ID
+      .. zeek:enum:: DCE_RPC::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/dce-rpc/main.zeek` is loaded)
 
 
-      .. bro:enum:: DHCP::LOG Log::ID
+      .. zeek:enum:: DHCP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/dhcp/main.zeek` is loaded)
 
 
-      .. bro:enum:: DNP3::LOG Log::ID
+      .. zeek:enum:: DNP3::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/dnp3/main.zeek` is loaded)
 
 
-      .. bro:enum:: DNS::LOG Log::ID
+      .. zeek:enum:: DNS::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/dns/main.zeek` is loaded)
 
 
-      .. bro:enum:: FTP::LOG Log::ID
+      .. zeek:enum:: FTP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/ftp/main.zeek` is loaded)
 
 
-      .. bro:enum:: SSL::LOG Log::ID
+      .. zeek:enum:: SSL::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/ssl/main.zeek` is loaded)
 
 
-      .. bro:enum:: X509::LOG Log::ID
+      .. zeek:enum:: X509::LOG Log::ID
 
          (present if :doc:`/scripts/base/files/x509/main.zeek` is loaded)
 
 
-      .. bro:enum:: HTTP::LOG Log::ID
+      .. zeek:enum:: HTTP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/http/main.zeek` is loaded)
 
 
-      .. bro:enum:: IRC::LOG Log::ID
+      .. zeek:enum:: IRC::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/irc/main.zeek` is loaded)
 
 
-      .. bro:enum:: KRB::LOG Log::ID
+      .. zeek:enum:: KRB::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/krb/main.zeek` is loaded)
 
 
-      .. bro:enum:: Modbus::LOG Log::ID
+      .. zeek:enum:: Modbus::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/modbus/main.zeek` is loaded)
 
 
-      .. bro:enum:: mysql::LOG Log::ID
+      .. zeek:enum:: mysql::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/mysql/main.zeek` is loaded)
 
 
-      .. bro:enum:: NTLM::LOG Log::ID
+      .. zeek:enum:: NTLM::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/ntlm/main.zeek` is loaded)
 
 
-      .. bro:enum:: RADIUS::LOG Log::ID
+      .. zeek:enum:: RADIUS::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/radius/main.zeek` is loaded)
 
 
-      .. bro:enum:: RDP::LOG Log::ID
+      .. zeek:enum:: RDP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/rdp/main.zeek` is loaded)
 
 
-      .. bro:enum:: RFB::LOG Log::ID
+      .. zeek:enum:: RFB::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/rfb/main.zeek` is loaded)
 
 
-      .. bro:enum:: SIP::LOG Log::ID
+      .. zeek:enum:: SIP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/sip/main.zeek` is loaded)
 
 
-      .. bro:enum:: SNMP::LOG Log::ID
+      .. zeek:enum:: SNMP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/snmp/main.zeek` is loaded)
 
 
-      .. bro:enum:: SMB::AUTH_LOG Log::ID
+      .. zeek:enum:: SMB::AUTH_LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/smb/main.zeek` is loaded)
 
 
-      .. bro:enum:: SMB::MAPPING_LOG Log::ID
+      .. zeek:enum:: SMB::MAPPING_LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/smb/main.zeek` is loaded)
 
 
-      .. bro:enum:: SMB::FILES_LOG Log::ID
+      .. zeek:enum:: SMB::FILES_LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/smb/main.zeek` is loaded)
 
 
-      .. bro:enum:: SMTP::LOG Log::ID
+      .. zeek:enum:: SMTP::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/smtp/main.zeek` is loaded)
 
 
-      .. bro:enum:: SOCKS::LOG Log::ID
+      .. zeek:enum:: SOCKS::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/socks/main.zeek` is loaded)
 
 
-      .. bro:enum:: SSH::LOG Log::ID
+      .. zeek:enum:: SSH::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/ssh/main.zeek` is loaded)
 
 
-      .. bro:enum:: Syslog::LOG Log::ID
+      .. zeek:enum:: Syslog::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/syslog/main.zeek` is loaded)
 
 
-      .. bro:enum:: PE::LOG Log::ID
+      .. zeek:enum:: PE::LOG Log::ID
 
          (present if :doc:`/scripts/base/files/pe/main.zeek` is loaded)
 
 
-      .. bro:enum:: Unified2::LOG Log::ID
+      .. zeek:enum:: Unified2::LOG Log::ID
 
          (present if :doc:`/scripts/base/files/unified2/main.zeek` is loaded)
 
 
-      .. bro:enum:: OCSP::LOG Log::ID
+      .. zeek:enum:: OCSP::LOG Log::ID
 
          (present if :doc:`/scripts/policy/files/x509/log-ocsp.zeek` is loaded)
 
 
-      .. bro:enum:: Barnyard2::LOG Log::ID
+      .. zeek:enum:: Barnyard2::LOG Log::ID
 
          (present if :doc:`/scripts/policy/integration/barnyard2/main.zeek` is loaded)
 
 
-      .. bro:enum:: CaptureLoss::LOG Log::ID
+      .. zeek:enum:: CaptureLoss::LOG Log::ID
 
          (present if :doc:`/scripts/policy/misc/capture-loss.zeek` is loaded)
 
 
-      .. bro:enum:: Traceroute::LOG Log::ID
+      .. zeek:enum:: Traceroute::LOG Log::ID
 
          (present if :doc:`/scripts/policy/misc/detect-traceroute/main.zeek` is loaded)
 
 
-      .. bro:enum:: LoadedScripts::LOG Log::ID
+      .. zeek:enum:: LoadedScripts::LOG Log::ID
 
          (present if :doc:`/scripts/policy/misc/loaded-scripts.zeek` is loaded)
 
 
-      .. bro:enum:: Stats::LOG Log::ID
+      .. zeek:enum:: Stats::LOG Log::ID
 
          (present if :doc:`/scripts/policy/misc/stats.zeek` is loaded)
 
 
-      .. bro:enum:: WeirdStats::LOG Log::ID
+      .. zeek:enum:: WeirdStats::LOG Log::ID
 
          (present if :doc:`/scripts/policy/misc/weird-stats.zeek` is loaded)
 
 
-      .. bro:enum:: Known::HOSTS_LOG Log::ID
+      .. zeek:enum:: Known::HOSTS_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/conn/known-hosts.zeek` is loaded)
 
 
-      .. bro:enum:: Known::SERVICES_LOG Log::ID
+      .. zeek:enum:: Known::SERVICES_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/conn/known-services.zeek` is loaded)
 
 
-      .. bro:enum:: Known::MODBUS_LOG Log::ID
+      .. zeek:enum:: Known::MODBUS_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/modbus/known-masters-slaves.zeek` is loaded)
 
 
-      .. bro:enum:: Modbus::REGISTER_CHANGE_LOG Log::ID
+      .. zeek:enum:: Modbus::REGISTER_CHANGE_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/modbus/track-memmap.zeek` is loaded)
 
 
-      .. bro:enum:: SMB::CMD_LOG Log::ID
+      .. zeek:enum:: SMB::CMD_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/smb/log-cmds.zeek` is loaded)
 
 
-      .. bro:enum:: Known::CERTS_LOG Log::ID
+      .. zeek:enum:: Known::CERTS_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/ssl/known-certs.zeek` is loaded)
 
 
-      .. bro:enum:: BroxygenExample::LOG Log::ID
+      .. zeek:enum:: ZeexygenExample::LOG Log::ID
 
-         (present if :doc:`/scripts/broxygen/example.zeek` is loaded)
+         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
 
 
    Type that defines an ID unique to each log stream. Scripts creating new
@@ -746,66 +746,66 @@ Types
    The log ID implicitly determines the default name of the generated log
    file.
 
-.. bro:type:: Log::RotationInfo
+.. zeek:type:: Log::RotationInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      writer: :bro:type:`Log::Writer`
+      writer: :zeek:type:`Log::Writer`
          The log writer being used.
 
-      fname: :bro:type:`string`
+      fname: :zeek:type:`string`
          Full name of the rotated file.
 
-      path: :bro:type:`string`
+      path: :zeek:type:`string`
          Original path value.
 
-      open: :bro:type:`time`
+      open: :zeek:type:`time`
          Time when opened.
 
-      close: :bro:type:`time`
+      close: :zeek:type:`time`
          Time when closed.
 
-      terminating: :bro:type:`bool`
+      terminating: :zeek:type:`bool`
          True if rotation occured due to Bro shutting down.
 
    Information passed into rotation callback functions.
 
-.. bro:type:: Log::Stream
+.. zeek:type:: Log::Stream
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      columns: :bro:type:`any`
+      columns: :zeek:type:`any`
          A record type defining the log's columns.
 
-      ev: :bro:type:`any` :bro:attr:`&optional`
+      ev: :zeek:type:`any` :zeek:attr:`&optional`
          Event that will be raised once for each log entry.
          The event receives a single same parameter, an instance of
          type ``columns``.
 
-      path: :bro:type:`string` :bro:attr:`&optional`
+      path: :zeek:type:`string` :zeek:attr:`&optional`
          A path that will be inherited by any filters added to the
          stream which do not already specify their own path.
 
    Type defining the content of a logging stream.
 
-.. bro:type:: Log::Writer
+.. zeek:type:: Log::Writer
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Log::WRITER_ASCII Log::Writer
+      .. zeek:enum:: Log::WRITER_ASCII Log::Writer
 
-      .. bro:enum:: Log::WRITER_NONE Log::Writer
+      .. zeek:enum:: Log::WRITER_NONE Log::Writer
 
-      .. bro:enum:: Log::WRITER_SQLITE Log::Writer
+      .. zeek:enum:: Log::WRITER_SQLITE Log::Writer
 
 
 Functions
 #########
-.. bro:id:: Log::add_default_filter
+.. zeek:id:: Log::add_default_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
-   Adds a default :bro:type:`Log::Filter` record with ``name`` field
+   Adds a default :zeek:type:`Log::Filter` record with ``name`` field
    set as "default" to a given logging stream.
    
 
@@ -813,16 +813,16 @@ Functions
        filter.
    
 
-   :returns: The status of a call to :bro:id:`Log::add_filter` using a
-            default :bro:type:`Log::Filter` argument with ``name`` field
+   :returns: The status of a call to :zeek:id:`Log::add_filter` using a
+            default :zeek:type:`Log::Filter` argument with ``name`` field
             set to "default".
    
-   .. bro:see:: Log::add_filter Log::remove_filter
+   .. zeek:see:: Log::add_filter Log::remove_filter
       Log::remove_default_filter
 
-.. bro:id:: Log::add_filter
+.. zeek:id:: Log::add_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, filter: :bro:type:`Log::Filter`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, filter: :zeek:type:`Log::Filter`) : :zeek:type:`bool`
 
    Adds a custom filter to an existing logging stream.  If a filter
    with a matching ``name`` field already exists for the stream, it
@@ -839,12 +839,12 @@ Functions
             the filter was not added or the *filter* argument was not
             the correct type.
    
-   .. bro:see:: Log::remove_filter Log::add_default_filter
+   .. zeek:see:: Log::remove_filter Log::add_default_filter
       Log::remove_default_filter Log::get_filter Log::get_filter_names
 
-.. bro:id:: Log::create_stream
+.. zeek:id:: Log::create_stream
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, stream: :bro:type:`Log::Stream`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, stream: :zeek:type:`Log::Stream`) : :zeek:type:`bool`
 
    Creates a new logging stream with the default filter.
    
@@ -858,12 +858,12 @@ Functions
    :returns: True if a new logging stream was successfully created and
             a default filter added to it.
    
-   .. bro:see:: Log::add_default_filter Log::remove_default_filter
+   .. zeek:see:: Log::add_default_filter Log::remove_default_filter
 
-.. bro:id:: Log::default_ext_func
+.. zeek:id:: Log::default_ext_func
 
-   :Type: :bro:type:`function` (path: :bro:type:`string`) : :bro:type:`any`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (path: :zeek:type:`string`) : :zeek:type:`any`
+   :Attributes: :zeek:attr:`&redef`
 
    Default log extension function in the case that you would like to
    apply the same extensions to all logs.  The function *must* return
@@ -871,10 +871,10 @@ Functions
    default function included here does not return a value, which indicates
    that no extensions are added.
 
-.. bro:id:: Log::default_path_func
+.. zeek:id:: Log::default_path_func
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, path: :bro:type:`string`, rec: :bro:type:`any`) : :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, path: :zeek:type:`string`, rec: :zeek:type:`any`) : :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
 
    Builds the default path values for log filters if not otherwise
    specified by a filter. The default implementation uses *id*
@@ -898,9 +898,9 @@ Functions
 
    :returns: The path to be used for the filter.
 
-.. bro:id:: Log::disable_stream
+.. zeek:id:: Log::disable_stream
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Disables a currently enabled logging stream.  Disabled streams
    will not be written to until they are enabled again.  New streams
@@ -912,11 +912,11 @@ Functions
 
    :returns: True if the stream is now disabled or was already disabled.
    
-   .. bro:see:: Log::enable_stream
+   .. zeek:see:: Log::enable_stream
 
-.. bro:id:: Log::enable_stream
+.. zeek:id:: Log::enable_stream
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Enables a previously disabled logging stream.  Disabled streams
    will not be written to until they are enabled again.  New streams
@@ -928,11 +928,11 @@ Functions
 
    :returns: True if the stream is re-enabled or was not previously disabled.
    
-   .. bro:see:: Log::disable_stream
+   .. zeek:see:: Log::disable_stream
 
-.. bro:id:: Log::flush
+.. zeek:id:: Log::flush
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Flushes any currently buffered output for all the writers of a given
    logging stream.
@@ -946,11 +946,11 @@ Functions
             buffered data or if the logging stream is disabled,
             false if the logging stream does not exist.
    
-   .. bro:see:: Log::set_buf Log::enable_stream Log::disable_stream
+   .. zeek:see:: Log::set_buf Log::enable_stream Log::disable_stream
 
-.. bro:id:: Log::get_filter
+.. zeek:id:: Log::get_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, name: :bro:type:`string`) : :bro:type:`Log::Filter`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, name: :zeek:type:`string`) : :zeek:type:`Log::Filter`
 
    Gets a filter associated with an existing logging stream.
    
@@ -960,19 +960,19 @@ Functions
    
 
    :name: A string to match against the ``name`` field of a
-         :bro:type:`Log::Filter` for identification purposes.
+         :zeek:type:`Log::Filter` for identification purposes.
    
 
    :returns: A filter attached to the logging stream *id* matching
             *name* or, if no matches are found returns the
-            :bro:id:`Log::no_filter` sentinel value.
+            :zeek:id:`Log::no_filter` sentinel value.
    
-   .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
+   .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
                 Log::remove_default_filter Log::get_filter_names
 
-.. bro:id:: Log::get_filter_names
+.. zeek:id:: Log::get_filter_names
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`set` [:bro:type:`string`]
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`set` [:zeek:type:`string`]
 
    Gets the names of all filters associated with an existing
    logging stream.
@@ -984,14 +984,14 @@ Functions
 
    :returns: The set of filter names associated with the stream.
    
-   ..bro:see:: Log::remove_filter Log::add_default_filter
+   ..zeek:see:: Log::remove_filter Log::add_default_filter
      Log::remove_default_filter Log::get_filter
 
-.. bro:id:: Log::remove_default_filter
+.. zeek:id:: Log::remove_default_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
-   Removes the :bro:type:`Log::Filter` with ``name`` field equal to
+   Removes the :zeek:type:`Log::Filter` with ``name`` field equal to
    "default".
    
 
@@ -999,14 +999,14 @@ Functions
        default filter.
    
 
-   :returns: The status of a call to :bro:id:`Log::remove_filter` using
+   :returns: The status of a call to :zeek:id:`Log::remove_filter` using
             "default" as the argument.
    
-   .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
+   .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
 
-.. bro:id:: Log::remove_filter
+.. zeek:id:: Log::remove_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, name: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, name: :zeek:type:`string`) : :zeek:type:`bool`
 
    Removes a filter from an existing logging stream.
    
@@ -1016,18 +1016,18 @@ Functions
    
 
    :name: A string to match against the ``name`` field of a
-         :bro:type:`Log::Filter` for identification purposes.
+         :zeek:type:`Log::Filter` for identification purposes.
    
 
    :returns: True if the logging stream's filter was removed or
             if no filter associated with *name* was found.
    
-   .. bro:see:: Log::remove_filter Log::add_default_filter
+   .. zeek:see:: Log::remove_filter Log::add_default_filter
       Log::remove_default_filter Log::get_filter Log::get_filter_names
 
-.. bro:id:: Log::remove_stream
+.. zeek:id:: Log::remove_stream
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Removes a logging stream completely, stopping all the threads.
    
@@ -1037,15 +1037,15 @@ Functions
 
    :returns: True if the stream was successfully removed.
    
-   .. bro:see:: Log::create_stream
+   .. zeek:see:: Log::create_stream
 
-.. bro:id:: Log::run_rotation_postprocessor_cmd
+.. zeek:id:: Log::run_rotation_postprocessor_cmd
 
-   :Type: :bro:type:`function` (info: :bro:type:`Log::RotationInfo`, npath: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (info: :zeek:type:`Log::RotationInfo`, npath: :zeek:type:`string`) : :zeek:type:`bool`
 
-   Runs a command given by :bro:id:`Log::default_rotation_postprocessor_cmd`
+   Runs a command given by :zeek:id:`Log::default_rotation_postprocessor_cmd`
    on a rotated file.  Meant to be called from postprocessor functions
-   that are added to :bro:id:`Log::default_rotation_postprocessors`.
+   that are added to :zeek:id:`Log::default_rotation_postprocessors`.
    
 
    :info: A record holding meta-information about the log being rotated.
@@ -1053,20 +1053,20 @@ Functions
 
    :npath: The new path of the file (after already being rotated/processed
           by writer-specific postprocessor as defined in
-          :bro:id:`Log::default_rotation_postprocessors`).
+          :zeek:id:`Log::default_rotation_postprocessors`).
    
 
-   :returns: True when :bro:id:`Log::default_rotation_postprocessor_cmd`
+   :returns: True when :zeek:id:`Log::default_rotation_postprocessor_cmd`
             is empty or the system command given by it has been invoked
             to postprocess a rotated log file.
    
-   .. bro:see:: Log::default_rotation_date_format
+   .. zeek:see:: Log::default_rotation_date_format
       Log::default_rotation_postprocessor_cmd
       Log::default_rotation_postprocessors
 
-.. bro:id:: Log::set_buf
+.. zeek:id:: Log::set_buf
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, buffered: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, buffered: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Sets the buffering status for all the writers of a given logging stream.
    A given writer implementation may or may not support buffering and if
@@ -1083,11 +1083,11 @@ Functions
    :returns: True if buffering status was set, false if the logging stream
             does not exist.
    
-   .. bro:see:: Log::flush
+   .. zeek:see:: Log::flush
 
-.. bro:id:: Log::write
+.. zeek:id:: Log::write
 
-   :Type: :bro:type:`function` (id: :bro:type:`Log::ID`, columns: :bro:type:`any`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, columns: :zeek:type:`any`) : :zeek:type:`bool`
 
    Writes a new log line/entry to a logging stream.
    
@@ -1106,6 +1106,6 @@ Functions
             to handle, or one of the stream's filters has an invalid
             ``path_func``.
    
-   .. bro:see:: Log::enable_stream Log::disable_stream
+   .. zeek:see:: Log::enable_stream Log::disable_stream
 
 

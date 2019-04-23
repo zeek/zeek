@@ -2,7 +2,7 @@
 
 base/protocols/krb/files.zeek
 =============================
-.. bro:namespace:: KRB
+.. zeek:namespace:: KRB
 
 
 :Namespace: KRB
@@ -12,31 +12,31 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================= =
-:bro:type:`KRB::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`KRB::Info`: :zeek:type:`record` 
+=========================================== =
 
 Functions
 #########
-==================================================== =====================================
-:bro:id:`KRB::describe_file`: :bro:type:`function`   Default file describer for KRB.
-:bro:id:`KRB::get_file_handle`: :bro:type:`function` Default file handle provider for KRB.
-==================================================== =====================================
+====================================================== =====================================
+:zeek:id:`KRB::describe_file`: :zeek:type:`function`   Default file describer for KRB.
+:zeek:id:`KRB::get_file_handle`: :zeek:type:`function` Default file handle provider for KRB.
+====================================================== =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: KRB::describe_file
+.. zeek:id:: KRB::describe_file
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
    Default file describer for KRB.
 
-.. bro:id:: KRB::get_file_handle
+.. zeek:id:: KRB::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for KRB.
 

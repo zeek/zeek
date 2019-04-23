@@ -2,7 +2,7 @@
 
 base/protocols/http/main.zeek
 =============================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Implements base functionality for HTTP analysis.  The logging model is
 to log request/response pairs and all relevant metadata together in
@@ -15,55 +15,55 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================= ====================================================================
-:bro:id:`HTTP::default_capture_password`: :bro:type:`bool` :bro:attr:`&redef` This setting changes if passwords used in Basic-Auth are captured or
-                                                                              not.
-:bro:id:`HTTP::http_methods`: :bro:type:`set` :bro:attr:`&redef`              A list of HTTP methods.
-:bro:id:`HTTP::proxy_headers`: :bro:type:`set` :bro:attr:`&redef`             A list of HTTP headers typically used to indicate proxied requests.
-============================================================================= ====================================================================
+================================================================================ ====================================================================
+:zeek:id:`HTTP::default_capture_password`: :zeek:type:`bool` :zeek:attr:`&redef` This setting changes if passwords used in Basic-Auth are captured or
+                                                                                 not.
+:zeek:id:`HTTP::http_methods`: :zeek:type:`set` :zeek:attr:`&redef`              A list of HTTP methods.
+:zeek:id:`HTTP::proxy_headers`: :zeek:type:`set` :zeek:attr:`&redef`             A list of HTTP headers typically used to indicate proxied requests.
+================================================================================ ====================================================================
 
 Types
 #####
-=========================================== ===================================================================
-:bro:type:`HTTP::Info`: :bro:type:`record`  The record type which contains the fields of the HTTP log.
-:bro:type:`HTTP::State`: :bro:type:`record` Structure to maintain state for an HTTP connection with multiple
-                                            requests and responses.
-:bro:type:`HTTP::Tags`: :bro:type:`enum`    Indicate a type of attack or compromise in the record to be logged.
-=========================================== ===================================================================
+============================================= ===================================================================
+:zeek:type:`HTTP::Info`: :zeek:type:`record`  The record type which contains the fields of the HTTP log.
+:zeek:type:`HTTP::State`: :zeek:type:`record` Structure to maintain state for an HTTP connection with multiple
+                                              requests and responses.
+:zeek:type:`HTTP::Tags`: :zeek:type:`enum`    Indicate a type of attack or compromise in the record to be logged.
+============================================= ===================================================================
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-=========================================== ====================================================================
-:bro:id:`HTTP::log_http`: :bro:type:`event` Event that can be handled to access the HTTP record as it is sent on
-                                            to the logging framework.
-=========================================== ====================================================================
+============================================= ====================================================================
+:zeek:id:`HTTP::log_http`: :zeek:type:`event` Event that can be handled to access the HTTP record as it is sent on
+                                              to the logging framework.
+============================================= ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: HTTP::default_capture_password
+.. zeek:id:: HTTP::default_capture_password
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    This setting changes if passwords used in Basic-Auth are captured or
    not.
 
-.. bro:id:: HTTP::http_methods
+.. zeek:id:: HTTP::http_methods
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -95,10 +95,10 @@ Runtime Options
    that the HTTP analyzer will only accept methods consisting solely
    of letters ``[A-Za-z]``.
 
-.. bro:id:: HTTP::proxy_headers
+.. zeek:id:: HTTP::proxy_headers
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -117,187 +117,187 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: HTTP::Info
+.. zeek:type:: HTTP::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the request happened.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      trans_depth: :bro:type:`count` :bro:attr:`&log`
+      trans_depth: :zeek:type:`count` :zeek:attr:`&log`
          Represents the pipelined depth into the connection of this
          request/response transaction.
 
-      method: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      method: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Verb used in the HTTP request (GET, POST, HEAD, etc.).
 
-      host: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      host: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the HOST header.
 
-      uri: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      uri: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          URI used in the request.
 
-      referrer: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      referrer: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the "referer" header.  The comment is deliberately
          misspelled like the standard declares, but the name used here
          is "referrer" spelled correctly.
 
-      version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the version portion of the request.
 
-      user_agent: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      user_agent: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the User-Agent header from the client.
 
-      origin: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      origin: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the Origin header from the client.
 
-      request_body_len: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      request_body_len: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Actual uncompressed content size of the data transferred from
          the client.
 
-      response_body_len: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      response_body_len: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Actual uncompressed content size of the data transferred from
          the server.
 
-      status_code: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      status_code: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Status code returned by the server.
 
-      status_msg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      status_msg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Status message returned by the server.
 
-      info_code: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      info_code: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Last seen 1xx informational reply code returned by the server.
 
-      info_msg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      info_msg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Last seen 1xx informational reply message returned by the server.
 
-      tags: :bro:type:`set` [:bro:type:`HTTP::Tags`] :bro:attr:`&log`
+      tags: :zeek:type:`set` [:zeek:type:`HTTP::Tags`] :zeek:attr:`&log`
          A set of indicators of various attributes discovered and
          related to a particular request/response pair.
 
-      username: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      username: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Username if basic-auth is performed for the request.
 
-      password: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      password: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Password if basic-auth is performed for the request.
 
-      capture_password: :bro:type:`bool` :bro:attr:`&default` = :bro:see:`HTTP::default_capture_password` :bro:attr:`&optional`
+      capture_password: :zeek:type:`bool` :zeek:attr:`&default` = :zeek:see:`HTTP::default_capture_password` :zeek:attr:`&optional`
          Determines if the password will be captured for this request.
 
-      proxied: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&log` :bro:attr:`&optional`
+      proxied: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
          All of the headers that may indicate if the request was proxied.
 
-      range_request: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      range_request: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Indicates if this request can assume 206 partial content in
          response.
 
-      orig_fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      orig_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of file unique IDs.
-         Limited to :bro:see:`HTTP::max_files_orig` entries.
+         Limited to :zeek:see:`HTTP::max_files_orig` entries.
 
-      orig_filenames: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      orig_filenames: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of filenames from the client.
-         Limited to :bro:see:`HTTP::max_files_orig` entries.
+         Limited to :zeek:see:`HTTP::max_files_orig` entries.
 
-      orig_mime_types: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      orig_mime_types: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of mime types.
-         Limited to :bro:see:`HTTP::max_files_orig` entries.
+         Limited to :zeek:see:`HTTP::max_files_orig` entries.
 
-      resp_fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      resp_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of file unique IDs.
-         Limited to :bro:see:`HTTP::max_files_resp` entries.
+         Limited to :zeek:see:`HTTP::max_files_resp` entries.
 
-      resp_filenames: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      resp_filenames: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of filenames from the server.
-         Limited to :bro:see:`HTTP::max_files_resp` entries.
+         Limited to :zeek:see:`HTTP::max_files_resp` entries.
 
-      resp_mime_types: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      resp_mime_types: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          An ordered vector of mime types.
-         Limited to :bro:see:`HTTP::max_files_resp` entries.
+         Limited to :zeek:see:`HTTP::max_files_resp` entries.
 
-      current_entity: :bro:type:`HTTP::Entity` :bro:attr:`&optional`
+      current_entity: :zeek:type:`HTTP::Entity` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          The current entity.
 
-      orig_mime_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      orig_mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          Current number of MIME entities in the HTTP request message
          body.
 
-      resp_mime_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      resp_mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/http/entities.zeek` is loaded)
 
          Current number of MIME entities in the HTTP response message
          body.
 
-      client_header_names: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client_header_names: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/http/header-names.zeek` is loaded)
 
          The vector of HTTP header names sent by the client.  No
          header values are included here, just the header names.
 
-      server_header_names: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_header_names: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/http/header-names.zeek` is loaded)
 
          The vector of HTTP header names sent by the server.  No
          header values are included here, just the header names.
 
-      omniture: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      omniture: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/http/software-browser-plugins.zeek` is loaded)
 
          Indicates if the server is an omniture advertising server.
 
-      flash_version: :bro:type:`string` :bro:attr:`&optional`
+      flash_version: :zeek:type:`string` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/http/software-browser-plugins.zeek` is loaded)
 
          The unparsed Flash version, if detected.
 
-      cookie_vars: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      cookie_vars: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/policy/protocols/http/var-extraction-cookies.zeek` is loaded)
 
          Variable names extracted from all cookies.
 
-      uri_vars: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      uri_vars: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/policy/protocols/http/var-extraction-uri.zeek` is loaded)
 
          Variable names from the URI.
 
    The record type which contains the fields of the HTTP log.
 
-.. bro:type:: HTTP::State
+.. zeek:type:: HTTP::State
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pending: :bro:type:`table` [:bro:type:`count`] of :bro:type:`HTTP::Info`
+      pending: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`HTTP::Info`
          Pending requests.
 
-      current_request: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      current_request: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Current request in the pending queue.
 
-      current_response: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      current_response: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Current response in the pending queue.
 
-      trans_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      trans_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Track the current deepest transaction.
          This is meant to cope with missing requests
          and responses.
@@ -305,22 +305,22 @@ Types
    Structure to maintain state for an HTTP connection with multiple
    requests and responses.
 
-.. bro:type:: HTTP::Tags
+.. zeek:type:: HTTP::Tags
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: HTTP::EMPTY HTTP::Tags
+      .. zeek:enum:: HTTP::EMPTY HTTP::Tags
 
          Placeholder.
 
-      .. bro:enum:: HTTP::URI_SQLI HTTP::Tags
+      .. zeek:enum:: HTTP::URI_SQLI HTTP::Tags
 
          (present if :doc:`/scripts/policy/protocols/http/detect-sqli.zeek` is loaded)
 
 
          Indicator of a URI based SQL injection attack.
 
-      .. bro:enum:: HTTP::POST_SQLI HTTP::Tags
+      .. zeek:enum:: HTTP::POST_SQLI HTTP::Tags
 
          (present if :doc:`/scripts/policy/protocols/http/detect-sqli.zeek` is loaded)
 
@@ -329,7 +329,7 @@ Types
          typically the body content of a POST request. Not implemented
          yet.
 
-      .. bro:enum:: HTTP::COOKIE_SQLI HTTP::Tags
+      .. zeek:enum:: HTTP::COOKIE_SQLI HTTP::Tags
 
          (present if :doc:`/scripts/policy/protocols/http/detect-sqli.zeek` is loaded)
 
@@ -341,9 +341,9 @@ Types
 
 Events
 ######
-.. bro:id:: HTTP::log_http
+.. zeek:id:: HTTP::log_http
 
-   :Type: :bro:type:`event` (rec: :bro:type:`HTTP::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`HTTP::Info`)
 
    Event that can be handled to access the HTTP record as it is sent on
    to the logging framework.

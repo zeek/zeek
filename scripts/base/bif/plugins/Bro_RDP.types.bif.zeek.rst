@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_RDP.types.bif.zeek
 =======================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: RDP
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: RDP
 
 
 :Namespaces: GLOBAL, RDP

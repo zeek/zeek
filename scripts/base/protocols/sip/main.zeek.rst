@@ -2,7 +2,7 @@
 
 base/protocols/sip/main.zeek
 ============================
-.. bro:namespace:: SIP
+.. zeek:namespace:: SIP
 
 Implements base functionality for SIP analysis.  The logging model is
 to log request/response pairs and all relevant metadata together in
@@ -15,41 +15,41 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================== ======================
-:bro:id:`SIP::sip_methods`: :bro:type:`set` :bro:attr:`&redef` A list of SIP methods.
-============================================================== ======================
+================================================================= ======================
+:zeek:id:`SIP::sip_methods`: :zeek:type:`set` :zeek:attr:`&redef` A list of SIP methods.
+================================================================= ======================
 
 Types
 #####
-========================================== =========================================================
-:bro:type:`SIP::Info`: :bro:type:`record`  The record type which contains the fields of the SIP log.
-:bro:type:`SIP::State`: :bro:type:`record` 
-========================================== =========================================================
+============================================ =========================================================
+:zeek:type:`SIP::Info`: :zeek:type:`record`  The record type which contains the fields of the SIP log.
+:zeek:type:`SIP::State`: :zeek:type:`record` 
+============================================ =========================================================
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-========================================= ===================================================================
-:bro:id:`SIP::log_sip`: :bro:type:`event` Event that can be handled to access the SIP record as it is sent on
-                                          to the logging framework.
-========================================= ===================================================================
+=========================================== ===================================================================
+:zeek:id:`SIP::log_sip`: :zeek:type:`event` Event that can be handled to access the SIP record as it is sent on
+                                            to the logging framework.
+=========================================== ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SIP::sip_methods
+.. zeek:id:: SIP::sip_methods
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -71,108 +71,108 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: SIP::Info
+.. zeek:type:: SIP::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the request happened.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      trans_depth: :bro:type:`count` :bro:attr:`&log`
+      trans_depth: :zeek:type:`count` :zeek:attr:`&log`
          Represents the pipelined depth into the connection of this
          request/response transaction.
 
-      method: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      method: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Verb used in the SIP request (INVITE, REGISTER etc.).
 
-      uri: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      uri: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          URI used in the request.
 
-      date: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      date: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Date: header from the client
 
-      request_from: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      request_from: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the request From: header
          Note: The tag= value that's usually appended to the sender
          is stripped off and not logged.
 
-      request_to: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      request_to: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the To: header
 
-      response_from: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      response_from: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the response From: header
          Note: The ``tag=`` value that's usually appended to the sender
          is stripped off and not logged.
 
-      response_to: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      response_to: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the response To: header
 
-      reply_to: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      reply_to: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Reply-To: header
 
-      call_id: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      call_id: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Call-ID: header from the client
 
-      seq: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      seq: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the CSeq: header from the client
 
-      subject: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Subject: header from the client
 
-      request_path: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      request_path: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The client message transmission path, as extracted from the headers.
 
-      response_path: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      response_path: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The server message transmission path, as extracted from the headers.
 
-      user_agent: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      user_agent: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the User-Agent: header from the client
 
-      status_code: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      status_code: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Status code returned by the server.
 
-      status_msg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      status_msg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Status message returned by the server.
 
-      warning: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      warning: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Warning: header
 
-      request_body_len: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      request_body_len: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Content-Length: header from the client
 
-      response_body_len: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      response_body_len: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Content-Length: header from the server
 
-      content_type: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      content_type: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Contents of the Content-Type: header from the server
 
    The record type which contains the fields of the SIP log.
 
-.. bro:type:: SIP::State
+.. zeek:type:: SIP::State
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pending: :bro:type:`table` [:bro:type:`count`] of :bro:type:`SIP::Info`
+      pending: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SIP::Info`
          Pending requests.
 
-      current_request: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      current_request: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Current request in the pending queue.
 
-      current_response: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      current_response: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Current response in the pending queue.
 
 
 Events
 ######
-.. bro:id:: SIP::log_sip
+.. zeek:id:: SIP::log_sip
 
-   :Type: :bro:type:`event` (rec: :bro:type:`SIP::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`SIP::Info`)
 
    Event that can be handled to access the SIP record as it is sent on
    to the logging framework.

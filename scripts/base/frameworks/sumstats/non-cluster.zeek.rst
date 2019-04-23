@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/non-cluster.zeek
 =========================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 
 :Namespace: SumStats

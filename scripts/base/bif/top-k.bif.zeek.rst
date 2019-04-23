@@ -2,7 +2,7 @@
 
 base/bif/top-k.bif.zeek
 =======================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 Functions to probabilistically determine top-k elements.
 
@@ -12,28 +12,28 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================ ==========================================================================
-:bro:id:`topk_add`: :bro:type:`function`         Add a new observed object to the data structure.
-:bro:id:`topk_count`: :bro:type:`function`       Get an overestimated count of how often a value has been encountered.
-:bro:id:`topk_epsilon`: :bro:type:`function`     Get the maximal overestimation for count.
-:bro:id:`topk_get_top`: :bro:type:`function`     Get the first *k* elements of the top-k data structure.
-:bro:id:`topk_init`: :bro:type:`function`        Creates a top-k data structure which tracks *size* elements.
-:bro:id:`topk_merge`: :bro:type:`function`       Merge the second top-k data structure into the first.
-:bro:id:`topk_merge_prune`: :bro:type:`function` Merge the second top-k data structure into the first and prunes the final
-                                                 data structure back to the size given on initialization.
-:bro:id:`topk_size`: :bro:type:`function`        Get the number of elements this data structure is supposed to track (given
-                                                 on init).
-:bro:id:`topk_sum`: :bro:type:`function`         Get the sum of all counts of all elements in the data structure.
-================================================ ==========================================================================
+================================================== ==========================================================================
+:zeek:id:`topk_add`: :zeek:type:`function`         Add a new observed object to the data structure.
+:zeek:id:`topk_count`: :zeek:type:`function`       Get an overestimated count of how often a value has been encountered.
+:zeek:id:`topk_epsilon`: :zeek:type:`function`     Get the maximal overestimation for count.
+:zeek:id:`topk_get_top`: :zeek:type:`function`     Get the first *k* elements of the top-k data structure.
+:zeek:id:`topk_init`: :zeek:type:`function`        Creates a top-k data structure which tracks *size* elements.
+:zeek:id:`topk_merge`: :zeek:type:`function`       Merge the second top-k data structure into the first.
+:zeek:id:`topk_merge_prune`: :zeek:type:`function` Merge the second top-k data structure into the first and prunes the final
+                                                   data structure back to the size given on initialization.
+:zeek:id:`topk_size`: :zeek:type:`function`        Get the number of elements this data structure is supposed to track (given
+                                                   on init).
+:zeek:id:`topk_sum`: :zeek:type:`function`         Get the sum of all counts of all elements in the data structure.
+================================================== ==========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: topk_add
+.. zeek:id:: topk_add
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk, value: :bro:type:`any`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk, value: :zeek:type:`any`) : :zeek:type:`any`
 
    Add a new observed object to the data structure.
    
@@ -47,12 +47,12 @@ Functions
 
    :value: observed value.
    
-   .. bro:see:: topk_init topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_get_top topk_count topk_epsilon
       topk_size topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_count
+.. zeek:id:: topk_count
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk, value: :bro:type:`any`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk, value: :zeek:type:`any`) : :zeek:type:`count`
 
    Get an overestimated count of how often a value has been encountered.
    
@@ -69,16 +69,16 @@ Functions
 
    :returns: Overestimated number for how often the element has been encountered.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_get_top topk_epsilon
       topk_size topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_epsilon
+.. zeek:id:: topk_epsilon
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk, value: :bro:type:`any`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk, value: :zeek:type:`any`) : :zeek:type:`count`
 
    Get the maximal overestimation for count.
    
-   .. note:: Same restrictions as for :bro:id:`topk_count` apply.
+   .. note:: Same restrictions as for :zeek:id:`topk_count` apply.
    
 
    :handle: the TopK handle.
@@ -90,12 +90,12 @@ Functions
    :returns: Number which represents the maximal overestimation for the count of
             this element.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_count
+   .. zeek:see:: topk_init topk_add topk_get_top topk_count
       topk_size topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_get_top
+.. zeek:id:: topk_get_top
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk, k: :bro:type:`count`) : :bro:type:`any_vec`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk, k: :zeek:type:`count`) : :zeek:type:`any_vec`
 
    Get the first *k* elements of the top-k data structure.
    
@@ -108,12 +108,12 @@ Functions
 
    :returns: vector of the first k elements.
    
-   .. bro:see:: topk_init topk_add topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_count topk_epsilon
       topk_size topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_init
+.. zeek:id:: topk_init
 
-   :Type: :bro:type:`function` (size: :bro:type:`count`) : :bro:type:`opaque` of topk
+   :Type: :zeek:type:`function` (size: :zeek:type:`count`) : :zeek:type:`opaque` of topk
 
    Creates a top-k data structure which tracks *size* elements.
    
@@ -123,12 +123,12 @@ Functions
 
    :returns: Opaque pointer to the data structure.
    
-   .. bro:see:: topk_add topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_add topk_get_top topk_count topk_epsilon
       topk_size topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_merge
+.. zeek:id:: topk_merge
 
-   :Type: :bro:type:`function` (handle1: :bro:type:`opaque` of topk, handle2: :bro:type:`opaque` of topk) : :bro:type:`any`
+   :Type: :zeek:type:`function` (handle1: :zeek:type:`opaque` of topk, handle2: :zeek:type:`opaque` of topk) : :zeek:type:`any`
 
    Merge the second top-k data structure into the first.
    
@@ -141,18 +141,18 @@ Functions
    .. note:: This does not remove any elements, the resulting data structure
       can be bigger than the maximum size given on initialization.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
       topk_size topk_sum topk_merge_prune
 
-.. bro:id:: topk_merge_prune
+.. zeek:id:: topk_merge_prune
 
-   :Type: :bro:type:`function` (handle1: :bro:type:`opaque` of topk, handle2: :bro:type:`opaque` of topk) : :bro:type:`any`
+   :Type: :zeek:type:`function` (handle1: :zeek:type:`opaque` of topk, handle2: :zeek:type:`opaque` of topk) : :zeek:type:`any`
 
    Merge the second top-k data structure into the first and prunes the final
    data structure back to the size given on initialization.
    
    .. note:: Use with care and only when being aware of the restrictions this
-      entails. Do not call :bro:id:`topk_size` or :bro:id:`topk_add` afterwards,
+      entails. Do not call :zeek:id:`topk_size` or :zeek:id:`topk_add` afterwards,
       results will probably not be what you expect.
    
 
@@ -161,12 +161,12 @@ Functions
 
    :handle2: the TopK handle in which is merged into the first TopK structure.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
       topk_size topk_sum topk_merge
 
-.. bro:id:: topk_size
+.. zeek:id:: topk_size
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk) : :bro:type:`count`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk) : :zeek:type:`count`
 
    Get the number of elements this data structure is supposed to track (given
    on init).
@@ -180,18 +180,18 @@ Functions
 
    :returns: size given during initialization.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
       topk_sum topk_merge topk_merge_prune
 
-.. bro:id:: topk_sum
+.. zeek:id:: topk_sum
 
-   :Type: :bro:type:`function` (handle: :bro:type:`opaque` of topk) : :bro:type:`count`
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of topk) : :zeek:type:`count`
 
    Get the sum of all counts of all elements in the data structure.
    
    .. note:: This is equal to the number of all inserted objects if the data
       structure never has been pruned. Do not use after
-      calling :bro:id:`topk_merge_prune` (will throw a warning message if used
+      calling :zeek:id:`topk_merge_prune` (will throw a warning message if used
       afterwards).
    
 
@@ -200,7 +200,7 @@ Functions
 
    :returns: sum of all counts.
    
-   .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+   .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
       topk_size topk_merge topk_merge_prune
 
 

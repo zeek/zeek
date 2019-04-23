@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Finger.events.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-=========================================== ==============================
-:bro:id:`finger_reply`: :bro:type:`event`   Generated for Finger replies.
-:bro:id:`finger_request`: :bro:type:`event` Generated for Finger requests.
-=========================================== ==============================
+============================================= ==============================
+:zeek:id:`finger_reply`: :zeek:type:`event`   Generated for Finger replies.
+:zeek:id:`finger_request`: :zeek:type:`event` Generated for Finger requests.
+============================================= ==============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: finger_reply
+.. zeek:id:: finger_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, reply_line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, reply_line: :zeek:type:`string`)
 
    Generated for Finger replies.
    
@@ -36,16 +36,16 @@ Events
 
    :reply_line: The reply as returned by the server
    
-   .. bro:see:: finger_request
+   .. zeek:see:: finger_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: finger_request
+.. zeek:id:: finger_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, full: :bro:type:`bool`, username: :bro:type:`string`, hostname: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, full: :zeek:type:`bool`, username: :zeek:type:`string`, hostname: :zeek:type:`string`)
 
    Generated for Finger requests.
    
@@ -64,7 +64,7 @@ Events
 
    :hostname: The request's host name.
    
-   .. bro:see:: finger_reply
+   .. zeek:see:: finger_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

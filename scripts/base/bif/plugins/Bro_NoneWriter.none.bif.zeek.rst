@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_NoneWriter.none.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: LogNone
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: LogNone
 
 
 :Namespaces: GLOBAL, LogNone

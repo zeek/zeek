@@ -2,7 +2,7 @@
 
 policy/protocols/ftp/software.zeek
 ==================================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 Software detection with the FTP protocol.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface

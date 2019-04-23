@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_close.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-=============================================== ===========================================================================================
-:bro:id:`smb1_close_request`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                version 1 requests of type *close*.
-=============================================== ===========================================================================================
+================================================= ===========================================================================================
+:zeek:id:`smb1_close_request`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                  version 1 requests of type *close*.
+================================================= ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_close_request
+.. zeek:id:: smb1_close_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *close*. This is used by the client to close an instance of an object
@@ -40,6 +40,6 @@ Events
 
    :file_id: The file identifier being closed.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
 

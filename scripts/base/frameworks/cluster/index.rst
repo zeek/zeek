@@ -14,8 +14,8 @@ of Bro instances.
    A framework for establishing and controlling a cluster of Bro instances.
    In order to use the cluster framework, a script named
    ``cluster-layout.zeek`` must exist somewhere in Bro's script search path
-   which has a cluster definition of the :bro:id:`Cluster::nodes` variable.
-   The ``CLUSTER_NODE`` environment variable or :bro:id:`Cluster::node`
+   which has a cluster definition of the :zeek:id:`Cluster::nodes` variable.
+   The ``CLUSTER_NODE`` environment variable or :zeek:id:`Cluster::node`
    must also be sent and the cluster framework loaded as a package like
    ``@load base/frameworks/cluster``.
 

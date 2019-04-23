@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Login.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,37 +11,37 @@ Summary
 ~~~~~~~
 Events
 ######
-==================================================== =========================================================================
-:bro:id:`activating_encryption`: :bro:type:`event`   Generated for Telnet sessions when encryption is activated.
-:bro:id:`authentication_accepted`: :bro:type:`event` Generated when a Telnet authentication has been successful.
-:bro:id:`authentication_rejected`: :bro:type:`event` Generated when a Telnet authentication has been unsuccessful.
-:bro:id:`authentication_skipped`: :bro:type:`event`  Generated for Telnet/Rlogin sessions when a pattern match indicates
-                                                     that no authentication is performed.
-:bro:id:`bad_option`: :bro:type:`event`              Generated for an ill-formed or unrecognized Telnet option.
-:bro:id:`bad_option_termination`: :bro:type:`event`  Generated for a Telnet option that's incorrectly terminated.
-:bro:id:`inconsistent_option`: :bro:type:`event`     Generated for an inconsistent Telnet option.
-:bro:id:`login_confused`: :bro:type:`event`          Generated when tracking of Telnet/Rlogin authentication failed.
-:bro:id:`login_confused_text`: :bro:type:`event`     Generated after getting confused while tracking a Telnet/Rlogin
-                                                     authentication dialog.
-:bro:id:`login_display`: :bro:type:`event`           Generated for clients transmitting an X11 DISPLAY in a Telnet session.
-:bro:id:`login_failure`: :bro:type:`event`           Generated for Telnet/Rlogin login failures.
-:bro:id:`login_input_line`: :bro:type:`event`        Generated for lines of input on Telnet/Rlogin sessions.
-:bro:id:`login_output_line`: :bro:type:`event`       Generated for lines of output on Telnet/Rlogin sessions.
-:bro:id:`login_prompt`: :bro:type:`event`            Generated for clients transmitting a terminal prompt in a Telnet session.
-:bro:id:`login_success`: :bro:type:`event`           Generated for successful Telnet/Rlogin logins.
-:bro:id:`login_terminal`: :bro:type:`event`          Generated for clients transmitting a terminal type in a Telnet session.
-:bro:id:`rsh_reply`: :bro:type:`event`               Generated for client side commands on an RSH connection.
-:bro:id:`rsh_request`: :bro:type:`event`             Generated for client side commands on an RSH connection.
-==================================================== =========================================================================
+====================================================== =========================================================================
+:zeek:id:`activating_encryption`: :zeek:type:`event`   Generated for Telnet sessions when encryption is activated.
+:zeek:id:`authentication_accepted`: :zeek:type:`event` Generated when a Telnet authentication has been successful.
+:zeek:id:`authentication_rejected`: :zeek:type:`event` Generated when a Telnet authentication has been unsuccessful.
+:zeek:id:`authentication_skipped`: :zeek:type:`event`  Generated for Telnet/Rlogin sessions when a pattern match indicates
+                                                       that no authentication is performed.
+:zeek:id:`bad_option`: :zeek:type:`event`              Generated for an ill-formed or unrecognized Telnet option.
+:zeek:id:`bad_option_termination`: :zeek:type:`event`  Generated for a Telnet option that's incorrectly terminated.
+:zeek:id:`inconsistent_option`: :zeek:type:`event`     Generated for an inconsistent Telnet option.
+:zeek:id:`login_confused`: :zeek:type:`event`          Generated when tracking of Telnet/Rlogin authentication failed.
+:zeek:id:`login_confused_text`: :zeek:type:`event`     Generated after getting confused while tracking a Telnet/Rlogin
+                                                       authentication dialog.
+:zeek:id:`login_display`: :zeek:type:`event`           Generated for clients transmitting an X11 DISPLAY in a Telnet session.
+:zeek:id:`login_failure`: :zeek:type:`event`           Generated for Telnet/Rlogin login failures.
+:zeek:id:`login_input_line`: :zeek:type:`event`        Generated for lines of input on Telnet/Rlogin sessions.
+:zeek:id:`login_output_line`: :zeek:type:`event`       Generated for lines of output on Telnet/Rlogin sessions.
+:zeek:id:`login_prompt`: :zeek:type:`event`            Generated for clients transmitting a terminal prompt in a Telnet session.
+:zeek:id:`login_success`: :zeek:type:`event`           Generated for successful Telnet/Rlogin logins.
+:zeek:id:`login_terminal`: :zeek:type:`event`          Generated for clients transmitting a terminal type in a Telnet session.
+:zeek:id:`rsh_reply`: :zeek:type:`event`               Generated for client side commands on an RSH connection.
+:zeek:id:`rsh_request`: :zeek:type:`event`             Generated for client side commands on an RSH connection.
+====================================================== =========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: activating_encryption
+.. zeek:id:: activating_encryption
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for Telnet sessions when encryption is activated. The Telnet
    protocol includes options for negotiating encryption. When such a series of
@@ -53,13 +53,13 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_rejected authentication_skipped
+   .. zeek:see:: authentication_accepted authentication_rejected authentication_skipped
       login_confused login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
-.. bro:id:: authentication_accepted
+.. zeek:id:: authentication_accepted
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, c: :zeek:type:`connection`)
 
    Generated when a Telnet authentication has been successful. The Telnet
    protocol includes options for negotiating authentication. When such an
@@ -75,21 +75,21 @@ Events
 
    :c: The connection.
    
-   .. bro:see::  authentication_rejected authentication_skipped login_success
+   .. zeek:see::  authentication_rejected authentication_skipped login_success
    
    .. note::  This event inspects the corresponding Telnet option
-      while :bro:id:`login_success` heuristically determines success by watching
+      while :zeek:id:`login_success` heuristically determines success by watching
       session data.
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: authentication_rejected
+.. zeek:id:: authentication_rejected
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, c: :zeek:type:`connection`)
 
    Generated when a Telnet authentication has been unsuccessful. The Telnet
    protocol includes options for negotiating authentication. When such an option
@@ -105,21 +105,21 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_skipped login_failure
+   .. zeek:see:: authentication_accepted authentication_skipped login_failure
    
    .. note::  This event inspects the corresponding Telnet option
-      while :bro:id:`login_success` heuristically determines failure by watching
+      while :zeek:id:`login_success` heuristically determines failure by watching
       session data.
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: authentication_skipped
+.. zeek:id:: authentication_skipped
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for Telnet/Rlogin sessions when a pattern match indicates
    that no authentication is performed.
@@ -130,7 +130,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_rejected direct_login_prompts
+   .. zeek:see:: authentication_accepted authentication_rejected direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
    
@@ -142,12 +142,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: bad_option
+.. zeek:id:: bad_option
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an ill-formed or unrecognized Telnet option.
    
@@ -157,7 +157,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: inconsistent_option bad_option_termination authentication_accepted
+   .. zeek:see:: inconsistent_option bad_option_termination authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
@@ -165,12 +165,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: bad_option_termination
+.. zeek:id:: bad_option_termination
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a Telnet option that's incorrectly terminated.
    
@@ -180,7 +180,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: inconsistent_option bad_option authentication_accepted
+   .. zeek:see:: inconsistent_option bad_option authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
@@ -188,12 +188,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: inconsistent_option
+.. zeek:id:: inconsistent_option
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an inconsistent Telnet option. Telnet options are specified
    by the client and server stating which options they are willing to
@@ -209,14 +209,14 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: bad_option bad_option_termination  authentication_accepted
+   .. zeek:see:: bad_option bad_option_termination  authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
-.. bro:id:: login_confused
+.. zeek:id:: login_confused
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
    *login* analyzer uses a number of heuristics to extract authentication
@@ -236,7 +236,7 @@ Events
    :line: The line of text that caused the heuristics to conclude they were
          confused.
    
-   .. bro:see::  login_confused_text login_display login_failure login_input_line login_output_line
+   .. zeek:see::  login_confused_text login_display login_failure login_input_line login_output_line
       login_prompt login_success login_terminal direct_login_prompts get_login_state
       login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
@@ -244,16 +244,16 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_confused_text
+.. zeek:id:: login_confused_text
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated after getting confused while tracking a Telnet/Rlogin
    authentication dialog. The *login* analyzer generates this even for every
-   line of user input after it has reported :bro:id:`login_confused` for a
+   line of user input after it has reported :zeek:id:`login_confused` for a
    connection.
    
 
@@ -262,7 +262,7 @@ Events
 
    :line: The line the user typed.
    
-   .. bro:see:: login_confused  login_display login_failure login_input_line
+   .. zeek:see:: login_confused  login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
@@ -270,12 +270,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_display
+.. zeek:id:: login_display
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, display: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, display: :zeek:type:`string`)
 
    Generated for clients transmitting an X11 DISPLAY in a Telnet session. This
    information is extracted out of environment variables sent as Telnet options.
@@ -286,18 +286,18 @@ Events
 
    :display: The DISPLAY transmitted.
    
-   .. bro:see:: login_confused login_confused_text  login_failure login_input_line
+   .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_failure
+.. zeek:id:: login_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, client_user: :bro:type:`string`, password: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, client_user: :zeek:type:`string`, password: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for Telnet/Rlogin login failures. The *login* analyzer inspects
    Telnet/Rlogin sessions to heuristically extract username and password
@@ -322,7 +322,7 @@ Events
    :line:  The line of text that led the analyzer to conclude that the
           authentication had failed.
    
-   .. bro:see:: login_confused login_confused_text login_display login_input_line
+   .. zeek:see:: login_confused login_confused_text login_display login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
@@ -335,12 +335,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_input_line
+.. zeek:id:: login_input_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated for lines of input on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
@@ -351,18 +351,18 @@ Events
 
    :line: The input line.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_output_line login_prompt login_success login_terminal    rsh_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_output_line
+.. zeek:id:: login_output_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated for lines of output on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
@@ -373,18 +373,18 @@ Events
 
    :line: The ouput line.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line  login_prompt login_success login_terminal rsh_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_prompt
+.. zeek:id:: login_prompt
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, prompt: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prompt: :zeek:type:`string`)
 
    Generated for clients transmitting a terminal prompt in a Telnet session.
    This information is extracted out of environment variables sent as Telnet
@@ -399,18 +399,18 @@ Events
 
    :prompt: The TTYPROMPT transmitted.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line  login_success login_terminal
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_success
+.. zeek:id:: login_success
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, client_user: :bro:type:`string`, password: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, client_user: :zeek:type:`string`, password: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for successful Telnet/Rlogin logins. The *login* analyzer inspects
    Telnet/Rlogin sessions to heuristically extract username and password
@@ -435,7 +435,7 @@ Events
    :line:  The line of text that led the analyzer to conclude that the
           authentication had succeeded.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_terminal
       direct_login_prompts get_login_state login_failure_msgs login_non_failure_msgs
       login_prompts login_success_msgs login_timeouts set_login_state
@@ -448,12 +448,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_terminal
+.. zeek:id:: login_terminal
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, terminal: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, terminal: :zeek:type:`string`)
 
    Generated for clients transmitting a terminal type in a Telnet session.  This
    information is extracted out of environment variables sent as Telnet options.
@@ -464,18 +464,18 @@ Events
 
    :terminal: The TERM value transmitted.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_success
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: rsh_reply
+.. zeek:id:: rsh_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, client_user: :bro:type:`string`, server_user: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for client side commands on an RSH connection.
    
@@ -495,7 +495,7 @@ Events
 
    :line: The command line sent in the request.
    
-   .. bro:see:: rsh_request login_confused login_confused_text login_display
+   .. zeek:see:: rsh_request login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
    
@@ -507,9 +507,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: rsh_request
+.. zeek:id:: rsh_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, client_user: :bro:type:`string`, server_user: :bro:type:`string`, line: :bro:type:`string`, new_session: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`, new_session: :zeek:type:`bool`)
 
    Generated for client side commands on an RSH connection.
    
@@ -532,7 +532,7 @@ Events
 
    :new_session: True if this is the first command of the Rsh session.
    
-   .. bro:see:: rsh_reply login_confused login_confused_text login_display
+   .. zeek:see:: rsh_reply login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
    

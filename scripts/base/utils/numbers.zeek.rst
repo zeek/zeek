@@ -9,18 +9,18 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================= =================================
-:bro:id:`extract_count`: :bro:type:`function` Extract an integer from a string.
-============================================= =================================
+=============================================== =================================
+:zeek:id:`extract_count`: :zeek:type:`function` Extract an integer from a string.
+=============================================== =================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: extract_count
+.. zeek:id:: extract_count
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`, get_first: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`, get_first: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`count`
 
    Extract an integer from a string.
    

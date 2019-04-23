@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SSH.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,43 +11,43 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================== ==================================================================
-:bro:id:`ssh1_server_host_key`: :bro:type:`event`  During the :abbr:`SSH (Secure Shell)` key exchange, the server
-                                                   supplies its public host key.
-:bro:id:`ssh2_dh_server_params`: :bro:type:`event` Generated if the connection uses a Diffie-Hellman Group Exchange
-                                                   key exchange method.
-:bro:id:`ssh2_ecc_key`: :bro:type:`event`          The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
-                                                   :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
-                                                   algorithms use two ephemeral key pairs to generate a shared
-                                                   secret.
-:bro:id:`ssh2_gss_error`: :bro:type:`event`        In the event of a GSS-API error on the server, the server MAY send
-                                                   send an error message with some additional details.
-:bro:id:`ssh2_server_host_key`: :bro:type:`event`  During the :abbr:`SSH (Secure Shell)` key exchange, the server
-                                                   supplies its public host key.
-:bro:id:`ssh_auth_attempted`: :bro:type:`event`    This event is generated when an :abbr:`SSH (Secure Shell)`
-                                                   connection was determined to have had an authentication attempt.
-:bro:id:`ssh_auth_successful`: :bro:type:`event`   This event is generated when an :abbr:`SSH (Secure Shell)`
-                                                   connection was determined to have had a successful
-                                                   authentication.
-:bro:id:`ssh_capabilities`: :bro:type:`event`      During the initial :abbr:`SSH (Secure Shell)` key exchange, each
-                                                   endpoint lists the algorithms that it supports, in order of
-                                                   preference.
-:bro:id:`ssh_client_version`: :bro:type:`event`    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
-                                                   from the client.
-:bro:id:`ssh_encrypted_packet`: :bro:type:`event`  This event is generated when an :abbr:`SSH (Secure Shell)`
-                                                   encrypted packet is seen.
-:bro:id:`ssh_server_version`: :bro:type:`event`    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
-                                                   from the server.
-================================================== ==================================================================
+==================================================== ==================================================================
+:zeek:id:`ssh1_server_host_key`: :zeek:type:`event`  During the :abbr:`SSH (Secure Shell)` key exchange, the server
+                                                     supplies its public host key.
+:zeek:id:`ssh2_dh_server_params`: :zeek:type:`event` Generated if the connection uses a Diffie-Hellman Group Exchange
+                                                     key exchange method.
+:zeek:id:`ssh2_ecc_key`: :zeek:type:`event`          The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
+                                                     :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
+                                                     algorithms use two ephemeral key pairs to generate a shared
+                                                     secret.
+:zeek:id:`ssh2_gss_error`: :zeek:type:`event`        In the event of a GSS-API error on the server, the server MAY send
+                                                     send an error message with some additional details.
+:zeek:id:`ssh2_server_host_key`: :zeek:type:`event`  During the :abbr:`SSH (Secure Shell)` key exchange, the server
+                                                     supplies its public host key.
+:zeek:id:`ssh_auth_attempted`: :zeek:type:`event`    This event is generated when an :abbr:`SSH (Secure Shell)`
+                                                     connection was determined to have had an authentication attempt.
+:zeek:id:`ssh_auth_successful`: :zeek:type:`event`   This event is generated when an :abbr:`SSH (Secure Shell)`
+                                                     connection was determined to have had a successful
+                                                     authentication.
+:zeek:id:`ssh_capabilities`: :zeek:type:`event`      During the initial :abbr:`SSH (Secure Shell)` key exchange, each
+                                                     endpoint lists the algorithms that it supports, in order of
+                                                     preference.
+:zeek:id:`ssh_client_version`: :zeek:type:`event`    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
+                                                     from the client.
+:zeek:id:`ssh_encrypted_packet`: :zeek:type:`event`  This event is generated when an :abbr:`SSH (Secure Shell)`
+                                                     encrypted packet is seen.
+:zeek:id:`ssh_server_version`: :zeek:type:`event`    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
+                                                     from the server.
+==================================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ssh1_server_host_key
+.. zeek:id:: ssh1_server_host_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, p: :bro:type:`string`, e: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, e: :zeek:type:`string`)
 
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
@@ -63,15 +63,15 @@ Events
 
    :e: The exponent for the serer's public host key.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh2_dh_server_params
+.. zeek:id:: ssh2_dh_server_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, p: :bro:type:`string`, q: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`)
 
    Generated if the connection uses a Diffie-Hellman Group Exchange
    key exchange method. This event contains the server DH parameters,
@@ -87,15 +87,15 @@ Events
 
    :q: The DH generator.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh2_ecc_key
+.. zeek:id:: ssh2_ecc_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, q: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, q: :zeek:type:`string`)
 
    The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
    :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
@@ -113,15 +113,15 @@ Events
 
    :q: The ephemeral public key
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
       ssh2_dh_server_params ssh2_gss_error
 
-.. bro:id:: ssh2_gss_error
+.. zeek:id:: ssh2_gss_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, major_status: :bro:type:`count`, minor_status: :bro:type:`count`, err_msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_status: :zeek:type:`count`, minor_status: :zeek:type:`count`, err_msg: :zeek:type:`string`)
 
    In the event of a GSS-API error on the server, the server MAY send
    send an error message with some additional details. This event is
@@ -140,15 +140,15 @@ Events
 
    :err_msg: Detailed human-readable error message
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
       ssh2_dh_server_params ssh2_ecc_key
 
-.. bro:id:: ssh2_server_host_key
+.. zeek:id:: ssh2_server_host_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, key: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
 
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
@@ -162,15 +162,15 @@ Events
    :key: The server's public host key. Note that this is the public key
       itself, and not just the fingerprint or hash.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_auth_attempted
+.. zeek:id:: ssh_auth_attempted
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, authenticated: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authenticated: :zeek:type:`bool`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    connection was determined to have had an authentication attempt.
@@ -197,15 +197,15 @@ Events
    :authenticated: This is true if the analyzer detected a
       successful connection from the authentication attempt.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_auth_successful
+.. zeek:id:: ssh_auth_successful
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, auth_method_none: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, auth_method_none: :zeek:type:`bool`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    connection was determined to have had a successful
@@ -223,15 +223,15 @@ Events
       :abbr:`SSH (Secure Shell)` protocol provides a mechanism for
       unauthenticated access, which some servers support.
    
-   .. bro:see:: ssh_server_version ssh_client_version ssh_auth_failed
+   .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
       ssh2_ecc_key
 
-.. bro:id:: ssh_capabilities
+.. zeek:id:: ssh_capabilities
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cookie: :bro:type:`string`, capabilities: :bro:type:`SSH::Capabilities`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, capabilities: :zeek:type:`SSH::Capabilities`)
 
    During the initial :abbr:`SSH (Secure Shell)` key exchange, each
    endpoint lists the algorithms that it supports, in order of
@@ -251,15 +251,15 @@ Events
    :capabilities: The list of algorithms and languages that the sender
       advertises support for, in order of preference.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_client_version
+.. zeek:id:: ssh_client_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`)
 
    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
    from the client. This contains an identification string that's used
@@ -272,20 +272,20 @@ Events
 
    :version: The identification string
    
-   .. bro:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
+   .. zeek:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
       ssh2_ecc_key
 
-.. bro:id:: ssh_encrypted_packet
+.. zeek:id:: ssh_encrypted_packet
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    encrypted packet is seen. This event is not handled by default, but
    is provided for heuristic analysis scripts. Note that you have to set
-   :bro:id:`SSH::disable_analyzer_after_detection` to false to use this
+   :zeek:id:`SSH::disable_analyzer_after_detection` to false to use this
    event. This carries a performance penalty.
    
 
@@ -300,15 +300,15 @@ Events
    :len: The length of the :abbr:`SSH (Secure Shell)` payload, in
       bytes. Note that this ignores reassembly, as this is unknown.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_server_version
+.. zeek:id:: ssh_server_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`)
 
    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
    from the server. This contains an identification string that's used
@@ -321,7 +321,7 @@ Events
 
    :version: The identification string
    
-   .. bro:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
+   .. zeek:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error

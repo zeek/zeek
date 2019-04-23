@@ -2,7 +2,7 @@
 
 base/protocols/syslog/main.zeek
 ===============================
-.. bro:namespace:: Syslog
+.. zeek:namespace:: Syslog
 
 Core script support for logging syslog messages.  This script represents 
 one syslog message as one logged record.
@@ -14,46 +14,46 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================ ============================================================
-:bro:type:`Syslog::Info`: :bro:type:`record` The record type which contains the fields of the syslog log.
-============================================ ============================================================
+============================================== ============================================================
+:zeek:type:`Syslog::Info`: :zeek:type:`record` The record type which contains the fields of the syslog log.
+============================================== ============================================================
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: Syslog::Info
+.. zeek:type:: Syslog::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp when the syslog message was seen.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      proto: :bro:type:`transport_proto` :bro:attr:`&log`
+      proto: :zeek:type:`transport_proto` :zeek:attr:`&log`
          Protocol over which the message was seen.
 
-      facility: :bro:type:`string` :bro:attr:`&log`
+      facility: :zeek:type:`string` :zeek:attr:`&log`
          Syslog facility for the message.
 
-      severity: :bro:type:`string` :bro:attr:`&log`
+      severity: :zeek:type:`string` :zeek:attr:`&log`
          Syslog severity for the message.
 
-      message: :bro:type:`string` :bro:attr:`&log`
+      message: :zeek:type:`string` :zeek:attr:`&log`
          The plain text message.
 
    The record type which contains the fields of the syslog log.

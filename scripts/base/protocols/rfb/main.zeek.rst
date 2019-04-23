@@ -2,7 +2,7 @@
 
 base/protocols/rfb/main.zeek
 ============================
-.. bro:namespace:: RFB
+.. zeek:namespace:: RFB
 
 
 :Namespace: RFB
@@ -11,72 +11,72 @@ Summary
 ~~~~~~~
 Types
 #####
-========================================= =========================================================
-:bro:type:`RFB::Info`: :bro:type:`record` The record type which contains the fields of the RFB log.
-========================================= =========================================================
+=========================================== =========================================================
+:zeek:type:`RFB::Info`: :zeek:type:`record` The record type which contains the fields of the RFB log.
+=========================================== =========================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Log::ID`: :bro:type:`enum`      
-:bro:type:`connection`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+:zeek:type:`connection`: :zeek:type:`record` 
+============================================ =
 
 Events
 ######
-========================================= =
-:bro:id:`RFB::log_rfb`: :bro:type:`event` 
-========================================= =
+=========================================== =
+:zeek:id:`RFB::log_rfb`: :zeek:type:`event` 
+=========================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: RFB::Info
+.. zeek:type:: RFB::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the event happened.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      client_major_version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client_major_version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Major version of the client.
 
-      client_minor_version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client_minor_version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Minor version of the client.
 
-      server_major_version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_major_version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Major version of the server.
 
-      server_minor_version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_minor_version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Minor version of the server.
 
-      authentication_method: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      authentication_method: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Identifier of authentication method used.
 
-      auth: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      auth: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Whether or not authentication was successful.
 
-      share_flag: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      share_flag: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Whether the client has an exclusive or a shared session.
 
-      desktop_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      desktop_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Name of the screen that is being shared.
 
-      width: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      width: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Width of the screen that is being shared.
 
-      height: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      height: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          Height of the screen that is being shared.
 
-      done: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Internally used value to determine if this connection
          has already been logged.
 
@@ -84,9 +84,9 @@ Types
 
 Events
 ######
-.. bro:id:: RFB::log_rfb
+.. zeek:id:: RFB::log_rfb
 
-   :Type: :bro:type:`event` (rec: :bro:type:`RFB::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`RFB::Info`)
 
 
 

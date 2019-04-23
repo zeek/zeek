@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_X509.ocsp_events.bif.zeek
 ==============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Events
 ######
-====================================================== ===========================================================================================
-:bro:id:`ocsp_extension`: :bro:type:`event`            This event is raised when an OCSP extension is encountered in an OCSP response.
-:bro:id:`ocsp_request`: :bro:type:`event`              Event that is raised when encountering an OCSP request, e.g.
-:bro:id:`ocsp_request_certificate`: :bro:type:`event`  Event that is raised when encountering an OCSP request for a certificate,
-                                                       e.g.
-:bro:id:`ocsp_response_bytes`: :bro:type:`event`       This event is raised when encountering an OCSP response that contains response information.
-:bro:id:`ocsp_response_certificate`: :bro:type:`event` This event is raised for each SingleResponse contained in an OCSP response.
-:bro:id:`ocsp_response_status`: :bro:type:`event`      This event is raised when encountering an OCSP reply, e.g.
-====================================================== ===========================================================================================
+======================================================== ===========================================================================================
+:zeek:id:`ocsp_extension`: :zeek:type:`event`            This event is raised when an OCSP extension is encountered in an OCSP response.
+:zeek:id:`ocsp_request`: :zeek:type:`event`              Event that is raised when encountering an OCSP request, e.g.
+:zeek:id:`ocsp_request_certificate`: :zeek:type:`event`  Event that is raised when encountering an OCSP request for a certificate,
+                                                         e.g.
+:zeek:id:`ocsp_response_bytes`: :zeek:type:`event`       This event is raised when encountering an OCSP response that contains response information.
+:zeek:id:`ocsp_response_certificate`: :zeek:type:`event` This event is raised for each SingleResponse contained in an OCSP response.
+:zeek:id:`ocsp_response_status`: :zeek:type:`event`      This event is raised when encountering an OCSP reply, e.g.
+======================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ocsp_extension
+.. zeek:id:: ocsp_extension
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ext: :bro:type:`X509::Extension`, global_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::Extension`, global_resp: :zeek:type:`bool`)
 
    This event is raised when an OCSP extension is encountered in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
@@ -43,13 +43,13 @@ Events
    :global_resp: T if extension encountered in the global response (in ResponseData),
                 F when encountered in a SingleResponse.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_request
+.. zeek:id:: ocsp_request
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, version: :bro:type:`count`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, version: :zeek:type:`count`)
 
    Event that is raised when encountering an OCSP request, e.g. in an HTTP
    connection. See :rfc:`6960` for more details.
@@ -62,13 +62,13 @@ Events
 
    :req: version: the version of the OCSP request. Typically 0 (Version 1).
    
-   .. bro:see:: ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_request_certificate
+.. zeek:id:: ocsp_request_certificate
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, hashAlgorithm: :bro:type:`string`, issuerNameHash: :bro:type:`string`, issuerKeyHash: :bro:type:`string`, serialNumber: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, hashAlgorithm: :zeek:type:`string`, issuerNameHash: :zeek:type:`string`, issuerKeyHash: :zeek:type:`string`, serialNumber: :zeek:type:`string`)
 
    Event that is raised when encountering an OCSP request for a certificate,
    e.g. in an HTTP connection. See :rfc:`6960` for more details.
@@ -89,13 +89,13 @@ Events
 
    :serialNumber: Serial number of the certificate for which the status is requested.
    
-   .. bro:see:: ocsp_request ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_bytes
+.. zeek:id:: ocsp_response_bytes
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, resp_ref: :bro:type:`opaque` of ocsp_resp, status: :bro:type:`string`, version: :bro:type:`count`, responderId: :bro:type:`string`, producedAt: :bro:type:`time`, signatureAlgorithm: :bro:type:`string`, certs: :bro:type:`x509_opaque_vector`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, resp_ref: :zeek:type:`opaque` of ocsp_resp, status: :zeek:type:`string`, version: :zeek:type:`count`, responderId: :zeek:type:`string`, producedAt: :zeek:type:`time`, signatureAlgorithm: :zeek:type:`string`, certs: :zeek:type:`x509_opaque_vector`)
 
    This event is raised when encountering an OCSP response that contains response information.
    An OCSP reply can be encountered, for example, in an HTTP connection or
@@ -127,13 +127,13 @@ Events
    :certs: Optional list of certificates that are sent with the OCSP response; these typically
           are needed to perform validation of the reply.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_certificate
+.. zeek:id:: ocsp_response_certificate
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, hashAlgorithm: :bro:type:`string`, issuerNameHash: :bro:type:`string`, issuerKeyHash: :bro:type:`string`, serialNumber: :bro:type:`string`, certStatus: :bro:type:`string`, revokeTime: :bro:type:`time`, revokeReason: :bro:type:`string`, thisUpdate: :bro:type:`time`, nextUpdate: :bro:type:`time`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, hashAlgorithm: :zeek:type:`string`, issuerNameHash: :zeek:type:`string`, issuerKeyHash: :zeek:type:`string`, serialNumber: :zeek:type:`string`, certStatus: :zeek:type:`string`, revokeTime: :zeek:type:`time`, revokeReason: :zeek:type:`string`, thisUpdate: :zeek:type:`time`, nextUpdate: :zeek:type:`time`)
 
    This event is raised for each SingleResponse contained in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
@@ -168,13 +168,13 @@ Events
 
    :nextUpdate: Time next response will be ready; 0 if not supploed.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_status
+.. zeek:id:: ocsp_response_status
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, status: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, status: :zeek:type:`string`)
 
    This event is raised when encountering an OCSP reply, e.g. in an HTTP
    connection or a TLS extension. See :rfc:`6960` for more details.
@@ -187,7 +187,7 @@ Events
 
    :status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
    
-   .. bro:see:: ocsp_request ocsp_request_certificate
+   .. zeek:see:: ocsp_request ocsp_request_certificate
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 

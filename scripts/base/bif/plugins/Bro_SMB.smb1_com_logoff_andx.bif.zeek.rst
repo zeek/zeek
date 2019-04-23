@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_logoff_andx.bif.zeek
 ======================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ===========================================================================================
-:bro:id:`smb1_logoff_andx`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                              version 1 requests of type *logoff andx*.
-============================================= ===========================================================================================
+=============================================== ===========================================================================================
+:zeek:id:`smb1_logoff_andx`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                version 1 requests of type *logoff andx*.
+=============================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_logoff_andx
+.. zeek:id:: smb1_logoff_andx
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *logoff andx*. This is used by the client to logoff the user
@@ -39,6 +39,6 @@ Events
 
    :is_orig: Indicates which host sent the logoff message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
 

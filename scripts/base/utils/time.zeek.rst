@@ -9,19 +9,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-===================================================== ========================================================================
-:bro:id:`duration_to_mins_secs`: :bro:type:`function` Given an interval, returns a string representing the minutes and seconds
-                                                      in the interval (for example, "3m34s").
-===================================================== ========================================================================
+======================================================= ========================================================================
+:zeek:id:`duration_to_mins_secs`: :zeek:type:`function` Given an interval, returns a string representing the minutes and seconds
+                                                        in the interval (for example, "3m34s").
+======================================================= ========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: duration_to_mins_secs
+.. zeek:id:: duration_to_mins_secs
 
-   :Type: :bro:type:`function` (dur: :bro:type:`interval`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (dur: :zeek:type:`interval`) : :zeek:type:`string`
 
    Given an interval, returns a string representing the minutes and seconds
    in the interval (for example, "3m34s").

@@ -34,7 +34,7 @@ Conceptually, the NetControl framework sits between the user provided scripts
 hardware or software device), that is used to implement the commands.
 
 The NetControl framework supports a number of high-level calls, like the
-:bro:see:`NetControl::drop_address` function, or a lower level rule
+:zeek:see:`NetControl::drop_address` function, or a lower level rule
 syntax. After a rule has been added to the NetControl framework, NetControl
 sends the rule to one or several of its *backends*. Each backend is responsible
 to communicate with a single hard- or software device. The NetControl framework
@@ -59,8 +59,8 @@ can use NetControl. For our examples, we will just use the debug plugin to
 create a backend. This plugin outputs all actions that are taken to the standard
 output.
 
-Backends should be initialized in the :bro:see:`NetControl::init` event, calling
-the :bro:see:`NetControl::activate` function after the plugin instance has been
+Backends should be initialized in the :zeek:see:`NetControl::init` event, calling
+the :zeek:see:`NetControl::activate` function after the plugin instance has been
 initialized. The debug plugin can be initialized as follows:
 
 .. sourcecode:: bro
@@ -86,15 +86,15 @@ high-level functions.
     * - Function
       - Description
 
-    * - :bro:see:`NetControl::drop_address`
+    * - :zeek:see:`NetControl::drop_address`
       - Calling this function causes NetControl to block all packets involving
         an IP address from being forwarded.
 
-    * - :bro:see:`NetControl::drop_connection`
+    * - :zeek:see:`NetControl::drop_connection`
       - Calling this function stops all packets of a specific connection
         (identified by its 5-tuple) from being forwarded.
 
-    * - :bro:see:`NetControl::drop_address_catch_release`
+    * - :zeek:see:`NetControl::drop_address_catch_release`
       - Calling this function causes all packets of a specific source IP to be
         blocked. This function uses catch-and-release functionality and the IP
         address is only dropped for a short amount of time to conserve rule
@@ -102,27 +102,27 @@ high-level functions.
         seen again in traffic. See :ref:`framework-netcontrol-catchrelease` for
         more information.
 
-    * - :bro:see:`NetControl::shunt_flow`
+    * - :zeek:see:`NetControl::shunt_flow`
       - Calling this function causes NetControl to stop forwarding a
         uni-directional flow of packets to Bro. This allows Bro to conserve
         resources by shunting flows that have been identified as being benign.
 
-    * - :bro:see:`NetControl::redirect_flow`
+    * - :zeek:see:`NetControl::redirect_flow`
       - Calling this function causes NetControl to redirect a uni-directional
         flow to another port of the networking hardware.
 
-    * - :bro:see:`NetControl::quarantine_host`
+    * - :zeek:see:`NetControl::quarantine_host`
       - Calling this function allows Bro to quarantine a host by sending DNS
         traffic to a host with a special DNS server, which resolves all queries
         as pointing to itself. The quarantined host is only allowed between the
         special server, which will serve a warning message detailing the next
         steps for the user.
 
-    * - :bro:see:`NetControl::whitelist_address`
+    * - :zeek:see:`NetControl::whitelist_address`
       - Calling this function causes NetControl to push a whitelist entry for an
         IP address to the networking hardware.
 
-    * - :bro:see:`NetControl::whitelist_subnet`
+    * - :zeek:see:`NetControl::whitelist_subnet`
       - Calling this function causes NetControl to push a whitelist entry for a
         subnet to the networking hardware.
 
@@ -163,12 +163,12 @@ which contains information about all actions that are taken by NetControl:
    1398529018.678276 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
    #close    2018-12-14-18-50-53
 
-In our case, `netcontrol.log` contains several :bro:see:`NetControl::MESSAGE`
+In our case, `netcontrol.log` contains several :zeek:see:`NetControl::MESSAGE`
 entries, which show that the debug plugin has been initialized and added.
-Afterwards, there are two :bro:see:`NetControl::RULE` entries; the first shows
+Afterwards, there are two :zeek:see:`NetControl::RULE` entries; the first shows
 that the addition of a rule has been requested (state is
-:bro:see:`NetControl::REQUESTED`). The following line shows that the rule was
-successfully added (the state is :bro:see:`NetControl::SUCCEEDED`). The
+:zeek:see:`NetControl::REQUESTED`). The following line shows that the rule was
+successfully added (the state is :zeek:see:`NetControl::SUCCEEDED`). The
 remainder of the log line gives more information about the added rule, which in
 our case applies to a specific 5-tuple.
 
@@ -224,7 +224,7 @@ following code automatically blocks a recognized SSH guesser:
    #close    2018-12-14-18-50-54
 
 Note that in this case, instead of calling NetControl directly, we also can use
-the :bro:see:`Notice::ACTION_DROP` action of the notice framework:
+the :zeek:see:`Notice::ACTION_DROP` action of the notice framework:
 
 .. literalinclude:: netcontrol-3-ssh-guesser.zeek
    :caption:
@@ -253,7 +253,7 @@ the :bro:see:`Notice::ACTION_DROP` action of the notice framework:
    1427726759.303199 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::ADDRESS     192.168.56.1/32 -       -       0       600.000000      ACTION_DROP: T  Debug-All
    #close    2018-12-14-18-50-55
 
-Using the :bro:see:`Notice::ACTION_DROP` action of the notice framework also
+Using the :zeek:see:`Notice::ACTION_DROP` action of the notice framework also
 will cause the `dropped` column in `notice.log` to be set to true each time that
 the NetControl framework enacts a block:
 
@@ -279,7 +279,7 @@ NetControl framework also supports a Rule based API which allows greater
 flexibility while adding rules. Actually, all the high-level functions are
 implemented using this lower-level rule API; the high-level functions simply
 convert their arguments into the lower-level rules and then add the rules
-directly to the NetControl framework (by calling :bro:see:`NetControl::add_rule`).
+directly to the NetControl framework (by calling :zeek:see:`NetControl::add_rule`).
 
 The following figure shows the main components of NetControl rules:
 
@@ -294,7 +294,7 @@ The following figure shows the main components of NetControl rules:
 The types that are used to make up a rule are defined in
 :doc:`/scripts/base/frameworks/netcontrol/types.zeek`.
 
-Rules are defined as a :bro:see:`NetControl::Rule` record. Rules have a *type*,
+Rules are defined as a :zeek:see:`NetControl::Rule` record. Rules have a *type*,
 which specifies what kind of action is taken. The possible actions are to
 **drop** packets, to **modify** them, to **redirect** or to **whitelist** them.
 The *target* of a rule specifies if the rule is applied in the *forward path*,
@@ -309,10 +309,10 @@ text information about each rule can be provided.
 There are a couple more fields that are only needed for some rule types. For
 example, when you insert a redirect rule, you have to specify the port that
 packets should be redirected to. All these fields are shown in the
-:bro:see:`NetControl::Rule` documentation.
+:zeek:see:`NetControl::Rule` documentation.
 
 To give an example on how to construct your own rule, we are going to write
-our own version of the :bro:see:`NetControl::drop_connection` function. The only
+our own version of the :zeek:see:`NetControl::drop_connection` function. The only
 difference between our function and the one provided by NetControl is the fact
 that the NetControl function has additional functionality, e.g. for logging.
 
@@ -346,12 +346,12 @@ drops all connections on the network:
    1398529018.678276 2       NetControl::RULE        ADD     NetControl::SUCCEEDED   NetControl::DROP        NetControl::FORWARD     NetControl::CONNECTION  192.168.18.50/56981<->74.125.239.97/443 -       -       0       20.000000       -       Debug-All
    #close    2018-12-14-18-50-55
 
-The last example shows that :bro:see:`NetControl::add_rule` returns a string
+The last example shows that :zeek:see:`NetControl::add_rule` returns a string
 identifier that is unique for each rule (uniqueness is not preserved across
 restarts of Bro). This rule id can be used to later remove rules manually using
-:bro:see:`NetControl::remove_rule`.
+:zeek:see:`NetControl::remove_rule`.
 
-Similar to :bro:see:`NetControl::add_rule`, all the high-level functions also
+Similar to :zeek:see:`NetControl::add_rule`, all the high-level functions also
 return their rule IDs, which can be removed in the same way.
 
 Interacting with Rules
@@ -367,13 +367,13 @@ access the current set of active rules.
 Rule Policy
 ***********
 
-The hook :bro:see:`NetControl::rule_policy` provides the mechanism for modifying
+The hook :zeek:see:`NetControl::rule_policy` provides the mechanism for modifying
 or discarding a rule before it is sent onwards to the backends. Hooks can be
 thought of as multi-bodied functions and using them looks very similar to
 handling events. In contrast to events, they are processed immediately. Like
 events, hooks can have priorities to sort the order in which they are applied.
 Hooks can use the ``break`` keyword to show that processing should be aborted;
-if any :bro:see:`NetControl::rule_policy` hook uses ``break``, the rule will be
+if any :zeek:see:`NetControl::rule_policy` hook uses ``break``, the rule will be
 discarded before further processing.
 
 Here is a simple example which tells Bro to discard all rules for connections
@@ -398,9 +398,9 @@ that are raised by the framework to allow users to track rules, as well as the
 state of the framework.
 
 We already encountered and used one event of the NetControl framework,
-:bro:see:`NetControl::init`, which is used to initialize the framework. After
+:zeek:see:`NetControl::init`, which is used to initialize the framework. After
 the framework has finished initialization and will start accepting rules, the
-:bro:see:`NetControl::init_done` event will be raised.
+:zeek:see:`NetControl::init_done` event will be raised.
 
 When rules are added to the framework, the following events will be called in
 this order:
@@ -412,46 +412,46 @@ this order:
     * - Event
       - Description
 
-    * - :bro:see:`NetControl::rule_new`
+    * - :zeek:see:`NetControl::rule_new`
       - Signals that a new rule is created by the NetControl framework due to
-        :bro:see:`NetControl::add_rule`. At this point, the rule has not
+        :zeek:see:`NetControl::add_rule`. At this point, the rule has not
         yet been added to any backend.
 
-    * - :bro:see:`NetControl::rule_added`
+    * - :zeek:see:`NetControl::rule_added`
       - Signals that a new rule has successfully been added by a backend.
 
-    * - :bro:see:`NetControl::rule_exists`
-      - This event is raised instead of :bro:see:`NetControl::rule_added` when a
+    * - :zeek:see:`NetControl::rule_exists`
+      - This event is raised instead of :zeek:see:`NetControl::rule_added` when a
         backend reports that a rule was already existing.
 
-    * - :bro:see:`NetControl::rule_timeout`
+    * - :zeek:see:`NetControl::rule_timeout`
       - Signals that a rule timeout was reached. If the hardware does not support
         automatic timeouts, the NetControl framework will automatically call
-        :bro:see:`NetControl::remove_rule`.
+        :zeek:see:`NetControl::remove_rule`.
 
-    * - :bro:see:`NetControl::rule_removed`
+    * - :zeek:see:`NetControl::rule_removed`
       - Signals that a new rule has successfully been removed a backend.
 
-    * - :bro:see:`NetControl::rule_destroyed`
-      - This event is the pendant to :bro:see:`NetControl::rule_added`, and
+    * - :zeek:see:`NetControl::rule_destroyed`
+      - This event is the pendant to :zeek:see:`NetControl::rule_added`, and
         reports that a rule is no longer being tracked by the NetControl framework.
         This happens, for example, when a rule was removed from all backends.
 
-    * - :bro:see:`NetControl::rule_error`
+    * - :zeek:see:`NetControl::rule_error`
       - This event is raised whenever an error occurs during any rule operation.
 
 Finding active rules
 ********************
 
 The NetControl framework provides two functions for finding currently active
-rules: :bro:see:`NetControl::find_rules_addr` finds all rules that affect a
-certain IP address and :bro:see:`NetControl::find_rules_subnet` finds all rules
+rules: :zeek:see:`NetControl::find_rules_addr` finds all rules that affect a
+certain IP address and :zeek:see:`NetControl::find_rules_subnet` finds all rules
 that affect a specified subnet.
 
 Consider, for example, the case where a Bro instance monitors the traffic at the
 border, before any firewall or switch rules were applied. In this case, Bro will
 still be able to see connection attempts of already blocked IP addresses. In this
-case, :bro:see:`NetControl::find_rules_addr` could be used to check if an
+case, :zeek:see:`NetControl::find_rules_addr` could be used to check if an
 address already was blocked in the past.
 
 Here is a simple example, which uses a trace that contains two connections from
@@ -484,7 +484,7 @@ Catch and Release
 -----------------
 
 We already mentioned earlier that in addition to the
-:bro:see:`NetControl::drop_connection` and :bro:see:`NetControl::drop_address`
+:zeek:see:`NetControl::drop_connection` and :zeek:see:`NetControl::drop_address`
 functions, which drop a connection or address for a specified amount of time,
 NetControl also comes with a blocking function that uses an approach called
 *catch and release*.
@@ -510,7 +510,7 @@ release is contained in the file
 :doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek`.
 
 Using catch and release in your scripts is easy; just use
-:bro:see:`NetControl::drop_address_catch_release` like in this example:
+:zeek:see:`NetControl::drop_address_catch_release` like in this example:
 
 .. literalinclude:: netcontrol-7-catch-release.zeek
    :caption:
@@ -525,7 +525,7 @@ Using catch and release in your scripts is easy; just use
 
 Note that you do not have to provide the block time for catch and release;
 instead, catch and release uses the time intervals specified in
-:bro:see:`NetControl::catch_release_intervals` (by default 10 minutes, 1 hour,
+:zeek:see:`NetControl::catch_release_intervals` (by default 10 minutes, 1 hour,
 24 hours, 7 days). That means when an address is first blocked, it is blocked
 for 10 minutes and monitored for 1 hour. If the address reappears after the
 first 10 minutes, it is blocked for 1 hour and then monitored for 24 hours, etc.
@@ -549,17 +549,17 @@ ones (netcontrol_catch_release.log):
    #close    2018-12-14-18-50-58
 
 In addition to the blocking function, catch and release comes with the
-:bro:see:`NetControl::get_catch_release_info` function to
+:zeek:see:`NetControl::get_catch_release_info` function to
 check if an address is already blocked by catch and release (and get information
-about the block). The :bro:see:`NetControl::unblock_address_catch_release`
+about the block). The :zeek:see:`NetControl::unblock_address_catch_release`
 function can be used to unblock addresses from catch and release.
 
 .. note::
 
     Since catch and release does its own connection tracking in addition to the
     tracking used by the NetControl framework, it is not sufficient to remove
-    rules that were added by catch and release using :bro:see:`NetControl::remove_rule`.
-    You have to use :bro:see:`NetControl::unblock_address_catch_release` in this
+    rules that were added by catch and release using :zeek:see:`NetControl::remove_rule`.
+    You have to use :zeek:see:`NetControl::unblock_address_catch_release` in this
     case.
 
 .. _framework-netcontrol-plugins:
@@ -604,8 +604,8 @@ The plugins that currently ship with NetControl are:
 
     * - PacketFilter plugin
       - This plugin uses the Bro process-level packet filter (see
-        :bro:see:`install_src_net_filter` and
-        :bro:see:`install_dst_net_filter`). Since the functionality of the
+        :zeek:see:`install_src_net_filter` and
+        :zeek:see:`install_dst_net_filter`). Since the functionality of the
         PacketFilter is limited, this plugin is mostly for demonstration purposes. The source of this
         plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek`.
 
@@ -618,8 +618,8 @@ Activating plugins
 
 In the API reference part of this document, we already used the debug plugin. To
 use the plugin, we first had to instantiate it by calling
-:bro:see:`NetControl::create_debug` and then add it to NetControl by
-calling :bro:see:`NetControl::activate`.
+:zeek:see:`NetControl::create_debug` and then add it to NetControl by
+calling :zeek:see:`NetControl::activate`.
 
 As we already hinted before, NetControl supports having several plugins that are
 active at the same time. The second argument to the `NetControl::activate`
@@ -637,8 +637,8 @@ network with two OpenFlow switches. The first switch forwards packets from the
 network to the external world, the second switch sits in front of your Bro
 cluster to provide packet shunting. In this case, you can add two OpenFlow
 backends to NetControl. When you create the instances using
-:bro:see:`NetControl::create_openflow`, you set the `monitor` and `forward`
-attributes of the configuration in :bro:see:`NetControl::OfConfig`
+:zeek:see:`NetControl::create_openflow`, you set the `monitor` and `forward`
+attributes of the configuration in :zeek:see:`NetControl::OfConfig`
 appropriately. Afterwards, one of the backends will only accept rules for the
 monitor path; the other backend will only accept rules for the forward path.
 
@@ -655,7 +655,7 @@ debug mode that outputs the openflow rules to openflow.log. The OpenFlow
 backend uses a predicate function to only accept rules with a source address in
 the 192.168.17.0/24 network; all other rules will be passed on to the debug
 plugin. We manually block a few addresses in the
-:bro:see:`NetControl::init_done` event to verify the correct functionality.
+:zeek:see:`NetControl::init_done` event to verify the correct functionality.
 
 .. literalinclude:: netcontrol-8-multiple.zeek
    :caption:
@@ -773,8 +773,8 @@ Creating your own plugin is easy; besides a bit of boilerplate, you only need to
 create two functions: one that is called when a rule is added, and one that is
 called when a rule is removed. The following script creates a minimal plugin
 that just outputs a rule when it is added or removed. Note that you have to
-raise the :bro:see:`NetControl::rule_added` and
-:bro:see:`NetControl::rule_removed` events in your plugin to let NetControl know
+raise the :zeek:see:`NetControl::rule_added` and
+:zeek:see:`NetControl::rule_removed` events in your plugin to let NetControl know
 when a rule was added and removed successfully.
 
 .. literalinclude:: netcontrol-9-skeleton.zeek

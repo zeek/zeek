@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_InterConn.events.bif.zeek
 ==============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,25 +11,25 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================== ===========
-:bro:id:`interconn_remove_conn`: :bro:type:`event` Deprecated.
-:bro:id:`interconn_stats`: :bro:type:`event`       Deprecated.
-================================================== ===========
+==================================================== ===========
+:zeek:id:`interconn_remove_conn`: :zeek:type:`event` Deprecated.
+:zeek:id:`interconn_stats`: :zeek:type:`event`       Deprecated.
+==================================================== ===========
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: interconn_remove_conn
+.. zeek:id:: interconn_remove_conn
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: interconn_stats
+.. zeek:id:: interconn_stats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, os: :bro:type:`interconn_endp_stats`, rs: :bro:type:`interconn_endp_stats`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`interconn_endp_stats`, rs: :zeek:type:`interconn_endp_stats`)
 
    Deprecated. Will be removed.
 

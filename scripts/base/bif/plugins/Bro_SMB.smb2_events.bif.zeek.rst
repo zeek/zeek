@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_events.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================= ===========================================================================================
-:bro:id:`smb2_message`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                          version 2 messages.
-========================================= ===========================================================================================
+=========================================== ===========================================================================================
+:zeek:id:`smb2_message`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                            version 2 messages.
+=========================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_message
+.. zeek:id:: smb2_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 messages.
@@ -43,6 +43,6 @@ Events
 
    :is_orig: True if the message came from the originator side.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
 

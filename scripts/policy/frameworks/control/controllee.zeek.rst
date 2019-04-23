@@ -2,7 +2,7 @@
 
 policy/frameworks/control/controllee.zeek
 =========================================
-.. bro:namespace:: Control
+.. zeek:namespace:: Control
 
 The controllee portion of the control framework.  Load this script if remote
 runtime control of the Bro process is desired.

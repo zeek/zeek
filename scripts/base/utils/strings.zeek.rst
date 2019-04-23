@@ -12,22 +12,22 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================ =============================================================================
-:bro:id:`cut_tail`: :bro:type:`function`         Cut a number of characters from the end of the given string.
-:bro:id:`is_string_binary`: :bro:type:`function` Returns true if the given string is at least 25% composed of 8-bit
-                                                 characters.
-:bro:id:`join_string_set`: :bro:type:`function`  Join a set of strings together, with elements delimited by a constant string.
-:bro:id:`string_escape`: :bro:type:`function`    Given a string, returns an escaped version.
-================================================ =============================================================================
+================================================== =============================================================================
+:zeek:id:`cut_tail`: :zeek:type:`function`         Cut a number of characters from the end of the given string.
+:zeek:id:`is_string_binary`: :zeek:type:`function` Returns true if the given string is at least 25% composed of 8-bit
+                                                   characters.
+:zeek:id:`join_string_set`: :zeek:type:`function`  Join a set of strings together, with elements delimited by a constant string.
+:zeek:id:`string_escape`: :zeek:type:`function`    Given a string, returns an escaped version.
+================================================== =============================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: cut_tail
+.. zeek:id:: cut_tail
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`, tail_len: :bro:type:`count`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`, tail_len: :zeek:type:`count`) : :zeek:type:`string`
 
    Cut a number of characters from the end of the given string.
    
@@ -40,16 +40,16 @@ Functions
 
    :returns: the given string with *tail_len* characters removed from the end.
 
-.. bro:id:: is_string_binary
+.. zeek:id:: is_string_binary
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`bool`
 
    Returns true if the given string is at least 25% composed of 8-bit
    characters.
 
-.. bro:id:: join_string_set
+.. zeek:id:: join_string_set
 
-   :Type: :bro:type:`function` (ss: :bro:type:`set` [:bro:type:`string`], j: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (ss: :zeek:type:`set` [:zeek:type:`string`], j: :zeek:type:`string`) : :zeek:type:`string`
 
    Join a set of strings together, with elements delimited by a constant string.
    
@@ -63,9 +63,9 @@ Functions
    :returns: a string composed of all elements of the set, delimited by the
             joining string.
 
-.. bro:id:: string_escape
+.. zeek:id:: string_escape
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`, chars: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`, chars: :zeek:type:`string`) : :zeek:type:`string`
 
    Given a string, returns an escaped version.
    

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_close.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================ ===========================================================================================
-:bro:id:`smb2_close_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                 version 2 requests of type *close*.
-:bro:id:`smb2_close_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                 version 2 responses of type *close*.
-================================================ ===========================================================================================
+================================================== ===========================================================================================
+:zeek:id:`smb2_close_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                   version 2 requests of type *close*.
+:zeek:id:`smb2_close_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                   version 2 responses of type *close*.
+================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_close_request
+.. zeek:id:: smb2_close_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *close*. This is used by the client to close an instance of a
@@ -42,11 +42,11 @@ Events
 
    :file_name: The SMB2 GUID of the file being closed.
    
-   .. bro:see:: smb2_message smb2_close_response
+   .. zeek:see:: smb2_message smb2_close_response
 
-.. bro:id:: smb2_close_response
+.. zeek:id:: smb2_close_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::CloseResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::CloseResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *close*. This is sent by the server to indicate that an SMB2 CLOSE
@@ -63,6 +63,6 @@ Events
 
    :response: A record of attributes returned from the server from the close.
    
-   .. bro:see:: smb2_message smb2_close_request
+   .. zeek:see:: smb2_message smb2_close_request
 
 

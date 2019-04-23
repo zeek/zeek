@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_TCP.functions.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================= ======================================================================
-:bro:id:`get_contents_file`: :bro:type:`function` Returns the file handle of the contents file of a connection.
-:bro:id:`get_orig_seq`: :bro:type:`function`      Get the originator sequence number of a TCP connection.
-:bro:id:`get_resp_seq`: :bro:type:`function`      Get the responder sequence number of a TCP connection.
-:bro:id:`set_contents_file`: :bro:type:`function` Associates a file handle with a connection for writing TCP byte stream
-                                                  contents.
-================================================= ======================================================================
+=================================================== ======================================================================
+:zeek:id:`get_contents_file`: :zeek:type:`function` Returns the file handle of the contents file of a connection.
+:zeek:id:`get_orig_seq`: :zeek:type:`function`      Get the originator sequence number of a TCP connection.
+:zeek:id:`get_resp_seq`: :zeek:type:`function`      Get the responder sequence number of a TCP connection.
+:zeek:id:`set_contents_file`: :zeek:type:`function` Associates a file handle with a connection for writing TCP byte stream
+                                                    contents.
+=================================================== ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: get_contents_file
+.. zeek:id:: get_contents_file
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, direction: :bro:type:`count`) : :bro:type:`file`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`) : :zeek:type:`file`
 
    Returns the file handle of the contents file of a connection.
    
@@ -35,19 +35,19 @@ Functions
    
 
    :direction: Controls what sides of the connection to record. See
-              :bro:id:`set_contents_file` for possible values.
+              :zeek:id:`set_contents_file` for possible values.
    
 
-   :returns: The :bro:type:`file` handle for the contents file of the
+   :returns: The :zeek:type:`file` handle for the contents file of the
             connection identified by *cid*. If the connection exists
             but there is no contents file for *direction*, then the function
             generates an error and returns a file handle to ``stderr``.
    
-   .. bro:see:: set_contents_file set_record_packets contents_file_write_failure
+   .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 
-.. bro:id:: get_orig_seq
+.. zeek:id:: get_orig_seq
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Get the originator sequence number of a TCP connection. Sequence numbers
    are absolute (i.e., they reflect the values seen directly in packet headers;
@@ -60,11 +60,11 @@ Functions
    :returns: The highest sequence number sent by a connection's originator, or 0
             if *cid* does not point to an active TCP connection.
    
-   .. bro:see:: get_resp_seq
+   .. zeek:see:: get_resp_seq
 
-.. bro:id:: get_resp_seq
+.. zeek:id:: get_resp_seq
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Get the responder sequence number of a TCP connection. Sequence numbers
    are absolute (i.e., they reflect the values seen directly in packet headers;
@@ -77,11 +77,11 @@ Functions
    :returns: The highest sequence number sent by a connection's responder, or 0
             if *cid* does not point to an active TCP connection.
    
-   .. bro:see:: get_orig_seq
+   .. zeek:see:: get_orig_seq
 
-.. bro:id:: set_contents_file
+.. zeek:id:: set_contents_file
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, direction: :bro:type:`count`, f: :bro:type:`file`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`, f: :zeek:type:`file`) : :zeek:type:`bool`
 
    Associates a file handle with a connection for writing TCP byte stream
    contents.
@@ -115,8 +115,8 @@ Functions
        contents of individual packets. Reordering and duplicates are
        removed. If any data is missing, the recording stops at the
        missing data; this can happen, e.g., due to an
-       :bro:id:`content_gap` event.
+       :zeek:id:`content_gap` event.
    
-   .. bro:see:: get_contents_file set_record_packets contents_file_write_failure
+   .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 
 

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_echo.bif.zeek
 ===============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-=============================================== ===========================================================================================
-:bro:id:`smb1_echo_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                version 1 requests of type *echo*.
-:bro:id:`smb1_echo_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                version 1 responses of type *echo*.
-=============================================== ===========================================================================================
+================================================= ===========================================================================================
+:zeek:id:`smb1_echo_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                  version 1 requests of type *echo*.
+:zeek:id:`smb1_echo_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                  version 1 responses of type *echo*.
+================================================= ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_echo_request
+.. zeek:id:: smb1_echo_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, echo_count: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, echo_count: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *echo*. This is sent by the client to test the transport layer
@@ -45,11 +45,11 @@ Events
 
    :data: The data for the server to echo.
    
-   .. bro:see:: smb1_message smb1_echo_response
+   .. zeek:see:: smb1_message smb1_echo_response
 
-.. bro:id:: smb1_echo_response
+.. zeek:id:: smb1_echo_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, seq_num: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, seq_num: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *echo*. This is the server response to the *echo* request.
@@ -68,6 +68,6 @@ Events
 
    :data: The data echoed back from the client.
    
-   .. bro:see:: smb1_message smb1_echo_request
+   .. zeek:see:: smb1_message smb1_echo_request
 
 

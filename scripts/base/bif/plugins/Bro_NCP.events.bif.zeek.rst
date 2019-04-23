@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_NCP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================== ===================================================
-:bro:id:`ncp_reply`: :bro:type:`event`   Generated for NCP replies (Netware Core Protocol).
-:bro:id:`ncp_request`: :bro:type:`event` Generated for NCP requests (Netware Core Protocol).
-======================================== ===================================================
+========================================== ===================================================
+:zeek:id:`ncp_reply`: :zeek:type:`event`   Generated for NCP replies (Netware Core Protocol).
+:zeek:id:`ncp_request`: :zeek:type:`event` Generated for NCP requests (Netware Core Protocol).
+========================================== ===================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ncp_reply
+.. zeek:id:: ncp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, frame_type: :bro:type:`count`, length: :bro:type:`count`, req_frame: :bro:type:`count`, req_func: :bro:type:`count`, completion_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, frame_type: :zeek:type:`count`, length: :zeek:type:`count`, req_frame: :zeek:type:`count`, req_func: :zeek:type:`count`, completion_code: :zeek:type:`count`)
 
    Generated for NCP replies (Netware Core Protocol).
    
@@ -48,16 +48,16 @@ Events
 
    :completion_code: The reply's completion code, as specified by the protocol.
    
-   .. bro:see:: ncp_request
+   .. zeek:see:: ncp_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ncp_request
+.. zeek:id:: ncp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, frame_type: :bro:type:`count`, length: :bro:type:`count`, func: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, frame_type: :zeek:type:`count`, length: :zeek:type:`count`, func: :zeek:type:`count`)
 
    Generated for NCP requests (Netware Core Protocol).
    
@@ -76,7 +76,7 @@ Events
 
    :func: The requested function, as specified by the protocol.
    
-   .. bro:see:: ncp_reply
+   .. zeek:see:: ncp_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

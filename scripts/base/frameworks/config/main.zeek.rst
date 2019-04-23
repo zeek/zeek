@@ -2,7 +2,7 @@
 
 base/frameworks/config/main.zeek
 ================================
-.. bro:namespace:: Config
+.. zeek:namespace:: Config
 
 The configuration framework provides a way to change Bro options
 (as specified by the "option" keyword) at runtime. It also logs runtime
@@ -15,75 +15,75 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================ ==================================
-:bro:type:`Config::Info`: :bro:type:`record` Represents the data in config.log.
-============================================ ==================================
+============================================== ==================================
+:zeek:type:`Config::Info`: :zeek:type:`record` Represents the data in config.log.
+============================================== ==================================
 
 Redefinitions
 #############
-===================================== =====================================
-:bro:type:`Log::ID`: :bro:type:`enum` The config logging stream identifier.
-===================================== =====================================
+======================================= =====================================
+:zeek:type:`Log::ID`: :zeek:type:`enum` The config logging stream identifier.
+======================================= =====================================
 
 Events
 ######
-=============================================== ================================================================
-:bro:id:`Config::log_config`: :bro:type:`event` Event that can be handled to access the :bro:type:`Config::Info`
-                                                record as it is sent on to the logging framework.
-=============================================== ================================================================
+================================================= =================================================================
+:zeek:id:`Config::log_config`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`Config::Info`
+                                                  record as it is sent on to the logging framework.
+================================================= =================================================================
 
 Functions
 #########
-================================================= ==================================================================
-:bro:id:`Config::set_value`: :bro:type:`function` This function is the config framework layer around the lower-level
-                                                  :bro:see:`Option::set` call.
-================================================= ==================================================================
+=================================================== ==================================================================
+:zeek:id:`Config::set_value`: :zeek:type:`function` This function is the config framework layer around the lower-level
+                                                    :zeek:see:`Option::set` call.
+=================================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: Config::Info
+.. zeek:type:: Config::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp at which the configuration change occured.
 
-      id: :bro:type:`string` :bro:attr:`&log`
+      id: :zeek:type:`string` :zeek:attr:`&log`
          ID of the value that was changed.
 
-      old_value: :bro:type:`string` :bro:attr:`&log`
+      old_value: :zeek:type:`string` :zeek:attr:`&log`
          Value before the change.
 
-      new_value: :bro:type:`string` :bro:attr:`&log`
+      new_value: :zeek:type:`string` :zeek:attr:`&log`
          Value after the change.
 
-      location: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      location: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Optional location that triggered the change.
 
    Represents the data in config.log.
 
 Events
 ######
-.. bro:id:: Config::log_config
+.. zeek:id:: Config::log_config
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Config::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Config::Info`)
 
-   Event that can be handled to access the :bro:type:`Config::Info`
+   Event that can be handled to access the :zeek:type:`Config::Info`
    record as it is sent on to the logging framework.
 
 Functions
 #########
-.. bro:id:: Config::set_value
+.. zeek:id:: Config::set_value
 
-   :Type: :bro:type:`function` (ID: :bro:type:`string`, val: :bro:type:`any`, location: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional` :bro:attr:`&optional`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (ID: :zeek:type:`string`, val: :zeek:type:`any`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    This function is the config framework layer around the lower-level
-   :bro:see:`Option::set` call. Config::set_value will set the configuration
+   :zeek:see:`Option::set` call. Config::set_value will set the configuration
    value for all nodes in the cluster, no matter where it was called. Note
-   that :bro:see:`Option::set` does not distribute configuration changes
+   that :zeek:see:`Option::set` does not distribute configuration changes
    to other nodes.
    
 

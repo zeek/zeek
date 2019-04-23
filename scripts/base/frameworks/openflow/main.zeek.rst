@@ -2,7 +2,7 @@
 
 base/frameworks/openflow/main.zeek
 ==================================
-.. bro:namespace:: OpenFlow
+.. zeek:namespace:: OpenFlow
 
 Bro's OpenFlow control framework.
 
@@ -21,39 +21,39 @@ Summary
 ~~~~~~~
 Events
 ######
-=========================================================== =============================================================================================
-:bro:id:`OpenFlow::controller_activated`: :bro:type:`event` Event that is raised once a controller finishes initialization
-                                                            and is completely activated.
-:bro:id:`OpenFlow::flow_mod_failure`: :bro:type:`event`     Reports an error while installing a flow Rule.
-:bro:id:`OpenFlow::flow_mod_success`: :bro:type:`event`     Event confirming successful modification of a flow rule.
-:bro:id:`OpenFlow::flow_removed`: :bro:type:`event`         Reports that a flow was removed by the switch because of either the hard or the idle timeout.
-=========================================================== =============================================================================================
+============================================================= =============================================================================================
+:zeek:id:`OpenFlow::controller_activated`: :zeek:type:`event` Event that is raised once a controller finishes initialization
+                                                              and is completely activated.
+:zeek:id:`OpenFlow::flow_mod_failure`: :zeek:type:`event`     Reports an error while installing a flow Rule.
+:zeek:id:`OpenFlow::flow_mod_success`: :zeek:type:`event`     Event confirming successful modification of a flow rule.
+:zeek:id:`OpenFlow::flow_removed`: :zeek:type:`event`         Reports that a flow was removed by the switch because of either the hard or the idle timeout.
+============================================================= =============================================================================================
 
 Functions
 #########
-=============================================================== =====================================================================
-:bro:id:`OpenFlow::controller_init_done`: :bro:type:`function`  Function to signal that a controller finished activation and is
-                                                                ready to use.
-:bro:id:`OpenFlow::flow_clear`: :bro:type:`function`            Clear the current flow table of the controller.
-:bro:id:`OpenFlow::flow_mod`: :bro:type:`function`              Global flow_mod function.
-:bro:id:`OpenFlow::generate_cookie`: :bro:type:`function`       Function to generate a new cookie using our group id.
-:bro:id:`OpenFlow::get_cookie_gid`: :bro:type:`function`        Function to get the group id out of a given cookie.
-:bro:id:`OpenFlow::get_cookie_uid`: :bro:type:`function`        Function to get the unique id out of a given cookie.
-:bro:id:`OpenFlow::lookup_controller`: :bro:type:`function`     Function to lookup a controller instance by name.
-:bro:id:`OpenFlow::match_conn`: :bro:type:`function`            Convert a conn_id record into an ofp_match record that can be used to
-                                                                create match objects for OpenFlow.
-:bro:id:`OpenFlow::register_controller`: :bro:type:`function`   Function to register a controller instance.
-:bro:id:`OpenFlow::unregister_controller`: :bro:type:`function` Function to unregister a controller instance.
-=============================================================== =====================================================================
+================================================================= =====================================================================
+:zeek:id:`OpenFlow::controller_init_done`: :zeek:type:`function`  Function to signal that a controller finished activation and is
+                                                                  ready to use.
+:zeek:id:`OpenFlow::flow_clear`: :zeek:type:`function`            Clear the current flow table of the controller.
+:zeek:id:`OpenFlow::flow_mod`: :zeek:type:`function`              Global flow_mod function.
+:zeek:id:`OpenFlow::generate_cookie`: :zeek:type:`function`       Function to generate a new cookie using our group id.
+:zeek:id:`OpenFlow::get_cookie_gid`: :zeek:type:`function`        Function to get the group id out of a given cookie.
+:zeek:id:`OpenFlow::get_cookie_uid`: :zeek:type:`function`        Function to get the unique id out of a given cookie.
+:zeek:id:`OpenFlow::lookup_controller`: :zeek:type:`function`     Function to lookup a controller instance by name.
+:zeek:id:`OpenFlow::match_conn`: :zeek:type:`function`            Convert a conn_id record into an ofp_match record that can be used to
+                                                                  create match objects for OpenFlow.
+:zeek:id:`OpenFlow::register_controller`: :zeek:type:`function`   Function to register a controller instance.
+:zeek:id:`OpenFlow::unregister_controller`: :zeek:type:`function` Function to unregister a controller instance.
+================================================================= =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: OpenFlow::controller_activated
+.. zeek:id:: OpenFlow::controller_activated
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, controller: :bro:type:`OpenFlow::Controller`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, controller: :zeek:type:`OpenFlow::Controller`)
 
    Event that is raised once a controller finishes initialization
    and is completely activated.
@@ -63,9 +63,9 @@ Events
 
    :controller: The controller that finished activation.
 
-.. bro:id:: OpenFlow::flow_mod_failure
+.. zeek:id:: OpenFlow::flow_mod_failure
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, match: :bro:type:`OpenFlow::ofp_match`, flow_mod: :bro:type:`OpenFlow::ofp_flow_mod`, msg: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, match: :zeek:type:`OpenFlow::ofp_match`, flow_mod: :zeek:type:`OpenFlow::ofp_flow_mod`, msg: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`)
 
    Reports an error while installing a flow Rule.
    
@@ -81,9 +81,9 @@ Events
 
    :msg: Message to describe the event.
 
-.. bro:id:: OpenFlow::flow_mod_success
+.. zeek:id:: OpenFlow::flow_mod_success
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, match: :bro:type:`OpenFlow::ofp_match`, flow_mod: :bro:type:`OpenFlow::ofp_flow_mod`, msg: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, match: :zeek:type:`OpenFlow::ofp_match`, flow_mod: :zeek:type:`OpenFlow::ofp_flow_mod`, msg: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`)
 
    Event confirming successful modification of a flow rule.
    
@@ -99,9 +99,9 @@ Events
 
    :msg: An optional informational message by the plugin.
 
-.. bro:id:: OpenFlow::flow_removed
+.. zeek:id:: OpenFlow::flow_removed
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, match: :bro:type:`OpenFlow::ofp_match`, cookie: :bro:type:`count`, priority: :bro:type:`count`, reason: :bro:type:`count`, duration_sec: :bro:type:`count`, idle_timeout: :bro:type:`count`, packet_count: :bro:type:`count`, byte_count: :bro:type:`count`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, match: :zeek:type:`OpenFlow::ofp_match`, cookie: :zeek:type:`count`, priority: :zeek:type:`count`, reason: :zeek:type:`count`, duration_sec: :zeek:type:`count`, idle_timeout: :zeek:type:`count`, packet_count: :zeek:type:`count`, byte_count: :zeek:type:`count`)
 
    Reports that a flow was removed by the switch because of either the hard or the idle timeout.
    This message is only generated by controllers that indicate that they support flow removal
@@ -133,17 +133,17 @@ Events
 
 Functions
 #########
-.. bro:id:: OpenFlow::controller_init_done
+.. zeek:id:: OpenFlow::controller_init_done
 
-   :Type: :bro:type:`function` (controller: :bro:type:`OpenFlow::Controller`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (controller: :zeek:type:`OpenFlow::Controller`) : :zeek:type:`void`
 
    Function to signal that a controller finished activation and is
    ready to use. Will throw the ``OpenFlow::controller_activated``
    event.
 
-.. bro:id:: OpenFlow::flow_clear
+.. zeek:id:: OpenFlow::flow_clear
 
-   :Type: :bro:type:`function` (controller: :bro:type:`OpenFlow::Controller`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (controller: :zeek:type:`OpenFlow::Controller`) : :zeek:type:`bool`
 
    Clear the current flow table of the controller.
    
@@ -153,9 +153,9 @@ Functions
 
    :returns: F on error or if the plugin does not support the operation, T when the operation was queued.
 
-.. bro:id:: OpenFlow::flow_mod
+.. zeek:id:: OpenFlow::flow_mod
 
-   :Type: :bro:type:`function` (controller: :bro:type:`OpenFlow::Controller`, match: :bro:type:`OpenFlow::ofp_match`, flow_mod: :bro:type:`OpenFlow::ofp_flow_mod`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (controller: :zeek:type:`OpenFlow::Controller`, match: :zeek:type:`OpenFlow::ofp_match`, flow_mod: :zeek:type:`OpenFlow::ofp_flow_mod`) : :zeek:type:`bool`
 
    Global flow_mod function.
    
@@ -171,9 +171,9 @@ Functions
 
    :returns: F on error or if the plugin does not support the operation, T when the operation was queued.
 
-.. bro:id:: OpenFlow::generate_cookie
+.. zeek:id:: OpenFlow::generate_cookie
 
-   :Type: :bro:type:`function` (cookie: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cookie: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`) : :zeek:type:`count`
 
    Function to generate a new cookie using our group id.
    
@@ -183,9 +183,9 @@ Functions
 
    :returns: The cookie group id.
 
-.. bro:id:: OpenFlow::get_cookie_gid
+.. zeek:id:: OpenFlow::get_cookie_gid
 
-   :Type: :bro:type:`function` (cookie: :bro:type:`count`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cookie: :zeek:type:`count`) : :zeek:type:`count`
 
    Function to get the group id out of a given cookie.
    
@@ -195,9 +195,9 @@ Functions
 
    :returns: The cookie group id.
 
-.. bro:id:: OpenFlow::get_cookie_uid
+.. zeek:id:: OpenFlow::get_cookie_uid
 
-   :Type: :bro:type:`function` (cookie: :bro:type:`count`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cookie: :zeek:type:`count`) : :zeek:type:`count`
 
    Function to get the unique id out of a given cookie.
    
@@ -207,9 +207,9 @@ Functions
 
    :returns: The cookie unique id.
 
-.. bro:id:: OpenFlow::lookup_controller
+.. zeek:id:: OpenFlow::lookup_controller
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`vector` of :bro:type:`OpenFlow::Controller`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`vector` of :zeek:type:`OpenFlow::Controller`
 
    Function to lookup a controller instance by name.
    
@@ -219,9 +219,9 @@ Functions
 
    :returns: One element vector with controller, if found. Empty vector otherwise.
 
-.. bro:id:: OpenFlow::match_conn
+.. zeek:id:: OpenFlow::match_conn
 
-   :Type: :bro:type:`function` (id: :bro:type:`conn_id`, reverse: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`) : :bro:type:`OpenFlow::ofp_match`
+   :Type: :zeek:type:`function` (id: :zeek:type:`conn_id`, reverse: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`OpenFlow::ofp_match`
 
    Convert a conn_id record into an ofp_match record that can be used to
    create match objects for OpenFlow.
@@ -235,9 +235,9 @@ Functions
 
    :returns: ofp_match object for the conn_id record.
 
-.. bro:id:: OpenFlow::register_controller
+.. zeek:id:: OpenFlow::register_controller
 
-   :Type: :bro:type:`function` (tpe: :bro:type:`OpenFlow::Plugin`, name: :bro:type:`string`, controller: :bro:type:`OpenFlow::Controller`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (tpe: :zeek:type:`OpenFlow::Plugin`, name: :zeek:type:`string`, controller: :zeek:type:`OpenFlow::Controller`) : :zeek:type:`void`
 
    Function to register a controller instance. This function
    is called automatically by the plugin _new functions.
@@ -251,9 +251,9 @@ Functions
 
    :controller: The controller to register.
 
-.. bro:id:: OpenFlow::unregister_controller
+.. zeek:id:: OpenFlow::unregister_controller
 
-   :Type: :bro:type:`function` (controller: :bro:type:`OpenFlow::Controller`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (controller: :zeek:type:`OpenFlow::Controller`) : :zeek:type:`void`
 
    Function to unregister a controller instance. This function
    should be called when a specific controller should no longer

@@ -2,7 +2,7 @@
 
 policy/protocols/ssh/geo-data.zeek
 ==================================
-.. bro:namespace:: SSH
+.. zeek:namespace:: SSH
 
 Geodata based detections for SSH analysis.
 
@@ -13,27 +13,27 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================== ==================================================================
-:bro:id:`SSH::watched_countries`: :bro:type:`set` :bro:attr:`&redef` The set of countries for which you'd like to generate notices upon
-                                                                     successful login.
-==================================================================== ==================================================================
+======================================================================= ==================================================================
+:zeek:id:`SSH::watched_countries`: :zeek:type:`set` :zeek:attr:`&redef` The set of countries for which you'd like to generate notices upon
+                                                                        successful login.
+======================================================================= ==================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-:bro:type:`SSH::Info`: :bro:type:`record`  
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+:zeek:type:`SSH::Info`: :zeek:type:`record`  
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSH::watched_countries
+.. zeek:id:: SSH::watched_countries
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

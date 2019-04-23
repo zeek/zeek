@@ -2,7 +2,7 @@
 
 policy/protocols/modbus/track-memmap.zeek
 =========================================
-.. bro:namespace:: Modbus
+.. zeek:namespace:: Modbus
 
 This script tracks the memory map of holding (read/write) registers and logs
 changes as they are discovered.
@@ -16,109 +16,109 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=================================================================== ==================================================
-:bro:id:`Modbus::track_memmap`: :bro:type:`Host` :bro:attr:`&redef` The hosts that should have memory mapping enabled.
-=================================================================== ==================================================
+====================================================================== ==================================================
+:zeek:id:`Modbus::track_memmap`: :zeek:type:`Host` :zeek:attr:`&redef` The hosts that should have memory mapping enabled.
+====================================================================== ==================================================
 
 State Variables
 ###############
-===================================================== =======================================================
-:bro:id:`Modbus::device_registers`: :bro:type:`table` The memory map of slaves is tracked with this variable.
-===================================================== =======================================================
+======================================================= =======================================================
+:zeek:id:`Modbus::device_registers`: :zeek:type:`table` The memory map of slaves is tracked with this variable.
+======================================================= =======================================================
 
 Types
 #####
-===================================================== =====================================================================
-:bro:type:`Modbus::MemmapInfo`: :bro:type:`record`    
-:bro:type:`Modbus::RegisterValue`: :bro:type:`record` 
-:bro:type:`Modbus::Registers`: :bro:type:`table`      Indexed on the device register value and yielding the register value.
-===================================================== =====================================================================
+======================================================= =====================================================================
+:zeek:type:`Modbus::MemmapInfo`: :zeek:type:`record`    
+:zeek:type:`Modbus::RegisterValue`: :zeek:type:`record` 
+:zeek:type:`Modbus::Registers`: :zeek:type:`table`      Indexed on the device register value and yielding the register value.
+======================================================= =====================================================================
 
 Redefinitions
 #############
-============================================ =
-:bro:type:`Log::ID`: :bro:type:`enum`        
-:bro:type:`Modbus::Info`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`        
+:zeek:type:`Modbus::Info`: :zeek:type:`record` 
+============================================== =
 
 Events
 ######
-===================================================== =====================================================================
-:bro:id:`Modbus::changed_register`: :bro:type:`event` This event is generated every time a register is seen to be different
-                                                      than it was previously seen to be.
-===================================================== =====================================================================
+======================================================= =====================================================================
+:zeek:id:`Modbus::changed_register`: :zeek:type:`event` This event is generated every time a register is seen to be different
+                                                        than it was previously seen to be.
+======================================================= =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Modbus::track_memmap
+.. zeek:id:: Modbus::track_memmap
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``ALL_HOSTS``
 
    The hosts that should have memory mapping enabled.
 
 State Variables
 ###############
-.. bro:id:: Modbus::device_registers
+.. zeek:id:: Modbus::device_registers
 
-   :Type: :bro:type:`table` [:bro:type:`addr`] of :bro:type:`Modbus::Registers`
+   :Type: :zeek:type:`table` [:zeek:type:`addr`] of :zeek:type:`Modbus::Registers`
    :Default: ``{}``
 
    The memory map of slaves is tracked with this variable.
 
 Types
 #####
-.. bro:type:: Modbus::MemmapInfo
+.. zeek:type:: Modbus::MemmapInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for the detected register change.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          Connection ID.
 
-      register: :bro:type:`count` :bro:attr:`&log`
+      register: :zeek:type:`count` :zeek:attr:`&log`
          The device memory offset.
 
-      old_val: :bro:type:`count` :bro:attr:`&log`
+      old_val: :zeek:type:`count` :zeek:attr:`&log`
          The old value stored in the register.
 
-      new_val: :bro:type:`count` :bro:attr:`&log`
+      new_val: :zeek:type:`count` :zeek:attr:`&log`
          The new value stored in the register.
 
-      delta: :bro:type:`interval` :bro:attr:`&log`
+      delta: :zeek:type:`interval` :zeek:attr:`&log`
          The time delta between when the *old_val* and *new_val* were
          seen.
 
 
-.. bro:type:: Modbus::RegisterValue
+.. zeek:type:: Modbus::RegisterValue
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      last_set: :bro:type:`time`
+      last_set: :zeek:type:`time`
 
-      value: :bro:type:`count`
+      value: :zeek:type:`count`
 
 
-.. bro:type:: Modbus::Registers
+.. zeek:type:: Modbus::Registers
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`Modbus::RegisterValue`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`Modbus::RegisterValue`
 
    Indexed on the device register value and yielding the register value.
 
 Events
 ######
-.. bro:id:: Modbus::changed_register
+.. zeek:id:: Modbus::changed_register
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, register: :bro:type:`count`, old_val: :bro:type:`count`, new_val: :bro:type:`count`, delta: :bro:type:`interval`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, register: :zeek:type:`count`, old_val: :zeek:type:`count`, new_val: :zeek:type:`count`, delta: :zeek:type:`interval`)
 
    This event is generated every time a register is seen to be different
    than it was previously seen to be.

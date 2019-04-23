@@ -2,7 +2,7 @@
 
 policy/misc/loaded-scripts.zeek
 ===============================
-.. bro:namespace:: LoadedScripts
+.. zeek:namespace:: LoadedScripts
 
 Log the loaded scripts.
 
@@ -13,26 +13,26 @@ Summary
 ~~~~~~~
 Types
 #####
-=================================================== =
-:bro:type:`LoadedScripts::Info`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`LoadedScripts::Info`: :zeek:type:`record` 
+===================================================== =
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: LoadedScripts::Info
+.. zeek:type:: LoadedScripts::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string` :bro:attr:`&log`
+      name: :zeek:type:`string` :zeek:attr:`&log`
          Name of the script loaded potentially with spaces included
          before the file name to indicate load depth.  The convention
          is two spaces per level of depth.

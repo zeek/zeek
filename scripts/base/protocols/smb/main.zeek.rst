@@ -2,7 +2,7 @@
 
 base/protocols/smb/main.zeek
 ============================
-.. bro:namespace:: SMB
+.. zeek:namespace:: SMB
 
 
 :Namespace: SMB
@@ -12,46 +12,46 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-====================================================================== ==================================
-:bro:id:`SMB::logged_file_actions`: :bro:type:`set` :bro:attr:`&redef` The file actions which are logged.
-====================================================================== ==================================
+========================================================================= ==================================
+:zeek:id:`SMB::logged_file_actions`: :zeek:type:`set` :zeek:attr:`&redef` The file actions which are logged.
+========================================================================= ==================================
 
 Types
 #####
-============================================= =======================================================
-:bro:type:`SMB::Action`: :bro:type:`enum`     Abstracted actions for SMB file actions.
-:bro:type:`SMB::CmdInfo`: :bro:type:`record`  This record is for the smb_cmd.log
-:bro:type:`SMB::FileInfo`: :bro:type:`record` This record is for the smb_files.log
-:bro:type:`SMB::State`: :bro:type:`record`    This record stores the SMB state of in-flight commands,
-                                              the file and tree map of the connection.
-:bro:type:`SMB::TreeInfo`: :bro:type:`record` This record is for the smb_mapping.log
-============================================= =======================================================
+=============================================== =======================================================
+:zeek:type:`SMB::Action`: :zeek:type:`enum`     Abstracted actions for SMB file actions.
+:zeek:type:`SMB::CmdInfo`: :zeek:type:`record`  This record is for the smb_cmd.log
+:zeek:type:`SMB::FileInfo`: :zeek:type:`record` This record is for the smb_files.log
+:zeek:type:`SMB::State`: :zeek:type:`record`    This record stores the SMB state of in-flight commands,
+                                                the file and tree map of the connection.
+:zeek:type:`SMB::TreeInfo`: :zeek:type:`record` This record is for the smb_mapping.log
+=============================================== =======================================================
 
 Redefinitions
 #############
-================================================================= ============================================================
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`SMB::FileInfo`: :bro:type:`record`                     
-:bro:type:`connection`: :bro:type:`record`                        Everything below here is used internally in the SMB scripts.
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= ============================================================
+==================================================================== ============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`SMB::FileInfo`: :zeek:type:`record`                      
+:zeek:type:`connection`: :zeek:type:`record`                         Everything below here is used internally in the SMB scripts.
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== ============================================================
 
 Functions
 #########
-======================================================================== ====================================
-:bro:id:`SMB::set_current_file`: :bro:type:`function` :bro:attr:`&redef` This is an internally used function.
-:bro:id:`SMB::write_file_log`: :bro:type:`function` :bro:attr:`&redef`   This is an internally used function.
-======================================================================== ====================================
+=========================================================================== ====================================
+:zeek:id:`SMB::set_current_file`: :zeek:type:`function` :zeek:attr:`&redef` This is an internally used function.
+:zeek:id:`SMB::write_file_log`: :zeek:type:`function` :zeek:attr:`&redef`   This is an internally used function.
+=========================================================================== ====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMB::logged_file_actions
+.. zeek:id:: SMB::logged_file_actions
 
-   :Type: :bro:type:`set` [:bro:type:`SMB::Action`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`SMB::Action`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -68,173 +68,173 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: SMB::Action
+.. zeek:type:: SMB::Action
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: SMB::FILE_READ SMB::Action
+      .. zeek:enum:: SMB::FILE_READ SMB::Action
 
-      .. bro:enum:: SMB::FILE_WRITE SMB::Action
+      .. zeek:enum:: SMB::FILE_WRITE SMB::Action
 
-      .. bro:enum:: SMB::FILE_OPEN SMB::Action
+      .. zeek:enum:: SMB::FILE_OPEN SMB::Action
 
-      .. bro:enum:: SMB::FILE_CLOSE SMB::Action
+      .. zeek:enum:: SMB::FILE_CLOSE SMB::Action
 
-      .. bro:enum:: SMB::FILE_DELETE SMB::Action
+      .. zeek:enum:: SMB::FILE_DELETE SMB::Action
 
-      .. bro:enum:: SMB::FILE_RENAME SMB::Action
+      .. zeek:enum:: SMB::FILE_RENAME SMB::Action
 
-      .. bro:enum:: SMB::FILE_SET_ATTRIBUTE SMB::Action
+      .. zeek:enum:: SMB::FILE_SET_ATTRIBUTE SMB::Action
 
-      .. bro:enum:: SMB::PIPE_READ SMB::Action
+      .. zeek:enum:: SMB::PIPE_READ SMB::Action
 
-      .. bro:enum:: SMB::PIPE_WRITE SMB::Action
+      .. zeek:enum:: SMB::PIPE_WRITE SMB::Action
 
-      .. bro:enum:: SMB::PIPE_OPEN SMB::Action
+      .. zeek:enum:: SMB::PIPE_OPEN SMB::Action
 
-      .. bro:enum:: SMB::PIPE_CLOSE SMB::Action
+      .. zeek:enum:: SMB::PIPE_CLOSE SMB::Action
 
-      .. bro:enum:: SMB::PRINT_READ SMB::Action
+      .. zeek:enum:: SMB::PRINT_READ SMB::Action
 
-      .. bro:enum:: SMB::PRINT_WRITE SMB::Action
+      .. zeek:enum:: SMB::PRINT_WRITE SMB::Action
 
-      .. bro:enum:: SMB::PRINT_OPEN SMB::Action
+      .. zeek:enum:: SMB::PRINT_OPEN SMB::Action
 
-      .. bro:enum:: SMB::PRINT_CLOSE SMB::Action
+      .. zeek:enum:: SMB::PRINT_CLOSE SMB::Action
 
    Abstracted actions for SMB file actions.
 
-.. bro:type:: SMB::CmdInfo
+.. zeek:type:: SMB::CmdInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp of the command request.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID of the connection the request was sent over.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          ID of the connection the request was sent over.
 
-      command: :bro:type:`string` :bro:attr:`&log`
+      command: :zeek:type:`string` :zeek:attr:`&log`
          The command sent by the client.
 
-      sub_command: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      sub_command: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The subcommand sent by the client, if present.
 
-      argument: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      argument: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Command argument sent by the client, if any.
 
-      status: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      status: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Server reply to the client's command.
 
-      rtt: :bro:type:`interval` :bro:attr:`&log` :bro:attr:`&optional`
+      rtt: :zeek:type:`interval` :zeek:attr:`&log` :zeek:attr:`&optional`
          Round trip time from the request to the response.
 
-      version: :bro:type:`string` :bro:attr:`&log`
+      version: :zeek:type:`string` :zeek:attr:`&log`
          Version of SMB for the command.
 
-      username: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      username: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Authenticated username, if available.
 
-      tree: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      tree: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          If this is related to a tree, this is the tree
          that was used for the current command.
 
-      tree_service: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      tree_service: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The type of tree (disk share, printer share, named pipe, etc.).
 
-      referenced_file: :bro:type:`SMB::FileInfo` :bro:attr:`&log` :bro:attr:`&optional`
+      referenced_file: :zeek:type:`SMB::FileInfo` :zeek:attr:`&log` :zeek:attr:`&optional`
          If the command referenced a file, store it here.
 
-      referenced_tree: :bro:type:`SMB::TreeInfo` :bro:attr:`&optional`
+      referenced_tree: :zeek:type:`SMB::TreeInfo` :zeek:attr:`&optional`
          If the command referenced a tree, store it here.
 
-      smb1_offered_dialects: :bro:type:`string_vec` :bro:attr:`&optional`
+      smb1_offered_dialects: :zeek:type:`string_vec` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/smb/smb1-main.zeek` is loaded)
 
          Dialects offered by the client.
 
-      smb2_offered_dialects: :bro:type:`index_vec` :bro:attr:`&optional`
+      smb2_offered_dialects: :zeek:type:`index_vec` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/smb/smb2-main.zeek` is loaded)
 
          Dialects offered by the client.
 
    This record is for the smb_cmd.log
 
-.. bro:type:: SMB::FileInfo
+.. zeek:type:: SMB::FileInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time when the file was first discovered.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID of the connection the file was sent over.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          ID of the connection the file was sent over.
 
-      fuid: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      fuid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Unique ID of the file.
 
-      action: :bro:type:`SMB::Action` :bro:attr:`&log` :bro:attr:`&optional`
+      action: :zeek:type:`SMB::Action` :zeek:attr:`&log` :zeek:attr:`&optional`
          Action this log record represents.
 
-      path: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      path: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Path pulled from the tree this file was transferred to or from.
 
-      name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Filename if one was seen.
 
-      size: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      size: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Total size of the file.
 
-      prev_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      prev_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          If the rename action was seen, this will be
          the file's previous name.
 
-      times: :bro:type:`SMB::MACTimes` :bro:attr:`&log` :bro:attr:`&optional`
+      times: :zeek:type:`SMB::MACTimes` :zeek:attr:`&log` :zeek:attr:`&optional`
          Last time this file was modified.
 
-      fid: :bro:type:`count` :bro:attr:`&optional`
+      fid: :zeek:type:`count` :zeek:attr:`&optional`
          ID referencing this file.
 
-      uuid: :bro:type:`string` :bro:attr:`&optional`
+      uuid: :zeek:type:`string` :zeek:attr:`&optional`
          UUID referencing this file if DCE/RPC.
 
    This record is for the smb_files.log
 
-.. bro:type:: SMB::State
+.. zeek:type:: SMB::State
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      current_cmd: :bro:type:`SMB::CmdInfo` :bro:attr:`&optional`
+      current_cmd: :zeek:type:`SMB::CmdInfo` :zeek:attr:`&optional`
          A reference to the current command.
 
-      current_file: :bro:type:`SMB::FileInfo` :bro:attr:`&optional`
+      current_file: :zeek:type:`SMB::FileInfo` :zeek:attr:`&optional`
          A reference to the current file.
 
-      current_tree: :bro:type:`SMB::TreeInfo` :bro:attr:`&optional`
+      current_tree: :zeek:type:`SMB::TreeInfo` :zeek:attr:`&optional`
          A reference to the current tree.
 
-      pending_cmds: :bro:type:`table` [:bro:type:`count`] of :bro:type:`SMB::CmdInfo` :bro:attr:`&optional`
+      pending_cmds: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SMB::CmdInfo` :zeek:attr:`&optional`
          Indexed on MID to map responses to requests.
 
-      fid_map: :bro:type:`table` [:bro:type:`count`] of :bro:type:`SMB::FileInfo` :bro:attr:`&optional`
+      fid_map: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SMB::FileInfo` :zeek:attr:`&optional`
          File map to retrieve file information based on the file ID.
 
-      tid_map: :bro:type:`table` [:bro:type:`count`] of :bro:type:`SMB::TreeInfo` :bro:attr:`&optional`
+      tid_map: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SMB::TreeInfo` :zeek:attr:`&optional`
          Tree map to retrieve tree information based on the tree ID.
 
-      uid_map: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string` :bro:attr:`&optional`
+      uid_map: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string` :zeek:attr:`&optional`
          User map to retrieve user name based on the user ID.
 
-      pipe_map: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string` :bro:attr:`&optional`
+      pipe_map: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string` :zeek:attr:`&optional`
          Pipe map to retrieve UUID based on the file ID of a pipe.
 
-      recent_files: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional` :bro:attr:`&read_expire` = ``3.0 mins``
+      recent_files: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional` :zeek:attr:`&read_expire` = ``3.0 mins``
          A set of recent files to avoid logging the same
          files over and over in the smb files log.
          This only applies to files seen in a single connection.
@@ -242,29 +242,29 @@ Types
    This record stores the SMB state of in-flight commands,
    the file and tree map of the connection.
 
-.. bro:type:: SMB::TreeInfo
+.. zeek:type:: SMB::TreeInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log` :bro:attr:`&optional`
+      ts: :zeek:type:`time` :zeek:attr:`&log` :zeek:attr:`&optional`
          Time when the tree was mapped.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID of the connection the tree was mapped over.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          ID of the connection the tree was mapped over.
 
-      path: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      path: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Name of the tree path.
 
-      service: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      service: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The type of resource of the tree (disk share, printer share, named pipe, etc.).
 
-      native_file_system: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      native_file_system: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          File system of the tree.
 
-      share_type: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&default` = ``"DISK"`` :bro:attr:`&optional`
+      share_type: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``"DISK"`` :zeek:attr:`&optional`
          If this is SMB2, a share type will be included.  For SMB1,
          the type of share will be deduced and included as well.
 
@@ -272,17 +272,17 @@ Types
 
 Functions
 #########
-.. bro:id:: SMB::set_current_file
+.. zeek:id:: SMB::set_current_file
 
-   :Type: :bro:type:`function` (smb_state: :bro:type:`SMB::State`, file_id: :bro:type:`count`) : :bro:type:`void`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (smb_state: :zeek:type:`SMB::State`, file_id: :zeek:type:`count`) : :zeek:type:`void`
+   :Attributes: :zeek:attr:`&redef`
 
    This is an internally used function.
 
-.. bro:id:: SMB::write_file_log
+.. zeek:id:: SMB::write_file_log
 
-   :Type: :bro:type:`function` (state: :bro:type:`SMB::State`) : :bro:type:`void`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (state: :zeek:type:`SMB::State`) : :zeek:type:`void`
+   :Attributes: :zeek:attr:`&redef`
 
    This is an internally used function.
 

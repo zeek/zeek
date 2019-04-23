@@ -2,7 +2,7 @@
 
 base/protocols/dce-rpc/consts.zeek
 ==================================
-.. bro:namespace:: DCE_RPC
+.. zeek:namespace:: DCE_RPC
 
 
 :Namespace: DCE_RPC
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-============================================================================================================================================ ==================================================
-:bro:id:`DCE_RPC::operations`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`        
-:bro:id:`DCE_RPC::pipe_name_to_common_uuid`: :bro:type:`table` :bro:attr:`&redef`                                                            This table is to map pipe names to the most common
-                                                                                                                                             service used over that pipe.
-:bro:id:`DCE_RPC::uuid_endpoint_map`: :bro:type:`table` :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` 
-============================================================================================================================================ ==================================================
+================================================================================================================================================== ==================================================
+:zeek:id:`DCE_RPC::operations`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`        
+:zeek:id:`DCE_RPC::pipe_name_to_common_uuid`: :zeek:type:`table` :zeek:attr:`&redef`                                                               This table is to map pipe names to the most common
+                                                                                                                                                   service used over that pipe.
+:zeek:id:`DCE_RPC::uuid_endpoint_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
+================================================================================================================================================== ==================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: DCE_RPC::operations
+.. zeek:id:: DCE_RPC::operations
 
-   :Type: :bro:type:`table` [:bro:type:`string`, :bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`string`, :zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -1319,10 +1319,10 @@ Redefinable Options
       }
 
 
-.. bro:id:: DCE_RPC::pipe_name_to_common_uuid
+.. zeek:id:: DCE_RPC::pipe_name_to_common_uuid
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -1337,10 +1337,10 @@ Redefinable Options
    service used over that pipe.  It helps in cases
    where the pipe binding wasn't seen.
 
-.. bro:id:: DCE_RPC::uuid_endpoint_map
+.. zeek:id:: DCE_RPC::uuid_endpoint_map
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::

@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_SQLiteWriter.sqlite.bif.zeek
 =================================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: LogSQLite
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: LogSQLite
 
 
 :Namespaces: GLOBAL, LogSQLite

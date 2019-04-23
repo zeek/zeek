@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/plugins/packetfilter.zeek
 ====================================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 NetControl plugin for the process-level PacketFilter that comes with
 Bro. Since the PacketFilter in Bro is quite limited in scope
@@ -16,18 +16,18 @@ Summary
 ~~~~~~~
 Functions
 #########
-=============================================================== =====================================
-:bro:id:`NetControl::create_packetfilter`: :bro:type:`function` Instantiates the packetfilter plugin.
-=============================================================== =====================================
+================================================================= =====================================
+:zeek:id:`NetControl::create_packetfilter`: :zeek:type:`function` Instantiates the packetfilter plugin.
+================================================================= =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: NetControl::create_packetfilter
+.. zeek:id:: NetControl::create_packetfilter
 
-   :Type: :bro:type:`function` () : :bro:type:`NetControl::PluginState`
+   :Type: :zeek:type:`function` () : :zeek:type:`NetControl::PluginState`
 
    Instantiates the packetfilter plugin.
 

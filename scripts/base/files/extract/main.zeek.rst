@@ -2,7 +2,7 @@
 
 base/files/extract/main.zeek
 ============================
-.. bro:namespace:: FileExtract
+.. zeek:namespace:: FileExtract
 
 
 :Namespace: FileExtract
@@ -12,39 +12,39 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-========================================================================== ================================================================
-:bro:id:`FileExtract::default_limit`: :bro:type:`count` :bro:attr:`&redef` The default max size for extracted files (they won't exceed this
-                                                                           number of bytes).
-========================================================================== ================================================================
+============================================================================= ================================================================
+:zeek:id:`FileExtract::default_limit`: :zeek:type:`count` :zeek:attr:`&redef` The default max size for extracted files (they won't exceed this
+                                                                              number of bytes).
+============================================================================= ================================================================
 
 Redefinable Options
 ###################
-==================================================================== ========================================
-:bro:id:`FileExtract::prefix`: :bro:type:`string` :bro:attr:`&redef` The prefix where files are extracted to.
-==================================================================== ========================================
+======================================================================= ========================================
+:zeek:id:`FileExtract::prefix`: :zeek:type:`string` :zeek:attr:`&redef` The prefix where files are extracted to.
+======================================================================= ========================================
 
 Redefinitions
 #############
-====================================================================== =
-:bro:type:`Files::AnalyzerArgs`: :bro:type:`record` :bro:attr:`&redef` 
-:bro:type:`Files::Info`: :bro:type:`record` :bro:attr:`&redef`         
-====================================================================== =
+========================================================================= =
+:zeek:type:`Files::AnalyzerArgs`: :zeek:type:`record` :zeek:attr:`&redef` 
+:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef`         
+========================================================================= =
 
 Functions
 #########
-====================================================== =============================================
-:bro:id:`FileExtract::set_limit`: :bro:type:`function` Sets the maximum allowed extracted file size.
-====================================================== =============================================
+======================================================== =============================================
+:zeek:id:`FileExtract::set_limit`: :zeek:type:`function` Sets the maximum allowed extracted file size.
+======================================================== =============================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: FileExtract::default_limit
+.. zeek:id:: FileExtract::default_limit
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``104857600``
 
    The default max size for extracted files (they won't exceed this
@@ -52,19 +52,19 @@ Runtime Options
 
 Redefinable Options
 ###################
-.. bro:id:: FileExtract::prefix
+.. zeek:id:: FileExtract::prefix
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"./extract_files/"``
 
    The prefix where files are extracted to.
 
 Functions
 #########
-.. bro:id:: FileExtract::set_limit
+.. zeek:id:: FileExtract::set_limit
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`, args: :bro:type:`Files::AnalyzerArgs`, n: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, args: :zeek:type:`Files::AnalyzerArgs`, n: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the maximum allowed extracted file size.
    

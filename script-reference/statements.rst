@@ -11,21 +11,21 @@ Declarations
 +----------------------------+-----------------------------+
 | Name                       | Description                 |
 +============================+=============================+
-| :bro:keyword:`module`      | Change the current module   |
+| :zeek:keyword:`module`     | Change the current module   |
 +----------------------------+-----------------------------+
-| :bro:keyword:`export`      | Export identifiers from the |
+| :zeek:keyword:`export`     | Export identifiers from the |
 |                            | current module              |
 +----------------------------+-----------------------------+
-| :bro:keyword:`global`      | Declare a global variable   |
+| :zeek:keyword:`global`     | Declare a global variable   |
 +----------------------------+-----------------------------+
-| :bro:keyword:`const`       | Declare a constant          |
+| :zeek:keyword:`const`      | Declare a constant          |
 +----------------------------+-----------------------------+
-| :bro:keyword:`option`      | Declare a configuration     |
+| :zeek:keyword:`option`     | Declare a configuration     |
 |                            | option                      |
 +----------------------------+-----------------------------+
-| :bro:keyword:`type`        | Declare a user-defined type |
+| :zeek:keyword:`type`       | Declare a user-defined type |
 +----------------------------+-----------------------------+
-| :bro:keyword:`redef`       | Redefine a global value or  |
+| :zeek:keyword:`redef`      | Redefine a global value or  |
 |                            | extend a user-defined type  |
 +----------------------------+-----------------------------+
 | `function/event/hook`_     | Declare a function, event   |
@@ -38,36 +38,36 @@ Statements
 +----------------------------+------------------------+
 | Name                       | Description            |
 +============================+========================+
-| :bro:keyword:`local`       | Declare a local        |
+| :zeek:keyword:`local`      | Declare a local        |
 |                            | variable               |
 +----------------------------+------------------------+
-| :bro:keyword:`add`,        | Add or delete          |
-| :bro:keyword:`delete`      | elements               |
+| :zeek:keyword:`add`,       | Add or delete          |
+| :zeek:keyword:`delete`     | elements               |
 +----------------------------+------------------------+
-| :bro:keyword:`print`       | Print to stdout or a   |
+| :zeek:keyword:`print`      | Print to stdout or a   |
 |                            | file                   |
 +----------------------------+------------------------+
-| :bro:keyword:`for`,        | Loop over each         |
-| :bro:keyword:`while`,      | element in a container |
-| :bro:keyword:`next`,       | object (``for``), or   |
-| :bro:keyword:`break`       | as long as a condition |
+| :zeek:keyword:`for`,       | Loop over each         |
+| :zeek:keyword:`while`,     | element in a container |
+| :zeek:keyword:`next`,      | object (``for``), or   |
+| :zeek:keyword:`break`      | as long as a condition |
 |                            | evaluates to true      |
 |                            | (``while``).           |
 +----------------------------+------------------------+
-| :bro:keyword:`if`          | Evaluate boolean       |
+| :zeek:keyword:`if`         | Evaluate boolean       |
 |                            | expression and if true,|
 |                            | execute a statement    |
 +----------------------------+------------------------+
-| :bro:keyword:`switch`,     | Evaluate expression    |
-| :bro:keyword:`break`,      | and execute statement  |
-| :bro:keyword:`fallthrough` | with a matching value  |
+| :zeek:keyword:`switch`,    | Evaluate expression    |
+| :zeek:keyword:`break`,     | and execute statement  |
+| :zeek:keyword:`fallthrough`| with a matching value  |
 +----------------------------+------------------------+
-| :bro:keyword:`when`        | Asynchronous execution |
+| :zeek:keyword:`when`       | Asynchronous execution |
 +----------------------------+------------------------+
-| :bro:keyword:`event`,      | Invoke or schedule     |
-| :bro:keyword:`schedule`    | an event handler       |
+| :zeek:keyword:`event`,     | Invoke or schedule     |
+| :zeek:keyword:`schedule`   | an event handler       |
 +----------------------------+------------------------+
-| :bro:keyword:`return`      | Return from function,  |
+| :zeek:keyword:`return`     | Return from function,  |
 |                            | hook, or event handler |
 +----------------------------+------------------------+
 
@@ -80,7 +80,7 @@ Declarations must appear before any statements (except those statements
 that are in a function, hook, or event handler) in the concatenation of
 all loaded Bro scripts.
 
-.. bro:keyword:: module
+.. zeek:keyword:: module
 
     The "module" keyword is used to change the current module.  This
     affects the scope of any subsequently declared global identifiers.
@@ -93,7 +93,7 @@ all loaded Bro scripts.
     then its scope ends at the end of the current Bro script or at the
     next "module" declaration, whichever comes first.  However, if a
     global identifier is declared after a "module" declaration, but inside
-    an :bro:keyword:`export` block, then its scope ends at the end of the
+    an :zeek:keyword:`export` block, then its scope ends at the end of the
     last loaded Bro script, but it must be referenced using the namespace
     operator (``::``) in other modules.
 
@@ -102,13 +102,13 @@ all loaded Bro scripts.
     Bro scripts.
 
 
-.. bro:keyword:: export
+.. zeek:keyword:: export
 
     An "export" block contains one or more declarations
     (no statements are allowed in an "export" block) that the current
     module is exporting.  This enables these global identifiers to be visible
     in other modules (but not prior to their declaration) via the namespace
-    operator (``::``).  See the :bro:keyword:`module` keyword for a more
+    operator (``::``).  See the :zeek:keyword:`module` keyword for a more
     detailed explanation.
 
     Example::
@@ -128,7 +128,7 @@ all loaded Bro scripts.
     (they do not indicate a compound statement).  Also, no semicolon is
     needed to terminate an "export" block.
 
-.. bro:keyword:: global
+.. zeek:keyword:: global
 
     Variables declared with the "global" keyword will be global.
 
@@ -144,7 +144,7 @@ all loaded Bro scripts.
 
     Variable declarations outside of any function, hook, or event handler are
     required to use this keyword (unless they are declared with the
-    :bro:keyword:`const` keyword instead).
+    :zeek:keyword:`const` keyword instead).
 
     Definitions of functions, hooks, and event handlers are not allowed
     to use the "global" keyword.  However, function declarations (i.e., no
@@ -152,11 +152,11 @@ all loaded Bro scripts.
 
     The scope of a global variable begins where the declaration is located,
     and extends through all remaining Bro scripts that are loaded (however,
-    see the :bro:keyword:`module` keyword for an explanation of how modules
+    see the :zeek:keyword:`module` keyword for an explanation of how modules
     change the visibility of global identifiers).
 
 
-.. bro:keyword:: const
+.. zeek:keyword:: const
 
     A variable declared with the "const" keyword will be constant.
 
@@ -168,9 +168,9 @@ all loaded Bro scripts.
         const ssh_port: port = 22/tcp;
 
     The value of a constant cannot be changed.  The only exception is if the
-    variable is a global constant and has the :bro:attr:`&redef`
+    variable is a global constant and has the :zeek:attr:`&redef`
     attribute, but even then its value can be changed only with a
-    :bro:keyword:`redef`.
+    :zeek:keyword:`redef`.
 
     The scope of a constant is local if the declaration is in a
     function, hook, or event handler, and global otherwise.
@@ -179,7 +179,7 @@ all loaded Bro scripts.
     or "global" keywords (i.e., "const" replaces "local" and "global").
 
 
-.. bro:keyword:: option
+.. zeek:keyword:: option
 
     A variable declared with the "option" keyword is a configuration option.
 
@@ -190,11 +190,11 @@ all loaded Bro scripts.
         option hostname = "host-1";
         option peers: set[addr] = {};
 
-    The initial value can be redefined with a :bro:keyword:`redef`.
+    The initial value can be redefined with a :zeek:keyword:`redef`.
 
     The value of an option cannot be changed by an assignment statement, but
-    it can be changed by either the :bro:id:`Config::set_value` function or
-    by changing a config file specified in :bro:id:`Config::config_files`.
+    it can be changed by either the :zeek:id:`Config::set_value` function or
+    by changing a config file specified in :zeek:id:`Config::config_files`.
 
     The scope of an option is global.
 
@@ -202,14 +202,14 @@ all loaded Bro scripts.
     or "const" keywords.
 
 
-.. bro:keyword:: type
+.. zeek:keyword:: type
 
    The "type" keyword is used to declare a user-defined type.  The name
    of this new type has global scope and can be used anywhere a built-in
    type name can occur.
 
    The "type" keyword is most commonly used when defining a
-   :bro:type:`record` or an :bro:type:`enum`, but is also useful when
+   :zeek:type:`record` or an :zeek:type:`enum`, but is also useful when
    dealing with more complex types.
 
    Example::
@@ -217,7 +217,7 @@ all loaded Bro scripts.
        type mytype: table[count] of table[addr, port] of string;
        global myvar: mytype;
 
-.. bro:keyword:: redef
+.. zeek:keyword:: redef
 
     There are several ways that "redef" can be used:  to redefine the initial
     value of a global variable or runtime option, to extend a record type or
@@ -225,11 +225,11 @@ all loaded Bro scripts.
     that were previously defined.
 
     If you're using "redef" to redefine the initial value of a global variable
-    (defined using either :bro:keyword:`const` or :bro:keyword:`global`), then
-    the variable that you want to change must have the :bro:attr:`&redef`
+    (defined using either :zeek:keyword:`const` or :zeek:keyword:`global`), then
+    the variable that you want to change must have the :zeek:attr:`&redef`
     attribute.  You can use "redef" to redefine the initial value of a
-    runtime option (defined using :bro:keyword:`option`) even if it doesn't
-    have the :bro:attr:`&redef` attribute.
+    runtime option (defined using :zeek:keyword:`option`) even if it doesn't
+    have the :zeek:attr:`&redef` attribute.
 
     If the variable you're changing is a table, set, vector, or pattern, you can
     use ``+=`` to add new elements, or you can use ``=`` to specify a new value
@@ -248,7 +248,7 @@ all loaded Bro scripts.
     use the ``+=`` assignment operator.
     For an enum, you can add more enumeration constants, and for a record
     you can add more record fields (however, each record field in the "redef"
-    must have either the :bro:attr:`&optional` or :bro:attr:`&default`
+    must have either the :zeek:attr:`&optional` or :zeek:attr:`&default`
     attribute).
 
     Examples::
@@ -270,8 +270,8 @@ all loaded Bro scripts.
 .. _function/event/hook:
 
 **function/event/hook**
-    For details on how to declare a :bro:type:`function`,
-    :bro:type:`event` handler, or :bro:type:`hook`,
+    For details on how to declare a :zeek:type:`function`,
+    :zeek:type:`event` handler, or :zeek:type:`hook`,
     see the documentation for those types.
 
 
@@ -288,9 +288,9 @@ lines.
 
 Here are the statements that the Bro scripting language supports.
 
-.. bro:keyword:: add
+.. zeek:keyword:: add
 
-    The "add" statement is used to add an element to a :bro:type:`set`.
+    The "add" statement is used to add an element to a :zeek:type:`set`.
     Nothing happens if the specified element already exists in the set.
 
     Example::
@@ -298,17 +298,17 @@ Here are the statements that the Bro scripting language supports.
         local myset: set[string];
         add myset["test"];
 
-.. bro:keyword:: break
+.. zeek:keyword:: break
 
-    The "break" statement is used to break out of a :bro:keyword:`switch`,
-    :bro:keyword:`for`, or :bro:keyword:`while` statement.
+    The "break" statement is used to break out of a :zeek:keyword:`switch`,
+    :zeek:keyword:`for`, or :zeek:keyword:`while` statement.
 
 
-.. bro:keyword:: delete
+.. zeek:keyword:: delete
 
     The "delete" statement is used to remove an element from a
-    :bro:type:`set` or :bro:type:`table`, or to remove a value from
-    a :bro:type:`record` field that has the :bro:attr:`&optional` attribute.
+    :zeek:type:`set` or :zeek:type:`table`, or to remove a value from
+    a :zeek:type:`record` field that has the :zeek:attr:`&optional` attribute.
     When attempting to remove an element from a set or table,
     nothing happens if the specified index does not exist.
     When attempting to remove a value from an "&optional" record field,
@@ -326,7 +326,7 @@ Here are the statements that the Bro scripting language supports.
         # In this example, "b" must have the "&optional" attribute
         delete myrec$b;
 
-.. bro:keyword:: event
+.. zeek:keyword:: event
 
     The "event" statement immediately queues invocation of an event handler.
 
@@ -334,15 +334,15 @@ Here are the statements that the Bro scripting language supports.
 
         event myevent("test", 5);
 
-.. bro:keyword:: fallthrough
+.. zeek:keyword:: fallthrough
 
     The "fallthrough" statement can be used as the last statement in a
     "case" block to indicate that execution should continue into the
     next "case" or "default" label.
 
-    For an example, see the :bro:keyword:`switch` statement.
+    For an example, see the :zeek:keyword:`switch` statement.
 
-.. bro:keyword:: for
+.. zeek:keyword:: for
 
     A "for" loop iterates over each element in a string, set, vector, or
     table and executes a statement for each iteration (note that the order
@@ -373,8 +373,8 @@ Here are the statements that the Bro scripting language supports.
     result in undefined behavior, so do not add or remove elements
     inside the loop.
 
-    A :bro:keyword:`break` statement will immediately terminate the "for"
-    loop, and a :bro:keyword:`next` statement will skip to the next loop
+    A :zeek:keyword:`break` statement will immediately terminate the "for"
+    loop, and a :zeek:keyword:`next` statement will skip to the next loop
     iteration.
 
     Example::
@@ -394,9 +394,9 @@ Here are the statements that the Bro scripting language supports.
         }
 
 
-.. bro:keyword:: if
+.. zeek:keyword:: if
 
-    Evaluates a given expression, which must yield a :bro:type:`bool` value.
+    Evaluates a given expression, which must yield a :zeek:type:`bool` value.
     If true, then a specified statement is executed.  If false, then
     the statement is not executed.  Example::
 
@@ -411,7 +411,7 @@ Here are the statements that the Bro scripting language supports.
         else
             print "x is not 2";
 
-.. bro:keyword:: local
+.. zeek:keyword:: local
 
     A variable declared with the "local" keyword will be local.  If a type
     is not specified, then an initializer is required so that the type can
@@ -426,8 +426,8 @@ Here are the statements that the Bro scripting language supports.
 
     Variable declarations inside a function, hook, or event handler are
     required to use this keyword (the only two exceptions are variables
-    declared with :bro:keyword:`const`, and variables implicitly declared in a
-    :bro:keyword:`for` statement).
+    declared with :zeek:keyword:`const`, and variables implicitly declared in a
+    :zeek:keyword:`for` statement).
 
     The scope of a local variable starts at the location where it is declared
     and persists to the end of the function, hook,
@@ -436,14 +436,14 @@ Here are the statements that the Bro scripting language supports.
     variable in a "for" statement).
 
 
-.. bro:keyword:: next
+.. zeek:keyword:: next
 
-    The "next" statement can only appear within a :bro:keyword:`for` or
-    :bro:keyword:`while` loop.  It causes execution to skip to the next
+    The "next" statement can only appear within a :zeek:keyword:`for` or
+    :zeek:keyword:`while` loop.  It causes execution to skip to the next
     iteration.
 
 
-.. bro:keyword:: print
+.. zeek:keyword:: print
 
     The "print" statement takes a comma-separated list of one or more
     expressions.  Each expression in the list is evaluated and then converted
@@ -457,16 +457,16 @@ Here are the statements that the Bro scripting language supports.
 
     By default, the "print" statement writes to the standard
     output (stdout).  However, if the first expression is of type
-    :bro:type:`file`, then "print" writes to that file.
+    :zeek:type:`file`, then "print" writes to that file.
 
     If a string contains non-printable characters (i.e., byte values that are
     not in the range 32 - 126), then the "print" statement converts each
     non-printable character to an escape sequence before it is printed.
 
-    For more control over how the strings are formatted, see the :bro:id:`fmt`
+    For more control over how the strings are formatted, see the :zeek:id:`fmt`
     function.
 
-.. bro:keyword:: return
+.. zeek:keyword:: return
 
     The "return" statement immediately exits the current function, hook, or
     event handler.  For a function, the specified expression (if any) is
@@ -489,10 +489,10 @@ Here are the statements that the Bro scripting language supports.
         }
 
     There is a special form of the "return" statement that is only allowed
-    in functions.  Syntactically, it looks like a :bro:keyword:`when` statement
+    in functions.  Syntactically, it looks like a :zeek:keyword:`when` statement
     immediately preceded by the "return" keyword.  This form of the "return"
     statement is used to specify a function that delays its result (such a
-    function can only be called in the expression of a :bro:keyword:`when`
+    function can only be called in the expression of a :zeek:keyword:`when`
     statement).  The function returns at the time the "when"
     statement's condition becomes true, and the function returns the value
     that the "when" statement's body returns (or if the condition does
@@ -527,10 +527,10 @@ Here are the statements that the Bro scripting language supports.
             }
 
 
-.. bro:keyword:: schedule
+.. zeek:keyword:: schedule
 
     The "schedule" statement is used to raise a specified event with
-    specified parameters at a later time specified as an :bro:type:`interval`.
+    specified parameters at a later time specified as an :zeek:type:`interval`.
 
     Example::
 
@@ -542,7 +542,7 @@ Here are the statements that the Bro scripting language supports.
     Note that "schedule" is actually an expression that returns a value
     of type "timer", but in practice the return value is not used.
 
-.. bro:keyword:: switch
+.. zeek:keyword:: switch
 
     A "switch" statement evaluates a given expression and jumps to
     the first "case" label which contains a matching value (the result of the
@@ -576,8 +576,8 @@ Here are the statements that the Bro scripting language supports.
     only of constants).
 
     Each "case" and the "default" block must
-    end with either a :bro:keyword:`break`, :bro:keyword:`fallthrough`, or
-    :bro:keyword:`return` statement (although "return" is allowed only
+    end with either a :zeek:keyword:`break`, :zeek:keyword:`fallthrough`, or
+    :zeek:keyword:`return` statement (although "return" is allowed only
     if the "switch" statement is inside a function, hook, or event handler).
 
     Note that the braces in a "switch" statement are always required (these
@@ -621,10 +621,10 @@ Here are the statements that the Bro scripting language supports.
     documentation of the type casting operator "as").
 
 
-.. bro:keyword:: when
+.. zeek:keyword:: when
 
     Evaluates a given expression, which must result in a value of type
-    :bro:type:`bool`.  When the value of the expression becomes available
+    :zeek:type:`bool`.  When the value of the expression becomes available
     and if the result is true, then a specified statement is executed.
 
     In the following example, if the expression evaluates to true, then
@@ -653,22 +653,22 @@ Here are the statements that the Bro scripting language supports.
     is always a boolean true value.
 
     The expression in a "when" statement can contain an asynchronous function
-    call such as :bro:id:`lookup_hostname` (in fact, this is the only place
+    call such as :zeek:id:`lookup_hostname` (in fact, this is the only place
     such a function can be called), but it can also contain an ordinary
     function call.  When an asynchronous function call is in the expression,
     then Bro will continue processing statements in the script following
     the "when" statement, and when the result of the function call is available
     Bro will finish evaluating the expression in the "when" statement.
-    See the :bro:keyword:`return` statement for an explanation of how to
+    See the :zeek:keyword:`return` statement for an explanation of how to
     create an asynchronous function in a Bro script.
 
-.. bro:keyword:: while
+.. zeek:keyword:: while
 
     A "while" loop iterates over a body statement as long as a given
     condition remains true.
 
-    A :bro:keyword:`break` statement can be used at any time to immediately
-    terminate the "while" loop, and a :bro:keyword:`next` statement can be
+    A :zeek:keyword:`break` statement can be used at any time to immediately
+    terminate the "while" loop, and a :zeek:keyword:`next` statement can be
     used to skip to the next loop iteration.
 
     Example::
@@ -699,8 +699,8 @@ Here are the statements that the Bro scripting language supports.
     (outside of the braces) of a compound statement.
 
     A compound statement is required in order to execute more than one
-    statement in the body of a :bro:keyword:`for`, :bro:keyword:`while`,
-    :bro:keyword:`if`, or :bro:keyword:`when` statement.
+    statement in the body of a :zeek:keyword:`for`, :zeek:keyword:`while`,
+    :zeek:keyword:`if`, or :zeek:keyword:`when` statement.
 
     Example::
 

@@ -57,9 +57,9 @@ initialized when declared (the type can often be inferred from the initializer
 but may need to be specified).  The value of an option can change at runtime,
 but options cannot be assigned a new value using normal assignments.
 
-The initial value of an option can be redefined with a :bro:keyword:`redef`
+The initial value of an option can be redefined with a :zeek:keyword:`redef`
 declaration just like for global variables and constants.  The only difference
-being that there is no need to specify the :bro:attr:`&redef` attribute in
+being that there is no need to specify the :zeek:attr:`&redef` attribute in
 the declaration of an option.  For example, given the above option
 declarations, here are some possible redefs:
 
@@ -81,7 +81,7 @@ The format for these files looks like this:
     [option name][tab/spaces][new value]
 
 Configuration files can be specified by adding them
-to :bro:id:`Config::config_files`.  Note that in a cluster configuration,
+to :zeek:id:`Config::config_files`.  Note that in a cluster configuration,
 only the manager node attempts to read the specified configuration files.
 
 For example, simply add something like this to local.zeek:
@@ -103,7 +103,7 @@ the cluster).  Here is an example configuration file::
     TestModule::my_ports 80/tcp,53/udp
 
 Note that as seen in the above example, for options of
-type :bro:type:`interval`, the numeric value in the config file
+type :zeek:type:`interval`, the numeric value in the config file
 is interpreted as seconds and there cannot be any time units
 (such as sec, min, etc.).
 
@@ -116,7 +116,7 @@ tabs or spaces are accepted as separators.
 
 If you inspect the configuration framework scripts, you will notice that the
 scripts simply catch events from the input framework and then a
-function :bro:see:`Config::set_value` is called to set an option to the new
+function :zeek:see:`Config::set_value` is called to set an option to the new
 value.  If you want to change an option yourself during runtime, you can
 call Config::set_value directly from a script (in a cluster configuration,
 this only needs to happen on the manager, as the change will be automatically
@@ -183,7 +183,7 @@ the change).
 It is possible define multiple change handlers for a single option.  In
 this case, the change handlers are chained together: the value returned by the
 first change handler is the "new value" seen by the next change handler, and
-so on.  The built-in function :bro:see:`Option::set_change_handler` takes an
+so on.  The built-in function :zeek:see:`Option::set_change_handler` takes an
 optional third argument that can specify a priority for the handlers.
 
 A change handler function can optionally have a third argument of type

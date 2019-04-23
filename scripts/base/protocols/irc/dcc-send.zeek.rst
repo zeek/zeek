@@ -2,7 +2,7 @@
 
 base/protocols/irc/dcc-send.zeek
 ================================
-.. bro:namespace:: IRC
+.. zeek:namespace:: IRC
 
 File extraction and introspection for DCC transfers over IRC.
 
@@ -19,9 +19,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================= =
-:bro:type:`IRC::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`IRC::Info`: :zeek:type:`record` 
+=========================================== =
 
 
 Detailed Interface

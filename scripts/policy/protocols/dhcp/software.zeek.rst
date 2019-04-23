@@ -2,7 +2,7 @@
 
 policy/protocols/dhcp/software.zeek
 ===================================
-.. bro:namespace:: DHCP
+.. zeek:namespace:: DHCP
 
 Software identification and extraction for DHCP traffic.
 
@@ -13,10 +13,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`DHCP::Info`: :bro:type:`record`   
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`DHCP::Info`: :zeek:type:`record`   
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface

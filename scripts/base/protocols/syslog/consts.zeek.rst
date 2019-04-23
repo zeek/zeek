@@ -2,7 +2,7 @@
 
 base/protocols/syslog/consts.zeek
 =================================
-.. bro:namespace:: Syslog
+.. zeek:namespace:: Syslog
 
 Constants definitions for syslog.
 
@@ -12,20 +12,20 @@ Summary
 ~~~~~~~
 Constants
 #########
-===================================================================================================================== ======================================================================
-:bro:id:`Syslog::facility_codes`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` Mapping between the constants and string values for syslog facilities.
-:bro:id:`Syslog::severity_codes`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` Mapping between the constants and string values for syslog severities.
-===================================================================================================================== ======================================================================
+========================================================================================================================== ======================================================================
+:zeek:id:`Syslog::facility_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Mapping between the constants and string values for syslog facilities.
+:zeek:id:`Syslog::severity_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Mapping between the constants and string values for syslog severities.
+========================================================================================================================== ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: Syslog::facility_codes
+.. zeek:id:: Syslog::facility_codes
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -60,10 +60,10 @@ Constants
 
    Mapping between the constants and string values for syslog facilities.
 
-.. bro:id:: Syslog::severity_codes
+.. zeek:id:: Syslog::severity_codes
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::

@@ -2,7 +2,7 @@
 
 base/protocols/ntlm/main.zeek
 =============================
-.. bro:namespace:: NTLM
+.. zeek:namespace:: NTLM
 
 
 :Namespace: NTLM
@@ -12,58 +12,58 @@ Summary
 ~~~~~~~
 Types
 #####
-========================================== =
-:bro:type:`NTLM::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`NTLM::Info`: :zeek:type:`record` 
+============================================ =
 
 Redefinitions
 #############
-==================================================================== =
-:bro:id:`DPD::ignore_violations`: :bro:type:`set` :bro:attr:`&redef` 
-:bro:type:`Log::ID`: :bro:type:`enum`                                
-:bro:type:`connection`: :bro:type:`record`                           
-==================================================================== =
+======================================================================= =
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef` 
+:zeek:type:`Log::ID`: :zeek:type:`enum`                                 
+:zeek:type:`connection`: :zeek:type:`record`                            
+======================================================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NTLM::Info
+.. zeek:type:: NTLM::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the event happened.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      username: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      username: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Username given by the client.
 
-      hostname: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      hostname: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Hostname given by the client.
 
-      domainname: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      domainname: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Domainname given by the client.
 
-      server_nb_computer_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_nb_computer_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          NetBIOS name given by the server in a CHALLENGE.
 
-      server_dns_computer_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_dns_computer_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          DNS name given by the server in a CHALLENGE.
 
-      server_tree_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_tree_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Tree name given by the server in a CHALLENGE.
 
-      success: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      success: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Indicate whether or not the authentication was successful.
 
-      done: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Internally used field to indicate if the login attempt 
          has already been logged.
 

@@ -2,7 +2,7 @@
 
 base/protocols/modbus/consts.zeek
 =================================
-.. bro:namespace:: Modbus
+.. zeek:namespace:: Modbus
 
 
 :Namespace: Modbus
@@ -11,20 +11,20 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-========================================================================================================================================= =======================================
-:bro:id:`Modbus::exception_codes`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef` 
-:bro:id:`Modbus::function_codes`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef`  Standard defined Modbus function codes.
-========================================================================================================================================= =======================================
+=============================================================================================================================================== =======================================
+:zeek:id:`Modbus::exception_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef` 
+:zeek:id:`Modbus::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`  Standard defined Modbus function codes.
+=============================================================================================================================================== =======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Modbus::exception_codes
+.. zeek:id:: Modbus::exception_codes
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -42,10 +42,10 @@ Redefinable Options
       }
 
 
-.. bro:id:: Modbus::function_codes
+.. zeek:id:: Modbus::function_codes
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
    :Default:
 
    ::

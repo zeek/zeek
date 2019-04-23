@@ -2,7 +2,7 @@
 
 base/protocols/ftp/main.zeek
 ============================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 The logging this script does is primarily focused on logging FTP commands
 along with metadata.  For example, if files are transferred, the argument
@@ -16,47 +16,47 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================== ======================================================================
-:bro:id:`FTP::guest_ids`: :bro:type:`set` :bro:attr:`&redef`       User IDs that can be considered "anonymous".
-:bro:id:`FTP::logged_commands`: :bro:type:`set` :bro:attr:`&redef` List of commands that should have their command/response pairs logged.
-================================================================== ======================================================================
+===================================================================== ======================================================================
+:zeek:id:`FTP::guest_ids`: :zeek:type:`set` :zeek:attr:`&redef`       User IDs that can be considered "anonymous".
+:zeek:id:`FTP::logged_commands`: :zeek:type:`set` :zeek:attr:`&redef` List of commands that should have their command/response pairs logged.
+===================================================================== ======================================================================
 
 Types
 #####
-============================================== ===============================================
-:bro:type:`FTP::ReplyCode`: :bro:type:`record` This record is to hold a parsed FTP reply code.
-============================================== ===============================================
+================================================ ===============================================
+:zeek:type:`FTP::ReplyCode`: :zeek:type:`record` This record is to hold a parsed FTP reply code.
+================================================ ===============================================
 
 Redefinitions
 #############
-================================================================= ===========================================
-:bro:type:`Log::ID`: :bro:type:`enum`                             The FTP protocol logging stream identifier.
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= ===========================================
+==================================================================== ===========================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              The FTP protocol logging stream identifier.
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== ===========================================
 
 Events
 ######
-========================================= =============================================================
-:bro:id:`FTP::log_ftp`: :bro:type:`event` Event that can be handled to access the :bro:type:`FTP::Info`
-                                          record as it is sent on to the logging framework.
-========================================= =============================================================
+=========================================== ==============================================================
+:zeek:id:`FTP::log_ftp`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`FTP::Info`
+                                            record as it is sent on to the logging framework.
+=========================================== ==============================================================
 
 Functions
 #########
-========================================================= =====================================================================
-:bro:id:`FTP::parse_ftp_reply_code`: :bro:type:`function` Parse FTP reply codes into the three constituent single digit values.
-========================================================= =====================================================================
+=========================================================== =====================================================================
+:zeek:id:`FTP::parse_ftp_reply_code`: :zeek:type:`function` Parse FTP reply codes into the three constituent single digit values.
+=========================================================== =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: FTP::guest_ids
+.. zeek:id:: FTP::guest_ids
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -70,10 +70,10 @@ Runtime Options
 
    User IDs that can be considered "anonymous".
 
-.. bro:id:: FTP::logged_commands
+.. zeek:id:: FTP::logged_commands
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -95,33 +95,33 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: FTP::ReplyCode
+.. zeek:type:: FTP::ReplyCode
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      x: :bro:type:`count`
+      x: :zeek:type:`count`
 
-      y: :bro:type:`count`
+      y: :zeek:type:`count`
 
-      z: :bro:type:`count`
+      z: :zeek:type:`count`
 
    This record is to hold a parsed FTP reply code.  For example, for the
    201 status code, the digits would be parsed as: x->2, y->0, z->1.
 
 Events
 ######
-.. bro:id:: FTP::log_ftp
+.. zeek:id:: FTP::log_ftp
 
-   :Type: :bro:type:`event` (rec: :bro:type:`FTP::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`FTP::Info`)
 
-   Event that can be handled to access the :bro:type:`FTP::Info`
+   Event that can be handled to access the :zeek:type:`FTP::Info`
    record as it is sent on to the logging framework.
 
 Functions
 #########
-.. bro:id:: FTP::parse_ftp_reply_code
+.. zeek:id:: FTP::parse_ftp_reply_code
 
-   :Type: :bro:type:`function` (code: :bro:type:`count`) : :bro:type:`FTP::ReplyCode`
+   :Type: :zeek:type:`function` (code: :zeek:type:`count`) : :zeek:type:`FTP::ReplyCode`
 
    Parse FTP reply codes into the three constituent single digit values.
 

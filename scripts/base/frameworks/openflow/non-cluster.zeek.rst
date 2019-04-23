@@ -2,7 +2,7 @@
 
 base/frameworks/openflow/non-cluster.zeek
 =========================================
-.. bro:namespace:: OpenFlow
+.. zeek:namespace:: OpenFlow
 
 
 :Namespace: OpenFlow

@@ -2,7 +2,7 @@
 
 base/protocols/smb/smb1-main.zeek
 =================================
-.. bro:namespace:: SMB1
+.. zeek:namespace:: SMB1
 
 
 :Namespace: SMB1
@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`SMB::CmdInfo`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`SMB::CmdInfo`: :zeek:type:`record` 
+============================================== =
 
 
 Detailed Interface

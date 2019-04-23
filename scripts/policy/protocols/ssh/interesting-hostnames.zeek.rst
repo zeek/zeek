@@ -2,7 +2,7 @@
 
 policy/protocols/ssh/interesting-hostnames.zeek
 ===============================================
-.. bro:namespace:: SSH
+.. zeek:namespace:: SSH
 
 This script will generate a notice if an apparent SSH login originates 
 or heads to a host with a reverse hostname that looks suspicious.  By 
@@ -17,25 +17,25 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================ ===============================================================
-:bro:id:`SSH::interesting_hostnames`: :bro:type:`pattern` :bro:attr:`&redef` Strange/bad host names to see successful SSH logins from or to.
-============================================================================ ===============================================================
+=============================================================================== ===============================================================
+:zeek:id:`SSH::interesting_hostnames`: :zeek:type:`pattern` :zeek:attr:`&redef` Strange/bad host names to see successful SSH logins from or to.
+=============================================================================== ===============================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSH::interesting_hostnames
+.. zeek:id:: SSH::interesting_hostnames
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

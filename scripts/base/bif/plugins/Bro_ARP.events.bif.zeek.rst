@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_ARP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,20 +11,20 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================== ====================================================
-:bro:id:`arp_reply`: :bro:type:`event`   Generated for ARP replies.
-:bro:id:`arp_request`: :bro:type:`event` Generated for ARP requests.
-:bro:id:`bad_arp`: :bro:type:`event`     Generated for ARP packets that Bro cannot interpret.
-======================================== ====================================================
+========================================== ====================================================
+:zeek:id:`arp_reply`: :zeek:type:`event`   Generated for ARP replies.
+:zeek:id:`arp_request`: :zeek:type:`event` Generated for ARP requests.
+:zeek:id:`bad_arp`: :zeek:type:`event`     Generated for ARP packets that Bro cannot interpret.
+========================================== ====================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: arp_reply
+.. zeek:id:: arp_reply
 
-   :Type: :bro:type:`event` (mac_src: :bro:type:`string`, mac_dst: :bro:type:`string`, SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`)
+   :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP replies.
    
@@ -49,11 +49,11 @@ Events
 
    :THA: The target hardware address.
    
-   .. bro:see::  arp_request bad_arp
+   .. zeek:see::  arp_request bad_arp
 
-.. bro:id:: arp_request
+.. zeek:id:: arp_request
 
-   :Type: :bro:type:`event` (mac_src: :bro:type:`string`, mac_dst: :bro:type:`string`, SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`)
+   :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP requests.
    
@@ -78,11 +78,11 @@ Events
 
    :THA: The target hardware address.
    
-   .. bro:see:: arp_reply  bad_arp
+   .. zeek:see:: arp_reply  bad_arp
 
-.. bro:id:: bad_arp
+.. zeek:id:: bad_arp
 
-   :Type: :bro:type:`event` (SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`, explanation: :bro:type:`string`)
+   :Type: :zeek:type:`event` (SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`, explanation: :zeek:type:`string`)
 
    Generated for ARP packets that Bro cannot interpret. Examples are packets
    with non-standard hardware address formats or hardware addresses that do not
@@ -103,7 +103,7 @@ Events
 
    :explanation: A short description of why the ARP packet is considered "bad".
    
-   .. bro:see:: arp_reply arp_request
+   .. zeek:see:: arp_reply arp_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

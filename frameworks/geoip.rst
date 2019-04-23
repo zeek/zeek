@@ -85,7 +85,7 @@ functionality works by running a command like this:
 
 If you see an error message similar to "Failed to open GeoIP location
 database", then you may need to either rename or move your GeoIP
-location database file.  If the :bro:see:`mmdb_dir` value is set to a
+location database file.  If the :zeek:see:`mmdb_dir` value is set to a
 directory pathname (it is not set by default), then Bro looks for location
 database files in that directory.  If none are found or if mmdb_dir is not set,
 then Bro looks for location database files in the following order:
@@ -115,8 +115,8 @@ There is a built-in function that provides the GeoIP functionality:
 
     function lookup_location(a:addr): geo_location
 
-The return value of the :bro:see:`lookup_location` function is a record
-type called :bro:see:`geo_location`, and it consists of several fields
+The return value of the :zeek:see:`lookup_location` function is a record
+type called :zeek:see:`geo_location`, and it consists of several fields
 containing the country, region, city, latitude, and longitude of the specified
 IP address.  Since one or more fields in this record will be uninitialized
 for some IP addresses (for example, the country and region of an IP address

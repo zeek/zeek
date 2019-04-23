@@ -2,8 +2,8 @@
 
 base/bif/analyzer.bif.zeek
 ==========================
-.. bro:namespace:: Analyzer
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: Analyzer
+.. zeek:namespace:: GLOBAL
 
 Internal functions and types used by the analyzer framework.
 
@@ -13,54 +13,54 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================================= =
-:bro:id:`Analyzer::__disable_all_analyzers`: :bro:type:`function` 
-:bro:id:`Analyzer::__disable_analyzer`: :bro:type:`function`      
-:bro:id:`Analyzer::__enable_analyzer`: :bro:type:`function`       
-:bro:id:`Analyzer::__name`: :bro:type:`function`                  
-:bro:id:`Analyzer::__register_for_port`: :bro:type:`function`     
-:bro:id:`Analyzer::__schedule_analyzer`: :bro:type:`function`     
-:bro:id:`Analyzer::__tag`: :bro:type:`function`                   
-================================================================= =
+=================================================================== =
+:zeek:id:`Analyzer::__disable_all_analyzers`: :zeek:type:`function` 
+:zeek:id:`Analyzer::__disable_analyzer`: :zeek:type:`function`      
+:zeek:id:`Analyzer::__enable_analyzer`: :zeek:type:`function`       
+:zeek:id:`Analyzer::__name`: :zeek:type:`function`                  
+:zeek:id:`Analyzer::__register_for_port`: :zeek:type:`function`     
+:zeek:id:`Analyzer::__schedule_analyzer`: :zeek:type:`function`     
+:zeek:id:`Analyzer::__tag`: :zeek:type:`function`                   
+=================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Analyzer::__disable_all_analyzers
+.. zeek:id:: Analyzer::__disable_all_analyzers
 
-   :Type: :bro:type:`function` () : :bro:type:`any`
-
-
-.. bro:id:: Analyzer::__disable_analyzer
-
-   :Type: :bro:type:`function` (id: :bro:type:`Analyzer::Tag`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` () : :zeek:type:`any`
 
 
-.. bro:id:: Analyzer::__enable_analyzer
+.. zeek:id:: Analyzer::__disable_analyzer
 
-   :Type: :bro:type:`function` (id: :bro:type:`Analyzer::Tag`) : :bro:type:`bool`
-
-
-.. bro:id:: Analyzer::__name
-
-   :Type: :bro:type:`function` (atype: :bro:type:`Analyzer::Tag`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Analyzer::Tag`) : :zeek:type:`bool`
 
 
-.. bro:id:: Analyzer::__register_for_port
+.. zeek:id:: Analyzer::__enable_analyzer
 
-   :Type: :bro:type:`function` (id: :bro:type:`Analyzer::Tag`, p: :bro:type:`port`) : :bro:type:`bool`
-
-
-.. bro:id:: Analyzer::__schedule_analyzer
-
-   :Type: :bro:type:`function` (orig: :bro:type:`addr`, resp: :bro:type:`addr`, resp_p: :bro:type:`port`, analyzer: :bro:type:`Analyzer::Tag`, tout: :bro:type:`interval`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`Analyzer::Tag`) : :zeek:type:`bool`
 
 
-.. bro:id:: Analyzer::__tag
+.. zeek:id:: Analyzer::__name
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`Analyzer::Tag`
+   :Type: :zeek:type:`function` (atype: :zeek:type:`Analyzer::Tag`) : :zeek:type:`string`
+
+
+.. zeek:id:: Analyzer::__register_for_port
+
+   :Type: :zeek:type:`function` (id: :zeek:type:`Analyzer::Tag`, p: :zeek:type:`port`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Analyzer::__schedule_analyzer
+
+   :Type: :zeek:type:`function` (orig: :zeek:type:`addr`, resp: :zeek:type:`addr`, resp_p: :zeek:type:`port`, analyzer: :zeek:type:`Analyzer::Tag`, tout: :zeek:type:`interval`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Analyzer::__tag
+
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`Analyzer::Tag`
 
 
 

@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_NTLM.types.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: NTLM
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: NTLM
 
 
 :Namespaces: GLOBAL, NTLM

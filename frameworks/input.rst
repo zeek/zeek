@@ -68,7 +68,7 @@ case 'ip', 'timestamp', and 'reason'.  Also note that the ordering of the
 columns does not matter, because each column is identified by name.
 
 The log file is read into the table with a simple call of the
-:bro:id:`Input::add_table` function:
+:zeek:id:`Input::add_table` function:
 
 .. sourcecode:: bro
 
@@ -104,7 +104,7 @@ been completed. Because of this, it is, for example, possible to call
 will remain queued until the first read has been completed.
 
 Once the input framework finishes reading from a data source, it fires
-the :bro:id:`Input::end_of_data` event. Once this event has been received all
+the :zeek:id:`Input::end_of_data` event. Once this event has been received all
 data from the input file is available in the table.
 
 .. sourcecode:: bro
@@ -134,10 +134,10 @@ deal with changing data files.
 
 The first, very basic method is an explicit refresh of an input stream. When
 an input stream is open (this means it has not yet been removed by a call to
-:bro:id:`Input::remove`), the function :bro:id:`Input::force_update` can be
+:zeek:id:`Input::remove`), the function :zeek:id:`Input::force_update` can be
 called.  This will trigger a complete refresh of the table; any changed
 elements from the file will be updated.  After the update is finished the
-:bro:id:`Input::end_of_data` event will be raised.
+:zeek:id:`Input::end_of_data` event will be raised.
 
 In our example the call would look like:
 
@@ -148,7 +148,7 @@ In our example the call would look like:
 Alternatively, the input framework can automatically refresh the table
 contents when it detects a change to the input file.  To use this feature,
 you need to specify a non-default read mode by setting the ``mode`` option
-of the :bro:id:`Input::add_table` call.  Valid values are ``Input::MANUAL``
+of the :zeek:id:`Input::add_table` call.  Valid values are ``Input::MANUAL``
 (the default), ``Input::REREAD`` and ``Input::STREAM``.  For example,
 setting the value of the ``mode`` option in the previous example
 would look like this:
@@ -302,7 +302,7 @@ events instead of reading them to a table.
 
 Event streams work very similarly to table streams that were already
 discussed in much detail. To read the blacklist of the previous example
-into an event stream, the :bro:id:`Input::add_event` function is used.
+into an event stream, the :zeek:id:`Input::add_event` function is used.
 For example:
 
 .. sourcecode:: bro

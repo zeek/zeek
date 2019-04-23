@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_events.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================ =========================================================================================================
-:bro:id:`smb1_empty_response`: :bro:type:`event` Generated when there is an :abbr:`SMB (Server Message Block)` version 1 response with no message body.
-:bro:id:`smb1_error`: :bro:type:`event`          Generated for :abbr:`SMB (Server Message Block)` version 1 messages
-                                                 that indicate an error.
-:bro:id:`smb1_message`: :bro:type:`event`        Generated for all :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` version 1
-                                                 messages.
-================================================ =========================================================================================================
+================================================== =========================================================================================================
+:zeek:id:`smb1_empty_response`: :zeek:type:`event` Generated when there is an :abbr:`SMB (Server Message Block)` version 1 response with no message body.
+:zeek:id:`smb1_error`: :zeek:type:`event`          Generated for :abbr:`SMB (Server Message Block)` version 1 messages
+                                                   that indicate an error.
+:zeek:id:`smb1_message`: :zeek:type:`event`        Generated for all :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` version 1
+                                                   messages.
+================================================== =========================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_empty_response
+.. zeek:id:: smb1_empty_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated when there is an :abbr:`SMB (Server Message Block)` version 1 response with no message body.
    
@@ -36,11 +36,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_error
+.. zeek:id:: smb1_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)` version 1 messages
    that indicate an error. This event is triggered by an :abbr:`SMB (Server Message Block)` header
@@ -56,11 +56,11 @@ Events
    :is_orig: True if the message was sent by the originator of the underlying
             transport-level connection.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_message
+.. zeek:id:: smb1_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for all :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` version 1
    messages.
@@ -81,6 +81,6 @@ Events
    :is_orig: True if the message was sent by the originator of the underlying
             transport-level connection.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
 

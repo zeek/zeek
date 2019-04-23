@@ -32,7 +32,7 @@ Sumstats, where the main functionality is implemented.
 
 We start by defining our observation along with a record to store
 all statistical values and an observation interval. We are conducting our
-observation on the :bro:see:`HTTP::log_http` event and are interested
+observation on the :zeek:see:`HTTP::log_http` event and are interested
 in the MIME type, size of the file ("response_body_len"), and the
 originator host ("orig_h"). We use the MIME type as our key and create
 observers for the other two values.
@@ -53,7 +53,7 @@ observers for the other two values.
 
 Next, we create the reducers. The first will accumulate file sizes
 and the second will make sure we only store a host ID once. Below is
-the partial code from a :bro:see:`zeek_init` handler.
+the partial code from a :zeek:see:`zeek_init` handler.
 
 .. literalinclude:: mimestats.zeek
    :caption:
@@ -103,6 +103,6 @@ final code for our script.
 
 .. note::
 
-    The redefinition of :bro:see:`Site::local_nets` is only done inside
+    The redefinition of :zeek:see:`Site::local_nets` is only done inside
     this script to make it a self-contained example.  It's typically
     redefined somewhere else.

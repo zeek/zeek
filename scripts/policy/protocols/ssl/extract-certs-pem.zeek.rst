@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/extract-certs-pem.zeek
 ===========================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 This script is used to extract host certificates seen on the wire to disk
 after being converted to PEM files.  The certificates will be stored in
@@ -22,20 +22,20 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-===================================================================== =========================================================
-:bro:id:`SSL::extract_certs_pem`: :bro:type:`Host` :bro:attr:`&redef` Control if host certificates offered by the defined hosts
-                                                                      will be written to the PEM certificates file.
-===================================================================== =========================================================
+======================================================================== =========================================================
+:zeek:id:`SSL::extract_certs_pem`: :zeek:type:`Host` :zeek:attr:`&redef` Control if host certificates offered by the defined hosts
+                                                                         will be written to the PEM certificates file.
+======================================================================== =========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSL::extract_certs_pem
+.. zeek:id:: SSL::extract_certs_pem
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``LOCAL_HOSTS``
 
    Control if host certificates offered by the defined hosts

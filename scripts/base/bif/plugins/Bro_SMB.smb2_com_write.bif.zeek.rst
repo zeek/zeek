@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_write.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================ ===========================================================================================
-:bro:id:`smb2_write_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                 version 2 requests of type *write*.
-:bro:id:`smb2_write_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                 version 2 requests of type *write*.
-================================================ ===========================================================================================
+================================================== ===========================================================================================
+:zeek:id:`smb2_write_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                   version 2 requests of type *write*.
+:zeek:id:`smb2_write_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                   version 2 requests of type *write*.
+================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_write_request
+.. zeek:id:: smb2_write_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, offset: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, offset: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the client to write data to the file or
@@ -48,11 +48,11 @@ Events
 
    :length: The number of bytes of the file being written.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_write_response
+.. zeek:id:: smb2_write_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the server in response to a write request or
@@ -69,6 +69,6 @@ Events
 
    :length: The number of bytes of the file being written.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
 

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_FTP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================== =======================================
-:bro:id:`ftp_reply`: :bro:type:`event`   Generated for server-side FTP replies.
-:bro:id:`ftp_request`: :bro:type:`event` Generated for client-side FTP commands.
-======================================== =======================================
+========================================== =======================================
+:zeek:id:`ftp_reply`: :zeek:type:`event`   Generated for server-side FTP replies.
+:zeek:id:`ftp_request`: :zeek:type:`event` Generated for client-side FTP commands.
+========================================== =======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ftp_reply
+.. zeek:id:: ftp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`, msg: :bro:type:`string`, cont_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`, msg: :zeek:type:`string`, cont_resp: :zeek:type:`bool`)
 
    Generated for server-side FTP replies.
    
@@ -45,12 +45,12 @@ Events
               to reassemble the pieces before processing the response any
               further.
    
-   .. bro:see:: ftp_request fmt_ftp_port parse_eftp_port
+   .. zeek:see:: ftp_request fmt_ftp_port parse_eftp_port
       parse_ftp_epsv parse_ftp_pasv parse_ftp_port
 
-.. bro:id:: ftp_request
+.. zeek:id:: ftp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side FTP commands.
    
@@ -66,7 +66,7 @@ Events
 
    :arg: The arguments going with the command.
    
-   .. bro:see:: ftp_reply fmt_ftp_port parse_eftp_port
+   .. zeek:see:: ftp_reply fmt_ftp_port parse_eftp_port
       parse_ftp_epsv parse_ftp_pasv parse_ftp_port
 
 

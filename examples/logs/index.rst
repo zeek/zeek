@@ -80,7 +80,7 @@ responder IP addresses (note how Bro transparently handles both IPv4 and
 IPv6), transport-layer ports, application-layer services ( - the
 ``service`` field is filled in as Bro determines a specific protocol to
 be in use, independent of the connection's ports), payload size, and
-more. See :bro:type:`Conn::Info` for a description of all fields.
+more. See :zeek:type:`Conn::Info` for a description of all fields.
 
 In addition to ``conn.log``, Bro generates many further logs by
 default, including:

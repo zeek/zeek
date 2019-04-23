@@ -2,8 +2,8 @@
 
 policy/misc/weird-stats.zeek
 ============================
-.. bro:namespace:: SumStats
-.. bro:namespace:: WeirdStats
+.. zeek:namespace:: SumStats
+.. zeek:namespace:: WeirdStats
 
 Log weird statistics.
 
@@ -14,62 +14,62 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================== =============================
-:bro:id:`WeirdStats::weird_stat_interval`: :bro:type:`interval` :bro:attr:`&redef` How often stats are reported.
-================================================================================== =============================
+===================================================================================== =============================
+:zeek:id:`WeirdStats::weird_stat_interval`: :zeek:type:`interval` :zeek:attr:`&redef` How often stats are reported.
+===================================================================================== =============================
 
 Types
 #####
-================================================ =
-:bro:type:`WeirdStats::Info`: :bro:type:`record` 
-================================================ =
+================================================== =
+:zeek:type:`WeirdStats::Info`: :zeek:type:`record` 
+================================================== =
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 Events
 ######
-======================================================== =
-:bro:id:`WeirdStats::log_weird_stats`: :bro:type:`event` 
-======================================================== =
+========================================================== =
+:zeek:id:`WeirdStats::log_weird_stats`: :zeek:type:`event` 
+========================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: WeirdStats::weird_stat_interval
+.. zeek:id:: WeirdStats::weird_stat_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 mins``
 
    How often stats are reported.
 
 Types
 #####
-.. bro:type:: WeirdStats::Info
+.. zeek:type:: WeirdStats::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for the measurement.
 
-      name: :bro:type:`string` :bro:attr:`&log`
+      name: :zeek:type:`string` :zeek:attr:`&log`
          Name of the weird.
 
-      num_seen: :bro:type:`count` :bro:attr:`&log`
+      num_seen: :zeek:type:`count` :zeek:attr:`&log`
          Number of times weird was seen since the last stats interval.
 
 
 Events
 ######
-.. bro:id:: WeirdStats::log_weird_stats
+.. zeek:id:: WeirdStats::log_weird_stats
 
-   :Type: :bro:type:`event` (rec: :bro:type:`WeirdStats::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`WeirdStats::Info`)
 
 
 

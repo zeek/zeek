@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Ident.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,20 +11,20 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================== ==================================
-:bro:id:`ident_error`: :bro:type:`event`   Generated for Ident error replies.
-:bro:id:`ident_reply`: :bro:type:`event`   Generated for Ident replies.
-:bro:id:`ident_request`: :bro:type:`event` Generated for Ident requests.
-========================================== ==================================
+============================================ ==================================
+:zeek:id:`ident_error`: :zeek:type:`event`   Generated for Ident error replies.
+:zeek:id:`ident_reply`: :zeek:type:`event`   Generated for Ident replies.
+:zeek:id:`ident_request`: :zeek:type:`event` Generated for Ident requests.
+============================================ ==================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ident_error
+.. zeek:id:: ident_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, line: :zeek:type:`string`)
 
    Generated for Ident error replies.
    
@@ -43,16 +43,16 @@ Events
 
    :line: The error description returned by the reply.
    
-   .. bro:see:: ident_reply ident_request
+   .. zeek:see:: ident_reply ident_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ident_reply
+.. zeek:id:: ident_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`, user_id: :bro:type:`string`, system: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, user_id: :zeek:type:`string`, system: :zeek:type:`string`)
 
    Generated for Ident replies.
    
@@ -74,16 +74,16 @@ Events
 
    :system: The operating system returned by the reply.
    
-   .. bro:see:: ident_error  ident_request
+   .. zeek:see:: ident_error  ident_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ident_request
+.. zeek:id:: ident_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`)
 
    Generated for Ident requests.
    
@@ -99,7 +99,7 @@ Events
 
    :rport: The request's remote port.
    
-   .. bro:see:: ident_error ident_reply
+   .. zeek:see:: ident_error ident_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

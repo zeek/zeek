@@ -2,7 +2,7 @@
 
 base/frameworks/openflow/plugins/ryu.zeek
 =========================================
-.. bro:namespace:: OpenFlow
+.. zeek:namespace:: OpenFlow
 
 OpenFlow plugin for the Ryu controller.
 
@@ -13,25 +13,25 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================================ =
-:bro:type:`OpenFlow::ControllerState`: :bro:type:`record` :bro:attr:`&redef` 
-:bro:type:`OpenFlow::Plugin`: :bro:type:`enum`                               
-============================================================================ =
+=============================================================================== =
+:zeek:type:`OpenFlow::ControllerState`: :zeek:type:`record` :zeek:attr:`&redef` 
+:zeek:type:`OpenFlow::Plugin`: :zeek:type:`enum`                                
+=============================================================================== =
 
 Functions
 #########
-================================================= ===========================
-:bro:id:`OpenFlow::ryu_new`: :bro:type:`function` Ryu controller constructor.
-================================================= ===========================
+=================================================== ===========================
+:zeek:id:`OpenFlow::ryu_new`: :zeek:type:`function` Ryu controller constructor.
+=================================================== ===========================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: OpenFlow::ryu_new
+.. zeek:id:: OpenFlow::ryu_new
 
-   :Type: :bro:type:`function` (host: :bro:type:`addr`, host_port: :bro:type:`count`, dpid: :bro:type:`count`) : :bro:type:`OpenFlow::Controller`
+   :Type: :zeek:type:`function` (host: :zeek:type:`addr`, host_port: :zeek:type:`count`, dpid: :zeek:type:`count`) : :zeek:type:`OpenFlow::Controller`
 
    Ryu controller constructor.
    

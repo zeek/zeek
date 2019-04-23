@@ -2,7 +2,7 @@
 
 base/protocols/dnp3/consts.zeek
 ===============================
-.. bro:namespace:: DNP3
+.. zeek:namespace:: DNP3
 
 
 :Namespace: DNP3
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-====================================================================================================================================== =======================================
-:bro:id:`DNP3::function_codes`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef` Standard defined Modbus function codes.
-====================================================================================================================================== =======================================
+============================================================================================================================================ =======================================
+:zeek:id:`DNP3::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef` Standard defined Modbus function codes.
+============================================================================================================================================ =======================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: DNP3::function_codes
+.. zeek:id:: DNP3::function_codes
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
    :Default:
 
    ::

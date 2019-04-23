@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/unique.zeek
 ============================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Calculate the number of unique values.
 
@@ -13,12 +13,12 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::Reducer`: :bro:type:`record`   
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 
 Detailed Interface

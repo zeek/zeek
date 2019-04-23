@@ -2,11 +2,11 @@
 
 base/frameworks/notice/actions/email_admin.zeek
 ===============================================
-.. bro:namespace:: Notice
+.. zeek:namespace:: Notice
 
 Adds a new notice action type which can be used to email notices
 to the administrators of a particular address space as set by
-:bro:id:`Site::local_admins` if the notice contains a source
+:zeek:id:`Site::local_admins` if the notice contains a source
 or destination address that lies within their space.
 
 :Namespace: Notice
@@ -16,9 +16,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================ =
-:bro:type:`Notice::Action`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`Notice::Action`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface

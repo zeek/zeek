@@ -2,7 +2,7 @@
 
 policy/protocols/krb/ticket-logging.zeek
 ========================================
-.. bro:namespace:: KRB
+.. zeek:namespace:: KRB
 
 Add Kerberos ticket hashes to the krb.log
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================= =
-:bro:type:`KRB::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`KRB::Info`: :zeek:type:`record` 
+=========================================== =
 
 
 Detailed Interface

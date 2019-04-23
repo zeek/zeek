@@ -2,7 +2,7 @@
 
 policy/integration/barnyard2/types.zeek
 =======================================
-.. bro:namespace:: Barnyard2
+.. zeek:namespace:: Barnyard2
 
 This file is separate from the base script so that dependencies can
 be loaded in the correct order.
@@ -13,75 +13,75 @@ Summary
 ~~~~~~~
 Types
 #####
-===================================================================== =
-:bro:type:`Barnyard2::AlertData`: :bro:type:`record` :bro:attr:`&log` 
-:bro:type:`Barnyard2::PacketID`: :bro:type:`record` :bro:attr:`&log`  
-===================================================================== =
+======================================================================== =
+:zeek:type:`Barnyard2::AlertData`: :zeek:type:`record` :zeek:attr:`&log` 
+:zeek:type:`Barnyard2::PacketID`: :zeek:type:`record` :zeek:attr:`&log`  
+======================================================================== =
 
 Events
 ######
-====================================================== ================================================================
-:bro:id:`Barnyard2::barnyard_alert`: :bro:type:`event` This is the event that Barnyard2 instances will send if they're 
-                                                       configured with the bro_alert output plugin.
-====================================================== ================================================================
+======================================================== ================================================================
+:zeek:id:`Barnyard2::barnyard_alert`: :zeek:type:`event` This is the event that Barnyard2 instances will send if they're 
+                                                         configured with the bro_alert output plugin.
+======================================================== ================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: Barnyard2::AlertData
+.. zeek:type:: Barnyard2::AlertData
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      sensor_id: :bro:type:`count` :bro:attr:`&log`
+      sensor_id: :zeek:type:`count` :zeek:attr:`&log`
          Sensor that originated this event.
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp attached to the alert.
 
-      signature_id: :bro:type:`count` :bro:attr:`&log`
+      signature_id: :zeek:type:`count` :zeek:attr:`&log`
          Sig id for this generator.
 
-      generator_id: :bro:type:`count` :bro:attr:`&log`
+      generator_id: :zeek:type:`count` :zeek:attr:`&log`
          Which generator generated the alert?
 
-      signature_revision: :bro:type:`count` :bro:attr:`&log`
+      signature_revision: :zeek:type:`count` :zeek:attr:`&log`
          Sig revision for this id.
 
-      classification_id: :bro:type:`count` :bro:attr:`&log`
+      classification_id: :zeek:type:`count` :zeek:attr:`&log`
          Event classification.
 
-      classification: :bro:type:`string` :bro:attr:`&log`
+      classification: :zeek:type:`string` :zeek:attr:`&log`
          Descriptive classification string.
 
-      priority_id: :bro:type:`count` :bro:attr:`&log`
+      priority_id: :zeek:type:`count` :zeek:attr:`&log`
          Event priority.
 
-      event_id: :bro:type:`count` :bro:attr:`&log`
+      event_id: :zeek:type:`count` :zeek:attr:`&log`
          Event ID.
-   :Attributes: :bro:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
 
-.. bro:type:: Barnyard2::PacketID
+.. zeek:type:: Barnyard2::PacketID
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      src_ip: :bro:type:`addr` :bro:attr:`&log`
+      src_ip: :zeek:type:`addr` :zeek:attr:`&log`
 
-      src_p: :bro:type:`port` :bro:attr:`&log`
+      src_p: :zeek:type:`port` :zeek:attr:`&log`
 
-      dst_ip: :bro:type:`addr` :bro:attr:`&log`
+      dst_ip: :zeek:type:`addr` :zeek:attr:`&log`
 
-      dst_p: :bro:type:`port` :bro:attr:`&log`
-   :Attributes: :bro:attr:`&log`
+      dst_p: :zeek:type:`port` :zeek:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
 
 Events
 ######
-.. bro:id:: Barnyard2::barnyard_alert
+.. zeek:id:: Barnyard2::barnyard_alert
 
-   :Type: :bro:type:`event` (id: :bro:type:`Barnyard2::PacketID`, alert: :bro:type:`Barnyard2::AlertData`, msg: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (id: :zeek:type:`Barnyard2::PacketID`, alert: :zeek:type:`Barnyard2::AlertData`, msg: :zeek:type:`string`, data: :zeek:type:`string`)
 
    This is the event that Barnyard2 instances will send if they're 
    configured with the bro_alert output plugin.

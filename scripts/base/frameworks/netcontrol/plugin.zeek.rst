@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/plugin.zeek
 ======================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 This file defines the plugin interface for NetControl.
 
@@ -13,35 +13,35 @@ Summary
 ~~~~~~~
 Types
 #####
-======================================================= =====================================================
-:bro:type:`NetControl::Plugin`: :bro:type:`record`      Definition of a plugin.
-:bro:type:`NetControl::PluginState`: :bro:type:`record` This record keeps the per instance state of a plugin.
-======================================================= =====================================================
+========================================================= =====================================================
+:zeek:type:`NetControl::Plugin`: :zeek:type:`record`      Definition of a plugin.
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record` This record keeps the per instance state of a plugin.
+========================================================= =====================================================
 
 Redefinitions
 #############
-======================================================= ========================================================================
-:bro:type:`NetControl::PluginState`: :bro:type:`record` Table for a plugin to store instance-specific configuration information.
-======================================================= ========================================================================
+========================================================= ========================================================================
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record` Table for a plugin to store instance-specific configuration information.
+========================================================= ========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NetControl::Plugin
+.. zeek:type:: NetControl::Plugin
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`function` (state: :bro:type:`NetControl::PluginState`) : :bro:type:`string`
+      name: :zeek:type:`function` (state: :zeek:type:`NetControl::PluginState`) : :zeek:type:`string`
          Returns a descriptive name of the plugin instance, suitable for use in logging
          messages. Note that this function is not optional.
 
-      can_expire: :bro:type:`bool`
+      can_expire: :zeek:type:`bool`
          If true, plugin can expire rules itself. If false, the NetControl
          framework will manage rule expiration. 
 
-      init: :bro:type:`function` (state: :bro:type:`NetControl::PluginState`) : :bro:type:`void` :bro:attr:`&optional`
+      init: :zeek:type:`function` (state: :zeek:type:`NetControl::PluginState`) : :zeek:type:`void` :zeek:attr:`&optional`
          One-time initialization function called when plugin gets registered, and
          before any other methods are called.
          
@@ -50,17 +50,17 @@ Types
          active. In this case, the plugin has to call ``NetControl::plugin_activated``,
          once initialization finishes.
 
-      done: :bro:type:`function` (state: :bro:type:`NetControl::PluginState`) : :bro:type:`void` :bro:attr:`&optional`
+      done: :zeek:type:`function` (state: :zeek:type:`NetControl::PluginState`) : :zeek:type:`void` :zeek:attr:`&optional`
          One-time finalization function called when a plugin is shutdown; no further
          functions will be called afterwords.
 
-      add_rule: :bro:type:`function` (state: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`) : :bro:type:`bool` :bro:attr:`&optional`
+      add_rule: :zeek:type:`function` (state: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Implements the add_rule() operation. If the plugin accepts the rule,
          it returns true, false otherwise. The rule will already have its
          ``id`` field set, which the plugin may use for identification
          purposes.
 
-      remove_rule: :bro:type:`function` (state: :bro:type:`NetControl::PluginState`, r: :bro:type:`NetControl::Rule`, reason: :bro:type:`string`) : :bro:type:`bool` :bro:attr:`&optional`
+      remove_rule: :zeek:type:`function` (state: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`, reason: :zeek:type:`string`) : :zeek:type:`bool` :zeek:attr:`&optional`
          Implements the remove_rule() operation. This will only be called for
          rules that the plugin has previously accepted with add_rule(). The
          ``id`` field will match that of the add_rule() call.  Generally,
@@ -81,51 +81,51 @@ Types
    will only know later (i.e., asynchronously) if that was an error for
    something it thought it could handle.
 
-.. bro:type:: NetControl::PluginState
+.. zeek:type:: NetControl::PluginState
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      config: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string` :bro:attr:`&default` = ``{  }`` :bro:attr:`&optional`
+      config: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string` :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          Table for a plugin to store custom, instance-specific state.
 
-      _id: :bro:type:`count` :bro:attr:`&optional`
+      _id: :zeek:type:`count` :zeek:attr:`&optional`
          Unique plugin identifier -- used for backlookup of plugins from Rules. Set internally.
 
-      _priority: :bro:type:`int` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      _priority: :zeek:type:`int` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Set internally.
 
-      _activated: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      _activated: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Set internally. Signifies if the plugin has returned that it has activated successfully.
 
-      plugin: :bro:type:`NetControl::Plugin` :bro:attr:`&optional`
+      plugin: :zeek:type:`NetControl::Plugin` :zeek:attr:`&optional`
          The plugin that the state belongs to. (Defined separately
          because of cyclic type dependency.)
 
-      of_controller: :bro:type:`OpenFlow::Controller` :bro:attr:`&optional`
+      of_controller: :zeek:type:`OpenFlow::Controller` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/openflow.zeek` is loaded)
 
          OpenFlow controller for NetControl OpenFlow plugin.
 
-      of_config: :bro:type:`NetControl::OfConfig` :bro:attr:`&optional`
+      of_config: :zeek:type:`NetControl::OfConfig` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/openflow.zeek` is loaded)
 
          OpenFlow configuration record that is passed on initialization.
 
-      broker_config: :bro:type:`NetControl::BrokerConfig` :bro:attr:`&optional`
+      broker_config: :zeek:type:`NetControl::BrokerConfig` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek` is loaded)
 
          OpenFlow controller for NetControl Broker plugin.
 
-      broker_id: :bro:type:`count` :bro:attr:`&optional`
+      broker_id: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek` is loaded)
 
          The ID of this broker instance - for the mapping to PluginStates.
 
-      acld_config: :bro:type:`NetControl::AcldConfig` :bro:attr:`&optional`
+      acld_config: :zeek:type:`NetControl::AcldConfig` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.zeek` is loaded)
 
 
-      acld_id: :bro:type:`count` :bro:attr:`&optional`
+      acld_id: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.zeek` is loaded)
 
          The ID of this acld instance - for the mapping to PluginStates.

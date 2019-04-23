@@ -5,12 +5,12 @@ The Bro scripting language supports a number of directives that can
 affect which scripts will be loaded or which lines in a script will be
 executed.  Directives are evaluated before script execution begins.
 
-.. bro:keyword:: @DEBUG
+.. zeek:keyword:: @DEBUG
 
     TODO
 
 
-.. bro:keyword:: @DIR
+.. zeek:keyword:: @DIR
 
     Expands to the directory pathname where the current script is located.
 
@@ -19,7 +19,7 @@ executed.  Directives are evaluated before script execution begins.
         print "Directory:", @DIR;
 
 
-.. bro:keyword:: @FILENAME
+.. zeek:keyword:: @FILENAME
 
     Expands to the filename of the current script.
 
@@ -27,7 +27,7 @@ executed.  Directives are evaluated before script execution begins.
 
         print "File:", @FILENAME;
 
-.. bro:keyword:: @deprecated
+.. zeek:keyword:: @deprecated
 
     Marks the current script as deprecated. This can be placed anywhere in
     the script, but a good convention is to put it as the first line.
@@ -37,7 +37,7 @@ executed.  Directives are evaluated before script execution begins.
 
         @deprecated "Use '@load foo' instead"
 
-.. bro:keyword:: @load
+.. zeek:keyword:: @load
 
     Loads the specified Bro script, specified as the relative pathname
     of the file (relative to one of the directories in Bro's file search path).
@@ -68,7 +68,7 @@ executed.  Directives are evaluated before script execution begins.
     for that script are ignored).
 
 
-.. bro:keyword:: @load-plugin
+.. zeek:keyword:: @load-plugin
 
     Activate a dynamic plugin with the specified plugin name.  The specified
     plugin must be located in Bro's plugin search path.  Example::
@@ -85,7 +85,7 @@ executed.  Directives are evaluated before script execution begins.
     comma-separated list of plugin names.
 
 
-.. bro:keyword:: @load-sigs
+.. zeek:keyword:: @load-sigs
 
     This works similarly to "@load", except that in this case the filename
     represents a signature file (not a Bro script).  If the signature filename
@@ -102,7 +102,7 @@ executed.  Directives are evaluated before script execution begins.
     `Signature Framework <../frameworks/signatures.html>`_.
 
 
-.. bro:keyword:: @unload
+.. zeek:keyword:: @unload
 
     This specifies a Bro script that we don't want to load (so a subsequent
     attempt to load the specified script will be skipped).  However,
@@ -115,7 +115,7 @@ executed.  Directives are evaluated before script execution begins.
         @unload policy/misc/capture-loss
 
 
-.. bro:keyword:: @prefixes
+.. zeek:keyword:: @prefixes
 
     Specifies a filename prefix to use when looking for script files
     to load automatically.  The prefix cannot contain any whitespace.
@@ -146,9 +146,9 @@ executed.  Directives are evaluated before script execution begins.
     An alternative way to specify prefixes is to use the "-p" Bro
     command-line option.
 
-.. bro:keyword:: @if
+.. zeek:keyword:: @if
 
-    The specified expression must evaluate to type :bro:type:`bool`.  If the
+    The specified expression must evaluate to type :zeek:type:`bool`.  If the
     value is true, then the following script lines (up to the next "@else"
     or "@endif") are available to be executed.
 
@@ -158,7 +158,7 @@ executed.  Directives are evaluated before script execution begins.
             print "version 2 detected";
         @endif
 
-.. bro:keyword:: @ifdef
+.. zeek:keyword:: @ifdef
 
     This works like "@if", except that the result is true if the specified
     identifier is defined.
@@ -169,7 +169,7 @@ executed.  Directives are evaluated before script execution begins.
             print "pi is defined";
         @endif
 
-.. bro:keyword:: @ifndef
+.. zeek:keyword:: @ifndef
 
     This works exactly like "@ifdef", except that the result is true if the
     specified identifier is not defined.
@@ -180,7 +180,7 @@ executed.  Directives are evaluated before script execution begins.
             print "pi is not defined";
         @endif
 
-.. bro:keyword:: @else
+.. zeek:keyword:: @else
 
     This directive is optional after an "@if", "@ifdef", or
     "@ifndef".  If present, it provides an else clause.
@@ -193,7 +193,7 @@ executed.  Directives are evaluated before script execution begins.
             print "pi is not defined";
         @endif
 
-.. bro:keyword:: @endif
+.. zeek:keyword:: @endif
 
     This directive is required to terminate each "@if", "@ifdef", or
     "@ifndef".

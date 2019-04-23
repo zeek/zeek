@@ -2,7 +2,7 @@
 
 base/files/hash/main.zeek
 =========================
-.. bro:namespace:: FileHash
+.. zeek:namespace:: FileHash
 
 
 :Namespace: FileHash
@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================== =
-:bro:type:`Files::Info`: :bro:type:`record` :bro:attr:`&redef` 
-============================================================== =
+================================================================= =
+:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef` 
+================================================================= =
 
 
 Detailed Interface

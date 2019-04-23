@@ -2,7 +2,7 @@
 
 base/protocols/imap/main.zeek
 =============================
-.. bro:namespace:: IMAP
+.. zeek:namespace:: IMAP
 
 
 :Namespace: IMAP
@@ -11,9 +11,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-================================================================= =
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 
 Detailed Interface

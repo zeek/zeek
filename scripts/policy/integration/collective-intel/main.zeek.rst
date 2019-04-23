@@ -2,7 +2,7 @@
 
 policy/integration/collective-intel/main.zeek
 =============================================
-.. bro:namespace:: Intel
+.. zeek:namespace:: Intel
 
 
 :Namespace: Intel
@@ -12,10 +12,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=============================================== =======================================================================
-:bro:type:`Intel::MetaData`: :bro:type:`record` These are some fields to add extended compatibility between Bro and the
-                                                Collective Intelligence Framework.
-=============================================== =======================================================================
+================================================= =======================================================================
+:zeek:type:`Intel::MetaData`: :zeek:type:`record` These are some fields to add extended compatibility between Bro and the
+                                                  Collective Intelligence Framework.
+================================================= =======================================================================
 
 
 Detailed Interface

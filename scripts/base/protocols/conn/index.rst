@@ -23,7 +23,7 @@ Support for connection (TCP, UDP, or ICMP) analysis.
    responders data or both.  By default nothing is extracted, and in order 
    to actually extract data the ``c$extract_orig`` and/or the
    ``c$extract_resp`` variable must be set to ``T``.  One way to achieve this
-   would be to handle the :bro:id:`connection_established` event elsewhere
+   would be to handle the :zeek:id:`connection_established` event elsewhere
    and set the ``extract_orig`` and ``extract_resp`` options there.
    However, there may be trouble with the timing due to event queue delay.
    

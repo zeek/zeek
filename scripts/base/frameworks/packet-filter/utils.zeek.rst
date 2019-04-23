@@ -2,7 +2,7 @@
 
 base/frameworks/packet-filter/utils.zeek
 ========================================
-.. bro:namespace:: PacketFilter
+.. zeek:namespace:: PacketFilter
 
 
 :Namespace: PacketFilter
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================================= ==================================================================
-:bro:id:`PacketFilter::combine_filters`: :bro:type:`function` Combines two valid BPF filter strings with a string based operator
-                                                              to form a new filter.
-:bro:id:`PacketFilter::port_to_bpf`: :bro:type:`function`     Takes a :bro:type:`port` and returns a BPF expression which will
-                                                              match the port.
-:bro:id:`PacketFilter::sampling_filter`: :bro:type:`function` Create a BPF filter to sample IPv4 and IPv6 traffic.
-============================================================= ==================================================================
+=============================================================== ==================================================================
+:zeek:id:`PacketFilter::combine_filters`: :zeek:type:`function` Combines two valid BPF filter strings with a string based operator
+                                                                to form a new filter.
+:zeek:id:`PacketFilter::port_to_bpf`: :zeek:type:`function`     Takes a :zeek:type:`port` and returns a BPF expression which will
+                                                                match the port.
+:zeek:id:`PacketFilter::sampling_filter`: :zeek:type:`function` Create a BPF filter to sample IPv4 and IPv6 traffic.
+=============================================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: PacketFilter::combine_filters
+.. zeek:id:: PacketFilter::combine_filters
 
-   :Type: :bro:type:`function` (lfilter: :bro:type:`string`, op: :bro:type:`string`, rfilter: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (lfilter: :zeek:type:`string`, op: :zeek:type:`string`, rfilter: :zeek:type:`string`) : :zeek:type:`string`
 
    Combines two valid BPF filter strings with a string based operator
    to form a new filter.
@@ -45,11 +45,11 @@ Functions
             the operator.  Either filter being an empty string will
             still result in a valid filter.
 
-.. bro:id:: PacketFilter::port_to_bpf
+.. zeek:id:: PacketFilter::port_to_bpf
 
-   :Type: :bro:type:`function` (p: :bro:type:`port`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (p: :zeek:type:`port`) : :zeek:type:`string`
 
-   Takes a :bro:type:`port` and returns a BPF expression which will
+   Takes a :zeek:type:`port` and returns a BPF expression which will
    match the port.
    
 
@@ -58,9 +58,9 @@ Functions
 
    :returns: A valid BPF filter string for matching the port.
 
-.. bro:id:: PacketFilter::sampling_filter
+.. zeek:id:: PacketFilter::sampling_filter
 
-   :Type: :bro:type:`function` (num_parts: :bro:type:`count`, this_part: :bro:type:`count`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (num_parts: :zeek:type:`count`, this_part: :zeek:type:`count`) : :zeek:type:`string`
 
    Create a BPF filter to sample IPv4 and IPv6 traffic.
    

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_GTPv1.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,25 +11,25 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================== ===========================================================
-:bro:id:`gtpv1_create_pdp_ctx_request`: :bro:type:`event`  Generated for GTPv1-C Create PDP Context Request messages.
-:bro:id:`gtpv1_create_pdp_ctx_response`: :bro:type:`event` Generated for GTPv1-C Create PDP Context Response messages.
-:bro:id:`gtpv1_delete_pdp_ctx_request`: :bro:type:`event`  Generated for GTPv1-C Delete PDP Context Request messages.
-:bro:id:`gtpv1_delete_pdp_ctx_response`: :bro:type:`event` Generated for GTPv1-C Delete PDP Context Response messages.
-:bro:id:`gtpv1_g_pdu_packet`: :bro:type:`event`            Generated for GTPv1 G-PDU packets.
-:bro:id:`gtpv1_message`: :bro:type:`event`                 Generated for any GTP message with a GTPv1 header.
-:bro:id:`gtpv1_update_pdp_ctx_request`: :bro:type:`event`  Generated for GTPv1-C Update PDP Context Request messages.
-:bro:id:`gtpv1_update_pdp_ctx_response`: :bro:type:`event` Generated for GTPv1-C Update PDP Context Response messages.
-========================================================== ===========================================================
+============================================================ ===========================================================
+:zeek:id:`gtpv1_create_pdp_ctx_request`: :zeek:type:`event`  Generated for GTPv1-C Create PDP Context Request messages.
+:zeek:id:`gtpv1_create_pdp_ctx_response`: :zeek:type:`event` Generated for GTPv1-C Create PDP Context Response messages.
+:zeek:id:`gtpv1_delete_pdp_ctx_request`: :zeek:type:`event`  Generated for GTPv1-C Delete PDP Context Request messages.
+:zeek:id:`gtpv1_delete_pdp_ctx_response`: :zeek:type:`event` Generated for GTPv1-C Delete PDP Context Response messages.
+:zeek:id:`gtpv1_g_pdu_packet`: :zeek:type:`event`            Generated for GTPv1 G-PDU packets.
+:zeek:id:`gtpv1_message`: :zeek:type:`event`                 Generated for any GTP message with a GTPv1 header.
+:zeek:id:`gtpv1_update_pdp_ctx_request`: :zeek:type:`event`  Generated for GTPv1-C Update PDP Context Request messages.
+:zeek:id:`gtpv1_update_pdp_ctx_response`: :zeek:type:`event` Generated for GTPv1-C Update PDP Context Response messages.
+============================================================ ===========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: gtpv1_create_pdp_ctx_request
+.. zeek:id:: gtpv1_create_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_create_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Create PDP Context Request messages.
    
@@ -42,9 +42,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_create_pdp_ctx_response
+.. zeek:id:: gtpv1_create_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_create_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Create PDP Context Response messages.
    
@@ -57,9 +57,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_delete_pdp_ctx_request
+.. zeek:id:: gtpv1_delete_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_delete_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Delete PDP Context Request messages.
    
@@ -72,9 +72,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_delete_pdp_ctx_response
+.. zeek:id:: gtpv1_delete_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_delete_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Delete PDP Context Response messages.
    
@@ -87,9 +87,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_g_pdu_packet
+.. zeek:id:: gtpv1_g_pdu_packet
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner_gtp: :bro:type:`gtpv1_hdr`, inner_ip: :bro:type:`pkt_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner_gtp: :zeek:type:`gtpv1_hdr`, inner_ip: :zeek:type:`pkt_hdr`)
 
    Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
    that includes a GTP header followed by an IPv4 or IPv6 packet.
@@ -106,9 +106,9 @@ Events
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
-.. bro:id:: gtpv1_message
+.. zeek:id:: gtpv1_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`)
 
    Generated for any GTP message with a GTPv1 header.
    
@@ -118,9 +118,9 @@ Events
 
    :hdr: The GTPv1 header.
 
-.. bro:id:: gtpv1_update_pdp_ctx_request
+.. zeek:id:: gtpv1_update_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_update_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Update PDP Context Request messages.
    
@@ -133,9 +133,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_update_pdp_ctx_response
+.. zeek:id:: gtpv1_update_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_update_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Update PDP Context Response messages.
    

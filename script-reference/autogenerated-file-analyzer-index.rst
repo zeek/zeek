@@ -1,31 +1,31 @@
 File Analyzers
 ==============
 
-.. bro:type:: Files::Tag
+.. zeek:type:: Files::Tag
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Files::ANALYZER_DATA_EVENT Files::Tag
+      .. zeek:enum:: Files::ANALYZER_DATA_EVENT Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_ENTROPY Files::Tag
+      .. zeek:enum:: Files::ANALYZER_ENTROPY Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_EXTRACT Files::Tag
+      .. zeek:enum:: Files::ANALYZER_EXTRACT Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_MD5 Files::Tag
+      .. zeek:enum:: Files::ANALYZER_MD5 Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_SHA1 Files::Tag
+      .. zeek:enum:: Files::ANALYZER_SHA1 Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_SHA256 Files::Tag
+      .. zeek:enum:: Files::ANALYZER_SHA256 Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_PE Files::Tag
+      .. zeek:enum:: Files::ANALYZER_PE Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_UNIFIED2 Files::Tag
+      .. zeek:enum:: Files::ANALYZER_UNIFIED2 Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_OCSP_REPLY Files::Tag
+      .. zeek:enum:: Files::ANALYZER_OCSP_REPLY Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_OCSP_REQUEST Files::Tag
+      .. zeek:enum:: Files::ANALYZER_OCSP_REQUEST Files::Tag
 
-      .. bro:enum:: Files::ANALYZER_X509 Files::Tag
+      .. zeek:enum:: Files::ANALYZER_X509 Files::Tag
 
 Bro::FileDataEvent
 ------------------
@@ -35,7 +35,7 @@ Delivers file content
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_DATA_EVENT`
+:zeek:enum:`Files::ANALYZER_DATA_EVENT`
 
 Bro::FileEntropy
 ----------------
@@ -45,14 +45,14 @@ Entropy test file content
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_ENTROPY`
+:zeek:enum:`Files::ANALYZER_ENTROPY`
 
 Events
 ++++++
 
-.. bro:id:: file_entropy
+.. zeek:id:: file_entropy
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ent: :bro:type:`entropy_test_result`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ent: :zeek:type:`entropy_test_result`)
 
    This event is generated each time file analysis performs
    entropy testing on a file.
@@ -72,18 +72,18 @@ Extract file content
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_EXTRACT`
+:zeek:enum:`Files::ANALYZER_EXTRACT`
 
 Events
 ++++++
 
-.. bro:id:: file_extraction_limit
+.. zeek:id:: file_extraction_limit
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, args: :bro:type:`Files::AnalyzerArgs`, limit: :bro:type:`count`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, args: :zeek:type:`Files::AnalyzerArgs`, limit: :zeek:type:`count`, len: :zeek:type:`count`)
 
    This event is generated when a file extraction analyzer is about
    to exceed the maximum permitted file size allowed by the
-   *extract_limit* field of :bro:see:`Files::AnalyzerArgs`.
+   *extract_limit* field of :zeek:see:`Files::AnalyzerArgs`.
    The analyzer is automatically removed from file *f*.
    
 
@@ -92,7 +92,7 @@ Events
 
    :args: Arguments that identify a particular file extraction analyzer.
          This is only provided to be able to pass along to
-         :bro:see:`FileExtract::set_limit`.
+         :zeek:see:`FileExtract::set_limit`.
    
 
    :limit: The limit, in bytes, the extracted file is about to breach.
@@ -100,16 +100,16 @@ Events
 
    :len: The length of the file chunk about to be written.
    
-   .. bro:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
+   .. zeek:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
 
 Functions
 +++++++++
 
-.. bro:id:: FileExtract::__set_limit
+.. zeek:id:: FileExtract::__set_limit
 
-   :Type: :bro:type:`function` (file_id: :bro:type:`string`, args: :bro:type:`any`, n: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, args: :zeek:type:`any`, n: :zeek:type:`count`) : :zeek:type:`bool`
 
-   :bro:see:`FileExtract::set_limit`.
+   :zeek:see:`FileExtract::set_limit`.
 
 Bro::FileHash
 -------------
@@ -119,18 +119,18 @@ Hash file content
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_MD5`
+:zeek:enum:`Files::ANALYZER_MD5`
 
-:bro:enum:`Files::ANALYZER_SHA1`
+:zeek:enum:`Files::ANALYZER_SHA1`
 
-:bro:enum:`Files::ANALYZER_SHA256`
+:zeek:enum:`Files::ANALYZER_SHA256`
 
 Events
 ++++++
 
-.. bro:id:: file_hash
+.. zeek:id:: file_hash
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, kind: :bro:type:`string`, hash: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, kind: :zeek:type:`string`, hash: :zeek:type:`string`)
 
    This event is generated each time file analysis generates a digest of the
    file contents.
@@ -144,7 +144,7 @@ Events
 
    :hash: The result of the hashing.
    
-   .. bro:see:: Files::add_analyzer Files::ANALYZER_MD5
+   .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
       Files::ANALYZER_SHA1 Files::ANALYZER_SHA256
 
 Bro::PE
@@ -155,14 +155,14 @@ Portable Executable analyzer
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_PE`
+:zeek:enum:`Files::ANALYZER_PE`
 
 Events
 ++++++
 
-.. bro:id:: pe_dos_header
+.. zeek:id:: pe_dos_header
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, h: :bro:type:`PE::DOSHeader`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, h: :zeek:type:`PE::DOSHeader`)
 
    A :abbr:`PE (Portable Executable)` file DOS header was parsed.
    This is the top-level header and contains information like the
@@ -174,11 +174,11 @@ Events
 
    :h: The parsed DOS header information.
    
-   .. bro:see:: pe_dos_code pe_file_header pe_optional_header pe_section_header
+   .. zeek:see:: pe_dos_code pe_file_header pe_optional_header pe_section_header
 
-.. bro:id:: pe_dos_code
+.. zeek:id:: pe_dos_code
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, code: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, code: :zeek:type:`string`)
 
    A :abbr:`PE (Portable Executable)` file DOS stub was parsed.
    The stub is a valid application that runs under MS-DOS, by default
@@ -190,11 +190,11 @@ Events
 
    :code: The DOS stub
    
-   .. bro:see:: pe_dos_header pe_file_header pe_optional_header pe_section_header
+   .. zeek:see:: pe_dos_header pe_file_header pe_optional_header pe_section_header
 
-.. bro:id:: pe_file_header
+.. zeek:id:: pe_file_header
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, h: :bro:type:`PE::FileHeader`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, h: :zeek:type:`PE::FileHeader`)
 
    A :abbr:`PE (Portable Executable)` file file header was parsed.
    This header contains information like the target machine,
@@ -207,11 +207,11 @@ Events
 
    :h: The parsed file header information.
    
-   .. bro:see:: pe_dos_header pe_dos_code pe_optional_header pe_section_header
+   .. zeek:see:: pe_dos_header pe_dos_code pe_optional_header pe_section_header
 
-.. bro:id:: pe_optional_header
+.. zeek:id:: pe_optional_header
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, h: :bro:type:`PE::OptionalHeader`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, h: :zeek:type:`PE::OptionalHeader`)
 
    A :abbr:`PE (Portable Executable)` file optional header was parsed.
    This header is required for executable files, but not for object files.
@@ -225,11 +225,11 @@ Events
 
    :h: The parsed optional header information.
    
-   .. bro:see:: pe_dos_header pe_dos_code pe_file_header pe_section_header
+   .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_section_header
 
-.. bro:id:: pe_section_header
+.. zeek:id:: pe_section_header
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, h: :bro:type:`PE::SectionHeader`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, h: :zeek:type:`PE::SectionHeader`)
 
    A :abbr:`PE (Portable Executable)` file section header was parsed.
    This header contains information like the section name, size, address,
@@ -241,7 +241,7 @@ Events
 
    :h: The parsed section header information.
    
-   .. bro:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
+   .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
 
 Bro::Unified2
 -------------
@@ -251,78 +251,78 @@ Analyze Unified2 alert files.
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_UNIFIED2`
+:zeek:enum:`Files::ANALYZER_UNIFIED2`
 
 Types
 +++++
 
-.. bro:type:: Unified2::IDSEvent
+.. zeek:type:: Unified2::IDSEvent
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      sensor_id: :bro:type:`count`
+      sensor_id: :zeek:type:`count`
 
-      event_id: :bro:type:`count`
+      event_id: :zeek:type:`count`
 
-      ts: :bro:type:`time`
+      ts: :zeek:type:`time`
 
-      signature_id: :bro:type:`count`
+      signature_id: :zeek:type:`count`
 
-      generator_id: :bro:type:`count`
+      generator_id: :zeek:type:`count`
 
-      signature_revision: :bro:type:`count`
+      signature_revision: :zeek:type:`count`
 
-      classification_id: :bro:type:`count`
+      classification_id: :zeek:type:`count`
 
-      priority_id: :bro:type:`count`
+      priority_id: :zeek:type:`count`
 
-      src_ip: :bro:type:`addr`
+      src_ip: :zeek:type:`addr`
 
-      dst_ip: :bro:type:`addr`
+      dst_ip: :zeek:type:`addr`
 
-      src_p: :bro:type:`port`
+      src_p: :zeek:type:`port`
 
-      dst_p: :bro:type:`port`
+      dst_p: :zeek:type:`port`
 
-      impact_flag: :bro:type:`count`
+      impact_flag: :zeek:type:`count`
 
-      impact: :bro:type:`count`
+      impact: :zeek:type:`count`
 
-      blocked: :bro:type:`count`
+      blocked: :zeek:type:`count`
 
-      mpls_label: :bro:type:`count` :bro:attr:`&optional`
+      mpls_label: :zeek:type:`count` :zeek:attr:`&optional`
          Not available in "legacy" IDS events.
 
-      vlan_id: :bro:type:`count` :bro:attr:`&optional`
+      vlan_id: :zeek:type:`count` :zeek:attr:`&optional`
          Not available in "legacy" IDS events.
 
-      packet_action: :bro:type:`count` :bro:attr:`&optional`
+      packet_action: :zeek:type:`count` :zeek:attr:`&optional`
          Only available in "legacy" IDS events.
 
 
-.. bro:type:: Unified2::Packet
+.. zeek:type:: Unified2::Packet
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      sensor_id: :bro:type:`count`
+      sensor_id: :zeek:type:`count`
 
-      event_id: :bro:type:`count`
+      event_id: :zeek:type:`count`
 
-      event_second: :bro:type:`count`
+      event_second: :zeek:type:`count`
 
-      packet_ts: :bro:type:`time`
+      packet_ts: :zeek:type:`time`
 
-      link_type: :bro:type:`count`
+      link_type: :zeek:type:`count`
 
-      data: :bro:type:`string`
+      data: :zeek:type:`string`
 
 
 Events
 ++++++
 
-.. bro:id:: unified2_event
+.. zeek:id:: unified2_event
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ev: :bro:type:`Unified2::IDSEvent`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ev: :zeek:type:`Unified2::IDSEvent`)
 
    Abstract all of the various Unified2 event formats into 
    a single event.
@@ -334,9 +334,9 @@ Events
    :ev: TODO.
    
 
-.. bro:id:: unified2_packet
+.. zeek:id:: unified2_packet
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, pkt: :bro:type:`Unified2::Packet`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, pkt: :zeek:type:`Unified2::Packet`)
 
    The Unified2 packet format event.
    
@@ -355,122 +355,122 @@ X509 and OCSP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Files::ANALYZER_OCSP_REPLY`
+:zeek:enum:`Files::ANALYZER_OCSP_REPLY`
 
-:bro:enum:`Files::ANALYZER_OCSP_REQUEST`
+:zeek:enum:`Files::ANALYZER_OCSP_REQUEST`
 
-:bro:enum:`Files::ANALYZER_X509`
+:zeek:enum:`Files::ANALYZER_X509`
 
 Types
 +++++
 
-.. bro:type:: X509::Certificate
+.. zeek:type:: X509::Certificate
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      version: :bro:type:`count` :bro:attr:`&log`
+      version: :zeek:type:`count` :zeek:attr:`&log`
          Version number.
 
-      serial: :bro:type:`string` :bro:attr:`&log`
+      serial: :zeek:type:`string` :zeek:attr:`&log`
          Serial number.
 
-      subject: :bro:type:`string` :bro:attr:`&log`
+      subject: :zeek:type:`string` :zeek:attr:`&log`
          Subject.
 
-      issuer: :bro:type:`string` :bro:attr:`&log`
+      issuer: :zeek:type:`string` :zeek:attr:`&log`
          Issuer.
 
-      cn: :bro:type:`string` :bro:attr:`&optional`
+      cn: :zeek:type:`string` :zeek:attr:`&optional`
          Last (most specific) common name.
 
-      not_valid_before: :bro:type:`time` :bro:attr:`&log`
+      not_valid_before: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp before when certificate is not valid.
 
-      not_valid_after: :bro:type:`time` :bro:attr:`&log`
+      not_valid_after: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp after when certificate is not valid.
 
-      key_alg: :bro:type:`string` :bro:attr:`&log`
+      key_alg: :zeek:type:`string` :zeek:attr:`&log`
          Name of the key algorithm
 
-      sig_alg: :bro:type:`string` :bro:attr:`&log`
+      sig_alg: :zeek:type:`string` :zeek:attr:`&log`
          Name of the signature algorithm
 
-      key_type: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      key_type: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Key type, if key parseable by openssl (either rsa, dsa or ec)
 
-      key_length: :bro:type:`count` :bro:attr:`&optional` :bro:attr:`&log`
+      key_length: :zeek:type:`count` :zeek:attr:`&optional` :zeek:attr:`&log`
          Key length in bits
 
-      exponent: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      exponent: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Exponent, if RSA-certificate
 
-      curve: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      curve: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Curve, if EC-certificate
 
 
-.. bro:type:: X509::Extension
+.. zeek:type:: X509::Extension
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string`
+      name: :zeek:type:`string`
          Long name of extension. oid if name not known
 
-      short_name: :bro:type:`string` :bro:attr:`&optional`
+      short_name: :zeek:type:`string` :zeek:attr:`&optional`
          Short name of extension if known
 
-      oid: :bro:type:`string`
+      oid: :zeek:type:`string`
          Oid of extension
 
-      critical: :bro:type:`bool`
+      critical: :zeek:type:`bool`
          True if extension is critical
 
-      value: :bro:type:`string`
+      value: :zeek:type:`string`
          Extension content parsed to string for known extensions. Raw data otherwise.
 
 
-.. bro:type:: X509::BasicConstraints
+.. zeek:type:: X509::BasicConstraints
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ca: :bro:type:`bool` :bro:attr:`&log`
+      ca: :zeek:type:`bool` :zeek:attr:`&log`
          CA flag set?
 
-      path_len: :bro:type:`count` :bro:attr:`&optional` :bro:attr:`&log`
+      path_len: :zeek:type:`count` :zeek:attr:`&optional` :zeek:attr:`&log`
          Maximum path length
-   :Attributes: :bro:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
 
-.. bro:type:: X509::SubjectAlternativeName
+.. zeek:type:: X509::SubjectAlternativeName
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      dns: :bro:type:`string_vec` :bro:attr:`&optional` :bro:attr:`&log`
+      dns: :zeek:type:`string_vec` :zeek:attr:`&optional` :zeek:attr:`&log`
          List of DNS entries in SAN
 
-      uri: :bro:type:`string_vec` :bro:attr:`&optional` :bro:attr:`&log`
+      uri: :zeek:type:`string_vec` :zeek:attr:`&optional` :zeek:attr:`&log`
          List of URI entries in SAN
 
-      email: :bro:type:`string_vec` :bro:attr:`&optional` :bro:attr:`&log`
+      email: :zeek:type:`string_vec` :zeek:attr:`&optional` :zeek:attr:`&log`
          List of email entries in SAN
 
-      ip: :bro:type:`addr_vec` :bro:attr:`&optional` :bro:attr:`&log`
+      ip: :zeek:type:`addr_vec` :zeek:attr:`&optional` :zeek:attr:`&log`
          List of IP entries in SAN
 
-      other_fields: :bro:type:`bool`
+      other_fields: :zeek:type:`bool`
          True if the certificate contained other, not recognized or parsed name fields
 
 
-.. bro:type:: X509::Result
+.. zeek:type:: X509::Result
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      result: :bro:type:`int`
+      result: :zeek:type:`int`
          OpenSSL result code
 
-      result_string: :bro:type:`string`
+      result_string: :zeek:type:`string`
          Result as string
 
-      chain_certs: :bro:type:`vector` of :bro:type:`opaque` of x509 :bro:attr:`&optional`
+      chain_certs: :zeek:type:`vector` of :zeek:type:`opaque` of x509 :zeek:attr:`&optional`
          References to the final certificate chain, if verification successful. End-host certificate is first.
 
    Result of an X509 certificate chain verification
@@ -478,9 +478,9 @@ Types
 Events
 ++++++
 
-.. bro:id:: x509_certificate
+.. zeek:id:: x509_certificate
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, cert_ref: :bro:type:`opaque` of x509, cert: :bro:type:`X509::Certificate`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, cert_ref: :zeek:type:`opaque` of x509, cert: :zeek:type:`X509::Certificate`)
 
    Generated for encountered X509 certificates, e.g., in the clear SSL/TLS
    connection handshake.
@@ -498,13 +498,13 @@ Events
 
    :cert: The parsed certificate information.
    
-   .. bro:see:: x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: x509_extension
+.. zeek:id:: x509_extension
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ext: :bro:type:`X509::Extension`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::Extension`)
 
    Generated for X509 extensions seen in a certificate.
    
@@ -517,13 +517,13 @@ Events
 
    :ext: The parsed extension.
    
-   .. bro:see:: x509_certificate x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: x509_ext_basic_constraints
+.. zeek:id:: x509_ext_basic_constraints
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ext: :bro:type:`X509::BasicConstraints`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::BasicConstraints`)
 
    Generated for the X509 basic constraints extension seen in a certificate.
    This extension can be used to identify the subject of a certificate as a CA.
@@ -534,13 +534,13 @@ Events
 
    :ext: The parsed basic constraints extension.
    
-   .. bro:see:: x509_certificate x509_extension
+   .. zeek:see:: x509_certificate x509_extension
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: x509_ext_subject_alternative_name
+.. zeek:id:: x509_ext_subject_alternative_name
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ext: :bro:type:`X509::SubjectAlternativeName`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::SubjectAlternativeName`)
 
    Generated for the X509 subject alternative name extension seen in a certificate.
    This extension can be used to allow additional entities to be bound to the
@@ -553,13 +553,13 @@ Events
 
    :ext: The parsed subject alternative name extension.
    
-   .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_parse x509_verify x509_ocsp_ext_signed_certificate_timestamp
                 x509_get_certificate_string
 
-.. bro:id:: x509_ocsp_ext_signed_certificate_timestamp
+.. zeek:id:: x509_ocsp_ext_signed_certificate_timestamp
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, version: :bro:type:`count`, logid: :bro:type:`string`, timestamp: :bro:type:`count`, hash_algorithm: :bro:type:`count`, signature_algorithm: :bro:type:`count`, signature: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, version: :zeek:type:`count`, logid: :zeek:type:`string`, timestamp: :zeek:type:`count`, hash_algorithm: :zeek:type:`count`, signature_algorithm: :zeek:type:`count`, signature: :zeek:type:`string`)
 
    Generated for the signed_certificate_timestamp X509 extension as defined in
    :rfc:`6962`. The extension is used to transmit signed proofs that are
@@ -587,16 +587,16 @@ Events
 
    :signature: signature part of the digitally_signed struct
    
-   .. bro:see:: ssl_extension_signed_certificate_timestamp x509_extension x509_ext_basic_constraints
+   .. zeek:see:: ssl_extension_signed_certificate_timestamp x509_extension x509_ext_basic_constraints
                 x509_parse x509_verify x509_ext_subject_alternative_name
                 x509_get_certificate_string ssl_extension_signed_certificate_timestamp
                 sct_verify ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_request
+.. zeek:id:: ocsp_request
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, version: :bro:type:`count`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, version: :zeek:type:`count`)
 
    Event that is raised when encountering an OCSP request, e.g. in an HTTP
    connection. See :rfc:`6960` for more details.
@@ -609,13 +609,13 @@ Events
 
    :req: version: the version of the OCSP request. Typically 0 (Version 1).
    
-   .. bro:see:: ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_request_certificate
+.. zeek:id:: ocsp_request_certificate
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, hashAlgorithm: :bro:type:`string`, issuerNameHash: :bro:type:`string`, issuerKeyHash: :bro:type:`string`, serialNumber: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, hashAlgorithm: :zeek:type:`string`, issuerNameHash: :zeek:type:`string`, issuerKeyHash: :zeek:type:`string`, serialNumber: :zeek:type:`string`)
 
    Event that is raised when encountering an OCSP request for a certificate,
    e.g. in an HTTP connection. See :rfc:`6960` for more details.
@@ -636,13 +636,13 @@ Events
 
    :serialNumber: Serial number of the certificate for which the status is requested.
    
-   .. bro:see:: ocsp_request ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_status
+.. zeek:id:: ocsp_response_status
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, status: :bro:type:`string`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, status: :zeek:type:`string`)
 
    This event is raised when encountering an OCSP reply, e.g. in an HTTP
    connection or a TLS extension. See :rfc:`6960` for more details.
@@ -655,13 +655,13 @@ Events
 
    :status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
    
-   .. bro:see:: ocsp_request ocsp_request_certificate
+   .. zeek:see:: ocsp_request ocsp_request_certificate
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_bytes
+.. zeek:id:: ocsp_response_bytes
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, resp_ref: :bro:type:`opaque` of ocsp_resp, status: :bro:type:`string`, version: :bro:type:`count`, responderId: :bro:type:`string`, producedAt: :bro:type:`time`, signatureAlgorithm: :bro:type:`string`, certs: :bro:type:`x509_opaque_vector`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, resp_ref: :zeek:type:`opaque` of ocsp_resp, status: :zeek:type:`string`, version: :zeek:type:`count`, responderId: :zeek:type:`string`, producedAt: :zeek:type:`time`, signatureAlgorithm: :zeek:type:`string`, certs: :zeek:type:`x509_opaque_vector`)
 
    This event is raised when encountering an OCSP response that contains response information.
    An OCSP reply can be encountered, for example, in an HTTP connection or
@@ -693,13 +693,13 @@ Events
    :certs: Optional list of certificates that are sent with the OCSP response; these typically
           are needed to perform validation of the reply.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_response_certificate
+.. zeek:id:: ocsp_response_certificate
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, hashAlgorithm: :bro:type:`string`, issuerNameHash: :bro:type:`string`, issuerKeyHash: :bro:type:`string`, serialNumber: :bro:type:`string`, certStatus: :bro:type:`string`, revokeTime: :bro:type:`time`, revokeReason: :bro:type:`string`, thisUpdate: :bro:type:`time`, nextUpdate: :bro:type:`time`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, hashAlgorithm: :zeek:type:`string`, issuerNameHash: :zeek:type:`string`, issuerKeyHash: :zeek:type:`string`, serialNumber: :zeek:type:`string`, certStatus: :zeek:type:`string`, revokeTime: :zeek:type:`time`, revokeReason: :zeek:type:`string`, thisUpdate: :zeek:type:`time`, nextUpdate: :zeek:type:`time`)
 
    This event is raised for each SingleResponse contained in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
@@ -734,13 +734,13 @@ Events
 
    :nextUpdate: Time next response will be ready; 0 if not supploed.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
 
-.. bro:id:: ocsp_extension
+.. zeek:id:: ocsp_extension
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ext: :bro:type:`X509::Extension`, global_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::Extension`, global_resp: :zeek:type:`bool`)
 
    This event is raised when an OCSP extension is encountered in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
@@ -755,16 +755,16 @@ Events
    :global_resp: T if extension encountered in the global response (in ResponseData),
                 F when encountered in a SingleResponse.
    
-   .. bro:see:: ocsp_request ocsp_request_certificate ocsp_response_status
+   .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate
                 x509_ocsp_ext_signed_certificate_timestamp
 
 Functions
 +++++++++
 
-.. bro:id:: x509_parse
+.. zeek:id:: x509_parse
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509) : :bro:type:`X509::Certificate`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509) : :zeek:type:`X509::Certificate`
 
    Parses a certificate into an X509::Certificate structure.
    
@@ -774,13 +774,13 @@ Functions
 
    :returns: A X509::Certificate structure.
    
-   .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_verify
                 x509_get_certificate_string
 
-.. bro:id:: x509_get_certificate_string
+.. zeek:id:: x509_get_certificate_string
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509, pem: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, pem: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Returns the string form of a certificate.
    
@@ -795,12 +795,12 @@ Functions
 
    :returns: X509 certificate as a string.
    
-   .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
 
-.. bro:id:: x509_ocsp_verify
+.. zeek:id:: x509_ocsp_verify
 
-   :Type: :bro:type:`function` (certs: :bro:type:`x509_opaque_vector`, ocsp_reply: :bro:type:`string`, root_certs: :bro:type:`table_string_of_string`, verify_time: :bro:type:`time` :bro:attr:`&default` = ``0.0`` :bro:attr:`&optional`) : :bro:type:`X509::Result`
+   :Type: :zeek:type:`function` (certs: :zeek:type:`x509_opaque_vector`, ocsp_reply: :zeek:type:`string`, root_certs: :zeek:type:`table_string_of_string`, verify_time: :zeek:type:`time` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`) : :zeek:type:`X509::Result`
 
    Verifies an OCSP reply.
    
@@ -820,13 +820,13 @@ Functions
    :returns: A record of type X509::Result containing the result code of the
             verify operation.
    
-   .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse
                 x509_get_certificate_string x509_verify
 
-.. bro:id:: x509_verify
+.. zeek:id:: x509_verify
 
-   :Type: :bro:type:`function` (certs: :bro:type:`x509_opaque_vector`, root_certs: :bro:type:`table_string_of_string`, verify_time: :bro:type:`time` :bro:attr:`&default` = ``0.0`` :bro:attr:`&optional`) : :bro:type:`X509::Result`
+   :Type: :zeek:type:`function` (certs: :zeek:type:`x509_opaque_vector`, root_certs: :zeek:type:`table_string_of_string`, verify_time: :zeek:type:`time` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`) : :zeek:type:`X509::Result`
 
    Verifies a certificate.
    
@@ -846,13 +846,13 @@ Functions
             verify operation. In case of success also returns the full
             certificate chain.
    
-   .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse
                 x509_get_certificate_string x509_ocsp_verify sct_verify
 
-.. bro:id:: sct_verify
+.. zeek:id:: sct_verify
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509, logid: :bro:type:`string`, log_key: :bro:type:`string`, signature: :bro:type:`string`, timestamp: :bro:type:`count`, hash_algorithm: :bro:type:`count`, issuer_key_hash: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, logid: :zeek:type:`string`, log_key: :zeek:type:`string`, signature: :zeek:type:`string`, timestamp: :zeek:type:`count`, hash_algorithm: :zeek:type:`count`, issuer_key_hash: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Verifies a Signed Certificate Timestamp as used for Certificate Transparency.
    See RFC6962 for more details.
@@ -880,13 +880,13 @@ Functions
 
    :returns: T if the validation could be performed succesfully, F otherwhise.
    
-   .. bro:see:: ssl_extension_signed_certificate_timestamp
+   .. zeek:see:: ssl_extension_signed_certificate_timestamp
                 x509_ocsp_ext_signed_certificate_timestamp
                 x509_verify
 
-.. bro:id:: x509_subject_name_hash
+.. zeek:id:: x509_subject_name_hash
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509, hash_alg: :bro:type:`count`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the subject's distinguished name.
    
@@ -901,12 +901,12 @@ Functions
 
    :returns: The hash as a string.
    
-   .. bro:see:: x509_issuer_name_hash x509_spki_hash
+   .. zeek:see:: x509_issuer_name_hash x509_spki_hash
                 x509_verify sct_verify
 
-.. bro:id:: x509_issuer_name_hash
+.. zeek:id:: x509_issuer_name_hash
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509, hash_alg: :bro:type:`count`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the issuer's distinguished name.
    
@@ -921,12 +921,12 @@ Functions
 
    :returns: The hash as a string.
    
-   .. bro:see:: x509_subject_name_hash x509_spki_hash
+   .. zeek:see:: x509_subject_name_hash x509_spki_hash
                 x509_verify sct_verify
 
-.. bro:id:: x509_spki_hash
+.. zeek:id:: x509_spki_hash
 
-   :Type: :bro:type:`function` (cert: :bro:type:`opaque` of x509, hash_alg: :bro:type:`count`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the Subject Public Key Information of the certificate.
    
@@ -941,6 +941,6 @@ Functions
 
    :returns: The hash as a string.
    
-   .. bro:see:: x509_subject_name_hash x509_issuer_name_hash
+   .. zeek:see:: x509_subject_name_hash x509_issuer_name_hash
                 x509_verify sct_verify
 

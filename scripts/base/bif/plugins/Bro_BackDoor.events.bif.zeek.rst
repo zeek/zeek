@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_BackDoor.events.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,88 +11,88 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================= ===========
-:bro:id:`backdoor_remove_conn`: :bro:type:`event`       Deprecated.
-:bro:id:`backdoor_stats`: :bro:type:`event`             Deprecated.
-:bro:id:`ftp_signature_found`: :bro:type:`event`        Deprecated.
-:bro:id:`gnutella_signature_found`: :bro:type:`event`   Deprecated.
-:bro:id:`http_proxy_signature_found`: :bro:type:`event` Deprecated.
-:bro:id:`http_signature_found`: :bro:type:`event`       Deprecated.
-:bro:id:`irc_signature_found`: :bro:type:`event`        Deprecated.
-:bro:id:`rlogin_signature_found`: :bro:type:`event`     Deprecated.
-:bro:id:`smtp_signature_found`: :bro:type:`event`       Deprecated.
-:bro:id:`ssh_signature_found`: :bro:type:`event`        Deprecated.
-:bro:id:`telnet_signature_found`: :bro:type:`event`     Deprecated.
-======================================================= ===========
+========================================================= ===========
+:zeek:id:`backdoor_remove_conn`: :zeek:type:`event`       Deprecated.
+:zeek:id:`backdoor_stats`: :zeek:type:`event`             Deprecated.
+:zeek:id:`ftp_signature_found`: :zeek:type:`event`        Deprecated.
+:zeek:id:`gnutella_signature_found`: :zeek:type:`event`   Deprecated.
+:zeek:id:`http_proxy_signature_found`: :zeek:type:`event` Deprecated.
+:zeek:id:`http_signature_found`: :zeek:type:`event`       Deprecated.
+:zeek:id:`irc_signature_found`: :zeek:type:`event`        Deprecated.
+:zeek:id:`rlogin_signature_found`: :zeek:type:`event`     Deprecated.
+:zeek:id:`smtp_signature_found`: :zeek:type:`event`       Deprecated.
+:zeek:id:`ssh_signature_found`: :zeek:type:`event`        Deprecated.
+:zeek:id:`telnet_signature_found`: :zeek:type:`event`     Deprecated.
+========================================================= ===========
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: backdoor_remove_conn
+.. zeek:id:: backdoor_remove_conn
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: backdoor_stats
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, os: :bro:type:`backdoor_endp_stats`, rs: :bro:type:`backdoor_endp_stats`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: ftp_signature_found
+.. zeek:id:: backdoor_stats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: gnutella_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`backdoor_endp_stats`, rs: :zeek:type:`backdoor_endp_stats`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: http_proxy_signature_found
+.. zeek:id:: ftp_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: http_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: irc_signature_found
+.. zeek:id:: gnutella_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: rlogin_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, num_null: :bro:type:`count`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: smtp_signature_found
+.. zeek:id:: http_proxy_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: ssh_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: telnet_signature_found
+.. zeek:id:: http_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: irc_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: rlogin_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, num_null: :zeek:type:`count`, len: :zeek:type:`count`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: smtp_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: ssh_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: telnet_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, len: :zeek:type:`count`)
 
    Deprecated. Will be removed.
 

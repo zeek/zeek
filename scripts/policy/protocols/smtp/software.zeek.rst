@@ -2,7 +2,7 @@
 
 policy/protocols/smtp/software.zeek
 ===================================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 This script feeds software detected through email into the software
 framework.  Mail clients and webmail interfaces are the only thing 
@@ -20,30 +20,30 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================================== ===================================================================
-:bro:id:`SMTP::detect_clients_in_messages_from`: :bro:type:`Host` :bro:attr:`&redef` Assuming that local mail servers are more trustworthy with the
-                                                                                     headers they insert into message envelopes, this default makes Bro
-                                                                                     not attempt to detect software in inbound message bodies.
-:bro:id:`SMTP::webmail_user_agents`: :bro:type:`pattern` :bro:attr:`&redef`          A regular expression to match USER-AGENT-like headers to find if a 
-                                                                                     message was sent with a webmail interface.
-==================================================================================== ===================================================================
+======================================================================================= ===================================================================
+:zeek:id:`SMTP::detect_clients_in_messages_from`: :zeek:type:`Host` :zeek:attr:`&redef` Assuming that local mail servers are more trustworthy with the
+                                                                                        headers they insert into message envelopes, this default makes Bro
+                                                                                        not attempt to detect software in inbound message bodies.
+:zeek:id:`SMTP::webmail_user_agents`: :zeek:type:`pattern` :zeek:attr:`&redef`          A regular expression to match USER-AGENT-like headers to find if a 
+                                                                                        message was sent with a webmail interface.
+======================================================================================= ===================================================================
 
 Redefinitions
 #############
-============================================ =
-:bro:type:`SMTP::Info`: :bro:type:`record`   
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`SMTP::Info`: :zeek:type:`record`   
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMTP::detect_clients_in_messages_from
+.. zeek:id:: SMTP::detect_clients_in_messages_from
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``LOCAL_HOSTS``
 
    Assuming that local mail servers are more trustworthy with the
@@ -55,10 +55,10 @@ Runtime Options
    incoming messages (network traffic originating from a non-local
    address), set this variable to EXTERNAL_HOSTS or ALL_HOSTS.
 
-.. bro:id:: SMTP::webmail_user_agents
+.. zeek:id:: SMTP::webmail_user_agents
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

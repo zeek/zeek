@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_NetBIOS.functions.bif.zeek
 ===============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-======================================================== ================================================================
-:bro:id:`decode_netbios_name`: :bro:type:`function`      Decode a NetBIOS name.
-:bro:id:`decode_netbios_name_type`: :bro:type:`function` Converts a NetBIOS name type to its corresponding numeric value.
-======================================================== ================================================================
+========================================================== ================================================================
+:zeek:id:`decode_netbios_name`: :zeek:type:`function`      Decode a NetBIOS name.
+:zeek:id:`decode_netbios_name_type`: :zeek:type:`function` Converts a NetBIOS name type to its corresponding numeric value.
+========================================================== ================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: decode_netbios_name
+.. zeek:id:: decode_netbios_name
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
    Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
    
@@ -33,11 +33,11 @@ Functions
 
    :returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
    
-   .. bro:see:: decode_netbios_name_type
+   .. zeek:see:: decode_netbios_name_type
 
-.. bro:id:: decode_netbios_name_type
+.. zeek:id:: decode_netbios_name_type
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`count`
 
    Converts a NetBIOS name type to its corresponding numeric value.
    See http://support.microsoft.com/kb/163409.
@@ -48,6 +48,6 @@ Functions
 
    :returns: The numeric value of *name*.
    
-   .. bro:see:: decode_netbios_name
+   .. zeek:see:: decode_netbios_name
 
 

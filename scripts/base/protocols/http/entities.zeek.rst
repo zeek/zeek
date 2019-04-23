@@ -2,7 +2,7 @@
 
 base/protocols/http/entities.zeek
 =================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Analysis and logging for MIME entities found in HTTP sessions.
 
@@ -13,76 +13,76 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================== ==========================================
-:bro:id:`HTTP::max_files_orig`: :bro:type:`count` :bro:attr:`&redef` Maximum number of originator files to log.
-:bro:id:`HTTP::max_files_resp`: :bro:type:`count` :bro:attr:`&redef` Maximum number of responder files to log.
-==================================================================== ==========================================
+======================================================================= ==========================================
+:zeek:id:`HTTP::max_files_orig`: :zeek:type:`count` :zeek:attr:`&redef` Maximum number of originator files to log.
+:zeek:id:`HTTP::max_files_resp`: :zeek:type:`count` :zeek:attr:`&redef` Maximum number of responder files to log.
+======================================================================= ==========================================
 
 Types
 #####
-============================================ =
-:bro:type:`HTTP::Entity`: :bro:type:`record` 
-============================================ =
+============================================== =
+:zeek:type:`HTTP::Entity`: :zeek:type:`record` 
+============================================== =
 
 Redefinitions
 #############
-========================================================== =
-:bro:type:`HTTP::Info`: :bro:type:`record`                 
-:bro:type:`fa_file`: :bro:type:`record` :bro:attr:`&redef` 
-========================================================== =
+============================================================= =
+:zeek:type:`HTTP::Info`: :zeek:type:`record`                  
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
+============================================================= =
 
 Hooks
 #####
-================================================== ================================================================
-:bro:id:`HTTP::max_files_policy`: :bro:type:`hook` Called when reaching the max number of files across a given HTTP
-                                                   connection according to :bro:see:`HTTP::max_files_orig`
-                                                   or :bro:see:`HTTP::max_files_resp`.
-================================================== ================================================================
+==================================================== ================================================================
+:zeek:id:`HTTP::max_files_policy`: :zeek:type:`hook` Called when reaching the max number of files across a given HTTP
+                                                     connection according to :zeek:see:`HTTP::max_files_orig`
+                                                     or :zeek:see:`HTTP::max_files_resp`.
+==================================================== ================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: HTTP::max_files_orig
+.. zeek:id:: HTTP::max_files_orig
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15``
 
    Maximum number of originator files to log.
-   :bro:see:`HTTP::max_files_policy` even is called once this
+   :zeek:see:`HTTP::max_files_policy` even is called once this
    limit is reached to determine if it's enforced.
 
-.. bro:id:: HTTP::max_files_resp
+.. zeek:id:: HTTP::max_files_resp
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15``
 
    Maximum number of responder files to log.
-   :bro:see:`HTTP::max_files_policy` even is called once this
+   :zeek:see:`HTTP::max_files_policy` even is called once this
    limit is reached to determine if it's enforced.
 
 Types
 #####
-.. bro:type:: HTTP::Entity
+.. zeek:type:: HTTP::Entity
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      filename: :bro:type:`string` :bro:attr:`&optional`
+      filename: :zeek:type:`string` :zeek:attr:`&optional`
          Filename for the entity if discovered from a header.
 
 
 Hooks
 #####
-.. bro:id:: HTTP::max_files_policy
+.. zeek:id:: HTTP::max_files_policy
 
-   :Type: :bro:type:`hook` (f: :bro:type:`fa_file`, is_orig: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (f: :zeek:type:`fa_file`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Called when reaching the max number of files across a given HTTP
-   connection according to :bro:see:`HTTP::max_files_orig`
-   or :bro:see:`HTTP::max_files_resp`.  Break from the hook
+   connection according to :zeek:see:`HTTP::max_files_orig`
+   or :zeek:see:`HTTP::max_files_resp`.  Break from the hook
    early to signal that the file limit should not be applied.
 
 

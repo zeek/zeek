@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_NTLM.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,20 +11,20 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================== ============================================================================
-:bro:id:`ntlm_authenticate`: :bro:type:`event` Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *authenticate*.
-:bro:id:`ntlm_challenge`: :bro:type:`event`    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *challenge*.
-:bro:id:`ntlm_negotiate`: :bro:type:`event`    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *negotiate*.
-============================================== ============================================================================
+================================================ ============================================================================
+:zeek:id:`ntlm_authenticate`: :zeek:type:`event` Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *authenticate*.
+:zeek:id:`ntlm_challenge`: :zeek:type:`event`    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *challenge*.
+:zeek:id:`ntlm_negotiate`: :zeek:type:`event`    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *negotiate*.
+================================================ ============================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: ntlm_authenticate
+.. zeek:id:: ntlm_authenticate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, request: :bro:type:`NTLM::Authenticate`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, request: :zeek:type:`NTLM::Authenticate`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *authenticate*.
    
@@ -34,11 +34,11 @@ Events
 
    :request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_negotiate ntlm_challenge
+   .. zeek:see:: ntlm_negotiate ntlm_challenge
 
-.. bro:id:: ntlm_challenge
+.. zeek:id:: ntlm_challenge
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, challenge: :bro:type:`NTLM::Challenge`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, challenge: :zeek:type:`NTLM::Challenge`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *challenge*.
    
@@ -48,11 +48,11 @@ Events
 
    :negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_negotiate ntlm_authenticate
+   .. zeek:see:: ntlm_negotiate ntlm_authenticate
 
-.. bro:id:: ntlm_negotiate
+.. zeek:id:: ntlm_negotiate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, negotiate: :bro:type:`NTLM::Negotiate`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, negotiate: :zeek:type:`NTLM::Negotiate`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *negotiate*.
    
@@ -62,6 +62,6 @@ Events
 
    :negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_challenge ntlm_authenticate
+   .. zeek:see:: ntlm_challenge ntlm_authenticate
 
 

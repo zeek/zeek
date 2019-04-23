@@ -2,7 +2,7 @@
 
 policy/protocols/modbus/known-masters-slaves.zeek
 =================================================
-.. bro:namespace:: Known
+.. zeek:namespace:: Known
 
 Script for tracking known Modbus masters and slaves.
 
@@ -17,73 +17,73 @@ Summary
 ~~~~~~~
 State Variables
 ###############
-========================================================================================================== ===============================
-:bro:id:`Known::modbus_nodes`: :bro:type:`set` :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef` The Modbus nodes being tracked.
-========================================================================================================== ===============================
+============================================================================================================== ===============================
+:zeek:id:`Known::modbus_nodes`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef` The Modbus nodes being tracked.
+============================================================================================================== ===============================
 
 Types
 #####
-===================================================== =
-:bro:type:`Known::ModbusDeviceType`: :bro:type:`enum` 
-:bro:type:`Known::ModbusInfo`: :bro:type:`record`     
-===================================================== =
+======================================================= =
+:zeek:type:`Known::ModbusDeviceType`: :zeek:type:`enum` 
+:zeek:type:`Known::ModbusInfo`: :zeek:type:`record`     
+======================================================= =
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 Events
 ######
-==================================================== =====================================================================
-:bro:id:`Known::log_known_modbus`: :bro:type:`event` Event that can be handled to access the loggable record as it is sent
-                                                     on to the logging framework.
-==================================================== =====================================================================
+====================================================== =====================================================================
+:zeek:id:`Known::log_known_modbus`: :zeek:type:`event` Event that can be handled to access the loggable record as it is sent
+                                                       on to the logging framework.
+====================================================== =====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 State Variables
 ###############
-.. bro:id:: Known::modbus_nodes
+.. zeek:id:: Known::modbus_nodes
 
-   :Type: :bro:type:`set` [:bro:type:`addr`, :bro:type:`Known::ModbusDeviceType`]
-   :Attributes: :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`Known::ModbusDeviceType`]
+   :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    The Modbus nodes being tracked.
 
 Types
 #####
-.. bro:type:: Known::ModbusDeviceType
+.. zeek:type:: Known::ModbusDeviceType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Known::MODBUS_MASTER Known::ModbusDeviceType
+      .. zeek:enum:: Known::MODBUS_MASTER Known::ModbusDeviceType
 
-      .. bro:enum:: Known::MODBUS_SLAVE Known::ModbusDeviceType
+      .. zeek:enum:: Known::MODBUS_SLAVE Known::ModbusDeviceType
 
 
-.. bro:type:: Known::ModbusInfo
+.. zeek:type:: Known::ModbusInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          The time the device was discovered.
 
-      host: :bro:type:`addr` :bro:attr:`&log`
+      host: :zeek:type:`addr` :zeek:attr:`&log`
          The IP address of the host.
 
-      device_type: :bro:type:`Known::ModbusDeviceType` :bro:attr:`&log`
+      device_type: :zeek:type:`Known::ModbusDeviceType` :zeek:attr:`&log`
          The type of device being tracked.
 
 
 Events
 ######
-.. bro:id:: Known::log_known_modbus
+.. zeek:id:: Known::log_known_modbus
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Known::ModbusInfo`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Known::ModbusInfo`)
 
    Event that can be handled to access the loggable record as it is sent
    on to the logging framework.

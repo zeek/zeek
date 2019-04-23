@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/last.zeek
 ==========================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Keep the last X observations.
 
@@ -13,26 +13,26 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::Reducer`: :bro:type:`record`   
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 Functions
 #########
-================================================== ================================================
-:bro:id:`SumStats::get_last`: :bro:type:`function` Get a vector of element values from a ResultVal.
-================================================== ================================================
+==================================================== ================================================
+:zeek:id:`SumStats::get_last`: :zeek:type:`function` Get a vector of element values from a ResultVal.
+==================================================== ================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: SumStats::get_last
+.. zeek:id:: SumStats::get_last
 
-   :Type: :bro:type:`function` (rv: :bro:type:`SumStats::ResultVal`) : :bro:type:`vector` of :bro:type:`SumStats::Observation`
+   :Type: :zeek:type:`function` (rv: :zeek:type:`SumStats::ResultVal`) : :zeek:type:`vector` of :zeek:type:`SumStats::Observation`
 
    Get a vector of element values from a ResultVal.
 

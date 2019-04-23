@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_KRB.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,33 +11,33 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ==================================================================
-:bro:id:`krb_ap_request`: :bro:type:`event`   A Kerberos 5 ``Authentication Header (AP) Request`` as defined
-                                              in :rfc:`4120`.
-:bro:id:`krb_ap_response`: :bro:type:`event`  A Kerberos 5 ``Authentication Header (AP) Response`` as defined
-                                              in :rfc:`4120`.
-:bro:id:`krb_as_request`: :bro:type:`event`   A Kerberos 5 ``Authentication Server (AS) Request`` as defined
-                                              in :rfc:`4120`.
-:bro:id:`krb_as_response`: :bro:type:`event`  A Kerberos 5 ``Authentication Server (AS) Response`` as defined
-                                              in :rfc:`4120`.
-:bro:id:`krb_cred`: :bro:type:`event`         A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`.
-:bro:id:`krb_error`: :bro:type:`event`        A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
-:bro:id:`krb_priv`: :bro:type:`event`         A Kerberos 5 ``Private Message`` as defined in :rfc:`4120`.
-:bro:id:`krb_safe`: :bro:type:`event`         A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`.
-:bro:id:`krb_tgs_request`: :bro:type:`event`  A Kerberos 5 ``Ticket Granting Service (TGS) Request`` as defined
-                                              in :rfc:`4120`.
-:bro:id:`krb_tgs_response`: :bro:type:`event` A Kerberos 5 ``Ticket Granting Service (TGS) Response`` as defined
-                                              in :rfc:`4120`.
-============================================= ==================================================================
+=============================================== ==================================================================
+:zeek:id:`krb_ap_request`: :zeek:type:`event`   A Kerberos 5 ``Authentication Header (AP) Request`` as defined
+                                                in :rfc:`4120`.
+:zeek:id:`krb_ap_response`: :zeek:type:`event`  A Kerberos 5 ``Authentication Header (AP) Response`` as defined
+                                                in :rfc:`4120`.
+:zeek:id:`krb_as_request`: :zeek:type:`event`   A Kerberos 5 ``Authentication Server (AS) Request`` as defined
+                                                in :rfc:`4120`.
+:zeek:id:`krb_as_response`: :zeek:type:`event`  A Kerberos 5 ``Authentication Server (AS) Response`` as defined
+                                                in :rfc:`4120`.
+:zeek:id:`krb_cred`: :zeek:type:`event`         A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`.
+:zeek:id:`krb_error`: :zeek:type:`event`        A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
+:zeek:id:`krb_priv`: :zeek:type:`event`         A Kerberos 5 ``Private Message`` as defined in :rfc:`4120`.
+:zeek:id:`krb_safe`: :zeek:type:`event`         A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`.
+:zeek:id:`krb_tgs_request`: :zeek:type:`event`  A Kerberos 5 ``Ticket Granting Service (TGS) Request`` as defined
+                                                in :rfc:`4120`.
+:zeek:id:`krb_tgs_response`: :zeek:type:`event` A Kerberos 5 ``Ticket Granting Service (TGS) Response`` as defined
+                                                in :rfc:`4120`.
+=============================================== ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: krb_ap_request
+.. zeek:id:: krb_ap_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, ticket: :bro:type:`KRB::Ticket`, opts: :bro:type:`KRB::AP_Options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, ticket: :zeek:type:`KRB::Ticket`, opts: :zeek:type:`KRB::AP_Options`)
 
    A Kerberos 5 ``Authentication Header (AP) Request`` as defined
    in :rfc:`4120`. This message contains authentication information
@@ -56,12 +56,12 @@ Events
 
    :opts: A Kerberos AP options data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_ap_response
+.. zeek:id:: krb_ap_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    A Kerberos 5 ``Authentication Header (AP) Response`` as defined
    in :rfc:`4120`. This is used if mutual authentication is desired.
@@ -75,12 +75,12 @@ Events
 
    :c: The connection over which this Kerberos message was sent.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_as_request
+.. zeek:id:: krb_as_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Request`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
    A Kerberos 5 ``Authentication Server (AS) Request`` as defined
    in :rfc:`4120`. The AS request contains a username of the client
@@ -97,12 +97,12 @@ Events
 
    :msg: A Kerberos KDC request message data structure.
    
-   .. bro:see:: krb_as_response krb_tgs_request krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_response krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_as_response
+.. zeek:id:: krb_as_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Response`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Response`)
 
    A Kerberos 5 ``Authentication Server (AS) Response`` as defined
    in :rfc:`4120`. Following the AS request for a user, an AS reply
@@ -118,12 +118,12 @@ Events
 
    :msg: A Kerberos KDC reply message data structure.
    
-   .. bro:see:: krb_as_request krb_tgs_request krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_request krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_cred
+.. zeek:id:: krb_cred
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, tickets: :bro:type:`KRB::Ticket_Vector`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, tickets: :zeek:type:`KRB::Ticket_Vector`)
 
    A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`. This is
    a private (encrypted) message to forward credentials.
@@ -140,12 +140,12 @@ Events
 
    :tickets: Tickets obtained from the KDC that are being forwarded.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_error
 
-.. bro:id:: krb_error
+.. zeek:id:: krb_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::Error_Msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::Error_Msg`)
 
    A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
    
@@ -158,12 +158,12 @@ Events
 
    :msg: A Kerberos error message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_cred
 
-.. bro:id:: krb_priv
+.. zeek:id:: krb_priv
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    A Kerberos 5 ``Private Message`` as defined in :rfc:`4120`. This
    is a private (encrypted) application message, so the event doesn't
@@ -179,12 +179,12 @@ Events
 
    :is_orig: Whether the originator of the connection sent this message.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_safe krb_cred krb_error
 
-.. bro:id:: krb_safe
+.. zeek:id:: krb_safe
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`KRB::SAFE_Msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`KRB::SAFE_Msg`)
 
    A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`. This is a
    safe (checksummed) application message.
@@ -201,12 +201,12 @@ Events
 
    :msg: A Kerberos SAFE message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_cred krb_error
 
-.. bro:id:: krb_tgs_request
+.. zeek:id:: krb_tgs_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Request`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
    A Kerberos 5 ``Ticket Granting Service (TGS) Request`` as defined
    in :rfc:`4120`. Following the Authentication Server exchange, if
@@ -223,12 +223,12 @@ Events
 
    :msg: A Kerberos KDC request message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_tgs_response
+.. zeek:id:: krb_tgs_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Response`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Response`)
 
    A Kerberos 5 ``Ticket Granting Service (TGS) Response`` as defined
    in :rfc:`4120`. This message returns a Service Ticket to the client,
@@ -244,7 +244,7 @@ Events
 
    :msg: A Kerberos KDC reply message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_ap_request
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
 

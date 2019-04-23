@@ -17,5 +17,5 @@ this framework.
    parsing but doesn't actually do any detection on it's own.  It relies on
    other protocol specific scripts to parse out software from the protocols
    that they analyze.  The entry point for providing new software detections
-   to this framework is through the :bro:id:`Software::found` function.
+   to this framework is through the :zeek:id:`Software::found` function.
 

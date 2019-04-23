@@ -2,7 +2,7 @@
 
 base/protocols/conn/polling.zeek
 ================================
-.. bro:namespace:: ConnPolling
+.. zeek:namespace:: ConnPolling
 
 Implements a generic way to poll connections looking for certain features
 (e.g. monitor bytes transferred).  The specific feature of a connection
@@ -15,18 +15,18 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================== =====================================
-:bro:id:`ConnPolling::watch`: :bro:type:`function` Starts monitoring a given connection.
-================================================== =====================================
+==================================================== =====================================
+:zeek:id:`ConnPolling::watch`: :zeek:type:`function` Starts monitoring a given connection.
+==================================================== =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: ConnPolling::watch
+.. zeek:id:: ConnPolling::watch
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, callback: :bro:type:`function` (c: :bro:type:`connection`, cnt: :bro:type:`count`) : :bro:type:`interval`, cnt: :bro:type:`count`, i: :bro:type:`interval`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, callback: :zeek:type:`function` (c: :zeek:type:`connection`, cnt: :zeek:type:`count`) : :zeek:type:`interval`, cnt: :zeek:type:`count`, i: :zeek:type:`interval`) : :zeek:type:`void`
 
    Starts monitoring a given connection.
    

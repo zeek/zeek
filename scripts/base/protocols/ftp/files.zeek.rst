@@ -2,7 +2,7 @@
 
 base/protocols/ftp/files.zeek
 =============================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 
 :Namespace: FTP
@@ -12,32 +12,32 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================================== =
-:bro:type:`FTP::Info`: :bro:type:`record`                  
-:bro:type:`fa_file`: :bro:type:`record` :bro:attr:`&redef` 
-========================================================== =
+============================================================= =
+:zeek:type:`FTP::Info`: :zeek:type:`record`                   
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
+============================================================= =
 
 Functions
 #########
-==================================================== =====================================
-:bro:id:`FTP::describe_file`: :bro:type:`function`   Describe the file being transferred.
-:bro:id:`FTP::get_file_handle`: :bro:type:`function` Default file handle provider for FTP.
-==================================================== =====================================
+====================================================== =====================================
+:zeek:id:`FTP::describe_file`: :zeek:type:`function`   Describe the file being transferred.
+:zeek:id:`FTP::get_file_handle`: :zeek:type:`function` Default file handle provider for FTP.
+====================================================== =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: FTP::describe_file
+.. zeek:id:: FTP::describe_file
 
-   :Type: :bro:type:`function` (f: :bro:type:`fa_file`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
    Describe the file being transferred.
 
-.. bro:id:: FTP::get_file_handle
+.. zeek:id:: FTP::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for FTP.
 

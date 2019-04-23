@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_tree_connect_andx.bif.zeek
 ============================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================================ ===========================================================================================
-:bro:id:`smb1_tree_connect_andx_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                             version 1 requests of type *tree connect andx*.
-:bro:id:`smb1_tree_connect_andx_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                             version 1 responses of type *tree connect andx*.
-============================================================ ===========================================================================================
+============================================================== ===========================================================================================
+:zeek:id:`smb1_tree_connect_andx_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                               version 1 requests of type *tree connect andx*.
+:zeek:id:`smb1_tree_connect_andx_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                               version 1 responses of type *tree connect andx*.
+============================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_tree_connect_andx_request
+.. zeek:id:: smb1_tree_connect_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, path: :bro:type:`string`, service: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, path: :zeek:type:`string`, service: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *tree connect andx*. This is sent by the client to establish a
@@ -45,11 +45,11 @@ Events
 
    :service: The ``service`` attribute specified in the message.
    
-   .. bro:see:: smb1_message smb1_tree_connect_andx_response
+   .. zeek:see:: smb1_message smb1_tree_connect_andx_response
 
-.. bro:id:: smb1_tree_connect_andx_response
+.. zeek:id:: smb1_tree_connect_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, service: :bro:type:`string`, native_file_system: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, service: :zeek:type:`string`, native_file_system: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *tree connect andx*. This is the server reply to the *tree connect andx*
@@ -69,6 +69,6 @@ Events
 
    :native_file_system: The file system of the remote server as indicate by the server.
    
-   .. bro:see:: smb1_message smb1_tree_connect_andx_request
+   .. zeek:see:: smb1_message smb1_tree_connect_andx_request
 
 

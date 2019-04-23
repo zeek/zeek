@@ -2,7 +2,7 @@
 
 policy/protocols/http/header-names.zeek
 =======================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Extract and include the header names used for each request in the HTTP
 logging stream.  The headers in the logging stream will be stored in the
@@ -15,34 +15,34 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================ =====================================================================
-:bro:id:`HTTP::log_client_header_names`: :bro:type:`bool` :bro:attr:`&redef` A boolean value to determine if client header names are to be logged.
-:bro:id:`HTTP::log_server_header_names`: :bro:type:`bool` :bro:attr:`&redef` A boolean value to determine if server header names are to be logged.
-============================================================================ =====================================================================
+=============================================================================== =====================================================================
+:zeek:id:`HTTP::log_client_header_names`: :zeek:type:`bool` :zeek:attr:`&redef` A boolean value to determine if client header names are to be logged.
+:zeek:id:`HTTP::log_server_header_names`: :zeek:type:`bool` :zeek:attr:`&redef` A boolean value to determine if server header names are to be logged.
+=============================================================================== =====================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`HTTP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`HTTP::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: HTTP::log_client_header_names
+.. zeek:id:: HTTP::log_client_header_names
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    A boolean value to determine if client header names are to be logged.
 
-.. bro:id:: HTTP::log_server_header_names
+.. zeek:id:: HTTP::log_server_header_names
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    A boolean value to determine if server header names are to be logged.

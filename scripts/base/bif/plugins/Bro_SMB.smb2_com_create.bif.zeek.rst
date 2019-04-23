@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_create.bif.zeek
 =================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================= ===========================================================================================
-:bro:id:`smb2_create_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                  version 2 requests of type *create*.
-:bro:id:`smb2_create_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                  version 2 responses of type *create*.
-================================================= ===========================================================================================
+=================================================== ===========================================================================================
+:zeek:id:`smb2_create_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                    version 2 requests of type *create*.
+:zeek:id:`smb2_create_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                    version 2 responses of type *create*.
+=================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_create_request
+.. zeek:id:: smb2_create_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, request: :bro:type:`SMB2::CreateRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, request: :zeek:type:`SMB2::CreateRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *create*. This is sent by the client to request either creation
@@ -42,11 +42,11 @@ Events
 
    :request: A record with more information related to the request.
    
-   .. bro:see:: smb2_message smb2_create_response
+   .. zeek:see:: smb2_message smb2_create_response
 
-.. bro:id:: smb2_create_response
+.. zeek:id:: smb2_create_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::CreateResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::CreateResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *create*. This is sent by the server to notify the client of
@@ -63,6 +63,6 @@ Events
 
    :response: A record with more information related to the response.
    
-   .. bro:see:: smb2_message smb2_create_request
+   .. zeek:see:: smb2_message smb2_create_request
 
 

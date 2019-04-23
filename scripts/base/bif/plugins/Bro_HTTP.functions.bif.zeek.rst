@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_HTTP.functions.bif.zeek
 ============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-===================================================== ===============================================================
-:bro:id:`skip_http_entity_data`: :bro:type:`function` Skips the data of the HTTP entity.
-:bro:id:`unescape_URI`: :bro:type:`function`          Unescapes all characters in a URI (decode every ``%xx`` group).
-===================================================== ===============================================================
+======================================================= ===============================================================
+:zeek:id:`skip_http_entity_data`: :zeek:type:`function` Skips the data of the HTTP entity.
+:zeek:id:`unescape_URI`: :zeek:type:`function`          Unescapes all characters in a URI (decode every ``%xx`` group).
+======================================================= ===============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: skip_http_entity_data
+.. zeek:id:: skip_http_entity_data
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`any`
 
    Skips the data of the HTTP entity.
    
@@ -33,11 +33,11 @@ Functions
 
    :is_orig: If true, the client data is skipped, and the server data otherwise.
    
-   .. bro:see:: skip_smtp_data
+   .. zeek:see:: skip_smtp_data
 
-.. bro:id:: unescape_URI
+.. zeek:id:: unescape_URI
 
-   :Type: :bro:type:`function` (URI: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (URI: :zeek:type:`string`) : :zeek:type:`string`
 
    Unescapes all characters in a URI (decode every ``%xx`` group).
    

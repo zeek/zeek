@@ -2,8 +2,8 @@
 
 base/bif/pcap.bif.zeek
 ======================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: Pcap
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: Pcap
 
 
 :Namespaces: GLOBAL, Pcap
@@ -12,28 +12,28 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================================ =============================================================
-:bro:id:`Pcap::error`: :bro:type:`function`                  Returns a string representation of the last PCAP error.
-:bro:id:`Pcap::install_pcap_filter`: :bro:type:`function`    Installs a PCAP filter that has been precompiled with
-                                                             :bro:id:`Pcap::precompile_pcap_filter`.
-:bro:id:`Pcap::precompile_pcap_filter`: :bro:type:`function` Precompiles a PCAP filter and binds it to a given identifier.
-============================================================ =============================================================
+============================================================== =============================================================
+:zeek:id:`Pcap::error`: :zeek:type:`function`                  Returns a string representation of the last PCAP error.
+:zeek:id:`Pcap::install_pcap_filter`: :zeek:type:`function`    Installs a PCAP filter that has been precompiled with
+                                                               :zeek:id:`Pcap::precompile_pcap_filter`.
+:zeek:id:`Pcap::precompile_pcap_filter`: :zeek:type:`function` Precompiles a PCAP filter and binds it to a given identifier.
+============================================================== =============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: Pcap::error
+.. zeek:id:: Pcap::error
 
-   :Type: :bro:type:`function` () : :bro:type:`string`
+   :Type: :zeek:type:`function` () : :zeek:type:`string`
 
    Returns a string representation of the last PCAP error.
    
 
    :returns: A descriptive error message of the PCAP function that failed.
    
-   .. bro:see:: Pcap::precompile_pcap_filter
+   .. zeek:see:: Pcap::precompile_pcap_filter
                 Pcap::install_pcap_filter
                 install_src_addr_filter
                 install_src_net_filter
@@ -44,12 +44,12 @@ Functions
                 uninstall_dst_addr_filter
                 uninstall_dst_net_filter
 
-.. bro:id:: Pcap::install_pcap_filter
+.. zeek:id:: Pcap::install_pcap_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`PcapFilterID`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`) : :zeek:type:`bool`
 
    Installs a PCAP filter that has been precompiled with
-   :bro:id:`Pcap::precompile_pcap_filter`.
+   :zeek:id:`Pcap::precompile_pcap_filter`.
    
 
    :id: The PCAP filter id of a precompiled filter.
@@ -58,7 +58,7 @@ Functions
    :returns: True if the filter associated with *id* has been installed
             successfully.
    
-   .. bro:see:: Pcap::precompile_pcap_filter
+   .. zeek:see:: Pcap::precompile_pcap_filter
                 install_src_addr_filter
                 install_src_net_filter
                 uninstall_src_addr_filter
@@ -69,9 +69,9 @@ Functions
                 uninstall_dst_net_filter
                 Pcap::error
 
-.. bro:id:: Pcap::precompile_pcap_filter
+.. zeek:id:: Pcap::precompile_pcap_filter
 
-   :Type: :bro:type:`function` (id: :bro:type:`PcapFilterID`, s: :bro:type:`string`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`, s: :zeek:type:`string`) : :zeek:type:`bool`
 
    Precompiles a PCAP filter and binds it to a given identifier.
    
@@ -84,7 +84,7 @@ Functions
 
    :returns: True if *s* is valid and precompiles successfully.
    
-   .. bro:see:: Pcap::install_pcap_filter
+   .. zeek:see:: Pcap::install_pcap_filter
             install_src_addr_filter
             install_src_net_filter
             uninstall_src_addr_filter

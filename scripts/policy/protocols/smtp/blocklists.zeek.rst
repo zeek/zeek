@@ -2,7 +2,7 @@
 
 policy/protocols/smtp/blocklists.zeek
 =====================================
-.. bro:namespace:: SMTP
+.. zeek:namespace:: SMTP
 
 Watch for various SPAM blocklist URLs in SMTP error messages.
 
@@ -13,25 +13,25 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-================================================================================ =
-:bro:id:`SMTP::blocklist_error_messages`: :bro:type:`pattern` :bro:attr:`&redef` 
-================================================================================ =
+=================================================================================== =
+:zeek:id:`SMTP::blocklist_error_messages`: :zeek:type:`pattern` :zeek:attr:`&redef` 
+=================================================================================== =
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMTP::blocklist_error_messages
+.. zeek:id:: SMTP::blocklist_error_messages
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

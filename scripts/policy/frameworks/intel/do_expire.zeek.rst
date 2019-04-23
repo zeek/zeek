@@ -2,7 +2,7 @@
 
 policy/frameworks/intel/do_expire.zeek
 ======================================
-.. bro:namespace:: Intel
+.. zeek:namespace:: Intel
 
 This script enables expiration for intelligence items.
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================================================= =
-:bro:id:`Intel::item_expiration`: :bro:type:`interval` :bro:attr:`&redef` 
-========================================================================= =
+============================================================================ =
+:zeek:id:`Intel::item_expiration`: :zeek:type:`interval` :zeek:attr:`&redef` 
+============================================================================ =
 
 
 Detailed Interface

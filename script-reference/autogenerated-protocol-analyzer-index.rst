@@ -1,155 +1,155 @@
 Protocol Analyzers
 ==================
 
-.. bro:type:: Analyzer::Tag
+.. zeek:type:: Analyzer::Tag
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: Analyzer::ANALYZER_AYIYA Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_AYIYA Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_BACKDOOR Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_BACKDOOR Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_BITTORRENT Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_BITTORRENT Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_BITTORRENTTRACKER Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_BITTORRENTTRACKER Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONNSIZE Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONNSIZE Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DCE_RPC Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DCE_RPC Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DHCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DHCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DNP3_TCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DNP3_TCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DNP3_UDP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DNP3_UDP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_DNS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_DNS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DNS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DNS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_FTP_DATA Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_FTP_DATA Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_IRC_DATA Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_IRC_DATA Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_FINGER Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_FINGER Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_FTP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_FTP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_FTP_ADAT Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_FTP_ADAT Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_GNUTELLA Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_GNUTELLA Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_GSSAPI Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_GSSAPI Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_GTPV1 Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_GTPV1 Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_HTTP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_HTTP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_ICMP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_ICMP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_IDENT Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_IDENT Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_IMAP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_IMAP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_INTERCONN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_INTERCONN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_IRC Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_IRC Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_KRB Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_KRB Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_KRB_TCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_KRB_TCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_RLOGIN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_RLOGIN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_RSH Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_RSH Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_LOGIN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_LOGIN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NVT Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NVT Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_RLOGIN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_RLOGIN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_RSH Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_RSH Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_TELNET Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_TELNET Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_MODBUS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_MODBUS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_MYSQL Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_MYSQL Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_NCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_NCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_NETBIOSSSN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_NETBIOSSSN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NETBIOSSSN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NETBIOSSSN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NTLM Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NTLM Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NTP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NTP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_PIA_TCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_PIA_TCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_PIA_UDP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_PIA_UDP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_POP3 Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_POP3 Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_RADIUS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_RADIUS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_RDP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_RDP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_RFB Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_RFB Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_NFS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_NFS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_RPC Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_RPC Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_MOUNT Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_MOUNT Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_NFS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_NFS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_PORTMAPPER Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_PORTMAPPER Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SIP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SIP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS_SMB Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_SMB Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SMB Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SMB Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SMTP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SMTP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SNMP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SNMP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SOCKS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SOCKS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SSH Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SSH Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_DTLS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_DTLS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SSL Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SSL Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_STEPPINGSTONE Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_STEPPINGSTONE Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_SYSLOG Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_SYSLOG Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTLINE Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTLINE Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_CONTENTS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_CONTENTS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_TCP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_TCP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_TCPSTATS Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_TCPSTATS Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_TEREDO Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_TEREDO Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_UDP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_UDP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_VXLAN Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_VXLAN Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_XMPP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_XMPP Analyzer::Tag
 
-      .. bro:enum:: Analyzer::ANALYZER_ZIP Analyzer::Tag
+      .. zeek:enum:: Analyzer::ANALYZER_ZIP Analyzer::Tag
 
 Bro::ARP
 --------
@@ -162,9 +162,9 @@ Components
 Events
 ++++++
 
-.. bro:id:: arp_request
+.. zeek:id:: arp_request
 
-   :Type: :bro:type:`event` (mac_src: :bro:type:`string`, mac_dst: :bro:type:`string`, SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`)
+   :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP requests.
    
@@ -189,11 +189,11 @@ Events
 
    :THA: The target hardware address.
    
-   .. bro:see:: arp_reply  bad_arp
+   .. zeek:see:: arp_reply  bad_arp
 
-.. bro:id:: arp_reply
+.. zeek:id:: arp_reply
 
-   :Type: :bro:type:`event` (mac_src: :bro:type:`string`, mac_dst: :bro:type:`string`, SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`)
+   :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP replies.
    
@@ -218,11 +218,11 @@ Events
 
    :THA: The target hardware address.
    
-   .. bro:see::  arp_request bad_arp
+   .. zeek:see::  arp_request bad_arp
 
-.. bro:id:: bad_arp
+.. zeek:id:: bad_arp
 
-   :Type: :bro:type:`event` (SPA: :bro:type:`addr`, SHA: :bro:type:`string`, TPA: :bro:type:`addr`, THA: :bro:type:`string`, explanation: :bro:type:`string`)
+   :Type: :zeek:type:`event` (SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`, explanation: :zeek:type:`string`)
 
    Generated for ARP packets that Bro cannot interpret. Examples are packets
    with non-standard hardware address formats or hardware addresses that do not
@@ -243,7 +243,7 @@ Events
 
    :explanation: A short description of why the ARP packet is considered "bad".
    
-   .. bro:see:: arp_reply arp_request
+   .. zeek:see:: arp_reply arp_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -258,7 +258,7 @@ AYIYA Analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_AYIYA`
+:zeek:enum:`Analyzer::ANALYZER_AYIYA`
 
 Bro::BackDoor
 -------------
@@ -268,74 +268,74 @@ Backdoor Analyzer deprecated
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_BACKDOOR`
+:zeek:enum:`Analyzer::ANALYZER_BACKDOOR`
 
 Events
 ++++++
 
-.. bro:id:: backdoor_stats
+.. zeek:id:: backdoor_stats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, os: :bro:type:`backdoor_endp_stats`, rs: :bro:type:`backdoor_endp_stats`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: backdoor_remove_conn
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`backdoor_endp_stats`, rs: :zeek:type:`backdoor_endp_stats`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: ftp_signature_found
+.. zeek:id:: backdoor_remove_conn
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: gnutella_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: http_signature_found
+.. zeek:id:: ftp_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: irc_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: telnet_signature_found
+.. zeek:id:: gnutella_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, len: :bro:type:`count`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: ssh_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: rlogin_signature_found
+.. zeek:id:: http_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, num_null: :bro:type:`count`, len: :bro:type:`count`)
-
-   Deprecated. Will be removed.
-
-.. bro:id:: smtp_signature_found
-
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: http_proxy_signature_found
+.. zeek:id:: irc_signature_found
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: telnet_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, len: :zeek:type:`count`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: ssh_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: rlogin_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, num_null: :zeek:type:`count`, len: :zeek:type:`count`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: smtp_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Deprecated. Will be removed.
+
+.. zeek:id:: http_proxy_signature_found
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
@@ -347,278 +347,278 @@ BitTorrent Analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_BITTORRENT`
+:zeek:enum:`Analyzer::ANALYZER_BITTORRENT`
 
-:bro:enum:`Analyzer::ANALYZER_BITTORRENTTRACKER`
+:zeek:enum:`Analyzer::ANALYZER_BITTORRENTTRACKER`
 
 Events
 ++++++
 
-.. bro:id:: bittorrent_peer_handshake
+.. zeek:id:: bittorrent_peer_handshake
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, reserved: :bro:type:`string`, info_hash: :bro:type:`string`, peer_id: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, reserved: :zeek:type:`string`, info_hash: :zeek:type:`string`, peer_id: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
       bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_keep_alive
+.. zeek:id:: bittorrent_peer_keep_alive
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_choke
+.. zeek:id:: bittorrent_peer_choke
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_unchoke
+.. zeek:id:: bittorrent_peer_unchoke
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_interested
+.. zeek:id:: bittorrent_peer_interested
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_keep_alive
       bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_not_interested
+.. zeek:id:: bittorrent_peer_not_interested
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive  bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_have
+.. zeek:id:: bittorrent_peer_have
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, piece_index: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, piece_index: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake  bittorrent_peer_interested bittorrent_peer_keep_alive
       bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_bitfield
+.. zeek:id:: bittorrent_peer_bitfield
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, bitfield: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, bitfield: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
+   .. zeek:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
       bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
       bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_request
+.. zeek:id:: bittorrent_peer_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, index: :bro:type:`count`, begin: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, index: :zeek:type:`count`, begin: :zeek:type:`count`, length: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port  bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_piece
+.. zeek:id:: bittorrent_peer_piece
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, index: :bro:type:`count`, begin: :bro:type:`count`, piece_length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, index: :zeek:type:`count`, begin: :zeek:type:`count`, piece_length: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_port
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_cancel
+.. zeek:id:: bittorrent_peer_cancel
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, index: :bro:type:`count`, begin: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, index: :zeek:type:`count`, begin: :zeek:type:`count`, length: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_port
+.. zeek:id:: bittorrent_peer_port
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, listen_port: :bro:type:`port`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, listen_port: :zeek:type:`port`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_unknown
+.. zeek:id:: bittorrent_peer_unknown
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, message_id: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, message_id: :zeek:type:`count`, data: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_weird
 
-.. bro:id:: bittorrent_peer_weird
+.. zeek:id:: bittorrent_peer_weird
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown
 
-.. bro:id:: bt_tracker_request
+.. zeek:id:: bt_tracker_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, uri: :bro:type:`string`, headers: :bro:type:`bt_tracker_headers`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, uri: :zeek:type:`string`, headers: :zeek:type:`bt_tracker_headers`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bt_tracker_response
+.. zeek:id:: bt_tracker_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, status: :bro:type:`count`, headers: :bro:type:`bt_tracker_headers`, peers: :bro:type:`bittorrent_peer_set`, benc: :bro:type:`bittorrent_benc_dir`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, status: :zeek:type:`count`, headers: :zeek:type:`bt_tracker_headers`, peers: :zeek:type:`bittorrent_peer_set`, benc: :zeek:type:`bittorrent_benc_dir`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bt_tracker_response_not_ok
+.. zeek:id:: bt_tracker_response_not_ok
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, status: :bro:type:`count`, headers: :bro:type:`bt_tracker_headers`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, status: :zeek:type:`count`, headers: :zeek:type:`bt_tracker_headers`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
       bittorrent_peer_unknown bittorrent_peer_weird
 
-.. bro:id:: bt_tracker_weird
+.. zeek:id:: bt_tracker_weird
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
-   .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+   .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
       bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
       bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
       bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -632,14 +632,14 @@ Connection size analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONNSIZE`
+:zeek:enum:`Analyzer::ANALYZER_CONNSIZE`
 
 Events
 ++++++
 
-.. bro:id:: conn_bytes_threshold_crossed
+.. zeek:id:: conn_bytes_threshold_crossed
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`)
 
    Generated for a connection that crossed a set byte threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
@@ -654,12 +654,12 @@ Events
 
    :is_orig: true if the threshold was crossed by the originator of the connection
    
-   .. bro:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
-.. bro:id:: conn_packets_threshold_crossed
+.. zeek:id:: conn_packets_threshold_crossed
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`)
 
    Generated for a connection that crossed a set packet threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
@@ -674,15 +674,15 @@ Events
 
    :is_orig: true if the threshold was crossed by the originator of the connection
    
-   .. bro:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
 Functions
 +++++++++
 
-.. bro:id:: set_current_conn_bytes_threshold
+.. zeek:id:: set_current_conn_bytes_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Sets the current byte threshold for connection sizes, overwriting any potential old
    threshold. Be aware that in nearly any case you will want to use the high level API
@@ -697,12 +697,12 @@ Functions
 
    :is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
-.. bro:id:: set_current_conn_packets_threshold
+.. zeek:id:: set_current_conn_packets_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Sets a threshold for connection packets, overwtiting any potential old thresholds.
    Be aware that in nearly any case you will want to use the high level API
@@ -717,12 +717,12 @@ Functions
 
    :is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
    
-   .. bro:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
-.. bro:id:: get_current_conn_bytes_threshold
+.. zeek:id:: get_current_conn_bytes_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, is_orig: :bro:type:`bool`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
    Gets the current byte threshold size for a connection.
    
@@ -735,12 +735,12 @@ Functions
 
    :returns: 0 if no threshold is set or the threshold in bytes
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_packets_threshold
 
-.. bro:id:: get_current_conn_packets_threshold
+.. zeek:id:: get_current_conn_packets_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, is_orig: :bro:type:`bool`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
    Gets the current packet threshold size for a connection.
    
@@ -753,7 +753,7 @@ Functions
 
    :returns: 0 if no threshold is set or the threshold in packets
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold
 
 Bro::DCE_RPC
@@ -764,25 +764,25 @@ DCE-RPC analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_DCE_RPC`
+:zeek:enum:`Analyzer::ANALYZER_DCE_RPC`
 
 Options/Constants
 +++++++++++++++++
 
-.. bro:id:: DCE_RPC::max_cmd_reassembly
+.. zeek:id:: DCE_RPC::max_cmd_reassembly
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``20``
 
    The maximum number of simultaneous fragmented commands that
    the DCE_RPC analyzer will tolerate before the it will generate
    a weird and skip further input.
 
-.. bro:id:: DCE_RPC::max_frag_data
+.. zeek:id:: DCE_RPC::max_frag_data
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30000``
 
    The maximum number of fragmented bytes that the DCE_RPC analyzer
@@ -792,92 +792,92 @@ Options/Constants
 Types
 +++++
 
-.. bro:type:: DCE_RPC::PType
+.. zeek:type:: DCE_RPC::PType
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: DCE_RPC::REQUEST DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::REQUEST DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::PING DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::PING DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::RESPONSE DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::RESPONSE DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::FAULT DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::FAULT DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::WORKING DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::WORKING DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::NOCALL DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::NOCALL DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::REJECT DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::REJECT DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::ACK DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::ACK DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::CL_CANCEL DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::CL_CANCEL DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::FACK DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::FACK DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::CANCEL_ACK DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::CANCEL_ACK DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::BIND DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::BIND DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::BIND_ACK DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::BIND_ACK DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::BIND_NAK DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::BIND_NAK DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::ALTER_CONTEXT DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::ALTER_CONTEXT DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::ALTER_CONTEXT_RESP DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::ALTER_CONTEXT_RESP DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::AUTH3 DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::AUTH3 DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::SHUTDOWN DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::SHUTDOWN DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::CO_CANCEL DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::CO_CANCEL DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::ORPHANED DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::ORPHANED DCE_RPC::PType
 
-      .. bro:enum:: DCE_RPC::RTS DCE_RPC::PType
+      .. zeek:enum:: DCE_RPC::RTS DCE_RPC::PType
 
 
-.. bro:type:: DCE_RPC::IfID
+.. zeek:type:: DCE_RPC::IfID
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: DCE_RPC::unknown_if DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::unknown_if DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::epmapper DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::epmapper DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::lsarpc DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::lsarpc DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::lsa_ds DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::lsa_ds DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::mgmt DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::mgmt DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::netlogon DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::netlogon DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::samr DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::samr DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::srvsvc DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::srvsvc DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::spoolss DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::spoolss DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::drs DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::drs DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::winspipe DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::winspipe DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::wkssvc DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::wkssvc DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::oxid DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::oxid DCE_RPC::IfID
 
-      .. bro:enum:: DCE_RPC::ISCMActivator DCE_RPC::IfID
+      .. zeek:enum:: DCE_RPC::ISCMActivator DCE_RPC::IfID
 
 
 Events
 ++++++
 
-.. bro:id:: dce_rpc_message
+.. zeek:id:: dce_rpc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, fid: :bro:type:`count`, ptype_id: :bro:type:`count`, ptype: :bro:type:`DCE_RPC::PType`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, fid: :zeek:type:`count`, ptype_id: :zeek:type:`count`, ptype: :zeek:type:`DCE_RPC::PType`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` message.
    
@@ -898,11 +898,11 @@ Events
 
    :ptype: Enum representation of the prodecure type of the message.
    
-   .. bro:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_bind
+.. zeek:id:: dce_rpc_bind
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, uuid: :bro:type:`string`, ver_major: :bro:type:`count`, ver_minor: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, uuid: :zeek:type:`string`, ver_major: :zeek:type:`count`, ver_minor: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
    Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
@@ -928,11 +928,11 @@ Events
 
    :ver_minor: The minor version of the endpoint being requested.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_alter_context
+.. zeek:id:: dce_rpc_alter_context
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, uuid: :bro:type:`string`, ver_major: :bro:type:`count`, ver_minor: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, uuid: :zeek:type:`string`, ver_major: :zeek:type:`count`, ver_minor: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
    Since RPC offers the ability for a client to request connections to multiple endpoints, this event can occur
@@ -958,11 +958,11 @@ Events
 
    :ver_minor: The minor version of the endpoint being requested.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
 
-.. bro:id:: dce_rpc_bind_ack
+.. zeek:id:: dce_rpc_bind_ack
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, sec_addr: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, sec_addr: :zeek:type:`string`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
    
@@ -977,11 +977,11 @@ Events
 
    :sec_addr: Secondary address for the ack.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
 
-.. bro:id:: dce_rpc_alter_context_resp
+.. zeek:id:: dce_rpc_alter_context_resp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
    
@@ -993,11 +993,11 @@ Events
         message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
         not transported over a pipe.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
 
-.. bro:id:: dce_rpc_request
+.. zeek:id:: dce_rpc_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, opnum: :bro:type:`count`, stub_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub_len: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
    
@@ -1018,11 +1018,11 @@ Events
 
    :stub_len: Length of the data for the request.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
 
-.. bro:id:: dce_rpc_response
+.. zeek:id:: dce_rpc_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, fid: :bro:type:`count`, ctx_id: :bro:type:`count`, opnum: :bro:type:`count`, stub_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub_len: :zeek:type:`count`)
 
    Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
    
@@ -1042,7 +1042,7 @@ Events
 
    :stub_len: Length of the data for the response.
    
-   .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
 
 Bro::DHCP
 ---------
@@ -1052,204 +1052,204 @@ DHCP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_DHCP`
+:zeek:enum:`Analyzer::ANALYZER_DHCP`
 
 Types
 +++++
 
-.. bro:type:: DHCP::Msg
+.. zeek:type:: DHCP::Msg
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      op: :bro:type:`count`
+      op: :zeek:type:`count`
          Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
 
-      m_type: :bro:type:`count`
+      m_type: :zeek:type:`count`
          The type of DHCP message.
 
-      xid: :bro:type:`count`
+      xid: :zeek:type:`count`
          Transaction ID of a DHCP session.
 
-      secs: :bro:type:`interval`
+      secs: :zeek:type:`interval`
          Number of seconds since client began address acquisition
          or renewal process
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
 
-      ciaddr: :bro:type:`addr`
+      ciaddr: :zeek:type:`addr`
          Original IP address of the client.
 
-      yiaddr: :bro:type:`addr`
+      yiaddr: :zeek:type:`addr`
          IP address assigned to the client.
 
-      siaddr: :bro:type:`addr`
+      siaddr: :zeek:type:`addr`
          IP address of the server.
 
-      giaddr: :bro:type:`addr`
+      giaddr: :zeek:type:`addr`
          IP address of the relaying gateway.
 
-      chaddr: :bro:type:`string`
+      chaddr: :zeek:type:`string`
          Client hardware address.
 
-      sname: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      sname: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          Server host name.
 
-      file_n: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`
+      file_n: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
          Boot file name.
 
    A DHCP message.
-   .. bro:see:: dhcp_message
+   .. zeek:see:: dhcp_message
 
-.. bro:type:: DHCP::Addrs
+.. zeek:type:: DHCP::Addrs
 
-   :Type: :bro:type:`vector` of :bro:type:`addr`
+   :Type: :zeek:type:`vector` of :zeek:type:`addr`
 
    A list of addresses offered by a DHCP server.  Could be routers,
    DNS servers, or other.
    
-   .. bro:see:: dhcp_message
+   .. zeek:see:: dhcp_message
 
-.. bro:type:: DHCP::SubOpt
+.. zeek:type:: DHCP::SubOpt
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      code: :bro:type:`count`
+      code: :zeek:type:`count`
 
-      value: :bro:type:`string`
+      value: :zeek:type:`string`
 
    DHCP Relay Agent Information Option (Option 82)
-   .. bro:see:: dhcp_message
+   .. zeek:see:: dhcp_message
 
-.. bro:type:: DHCP::SubOpts
+.. zeek:type:: DHCP::SubOpts
 
-   :Type: :bro:type:`vector` of :bro:type:`DHCP::SubOpt`
+   :Type: :zeek:type:`vector` of :zeek:type:`DHCP::SubOpt`
 
 
-.. bro:type:: DHCP::ClientFQDN
+.. zeek:type:: DHCP::ClientFQDN
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          An unparsed bitfield of flags (refer to RFC 4702).
 
-      rcode1: :bro:type:`count`
+      rcode1: :zeek:type:`count`
          This field is deprecated in the standard.
 
-      rcode2: :bro:type:`count`
+      rcode2: :zeek:type:`count`
          This field is deprecated in the standard.
 
-      domain_name: :bro:type:`string`
+      domain_name: :zeek:type:`string`
          The Domain Name part of the option carries all or part of the FQDN
          of a DHCP client.
 
    DHCP Client FQDN Option information (Option 81)
 
-.. bro:type:: DHCP::ClientID
+.. zeek:type:: DHCP::ClientID
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      hwtype: :bro:type:`count`
+      hwtype: :zeek:type:`count`
 
-      hwaddr: :bro:type:`string`
+      hwaddr: :zeek:type:`string`
 
    DHCP Client Identifier (Option 61)
-   .. bro:see:: dhcp_message
+   .. zeek:see:: dhcp_message
 
-.. bro:type:: DHCP::Options
+.. zeek:type:: DHCP::Options
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      options: :bro:type:`index_vec` :bro:attr:`&optional`
+      options: :zeek:type:`index_vec` :zeek:attr:`&optional`
          The ordered list of all DHCP option numbers.
 
-      subnet_mask: :bro:type:`addr` :bro:attr:`&optional`
+      subnet_mask: :zeek:type:`addr` :zeek:attr:`&optional`
          Subnet Mask Value (option 1)
 
-      routers: :bro:type:`DHCP::Addrs` :bro:attr:`&optional`
+      routers: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
          Router addresses (option 3)
 
-      dns_servers: :bro:type:`DHCP::Addrs` :bro:attr:`&optional`
+      dns_servers: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
          DNS Server addresses (option 6)
 
-      host_name: :bro:type:`string` :bro:attr:`&optional`
+      host_name: :zeek:type:`string` :zeek:attr:`&optional`
          The Hostname of the client (option 12)
 
-      domain_name: :bro:type:`string` :bro:attr:`&optional`
+      domain_name: :zeek:type:`string` :zeek:attr:`&optional`
          The DNS domain name of the client (option 15)
 
-      forwarding: :bro:type:`bool` :bro:attr:`&optional`
+      forwarding: :zeek:type:`bool` :zeek:attr:`&optional`
          Enable/Disable IP Forwarding (option 19)
 
-      broadcast: :bro:type:`addr` :bro:attr:`&optional`
+      broadcast: :zeek:type:`addr` :zeek:attr:`&optional`
          Broadcast Address (option 28)
 
-      vendor: :bro:type:`string` :bro:attr:`&optional`
+      vendor: :zeek:type:`string` :zeek:attr:`&optional`
          Vendor specific data. This can frequently
          be unparsed binary data. (option 43)
 
-      nbns: :bro:type:`DHCP::Addrs` :bro:attr:`&optional`
+      nbns: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
          NETBIOS name server list (option 44)
 
-      addr_request: :bro:type:`addr` :bro:attr:`&optional`
+      addr_request: :zeek:type:`addr` :zeek:attr:`&optional`
          Address requested by the client (option 50)
 
-      lease: :bro:type:`interval` :bro:attr:`&optional`
+      lease: :zeek:type:`interval` :zeek:attr:`&optional`
          Lease time offered by the server. (option 51)
 
-      serv_addr: :bro:type:`addr` :bro:attr:`&optional`
+      serv_addr: :zeek:type:`addr` :zeek:attr:`&optional`
          Server address to allow clients to distinguish
          between lease offers. (option 54)
 
-      param_list: :bro:type:`index_vec` :bro:attr:`&optional`
+      param_list: :zeek:type:`index_vec` :zeek:attr:`&optional`
          DHCP Parameter Request list (option 55)
 
-      message: :bro:type:`string` :bro:attr:`&optional`
+      message: :zeek:type:`string` :zeek:attr:`&optional`
          Textual error message (option 56)
 
-      max_msg_size: :bro:type:`count` :bro:attr:`&optional`
+      max_msg_size: :zeek:type:`count` :zeek:attr:`&optional`
          Maximum Message Size (option 57)
 
-      renewal_time: :bro:type:`interval` :bro:attr:`&optional`
+      renewal_time: :zeek:type:`interval` :zeek:attr:`&optional`
          This option specifies the time interval from address
          assignment until the client transitions to the
          RENEWING state. (option 58)
 
-      rebinding_time: :bro:type:`interval` :bro:attr:`&optional`
+      rebinding_time: :zeek:type:`interval` :zeek:attr:`&optional`
          This option specifies the time interval from address
          assignment until the client transitions to the
          REBINDING state. (option 59)
 
-      vendor_class: :bro:type:`string` :bro:attr:`&optional`
+      vendor_class: :zeek:type:`string` :zeek:attr:`&optional`
          This option is used by DHCP clients to optionally
          identify the vendor type and configuration of a DHCP
          client. (option 60)
 
-      client_id: :bro:type:`DHCP::ClientID` :bro:attr:`&optional`
+      client_id: :zeek:type:`DHCP::ClientID` :zeek:attr:`&optional`
          DHCP Client Identifier (Option 61)
 
-      user_class: :bro:type:`string` :bro:attr:`&optional`
+      user_class: :zeek:type:`string` :zeek:attr:`&optional`
          User Class opaque value (Option 77)
 
-      client_fqdn: :bro:type:`DHCP::ClientFQDN` :bro:attr:`&optional`
+      client_fqdn: :zeek:type:`DHCP::ClientFQDN` :zeek:attr:`&optional`
          DHCP Client FQDN (Option 81)
 
-      sub_opt: :bro:type:`DHCP::SubOpts` :bro:attr:`&optional`
+      sub_opt: :zeek:type:`DHCP::SubOpts` :zeek:attr:`&optional`
          DHCP Relay Agent Information Option (Option 82)
 
-      auto_config: :bro:type:`bool` :bro:attr:`&optional`
+      auto_config: :zeek:type:`bool` :zeek:attr:`&optional`
          Auto Config option to let host know if it's allowed to
          auto assign an IP address. (Option 116)
 
-      auto_proxy_config: :bro:type:`string` :bro:attr:`&optional`
+      auto_proxy_config: :zeek:type:`string` :zeek:attr:`&optional`
          URL to find a proxy.pac for auto proxy config (Option 252)
 
 
 Events
 ++++++
 
-.. bro:id:: dhcp_message
+.. zeek:id:: dhcp_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`DHCP::Msg`, options: :bro:type:`DHCP::Options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCP::Msg`, options: :zeek:type:`DHCP::Options`)
 
    Generated for all DHCP messages.
    
@@ -1275,16 +1275,16 @@ DNP3 UDP/TCP analyzers
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_DNP3_TCP`
+:zeek:enum:`Analyzer::ANALYZER_DNP3_TCP`
 
-:bro:enum:`Analyzer::ANALYZER_DNP3_UDP`
+:zeek:enum:`Analyzer::ANALYZER_DNP3_UDP`
 
 Events
 ++++++
 
-.. bro:id:: dnp3_application_request_header
+.. zeek:id:: dnp3_application_request_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, application: :bro:type:`count`, fc: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, application: :zeek:type:`count`, fc: :zeek:type:`count`)
 
    Generated for a DNP3 request header.
    
@@ -1298,9 +1298,9 @@ Events
    :fc: function code.
    
 
-.. bro:id:: dnp3_application_response_header
+.. zeek:id:: dnp3_application_response_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, application: :bro:type:`count`, fc: :bro:type:`count`, iin: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, application: :zeek:type:`count`, fc: :zeek:type:`count`, iin: :zeek:type:`count`)
 
    Generated for a DNP3 response header.
    
@@ -1317,9 +1317,9 @@ Events
    :iin: internal indication number.
    
 
-.. bro:id:: dnp3_object_header
+.. zeek:id:: dnp3_object_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, obj_type: :bro:type:`count`, qua_field: :bro:type:`count`, number: :bro:type:`count`, rf_low: :bro:type:`count`, rf_high: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, obj_type: :zeek:type:`count`, qua_field: :zeek:type:`count`, number: :zeek:type:`count`, rf_low: :zeek:type:`count`, rf_high: :zeek:type:`count`)
 
    Generated for the object header found in both DNP3 requests and responses.
    
@@ -1350,9 +1350,9 @@ Events
             while *rf_high* contains the stop index.
    
 
-.. bro:id:: dnp3_object_prefix
+.. zeek:id:: dnp3_object_prefix
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix_value: :zeek:type:`count`)
 
    Generated for the prefix before a DNP3 object. The structure and the meaning
    of the prefix are defined by the qualifier field.
@@ -1367,9 +1367,9 @@ Events
    :prefix_value: The prefix.
    
 
-.. bro:id:: dnp3_header_block
+.. zeek:id:: dnp3_header_block
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, len: :bro:type:`count`, ctrl: :bro:type:`count`, dest_addr: :bro:type:`count`, src_addr: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, len: :zeek:type:`count`, ctrl: :zeek:type:`count`, dest_addr: :zeek:type:`count`, src_addr: :zeek:type:`count`)
 
    Generated for an additional header that the DNP3 analyzer passes to the
    script-level. This header mimics the DNP3 transport-layer yet is only passed
@@ -1395,9 +1395,9 @@ Events
    :src_addr: the "source" field in the DNP3 Pseudo Link Layer.
    
 
-.. bro:id:: dnp3_response_data_object
+.. zeek:id:: dnp3_response_data_object
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data_value: :zeek:type:`count`)
 
    Generated for a DNP3 "Response_Data_Object".
    The "Response_Data_Object" contains two parts: object prefix and object
@@ -1417,317 +1417,317 @@ Events
                directly.
    
 
-.. bro:id:: dnp3_attribute_common
+.. zeek:id:: dnp3_attribute_common
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data_type_code: :bro:type:`count`, leng: :bro:type:`count`, attribute_obj: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data_type_code: :zeek:type:`count`, leng: :zeek:type:`count`, attribute_obj: :zeek:type:`string`)
 
    Generated for DNP3 attributes.
 
-.. bro:id:: dnp3_crob
+.. zeek:id:: dnp3_crob
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, control_code: :bro:type:`count`, count8: :bro:type:`count`, on_time: :bro:type:`count`, off_time: :bro:type:`count`, status_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, control_code: :zeek:type:`count`, count8: :zeek:type:`count`, on_time: :zeek:type:`count`, off_time: :zeek:type:`count`, status_code: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 12 and variation number 1
 
    :CROB: control relay output block
 
-.. bro:id:: dnp3_pcb
+.. zeek:id:: dnp3_pcb
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, control_code: :bro:type:`count`, count8: :bro:type:`count`, on_time: :bro:type:`count`, off_time: :bro:type:`count`, status_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, control_code: :zeek:type:`count`, count8: :zeek:type:`count`, on_time: :zeek:type:`count`, off_time: :zeek:type:`count`, status_code: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 12 and variation number 2
 
    :PCB: Pattern Control Block
 
-.. bro:id:: dnp3_counter_32wFlag
+.. zeek:id:: dnp3_counter_32wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 20 and variation number 1
    counter 32 bit with flag
 
-.. bro:id:: dnp3_counter_16wFlag
+.. zeek:id:: dnp3_counter_16wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 20 and variation number 2
    counter 16 bit with flag
 
-.. bro:id:: dnp3_counter_32woFlag
+.. zeek:id:: dnp3_counter_32woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 20 and variation number 5
    counter 32 bit without flag
 
-.. bro:id:: dnp3_counter_16woFlag
+.. zeek:id:: dnp3_counter_16woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 20 and variation number 6
    counter 16 bit without flag
 
-.. bro:id:: dnp3_frozen_counter_32wFlag
+.. zeek:id:: dnp3_frozen_counter_32wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 1
    frozen counter 32 bit with flag
 
-.. bro:id:: dnp3_frozen_counter_16wFlag
+.. zeek:id:: dnp3_frozen_counter_16wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 2
    frozen counter 16 bit with flag
 
-.. bro:id:: dnp3_frozen_counter_32wFlagTime
+.. zeek:id:: dnp3_frozen_counter_32wFlagTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 5
    frozen counter 32 bit with flag and time
 
-.. bro:id:: dnp3_frozen_counter_16wFlagTime
+.. zeek:id:: dnp3_frozen_counter_16wFlagTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, count_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, count_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 6
    frozen counter 16 bit with flag and time
 
-.. bro:id:: dnp3_frozen_counter_32woFlag
+.. zeek:id:: dnp3_frozen_counter_32woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 9
    frozen counter 32 bit without flag
 
-.. bro:id:: dnp3_frozen_counter_16woFlag
+.. zeek:id:: dnp3_frozen_counter_16woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, count_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, count_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 21 and variation number 10
    frozen counter 16 bit without flag
 
-.. bro:id:: dnp3_analog_input_32wFlag
+.. zeek:id:: dnp3_analog_input_32wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 1
    analog input 32 bit with flag
 
-.. bro:id:: dnp3_analog_input_16wFlag
+.. zeek:id:: dnp3_analog_input_16wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 2
    analog input 16 bit with flag
 
-.. bro:id:: dnp3_analog_input_32woFlag
+.. zeek:id:: dnp3_analog_input_32woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 3
    analog input 32 bit without flag
 
-.. bro:id:: dnp3_analog_input_16woFlag
+.. zeek:id:: dnp3_analog_input_16woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 4
    analog input 16 bit without flag
 
-.. bro:id:: dnp3_analog_input_SPwFlag
+.. zeek:id:: dnp3_analog_input_SPwFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 5
    analog input single precision, float point with flag
 
-.. bro:id:: dnp3_analog_input_DPwFlag
+.. zeek:id:: dnp3_analog_input_DPwFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value_low: :bro:type:`count`, value_high: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value_low: :zeek:type:`count`, value_high: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 30 and variation number 6
    analog input double precision, float point with flag
 
-.. bro:id:: dnp3_frozen_analog_input_32wFlag
+.. zeek:id:: dnp3_frozen_analog_input_32wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 1
    frozen analog input 32 bit with flag
 
-.. bro:id:: dnp3_frozen_analog_input_16wFlag
+.. zeek:id:: dnp3_frozen_analog_input_16wFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 2
    frozen analog input 16 bit with flag
 
-.. bro:id:: dnp3_frozen_analog_input_32wTime
+.. zeek:id:: dnp3_frozen_analog_input_32wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 3
    frozen analog input 32 bit with time-of-freeze
 
-.. bro:id:: dnp3_frozen_analog_input_16wTime
+.. zeek:id:: dnp3_frozen_analog_input_16wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 4
    frozen analog input 16 bit with time-of-freeze
 
-.. bro:id:: dnp3_frozen_analog_input_32woFlag
+.. zeek:id:: dnp3_frozen_analog_input_32woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 5
    frozen analog input 32 bit without flag
 
-.. bro:id:: dnp3_frozen_analog_input_16woFlag
+.. zeek:id:: dnp3_frozen_analog_input_16woFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 6
    frozen analog input 16 bit without flag
 
-.. bro:id:: dnp3_frozen_analog_input_SPwFlag
+.. zeek:id:: dnp3_frozen_analog_input_SPwFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 7
    frozen analog input single-precision, float point with flag
 
-.. bro:id:: dnp3_frozen_analog_input_DPwFlag
+.. zeek:id:: dnp3_frozen_analog_input_DPwFlag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value_low: :bro:type:`count`, frozen_value_high: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value_low: :zeek:type:`count`, frozen_value_high: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 31 and variation number 8
    frozen analog input double-precision, float point with flag
 
-.. bro:id:: dnp3_analog_input_event_32woTime
+.. zeek:id:: dnp3_analog_input_event_32woTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 1
    analog input event 32 bit without time
 
-.. bro:id:: dnp3_analog_input_event_16woTime
+.. zeek:id:: dnp3_analog_input_event_16woTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 2
    analog input event 16 bit without time
 
-.. bro:id:: dnp3_analog_input_event_32wTime
+.. zeek:id:: dnp3_analog_input_event_32wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 3
    analog input event 32 bit with time
 
-.. bro:id:: dnp3_analog_input_event_16wTime
+.. zeek:id:: dnp3_analog_input_event_16wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 4
    analog input event 16 bit with time
 
-.. bro:id:: dnp3_analog_input_event_SPwoTime
+.. zeek:id:: dnp3_analog_input_event_SPwoTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 5
    analog input event single-precision float point without time
 
-.. bro:id:: dnp3_analog_input_event_DPwoTime
+.. zeek:id:: dnp3_analog_input_event_DPwoTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value_low: :bro:type:`count`, value_high: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value_low: :zeek:type:`count`, value_high: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 6
    analog input event double-precision float point without time
 
-.. bro:id:: dnp3_analog_input_event_SPwTime
+.. zeek:id:: dnp3_analog_input_event_SPwTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 7
    analog input event single-precision float point with time
 
-.. bro:id:: dnp3_analog_input_event_DPwTime
+.. zeek:id:: dnp3_analog_input_event_DPwTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, value_low: :bro:type:`count`, value_high: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, value_low: :zeek:type:`count`, value_high: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 32 and variation number 8
    analog input event double-precisiion float point with time
 
-.. bro:id:: dnp3_frozen_analog_input_event_32woTime
+.. zeek:id:: dnp3_frozen_analog_input_event_32woTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 1
    frozen analog input event 32 bit without time
 
-.. bro:id:: dnp3_frozen_analog_input_event_16woTime
+.. zeek:id:: dnp3_frozen_analog_input_event_16woTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 2
    frozen analog input event 16 bit without time
 
-.. bro:id:: dnp3_frozen_analog_input_event_32wTime
+.. zeek:id:: dnp3_frozen_analog_input_event_32wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 3
    frozen analog input event 32 bit with time
 
-.. bro:id:: dnp3_frozen_analog_input_event_16wTime
+.. zeek:id:: dnp3_frozen_analog_input_event_16wTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 4
    frozen analog input event 16 bit with time
 
-.. bro:id:: dnp3_frozen_analog_input_event_SPwoTime
+.. zeek:id:: dnp3_frozen_analog_input_event_SPwoTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 5
    frozen analog input event single-precision float point without time
 
-.. bro:id:: dnp3_frozen_analog_input_event_DPwoTime
+.. zeek:id:: dnp3_frozen_analog_input_event_DPwoTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value_low: :bro:type:`count`, frozen_value_high: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value_low: :zeek:type:`count`, frozen_value_high: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 6
    frozen analog input event double-precision float point without time
 
-.. bro:id:: dnp3_frozen_analog_input_event_SPwTime
+.. zeek:id:: dnp3_frozen_analog_input_event_SPwTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 33 and variation number 7
    frozen analog input event single-precision float point with time
 
-.. bro:id:: dnp3_frozen_analog_input_event_DPwTime
+.. zeek:id:: dnp3_frozen_analog_input_event_DPwTime
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flag: :bro:type:`count`, frozen_value_low: :bro:type:`count`, frozen_value_high: :bro:type:`count`, time48: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flag: :zeek:type:`count`, frozen_value_low: :zeek:type:`count`, frozen_value_high: :zeek:type:`count`, time48: :zeek:type:`count`)
 
    Generated for DNP3 objects with the group number 34 and variation number 8
    frozen analog input event double-precision float point with time
 
-.. bro:id:: dnp3_file_transport
+.. zeek:id:: dnp3_file_transport
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, file_handle: :bro:type:`count`, block_num: :bro:type:`count`, file_data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, file_handle: :zeek:type:`count`, block_num: :zeek:type:`count`, file_data: :zeek:type:`string`)
 
    g70
 
-.. bro:id:: dnp3_debug_byte
+.. zeek:id:: dnp3_debug_byte
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, debug: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, debug: :zeek:type:`string`)
 
    Debugging event generated by the DNP3 analyzer. The "Debug_Byte" binpac unit
    generates this for unknown "cases". The user can use it to debug the byte
@@ -1741,16 +1741,16 @@ DNS analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_DNS`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_DNS`
 
-:bro:enum:`Analyzer::ANALYZER_DNS`
+:zeek:enum:`Analyzer::ANALYZER_DNS`
 
 Events
 ++++++
 
-.. bro:id:: dns_message
+.. zeek:id:: dns_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`dns_msg`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`dns_msg`, len: :zeek:type:`count`)
 
    Generated for all DNS messages.
    
@@ -1771,7 +1771,7 @@ Events
 
    :len: The length of the message's raw representation (i.e., the DNS payload).
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -1779,9 +1779,9 @@ Events
       dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_request
+.. zeek:id:: dns_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for DNS requests. For requests with multiple queries, this event
    is raised once for each.
@@ -1806,7 +1806,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -1814,9 +1814,9 @@ Events
       dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_rejected
+.. zeek:id:: dns_rejected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for DNS replies that reject a query. This event is raised if a DNS
    reply indicates failure because it does not pass on any
@@ -1843,7 +1843,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -1851,9 +1851,9 @@ Events
       dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_query_reply
+.. zeek:id:: dns_query_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, query: :bro:type:`string`, qtype: :bro:type:`count`, qclass: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, query: :zeek:type:`string`, qtype: :zeek:type:`count`, qclass: :zeek:type:`count`)
 
    Generated for each entry in the Question section of a DNS reply.
    
@@ -1877,7 +1877,7 @@ Events
 
    :qclass: The queried resource record class.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -1885,9 +1885,9 @@ Events
       dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_A_reply
+.. zeek:id:: dns_A_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *A*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -1909,7 +1909,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
+   .. zeek:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
       dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -1917,9 +1917,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_AAAA_reply
+.. zeek:id:: dns_AAAA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *AAAA*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -1941,7 +1941,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -1949,9 +1949,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_A6_reply
+.. zeek:id:: dns_A6_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, a: :bro:type:`addr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, a: :zeek:type:`addr`)
 
    Generated for DNS replies of type *A6*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -1973,7 +1973,7 @@ Events
 
    :a: The address returned by the reply.
    
-   .. bro:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -1981,9 +1981,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_NS_reply
+.. zeek:id:: dns_NS_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *NS*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -2005,7 +2005,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2013,9 +2013,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_CNAME_reply
+.. zeek:id:: dns_CNAME_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2037,7 +2037,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2045,9 +2045,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_PTR_reply
+.. zeek:id:: dns_PTR_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`)
 
    Generated for DNS replies of type *PTR*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2069,7 +2069,7 @@ Events
 
    :name: The name returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2077,9 +2077,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_SOA_reply
+.. zeek:id:: dns_SOA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, soa: :bro:type:`dns_soa`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, soa: :zeek:type:`dns_soa`)
 
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2101,7 +2101,7 @@ Events
 
    :soa: The parsed SOA value.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2109,9 +2109,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_WKS_reply
+.. zeek:id:: dns_WKS_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated for DNS replies of type *WKS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2130,7 +2130,7 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply  dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2138,9 +2138,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_HINFO_reply
+.. zeek:id:: dns_HINFO_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated for DNS replies of type *HINFO*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2159,7 +2159,7 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2167,9 +2167,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_MX_reply
+.. zeek:id:: dns_MX_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, name: :bro:type:`string`, preference: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, name: :zeek:type:`string`, preference: :zeek:type:`count`)
 
    Generated for DNS replies of type *MX*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
@@ -2194,7 +2194,7 @@ Events
 
    :preference: The preference for *name* specified by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2202,9 +2202,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_TXT_reply
+.. zeek:id:: dns_TXT_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, strs: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, strs: :zeek:type:`string_vec`)
 
    Generated for DNS replies of type *TXT*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2226,7 +2226,7 @@ Events
 
    :strs: The textual information returned by the reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2234,9 +2234,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_CAA_reply
+.. zeek:id:: dns_CAA_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, flags: :bro:type:`count`, tag: :bro:type:`string`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, flags: :zeek:type:`count`, tag: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Generated for DNS replies of type *CAA* (Certification Authority Authorization).
    For replies with multiple answers, an individual event of the corresponding type
@@ -2262,9 +2262,9 @@ Events
 
    :value: The property value of the CAA reply.
 
-.. bro:id:: dns_SRV_reply
+.. zeek:id:: dns_SRV_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, target: :bro:type:`string`, priority: :bro:type:`count`, weight: :bro:type:`count`, p: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, target: :zeek:type:`string`, priority: :zeek:type:`count`, weight: :zeek:type:`count`, p: :zeek:type:`count`)
 
    Generated for DNS replies of type *SRV*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2299,7 +2299,7 @@ Events
    :p: Port of the SRV response -- the TCP or UDP port on which the
       service is to be found.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2307,9 +2307,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_unknown_reply
+.. zeek:id:: dns_unknown_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated on DNS reply resource records when the type of record is not one
    that Bro knows how to parse and generate another more specific event.
@@ -2324,13 +2324,13 @@ Events
 
    :ans: The type-independent part of the parsed answer record.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_SRV_reply dns_end
 
-.. bro:id:: dns_EDNS_addl
+.. zeek:id:: dns_EDNS_addl
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_edns_additional`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_edns_additional`)
 
    Generated for DNS replies of type *EDNS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2349,7 +2349,7 @@ Events
 
    :ans: The parsed EDNS reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2357,9 +2357,9 @@ Events
       non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_TSIG_addl
+.. zeek:id:: dns_TSIG_addl
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_tsig_additional`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_tsig_additional`)
 
    Generated for DNS replies of type *TSIG*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2378,7 +2378,7 @@ Events
 
    :ans: The parsed TSIG reply.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply  dns_TXT_reply dns_WKS_reply dns_end dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2386,9 +2386,9 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_RRSIG
+.. zeek:id:: dns_RRSIG
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, rrsig: :bro:type:`dns_rrsig_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, rrsig: :zeek:type:`dns_rrsig_rr`)
 
    Generated for DNS replies of type *RRSIG*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2406,9 +2406,9 @@ Events
 
    :rrsig: The parsed RRSIG record.
 
-.. bro:id:: dns_DNSKEY
+.. zeek:id:: dns_DNSKEY
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, dnskey: :bro:type:`dns_dnskey_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, dnskey: :zeek:type:`dns_dnskey_rr`)
 
    Generated for DNS replies of type *DNSKEY*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2426,9 +2426,9 @@ Events
 
    :dnskey: The parsed DNSKEY record.
 
-.. bro:id:: dns_NSEC
+.. zeek:id:: dns_NSEC
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, next_name: :bro:type:`string`, bitmaps: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, next_name: :zeek:type:`string`, bitmaps: :zeek:type:`string_vec`)
 
    Generated for DNS replies of type *NSEC*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2449,9 +2449,9 @@ Events
 
    :bitmaps: vector of strings in hex for the bit maps present.
 
-.. bro:id:: dns_NSEC3
+.. zeek:id:: dns_NSEC3
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, nsec3: :bro:type:`dns_nsec3_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, nsec3: :zeek:type:`dns_nsec3_rr`)
 
    Generated for DNS replies of type *NSEC3*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2469,9 +2469,9 @@ Events
 
    :nsec3: The parsed RDATA of Nsec3 record.
 
-.. bro:id:: dns_DS
+.. zeek:id:: dns_DS
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`, ans: :bro:type:`dns_answer`, ds: :bro:type:`dns_ds_rr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, ds: :zeek:type:`dns_ds_rr`)
 
    Generated for DNS replies of type *DS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
@@ -2489,9 +2489,9 @@ Events
 
    :ds: The parsed RDATA of DS record.
 
-.. bro:id:: dns_end
+.. zeek:id:: dns_end
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`dns_msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`)
 
    Generated at the end of processing a DNS packet. This event is the last
    ``dns_*`` event that will be raised for a DNS query/reply and signals that
@@ -2508,7 +2508,7 @@ Events
 
    :msg: The parsed DNS message header.
    
-   .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_full_request
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -2516,18 +2516,18 @@ Events
       dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
-.. bro:id:: dns_full_request
+.. zeek:id:: dns_full_request
 
-   :Type: :bro:type:`event` ()
+   :Type: :zeek:type:`event` ()
 
    Deprecated. Will be removed.
    
    .. todo:: Unclear what this event is for; it's never raised. We should just
       remove it.
 
-.. bro:id:: non_dns_request
+.. zeek:id:: non_dns_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
 
    :msg: The raw DNS payload.
@@ -2543,16 +2543,16 @@ Generic file analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_FTP_DATA`
+:zeek:enum:`Analyzer::ANALYZER_FTP_DATA`
 
-:bro:enum:`Analyzer::ANALYZER_IRC_DATA`
+:zeek:enum:`Analyzer::ANALYZER_IRC_DATA`
 
 Events
 ++++++
 
-.. bro:id:: file_transferred
+.. zeek:id:: file_transferred
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, prefix: :bro:type:`string`, descr: :bro:type:`string`, mime_type: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prefix: :zeek:type:`string`, descr: :zeek:type:`string`, mime_type: :zeek:type:`string`)
 
    Generated when a TCP connection associated w/ file data transfer is seen
    (e.g. as happens w/ FTP or IRC).
@@ -2578,14 +2578,14 @@ Finger analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_FINGER`
+:zeek:enum:`Analyzer::ANALYZER_FINGER`
 
 Events
 ++++++
 
-.. bro:id:: finger_request
+.. zeek:id:: finger_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, full: :bro:type:`bool`, username: :bro:type:`string`, hostname: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, full: :zeek:type:`bool`, username: :zeek:type:`string`, hostname: :zeek:type:`string`)
 
    Generated for Finger requests.
    
@@ -2604,16 +2604,16 @@ Events
 
    :hostname: The request's host name.
    
-   .. bro:see:: finger_reply
+   .. zeek:see:: finger_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: finger_reply
+.. zeek:id:: finger_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, reply_line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, reply_line: :zeek:type:`string`)
 
    Generated for Finger replies.
    
@@ -2626,7 +2626,7 @@ Events
 
    :reply_line: The reply as returned by the server
    
-   .. bro:see:: finger_request
+   .. zeek:see:: finger_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -2641,38 +2641,38 @@ FTP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_FTP`
+:zeek:enum:`Analyzer::ANALYZER_FTP`
 
-:bro:enum:`Analyzer::ANALYZER_FTP_ADAT`
+:zeek:enum:`Analyzer::ANALYZER_FTP_ADAT`
 
 Types
 +++++
 
-.. bro:type:: ftp_port
+.. zeek:type:: ftp_port
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      h: :bro:type:`addr`
+      h: :zeek:type:`addr`
          The host's address.
 
-      p: :bro:type:`port`
+      p: :zeek:type:`port`
          The host's port.
 
-      valid: :bro:type:`bool`
+      valid: :zeek:type:`bool`
          True if format was right. Only then are *h* and *p* valid.
 
    A parsed host/port combination describing server endpoint for an upcoming
    data transfer.
    
-   .. bro:see:: fmt_ftp_port parse_eftp_port parse_ftp_epsv parse_ftp_pasv
+   .. zeek:see:: fmt_ftp_port parse_eftp_port parse_ftp_epsv parse_ftp_pasv
       parse_ftp_port
 
 Events
 ++++++
 
-.. bro:id:: ftp_request
+.. zeek:id:: ftp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side FTP commands.
    
@@ -2688,12 +2688,12 @@ Events
 
    :arg: The arguments going with the command.
    
-   .. bro:see:: ftp_reply fmt_ftp_port parse_eftp_port
+   .. zeek:see:: ftp_reply fmt_ftp_port parse_eftp_port
       parse_ftp_epsv parse_ftp_pasv parse_ftp_port
 
-.. bro:id:: ftp_reply
+.. zeek:id:: ftp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`, msg: :bro:type:`string`, cont_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`, msg: :zeek:type:`string`, cont_resp: :zeek:type:`bool`)
 
    Generated for server-side FTP replies.
    
@@ -2715,18 +2715,18 @@ Events
               to reassemble the pieces before processing the response any
               further.
    
-   .. bro:see:: ftp_request fmt_ftp_port parse_eftp_port
+   .. zeek:see:: ftp_request fmt_ftp_port parse_eftp_port
       parse_ftp_epsv parse_ftp_pasv parse_ftp_port
 
 Functions
 +++++++++
 
-.. bro:id:: parse_ftp_port
+.. zeek:id:: parse_ftp_port
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`) : :bro:type:`ftp_port`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
    Converts a string representation of the FTP PORT command to an
-   :bro:type:`ftp_port`.
+   :zeek:type:`ftp_port`.
    
 
    :s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
@@ -2734,14 +2734,14 @@ Functions
 
    :returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
    
-   .. bro:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
+   .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 
-.. bro:id:: parse_eftp_port
+.. zeek:id:: parse_eftp_port
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`) : :bro:type:`ftp_port`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
    Converts a string representation of the FTP EPRT command (see :rfc:`2428`)
-   to an :bro:type:`ftp_port`.  The format is
+   to an :zeek:type:`ftp_port`.  The format is
    ``"EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>"``,
    where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
    
@@ -2751,13 +2751,13 @@ Functions
 
    :returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
    
-   .. bro:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
+   .. zeek:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 
-.. bro:id:: parse_ftp_pasv
+.. zeek:id:: parse_ftp_pasv
 
-   :Type: :bro:type:`function` (str: :bro:type:`string`) : :bro:type:`ftp_port`
+   :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
-   Converts the result of the FTP PASV command to an :bro:type:`ftp_port`.
+   Converts the result of the FTP PASV command to an :zeek:type:`ftp_port`.
    
 
    :str: The string containing the result of the FTP PASV command.
@@ -2765,14 +2765,14 @@ Functions
 
    :returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
    
-   .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
+   .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
 
-.. bro:id:: parse_ftp_epsv
+.. zeek:id:: parse_ftp_epsv
 
-   :Type: :bro:type:`function` (str: :bro:type:`string`) : :bro:type:`ftp_port`
+   :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
    Converts the result of the FTP EPSV command (see :rfc:`2428`) to an
-   :bro:type:`ftp_port`.  The format is ``"<text> (<d><d><d><tcp-port><d>)"``,
+   :zeek:type:`ftp_port`.  The format is ``"<text> (<d><d><d><tcp-port><d>)"``,
    where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
    
 
@@ -2781,11 +2781,11 @@ Functions
 
    :returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
    
-   .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
+   .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
 
-.. bro:id:: fmt_ftp_port
+.. zeek:id:: fmt_ftp_port
 
-   :Type: :bro:type:`function` (a: :bro:type:`addr`, p: :bro:type:`port`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (a: :zeek:type:`addr`, p: :zeek:type:`port`) : :zeek:type:`string`
 
    Formats an IP address and TCP port as an FTP PORT command. For example,
    ``10.0.0.1`` and ``1055/tcp`` yields ``"10,0,0,1,4,31"``.
@@ -2799,7 +2799,7 @@ Functions
 
    :returns: The FTP PORT string.
    
-   .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
+   .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
 
 Bro::Gnutella
 -------------
@@ -2809,21 +2809,21 @@ Gnutella analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_GNUTELLA`
+:zeek:enum:`Analyzer::ANALYZER_GNUTELLA`
 
 Events
 ++++++
 
-.. bro:id:: gnutella_text_msg
+.. zeek:id:: gnutella_text_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, headers: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, headers: :zeek:type:`string`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
    
    
@@ -2832,16 +2832,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_binary_msg
+.. zeek:id:: gnutella_binary_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, msg_type: :bro:type:`count`, ttl: :bro:type:`count`, hops: :bro:type:`count`, msg_len: :bro:type:`count`, payload: :bro:type:`string`, payload_len: :bro:type:`count`, trunc: :bro:type:`bool`, complete: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, ttl: :zeek:type:`count`, hops: :zeek:type:`count`, msg_len: :zeek:type:`count`, payload: :zeek:type:`string`, payload_len: :zeek:type:`count`, trunc: :zeek:type:`bool`, complete: :zeek:type:`bool`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
+   .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -2849,16 +2849,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_partial_binary_msg
+.. zeek:id:: gnutella_partial_binary_msg
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, msg: :bro:type:`string`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg: :zeek:type:`string`, len: :zeek:type:`count`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish  gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -2866,16 +2866,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_establish
+.. zeek:id:: gnutella_establish
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
+   .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -2883,16 +2883,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_not_establish
+.. zeek:id:: gnutella_not_establish
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -2900,16 +2900,16 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: gnutella_http_notify
+.. zeek:id:: gnutella_http_notify
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
-   .. bro:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
+   .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -2925,14 +2925,14 @@ GSSAPI analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_GSSAPI`
+:zeek:enum:`Analyzer::ANALYZER_GSSAPI`
 
 Events
 ++++++
 
-.. bro:id:: gssapi_neg_result
+.. zeek:id:: gssapi_neg_result
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, state: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, state: :zeek:type:`count`)
 
    Generated for GSSAPI negotiation results.
    
@@ -2951,14 +2951,14 @@ GTPv1 analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_GTPV1`
+:zeek:enum:`Analyzer::ANALYZER_GTPV1`
 
 Events
 ++++++
 
-.. bro:id:: gtpv1_message
+.. zeek:id:: gtpv1_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`)
 
    Generated for any GTP message with a GTPv1 header.
    
@@ -2968,9 +2968,9 @@ Events
 
    :hdr: The GTPv1 header.
 
-.. bro:id:: gtpv1_g_pdu_packet
+.. zeek:id:: gtpv1_g_pdu_packet
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner_gtp: :bro:type:`gtpv1_hdr`, inner_ip: :bro:type:`pkt_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner_gtp: :zeek:type:`gtpv1_hdr`, inner_ip: :zeek:type:`pkt_hdr`)
 
    Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
    that includes a GTP header followed by an IPv4 or IPv6 packet.
@@ -2987,9 +2987,9 @@ Events
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
-.. bro:id:: gtpv1_create_pdp_ctx_request
+.. zeek:id:: gtpv1_create_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_create_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Create PDP Context Request messages.
    
@@ -3002,9 +3002,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_create_pdp_ctx_response
+.. zeek:id:: gtpv1_create_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_create_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Create PDP Context Response messages.
    
@@ -3017,9 +3017,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_update_pdp_ctx_request
+.. zeek:id:: gtpv1_update_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_update_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Update PDP Context Request messages.
    
@@ -3032,9 +3032,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_update_pdp_ctx_response
+.. zeek:id:: gtpv1_update_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_update_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Update PDP Context Response messages.
    
@@ -3047,9 +3047,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_delete_pdp_ctx_request
+.. zeek:id:: gtpv1_delete_pdp_ctx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_delete_pdp_ctx_request_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Delete PDP Context Request messages.
    
@@ -3062,9 +3062,9 @@ Events
 
    :elements: The set of Information Elements comprising the message.
 
-.. bro:id:: gtpv1_delete_pdp_ctx_response
+.. zeek:id:: gtpv1_delete_pdp_ctx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`gtpv1_hdr`, elements: :bro:type:`gtp_delete_pdp_ctx_response_elements`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Delete PDP Context Response messages.
    
@@ -3085,19 +3085,19 @@ HTTP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_HTTP`
+:zeek:enum:`Analyzer::ANALYZER_HTTP`
 
 Events
 ++++++
 
-.. bro:id:: http_request
+.. zeek:id:: http_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, method: :bro:type:`string`, original_URI: :bro:type:`string`, unescaped_URI: :bro:type:`string`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, unescaped_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 
    Generated for HTTP requests. Bro supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a request's initial line has
-   been parsed, and before any :bro:id:`http_header` events are raised.
+   been parsed, and before any :zeek:id:`http_header` events are raised.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
@@ -3117,18 +3117,18 @@ Events
 
    :version: The version number specified in the request (e.g., ``1.1``).
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event http_header http_message_done http_reply http_stats
       truncate_http_URI http_connection_upgrade
 
-.. bro:id:: http_reply
+.. zeek:id:: http_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`, code: :bro:type:`count`, reason: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
    Generated for HTTP replies. Bro supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a reply's initial line has
-   been parsed, and before any :bro:id:`http_header` events are raised.
+   been parsed, and before any :zeek:id:`http_header` events are raised.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
@@ -3145,13 +3145,13 @@ Events
 
    :reason: The textual description returned by the server along with *code*.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event http_header http_message_done http_request
       http_stats http_connection_upgrade
 
-.. bro:id:: http_header
+.. zeek:id:: http_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, name: :bro:type:`string`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Generated for HTTP headers. Bro supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
@@ -3172,16 +3172,16 @@ Events
 
    :value: The value of the header.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event  http_message_done http_reply http_request
       http_stats http_connection_upgrade
    
    .. note:: This event is also raised for headers found in nested body
       entities.
 
-.. bro:id:: http_all_headers
+.. zeek:id:: http_all_headers
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, hlist: :bro:type:`mime_header_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, hlist: :zeek:type:`mime_header_list`)
 
    Generated for HTTP headers, passing on all headers of an HTTP message at
    once. Bro supports persistent and pipelined HTTP sessions and raises
@@ -3201,16 +3201,16 @@ Events
           The table is indexed by the position of the header (1 for the first,
           2 for the second, etc.).
    
-   .. bro:see::  http_begin_entity http_content_type http_end_entity http_entity_data
+   .. zeek:see::  http_begin_entity http_content_type http_end_entity http_entity_data
       http_event http_header http_message_done http_reply http_request http_stats
       http_connection_upgrade
    
    .. note:: This event is also raised for headers found in nested body
       entities.
 
-.. bro:id:: http_begin_entity
+.. zeek:id:: http_begin_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated when starting to parse an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
@@ -3228,13 +3228,13 @@ Events
    :is_orig: True if the entity was sent by the originator of the TCP
             connection.
    
-   .. bro:see:: http_all_headers  http_content_type http_end_entity http_entity_data
+   .. zeek:see:: http_all_headers  http_content_type http_end_entity http_entity_data
       http_event http_header http_message_done http_reply http_request http_stats
       mime_begin_entity http_connection_upgrade
 
-.. bro:id:: http_end_entity
+.. zeek:id:: http_end_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated when finishing parsing an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
@@ -3252,13 +3252,13 @@ Events
    :is_orig: True if the entity was sent by the originator of the TCP
             connection.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_entity_data
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_entity_data
       http_event http_header http_message_done http_reply http_request
       http_stats mime_end_entity http_connection_upgrade
 
-.. bro:id:: http_entity_data
+.. zeek:id:: http_entity_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, length: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, length: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated when parsing an HTTP body entity, passing on the data. This event
    can potentially be raised many times for each entity, each time passing a
@@ -3267,7 +3267,7 @@ Events
    A common idiom for using this event is to first *reassemble* the data
    at the scripting layer by concatenating it to a successively growing
    string; and only perform further content analysis once the corresponding
-   :bro:id:`http_end_entity` event has been raised. Note, however, that doing so
+   :zeek:id:`http_end_entity` event has been raised. Note, however, that doing so
    can be quite expensive for HTTP tranders. At the very least, one should
    impose an upper size limit on how much data is being buffered.
    
@@ -3287,14 +3287,14 @@ Events
 
    :data: One chunk of raw entity data.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_event http_header http_message_done http_reply http_request http_stats
       mime_entity_data http_entity_data_delivery_size skip_http_data
       http_connection_upgrade
 
-.. bro:id:: http_content_type
+.. zeek:id:: http_content_type
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, ty: :bro:type:`string`, subty: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, ty: :zeek:type:`string`, subty: :zeek:type:`string`)
 
    Generated for reporting an HTTP body's content type.  This event is
    generated at the end of parsing an HTTP header, passing on the MIME
@@ -3317,16 +3317,16 @@ Events
 
    :subty: The subtype.
    
-   .. bro:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
+   .. zeek:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
       http_event http_header http_message_done http_reply http_request http_stats
       http_connection_upgrade
    
    .. note:: This event is also raised for headers found in nested body
       entities.
 
-.. bro:id:: http_message_done
+.. zeek:id:: http_message_done
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, stat: :bro:type:`http_message_stat`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, stat: :zeek:type:`http_message_stat`)
 
    Generated once at the end of parsing an HTTP message. Bro supports persistent
    and pipelined HTTP sessions and raises corresponding events as it parses
@@ -3349,13 +3349,13 @@ Events
 
    :stat: Further meta information about the message.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event http_header  http_reply http_request http_stats
       http_connection_upgrade
 
-.. bro:id:: http_event
+.. zeek:id:: http_event
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, event_type: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, event_type: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for errors found when decoding HTTP requests or replies.
    
@@ -3372,13 +3372,13 @@ Events
 
    :detail: Further more detailed description of the error.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data  http_header http_message_done http_reply http_request
       http_stats mime_event http_connection_upgrade
 
-.. bro:id:: http_stats
+.. zeek:id:: http_stats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, stats: :bro:type:`http_stats_rec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, stats: :zeek:type:`http_stats_rec`)
 
    Generated at the end of an HTTP session to report statistics about it. This
    event is raised after all of an HTTP session's requests and replies have been
@@ -3391,13 +3391,13 @@ Events
    :stats: Statistics summarizing HTTP-level properties of the finished
           connection.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event http_header http_message_done http_reply
       http_request http_connection_upgrade
 
-.. bro:id:: http_connection_upgrade
+.. zeek:id:: http_connection_upgrade
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, protocol: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, protocol: :zeek:type:`string`)
 
    Generated when a HTTP session is upgraded to a different protocol (e.g. websocket).
    This event is raised when a server replies with a HTTP 101 reply. No more HTTP events
@@ -3409,16 +3409,16 @@ Events
 
    :protocol: The protocol to which the connection is switching.
    
-   .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+   .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
       http_entity_data http_event http_header http_message_done http_reply
       http_request
 
 Functions
 +++++++++
 
-.. bro:id:: skip_http_entity_data
+.. zeek:id:: skip_http_entity_data
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`any`
 
    Skips the data of the HTTP entity.
    
@@ -3428,11 +3428,11 @@ Functions
 
    :is_orig: If true, the client data is skipped, and the server data otherwise.
    
-   .. bro:see:: skip_smtp_data
+   .. zeek:see:: skip_smtp_data
 
-.. bro:id:: unescape_URI
+.. zeek:id:: unescape_URI
 
-   :Type: :bro:type:`function` (URI: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (URI: :zeek:type:`string`) : :zeek:type:`string`
 
    Unescapes all characters in a URI (decode every ``%xx`` group).
    
@@ -3458,14 +3458,14 @@ ICMP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_ICMP`
+:zeek:enum:`Analyzer::ANALYZER_ICMP`
 
 Events
 ++++++
 
-.. bro:id:: icmp_sent
+.. zeek:id:: icmp_sent
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`)
 
    Generated for all ICMP messages that are not handled separately with
    dedicated ICMP events. Bro's ICMP analyzer handles a number of ICMP messages
@@ -3483,13 +3483,13 @@ Events
    :icmp: Additional ICMP-specific information augmenting the standard
          connection record *c*.
    
-   .. bro:see:: icmp_error_message icmp_sent_payload
+   .. zeek:see:: icmp_error_message icmp_sent_payload
 
-.. bro:id:: icmp_sent_payload
+.. zeek:id:: icmp_sent_payload
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, payload: :zeek:type:`string`)
 
-   The same as :bro:see:`icmp_sent` except containing the ICMP payload.
+   The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
    
 
    :c: The connection record for the corresponding ICMP flow.
@@ -3501,11 +3501,11 @@ Events
 
    :payload: The payload of the ICMP message.
    
-   .. bro:see:: icmp_error_message icmp_sent_payload
+   .. zeek:see:: icmp_error_message icmp_sent_payload
 
-.. bro:id:: icmp_echo_request
+.. zeek:id:: icmp_echo_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, id: :bro:type:`count`, seq: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, id: :zeek:type:`count`, seq: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for ICMP *echo request* messages.
    
@@ -3530,11 +3530,11 @@ Events
    :payload: The message-specific data of the packet payload, i.e., everything
             after the first 8 bytes of the ICMP header.
    
-   .. bro:see:: icmp_echo_reply
+   .. zeek:see:: icmp_echo_reply
 
-.. bro:id:: icmp_echo_reply
+.. zeek:id:: icmp_echo_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, id: :bro:type:`count`, seq: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, id: :zeek:type:`count`, seq: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for ICMP *echo reply* messages.
    
@@ -3559,11 +3559,11 @@ Events
    :payload: The message-specific data of the packet payload, i.e., everything
             after the first 8 bytes of the ICMP header.
    
-   .. bro:see:: icmp_echo_request
+   .. zeek:see:: icmp_echo_request
 
-.. bro:id:: icmp_error_message
+.. zeek:id:: icmp_error_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for all ICMPv6 error messages that are not handled
    separately with dedicated events. Bro's ICMP analyzer handles a number
@@ -3588,12 +3588,12 @@ Events
    :context: A record with specifics of the original packet that the message
             refers to.
    
-   .. bro:see:: icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_unreachable icmp_packet_too_big
       icmp_time_exceeded icmp_parameter_problem
 
-.. bro:id:: icmp_unreachable
+.. zeek:id:: icmp_unreachable
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMP *destination unreachable* messages.
    
@@ -3619,12 +3619,12 @@ Events
             includes only a partial IP header for some reason, no
             fields of *context* will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_packet_too_big
       icmp_time_exceeded icmp_parameter_problem
 
-.. bro:id:: icmp_packet_too_big
+.. zeek:id:: icmp_packet_too_big
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMPv6 *packet too big* messages.
    
@@ -3650,12 +3650,12 @@ Events
             a partial IP header for some reason, no fields of *context* will
             be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable
+   .. zeek:see:: icmp_error_message icmp_unreachable
       icmp_time_exceeded icmp_parameter_problem
 
-.. bro:id:: icmp_time_exceeded
+.. zeek:id:: icmp_time_exceeded
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMP *time exceeded* messages.
    
@@ -3681,12 +3681,12 @@ Events
             only a partial IP header for some reason, no fields of *context*
             will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
       icmp_parameter_problem
 
-.. bro:id:: icmp_parameter_problem
+.. zeek:id:: icmp_parameter_problem
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, code: :bro:type:`count`, context: :bro:type:`icmp_context`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for ICMPv6 *parameter problem* messages.
    
@@ -3712,12 +3712,12 @@ Events
             includes only a partial IP header for some reason, no fields
             of *context* will be filled out.
    
-   .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+   .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
       icmp_time_exceeded
 
-.. bro:id:: icmp_router_solicitation
+.. zeek:id:: icmp_router_solicitation
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *router solicitation* messages.
    
@@ -3735,12 +3735,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_advertisement
+   .. zeek:see:: icmp_router_advertisement
       icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_router_advertisement
+.. zeek:id:: icmp_router_advertisement
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, cur_hop_limit: :bro:type:`count`, managed: :bro:type:`bool`, other: :bro:type:`bool`, home_agent: :bro:type:`bool`, pref: :bro:type:`count`, proxy: :bro:type:`bool`, rsv: :bro:type:`count`, router_lifetime: :bro:type:`interval`, reachable_time: :bro:type:`interval`, retrans_timer: :bro:type:`interval`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, cur_hop_limit: :zeek:type:`count`, managed: :zeek:type:`bool`, other: :zeek:type:`bool`, home_agent: :zeek:type:`bool`, pref: :zeek:type:`count`, proxy: :zeek:type:`bool`, rsv: :zeek:type:`count`, router_lifetime: :zeek:type:`interval`, reachable_time: :zeek:type:`interval`, retrans_timer: :zeek:type:`interval`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *router advertisement* messages.
    
@@ -3789,12 +3789,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation
+   .. zeek:see:: icmp_router_solicitation
       icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_neighbor_solicitation
+.. zeek:id:: icmp_neighbor_solicitation
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, tgt: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, tgt: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *neighbor solicitation* messages.
    
@@ -3815,12 +3815,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_advertisement icmp_redirect
 
-.. bro:id:: icmp_neighbor_advertisement
+.. zeek:id:: icmp_neighbor_advertisement
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, router: :bro:type:`bool`, solicited: :bro:type:`bool`, override: :bro:type:`bool`, tgt: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, router: :zeek:type:`bool`, solicited: :zeek:type:`bool`, override: :zeek:type:`bool`, tgt: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *neighbor advertisement* messages.
    
@@ -3851,12 +3851,12 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_solicitation icmp_redirect
 
-.. bro:id:: icmp_redirect
+.. zeek:id:: icmp_redirect
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, icmp: :bro:type:`icmp_conn`, tgt: :bro:type:`addr`, dest: :bro:type:`addr`, options: :bro:type:`icmp6_nd_options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, tgt: :zeek:type:`addr`, dest: :zeek:type:`addr`, options: :zeek:type:`icmp6_nd_options`)
 
    Generated for ICMP *redirect* messages.
    
@@ -3881,7 +3881,7 @@ Events
 
    :options: Any Neighbor Discovery options included with message (:rfc:`4861`).
    
-   .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+   .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
       icmp_neighbor_solicitation icmp_neighbor_advertisement
 
 Bro::Ident
@@ -3892,14 +3892,14 @@ Ident analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_IDENT`
+:zeek:enum:`Analyzer::ANALYZER_IDENT`
 
 Events
 ++++++
 
-.. bro:id:: ident_request
+.. zeek:id:: ident_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`)
 
    Generated for Ident requests.
    
@@ -3915,16 +3915,16 @@ Events
 
    :rport: The request's remote port.
    
-   .. bro:see:: ident_error ident_reply
+   .. zeek:see:: ident_error ident_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ident_reply
+.. zeek:id:: ident_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`, user_id: :bro:type:`string`, system: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, user_id: :zeek:type:`string`, system: :zeek:type:`string`)
 
    Generated for Ident replies.
    
@@ -3946,16 +3946,16 @@ Events
 
    :system: The operating system returned by the reply.
    
-   .. bro:see:: ident_error  ident_request
+   .. zeek:see:: ident_error  ident_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ident_error
+.. zeek:id:: ident_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, lport: :bro:type:`port`, rport: :bro:type:`port`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, line: :zeek:type:`string`)
 
    Generated for Ident error replies.
    
@@ -3974,7 +3974,7 @@ Events
 
    :line: The error description returned by the reply.
    
-   .. bro:see:: ident_reply ident_request
+   .. zeek:see:: ident_reply ident_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -3989,14 +3989,14 @@ IMAP analyzer (StartTLS only)
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_IMAP`
+:zeek:enum:`Analyzer::ANALYZER_IMAP`
 
 Events
 ++++++
 
-.. bro:id:: imap_capabilities
+.. zeek:id:: imap_capabilities
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, capabilities: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, capabilities: :zeek:type:`string_vec`)
 
    Generated when a server sends a capability list to the client,
    after being queried using the CAPABILITY command.
@@ -4007,9 +4007,9 @@ Events
 
    :capabilities: The list of IMAP capabilities as sent by the server.
 
-.. bro:id:: imap_starttls
+.. zeek:id:: imap_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a IMAP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.
@@ -4025,20 +4025,20 @@ InterConn analyzer deprecated
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_INTERCONN`
+:zeek:enum:`Analyzer::ANALYZER_INTERCONN`
 
 Events
 ++++++
 
-.. bro:id:: interconn_stats
+.. zeek:id:: interconn_stats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, os: :bro:type:`interconn_endp_stats`, rs: :bro:type:`interconn_endp_stats`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`interconn_endp_stats`, rs: :zeek:type:`interconn_endp_stats`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: interconn_remove_conn
+.. zeek:id:: interconn_remove_conn
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Deprecated. Will be removed.
 
@@ -4050,14 +4050,14 @@ IRC analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_IRC`
+:zeek:enum:`Analyzer::ANALYZER_IRC`
 
 Events
 ++++++
 
-.. bro:id:: irc_request
+.. zeek:id:: irc_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, command: :bro:type:`string`, arguments: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, arguments: :zeek:type:`string`)
 
    Generated for all client-side IRC commands.
    
@@ -4080,7 +4080,7 @@ Events
 
    :arguments: The arguments for the command.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -4088,11 +4088,11 @@ Events
    
    .. note:: This event is generated only for messages that originate
       at the client-side. Commands coming in from remote trigger
-      the :bro:id:`irc_message` event instead.
+      the :zeek:id:`irc_message` event instead.
 
-.. bro:id:: irc_reply
+.. zeek:id:: irc_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, code: :bro:type:`count`, params: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, code: :zeek:type:`count`, params: :zeek:type:`string`)
 
    Generated for all IRC replies. IRC replies are sent in response to a
    request and come with a reply code.
@@ -4117,15 +4117,15 @@ Events
 
    :params: The reply's parameters.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_message
+.. zeek:id:: irc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, command: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC commands forwarded from the server to the client.
    
@@ -4148,7 +4148,7 @@ Events
 
    :message: TODO.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message  irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -4158,11 +4158,11 @@ Events
    
       This event is generated only for messages that are forwarded by the server
       to the client. Commands coming from client trigger the
-      :bro:id:`irc_request` event instead.
+      :zeek:id:`irc_request` event instead.
 
-.. bro:id:: irc_quit_message
+.. zeek:id:: irc_quit_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *quit*. This event is generated for
    messages coming from both the client and the server.
@@ -4183,15 +4183,15 @@ Events
 
    :message: The text included with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_privmsg_message
+.. zeek:id:: irc_privmsg_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *privmsg*. This event is generated for
    messages coming from both the client and the server.
@@ -4215,15 +4215,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_notice_message
+.. zeek:id:: irc_notice_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *notice*. This event is generated for
    messages coming from both the client and the server.
@@ -4247,15 +4247,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message  irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_squery_message
+.. zeek:id:: irc_squery_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, source: :bro:type:`string`, target: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, source: :zeek:type:`string`, target: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *squery*. This event is generated for
    messages coming from both the client and the server.
@@ -4279,15 +4279,15 @@ Events
 
    :message: The text of communication.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_join_message
+.. zeek:id:: irc_join_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, info_list: :bro:type:`irc_join_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, info_list: :zeek:type:`irc_join_list`)
 
    Generated for IRC messages of type *join*. This event is generated for
    messages coming from both the client and the server.
@@ -4305,15 +4305,15 @@ Events
 
    :info_list: The user information coming with the command.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_part_message
+.. zeek:id:: irc_part_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, chans: :bro:type:`string_set`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, chans: :zeek:type:`string_set`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *part*. This event is generated for
    messages coming from both the client and the server.
@@ -4337,15 +4337,15 @@ Events
 
    :message: The text coming with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_password_message
 
-.. bro:id:: irc_nick_message
+.. zeek:id:: irc_nick_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, who: :bro:type:`string`, newnick: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, who: :zeek:type:`string`, newnick: :zeek:type:`string`)
 
    Generated for IRC messages of type *nick*. This event is generated for
    messages coming from both the client and the server.
@@ -4366,15 +4366,15 @@ Events
 
    :newnick: The new nickname.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_invalid_nick
+.. zeek:id:: irc_invalid_nick
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated when a server rejects an IRC nickname.
    
@@ -4388,15 +4388,15 @@ Events
    :is_orig: True if the command was sent by the originator of the TCP
             connection.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users  irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_network_info
+.. zeek:id:: irc_network_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, users: :bro:type:`count`, services: :bro:type:`count`, servers: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserclient*.
    
@@ -4419,15 +4419,15 @@ Events
 
    :servers: The number of servers as returned in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_server_info
+.. zeek:id:: irc_server_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, users: :bro:type:`count`, services: :bro:type:`count`, servers: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserme*.
    
@@ -4450,15 +4450,15 @@ Events
 
    :servers: The number of servers as returned in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_channel_info
+.. zeek:id:: irc_channel_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, chans: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, chans: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserchannels*.
    
@@ -4475,15 +4475,15 @@ Events
 
    :chans: The number of channels as returned in the reply.
    
-   .. bro:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
+   .. zeek:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_who_line
+.. zeek:id:: irc_who_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, target_nick: :bro:type:`string`, channel: :bro:type:`string`, user: :bro:type:`string`, host: :bro:type:`string`, server: :bro:type:`string`, nick: :bro:type:`string`, params: :bro:type:`string`, hops: :bro:type:`count`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, target_nick: :zeek:type:`string`, channel: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, server: :zeek:type:`string`, nick: :zeek:type:`string`, params: :zeek:type:`string`, hops: :zeek:type:`count`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoreply*.
    
@@ -4524,15 +4524,15 @@ Events
 
    :real_name: The real name.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_names_info
+.. zeek:id:: irc_names_info
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, c_type: :bro:type:`string`, channel: :bro:type:`string`, users: :bro:type:`string_set`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, c_type: :zeek:type:`string`, channel: :zeek:type:`string`, users: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *namereply*.
    
@@ -4555,15 +4555,15 @@ Events
 
    :users: The set of users.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message  irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_whois_operator_line
+.. zeek:id:: irc_whois_operator_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisoperator*.
    
@@ -4580,15 +4580,15 @@ Events
 
    :nick: The nickname specified in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_channel_line
+.. zeek:id:: irc_whois_channel_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, chans: :bro:type:`string_set`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, chans: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *whoischannels*.
    
@@ -4608,15 +4608,15 @@ Events
 
    :chans: The set of channels returned.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_user_line
+.. zeek:id:: irc_whois_user_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, nick: :bro:type:`string`, user: :bro:type:`string`, host: :bro:type:`string`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisuser*.
    
@@ -4642,15 +4642,15 @@ Events
 
    :real_name: The real name specified in the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_oper_response
+.. zeek:id:: irc_oper_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, got_oper: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, got_oper: :zeek:type:`bool`)
 
    Generated for IRC replies of type *youreoper* and *nooperhost*.
    
@@ -4668,15 +4668,15 @@ Events
    :got_oper: True if the *oper* command was executed successfully
              (*youreport*) and false otherwise (*nooperhost*).
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_part_message
       irc_password_message
 
-.. bro:id:: irc_global_users
+.. zeek:id:: irc_global_users
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for an IRC reply of type *globalusers*.
    
@@ -4697,15 +4697,15 @@ Events
 
    :msg: The message coming with the reply.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_channel_topic
+.. zeek:id:: irc_channel_topic
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, channel: :bro:type:`string`, topic: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, channel: :zeek:type:`string`, topic: :zeek:type:`string`)
 
    Generated for an IRC reply of type *topic*.
    
@@ -4725,15 +4725,15 @@ Events
 
    :topic: The topic specified in the reply.
    
-   .. bro:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
+   .. zeek:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_who_message
+.. zeek:id:: irc_who_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, mask: :bro:type:`string`, oper: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, mask: :zeek:type:`string`, oper: :zeek:type:`bool`)
 
    Generated for IRC messages of type *who*. This event is generated for
    messages coming from both the client and the server.
@@ -4754,15 +4754,15 @@ Events
 
    :oper: True if the operator flag was set.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_whois_message
+.. zeek:id:: irc_whois_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, server: :bro:type:`string`, users: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, server: :zeek:type:`string`, users: :zeek:type:`string`)
 
    Generated for IRC messages of type *whois*. This event is generated for
    messages coming from both the client and the server.
@@ -4783,15 +4783,15 @@ Events
 
    :users: TODO.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_oper_message
+.. zeek:id:: irc_oper_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for IRC messages of type *oper*. This event is generated for
    messages coming from both the client and the server.
@@ -4812,15 +4812,15 @@ Events
 
    :password: The password specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message  irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_kick_message
+.. zeek:id:: irc_kick_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, chans: :bro:type:`string`, users: :bro:type:`string`, comment: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, chans: :zeek:type:`string`, users: :zeek:type:`string`, comment: :zeek:type:`string`)
 
    Generated for IRC messages of type *kick*. This event is generated for
    messages coming from both the client and the server.
@@ -4848,15 +4848,15 @@ Events
 
    :comment: The comment specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_error_message
+.. zeek:id:: irc_error_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *error*. This event is generated for
    messages coming from both the client and the server.
@@ -4878,15 +4878,15 @@ Events
 
    :message: The textual description specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_invite_message
+.. zeek:id:: irc_invite_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, nickname: :bro:type:`string`, channel: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, nickname: :zeek:type:`string`, channel: :zeek:type:`string`)
 
    Generated for IRC messages of type *invite*. This event is generated for
    messages coming from both the client and the server.
@@ -4911,15 +4911,15 @@ Events
 
    :channel: The channel specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick  irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_mode_message
+.. zeek:id:: irc_mode_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, params: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, params: :zeek:type:`string`)
 
    Generated for IRC messages of type *mode*. This event is generated for
    messages coming from both the client and the server.
@@ -4941,15 +4941,15 @@ Events
 
    :params: The parameters coming with the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message  irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_squit_message
+.. zeek:id:: irc_squit_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, server: :bro:type:`string`, message: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, server: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC messages of type *squit*. This event is generated for
    messages coming from both the client and the server.
@@ -4974,15 +4974,15 @@ Events
 
    :message: The textual description specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_dcc_message
+.. zeek:id:: irc_dcc_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, prefix: :bro:type:`string`, target: :bro:type:`string`, dcc_type: :bro:type:`string`, argument: :bro:type:`string`, address: :bro:type:`addr`, dest_port: :bro:type:`count`, size: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, target: :zeek:type:`string`, dcc_type: :zeek:type:`string`, argument: :zeek:type:`string`, address: :zeek:type:`addr`, dest_port: :zeek:type:`count`, size: :zeek:type:`count`)
 
    Generated for IRC messages of type *dcc*. This event is generated for
    messages coming from both the client and the server.
@@ -5019,15 +5019,15 @@ Events
 
    :size: The size specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
+   .. zeek:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
       irc_notice_message irc_oper_message irc_oper_response irc_part_message
       irc_password_message
 
-.. bro:id:: irc_user_message
+.. zeek:id:: irc_user_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, host: :bro:type:`string`, server: :bro:type:`string`, real_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, host: :zeek:type:`string`, server: :zeek:type:`string`, real_name: :zeek:type:`string`)
 
    Generated for IRC messages of type *user*. This event is generated for
    messages coming from both the client and the server.
@@ -5054,15 +5054,15 @@ Events
 
    :real_name: The real name specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message
 
-.. bro:id:: irc_password_message
+.. zeek:id:: irc_password_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, password: :zeek:type:`string`)
 
    Generated for IRC messages of type *password*. This event is generated for
    messages coming from both the client and the server.
@@ -5080,15 +5080,15 @@ Events
 
    :password: The password specified in the message.
    
-   .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+   .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message
 
-.. bro:id:: irc_starttls
+.. zeek:id:: irc_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated if an IRC connection switched to TLS using STARTTLS. After this
    event no more IRC events will be raised for the connection. See the SSL
@@ -5105,17 +5105,17 @@ Kerberos analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_KRB`
+:zeek:enum:`Analyzer::ANALYZER_KRB`
 
-:bro:enum:`Analyzer::ANALYZER_KRB_TCP`
+:zeek:enum:`Analyzer::ANALYZER_KRB_TCP`
 
 Options/Constants
 +++++++++++++++++
 
-.. bro:id:: KRB::keytab
+.. zeek:id:: KRB::keytab
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
@@ -5123,259 +5123,259 @@ Options/Constants
 Types
 +++++
 
-.. bro:type:: KRB::Error_Msg
+.. zeek:type:: KRB::Error_Msg
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pvno: :bro:type:`count`
+      pvno: :zeek:type:`count`
          Protocol version number (5 for KRB5)
 
-      msg_type: :bro:type:`count`
+      msg_type: :zeek:type:`count`
          The message type (30 for ERROR_MSG)
 
-      client_time: :bro:type:`time` :bro:attr:`&optional`
+      client_time: :zeek:type:`time` :zeek:attr:`&optional`
          Current time on the client
 
-      server_time: :bro:type:`time`
+      server_time: :zeek:type:`time`
          Current time on the server
 
-      error_code: :bro:type:`count`
+      error_code: :zeek:type:`count`
          The specific error code
 
-      client_realm: :bro:type:`string` :bro:attr:`&optional`
+      client_realm: :zeek:type:`string` :zeek:attr:`&optional`
          Realm of the ticket
 
-      client_name: :bro:type:`string` :bro:attr:`&optional`
+      client_name: :zeek:type:`string` :zeek:attr:`&optional`
          Name on the ticket
 
-      service_realm: :bro:type:`string`
+      service_realm: :zeek:type:`string`
          Realm of the service
 
-      service_name: :bro:type:`string`
+      service_name: :zeek:type:`string`
          Name of the service
 
-      error_text: :bro:type:`string` :bro:attr:`&optional`
+      error_text: :zeek:type:`string` :zeek:attr:`&optional`
          Additional text to explain the error
 
-      pa_data: :bro:type:`vector` of :bro:type:`KRB::Type_Value` :bro:attr:`&optional`
+      pa_data: :zeek:type:`vector` of :zeek:type:`KRB::Type_Value` :zeek:attr:`&optional`
          Optional pre-authentication data
 
    The data from the ERROR_MSG message. See :rfc:`4120`.
 
-.. bro:type:: KRB::SAFE_Msg
+.. zeek:type:: KRB::SAFE_Msg
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pvno: :bro:type:`count`
+      pvno: :zeek:type:`count`
          Protocol version number (5 for KRB5)
 
-      msg_type: :bro:type:`count`
+      msg_type: :zeek:type:`count`
          The message type (20 for SAFE_MSG)
 
-      data: :bro:type:`string`
+      data: :zeek:type:`string`
          The application-specific data that is being passed
          from the sender to the reciever
 
-      timestamp: :bro:type:`time` :bro:attr:`&optional`
+      timestamp: :zeek:type:`time` :zeek:attr:`&optional`
          Current time from the sender of the message
 
-      seq: :bro:type:`count` :bro:attr:`&optional`
+      seq: :zeek:type:`count` :zeek:attr:`&optional`
          Sequence number used to detect replays
 
-      sender: :bro:type:`KRB::Host_Address` :bro:attr:`&optional`
+      sender: :zeek:type:`KRB::Host_Address` :zeek:attr:`&optional`
          Sender address
 
-      recipient: :bro:type:`KRB::Host_Address` :bro:attr:`&optional`
+      recipient: :zeek:type:`KRB::Host_Address` :zeek:attr:`&optional`
          Recipient address
 
    The data from the SAFE message. See :rfc:`4120`.
 
-.. bro:type:: KRB::KDC_Options
+.. zeek:type:: KRB::KDC_Options
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      forwardable: :bro:type:`bool`
+      forwardable: :zeek:type:`bool`
          The ticket to be issued should have its forwardable flag set.
 
-      forwarded: :bro:type:`bool`
+      forwarded: :zeek:type:`bool`
          A (TGT) request for forwarding.
 
-      proxiable: :bro:type:`bool`
+      proxiable: :zeek:type:`bool`
          The ticket to be issued should have its proxiable flag set.
 
-      proxy: :bro:type:`bool`
+      proxy: :zeek:type:`bool`
          A request for a proxy.
 
-      allow_postdate: :bro:type:`bool`
+      allow_postdate: :zeek:type:`bool`
          The ticket to be issued should have its may-postdate flag set.
 
-      postdated: :bro:type:`bool`
+      postdated: :zeek:type:`bool`
          A request for a postdated ticket.
 
-      renewable: :bro:type:`bool`
+      renewable: :zeek:type:`bool`
          The ticket to be issued should have its renewable  flag set.
 
-      opt_hardware_auth: :bro:type:`bool`
+      opt_hardware_auth: :zeek:type:`bool`
          Reserved for opt_hardware_auth
 
-      disable_transited_check: :bro:type:`bool`
+      disable_transited_check: :zeek:type:`bool`
          Request that the KDC not check the transited field of a TGT against
          the policy of the local realm before it will issue derivative tickets
          based on the TGT.
 
-      renewable_ok: :bro:type:`bool`
+      renewable_ok: :zeek:type:`bool`
          If a ticket with the requested lifetime cannot be issued, a renewable
          ticket is acceptable
 
-      enc_tkt_in_skey: :bro:type:`bool`
+      enc_tkt_in_skey: :zeek:type:`bool`
          The ticket for the end server is to be encrypted in the session key
          from the additional TGT provided
 
-      renew: :bro:type:`bool`
+      renew: :zeek:type:`bool`
          The request is for a renewal
 
-      validate: :bro:type:`bool`
+      validate: :zeek:type:`bool`
          The request is to validate a postdated ticket.
 
    KDC Options. See :rfc:`4120`
 
-.. bro:type:: KRB::AP_Options
+.. zeek:type:: KRB::AP_Options
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      use_session_key: :bro:type:`bool`
+      use_session_key: :zeek:type:`bool`
          Indicates that user-to-user-authentication is in use
 
-      mutual_required: :bro:type:`bool`
+      mutual_required: :zeek:type:`bool`
          Mutual authentication is required
 
    AP Options. See :rfc:`4120`
 
-.. bro:type:: KRB::Type_Value
+.. zeek:type:: KRB::Type_Value
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      data_type: :bro:type:`count`
+      data_type: :zeek:type:`count`
          The data type
 
-      val: :bro:type:`string`
+      val: :zeek:type:`string`
          The data value
 
    Used in a few places in the Kerberos analyzer for elements
    that have a type and a string value.
 
-.. bro:type:: KRB::Ticket
+.. zeek:type:: KRB::Ticket
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pvno: :bro:type:`count`
+      pvno: :zeek:type:`count`
          Protocol version number (5 for KRB5)
 
-      realm: :bro:type:`string`
+      realm: :zeek:type:`string`
          Realm
 
-      service_name: :bro:type:`string`
+      service_name: :zeek:type:`string`
          Name of the service
 
-      cipher: :bro:type:`count`
+      cipher: :zeek:type:`count`
          Cipher the ticket was encrypted with
 
-      ciphertext: :bro:type:`string` :bro:attr:`&optional`
+      ciphertext: :zeek:type:`string` :zeek:attr:`&optional`
          Cipher text of the ticket
 
-      authenticationinfo: :bro:type:`string` :bro:attr:`&optional`
+      authenticationinfo: :zeek:type:`string` :zeek:attr:`&optional`
          Authentication info
 
    A Kerberos ticket. See :rfc:`4120`.
 
-.. bro:type:: KRB::Ticket_Vector
+.. zeek:type:: KRB::Ticket_Vector
 
-   :Type: :bro:type:`vector` of :bro:type:`KRB::Ticket`
+   :Type: :zeek:type:`vector` of :zeek:type:`KRB::Ticket`
 
 
-.. bro:type:: KRB::Host_Address
+.. zeek:type:: KRB::Host_Address
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ip: :bro:type:`addr` :bro:attr:`&log` :bro:attr:`&optional`
+      ip: :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&optional`
          IPv4 or IPv6 address
 
-      netbios: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      netbios: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          NetBIOS address
 
-      unknown: :bro:type:`KRB::Type_Value` :bro:attr:`&optional`
+      unknown: :zeek:type:`KRB::Type_Value` :zeek:attr:`&optional`
          Some other type that we don't support yet
 
    A Kerberos host address See :rfc:`4120`.
 
-.. bro:type:: KRB::KDC_Request
+.. zeek:type:: KRB::KDC_Request
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pvno: :bro:type:`count`
+      pvno: :zeek:type:`count`
          Protocol version number (5 for KRB5)
 
-      msg_type: :bro:type:`count`
+      msg_type: :zeek:type:`count`
          The message type (10 for AS_REQ, 12 for TGS_REQ)
 
-      pa_data: :bro:type:`vector` of :bro:type:`KRB::Type_Value` :bro:attr:`&optional`
+      pa_data: :zeek:type:`vector` of :zeek:type:`KRB::Type_Value` :zeek:attr:`&optional`
          Optional pre-authentication data
 
-      kdc_options: :bro:type:`KRB::KDC_Options`
+      kdc_options: :zeek:type:`KRB::KDC_Options`
          Options specified in the request
 
-      client_name: :bro:type:`string` :bro:attr:`&optional`
+      client_name: :zeek:type:`string` :zeek:attr:`&optional`
          Name on the ticket
 
-      service_realm: :bro:type:`string`
+      service_realm: :zeek:type:`string`
          Realm of the service
 
-      service_name: :bro:type:`string` :bro:attr:`&optional`
+      service_name: :zeek:type:`string` :zeek:attr:`&optional`
          Name of the service
 
-      from: :bro:type:`time` :bro:attr:`&optional`
+      from: :zeek:type:`time` :zeek:attr:`&optional`
          Time the ticket is good from
 
-      till: :bro:type:`time`
+      till: :zeek:type:`time`
          Time the ticket is good till
 
-      rtime: :bro:type:`time` :bro:attr:`&optional`
+      rtime: :zeek:type:`time` :zeek:attr:`&optional`
          The requested renew-till time
 
-      nonce: :bro:type:`count`
+      nonce: :zeek:type:`count`
          A random nonce generated by the client
 
-      encryption_types: :bro:type:`vector` of :bro:type:`count`
+      encryption_types: :zeek:type:`vector` of :zeek:type:`count`
          The desired encryption algorithms, in order of preference
 
-      host_addrs: :bro:type:`vector` of :bro:type:`KRB::Host_Address` :bro:attr:`&optional`
+      host_addrs: :zeek:type:`vector` of :zeek:type:`KRB::Host_Address` :zeek:attr:`&optional`
          Any additional addresses the ticket should be valid for
 
-      additional_tickets: :bro:type:`vector` of :bro:type:`KRB::Ticket` :bro:attr:`&optional`
+      additional_tickets: :zeek:type:`vector` of :zeek:type:`KRB::Ticket` :zeek:attr:`&optional`
          Additional tickets may be included for certain transactions
 
    The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
 
-.. bro:type:: KRB::KDC_Response
+.. zeek:type:: KRB::KDC_Response
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      pvno: :bro:type:`count`
+      pvno: :zeek:type:`count`
          Protocol version number (5 for KRB5)
 
-      msg_type: :bro:type:`count`
+      msg_type: :zeek:type:`count`
          The message type (11 for AS_REP, 13 for TGS_REP)
 
-      pa_data: :bro:type:`vector` of :bro:type:`KRB::Type_Value` :bro:attr:`&optional`
+      pa_data: :zeek:type:`vector` of :zeek:type:`KRB::Type_Value` :zeek:attr:`&optional`
          Optional pre-authentication data
 
-      client_realm: :bro:type:`string` :bro:attr:`&optional`
+      client_realm: :zeek:type:`string` :zeek:attr:`&optional`
          Realm on the ticket
 
-      client_name: :bro:type:`string`
+      client_name: :zeek:type:`string`
          Name on the service
 
-      ticket: :bro:type:`KRB::Ticket`
+      ticket: :zeek:type:`KRB::Ticket`
          The ticket that was issued
 
    The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
@@ -5383,9 +5383,9 @@ Types
 Events
 ++++++
 
-.. bro:id:: krb_as_request
+.. zeek:id:: krb_as_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Request`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
    A Kerberos 5 ``Authentication Server (AS) Request`` as defined
    in :rfc:`4120`. The AS request contains a username of the client
@@ -5402,12 +5402,12 @@ Events
 
    :msg: A Kerberos KDC request message data structure.
    
-   .. bro:see:: krb_as_response krb_tgs_request krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_response krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_as_response
+.. zeek:id:: krb_as_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Response`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Response`)
 
    A Kerberos 5 ``Authentication Server (AS) Response`` as defined
    in :rfc:`4120`. Following the AS request for a user, an AS reply
@@ -5423,12 +5423,12 @@ Events
 
    :msg: A Kerberos KDC reply message data structure.
    
-   .. bro:see:: krb_as_request krb_tgs_request krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_request krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_tgs_request
+.. zeek:id:: krb_tgs_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Request`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
    A Kerberos 5 ``Ticket Granting Service (TGS) Request`` as defined
    in :rfc:`4120`. Following the Authentication Server exchange, if
@@ -5445,12 +5445,12 @@ Events
 
    :msg: A Kerberos KDC request message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_response krb_ap_request
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_tgs_response
+.. zeek:id:: krb_tgs_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::KDC_Response`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Response`)
 
    A Kerberos 5 ``Ticket Granting Service (TGS) Response`` as defined
    in :rfc:`4120`. This message returns a Service Ticket to the client,
@@ -5466,12 +5466,12 @@ Events
 
    :msg: A Kerberos KDC reply message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_ap_request
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_ap_request
+.. zeek:id:: krb_ap_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, ticket: :bro:type:`KRB::Ticket`, opts: :bro:type:`KRB::AP_Options`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, ticket: :zeek:type:`KRB::Ticket`, opts: :zeek:type:`KRB::AP_Options`)
 
    A Kerberos 5 ``Authentication Header (AP) Request`` as defined
    in :rfc:`4120`. This message contains authentication information
@@ -5490,12 +5490,12 @@ Events
 
    :opts: A Kerberos AP options data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_ap_response
+.. zeek:id:: krb_ap_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    A Kerberos 5 ``Authentication Header (AP) Response`` as defined
    in :rfc:`4120`. This is used if mutual authentication is desired.
@@ -5509,12 +5509,12 @@ Events
 
    :c: The connection over which this Kerberos message was sent.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_priv krb_safe krb_cred krb_error
 
-.. bro:id:: krb_priv
+.. zeek:id:: krb_priv
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    A Kerberos 5 ``Private Message`` as defined in :rfc:`4120`. This
    is a private (encrypted) application message, so the event doesn't
@@ -5530,12 +5530,12 @@ Events
 
    :is_orig: Whether the originator of the connection sent this message.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_safe krb_cred krb_error
 
-.. bro:id:: krb_safe
+.. zeek:id:: krb_safe
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`KRB::SAFE_Msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`KRB::SAFE_Msg`)
 
    A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`. This is a
    safe (checksummed) application message.
@@ -5552,12 +5552,12 @@ Events
 
    :msg: A Kerberos SAFE message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_cred krb_error
 
-.. bro:id:: krb_cred
+.. zeek:id:: krb_cred
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, tickets: :bro:type:`KRB::Ticket_Vector`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, tickets: :zeek:type:`KRB::Ticket_Vector`)
 
    A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`. This is
    a private (encrypted) message to forward credentials.
@@ -5574,12 +5574,12 @@ Events
 
    :tickets: Tickets obtained from the KDC that are being forwarded.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_error
 
-.. bro:id:: krb_error
+.. zeek:id:: krb_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`KRB::Error_Msg`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::Error_Msg`)
 
    A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
    
@@ -5592,7 +5592,7 @@ Events
 
    :msg: A Kerberos error message data structure.
    
-   .. bro:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
+   .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_cred
 
 Bro::Login
@@ -5603,26 +5603,26 @@ Telnet/Rsh/Rlogin analyzers
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_RLOGIN`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_RLOGIN`
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_RSH`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_RSH`
 
-:bro:enum:`Analyzer::ANALYZER_LOGIN`
+:zeek:enum:`Analyzer::ANALYZER_LOGIN`
 
-:bro:enum:`Analyzer::ANALYZER_NVT`
+:zeek:enum:`Analyzer::ANALYZER_NVT`
 
-:bro:enum:`Analyzer::ANALYZER_RLOGIN`
+:zeek:enum:`Analyzer::ANALYZER_RLOGIN`
 
-:bro:enum:`Analyzer::ANALYZER_RSH`
+:zeek:enum:`Analyzer::ANALYZER_RSH`
 
-:bro:enum:`Analyzer::ANALYZER_TELNET`
+:zeek:enum:`Analyzer::ANALYZER_TELNET`
 
 Events
 ++++++
 
-.. bro:id:: rsh_request
+.. zeek:id:: rsh_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, client_user: :bro:type:`string`, server_user: :bro:type:`string`, line: :bro:type:`string`, new_session: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`, new_session: :zeek:type:`bool`)
 
    Generated for client side commands on an RSH connection.
    
@@ -5645,7 +5645,7 @@ Events
 
    :new_session: True if this is the first command of the Rsh session.
    
-   .. bro:see:: rsh_reply login_confused login_confused_text login_display
+   .. zeek:see:: rsh_reply login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
    
@@ -5657,9 +5657,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: rsh_reply
+.. zeek:id:: rsh_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, client_user: :bro:type:`string`, server_user: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for client side commands on an RSH connection.
    
@@ -5679,7 +5679,7 @@ Events
 
    :line: The command line sent in the request.
    
-   .. bro:see:: rsh_request login_confused login_confused_text login_display
+   .. zeek:see:: rsh_request login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
    
@@ -5691,9 +5691,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: login_failure
+.. zeek:id:: login_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, client_user: :bro:type:`string`, password: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, client_user: :zeek:type:`string`, password: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for Telnet/Rlogin login failures. The *login* analyzer inspects
    Telnet/Rlogin sessions to heuristically extract username and password
@@ -5718,7 +5718,7 @@ Events
    :line:  The line of text that led the analyzer to conclude that the
           authentication had failed.
    
-   .. bro:see:: login_confused login_confused_text login_display login_input_line
+   .. zeek:see:: login_confused login_confused_text login_display login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
@@ -5731,12 +5731,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_success
+.. zeek:id:: login_success
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, client_user: :bro:type:`string`, password: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, client_user: :zeek:type:`string`, password: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for successful Telnet/Rlogin logins. The *login* analyzer inspects
    Telnet/Rlogin sessions to heuristically extract username and password
@@ -5761,7 +5761,7 @@ Events
    :line:  The line of text that led the analyzer to conclude that the
           authentication had succeeded.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_terminal
       direct_login_prompts get_login_state login_failure_msgs login_non_failure_msgs
       login_prompts login_success_msgs login_timeouts set_login_state
@@ -5774,12 +5774,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_input_line
+.. zeek:id:: login_input_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated for lines of input on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
@@ -5790,18 +5790,18 @@ Events
 
    :line: The input line.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_output_line login_prompt login_success login_terminal    rsh_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_output_line
+.. zeek:id:: login_output_line
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated for lines of output on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
@@ -5812,18 +5812,18 @@ Events
 
    :line: The ouput line.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line  login_prompt login_success login_terminal rsh_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_confused
+.. zeek:id:: login_confused
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
    *login* analyzer uses a number of heuristics to extract authentication
@@ -5843,7 +5843,7 @@ Events
    :line: The line of text that caused the heuristics to conclude they were
          confused.
    
-   .. bro:see::  login_confused_text login_display login_failure login_input_line login_output_line
+   .. zeek:see::  login_confused_text login_display login_failure login_input_line login_output_line
       login_prompt login_success login_terminal direct_login_prompts get_login_state
       login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
@@ -5851,16 +5851,16 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_confused_text
+.. zeek:id:: login_confused_text
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, line: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, line: :zeek:type:`string`)
 
    Generated after getting confused while tracking a Telnet/Rlogin
    authentication dialog. The *login* analyzer generates this even for every
-   line of user input after it has reported :bro:id:`login_confused` for a
+   line of user input after it has reported :zeek:id:`login_confused` for a
    connection.
    
 
@@ -5869,7 +5869,7 @@ Events
 
    :line: The line the user typed.
    
-   .. bro:see:: login_confused  login_display login_failure login_input_line
+   .. zeek:see:: login_confused  login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
@@ -5877,12 +5877,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_terminal
+.. zeek:id:: login_terminal
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, terminal: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, terminal: :zeek:type:`string`)
 
    Generated for clients transmitting a terminal type in a Telnet session.  This
    information is extracted out of environment variables sent as Telnet options.
@@ -5893,18 +5893,18 @@ Events
 
    :terminal: The TERM value transmitted.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_success
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_display
+.. zeek:id:: login_display
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, display: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, display: :zeek:type:`string`)
 
    Generated for clients transmitting an X11 DISPLAY in a Telnet session. This
    information is extracted out of environment variables sent as Telnet options.
@@ -5915,18 +5915,18 @@ Events
 
    :display: The DISPLAY transmitted.
    
-   .. bro:see:: login_confused login_confused_text  login_failure login_input_line
+   .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: authentication_accepted
+.. zeek:id:: authentication_accepted
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, c: :zeek:type:`connection`)
 
    Generated when a Telnet authentication has been successful. The Telnet
    protocol includes options for negotiating authentication. When such an
@@ -5942,21 +5942,21 @@ Events
 
    :c: The connection.
    
-   .. bro:see::  authentication_rejected authentication_skipped login_success
+   .. zeek:see::  authentication_rejected authentication_skipped login_success
    
    .. note::  This event inspects the corresponding Telnet option
-      while :bro:id:`login_success` heuristically determines success by watching
+      while :zeek:id:`login_success` heuristically determines success by watching
       session data.
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: authentication_rejected
+.. zeek:id:: authentication_rejected
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, c: :zeek:type:`connection`)
 
    Generated when a Telnet authentication has been unsuccessful. The Telnet
    protocol includes options for negotiating authentication. When such an option
@@ -5972,21 +5972,21 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_skipped login_failure
+   .. zeek:see:: authentication_accepted authentication_skipped login_failure
    
    .. note::  This event inspects the corresponding Telnet option
-      while :bro:id:`login_success` heuristically determines failure by watching
+      while :zeek:id:`login_success` heuristically determines failure by watching
       session data.
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: authentication_skipped
+.. zeek:id:: authentication_skipped
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for Telnet/Rlogin sessions when a pattern match indicates
    that no authentication is performed.
@@ -5997,7 +5997,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_rejected direct_login_prompts
+   .. zeek:see:: authentication_accepted authentication_rejected direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
    
@@ -6009,12 +6009,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: login_prompt
+.. zeek:id:: login_prompt
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, prompt: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prompt: :zeek:type:`string`)
 
    Generated for clients transmitting a terminal prompt in a Telnet session.
    This information is extracted out of environment variables sent as Telnet
@@ -6029,18 +6029,18 @@ Events
 
    :prompt: The TTYPROMPT transmitted.
    
-   .. bro:see:: login_confused login_confused_text login_display login_failure
+   .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line  login_success login_terminal
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: activating_encryption
+.. zeek:id:: activating_encryption
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for Telnet sessions when encryption is activated. The Telnet
    protocol includes options for negotiating encryption. When such a series of
@@ -6052,13 +6052,13 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: authentication_accepted authentication_rejected authentication_skipped
+   .. zeek:see:: authentication_accepted authentication_rejected authentication_skipped
       login_confused login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
-.. bro:id:: inconsistent_option
+.. zeek:id:: inconsistent_option
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an inconsistent Telnet option. Telnet options are specified
    by the client and server stating which options they are willing to
@@ -6074,14 +6074,14 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: bad_option bad_option_termination  authentication_accepted
+   .. zeek:see:: bad_option bad_option_termination  authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
-.. bro:id:: bad_option
+.. zeek:id:: bad_option
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an ill-formed or unrecognized Telnet option.
    
@@ -6091,7 +6091,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: inconsistent_option bad_option_termination authentication_accepted
+   .. zeek:see:: inconsistent_option bad_option_termination authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
@@ -6099,12 +6099,12 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: bad_option_termination
+.. zeek:id:: bad_option_termination
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a Telnet option that's incorrectly terminated.
    
@@ -6114,7 +6114,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: inconsistent_option bad_option authentication_accepted
+   .. zeek:see:: inconsistent_option bad_option authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
@@ -6122,15 +6122,15 @@ Events
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
 Functions
 +++++++++
 
-.. bro:id:: get_login_state
+.. zeek:id:: get_login_state
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Returns the state of the given login (Telnet or Rlogin) connection.
    
@@ -6152,11 +6152,11 @@ Functions
                   does not correctly know the state of the connection, and/or
                   the username associated with it.
    
-   .. bro:see:: set_login_state
+   .. zeek:see:: set_login_state
 
-.. bro:id:: set_login_state
+.. zeek:id:: set_login_state
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, new_state: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, new_state: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the login state of a connection with a login analyzer.
    
@@ -6165,13 +6165,13 @@ Functions
    
 
    :new_state: The new state of the login analyzer. See
-              :bro:id:`get_login_state` for possible values.
+              :zeek:id:`get_login_state` for possible values.
    
 
    :returns: Returns false if *cid* is not an active connection
             or is not tagged as a login analyzer, and true otherwise.
    
-   .. bro:see:: get_login_state
+   .. zeek:see:: get_login_state
 
 Bro::MIME
 ---------
@@ -6184,9 +6184,9 @@ Components
 Events
 ++++++
 
-.. bro:id:: mime_begin_entity
+.. zeek:id:: mime_begin_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when starting to parse an email MIME entity. MIME is a
    protocol-independent data format for encoding text and files, along with
@@ -6200,16 +6200,16 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
+   .. zeek:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_begin_entity
    
    .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
-      however, it raises :bro:id:`http_begin_entity` instead.
+      however, it raises :zeek:id:`http_begin_entity` instead.
 
-.. bro:id:: mime_end_entity
+.. zeek:id:: mime_end_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when finishing parsing an email MIME entity.  MIME is a
    protocol-independent data format for encoding text and files, along with
@@ -6223,16 +6223,16 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_end_entity
    
    .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
-      however, it raises :bro:id:`http_end_entity` instead.
+      however, it raises :zeek:id:`http_end_entity` instead.
 
-.. bro:id:: mime_one_header
+.. zeek:id:: mime_one_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, h: :bro:type:`mime_header_rec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, h: :zeek:type:`mime_header_rec`)
 
    Generated for individual MIME headers extracted from email MIME
    entities.  MIME is a protocol-independent data format for encoding text and
@@ -6248,16 +6248,16 @@ Events
 
    :h: The parsed MIME header.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event  mime_segment_data
       http_header  http_all_headers
    
    .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-      however, it raises :bro:id:`http_header` instead.
+      however, it raises :zeek:id:`http_header` instead.
 
-.. bro:id:: mime_all_headers
+.. zeek:id:: mime_all_headers
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hlist: :bro:type:`mime_header_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hlist: :zeek:type:`mime_header_list`)
 
    Generated for MIME headers extracted from email MIME entities, passing all
    headers at once.  MIME is a protocol-independent data format for encoding
@@ -6275,23 +6275,23 @@ Events
           The table is indexed by the position of the header (1 for the first,
           2 for the second, etc.).
    
-   .. bro:see:: mime_all_data  mime_begin_entity mime_content_hash mime_end_entity
+   .. zeek:see:: mime_all_data  mime_begin_entity mime_content_hash mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
       http_header  http_all_headers
    
    .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-      however, it raises :bro:id:`http_header` instead.
+      however, it raises :zeek:id:`http_header` instead.
 
-.. bro:id:: mime_segment_data
+.. zeek:id:: mime_segment_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, length: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, length: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for chunks of decoded MIME data from email MIME entities.  MIME
    is a protocol-independent data format for encoding text and files, along with
    corresponding metadata, for transmission. As Bro parses the data of an
    entity, it raises a sequence of these events, each coming as soon as a new
    chunk of data is available. In contrast, there is also
-   :bro:id:`mime_entity_data`, which passes all of an entities data at once
+   :zeek:id:`mime_entity_data`, which passes all of an entities data at once
    in a single block. While the latter is more convenient to handle,
    ``mime_segment_data`` is more efficient as Bro does not need to buffer
    the data. Thus, if possible, this event should be preferred.
@@ -6309,20 +6309,20 @@ Events
 
    :data: The raw data of one segment of the current entity.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
       mime_segment_length mime_segment_overlap_length
    
    .. note:: Bro also extracts MIME data from HTTP sessions. For those,
-      however, it raises :bro:id:`http_entity_data` (sic!) instead.
+      however, it raises :zeek:id:`http_entity_data` (sic!) instead.
 
-.. bro:id:: mime_entity_data
+.. zeek:id:: mime_entity_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, length: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, length: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for data decoded from an email MIME entity. This event delivers
    the complete content of a single MIME entity with the quoted-printable and
-   and base64 data decoded. In contrast, there is also :bro:id:`mime_segment_data`,
+   and base64 data decoded. In contrast, there is also :zeek:id:`mime_segment_data`,
    which passes on a sequence of data chunks as they come in. While
    ``mime_entity_data`` is more convenient to handle, ``mime_segment_data`` is
    more efficient as Bro does not need to buffer the data. Thus, if possible,
@@ -6341,15 +6341,15 @@ Events
 
    :data: The raw data of the complete entity.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity  mime_event mime_one_header mime_segment_data
    
    .. note:: While Bro also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
-.. bro:id:: mime_all_data
+.. zeek:id:: mime_all_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, length: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, length: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for passing on all data decoded from a single email MIME
    message. If an email message has more than one MIME entity, this event
@@ -6370,15 +6370,15 @@ Events
 
    :data: The raw data of all MIME entities concatenated.
    
-   .. bro:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
+   .. zeek:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
    .. note:: While Bro also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
-.. bro:id:: mime_event
+.. zeek:id:: mime_event
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, event_type: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, event_type: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for errors found when decoding email MIME entities.
    
@@ -6396,15 +6396,15 @@ Events
 
    :detail: Further more detailed description of the error.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data  mime_one_header mime_segment_data http_event
    
    .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-      however, it raises :bro:id:`http_event` instead.
+      however, it raises :zeek:id:`http_event` instead.
 
-.. bro:id:: mime_content_hash
+.. zeek:id:: mime_content_hash
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, content_len: :bro:type:`count`, hash_value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, content_len: :zeek:type:`count`, hash_value: :zeek:type:`string`)
 
    Generated for decoded MIME entities extracted from email messages, passing on
    their MD5 checksums. Bro computes the MD5 over the complete decoded data of
@@ -6423,7 +6423,7 @@ Events
 
    :hash_value: The MD5 hash.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
    .. note:: While Bro also decodes MIME entities extracted from HTTP
@@ -6437,14 +6437,14 @@ Modbus analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_MODBUS`
+:zeek:enum:`Analyzer::ANALYZER_MODBUS`
 
 Events
 ++++++
 
-.. bro:id:: modbus_message
+.. zeek:id:: modbus_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, is_orig: :zeek:type:`bool`)
 
    Generated for any Modbus message regardless if the particular function
    is further supported or not.
@@ -6458,9 +6458,9 @@ Events
 
    :is_orig: True if the event is raised for the originator side.
 
-.. bro:id:: modbus_exception
+.. zeek:id:: modbus_exception
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, code: :zeek:type:`count`)
 
    Generated for any Modbus exception message.
    
@@ -6473,9 +6473,9 @@ Events
 
    :code: The exception code.
 
-.. bro:id:: modbus_read_coils_request
+.. zeek:id:: modbus_read_coils_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read coils request.
    
@@ -6491,9 +6491,9 @@ Events
 
    :quantity: The number of coils to be read.
 
-.. bro:id:: modbus_read_coils_response
+.. zeek:id:: modbus_read_coils_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus read coils response.
    
@@ -6506,9 +6506,9 @@ Events
 
    :coils: The coil values returned from the device.
 
-.. bro:id:: modbus_read_discrete_inputs_request
+.. zeek:id:: modbus_read_discrete_inputs_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read discrete inputs request.
    
@@ -6524,9 +6524,9 @@ Events
 
    :quantity: The number of coils to be read.
 
-.. bro:id:: modbus_read_discrete_inputs_response
+.. zeek:id:: modbus_read_discrete_inputs_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus read discrete inputs response.
    
@@ -6539,9 +6539,9 @@ Events
 
    :coils: The coil values returned from the device.
 
-.. bro:id:: modbus_read_holding_registers_request
+.. zeek:id:: modbus_read_holding_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read holding registers request.
    
@@ -6557,9 +6557,9 @@ Events
 
    :quantity: The number of registers to be read.
 
-.. bro:id:: modbus_read_holding_registers_response
+.. zeek:id:: modbus_read_holding_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read holding registers response.
    
@@ -6572,9 +6572,9 @@ Events
 
    :registers: The register values returned from the device.
 
-.. bro:id:: modbus_read_input_registers_request
+.. zeek:id:: modbus_read_input_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read input registers request.
    
@@ -6590,9 +6590,9 @@ Events
 
    :quantity: The number of registers to be read.
 
-.. bro:id:: modbus_read_input_registers_response
+.. zeek:id:: modbus_read_input_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read input registers response.
    
@@ -6605,9 +6605,9 @@ Events
 
    :registers: The register values returned from the device.
 
-.. bro:id:: modbus_write_single_coil_request
+.. zeek:id:: modbus_write_single_coil_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`bool`)
 
    Generated for a Modbus write single coil request.
    
@@ -6623,9 +6623,9 @@ Events
 
    :value: The value to be written to the coil.
 
-.. bro:id:: modbus_write_single_coil_response
+.. zeek:id:: modbus_write_single_coil_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`bool`)
 
    Generated for a Modbus write single coil response.
    
@@ -6641,9 +6641,9 @@ Events
 
    :value: The value that was written to the coil.
 
-.. bro:id:: modbus_write_single_register_request
+.. zeek:id:: modbus_write_single_register_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for a Modbus write single register request.
    
@@ -6659,9 +6659,9 @@ Events
 
    :value: The value to be written to the register.
 
-.. bro:id:: modbus_write_single_register_response
+.. zeek:id:: modbus_write_single_register_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for a Modbus write single register response.
    
@@ -6677,9 +6677,9 @@ Events
 
    :value: The value that was written to the register.
 
-.. bro:id:: modbus_write_multiple_coils_request
+.. zeek:id:: modbus_write_multiple_coils_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus write multiple coils request.
    
@@ -6695,9 +6695,9 @@ Events
 
    :coils: The values to be written to the coils.
 
-.. bro:id:: modbus_write_multiple_coils_response
+.. zeek:id:: modbus_write_multiple_coils_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus write multiple coils response.
    
@@ -6713,9 +6713,9 @@ Events
 
    :quantity: The quantity of coils that were written.
 
-.. bro:id:: modbus_write_multiple_registers_request
+.. zeek:id:: modbus_write_multiple_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus write multiple registers request.
    
@@ -6731,9 +6731,9 @@ Events
 
    :registers: The values to be written to the registers.
 
-.. bro:id:: modbus_write_multiple_registers_response
+.. zeek:id:: modbus_write_multiple_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus write multiple registers response.
    
@@ -6749,9 +6749,9 @@ Events
 
    :quantity: The quantity of registers that were written.
 
-.. bro:id:: modbus_read_file_record_request
+.. zeek:id:: modbus_read_file_record_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus read file record request.
    
@@ -6764,9 +6764,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_read_file_record_response
+.. zeek:id:: modbus_read_file_record_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus read file record response.
    
@@ -6779,9 +6779,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_write_file_record_request
+.. zeek:id:: modbus_write_file_record_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus write file record request.
    
@@ -6794,9 +6794,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_write_file_record_response
+.. zeek:id:: modbus_write_file_record_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus write file record response.
    
@@ -6809,9 +6809,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_mask_write_register_request
+.. zeek:id:: modbus_mask_write_register_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, and_mask: :bro:type:`count`, or_mask: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, and_mask: :zeek:type:`count`, or_mask: :zeek:type:`count`)
 
    Generated for a Modbus mask write register request.
    
@@ -6830,9 +6830,9 @@ Events
 
    :or_mask: The value of the logical OR mask to apply to the register.
 
-.. bro:id:: modbus_mask_write_register_response
+.. zeek:id:: modbus_mask_write_register_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, and_mask: :bro:type:`count`, or_mask: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, and_mask: :zeek:type:`count`, or_mask: :zeek:type:`count`)
 
    Generated for a Modbus mask write register request.
    
@@ -6851,9 +6851,9 @@ Events
 
    :or_mask: The value of the logical OR mask applied to the register.
 
-.. bro:id:: modbus_read_write_multiple_registers_request
+.. zeek:id:: modbus_read_write_multiple_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, read_start_address: :bro:type:`count`, read_quantity: :bro:type:`count`, write_start_address: :bro:type:`count`, write_registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, read_start_address: :zeek:type:`count`, read_quantity: :zeek:type:`count`, write_start_address: :zeek:type:`count`, write_registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read/write multiple registers request.
    
@@ -6875,9 +6875,9 @@ Events
 
    :write_registers: The values to be written to the registers.
 
-.. bro:id:: modbus_read_write_multiple_registers_response
+.. zeek:id:: modbus_read_write_multiple_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, written_registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, written_registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read/write multiple registers response.
    
@@ -6891,9 +6891,9 @@ Events
    :written_registers: The register values read from the registers specified in
                       the request.
 
-.. bro:id:: modbus_read_fifo_queue_request
+.. zeek:id:: modbus_read_fifo_queue_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`)
 
    Generated for a Modbus read FIFO queue request.
    
@@ -6906,9 +6906,9 @@ Events
 
    :start_address: The address of the FIFO queue to read.
 
-.. bro:id:: modbus_read_fifo_queue_response
+.. zeek:id:: modbus_read_fifo_queue_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, fifos: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, fifos: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read FIFO queue response.
    
@@ -6929,14 +6929,14 @@ MySQL analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_MYSQL`
+:zeek:enum:`Analyzer::ANALYZER_MYSQL`
 
 Events
 ++++++
 
-.. bro:id:: mysql_command_request
+.. zeek:id:: mysql_command_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, command: :bro:type:`count`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`count`, arg: :zeek:type:`string`)
 
    Generated for a command request from a MySQL client.
    
@@ -6952,11 +6952,11 @@ Events
 
    :arg: The argument for the command (empty string if not provided).
    
-   .. bro:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_error
+.. zeek:id:: mysql_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`, msg: :zeek:type:`string`)
 
    Generated for an unsuccessful MySQL response.
    
@@ -6972,11 +6972,11 @@ Events
 
    :msg: Any extra details about the error (empty string if not provided).
    
-   .. bro:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_ok
+.. zeek:id:: mysql_ok
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, affected_rows: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, affected_rows: :zeek:type:`count`)
 
    Generated for a successful MySQL response.
    
@@ -6989,11 +6989,11 @@ Events
 
    :affected_rows: The number of rows that were affected.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_result_row
+.. zeek:id:: mysql_result_row
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, row: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, row: :zeek:type:`string_vec`)
 
    Generated for each MySQL ResultsetRow response packet.
    
@@ -7006,11 +7006,11 @@ Events
 
    :row: The result row data.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake mysql_ok
+   .. zeek:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake mysql_ok
 
-.. bro:id:: mysql_server_version
+.. zeek:id:: mysql_server_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, ver: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, ver: :zeek:type:`string`)
 
    Generated for the initial server handshake packet, which includes the MySQL server version.
    
@@ -7023,11 +7023,11 @@ Events
 
    :ver: The server version string.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
 
-.. bro:id:: mysql_handshake
+.. zeek:id:: mysql_handshake
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, username: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 
    Generated for a client handshake response packet, which includes the username the client is attempting
    to connect as.
@@ -7041,7 +7041,7 @@ Events
 
    :username: The username supplied by the client
    
-   .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
+   .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
 
 Bro::NCP
 --------
@@ -7051,17 +7051,17 @@ NCP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_NCP`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_NCP`
 
-:bro:enum:`Analyzer::ANALYZER_NCP`
+:zeek:enum:`Analyzer::ANALYZER_NCP`
 
 Options/Constants
 +++++++++++++++++
 
-.. bro:id:: NCP::max_frame_size
+.. zeek:id:: NCP::max_frame_size
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``65536``
 
    The maximum number of bytes to allocate when parsing NCP frames.
@@ -7069,9 +7069,9 @@ Options/Constants
 Events
 ++++++
 
-.. bro:id:: ncp_request
+.. zeek:id:: ncp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, frame_type: :bro:type:`count`, length: :bro:type:`count`, func: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, frame_type: :zeek:type:`count`, length: :zeek:type:`count`, func: :zeek:type:`count`)
 
    Generated for NCP requests (Netware Core Protocol).
    
@@ -7090,16 +7090,16 @@ Events
 
    :func: The requested function, as specified by the protocol.
    
-   .. bro:see:: ncp_reply
+   .. zeek:see:: ncp_reply
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: ncp_reply
+.. zeek:id:: ncp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, frame_type: :bro:type:`count`, length: :bro:type:`count`, req_frame: :bro:type:`count`, req_func: :bro:type:`count`, completion_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, frame_type: :zeek:type:`count`, length: :zeek:type:`count`, req_frame: :zeek:type:`count`, req_func: :zeek:type:`count`, completion_code: :zeek:type:`count`)
 
    Generated for NCP replies (Netware Core Protocol).
    
@@ -7124,7 +7124,7 @@ Events
 
    :completion_code: The reply's completion code, as specified by the protocol.
    
-   .. bro:see:: ncp_request
+   .. zeek:see:: ncp_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -7139,16 +7139,16 @@ NetBIOS analyzer support
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_NETBIOSSSN`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_NETBIOSSSN`
 
-:bro:enum:`Analyzer::ANALYZER_NETBIOSSSN`
+:zeek:enum:`Analyzer::ANALYZER_NETBIOSSSN`
 
 Events
 ++++++
 
-.. bro:id:: netbios_session_message
+.. zeek:id:: netbios_session_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg_type: :bro:type:`count`, data_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, data_len: :zeek:type:`count`)
 
    Generated for all NetBIOS SSN and DGM messages. Bro's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
@@ -7172,7 +7172,7 @@ Events
 
    :data_len: The length of the message's payload.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
@@ -7185,9 +7185,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_request
+.. zeek:id:: netbios_session_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *session request*. Bro's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
@@ -7205,7 +7205,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_rejected
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -7218,9 +7218,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_accepted
+.. zeek:id:: netbios_session_accepted
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *positive session response*. Bro's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
@@ -7238,7 +7238,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see::  netbios_session_keepalive netbios_session_message
+   .. zeek:see::  netbios_session_keepalive netbios_session_message
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -7251,9 +7251,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_rejected
+.. zeek:id:: netbios_session_rejected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *negative session response*. Bro's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
@@ -7271,7 +7271,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -7284,9 +7284,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_raw_message
+.. zeek:id:: netbios_session_raw_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *session message* that are not
    carrying an SMB payload.
@@ -7309,7 +7309,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header (i.e., the ``user_data``).
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -7325,9 +7325,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_ret_arg_resp
+.. zeek:id:: netbios_session_ret_arg_resp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *retarget response*. Bro's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
@@ -7345,7 +7345,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_keepalive
+   .. zeek:see:: netbios_session_accepted netbios_session_keepalive
       netbios_session_message netbios_session_raw_message netbios_session_rejected
       netbios_session_request decode_netbios_name decode_netbios_name_type
    
@@ -7360,9 +7360,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: netbios_session_keepalive
+.. zeek:id:: netbios_session_keepalive
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
    Generated for NetBIOS messages of type *keep-alive*. Bro's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
@@ -7380,7 +7380,7 @@ Events
    :msg: The raw payload of the message sent, excluding the common NetBIOS
         header.
    
-   .. bro:see:: netbios_session_accepted netbios_session_message
+   .. zeek:see:: netbios_session_accepted netbios_session_message
       netbios_session_raw_message netbios_session_rejected netbios_session_request
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
@@ -7396,9 +7396,9 @@ Events
 Functions
 +++++++++
 
-.. bro:id:: decode_netbios_name
+.. zeek:id:: decode_netbios_name
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
    Decode a NetBIOS name.  See http://support.microsoft.com/kb/194203.
    
@@ -7408,11 +7408,11 @@ Functions
 
    :returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
    
-   .. bro:see:: decode_netbios_name_type
+   .. zeek:see:: decode_netbios_name_type
 
-.. bro:id:: decode_netbios_name_type
+.. zeek:id:: decode_netbios_name_type
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`count`
 
    Converts a NetBIOS name type to its corresponding numeric value.
    See http://support.microsoft.com/kb/163409.
@@ -7423,7 +7423,7 @@ Functions
 
    :returns: The numeric value of *name*.
    
-   .. bro:see:: decode_netbios_name
+   .. zeek:see:: decode_netbios_name
 
 Bro::NTLM
 ---------
@@ -7433,205 +7433,205 @@ NTLM analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_NTLM`
+:zeek:enum:`Analyzer::ANALYZER_NTLM`
 
 Types
 +++++
 
-.. bro:type:: NTLM::Negotiate
+.. zeek:type:: NTLM::Negotiate
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      flags: :bro:type:`NTLM::NegotiateFlags`
+      flags: :zeek:type:`NTLM::NegotiateFlags`
          The negotiate flags
 
-      domain_name: :bro:type:`string` :bro:attr:`&optional`
+      domain_name: :zeek:type:`string` :zeek:attr:`&optional`
          The domain name of the client, if known
 
-      workstation: :bro:type:`string` :bro:attr:`&optional`
+      workstation: :zeek:type:`string` :zeek:attr:`&optional`
          The machine name of the client, if known
 
-      version: :bro:type:`NTLM::Version` :bro:attr:`&optional`
+      version: :zeek:type:`NTLM::Version` :zeek:attr:`&optional`
          The Windows version information, if supplied
 
 
-.. bro:type:: NTLM::Challenge
+.. zeek:type:: NTLM::Challenge
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      flags: :bro:type:`NTLM::NegotiateFlags`
+      flags: :zeek:type:`NTLM::NegotiateFlags`
          The negotiate flags
 
-      target_name: :bro:type:`string` :bro:attr:`&optional`
+      target_name: :zeek:type:`string` :zeek:attr:`&optional`
          The server authentication realm. If the server is
          domain-joined, the name of the domain. Otherwise
          the server name. See flags.target_type_domain
          and flags.target_type_server
 
-      version: :bro:type:`NTLM::Version` :bro:attr:`&optional`
+      version: :zeek:type:`NTLM::Version` :zeek:attr:`&optional`
          The Windows version information, if supplied
 
-      target_info: :bro:type:`NTLM::AVs` :bro:attr:`&optional`
+      target_info: :zeek:type:`NTLM::AVs` :zeek:attr:`&optional`
          Attribute-value pairs specified by the server
 
 
-.. bro:type:: NTLM::Authenticate
+.. zeek:type:: NTLM::Authenticate
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      flags: :bro:type:`NTLM::NegotiateFlags`
+      flags: :zeek:type:`NTLM::NegotiateFlags`
          The negotiate flags
 
-      domain_name: :bro:type:`string` :bro:attr:`&optional`
+      domain_name: :zeek:type:`string` :zeek:attr:`&optional`
          The domain or computer name hosting the account
 
-      user_name: :bro:type:`string` :bro:attr:`&optional`
+      user_name: :zeek:type:`string` :zeek:attr:`&optional`
          The name of the user to be authenticated.
 
-      workstation: :bro:type:`string` :bro:attr:`&optional`
+      workstation: :zeek:type:`string` :zeek:attr:`&optional`
          The name of the computer to which the user was logged on.
 
-      session_key: :bro:type:`string` :bro:attr:`&optional`
+      session_key: :zeek:type:`string` :zeek:attr:`&optional`
          The session key
 
-      version: :bro:type:`NTLM::Version` :bro:attr:`&optional`
+      version: :zeek:type:`NTLM::Version` :zeek:attr:`&optional`
          The Windows version information, if supplied
 
 
-.. bro:type:: NTLM::NegotiateFlags
+.. zeek:type:: NTLM::NegotiateFlags
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      negotiate_56: :bro:type:`bool`
+      negotiate_56: :zeek:type:`bool`
          If set, requires 56-bit encryption
 
-      negotiate_key_exch: :bro:type:`bool`
+      negotiate_key_exch: :zeek:type:`bool`
          If set, requests an explicit key exchange
 
-      negotiate_128: :bro:type:`bool`
+      negotiate_128: :zeek:type:`bool`
          If set, requests 128-bit session key negotiation
 
-      negotiate_version: :bro:type:`bool`
+      negotiate_version: :zeek:type:`bool`
          If set, requests the protocol version number
 
-      negotiate_target_info: :bro:type:`bool`
+      negotiate_target_info: :zeek:type:`bool`
          If set, indicates that the TargetInfo fields in the
          CHALLENGE_MESSAGE are populated
 
-      request_non_nt_session_key: :bro:type:`bool`
+      request_non_nt_session_key: :zeek:type:`bool`
          If set, requests the usage of the LMOWF function
 
-      negotiate_identify: :bro:type:`bool`
+      negotiate_identify: :zeek:type:`bool`
          If set, requests and identify level token
 
-      negotiate_extended_sessionsecurity: :bro:type:`bool`
+      negotiate_extended_sessionsecurity: :zeek:type:`bool`
          If set, requests usage of NTLM v2 session security
          Note: NTML v2 session security is actually NTLM v1
 
-      target_type_server: :bro:type:`bool`
+      target_type_server: :zeek:type:`bool`
          If set, TargetName must be a server name
 
-      target_type_domain: :bro:type:`bool`
+      target_type_domain: :zeek:type:`bool`
          If set, TargetName must be a domain name
 
-      negotiate_always_sign: :bro:type:`bool`
+      negotiate_always_sign: :zeek:type:`bool`
          If set, requests the presence of a signature block
          on all messages
 
-      negotiate_oem_workstation_supplied: :bro:type:`bool`
+      negotiate_oem_workstation_supplied: :zeek:type:`bool`
          If set, the workstation name is provided
 
-      negotiate_oem_domain_supplied: :bro:type:`bool`
+      negotiate_oem_domain_supplied: :zeek:type:`bool`
          If set, the domain name is provided
 
-      negotiate_anonymous_connection: :bro:type:`bool`
+      negotiate_anonymous_connection: :zeek:type:`bool`
          If set, the connection should be anonymous
 
-      negotiate_ntlm: :bro:type:`bool`
+      negotiate_ntlm: :zeek:type:`bool`
          If set, requests usage of NTLM v1
 
-      negotiate_lm_key: :bro:type:`bool`
+      negotiate_lm_key: :zeek:type:`bool`
          If set, requests LAN Manager session key computation
 
-      negotiate_datagram: :bro:type:`bool`
+      negotiate_datagram: :zeek:type:`bool`
          If set, requests connectionless authentication
 
-      negotiate_seal: :bro:type:`bool`
+      negotiate_seal: :zeek:type:`bool`
          If set, requests session key negotiation for message 
          confidentiality
 
-      negotiate_sign: :bro:type:`bool`
+      negotiate_sign: :zeek:type:`bool`
          If set, requests session key negotiation for message
          signatures
 
-      request_target: :bro:type:`bool`
+      request_target: :zeek:type:`bool`
          If set, the TargetName field is present
 
-      negotiate_oem: :bro:type:`bool`
+      negotiate_oem: :zeek:type:`bool`
          If set, requests OEM character set encoding
 
-      negotiate_unicode: :bro:type:`bool`
+      negotiate_unicode: :zeek:type:`bool`
          If set, requests Unicode character set encoding
 
 
-.. bro:type:: NTLM::Version
+.. zeek:type:: NTLM::Version
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      major: :bro:type:`count`
+      major: :zeek:type:`count`
          The major version of the Windows operating system in use
 
-      minor: :bro:type:`count`
+      minor: :zeek:type:`count`
          The minor version of the Windows operating system in use
 
-      build: :bro:type:`count`
+      build: :zeek:type:`count`
          The build number of the Windows operating system in use
 
-      ntlmssp: :bro:type:`count`
+      ntlmssp: :zeek:type:`count`
          The current revision of NTLMSSP in use
 
 
-.. bro:type:: NTLM::AVs
+.. zeek:type:: NTLM::AVs
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      nb_computer_name: :bro:type:`string`
+      nb_computer_name: :zeek:type:`string`
          The server's NetBIOS computer name
 
-      nb_domain_name: :bro:type:`string`
+      nb_domain_name: :zeek:type:`string`
          The server's NetBIOS domain name
 
-      dns_computer_name: :bro:type:`string` :bro:attr:`&optional`
+      dns_computer_name: :zeek:type:`string` :zeek:attr:`&optional`
          The FQDN of the computer
 
-      dns_domain_name: :bro:type:`string` :bro:attr:`&optional`
+      dns_domain_name: :zeek:type:`string` :zeek:attr:`&optional`
          The FQDN of the domain
 
-      dns_tree_name: :bro:type:`string` :bro:attr:`&optional`
+      dns_tree_name: :zeek:type:`string` :zeek:attr:`&optional`
          The FQDN of the forest
 
-      constrained_auth: :bro:type:`bool` :bro:attr:`&optional`
+      constrained_auth: :zeek:type:`bool` :zeek:attr:`&optional`
          Indicates to the client that the account
          authentication is constrained
 
-      timestamp: :bro:type:`time` :bro:attr:`&optional`
+      timestamp: :zeek:type:`time` :zeek:attr:`&optional`
          The associated timestamp, if present
 
-      single_host_id: :bro:type:`count` :bro:attr:`&optional`
+      single_host_id: :zeek:type:`count` :zeek:attr:`&optional`
          Indicates that the client is providing
          a machine ID created at computer startup to
          identify the calling machine
 
-      target_name: :bro:type:`string` :bro:attr:`&optional`
+      target_name: :zeek:type:`string` :zeek:attr:`&optional`
          The SPN of the target server
 
 
 Events
 ++++++
 
-.. bro:id:: ntlm_negotiate
+.. zeek:id:: ntlm_negotiate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, negotiate: :bro:type:`NTLM::Negotiate`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, negotiate: :zeek:type:`NTLM::Negotiate`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *negotiate*.
    
@@ -7641,11 +7641,11 @@ Events
 
    :negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_challenge ntlm_authenticate
+   .. zeek:see:: ntlm_challenge ntlm_authenticate
 
-.. bro:id:: ntlm_challenge
+.. zeek:id:: ntlm_challenge
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, challenge: :bro:type:`NTLM::Challenge`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, challenge: :zeek:type:`NTLM::Challenge`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *challenge*.
    
@@ -7655,11 +7655,11 @@ Events
 
    :negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_negotiate ntlm_authenticate
+   .. zeek:see:: ntlm_negotiate ntlm_authenticate
 
-.. bro:id:: ntlm_authenticate
+.. zeek:id:: ntlm_authenticate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, request: :bro:type:`NTLM::Authenticate`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, request: :zeek:type:`NTLM::Authenticate`)
 
    Generated for :abbr:`NTLM (NT LAN Manager)` messages of type *authenticate*.
    
@@ -7669,7 +7669,7 @@ Events
 
    :request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
    
-   .. bro:see:: ntlm_negotiate ntlm_challenge
+   .. zeek:see:: ntlm_negotiate ntlm_challenge
 
 Bro::NTP
 --------
@@ -7679,14 +7679,14 @@ NTP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_NTP`
+:zeek:enum:`Analyzer::ANALYZER_NTP`
 
 Events
 ++++++
 
-.. bro:id:: ntp_message
+.. zeek:id:: ntp_message
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`, msg: :bro:type:`ntp_msg`, excess: :bro:type:`string`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`, msg: :zeek:type:`ntp_msg`, excess: :zeek:type:`string`)
 
    Generated for all NTP messages. Different from many other of Bro's events,
    this one is generated for both client-side and server-side messages.
@@ -7704,7 +7704,7 @@ Events
    :excess: The raw bytes of any optional parts of the NTP packet. Bro does not
            further parse any optional fields.
    
-   .. bro:see:: ntp_session_timeout
+   .. zeek:see:: ntp_session_timeout
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -7719,9 +7719,9 @@ Analyzers implementing Dynamic Protocol
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_PIA_TCP`
+:zeek:enum:`Analyzer::ANALYZER_PIA_TCP`
 
-:bro:enum:`Analyzer::ANALYZER_PIA_UDP`
+:zeek:enum:`Analyzer::ANALYZER_PIA_UDP`
 
 Bro::POP3
 ---------
@@ -7731,14 +7731,14 @@ POP3 analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_POP3`
+:zeek:enum:`Analyzer::ANALYZER_POP3`
 
 Events
 ++++++
 
-.. bro:id:: pop3_request
+.. zeek:id:: pop3_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side commands on POP3 connections.
    
@@ -7758,7 +7758,7 @@ Events
 
    :arg: The argument to the command.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -7766,9 +7766,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_reply
+.. zeek:id:: pop3_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, cmd: :bro:type:`string`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, cmd: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for server-side replies to commands on POP3 connections.
    
@@ -7789,7 +7789,7 @@ Events
 
    :msg: The textual description the server sent along with *cmd*.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
       pop3_unexpected
    
    .. todo:: This event is receiving odd parameters, should unify.
@@ -7799,9 +7799,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_data
+.. zeek:id:: pop3_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data: :zeek:type:`string`)
 
    Generated for server-side multi-line responses on POP3 connections. POP3
    connections use multi-line responses to send bulk data, such as the actual
@@ -7820,7 +7820,7 @@ Events
 
    :data: The data sent.
    
-   .. bro:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -7828,9 +7828,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_unexpected
+.. zeek:id:: pop3_unexpected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for errors encountered on POP3 sessions. If the POP3 analyzer
    finds state transitions that do not conform to the protocol specification,
@@ -7851,16 +7851,16 @@ Events
 
    :detail: The input that triggered the event.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_starttls
+.. zeek:id:: pop3_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a POP3 connection goes encrypted. While POP3 is by default a
    clear-text protocol, extensions exist to switch to encryption. This event is
@@ -7873,7 +7873,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_request pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -7881,9 +7881,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_login_success
+.. zeek:id:: pop3_login_success
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for successful authentications on POP3 connections.
    
@@ -7903,7 +7903,7 @@ Events
 
    :password: The password used for authentication.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -7911,9 +7911,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_login_failure
+.. zeek:id:: pop3_login_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for unsuccessful authentications on POP3 connections.
    
@@ -7933,7 +7933,7 @@ Events
 
    :password: The password attempted for authentication.
    
-   .. bro:see:: pop3_data pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -7949,44 +7949,44 @@ RADIUS analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_RADIUS`
+:zeek:enum:`Analyzer::ANALYZER_RADIUS`
 
 Types
 +++++
 
-.. bro:type:: RADIUS::AttributeList
+.. zeek:type:: RADIUS::AttributeList
 
-   :Type: :bro:type:`vector` of :bro:type:`string`
-
-
-.. bro:type:: RADIUS::Attributes
-
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`RADIUS::AttributeList`
+   :Type: :zeek:type:`vector` of :zeek:type:`string`
 
 
-.. bro:type:: RADIUS::Message
+.. zeek:type:: RADIUS::Attributes
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`RADIUS::AttributeList`
 
-      code: :bro:type:`count`
+
+.. zeek:type:: RADIUS::Message
+
+   :Type: :zeek:type:`record`
+
+      code: :zeek:type:`count`
          The type of message (Access-Request, Access-Accept, etc.).
 
-      trans_id: :bro:type:`count`
+      trans_id: :zeek:type:`count`
          The transaction ID.
 
-      authenticator: :bro:type:`string`
+      authenticator: :zeek:type:`string`
          The "authenticator" string.
 
-      attributes: :bro:type:`RADIUS::Attributes` :bro:attr:`&optional`
+      attributes: :zeek:type:`RADIUS::Attributes` :zeek:attr:`&optional`
          Any attributes.
 
 
 Events
 ++++++
 
-.. bro:id:: radius_message
+.. zeek:id:: radius_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`RADIUS::Message`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`RADIUS::Message`)
 
    Generated for RADIUS messages.
    
@@ -8000,9 +8000,9 @@ Events
    :result: A record containing fields parsed from a RADIUS packet.
    
 
-.. bro:id:: radius_attribute
+.. zeek:id:: radius_attribute
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, attr_type: :bro:type:`count`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, attr_type: :zeek:type:`count`, value: :zeek:type:`string`)
 
    Generated for each RADIUS attribute.
    
@@ -8027,85 +8027,85 @@ RDP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_RDP`
+:zeek:enum:`Analyzer::ANALYZER_RDP`
 
 Types
 +++++
 
-.. bro:type:: RDP::EarlyCapabilityFlags
+.. zeek:type:: RDP::EarlyCapabilityFlags
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      support_err_info_pdu: :bro:type:`bool`
+      support_err_info_pdu: :zeek:type:`bool`
 
-      want_32bpp_session: :bro:type:`bool`
+      want_32bpp_session: :zeek:type:`bool`
 
-      support_statusinfo_pdu: :bro:type:`bool`
+      support_statusinfo_pdu: :zeek:type:`bool`
 
-      strong_asymmetric_keys: :bro:type:`bool`
+      strong_asymmetric_keys: :zeek:type:`bool`
 
-      support_monitor_layout_pdu: :bro:type:`bool`
+      support_monitor_layout_pdu: :zeek:type:`bool`
 
-      support_netchar_autodetect: :bro:type:`bool`
+      support_netchar_autodetect: :zeek:type:`bool`
 
-      support_dynvc_gfx_protocol: :bro:type:`bool`
+      support_dynvc_gfx_protocol: :zeek:type:`bool`
 
-      support_dynamic_time_zone: :bro:type:`bool`
+      support_dynamic_time_zone: :zeek:type:`bool`
 
-      support_heartbeat_pdu: :bro:type:`bool`
+      support_heartbeat_pdu: :zeek:type:`bool`
 
 
-.. bro:type:: RDP::ClientCoreData
+.. zeek:type:: RDP::ClientCoreData
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      version_major: :bro:type:`count`
+      version_major: :zeek:type:`count`
 
-      version_minor: :bro:type:`count`
+      version_minor: :zeek:type:`count`
 
-      desktop_width: :bro:type:`count`
+      desktop_width: :zeek:type:`count`
 
-      desktop_height: :bro:type:`count`
+      desktop_height: :zeek:type:`count`
 
-      color_depth: :bro:type:`count`
+      color_depth: :zeek:type:`count`
 
-      sas_sequence: :bro:type:`count`
+      sas_sequence: :zeek:type:`count`
 
-      keyboard_layout: :bro:type:`count`
+      keyboard_layout: :zeek:type:`count`
 
-      client_build: :bro:type:`count`
+      client_build: :zeek:type:`count`
 
-      client_name: :bro:type:`string`
+      client_name: :zeek:type:`string`
 
-      keyboard_type: :bro:type:`count`
+      keyboard_type: :zeek:type:`count`
 
-      keyboard_sub: :bro:type:`count`
+      keyboard_sub: :zeek:type:`count`
 
-      keyboard_function_key: :bro:type:`count`
+      keyboard_function_key: :zeek:type:`count`
 
-      ime_file_name: :bro:type:`string`
+      ime_file_name: :zeek:type:`string`
 
-      post_beta2_color_depth: :bro:type:`count` :bro:attr:`&optional`
+      post_beta2_color_depth: :zeek:type:`count` :zeek:attr:`&optional`
 
-      client_product_id: :bro:type:`string` :bro:attr:`&optional`
+      client_product_id: :zeek:type:`string` :zeek:attr:`&optional`
 
-      serial_number: :bro:type:`count` :bro:attr:`&optional`
+      serial_number: :zeek:type:`count` :zeek:attr:`&optional`
 
-      high_color_depth: :bro:type:`count` :bro:attr:`&optional`
+      high_color_depth: :zeek:type:`count` :zeek:attr:`&optional`
 
-      supported_color_depths: :bro:type:`count` :bro:attr:`&optional`
+      supported_color_depths: :zeek:type:`count` :zeek:attr:`&optional`
 
-      ec_flags: :bro:type:`RDP::EarlyCapabilityFlags` :bro:attr:`&optional`
+      ec_flags: :zeek:type:`RDP::EarlyCapabilityFlags` :zeek:attr:`&optional`
 
-      dig_product_id: :bro:type:`string` :bro:attr:`&optional`
+      dig_product_id: :zeek:type:`string` :zeek:attr:`&optional`
 
 
 Events
 ++++++
 
-.. bro:id:: rdp_connect_request
+.. zeek:id:: rdp_connect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cookie: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`)
 
    Generated for X.224 client requests.
    
@@ -8115,9 +8115,9 @@ Events
 
    :cookie: The cookie included in the request.
 
-.. bro:id:: rdp_negotiation_response
+.. zeek:id:: rdp_negotiation_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, security_protocol: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 
    Generated for RDP Negotiation Response messages.
    
@@ -8127,9 +8127,9 @@ Events
 
    :security_protocol: The security protocol selected by the server.
 
-.. bro:id:: rdp_negotiation_failure
+.. zeek:id:: rdp_negotiation_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, failure_code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`)
 
    Generated for RDP Negotiation Failure messages.
    
@@ -8139,9 +8139,9 @@ Events
 
    :failure_code: The failure code sent by the server.
 
-.. bro:id:: rdp_client_core_data
+.. zeek:id:: rdp_client_core_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, data: :bro:type:`RDP::ClientCoreData`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientCoreData`)
 
    Generated for MCS client requests.
    
@@ -8151,9 +8151,9 @@ Events
 
    :data: The data contained in the client core data structure.
 
-.. bro:id:: rdp_gcc_server_create_response
+.. zeek:id:: rdp_gcc_server_create_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`count`)
 
    Generated for MCS server responses.
    
@@ -8163,9 +8163,9 @@ Events
 
    :result: The 8-bit integer representing the GCC Conference Create Response result.
 
-.. bro:id:: rdp_server_security
+.. zeek:id:: rdp_server_security
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, encryption_method: :bro:type:`count`, encryption_level: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, encryption_method: :zeek:type:`count`, encryption_level: :zeek:type:`count`)
 
    Generated for MCS server responses.
    
@@ -8178,9 +8178,9 @@ Events
 
    :encryption_level: The 32-bit integer representing the encryption level used in the connection.
 
-.. bro:id:: rdp_server_certificate
+.. zeek:id:: rdp_server_certificate
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cert_type: :bro:type:`count`, permanently_issued: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cert_type: :zeek:type:`count`, permanently_issued: :zeek:type:`bool`)
 
    Generated for a server certificate section.  If multiple X.509 
    certificates are included in chain, this event will still
@@ -8195,9 +8195,9 @@ Events
 
    :permanently_issued: Value will be true is the certificate(s) is permanent on the server.
 
-.. bro:id:: rdp_begin_encryption
+.. zeek:id:: rdp_begin_encryption
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, security_protocol: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 
    Generated when an RDP session becomes encrypted.
    
@@ -8215,23 +8215,23 @@ Parser for rfb (VNC) analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_RFB`
+:zeek:enum:`Analyzer::ANALYZER_RFB`
 
 Events
 ++++++
 
-.. bro:id:: rfb_event
+.. zeek:id:: rfb_event
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for RFB event
    
 
    :c: The connection record for the underlying transport-layer session/flow.
 
-.. bro:id:: rfb_authentication_type
+.. zeek:id:: rfb_authentication_type
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, authtype: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authtype: :zeek:type:`count`)
 
    Generated for RFB event authentication mechanism selection
    
@@ -8241,9 +8241,9 @@ Events
 
    :authtype: the value of the chosen authentication mechanism
 
-.. bro:id:: rfb_auth_result
+.. zeek:id:: rfb_auth_result
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
 
    Generated for RFB event authentication result message
    
@@ -8253,9 +8253,9 @@ Events
 
    :result: whether or not authentication was succesful
 
-.. bro:id:: rfb_share_flag
+.. zeek:id:: rfb_share_flag
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, flag: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, flag: :zeek:type:`bool`)
 
    Generated for RFB event share flag messages
    
@@ -8265,9 +8265,9 @@ Events
 
    :flag: whether or not the share flag was set
 
-.. bro:id:: rfb_client_version
+.. zeek:id:: rfb_client_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, major_version: :bro:type:`string`, minor_version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_version: :zeek:type:`string`, minor_version: :zeek:type:`string`)
 
    Generated for RFB event client banner message
    
@@ -8277,9 +8277,9 @@ Events
 
    :version: of the client's rfb library
 
-.. bro:id:: rfb_server_version
+.. zeek:id:: rfb_server_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, major_version: :bro:type:`string`, minor_version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_version: :zeek:type:`string`, minor_version: :zeek:type:`string`)
 
    Generated for RFB event server banner message
    
@@ -8289,9 +8289,9 @@ Events
 
    :version: of the server's rfb library
 
-.. bro:id:: rfb_server_parameters
+.. zeek:id:: rfb_server_parameters
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, name: :bro:type:`string`, width: :bro:type:`count`, height: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
    Generated for RFB event server parameter message
    
@@ -8315,22 +8315,22 @@ Analyzers for RPC-based protocols
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_NFS`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_NFS`
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_RPC`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_RPC`
 
-:bro:enum:`Analyzer::ANALYZER_MOUNT`
+:zeek:enum:`Analyzer::ANALYZER_MOUNT`
 
-:bro:enum:`Analyzer::ANALYZER_NFS`
+:zeek:enum:`Analyzer::ANALYZER_NFS`
 
-:bro:enum:`Analyzer::ANALYZER_PORTMAPPER`
+:zeek:enum:`Analyzer::ANALYZER_PORTMAPPER`
 
 Events
 ++++++
 
-.. bro:id:: nfs_proc_null
+.. zeek:id:: nfs_proc_null
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`)
 
    Generated for NFSv3 request/reply dialogues of type *null*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8346,7 +8346,7 @@ Events
 
    :info: Reports the status of the dialogue, along with some meta information.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented  nfs_proc_read nfs_proc_readdir nfs_proc_readlink
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
@@ -8356,9 +8356,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_getattr
+.. zeek:id:: nfs_proc_getattr
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, fh: :bro:type:`string`, attrs: :bro:type:`NFS3::fattr_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, fh: :zeek:type:`string`, attrs: :zeek:type:`NFS3::fattr_t`)
 
    Generated for NFSv3 request/reply dialogues of type *getattr*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8381,7 +8381,7 @@ Events
    :attrs: The attributes returned in the reply. The values may not be valid if
          the request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
@@ -8391,9 +8391,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_sattr
+.. zeek:id:: nfs_proc_sattr
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::sattrargs_t`, rep: :bro:type:`NFS3::sattr_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::sattrargs_t`, rep: :zeek:type:`NFS3::sattr_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *sattr*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8416,7 +8416,7 @@ Events
    :rep: The attributes returned in the reply. The values may not be
         valid if the request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
@@ -8426,9 +8426,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_lookup
+.. zeek:id:: nfs_proc_lookup
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::diropargs_t`, rep: :bro:type:`NFS3::lookup_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::diropargs_t`, rep: :zeek:type:`NFS3::lookup_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *lookup*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8451,7 +8451,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr  nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr  nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
@@ -8461,9 +8461,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_read
+.. zeek:id:: nfs_proc_read
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::readargs_t`, rep: :bro:type:`NFS3::read_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::readargs_t`, rep: :zeek:type:`NFS3::read_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *read*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8486,7 +8486,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_remove nfs_proc_rmdir
       nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
       NFS3::return_data NFS3::return_data_first_only NFS3::return_data_max
@@ -8496,9 +8496,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_readlink
+.. zeek:id:: nfs_proc_readlink
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, fh: :bro:type:`string`, rep: :bro:type:`NFS3::readlink_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, fh: :zeek:type:`string`, rep: :zeek:type:`NFS3::readlink_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *readlink*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8521,7 +8521,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_symlink rpc_call rpc_dialogue rpc_reply
@@ -8531,9 +8531,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_symlink
+.. zeek:id:: nfs_proc_symlink
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::symlinkargs_t`, rep: :bro:type:`NFS3::newobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::symlinkargs_t`, rep: :zeek:type:`NFS3::newobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *symlink*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8556,7 +8556,7 @@ Events
    :rep: The attributes returned in the reply. The values may not be
         valid if the request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create  nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_link rpc_call rpc_dialogue rpc_reply file_mode
@@ -8566,9 +8566,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_link
+.. zeek:id:: nfs_proc_link
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::linkargs_t`, rep: :bro:type:`NFS3::link_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::linkargs_t`, rep: :zeek:type:`NFS3::link_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *link*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8591,7 +8591,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       nfs_proc_symlink rpc_dialogue rpc_reply
@@ -8601,9 +8601,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_write
+.. zeek:id:: nfs_proc_write
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::writeargs_t`, rep: :bro:type:`NFS3::write_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::writeargs_t`, rep: :zeek:type:`NFS3::write_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *write*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8626,7 +8626,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir  nfs_reply_status rpc_call
       rpc_dialogue rpc_reply NFS3::return_data NFS3::return_data_first_only
@@ -8637,9 +8637,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_create
+.. zeek:id:: nfs_proc_create
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::diropargs_t`, rep: :bro:type:`NFS3::newobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::diropargs_t`, rep: :zeek:type:`NFS3::newobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *create*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8662,7 +8662,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see::  nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see::  nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
@@ -8672,9 +8672,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_mkdir
+.. zeek:id:: nfs_proc_mkdir
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::diropargs_t`, rep: :bro:type:`NFS3::newobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::diropargs_t`, rep: :zeek:type:`NFS3::newobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *mkdir*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8697,7 +8697,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
@@ -8707,9 +8707,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_remove
+.. zeek:id:: nfs_proc_remove
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::diropargs_t`, rep: :bro:type:`NFS3::delobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::diropargs_t`, rep: :zeek:type:`NFS3::delobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *remove*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8732,7 +8732,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink  nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
@@ -8742,9 +8742,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_rmdir
+.. zeek:id:: nfs_proc_rmdir
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::diropargs_t`, rep: :bro:type:`NFS3::delobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::diropargs_t`, rep: :zeek:type:`NFS3::delobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *rmdir*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8767,7 +8767,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove  nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
@@ -8777,9 +8777,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_rename
+.. zeek:id:: nfs_proc_rename
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::renameopargs_t`, rep: :bro:type:`NFS3::renameobj_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::renameopargs_t`, rep: :zeek:type:`NFS3::renameobj_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *rename*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8802,7 +8802,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rename nfs_proc_write
       nfs_reply_status rpc_call rpc_dialogue rpc_reply
@@ -8812,9 +8812,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_readdir
+.. zeek:id:: nfs_proc_readdir
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, req: :bro:type:`NFS3::readdirargs_t`, rep: :bro:type:`NFS3::readdir_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, req: :zeek:type:`NFS3::readdirargs_t`, rep: :zeek:type:`NFS3::readdir_reply_t`)
 
    Generated for NFSv3 request/reply dialogues of type *readdir*. The event is
    generated once we have either seen both the request and its corresponding
@@ -8837,7 +8837,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readlink
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
@@ -8847,9 +8847,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_proc_not_implemented
+.. zeek:id:: nfs_proc_not_implemented
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`, proc: :bro:type:`NFS3::proc_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, proc: :zeek:type:`NFS3::proc_t`)
 
    Generated for NFSv3 request/reply dialogues of a type that Bro's NFSv3
    analyzer does not implement.
@@ -8867,7 +8867,7 @@ Events
 
    :proc: The procedure called that Bro does not implement.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_null nfs_proc_read nfs_proc_readdir nfs_proc_readlink nfs_proc_remove
       nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
    
@@ -8876,9 +8876,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: nfs_reply_status
+.. zeek:id:: nfs_reply_status
 
-   :Type: :bro:type:`event` (n: :bro:type:`connection`, info: :bro:type:`NFS3::info_t`)
+   :Type: :zeek:type:`event` (n: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`)
 
    Generated for each NFSv3 reply message received, reporting just the
    status included.
@@ -8889,7 +8889,7 @@ Events
 
    :info: Reports the status included in the reply.
    
-   .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
+   .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_not_implemented nfs_proc_null nfs_proc_read nfs_proc_readdir
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write rpc_call
       rpc_dialogue rpc_reply
@@ -8899,9 +8899,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_null
+.. zeek:id:: pm_request_null
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`)
 
    Generated for Portmapper requests of type *null*.
    
@@ -8912,7 +8912,7 @@ Events
 
    :r: The RPC connection.
    
-   .. bro:see:: pm_request_set pm_request_unset pm_request_getport
+   .. zeek:see:: pm_request_set pm_request_unset pm_request_getport
       pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
@@ -8922,9 +8922,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_set
+.. zeek:id:: pm_request_set
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, m: :bro:type:`pm_mapping`, success: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, m: :zeek:type:`pm_mapping`, success: :zeek:type:`bool`)
 
    Generated for Portmapper request/reply dialogues of type *set*.
    
@@ -8943,7 +8943,7 @@ Events
             reply. If no reply was seen, this will be false once the request
             times out.
    
-   .. bro:see:: pm_request_null pm_request_unset pm_request_getport
+   .. zeek:see:: pm_request_null pm_request_unset pm_request_getport
       pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
@@ -8953,9 +8953,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_unset
+.. zeek:id:: pm_request_unset
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, m: :bro:type:`pm_mapping`, success: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, m: :zeek:type:`pm_mapping`, success: :zeek:type:`bool`)
 
    Generated for Portmapper request/reply dialogues of type *unset*.
    
@@ -8974,7 +8974,7 @@ Events
             reply. If no reply was seen, this will be false once the request
             times out.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_getport
+   .. zeek:see:: pm_request_null pm_request_set pm_request_getport
       pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
@@ -8984,9 +8984,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_getport
+.. zeek:id:: pm_request_getport
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, pr: :bro:type:`pm_port_request`, p: :bro:type:`port`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, pr: :zeek:type:`pm_port_request`, p: :zeek:type:`port`)
 
    Generated for Portmapper request/reply dialogues of type *getport*.
    
@@ -9003,7 +9003,7 @@ Events
 
    :p: The port returned by the server.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_dump pm_request_callit pm_attempt_null pm_attempt_set
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
@@ -9013,9 +9013,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_dump
+.. zeek:id:: pm_request_dump
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, m: :bro:type:`pm_mappings`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, m: :zeek:type:`pm_mappings`)
 
    Generated for Portmapper request/reply dialogues of type *dump*.
    
@@ -9029,7 +9029,7 @@ Events
 
    :m: The mappings returned by the server.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_callit pm_attempt_null
       pm_attempt_set pm_attempt_unset pm_attempt_getport
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
@@ -9040,9 +9040,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_request_callit
+.. zeek:id:: pm_request_callit
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, call: :bro:type:`pm_callit_request`, p: :bro:type:`port`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, call: :zeek:type:`pm_callit_request`, p: :zeek:type:`port`)
 
    Generated for Portmapper request/reply dialogues of type *callit*.
    
@@ -9059,7 +9059,7 @@ Events
 
    :p: The port value returned by the call.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_attempt_null
       pm_attempt_set pm_attempt_unset pm_attempt_getport
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
@@ -9070,9 +9070,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_null
+.. zeek:id:: pm_attempt_null
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`)
 
    Generated for failed Portmapper requests of type *null*.
    
@@ -9085,9 +9085,9 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_set pm_attempt_unset pm_attempt_getport
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
@@ -9098,9 +9098,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_set
+.. zeek:id:: pm_attempt_set
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`, m: :bro:type:`pm_mapping`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`, m: :zeek:type:`pm_mapping`)
 
    Generated for failed Portmapper requests of type *set*.
    
@@ -9113,12 +9113,12 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :m: The argument to the original request.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_unset pm_attempt_getport
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
@@ -9129,9 +9129,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_unset
+.. zeek:id:: pm_attempt_unset
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`, m: :bro:type:`pm_mapping`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`, m: :zeek:type:`pm_mapping`)
 
    Generated for failed Portmapper requests of type *unset*.
    
@@ -9144,12 +9144,12 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :m: The argument to the original request.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_set pm_attempt_getport
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
@@ -9160,9 +9160,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_getport
+.. zeek:id:: pm_attempt_getport
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`, pr: :bro:type:`pm_port_request`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`, pr: :zeek:type:`pm_port_request`)
 
    Generated for failed Portmapper requests of type *getport*.
    
@@ -9175,12 +9175,12 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :pr: The argument to the original request.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_set pm_attempt_unset pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
@@ -9190,9 +9190,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_dump
+.. zeek:id:: pm_attempt_dump
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`)
 
    Generated for failed Portmapper requests of type *dump*.
    
@@ -9205,9 +9205,9 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_set pm_attempt_unset
       pm_attempt_getport pm_attempt_callit pm_bad_port rpc_call
@@ -9218,9 +9218,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_attempt_callit
+.. zeek:id:: pm_attempt_callit
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, status: :bro:type:`rpc_status`, call: :bro:type:`pm_callit_request`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, status: :zeek:type:`rpc_status`, call: :zeek:type:`pm_callit_request`)
 
    Generated for failed Portmapper requests of type *callit*.
    
@@ -9233,12 +9233,12 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :call: The argument to the original request.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_set pm_attempt_unset
       pm_attempt_getport pm_attempt_dump pm_bad_port rpc_call
@@ -9249,9 +9249,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pm_bad_port
+.. zeek:id:: pm_bad_port
 
-   :Type: :bro:type:`event` (r: :bro:type:`connection`, bad_p: :bro:type:`count`)
+   :Type: :zeek:type:`event` (r: :zeek:type:`connection`, bad_p: :zeek:type:`count`)
 
    Generated for Portmapper requests or replies that include an invalid port
    number. Since ports are represented by unsigned 4-byte integers, they can
@@ -9268,7 +9268,7 @@ Events
 
    :bad_p: The invalid port value.
    
-   .. bro:see:: pm_request_null pm_request_set pm_request_unset
+   .. zeek:see:: pm_request_null pm_request_set pm_request_unset
       pm_request_getport pm_request_dump pm_request_callit
       pm_attempt_null pm_attempt_set pm_attempt_unset
       pm_attempt_getport pm_attempt_dump pm_attempt_callit rpc_call
@@ -9279,15 +9279,15 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: rpc_dialogue
+.. zeek:id:: rpc_dialogue
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, prog: :bro:type:`count`, ver: :bro:type:`count`, proc: :bro:type:`count`, status: :bro:type:`rpc_status`, start_time: :bro:type:`time`, call_len: :bro:type:`count`, reply_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prog: :zeek:type:`count`, ver: :zeek:type:`count`, proc: :zeek:type:`count`, status: :zeek:type:`rpc_status`, start_time: :zeek:type:`time`, call_len: :zeek:type:`count`, reply_len: :zeek:type:`count`)
 
    Generated for RPC request/reply *pairs*. The RPC analyzer associates request
    and reply by their transaction identifiers and raises this event once both
    have been seen. If there's not a reply, this event will still be generated
    eventually on timeout. In that case, *status* will be set to
-   :bro:enum:`RPC_TIMEOUT`.
+   :zeek:enum:`RPC_TIMEOUT`.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
@@ -9306,7 +9306,7 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :start_time: The time when the *call* was seen.
@@ -9317,18 +9317,18 @@ Events
 
    :reply_len: The size of the *reply_body* PDU.
    
-   .. bro:see:: rpc_call rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
+   .. zeek:see:: rpc_call rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: rpc_call
+.. zeek:id:: rpc_call
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, xid: :bro:type:`count`, prog: :bro:type:`count`, ver: :bro:type:`count`, proc: :bro:type:`count`, call_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, xid: :zeek:type:`count`, prog: :zeek:type:`count`, ver: :zeek:type:`count`, proc: :zeek:type:`count`, call_len: :zeek:type:`count`)
 
    Generated for RPC *call* messages.
    
@@ -9353,18 +9353,18 @@ Events
 
    :call_len: The size of the *call_body* PDU.
    
-   .. bro:see::  rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
+   .. zeek:see::  rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: rpc_reply
+.. zeek:id:: rpc_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, xid: :bro:type:`count`, status: :bro:type:`rpc_status`, reply_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, xid: :zeek:type:`count`, status: :zeek:type:`rpc_status`, reply_len: :zeek:type:`count`)
 
    Generated for RPC *reply* messages.
    
@@ -9379,23 +9379,23 @@ Events
    
 
    :status: The status of the reply, which should be one of the index values of
-           :bro:id:`RPC_status`.
+           :zeek:id:`RPC_status`.
    
 
    :reply_len: The size of the *reply_body* PDU.
    
-   .. bro:see:: rpc_call rpc_dialogue  dce_rpc_bind dce_rpc_message dce_rpc_request
+   .. zeek:see:: rpc_call rpc_dialogue  dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported to Bro 2.x. To still enable this event, one needs to add a
-      call to :bro:see:`Analyzer::register_for_ports` or a DPD payload
+      call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
-.. bro:id:: mount_proc_null
+.. zeek:id:: mount_proc_null
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`)
 
    Generated for MOUNT3 request/reply dialogues of type *null*. The event is
    generated once we have either seen both the request and its corresponding
@@ -9408,7 +9408,7 @@ Events
 
    :info: Reports the status of the dialogue, along with some meta information.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9416,9 +9416,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: mount_proc_mnt
+.. zeek:id:: mount_proc_mnt
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`, req: :bro:type:`MOUNT3::dirmntargs_t`, rep: :bro:type:`MOUNT3::mnt_reply_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`, rep: :zeek:type:`MOUNT3::mnt_reply_t`)
 
    Generated for MOUNT3 request/reply dialogues of type *mnt*. The event is
    generated once we have either seen both the request and its corresponding
@@ -9438,7 +9438,7 @@ Events
    :rep: The response returned in the reply. The values may not be valid if the
         request was unsuccessful.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9446,9 +9446,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: mount_proc_umnt
+.. zeek:id:: mount_proc_umnt
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`, req: :bro:type:`MOUNT3::dirmntargs_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`)
 
    Generated for MOUNT3 request/reply dialogues of type *umnt*. The event is
    generated once we have either seen both the request and its corresponding
@@ -9464,7 +9464,7 @@ Events
 
    :req:  The arguments passed in the request.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9472,9 +9472,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: mount_proc_umnt_all
+.. zeek:id:: mount_proc_umnt_all
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`, req: :bro:type:`MOUNT3::dirmntargs_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`)
 
    Generated for MOUNT3 request/reply dialogues of type *umnt_all*. The event is
    generated once we have either seen both the request and its corresponding
@@ -9490,7 +9490,7 @@ Events
 
    :req:  The arguments passed in the request.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9498,9 +9498,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: mount_proc_not_implemented
+.. zeek:id:: mount_proc_not_implemented
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`, proc: :bro:type:`MOUNT3::proc_t`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, proc: :zeek:type:`MOUNT3::proc_t`)
 
    Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
    analyzer does not implement.
@@ -9514,7 +9514,7 @@ Events
 
    :proc: The procedure called that Bro does not implement.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9522,9 +9522,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: mount_reply_status
+.. zeek:id:: mount_reply_status
 
-   :Type: :bro:type:`event` (n: :bro:type:`connection`, info: :bro:type:`MOUNT3::info_t`)
+   :Type: :zeek:type:`event` (n: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`)
 
    Generated for each MOUNT3 reply message received, reporting just the
    status included.
@@ -9535,7 +9535,7 @@ Events
 
    :info: Reports the status included in the reply.
    
-   .. bro:see:: mount_proc_mnt mount_proc_umnt
+   .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -9551,14 +9551,14 @@ SIP analyzer UDP-only
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SIP`
+:zeek:enum:`Analyzer::ANALYZER_SIP`
 
 Events
 ++++++
 
-.. bro:id:: sip_request
+.. zeek:id:: sip_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, method: :bro:type:`string`, original_URI: :bro:type:`string`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 
    Generated for :abbr:`SIP (Session Initiation Protocol)` requests, used in Voice over IP (VoIP).
    
@@ -9579,11 +9579,11 @@ Events
 
    :version: The version number specified in the request (e.g., ``2.0``).
    
-   .. bro:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_reply
+.. zeek:id:: sip_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`, code: :bro:type:`count`, reason: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
    Generated for :abbr:`SIP (Session Initiation Protocol)` replies, used in Voice over IP (VoIP).
    
@@ -9604,11 +9604,11 @@ Events
 
    :reason: Textual details for the response code.
    
-   .. bro:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_header
+.. zeek:id:: sip_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, name: :bro:type:`string`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
    
@@ -9627,11 +9627,11 @@ Events
 
    :value: Header value.
    
-   .. bro:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_all_headers
+.. zeek:id:: sip_all_headers
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, hlist: :bro:type:`mime_header_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, hlist: :zeek:type:`mime_header_list`)
 
    Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
    
@@ -9647,11 +9647,11 @@ Events
 
    :hlist: All the headers, and their values
    
-   .. bro:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_begin_entity
+.. zeek:id:: sip_begin_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated at the beginning of a :abbr:`SIP (Session Initiation Protocol)` message.
    
@@ -9666,11 +9666,11 @@ Events
 
    :is_orig: Whether the message came from the originator.
    
-   .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
 
-.. bro:id:: sip_end_entity
+.. zeek:id:: sip_end_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
    
@@ -9683,7 +9683,7 @@ Events
 
    :is_orig: Whether the message came from the originator.
    
-   .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
 
 Bro::SMB
 --------
@@ -9693,17 +9693,17 @@ SMB analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS_SMB`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS_SMB`
 
-:bro:enum:`Analyzer::ANALYZER_SMB`
+:zeek:enum:`Analyzer::ANALYZER_SMB`
 
 Options/Constants
 +++++++++++++++++
 
-.. bro:id:: SMB::pipe_filenames
+.. zeek:id:: SMB::pipe_filenames
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -9723,484 +9723,484 @@ Options/Constants
    only comes into play as a heuristic to identify named
    pipes when the drive mapping wasn't seen by Bro.
    
-   .. bro:see:: smb_pipe_connect_heuristic
+   .. zeek:see:: smb_pipe_connect_heuristic
 
 Types
 +++++
 
-.. bro:type:: SMB1::NegotiateResponse
+.. zeek:type:: SMB1::NegotiateResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      core: :bro:type:`SMB1::NegotiateResponseCore` :bro:attr:`&optional`
+      core: :zeek:type:`SMB1::NegotiateResponseCore` :zeek:attr:`&optional`
          If the server does not understand any of the dialect strings, or if 
          PC NETWORK PROGRAM 1.0 is the chosen dialect.
 
-      lanman: :bro:type:`SMB1::NegotiateResponseLANMAN` :bro:attr:`&optional`
+      lanman: :zeek:type:`SMB1::NegotiateResponseLANMAN` :zeek:attr:`&optional`
          If the chosen dialect is greater than core up to and including
          LANMAN 2.1.
 
-      ntlm: :bro:type:`SMB1::NegotiateResponseNTLM` :bro:attr:`&optional`
+      ntlm: :zeek:type:`SMB1::NegotiateResponseNTLM` :zeek:attr:`&optional`
          If the chosen dialect is NT LM 0.12.
 
 
-.. bro:type:: SMB1::NegotiateResponseCore
+.. zeek:type:: SMB1::NegotiateResponseCore
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      dialect_index: :bro:type:`count`
+      dialect_index: :zeek:type:`count`
          Index of selected dialect
 
 
-.. bro:type:: SMB1::NegotiateResponseLANMAN
+.. zeek:type:: SMB1::NegotiateResponseLANMAN
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      word_count: :bro:type:`count`
+      word_count: :zeek:type:`count`
          Count of parameter words (should be 13)
 
-      dialect_index: :bro:type:`count`
+      dialect_index: :zeek:type:`count`
          Index of selected dialect
 
-      security_mode: :bro:type:`SMB1::NegotiateResponseSecurity`
+      security_mode: :zeek:type:`SMB1::NegotiateResponseSecurity`
          Security mode
 
-      max_buffer_size: :bro:type:`count`
+      max_buffer_size: :zeek:type:`count`
          Max transmit buffer size (>= 1024)
 
-      max_mpx_count: :bro:type:`count`
+      max_mpx_count: :zeek:type:`count`
          Max pending multiplexed requests
 
-      max_number_vcs: :bro:type:`count`
+      max_number_vcs: :zeek:type:`count`
          Max number of virtual circuits (VCs - transport-layer connections)
          between client and server
 
-      raw_mode: :bro:type:`SMB1::NegotiateRawMode`
+      raw_mode: :zeek:type:`SMB1::NegotiateRawMode`
          Raw mode
 
-      session_key: :bro:type:`count`
+      session_key: :zeek:type:`count`
          Unique token identifying this session
 
-      server_time: :bro:type:`time`
+      server_time: :zeek:type:`time`
          Current date and time at server
 
-      encryption_key: :bro:type:`string`
+      encryption_key: :zeek:type:`string`
          The challenge encryption key
 
-      primary_domain: :bro:type:`string`
+      primary_domain: :zeek:type:`string`
          The server's primary domain
 
 
-.. bro:type:: SMB1::NegotiateResponseNTLM
+.. zeek:type:: SMB1::NegotiateResponseNTLM
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      word_count: :bro:type:`count`
+      word_count: :zeek:type:`count`
          Count of parameter words (should be 17)
 
-      dialect_index: :bro:type:`count`
+      dialect_index: :zeek:type:`count`
          Index of selected dialect
 
-      security_mode: :bro:type:`SMB1::NegotiateResponseSecurity`
+      security_mode: :zeek:type:`SMB1::NegotiateResponseSecurity`
          Security mode
 
-      max_buffer_size: :bro:type:`count`
+      max_buffer_size: :zeek:type:`count`
          Max transmit buffer size
 
-      max_mpx_count: :bro:type:`count`
+      max_mpx_count: :zeek:type:`count`
          Max pending multiplexed requests
 
-      max_number_vcs: :bro:type:`count`
+      max_number_vcs: :zeek:type:`count`
          Max number of virtual circuits (VCs - transport-layer connections)
          between client and server
 
-      max_raw_size: :bro:type:`count`
+      max_raw_size: :zeek:type:`count`
          Max raw buffer size
 
-      session_key: :bro:type:`count`
+      session_key: :zeek:type:`count`
          Unique token identifying this session
 
-      capabilities: :bro:type:`SMB1::NegotiateCapabilities`
+      capabilities: :zeek:type:`SMB1::NegotiateCapabilities`
          Server capabilities
 
-      server_time: :bro:type:`time`
+      server_time: :zeek:type:`time`
          Current date and time at server
 
-      encryption_key: :bro:type:`string` :bro:attr:`&optional`
+      encryption_key: :zeek:type:`string` :zeek:attr:`&optional`
          The challenge encryption key.
          Present only for non-extended security (i.e. capabilities$extended_security = F)
 
-      domain_name: :bro:type:`string` :bro:attr:`&optional`
+      domain_name: :zeek:type:`string` :zeek:attr:`&optional`
          The name of the domain.
          Present only for non-extended security (i.e. capabilities$extended_security = F)
 
-      guid: :bro:type:`string` :bro:attr:`&optional`
+      guid: :zeek:type:`string` :zeek:attr:`&optional`
          A globally unique identifier assigned to the server.
          Present only for extended security (i.e. capabilities$extended_security = T)
 
-      security_blob: :bro:type:`string`
+      security_blob: :zeek:type:`string`
          Opaque security blob associated with the security package if capabilities$extended_security = T
          Otherwise, the challenge for challenge/response authentication.
 
 
-.. bro:type:: SMB1::NegotiateResponseSecurity
+.. zeek:type:: SMB1::NegotiateResponseSecurity
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      user_level: :bro:type:`bool`
+      user_level: :zeek:type:`bool`
          This indicates whether the server, as a whole, is operating under
          Share Level or User Level security.
 
-      challenge_response: :bro:type:`bool`
+      challenge_response: :zeek:type:`bool`
          This indicates whether or not the server supports Challenge/Response
          authentication. If the bit is false, then plaintext passwords must
          be used.
 
-      signatures_enabled: :bro:type:`bool` :bro:attr:`&optional`
+      signatures_enabled: :zeek:type:`bool` :zeek:attr:`&optional`
          This indicates if the server is capable of performing MAC message
          signing. Note: Requires NT LM 0.12 or later.
 
-      signatures_required: :bro:type:`bool` :bro:attr:`&optional`
+      signatures_required: :zeek:type:`bool` :zeek:attr:`&optional`
          This indicates if the server is requiring the use of a MAC in each
          packet. If false, message signing is optional. Note: Requires NT LM 0.12
          or later.
 
 
-.. bro:type:: SMB1::NegotiateRawMode
+.. zeek:type:: SMB1::NegotiateRawMode
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      read_raw: :bro:type:`bool`
+      read_raw: :zeek:type:`bool`
          Read raw supported
 
-      write_raw: :bro:type:`bool`
+      write_raw: :zeek:type:`bool`
          Write raw supported
 
 
-.. bro:type:: SMB1::NegotiateCapabilities
+.. zeek:type:: SMB1::NegotiateCapabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      raw_mode: :bro:type:`bool`
+      raw_mode: :zeek:type:`bool`
          The server supports SMB_COM_READ_RAW and SMB_COM_WRITE_RAW
 
-      mpx_mode: :bro:type:`bool`
+      mpx_mode: :zeek:type:`bool`
          The server supports SMB_COM_READ_MPX and SMB_COM_WRITE_MPX
 
-      unicode: :bro:type:`bool`
+      unicode: :zeek:type:`bool`
          The server supports unicode strings
 
-      large_files: :bro:type:`bool`
+      large_files: :zeek:type:`bool`
          The server supports large files with 64 bit offsets
 
-      nt_smbs: :bro:type:`bool`
+      nt_smbs: :zeek:type:`bool`
          The server supports the SMBs particilar to the NT LM 0.12 dialect. Implies nt_find.
 
-      rpc_remote_apis: :bro:type:`bool`
+      rpc_remote_apis: :zeek:type:`bool`
          The server supports remote admin API requests via DCE-RPC
 
-      status32: :bro:type:`bool`
+      status32: :zeek:type:`bool`
          The server can respond with 32 bit status codes in Status.Status
 
-      level_2_oplocks: :bro:type:`bool`
+      level_2_oplocks: :zeek:type:`bool`
          The server supports level 2 oplocks
 
-      lock_and_read: :bro:type:`bool`
+      lock_and_read: :zeek:type:`bool`
          The server supports SMB_COM_LOCK_AND_READ
 
-      nt_find: :bro:type:`bool`
+      nt_find: :zeek:type:`bool`
          Reserved
 
-      dfs: :bro:type:`bool`
+      dfs: :zeek:type:`bool`
          The server is DFS aware
 
-      infolevel_passthru: :bro:type:`bool`
+      infolevel_passthru: :zeek:type:`bool`
          The server supports NT information level requests passing through
 
-      large_readx: :bro:type:`bool`
+      large_readx: :zeek:type:`bool`
          The server supports large SMB_COM_READ_ANDX (up to 64k)
 
-      large_writex: :bro:type:`bool`
+      large_writex: :zeek:type:`bool`
          The server supports large SMB_COM_WRITE_ANDX (up to 64k)
 
-      unix: :bro:type:`bool`
+      unix: :zeek:type:`bool`
          The server supports CIFS Extensions for UNIX
 
-      bulk_transfer: :bro:type:`bool`
+      bulk_transfer: :zeek:type:`bool`
          The server supports SMB_BULK_READ, SMB_BULK_WRITE
          Note: No known implementations support this
 
-      compressed_data: :bro:type:`bool`
+      compressed_data: :zeek:type:`bool`
          The server supports compressed data transfer. Requires bulk_transfer.
          Note: No known implementations support this
 
-      extended_security: :bro:type:`bool`
+      extended_security: :zeek:type:`bool`
          The server supports extended security exchanges	
 
 
-.. bro:type:: SMB1::SessionSetupAndXRequest
+.. zeek:type:: SMB1::SessionSetupAndXRequest
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      word_count: :bro:type:`count`
+      word_count: :zeek:type:`count`
          Count of parameter words
             - 10 for pre NT LM 0.12
             - 12 for NT LM 0.12 with extended security
             - 13 for NT LM 0.12 without extended security
 
-      max_buffer_size: :bro:type:`count`
+      max_buffer_size: :zeek:type:`count`
          Client maximum buffer size
 
-      max_mpx_count: :bro:type:`count`
+      max_mpx_count: :zeek:type:`count`
          Actual maximum multiplexed pending request
 
-      vc_number: :bro:type:`count`
+      vc_number: :zeek:type:`count`
          Virtual circuit number. First VC == 0
 
-      session_key: :bro:type:`count`
+      session_key: :zeek:type:`count`
          Session key (valid iff vc_number > 0)
 
-      native_os: :bro:type:`string`
+      native_os: :zeek:type:`string`
          Client's native operating system
 
-      native_lanman: :bro:type:`string`
+      native_lanman: :zeek:type:`string`
          Client's native LAN Manager type
 
-      account_name: :bro:type:`string` :bro:attr:`&optional`
+      account_name: :zeek:type:`string` :zeek:attr:`&optional`
          Account name
          Note: not set for NT LM 0.12 with extended security
 
-      account_password: :bro:type:`string` :bro:attr:`&optional`
+      account_password: :zeek:type:`string` :zeek:attr:`&optional`
          If challenge/response auth is not being used, this is the password.
          Otherwise, it's the response to the server's challenge.
          Note: Only set for pre NT LM 0.12
 
-      primary_domain: :bro:type:`string` :bro:attr:`&optional`
+      primary_domain: :zeek:type:`string` :zeek:attr:`&optional`
          Client's primary domain, if known
          Note: not set for NT LM 0.12 with extended security
 
-      case_insensitive_password: :bro:type:`string` :bro:attr:`&optional`
+      case_insensitive_password: :zeek:type:`string` :zeek:attr:`&optional`
          Case insensitive password
          Note: only set for NT LM 0.12 without extended security
 
-      case_sensitive_password: :bro:type:`string` :bro:attr:`&optional`
+      case_sensitive_password: :zeek:type:`string` :zeek:attr:`&optional`
          Case sensitive password
          Note: only set for NT LM 0.12 without extended security
 
-      security_blob: :bro:type:`string` :bro:attr:`&optional`
+      security_blob: :zeek:type:`string` :zeek:attr:`&optional`
          Security blob
          Note: only set for NT LM 0.12 with extended security
 
-      capabilities: :bro:type:`SMB1::SessionSetupAndXCapabilities` :bro:attr:`&optional`
+      capabilities: :zeek:type:`SMB1::SessionSetupAndXCapabilities` :zeek:attr:`&optional`
          Client capabilities
          Note: only set for NT LM 0.12
 
 
-.. bro:type:: SMB1::SessionSetupAndXResponse
+.. zeek:type:: SMB1::SessionSetupAndXResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      word_count: :bro:type:`count`
+      word_count: :zeek:type:`count`
          Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 
-      is_guest: :bro:type:`bool` :bro:attr:`&optional`
+      is_guest: :zeek:type:`bool` :zeek:attr:`&optional`
          Were we logged in as a guest user?
 
-      native_os: :bro:type:`string` :bro:attr:`&optional`
+      native_os: :zeek:type:`string` :zeek:attr:`&optional`
          Server's native operating system
 
-      native_lanman: :bro:type:`string` :bro:attr:`&optional`
+      native_lanman: :zeek:type:`string` :zeek:attr:`&optional`
          Server's native LAN Manager type
 
-      primary_domain: :bro:type:`string` :bro:attr:`&optional`
+      primary_domain: :zeek:type:`string` :zeek:attr:`&optional`
          Server's primary domain
 
-      security_blob: :bro:type:`string` :bro:attr:`&optional`
+      security_blob: :zeek:type:`string` :zeek:attr:`&optional`
          Security blob if NTLM
 
 
-.. bro:type:: SMB1::SessionSetupAndXCapabilities
+.. zeek:type:: SMB1::SessionSetupAndXCapabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      unicode: :bro:type:`bool`
+      unicode: :zeek:type:`bool`
          The client can use unicode strings
 
-      large_files: :bro:type:`bool`
+      large_files: :zeek:type:`bool`
          The client can deal with files having 64 bit offsets
 
-      nt_smbs: :bro:type:`bool`
+      nt_smbs: :zeek:type:`bool`
          The client understands the SMBs introduced with NT LM 0.12
          Implies nt_find
 
-      status32: :bro:type:`bool`
+      status32: :zeek:type:`bool`
          The client can receive 32 bit errors encoded in Status.Status
 
-      level_2_oplocks: :bro:type:`bool`
+      level_2_oplocks: :zeek:type:`bool`
          The client understands Level II oplocks
 
-      nt_find: :bro:type:`bool`
+      nt_find: :zeek:type:`bool`
          Reserved. Implied by nt_smbs.
 
 
-.. bro:type:: SMB1::Trans_Sec_Args
+.. zeek:type:: SMB1::Trans_Sec_Args
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      total_param_count: :bro:type:`count`
+      total_param_count: :zeek:type:`count`
          Total parameter count
 
-      total_data_count: :bro:type:`count`
+      total_data_count: :zeek:type:`count`
          Total data count
 
-      param_count: :bro:type:`count`
+      param_count: :zeek:type:`count`
          Parameter count
 
-      param_offset: :bro:type:`count`
+      param_offset: :zeek:type:`count`
          Parameter offset
 
-      param_displacement: :bro:type:`count`
+      param_displacement: :zeek:type:`count`
          Parameter displacement
 
-      data_count: :bro:type:`count`
+      data_count: :zeek:type:`count`
          Data count
 
-      data_offset: :bro:type:`count`
+      data_offset: :zeek:type:`count`
          Data offset
 
-      data_displacement: :bro:type:`count`
+      data_displacement: :zeek:type:`count`
          Data displacement
 
 
-.. bro:type:: SMB1::Find_First2_Request_Args
+.. zeek:type:: SMB1::Find_First2_Request_Args
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      search_attrs: :bro:type:`count`
+      search_attrs: :zeek:type:`count`
          File attributes to apply as a constraint to the search
 
-      search_count: :bro:type:`count`
+      search_count: :zeek:type:`count`
          Max search results
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          Misc. flags for how the server should manage the transaction
          once results are returned
 
-      info_level: :bro:type:`count`
+      info_level: :zeek:type:`count`
          How detailed the information returned in the results should be
 
-      search_storage_type: :bro:type:`count`
+      search_storage_type: :zeek:type:`count`
          Specify whether to search for directories or files
 
-      file_name: :bro:type:`string`
+      file_name: :zeek:type:`string`
          The string to serch for (note: may contain wildcards)
 
 
-.. bro:type:: SMB1::Find_First2_Response_Args
+.. zeek:type:: SMB1::Find_First2_Response_Args
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      sid: :bro:type:`count`
+      sid: :zeek:type:`count`
          The server generated search identifier
 
-      search_count: :bro:type:`count`
+      search_count: :zeek:type:`count`
          Number of results returned by the search
 
-      end_of_search: :bro:type:`bool`
+      end_of_search: :zeek:type:`bool`
          Whether or not the search can be continued using
          the TRANS2_FIND_NEXT2 transaction
 
-      ext_attr_error: :bro:type:`string` :bro:attr:`&optional`
+      ext_attr_error: :zeek:type:`string` :zeek:attr:`&optional`
          An extended attribute name that couldn't be retrieved
 
 
-.. bro:type:: SMB1::Trans2_Args
+.. zeek:type:: SMB1::Trans2_Args
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      total_param_count: :bro:type:`count`
+      total_param_count: :zeek:type:`count`
          Total parameter count
 
-      total_data_count: :bro:type:`count`
+      total_data_count: :zeek:type:`count`
          Total data count
 
-      max_param_count: :bro:type:`count`
+      max_param_count: :zeek:type:`count`
          Max parameter count
 
-      max_data_count: :bro:type:`count`
+      max_data_count: :zeek:type:`count`
          Max data count
 
-      max_setup_count: :bro:type:`count`
+      max_setup_count: :zeek:type:`count`
          Max setup count
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          Flags
 
-      trans_timeout: :bro:type:`count`
+      trans_timeout: :zeek:type:`count`
          Timeout
 
-      param_count: :bro:type:`count`
+      param_count: :zeek:type:`count`
          Parameter count
 
-      param_offset: :bro:type:`count`
+      param_offset: :zeek:type:`count`
          Parameter offset
 
-      data_count: :bro:type:`count`
+      data_count: :zeek:type:`count`
          Data count
 
-      data_offset: :bro:type:`count`
+      data_offset: :zeek:type:`count`
          Data offset
 
-      setup_count: :bro:type:`count`
+      setup_count: :zeek:type:`count`
          Setup count
 
 
-.. bro:type:: SMB1::Trans2_Sec_Args
+.. zeek:type:: SMB1::Trans2_Sec_Args
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      total_param_count: :bro:type:`count`
+      total_param_count: :zeek:type:`count`
          Total parameter count
 
-      total_data_count: :bro:type:`count`
+      total_data_count: :zeek:type:`count`
          Total data count
 
-      param_count: :bro:type:`count`
+      param_count: :zeek:type:`count`
          Parameter count
 
-      param_offset: :bro:type:`count`
+      param_offset: :zeek:type:`count`
          Parameter offset
 
-      param_displacement: :bro:type:`count`
+      param_displacement: :zeek:type:`count`
          Parameter displacement
 
-      data_count: :bro:type:`count`
+      data_count: :zeek:type:`count`
          Data count
 
-      data_offset: :bro:type:`count`
+      data_offset: :zeek:type:`count`
          Data offset
 
-      data_displacement: :bro:type:`count`
+      data_displacement: :zeek:type:`count`
          Data displacement
 
-      FID: :bro:type:`count`
+      FID: :zeek:type:`count`
          File ID
 
 
-.. bro:type:: SMB2::CloseResponse
+.. zeek:type:: SMB2::CloseResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      alloc_size: :bro:type:`count`
+      alloc_size: :zeek:type:`count`
          The size, in bytes of the data that is allocated to the file.
 
-      eof: :bro:type:`count`
+      eof: :zeek:type:`count`
          The size, in bytes, of the file.
 
-      times: :bro:type:`SMB::MACTimes`
+      times: :zeek:type:`SMB::MACTimes`
          The creation, last access, last write, and change times.
 
-      attrs: :bro:type:`SMB2::FileAttrs`
+      attrs: :zeek:type:`SMB2::FileAttrs`
          The attributes of the file.
 
    The response to an SMB2 *close* request, which is used by the client to close an instance
@@ -10208,44 +10208,44 @@ Types
    
    For more information, see MS-SMB2:2.2.16
    
-   .. bro:see:: smb2_close_response
+   .. zeek:see:: smb2_close_response
 
-.. bro:type:: SMB2::CreateRequest
+.. zeek:type:: SMB2::CreateRequest
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      filename: :bro:type:`string`
+      filename: :zeek:type:`string`
          Name of the file
 
-      disposition: :bro:type:`count`
+      disposition: :zeek:type:`count`
          Defines the action the server MUST take if the file that is specified already exists.
 
-      create_options: :bro:type:`count`
+      create_options: :zeek:type:`count`
          Specifies the options to be applied when creating or opening the file.
 
    The request sent by the client to request either creation of or access to a file.
    
    For more information, see MS-SMB2:2.2.13
    
-   .. bro:see:: smb2_create_request
+   .. zeek:see:: smb2_create_request
 
-.. bro:type:: SMB2::CreateResponse
+.. zeek:type:: SMB2::CreateResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      file_id: :bro:type:`SMB2::GUID`
+      file_id: :zeek:type:`SMB2::GUID`
          The SMB2 GUID for the file.
 
-      size: :bro:type:`count`
+      size: :zeek:type:`count`
          Size of the file.
 
-      times: :bro:type:`SMB::MACTimes`
+      times: :zeek:type:`SMB::MACTimes`
          Timestamps associated with the file in question.
 
-      attrs: :bro:type:`SMB2::FileAttrs`
+      attrs: :zeek:type:`SMB2::FileAttrs`
          File attributes.
 
-      create_action: :bro:type:`count`
+      create_action: :zeek:type:`count`
          The action taken in establishing the open.
 
    The response to an SMB2 *create_request* request, which is sent by the client to request
@@ -10253,32 +10253,32 @@ Types
    
    For more information, see MS-SMB2:2.2.14
    
-   .. bro:see:: smb2_create_response
+   .. zeek:see:: smb2_create_response
 
-.. bro:type:: SMB2::NegotiateResponse
+.. zeek:type:: SMB2::NegotiateResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      dialect_revision: :bro:type:`count`
+      dialect_revision: :zeek:type:`count`
          The preferred common SMB2 Protocol dialect number from the array that was sent in the SMB2
          NEGOTIATE Request.
 
-      security_mode: :bro:type:`count`
+      security_mode: :zeek:type:`count`
          The security mode field specifies whether SMB signing is enabled, required at the server, or both.
 
-      server_guid: :bro:type:`string`
+      server_guid: :zeek:type:`string`
          A globally unique identifier that is generate by the server to uniquely identify the server.
 
-      system_time: :bro:type:`time`
+      system_time: :zeek:type:`time`
          The system time of the SMB2 server when the SMB2 NEGOTIATE Request was processed.
 
-      server_start_time: :bro:type:`time`
+      server_start_time: :zeek:type:`time`
          The SMB2 server start time.
 
-      negotiate_context_count: :bro:type:`count`
+      negotiate_context_count: :zeek:type:`count`
          The number of negotiate context values in SMB v. 3.1.1, otherwise reserved to 0.
 
-      negotiate_context_values: :bro:type:`SMB2::NegotiateContextValues`
+      negotiate_context_values: :zeek:type:`SMB2::NegotiateContextValues`
          An array of context values in SMB v. 3.1.1.
 
    The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
@@ -10286,13 +10286,13 @@ Types
    
    For more information, see MS-SMB2:2.2.4
    
-   .. bro:see:: smb2_negotiate_response
+   .. zeek:see:: smb2_negotiate_response
 
-.. bro:type:: SMB2::SessionSetupRequest
+.. zeek:type:: SMB2::SessionSetupRequest
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      security_mode: :bro:type:`count`
+      security_mode: :zeek:type:`count`
          The security mode field specifies whether SMB signing is enabled or required at the client.
 
    The request sent by the client to request a new authenticated session
@@ -10300,13 +10300,13 @@ Types
    
    For more information, see MS-SMB2:2.2.5
    
-   .. bro:see:: smb2_session_setup_request
+   .. zeek:see:: smb2_session_setup_request
 
-.. bro:type:: SMB2::SessionSetupResponse
+.. zeek:type:: SMB2::SessionSetupResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      flags: :bro:type:`SMB2::SessionSetupFlags`
+      flags: :zeek:type:`SMB2::SessionSetupFlags`
          Additional information about the session
 
    The response to an SMB2 *session_setup* request, which is sent by the client to request a
@@ -10315,19 +10315,19 @@ Types
    
    For more information, see MS-SMB2:2.2.6
    
-   .. bro:see:: smb2_session_setup_response
+   .. zeek:see:: smb2_session_setup_response
 
-.. bro:type:: SMB2::SessionSetupFlags
+.. zeek:type:: SMB2::SessionSetupFlags
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      guest: :bro:type:`bool`
+      guest: :zeek:type:`bool`
          If set, the client has been authenticated as a guest user.
 
-      anonymous: :bro:type:`bool`
+      anonymous: :zeek:type:`bool`
          If set, the client has been authenticated as an anonymous user.
 
-      encrypt: :bro:type:`bool`
+      encrypt: :zeek:type:`bool`
          If set, the server requires encryption of messages on this session.
 
    A flags field that indicates additional information about the session that's sent in the
@@ -10335,13 +10335,13 @@ Types
    
    For more information, see MS-SMB2:2.2.6
    
-   .. bro:see:: smb2_session_setup_response
+   .. zeek:see:: smb2_session_setup_response
 
-.. bro:type:: SMB2::TreeConnectResponse
+.. zeek:type:: SMB2::TreeConnectResponse
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      share_type: :bro:type:`count`
+      share_type: :zeek:type:`count`
          The type of share being accessed. Physical disk, named pipe, or printer.
 
    The response to an SMB2 *tree_connect* request, which is sent by the client to request
@@ -10349,32 +10349,32 @@ Types
    
    For more information, see MS-SMB2:2.2.9
    
-   .. bro:see:: smb2_tree_connect_response
+   .. zeek:see:: smb2_tree_connect_response
 
-.. bro:type:: SMB2::Transform_header
+.. zeek:type:: SMB2::Transform_header
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      signature: :bro:type:`string`
+      signature: :zeek:type:`string`
          The 16-byte signature of the encrypted message, generated by using Session.EncryptionKey.
 
-      nonce: :bro:type:`string`
+      nonce: :zeek:type:`string`
          An implementation specific value assigned for every encrypted message.
 
-      orig_msg_size: :bro:type:`count`
+      orig_msg_size: :zeek:type:`count`
          The size, in bytes, of the SMB2 message.
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          A flags field, interpreted in different ways depending of the SMB2 dialect.
 
-      session_id: :bro:type:`count`
+      session_id: :zeek:type:`count`
          A value that uniquely identifies the established session for the command.
 
    An SMB2 transform header (for SMB 3.x dialects with encryption enabled).
    
    For more information, see MS-SMB2:2.2.41
    
-   .. bro:see:: smb2_transform_header smb2_message smb2_close_request smb2_close_response
+   .. zeek:see:: smb2_transform_header smb2_message smb2_close_request smb2_close_response
       smb2_create_request smb2_create_response smb2_negotiate_request
       smb2_negotiate_response smb2_read_request
       smb2_session_setup_request smb2_session_setup_response
@@ -10382,60 +10382,60 @@ Types
       smb2_tree_connect_request smb2_tree_connect_response
       smb2_write_request
 
-.. bro:type:: SMB::MACTimes
+.. zeek:type:: SMB::MACTimes
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      modified: :bro:type:`time` :bro:attr:`&log`
+      modified: :zeek:type:`time` :zeek:attr:`&log`
          The time when data was last written to the file.
 
-      accessed: :bro:type:`time` :bro:attr:`&log`
+      accessed: :zeek:type:`time` :zeek:attr:`&log`
          The time when the file was last accessed.
 
-      created: :bro:type:`time` :bro:attr:`&log`
+      created: :zeek:type:`time` :zeek:attr:`&log`
          The time the file was created.
 
-      changed: :bro:type:`time` :bro:attr:`&log`
+      changed: :zeek:type:`time` :zeek:attr:`&log`
          The time when the file was last modified.
-   :Attributes: :bro:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
    MAC times for a file.
    
    For more information, see MS-SMB2:2.2.16
    
-   .. bro:see:: smb1_nt_create_andx_response smb2_create_response
+   .. zeek:see:: smb1_nt_create_andx_response smb2_create_response
 
-.. bro:type:: SMB1::Header
+.. zeek:type:: SMB1::Header
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      command: :bro:type:`count`
+      command: :zeek:type:`count`
          The command number
 
-      status: :bro:type:`count`
+      status: :zeek:type:`count`
          The status code
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          Flag set 1
 
-      flags2: :bro:type:`count`
+      flags2: :zeek:type:`count`
          Flag set 2
 
-      tid: :bro:type:`count`
+      tid: :zeek:type:`count`
          Tree ID
 
-      pid: :bro:type:`count`
+      pid: :zeek:type:`count`
          Process ID
 
-      uid: :bro:type:`count`
+      uid: :zeek:type:`count`
          User ID
 
-      mid: :bro:type:`count`
+      mid: :zeek:type:`count`
          Multiplex ID
 
    An SMB1 header.
    
-   .. bro:see:: smb1_message smb1_empty_response smb1_error
+   .. zeek:see:: smb1_message smb1_empty_response smb1_error
       smb1_check_directory_request smb1_check_directory_response
       smb1_close_request smb1_create_directory_request
       smb1_create_directory_response smb1_echo_request
@@ -10452,41 +10452,41 @@ Types
       smb1_tree_disconnect smb1_write_andx_request
       smb1_write_andx_response
 
-.. bro:type:: SMB2::Header
+.. zeek:type:: SMB2::Header
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      credit_charge: :bro:type:`count`
+      credit_charge: :zeek:type:`count`
          The number of credits that this request consumes
 
-      status: :bro:type:`count`
+      status: :zeek:type:`count`
          In a request, this is an indication to the server about the client's channel
          change. In a response, this is the status field
 
-      command: :bro:type:`count`
+      command: :zeek:type:`count`
          The command code of the packet
 
-      credits: :bro:type:`count`
+      credits: :zeek:type:`count`
          The number of credits the client is requesting, or the number of credits
          granted to the client in a response.
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
          A flags field, which indicates how to process the operation (e.g. asynchronously)
 
-      message_id: :bro:type:`count`
+      message_id: :zeek:type:`count`
          A value that uniquely identifies the message request/response pair across all
          messages that are sent on the same transport protocol connection
 
-      process_id: :bro:type:`count`
+      process_id: :zeek:type:`count`
          A value that uniquely identifies the process that generated the event.
 
-      tree_id: :bro:type:`count`
+      tree_id: :zeek:type:`count`
          A value that uniquely identifies the tree connect for the command.
 
-      session_id: :bro:type:`count`
+      session_id: :zeek:type:`count`
          A value that uniquely identifies the established session for the command.
 
-      signature: :bro:type:`string`
+      signature: :zeek:type:`string`
          The 16-byte signature of the message, if SMB2_FLAGS_SIGNED is set in the ``flags``
          field.
 
@@ -10494,7 +10494,7 @@ Types
    
    For more information, see MS-SMB2:2.2.1.1 and MS-SMB2:2.2.1.2
    
-   .. bro:see:: smb2_message smb2_close_request smb2_close_response
+   .. zeek:see:: smb2_message smb2_close_request smb2_close_response
       smb2_create_request smb2_create_response smb2_negotiate_request
       smb2_negotiate_response smb2_read_request
       smb2_session_setup_request smb2_session_setup_response
@@ -10502,104 +10502,104 @@ Types
       smb2_tree_connect_request smb2_tree_connect_response
       smb2_write_request
 
-.. bro:type:: SMB2::GUID
+.. zeek:type:: SMB2::GUID
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      persistent: :bro:type:`count`
+      persistent: :zeek:type:`count`
          A file handle that remains persistent when reconnected after a disconnect
 
-      volatile: :bro:type:`count`
+      volatile: :zeek:type:`count`
          A file handle that can be changed when reconnected after a disconnect
 
    An SMB2 globally unique identifier which identifies a file.
    
    For more information, see MS-SMB2:2.2.14.1
    
-   .. bro:see:: smb2_close_request smb2_create_response smb2_read_request
+   .. zeek:see:: smb2_close_request smb2_create_response smb2_read_request
       smb2_file_rename smb2_file_delete smb2_write_request
 
-.. bro:type:: SMB2::FileAttrs
+.. zeek:type:: SMB2::FileAttrs
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      read_only: :bro:type:`bool`
+      read_only: :zeek:type:`bool`
          The file is read only. Applications can read the file but cannot
          write to it or delete it.
 
-      hidden: :bro:type:`bool`
+      hidden: :zeek:type:`bool`
          The file is hidden. It is not to be included in an ordinary directory listing.
 
-      system: :bro:type:`bool`
+      system: :zeek:type:`bool`
          The file is part of or is used exclusively by the operating system.
 
-      directory: :bro:type:`bool`
+      directory: :zeek:type:`bool`
          The file is a directory.
 
-      archive: :bro:type:`bool`
+      archive: :zeek:type:`bool`
          The file has not been archived since it was last modified. Applications use
          this attribute to mark files for backup or removal.
 
-      normal: :bro:type:`bool`
+      normal: :zeek:type:`bool`
          The file has no other attributes set. This attribute is valid only if used alone.
 
-      temporary: :bro:type:`bool`
+      temporary: :zeek:type:`bool`
          The file is temporary. This is a hint to the cache manager that it does not need
          to flush the file to backing storage.
 
-      sparse_file: :bro:type:`bool`
+      sparse_file: :zeek:type:`bool`
          A file that is a sparse file.
 
-      reparse_point: :bro:type:`bool`
+      reparse_point: :zeek:type:`bool`
          A file or directory that has an associated reparse point.
 
-      compressed: :bro:type:`bool`
+      compressed: :zeek:type:`bool`
          The file or directory is compressed. For a file, this means that all of the data
          in the file is compressed. For a directory, this means that compression is the
          default for newly created files and subdirectories.
 
-      offline: :bro:type:`bool`
+      offline: :zeek:type:`bool`
          The data in this file is not available immediately. This attribute indicates that
          the file data is physically moved to offline storage. This attribute is used by
          Remote Storage, which is hierarchical storage management software.
 
-      not_content_indexed: :bro:type:`bool`
+      not_content_indexed: :zeek:type:`bool`
          A file or directory that is not indexed by the content indexing service.
 
-      encrypted: :bro:type:`bool`
+      encrypted: :zeek:type:`bool`
          A file or directory that is encrypted. For a file, all data streams in the file
          are encrypted. For a directory, encryption is the default for newly created files
          and subdirectories.
 
-      integrity_stream: :bro:type:`bool`
+      integrity_stream: :zeek:type:`bool`
          A file or directory that is configured with integrity support. For a file, all
          data streams in the file have integrity support. For a directory, integrity support
          is the default for newly created files and subdirectories, unless the caller
          specifies otherwise.
 
-      no_scrub_data: :bro:type:`bool`
+      no_scrub_data: :zeek:type:`bool`
          A file or directory that is configured to be excluded from the data integrity scan.
 
    A series of boolean flags describing basic and extended file attributes for SMB2.
    
    For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
    
-   .. bro:see:: smb2_create_response
+   .. zeek:see:: smb2_create_response
 
-.. bro:type:: SMB2::PreAuthIntegrityCapabilities
+.. zeek:type:: SMB2::PreAuthIntegrityCapabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      hash_alg_count: :bro:type:`count`
+      hash_alg_count: :zeek:type:`count`
          The number of hash algorithms.
 
-      salt_length: :bro:type:`count`
+      salt_length: :zeek:type:`count`
          The salt length.
 
-      hash_alg: :bro:type:`vector` of :bro:type:`count`
+      hash_alg: :zeek:type:`vector` of :zeek:type:`count`
          An array of hash algorithms (counts).
 
-      salt: :bro:type:`string`
+      salt: :zeek:type:`string`
          The salt.
 
    Preauthentication information as defined in SMB v. 3.1.1
@@ -10607,14 +10607,14 @@ Types
    For more information, see MS-SMB2:2.3.1.1
    
 
-.. bro:type:: SMB2::EncryptionCapabilities
+.. zeek:type:: SMB2::EncryptionCapabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      cipher_count: :bro:type:`count`
+      cipher_count: :zeek:type:`count`
          The number of ciphers.
 
-      ciphers: :bro:type:`vector` of :bro:type:`count`
+      ciphers: :zeek:type:`vector` of :zeek:type:`count`
          An array of ciphers.
 
    Encryption information as defined in SMB v. 3.1.1
@@ -10622,14 +10622,14 @@ Types
    For more information, see MS-SMB2:2.3.1.2
    
 
-.. bro:type:: SMB2::CompressionCapabilities
+.. zeek:type:: SMB2::CompressionCapabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      alg_count: :bro:type:`count`
+      alg_count: :zeek:type:`count`
          The number of algorithms.
 
-      algs: :bro:type:`vector` of :bro:type:`count`
+      algs: :zeek:type:`vector` of :zeek:type:`count`
          An array of compression algorithms.
 
    Compression information as defined in SMB v. 3.1.1
@@ -10637,26 +10637,26 @@ Types
    For more information, see MS-SMB2:2.3.1.3
    
 
-.. bro:type:: SMB2::NegotiateContextValue
+.. zeek:type:: SMB2::NegotiateContextValue
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      context_type: :bro:type:`count`
+      context_type: :zeek:type:`count`
          Specifies the type of context (preauth or encryption).
 
-      data_length: :bro:type:`count`
+      data_length: :zeek:type:`count`
          The length in byte of the data field.
 
-      preauth_info: :bro:type:`SMB2::PreAuthIntegrityCapabilities` :bro:attr:`&optional`
+      preauth_info: :zeek:type:`SMB2::PreAuthIntegrityCapabilities` :zeek:attr:`&optional`
          The preauthentication information.
 
-      encryption_info: :bro:type:`SMB2::EncryptionCapabilities` :bro:attr:`&optional`
+      encryption_info: :zeek:type:`SMB2::EncryptionCapabilities` :zeek:attr:`&optional`
          The encryption information.
 
-      compression_info: :bro:type:`SMB2::CompressionCapabilities` :bro:attr:`&optional`
+      compression_info: :zeek:type:`SMB2::CompressionCapabilities` :zeek:attr:`&optional`
          The compression information.
 
-      netname: :bro:type:`string` :bro:attr:`&optional`
+      netname: :zeek:type:`string` :zeek:attr:`&optional`
          Indicates the server name the client must connect to.
 
    The context type information as defined in SMB v. 3.1.1
@@ -10664,17 +10664,17 @@ Types
    For more information, see MS-SMB2:2.3.1
    
 
-.. bro:type:: SMB2::NegotiateContextValues
+.. zeek:type:: SMB2::NegotiateContextValues
 
-   :Type: :bro:type:`vector` of :bro:type:`SMB2::NegotiateContextValue`
+   :Type: :zeek:type:`vector` of :zeek:type:`SMB2::NegotiateContextValue`
 
 
 Events
 ++++++
 
-.. bro:id:: smb1_check_directory_request
+.. zeek:id:: smb1_check_directory_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, directory_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, directory_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *check directory*. This is used by the client to verify that
@@ -10691,11 +10691,11 @@ Events
 
    :directory_name: The directory name to check for existence.
    
-   .. bro:see:: smb1_message smb1_check_directory_response
+   .. zeek:see:: smb1_message smb1_check_directory_response
 
-.. bro:id:: smb1_check_directory_response
+.. zeek:id:: smb1_check_directory_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *check directory*. This is the server response to the
@@ -10709,11 +10709,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
    
-   .. bro:see:: smb1_message smb1_check_directory_request
+   .. zeek:see:: smb1_message smb1_check_directory_request
 
-.. bro:id:: smb1_close_request
+.. zeek:id:: smb1_close_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *close*. This is used by the client to close an instance of an object
@@ -10730,11 +10730,11 @@ Events
 
    :file_id: The file identifier being closed.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_create_directory_request
+.. zeek:id:: smb1_create_directory_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, directory_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, directory_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *create directory*. This is a deprecated command which
@@ -10752,11 +10752,11 @@ Events
 
    :directory_name: The name of the directory to create.
    
-   .. bro:see:: smb1_message smb1_create_directory_response smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_create_directory_response smb1_transaction2_request
 
-.. bro:id:: smb1_create_directory_response
+.. zeek:id:: smb1_create_directory_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *create directory*. This is a deprecated command which
@@ -10771,11 +10771,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
    
-   .. bro:see:: smb1_message smb1_create_directory_request smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_create_directory_request smb1_transaction2_request
 
-.. bro:id:: smb1_echo_request
+.. zeek:id:: smb1_echo_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, echo_count: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, echo_count: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *echo*. This is sent by the client to test the transport layer
@@ -10795,11 +10795,11 @@ Events
 
    :data: The data for the server to echo.
    
-   .. bro:see:: smb1_message smb1_echo_response
+   .. zeek:see:: smb1_message smb1_echo_response
 
-.. bro:id:: smb1_echo_response
+.. zeek:id:: smb1_echo_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, seq_num: :bro:type:`count`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, seq_num: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *echo*. This is the server response to the *echo* request.
@@ -10818,11 +10818,11 @@ Events
 
    :data: The data echoed back from the client.
    
-   .. bro:see:: smb1_message smb1_echo_request
+   .. zeek:see:: smb1_message smb1_echo_request
 
-.. bro:id:: smb1_logoff_andx
+.. zeek:id:: smb1_logoff_andx
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *logoff andx*. This is used by the client to logoff the user
@@ -10838,11 +10838,11 @@ Events
 
    :is_orig: Indicates which host sent the logoff message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_negotiate_request
+.. zeek:id:: smb1_negotiate_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, dialects: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, dialects: :zeek:type:`string_vec`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *negotiate*. This is sent by the client to initiate an SMB
@@ -10860,11 +10860,11 @@ Events
 
    :dialects: The SMB dialects supported by the client.
    
-   .. bro:see:: smb1_message smb1_negotiate_response
+   .. zeek:see:: smb1_message smb1_negotiate_response
 
-.. bro:id:: smb1_negotiate_response
+.. zeek:id:: smb1_negotiate_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, response: :bro:type:`SMB1::NegotiateResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::NegotiateResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *negotiate*. This is the server response to the *negotiate*
@@ -10881,11 +10881,11 @@ Events
 
    :response: A record structure containing more information from the response.
    
-   .. bro:see:: smb1_message smb1_negotiate_request
+   .. zeek:see:: smb1_message smb1_negotiate_request
 
-.. bro:id:: smb1_nt_create_andx_request
+.. zeek:id:: smb1_nt_create_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *nt create andx*. This is sent by the client to create and open
@@ -10903,11 +10903,11 @@ Events
 
    :name: The ``name`` attribute  specified in the message.
    
-   .. bro:see:: smb1_message smb1_nt_create_andx_response
+   .. zeek:see:: smb1_message smb1_nt_create_andx_response
 
-.. bro:id:: smb1_nt_create_andx_response
+.. zeek:id:: smb1_nt_create_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`, file_size: :bro:type:`count`, times: :bro:type:`SMB::MACTimes`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`, file_size: :zeek:type:`count`, times: :zeek:type:`SMB::MACTimes`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *nt create andx*. This is the server response to the
@@ -10930,11 +10930,11 @@ Events
 
    :times: Timestamps associated with the file in question.
    
-   .. bro:see:: smb1_message smb1_nt_create_andx_request
+   .. zeek:see:: smb1_message smb1_nt_create_andx_request
 
-.. bro:id:: smb1_nt_cancel_request
+.. zeek:id:: smb1_nt_cancel_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *nt cancel*. This is sent by the client to request that a currently
@@ -10948,11 +10948,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_query_information_request
+.. zeek:id:: smb1_query_information_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, filename: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, filename: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *query information*. This is a deprecated command which
@@ -10970,11 +10970,11 @@ Events
 
    :filename: The filename that the client is querying.
    
-   .. bro:see:: smb1_message smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request
 
-.. bro:id:: smb1_read_andx_request
+.. zeek:id:: smb1_read_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`, offset: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`, offset: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *read andx*. This is sent by the client to read bytes from a regular
@@ -10998,11 +10998,11 @@ Events
 
    :length: The number of bytes being requested.
    
-   .. bro:see:: smb1_message smb1_read_andx_response
+   .. zeek:see:: smb1_message smb1_read_andx_response
 
-.. bro:id:: smb1_read_andx_response
+.. zeek:id:: smb1_read_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, data_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, data_len: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *read andx*. This is the server response to the *read andx* request.
@@ -11018,11 +11018,11 @@ Events
 
    :data_len: The length of data from the requested file.
    
-   .. bro:see:: smb1_message smb1_read_andx_request
+   .. zeek:see:: smb1_message smb1_read_andx_request
 
-.. bro:id:: smb1_session_setup_andx_request
+.. zeek:id:: smb1_session_setup_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, request: :bro:type:`SMB1::SessionSetupAndXRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, request: :zeek:type:`SMB1::SessionSetupAndXRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *setup andx*. This is sent by the client to configure an SMB session.
@@ -11038,11 +11038,11 @@ Events
 
    :request: The parsed request data of the SMB message. See init-bare for more details.
    
-   .. bro:see:: smb1_message smb1_session_setup_andx_response
+   .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
-.. bro:id:: smb1_session_setup_andx_response
+.. zeek:id:: smb1_session_setup_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, response: :bro:type:`SMB1::SessionSetupAndXResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::SessionSetupAndXResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *setup andx*. This is the server response to the *setup andx* request.
@@ -11058,11 +11058,11 @@ Events
 
    :response: The parsed response data of the SMB message. See init-bare for more details.
    
-   .. bro:see:: smb1_message smb1_session_setup_andx_request
+   .. zeek:see:: smb1_message smb1_session_setup_andx_request
 
-.. bro:id:: smb1_transaction_request
+.. zeek:id:: smb1_transaction_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, name: :bro:type:`string`, sub_cmd: :bro:type:`count`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, name: :zeek:type:`string`, sub_cmd: :zeek:type:`count`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction*. This command serves as the transport for the
@@ -11090,11 +11090,11 @@ Events
 
    :data: content of the SMB_Data.Trans_Data field
    
-   .. bro:see:: smb1_message smb1_transaction2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request
 
-.. bro:id:: smb1_transaction_response
+.. zeek:id:: smb1_transaction_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction*. This command serves as the transport for the
@@ -11115,9 +11115,9 @@ Events
 
    :data: content of the SMB_Data.Trans_Data field
 
-.. bro:id:: smb1_transaction_secondary_request
+.. zeek:id:: smb1_transaction_secondary_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Trans_Sec_Args`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans_Sec_Args`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction_secondary*. This command
@@ -11139,9 +11139,9 @@ Events
    :data: the SMB_Data.Trans_Data field content
    
 
-.. bro:id:: smb1_transaction2_request
+.. zeek:id:: smb1_transaction2_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Trans2_Args`, sub_cmd: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans2_Args`, sub_cmd: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction2*. This command serves as the transport for the
@@ -11162,12 +11162,12 @@ Events
 
    :sub_cmd: The sub command, some are parsed and have their own events.
    
-   .. bro:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
+   .. zeek:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request smb1_transaction_request
 
-.. bro:id:: smb1_trans2_find_first2_request
+.. zeek:id:: smb1_trans2_find_first2_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Find_First2_Request_Args`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Find_First2_Request_Args`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *find first2*. This transaction is used to begin
@@ -11184,12 +11184,12 @@ Events
 
    :args: A record data structure with arguments given to the command.
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request
 
-.. bro:id:: smb1_trans2_query_path_info_request
+.. zeek:id:: smb1_trans2_query_path_info_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *query path info*. This transaction is used to
@@ -11206,12 +11206,12 @@ Events
 
    :file_name: File name the request is in reference to. 
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_get_dfs_referral_request
 
-.. bro:id:: smb1_trans2_get_dfs_referral_request
+.. zeek:id:: smb1_trans2_get_dfs_referral_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *get DFS referral*. This transaction is used
@@ -11228,12 +11228,12 @@ Events
 
    :file_name: File name the request is in reference to.
    
-   .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+   .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_query_path_info_request
 
-.. bro:id:: smb1_transaction2_secondary_request
+.. zeek:id:: smb1_transaction2_secondary_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, args: :bro:type:`SMB1::Trans2_Sec_Args`, parameters: :bro:type:`string`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans2_Sec_Args`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction2 secondary*.
@@ -11256,9 +11256,9 @@ Events
 
    :data: content of the SMB_Data.Trans_Data field
 
-.. bro:id:: smb1_tree_connect_andx_request
+.. zeek:id:: smb1_tree_connect_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, path: :bro:type:`string`, service: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, path: :zeek:type:`string`, service: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *tree connect andx*. This is sent by the client to establish a
@@ -11278,11 +11278,11 @@ Events
 
    :service: The ``service`` attribute specified in the message.
    
-   .. bro:see:: smb1_message smb1_tree_connect_andx_response
+   .. zeek:see:: smb1_message smb1_tree_connect_andx_response
 
-.. bro:id:: smb1_tree_connect_andx_response
+.. zeek:id:: smb1_tree_connect_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, service: :bro:type:`string`, native_file_system: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, service: :zeek:type:`string`, native_file_system: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *tree connect andx*. This is the server reply to the *tree connect andx*
@@ -11302,11 +11302,11 @@ Events
 
    :native_file_system: The file system of the remote server as indicate by the server.
    
-   .. bro:see:: smb1_message smb1_tree_connect_andx_request
+   .. zeek:see:: smb1_message smb1_tree_connect_andx_request
 
-.. bro:id:: smb1_tree_disconnect
+.. zeek:id:: smb1_tree_disconnect
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *tree disconnect*. This is sent by the client to logically disconnect
@@ -11323,11 +11323,11 @@ Events
 
    :is_orig: True if the message was from the originator.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_write_andx_request
+.. zeek:id:: smb1_write_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`, offset: :bro:type:`count`, data_len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`, offset: :zeek:type:`count`, data_len: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *write andx*. This is sent by the client to write bytes to a
@@ -11348,11 +11348,11 @@ Events
 
    :data: The data being written.
    
-   .. bro:see:: smb1_message smb1_write_andx_response
+   .. zeek:see:: smb1_message smb1_write_andx_response
 
-.. bro:id:: smb1_write_andx_response
+.. zeek:id:: smb1_write_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, written_bytes: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, written_bytes: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *write andx*. This is the server response to the *write andx*
@@ -11369,11 +11369,11 @@ Events
 
    :written_bytes: The number of bytes the server reported having actually written.
    
-   .. bro:see:: smb1_message smb1_write_andx_request
+   .. zeek:see:: smb1_message smb1_write_andx_request
 
-.. bro:id:: smb1_message
+.. zeek:id:: smb1_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for all :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` version 1
    messages.
@@ -11394,11 +11394,11 @@ Events
    :is_orig: True if the message was sent by the originator of the underlying
             transport-level connection.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb1_empty_response
+.. zeek:id:: smb1_empty_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`)
 
    Generated when there is an :abbr:`SMB (Server Message Block)` version 1 response with no message body.
    
@@ -11408,11 +11408,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` message.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb1_error
+.. zeek:id:: smb1_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)` version 1 messages
    that indicate an error. This event is triggered by an :abbr:`SMB (Server Message Block)` header
@@ -11428,11 +11428,11 @@ Events
    :is_orig: True if the message was sent by the originator of the underlying
             transport-level connection.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb2_close_request
+.. zeek:id:: smb2_close_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *close*. This is used by the client to close an instance of a
@@ -11449,11 +11449,11 @@ Events
 
    :file_name: The SMB2 GUID of the file being closed.
    
-   .. bro:see:: smb2_message smb2_close_response
+   .. zeek:see:: smb2_message smb2_close_response
 
-.. bro:id:: smb2_close_response
+.. zeek:id:: smb2_close_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::CloseResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::CloseResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *close*. This is sent by the server to indicate that an SMB2 CLOSE
@@ -11470,11 +11470,11 @@ Events
 
    :response: A record of attributes returned from the server from the close.
    
-   .. bro:see:: smb2_message smb2_close_request
+   .. zeek:see:: smb2_message smb2_close_request
 
-.. bro:id:: smb2_create_request
+.. zeek:id:: smb2_create_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, request: :bro:type:`SMB2::CreateRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, request: :zeek:type:`SMB2::CreateRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *create*. This is sent by the client to request either creation
@@ -11491,11 +11491,11 @@ Events
 
    :request: A record with more information related to the request.
    
-   .. bro:see:: smb2_message smb2_create_response
+   .. zeek:see:: smb2_message smb2_create_response
 
-.. bro:id:: smb2_create_response
+.. zeek:id:: smb2_create_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::CreateResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::CreateResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *create*. This is sent by the server to notify the client of
@@ -11512,11 +11512,11 @@ Events
 
    :response: A record with more information related to the response.
    
-   .. bro:see:: smb2_message smb2_create_request
+   .. zeek:see:: smb2_message smb2_create_request
 
-.. bro:id:: smb2_negotiate_request
+.. zeek:id:: smb2_negotiate_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, dialects: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, dialects: :zeek:type:`index_vec`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *negotiate*. This is used by the client to notify the server what
@@ -11533,11 +11533,11 @@ Events
 
    :dialects: A vector of the client's supported dialects.
    
-   .. bro:see:: smb2_message smb2_negotiate_response
+   .. zeek:see:: smb2_message smb2_negotiate_response
 
-.. bro:id:: smb2_negotiate_response
+.. zeek:id:: smb2_negotiate_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::NegotiateResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::NegotiateResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *negotiate*. This is sent by the server to notify the client of
@@ -11554,11 +11554,11 @@ Events
 
    :response: The negotiate response data structure.
    
-   .. bro:see:: smb2_message smb2_negotiate_request
+   .. zeek:see:: smb2_message smb2_negotiate_request
 
-.. bro:id:: smb2_read_request
+.. zeek:id:: smb2_read_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, offset: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, offset: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *read*. This is sent by the client to request a read operation on
@@ -11581,11 +11581,11 @@ Events
 
    :length: The number of bytes of the file being read.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_session_setup_request
+.. zeek:id:: smb2_session_setup_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, request: :bro:type:`SMB2::SessionSetupRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, request: :zeek:type:`SMB2::SessionSetupRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *session_setup*. This is sent by the client to request a new
@@ -11603,11 +11603,11 @@ Events
 
    :request: A record containing more information related to the request.
    
-   .. bro:see:: smb2_message smb2_session_setup_response
+   .. zeek:see:: smb2_message smb2_session_setup_response
 
-.. bro:id:: smb2_session_setup_response
+.. zeek:id:: smb2_session_setup_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::SessionSetupResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::SessionSetupResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *session_setup*. This is sent by the server in response to a
@@ -11624,11 +11624,11 @@ Events
 
    :response: A record containing more information related to the response.
    
-   .. bro:see:: smb2_message smb2_session_setup_request
+   .. zeek:see:: smb2_message smb2_session_setup_request
 
-.. bro:id:: smb2_file_rename
+.. zeek:id:: smb2_file_rename
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, dst_filename: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, dst_filename: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *rename* subtype.
@@ -11647,11 +11647,11 @@ Events
 
    :dst_filename: The filename to rename the file into.
    
-   .. bro:see:: smb2_message smb2_file_delete smb2_file_sattr
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr
 
-.. bro:id:: smb2_file_delete
+.. zeek:id:: smb2_file_delete
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, delete_pending: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, delete_pending: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *delete* subtype.
@@ -11671,11 +11671,11 @@ Events
    :delete_pending: A boolean value to indicate that a file should be deleted 
                    when it's closed if set to T.
    
-   .. bro:see:: smb2_message smb2_file_rename smb2_file_sattr
+   .. zeek:see:: smb2_message smb2_file_rename smb2_file_sattr
 
-.. bro:id:: smb2_file_sattr
+.. zeek:id:: smb2_file_sattr
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, times: :bro:type:`SMB::MACTimes`, attrs: :bro:type:`SMB2::FileAttrs`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, times: :zeek:type:`SMB::MACTimes`, attrs: :zeek:type:`SMB2::FileAttrs`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *file* subtype
@@ -11697,11 +11697,11 @@ Events
 
    :attrs: File attributes.
    
-   .. bro:see:: smb2_message smb2_file_rename smb2_file_delete
+   .. zeek:see:: smb2_message smb2_file_rename smb2_file_delete
 
-.. bro:id:: smb2_tree_connect_request
+.. zeek:id:: smb2_tree_connect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, path: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, path: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree_connect*. This is sent by a client to request access to a
@@ -11718,11 +11718,11 @@ Events
 
    :path: Path of the requested tree.
    
-   .. bro:see:: smb2_message smb2_tree_connect_response
+   .. zeek:see:: smb2_message smb2_tree_connect_response
 
-.. bro:id:: smb2_tree_connect_response
+.. zeek:id:: smb2_tree_connect_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::TreeConnectResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::TreeConnectResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *tree_connect*. This is sent by the server when a *tree_connect*
@@ -11739,11 +11739,11 @@ Events
 
    :response: A record with more information related to the response.
    
-   .. bro:see:: smb2_message smb2_tree_connect_request
+   .. zeek:see:: smb2_message smb2_tree_connect_request
 
-.. bro:id:: smb2_tree_disconnect_request
+.. zeek:id:: smb2_tree_disconnect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the client to logically disconnect
@@ -11755,11 +11755,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_tree_disconnect_response
+.. zeek:id:: smb2_tree_disconnect_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the server to logically disconnect
@@ -11771,11 +11771,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_write_request
+.. zeek:id:: smb2_write_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, file_id: :bro:type:`SMB2::GUID`, offset: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, file_id: :zeek:type:`SMB2::GUID`, offset: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the client to write data to the file or
@@ -11798,11 +11798,11 @@ Events
 
    :length: The number of bytes of the file being written.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_write_response
+.. zeek:id:: smb2_write_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, length: :zeek:type:`count`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the server in response to a write request or
@@ -11819,11 +11819,11 @@ Events
 
    :length: The number of bytes of the file being written.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_transform_header
+.. zeek:id:: smb2_transform_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Transform_header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Transform_header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 3.x *transform_header*. This is used by the client or server when sending
@@ -11837,11 +11837,11 @@ Events
 
    :hdr: The parsed transformed header message, which is starting with \xfdSMB and different from SMB1 and SMB2 headers.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_message
+.. zeek:id:: smb2_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, is_orig: :zeek:type:`bool`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 messages.
@@ -11861,18 +11861,18 @@ Events
 
    :is_orig: True if the message came from the originator side.
    
-   .. bro:see:: smb1_message
+   .. zeek:see:: smb1_message
 
-.. bro:id:: smb_pipe_connect_heuristic
+.. zeek:id:: smb_pipe_connect_heuristic
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for :abbr:`SMB (Server Message Block)` connections when a
    named pipe has been detected heuristically.  The case when this comes
    up is when the drive mapping isn't seen so the analyzer is not able
    to determine whether to send the data to the files framework or to
    the DCE_RPC analyzer. This heuristic can be tuned by adding or
-   removing "named pipe" names from the :bro:see:`SMB::pipe_filenames`
+   removing "named pipe" names from the :zeek:see:`SMB::pipe_filenames`
    const.
    
 
@@ -11886,14 +11886,14 @@ SMTP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SMTP`
+:zeek:enum:`Analyzer::ANALYZER_SMTP`
 
 Events
 ++++++
 
-.. bro:id:: smtp_request
+.. zeek:id:: smtp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side SMTP commands.
    
@@ -11917,15 +11917,15 @@ Events
 
    :arg: The request command's arguments.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
    
    .. note:: Bro does not support the newer ETRN extension yet.
 
-.. bro:id:: smtp_reply
+.. zeek:id:: smtp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, code: :bro:type:`count`, cmd: :bro:type:`string`, msg: :bro:type:`string`, cont_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, code: :zeek:type:`count`, cmd: :zeek:type:`string`, msg: :zeek:type:`string`, cont_resp: :zeek:type:`bool`)
 
    Generated for server-side SMTP commands.
    
@@ -11957,15 +11957,15 @@ Events
          line. If so, further events will be raised and a handler may want to
          reassemble the pieces before processing the response any further.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
    
    .. note:: Bro doesn't support the newer ETRN extension yet.
 
-.. bro:id:: smtp_data
+.. zeek:id:: smtp_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data: :zeek:type:`string`)
 
    Generated for DATA transmitted on SMTP sessions. This event is raised for
    subsequent chunks of raw data following the ``DATA`` SMTP command until the
@@ -11986,7 +11986,7 @@ Events
    :data: The raw data. Note that the size of each chunk is undefined and
          depends on specifics of the underlying TCP connection.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_reply smtp_request skip_smtp_data
    
@@ -11994,9 +11994,9 @@ Events
       set of ``mime_*`` events that strip out the outer MIME-layer of emails and
       provide structured access to their content.
 
-.. bro:id:: smtp_unexpected
+.. zeek:id:: smtp_unexpected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for unexpected activity on SMTP sessions. The SMTP analyzer tracks
    the state of SMTP sessions and reports commands and other activity with this
@@ -12019,11 +12019,11 @@ Events
 
    :detail: The actual SMTP line triggering the event.
    
-   .. bro:see:: smtp_data  smtp_request smtp_reply
+   .. zeek:see:: smtp_data  smtp_request smtp_reply
 
-.. bro:id:: smtp_starttls
+.. zeek:id:: smtp_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.
    After this event no more SMTP events will be raised for the connection. See the SSL
@@ -12036,16 +12036,16 @@ Events
 Functions
 +++++++++
 
-.. bro:id:: skip_smtp_data
+.. zeek:id:: skip_smtp_data
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`any`
 
    Skips SMTP data until the next email in a connection.
    
 
    :c: The SMTP connection.
    
-   .. bro:see:: skip_http_entity_data
+   .. zeek:see:: skip_http_entity_data
 
 Bro::SNMP
 ---------
@@ -12055,146 +12055,146 @@ SNMP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SNMP`
+:zeek:enum:`Analyzer::ANALYZER_SNMP`
 
 Types
 +++++
 
-.. bro:type:: SNMP::Header
+.. zeek:type:: SNMP::Header
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      version: :bro:type:`count`
+      version: :zeek:type:`count`
 
-      v1: :bro:type:`SNMP::HeaderV1` :bro:attr:`&optional`
+      v1: :zeek:type:`SNMP::HeaderV1` :zeek:attr:`&optional`
          Set when ``version`` is 0.
 
-      v2: :bro:type:`SNMP::HeaderV2` :bro:attr:`&optional`
+      v2: :zeek:type:`SNMP::HeaderV2` :zeek:attr:`&optional`
          Set when ``version`` is 1.
 
-      v3: :bro:type:`SNMP::HeaderV3` :bro:attr:`&optional`
+      v3: :zeek:type:`SNMP::HeaderV3` :zeek:attr:`&optional`
          Set when ``version`` is 3.
 
    A generic SNMP header data structure that may include data from
    any version of SNMP.  The value of the ``version`` field
    determines what header field is initialized.
 
-.. bro:type:: SNMP::HeaderV1
+.. zeek:type:: SNMP::HeaderV1
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      community: :bro:type:`string`
+      community: :zeek:type:`string`
 
    The top-level message data structure of an SNMPv1 datagram, not
    including the PDU data.  See :rfc:`1157`.
 
-.. bro:type:: SNMP::HeaderV2
+.. zeek:type:: SNMP::HeaderV2
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      community: :bro:type:`string`
+      community: :zeek:type:`string`
 
    The top-level message data structure of an SNMPv2 datagram, not
    including the PDU data.  See :rfc:`1901`.
 
-.. bro:type:: SNMP::HeaderV3
+.. zeek:type:: SNMP::HeaderV3
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      id: :bro:type:`count`
+      id: :zeek:type:`count`
 
-      max_size: :bro:type:`count`
+      max_size: :zeek:type:`count`
 
-      flags: :bro:type:`count`
+      flags: :zeek:type:`count`
 
-      auth_flag: :bro:type:`bool`
+      auth_flag: :zeek:type:`bool`
 
-      priv_flag: :bro:type:`bool`
+      priv_flag: :zeek:type:`bool`
 
-      reportable_flag: :bro:type:`bool`
+      reportable_flag: :zeek:type:`bool`
 
-      security_model: :bro:type:`count`
+      security_model: :zeek:type:`count`
 
-      security_params: :bro:type:`string`
+      security_params: :zeek:type:`string`
 
-      pdu_context: :bro:type:`SNMP::ScopedPDU_Context` :bro:attr:`&optional`
+      pdu_context: :zeek:type:`SNMP::ScopedPDU_Context` :zeek:attr:`&optional`
 
    The top-level message data structure of an SNMPv3 datagram, not
    including the PDU data.  See :rfc:`3412`.
 
-.. bro:type:: SNMP::PDU
+.. zeek:type:: SNMP::PDU
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      request_id: :bro:type:`int`
+      request_id: :zeek:type:`int`
 
-      error_status: :bro:type:`int`
+      error_status: :zeek:type:`int`
 
-      error_index: :bro:type:`int`
+      error_index: :zeek:type:`int`
 
-      bindings: :bro:type:`SNMP::Bindings`
+      bindings: :zeek:type:`SNMP::Bindings`
 
    A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
 
-.. bro:type:: SNMP::TrapPDU
+.. zeek:type:: SNMP::TrapPDU
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      enterprise: :bro:type:`string`
+      enterprise: :zeek:type:`string`
 
-      agent: :bro:type:`addr`
+      agent: :zeek:type:`addr`
 
-      generic_trap: :bro:type:`int`
+      generic_trap: :zeek:type:`int`
 
-      specific_trap: :bro:type:`int`
+      specific_trap: :zeek:type:`int`
 
-      time_stamp: :bro:type:`count`
+      time_stamp: :zeek:type:`count`
 
-      bindings: :bro:type:`SNMP::Bindings`
+      bindings: :zeek:type:`SNMP::Bindings`
 
    A ``Trap-PDU`` data structure from :rfc:`1157`.
 
-.. bro:type:: SNMP::BulkPDU
+.. zeek:type:: SNMP::BulkPDU
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      request_id: :bro:type:`int`
+      request_id: :zeek:type:`int`
 
-      non_repeaters: :bro:type:`count`
+      non_repeaters: :zeek:type:`count`
 
-      max_repititions: :bro:type:`count`
+      max_repititions: :zeek:type:`count`
 
-      bindings: :bro:type:`SNMP::Bindings`
+      bindings: :zeek:type:`SNMP::Bindings`
 
    A ``BulkPDU`` data structure from :rfc:`3416`.
 
-.. bro:type:: SNMP::ScopedPDU_Context
+.. zeek:type:: SNMP::ScopedPDU_Context
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      engine_id: :bro:type:`string`
+      engine_id: :zeek:type:`string`
 
-      name: :bro:type:`string`
+      name: :zeek:type:`string`
 
    The ``ScopedPduData`` data structure of an SNMPv3 datagram, not
    including the PDU data (i.e. just the "context" fields).
    See :rfc:`3412`.
 
-.. bro:type:: SNMP::ObjectValue
+.. zeek:type:: SNMP::ObjectValue
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      tag: :bro:type:`count`
+      tag: :zeek:type:`count`
 
-      oid: :bro:type:`string` :bro:attr:`&optional`
+      oid: :zeek:type:`string` :zeek:attr:`&optional`
 
-      signed: :bro:type:`int` :bro:attr:`&optional`
+      signed: :zeek:type:`int` :zeek:attr:`&optional`
 
-      unsigned: :bro:type:`count` :bro:attr:`&optional`
+      unsigned: :zeek:type:`count` :zeek:attr:`&optional`
 
-      address: :bro:type:`addr` :bro:attr:`&optional`
+      address: :zeek:type:`addr` :zeek:attr:`&optional`
 
-      octets: :bro:type:`string` :bro:attr:`&optional`
+      octets: :zeek:type:`string` :zeek:attr:`&optional`
 
    A generic SNMP object value, that may include any of the
    valid ``ObjectSyntax`` values from :rfc:`1155` or :rfc:`3416`.
@@ -12206,30 +12206,30 @@ Types
    be used for other tags such as OCTET STRINGS or Opaque).  Null
    values will only have their corresponding tag value set.
 
-.. bro:type:: SNMP::Binding
+.. zeek:type:: SNMP::Binding
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      oid: :bro:type:`string`
+      oid: :zeek:type:`string`
 
-      value: :bro:type:`SNMP::ObjectValue`
+      value: :zeek:type:`SNMP::ObjectValue`
 
    The ``VarBind`` data structure from either :rfc:`1157` or
    :rfc:`3416`, which maps an Object Identifier to a value.
 
-.. bro:type:: SNMP::Bindings
+.. zeek:type:: SNMP::Bindings
 
-   :Type: :bro:type:`vector` of :bro:type:`SNMP::Binding`
+   :Type: :zeek:type:`vector` of :zeek:type:`SNMP::Binding`
 
    A ``VarBindList`` data structure from either :rfc:`1157` or :rfc:`3416`.
-   A sequences of :bro:see:`SNMP::Binding`, which maps an OIDs to values.
+   A sequences of :zeek:see:`SNMP::Binding`, which maps an OIDs to values.
 
 Events
 ++++++
 
-.. bro:id:: snmp_get_request
+.. zeek:id:: snmp_get_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
    
@@ -12246,9 +12246,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_get_next_request
+.. zeek:id:: snmp_get_next_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
    :rfc:`3416`.
@@ -12266,9 +12266,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_response
+.. zeek:id:: snmp_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
    ``Response-PDU`` from :rfc:`3416`.
@@ -12286,9 +12286,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_set_request
+.. zeek:id:: snmp_set_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
    
@@ -12305,9 +12305,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_trap
+.. zeek:id:: snmp_trap
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::TrapPDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::TrapPDU`)
 
    An SNMP ``Trap-PDU`` message from :rfc:`1157`.
    
@@ -12324,9 +12324,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_get_bulk_request
+.. zeek:id:: snmp_get_bulk_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::BulkPDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::BulkPDU`)
 
    An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
    
@@ -12343,9 +12343,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_inform_request
+.. zeek:id:: snmp_inform_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
    
@@ -12362,9 +12362,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_trapV2
+.. zeek:id:: snmp_trapV2
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
    
@@ -12381,9 +12381,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_report
+.. zeek:id:: snmp_report
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, pdu: :bro:type:`SNMP::PDU`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``Report-PDU`` message from :rfc:`3416`.
    
@@ -12400,9 +12400,9 @@ Events
 
    :pdu: An SNMP PDU data structure.
 
-.. bro:id:: snmp_unknown_pdu
+.. zeek:id:: snmp_unknown_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, tag: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMP PDU message of unknown type.
    
@@ -12419,9 +12419,9 @@ Events
 
    :tag: The tag of the unknown SNMP PDU.
 
-.. bro:id:: snmp_unknown_scoped_pdu
+.. zeek:id:: snmp_unknown_scoped_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`, tag: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
    an encrypted PDU was in the datagram).
@@ -12439,9 +12439,9 @@ Events
 
    :tag: The tag of the unknown SNMP PDU scope.
 
-.. bro:id:: snmp_encrypted_pdu
+.. zeek:id:: snmp_encrypted_pdu
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, header: :bro:type:`SNMP::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`)
 
    An SNMPv3 encrypted PDU message.
    
@@ -12455,9 +12455,9 @@ Events
    :header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
 
-.. bro:id:: snmp_unknown_header_version
+.. zeek:id:: snmp_unknown_header_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, version: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`)
 
    A datagram with an unknown SNMP version.
    
@@ -12478,14 +12478,14 @@ SOCKS analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SOCKS`
+:zeek:enum:`Analyzer::ANALYZER_SOCKS`
 
 Events
 ++++++
 
-.. bro:id:: socks_request
+.. zeek:id:: socks_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, request_type: :bro:type:`count`, sa: :bro:type:`SOCKS::Address`, p: :bro:type:`port`, user: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, request_type: :zeek:type:`count`, sa: :zeek:type:`SOCKS::Address`, p: :zeek:type:`port`, user: :zeek:type:`string`)
 
    Generated when a SOCKS request is analyzed.
    
@@ -12508,9 +12508,9 @@ Events
    :user: Username given for the SOCKS connection.  This is not yet implemented
          for SOCKSv5.
 
-.. bro:id:: socks_reply
+.. zeek:id:: socks_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, reply: :bro:type:`count`, sa: :bro:type:`SOCKS::Address`, p: :bro:type:`port`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, reply: :zeek:type:`count`, sa: :zeek:type:`SOCKS::Address`, p: :zeek:type:`port`)
 
    Generated when a SOCKS reply is analyzed.
    
@@ -12529,9 +12529,9 @@ Events
 
    :p: The destination port for the proxied traffic.
 
-.. bro:id:: socks_login_userpass_request
+.. zeek:id:: socks_login_userpass_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated when a SOCKS client performs username and password based login.
    
@@ -12544,9 +12544,9 @@ Events
 
    :password: The given password.
 
-.. bro:id:: socks_login_userpass_reply
+.. zeek:id:: socks_login_userpass_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`)
 
    Generated when a SOCKS server replies to a username/password login attempt.
    
@@ -12564,47 +12564,47 @@ Secure Shell analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SSH`
+:zeek:enum:`Analyzer::ANALYZER_SSH`
 
 Types
 +++++
 
-.. bro:type:: SSH::Algorithm_Prefs
+.. zeek:type:: SSH::Algorithm_Prefs
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      client_to_server: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional`
+      client_to_server: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional`
          The algorithm preferences for client to server communication
 
-      server_to_client: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional`
+      server_to_client: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional`
          The algorithm preferences for server to client communication
 
    The client and server each have some preferences for the algorithms used
    in each direction.
 
-.. bro:type:: SSH::Capabilities
+.. zeek:type:: SSH::Capabilities
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      kex_algorithms: :bro:type:`string_vec`
+      kex_algorithms: :zeek:type:`string_vec`
          Key exchange algorithms
 
-      server_host_key_algorithms: :bro:type:`string_vec`
+      server_host_key_algorithms: :zeek:type:`string_vec`
          The algorithms supported for the server host key
 
-      encryption_algorithms: :bro:type:`SSH::Algorithm_Prefs`
+      encryption_algorithms: :zeek:type:`SSH::Algorithm_Prefs`
          Symmetric encryption algorithm preferences
 
-      mac_algorithms: :bro:type:`SSH::Algorithm_Prefs`
+      mac_algorithms: :zeek:type:`SSH::Algorithm_Prefs`
          Symmetric MAC algorithm preferences
 
-      compression_algorithms: :bro:type:`SSH::Algorithm_Prefs`
+      compression_algorithms: :zeek:type:`SSH::Algorithm_Prefs`
          Compression algorithm preferences
 
-      languages: :bro:type:`SSH::Algorithm_Prefs` :bro:attr:`&optional`
+      languages: :zeek:type:`SSH::Algorithm_Prefs` :zeek:attr:`&optional`
          Language preferences
 
-      is_server: :bro:type:`bool`
+      is_server: :zeek:type:`bool`
          Are these the capabilities of the server?
 
    This record lists the preferences of an SSH endpoint for
@@ -12616,9 +12616,9 @@ Types
 Events
 ++++++
 
-.. bro:id:: ssh_server_version
+.. zeek:id:: ssh_server_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`)
 
    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
    from the server. This contains an identification string that's used
@@ -12631,15 +12631,15 @@ Events
 
    :version: The identification string
    
-   .. bro:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
+   .. zeek:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
       ssh2_ecc_key
 
-.. bro:id:: ssh_client_version
+.. zeek:id:: ssh_client_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`)
 
    An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
    from the client. This contains an identification string that's used
@@ -12652,15 +12652,15 @@ Events
 
    :version: The identification string
    
-   .. bro:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
+   .. zeek:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
       ssh2_ecc_key
 
-.. bro:id:: ssh_auth_successful
+.. zeek:id:: ssh_auth_successful
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, auth_method_none: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, auth_method_none: :zeek:type:`bool`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    connection was determined to have had a successful
@@ -12678,15 +12678,15 @@ Events
       :abbr:`SSH (Secure Shell)` protocol provides a mechanism for
       unauthenticated access, which some servers support.
    
-   .. bro:see:: ssh_server_version ssh_client_version ssh_auth_failed
+   .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
       ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
       ssh2_ecc_key
 
-.. bro:id:: ssh_auth_attempted
+.. zeek:id:: ssh_auth_attempted
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, authenticated: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authenticated: :zeek:type:`bool`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    connection was determined to have had an authentication attempt.
@@ -12713,15 +12713,15 @@ Events
    :authenticated: This is true if the analyzer detected a
       successful connection from the authentication attempt.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_capabilities
+.. zeek:id:: ssh_capabilities
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, cookie: :bro:type:`string`, capabilities: :bro:type:`SSH::Capabilities`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, capabilities: :zeek:type:`SSH::Capabilities`)
 
    During the initial :abbr:`SSH (Secure Shell)` key exchange, each
    endpoint lists the algorithms that it supports, in order of
@@ -12741,15 +12741,15 @@ Events
    :capabilities: The list of algorithms and languages that the sender
       advertises support for, in order of preference.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh2_server_host_key
+.. zeek:id:: ssh2_server_host_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, key: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
 
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
@@ -12763,15 +12763,15 @@ Events
    :key: The server's public host key. Note that this is the public key
       itself, and not just the fingerprint or hash.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh1_server_host_key
+.. zeek:id:: ssh1_server_host_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, p: :bro:type:`string`, e: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, e: :zeek:type:`string`)
 
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
@@ -12787,20 +12787,20 @@ Events
 
    :e: The exponent for the serer's public host key.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_encrypted_packet
+.. zeek:id:: ssh_encrypted_packet
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, orig: :bro:type:`bool`, len: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    encrypted packet is seen. This event is not handled by default, but
    is provided for heuristic analysis scripts. Note that you have to set
-   :bro:id:`SSH::disable_analyzer_after_detection` to false to use this
+   :zeek:id:`SSH::disable_analyzer_after_detection` to false to use this
    event. This carries a performance penalty.
    
 
@@ -12815,15 +12815,15 @@ Events
    :len: The length of the :abbr:`SSH (Secure Shell)` payload, in
       bytes. Note that this ignores reassembly, as this is unknown.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh2_dh_server_params
+.. zeek:id:: ssh2_dh_server_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, p: :bro:type:`string`, q: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`)
 
    Generated if the connection uses a Diffie-Hellman Group Exchange
    key exchange method. This event contains the server DH parameters,
@@ -12839,15 +12839,15 @@ Events
 
    :q: The DH generator.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh2_gss_error
+.. zeek:id:: ssh2_gss_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, major_status: :bro:type:`count`, minor_status: :bro:type:`count`, err_msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_status: :zeek:type:`count`, minor_status: :zeek:type:`count`, err_msg: :zeek:type:`string`)
 
    In the event of a GSS-API error on the server, the server MAY send
    send an error message with some additional details. This event is
@@ -12866,15 +12866,15 @@ Events
 
    :err_msg: Detailed human-readable error message
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
       ssh2_dh_server_params ssh2_ecc_key
 
-.. bro:id:: ssh2_ecc_key
+.. zeek:id:: ssh2_ecc_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, q: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, q: :zeek:type:`string`)
 
    The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
    :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
@@ -12892,7 +12892,7 @@ Events
 
    :q: The ephemeral public key
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
@@ -12906,17 +12906,17 @@ SSL/TLS and DTLS analyzers
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_DTLS`
+:zeek:enum:`Analyzer::ANALYZER_DTLS`
 
-:bro:enum:`Analyzer::ANALYZER_SSL`
+:zeek:enum:`Analyzer::ANALYZER_SSL`
 
 Options/Constants
 +++++++++++++++++
 
-.. bro:id:: SSL::dtls_max_version_errors
+.. zeek:id:: SSL::dtls_max_version_errors
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``10``
 
    Number of non-DTLS frames that can occur in a DTLS connection before
@@ -12924,10 +12924,10 @@ Options/Constants
    DTLS does not immediately stop parsing a connection because other protocols
    might be interleaved in the same UDP "connection".
 
-.. bro:id:: SSL::dtls_max_reported_version_errors
+.. zeek:id:: SSL::dtls_max_reported_version_errors
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1``
 
    Maximum number of invalid version errors to report in one DTLS connection.
@@ -12935,23 +12935,23 @@ Options/Constants
 Types
 +++++
 
-.. bro:type:: SSL::SignatureAndHashAlgorithm
+.. zeek:type:: SSL::SignatureAndHashAlgorithm
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      HashAlgorithm: :bro:type:`count`
+      HashAlgorithm: :zeek:type:`count`
          Hash algorithm number
 
-      SignatureAlgorithm: :bro:type:`count`
+      SignatureAlgorithm: :zeek:type:`count`
          Signature algorithm number
 
 
 Events
 ++++++
 
-.. bro:id:: ssl_client_hello
+.. zeek:id:: ssl_client_hello
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, record_version: :bro:type:`count`, possible_ts: :bro:type:`time`, client_random: :bro:type:`string`, session_id: :bro:type:`string`, ciphers: :bro:type:`index_vec`, comp_methods: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, client_random: :zeek:type:`string`, session_id: :zeek:type:`string`, ciphers: :zeek:type:`index_vec`, comp_methods: :zeek:type:`index_vec`)
 
    Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
    start with an unencrypted handshake, and Bro extracts as much information out
@@ -12967,7 +12967,7 @@ Events
 
    :version: The protocol version as extracted from the client's message.  The
             values are standardized as part of the SSL/TLS protocol. The
-            :bro:id:`SSL::version_strings` table maps them to descriptive names.
+            :zeek:id:`SSL::version_strings` table maps them to descriptive names.
    
 
    :record_version: TLS version given in the record layer of the message.
@@ -12987,21 +12987,21 @@ Events
 
    :ciphers: The list of ciphers the client offered to use. The values are
             standardized as part of the SSL/TLS protocol. The
-            :bro:id:`SSL::cipher_desc` table maps them to descriptive names.
+            :zeek:id:`SSL::cipher_desc` table maps them to descriptive names.
    
 
    :comp_methods: The list of compression methods that the client offered to use.
                  This value is not sent in TLSv1.3 or SSLv2.
    
-   .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
       ssl_session_ticket_handshake x509_certificate ssl_handshake_message
       ssl_change_cipher_spec
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms
 
-.. bro:id:: ssl_server_hello
+.. zeek:id:: ssl_server_hello
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`count`, record_version: :bro:type:`count`, possible_ts: :bro:type:`time`, server_random: :bro:type:`string`, session_id: :bro:type:`string`, cipher: :bro:type:`count`, comp_method: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, server_random: :zeek:type:`string`, session_id: :zeek:type:`string`, cipher: :zeek:type:`count`, comp_method: :zeek:type:`count`)
 
    Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
    start with an unencrypted handshake, and Bro extracts as much information out
@@ -13017,7 +13017,7 @@ Events
 
    :version: The protocol version as extracted from the server's message.
             The values are standardized as part of the SSL/TLS protocol. The
-            :bro:id:`SSL::version_strings` table maps them to descriptive names.
+            :zeek:id:`SSL::version_strings` table maps them to descriptive names.
    
 
    :record_version: TLS version given in the record layer of the message.
@@ -13038,7 +13038,7 @@ Events
    
 
    :cipher: The cipher chosen by the server.  The values are standardized as part
-           of the SSL/TLS protocol. The :bro:id:`SSL::cipher_desc` table maps
+           of the SSL/TLS protocol. The :zeek:id:`SSL::cipher_desc` table maps
            them to descriptive names.
    
 
@@ -13046,15 +13046,15 @@ Events
                 standardized as part of the SSL/TLS protocol. This value is not
                 sent in TLSv1.3 or SSLv2.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
       ssl_session_ticket_handshake x509_certificate ssl_server_curve
       ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms
 
-.. bro:id:: ssl_extension
+.. zeek:id:: ssl_extension
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, code: :bro:type:`count`, val: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, code: :zeek:type:`count`, val: :zeek:type:`string`)
 
    Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
    sessions start with an unencrypted handshake, and Bro extracts as much
@@ -13071,21 +13071,21 @@ Events
    
 
    :code: The numerical code of the extension.  The values are standardized as
-         part of the SSL/TLS protocol. The :bro:id:`SSL::extensions` table maps
+         part of the SSL/TLS protocol. The :zeek:id:`SSL::extensions` table maps
          them to descriptive names.
    
 
    :val: The raw extension value that was sent in the message.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension_ec_point_formats
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 
-.. bro:id:: ssl_extension_elliptic_curves
+.. zeek:id:: ssl_extension_elliptic_curves
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, curves: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, curves: :zeek:type:`index_vec`)
 
    Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
    defined in :rfc:`4492` and sent by the client in the initial handshake. It
@@ -13100,7 +13100,7 @@ Events
 
    :curves: List of supported elliptic curves.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
@@ -13108,9 +13108,9 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 
-.. bro:id:: ssl_extension_ec_point_formats
+.. zeek:id:: ssl_extension_ec_point_formats
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, point_formats: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, point_formats: :zeek:type:`index_vec`)
 
    Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
    is defined in :rfc:`4492` and sent by the client and/or server in the initial
@@ -13126,7 +13126,7 @@ Events
 
    :point_formats: List of supported point formats.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
@@ -13135,9 +13135,9 @@ Events
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
 
-.. bro:id:: ssl_extension_signature_algorithm
+.. zeek:id:: ssl_extension_signature_algorithm
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, signature_algorithms: :bro:type:`signature_and_hashalgorithm_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, signature_algorithms: :zeek:type:`signature_and_hashalgorithm_vec`)
 
    Generated for an Signature Algorithms extension. This TLS extension
    is defined in :rfc:`5246` and sent by the client in the initial
@@ -13153,7 +13153,7 @@ Events
 
    :signature_algorithms: List of supported signature and hash algorithm pairs.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_server_curve ssl_extension_key_share
@@ -13161,9 +13161,9 @@ Events
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
 
-.. bro:id:: ssl_extension_key_share
+.. zeek:id:: ssl_extension_key_share
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, curves: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, curves: :zeek:type:`index_vec`)
 
    Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
    and sent by the client and the server in the initial handshake. It gives the list of
@@ -13178,7 +13178,7 @@ Events
 
    :curves: List of supported/chosen named groups.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_server_curve
@@ -13186,10 +13186,10 @@ Events
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
 
-.. bro:id:: ssl_server_curve
+.. zeek:id:: ssl_server_curve
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, curve: :bro:type:`count`)
-   :Attributes: :bro:attr:`&deprecated`
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, curve: :zeek:type:`count`)
+   :Attributes: :zeek:attr:`&deprecated`
 
    Generated if a named curve is chosen by the server for an SSL/TLS connection.
    The curve is sent by the server in the ServerKeyExchange message as defined
@@ -13204,7 +13204,7 @@ Events
    .. note:: This event is deprecated and superseded by the ssl_ecdh_server_params
              event. This event will be removed in a future version of Bro.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_extension_key_share
@@ -13212,9 +13212,9 @@ Events
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
 
-.. bro:id:: ssl_ecdh_server_params
+.. zeek:id:: ssl_ecdh_server_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, curve: :bro:type:`count`, point: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, curve: :zeek:type:`count`, point: :zeek:type:`string`)
 
    Generated if a server uses an ECDH-anon or ECDHE cipher suite using a named curve
    This event contains the named curve name and the server ECDH parameters contained
@@ -13229,13 +13229,13 @@ Events
 
    :point: The server's ECDH public key.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
       ssl_dh_client_params ssl_ecdh_client_params ssl_rsa_client_pms
 
-.. bro:id:: ssl_dh_server_params
+.. zeek:id:: ssl_dh_server_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, p: :bro:type:`string`, q: :bro:type:`string`, Ys: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`, Ys: :zeek:type:`string`)
 
    Generated if a server uses a DH-anon or DHE cipher suite. This event contains
    the server DH parameters, contained in the ServerKeyExchange message as
@@ -13253,14 +13253,14 @@ Events
 
    :Ys: The server's DH public key.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms
 
-.. bro:id:: ssl_server_signature
+.. zeek:id:: ssl_server_signature
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, signature_and_hashalgorithm: :bro:type:`SSL::SignatureAndHashAlgorithm`, signature: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, signature_and_hashalgorithm: :zeek:type:`SSL::SignatureAndHashAlgorithm`, signature: :zeek:type:`string`)
 
    Generated if a server uses a non-anonymous DHE or ECDHE cipher suite. This event
    contains the server signature over the key exchange parameters contained in
@@ -13282,13 +13282,13 @@ Events
               corresponding to the certified public key in the server's certificate
               message is used for signing.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_rsa_client_pms
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 
-.. bro:id:: ssl_ecdh_client_params
+.. zeek:id:: ssl_ecdh_client_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, point: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, point: :zeek:type:`string`)
 
    Generated if a client uses an ECDH-anon or ECDHE cipher suite. This event
    contains the client ECDH public value contained in the ClientKeyExchange
@@ -13300,13 +13300,13 @@ Events
 
    :point: The client's ECDH public key.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_rsa_client_pms
 
-.. bro:id:: ssl_dh_client_params
+.. zeek:id:: ssl_dh_client_params
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, Yc: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, Yc: :zeek:type:`string`)
 
    Generated if a client uses a DH-anon or DHE cipher suite. This event contains
    the client DH parameters contained in the ClientKeyExchange message as
@@ -13318,13 +13318,13 @@ Events
 
    :Yc: The client's DH public key.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
       ssl_ecdh_server_params ssl_ecdh_client_params ssl_rsa_client_pms
 
-.. bro:id:: ssl_rsa_client_pms
+.. zeek:id:: ssl_rsa_client_pms
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, pms: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, pms: :zeek:type:`string`)
 
    Generated if a client uses RSA key exchange. This event contains the client
    encrypted pre-master secret which is encrypted using the public key of the
@@ -13336,13 +13336,13 @@ Events
 
    :pms: The encrypted pre-master secret.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 
-.. bro:id:: ssl_extension_application_layer_protocol_negotiation
+.. zeek:id:: ssl_extension_application_layer_protocol_negotiation
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, protocols: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, protocols: :zeek:type:`string_vec`)
 
    Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
    This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in
@@ -13360,16 +13360,16 @@ Events
 
    :protocols: List of supported application layer protocols.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_ec_point_formats
       ssl_extension_server_name ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_extension_signed_certificate_timestamp
 
-.. bro:id:: ssl_extension_server_name
+.. zeek:id:: ssl_extension_server_name
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, names: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, names: :zeek:type:`string_vec`)
 
    Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
    defined in :rfc:`3546` and sent by the client in the initial handshake. It
@@ -13386,7 +13386,7 @@ Events
 
    :names: A list of server names (DNS hostnames).
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_ec_point_formats
       ssl_extension_application_layer_protocol_negotiation
@@ -13394,9 +13394,9 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_extension_signed_certificate_timestamp
 
-.. bro:id:: ssl_extension_signed_certificate_timestamp
+.. zeek:id:: ssl_extension_signed_certificate_timestamp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, version: :bro:type:`count`, logid: :bro:type:`string`, timestamp: :bro:type:`count`, signature_and_hashalgorithm: :bro:type:`SSL::SignatureAndHashAlgorithm`, signature: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, logid: :zeek:type:`string`, timestamp: :zeek:type:`count`, signature_and_hashalgorithm: :zeek:type:`SSL::SignatureAndHashAlgorithm`, signature: :zeek:type:`string`)
 
    Generated for the signed_certificate_timestamp TLS extension as defined in
    :rfc:`6962`. The extension is used to transmit signed proofs that are
@@ -13426,7 +13426,7 @@ Events
 
    :signature: signature part of the digitally_signed struct
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_ec_point_formats
       ssl_extension_server_name ssl_extension_key_share
@@ -13434,9 +13434,9 @@ Events
       ssl_extension_application_layer_protocol_negotiation
       x509_ocsp_ext_signed_certificate_timestamp sct_verify
 
-.. bro:id:: ssl_extension_supported_versions
+.. zeek:id:: ssl_extension_supported_versions
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, versions: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, versions: :zeek:type:`index_vec`)
 
    Generated for an TLS Supported Versions extension. This TLS extension
    is defined in the TLS 1.3 rfc and sent by the client in the initial handshake.
@@ -13452,16 +13452,16 @@ Events
 
    :versions: List of supported TLS versions.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_ec_point_formats
       ssl_extension_application_layer_protocol_negotiation
       ssl_extension_key_share ssl_extension_server_name
       ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
 
-.. bro:id:: ssl_extension_psk_key_exchange_modes
+.. zeek:id:: ssl_extension_psk_key_exchange_modes
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, modes: :bro:type:`index_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, modes: :zeek:type:`index_vec`)
 
    Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
    in the TLS 1.3 rfc and sent by the client in the initial handshake. It contains the
@@ -13475,16 +13475,16 @@ Events
 
    :versions: List of supported Pre-Shared Key Exchange Modes.
    
-   .. bro:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_ec_point_formats
       ssl_extension_application_layer_protocol_negotiation
       ssl_extension_key_share ssl_extension_server_name
       ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
 
-.. bro:id:: ssl_established
+.. zeek:id:: ssl_established
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
    an unencrypted handshake, and Bro extracts as much information out of that
@@ -13498,12 +13498,12 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_client_hello  ssl_extension ssl_server_hello
       ssl_session_ticket_handshake x509_certificate
 
-.. bro:id:: ssl_alert
+.. zeek:id:: ssl_alert
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, level: :bro:type:`count`, desc: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, level: :zeek:type:`count`, desc: :zeek:type:`count`)
 
    Generated for SSL/TLS alert records. SSL/TLS sessions start with an
    unencrypted handshake, and Bro extracts as much information out of that as
@@ -13528,12 +13528,12 @@ Events
    :desc: A numerical value identifying the cause of the *alert*. The values are
          defined as part of the SSL/TLS protocol.
    
-   .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+   .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
       ssl_session_ticket_handshake
 
-.. bro:id:: ssl_session_ticket_handshake
+.. zeek:id:: ssl_session_ticket_handshake
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, ticket_lifetime_hint: :bro:type:`count`, ticket: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, ticket_lifetime_hint: :zeek:type:`count`, ticket: :zeek:type:`string`)
 
    Generated for SSL/TLS handshake messages that are a part of the
    stateless-server session resumption mechanism. SSL/TLS sessions start with
@@ -13555,12 +13555,12 @@ Events
 
    :ticket: The raw ticket data.
    
-   .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+   .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
       ssl_alert
 
-.. bro:id:: ssl_heartbeat
+.. zeek:id:: ssl_heartbeat
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, length: :bro:type:`count`, heartbeat_type: :bro:type:`count`, payload_length: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, length: :zeek:type:`count`, heartbeat_type: :zeek:type:`count`, payload_length: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for SSL/TLS heartbeat messages that are sent before session
    encryption starts. Generally heartbeat messages should rarely be seen in
@@ -13586,12 +13586,12 @@ Events
    :payload: payload contained in the heartbeat message. Size can differ from
             payload_length, if payload_length and actual packet length disagree.
    
-   .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+   .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
       ssl_alert ssl_encrypted_data
 
-.. bro:id:: ssl_plaintext_data
+.. zeek:id:: ssl_plaintext_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, record_version: :bro:type:`count`, content_type: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, record_version: :zeek:type:`count`, content_type: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for SSL/TLS messages that are sent before full session encryption
    starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
@@ -13617,17 +13617,17 @@ Events
 
    :length: length of the entire message.
    
-   .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+   .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
       ssl_alert ssl_heartbeat
 
-.. bro:id:: ssl_encrypted_data
+.. zeek:id:: ssl_encrypted_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, record_version: :bro:type:`count`, content_type: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, record_version: :zeek:type:`count`, content_type: :zeek:type:`count`, length: :zeek:type:`count`)
 
    Generated for SSL/TLS messages that are sent after session encryption
    started.
    
-   Note that :bro:id:`SSL::disable_analyzer_after_detection` has to be changed
+   Note that :zeek:id:`SSL::disable_analyzer_after_detection` has to be changed
    from its default to false for this event to be generated.
    
 
@@ -13647,12 +13647,12 @@ Events
 
    :length: length of the entire message.
    
-   .. bro:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
+   .. zeek:see::  ssl_client_hello ssl_established ssl_extension ssl_server_hello
       ssl_alert ssl_heartbeat
 
-.. bro:id:: ssl_stapled_ocsp
+.. zeek:id:: ssl_stapled_ocsp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, response: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, response: :zeek:type:`string`)
 
    This event contains the OCSP response contained in a Certificate Status Request
    message, when the client requested OCSP stapling and the server supports it.
@@ -13667,9 +13667,9 @@ Events
 
    :response: OCSP data.
 
-.. bro:id:: ssl_handshake_message
+.. zeek:id:: ssl_handshake_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg_type: :bro:type:`count`, length: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, length: :zeek:type:`count`)
 
    This event is raised for each unencrypted SSL/TLS handshake message.
    
@@ -13685,13 +13685,13 @@ Events
 
    :length: Length of the handshake message that was seen.
    
-   .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
       ssl_session_ticket_handshake x509_certificate ssl_client_hello
       ssl_change_cipher_spec
 
-.. bro:id:: ssl_change_cipher_spec
+.. zeek:id:: ssl_change_cipher_spec
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    This event is raised when a SSL/TLS ChangeCipherSpec message is encountered
    before encryption begins. Traffic will be encrypted following this message.
@@ -13702,16 +13702,16 @@ Events
 
    :is_orig: True if event is raised for originator side of the connection.
    
-   .. bro:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
+   .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
       ssl_session_ticket_handshake x509_certificate ssl_client_hello
       ssl_handshake_message
 
 Functions
 +++++++++
 
-.. bro:id:: set_ssl_established
+.. zeek:id:: set_ssl_established
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`) : :bro:type:`any`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`any`
 
    Sets if the SSL analyzer should consider the connection established (handshake
    finished succesfully).
@@ -13727,38 +13727,38 @@ Stepping stone analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_STEPPINGSTONE`
+:zeek:enum:`Analyzer::ANALYZER_STEPPINGSTONE`
 
 Events
 ++++++
 
-.. bro:id:: stp_create_endp
+.. zeek:id:: stp_create_endp
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, e: :bro:type:`int`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, e: :zeek:type:`int`, is_orig: :zeek:type:`bool`)
 
    Deprecated. Will be removed.
 
-.. bro:id:: stp_resume_endp
+.. zeek:id:: stp_resume_endp
 
-   :Type: :bro:type:`event` (e: :bro:type:`int`)
-
-   Event internal to the stepping stone detector.
-
-.. bro:id:: stp_correlate_pair
-
-   :Type: :bro:type:`event` (e1: :bro:type:`int`, e2: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 
-.. bro:id:: stp_remove_pair
+.. zeek:id:: stp_correlate_pair
 
-   :Type: :bro:type:`event` (e1: :bro:type:`int`, e2: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e1: :zeek:type:`int`, e2: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 
-.. bro:id:: stp_remove_endp
+.. zeek:id:: stp_remove_pair
 
-   :Type: :bro:type:`event` (e: :bro:type:`int`)
+   :Type: :zeek:type:`event` (e1: :zeek:type:`int`, e2: :zeek:type:`int`)
+
+   Event internal to the stepping stone detector.
+
+.. zeek:id:: stp_remove_endp
+
+   :Type: :zeek:type:`event` (e: :zeek:type:`int`)
 
    Event internal to the stepping stone detector.
 
@@ -13770,14 +13770,14 @@ Syslog analyzer UDP-only
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_SYSLOG`
+:zeek:enum:`Analyzer::ANALYZER_SYSLOG`
 
 Events
 ++++++
 
-.. bro:id:: syslog_message
+.. zeek:id:: syslog_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, facility: :bro:type:`count`, severity: :bro:type:`count`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, facility: :zeek:type:`count`, severity: :zeek:type:`count`, msg: :zeek:type:`string`)
 
    Generated for monitored Syslog messages.
    
@@ -13807,20 +13807,20 @@ TCP analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTLINE`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTLINE`
 
-:bro:enum:`Analyzer::ANALYZER_CONTENTS`
+:zeek:enum:`Analyzer::ANALYZER_CONTENTS`
 
-:bro:enum:`Analyzer::ANALYZER_TCP`
+:zeek:enum:`Analyzer::ANALYZER_TCP`
 
-:bro:enum:`Analyzer::ANALYZER_TCPSTATS`
+:zeek:enum:`Analyzer::ANALYZER_TCPSTATS`
 
 Events
 ++++++
 
-.. bro:id:: new_connection_contents
+.. zeek:id:: new_connection_contents
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when reassembly starts for a TCP connection. This event is raised
    at the moment when Bro's TCP analyzer enables stream reassembly for a
@@ -13829,58 +13829,58 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected connection_reset connection_reused
       connection_state_remove connection_status_update connection_timeout
       scheduled_analyzer_applied new_connection partial_connection
 
-.. bro:id:: connection_attempt
+.. zeek:id:: connection_attempt
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an unsuccessful connection attempt. This event is raised when
    an originator unsuccessfully attempted to establish a connection.
-   "Unsuccessful" is defined as at least :bro:id:`tcp_attempt_delay` seconds
+   "Unsuccessful" is defined as at least :zeek:id:`tcp_attempt_delay` seconds
    having elapsed since the originator first sent a connection establishment
    packet to the destination without seeing a reply.
    
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_established
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_established
       connection_external connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: connection_established
+.. zeek:id:: connection_established
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when seeing a SYN-ACK packet from the responder in a TCP
    handshake.  An associated SYN packet was not seen from the originator
-   side if its state is not set to :bro:see:`TCP_ESTABLISHED`.
+   side if its state is not set to :zeek:see:`TCP_ESTABLISHED`.
    The final ACK of the handshake in response to SYN-ACK may
    or may not occur later, one way to tell is to check the *history* field of
-   :bro:type:`connection` to see if the originator sent an ACK, indicated by
+   :zeek:type:`connection` to see if the originator sent an ACK, indicated by
    'A' in the history string.
    
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_external connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: partial_connection
+.. zeek:id:: partial_connection
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a new active TCP connection if Bro did not see the initial
    handshake. This event is raised when Bro has observed traffic from each
@@ -13890,7 +13890,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected connection_reset connection_reused
@@ -13898,29 +13898,29 @@ Events
       scheduled_analyzer_applied new_connection new_connection_contents
    
 
-.. bro:id:: connection_partial_close
+.. zeek:id:: connection_partial_close
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a previously inactive endpoint attempts to close a TCP
    connection via a normal FIN handshake or an abort RST sequence. When the
    endpoint sent one of these packets, Bro waits
-   :bro:id:`tcp_partial_close_delay` prior to generating the event, to give
+   :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
    the other endpoint a chance to close the connection normally.
    
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: connection_finished
+.. zeek:id:: connection_finished
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a TCP connection that finished normally. The event is raised
    when a regular FIN handshake from both endpoints was observed.
@@ -13928,16 +13928,16 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: connection_half_finished
+.. zeek:id:: connection_half_finished
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when one endpoint of a TCP connection attempted to gracefully close
    the connection, but the other endpoint is in the TCP_INACTIVE state. This can
@@ -13946,16 +13946,16 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK  connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: connection_rejected
+.. zeek:id:: connection_rejected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a rejected TCP connection. This event is raised when an
    originator attempted to setup a TCP connection but the responder replied
@@ -13964,7 +13964,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending  connection_reset connection_reused connection_state_remove
@@ -13973,14 +13973,14 @@ Events
    
    .. note::
    
-      If the responder does not respond at all, :bro:id:`connection_attempt` is
+      If the responder does not respond at all, :zeek:id:`connection_attempt` is
       raised instead. If the responder initially accepts the connection but
-      aborts it later, Bro first generates :bro:id:`connection_established`
-      and then :bro:id:`connection_reset`.
+      aborts it later, Bro first generates :zeek:id:`connection_established`
+      and then :zeek:id:`connection_reset`.
 
-.. bro:id:: connection_reset
+.. zeek:id:: connection_reset
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when an endpoint aborted a TCP connection. The event is raised
    when one endpoint of an established TCP connection aborted by sending a RST
@@ -13989,7 +13989,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected  connection_reused
@@ -13997,25 +13997,25 @@ Events
       scheduled_analyzer_applied new_connection new_connection_contents
       partial_connection
 
-.. bro:id:: connection_pending
+.. zeek:id:: connection_pending
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for each still-open TCP connection when Bro terminates.
    
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection zeek_done
 
-.. bro:id:: connection_SYN_packet
+.. zeek:id:: connection_SYN_packet
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, pkt: :bro:type:`SYN_packet`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, pkt: :zeek:type:`SYN_packet`)
 
    Generated for a SYN packet. Bro raises this event for every SYN packet seen
    by its TCP analyzer.
@@ -14026,7 +14026,7 @@ Events
 
    :pkt: Information extracted from the SYN packet.
    
-   .. bro:see:: connection_EOF  connection_attempt connection_established
+   .. zeek:see:: connection_EOF  connection_attempt connection_established
       connection_external connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
@@ -14041,9 +14041,9 @@ Events
       handling one of the other ``connection_*`` events is typically the
       better approach.
 
-.. bro:id:: connection_first_ACK
+.. zeek:id:: connection_first_ACK
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for the first ACK packet seen for a TCP connection from
    its *originator*.
@@ -14051,7 +14051,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_external connection_finished
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
@@ -14062,9 +14062,9 @@ Events
    
       This event has quite low-level semantics and should be used only rarely.
 
-.. bro:id:: connection_EOF
+.. zeek:id:: connection_EOF
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated at the end of reassembled TCP connections. The TCP reassembler
    raised the event once for each endpoint of a connection when it finished
@@ -14076,21 +14076,21 @@ Events
 
    :is_orig: True if the event is raised for the originator side.
    
-   .. bro:see::  connection_SYN_packet connection_attempt connection_established
+   .. zeek:see::  connection_SYN_packet connection_attempt connection_established
       connection_external connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
 
-.. bro:id:: tcp_packet
+.. zeek:id:: tcp_packet
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, flags: :bro:type:`string`, seq: :bro:type:`count`, ack: :bro:type:`count`, len: :bro:type:`count`, payload: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, flags: :zeek:type:`string`, seq: :zeek:type:`count`, ack: :zeek:type:`count`, len: :zeek:type:`count`, payload: :zeek:type:`string`)
 
    Generated for every TCP packet. This is a very low-level and expensive event
    that should be avoided when at all possible. It's usually infeasible to
    handle when processing even medium volumes of traffic in real-time.  It's
-   slightly better than :bro:id:`new_packet` because it affects only TCP, but
+   slightly better than :zeek:id:`new_packet` because it affects only TCP, but
    not much. That said, if you work from a trace and want to do some
    packet-level analysis, it may come in handy.
    
@@ -14119,11 +14119,11 @@ Events
    :payload: The raw TCP payload. Note that this may be shorter than *len* if
             the packet was not fully captured.
    
-   .. bro:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
+   .. zeek:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
 
-.. bro:id:: tcp_option
+.. zeek:id:: tcp_option
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, opt: :bro:type:`count`, optlen: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, opt: :zeek:type:`count`, optlen: :zeek:type:`count`)
 
    Generated for each option found in a TCP header. Like many of the ``tcp_*``
    events, this is a very low-level event and potentially expensive as it may
@@ -14141,19 +14141,19 @@ Events
 
    :optlen: The length of the options value.
    
-   .. bro:see:: tcp_packet tcp_contents tcp_rexmit
+   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
    
    .. note:: There is currently no way to get the actual option value, if any.
 
-.. bro:id:: tcp_contents
+.. zeek:id:: tcp_contents
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, seq: :bro:type:`count`, contents: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, contents: :zeek:type:`string`)
 
    Generated for each chunk of reassembled TCP payload. When content delivery is
-   enabled for a TCP connection (via :bro:id:`tcp_content_delivery_ports_orig`,
-   :bro:id:`tcp_content_delivery_ports_resp`,
-   :bro:id:`tcp_content_deliver_all_orig`,
-   :bro:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
+   enabled for a TCP connection (via :zeek:id:`tcp_content_delivery_ports_orig`,
+   :zeek:id:`tcp_content_delivery_ports_resp`,
+   :zeek:id:`tcp_content_deliver_all_orig`,
+   :zeek:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
    of in-order payload reconstructed from the packet stream. Note that this
    event is potentially expensive if many connections carry significant amounts
    of data as then all that data needs to be passed on to the scripting layer.
@@ -14171,7 +14171,7 @@ Events
 
    :contents: The raw payload, which will be non-empty.
    
-   .. bro:see:: tcp_packet tcp_option tcp_rexmit
+   .. zeek:see:: tcp_packet tcp_option tcp_rexmit
       tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
       tcp_content_deliver_all_resp tcp_content_deliver_all_orig
    
@@ -14184,15 +14184,15 @@ Events
       has; while Bro passes the data on as soon as possible, specifics depend on
       network-level effects such as latency, acknowledgements, reordering, etc.
 
-.. bro:id:: tcp_rexmit
+.. zeek:id:: tcp_rexmit
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, seq: :bro:type:`count`, len: :bro:type:`count`, data_in_flight: :bro:type:`count`, window: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, len: :zeek:type:`count`, data_in_flight: :zeek:type:`count`, window: :zeek:type:`count`)
 
    TODO.
 
-.. bro:id:: tcp_multiple_checksum_errors
+.. zeek:id:: tcp_multiple_checksum_errors
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
    Generated if a TCP flow crosses a checksum-error threshold, per
    'C'/'c' history reporting.
@@ -14206,12 +14206,12 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  udp_multiple_checksum_errors
+   .. zeek:see::  udp_multiple_checksum_errors
       tcp_multiple_zero_windows tcp_multiple_retransmissions tcp_multiple_gap
 
-.. bro:id:: tcp_multiple_zero_windows
+.. zeek:id:: tcp_multiple_zero_windows
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
    Generated if a TCP flow crosses a zero-window threshold, per
    'W'/'w' history reporting.
@@ -14225,11 +14225,11 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions tcp_multiple_gap
+   .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions tcp_multiple_gap
 
-.. bro:id:: tcp_multiple_retransmissions
+.. zeek:id:: tcp_multiple_retransmissions
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
    Generated if a TCP flow crosses a retransmission threshold, per
    'T'/'t' history reporting.
@@ -14243,11 +14243,11 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_gap
+   .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_gap
 
-.. bro:id:: tcp_multiple_gap
+.. zeek:id:: tcp_multiple_gap
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
    Generated if a TCP flow crosses a gap threshold, per 'G'/'g' history
    reporting.
@@ -14261,11 +14261,11 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_retransmissions
+   .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_retransmissions
 
-.. bro:id:: contents_file_write_failure
+.. zeek:id:: contents_file_write_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    Generated when failing to write contents of a TCP stream to a file.
    
@@ -14278,14 +14278,14 @@ Events
 
    :msg: A reason or description for the failure.
    
-   .. bro:see:: set_contents_file get_contents_file
+   .. zeek:see:: set_contents_file get_contents_file
 
 Functions
 +++++++++
 
-.. bro:id:: get_orig_seq
+.. zeek:id:: get_orig_seq
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Get the originator sequence number of a TCP connection. Sequence numbers
    are absolute (i.e., they reflect the values seen directly in packet headers;
@@ -14298,11 +14298,11 @@ Functions
    :returns: The highest sequence number sent by a connection's originator, or 0
             if *cid* does not point to an active TCP connection.
    
-   .. bro:see:: get_resp_seq
+   .. zeek:see:: get_resp_seq
 
-.. bro:id:: get_resp_seq
+.. zeek:id:: get_resp_seq
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Get the responder sequence number of a TCP connection. Sequence numbers
    are absolute (i.e., they reflect the values seen directly in packet headers;
@@ -14315,11 +14315,11 @@ Functions
    :returns: The highest sequence number sent by a connection's responder, or 0
             if *cid* does not point to an active TCP connection.
    
-   .. bro:see:: get_orig_seq
+   .. zeek:see:: get_orig_seq
 
-.. bro:id:: set_contents_file
+.. zeek:id:: set_contents_file
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, direction: :bro:type:`count`, f: :bro:type:`file`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`, f: :zeek:type:`file`) : :zeek:type:`bool`
 
    Associates a file handle with a connection for writing TCP byte stream
    contents.
@@ -14353,13 +14353,13 @@ Functions
        contents of individual packets. Reordering and duplicates are
        removed. If any data is missing, the recording stops at the
        missing data; this can happen, e.g., due to an
-       :bro:id:`content_gap` event.
+       :zeek:id:`content_gap` event.
    
-   .. bro:see:: get_contents_file set_record_packets contents_file_write_failure
+   .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 
-.. bro:id:: get_contents_file
+.. zeek:id:: get_contents_file
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, direction: :bro:type:`count`) : :bro:type:`file`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`) : :zeek:type:`file`
 
    Returns the file handle of the contents file of a connection.
    
@@ -14368,15 +14368,15 @@ Functions
    
 
    :direction: Controls what sides of the connection to record. See
-              :bro:id:`set_contents_file` for possible values.
+              :zeek:id:`set_contents_file` for possible values.
    
 
-   :returns: The :bro:type:`file` handle for the contents file of the
+   :returns: The :zeek:type:`file` handle for the contents file of the
             connection identified by *cid*. If the connection exists
             but there is no contents file for *direction*, then the function
             generates an error and returns a file handle to ``stderr``.
    
-   .. bro:see:: set_contents_file set_record_packets contents_file_write_failure
+   .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 
 Bro::Teredo
 -----------
@@ -14386,14 +14386,14 @@ Teredo analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_TEREDO`
+:zeek:enum:`Analyzer::ANALYZER_TEREDO`
 
 Events
 ++++++
 
-.. bro:id:: teredo_packet
+.. zeek:id:: teredo_packet
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`teredo_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`teredo_hdr`)
 
    Generated for any IPv6 packet encapsulated in a Teredo tunnel.
    See :rfc:`4380` for more information about the Teredo protocol.
@@ -14404,14 +14404,14 @@ Events
 
    :inner: The Teredo-encapsulated IPv6 packet header and transport header.
    
-   .. bro:see:: teredo_authentication teredo_origin_indication teredo_bubble
+   .. zeek:see:: teredo_authentication teredo_origin_indication teredo_bubble
    
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
-.. bro:id:: teredo_authentication
+.. zeek:id:: teredo_authentication
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`teredo_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`teredo_hdr`)
 
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo authentication encapsulation method.
@@ -14423,14 +14423,14 @@ Events
 
    :inner: The Teredo-encapsulated IPv6 packet header and transport header.
    
-   .. bro:see:: teredo_packet teredo_origin_indication teredo_bubble
+   .. zeek:see:: teredo_packet teredo_origin_indication teredo_bubble
    
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
-.. bro:id:: teredo_origin_indication
+.. zeek:id:: teredo_origin_indication
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`teredo_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`teredo_hdr`)
 
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo origin indication encapsulation method.
@@ -14442,17 +14442,17 @@ Events
 
    :inner: The Teredo-encapsulated IPv6 packet header and transport header.
    
-   .. bro:see:: teredo_packet teredo_authentication teredo_bubble
+   .. zeek:see:: teredo_packet teredo_authentication teredo_bubble
    
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
-.. bro:id:: teredo_bubble
+.. zeek:id:: teredo_bubble
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`teredo_hdr`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`teredo_hdr`)
 
    Generated for Teredo bubble packets.  That is, IPv6 packets encapsulated
-   in a Teredo tunnel that have a Next Header value of :bro:id:`IPPROTO_NONE`.
+   in a Teredo tunnel that have a Next Header value of :zeek:id:`IPPROTO_NONE`.
    See :rfc:`4380` for more information about the Teredo protocol.
    
 
@@ -14461,7 +14461,7 @@ Events
 
    :inner: The Teredo-encapsulated IPv6 packet header and transport header.
    
-   .. bro:see:: teredo_packet teredo_authentication teredo_origin_indication
+   .. zeek:see:: teredo_packet teredo_authentication teredo_origin_indication
    
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
@@ -14474,14 +14474,14 @@ UDP Analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_UDP`
+:zeek:enum:`Analyzer::ANALYZER_UDP`
 
 Events
 ++++++
 
-.. bro:id:: udp_request
+.. zeek:id:: udp_request
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`)
 
    Generated for each packet sent by a UDP flow's originator. This a potentially
    expensive event due to the volume of UDP traffic and should be used with
@@ -14490,11 +14490,11 @@ Events
 
    :u: The connection record for the corresponding UDP flow.
    
-   .. bro:see:: udp_contents udp_reply  udp_session_done
+   .. zeek:see:: udp_contents udp_reply  udp_session_done
 
-.. bro:id:: udp_reply
+.. zeek:id:: udp_reply
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`)
 
    Generated for each packet sent by a UDP flow's responder. This a potentially
    expensive event due to the volume of UDP traffic and should be used with
@@ -14503,20 +14503,20 @@ Events
 
    :u: The connection record for the corresponding UDP flow.
    
-   .. bro:see:: udp_contents  udp_request udp_session_done
+   .. zeek:see:: udp_contents  udp_request udp_session_done
 
-.. bro:id:: udp_contents
+.. zeek:id:: udp_contents
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`, is_orig: :bro:type:`bool`, contents: :bro:type:`string`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, contents: :zeek:type:`string`)
 
    Generated for UDP packets to pass on their payload. As the number of UDP
    packets can be very large, this event is normally raised only for those on
-   ports configured in :bro:id:`udp_content_delivery_ports_orig` (for packets
-   sent by the flow's originator) or :bro:id:`udp_content_delivery_ports_resp`
+   ports configured in :zeek:id:`udp_content_delivery_ports_orig` (for packets
+   sent by the flow's originator) or :zeek:id:`udp_content_delivery_ports_resp`
    (for packets sent by the flow's responder). However, delivery can be enabled
    for all UDP request and reply packets by setting
-   :bro:id:`udp_content_deliver_all_orig` or
-   :bro:id:`udp_content_deliver_all_resp`, respectively. Note that this
+   :zeek:id:`udp_content_deliver_all_orig` or
+   :zeek:id:`udp_content_deliver_all_resp`, respectively. Note that this
    event is also raised for all matching UDP packets, including empty ones.
    
 
@@ -14528,13 +14528,13 @@ Events
 
    :contents: TODO.
    
-   .. bro:see::  udp_reply udp_request udp_session_done
+   .. zeek:see::  udp_reply udp_request udp_session_done
       udp_content_deliver_all_orig udp_content_deliver_all_resp
       udp_content_delivery_ports_orig udp_content_delivery_ports_resp
 
-.. bro:id:: udp_multiple_checksum_errors
+.. zeek:id:: udp_multiple_checksum_errors
 
-   :Type: :bro:type:`event` (u: :bro:type:`connection`, is_orig: :bro:type:`bool`, threshold: :bro:type:`count`)
+   :Type: :zeek:type:`event` (u: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
    Generated if a UDP flow crosses a checksum-error threshold, per
    'C'/'c' history reporting.
@@ -14548,7 +14548,7 @@ Events
 
    :threshold: the threshold that was crossed
    
-   .. bro:see::  udp_reply udp_request udp_session_done
+   .. zeek:see::  udp_reply udp_request udp_session_done
       tcp_multiple_checksum_errors
 
 Bro::VXLAN
@@ -14559,14 +14559,14 @@ VXLAN analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_VXLAN`
+:zeek:enum:`Analyzer::ANALYZER_VXLAN`
 
 Events
 ++++++
 
-.. bro:id:: vxlan_packet
+.. zeek:id:: vxlan_packet
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`pkt_hdr`, vni: :bro:type:`count`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`pkt_hdr`, vni: :zeek:type:`count`)
 
    Generated for any packet encapsulated in a VXLAN tunnel.
    See :rfc:`7348` for more information about the VXLAN protocol.
@@ -14591,14 +14591,14 @@ XMPP analyzer (StartTLS only)
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_XMPP`
+:zeek:enum:`Analyzer::ANALYZER_XMPP`
 
 Events
 ++++++
 
-.. bro:id:: xmpp_starttls
+.. zeek:id:: xmpp_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a XMPP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.
@@ -14614,5 +14614,5 @@ Generic ZIP support analyzer
 Components
 ++++++++++
 
-:bro:enum:`Analyzer::ANALYZER_ZIP`
+:zeek:enum:`Analyzer::ANALYZER_ZIP`
 

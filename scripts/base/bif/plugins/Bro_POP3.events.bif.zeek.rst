@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_POP3.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Events
 ######
-=============================================== ===================================================================
-:bro:id:`pop3_data`: :bro:type:`event`          Generated for server-side multi-line responses on POP3 connections.
-:bro:id:`pop3_login_failure`: :bro:type:`event` Generated for unsuccessful authentications on POP3 connections.
-:bro:id:`pop3_login_success`: :bro:type:`event` Generated for successful authentications on POP3 connections.
-:bro:id:`pop3_reply`: :bro:type:`event`         Generated for server-side replies to commands on POP3 connections.
-:bro:id:`pop3_request`: :bro:type:`event`       Generated for client-side commands on POP3 connections.
-:bro:id:`pop3_starttls`: :bro:type:`event`      Generated when a POP3 connection goes encrypted.
-:bro:id:`pop3_unexpected`: :bro:type:`event`    Generated for errors encountered on POP3 sessions.
-=============================================== ===================================================================
+================================================= ===================================================================
+:zeek:id:`pop3_data`: :zeek:type:`event`          Generated for server-side multi-line responses on POP3 connections.
+:zeek:id:`pop3_login_failure`: :zeek:type:`event` Generated for unsuccessful authentications on POP3 connections.
+:zeek:id:`pop3_login_success`: :zeek:type:`event` Generated for successful authentications on POP3 connections.
+:zeek:id:`pop3_reply`: :zeek:type:`event`         Generated for server-side replies to commands on POP3 connections.
+:zeek:id:`pop3_request`: :zeek:type:`event`       Generated for client-side commands on POP3 connections.
+:zeek:id:`pop3_starttls`: :zeek:type:`event`      Generated when a POP3 connection goes encrypted.
+:zeek:id:`pop3_unexpected`: :zeek:type:`event`    Generated for errors encountered on POP3 sessions.
+================================================= ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: pop3_data
+.. zeek:id:: pop3_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data: :zeek:type:`string`)
 
    Generated for server-side multi-line responses on POP3 connections. POP3
    connections use multi-line responses to send bulk data, such as the actual
@@ -47,7 +47,7 @@ Events
 
    :data: The data sent.
    
-   .. bro:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -55,9 +55,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_login_failure
+.. zeek:id:: pop3_login_failure
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for unsuccessful authentications on POP3 connections.
    
@@ -77,7 +77,7 @@ Events
 
    :password: The password attempted for authentication.
    
-   .. bro:see:: pop3_data pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -85,9 +85,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_login_success
+.. zeek:id:: pop3_login_success
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, user: :bro:type:`string`, password: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for successful authentications on POP3 connections.
    
@@ -107,7 +107,7 @@ Events
 
    :password: The password used for authentication.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -115,9 +115,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_reply
+.. zeek:id:: pop3_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, cmd: :bro:type:`string`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, cmd: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for server-side replies to commands on POP3 connections.
    
@@ -138,7 +138,7 @@ Events
 
    :msg: The textual description the server sent along with *cmd*.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
       pop3_unexpected
    
    .. todo:: This event is receiving odd parameters, should unify.
@@ -148,9 +148,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_request
+.. zeek:id:: pop3_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side commands on POP3 connections.
    
@@ -170,7 +170,7 @@ Events
 
    :arg: The argument to the command.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -178,9 +178,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_starttls
+.. zeek:id:: pop3_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a POP3 connection goes encrypted. While POP3 is by default a
    clear-text protocol, extensions exist to switch to encryption. This event is
@@ -193,7 +193,7 @@ Events
 
    :c: The connection.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_request pop3_unexpected
    
    .. todo:: Bro's current default configuration does not activate the protocol
@@ -201,9 +201,9 @@ Events
       been ported to Bro 2.x. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
-.. bro:id:: pop3_unexpected
+.. zeek:id:: pop3_unexpected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for errors encountered on POP3 sessions. If the POP3 analyzer
    finds state transitions that do not conform to the protocol specification,
@@ -224,7 +224,7 @@ Events
 
    :detail: The input that triggered the event.
    
-   .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
+   .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
    
    .. todo:: Bro's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet

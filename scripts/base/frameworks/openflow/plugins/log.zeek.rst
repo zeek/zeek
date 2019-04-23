@@ -2,7 +2,7 @@
 
 base/frameworks/openflow/plugins/log.zeek
 =========================================
-.. bro:namespace:: OpenFlow
+.. zeek:namespace:: OpenFlow
 
 OpenFlow plugin that outputs flow-modification commands
 to a Bro log file.
@@ -14,68 +14,68 @@ Summary
 ~~~~~~~
 Types
 #####
-============================================== =================================================================
-:bro:type:`OpenFlow::Info`: :bro:type:`record` The record type which contains column fields of the OpenFlow log.
-============================================== =================================================================
+================================================ =================================================================
+:zeek:type:`OpenFlow::Info`: :zeek:type:`record` The record type which contains column fields of the OpenFlow log.
+================================================ =================================================================
 
 Redefinitions
 #############
-============================================================================ =
-:bro:type:`Log::ID`: :bro:type:`enum`                                        
-:bro:type:`OpenFlow::ControllerState`: :bro:type:`record` :bro:attr:`&redef` 
-:bro:type:`OpenFlow::Plugin`: :bro:type:`enum`                               
-============================================================================ =
+=============================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                                         
+:zeek:type:`OpenFlow::ControllerState`: :zeek:type:`record` :zeek:attr:`&redef` 
+:zeek:type:`OpenFlow::Plugin`: :zeek:type:`enum`                                
+=============================================================================== =
 
 Events
 ######
-=================================================== ==================================================================
-:bro:id:`OpenFlow::log_openflow`: :bro:type:`event` Event that can be handled to access the :bro:type:`OpenFlow::Info`
-                                                    record as it is sent on to the logging framework.
-=================================================== ==================================================================
+===================================================== ===================================================================
+:zeek:id:`OpenFlow::log_openflow`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`OpenFlow::Info`
+                                                      record as it is sent on to the logging framework.
+===================================================== ===================================================================
 
 Functions
 #########
-================================================= ===========================
-:bro:id:`OpenFlow::log_new`: :bro:type:`function` Log controller constructor.
-================================================= ===========================
+=================================================== ===========================
+:zeek:id:`OpenFlow::log_new`: :zeek:type:`function` Log controller constructor.
+=================================================== ===========================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: OpenFlow::Info
+.. zeek:type:: OpenFlow::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Network time.
 
-      dpid: :bro:type:`count` :bro:attr:`&log`
+      dpid: :zeek:type:`count` :zeek:attr:`&log`
          OpenFlow switch datapath id.
 
-      match: :bro:type:`OpenFlow::ofp_match` :bro:attr:`&log`
+      match: :zeek:type:`OpenFlow::ofp_match` :zeek:attr:`&log`
          OpenFlow match fields.
 
-      flow_mod: :bro:type:`OpenFlow::ofp_flow_mod` :bro:attr:`&log`
+      flow_mod: :zeek:type:`OpenFlow::ofp_flow_mod` :zeek:attr:`&log`
          OpenFlow modify flow entry message.
 
    The record type which contains column fields of the OpenFlow log.
 
 Events
 ######
-.. bro:id:: OpenFlow::log_openflow
+.. zeek:id:: OpenFlow::log_openflow
 
-   :Type: :bro:type:`event` (rec: :bro:type:`OpenFlow::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`OpenFlow::Info`)
 
-   Event that can be handled to access the :bro:type:`OpenFlow::Info`
+   Event that can be handled to access the :zeek:type:`OpenFlow::Info`
    record as it is sent on to the logging framework.
 
 Functions
 #########
-.. bro:id:: OpenFlow::log_new
+.. zeek:id:: OpenFlow::log_new
 
-   :Type: :bro:type:`function` (dpid: :bro:type:`count`, success_event: :bro:type:`bool` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`) : :bro:type:`OpenFlow::Controller`
+   :Type: :zeek:type:`function` (dpid: :zeek:type:`count`, success_event: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`OpenFlow::Controller`
 
    Log controller constructor.
    

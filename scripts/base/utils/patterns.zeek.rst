@@ -2,7 +2,7 @@
 
 base/utils/patterns.zeek
 ========================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 Functions for creating and working with patterns.
 
@@ -12,47 +12,47 @@ Summary
 ~~~~~~~
 Types
 #####
-================================================== =
-:bro:type:`PatternMatchResult`: :bro:type:`record` 
-================================================== =
+==================================================== =
+:zeek:type:`PatternMatchResult`: :zeek:type:`record` 
+==================================================== =
 
 Functions
 #########
-============================================= =========================================================================
-:bro:id:`match_pattern`: :bro:type:`function` Matches the given pattern against the given string, returning
-                                              a :bro:type:`PatternMatchResult` record.
-:bro:id:`set_to_regex`: :bro:type:`function`  Given a pattern as a string with two tildes (~~) contained in it, it will
-                                              return a pattern with string set's elements OR'd together where the
-                                              double-tilde was given (this function only works at or before init time).
-============================================= =========================================================================
+=============================================== =========================================================================
+:zeek:id:`match_pattern`: :zeek:type:`function` Matches the given pattern against the given string, returning
+                                                a :zeek:type:`PatternMatchResult` record.
+:zeek:id:`set_to_regex`: :zeek:type:`function`  Given a pattern as a string with two tildes (~~) contained in it, it will
+                                                return a pattern with string set's elements OR'd together where the
+                                                double-tilde was given (this function only works at or before init time).
+=============================================== =========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: PatternMatchResult
+.. zeek:type:: PatternMatchResult
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      matched: :bro:type:`bool`
+      matched: :zeek:type:`bool`
          T if a match was found, F otherwise.
 
-      str: :bro:type:`string`
+      str: :zeek:type:`string`
          Portion of string that first matched.
 
-      off: :bro:type:`count`
+      off: :zeek:type:`count`
          1-based offset where match starts.
 
 
 Functions
 #########
-.. bro:id:: match_pattern
+.. zeek:id:: match_pattern
 
-   :Type: :bro:type:`function` (s: :bro:type:`string`, p: :bro:type:`pattern`) : :bro:type:`PatternMatchResult`
+   :Type: :zeek:type:`function` (s: :zeek:type:`string`, p: :zeek:type:`pattern`) : :zeek:type:`PatternMatchResult`
 
    Matches the given pattern against the given string, returning
-   a :bro:type:`PatternMatchResult` record.
+   a :zeek:type:`PatternMatchResult` record.
    For example: ``match_pattern("foobar", /o*[a-k]/)`` returns
    ``[matched=T, str=f, off=1]``,  because the *first* match is for
    zero o's followed by an [a-k], but ``match_pattern("foobar", /o+[a-k]/)``
@@ -67,9 +67,9 @@ Functions
 
    :returns: a record indicating the match status.
 
-.. bro:id:: set_to_regex
+.. zeek:id:: set_to_regex
 
-   :Type: :bro:type:`function` (ss: :bro:type:`set` [:bro:type:`string`], pat: :bro:type:`string`) : :bro:type:`pattern`
+   :Type: :zeek:type:`function` (ss: :zeek:type:`set` [:zeek:type:`string`], pat: :zeek:type:`string`) : :zeek:type:`pattern`
 
    Given a pattern as a string with two tildes (~~) contained in it, it will
    return a pattern with string set's elements OR'd together where the

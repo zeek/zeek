@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Functions
 #########
-======================================= ============================================================
-:bro:id:`to_json`: :bro:type:`function` A function to convert arbitrary Bro data into a JSON string.
-======================================= ============================================================
+========================================= ============================================================
+:zeek:id:`to_json`: :zeek:type:`function` A function to convert arbitrary Bro data into a JSON string.
+========================================= ============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: to_json
+.. zeek:id:: to_json
 
-   :Type: :bro:type:`function` (v: :bro:type:`any`, only_loggable: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`, field_escape_pattern: :bro:type:`pattern` :bro:attr:`&default` = ``/^?(^_)$?/`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (v: :zeek:type:`any`, only_loggable: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`, field_escape_pattern: :zeek:type:`pattern` :zeek:attr:`&default` = ``/^?(^_)$?/`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    A function to convert arbitrary Bro data into a JSON string.
    

@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/validate-ocsp.zeek
 =======================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 Perform validation of stapled OCSP responses.
 
@@ -13,10 +13,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-:bro:type:`SSL::Info`: :bro:type:`record`  
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+:zeek:type:`SSL::Info`: :zeek:type:`record`  
+============================================ =
 
 
 Detailed Interface

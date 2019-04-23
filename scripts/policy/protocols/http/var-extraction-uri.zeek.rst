@@ -2,7 +2,7 @@
 
 policy/protocols/http/var-extraction-uri.zeek
 =============================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Extracts and logs variables from the requested URI in the default HTTP 
 logging stream.
@@ -14,9 +14,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`HTTP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`HTTP::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

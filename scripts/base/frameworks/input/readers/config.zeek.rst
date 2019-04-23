@@ -2,7 +2,7 @@
 
 base/frameworks/input/readers/config.zeek
 =========================================
-.. bro:namespace:: InputConfig
+.. zeek:namespace:: InputConfig
 
 Interface for the config input reader.
 
@@ -12,37 +12,37 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================ ==========================================
-:bro:id:`InputConfig::empty_field`: :bro:type:`string` :bro:attr:`&redef`        String to use for empty fields.
-:bro:id:`InputConfig::fail_on_file_problem`: :bro:type:`bool` :bro:attr:`&redef` Fail on file read problems.
-:bro:id:`InputConfig::set_separator`: :bro:type:`string` :bro:attr:`&redef`      Separator between set and vector elements.
-================================================================================ ==========================================
+=================================================================================== ==========================================
+:zeek:id:`InputConfig::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`        String to use for empty fields.
+:zeek:id:`InputConfig::fail_on_file_problem`: :zeek:type:`bool` :zeek:attr:`&redef` Fail on file read problems.
+:zeek:id:`InputConfig::set_separator`: :zeek:type:`string` :zeek:attr:`&redef`      Separator between set and vector elements.
+=================================================================================== ==========================================
 
 Events
 ######
-=================================================== ==============================================================
-:bro:id:`InputConfig::new_value`: :bro:type:`event` Event that is called when a config option is added or changes.
-=================================================== ==============================================================
+===================================================== ==============================================================
+:zeek:id:`InputConfig::new_value`: :zeek:type:`event` Event that is called when a config option is added or changes.
+===================================================== ==============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: InputConfig::empty_field
+.. zeek:id:: InputConfig::empty_field
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    String to use for empty fields.
    By default this is the empty string, meaning that an empty input field
    will result in an empty set.
 
-.. bro:id:: InputConfig::fail_on_file_problem
+.. zeek:id:: InputConfig::fail_on_file_problem
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    Fail on file read problems. If set to true, the config
@@ -59,10 +59,10 @@ Redefinable Options
    Individual readers can use a different value using
    the $config table.
 
-.. bro:id:: InputConfig::set_separator
+.. zeek:id:: InputConfig::set_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``","``
 
    Separator between set and vector elements.
@@ -70,9 +70,9 @@ Redefinable Options
 
 Events
 ######
-.. bro:id:: InputConfig::new_value
+.. zeek:id:: InputConfig::new_value
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, source: :bro:type:`string`, id: :bro:type:`string`, value: :bro:type:`any`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, source: :zeek:type:`string`, id: :zeek:type:`string`, value: :zeek:type:`any`)
 
    Event that is called when a config option is added or changes.
    

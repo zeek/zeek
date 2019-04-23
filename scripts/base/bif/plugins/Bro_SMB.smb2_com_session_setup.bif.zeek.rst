@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_session_setup.bif.zeek
 ========================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-======================================================== ===========================================================================================
-:bro:id:`smb2_session_setup_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                         version 2 requests of type *session_setup*.
-:bro:id:`smb2_session_setup_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                         version 2 responses of type *session_setup*.
-======================================================== ===========================================================================================
+========================================================== ===========================================================================================
+:zeek:id:`smb2_session_setup_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                           version 2 requests of type *session_setup*.
+:zeek:id:`smb2_session_setup_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                           version 2 responses of type *session_setup*.
+========================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_session_setup_request
+.. zeek:id:: smb2_session_setup_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, request: :bro:type:`SMB2::SessionSetupRequest`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, request: :zeek:type:`SMB2::SessionSetupRequest`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *session_setup*. This is sent by the client to request a new
@@ -43,11 +43,11 @@ Events
 
    :request: A record containing more information related to the request.
    
-   .. bro:see:: smb2_message smb2_session_setup_response
+   .. zeek:see:: smb2_message smb2_session_setup_response
 
-.. bro:id:: smb2_session_setup_response
+.. zeek:id:: smb2_session_setup_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`, response: :bro:type:`SMB2::SessionSetupResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::SessionSetupResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *session_setup*. This is sent by the server in response to a
@@ -64,6 +64,6 @@ Events
 
    :response: A record containing more information related to the response.
    
-   .. bro:see:: smb2_message smb2_session_setup_request
+   .. zeek:see:: smb2_message smb2_session_setup_request
 
 

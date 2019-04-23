@@ -48,7 +48,7 @@ interval (in minutes), and a new notice type.
 Using the ftp_reply event, we check for error codes from the `500
 series <http://en.wikipedia.org/wiki/List_of_FTP_server_return_codes>`_
 for the "USER" and "PASS" commands, representing rejected usernames or
-passwords. For this, we can use the :bro:see:`FTP::parse_ftp_reply_code`
+passwords. For this, we can use the :zeek:see:`FTP::parse_ftp_reply_code`
 function to break down the reply code and check if the first digit is a
 "5" or not. If true, we then use the :ref:`Summary Statistics Framework
 <sumstats-framework>` to keep track of the number of failed attempts.

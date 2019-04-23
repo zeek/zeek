@@ -2,7 +2,7 @@
 
 base/protocols/irc/files.zeek
 =============================
-.. bro:namespace:: IRC
+.. zeek:namespace:: IRC
 
 
 :Namespace: IRC
@@ -12,25 +12,25 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================================== =
-:bro:type:`IRC::Info`: :bro:type:`record`                  
-:bro:type:`fa_file`: :bro:type:`record` :bro:attr:`&redef` 
-========================================================== =
+============================================================= =
+:zeek:type:`IRC::Info`: :zeek:type:`record`                   
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
+============================================================= =
 
 Functions
 #########
-==================================================== =====================================
-:bro:id:`IRC::get_file_handle`: :bro:type:`function` Default file handle provider for IRC.
-==================================================== =====================================
+====================================================== =====================================
+:zeek:id:`IRC::get_file_handle`: :zeek:type:`function` Default file handle provider for IRC.
+====================================================== =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: IRC::get_file_handle
+.. zeek:id:: IRC::get_file_handle
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`string`
 
    Default file handle provider for IRC.
 

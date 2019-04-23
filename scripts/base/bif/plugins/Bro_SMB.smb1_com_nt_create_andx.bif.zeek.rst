@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_nt_create_andx.bif.zeek
 =========================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================= ===========================================================================================
-:bro:id:`smb1_nt_create_andx_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                          version 1 requests of type *nt create andx*.
-:bro:id:`smb1_nt_create_andx_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                          version 1 responses of type *nt create andx*.
-========================================================= ===========================================================================================
+=========================================================== ===========================================================================================
+:zeek:id:`smb1_nt_create_andx_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                            version 1 requests of type *nt create andx*.
+:zeek:id:`smb1_nt_create_andx_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                            version 1 responses of type *nt create andx*.
+=========================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_nt_create_andx_request
+.. zeek:id:: smb1_nt_create_andx_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_name: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *nt create andx*. This is sent by the client to create and open
@@ -43,11 +43,11 @@ Events
 
    :name: The ``name`` attribute  specified in the message.
    
-   .. bro:see:: smb1_message smb1_nt_create_andx_response
+   .. zeek:see:: smb1_message smb1_nt_create_andx_response
 
-.. bro:id:: smb1_nt_create_andx_response
+.. zeek:id:: smb1_nt_create_andx_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, file_id: :bro:type:`count`, file_size: :bro:type:`count`, times: :bro:type:`SMB::MACTimes`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`, file_size: :zeek:type:`count`, times: :zeek:type:`SMB::MACTimes`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *nt create andx*. This is the server response to the
@@ -70,6 +70,6 @@ Events
 
    :times: Timestamps associated with the file in question.
    
-   .. bro:see:: smb1_message smb1_nt_create_andx_request
+   .. zeek:see:: smb1_message smb1_nt_create_andx_request
 
 

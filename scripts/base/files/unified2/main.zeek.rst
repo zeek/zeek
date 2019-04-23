@@ -2,7 +2,7 @@
 
 base/files/unified2/main.zeek
 =============================
-.. bro:namespace:: Unified2
+.. zeek:namespace:: Unified2
 
 
 :Namespace: Unified2
@@ -12,154 +12,154 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================ =====================================================================
-:bro:id:`Unified2::classification_config`: :bro:type:`string` :bro:attr:`&redef` The classification.config file you would like to use for your alerts.
-:bro:id:`Unified2::gen_msg`: :bro:type:`string` :bro:attr:`&redef`               The gen-msg.map file you would like to use for your alerts.
-:bro:id:`Unified2::sid_msg`: :bro:type:`string` :bro:attr:`&redef`               The sid-msg.map file you would like to use for your alerts.
-:bro:id:`Unified2::watch_dir`: :bro:type:`string` :bro:attr:`&redef`             Directory to watch for Unified2 records.
-:bro:id:`Unified2::watch_file`: :bro:type:`string` :bro:attr:`&redef`            File to watch for Unified2 files.
-================================================================================ =====================================================================
+=================================================================================== =====================================================================
+:zeek:id:`Unified2::classification_config`: :zeek:type:`string` :zeek:attr:`&redef` The classification.config file you would like to use for your alerts.
+:zeek:id:`Unified2::gen_msg`: :zeek:type:`string` :zeek:attr:`&redef`               The gen-msg.map file you would like to use for your alerts.
+:zeek:id:`Unified2::sid_msg`: :zeek:type:`string` :zeek:attr:`&redef`               The sid-msg.map file you would like to use for your alerts.
+:zeek:id:`Unified2::watch_dir`: :zeek:type:`string` :zeek:attr:`&redef`             Directory to watch for Unified2 records.
+:zeek:id:`Unified2::watch_file`: :zeek:type:`string` :zeek:attr:`&redef`            File to watch for Unified2 files.
+=================================================================================== =====================================================================
 
 Types
 #####
-=================================================================== =
-:bro:type:`Unified2::Info`: :bro:type:`record` :bro:attr:`&log`     
-:bro:type:`Unified2::PacketID`: :bro:type:`record` :bro:attr:`&log` 
-=================================================================== =
+====================================================================== =
+:zeek:type:`Unified2::Info`: :zeek:type:`record` :zeek:attr:`&log`     
+:zeek:type:`Unified2::PacketID`: :zeek:type:`record` :zeek:attr:`&log` 
+====================================================================== =
 
 Redefinitions
 #############
-========================================================== =
-:bro:type:`Log::ID`: :bro:type:`enum`                      
-:bro:type:`fa_file`: :bro:type:`record` :bro:attr:`&redef` 
-========================================================== =
+============================================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                       
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
+============================================================= =
 
 Events
 ######
-=================================================== ===================================================
-:bro:id:`Unified2::alert`: :bro:type:`event`        Reconstructed "alert" which combines related events
-                                                    and packets.
-:bro:id:`Unified2::log_unified2`: :bro:type:`event` The event for accessing logged records.
-=================================================== ===================================================
+===================================================== ===================================================
+:zeek:id:`Unified2::alert`: :zeek:type:`event`        Reconstructed "alert" which combines related events
+                                                      and packets.
+:zeek:id:`Unified2::log_unified2`: :zeek:type:`event` The event for accessing logged records.
+===================================================== ===================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Unified2::classification_config
+.. zeek:id:: Unified2::classification_config
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    The classification.config file you would like to use for your alerts.
 
-.. bro:id:: Unified2::gen_msg
+.. zeek:id:: Unified2::gen_msg
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    The gen-msg.map file you would like to use for your alerts.
 
-.. bro:id:: Unified2::sid_msg
+.. zeek:id:: Unified2::sid_msg
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    The sid-msg.map file you would like to use for your alerts.
 
-.. bro:id:: Unified2::watch_dir
+.. zeek:id:: Unified2::watch_dir
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Directory to watch for Unified2 records.
 
-.. bro:id:: Unified2::watch_file
+.. zeek:id:: Unified2::watch_file
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    File to watch for Unified2 files.
 
 Types
 #####
-.. bro:type:: Unified2::Info
+.. zeek:type:: Unified2::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp attached to the alert.
 
-      id: :bro:type:`Unified2::PacketID` :bro:attr:`&log`
+      id: :zeek:type:`Unified2::PacketID` :zeek:attr:`&log`
          Addresses and ports for the connection.
 
-      sensor_id: :bro:type:`count` :bro:attr:`&log`
+      sensor_id: :zeek:type:`count` :zeek:attr:`&log`
          Sensor that originated this event.
 
-      signature_id: :bro:type:`count` :bro:attr:`&log`
+      signature_id: :zeek:type:`count` :zeek:attr:`&log`
          Sig id for this generator.
 
-      signature: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      signature: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          A string representation of the *signature_id* field if a sid_msg.map file was loaded.
 
-      generator_id: :bro:type:`count` :bro:attr:`&log`
+      generator_id: :zeek:type:`count` :zeek:attr:`&log`
          Which generator generated the alert?
 
-      generator: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      generator: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          A string representation of the *generator_id* field if a gen_msg.map file was loaded.
 
-      signature_revision: :bro:type:`count` :bro:attr:`&log`
+      signature_revision: :zeek:type:`count` :zeek:attr:`&log`
          Sig revision for this id.
 
-      classification_id: :bro:type:`count` :bro:attr:`&log`
+      classification_id: :zeek:type:`count` :zeek:attr:`&log`
          Event classification.
 
-      classification: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      classification: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Descriptive classification string.
 
-      priority_id: :bro:type:`count` :bro:attr:`&log`
+      priority_id: :zeek:type:`count` :zeek:attr:`&log`
          Event priority.
 
-      event_id: :bro:type:`count` :bro:attr:`&log`
+      event_id: :zeek:type:`count` :zeek:attr:`&log`
          Event ID.
 
-      packet: :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      packet: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          Some of the packet data.
-   :Attributes: :bro:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
 
-.. bro:type:: Unified2::PacketID
+.. zeek:type:: Unified2::PacketID
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      src_ip: :bro:type:`addr` :bro:attr:`&log`
+      src_ip: :zeek:type:`addr` :zeek:attr:`&log`
 
-      src_p: :bro:type:`port` :bro:attr:`&log`
+      src_p: :zeek:type:`port` :zeek:attr:`&log`
 
-      dst_ip: :bro:type:`addr` :bro:attr:`&log`
+      dst_ip: :zeek:type:`addr` :zeek:attr:`&log`
 
-      dst_p: :bro:type:`port` :bro:attr:`&log`
-   :Attributes: :bro:attr:`&log`
+      dst_p: :zeek:type:`port` :zeek:attr:`&log`
+   :Attributes: :zeek:attr:`&log`
 
 
 Events
 ######
-.. bro:id:: Unified2::alert
+.. zeek:id:: Unified2::alert
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ev: :bro:type:`Unified2::IDSEvent`, pkt: :bro:type:`Unified2::Packet`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ev: :zeek:type:`Unified2::IDSEvent`, pkt: :zeek:type:`Unified2::Packet`)
 
    Reconstructed "alert" which combines related events
    and packets.
 
-.. bro:id:: Unified2::log_unified2
+.. zeek:id:: Unified2::log_unified2
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Unified2::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Unified2::Info`)
 
    The event for accessing logged records.
 

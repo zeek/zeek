@@ -2,7 +2,7 @@
 
 base/protocols/krb/consts.zeek
 ==============================
-.. bro:namespace:: KRB
+.. zeek:namespace:: KRB
 
 
 :Namespace: KRB
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Constants
 #########
-============================================= =
-:bro:id:`KRB::cipher_name`: :bro:type:`table` 
-:bro:id:`KRB::error_msg`: :bro:type:`table`   
-============================================= =
+=============================================== =
+:zeek:id:`KRB::cipher_name`: :zeek:type:`table` 
+:zeek:id:`KRB::error_msg`: :zeek:type:`table`   
+=============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: KRB::cipher_name
+.. zeek:id:: KRB::cipher_name
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Default:
 
    ::
@@ -52,9 +52,9 @@ Constants
       }
 
 
-.. bro:id:: KRB::error_msg
+.. zeek:id:: KRB::error_msg
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Default:
 
    ::

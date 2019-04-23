@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Modbus.events.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,46 +11,46 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================================== ======================================================================
-:bro:id:`modbus_exception`: :bro:type:`event`                              Generated for any Modbus exception message.
-:bro:id:`modbus_mask_write_register_request`: :bro:type:`event`            Generated for a Modbus mask write register request.
-:bro:id:`modbus_mask_write_register_response`: :bro:type:`event`           Generated for a Modbus mask write register request.
-:bro:id:`modbus_message`: :bro:type:`event`                                Generated for any Modbus message regardless if the particular function
-                                                                           is further supported or not.
-:bro:id:`modbus_read_coils_request`: :bro:type:`event`                     Generated for a Modbus read coils request.
-:bro:id:`modbus_read_coils_response`: :bro:type:`event`                    Generated for a Modbus read coils response.
-:bro:id:`modbus_read_discrete_inputs_request`: :bro:type:`event`           Generated for a Modbus read discrete inputs request.
-:bro:id:`modbus_read_discrete_inputs_response`: :bro:type:`event`          Generated for a Modbus read discrete inputs response.
-:bro:id:`modbus_read_fifo_queue_request`: :bro:type:`event`                Generated for a Modbus read FIFO queue request.
-:bro:id:`modbus_read_fifo_queue_response`: :bro:type:`event`               Generated for a Modbus read FIFO queue response.
-:bro:id:`modbus_read_file_record_request`: :bro:type:`event`               Generated for a Modbus read file record request.
-:bro:id:`modbus_read_file_record_response`: :bro:type:`event`              Generated for a Modbus read file record response.
-:bro:id:`modbus_read_holding_registers_request`: :bro:type:`event`         Generated for a Modbus read holding registers request.
-:bro:id:`modbus_read_holding_registers_response`: :bro:type:`event`        Generated for a Modbus read holding registers response.
-:bro:id:`modbus_read_input_registers_request`: :bro:type:`event`           Generated for a Modbus read input registers request.
-:bro:id:`modbus_read_input_registers_response`: :bro:type:`event`          Generated for a Modbus read input registers response.
-:bro:id:`modbus_read_write_multiple_registers_request`: :bro:type:`event`  Generated for a Modbus read/write multiple registers request.
-:bro:id:`modbus_read_write_multiple_registers_response`: :bro:type:`event` Generated for a Modbus read/write multiple registers response.
-:bro:id:`modbus_write_file_record_request`: :bro:type:`event`              Generated for a Modbus write file record request.
-:bro:id:`modbus_write_file_record_response`: :bro:type:`event`             Generated for a Modbus write file record response.
-:bro:id:`modbus_write_multiple_coils_request`: :bro:type:`event`           Generated for a Modbus write multiple coils request.
-:bro:id:`modbus_write_multiple_coils_response`: :bro:type:`event`          Generated for a Modbus write multiple coils response.
-:bro:id:`modbus_write_multiple_registers_request`: :bro:type:`event`       Generated for a Modbus write multiple registers request.
-:bro:id:`modbus_write_multiple_registers_response`: :bro:type:`event`      Generated for a Modbus write multiple registers response.
-:bro:id:`modbus_write_single_coil_request`: :bro:type:`event`              Generated for a Modbus write single coil request.
-:bro:id:`modbus_write_single_coil_response`: :bro:type:`event`             Generated for a Modbus write single coil response.
-:bro:id:`modbus_write_single_register_request`: :bro:type:`event`          Generated for a Modbus write single register request.
-:bro:id:`modbus_write_single_register_response`: :bro:type:`event`         Generated for a Modbus write single register response.
-========================================================================== ======================================================================
+============================================================================ ======================================================================
+:zeek:id:`modbus_exception`: :zeek:type:`event`                              Generated for any Modbus exception message.
+:zeek:id:`modbus_mask_write_register_request`: :zeek:type:`event`            Generated for a Modbus mask write register request.
+:zeek:id:`modbus_mask_write_register_response`: :zeek:type:`event`           Generated for a Modbus mask write register request.
+:zeek:id:`modbus_message`: :zeek:type:`event`                                Generated for any Modbus message regardless if the particular function
+                                                                             is further supported or not.
+:zeek:id:`modbus_read_coils_request`: :zeek:type:`event`                     Generated for a Modbus read coils request.
+:zeek:id:`modbus_read_coils_response`: :zeek:type:`event`                    Generated for a Modbus read coils response.
+:zeek:id:`modbus_read_discrete_inputs_request`: :zeek:type:`event`           Generated for a Modbus read discrete inputs request.
+:zeek:id:`modbus_read_discrete_inputs_response`: :zeek:type:`event`          Generated for a Modbus read discrete inputs response.
+:zeek:id:`modbus_read_fifo_queue_request`: :zeek:type:`event`                Generated for a Modbus read FIFO queue request.
+:zeek:id:`modbus_read_fifo_queue_response`: :zeek:type:`event`               Generated for a Modbus read FIFO queue response.
+:zeek:id:`modbus_read_file_record_request`: :zeek:type:`event`               Generated for a Modbus read file record request.
+:zeek:id:`modbus_read_file_record_response`: :zeek:type:`event`              Generated for a Modbus read file record response.
+:zeek:id:`modbus_read_holding_registers_request`: :zeek:type:`event`         Generated for a Modbus read holding registers request.
+:zeek:id:`modbus_read_holding_registers_response`: :zeek:type:`event`        Generated for a Modbus read holding registers response.
+:zeek:id:`modbus_read_input_registers_request`: :zeek:type:`event`           Generated for a Modbus read input registers request.
+:zeek:id:`modbus_read_input_registers_response`: :zeek:type:`event`          Generated for a Modbus read input registers response.
+:zeek:id:`modbus_read_write_multiple_registers_request`: :zeek:type:`event`  Generated for a Modbus read/write multiple registers request.
+:zeek:id:`modbus_read_write_multiple_registers_response`: :zeek:type:`event` Generated for a Modbus read/write multiple registers response.
+:zeek:id:`modbus_write_file_record_request`: :zeek:type:`event`              Generated for a Modbus write file record request.
+:zeek:id:`modbus_write_file_record_response`: :zeek:type:`event`             Generated for a Modbus write file record response.
+:zeek:id:`modbus_write_multiple_coils_request`: :zeek:type:`event`           Generated for a Modbus write multiple coils request.
+:zeek:id:`modbus_write_multiple_coils_response`: :zeek:type:`event`          Generated for a Modbus write multiple coils response.
+:zeek:id:`modbus_write_multiple_registers_request`: :zeek:type:`event`       Generated for a Modbus write multiple registers request.
+:zeek:id:`modbus_write_multiple_registers_response`: :zeek:type:`event`      Generated for a Modbus write multiple registers response.
+:zeek:id:`modbus_write_single_coil_request`: :zeek:type:`event`              Generated for a Modbus write single coil request.
+:zeek:id:`modbus_write_single_coil_response`: :zeek:type:`event`             Generated for a Modbus write single coil response.
+:zeek:id:`modbus_write_single_register_request`: :zeek:type:`event`          Generated for a Modbus write single register request.
+:zeek:id:`modbus_write_single_register_response`: :zeek:type:`event`         Generated for a Modbus write single register response.
+============================================================================ ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: modbus_exception
+.. zeek:id:: modbus_exception
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, code: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, code: :zeek:type:`count`)
 
    Generated for any Modbus exception message.
    
@@ -63,9 +63,9 @@ Events
 
    :code: The exception code.
 
-.. bro:id:: modbus_mask_write_register_request
+.. zeek:id:: modbus_mask_write_register_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, and_mask: :bro:type:`count`, or_mask: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, and_mask: :zeek:type:`count`, or_mask: :zeek:type:`count`)
 
    Generated for a Modbus mask write register request.
    
@@ -84,9 +84,9 @@ Events
 
    :or_mask: The value of the logical OR mask to apply to the register.
 
-.. bro:id:: modbus_mask_write_register_response
+.. zeek:id:: modbus_mask_write_register_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, and_mask: :bro:type:`count`, or_mask: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, and_mask: :zeek:type:`count`, or_mask: :zeek:type:`count`)
 
    Generated for a Modbus mask write register request.
    
@@ -105,9 +105,9 @@ Events
 
    :or_mask: The value of the logical OR mask applied to the register.
 
-.. bro:id:: modbus_message
+.. zeek:id:: modbus_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, is_orig: :zeek:type:`bool`)
 
    Generated for any Modbus message regardless if the particular function
    is further supported or not.
@@ -121,9 +121,9 @@ Events
 
    :is_orig: True if the event is raised for the originator side.
 
-.. bro:id:: modbus_read_coils_request
+.. zeek:id:: modbus_read_coils_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read coils request.
    
@@ -139,9 +139,9 @@ Events
 
    :quantity: The number of coils to be read.
 
-.. bro:id:: modbus_read_coils_response
+.. zeek:id:: modbus_read_coils_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus read coils response.
    
@@ -154,9 +154,9 @@ Events
 
    :coils: The coil values returned from the device.
 
-.. bro:id:: modbus_read_discrete_inputs_request
+.. zeek:id:: modbus_read_discrete_inputs_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read discrete inputs request.
    
@@ -172,9 +172,9 @@ Events
 
    :quantity: The number of coils to be read.
 
-.. bro:id:: modbus_read_discrete_inputs_response
+.. zeek:id:: modbus_read_discrete_inputs_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus read discrete inputs response.
    
@@ -187,9 +187,9 @@ Events
 
    :coils: The coil values returned from the device.
 
-.. bro:id:: modbus_read_fifo_queue_request
+.. zeek:id:: modbus_read_fifo_queue_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`)
 
    Generated for a Modbus read FIFO queue request.
    
@@ -202,9 +202,9 @@ Events
 
    :start_address: The address of the FIFO queue to read.
 
-.. bro:id:: modbus_read_fifo_queue_response
+.. zeek:id:: modbus_read_fifo_queue_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, fifos: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, fifos: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read FIFO queue response.
    
@@ -217,9 +217,9 @@ Events
 
    :fifos: The register values read from the FIFO queue on the device.
 
-.. bro:id:: modbus_read_file_record_request
+.. zeek:id:: modbus_read_file_record_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus read file record request.
    
@@ -232,9 +232,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_read_file_record_response
+.. zeek:id:: modbus_read_file_record_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus read file record response.
    
@@ -247,9 +247,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_read_holding_registers_request
+.. zeek:id:: modbus_read_holding_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read holding registers request.
    
@@ -265,9 +265,9 @@ Events
 
    :quantity: The number of registers to be read.
 
-.. bro:id:: modbus_read_holding_registers_response
+.. zeek:id:: modbus_read_holding_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read holding registers response.
    
@@ -280,9 +280,9 @@ Events
 
    :registers: The register values returned from the device.
 
-.. bro:id:: modbus_read_input_registers_request
+.. zeek:id:: modbus_read_input_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus read input registers request.
    
@@ -298,9 +298,9 @@ Events
 
    :quantity: The number of registers to be read.
 
-.. bro:id:: modbus_read_input_registers_response
+.. zeek:id:: modbus_read_input_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read input registers response.
    
@@ -313,9 +313,9 @@ Events
 
    :registers: The register values returned from the device.
 
-.. bro:id:: modbus_read_write_multiple_registers_request
+.. zeek:id:: modbus_read_write_multiple_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, read_start_address: :bro:type:`count`, read_quantity: :bro:type:`count`, write_start_address: :bro:type:`count`, write_registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, read_start_address: :zeek:type:`count`, read_quantity: :zeek:type:`count`, write_start_address: :zeek:type:`count`, write_registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read/write multiple registers request.
    
@@ -337,9 +337,9 @@ Events
 
    :write_registers: The values to be written to the registers.
 
-.. bro:id:: modbus_read_write_multiple_registers_response
+.. zeek:id:: modbus_read_write_multiple_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, written_registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, written_registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus read/write multiple registers response.
    
@@ -353,9 +353,9 @@ Events
    :written_registers: The register values read from the registers specified in
                       the request.
 
-.. bro:id:: modbus_write_file_record_request
+.. zeek:id:: modbus_write_file_record_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus write file record request.
    
@@ -368,9 +368,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_write_file_record_response
+.. zeek:id:: modbus_write_file_record_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`)
 
    Generated for a Modbus write file record response.
    
@@ -383,9 +383,9 @@ Events
    .. note: This event is incomplete.  The information from the data structure
             is not yet passed through to the event.
 
-.. bro:id:: modbus_write_multiple_coils_request
+.. zeek:id:: modbus_write_multiple_coils_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, coils: :bro:type:`ModbusCoils`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, coils: :zeek:type:`ModbusCoils`)
 
    Generated for a Modbus write multiple coils request.
    
@@ -401,9 +401,9 @@ Events
 
    :coils: The values to be written to the coils.
 
-.. bro:id:: modbus_write_multiple_coils_response
+.. zeek:id:: modbus_write_multiple_coils_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus write multiple coils response.
    
@@ -419,9 +419,9 @@ Events
 
    :quantity: The quantity of coils that were written.
 
-.. bro:id:: modbus_write_multiple_registers_request
+.. zeek:id:: modbus_write_multiple_registers_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, registers: :bro:type:`ModbusRegisters`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, registers: :zeek:type:`ModbusRegisters`)
 
    Generated for a Modbus write multiple registers request.
    
@@ -437,9 +437,9 @@ Events
 
    :registers: The values to be written to the registers.
 
-.. bro:id:: modbus_write_multiple_registers_response
+.. zeek:id:: modbus_write_multiple_registers_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, start_address: :bro:type:`count`, quantity: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
    Generated for a Modbus write multiple registers response.
    
@@ -455,9 +455,9 @@ Events
 
    :quantity: The quantity of registers that were written.
 
-.. bro:id:: modbus_write_single_coil_request
+.. zeek:id:: modbus_write_single_coil_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`bool`)
 
    Generated for a Modbus write single coil request.
    
@@ -473,9 +473,9 @@ Events
 
    :value: The value to be written to the coil.
 
-.. bro:id:: modbus_write_single_coil_response
+.. zeek:id:: modbus_write_single_coil_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`bool`)
 
    Generated for a Modbus write single coil response.
    
@@ -491,9 +491,9 @@ Events
 
    :value: The value that was written to the coil.
 
-.. bro:id:: modbus_write_single_register_request
+.. zeek:id:: modbus_write_single_register_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for a Modbus write single register request.
    
@@ -509,9 +509,9 @@ Events
 
    :value: The value to be written to the register.
 
-.. bro:id:: modbus_write_single_register_response
+.. zeek:id:: modbus_write_single_register_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, headers: :bro:type:`ModbusHeaders`, address: :bro:type:`count`, value: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, address: :zeek:type:`count`, value: :zeek:type:`count`)
 
    Generated for a Modbus write single register response.
    

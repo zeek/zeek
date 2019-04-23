@@ -2,7 +2,7 @@
 
 base/frameworks/netcontrol/drop.zeek
 ====================================
-.. bro:namespace:: NetControl
+.. zeek:namespace:: NetControl
 
 Implementation of the drop functionality for NetControl.
 
@@ -13,85 +13,85 @@ Summary
 ~~~~~~~
 Types
 #####
-==================================================== =
-:bro:type:`NetControl::DropInfo`: :bro:type:`record` 
-==================================================== =
+====================================================== =
+:zeek:type:`NetControl::DropInfo`: :zeek:type:`record` 
+====================================================== =
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 Events
 ######
-============================================================ =========================================================================
-:bro:id:`NetControl::log_netcontrol_drop`: :bro:type:`event` Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
-                                                             record as it is sent on to the logging framework.
-============================================================ =========================================================================
+============================================================== ==========================================================================
+:zeek:id:`NetControl::log_netcontrol_drop`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
+                                                               record as it is sent on to the logging framework.
+============================================================== ==========================================================================
 
 Hooks
 #####
-======================================================== =======================================================================
-:bro:id:`NetControl::drop_rule_policy`: :bro:type:`hook` Hook that allows the modification of rules passed to drop_* before they
-                                                         are passed on.
-======================================================== =======================================================================
+========================================================== =======================================================================
+:zeek:id:`NetControl::drop_rule_policy`: :zeek:type:`hook` Hook that allows the modification of rules passed to drop_* before they
+                                                           are passed on.
+========================================================== =======================================================================
 
 Functions
 #########
-=========================================================== ======================================================================
-:bro:id:`NetControl::drop_address`: :bro:type:`function`    Stops all packets involving an IP address from being forwarded.
-:bro:id:`NetControl::drop_connection`: :bro:type:`function` Stops all packets involving a connection address from being forwarded.
-=========================================================== ======================================================================
+============================================================= ======================================================================
+:zeek:id:`NetControl::drop_address`: :zeek:type:`function`    Stops all packets involving an IP address from being forwarded.
+:zeek:id:`NetControl::drop_connection`: :zeek:type:`function` Stops all packets involving a connection address from being forwarded.
+============================================================= ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: NetControl::DropInfo
+.. zeek:type:: NetControl::DropInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time at which the recorded activity occurred.
 
-      rule_id: :bro:type:`string` :bro:attr:`&log`
+      rule_id: :zeek:type:`string` :zeek:attr:`&log`
          ID of the rule; unique during each Bro run.
 
-      orig_h: :bro:type:`addr` :bro:attr:`&log`
+      orig_h: :zeek:type:`addr` :zeek:attr:`&log`
          The originator's IP address.
 
-      orig_p: :bro:type:`port` :bro:attr:`&log` :bro:attr:`&optional`
+      orig_p: :zeek:type:`port` :zeek:attr:`&log` :zeek:attr:`&optional`
          The originator's port number.
 
-      resp_h: :bro:type:`addr` :bro:attr:`&log` :bro:attr:`&optional`
+      resp_h: :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&optional`
          The responder's IP address.
 
-      resp_p: :bro:type:`port` :bro:attr:`&log` :bro:attr:`&optional`
+      resp_p: :zeek:type:`port` :zeek:attr:`&log` :zeek:attr:`&optional`
          The responder's port number.
 
-      expire: :bro:type:`interval` :bro:attr:`&log`
+      expire: :zeek:type:`interval` :zeek:attr:`&log`
          Expiry time of the shunt.
 
-      location: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      location: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Location where the underlying action was triggered.
 
 
 Events
 ######
-.. bro:id:: NetControl::log_netcontrol_drop
+.. zeek:id:: NetControl::log_netcontrol_drop
 
-   :Type: :bro:type:`event` (rec: :bro:type:`NetControl::DropInfo`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`NetControl::DropInfo`)
 
-   Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
+   Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
    record as it is sent on to the logging framework.
 
 Hooks
 #####
-.. bro:id:: NetControl::drop_rule_policy
+.. zeek:id:: NetControl::drop_rule_policy
 
-   :Type: :bro:type:`hook` (r: :bro:type:`NetControl::Rule`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool`
 
    Hook that allows the modification of rules passed to drop_* before they
    are passed on. If one of the hooks uses break, the rule is ignored.
@@ -101,9 +101,9 @@ Hooks
 
 Functions
 #########
-.. bro:id:: NetControl::drop_address
+.. zeek:id:: NetControl::drop_address
 
-   :Type: :bro:type:`function` (a: :bro:type:`addr`, t: :bro:type:`interval`, location: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (a: :zeek:type:`addr`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops all packets involving an IP address from being forwarded.
    
@@ -119,9 +119,9 @@ Functions
 
    :returns: The id of the inserted rule on success and zero on failure.
 
-.. bro:id:: NetControl::drop_connection
+.. zeek:id:: NetControl::drop_connection
 
-   :Type: :bro:type:`function` (c: :bro:type:`conn_id`, t: :bro:type:`interval`, location: :bro:type:`string` :bro:attr:`&default` = ``""`` :bro:attr:`&optional`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (c: :zeek:type:`conn_id`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops all packets involving a connection address from being forwarded.
    

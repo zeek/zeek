@@ -53,39 +53,39 @@ General Porting Tips
   you manually take action to set up the old communication system.
   To aid in porting, such usages will default to raising a fatal error
   unless you explicitly acknowledge that such usages of the old system
-  are ok.  Set the :bro:see:`old_comm_usage_is_ok` flag in this case.
+  are ok.  Set the :zeek:see:`old_comm_usage_is_ok` flag in this case.
 
 - Instead of using e.g. ``Cluster::manager2worker_events`` (and all
   permutations for every node type), what you'd now use is either 
-  :bro:see:`Broker::publish` or :bro:see:`Broker::auto_publish` with
+  :zeek:see:`Broker::publish` or :zeek:see:`Broker::auto_publish` with
   either the topic associated with a specific node or class of nodes,
-  like :bro:see:`Cluster::node_topic` or
-  :bro:see:`Cluster::worker_topic`.
+  like :zeek:see:`Cluster::node_topic` or
+  :zeek:see:`Cluster::worker_topic`.
 
-- Instead of using the ``send_id`` BIF, use :bro:see:`Broker::publish_id`.
+- Instead of using the ``send_id`` BIF, use :zeek:see:`Broker::publish_id`.
 
-- Use :bro:see:`terminate` instead of :bro:see:`terminate_communication`.
+- Use :zeek:see:`terminate` instead of :zeek:see:`terminate_communication`.
   The latter refers to the old communication system and no longer affects
   the new Broker-based system.
 
-- For replacing :bro:see:`remote_connection_established` and
-  :bro:see:`remote_connection_closed`, consider :bro:see:`Broker::peer_added`
-  or :bro:see:`Broker::peer_lost`.  There's also :bro:see:`Cluster::node_up`
-  and :bro:see:`Cluster::node_down`.
+- For replacing :zeek:see:`remote_connection_established` and
+  :zeek:see:`remote_connection_closed`, consider :zeek:see:`Broker::peer_added`
+  or :zeek:see:`Broker::peer_lost`.  There's also :zeek:see:`Cluster::node_up`
+  and :zeek:see:`Cluster::node_down`.
 
 Notable / Specific Script API Changes
 -------------------------------------
 
-- :bro:see:`Software::tracked` is now partitioned among proxy nodes
+- :zeek:see:`Software::tracked` is now partitioned among proxy nodes
   instead of synchronized in its entirety to all nodes.
 
-- ``Known::known_hosts`` is renamed to :bro:see:`Known::host_store` and
+- ``Known::known_hosts`` is renamed to :zeek:see:`Known::host_store` and
   implemented via the new Broker data store interface.
 
-- ``Known::known_services`` is renamed to :bro:see:`Known::service_store`
+- ``Known::known_services`` is renamed to :zeek:see:`Known::service_store`
   and implemented via the new Broker data store interface.
 
-- ``Known::certs`` is renamed to :bro:see:`Known::cert_store`
+- ``Known::certs`` is renamed to :zeek:see:`Known::cert_store`
   and implemented via the new Broker data store interface.
 
 New Cluster Layout / API
@@ -190,7 +190,7 @@ needs of their script.
 
 One example strategy is to use Highest Random Weight (HRW) hashing to
 partition data tables amongst the pool of all proxy nodes.  e.g. using
-:bro:see:`Cluster::publish_hrw`.  This could allow clusters to
+:zeek:see:`Cluster::publish_hrw`.  This could allow clusters to
 be scaled more easily than the approach of "the entire data set gets
 synchronized to all nodes" as the solution to memory limitations becomes
 "just add another proxy node".  It may also take away some of the
@@ -205,7 +205,7 @@ causing data to now be located and updated there.
 If the developer of a script expects its workload to be particularly
 intensive, wants to ensure that their operations get exclusive
 access to nodes, or otherwise set constraints on the number of nodes within
-a pool utilized by their script, then the :bro:see:`Cluster::PoolSpec`
+a pool utilized by their script, then the :zeek:see:`Cluster::PoolSpec`
 structure will allow them to do that while still allowing users of that script
 to override the default suggestions made by the original developer.
 
@@ -277,7 +277,7 @@ The topic names that logs get published under are a bit nuanced.  In the
 default cluster configuration, they are round-robin published to
 explicit topic names that identify a single logger.  In standalone Bro
 processes, logs get published to the topic indicated by
-:bro:see:`Broker::default_log_topic_prefix`.
+:zeek:see:`Broker::default_log_topic_prefix`.
 
 For those writing their own scripts which need new topic names, a
 suggestion would be to avoid prefixing any new topics/prefixes with
@@ -292,14 +292,14 @@ cluster framework.
 Connecting to Peers
 -------------------
 
-Bro can accept incoming connections by calling :bro:see:`Broker::listen`.
+Bro can accept incoming connections by calling :zeek:see:`Broker::listen`.
 
 .. literalinclude:: broker/connecting-listener.zeek
    :caption: connecting-listener.zeek
    :language: bro
    :linenos:
 
-Bro can initiate outgoing connections by calling :bro:see:`Broker::peer`.
+Bro can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
 
 .. literalinclude:: broker/connecting-connector.zeek
    :caption: connecting-connector.zeek
@@ -307,7 +307,7 @@ Bro can initiate outgoing connections by calling :bro:see:`Broker::peer`.
    :linenos:
 
 In either case, connection status updates are monitored via the
-:bro:see:`Broker::peer_added` and :bro:see:`Broker::peer_lost` events.
+:zeek:see:`Broker::peer_added` and :zeek:see:`Broker::peer_lost` events.
 
 Remote Events
 -------------
@@ -318,7 +318,7 @@ and named in a way that helps organize events into various categories.
 See the :ref:`topic naming conventions section <broker_topic_naming>` for
 more on how topics work and are chosen.
 
-Use the :bro:see:`Broker::subscribe` function to subscribe to topics and
+Use the :zeek:see:`Broker::subscribe` function to subscribe to topics and
 define any event handlers for events that peers will send.
 
 .. literalinclude:: broker/events-listener.zeek
@@ -328,13 +328,13 @@ define any event handlers for events that peers will send.
 
 There are two different ways to send events.
 
-The first is to call the :bro:see:`Broker::publish` function which you can
+The first is to call the :zeek:see:`Broker::publish` function which you can
 supply directly with the event and its arguments or give it the return value of
-:bro:see:`Broker::make_event` in case you need to send the same event/args
+:zeek:see:`Broker::make_event` in case you need to send the same event/args
 multiple times.  When publishing events like this, local event handlers for
 the event are not called.
 
-The second option is to call the :bro:see:`Broker::auto_publish` function where
+The second option is to call the :zeek:see:`Broker::auto_publish` function where
 you specify a particular event that will be automatically sent to peers
 whenever the event is called locally via the normal event invocation syntax.
 When auto-publishing events, local event handlers for the event are called
@@ -357,10 +357,10 @@ Remote Logging
    :language: bro
    :linenos:
 
-To toggle remote logs, redef :bro:see:`Log::enable_remote_logging`.
-Use the :bro:see:`Broker::subscribe` function to advertise interest
+To toggle remote logs, redef :zeek:see:`Log::enable_remote_logging`.
+Use the :zeek:see:`Broker::subscribe` function to advertise interest
 in logs written by peers.  The topic names that Bro uses are determined by
-:bro:see:`Broker::log_topic`.
+:zeek:see:`Broker::log_topic`.
 
 .. literalinclude:: broker/logs-listener.zeek
    :caption: logs-listener.zeek
@@ -373,7 +373,7 @@ in logs written by peers.  The topic names that Bro uses are determined by
    :linenos:
 
 Note that logging events are only raised locally on the node that performs
-the :bro:see:`Log::write` and not automatically published to peers.
+the :zeek:see:`Log::write` and not automatically published to peers.
 
 .. _data_store_example:
 
@@ -449,7 +449,7 @@ For example, this will likely not work as expected:
 
 This code runs without errors, however, the local ``my_event`` handler
 will never be called and also not any remote handlers either, even if
-:bro:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
+:zeek:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
 minimum you would need change the ``zeek_init()`` handler:
 
 .. sourcecode:: bro

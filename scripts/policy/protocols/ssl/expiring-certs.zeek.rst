@@ -2,7 +2,7 @@
 
 policy/protocols/ssl/expiring-certs.zeek
 ========================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 Generate notices when X.509 certificates over SSL/TLS are expired or 
 going to expire soon based on the date and time values stored within the
@@ -15,28 +15,28 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================================== =====================================================================
-:bro:id:`SSL::notify_certs_expiration`: :bro:type:`Host` :bro:attr:`&redef`          The category of hosts you would like to be notified about which have 
-                                                                                     certificates that are going to be expiring soon.
-:bro:id:`SSL::notify_when_cert_expiring_in`: :bro:type:`interval` :bro:attr:`&redef` The time before a certificate is going to expire that you would like
-                                                                                     to start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
-==================================================================================== =====================================================================
+======================================================================================= ======================================================================
+:zeek:id:`SSL::notify_certs_expiration`: :zeek:type:`Host` :zeek:attr:`&redef`          The category of hosts you would like to be notified about which have 
+                                                                                        certificates that are going to be expiring soon.
+:zeek:id:`SSL::notify_when_cert_expiring_in`: :zeek:type:`interval` :zeek:attr:`&redef` The time before a certificate is going to expire that you would like
+                                                                                        to start receiving :zeek:enum:`SSL::Certificate_Expires_Soon` notices.
+======================================================================================= ======================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSL::notify_certs_expiration
+.. zeek:id:: SSL::notify_certs_expiration
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``LOCAL_HOSTS``
 
    The category of hosts you would like to be notified about which have 
@@ -45,13 +45,13 @@ Runtime Options
    a particular certificate has had a notice generated.
    Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS
 
-.. bro:id:: SSL::notify_when_cert_expiring_in
+.. zeek:id:: SSL::notify_when_cert_expiring_in
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30.0 days``
 
    The time before a certificate is going to expire that you would like
-   to start receiving :bro:enum:`SSL::Certificate_Expires_Soon` notices.
+   to start receiving :zeek:enum:`SSL::Certificate_Expires_Soon` notices.
 
 

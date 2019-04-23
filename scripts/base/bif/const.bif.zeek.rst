@@ -2,7 +2,7 @@
 
 base/bif/const.bif.zeek
 =======================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 Declaration of various scripting-layer constants that the Bro core uses
 internally.  Documentation and default values for the scripting-layer

@@ -14,7 +14,7 @@ etc.
 
    This file defines the types that are used by the NetControl framework.
    
-   The most important type defined in this file is :bro:see:`NetControl::Rule`,
+   The most important type defined in this file is :zeek:see:`NetControl::Rule`,
    which is used to describe all rules that can be expressed by the NetControl framework. 
 
 :doc:`/scripts/base/frameworks/netcontrol/main.zeek`

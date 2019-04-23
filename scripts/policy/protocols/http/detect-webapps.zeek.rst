@@ -2,7 +2,7 @@
 
 policy/protocols/http/detect-webapps.zeek
 =========================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Detect and log web applications through the software framework.
 
@@ -13,11 +13,11 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================================================= =
-:bro:id:`Signatures::ignored_ids`: :bro:type:`pattern` :bro:attr:`&redef` 
-:bro:type:`Software::Info`: :bro:type:`record`                            
-:bro:type:`Software::Type`: :bro:type:`enum`                              
-========================================================================= =
+============================================================================ =
+:zeek:id:`Signatures::ignored_ids`: :zeek:type:`pattern` :zeek:attr:`&redef` 
+:zeek:type:`Software::Info`: :zeek:type:`record`                             
+:zeek:type:`Software::Type`: :zeek:type:`enum`                               
+============================================================================ =
 
 
 Detailed Interface

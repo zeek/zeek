@@ -2,7 +2,7 @@
 
 policy/frameworks/control/controller.zeek
 =========================================
-.. bro:namespace:: Control
+.. zeek:namespace:: Control
 
 This is a utility script that implements the controller interface for the
 control framework.  It's intended to be run to control a remote Bro

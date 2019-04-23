@@ -2,7 +2,7 @@
 
 policy/frameworks/dpd/detect-protocols.zeek
 ===========================================
-.. bro:namespace:: ProtocolDetector
+.. zeek:namespace:: ProtocolDetector
 
 Finds connections with protocols on non-standard ports with DPD.
 
@@ -13,113 +13,113 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-===================================================================================== =
-:bro:id:`ProtocolDetector::minimum_duration`: :bro:type:`interval` :bro:attr:`&redef` 
-:bro:id:`ProtocolDetector::minimum_volume`: :bro:type:`double` :bro:attr:`&redef`     
-:bro:id:`ProtocolDetector::suppress_servers`: :bro:type:`set` :bro:attr:`&redef`      
-:bro:id:`ProtocolDetector::valids`: :bro:type:`table` :bro:attr:`&redef`              
-===================================================================================== =
+======================================================================================== =
+:zeek:id:`ProtocolDetector::minimum_duration`: :zeek:type:`interval` :zeek:attr:`&redef` 
+:zeek:id:`ProtocolDetector::minimum_volume`: :zeek:type:`double` :zeek:attr:`&redef`     
+:zeek:id:`ProtocolDetector::suppress_servers`: :zeek:type:`set` :zeek:attr:`&redef`      
+:zeek:id:`ProtocolDetector::valids`: :zeek:type:`table` :zeek:attr:`&redef`              
+======================================================================================== =
 
 Constants
 #########
-================================================================ =
-:bro:id:`ProtocolDetector::check_interval`: :bro:type:`interval` 
-================================================================ =
+================================================================== =
+:zeek:id:`ProtocolDetector::check_interval`: :zeek:type:`interval` 
+================================================================== =
 
 State Variables
 ###############
-=============================================================================================== =
-:bro:id:`ProtocolDetector::servers`: :bro:type:`table` :bro:attr:`&read_expire` = ``14.0 days`` 
-=============================================================================================== =
+================================================================================================== =
+:zeek:id:`ProtocolDetector::servers`: :zeek:type:`table` :zeek:attr:`&read_expire` = ``14.0 days`` 
+================================================================================================== =
 
 Types
 #####
-=================================================== =
-:bro:type:`ProtocolDetector::dir`: :bro:type:`enum` 
-=================================================== =
+===================================================== =
+:zeek:type:`ProtocolDetector::dir`: :zeek:type:`enum` 
+===================================================== =
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 Functions
 #########
-================================================================ =
-:bro:id:`ProtocolDetector::found_protocol`: :bro:type:`function` 
-================================================================ =
+================================================================== =
+:zeek:id:`ProtocolDetector::found_protocol`: :zeek:type:`function` 
+================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: ProtocolDetector::minimum_duration
+.. zeek:id:: ProtocolDetector::minimum_duration
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``30.0 secs``
 
 
-.. bro:id:: ProtocolDetector::minimum_volume
+.. zeek:id:: ProtocolDetector::minimum_volume
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``4000.0``
 
 
-.. bro:id:: ProtocolDetector::suppress_servers
+.. zeek:id:: ProtocolDetector::suppress_servers
 
-   :Type: :bro:type:`set` [:bro:type:`Analyzer::Tag`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`Analyzer::Tag`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
 
-.. bro:id:: ProtocolDetector::valids
+.. zeek:id:: ProtocolDetector::valids
 
-   :Type: :bro:type:`table` [:bro:type:`Analyzer::Tag`, :bro:type:`addr`, :bro:type:`port`] of :bro:type:`ProtocolDetector::dir`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`Analyzer::Tag`, :zeek:type:`addr`, :zeek:type:`port`] of :zeek:type:`ProtocolDetector::dir`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
 
 Constants
 #########
-.. bro:id:: ProtocolDetector::check_interval
+.. zeek:id:: ProtocolDetector::check_interval
 
-   :Type: :bro:type:`interval`
+   :Type: :zeek:type:`interval`
    :Default: ``5.0 secs``
 
 
 State Variables
 ###############
-.. bro:id:: ProtocolDetector::servers
+.. zeek:id:: ProtocolDetector::servers
 
-   :Type: :bro:type:`table` [:bro:type:`addr`, :bro:type:`port`, :bro:type:`string`] of :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&read_expire` = ``14.0 days``
+   :Type: :zeek:type:`table` [:zeek:type:`addr`, :zeek:type:`port`, :zeek:type:`string`] of :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&read_expire` = ``14.0 days``
    :Default: ``{}``
 
 
 Types
 #####
-.. bro:type:: ProtocolDetector::dir
+.. zeek:type:: ProtocolDetector::dir
 
-   :Type: :bro:type:`enum`
+   :Type: :zeek:type:`enum`
 
-      .. bro:enum:: ProtocolDetector::NONE ProtocolDetector::dir
+      .. zeek:enum:: ProtocolDetector::NONE ProtocolDetector::dir
 
-      .. bro:enum:: ProtocolDetector::INCOMING ProtocolDetector::dir
+      .. zeek:enum:: ProtocolDetector::INCOMING ProtocolDetector::dir
 
-      .. bro:enum:: ProtocolDetector::OUTGOING ProtocolDetector::dir
+      .. zeek:enum:: ProtocolDetector::OUTGOING ProtocolDetector::dir
 
-      .. bro:enum:: ProtocolDetector::BOTH ProtocolDetector::dir
+      .. zeek:enum:: ProtocolDetector::BOTH ProtocolDetector::dir
 
 
 Functions
 #########
-.. bro:id:: ProtocolDetector::found_protocol
+.. zeek:id:: ProtocolDetector::found_protocol
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`, atype: :bro:type:`Analyzer::Tag`, protocol: :bro:type:`string`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, atype: :zeek:type:`Analyzer::Tag`, protocol: :zeek:type:`string`) : :zeek:type:`void`
 
 
 

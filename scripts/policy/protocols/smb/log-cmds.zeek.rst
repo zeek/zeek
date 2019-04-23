@@ -2,7 +2,7 @@
 
 policy/protocols/smb/log-cmds.zeek
 ==================================
-.. bro:namespace:: SMB
+.. zeek:namespace:: SMB
 
 Load this script to generate an SMB command log, smb_cmd.log.
 This is primarily useful for debugging.
@@ -14,25 +14,25 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=========================================================================== ====================================================
-:bro:id:`SMB::ignored_command_statuses`: :bro:type:`set` :bro:attr:`&redef` The server response statuses which are *not* logged.
-=========================================================================== ====================================================
+============================================================================== ====================================================
+:zeek:id:`SMB::ignored_command_statuses`: :zeek:type:`set` :zeek:attr:`&redef` The server response statuses which are *not* logged.
+============================================================================== ====================================================
 
 Redefinitions
 #############
-===================================== =
-:bro:type:`Log::ID`: :bro:type:`enum` 
-===================================== =
+======================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum` 
+======================================= =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SMB::ignored_command_statuses
+.. zeek:id:: SMB::ignored_command_statuses
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

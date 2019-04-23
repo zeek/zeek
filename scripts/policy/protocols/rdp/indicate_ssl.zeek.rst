@@ -2,7 +2,7 @@
 
 policy/protocols/rdp/indicate_ssl.zeek
 ======================================
-.. bro:namespace:: RDP
+.. zeek:namespace:: RDP
 
 If an RDP session is "upgraded" to SSL, this will be indicated
 with this script in a new field added to the RDP log.
@@ -14,9 +14,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================= =
-:bro:type:`RDP::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`RDP::Info`: :zeek:type:`record` 
+=========================================== =
 
 
 Detailed Interface

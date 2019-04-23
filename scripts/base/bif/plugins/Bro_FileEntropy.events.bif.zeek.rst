@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_FileEntropy.events.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================= ========================================================
-:bro:id:`file_entropy`: :bro:type:`event` This event is generated each time file analysis performs
-                                          entropy testing on a file.
-========================================= ========================================================
+=========================================== ========================================================
+:zeek:id:`file_entropy`: :zeek:type:`event` This event is generated each time file analysis performs
+                                            entropy testing on a file.
+=========================================== ========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: file_entropy
+.. zeek:id:: file_entropy
 
-   :Type: :bro:type:`event` (f: :bro:type:`fa_file`, ent: :bro:type:`entropy_test_result`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ent: :zeek:type:`entropy_test_result`)
 
    This event is generated each time file analysis performs
    entropy testing on a file.

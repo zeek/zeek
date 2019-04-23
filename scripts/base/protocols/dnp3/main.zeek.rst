@@ -2,7 +2,7 @@
 
 base/protocols/dnp3/main.zeek
 =============================
-.. bro:namespace:: DNP3
+.. zeek:namespace:: DNP3
 
 A very basic DNP3 analysis script that just logs requests and replies.
 
@@ -13,58 +13,58 @@ Summary
 ~~~~~~~
 Types
 #####
-========================================== =
-:bro:type:`DNP3::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`DNP3::Info`: :zeek:type:`record` 
+============================================ =
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-=========================================== ====================================================================
-:bro:id:`DNP3::log_dnp3`: :bro:type:`event` Event that can be handled to access the DNP3 record as it is sent on
-                                            to the logging framework.
-=========================================== ====================================================================
+============================================= ====================================================================
+:zeek:id:`DNP3::log_dnp3`: :zeek:type:`event` Event that can be handled to access the DNP3 record as it is sent on
+                                              to the logging framework.
+============================================= ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: DNP3::Info
+.. zeek:type:: DNP3::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time of the request.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique identifier for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          Identifier for the connection.
 
-      fc_request: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      fc_request: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The name of the function message in the request.
 
-      fc_reply: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      fc_reply: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The name of the function message in the reply.
 
-      iin: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      iin: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          The response's "internal indication number".
 
 
 Events
 ######
-.. bro:id:: DNP3::log_dnp3
+.. zeek:id:: DNP3::log_dnp3
 
-   :Type: :bro:type:`event` (rec: :bro:type:`DNP3::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`DNP3::Info`)
 
    Event that can be handled to access the DNP3 record as it is sent on
    to the logging framework.

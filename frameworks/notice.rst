@@ -30,9 +30,9 @@ bit between environments, and activity deemed malicious at one site might be
 fully acceptable at another.
 
 Whenever one of Bro's analysis scripts sees something potentially
-interesting it flags the situation by calling the :bro:see:`NOTICE`
-function and giving it a single :bro:see:`Notice::Info` record. A Notice
-has a :bro:see:`Notice::Type`, which reflects the kind of activity that
+interesting it flags the situation by calling the :zeek:see:`NOTICE`
+function and giving it a single :zeek:see:`Notice::Info` record. A Notice
+has a :zeek:see:`Notice::Type`, which reflects the kind of activity that
 has been seen, and it is usually also augmented with further context
 about the situation.
 
@@ -40,7 +40,7 @@ More information about raising notices can be found in the `Raising Notices`_
 section.
 
 Once a notice is raised, it can have any number of actions applied to it by
-writing :bro:see:`Notice::policy` hooks which is described in the `Notice Policy`_
+writing :zeek:see:`Notice::policy` hooks which is described in the `Notice Policy`_
 section below. Such actions can be to send a mail to the configured
 address(es) or to simply ignore the notice. Currently, the following actions
 are defined:
@@ -53,20 +53,20 @@ are defined:
       - Description
 
     * - Notice::ACTION_LOG
-      - Write the notice to the :bro:see:`Notice::LOG` logging stream.
+      - Write the notice to the :zeek:see:`Notice::LOG` logging stream.
 
     * - Notice::ACTION_ALARM
-      - Log into the :bro:see:`Notice::ALARM_LOG` stream which will rotate
+      - Log into the :zeek:see:`Notice::ALARM_LOG` stream which will rotate
         hourly and email the contents to the email address or addresses
-        defined in the :bro:see:`Notice::mail_dest` variable.
+        defined in the :zeek:see:`Notice::mail_dest` variable.
 
     * - Notice::ACTION_EMAIL
       - Send the notice in an email to the email address or addresses given in
-        the :bro:see:`Notice::mail_dest` variable.
+        the :zeek:see:`Notice::mail_dest` variable.
 
     * - Notice::ACTION_PAGE
       - Send an email to the email address or addresses given in the
-        :bro:see:`Notice::mail_page_dest` variable.
+        :zeek:see:`Notice::mail_page_dest` variable.
 
 How these notice actions are applied to notices is discussed in the
 `Notice Policy`_ and `Notice Policy Shortcuts`_ sections.
@@ -77,16 +77,16 @@ Processing Notices
 Notice Policy
 *************
 
-The hook :bro:see:`Notice::policy` provides the mechanism for applying
+The hook :zeek:see:`Notice::policy` provides the mechanism for applying
 actions and generally modifying the notice before it's sent onward to
 the action plugins.  Hooks can be thought of as multi-bodied functions
 and using them looks very similar to handling events.  The difference
 is that they don't go through the event queue like events.  Users can
 alter notice processing by directly modifying fields in the
-:bro:see:`Notice::Info` record given as the argument to the hook.
+:zeek:see:`Notice::Info` record given as the argument to the hook.
 
 Here's a simple example which tells Bro to send an email for all notices of
-type :bro:see:`SSH::Password_Guessing` if the guesser attempted to log in to
+type :zeek:see:`SSH::Password_Guessing` if the guesser attempted to log in to
 the server at 192.168.56.103:
 
 .. literalinclude:: notice_ssh_guesser.zeek
@@ -111,7 +111,7 @@ the server at 192.168.56.103:
 
 .. note::
 
-   Keep in mind that the semantics of the :bro:see:`SSH::Password_Guessing`
+   Keep in mind that the semantics of the :zeek:see:`SSH::Password_Guessing`
    notice are such that it is only raised when Bro heuristically detects
    a failed login.
 
@@ -128,7 +128,7 @@ a hook body to run before default hook bodies might look like this:
 
 Hooks can also abort later hook bodies with the ``break`` keyword. This
 is primarily useful if one wants to completely preempt processing by
-lower priority :bro:see:`Notice::policy` hooks.
+lower priority :zeek:see:`Notice::policy` hooks.
 
 Notice Policy Shortcuts
 ***********************
@@ -136,11 +136,11 @@ Notice Policy Shortcuts
 Although the notice framework provides a great deal of flexibility and
 configurability there are many times that the full expressiveness isn't needed
 and actually becomes a hindrance to achieving results. The framework provides
-a default :bro:see:`Notice::policy` hook body as a way of giving users the
+a default :zeek:see:`Notice::policy` hook body as a way of giving users the
 shortcuts to easily apply many common actions to notices.
 
 These are implemented as sets and tables indexed with a
-:bro:see:`Notice::Type` enum value. The following table shows and describes
+:zeek:see:`Notice::Type` enum value. The following table shows and describes
 all of the variables available for shortcut configuration of the notice
 framework.
 
@@ -151,33 +151,33 @@ framework.
     * - Variable name
       - Description
 
-    * - :bro:see:`Notice::ignored_types`
-      - Adding a :bro:see:`Notice::Type` to this set results in the notice
+    * - :zeek:see:`Notice::ignored_types`
+      - Adding a :zeek:see:`Notice::Type` to this set results in the notice
         being ignored. It won't have any other action applied to it, not even
-        :bro:see:`Notice::ACTION_LOG`.
+        :zeek:see:`Notice::ACTION_LOG`.
 
-    * - :bro:see:`Notice::emailed_types`
-      - Adding a :bro:see:`Notice::Type` to this set results in
-        :bro:see:`Notice::ACTION_EMAIL` being applied to the notices of
+    * - :zeek:see:`Notice::emailed_types`
+      - Adding a :zeek:see:`Notice::Type` to this set results in
+        :zeek:see:`Notice::ACTION_EMAIL` being applied to the notices of
         that type.
 
-    * - :bro:see:`Notice::alarmed_types`
-      - Adding a :bro:see:`Notice::Type` to this set results in
-        :bro:see:`Notice::ACTION_ALARM` being applied to the notices of
+    * - :zeek:see:`Notice::alarmed_types`
+      - Adding a :zeek:see:`Notice::Type` to this set results in
+        :zeek:see:`Notice::ACTION_ALARM` being applied to the notices of
         that type.
 
-    * - :bro:see:`Notice::not_suppressed_types`
-      - Adding a :bro:see:`Notice::Type` to this set results in that notice
+    * - :zeek:see:`Notice::not_suppressed_types`
+      - Adding a :zeek:see:`Notice::Type` to this set results in that notice
         no longer undergoing the normal notice suppression that would
         take place. Be careful when using this in production it could
         result in a dramatic increase in the number of notices being
         processed.
 
-    * - :bro:see:`Notice::type_suppression_intervals`
-      - This is a table indexed on :bro:see:`Notice::Type` and yielding an
+    * - :zeek:see:`Notice::type_suppression_intervals`
+      - This is a table indexed on :zeek:see:`Notice::Type` and yielding an
         interval.  It can be used as an easy way to extend the default
-        suppression interval for an entire :bro:see:`Notice::Type`
-        without having to create a whole :bro:see:`Notice::policy` entry
+        suppression interval for an entire :zeek:see:`Notice::Type`
+        without having to create a whole :zeek:see:`Notice::policy` entry
         and setting the ``$suppress_for`` field.
 
 Raising Notices
@@ -186,7 +186,7 @@ Raising Notices
 A script should raise a notice for any occurrence that a user may want
 to be notified about or take action on. For example, whenever the base
 SSH analysis scripts sees enough failed logins to a given host, it
-raises a notice of the type :bro:see:`SSH::Password_Guessing`.  The code
+raises a notice of the type :zeek:see:`SSH::Password_Guessing`.  The code
 in the base SSH analysis script which raises the notice looks like this:
 
 .. sourcecode:: bro
@@ -196,9 +196,9 @@ in the base SSH analysis script which raises the notice looks like this:
             $src=key$host,
             $identifier=cat(key$host)]);
 
-:bro:see:`NOTICE` is a normal function in the global namespace which
+:zeek:see:`NOTICE` is a normal function in the global namespace which
 wraps a function within the ``Notice`` namespace. It takes a single
-argument of the :bro:see:`Notice::Info` record type. The most common
+argument of the :zeek:see:`Notice::Info` record type. The most common
 fields used when raising notices are described in the following table:
 
 .. list-table::
@@ -251,7 +251,7 @@ fields used when raising notices are described in the following table:
       - This field can be set if there is a natural suppression interval for
         the notice that may be different than the default value. The
         value set to this field can also be modified by a user's
-        :bro:see:`Notice::policy` so the value is not set permanently
+        :zeek:see:`Notice::policy` so the value is not set permanently
         and unchangeably.
 
 When writing Bro scripts which raise notices, some thought should be given to
@@ -280,7 +280,7 @@ The notice framework supports suppression for notices if the author of the
 script that is generating the notice has indicated to the notice framework how
 to identify notices that are intrinsically the same. Identification of these
 "intrinsically duplicate" notices is implemented with an optional field in
-:bro:see:`Notice::Info` records named ``$identifier`` which is a simple string.
+:zeek:see:`Notice::Info` records named ``$identifier`` which is a simple string.
 If the ``$identifier`` and ``$note`` fields are the same for two notices, the
 notice framework actually considers them to be the same thing and can use that
 information to suppress duplicates for a configurable period of time.
@@ -326,7 +326,7 @@ full problem set and edge cases of the notice which may not be readily
 apparent to users. If users don't want the suppression to take place or simply
 want a different interval, they can set a notice's suppression
 interval to ``0secs`` or delete the value from the ``$identifier`` field in
-a :bro:see:`Notice::policy` hook.
+a :zeek:see:`Notice::policy` hook.
 
 
 Extending Notice Framework
@@ -339,9 +339,9 @@ Extending Notice Emails
 ***********************
 
 If there is extra information that you would like to add to emails, that is
-possible to add by writing :bro:see:`Notice::policy` hooks.
+possible to add by writing :zeek:see:`Notice::policy` hooks.
 
-There is a field in the :bro:see:`Notice::Info` record named
+There is a field in the :zeek:see:`Notice::Info` record named
 ``$email_body_sections`` which will be included verbatim when email is being
 sent. An example of including some information from an HTTP request is
 included below.
@@ -363,6 +363,6 @@ is understanding what runs where. When a notice is generated on a worker, the
 worker checks to see if the notice should be suppressed based on information
 locally maintained in the worker process. If it's not being
 suppressed, the worker forwards the notice directly to the manager and does no more
-local processing. The manager then runs the :bro:see:`Notice::policy` hook and
+local processing. The manager then runs the :zeek:see:`Notice::policy` hook and
 executes all of the actions determined to be run.
 

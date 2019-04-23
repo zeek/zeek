@@ -2,8 +2,8 @@
 
 base/bif/plugins/Bro_KRB.types.bif.zeek
 =======================================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: KRB
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: KRB
 
 
 :Namespaces: GLOBAL, KRB

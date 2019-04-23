@@ -2,7 +2,7 @@
 
 policy/protocols/conn/known-hosts.zeek
 ======================================
-.. bro:namespace:: Known
+.. zeek:namespace:: Known
 
 This script logs hosts that Bro determines have performed complete TCP 
 handshakes and logs the address once per day (by default).  The log that 
@@ -16,93 +16,93 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================ =======================================================
-:bro:id:`Known::host_store_timeout`: :bro:type:`interval` :bro:attr:`&redef` The timeout interval to use for operations against
-                                                                             :bro:see:`Known::host_store`.
-:bro:id:`Known::host_tracking`: :bro:type:`Host` :bro:attr:`&redef`          The hosts whose existence should be logged and tracked.
-============================================================================ =======================================================
+=============================================================================== =======================================================
+:zeek:id:`Known::host_store_timeout`: :zeek:type:`interval` :zeek:attr:`&redef` The timeout interval to use for operations against
+                                                                                :zeek:see:`Known::host_store`.
+:zeek:id:`Known::host_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`          The hosts whose existence should be logged and tracked.
+=============================================================================== =======================================================
 
 Redefinable Options
 ###################
-=========================================================================== ===================================================================
-:bro:id:`Known::host_store_expiry`: :bro:type:`interval` :bro:attr:`&redef` The expiry interval of new entries in :bro:see:`Known::host_store`.
-:bro:id:`Known::host_store_name`: :bro:type:`string` :bro:attr:`&redef`     The Broker topic name to use for :bro:see:`Known::host_store`.
-:bro:id:`Known::use_host_store`: :bro:type:`bool` :bro:attr:`&redef`        Toggles between different implementations of this script.
-=========================================================================== ===================================================================
+============================================================================== ====================================================================
+:zeek:id:`Known::host_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef` The expiry interval of new entries in :zeek:see:`Known::host_store`.
+:zeek:id:`Known::host_store_name`: :zeek:type:`string` :zeek:attr:`&redef`     The Broker topic name to use for :zeek:see:`Known::host_store`.
+:zeek:id:`Known::use_host_store`: :zeek:type:`bool` :zeek:attr:`&redef`        Toggles between different implementations of this script.
+============================================================================== ====================================================================
 
 State Variables
 ###############
-=================================================================================================== =================================================================
-:bro:id:`Known::host_store`: :bro:type:`Cluster::StoreInfo`                                         Holds the set of all known hosts.
-:bro:id:`Known::hosts`: :bro:type:`set` :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef` The set of all known addresses to store for preventing duplicate 
-                                                                                                    logging of addresses.
-=================================================================================================== =================================================================
+======================================================================================================= =================================================================
+:zeek:id:`Known::host_store`: :zeek:type:`Cluster::StoreInfo`                                           Holds the set of all known hosts.
+:zeek:id:`Known::hosts`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef` The set of all known addresses to store for preventing duplicate 
+                                                                                                        logging of addresses.
+======================================================================================================= =================================================================
 
 Types
 #####
-================================================ ========================================================================
-:bro:type:`Known::HostsInfo`: :bro:type:`record` The record type which contains the column fields of the known-hosts log.
-================================================ ========================================================================
+================================================== ========================================================================
+:zeek:type:`Known::HostsInfo`: :zeek:type:`record` The record type which contains the column fields of the known-hosts log.
+================================================== ========================================================================
 
 Redefinitions
 #############
-===================================== ==========================================
-:bro:type:`Log::ID`: :bro:type:`enum` The known-hosts logging stream identifier.
-===================================== ==========================================
+======================================= ==========================================
+:zeek:type:`Log::ID`: :zeek:type:`enum` The known-hosts logging stream identifier.
+======================================= ==========================================
 
 Events
 ######
-=================================================== =======================================================================
-:bro:id:`Known::log_known_hosts`: :bro:type:`event` An event that can be handled to access the :bro:type:`Known::HostsInfo`
-                                                    record as it is sent on to the logging framework.
-=================================================== =======================================================================
+===================================================== ========================================================================
+:zeek:id:`Known::log_known_hosts`: :zeek:type:`event` An event that can be handled to access the :zeek:type:`Known::HostsInfo`
+                                                      record as it is sent on to the logging framework.
+===================================================== ========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: Known::host_store_timeout
+.. zeek:id:: Known::host_store_timeout
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 secs``
 
    The timeout interval to use for operations against
-   :bro:see:`Known::host_store`.
+   :zeek:see:`Known::host_store`.
 
-.. bro:id:: Known::host_tracking
+.. zeek:id:: Known::host_tracking
 
-   :Type: :bro:type:`Host`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`Host`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``ALL_HOSTS``
 
    The hosts whose existence should be logged and tracked.
-   See :bro:type:`Host` for possible choices.
+   See :zeek:type:`Host` for possible choices.
 
 Redefinable Options
 ###################
-.. bro:id:: Known::host_store_expiry
+.. zeek:id:: Known::host_store_expiry
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 day``
 
-   The expiry interval of new entries in :bro:see:`Known::host_store`.
+   The expiry interval of new entries in :zeek:see:`Known::host_store`.
    This also changes the interval at which hosts get logged.
 
-.. bro:id:: Known::host_store_name
+.. zeek:id:: Known::host_store_name
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"bro/known/hosts"``
 
-   The Broker topic name to use for :bro:see:`Known::host_store`.
+   The Broker topic name to use for :zeek:see:`Known::host_store`.
 
-.. bro:id:: Known::use_host_store
+.. zeek:id:: Known::use_host_store
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    Toggles between different implementations of this script.
@@ -112,9 +112,9 @@ Redefinable Options
 
 State Variables
 ###############
-.. bro:id:: Known::host_store
+.. zeek:id:: Known::host_store
 
-   :Type: :bro:type:`Cluster::StoreInfo`
+   :Type: :zeek:type:`Cluster::StoreInfo`
    :Default:
 
    ::
@@ -134,10 +134,10 @@ State Variables
    Holds the set of all known hosts.  Keys in the store are addresses
    and their associated value will always be the "true" boolean.
 
-.. bro:id:: Known::hosts
+.. zeek:id:: Known::hosts
 
-   :Type: :bro:type:`set` [:bro:type:`addr`]
-   :Attributes: :bro:attr:`&create_expire` = ``1.0 day`` :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`addr`]
+   :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
    :Default: ``{}``
 
    The set of all known addresses to store for preventing duplicate 
@@ -151,14 +151,14 @@ State Variables
 
 Types
 #####
-.. bro:type:: Known::HostsInfo
+.. zeek:type:: Known::HostsInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          The timestamp at which the host was detected.
 
-      host: :bro:type:`addr` :bro:attr:`&log`
+      host: :zeek:type:`addr` :zeek:attr:`&log`
          The address that was detected originating or responding to a
          TCP connection.
 
@@ -166,11 +166,11 @@ Types
 
 Events
 ######
-.. bro:id:: Known::log_known_hosts
+.. zeek:id:: Known::log_known_hosts
 
-   :Type: :bro:type:`event` (rec: :bro:type:`Known::HostsInfo`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Known::HostsInfo`)
 
-   An event that can be handled to access the :bro:type:`Known::HostsInfo`
+   An event that can be handled to access the :zeek:type:`Known::HostsInfo`
    record as it is sent on to the logging framework.
 
 

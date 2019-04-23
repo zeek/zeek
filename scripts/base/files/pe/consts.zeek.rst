@@ -2,7 +2,7 @@
 
 base/files/pe/consts.zeek
 =========================
-.. bro:namespace:: PE
+.. zeek:namespace:: PE
 
 
 :Namespace: PE
@@ -11,26 +11,26 @@ Summary
 ~~~~~~~
 Constants
 #########
-========================================================================================================================== =
-:bro:id:`PE::directories`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`             
-:bro:id:`PE::dll_characteristics`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`     
-:bro:id:`PE::file_characteristics`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`    
-:bro:id:`PE::machine_types`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`           
-:bro:id:`PE::os_versions`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`             
-:bro:id:`PE::section_characteristics`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional` 
-:bro:id:`PE::section_descs`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`           
-:bro:id:`PE::windows_subsystems`: :bro:type:`table` :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`      
-========================================================================================================================== =
+=============================================================================================================================== =
+:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`             
+:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     
+:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`    
+:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`           
+:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`             
+:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
+:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`           
+:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`      
+=============================================================================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Constants
 #########
-.. bro:id:: PE::directories
+.. zeek:id:: PE::directories
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -55,10 +55,10 @@ Constants
       }
 
 
-.. bro:id:: PE::dll_characteristics
+.. zeek:id:: PE::dll_characteristics
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -75,10 +75,10 @@ Constants
       }
 
 
-.. bro:id:: PE::file_characteristics
+.. zeek:id:: PE::file_characteristics
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -102,10 +102,10 @@ Constants
       }
 
 
-.. bro:id:: PE::machine_types
+.. zeek:id:: PE::machine_types
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -136,10 +136,10 @@ Constants
       }
 
 
-.. bro:id:: PE::os_versions
+.. zeek:id:: PE::os_versions
 
-   :Type: :bro:type:`table` [:bro:type:`count`, :bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`, :zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -173,10 +173,10 @@ Constants
       }
 
 
-.. bro:id:: PE::section_characteristics
+.. zeek:id:: PE::section_characteristics
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -219,10 +219,10 @@ Constants
       }
 
 
-.. bro:id:: PE::section_descs
+.. zeek:id:: PE::section_descs
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::
@@ -255,10 +255,10 @@ Constants
       }
 
 
-.. bro:id:: PE::windows_subsystems
+.. zeek:id:: PE::windows_subsystems
 
-   :Type: :bro:type:`table` [:bro:type:`count`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&default` = :bro:type:`function` :bro:attr:`&optional`
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
    ::

@@ -2,7 +2,7 @@
 
 base/frameworks/notice/actions/pp-alarms.zeek
 =============================================
-.. bro:namespace:: Notice
+.. zeek:namespace:: Notice
 
 Notice extension that mails out a pretty-printed version of alarm.log
 in regular intervals, formatted for better human readability. If activated,
@@ -15,66 +15,66 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================= ==============================================
-:bro:id:`Notice::mail_dest_pretty_printed`: :bro:type:`string` :bro:attr:`&redef` Address to send the pretty-printed reports to.
-:bro:id:`Notice::pretty_print_alarms`: :bro:type:`bool` :bro:attr:`&redef`        Activate pretty-printed alarm summaries.
-================================================================================= ==============================================
+==================================================================================== ==============================================
+:zeek:id:`Notice::mail_dest_pretty_printed`: :zeek:type:`string` :zeek:attr:`&redef` Address to send the pretty-printed reports to.
+:zeek:id:`Notice::pretty_print_alarms`: :zeek:type:`bool` :zeek:attr:`&redef`        Activate pretty-printed alarm summaries.
+==================================================================================== ==============================================
 
 State Variables
 ###############
-============================================================================ ==================================================================
-:bro:id:`Notice::flag_nets`: :bro:type:`set` :bro:attr:`&redef`              If an address from one of these networks is reported, we mark
-                                                                             the entry with an additional quote symbol (i.e., ">").
-:bro:id:`Notice::force_email_summaries`: :bro:type:`bool` :bro:attr:`&redef` Force generating mail file, even if reading from traces or no mail
-                                                                             destination is defined.
-============================================================================ ==================================================================
+=============================================================================== ==================================================================
+:zeek:id:`Notice::flag_nets`: :zeek:type:`set` :zeek:attr:`&redef`              If an address from one of these networks is reported, we mark
+                                                                                the entry with an additional quote symbol (i.e., ">").
+:zeek:id:`Notice::force_email_summaries`: :zeek:type:`bool` :zeek:attr:`&redef` Force generating mail file, even if reading from traces or no mail
+                                                                                destination is defined.
+=============================================================================== ==================================================================
 
 Functions
 #########
-============================================================================= =====================================
-:bro:id:`Notice::pretty_print_alarm`: :bro:type:`function` :bro:attr:`&redef` Function that renders a single alarm.
-============================================================================= =====================================
+================================================================================ =====================================
+:zeek:id:`Notice::pretty_print_alarm`: :zeek:type:`function` :zeek:attr:`&redef` Function that renders a single alarm.
+================================================================================ =====================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: Notice::mail_dest_pretty_printed
+.. zeek:id:: Notice::mail_dest_pretty_printed
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
 
    Address to send the pretty-printed reports to. Default if not set is
-   :bro:id:`Notice::mail_dest`.
+   :zeek:id:`Notice::mail_dest`.
    
    Note that this is overridden by the BroControl MailAlarmsTo option.
 
-.. bro:id:: Notice::pretty_print_alarms
+.. zeek:id:: Notice::pretty_print_alarms
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    Activate pretty-printed alarm summaries.
 
 State Variables
 ###############
-.. bro:id:: Notice::flag_nets
+.. zeek:id:: Notice::flag_nets
 
-   :Type: :bro:type:`set` [:bro:type:`subnet`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`subnet`]
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
    If an address from one of these networks is reported, we mark
    the entry with an additional quote symbol (i.e., ">"). Many MUAs
    then highlight such lines differently.
 
-.. bro:id:: Notice::force_email_summaries
+.. zeek:id:: Notice::force_email_summaries
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    Force generating mail file, even if reading from traces or no mail
@@ -82,10 +82,10 @@ State Variables
 
 Functions
 #########
-.. bro:id:: Notice::pretty_print_alarm
+.. zeek:id:: Notice::pretty_print_alarm
 
-   :Type: :bro:type:`function` (out: :bro:type:`file`, n: :bro:type:`Notice::Info`) : :bro:type:`void`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (out: :zeek:type:`file`, n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
+   :Attributes: :zeek:attr:`&redef`
 
    Function that renders a single alarm. Can be overridden.
 

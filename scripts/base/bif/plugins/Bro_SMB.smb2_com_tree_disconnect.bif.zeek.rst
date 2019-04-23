@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb2_com_tree_disconnect.bif.zeek
 ==========================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================== ===========================================================================================
-:bro:id:`smb2_tree_disconnect_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                           version 2 requests of type *tree disconnect*.
-:bro:id:`smb2_tree_disconnect_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                           version 2 requests of type *tree disconnect*.
-========================================================== ===========================================================================================
+============================================================ ===========================================================================================
+:zeek:id:`smb2_tree_disconnect_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                             version 2 requests of type *tree disconnect*.
+:zeek:id:`smb2_tree_disconnect_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                             version 2 requests of type *tree disconnect*.
+============================================================ ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb2_tree_disconnect_request
+.. zeek:id:: smb2_tree_disconnect_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the client to logically disconnect
@@ -37,11 +37,11 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
-.. bro:id:: smb2_tree_disconnect_response
+.. zeek:id:: smb2_tree_disconnect_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB2::Header`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the server to logically disconnect
@@ -53,6 +53,6 @@ Events
 
    :hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
    
-   .. bro:see:: smb2_message
+   .. zeek:see:: smb2_message
 
 

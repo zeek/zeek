@@ -2,7 +2,7 @@
 
 base/frameworks/openflow/plugins/broker.zeek
 ============================================
-.. bro:namespace:: OpenFlow
+.. zeek:namespace:: OpenFlow
 
 OpenFlow plugin for interfacing to controllers via Broker.
 
@@ -13,44 +13,44 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================================ =
-:bro:type:`OpenFlow::ControllerState`: :bro:type:`record` :bro:attr:`&redef` 
-:bro:type:`OpenFlow::Plugin`: :bro:type:`enum`                               
-============================================================================ =
+=============================================================================== =
+:zeek:type:`OpenFlow::ControllerState`: :zeek:type:`record` :zeek:attr:`&redef` 
+:zeek:type:`OpenFlow::Plugin`: :zeek:type:`enum`                                
+=============================================================================== =
 
 Events
 ######
-======================================================== =
-:bro:id:`OpenFlow::broker_flow_clear`: :bro:type:`event` 
-:bro:id:`OpenFlow::broker_flow_mod`: :bro:type:`event`   
-======================================================== =
+========================================================== =
+:zeek:id:`OpenFlow::broker_flow_clear`: :zeek:type:`event` 
+:zeek:id:`OpenFlow::broker_flow_mod`: :zeek:type:`event`   
+========================================================== =
 
 Functions
 #########
-==================================================== ==============================
-:bro:id:`OpenFlow::broker_new`: :bro:type:`function` Broker controller constructor.
-==================================================== ==============================
+====================================================== ==============================
+:zeek:id:`OpenFlow::broker_new`: :zeek:type:`function` Broker controller constructor.
+====================================================== ==============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: OpenFlow::broker_flow_clear
+.. zeek:id:: OpenFlow::broker_flow_clear
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, dpid: :bro:type:`count`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, dpid: :zeek:type:`count`)
 
 
-.. bro:id:: OpenFlow::broker_flow_mod
+.. zeek:id:: OpenFlow::broker_flow_mod
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, dpid: :bro:type:`count`, match: :bro:type:`OpenFlow::ofp_match`, flow_mod: :bro:type:`OpenFlow::ofp_flow_mod`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, dpid: :zeek:type:`count`, match: :zeek:type:`OpenFlow::ofp_match`, flow_mod: :zeek:type:`OpenFlow::ofp_flow_mod`)
 
 
 Functions
 #########
-.. bro:id:: OpenFlow::broker_new
+.. zeek:id:: OpenFlow::broker_new
 
-   :Type: :bro:type:`function` (name: :bro:type:`string`, host: :bro:type:`addr`, host_port: :bro:type:`port`, topic: :bro:type:`string`, dpid: :bro:type:`count`) : :bro:type:`OpenFlow::Controller`
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`, host: :zeek:type:`addr`, host_port: :zeek:type:`port`, topic: :zeek:type:`string`, dpid: :zeek:type:`count`) : :zeek:type:`OpenFlow::Controller`
 
    Broker controller constructor.
    

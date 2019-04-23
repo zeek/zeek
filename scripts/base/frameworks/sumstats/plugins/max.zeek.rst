@@ -2,7 +2,7 @@
 
 base/frameworks/sumstats/plugins/max.zeek
 =========================================
-.. bro:namespace:: SumStats
+.. zeek:namespace:: SumStats
 
 Find the maximum value.
 
@@ -13,10 +13,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=================================================== =
-:bro:type:`SumStats::Calculation`: :bro:type:`enum` 
-:bro:type:`SumStats::ResultVal`: :bro:type:`record` 
-=================================================== =
+===================================================== =
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
+===================================================== =
 
 
 Detailed Interface

@@ -2,7 +2,7 @@
 
 base/frameworks/config/weird.zeek
 =================================
-.. bro:namespace:: Config
+.. zeek:namespace:: Config
 
 This script sets up the config framework change handlers for weirds.
 

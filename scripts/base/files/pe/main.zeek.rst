@@ -2,7 +2,7 @@
 
 base/files/pe/main.zeek
 =======================
-.. bro:namespace:: PE
+.. zeek:namespace:: PE
 
 
 :Namespace: PE
@@ -12,103 +12,103 @@ Summary
 ~~~~~~~
 Types
 #####
-======================================== =
-:bro:type:`PE::Info`: :bro:type:`record` 
-======================================== =
+========================================== =
+:zeek:type:`PE::Info`: :zeek:type:`record` 
+========================================== =
 
 Redefinitions
 #############
-========================================================== =
-:bro:type:`Log::ID`: :bro:type:`enum`                      
-:bro:type:`fa_file`: :bro:type:`record` :bro:attr:`&redef` 
-========================================================== =
+============================================================= =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                       
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
+============================================================= =
 
 Events
 ######
-======================================= ===================================
-:bro:id:`PE::log_pe`: :bro:type:`event` Event for accessing logged records.
-======================================= ===================================
+========================================= ===================================
+:zeek:id:`PE::log_pe`: :zeek:type:`event` Event for accessing logged records.
+========================================= ===================================
 
 Hooks
 #####
-======================================== ====================================================
-:bro:id:`PE::set_file`: :bro:type:`hook` A hook that gets called when we first see a PE file.
-======================================== ====================================================
+========================================== ====================================================
+:zeek:id:`PE::set_file`: :zeek:type:`hook` A hook that gets called when we first see a PE file.
+========================================== ====================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Types
 #####
-.. bro:type:: PE::Info
+.. zeek:type:: PE::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Current timestamp.
 
-      id: :bro:type:`string` :bro:attr:`&log`
+      id: :zeek:type:`string` :zeek:attr:`&log`
          File id of this portable executable file.
 
-      machine: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      machine: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The target machine that the file was compiled for.
 
-      compile_ts: :bro:type:`time` :bro:attr:`&log` :bro:attr:`&optional`
+      compile_ts: :zeek:type:`time` :zeek:attr:`&log` :zeek:attr:`&optional`
          The time that the file was created at.
 
-      os: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      os: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The required operating system.
 
-      subsystem: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      subsystem: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The subsystem that is required to run this file.
 
-      is_exe: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      is_exe: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Is the file an executable, or just an object file?
 
-      is_64bit: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      is_64bit: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Is the file a 64-bit executable?
 
-      uses_aslr: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      uses_aslr: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Does the file support Address Space Layout Randomization?
 
-      uses_dep: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      uses_dep: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Does the file support Data Execution Prevention?
 
-      uses_code_integrity: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      uses_code_integrity: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Does the file enforce code integrity checks?
 
-      uses_seh: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``T`` :bro:attr:`&optional`
+      uses_seh: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`
          Does the file use structured exception handing?
 
-      has_import_table: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      has_import_table: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Does the file have an import table?
 
-      has_export_table: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      has_export_table: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Does the file have an export table?
 
-      has_cert_table: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      has_cert_table: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Does the file have an attribute certificate table?
 
-      has_debug_data: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      has_debug_data: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Does the file have a debug table?
 
-      section_names: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      section_names: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The names of the sections, in order.
 
 
 Events
 ######
-.. bro:id:: PE::log_pe
+.. zeek:id:: PE::log_pe
 
-   :Type: :bro:type:`event` (rec: :bro:type:`PE::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`PE::Info`)
 
    Event for accessing logged records.
 
 Hooks
 #####
-.. bro:id:: PE::set_file
+.. zeek:id:: PE::set_file
 
-   :Type: :bro:type:`hook` (f: :bro:type:`fa_file`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (f: :zeek:type:`fa_file`) : :zeek:type:`bool`
 
    A hook that gets called when we first see a PE file.
 

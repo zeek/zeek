@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_IMAP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================== ==================================================================
-:bro:id:`imap_capabilities`: :bro:type:`event` Generated when a server sends a capability list to the client,
-                                               after being queried using the CAPABILITY command.
-:bro:id:`imap_starttls`: :bro:type:`event`     Generated when a IMAP connection goes encrypted after a successful
-                                               StartTLS exchange between the client and the server.
-============================================== ==================================================================
+================================================ ==================================================================
+:zeek:id:`imap_capabilities`: :zeek:type:`event` Generated when a server sends a capability list to the client,
+                                                 after being queried using the CAPABILITY command.
+:zeek:id:`imap_starttls`: :zeek:type:`event`     Generated when a IMAP connection goes encrypted after a successful
+                                                 StartTLS exchange between the client and the server.
+================================================ ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: imap_capabilities
+.. zeek:id:: imap_capabilities
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, capabilities: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, capabilities: :zeek:type:`string_vec`)
 
    Generated when a server sends a capability list to the client,
    after being queried using the CAPABILITY command.
@@ -36,9 +36,9 @@ Events
 
    :capabilities: The list of IMAP capabilities as sent by the server.
 
-.. bro:id:: imap_starttls
+.. zeek:id:: imap_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a IMAP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.

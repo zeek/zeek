@@ -2,7 +2,7 @@
 
 policy/protocols/ftp/detect-bruteforcing.zeek
 =============================================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 FTP brute-forcing detector, triggering when too many rejected usernames or
 failed passwords have occurred from a single address.
@@ -14,37 +14,37 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-======================================================================================= ==================================================================
-:bro:id:`FTP::bruteforce_measurement_interval`: :bro:type:`interval` :bro:attr:`&redef` The time period in which the threshold needs to be crossed before
-                                                                                        being reset.
-:bro:id:`FTP::bruteforce_threshold`: :bro:type:`double` :bro:attr:`&redef`              How many rejected usernames or passwords are required before being
-                                                                                        considered to be bruteforcing.
-======================================================================================= ==================================================================
+========================================================================================== ==================================================================
+:zeek:id:`FTP::bruteforce_measurement_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The time period in which the threshold needs to be crossed before
+                                                                                           being reset.
+:zeek:id:`FTP::bruteforce_threshold`: :zeek:type:`double` :zeek:attr:`&redef`              How many rejected usernames or passwords are required before being
+                                                                                           considered to be bruteforcing.
+========================================================================================== ==================================================================
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: FTP::bruteforce_measurement_interval
+.. zeek:id:: FTP::bruteforce_measurement_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 mins``
 
    The time period in which the threshold needs to be crossed before
    being reset.
 
-.. bro:id:: FTP::bruteforce_threshold
+.. zeek:id:: FTP::bruteforce_threshold
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``20.0``
 
    How many rejected usernames or passwords are required before being

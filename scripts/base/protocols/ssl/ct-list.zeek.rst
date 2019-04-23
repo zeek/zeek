@@ -2,7 +2,7 @@
 
 base/protocols/ssl/ct-list.zeek
 ===============================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 
 :Namespace: SSL
@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================ =
-:bro:id:`SSL::ct_logs`: :bro:type:`table` :bro:attr:`&redef` 
-============================================================ =
+=============================================================== =
+:zeek:id:`SSL::ct_logs`: :zeek:type:`table` :zeek:attr:`&redef` 
+=============================================================== =
 
 
 Detailed Interface

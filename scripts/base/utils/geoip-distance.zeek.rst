@@ -10,19 +10,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-===================================================== ==========================================================================
-:bro:id:`haversine_distance_ip`: :bro:type:`function` Returns the distance between two IP addresses using the haversine formula,
-                                                      based on GeoIP database locations.
-===================================================== ==========================================================================
+======================================================= ==========================================================================
+:zeek:id:`haversine_distance_ip`: :zeek:type:`function` Returns the distance between two IP addresses using the haversine formula,
+                                                        based on GeoIP database locations.
+======================================================= ==========================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: haversine_distance_ip
+.. zeek:id:: haversine_distance_ip
 
-   :Type: :bro:type:`function` (a1: :bro:type:`addr`, a2: :bro:type:`addr`) : :bro:type:`double`
+   :Type: :zeek:type:`function` (a1: :zeek:type:`addr`, a2: :zeek:type:`addr`) : :zeek:type:`double`
 
    Returns the distance between two IP addresses using the haversine formula,
    based on GeoIP database locations.  Requires Bro to be built with GeoIP.
@@ -37,6 +37,6 @@ Functions
    :returns: The distance between *a1* and *a2* in miles, or -1.0 if GeoIP data
             is not available for either of the IP addresses.
    
-   .. bro:see:: haversine_distance lookup_location
+   .. zeek:see:: haversine_distance lookup_location
 
 

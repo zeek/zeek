@@ -2,7 +2,7 @@
 
 base/protocols/radius/consts.zeek
 =================================
-.. bro:namespace:: RADIUS
+.. zeek:namespace:: RADIUS
 
 
 :Namespace: RADIUS

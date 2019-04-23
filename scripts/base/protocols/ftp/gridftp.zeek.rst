@@ -2,7 +2,7 @@
 
 base/protocols/ftp/gridftp.zeek
 ===============================
-.. bro:namespace:: GridFTP
+.. zeek:namespace:: GridFTP
 
 A detection script for GridFTP data and control channels.
 
@@ -12,7 +12,7 @@ and for which the exchange involved an encoded TLS/SSL handshake,
 indicating the GSI mechanism for GSSAPI was used.  This analysis
 is all supported internally, this script simply adds the "gridftp"
 label to the *service* field of the control channel's
-:bro:type:`connection` record.
+:zeek:type:`connection` record.
 
 GridFTP data channels are identified by a heuristic that relies on
 the fact that default settings for GridFTP clients typically
@@ -32,62 +32,62 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-======================================================================= ===================================================================
-:bro:id:`GridFTP::max_time`: :bro:type:`interval` :bro:attr:`&redef`    Time during which we check whether a connection's size exceeds the
-                                                                        :bro:see:`GridFTP::size_threshold`.
-:bro:id:`GridFTP::size_threshold`: :bro:type:`count` :bro:attr:`&redef` Number of bytes transferred before guessing a connection is a
-                                                                        GridFTP data channel.
-:bro:id:`GridFTP::skip_data`: :bro:type:`bool` :bro:attr:`&redef`       Whether to skip further processing of the GridFTP data channel once
-                                                                        detected, which may help performance.
-======================================================================= ===================================================================
+========================================================================== ===================================================================
+:zeek:id:`GridFTP::max_time`: :zeek:type:`interval` :zeek:attr:`&redef`    Time during which we check whether a connection's size exceeds the
+                                                                           :zeek:see:`GridFTP::size_threshold`.
+:zeek:id:`GridFTP::size_threshold`: :zeek:type:`count` :zeek:attr:`&redef` Number of bytes transferred before guessing a connection is a
+                                                                           GridFTP data channel.
+:zeek:id:`GridFTP::skip_data`: :zeek:type:`bool` :zeek:attr:`&redef`       Whether to skip further processing of the GridFTP data channel once
+                                                                           detected, which may help performance.
+========================================================================== ===================================================================
 
 Redefinitions
 #############
-========================================= =
-:bro:type:`FTP::Info`: :bro:type:`record` 
-========================================= =
+=========================================== =
+:zeek:type:`FTP::Info`: :zeek:type:`record` 
+=========================================== =
 
 Events
 ######
-=========================================================== ===============================================
-:bro:id:`GridFTP::data_channel_detected`: :bro:type:`event` Raised when a GridFTP data channel is detected.
-=========================================================== ===============================================
+============================================================= ===============================================
+:zeek:id:`GridFTP::data_channel_detected`: :zeek:type:`event` Raised when a GridFTP data channel is detected.
+============================================================= ===============================================
 
 Functions
 #########
-========================================================================================= =================================================================
-:bro:id:`GridFTP::data_channel_initial_criteria`: :bro:type:`function` :bro:attr:`&redef` The initial criteria used to determine whether to start polling
-                                                                                          the connection for the :bro:see:`GridFTP::size_threshold` to have
-                                                                                          been exceeded.
-========================================================================================= =================================================================
+============================================================================================ ==================================================================
+:zeek:id:`GridFTP::data_channel_initial_criteria`: :zeek:type:`function` :zeek:attr:`&redef` The initial criteria used to determine whether to start polling
+                                                                                             the connection for the :zeek:see:`GridFTP::size_threshold` to have
+                                                                                             been exceeded.
+============================================================================================ ==================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: GridFTP::max_time
+.. zeek:id:: GridFTP::max_time
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``2.0 mins``
 
    Time during which we check whether a connection's size exceeds the
-   :bro:see:`GridFTP::size_threshold`.
+   :zeek:see:`GridFTP::size_threshold`.
 
-.. bro:id:: GridFTP::size_threshold
+.. zeek:id:: GridFTP::size_threshold
 
-   :Type: :bro:type:`count`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``1073741824``
 
    Number of bytes transferred before guessing a connection is a
    GridFTP data channel.
 
-.. bro:id:: GridFTP::skip_data
+.. zeek:id:: GridFTP::skip_data
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    Whether to skip further processing of the GridFTP data channel once
@@ -95,9 +95,9 @@ Runtime Options
 
 Events
 ######
-.. bro:id:: GridFTP::data_channel_detected
+.. zeek:id:: GridFTP::data_channel_detected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Raised when a GridFTP data channel is detected.
    
@@ -106,14 +106,14 @@ Events
 
 Functions
 #########
-.. bro:id:: GridFTP::data_channel_initial_criteria
+.. zeek:id:: GridFTP::data_channel_initial_criteria
 
-   :Type: :bro:type:`function` (c: :bro:type:`connection`) : :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
 
    The initial criteria used to determine whether to start polling
-   the connection for the :bro:see:`GridFTP::size_threshold` to have
-   been exceeded.  This is called in a :bro:see:`ssl_established` event
+   the connection for the :zeek:see:`GridFTP::size_threshold` to have
+   been exceeded.  This is called in a :zeek:see:`ssl_established` event
    handler and by default looks for both a client and server certificate
    and for a NULL bulk cipher.  One way in which this function could be
    redefined is to make it also consider client/server certificate
@@ -124,6 +124,6 @@ Functions
    
 
    :returns: true if the connection should be further polled for an
-            exceeded :bro:see:`GridFTP::size_threshold`, else false.
+            exceeded :zeek:see:`GridFTP::size_threshold`, else false.
 
 

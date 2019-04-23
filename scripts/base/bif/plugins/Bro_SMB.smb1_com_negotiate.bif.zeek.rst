@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMB.smb1_com_negotiate.bif.zeek
 ====================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,21 +11,21 @@ Summary
 ~~~~~~~
 Events
 ######
-==================================================== ===========================================================================================
-:bro:id:`smb1_negotiate_request`: :bro:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                     version 1 requests of type *negotiate*.
-:bro:id:`smb1_negotiate_response`: :bro:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
-                                                     version 1 responses of type *negotiate*.
-==================================================== ===========================================================================================
+====================================================== ===========================================================================================
+:zeek:id:`smb1_negotiate_request`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                       version 1 requests of type *negotiate*.
+:zeek:id:`smb1_negotiate_response`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+                                                       version 1 responses of type *negotiate*.
+====================================================== ===========================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smb1_negotiate_request
+.. zeek:id:: smb1_negotiate_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, dialects: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, dialects: :zeek:type:`string_vec`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *negotiate*. This is sent by the client to initiate an SMB
@@ -43,11 +43,11 @@ Events
 
    :dialects: The SMB dialects supported by the client.
    
-   .. bro:see:: smb1_message smb1_negotiate_response
+   .. zeek:see:: smb1_message smb1_negotiate_response
 
-.. bro:id:: smb1_negotiate_response
+.. zeek:id:: smb1_negotiate_response
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hdr: :bro:type:`SMB1::Header`, response: :bro:type:`SMB1::NegotiateResponse`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::NegotiateResponse`)
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *negotiate*. This is the server response to the *negotiate*
@@ -64,6 +64,6 @@ Events
 
    :response: A record structure containing more information from the response.
    
-   .. bro:see:: smb1_message smb1_negotiate_request
+   .. zeek:see:: smb1_message smb1_negotiate_request
 
 

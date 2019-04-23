@@ -2,7 +2,7 @@
 
 base/protocols/ssl/main.zeek
 ============================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 Base SSL analysis script.  This script logs information about the SSL/TLS
 handshaking and encryption establishment process.
@@ -14,66 +14,66 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================================== ===============================================================
-:bro:id:`SSL::ct_logs`: :bro:type:`table` :bro:attr:`&redef`                         The Certificate Transparency log bundle.
-:bro:id:`SSL::disable_analyzer_after_detection`: :bro:type:`bool` :bro:attr:`&redef` If true, detach the SSL analyzer from the connection to prevent
-                                                                                     continuing to process encrypted traffic.
-==================================================================================== ===============================================================
+======================================================================================= ===============================================================
+:zeek:id:`SSL::ct_logs`: :zeek:type:`table` :zeek:attr:`&redef`                         The Certificate Transparency log bundle.
+:zeek:id:`SSL::disable_analyzer_after_detection`: :zeek:type:`bool` :zeek:attr:`&redef` If true, detach the SSL analyzer from the connection to prevent
+                                                                                        continuing to process encrypted traffic.
+======================================================================================= ===============================================================
 
 Redefinable Options
 ###################
-=============================================================== ===========================
-:bro:id:`SSL::root_certs`: :bro:type:`table` :bro:attr:`&redef` The default root CA bundle.
-=============================================================== ===========================
+================================================================== ===========================
+:zeek:id:`SSL::root_certs`: :zeek:type:`table` :zeek:attr:`&redef` The default root CA bundle.
+================================================================== ===========================
 
 Types
 #####
-=========================================== ============================================================
-:bro:type:`SSL::CTInfo`: :bro:type:`record` The record type which contains the field for the Certificate
-                                            Transparency log bundle.
-:bro:type:`SSL::Info`: :bro:type:`record`   The record type which contains the fields of the SSL log.
-=========================================== ============================================================
+============================================= ============================================================
+:zeek:type:`SSL::CTInfo`: :zeek:type:`record` The record type which contains the field for the Certificate
+                                              Transparency log bundle.
+:zeek:type:`SSL::Info`: :zeek:type:`record`   The record type which contains the fields of the SSL log.
+============================================= ============================================================
 
 Redefinitions
 #############
-================================================================= =
-:bro:type:`Log::ID`: :bro:type:`enum`                             
-:bro:type:`SSL::Info`: :bro:type:`record`                         
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= =
+==================================================================== =
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              
+:zeek:type:`SSL::Info`: :zeek:type:`record`                          
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== =
 
 Events
 ######
-========================================= =================================================
-:bro:id:`SSL::log_ssl`: :bro:type:`event` Event that can be handled to access the SSL
-                                          record as it is sent on to the logging framework.
-========================================= =================================================
+=========================================== =================================================
+:zeek:id:`SSL::log_ssl`: :zeek:type:`event` Event that can be handled to access the SSL
+                                            record as it is sent on to the logging framework.
+=========================================== =================================================
 
 Hooks
 #####
-============================================== =
-:bro:id:`SSL::ssl_finishing`: :bro:type:`hook` 
-============================================== =
+================================================ =
+:zeek:id:`SSL::ssl_finishing`: :zeek:type:`hook` 
+================================================ =
 
 Functions
 #########
-================================================ ====================================================================
-:bro:id:`SSL::delay_log`: :bro:type:`function`   Delays an SSL record for a specific token: the record will not be
-                                                 logged as long as the token exists or until 15 seconds elapses.
-:bro:id:`SSL::undelay_log`: :bro:type:`function` Undelays an SSL record for a previously inserted token, allowing the
-                                                 record to be logged.
-================================================ ====================================================================
+================================================== ====================================================================
+:zeek:id:`SSL::delay_log`: :zeek:type:`function`   Delays an SSL record for a specific token: the record will not be
+                                                   logged as long as the token exists or until 15 seconds elapses.
+:zeek:id:`SSL::undelay_log`: :zeek:type:`function` Undelays an SSL record for a previously inserted token, allowing the
+                                                   record to be logged.
+================================================== ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSL::ct_logs
+.. zeek:id:: SSL::ct_logs
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`SSL::CTInfo`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`SSL::CTInfo`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -157,10 +157,10 @@ Runtime Options
    script sets this to the current list of known logs. Entries
    are indexed by (binary) log-id.
 
-.. bro:id:: SSL::disable_analyzer_after_detection
+.. zeek:id:: SSL::disable_analyzer_after_detection
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
    If true, detach the SSL analyzer from the connection to prevent
@@ -169,10 +169,10 @@ Runtime Options
 
 Redefinable Options
 ###################
-.. bro:id:: SSL::root_certs
+.. zeek:id:: SSL::root_certs
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -314,247 +314,247 @@ Redefinable Options
 
 Types
 #####
-.. bro:type:: SSL::CTInfo
+.. zeek:type:: SSL::CTInfo
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      description: :bro:type:`string`
+      description: :zeek:type:`string`
          Description of the Log
 
-      operator: :bro:type:`string`
+      operator: :zeek:type:`string`
          Operator of the Log
 
-      key: :bro:type:`string`
+      key: :zeek:type:`string`
          Public key of the Log.
 
-      maximum_merge_delay: :bro:type:`count`
+      maximum_merge_delay: :zeek:type:`count`
          Maximum merge delay of the Log
 
-      url: :bro:type:`string`
+      url: :zeek:type:`string`
          URL of the Log
 
    The record type which contains the field for the Certificate
    Transparency log bundle.
 
-.. bro:type:: SSL::Info
+.. zeek:type:: SSL::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time when the SSL connection was first detected.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      version_num: :bro:type:`count` :bro:attr:`&optional`
+      version_num: :zeek:type:`count` :zeek:attr:`&optional`
          Numeric SSL/TLS version that the server chose.
 
-      version: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      version: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          SSL/TLS version that the server chose.
 
-      cipher: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      cipher: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          SSL/TLS cipher suite that the server chose.
 
-      curve: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      curve: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Elliptic curve the server chose when using ECDH/ECDHE.
 
-      server_name: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Value of the Server Name Indicator SSL/TLS extension.  It
          indicates the server name that the client was requesting.
 
-      session_id: :bro:type:`string` :bro:attr:`&optional`
+      session_id: :zeek:type:`string` :zeek:attr:`&optional`
          Session ID offered by the client for session resumption.
          Not used for logging.
 
-      resumed: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      resumed: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to indicate if the session was resumed reusing
          the key material exchanged in an earlier connection.
 
-      client_ticket_empty_session_seen: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      client_ticket_empty_session_seen: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to indicate if we saw a non-empty session ticket being
          sent by the client using an empty session ID. This value
          is used to determine if a session is being resumed. It's
          not logged.
 
-      client_key_exchange_seen: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      client_key_exchange_seen: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to indicate if we saw a client key exchange message sent
          by the client. This value is used to determine if a session
          is being resumed. It's not logged.
 
-      server_appdata: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      server_appdata: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Count to track if the server already sent an application data
          packet for TLS 1.3. Used to track when a session was established.
 
-      client_appdata: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      client_appdata: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to track if the client already sent an application data
          packet for TLS 1.3. Used to track when a session was established.
 
-      last_alert: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      last_alert: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Last alert that was seen during the connection.
 
-      next_protocol: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      next_protocol: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Next protocol the server chose using the application layer
          next protocol extension, if present.
 
-      analyzer_id: :bro:type:`count` :bro:attr:`&optional`
+      analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
          The analyzer ID used for the analyzer instance attached
          to each connection.  It is not used for logging since it's a
          meaningless arbitrary number.
 
-      established: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      established: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to indicate if this ssl session has been established
          successfully, or if it was aborted during the handshake.
 
-      logged: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      logged: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Flag to indicate if this record already has been logged, to
          prevent duplicates.
 
-      delay_tokens: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&optional`
+      delay_tokens: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
 
-      cert_chain: :bro:type:`vector` of :bro:type:`Files::Info` :bro:attr:`&optional`
+      cert_chain: :zeek:type:`vector` of :zeek:type:`Files::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Chain of certificates offered by the server to validate its
          complete signing chain.
 
-      cert_chain_fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      cert_chain_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          An ordered vector of all certificate file unique IDs for the
          certificates offered by the server.
 
-      client_cert_chain: :bro:type:`vector` of :bro:type:`Files::Info` :bro:attr:`&optional`
+      client_cert_chain: :zeek:type:`vector` of :zeek:type:`Files::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Chain of certificates offered by the client to validate its
          complete signing chain.
 
-      client_cert_chain_fuids: :bro:type:`vector` of :bro:type:`string` :bro:attr:`&optional` :bro:attr:`&log`
+      client_cert_chain_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          An ordered vector of all certificate file unique IDs for the
          certificates offered by the client.
 
-      subject: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Subject of the X.509 certificate offered by the server.
 
-      issuer: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      issuer: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Subject of the signer of the X.509 certificate offered by the
          server.
 
-      client_subject: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client_subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Subject of the X.509 certificate offered by the client.
 
-      client_issuer: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client_issuer: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Subject of the signer of the X.509 certificate offered by the
          client.
 
-      server_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      server_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
          Current number of certificates seen from either side. Used
          to create file handles.
 
-      client_depth: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      client_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/ssl/files.zeek` is loaded)
 
 
-      last_originator_heartbeat_request_size: :bro:type:`count` :bro:attr:`&optional`
+      last_originator_heartbeat_request_size: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      last_responder_heartbeat_request_size: :bro:type:`count` :bro:attr:`&optional`
+      last_responder_heartbeat_request_size: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      originator_heartbeats: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      originator_heartbeats: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      responder_heartbeats: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      responder_heartbeats: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      heartbleed_detected: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      heartbleed_detected: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      enc_appdata_packages: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      enc_appdata_packages: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      enc_appdata_bytes: :bro:type:`count` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      enc_appdata_bytes: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek` is loaded)
 
 
-      validation_status: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      validation_status: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-certs.zeek` is loaded)
 
          Result of certificate validation for this connection.
 
-      validation_code: :bro:type:`int` :bro:attr:`&optional`
+      validation_code: :zeek:type:`int` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-certs.zeek` is loaded)
 
          Result of certificate validation for this connection, given
          as OpenSSL validation code.
 
-      valid_chain: :bro:type:`vector` of :bro:type:`opaque` of x509 :bro:attr:`&optional`
+      valid_chain: :zeek:type:`vector` of :zeek:type:`opaque` of x509 :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-certs.zeek` is loaded)
 
          Ordered chain of validated certificate, if validation succeeded.
 
-      ocsp_status: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      ocsp_status: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-ocsp.zeek` is loaded)
 
          Result of ocsp validation for this connection.
 
-      ocsp_response: :bro:type:`string` :bro:attr:`&optional`
+      ocsp_response: :zeek:type:`string` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-ocsp.zeek` is loaded)
 
          ocsp response as string.
 
-      valid_scts: :bro:type:`count` :bro:attr:`&optional`
+      valid_scts: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          Number of valid SCTs that were encountered in the connection.
 
-      invalid_scts: :bro:type:`count` :bro:attr:`&optional`
+      invalid_scts: :zeek:type:`count` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          Number of SCTs that could not be validated that were encountered in the connection.
 
-      valid_ct_logs: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      valid_ct_logs: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          Number of different Logs for which valid SCTs were encountered in the connection.
 
-      valid_ct_operators: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&optional`
+      valid_ct_operators: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          Number of different Log operators of which valid SCTs were encountered in the connection.
 
-      valid_ct_operators_list: :bro:type:`set` [:bro:type:`string`] :bro:attr:`&optional`
+      valid_ct_operators_list: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          List of operators for which valid SCTs were encountered in the connection.
 
-      ct_proofs: :bro:type:`vector` of :bro:type:`SSL::SctInfo` :bro:attr:`&default` = ``[]`` :bro:attr:`&optional`
+      ct_proofs: :zeek:type:`vector` of :zeek:type:`SSL::SctInfo` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek` is loaded)
 
          Information about all SCTs that were encountered in the connection.
 
-      notary: :bro:type:`CertNotary::Response` :bro:attr:`&log` :bro:attr:`&optional`
+      notary: :zeek:type:`CertNotary::Response` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssl/notary.zeek` is loaded)
 
          A response from the ICSI certificate notary.
@@ -563,32 +563,32 @@ Types
 
 Events
 ######
-.. bro:id:: SSL::log_ssl
+.. zeek:id:: SSL::log_ssl
 
-   :Type: :bro:type:`event` (rec: :bro:type:`SSL::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`SSL::Info`)
 
    Event that can be handled to access the SSL
    record as it is sent on to the logging framework.
 
 Hooks
 #####
-.. bro:id:: SSL::ssl_finishing
+.. zeek:id:: SSL::ssl_finishing
 
-   :Type: :bro:type:`hook` (c: :bro:type:`connection`) : :bro:type:`bool`
+   :Type: :zeek:type:`hook` (c: :zeek:type:`connection`) : :zeek:type:`bool`
 
 
 Functions
 #########
-.. bro:id:: SSL::delay_log
+.. zeek:id:: SSL::delay_log
 
-   :Type: :bro:type:`function` (info: :bro:type:`SSL::Info`, token: :bro:type:`string`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (info: :zeek:type:`SSL::Info`, token: :zeek:type:`string`) : :zeek:type:`void`
 
    Delays an SSL record for a specific token: the record will not be
    logged as long as the token exists or until 15 seconds elapses.
 
-.. bro:id:: SSL::undelay_log
+.. zeek:id:: SSL::undelay_log
 
-   :Type: :bro:type:`function` (info: :bro:type:`SSL::Info`, token: :bro:type:`string`) : :bro:type:`void`
+   :Type: :zeek:type:`function` (info: :zeek:type:`SSL::Info`, token: :zeek:type:`string`) : :zeek:type:`void`
 
    Undelays an SSL record for a previously inserted token, allowing the
    record to be logged.

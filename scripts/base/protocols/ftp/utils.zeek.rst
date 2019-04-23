@@ -2,7 +2,7 @@
 
 base/protocols/ftp/utils.zeek
 =============================
-.. bro:namespace:: FTP
+.. zeek:namespace:: FTP
 
 Utilities specific for FTP processing.
 
@@ -13,44 +13,44 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================== ===========================================================
-:bro:id:`FTP::build_url`: :bro:type:`function`     Creates a URL from an :bro:type:`FTP::Info` record.
-:bro:id:`FTP::build_url_ftp`: :bro:type:`function` Creates a URL from an :bro:type:`FTP::Info` record.
-:bro:id:`FTP::describe`: :bro:type:`function`      Create an extremely shortened representation of a log line.
-================================================== ===========================================================
+==================================================== ===========================================================
+:zeek:id:`FTP::build_url`: :zeek:type:`function`     Creates a URL from an :zeek:type:`FTP::Info` record.
+:zeek:id:`FTP::build_url_ftp`: :zeek:type:`function` Creates a URL from an :zeek:type:`FTP::Info` record.
+:zeek:id:`FTP::describe`: :zeek:type:`function`      Create an extremely shortened representation of a log line.
+==================================================== ===========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: FTP::build_url
+.. zeek:id:: FTP::build_url
 
-   :Type: :bro:type:`function` (rec: :bro:type:`FTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`FTP::Info`) : :zeek:type:`string`
 
-   Creates a URL from an :bro:type:`FTP::Info` record.
+   Creates a URL from an :zeek:type:`FTP::Info` record.
    
 
-   :rec: An :bro:type:`FTP::Info` record.
+   :rec: An :zeek:type:`FTP::Info` record.
    
 
    :returns: A URL, not prefixed by ``"ftp://"``.
 
-.. bro:id:: FTP::build_url_ftp
+.. zeek:id:: FTP::build_url_ftp
 
-   :Type: :bro:type:`function` (rec: :bro:type:`FTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`FTP::Info`) : :zeek:type:`string`
 
-   Creates a URL from an :bro:type:`FTP::Info` record.
+   Creates a URL from an :zeek:type:`FTP::Info` record.
    
 
-   :rec: An :bro:type:`FTP::Info` record.
+   :rec: An :zeek:type:`FTP::Info` record.
    
 
    :returns: A URL prefixed with ``"ftp://"``.
 
-.. bro:id:: FTP::describe
+.. zeek:id:: FTP::describe
 
-   :Type: :bro:type:`function` (rec: :bro:type:`FTP::Info`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (rec: :zeek:type:`FTP::Info`) : :zeek:type:`string`
 
    Create an extremely shortened representation of a log line.
 

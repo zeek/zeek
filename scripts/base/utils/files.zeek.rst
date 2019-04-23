@@ -10,28 +10,28 @@ Summary
 ~~~~~~~
 Functions
 #########
-========================================================================= ======================================================================
-:bro:id:`extract_filename_from_content_disposition`: :bro:type:`function` For CONTENT-DISPOSITION headers, this function can be used to extract
-                                                                          the filename.
-:bro:id:`generate_extraction_filename`: :bro:type:`function`              This function can be used to generate a consistent filename for when
-                                                                          contents of a file, stream, or connection are being extracted to disk.
-========================================================================= ======================================================================
+=========================================================================== ======================================================================
+:zeek:id:`extract_filename_from_content_disposition`: :zeek:type:`function` For CONTENT-DISPOSITION headers, this function can be used to extract
+                                                                            the filename.
+:zeek:id:`generate_extraction_filename`: :zeek:type:`function`              This function can be used to generate a consistent filename for when
+                                                                            contents of a file, stream, or connection are being extracted to disk.
+=========================================================================== ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: extract_filename_from_content_disposition
+.. zeek:id:: extract_filename_from_content_disposition
 
-   :Type: :bro:type:`function` (data: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (data: :zeek:type:`string`) : :zeek:type:`string`
 
    For CONTENT-DISPOSITION headers, this function can be used to extract
    the filename.
 
-.. bro:id:: generate_extraction_filename
+.. zeek:id:: generate_extraction_filename
 
-   :Type: :bro:type:`function` (prefix: :bro:type:`string`, c: :bro:type:`connection`, suffix: :bro:type:`string`) : :bro:type:`string`
+   :Type: :zeek:type:`function` (prefix: :zeek:type:`string`, c: :zeek:type:`connection`, suffix: :zeek:type:`string`) : :zeek:type:`string`
 
    This function can be used to generate a consistent filename for when
    contents of a file, stream, or connection are being extracted to disk.

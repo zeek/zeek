@@ -2,8 +2,8 @@
 
 base/protocols/ssh/main.zeek
 ============================
-.. bro:namespace:: GLOBAL
-.. bro:namespace:: SSH
+.. zeek:namespace:: GLOBAL
+.. zeek:namespace:: SSH
 
 Implements base functionality for SSH analysis. Generates the ssh.log file.
 
@@ -14,50 +14,50 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-==================================================================================== ====================================================================
-:bro:id:`SSH::compression_algorithms`: :bro:type:`set` :bro:attr:`&redef`            The set of compression algorithms.
-:bro:id:`SSH::disable_analyzer_after_detection`: :bro:type:`bool` :bro:attr:`&redef` If true, after detection detach the SSH analyzer from the connection
-                                                                                     to prevent continuing to process encrypted traffic.
-==================================================================================== ====================================================================
+======================================================================================= ====================================================================
+:zeek:id:`SSH::compression_algorithms`: :zeek:type:`set` :zeek:attr:`&redef`            The set of compression algorithms.
+:zeek:id:`SSH::disable_analyzer_after_detection`: :zeek:type:`bool` :zeek:attr:`&redef` If true, after detection detach the SSH analyzer from the connection
+                                                                                        to prevent continuing to process encrypted traffic.
+======================================================================================= ====================================================================
 
 Types
 #####
-========================================= =========================================================
-:bro:type:`SSH::Info`: :bro:type:`record` The record type which contains the fields of the SSH log.
-========================================= =========================================================
+=========================================== =========================================================
+:zeek:type:`SSH::Info`: :zeek:type:`record` The record type which contains the fields of the SSH log.
+=========================================== =========================================================
 
 Redefinitions
 #############
-================================================================= ===========================================
-:bro:type:`Log::ID`: :bro:type:`enum`                             The SSH protocol logging stream identifier.
-:bro:type:`SSH::Info`: :bro:type:`record`                         
-:bro:type:`connection`: :bro:type:`record`                        
-:bro:id:`likely_server_ports`: :bro:type:`set` :bro:attr:`&redef` 
-================================================================= ===========================================
+==================================================================== ===========================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`                              The SSH protocol logging stream identifier.
+:zeek:type:`SSH::Info`: :zeek:type:`record`                          
+:zeek:type:`connection`: :zeek:type:`record`                         
+:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
+==================================================================== ===========================================
 
 Events
 ######
-================================================ ===================================================================
-:bro:id:`SSH::log_ssh`: :bro:type:`event`        Event that can be handled to access the SSH record as it is sent on
-                                                 to the logging framework.
-:bro:id:`ssh_auth_failed`: :bro:type:`event`     This event is generated when an :abbr:`SSH (Secure Shell)`
-                                                 connection was determined to have had a failed authentication.
-:bro:id:`ssh_auth_result`: :bro:type:`event`     This event is generated when a determination has been made about
-                                                 the final authentication result of an :abbr:`SSH (Secure Shell)`
-                                                 connection.
-:bro:id:`ssh_server_host_key`: :bro:type:`event` Event that can be handled when the analyzer sees an SSH server host
-                                                 key.
-================================================ ===================================================================
+================================================== ===================================================================
+:zeek:id:`SSH::log_ssh`: :zeek:type:`event`        Event that can be handled to access the SSH record as it is sent on
+                                                   to the logging framework.
+:zeek:id:`ssh_auth_failed`: :zeek:type:`event`     This event is generated when an :abbr:`SSH (Secure Shell)`
+                                                   connection was determined to have had a failed authentication.
+:zeek:id:`ssh_auth_result`: :zeek:type:`event`     This event is generated when a determination has been made about
+                                                   the final authentication result of an :abbr:`SSH (Secure Shell)`
+                                                   connection.
+:zeek:id:`ssh_server_host_key`: :zeek:type:`event` Event that can be handled when the analyzer sees an SSH server host
+                                                   key.
+================================================== ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: SSH::compression_algorithms
+.. zeek:id:: SSH::compression_algorithms
 
-   :Type: :bro:type:`set` [:bro:type:`string`]
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`set` [:zeek:type:`string`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -70,10 +70,10 @@ Runtime Options
    The set of compression algorithms. We can't accurately determine
    authentication success or failure when compression is enabled.
 
-.. bro:id:: SSH::disable_analyzer_after_detection
+.. zeek:id:: SSH::disable_analyzer_after_detection
 
-   :Type: :bro:type:`bool`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
 
    If true, after detection detach the SSH analyzer from the connection
@@ -82,68 +82,68 @@ Runtime Options
 
 Types
 #####
-.. bro:type:: SSH::Info
+.. zeek:type:: SSH::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Time when the SSH connection began.
 
-      uid: :bro:type:`string` :bro:attr:`&log`
+      uid: :zeek:type:`string` :zeek:attr:`&log`
          Unique ID for the connection.
 
-      id: :bro:type:`conn_id` :bro:attr:`&log`
+      id: :zeek:type:`conn_id` :zeek:attr:`&log`
          The connection's 4-tuple of endpoint addresses/ports.
 
-      version: :bro:type:`count` :bro:attr:`&log`
+      version: :zeek:type:`count` :zeek:attr:`&log`
          SSH major version (1 or 2)
 
-      auth_success: :bro:type:`bool` :bro:attr:`&log` :bro:attr:`&optional`
+      auth_success: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
          Authentication result (T=success, F=failure, unset=unknown)
 
-      auth_attempts: :bro:type:`count` :bro:attr:`&log` :bro:attr:`&default` = ``0`` :bro:attr:`&optional`
+      auth_attempts: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          The number of authentication attemps we observed. There's always
          at least one, since some servers might support no authentication at all.
          It's important to note that not all of these are failures, since
          some servers require two-factor auth (e.g. password AND pubkey)
 
-      direction: :bro:type:`Direction` :bro:attr:`&log` :bro:attr:`&optional`
+      direction: :zeek:type:`Direction` :zeek:attr:`&log` :zeek:attr:`&optional`
          Direction of the connection. If the client was a local host
          logging into an external host, this would be OUTBOUND. INBOUND
          would be set for the opposite situation.
 
-      client: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      client: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The client's version string
 
-      server: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      server: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The server's version string
 
-      cipher_alg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      cipher_alg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The encryption algorithm in use
 
-      mac_alg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      mac_alg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The signing (MAC) algorithm in use
 
-      compression_alg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      compression_alg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The compression algorithm in use
 
-      kex_alg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      kex_alg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The key exchange algorithm in use
 
-      host_key_alg: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      host_key_alg: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The server host key's algorithm
 
-      host_key: :bro:type:`string` :bro:attr:`&log` :bro:attr:`&optional`
+      host_key: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          The server's key fingerprint
 
-      logged: :bro:type:`bool` :bro:attr:`&default` = ``F`` :bro:attr:`&optional`
+      logged: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
 
-      capabilities: :bro:type:`SSH::Capabilities` :bro:attr:`&optional`
+      capabilities: :zeek:type:`SSH::Capabilities` :zeek:attr:`&optional`
 
-      analyzer_id: :bro:type:`count` :bro:attr:`&optional`
+      analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
          Analzyer ID
 
-      remote_location: :bro:type:`geo_location` :bro:attr:`&log` :bro:attr:`&optional`
+      remote_location: :zeek:type:`geo_location` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/ssh/geo-data.zeek` is loaded)
 
          Add geographic data related to the "remote" host of the
@@ -153,16 +153,16 @@ Types
 
 Events
 ######
-.. bro:id:: SSH::log_ssh
+.. zeek:id:: SSH::log_ssh
 
-   :Type: :bro:type:`event` (rec: :bro:type:`SSH::Info`)
+   :Type: :zeek:type:`event` (rec: :zeek:type:`SSH::Info`)
 
    Event that can be handled to access the SSH record as it is sent on
    to the logging framework.
 
-.. bro:id:: ssh_auth_failed
+.. zeek:id:: ssh_auth_failed
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    This event is generated when an :abbr:`SSH (Secure Shell)`
    connection was determined to have had a failed authentication. This
@@ -176,15 +176,15 @@ Events
    :c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_result ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_auth_result
+.. zeek:id:: ssh_auth_result
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, result: :bro:type:`bool`, auth_attempts: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`, auth_attempts: :zeek:type:`count`)
 
    This event is generated when a determination has been made about
    the final authentication result of an :abbr:`SSH (Secure Shell)`
@@ -205,21 +205,21 @@ Events
    :auth_attempts: The number of authentication attempts that were
       observed.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
       ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
       ssh2_gss_error ssh2_ecc_key
 
-.. bro:id:: ssh_server_host_key
+.. zeek:id:: ssh_server_host_key
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, hash: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hash: :zeek:type:`string`)
 
    Event that can be handled when the analyzer sees an SSH server host
-   key. This abstracts :bro:id:`ssh1_server_host_key` and
-   :bro:id:`ssh2_server_host_key`.
+   key. This abstracts :zeek:id:`ssh1_server_host_key` and
+   :zeek:id:`ssh2_server_host_key`.
    
-   .. bro:see:: ssh_server_version ssh_client_version
+   .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_result
       ssh_auth_attempted ssh_capabilities ssh2_server_host_key
       ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params

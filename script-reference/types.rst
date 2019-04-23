@@ -6,50 +6,50 @@ The Bro scripting language supports the following built-in types:
 +-----------------------+--------------------+
 | Name                  | Description        |
 +=======================+====================+
-| :bro:type:`bool`      | Boolean            |
+| :zeek:type:`bool`     | Boolean            |
 +-----------------------+--------------------+
-| :bro:type:`count`,    | Numeric types      |
-| :bro:type:`int`,      |                    |
-| :bro:type:`double`    |                    |
+| :zeek:type:`count`,   | Numeric types      |
+| :zeek:type:`int`,     |                    |
+| :zeek:type:`double`   |                    |
 +-----------------------+--------------------+
-| :bro:type:`time`,     | Time types         |
-| :bro:type:`interval`  |                    |
+| :zeek:type:`time`,    | Time types         |
+| :zeek:type:`interval` |                    |
 +-----------------------+--------------------+
-| :bro:type:`string`    | String             |
+| :zeek:type:`string`   | String             |
 +-----------------------+--------------------+
-| :bro:type:`pattern`   | Regular expression |
+| :zeek:type:`pattern`  | Regular expression |
 +-----------------------+--------------------+
-| :bro:type:`port`,     | Network types      |
-| :bro:type:`addr`,     |                    |
-| :bro:type:`subnet`    |                    |
+| :zeek:type:`port`,    | Network types      |
+| :zeek:type:`addr`,    |                    |
+| :zeek:type:`subnet`   |                    |
 +-----------------------+--------------------+
-| :bro:type:`enum`      | Enumeration        |
+| :zeek:type:`enum`     | Enumeration        |
 |                       | (user-defined type)|
 +-----------------------+--------------------+
-| :bro:type:`table`,    | Container types    |
-| :bro:type:`set`,      |                    |
-| :bro:type:`vector`,   |                    |
-| :bro:type:`record`    |                    |
+| :zeek:type:`table`,   | Container types    |
+| :zeek:type:`set`,     |                    |
+| :zeek:type:`vector`,  |                    |
+| :zeek:type:`record`   |                    |
 +-----------------------+--------------------+
-| :bro:type:`function`, | Executable types   |
-| :bro:type:`event`,    |                    |
-| :bro:type:`hook`      |                    |
+| :zeek:type:`function`,| Executable types   |
+| :zeek:type:`event`,   |                    |
+| :zeek:type:`hook`     |                    |
 +-----------------------+--------------------+
-| :bro:type:`file`      | File type (only    |
+| :zeek:type:`file`     | File type (only    |
 |                       | for writing)       |
 +-----------------------+--------------------+
-| :bro:type:`opaque`    | Opaque type (for   |
+| :zeek:type:`opaque`   | Opaque type (for   |
 |                       | some built-in      |
 |                       | functions)         |
 +-----------------------+--------------------+
-| :bro:type:`any`       | Any type (for      |
+| :zeek:type:`any`      | Any type (for      |
 |                       | functions or       |
 |                       | containers)        |
 +-----------------------+--------------------+
 
 Here is a more detailed description of each type:
 
-.. bro:type:: bool
+.. zeek:type:: bool
 
     Reflects a value with one of two meanings: true or false.  The two
     "bool" constants are ``T`` and ``F``.
@@ -57,9 +57,9 @@ Here is a more detailed description of each type:
     The "bool" type supports the following operators: equality/inequality
     (``==``, ``!=``), logical and/or (``&&``, ``||``), logical
     negation (``!``), and absolute value (where ``|T|`` is 1, and ``|F|`` is 0,
-    and in both cases the result type is :bro:type:`count`).
+    and in both cases the result type is :zeek:type:`count`).
 
-.. bro:type:: int
+.. zeek:type:: int
 
     A numeric type representing a 64-bit signed integer.  An "int" constant
     is a string of digits preceded by a "+" or "-" sign, e.g.
@@ -73,21 +73,21 @@ Here is a more detailed description of each type:
     (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``), assignment operators
     (``=``, ``+=``, ``-=``), pre-increment (``++``), pre-decrement
     (``--``), unary plus and minus (``+``, ``-``), and absolute value
-    (e.g., ``|-3|`` is 3, but the result type is :bro:type:`count`).
+    (e.g., ``|-3|`` is 3, but the result type is :zeek:type:`count`).
 
     When using type inferencing use care so that the
     intended type is inferred, e.g. "local size_difference = 0" will
-    infer ":bro:type:`count`", while "local size_difference = +0"
+    infer ":zeek:type:`count`", while "local size_difference = +0"
     will infer "int".
 
-.. bro:type:: count
+.. zeek:type:: count
 
     A numeric type representing a 64-bit unsigned integer.  A "count"
     constant is a string of digits, e.g. ``1234`` or ``0``.  A "count"
     can also be written in hexadecimal notation (in which case "0x" must
     precede the hex digits), e.g. ``0xff`` or ``0xABC123``.
 
-    The "count" type supports the same operators as the ":bro:type:`int`"
+    The "count" type supports the same operators as the ":zeek:type:`int`"
     type, but a unary plus or minus applied to a "count" results in an
     "int".
 
@@ -95,7 +95,7 @@ Here is a more detailed description of each type:
     ``&``, ``|``, and ``^`` for bitwise ``and``, ``or``, and ``xor``.  You
     can also use ``~`` for bitwise (one's) complement.
 
-.. bro:type:: double
+.. zeek:type:: double
 
     A numeric type representing a double-precision floating-point
     number.  Floating-point constants are written as a string of digits
@@ -111,24 +111,24 @@ Here is a more detailed description of each type:
 
     When using type inferencing use care so that the
     intended type is inferred, e.g. "local size_difference = 5" will
-    infer ":bro:type:`count`", while "local size_difference = 5.0"
+    infer ":zeek:type:`count`", while "local size_difference = 5.0"
     will infer "double".
 
-.. bro:type:: time
+.. zeek:type:: time
 
     A temporal type representing an absolute time.  There is currently
     no way to specify a ``time`` constant, but one can use the
-    :bro:id:`double_to_time`, :bro:id:`current_time`, or :bro:id:`network_time`
+    :zeek:id:`double_to_time`, :zeek:id:`current_time`, or :zeek:id:`network_time`
     built-in functions to assign a value to a ``time``-typed variable.
 
     Time values support the comparison operators (``==``, ``!=``, ``<``,
     ``<=``, ``>``, ``>=``).  A ``time`` value can be subtracted from
-    another ``time`` value to produce an :bro:type:`interval` value.  An
+    another ``time`` value to produce an :zeek:type:`interval` value.  An
     ``interval`` value can be added to, or subtracted from, a ``time`` value
     to produce a ``time`` value.  The absolute value of a ``time`` value is
-    a :bro:type:`double` with the same numeric value.
+    a :zeek:type:`double` with the same numeric value.
 
-.. bro:type:: interval
+.. zeek:type:: interval
 
     A temporal type representing a relative time.  An ``interval``
     constant can be written as a numeric constant followed by a time
@@ -146,13 +146,13 @@ Here is a more detailed description of each type:
     operators (``=``, ``+=``, ``-=``), and unary plus and minus (``+``, ``-``).
 
     Intervals also support division (in which case the result is a
-    :bro:type:`double` value).  An ``interval`` can be multiplied or divided
+    :zeek:type:`double` value).  An ``interval`` can be multiplied or divided
     by an arithmetic type (``count``, ``int``, or ``double``) to produce
     an ``interval`` value.  The absolute value of an ``interval`` is a
     ``double`` value equal to the number of seconds in the ``interval``
     (e.g., ``|-1 min|`` is 60.0).
 
-.. bro:type:: string
+.. zeek:type:: string
 
     A type used to hold bytes which represent text and also can hold
     arbitrary binary data.
@@ -196,7 +196,7 @@ Here is a more detailed description of each type:
     Note that the subscript operator cannot be used to modify a string (i.e.,
     it cannot be on the left side of an assignment operator).
 
-.. bro:type:: pattern
+.. zeek:type:: pattern
 
     A type representing regular-expression patterns that can be used
     for fast text-searching operations.  Pattern constants are created
@@ -208,7 +208,7 @@ Here is a more detailed description of each type:
     and embedded.
 
     In exact matching the ``==`` equality relational operator is used
-    with one "pattern" operand and one ":bro:type:`string`"
+    with one "pattern" operand and one ":zeek:type:`string`"
     operand (order of operands does not matter) to check whether the full
     string exactly matches the pattern.  In exact matching, the ``^``
     beginning-of-line and ``$`` end-of-line anchors are redundant since
@@ -225,7 +225,7 @@ Here is a more detailed description of each type:
 
     In embedded matching the ``in`` operator is used with one
     "pattern" operand (which must be on the left-hand side) and
-    one ":bro:type:`string`" operand, but tests whether the pattern
+    one ":zeek:type:`string`" operand, but tests whether the pattern
     appears anywhere within the given string.  For example::
 
         /foo|bar/ in "foobar"
@@ -263,7 +263,7 @@ Here is a more detailed description of each type:
     in double quotes maintain their case-sensitivity.  So for example
     /"foo"/i will not match "Foo", but it will match "foo".
 
-.. bro:type:: port
+.. zeek:type:: port
 
     A type representing transport-level port numbers (besides TCP and
     UDP ports, there is a concept of an ICMP "port" where the source
@@ -277,11 +277,11 @@ Here is a more detailed description of each type:
     is smaller than ``0/udp``.
 
     Note that you can obtain the transport-level protocol type of a ``port``
-    with the :bro:id:`get_port_transport_proto` built-in function, and
-    the numeric value of a ``port`` with the :bro:id:`port_to_count`
+    with the :zeek:id:`get_port_transport_proto` built-in function, and
+    the numeric value of a ``port`` with the :zeek:id:`port_to_count`
     built-in function.
 
-.. bro:type:: addr
+.. zeek:type:: addr
 
     A type representing an IP address.
 
@@ -303,7 +303,7 @@ Here is a more detailed description of each type:
     Addresses can be compared for equality (``==``, ``!=``),
     and also for ordering (``<``, ``<=``, ``>``, ``>=``).  The absolute value
     of an address gives the size in bits (32 for IPv4, and 128 for IPv6).
-    Addresses can also be masked with ``/`` to produce a :bro:type:`subnet`:
+    Addresses can also be masked with ``/`` to produce a :zeek:type:`subnet`:
 
     .. sourcecode:: bro
 
@@ -312,7 +312,7 @@ Here is a more detailed description of each type:
         if ( a/16 == s )
             print "true";
 
-    And checked for inclusion within a :bro:type:`subnet` using ``in``
+    And checked for inclusion within a :zeek:type:`subnet` using ``in``
     or ``!in``:
 
     .. sourcecode:: bro
@@ -323,7 +323,7 @@ Here is a more detailed description of each type:
             print "true";
 
     You can check if a given ``addr`` is IPv4 or IPv6 using
-    the :bro:id:`is_v4_addr` and :bro:id:`is_v6_addr` built-in functions.
+    the :zeek:id:`is_v4_addr` and :zeek:id:`is_v6_addr` built-in functions.
 
     Note that hostname constants can also be used, but since a hostname can
     correspond to multiple IP addresses, the type of such a variable is
@@ -333,10 +333,10 @@ Here is a more detailed description of each type:
 
         local a = www.google.com;
 
-.. bro:type:: subnet
+.. zeek:type:: subnet
 
     A type representing a block of IP addresses in CIDR notation.  A
-    ``subnet`` constant is written as an :bro:type:`addr` followed by a
+    ``subnet`` constant is written as an :zeek:type:`addr` followed by a
     slash (/) and then the network prefix size specified as a decimal
     number.  For example, ``192.168.0.0/16`` or ``[fe80::]/64``.
 
@@ -344,7 +344,7 @@ Here is a more detailed description of each type:
     "addr" can be checked for inclusion in a subnet using
     the ``in`` or ``!in`` operators.
 
-.. bro:type:: enum
+.. zeek:type:: enum
 
     A type allowing the specification of a set of related values that
     have no further structure.  An example declaration:
@@ -360,7 +360,7 @@ Here is a more detailed description of each type:
     The only operations allowed on enumerations are equality comparisons
     (``==``, ``!=``) and assignment (``=``).
 
-.. bro:type:: table
+.. zeek:type:: table
 
     An associate array that maps from one set of values to another.  The
     values being mapped are termed the *index* or *indices* and the
@@ -449,7 +449,7 @@ Here is a more detailed description of each type:
 
         t[13] = "thirteen";
 
-    Remove individual table elements with :bro:keyword:`delete`:
+    Remove individual table elements with :zeek:keyword:`delete`:
 
     .. sourcecode:: bro
 
@@ -465,12 +465,12 @@ Here is a more detailed description of each type:
 
         |t|
 
-    See the :bro:keyword:`for` statement for info on how to iterate over
+    See the :zeek:keyword:`for` statement for info on how to iterate over
     the elements in a table.
 
-.. bro:type:: set
+.. zeek:type:: set
 
-    A set is like a :bro:type:`table`, but it is a collection of indices
+    A set is like a :zeek:type:`table`, but it is a collection of indices
     that do not map to any yield value.  They are declared with the
     syntax::
 
@@ -519,7 +519,7 @@ Here is a more detailed description of each type:
         if ( [21/tcp, "ftp"] !in s2 )
             ...
 
-    Elements are added with :bro:keyword:`add`:
+    Elements are added with :zeek:keyword:`add`:
 
     .. sourcecode:: bro
 
@@ -528,7 +528,7 @@ Here is a more detailed description of each type:
     Nothing happens if the element with value ``22/tcp`` was already present in
     the set.
 
-    And removed with :bro:keyword:`delete`:
+    And removed with :zeek:keyword:`delete`:
 
     .. sourcecode:: bro
 
@@ -554,12 +554,12 @@ Here is a more detailed description of each type:
     i.e., it may be equal to the righthand operand).  The operators ``!=``,
     ``>`` and ``>=`` provide the expected complementary operations.
 
-    See the :bro:keyword:`for` statement for info on how to iterate over
+    See the :zeek:keyword:`for` statement for info on how to iterate over
     the elements in a set.
 
-.. bro:type:: vector
+.. zeek:type:: vector
 
-    A vector is like a :bro:type:`table`, except its indices are non-negative
+    A vector is like a :zeek:type:`table`, except its indices are non-negative
     integers, starting from zero.  A vector is declared like:
 
     .. sourcecode:: bro
@@ -647,10 +647,10 @@ Here is a more detailed description of each type:
     Vectors of type ``count`` can also be operands for the bitwise and/or/xor
     operators, ``&``, ``|`` and ``^``.
 
-    See the :bro:keyword:`for` statement for info on how to iterate over
+    See the :zeek:keyword:`for` statement for info on how to iterate over
     the elements in a vector.
 
-.. bro:type:: record
+.. zeek:type:: record
 
     A "record" is a collection of values.  Each value has a field name
     and a type.  Values do not need to have the same type and the types
@@ -668,7 +668,7 @@ Here is a more detailed description of each type:
 
     Records can be initialized or assigned as a whole in three different ways.
     When assigning a whole record value, all fields that are not
-    :bro:attr:`&optional` or have a :bro:attr:`&default` attribute must
+    :zeek:attr:`&optional` or have a :zeek:attr:`&default` attribute must
     be specified.  First, there's a constructor syntax:
 
     .. sourcecode:: bro
@@ -696,8 +696,8 @@ Here is a more detailed description of each type:
         local r: MyRecordType;
         r$c = 13;
 
-    To test if a field that is :bro:attr:`&optional` has been assigned a
-    value, use the ``?$`` operator (it returns a :bro:type:`bool` value of
+    To test if a field that is :zeek:attr:`&optional` has been assigned a
+    value, use the ``?$`` operator (it returns a :zeek:type:`bool` value of
     ``T`` if the field has been assigned a value, or ``F`` if not):
 
     .. sourcecode:: bro
@@ -705,7 +705,7 @@ Here is a more detailed description of each type:
         if ( r ?$ s )
             ...
 
-.. bro:type:: function
+.. zeek:type:: function
 
     Function types in Bro are declared using::
 
@@ -782,10 +782,10 @@ Here is a more detailed description of each type:
 
         foo("test");
 
-.. bro:type:: event
+.. zeek:type:: event
 
     Event handlers are nearly identical in both syntax and semantics to
-    a :bro:type:`function`, with the two differences being that event
+    a :zeek:type:`function`, with the two differences being that event
     handlers have no return type since they never return a value, and
     you cannot call an event handler.
 
@@ -821,7 +821,7 @@ Here is a more detailed description of each type:
         This assumes that ``password_exposed`` was previously declared
         as an event handler type with compatible arguments.
 
-    - Via the :bro:keyword:`schedule` expression in a script
+    - Via the :zeek:keyword:`schedule` expression in a script
 
         This delays the invocation of event handlers until some time in
         the future.  For example:
@@ -832,21 +832,21 @@ Here is a more detailed description of each type:
 
     Multiple event handler bodies can be defined for the same event handler
     identifier and the body of each will be executed in turn.  Ordering
-    of execution can be influenced with :bro:attr:`&priority`.
+    of execution can be influenced with :zeek:attr:`&priority`.
 
-.. bro:type:: hook
+.. zeek:type:: hook
 
     A hook is another flavor of function that shares characteristics of
-    both a :bro:type:`function` and an :bro:type:`event`.  They are like
+    both a :zeek:type:`function` and an :zeek:type:`event`.  They are like
     events in that many handler bodies can be defined for the same hook
     identifier and the order of execution can be enforced with
-    :bro:attr:`&priority`.  They are more like functions in the way they
+    :zeek:attr:`&priority`.  They are more like functions in the way they
     are invoked/called, because, unlike events, their execution is
     immediate and they do not get scheduled through an event queue.
     Also, a unique feature of a hook is that a given hook handler body
     can short-circuit the execution of remaining hook handlers simply by
-    exiting from the body as a result of a :bro:keyword:`break` statement (as
-    opposed to a :bro:keyword:`return` or just reaching the end of the body).
+    exiting from the body as a result of a :zeek:keyword:`break` statement (as
+    opposed to a :zeek:keyword:`return` or just reaching the end of the body).
 
     A hook type is declared like::
 
@@ -909,18 +909,18 @@ Here is a more detailed description of each type:
     Note how the modification to arguments can be seen by remaining
     hook handlers.
 
-    The return value of a hook call is an implicit :bro:type:`bool`
+    The return value of a hook call is an implicit :zeek:type:`bool`
     value with ``T`` meaning that all handlers for the hook were
     executed and ``F`` meaning that only some of the handlers may have
     executed due to one handler body exiting as a result of a ``break``
     statement.
 
-.. bro:type:: file
+.. zeek:type:: file
 
     Bro supports writing to files, but not reading from them (to read from
     files see the :doc:`/frameworks/input`).  Files
-    can be opened using either the :bro:id:`open` or :bro:id:`open_for_append`
-    built-in functions, and closed using the :bro:id:`close` built-in
+    can be opened using either the :zeek:id:`open` or :zeek:id:`open_for_append`
+    built-in functions, and closed using the :zeek:id:`close` built-in
     function.  For example, declare, open, and write to a file and finally
     close it like:
 
@@ -933,7 +933,7 @@ Here is a more detailed description of each type:
     Writing to files like this for logging usually isn't recommended, for better
     logging support see :doc:`/frameworks/logging`.
 
-.. bro:type:: opaque
+.. zeek:type:: opaque
 
     A data type whose actual representation/implementation is
     intentionally hidden, but whose values may be passed to certain
@@ -957,7 +957,7 @@ Here is a more detailed description of each type:
     necessary to have a handle as a way of identifying it and
     distinguishing it from other such resources.
 
-.. bro:type:: any
+.. zeek:type:: any
 
     Used to bypass strong typing.  For example, a function can take an
     argument of type ``any`` when it may be of different types.
@@ -966,7 +966,7 @@ Here is a more detailed description of each type:
     Note that users aren't expected to use this type.  It's provided mainly
     for use by some built-in functions and scripts included with Bro.
 
-.. bro:type:: void
+.. zeek:type:: void
 
     An internal Bro type (i.e., "void" is not a reserved keyword in the Bro
     scripting language) representing the absence of a return type for a

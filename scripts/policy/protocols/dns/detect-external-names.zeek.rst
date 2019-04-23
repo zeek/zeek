@@ -2,11 +2,11 @@
 
 policy/protocols/dns/detect-external-names.zeek
 ===============================================
-.. bro:namespace:: DNS
+.. zeek:namespace:: DNS
 
 This script detects names which are not within zones considered to be
 local but resolving to addresses considered local.  
-The :bro:id:`Site::local_zones` variable **must** be set appropriately for 
+The :zeek:id:`Site::local_zones` variable **must** be set appropriately for 
 this detection.
 
 :Namespace: DNS
@@ -16,9 +16,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface

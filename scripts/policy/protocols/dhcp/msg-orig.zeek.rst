@@ -2,7 +2,7 @@
 
 policy/protocols/dhcp/msg-orig.zeek
 ===================================
-.. bro:namespace:: DHCP
+.. zeek:namespace:: DHCP
 
 Add a field that logs the order of hosts sending messages
 using the same DHCP transaction ID.  This information is
@@ -16,9 +16,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`DHCP::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`DHCP::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

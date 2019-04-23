@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Syslog.events.bif.zeek
 ===========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Events
 ######
-=========================================== ========================================
-:bro:id:`syslog_message`: :bro:type:`event` Generated for monitored Syslog messages.
-=========================================== ========================================
+============================================= ========================================
+:zeek:id:`syslog_message`: :zeek:type:`event` Generated for monitored Syslog messages.
+============================================= ========================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: syslog_message
+.. zeek:id:: syslog_message
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, facility: :bro:type:`count`, severity: :bro:type:`count`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, facility: :zeek:type:`count`, severity: :zeek:type:`count`, msg: :zeek:type:`string`)
 
    Generated for monitored Syslog messages.
    

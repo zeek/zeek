@@ -2,7 +2,7 @@
 
 policy/misc/capture-loss.zeek
 =============================
-.. bro:namespace:: CaptureLoss
+.. zeek:namespace:: CaptureLoss
 
 This script logs evidence regarding the degree to which the packet
 capture process suffers from measurement loss.  
@@ -20,74 +20,74 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================== ================================================================
-:bro:id:`CaptureLoss::too_much_loss`: :bro:type:`double` :bro:attr:`&redef`    The percentage of missed data that is considered "too much" 
-                                                                               when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
-                                                                               generated.
-:bro:id:`CaptureLoss::watch_interval`: :bro:type:`interval` :bro:attr:`&redef` The interval at which capture loss reports are created.
-============================================================================== ================================================================
+================================================================================= =================================================================
+:zeek:id:`CaptureLoss::too_much_loss`: :zeek:type:`double` :zeek:attr:`&redef`    The percentage of missed data that is considered "too much" 
+                                                                                  when the :zeek:enum:`CaptureLoss::Too_Much_Loss` notice should be
+                                                                                  generated.
+:zeek:id:`CaptureLoss::watch_interval`: :zeek:type:`interval` :zeek:attr:`&redef` The interval at which capture loss reports are created.
+================================================================================= =================================================================
 
 Types
 #####
-================================================= =
-:bro:type:`CaptureLoss::Info`: :bro:type:`record` 
-================================================= =
+=================================================== =
+:zeek:type:`CaptureLoss::Info`: :zeek:type:`record` 
+=================================================== =
 
 Redefinitions
 #############
-========================================== =
-:bro:type:`Log::ID`: :bro:type:`enum`      
-:bro:type:`Notice::Type`: :bro:type:`enum` 
-========================================== =
+============================================ =
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+:zeek:type:`Notice::Type`: :zeek:type:`enum` 
+============================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: CaptureLoss::too_much_loss
+.. zeek:id:: CaptureLoss::too_much_loss
 
-   :Type: :bro:type:`double`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`double`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``0.1``
 
    The percentage of missed data that is considered "too much" 
-   when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
+   when the :zeek:enum:`CaptureLoss::Too_Much_Loss` notice should be
    generated. The value is expressed as a double between 0 and 1 with 1
    being 100%.
 
-.. bro:id:: CaptureLoss::watch_interval
+.. zeek:id:: CaptureLoss::watch_interval
 
-   :Type: :bro:type:`interval`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 mins``
 
    The interval at which capture loss reports are created.
 
 Types
 #####
-.. bro:type:: CaptureLoss::Info
+.. zeek:type:: CaptureLoss::Info
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      ts: :bro:type:`time` :bro:attr:`&log`
+      ts: :zeek:type:`time` :zeek:attr:`&log`
          Timestamp for when the measurement occurred.
 
-      ts_delta: :bro:type:`interval` :bro:attr:`&log`
+      ts_delta: :zeek:type:`interval` :zeek:attr:`&log`
          The time delay between this measurement and the last.
 
-      peer: :bro:type:`string` :bro:attr:`&log`
+      peer: :zeek:type:`string` :zeek:attr:`&log`
          In the event that there are multiple Bro instances logging
          to the same host, this distinguishes each peer with its
          individual name.
 
-      gaps: :bro:type:`count` :bro:attr:`&log`
+      gaps: :zeek:type:`count` :zeek:attr:`&log`
          Number of missed ACKs from the previous measurement interval.
 
-      acks: :bro:type:`count` :bro:attr:`&log`
+      acks: :zeek:type:`count` :zeek:attr:`&log`
          Total number of ACKs seen in the previous measurement interval.
 
-      percent_lost: :bro:type:`double` :bro:attr:`&log`
+      percent_lost: :zeek:type:`double` :zeek:attr:`&log`
          Percentage of ACKs seen where the data being ACKed wasn't seen.
 
 

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_VXLAN.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================= ========================================================
-:bro:id:`vxlan_packet`: :bro:type:`event` Generated for any packet encapsulated in a VXLAN tunnel.
-========================================= ========================================================
+=========================================== ========================================================
+:zeek:id:`vxlan_packet`: :zeek:type:`event` Generated for any packet encapsulated in a VXLAN tunnel.
+=========================================== ========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: vxlan_packet
+.. zeek:id:: vxlan_packet
 
-   :Type: :bro:type:`event` (outer: :bro:type:`connection`, inner: :bro:type:`pkt_hdr`, vni: :bro:type:`count`)
+   :Type: :zeek:type:`event` (outer: :zeek:type:`connection`, inner: :zeek:type:`pkt_hdr`, vni: :zeek:type:`count`)
 
    Generated for any packet encapsulated in a VXLAN tunnel.
    See :rfc:`7348` for more information about the VXLAN protocol.

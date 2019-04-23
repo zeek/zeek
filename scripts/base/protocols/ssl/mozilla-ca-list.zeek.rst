@@ -2,7 +2,7 @@
 
 base/protocols/ssl/mozilla-ca-list.zeek
 =======================================
-.. bro:namespace:: SSL
+.. zeek:namespace:: SSL
 
 
 :Namespace: SSL
@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-=============================================================== =
-:bro:id:`SSL::root_certs`: :bro:type:`table` :bro:attr:`&redef` 
-=============================================================== =
+================================================================== =
+:zeek:id:`SSL::root_certs`: :zeek:type:`table` :zeek:attr:`&redef` 
+================================================================== =
 
 
 Detailed Interface

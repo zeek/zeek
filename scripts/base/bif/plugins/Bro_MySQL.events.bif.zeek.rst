@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_MySQL.events.bif.zeek
 ==========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,24 +11,24 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================== ======================================================================================================
-:bro:id:`mysql_command_request`: :bro:type:`event` Generated for a command request from a MySQL client.
-:bro:id:`mysql_error`: :bro:type:`event`           Generated for an unsuccessful MySQL response.
-:bro:id:`mysql_handshake`: :bro:type:`event`       Generated for a client handshake response packet, which includes the username the client is attempting
-                                                   to connect as.
-:bro:id:`mysql_ok`: :bro:type:`event`              Generated for a successful MySQL response.
-:bro:id:`mysql_result_row`: :bro:type:`event`      Generated for each MySQL ResultsetRow response packet.
-:bro:id:`mysql_server_version`: :bro:type:`event`  Generated for the initial server handshake packet, which includes the MySQL server version.
-================================================== ======================================================================================================
+==================================================== ======================================================================================================
+:zeek:id:`mysql_command_request`: :zeek:type:`event` Generated for a command request from a MySQL client.
+:zeek:id:`mysql_error`: :zeek:type:`event`           Generated for an unsuccessful MySQL response.
+:zeek:id:`mysql_handshake`: :zeek:type:`event`       Generated for a client handshake response packet, which includes the username the client is attempting
+                                                     to connect as.
+:zeek:id:`mysql_ok`: :zeek:type:`event`              Generated for a successful MySQL response.
+:zeek:id:`mysql_result_row`: :zeek:type:`event`      Generated for each MySQL ResultsetRow response packet.
+:zeek:id:`mysql_server_version`: :zeek:type:`event`  Generated for the initial server handshake packet, which includes the MySQL server version.
+==================================================== ======================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: mysql_command_request
+.. zeek:id:: mysql_command_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, command: :bro:type:`count`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`count`, arg: :zeek:type:`string`)
 
    Generated for a command request from a MySQL client.
    
@@ -44,11 +44,11 @@ Events
 
    :arg: The argument for the command (empty string if not provided).
    
-   .. bro:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_error
+.. zeek:id:: mysql_error
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, code: :bro:type:`count`, msg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`count`, msg: :zeek:type:`string`)
 
    Generated for an unsuccessful MySQL response.
    
@@ -64,11 +64,11 @@ Events
 
    :msg: Any extra details about the error (empty string if not provided).
    
-   .. bro:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_handshake
+.. zeek:id:: mysql_handshake
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, username: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 
    Generated for a client handshake response packet, which includes the username the client is attempting
    to connect as.
@@ -82,11 +82,11 @@ Events
 
    :username: The username supplied by the client
    
-   .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
+   .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
 
-.. bro:id:: mysql_ok
+.. zeek:id:: mysql_ok
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, affected_rows: :bro:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, affected_rows: :zeek:type:`count`)
 
    Generated for a successful MySQL response.
    
@@ -99,11 +99,11 @@ Events
 
    :affected_rows: The number of rows that were affected.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
 
-.. bro:id:: mysql_result_row
+.. zeek:id:: mysql_result_row
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, row: :bro:type:`string_vec`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, row: :zeek:type:`string_vec`)
 
    Generated for each MySQL ResultsetRow response packet.
    
@@ -116,11 +116,11 @@ Events
 
    :row: The result row data.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake mysql_ok
+   .. zeek:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake mysql_ok
 
-.. bro:id:: mysql_server_version
+.. zeek:id:: mysql_server_version
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, ver: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, ver: :zeek:type:`string`)
 
    Generated for the initial server handshake packet, which includes the MySQL server version.
    
@@ -133,6 +133,6 @@ Events
 
    :ver: The server version string.
    
-   .. bro:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
+   .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
 
 

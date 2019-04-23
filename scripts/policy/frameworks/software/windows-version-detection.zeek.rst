@@ -2,7 +2,7 @@
 
 policy/frameworks/software/windows-version-detection.zeek
 =========================================================
-.. bro:namespace:: OS
+.. zeek:namespace:: OS
 
 Windows systems access a Microsoft Certificate Revocation List (CRL) periodically. The
 user agent for these requests reveals which version of Crypt32.dll installed on the system,
@@ -17,31 +17,31 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-====================================================================== =
-:bro:id:`OS::crypto_api_mapping`: :bro:type:`table` :bro:attr:`&redef` 
-====================================================================== =
+========================================================================= =
+:zeek:id:`OS::crypto_api_mapping`: :zeek:type:`table` :zeek:attr:`&redef` 
+========================================================================= =
 
 Types
 #####
-========================================================== =
-:bro:type:`Software::name_and_version`: :bro:type:`record` 
-========================================================== =
+============================================================ =
+:zeek:type:`Software::name_and_version`: :zeek:type:`record` 
+============================================================ =
 
 Redefinitions
 #############
-============================================ =
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: OS::crypto_api_mapping
+.. zeek:id:: OS::crypto_api_mapping
 
-   :Type: :bro:type:`table` [:bro:type:`string`] of :bro:type:`Software::name_and_version`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Software::name_and_version`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::
@@ -77,13 +77,13 @@ Redefinable Options
 
 Types
 #####
-.. bro:type:: Software::name_and_version
+.. zeek:type:: Software::name_and_version
 
-   :Type: :bro:type:`record`
+   :Type: :zeek:type:`record`
 
-      name: :bro:type:`string`
+      name: :zeek:type:`string`
 
-      version: :bro:type:`Software::Version`
+      version: :zeek:type:`Software::Version`
 
 
 

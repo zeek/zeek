@@ -15,9 +15,9 @@ internally generated messages/warnings/errors.
    internal messages/warnings/errors.  It should typically be loaded to
    log such messages to a file in a standard way.  For the options to
    toggle whether messages are additionally written to STDERR, see
-   :bro:see:`Reporter::info_to_stderr`,
-   :bro:see:`Reporter::warnings_to_stderr`, and
-   :bro:see:`Reporter::errors_to_stderr`.
+   :zeek:see:`Reporter::info_to_stderr`,
+   :zeek:see:`Reporter::warnings_to_stderr`, and
+   :zeek:see:`Reporter::errors_to_stderr`.
    
    Note that this framework deals with the handling of internally generated
    reporter messages, for the interface

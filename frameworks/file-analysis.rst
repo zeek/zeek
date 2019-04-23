@@ -25,11 +25,11 @@ File Lifecycle Events
 =====================
 
 The key events that may occur during the lifetime of a file are:
-:bro:see:`file_new`, :bro:see:`file_over_new_connection`,
-:bro:see:`file_timeout`, :bro:see:`file_gap`, and
-:bro:see:`file_state_remove`.  Handling any of these events provides
+:zeek:see:`file_new`, :zeek:see:`file_over_new_connection`,
+:zeek:see:`file_timeout`, :zeek:see:`file_gap`, and
+:zeek:see:`file_state_remove`.  Handling any of these events provides
 some information about the file such as which network
-:bro:see:`connection` and protocol are transporting the file, how many
+:zeek:see:`connection` and protocol are transporting the file, how many
 bytes have been transferred so far, and its MIME type.
 
 Here's a simple example:
@@ -68,9 +68,9 @@ attached, they start receiving the contents of the file as Bro extracts
 it from an ongoing network connection.  What they do with the file
 contents is up to the particular file analyzer implementation, but
 they'll typically either report further information about the file via
-events (e.g. :bro:see:`Files::ANALYZER_MD5` will report the
-file's MD5 checksum via :bro:see:`file_hash` once calculated) or they'll
-have some side effect (e.g. :bro:see:`Files::ANALYZER_EXTRACT`
+events (e.g. :zeek:see:`Files::ANALYZER_MD5` will report the
+file's MD5 checksum via :zeek:see:`file_hash` once calculated) or they'll
+have some side effect (e.g. :zeek:see:`Files::ANALYZER_EXTRACT`
 will write the contents of the file out to the local file system).
 
 In the future there may be file analyzers that automatically attach to
@@ -93,7 +93,7 @@ calculate the MD5 of plain text files:
    file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
 
 Some file analyzers might have tunable parameters that need to be
-specified in the call to :bro:see:`Files::add_analyzer`:
+specified in the call to :zeek:see:`Files::add_analyzer`:
 
 .. sourcecode:: bro
 
@@ -106,7 +106,7 @@ specified in the call to :bro:see:`Files::add_analyzer`:
 In this case, the file extraction analyzer doesn't generate any further
 events, but does have the effect of writing out the file contents to the
 local file system at the location resulting from the concatenation of
-the path specified by :bro:see:`FileExtract::prefix` and the string,
+the path specified by :zeek:see:`FileExtract::prefix` and the string,
 ``myfile``.  Of course, for a network with more than a single file being
 transferred, it's probably preferable to specify a different extraction
 path for each file, unlike this example.
@@ -122,15 +122,15 @@ The FAF comes with a simple way to integrate with the :doc:`Input
 Framework <input>`, so that Bro can analyze files from external sources
 in the same way it analyzes files that it sees coming over traffic from
 a network interface it's monitoring.  It only requires a call to
-:bro:see:`Input::add_analysis`:
+:zeek:see:`Input::add_analysis`:
 
 .. literalinclude:: file_analysis_03.zeek
    :caption:
    :language: bro
    :linenos:
 
-Note that the "source" field of :bro:see:`fa_file` corresponds to the
-"name" field of :bro:see:`Input::AnalysisDescription` since that is what
+Note that the "source" field of :zeek:see:`fa_file` corresponds to the
+"name" field of :zeek:see:`Input::AnalysisDescription` since that is what
 the input framework uses to uniquely identify an input stream.
 
 Example output of the above script may be:

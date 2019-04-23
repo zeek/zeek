@@ -2,7 +2,7 @@
 
 policy/protocols/conn/mac-logging.zeek
 ======================================
-.. bro:namespace:: Conn
+.. zeek:namespace:: Conn
 
 This script adds link-layer address (MAC) information to the connection logs
 
@@ -13,9 +13,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-========================================== =
-:bro:type:`Conn::Info`: :bro:type:`record` 
-========================================== =
+============================================ =
+:zeek:type:`Conn::Info`: :zeek:type:`record` 
+============================================ =
 
 
 Detailed Interface

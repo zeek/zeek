@@ -2,7 +2,7 @@
 
 policy/protocols/http/software.zeek
 ===================================
-.. bro:namespace:: HTTP
+.. zeek:namespace:: HTTP
 
 Software identification and extraction for HTTP traffic.
 
@@ -13,25 +13,25 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=========================================================================== ===============================================================
-:bro:id:`HTTP::ignored_user_agents`: :bro:type:`pattern` :bro:attr:`&redef` The pattern of HTTP User-Agents which you would like to ignore.
-=========================================================================== ===============================================================
+============================================================================== ===============================================================
+:zeek:id:`HTTP::ignored_user_agents`: :zeek:type:`pattern` :zeek:attr:`&redef` The pattern of HTTP User-Agents which you would like to ignore.
+============================================================================== ===============================================================
 
 Redefinitions
 #############
-============================================ =
-:bro:type:`Software::Type`: :bro:type:`enum` 
-============================================ =
+============================================== =
+:zeek:type:`Software::Type`: :zeek:type:`enum` 
+============================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
-.. bro:id:: HTTP::ignored_user_agents
+.. zeek:id:: HTTP::ignored_user_agents
 
-   :Type: :bro:type:`pattern`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`pattern`
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
    ::

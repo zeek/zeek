@@ -2,7 +2,7 @@
 
 policy/frameworks/files/entropy-test-all-files.zeek
 ===================================================
-.. bro:namespace:: Files
+.. zeek:namespace:: Files
 
 
 :Namespace: Files
@@ -11,9 +11,9 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-============================================================== =
-:bro:type:`Files::Info`: :bro:type:`record` :bro:attr:`&redef` 
-============================================================== =
+================================================================= =
+:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef` 
+================================================================= =
 
 
 Detailed Interface

@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_ConnSize.functions.bif.zeek
 ================================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Functions
 #########
-================================================================== ===================================================================================
-:bro:id:`get_current_conn_bytes_threshold`: :bro:type:`function`   Gets the current byte threshold size for a connection.
-:bro:id:`get_current_conn_packets_threshold`: :bro:type:`function` Gets the current packet threshold size for a connection.
-:bro:id:`set_current_conn_bytes_threshold`: :bro:type:`function`   Sets the current byte threshold for connection sizes, overwriting any potential old
-                                                                   threshold.
-:bro:id:`set_current_conn_packets_threshold`: :bro:type:`function` Sets a threshold for connection packets, overwtiting any potential old thresholds.
-================================================================== ===================================================================================
+==================================================================== ===================================================================================
+:zeek:id:`get_current_conn_bytes_threshold`: :zeek:type:`function`   Gets the current byte threshold size for a connection.
+:zeek:id:`get_current_conn_packets_threshold`: :zeek:type:`function` Gets the current packet threshold size for a connection.
+:zeek:id:`set_current_conn_bytes_threshold`: :zeek:type:`function`   Sets the current byte threshold for connection sizes, overwriting any potential old
+                                                                     threshold.
+:zeek:id:`set_current_conn_packets_threshold`: :zeek:type:`function` Sets a threshold for connection packets, overwtiting any potential old thresholds.
+==================================================================== ===================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: get_current_conn_bytes_threshold
+.. zeek:id:: get_current_conn_bytes_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, is_orig: :bro:type:`bool`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
    Gets the current byte threshold size for a connection.
    
@@ -39,12 +39,12 @@ Functions
 
    :returns: 0 if no threshold is set or the threshold in bytes
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_packets_threshold
 
-.. bro:id:: get_current_conn_packets_threshold
+.. zeek:id:: get_current_conn_packets_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, is_orig: :bro:type:`bool`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
    Gets the current packet threshold size for a connection.
    
@@ -57,12 +57,12 @@ Functions
 
    :returns: 0 if no threshold is set or the threshold in packets
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold
 
-.. bro:id:: set_current_conn_bytes_threshold
+.. zeek:id:: set_current_conn_bytes_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Sets the current byte threshold for connection sizes, overwriting any potential old
    threshold. Be aware that in nearly any case you will want to use the high level API
@@ -77,12 +77,12 @@ Functions
 
    :is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
    
-   .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
-.. bro:id:: set_current_conn_packets_threshold
+.. zeek:id:: set_current_conn_packets_threshold
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, threshold: :bro:type:`count`, is_orig: :bro:type:`bool`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Sets a threshold for connection packets, overwtiting any potential old thresholds.
    Be aware that in nearly any case you will want to use the high level API
@@ -97,7 +97,7 @@ Functions
 
    :is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
    
-   .. bro:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+   .. zeek:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
 
 

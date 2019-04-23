@@ -2,7 +2,7 @@
 
 base/frameworks/input/readers/raw.zeek
 ======================================
-.. bro:namespace:: InputRaw
+.. zeek:namespace:: InputRaw
 
 Interface for the raw input reader.
 
@@ -12,25 +12,25 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=========================================================================== ================================
-:bro:id:`InputRaw::record_separator`: :bro:type:`string` :bro:attr:`&redef` Separator between input records.
-=========================================================================== ================================
+============================================================================== ================================
+:zeek:id:`InputRaw::record_separator`: :zeek:type:`string` :zeek:attr:`&redef` Separator between input records.
+============================================================================== ================================
 
 Events
 ######
-======================================================= ====================================================================
-:bro:id:`InputRaw::process_finished`: :bro:type:`event` Event that is called when a process created by the raw reader exits.
-======================================================= ====================================================================
+========================================================= ====================================================================
+:zeek:id:`InputRaw::process_finished`: :zeek:type:`event` Event that is called when a process created by the raw reader exits.
+========================================================= ====================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. bro:id:: InputRaw::record_separator
+.. zeek:id:: InputRaw::record_separator
 
-   :Type: :bro:type:`string`
-   :Attributes: :bro:attr:`&redef`
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
    :Default: ``"\x0a"``
 
    Separator between input records.
@@ -38,9 +38,9 @@ Redefinable Options
 
 Events
 ######
-.. bro:id:: InputRaw::process_finished
+.. zeek:id:: InputRaw::process_finished
 
-   :Type: :bro:type:`event` (name: :bro:type:`string`, source: :bro:type:`string`, exit_code: :bro:type:`count`, signal_exit: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, source: :zeek:type:`string`, exit_code: :zeek:type:`count`, signal_exit: :zeek:type:`bool`)
 
    Event that is called when a process created by the raw reader exits.
    

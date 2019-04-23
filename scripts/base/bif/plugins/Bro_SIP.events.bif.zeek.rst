@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SIP.events.bif.zeek
 ========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,23 +11,23 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================= ==========================================================================================================
-:bro:id:`sip_all_headers`: :bro:type:`event`  Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
-:bro:id:`sip_begin_entity`: :bro:type:`event` Generated at the beginning of a :abbr:`SIP (Session Initiation Protocol)` message.
-:bro:id:`sip_end_entity`: :bro:type:`event`   Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
-:bro:id:`sip_header`: :bro:type:`event`       Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
-:bro:id:`sip_reply`: :bro:type:`event`        Generated for :abbr:`SIP (Session Initiation Protocol)` replies, used in Voice over IP (VoIP).
-:bro:id:`sip_request`: :bro:type:`event`      Generated for :abbr:`SIP (Session Initiation Protocol)` requests, used in Voice over IP (VoIP).
-============================================= ==========================================================================================================
+=============================================== ==========================================================================================================
+:zeek:id:`sip_all_headers`: :zeek:type:`event`  Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
+:zeek:id:`sip_begin_entity`: :zeek:type:`event` Generated at the beginning of a :abbr:`SIP (Session Initiation Protocol)` message.
+:zeek:id:`sip_end_entity`: :zeek:type:`event`   Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
+:zeek:id:`sip_header`: :zeek:type:`event`       Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
+:zeek:id:`sip_reply`: :zeek:type:`event`        Generated for :abbr:`SIP (Session Initiation Protocol)` replies, used in Voice over IP (VoIP).
+:zeek:id:`sip_request`: :zeek:type:`event`      Generated for :abbr:`SIP (Session Initiation Protocol)` requests, used in Voice over IP (VoIP).
+=============================================== ==========================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: sip_all_headers
+.. zeek:id:: sip_all_headers
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, hlist: :bro:type:`mime_header_list`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, hlist: :zeek:type:`mime_header_list`)
 
    Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
    
@@ -43,11 +43,11 @@ Events
 
    :hlist: All the headers, and their values
    
-   .. bro:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_begin_entity
+.. zeek:id:: sip_begin_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated at the beginning of a :abbr:`SIP (Session Initiation Protocol)` message.
    
@@ -62,11 +62,11 @@ Events
 
    :is_orig: Whether the message came from the originator.
    
-   .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
 
-.. bro:id:: sip_end_entity
+.. zeek:id:: sip_end_entity
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
    
@@ -79,11 +79,11 @@ Events
 
    :is_orig: Whether the message came from the originator.
    
-   .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
+   .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
 
-.. bro:id:: sip_header
+.. zeek:id:: sip_header
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, name: :bro:type:`string`, value: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
    
@@ -102,11 +102,11 @@ Events
 
    :value: Header value.
    
-   .. bro:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_reply
+.. zeek:id:: sip_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, version: :bro:type:`string`, code: :bro:type:`count`, reason: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
    Generated for :abbr:`SIP (Session Initiation Protocol)` replies, used in Voice over IP (VoIP).
    
@@ -127,11 +127,11 @@ Events
 
    :reason: Textual details for the response code.
    
-   .. bro:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
 
-.. bro:id:: sip_request
+.. zeek:id:: sip_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, method: :bro:type:`string`, original_URI: :bro:type:`string`, version: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 
    Generated for :abbr:`SIP (Session Initiation Protocol)` requests, used in Voice over IP (VoIP).
    
@@ -152,6 +152,6 @@ Events
 
    :version: The version number specified in the request (e.g., ``2.0``).
    
-   .. bro:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
+   .. zeek:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
 
 

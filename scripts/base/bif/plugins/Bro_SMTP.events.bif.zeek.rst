@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_SMTP.events.bif.zeek
 =========================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================ =================================================================================
-:bro:id:`smtp_data`: :bro:type:`event`       Generated for DATA transmitted on SMTP sessions.
-:bro:id:`smtp_reply`: :bro:type:`event`      Generated for server-side SMTP commands.
-:bro:id:`smtp_request`: :bro:type:`event`    Generated for client-side SMTP commands.
-:bro:id:`smtp_starttls`: :bro:type:`event`   Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.
-:bro:id:`smtp_unexpected`: :bro:type:`event` Generated for unexpected activity on SMTP sessions.
-============================================ =================================================================================
+============================================== =================================================================================
+:zeek:id:`smtp_data`: :zeek:type:`event`       Generated for DATA transmitted on SMTP sessions.
+:zeek:id:`smtp_reply`: :zeek:type:`event`      Generated for server-side SMTP commands.
+:zeek:id:`smtp_request`: :zeek:type:`event`    Generated for client-side SMTP commands.
+:zeek:id:`smtp_starttls`: :zeek:type:`event`   Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.
+:zeek:id:`smtp_unexpected`: :zeek:type:`event` Generated for unexpected activity on SMTP sessions.
+============================================== =================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. bro:id:: smtp_data
+.. zeek:id:: smtp_data
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, data: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, data: :zeek:type:`string`)
 
    Generated for DATA transmitted on SMTP sessions. This event is raised for
    subsequent chunks of raw data following the ``DATA`` SMTP command until the
@@ -47,7 +47,7 @@ Events
    :data: The raw data. Note that the size of each chunk is undefined and
          depends on specifics of the underlying TCP connection.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_reply smtp_request skip_smtp_data
    
@@ -55,9 +55,9 @@ Events
       set of ``mime_*`` events that strip out the outer MIME-layer of emails and
       provide structured access to their content.
 
-.. bro:id:: smtp_reply
+.. zeek:id:: smtp_reply
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, code: :bro:type:`count`, cmd: :bro:type:`string`, msg: :bro:type:`string`, cont_resp: :bro:type:`bool`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, code: :zeek:type:`count`, cmd: :zeek:type:`string`, msg: :zeek:type:`string`, cont_resp: :zeek:type:`bool`)
 
    Generated for server-side SMTP commands.
    
@@ -89,15 +89,15 @@ Events
          line. If so, further events will be raised and a handler may want to
          reassemble the pieces before processing the response any further.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
    
    .. note:: Bro doesn't support the newer ETRN extension yet.
 
-.. bro:id:: smtp_request
+.. zeek:id:: smtp_request
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, command: :bro:type:`string`, arg: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side SMTP commands.
    
@@ -121,15 +121,15 @@ Events
 
    :arg: The request command's arguments.
    
-   .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
    
    .. note:: Bro does not support the newer ETRN extension yet.
 
-.. bro:id:: smtp_starttls
+.. zeek:id:: smtp_starttls
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.
    After this event no more SMTP events will be raised for the connection. See the SSL
@@ -139,9 +139,9 @@ Events
    :c: The connection.
    
 
-.. bro:id:: smtp_unexpected
+.. zeek:id:: smtp_unexpected
 
-   :Type: :bro:type:`event` (c: :bro:type:`connection`, is_orig: :bro:type:`bool`, msg: :bro:type:`string`, detail: :bro:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`, detail: :zeek:type:`string`)
 
    Generated for unexpected activity on SMTP sessions. The SMTP analyzer tracks
    the state of SMTP sessions and reports commands and other activity with this
@@ -164,6 +164,6 @@ Events
 
    :detail: The actual SMTP line triggering the event.
    
-   .. bro:see:: smtp_data  smtp_request smtp_reply
+   .. zeek:see:: smtp_data  smtp_request smtp_reply
 
 

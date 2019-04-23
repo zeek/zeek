@@ -2,7 +2,7 @@
 
 base/bif/plugins/Bro_Login.functions.bif.zeek
 =============================================
-.. bro:namespace:: GLOBAL
+.. zeek:namespace:: GLOBAL
 
 
 :Namespace: GLOBAL
@@ -11,19 +11,19 @@ Summary
 ~~~~~~~
 Functions
 #########
-=============================================== ===================================================================
-:bro:id:`get_login_state`: :bro:type:`function` Returns the state of the given login (Telnet or Rlogin) connection.
-:bro:id:`set_login_state`: :bro:type:`function` Sets the login state of a connection with a login analyzer.
-=============================================== ===================================================================
+================================================= ===================================================================
+:zeek:id:`get_login_state`: :zeek:type:`function` Returns the state of the given login (Telnet or Rlogin) connection.
+:zeek:id:`set_login_state`: :zeek:type:`function` Sets the login state of a connection with a login analyzer.
+================================================= ===================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. bro:id:: get_login_state
+.. zeek:id:: get_login_state
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`) : :bro:type:`count`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
    Returns the state of the given login (Telnet or Rlogin) connection.
    
@@ -45,11 +45,11 @@ Functions
                   does not correctly know the state of the connection, and/or
                   the username associated with it.
    
-   .. bro:see:: set_login_state
+   .. zeek:see:: set_login_state
 
-.. bro:id:: set_login_state
+.. zeek:id:: set_login_state
 
-   :Type: :bro:type:`function` (cid: :bro:type:`conn_id`, new_state: :bro:type:`count`) : :bro:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, new_state: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the login state of a connection with a login analyzer.
    
@@ -58,12 +58,12 @@ Functions
    
 
    :new_state: The new state of the login analyzer. See
-              :bro:id:`get_login_state` for possible values.
+              :zeek:id:`get_login_state` for possible values.
    
 
    :returns: Returns false if *cid* is not an active connection
             or is not tagged as a login analyzer, and true otherwise.
    
-   .. bro:see:: get_login_state
+   .. zeek:see:: get_login_state
 
 

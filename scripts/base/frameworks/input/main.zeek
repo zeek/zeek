@@ -193,7 +193,7 @@ export {
 		## Descriptive name that uniquely identifies the input source.
 		## Can be used to remove a stream at a later time.
 		## This will also be used for the unique *source* field of
-		## :bro:see:`fa_file`.  Most of the time, the best choice for this
+		## :zeek:see:`fa_file`.  Most of the time, the best choice for this
 		## field will be the same value as the *source* field.
 		name: string;
 

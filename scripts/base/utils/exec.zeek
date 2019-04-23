@@ -8,7 +8,7 @@ export {
 	type Command: record {
 		## The command line to execute.  Use care to avoid injection
 		## attacks (i.e., if the command uses untrusted/variable data,
-		## sanitize it with :bro:see:`safe_shell_quote`).
+		## sanitize it with :zeek:see:`safe_shell_quote`).
 		cmd:         string;
 		## Provide standard input to the program as a string.
 		stdin:       string      &default="";

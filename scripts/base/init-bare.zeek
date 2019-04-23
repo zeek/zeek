@@ -99,7 +99,7 @@ type files_tag_set: set[Files::Tag];
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
-## :bro:see:`file_magic`
+## :zeek:see:`file_magic`
 type mime_match: record {
 	strength: int;    ##< How strongly the signature matched.  Used for
 	                  ##< prioritization when multiple file magic signatures
@@ -110,7 +110,7 @@ type mime_match: record {
 ## A vector of file magic signature matches, ordered by strength of
 ## the signature, strongest first.
 ##
-## :bro:see:`file_magic`
+## :zeek:see:`file_magic`
 type mime_matches: vector of mime_match;
 
 ## A connection's transport-layer protocol. Note that Bro uses the term
@@ -126,7 +126,7 @@ type transport_proto: enum {
 ##
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
 ##    part of the port values, `orig_p` and `resp_p`, and can be extracted from
-##    them with :bro:id:`get_port_transport_proto`.
+##    them with :zeek:id:`get_port_transport_proto`.
 type conn_id: record {
 	orig_h: addr;	##< The originator's IP address.
 	orig_p: port;	##< The originator's port number.
@@ -138,7 +138,7 @@ type conn_id: record {
 ##
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
 ##    part of the port values, `src_p` and `dst_p`, and can be extracted from
-##    them with :bro:id:`get_port_transport_proto`.
+##    them with :zeek:id:`get_port_transport_proto`.
 type flow_id : record {
 	src_h: addr;	##< The source IP address.
 	src_p: port;	##< The source port number.
@@ -147,9 +147,9 @@ type flow_id : record {
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
-## addition to :bro:type:`conn_id`.
+## addition to :zeek:type:`conn_id`.
 ##
-## .. bro:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
+## .. zeek:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
 ##    icmp_time_exceeded icmp_unreachable
 type icmp_conn: record {
 	orig_h: addr;	##< The originator's IP address.
@@ -164,7 +164,7 @@ type icmp_conn: record {
 ## Packet context part of an ICMP message. The fields of this record reflect the
 ## packet that is described by the context.
 ##
-## .. bro:see:: icmp_time_exceeded icmp_unreachable
+## .. zeek:see:: icmp_time_exceeded icmp_unreachable
 type icmp_context: record {
 	id: conn_id;	##< The packet's 4-tuple.
 	len: count;	##< The length of the IP packet (headers + payload).
@@ -183,7 +183,7 @@ type icmp_context: record {
 ## Values extracted from a Prefix Information option in an ICMPv6 neighbor
 ## discovery message as specified by :rfc:`4861`.
 ##
-## .. bro:see:: icmp6_nd_option
+## .. zeek:see:: icmp6_nd_option
 type icmp6_nd_prefix_info: record {
 	## Number of leading bits of the *prefix* that are valid.
 	prefix_len: count;
@@ -199,14 +199,14 @@ type icmp6_nd_prefix_info: record {
 	## (0xffffffff represents infinity).
 	preferred_lifetime: interval;
 	## An IP address or prefix of an IP address.  Use the *prefix_len* field
-	## to convert this into a :bro:type:`subnet`.
+	## to convert this into a :zeek:type:`subnet`.
 	prefix: addr;
 };
 
 ## Options extracted from ICMPv6 neighbor discovery messages as specified
 ## by :rfc:`4861`.
 ##
-## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_advertisement icmp_neighbor_solicitation icmp_redirect
 ##    icmp6_nd_options
 type icmp6_nd_option: record {
@@ -238,7 +238,7 @@ type icmp6_nd_options: vector of icmp6_nd_option;
 # A DNS mapping between IP address and hostname resolved by Bro's internal
 # resolver.
 #
-# .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+# .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 #    dns_mapping_unverified dns_mapping_valid
 type dns_mapping: record {
 	## The time when the mapping was created, which corresponds to when
@@ -264,7 +264,7 @@ type dns_mapping: record {
 ## A parsed host/port combination describing server endpoint for an upcoming
 ## data transfer.
 ##
-## .. bro:see:: fmt_ftp_port parse_eftp_port parse_ftp_epsv parse_ftp_pasv
+## .. zeek:see:: fmt_ftp_port parse_eftp_port parse_ftp_epsv parse_ftp_pasv
 ##    parse_ftp_port
 type ftp_port: record {
 	h: addr;	##< The host's address.
@@ -274,7 +274,7 @@ type ftp_port: record {
 
 ## Statistics about what a TCP endpoint sent.
 ##
-## .. bro:see:: conn_stats
+## .. zeek:see:: conn_stats
 type endpoint_stats: record {
 	num_pkts: count;	##< Number of packets.
 	num_rxmit: count;	##< Number of retransmissions.
@@ -283,9 +283,9 @@ type endpoint_stats: record {
 	num_OO: count;	##< Number of out-of-order packets.
 	num_repl: count;	##< Number of replicated packets (last packet was sent again).
 	## Endian type used by the endpoint, if it could be determined from
-	## the sequence numbers used. This is one of :bro:see:`ENDIAN_UNKNOWN`,
-	## :bro:see:`ENDIAN_BIG`, :bro:see:`ENDIAN_LITTLE`, and
-	## :bro:see:`ENDIAN_CONFUSED`.
+	## the sequence numbers used. This is one of :zeek:see:`ENDIAN_UNKNOWN`,
+	## :zeek:see:`ENDIAN_BIG`, :zeek:see:`ENDIAN_LITTLE`, and
+	## :zeek:see:`ENDIAN_CONFUSED`.
 	endian_type: count;
 };
 
@@ -302,7 +302,7 @@ export {
 		## The type of tunnel.
 		tunnel_type: Tunnel::Type;
 		## A globally unique identifier that, for non-IP-in-IP tunnels,
-		## cross-references the *uid* field of :bro:type:`connection`.
+		## cross-references the *uid* field of :zeek:type:`connection`.
 		uid: string &optional;
 	} &log;
 } # end export
@@ -316,22 +316,22 @@ module GLOBAL;
 ##    directly and then remove this alias.
 type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
 
-## Statistics about a :bro:type:`connection` endpoint.
+## Statistics about a :zeek:type:`connection` endpoint.
 ##
-## .. bro:see:: connection
+## .. zeek:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
 	## Endpoint state. For a TCP connection, one of the constants:
-	## :bro:see:`TCP_INACTIVE` :bro:see:`TCP_SYN_SENT`
-	## :bro:see:`TCP_SYN_ACK_SENT` :bro:see:`TCP_PARTIAL`
-	## :bro:see:`TCP_ESTABLISHED` :bro:see:`TCP_CLOSED` :bro:see:`TCP_RESET`.
-	## For UDP, one of :bro:see:`UDP_ACTIVE` and :bro:see:`UDP_INACTIVE`.
+	## :zeek:see:`TCP_INACTIVE` :zeek:see:`TCP_SYN_SENT`
+	## :zeek:see:`TCP_SYN_ACK_SENT` :zeek:see:`TCP_PARTIAL`
+	## :zeek:see:`TCP_ESTABLISHED` :zeek:see:`TCP_CLOSED` :zeek:see:`TCP_RESET`.
+	## For UDP, one of :zeek:see:`UDP_ACTIVE` and :zeek:see:`UDP_INACTIVE`.
 	state: count;
-	## Number of packets sent. Only set if :bro:id:`use_conn_size_analyzer`
+	## Number of packets sent. Only set if :zeek:id:`use_conn_size_analyzer`
 	## is true.
 	num_pkts: count &optional;
 	## Number of IP-level bytes sent. Only set if
-	## :bro:id:`use_conn_size_analyzer` is true.
+	## :zeek:id:`use_conn_size_analyzer` is true.
 	num_bytes_ip: count &optional;
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
@@ -361,7 +361,7 @@ type connection: record {
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
 	service: set[string];
-	history: string;	##< State history of connections. See *history* in :bro:see:`Conn::Info`.
+	history: string;	##< State history of connections. See *history* in :zeek:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Bro
 	## creates an ID that is very likely unique across independent Bro runs.
 	## These IDs can thus be used to tag and locate information associated
@@ -370,7 +370,7 @@ type connection: record {
 	## If the connection is tunneled, this field contains information about
 	## the encapsulating "connection(s)" with the outermost one starting
 	## at index zero.  It's also always the first such encapsulation seen
-	## for the connection unless the :bro:id:`tunnel_changed` event is
+	## for the connection unless the :zeek:id:`tunnel_changed` event is
 	## handled and reassigns this field to the new encapsulation.
 	tunnel: EncapsulatingConnVector &optional;
 
@@ -460,7 +460,7 @@ type fa_metadata: record {
 
 ## Fields of a SYN packet.
 ##
-## .. bro:see:: connection_SYN_packet
+## .. zeek:see:: connection_SYN_packet
 type SYN_packet: record {
 	is_orig: bool;	##< True if the packet was sent the connection's originator.
 	DF: bool;	##< True if the *don't fragment* is set in the IP header.
@@ -474,7 +474,7 @@ type SYN_packet: record {
 
 ## Packet capture statistics.  All counts are cumulative.
 ##
-## .. bro:see:: get_net_stats
+## .. zeek:see:: get_net_stats
 type NetStats: record {
 	pkts_recvd:   count &default=0;	##< Packets received by Bro.
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
@@ -514,7 +514,7 @@ type ConnStats: record {
 
 ## Statistics about Bro's process.
 ##
-## .. bro:see:: get_proc_stats
+## .. zeek:see:: get_proc_stats
 ##
 ## .. note:: All process-level values refer to Bro's main process only, not to
 ##    the child process it spawns for doing communication.
@@ -540,7 +540,7 @@ type EventStats: record {
 
 ## Holds statistics for all types of reassembly.
 ##
-## .. bro:see:: get_reassembler_stats
+## .. zeek:see:: get_reassembler_stats
 type ReassemblerStats: record {
 	file_size:    count;  ##< Byte size of File reassembly tracking.
 	frag_size:    count;  ##< Byte size of Fragment reassembly tracking.
@@ -550,7 +550,7 @@ type ReassemblerStats: record {
 
 ## Statistics of all regular expression matchers.
 ##
-## .. bro:see:: get_matcher_stats
+## .. zeek:see:: get_matcher_stats
 type MatcherStats: record {
 	matchers: count;    ##< Number of distinct RE matchers.
 	nfa_states: count;  ##< Number of NFA states across all matchers.
@@ -563,7 +563,7 @@ type MatcherStats: record {
 
 ## Statistics of timers.
 ##
-## .. bro:see:: get_timer_stats
+## .. zeek:see:: get_timer_stats
 type TimerStats: record {
 	current:    count; ##< Current number of pending timers.
 	max:        count; ##< Maximum number of concurrent timers pending so far.
@@ -572,7 +572,7 @@ type TimerStats: record {
 
 ## Statistics of file analysis.
 ##
-## .. bro:see:: get_file_analysis_stats
+## .. zeek:see:: get_file_analysis_stats
 type FileAnalysisStats: record {
 	current:    count; ##< Current number of files being analyzed.
 	max:        count; ##< Maximum number of concurrent files so far.
@@ -583,7 +583,7 @@ type FileAnalysisStats: record {
 ## about Bro performing DNS queries on it's own, not traffic
 ## being seen.
 ##
-## .. bro:see:: get_dns_stats
+## .. zeek:see:: get_dns_stats
 type DNSStats: record {
 	requests:         count; ##< Number of DNS requests made
 	successful:       count; ##< Number of successful DNS replies.
@@ -595,7 +595,7 @@ type DNSStats: record {
 
 ## Statistics about number of gaps in TCP connections.
 ##
-## .. bro:see:: get_gap_stats
+## .. zeek:see:: get_gap_stats
 type GapStats: record {
 	ack_events: count;  ##< How many ack events *could* have had gaps.
 	ack_bytes: count;   ##< How many bytes those covered.
@@ -605,14 +605,14 @@ type GapStats: record {
 
 ## Statistics about threads.
 ##
-## .. bro:see:: get_thread_stats
+## .. zeek:see:: get_thread_stats
 type ThreadStats: record {
 	num_threads: count;
 };
 
 ## Statistics about Broker communication.
 ##
-## .. bro:see:: get_broker_stats
+## .. zeek:see:: get_broker_stats
 type BrokerStats: record {
 	num_peers: count;
 	## Number of active data stores.
@@ -635,7 +635,7 @@ type BrokerStats: record {
 
 ## Statistics about reporter messages and weirds.
 ##
-## .. bro:see:: get_reporter_stats
+## .. zeek:see:: get_reporter_stats
 type ReporterStats: record {
 	## Number of total weirds encountered, before any rate-limiting.
 	weirds: count;
@@ -657,7 +657,7 @@ type packet: record {
 
 ## Table type used to map variable names to their memory allocation.
 ##
-## .. bro:see:: global_sizes
+## .. zeek:see:: global_sizes
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
@@ -666,21 +666,21 @@ type var_sizes: table[string] of count;
 
 ## Meta-information about a script-level identifier.
 ##
-## .. bro:see:: global_ids id_table
+## .. zeek:see:: global_ids id_table
 type script_id: record {
 	type_name: string;	##< The name of the identifier's type.
 	exported: bool;	##< True if the identifier is exported.
 	constant: bool;	##< True if the identifier is a constant.
 	enum_constant: bool;	##< True if the identifier is an enum value.
 	option_value: bool;	##< True if the identifier is an option.
-	redefinable: bool;	##< True if the identifier is declared with the :bro:attr:`&redef` attribute.
+	redefinable: bool;	##< True if the identifier is declared with the :zeek:attr:`&redef` attribute.
 	value: any &optional;	##< The current value of the identifier.
 };
 
 ## Table type used to map script-level identifiers to meta-information
 ## describing them.
 ##
-## .. bro:see:: global_ids script_id
+## .. zeek:see:: global_ids script_id
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
@@ -689,20 +689,20 @@ type id_table: table[string] of script_id;
 
 ## Meta-information about a record field.
 ##
-## .. bro:see:: record_fields record_field_table
+## .. zeek:see:: record_fields record_field_table
 type record_field: record {
 	type_name: string;	##< The name of the field's type.
-	log: bool;	##< True if the field is declared with :bro:attr:`&log` attribute.
+	log: bool;	##< True if the field is declared with :zeek:attr:`&log` attribute.
 	## The current value of the field in the record instance passed into
-	## :bro:see:`record_fields` (if it has one).
+	## :zeek:see:`record_fields` (if it has one).
 	value: any &optional;
-	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
+	default_val: any &optional;	##< The value of the :zeek:attr:`&default` attribute if defined.
 };
 
 ## Table type used to map record field declarations to meta-information
 ## describing them.
 ##
-## .. bro:see:: record_fields record_field
+## .. zeek:see:: record_fields record_field
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
@@ -711,21 +711,21 @@ type record_field_table: table[string] of record_field;
 
 ## Meta-information about a parameter to a function/event.
 ##
-## .. bro:see:: call_argument_vector new_event
+## .. zeek:see:: call_argument_vector new_event
 type call_argument: record {
 	name: string;	##< The name of the parameter.
 	type_name: string;	##< The name of the parameters's type.
-	default_val: any &optional;	##< The value of the :bro:attr:`&default` attribute if defined.
+	default_val: any &optional;	##< The value of the :zeek:attr:`&default` attribute if defined.
 
 	## The value of the parameter as passed into a given call instance.
-	## Might be unset in the case a :bro:attr:`&default` attribute is
+	## Might be unset in the case a :zeek:attr:`&default` attribute is
 	## defined.
 	value: any &optional;
 };
 
 ## Vector type used to capture parameters of a function/event call.
 ##
-## .. bro:see:: call_argument new_event
+## .. zeek:see:: call_argument new_event
 type call_argument_vector: vector of call_argument;
 
 # todo:: Do we still need these here? Can they move into the packet filter
@@ -736,28 +736,28 @@ type call_argument_vector: vector of call_argument;
 
 ## Set of BPF capture filters to use for capturing, indexed by a user-definable
 ## ID (which must be unique). If Bro is *not* configured with
-## :bro:id:`PacketFilter::enable_auto_protocol_capture_filters`,
+## :zeek:id:`PacketFilter::enable_auto_protocol_capture_filters`,
 ## all packets matching at least one of the filters in this table (and all in
-## :bro:id:`restrict_filters`) will be analyzed.
+## :zeek:id:`restrict_filters`) will be analyzed.
 ##
-## .. bro:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
+## .. zeek:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
 ##    PacketFilter::unrestricted_filter restrict_filters
 global capture_filters: table[string] of string &redef;
 
 ## Set of BPF filters to restrict capturing, indexed by a user-definable ID
 ## (which must be unique).
 ##
-## .. bro:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
+## .. zeek:see:: PacketFilter PacketFilter::enable_auto_protocol_capture_filters
 ##    PacketFilter::unrestricted_filter capture_filters
 global restrict_filters: table[string] of string &redef;
 
 ## Enum type identifying dynamic BPF filters. These are used by
-## :bro:see:`Pcap::precompile_pcap_filter` and :bro:see:`Pcap::precompile_pcap_filter`.
+## :zeek:see:`Pcap::precompile_pcap_filter` and :zeek:see:`Pcap::precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
 ## Deprecated.
 ##
-## .. bro:see:: anonymize_addr
+## .. zeek:see:: anonymize_addr
 type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
@@ -768,7 +768,7 @@ type IPAddrAnonymization: enum {
 
 ## Deprecated.
 ##
-## .. bro:see:: anonymize_addr
+## .. zeek:see:: anonymize_addr
 type IPAddrAnonymizationClass: enum {
 	ORIG_ADDR,
 	RESP_ADDR,
@@ -776,14 +776,14 @@ type IPAddrAnonymizationClass: enum {
 };
 
 ## A locally unique ID identifying a communication peer. The ID is returned by
-## :bro:id:`connect`.
+## :zeek:id:`connect`.
 ##
-## .. bro:see:: connect
+## .. zeek:see:: connect
 type peer_id: count;
 
 ## A communication peer.
 ##
-## .. bro:see:: complete_handshake disconnect finished_send_state
+## .. zeek:see:: complete_handshake disconnect finished_send_state
 ##    get_event_peer get_local_event_peer remote_capture_filter
 ##    remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
@@ -794,19 +794,19 @@ type peer_id: count;
 ##
 ## .. todo::The type's name is too narrow these days, should rename.
 type event_peer: record {
-	id: peer_id;	##< Locally unique ID of peer (returned by :bro:id:`connect`).
+	id: peer_id;	##< Locally unique ID of peer (returned by :zeek:id:`connect`).
 	host: addr;	##< The IP address of the peer.
 	## Either the port we connected to at the peer; or our port the peer
 	## connected to if the session is remotely initiated.
 	p: port;
 	is_local: bool;		##< True if this record describes the local process.
-	descr: string;		##< The peer's :bro:see:`peer_description`.
+	descr: string;		##< The peer's :zeek:see:`peer_description`.
 	class: string &optional;	##< The self-assigned *class* of the peer.
 };
 
 ## Deprecated.
 ##
-## .. bro:see:: rotate_file rotate_file_by_name rotate_interval
+## .. zeek:see:: rotate_file rotate_file_by_name rotate_interval
 type rotate_info: record {
 	old_name: string;	##< Original filename.
 	new_name: string;	##< File name after rotation.
@@ -824,7 +824,7 @@ type rotate_info: record {
 
 ## Parameters for the Smith-Waterman algorithm.
 ##
-## .. bro:see:: str_smith_waterman
+## .. zeek:see:: str_smith_waterman
 type sw_params: record {
 	## Minimum size of a substring, minimum "granularity".
 	min_strlen: count &default = 3;
@@ -835,7 +835,7 @@ type sw_params: record {
 
 ## Helper type for return value of Smith-Waterman algorithm.
 ##
-## .. bro:see:: str_smith_waterman sw_substring_vec sw_substring sw_align_vec sw_params
+## .. zeek:see:: str_smith_waterman sw_substring_vec sw_substring sw_align_vec sw_params
 type sw_align: record {
 	str: string;	##< String a substring is part of.
 	index: count;	##< Offset substring is located.
@@ -843,12 +843,12 @@ type sw_align: record {
 
 ## Helper type for return value of Smith-Waterman algorithm.
 ##
-## .. bro:see:: str_smith_waterman sw_substring_vec sw_substring sw_align sw_params
+## .. zeek:see:: str_smith_waterman sw_substring_vec sw_substring sw_align sw_params
 type sw_align_vec: vector of sw_align;
 
 ## Helper type for return value of Smith-Waterman algorithm.
 ##
-## .. bro:see:: str_smith_waterman sw_substring_vec sw_align_vec sw_align sw_params
+## .. zeek:see:: str_smith_waterman sw_substring_vec sw_align_vec sw_align sw_params
 ##
 type sw_substring: record {
 	str: string;	##< A substring.
@@ -858,7 +858,7 @@ type sw_substring: record {
 
 ## Return type for Smith-Waterman algorithm.
 ##
-## .. bro:see:: str_smith_waterman sw_substring sw_align_vec sw_align sw_params
+## .. zeek:see:: str_smith_waterman sw_substring sw_align_vec sw_align sw_params
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
@@ -869,7 +869,7 @@ type sw_substring_vec: vector of sw_substring;
 ## includes the complete packet as returned by libpcap, including the link-layer
 ## header.
 ##
-## .. bro:see:: dump_packet get_current_packet
+## .. zeek:see:: dump_packet get_current_packet
 type pcap_packet: record {
 	ts_sec: count;	##< The non-fractional part of the packet's timestamp (i.e., full seconds since the epoch).
 	ts_usec: count;	##< The fractional part of the packet's timestamp.
@@ -881,7 +881,7 @@ type pcap_packet: record {
 
 ## GeoIP location information.
 ##
-## .. bro:see:: lookup_location
+## .. zeek:see:: lookup_location
 type geo_location: record {
 	country_code: string &optional;	##< The country code.
 	region: string &optional;	##< The region.
@@ -898,7 +898,7 @@ const mmdb_dir: string = "" &redef;
 ## <http://www.fourmilab.ch/random>`_ for more information, Bro uses the same
 ## code.
 ##
-## .. bro:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
+## .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
 type entropy_test_result: record {
 	entropy: double;	##< Information density.
 	chi_square: double;	##< Chi-Square value.
@@ -907,7 +907,7 @@ type entropy_test_result: record {
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
 
-# TCP values for :bro:see:`endpoint` *state* field.
+# TCP values for :zeek:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
 const TCP_INACTIVE = 0;	##< Endpoint is still inactive.
 const TCP_SYN_SENT = 1;	##< Endpoint has sent SYN.
@@ -917,7 +917,7 @@ const TCP_ESTABLISHED = 4;	##< Endpoint has finished initial handshake regularly
 const TCP_CLOSED = 5;	##< Endpoint has closed connection.
 const TCP_RESET = 6;	##< Endpoint has sent RST.
 
-# UDP values for :bro:see:`endpoint` *state* field.
+# UDP values for :zeek:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
@@ -933,7 +933,7 @@ const ignore_checksums = F &redef;
 const partial_connection_ok = T &redef;
 
 ## If true, instantiate connection state when a SYN/ACK is seen but not the
-## initial SYN (even if :bro:see:`partial_connection_ok` is false).
+## initial SYN (even if :zeek:see:`partial_connection_ok` is false).
 const tcp_SYN_ack_ok = T &redef;
 
 ## If true, pass any undelivered to the signature engine before flushing the state.
@@ -963,53 +963,53 @@ const tcp_close_delay = 5 secs &redef;
 ## Upon seeing a RST, flush state after this much time.
 const tcp_reset_delay = 5 secs &redef;
 
-## Generate a :bro:id:`connection_partial_close` event this much time after one
+## Generate a :zeek:id:`connection_partial_close` event this much time after one
 ## half of a partial connection closes, assuming there has been no subsequent
 ## activity.
 const tcp_partial_close_delay = 3 secs &redef;
 
 ## If a connection belongs to an application that we don't analyze,
 ## time it out after this interval.  If 0 secs, then don't time it out (but
-## :bro:see:`tcp_inactivity_timeout`, :bro:see:`udp_inactivity_timeout`, and
-## :bro:see:`icmp_inactivity_timeout` still apply).
+## :zeek:see:`tcp_inactivity_timeout`, :zeek:see:`udp_inactivity_timeout`, and
+## :zeek:see:`icmp_inactivity_timeout` still apply).
 const non_analyzed_lifetime = 0 secs &redef;
 
 ## If a TCP connection is inactive, time it out after this interval. If 0 secs,
 ## then don't time it out.
 ##
-## .. bro:see:: udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
 const tcp_inactivity_timeout = 5 min &redef;
 
 ## If a UDP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. bro:see:: tcp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
 const udp_inactivity_timeout = 1 min &redef;
 
 ## If an ICMP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. bro:see:: tcp_inactivity_timeout udp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout set_inactivity_timeout
 const icmp_inactivity_timeout = 1 min &redef;
 
 ## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within
-## intervals of at most :bro:see:`tcp_storm_interarrival_thresh`.
+## intervals of at most :zeek:see:`tcp_storm_interarrival_thresh`.
 ##
-## .. bro:see:: tcp_storm_interarrival_thresh
+## .. zeek:see:: tcp_storm_interarrival_thresh
 const tcp_storm_thresh = 1000 &redef;
 
 ## FINs/RSTs must come with this much time or less between them to be
 ## considered a "storm".
 ##
-## .. bro:see:: tcp_storm_thresh
+## .. zeek:see:: tcp_storm_thresh
 const tcp_storm_interarrival_thresh = 1 sec &redef;
 
 ## Maximum amount of data that might plausibly be sent in an initial flight
 ## (prior to receiving any acks).  Used to determine whether we must not be
 ## seeing our peer's ACKs.  Set to zero to turn off this determination.
 ##
-## .. bro:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
+## .. zeek:see:: tcp_max_above_hole_without_any_acks tcp_excessive_data_without_further_acks
 const tcp_max_initial_window = 16384 &redef;
 
 ## If we're not seeing our peer's ACKs, the maximum volume of data above a
@@ -1017,7 +1017,7 @@ const tcp_max_initial_window = 16384 &redef;
 ## drop and we should give up on tracking a connection. If set to zero, then we
 ## don't ever give up.
 ##
-## .. bro:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
+## .. zeek:see:: tcp_max_initial_window tcp_excessive_data_without_further_acks
 const tcp_max_above_hole_without_any_acks = 16384 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
@@ -1026,7 +1026,7 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 ## track the current window on a connection and use it to infer that data
 ## has in fact gone too far, but for now we just make this quite beefy.
 ##
-## .. bro:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
+## .. zeek:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## Number of TCP segments to buffer beyond what's been acknowledged already
@@ -1037,46 +1037,46 @@ const tcp_max_old_segments = 0 &redef;
 ## For services without a handler, these sets define originator-side ports
 ## that still trigger reassembly.
 ##
-## .. bro:see:: tcp_reassembler_ports_resp
+## .. zeek:see:: tcp_reassembler_ports_resp
 const tcp_reassembler_ports_orig: set[port] = {} &redef;
 
 ## For services without a handler, these sets define responder-side ports
 ## that still trigger reassembly.
 ##
-## .. bro:see:: tcp_reassembler_ports_orig
+## .. zeek:see:: tcp_reassembler_ports_orig
 const tcp_reassembler_ports_resp: set[port] = {} &redef;
 
 ## Defines destination TCP ports for which the contents of the originator stream
-## should be delivered via :bro:see:`tcp_contents`.
+## should be delivered via :zeek:see:`tcp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
+## .. zeek:see:: tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_content_deliver_all_resp  tcp_contents
 const tcp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
 ## Defines destination TCP ports for which the contents of the responder stream
-## should be delivered via :bro:see:`tcp_contents`.
+## should be delivered via :zeek:see:`tcp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig tcp_content_deliver_all_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_content_deliver_all_resp tcp_contents
 const tcp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 
 ## If true, all TCP originator-side traffic is reported via
-## :bro:see:`tcp_contents`.
+## :zeek:see:`tcp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
+## .. zeek:see:: tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_content_deliver_all_resp tcp_contents
 const tcp_content_deliver_all_orig = F &redef;
 
 ## If true, all TCP responder-side traffic is reported via
-## :bro:see:`tcp_contents`.
+## :zeek:see:`tcp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp
 ##    tcp_content_deliver_all_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
@@ -1084,9 +1084,9 @@ const tcp_content_deliver_all_orig = F &redef;
 const tcp_content_deliver_all_resp = F &redef;
 
 ## Defines UDP destination ports for which the contents of the originator stream
-## should be delivered via :bro:see:`udp_contents`.
+## should be delivered via :zeek:see:`udp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp
 ##    tcp_content_deliver_all_orig tcp_content_deliver_all_resp
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
@@ -1094,18 +1094,18 @@ const tcp_content_deliver_all_resp = F &redef;
 const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
 ## Defines UDP destination ports for which the contents of the responder stream
-## should be delivered via :bro:see:`udp_contents`.
+## should be delivered via :zeek:see:`udp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
 const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 
 ## If true, all UDP originator-side traffic is reported via
-## :bro:see:`udp_contents`.
+## :zeek:see:`udp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_resp
@@ -1113,9 +1113,9 @@ const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 const udp_content_deliver_all_orig = F &redef;
 
 ## If true, all UDP responder-side traffic is reported via
-## :bro:see:`udp_contents`.
+## :zeek:see:`udp_contents`.
 ##
-## .. bro:see:: tcp_content_delivery_ports_orig
+## .. zeek:see:: tcp_content_delivery_ports_orig
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_resp
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
@@ -1124,19 +1124,19 @@ const udp_content_deliver_all_resp = F &redef;
 
 ## Check for expired table entries after this amount of time.
 ##
-## .. bro:see:: table_incremental_step table_expire_delay
+## .. zeek:see:: table_incremental_step table_expire_delay
 const table_expire_interval = 10 secs &redef;
 
 ## When expiring/serializing table entries, don't work on more than this many
 ## table entries at a time.
 ##
-## .. bro:see:: table_expire_interval table_expire_delay
+## .. zeek:see:: table_expire_interval table_expire_delay
 const table_incremental_step = 5000 &redef;
 
 ## When expiring table entries, wait this amount of time before checking the
 ## next chunk of entries.
 ##
-## .. bro:see:: table_expire_interval table_incremental_step
+## .. zeek:see:: table_expire_interval table_incremental_step
 const table_expire_delay = 0.01 secs &redef;
 
 ## Time to wait before timing out a DNS request.
@@ -1158,7 +1158,7 @@ const encap_hdr_size = 0 &redef;
 
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transferred by each endpoint. If true, these values are
-## returned in the connection's :bro:see:`endpoint` record value.
+## returned in the connection's :zeek:see:`endpoint` record value.
 const use_conn_size_analyzer = T &redef;
 
 # todo:: these should go into an enum to make them autodoc'able.
@@ -1167,7 +1167,7 @@ const ENDIAN_LITTLE = 1;	##< Little endian.
 const ENDIAN_BIG = 2;	##< Big endian.
 const ENDIAN_CONFUSED = 3;	##< Tried to determine endian, but failed.
 
-# Values for :bro:see:`set_contents_file` *direction* argument.
+# Values for :zeek:see:`set_contents_file` *direction* argument.
 # todo:: these should go into an enum to make them autodoc'able
 const CONTENTS_NONE = 0;	##< Turn off recording of contents.
 const CONTENTS_ORIG = 1;	##< Record originator contents.
@@ -1177,7 +1177,7 @@ const CONTENTS_BOTH = 3;	##< Record both originator and responder contents.
 # Values for code of ICMP *unreachable* messages. The list is not exhaustive.
 # todo:: these should go into an enum to make them autodoc'able
 #
-# .. bro:see:: icmp_unreachable
+# .. zeek:see:: icmp_unreachable
 const ICMP_UNREACH_NET = 0;	##< Network unreachable.
 const ICMP_UNREACH_HOST = 1;	##< Host unreachable.
 const ICMP_UNREACH_PROTOCOL = 2;	##< Protocol unreachable.
@@ -1211,7 +1211,7 @@ const IPPROTO_MOBILITY = 135;		##< IPv6 mobility header.
 ## Values extracted from an IPv6 extension header's (e.g. hop-by-hop or
 ## destination option headers) option field.
 ##
-## .. bro:see:: ip6_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
+## .. zeek:see:: ip6_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 type ip6_option: record {
 	otype: count;	##< Option type.
 	len: count;		##< Option data length.
@@ -1223,10 +1223,10 @@ type ip6_options: vector of ip6_option;
 
 ## Values extracted from an IPv6 Hop-by-Hop options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_hopopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1236,10 +1236,10 @@ type ip6_hopopts: record {
 
 ## Values extracted from an IPv6 Destination options extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr ip6_option
 type ip6_dstopts: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1249,10 +1249,10 @@ type ip6_dstopts: record {
 
 ## Values extracted from an IPv6 Routing extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_routing: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1266,10 +1266,10 @@ type ip6_routing: record {
 
 ## Values extracted from an IPv6 Fragment extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_fragment: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## 8-bit reserved field.
 	rsv1: count;
@@ -1285,10 +1285,10 @@ type ip6_fragment: record {
 
 ## Values extracted from an IPv6 Authentication extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_ah: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 4-octet units, excluding first two units.
 	len: count;
@@ -1304,7 +1304,7 @@ type ip6_ah: record {
 
 ## Values extracted from an IPv6 ESP extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_esp: record {
 	## Security Parameters Index.
 	spi: count;
@@ -1314,7 +1314,7 @@ type ip6_esp: record {
 
 ## Values extracted from an IPv6 Mobility Binding Refresh Request message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_brr: record {
 	## Reserved.
 	rsv: count;
@@ -1324,7 +1324,7 @@ type ip6_mobility_brr: record {
 
 ## Values extracted from an IPv6 Mobility Home Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hoti: record {
 	## Reserved.
 	rsv: count;
@@ -1336,7 +1336,7 @@ type ip6_mobility_hoti: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test Init message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_coti: record {
 	## Reserved.
 	rsv: count;
@@ -1348,7 +1348,7 @@ type ip6_mobility_coti: record {
 
 ## Values extracted from an IPv6 Mobility Home Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_hot: record {
 	## Home Nonce Index.
 	nonce_idx: count;
@@ -1362,7 +1362,7 @@ type ip6_mobility_hot: record {
 
 ## Values extracted from an IPv6 Mobility Care-of Test message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_cot: record {
 	## Care-of Nonce Index.
 	nonce_idx: count;
@@ -1376,7 +1376,7 @@ type ip6_mobility_cot: record {
 
 ## Values extracted from an IPv6 Mobility Binding Update message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_bu: record {
 	## Sequence number.
 	seq: count;
@@ -1396,7 +1396,7 @@ type ip6_mobility_bu: record {
 
 ## Values extracted from an IPv6 Mobility Binding Acknowledgement message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_back: record {
 	## Status.
 	status: count;
@@ -1412,7 +1412,7 @@ type ip6_mobility_back: record {
 
 ## Values extracted from an IPv6 Mobility Binding Error message.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr ip6_mobility_msg
 type ip6_mobility_be: record {
 	## Status.
 	status: count;
@@ -1424,7 +1424,7 @@ type ip6_mobility_be: record {
 
 ## Values extracted from an IPv6 Mobility header's message data.
 ##
-## .. bro:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: ip6_mobility_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_msg: record {
 	## The type of message from the header's MH Type field.
 	id: count;
@@ -1448,10 +1448,10 @@ type ip6_mobility_msg: record {
 
 ## Values extracted from an IPv6 Mobility header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hdr ip6_ext_hdr
 type ip6_mobility_hdr: record {
 	## Protocol number of the next header (RFC 1700 et seq., IANA assigned
-	## number), e.g. :bro:id:`IPPROTO_ICMP`.
+	## number), e.g. :zeek:id:`IPPROTO_ICMP`.
 	nxt: count;
 	## Length of header in 8-octet units, excluding first unit.
 	len: count;
@@ -1467,7 +1467,7 @@ type ip6_mobility_hdr: record {
 
 ## A general container for a more specific IPv6 extension header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_hopopts ip6_dstopts ip6_routing ip6_fragment
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_hopopts ip6_dstopts ip6_routing ip6_fragment
 ##    ip6_ah ip6_esp
 type ip6_ext_hdr: record {
 	## The RFC 1700 et seq. IANA assigned number identifying the type of
@@ -1494,7 +1494,7 @@ type ip6_ext_hdr_chain: vector of ip6_ext_hdr;
 
 ## Values extracted from an IPv6 header.
 ##
-## .. bro:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
+## .. zeek:see:: pkt_hdr ip4_hdr ip6_ext_hdr ip6_hopopts ip6_dstopts
 ##    ip6_routing ip6_fragment ip6_ah ip6_esp
 type ip6_hdr: record {
 	class: count;			##< Traffic class.
@@ -1502,7 +1502,7 @@ type ip6_hdr: record {
 	len: count;			##< Payload length.
 	nxt: count;			##< Protocol number of the next header
 					##< (RFC 1700 et seq., IANA assigned number)
-					##< e.g. :bro:id:`IPPROTO_ICMP`.
+					##< e.g. :zeek:id:`IPPROTO_ICMP`.
 	hlim: count;			##< Hop limit.
 	src: addr;			##< Source address.
 	dst: addr;			##< Destination address.
@@ -1511,7 +1511,7 @@ type ip6_hdr: record {
 
 ## Values extracted from an IPv4 header.
 ##
-## .. bro:see:: pkt_hdr ip6_hdr discarder_check_ip
+## .. zeek:see:: pkt_hdr ip6_hdr discarder_check_ip
 type ip4_hdr: record {
 	hl: count;		##< Header length in bytes.
 	tos: count;		##< Type of service.
@@ -1536,7 +1536,7 @@ const TH_FLAGS = 63;	##< Mask combining all flags.
 
 ## Values extracted from a TCP header.
 ##
-## .. bro:see:: pkt_hdr discarder_check_tcp
+## .. zeek:see:: pkt_hdr discarder_check_tcp
 type tcp_hdr: record {
 	sport: port;		##< source port.
 	dport: port;		##< destination port
@@ -1550,7 +1550,7 @@ type tcp_hdr: record {
 
 ## Values extracted from a UDP header.
 ##
-## .. bro:see:: pkt_hdr discarder_check_udp
+## .. zeek:see:: pkt_hdr discarder_check_udp
 type udp_hdr: record {
 	sport: port;		##< source port
 	dport: port;		##< destination port
@@ -1559,14 +1559,14 @@ type udp_hdr: record {
 
 ## Values extracted from an ICMP header.
 ##
-## .. bro:see:: pkt_hdr discarder_check_icmp
+## .. zeek:see:: pkt_hdr discarder_check_icmp
 type icmp_hdr: record {
 	icmp_type: count;	##< type of message
 };
 
 ## A packet header, consisting of an IP header and transport-layer header.
 ##
-## .. bro:see:: new_packet
+## .. zeek:see:: new_packet
 type pkt_hdr: record {
 	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
 	ip6: ip6_hdr &optional;		##< The IPv6 header if an IPv6 packet.
@@ -1577,7 +1577,7 @@ type pkt_hdr: record {
 
 ## Values extracted from the layer 2 header.
 ##
-## .. bro:see:: pkt_hdr
+## .. zeek:see:: pkt_hdr
 type l2_hdr: record {
 	encap: link_encap;      ##< L2 link encapsulation.
 	len: count;		##< Total frame length on wire.
@@ -1591,9 +1591,9 @@ type l2_hdr: record {
 };
 
 ## A raw packet header, consisting of L2 header and everything in
-## :bro:see:`pkt_hdr`. .
+## :zeek:see:`pkt_hdr`. .
 ##
-## .. bro:see:: raw_packet pkt_hdr
+## .. zeek:see:: raw_packet pkt_hdr
 type raw_pkt_hdr: record {
 	l2: l2_hdr;			##< The layer 2 header.
 	ip: ip4_hdr &optional;		##< The IPv4 header if an IPv4 packet.
@@ -1606,7 +1606,7 @@ type raw_pkt_hdr: record {
 ## A Teredo origin indication header.  See :rfc:`4380` for more information
 ## about the Teredo protocol.
 ##
-## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+## .. zeek:see:: teredo_bubble teredo_origin_indication teredo_authentication
 ##    teredo_hdr
 type teredo_auth: record {
 	id:      string;  ##< Teredo client identifier.
@@ -1622,7 +1622,7 @@ type teredo_auth: record {
 ## A Teredo authentication header.  See :rfc:`4380` for more information
 ## about the Teredo protocol.
 ##
-## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+## .. zeek:see:: teredo_bubble teredo_origin_indication teredo_authentication
 ##    teredo_hdr
 type teredo_origin: record {
 	p: port; ##< Unobfuscated UDP port of Teredo client.
@@ -1632,7 +1632,7 @@ type teredo_origin: record {
 ## A Teredo packet header.  See :rfc:`4380` for more information about the
 ## Teredo protocol.
 ##
-## .. bro:see:: teredo_bubble teredo_origin_indication teredo_authentication
+## .. zeek:see:: teredo_bubble teredo_origin_indication teredo_authentication
 type teredo_hdr: record {
 	auth:   teredo_auth &optional;   ##< Teredo authentication header.
 	origin: teredo_origin &optional; ##< Teredo origin indication header.
@@ -1831,7 +1831,7 @@ global log_file_name: function(tag: string): string &redef;
 global open_log_file: function(tag: string): file &redef;
 
 ## Specifies a directory for Bro to store its persistent state. All globals can
-## be declared persistent via the :bro:attr:`&persistent` attribute.
+## be declared persistent via the :zeek:attr:`&persistent` attribute.
 const state_dir = ".state" &redef;
 
 ## Length of the delays inserted when storing state incrementally. To avoid
@@ -1892,7 +1892,7 @@ global secondary_filters: table[string] of event(filter: string, pkt: pkt_hdr)
 
 ## Maximum length of payload passed to discarder functions.
 ##
-## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. zeek:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_check_ip
 global discarder_maxlen = 128 &redef;
 
@@ -1905,7 +1905,7 @@ global discarder_maxlen = 128 &redef;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. bro:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
+## .. zeek:see:: discarder_check_tcp discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1919,11 +1919,11 @@ global discarder_check_ip: function(p: pkt_hdr): bool;
 ##
 ## p: The IP and TCP headers of the considered packet.
 ##
-## d: Up to :bro:see:`discarder_maxlen` bytes of the TCP payload.
+## d: Up to :zeek:see:`discarder_maxlen` bytes of the TCP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. bro:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
+## .. zeek:see:: discarder_check_ip discarder_check_udp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1937,11 +1937,11 @@ global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 ##
 ## p: The IP and UDP headers of the considered packet.
 ##
-## d: Up to :bro:see:`discarder_maxlen` bytes of the UDP payload.
+## d: Up to :zeek:see:`discarder_maxlen` bytes of the UDP payload.
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
+## .. zeek:see:: discarder_check_ip discarder_check_tcp discarder_check_icmp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1957,7 +1957,7 @@ global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 ##
 ## Returns: True if the packet should not be analyzed any further.
 ##
-## .. bro:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
+## .. zeek:see:: discarder_check_ip discarder_check_tcp discarder_check_udp
 ##    discarder_maxlen
 ##
 ## .. note:: This is very low-level functionality and potentially expensive.
@@ -1979,7 +1979,7 @@ const max_remote_events_processed = 10 &redef;
 
 # These need to match the definitions in Login.h.
 #
-# .. bro:see:: get_login_state
+# .. zeek:see:: get_login_state
 #
 # todo:: use enum to make them autodoc'able
 const LOGIN_STATE_AUTHENTICATE = 0;	# Trying to authenticate.
@@ -2061,7 +2061,7 @@ global login_timeouts: set[string] &redef;
 
 ## A MIME header key/value pair.
 ##
-## .. bro:see:: mime_header_list http_all_headers mime_all_headers mime_one_header
+## .. zeek:see:: mime_header_list http_all_headers mime_all_headers mime_one_header
 type mime_header_rec: record {
 	name: string;	##< The header name.
 	value: string;	##< The header value.
@@ -2069,22 +2069,22 @@ type mime_header_rec: record {
 
 ## A list of MIME headers.
 ##
-## .. bro:see:: mime_header_rec http_all_headers mime_all_headers
+## .. zeek:see:: mime_header_rec http_all_headers mime_all_headers
 type mime_header_list: table[count] of mime_header_rec;
 
 ## The length of MIME data segments delivered to handlers of
-## :bro:see:`mime_segment_data`.
+## :zeek:see:`mime_segment_data`.
 ##
-## .. bro:see:: mime_segment_data mime_segment_overlap_length
+## .. zeek:see:: mime_segment_data mime_segment_overlap_length
 global mime_segment_length = 1024 &redef;
 
 ## The number of bytes of overlap between successive segments passed to
-## :bro:see:`mime_segment_data`.
+## :zeek:see:`mime_segment_data`.
 global mime_segment_overlap_length = 0 &redef;
 
 ## An RPC portmapper mapping.
 ##
-## .. bro:see:: pm_mappings
+## .. zeek:see:: pm_mappings
 type pm_mapping: record {
 	program: count;	##< The RPC program.
 	version: count;	##< The program version.
@@ -2093,12 +2093,12 @@ type pm_mapping: record {
 
 ## Table of RPC portmapper mappings.
 ##
-## .. bro:see:: pm_request_dump
+## .. zeek:see:: pm_request_dump
 type pm_mappings: table[count] of pm_mapping;
 
 ## An RPC portmapper request.
 ##
-## .. bro:see:: pm_attempt_getport pm_request_getport
+## .. zeek:see:: pm_attempt_getport pm_request_getport
 type pm_port_request: record {
 	program: count;	##< The RPC program.
 	version: count;	##< The program version.
@@ -2107,7 +2107,7 @@ type pm_port_request: record {
 
 ## An RPC portmapper *callit* request.
 ##
-## .. bro:see:: pm_attempt_callit pm_request_callit
+## .. zeek:see:: pm_attempt_callit pm_request_callit
 type pm_callit_request: record {
 	program: count;	##< The RPC program.
 	version: count;	##< The program version.
@@ -2128,7 +2128,7 @@ type pm_callit_request: record {
 
 ## Mapping of numerical RPC status codes to readable messages.
 ##
-## .. bro:see:: pm_attempt_callit pm_attempt_dump pm_attempt_getport
+## .. zeek:see:: pm_attempt_callit pm_attempt_dump pm_attempt_getport
 ##    pm_attempt_null pm_attempt_set pm_attempt_unset rpc_dialogue rpc_reply
 const RPC_status = {
 	[RPC_SUCCESS] = "ok",
@@ -2145,17 +2145,17 @@ const RPC_status = {
 module NFS3;
 
 export {
-	## If true, :bro:see:`nfs_proc_read` and :bro:see:`nfs_proc_write`
+	## If true, :zeek:see:`nfs_proc_read` and :zeek:see:`nfs_proc_write`
 	## events return the file data that has been read/written.
 	##
-	## .. bro:see:: NFS3::return_data_max NFS3::return_data_first_only
+	## .. zeek:see:: NFS3::return_data_max NFS3::return_data_first_only
 	const return_data = F &redef;
 
-	## If :bro:id:`NFS3::return_data` is true, how much data should be
+	## If :zeek:id:`NFS3::return_data` is true, how much data should be
 	## returned at most.
 	const return_data_max = 512 &redef;
 
-	## If :bro:id:`NFS3::return_data` is true, whether to *only* return data
+	## If :zeek:id:`NFS3::return_data` is true, whether to *only* return data
 	## if the read or write offset is 0, i.e., only return data for the
 	## beginning of the file.
 	const return_data_first_only = T &redef;
@@ -2171,7 +2171,7 @@ export {
 	## analyzer. Depending on the reassembler, this might be well after the
 	## first packet of the request was received.
 	##
-	## .. bro:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup
+	## .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup
 	##    nfs_proc_mkdir nfs_proc_not_implemented nfs_proc_null
 	##    nfs_proc_read nfs_proc_readdir nfs_proc_readlink nfs_proc_remove
 	##    nfs_proc_rmdir nfs_proc_write nfs_reply_status
@@ -2206,7 +2206,7 @@ export {
 
 	## NFS file attributes. Field names are based on RFC 1813.
 	##
-	## .. bro:see:: nfs_proc_sattr
+	## .. zeek:see:: nfs_proc_sattr
 	type sattr_t: record {
 		mode: count &optional; ##< Mode
 		uid: count	&optional; ##< User ID.
@@ -2218,7 +2218,7 @@ export {
 
 	## NFS file attributes. Field names are based on RFC 1813.
 	##
-	## .. bro:see:: nfs_proc_getattr
+	## .. zeek:see:: nfs_proc_getattr
 	type fattr_t: record {
 		ftype: file_type_t;	##< File type.
 		mode: count;	##< Mode
@@ -2238,7 +2238,7 @@ export {
 
 	## NFS symlinkdata attributes. Field names are based on RFC 1813
 	##
-	## .. bro:see:: nfs_proc_symlink
+	## .. zeek:see:: nfs_proc_symlink
 	type symlinkdata_t: record {
 		symlink_attributes: sattr_t; ##< The initial attributes for the symbolic link
 		nfspath: string &optional;	##< The string containing the symbolic link data.
@@ -2246,7 +2246,7 @@ export {
 
 	## NFS *readdir* arguments.
 	##
-	## .. bro:see:: nfs_proc_readdir
+	## .. zeek:see:: nfs_proc_readdir
 	type diropargs_t : record {
 		dirfh: string;	##< The file handle of the directory.
 		fname: string;	##< The name of the file we are interested in.
@@ -2254,7 +2254,7 @@ export {
 
 	## NFS *rename* arguments.
 	##
-	## .. bro:see:: nfs_proc_rename
+	## .. zeek:see:: nfs_proc_rename
 	type renameopargs_t : record {
 		src_dirfh : string;
 		src_fname : string;
@@ -2264,7 +2264,7 @@ export {
 
 	## NFS *symlink* arguments.
 	##
-	## .. bro:see:: nfs_proc_symlink
+	## .. zeek:see:: nfs_proc_symlink
 	type symlinkargs_t: record {
 		link : diropargs_t;  ##< The location of the link to be created.
 		symlinkdata: symlinkdata_t; ##< The symbolic link to be created.
@@ -2272,7 +2272,7 @@ export {
 
 	## NFS *link* arguments.
 	##
-	## .. bro:see:: nfs_proc_link
+	## .. zeek:see:: nfs_proc_link
 	type linkargs_t: record {
 		fh : string; ##< The file handle for the existing file system object.
 		link : diropargs_t;  ##< The location of the link to be created.
@@ -2280,7 +2280,7 @@ export {
 
 	## NFS *sattr* arguments.
 	##
-	## .. bro:see:: nfs_proc_sattr
+	## .. zeek:see:: nfs_proc_sattr
 	type sattrargs_t: record {
 		fh : string; ##< The file handle for the existing file system object.
 		new_attributes: sattr_t; ##< The new attributes for the file.
@@ -2290,7 +2290,7 @@ export {
 	## lookup succeeded, *fh* is always set and *obj_attr* and *dir_attr*
 	## may be set.
 	##
-	## .. bro:see:: nfs_proc_lookup
+	## .. zeek:see:: nfs_proc_lookup
 	type lookup_reply_t: record {
 		fh: string &optional;	##< File handle of object looked up.
 		obj_attr: fattr_t &optional;	##< Optional attributes associated w/ file
@@ -2299,7 +2299,7 @@ export {
 
 	## NFS *read* arguments.
 	##
-	## .. bro:see:: nfs_proc_read
+	## .. zeek:see:: nfs_proc_read
 	type readargs_t: record {
 		fh: string;	##< File handle to read from.
 		offset: count;	##< Offset in file.
@@ -2318,7 +2318,7 @@ export {
 	## NFS *readline* reply. If the request fails, *attr* may be set. If the
 	## request succeeds, *attr* may be set and all other fields are set.
 	##
-	## .. bro:see:: nfs_proc_readlink
+	## .. zeek:see:: nfs_proc_readlink
 	type readlink_reply_t: record {
 		attr: fattr_t &optional;	##< Attributes.
 		nfspath: string &optional;	##< Contents of the symlink; in general a pathname as text.
@@ -2326,7 +2326,7 @@ export {
 
 	## NFS *write* arguments.
 	##
-	## .. bro:see:: nfs_proc_write
+	## .. zeek:see:: nfs_proc_write
 	type writeargs_t: record {
 		fh: string;	##< File handle to write to.
 		offset: count;	##< Offset in file.
@@ -2337,7 +2337,7 @@ export {
 
 	## NFS *wcc* attributes.
 	##
-	## .. bro:see:: NFS3::write_reply_t
+	## .. zeek:see:: NFS3::write_reply_t
 	type wcc_attr_t: record {
 		size: count;	##< The size.
 		atime: time;	##< Access time.
@@ -2346,7 +2346,7 @@ export {
 
 	## NFS *link* reply.
 	##
-	## .. bro:see:: nfs_proc_link
+	## .. zeek:see:: nfs_proc_link
 	type link_reply_t: record {
 		post_attr: fattr_t &optional; ##< Optional post-operation attributes of the file system object identified by file
 		preattr: wcc_attr_t &optional;	##< Optional attributes associated w/ file.
@@ -2365,7 +2365,7 @@ export {
 	## If the request succeeds, *pre|post* attr may be set and all other
 	## fields are set.
 	##
-	## .. bro:see:: nfs_proc_write
+	## .. zeek:see:: nfs_proc_write
 	type write_reply_t: record {
 		preattr: wcc_attr_t &optional;	##< Pre operation attributes.
 		postattr: fattr_t &optional;	##< Post operation attributes.
@@ -2379,7 +2379,7 @@ export {
 	## *attr*'s may be set. Note: no guarantee that *fh* is set after
 	## success.
 	##
-	## .. bro:see:: nfs_proc_create nfs_proc_mkdir
+	## .. zeek:see:: nfs_proc_create nfs_proc_mkdir
 	type newobj_reply_t: record {
 		fh: string &optional;	##< File handle of object created.
 		obj_attr: fattr_t &optional;	##< Optional attributes associated w/ new object.
@@ -2389,7 +2389,7 @@ export {
 
 	## NFS reply for *remove*, *rmdir*. Corresponds to *wcc_data* in the spec.
 	##
-	## .. bro:see:: nfs_proc_remove nfs_proc_rmdir
+	## .. zeek:see:: nfs_proc_remove nfs_proc_rmdir
 	type delobj_reply_t: record {
 		dir_pre_attr: wcc_attr_t &optional;	##< Optional attributes associated w/ dir.
 		dir_post_attr: fattr_t &optional;	##< Optional attributes associated w/ dir.
@@ -2397,7 +2397,7 @@ export {
 
 	## NFS reply for *rename*. Corresponds to *wcc_data* in the spec.
 	##
-	## .. bro:see:: nfs_proc_rename
+	## .. zeek:see:: nfs_proc_rename
 	type renameobj_reply_t: record {
 		src_dir_pre_attr: wcc_attr_t;
 		src_dir_post_attr: fattr_t;
@@ -2407,7 +2407,7 @@ export {
 
 	## NFS *readdir* arguments. Used for both *readdir* and *readdirplus*.
 	##
-	## .. bro:see:: nfs_proc_readdir
+	## .. zeek:see:: nfs_proc_readdir
 	type readdirargs_t: record {
 		isplus: bool;	##< Is this a readdirplus request?
 		dirfh: string;	##< The directory filehandle.
@@ -2420,7 +2420,7 @@ export {
 	## NFS *direntry*.  *fh* and *attr* are used for *readdirplus*. However,
 	## even for *readdirplus* they may not be filled out.
 	##
-	## .. bro:see:: NFS3::direntry_vec_t NFS3::readdir_reply_t
+	## .. zeek:see:: NFS3::direntry_vec_t NFS3::readdir_reply_t
 	type direntry_t: record {
 		fileid: count;	##< E.g., inode number.
 		fname:  string;	##< Filename.
@@ -2431,7 +2431,7 @@ export {
 
 	## Vector of NFS *direntry*.
 	##
-	## .. bro:see:: NFS3::readdir_reply_t
+	## .. zeek:see:: NFS3::readdir_reply_t
 	type direntry_vec_t: vector of direntry_t;
 
 	## NFS *readdir* reply. Used for *readdir* and *readdirplus*. If an is
@@ -2473,7 +2473,7 @@ export {
 	# analyzer. Depending on the reassembler, this might be well after the
 	# first packet of the request was received.
 	#
-	# .. bro:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
+	# .. zeek:see:: mount_proc_mnt mount_proc_dump mount_proc_umnt
 	#    mount_proc_umntall mount_proc_export mount_proc_not_implemented
 	type info_t: record {
 		## The RPC status.
@@ -2506,7 +2506,7 @@ export {
 
 	## MOUNT *mnt* arguments.
 	##
-	## .. bro:see:: mount_proc_mnt
+	## .. zeek:see:: mount_proc_mnt
 	type dirmntargs_t : record {
 		dirname: string;	##< Name of directory to mount
 	};
@@ -2514,7 +2514,7 @@ export {
 	## MOUNT lookup reply. If the mount failed, *dir_attr* may be set. If the
 	## mount succeeded, *fh* is always set.
 	##
-	## .. bro:see:: mount_proc_mnt
+	## .. zeek:see:: mount_proc_mnt
 	type mnt_reply_t: record {
 		dirfh: string &optional;	##< Dir handle
 		auth_flavors: vector of auth_flavor_t &optional;	##< Returned authentication flavors
@@ -2571,7 +2571,7 @@ module GLOBAL;
 
 ## An NTP message.
 ##
-## .. bro:see:: ntp_message
+## .. zeek:see:: ntp_message
 type ntp_msg: record {
 	id: count;	##< Message ID.
 	code: count;	##< Message code.
@@ -2730,7 +2730,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.16
 	##
-	## .. bro:see:: smb1_nt_create_andx_response smb2_create_response
+	## .. zeek:see:: smb1_nt_create_andx_response smb2_create_response
 	type SMB::MACTimes: record {
 		## The time when data was last written to the file.
 		modified : time &log;
@@ -2746,7 +2746,7 @@ export {
 	## only comes into play as a heuristic to identify named
 	## pipes when the drive mapping wasn't seen by Bro.
 	##
-	## .. bro:see:: smb_pipe_connect_heuristic
+	## .. zeek:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
 }
 
@@ -2755,7 +2755,7 @@ module SMB1;
 export {
 	## An SMB1 header.
 	##
-	## .. bro:see:: smb1_message smb1_empty_response smb1_error
+	## .. zeek:see:: smb1_message smb1_empty_response smb1_error
 	##    smb1_check_directory_request smb1_check_directory_response
 	##    smb1_close_request smb1_create_directory_request
 	##    smb1_create_directory_response smb1_echo_request
@@ -3112,7 +3112,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.1.1 and MS-SMB2:2.2.1.2
 	##
-	## .. bro:see:: smb2_message smb2_close_request smb2_close_response
+	## .. zeek:see:: smb2_message smb2_close_request smb2_close_response
 	##    smb2_create_request smb2_create_response smb2_negotiate_request
 	##    smb2_negotiate_response smb2_read_request
 	##    smb2_session_setup_request smb2_session_setup_response
@@ -3150,7 +3150,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.14.1
 	##
-	## .. bro:see:: smb2_close_request smb2_create_response smb2_read_request
+	## .. zeek:see:: smb2_close_request smb2_create_response smb2_read_request
 	##    smb2_file_rename smb2_file_delete smb2_write_request
 	type SMB2::GUID: record {
 		## A file handle that remains persistent when reconnected after a disconnect
@@ -3163,7 +3163,7 @@ export {
 	##
 	## For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
 	##
-	## .. bro:see:: smb2_create_response
+	## .. zeek:see:: smb2_create_response
 	type SMB2::FileAttrs: record {
 		## The file is read only. Applications can read the file but cannot
 		## write to it or delete it.
@@ -3214,7 +3214,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.16
 	##
-	## .. bro:see:: smb2_close_response
+	## .. zeek:see:: smb2_close_response
 	type SMB2::CloseResponse: record {
 		## The size, in bytes of the data that is allocated to the file.
 		alloc_size : count;
@@ -3289,7 +3289,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.4
 	##
-	## .. bro:see:: smb2_negotiate_response
+	## .. zeek:see:: smb2_negotiate_response
 	type SMB2::NegotiateResponse: record {
 		## The preferred common SMB2 Protocol dialect number from the array that was sent in the SMB2
 		## NEGOTIATE Request.
@@ -3314,7 +3314,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.5
 	##
-	## .. bro:see:: smb2_session_setup_request
+	## .. zeek:see:: smb2_session_setup_request
 	type SMB2::SessionSetupRequest: record {
 		## The security mode field specifies whether SMB signing is enabled or required at the client.
 		security_mode: count;
@@ -3325,7 +3325,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.6
 	##
-	## .. bro:see:: smb2_session_setup_response
+	## .. zeek:see:: smb2_session_setup_response
 	type SMB2::SessionSetupFlags: record {
 		## If set, the client has been authenticated as a guest user.
 		guest: bool;
@@ -3341,7 +3341,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.6
 	##
-	## .. bro:see:: smb2_session_setup_response
+	## .. zeek:see:: smb2_session_setup_response
 	type SMB2::SessionSetupResponse: record {
 		## Additional information about the session
 		flags: SMB2::SessionSetupFlags;
@@ -3352,7 +3352,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.9
 	##
-	## .. bro:see:: smb2_tree_connect_response
+	## .. zeek:see:: smb2_tree_connect_response
 	type SMB2::TreeConnectResponse: record {
 		## The type of share being accessed. Physical disk, named pipe, or printer.
 		share_type: count;
@@ -3362,7 +3362,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.13
 	##
-	## .. bro:see:: smb2_create_request
+	## .. zeek:see:: smb2_create_request
 	type SMB2::CreateRequest: record {
 		## Name of the file
 		filename       : string;
@@ -3377,7 +3377,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.14
 	##
-	## .. bro:see:: smb2_create_response
+	## .. zeek:see:: smb2_create_response
 	type SMB2::CreateResponse: record {
 		## The SMB2 GUID for the file.
 		file_id       : SMB2::GUID;
@@ -3395,7 +3395,7 @@ export {
 	##
 	## For more information, see MS-SMB2:2.2.41
 	##
-	## .. bro:see:: smb2_transform_header smb2_message smb2_close_request smb2_close_response
+	## .. zeek:see:: smb2_transform_header smb2_message smb2_close_request smb2_close_response
 	##    smb2_create_request smb2_create_response smb2_negotiate_request
 	##    smb2_negotiate_response smb2_read_request
 	##    smb2_session_setup_request smb2_session_setup_response
@@ -3424,11 +3424,11 @@ export {
 	## A list of addresses offered by a DHCP server.  Could be routers,
 	## DNS servers, or other.
 	##
-	## .. bro:see:: dhcp_message
+	## .. zeek:see:: dhcp_message
 	type DHCP::Addrs: vector of addr;
 
 	## A DHCP message.
-	## .. bro:see:: dhcp_message
+	## .. zeek:see:: dhcp_message
 	type DHCP::Msg: record {
 		op: count;      ##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
 		m_type: count;  ##< The type of DHCP message.
@@ -3447,7 +3447,7 @@ export {
 	};
 
 	## DHCP Client Identifier (Option 61)
-	## .. bro:see:: dhcp_message
+	## .. zeek:see:: dhcp_message
 	type DHCP::ClientID: record {
 		hwtype: count;
 		hwaddr: string;
@@ -3467,7 +3467,7 @@ export {
 	};
 
 	## DHCP Relay Agent Information Option (Option 82)
-	## .. bro:see:: dhcp_message
+	## .. zeek:see:: dhcp_message
 	type DHCP::SubOpt: record {
 		code: count;
 		value: string;
@@ -3565,7 +3565,7 @@ export {
 module GLOBAL;
 ## A DNS message.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
 ##    dns_message dns_query_reply dns_rejected dns_request
@@ -3590,7 +3590,7 @@ type dns_msg: record {
 
 ## A DNS SOA record.
 ##
-## .. bro:see:: dns_SOA_reply
+## .. zeek:see:: dns_SOA_reply
 type dns_soa: record {
 	mname: string;	##< Primary source of data for zone.
 	rname: string;	##< Mailbox for responsible person.
@@ -3603,7 +3603,7 @@ type dns_soa: record {
 
 ## An additional DNS EDNS record.
 ##
-## .. bro:see:: dns_EDNS_addl
+## .. zeek:see:: dns_EDNS_addl
 type dns_edns_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -3618,7 +3618,7 @@ type dns_edns_additional: record {
 
 ## An additional DNS TSIG record.
 ##
-## .. bro:see:: dns_TSIG_addl
+## .. zeek:see:: dns_TSIG_addl
 type dns_tsig_additional: record {
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -3633,7 +3633,7 @@ type dns_tsig_additional: record {
 
 ## A DNSSEC RRSIG record.
 ##
-## .. bro:see:: dns_RRSIG
+## .. zeek:see:: dns_RRSIG
 type dns_rrsig_rr: record {
 	query: string;			##< Query.
 	answer_type: count;		##< Ans type.
@@ -3651,7 +3651,7 @@ type dns_rrsig_rr: record {
 
 ## A DNSSEC DNSKEY record.
 ##
-## .. bro:see:: dns_DNSKEY
+## .. zeek:see:: dns_DNSKEY
 type dns_dnskey_rr: record {
 	query: string;		##< Query.
 	answer_type: count;	##< Ans type.
@@ -3664,7 +3664,7 @@ type dns_dnskey_rr: record {
 
 ## A DNSSEC NSEC3 record.
 ##
-## .. bro:see:: dns_NSEC3
+## .. zeek:see:: dns_NSEC3
 type dns_nsec3_rr: record {
 	query: string;			##< Query.
 	answer_type: count;		##< Ans type.
@@ -3681,7 +3681,7 @@ type dns_nsec3_rr: record {
 
 ## A DNSSEC DS record.
 ##
-## .. bro:see:: dns_DS
+## .. zeek:see:: dns_DS
 type dns_ds_rr: record {
 	query: string;		##< Query.
 	answer_type: count;	##< Ans type.
@@ -3694,7 +3694,7 @@ type dns_ds_rr: record {
 
 # DNS answer types.
 #
-# .. bro:see:: dns_answerr
+# .. zeek:see:: dns_answerr
 #
 # todo:: use enum to make them autodoc'able
 const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
@@ -3704,12 +3704,12 @@ const DNS_ADDL = 3;	##< An additional record.
 
 ## The general part of a DNS reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply
 ##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
 ##    dns_TXT_reply dns_WKS_reply
 type dns_answer: record {
-	## Answer type. One of :bro:see:`DNS_QUERY`, :bro:see:`DNS_ANS`,
-	## :bro:see:`DNS_AUTH` and :bro:see:`DNS_ADDL`.
+	## Answer type. One of :zeek:see:`DNS_QUERY`, :zeek:see:`DNS_ANS`,
+	## :zeek:see:`DNS_AUTH` and :zeek:see:`DNS_ADDL`.
 	answer_type: count;
 	query: string;	##< Query.
 	qtype: count;	##< Query type.
@@ -3720,23 +3720,23 @@ type dns_answer: record {
 ## For DNS servers in these sets, omit processing the AUTH records they include
 ## in their replies.
 ##
-## .. bro:see:: dns_skip_all_auth dns_skip_addl
+## .. zeek:see:: dns_skip_all_auth dns_skip_addl
 global dns_skip_auth: set[addr] &redef;
 
 ## For DNS servers in these sets, omit processing the ADDL records they include
 ## in their replies.
 ##
-## .. bro:see:: dns_skip_all_addl dns_skip_auth
+## .. zeek:see:: dns_skip_all_addl dns_skip_auth
 global dns_skip_addl: set[addr] &redef;
 
 ## If true, all DNS AUTH records are skipped.
 ##
-## .. bro:see:: dns_skip_all_addl dns_skip_auth
+## .. zeek:see:: dns_skip_all_addl dns_skip_auth
 global dns_skip_all_auth = T &redef;
 
 ## If true, all DNS ADDL records are skipped.
 ##
-## .. bro:see:: dns_skip_all_auth dns_skip_addl
+## .. zeek:see:: dns_skip_all_auth dns_skip_addl
 global dns_skip_all_addl = T &redef;
 
 ## If a DNS request includes more than this many queries, assume it's non-DNS
@@ -3751,7 +3751,7 @@ const dns_resolver = [::] &redef;
 
 ## HTTP session statistics.
 ##
-## .. bro:see:: http_stats
+## .. zeek:see:: http_stats
 type http_stats_rec: record {
 	num_requests: count;	##< Number of requests.
 	num_replies: count;	##< Number of replies.
@@ -3761,7 +3761,7 @@ type http_stats_rec: record {
 
 ## HTTP message statistics.
 ##
-## .. bro:see:: http_message_done
+## .. zeek:see:: http_message_done
 type http_message_stat: record {
 	## When the request/reply line was complete.
 	start: time;
@@ -3779,25 +3779,25 @@ type http_message_stat: record {
 
 ## Maximum number of HTTP entity data delivered to events.
 ##
-## .. bro:see:: http_entity_data skip_http_entity_data skip_http_data
+## .. zeek:see:: http_entity_data skip_http_entity_data skip_http_data
 global http_entity_data_delivery_size = 1500 &redef;
 
 ## Skip HTTP data for performance considerations. The skipped
 ## portion will not go through TCP reassembly.
 ##
-## .. bro:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
+## .. zeek:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
 const skip_http_data = F &redef;
 
 ## Maximum length of HTTP URIs passed to events. Longer ones will be truncated
 ## to prevent over-long URIs (usually sent by worms) from slowing down event
 ## processing.  A value of -1 means "do not truncate".
 ##
-## .. bro:see:: http_request
+## .. zeek:see:: http_request
 const truncate_http_URI = -1 &redef;
 
 ## IRC join information.
 ##
-## .. bro:see:: irc_join_list
+## .. zeek:see:: irc_join_list
 type irc_join_info: record {
 	nick: string;
 	channel: string;
@@ -3807,7 +3807,7 @@ type irc_join_info: record {
 
 ## Set of IRC join information.
 ##
-## .. bro:see:: irc_join_message
+## .. zeek:see:: irc_join_message
 type irc_join_list: set[irc_join_info];
 
 module PE;
@@ -4016,7 +4016,7 @@ type backdoor_endp_stats: record {
 
 ## Description of a signature match.
 ##
-## .. bro:see:: signature_match
+## .. zeek:see:: signature_match
 type signature_state: record {
 	sig_id:       string;	##< ID of the matching signature.
 	conn:         connection;	##< Matching connection.
@@ -4046,7 +4046,7 @@ type software: record {
 
 ## Quality of passive fingerprinting matches.
 ##
-## .. bro:see:: OS_version
+## .. zeek:see:: OS_version
 type OS_version_inference: enum {
 	direct_inference,	##< TODO.
 	generic_inference,	##< TODO.
@@ -4055,7 +4055,7 @@ type OS_version_inference: enum {
 
 ## Passive fingerprinting match.
 ##
-## .. bro:see:: OS_version_found
+## .. zeek:see:: OS_version_found
 type OS_version: record {
 	genre: string;	##< Linux, Windows, AIX, ...
 	detail: string;	##< Kernel version or such.
@@ -4065,17 +4065,17 @@ type OS_version: record {
 
 ## Defines for which subnets we should do passive fingerprinting.
 ##
-## .. bro:see:: OS_version_found
+## .. zeek:see:: OS_version_found
 global generate_OS_version_event: set[subnet] &redef;
 
-# Type used to report load samples via :bro:see:`load_sample`. For now, it's a
+# Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line
 # number>``), which were seen during the sample.
 type load_sample_info: set[string];
 
 ## A BitTorrent peer.
 ##
-## .. bro:see:: bittorrent_peer_set
+## .. zeek:see:: bittorrent_peer_set
 type bittorrent_peer: record {
 	h: addr;	##< The peer's address.
 	p: port;	##< The peer's port.
@@ -4083,13 +4083,13 @@ type bittorrent_peer: record {
 
 ## A set of BitTorrent peers.
 ##
-## .. bro:see:: bt_tracker_response
+## .. zeek:see:: bt_tracker_response
 type bittorrent_peer_set: set[bittorrent_peer];
 
 ## BitTorrent "benc" value. Note that "benc" = Bencode ("Bee-Encode"), per
 ## http://en.wikipedia.org/wiki/Bencode.
 ##
-## .. bro:see:: bittorrent_benc_dir
+## .. zeek:see:: bittorrent_benc_dir
 type bittorrent_benc_value: record {
 	i: int &optional;	##< TODO.
 	s: string &optional;	##< TODO.
@@ -4099,12 +4099,12 @@ type bittorrent_benc_value: record {
 
 ## A table of BitTorrent "benc" values.
 ##
-## .. bro:see:: bt_tracker_response
+## .. zeek:see:: bt_tracker_response
 type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
 
 ## Header table type used by BitTorrent analyzer.
 ##
-## .. bro:see:: bt_tracker_request bt_tracker_response
+## .. zeek:see:: bt_tracker_request bt_tracker_response
 ##    bt_tracker_response_not_ok
 type bt_tracker_headers: table[string] of string;
 
@@ -4399,7 +4399,7 @@ export {
 	};
 
 	## A ``VarBindList`` data structure from either :rfc:`1157` or :rfc:`3416`.
-	## A sequences of :bro:see:`SNMP::Binding`, which maps an OIDs to values.
+	## A sequences of :zeek:see:`SNMP::Binding`, which maps an OIDs to values.
 	type SNMP::Bindings: vector of SNMP::Binding;
 
 	## A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
@@ -4642,77 +4642,77 @@ const log_encryption_key = "<undefined>" &redef;
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. bro:see:: profiling_interval expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_interval expensive_profiling_multiple segment_profiling
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
 ## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. bro:see:: profiling_file expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_file expensive_profiling_multiple segment_profiling
 const profiling_interval = 0 secs &redef;
 
-## Multiples of :bro:see:`profiling_interval` at which (more expensive) memory
+## Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
 ## profiling is done (0 disables).
 ##
-## .. bro:see:: profiling_interval profiling_file segment_profiling
+## .. zeek:see:: profiling_interval profiling_file segment_profiling
 const expensive_profiling_multiple = 0 &redef;
 
 ## If true, then write segment profiling information (very high volume!)
 ## in addition to profiling statistics.
 ##
-## .. bro:see:: profiling_interval expensive_profiling_multiple profiling_file
+## .. zeek:see:: profiling_interval expensive_profiling_multiple profiling_file
 const segment_profiling = F &redef;
 
 ## Output modes for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
+## .. zeek:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
 type pkt_profile_modes: enum {
 	PKT_PROFILE_MODE_NONE,	##< No output.
-	PKT_PROFILE_MODE_SECS,	##< Output every :bro:see:`pkt_profile_freq` seconds.
-	PKT_PROFILE_MODE_PKTS,	##< Output every :bro:see:`pkt_profile_freq` packets.
-	PKT_PROFILE_MODE_BYTES,	##< Output every :bro:see:`pkt_profile_freq` bytes.
+	PKT_PROFILE_MODE_SECS,	##< Output every :zeek:see:`pkt_profile_freq` seconds.
+	PKT_PROFILE_MODE_PKTS,	##< Output every :zeek:see:`pkt_profile_freq` packets.
+	PKT_PROFILE_MODE_BYTES,	##< Output every :zeek:see:`pkt_profile_freq` bytes.
 };
 
 ## Output mode for packet profiling information.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
+## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
 const pkt_profile_mode = PKT_PROFILE_MODE_NONE &redef;
 
 ## Frequency associated with packet profiling.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
+## .. zeek:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
 const pkt_profile_freq = 0.0 &redef;
 
 ## File where packet profiles are logged.
 ##
-## .. bro:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
+## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
 global pkt_profile_file: file &redef;
 
-## Rate at which to generate :bro:see:`load_sample` events. As all
+## Rate at which to generate :zeek:see:`load_sample` events. As all
 ## events, the event is only generated if you've also defined a
-## :bro:see:`load_sample` handler.  Units are inverse number of packets; e.g.,
+## :zeek:see:`load_sample` handler.  Units are inverse number of packets; e.g.,
 ## a value of 20 means "roughly one in every 20 packets".
 ##
-## .. bro:see:: load_sample
+## .. zeek:see:: load_sample
 global load_sample_freq = 20 &redef;
 
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.
 ## If this is enabled, then missing data at the end of connections may not
-## be reported via :bro:see:`content_gap`.
+## be reported via :zeek:see:`content_gap`.
 const detect_filtered_trace = F &redef;
 
-## Whether we want :bro:see:`content_gap` for partial
+## Whether we want :zeek:see:`content_gap` for partial
 ## connections. A connection is partial if it is missing a full handshake. Note
 ## that gap reports for partial connections might not be reliable.
 ##
-## .. bro:see:: content_gap partial_connection
+## .. zeek:see:: content_gap partial_connection
 const report_gaps_for_partial = F &redef;
 
 ## Flag to prevent Bro from exiting automatically when input is exhausted.
 ## Normally Bro terminates when all packet sources have gone dry
 ## and communication isn't enabled. If this flag is set, Bro's main loop will
-## instead keep idling until :bro:see:`terminate` is explicitly called.
+## instead keep idling until :zeek:see:`terminate` is explicitly called.
 ##
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.
@@ -4720,18 +4720,18 @@ const exit_only_after_terminate = F &redef;
 
 ## The CA certificate file to authorize remote Bros/Broccolis.
 ##
-## .. bro:see:: ssl_private_key ssl_passphrase
+## .. zeek:see:: ssl_private_key ssl_passphrase
 const ssl_ca_certificate = "<undefined>" &redef;
 
 ## File containing our private key and our certificate.
 ##
-## .. bro:see:: ssl_ca_certificate ssl_passphrase
+## .. zeek:see:: ssl_ca_certificate ssl_passphrase
 const ssl_private_key = "<undefined>" &redef;
 
 ## The passphrase for our private key. Keeping this undefined
 ## causes Bro to prompt for the passphrase.
 ##
-## .. bro:see:: ssl_private_key ssl_ca_certificate
+## .. zeek:see:: ssl_private_key ssl_ca_certificate
 const ssl_passphrase = "<undefined>" &redef;
 
 ## Default mode for Bro's user-space dynamic packet filter. If true, packets
@@ -4741,7 +4741,7 @@ const ssl_passphrase = "<undefined>" &redef;
 ## .. note:: This is not the BPF packet filter but an additional dynamic filter
 ##    that Bro optionally applies just before normal processing starts.
 ##
-## .. bro:see:: install_dst_addr_filter install_dst_net_filter
+## .. zeek:see:: install_dst_addr_filter install_dst_net_filter
 ##    install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
 ##    uninstall_dst_net_filter uninstall_src_addr_filter uninstall_src_net_filter
 const packet_filter_default = F &redef;
@@ -4757,7 +4757,7 @@ const peer_description = "bro" &redef;
 
 ## If true, broadcast events received from one peer to all other peers.
 ##
-## .. bro:see:: forward_remote_state_changes
+## .. zeek:see:: forward_remote_state_changes
 ##
 ## .. note:: This option is only temporary and will disappear once we get a
 ##    more sophisticated script-level communication framework.
@@ -4765,7 +4765,7 @@ const forward_remote_events = F &redef;
 
 ## If true, broadcast state updates received from one peer to all other peers.
 ##
-## .. bro:see:: forward_remote_events
+## .. zeek:see:: forward_remote_events
 ##
 ## .. note:: This option is only temporary and will disappear once we get a
 ##    more sophisticated script-level communication framework.
@@ -4800,16 +4800,16 @@ const REMOTE_SRC_SCRIPT = 3;	##< Message from a policy script.
 
 ## Synchronize trace processing at a regular basis in pseudo-realtime mode.
 ##
-## .. bro:see:: remote_trace_sync_peers
+## .. zeek:see:: remote_trace_sync_peers
 const remote_trace_sync_interval = 0 secs &redef;
 
 ## Number of peers across which to synchronize trace processing in
 ## pseudo-realtime mode.
 ##
-## .. bro:see:: remote_trace_sync_interval
+## .. zeek:see:: remote_trace_sync_interval
 const remote_trace_sync_peers = 0 &redef;
 
-## Whether for :bro:attr:`&synchronized` state to send the old value as a
+## Whether for :zeek:attr:`&synchronized` state to send the old value as a
 ## consistency check.
 const remote_check_sync_consistency = F &redef;
 
@@ -4817,7 +4817,7 @@ const remote_check_sync_consistency = F &redef;
 ## signature matching. Enabling this provides more accurate matching at the
 ## expense of CPU cycles.
 ##
-## .. bro:see:: dpd_buffer_size
+## .. zeek:see:: dpd_buffer_size
 ##    dpd_match_only_beginning dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
@@ -4832,14 +4832,14 @@ const dpd_reassemble_first_packets = T &redef;
 ## are activated afterwards. Then only analyzers that can deal with partial
 ## connections will be able to analyze the session.
 ##
-## .. bro:see:: dpd_reassemble_first_packets dpd_match_only_beginning
+## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
 ##    dpd_ignore_ports
 const dpd_buffer_size = 1024 &redef;
 
-## If true, stops signature matching if :bro:see:`dpd_buffer_size` has been
+## If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
 ## reached.
 ##
-## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
 ##    dpd_ignore_ports
 ##
 ## .. note:: Despite the name, this option affects *all* signature matching, not
@@ -4849,7 +4849,7 @@ const dpd_match_only_beginning = T &redef;
 ## If true, don't consider any ports for deciding which protocol analyzer to
 ## use.
 ##
-## .. bro:see:: dpd_reassemble_first_packets dpd_buffer_size
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
 ##    dpd_match_only_beginning
 const dpd_ignore_ports = F &redef;
 
@@ -4876,7 +4876,7 @@ const suppress_local_output = F &redef;
 
 ## Holds the filename of the trace file given with ``-w`` (empty if none).
 ##
-## .. bro:see:: record_all_packets
+## .. zeek:see:: record_all_packets
 const trace_output_file = "";
 
 ## If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
@@ -4885,16 +4885,16 @@ const trace_output_file = "";
 ## actually process them, which can be helpful for debugging in case the
 ## analysis triggers a crash.
 ##
-## .. bro:see:: trace_output_file
+## .. zeek:see:: trace_output_file
 const record_all_packets = F &redef;
 
-## Ignore certain TCP retransmissions for :bro:see:`conn_stats`.  Some
+## Ignore certain TCP retransmissions for :zeek:see:`conn_stats`.  Some
 ## connections (e.g., SSH) retransmit the acknowledged last byte to keep the
 ## connection alive. If *ignore_keep_alive_rexmit* is set to true, such
 ## retransmissions will be excluded in the rexmit counter in
-## :bro:see:`conn_stats`.
+## :zeek:see:`conn_stats`.
 ##
-## .. bro:see:: conn_stats
+## .. zeek:see:: conn_stats
 const ignore_keep_alive_rexmit = F &redef;
 
 module JSON;
@@ -4938,14 +4938,14 @@ export {
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
-	## a :bro:see:`protocol_confirmation`.  If it's false, the first
+	## a :zeek:see:`protocol_confirmation`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :bro:see:`protocol_confirmation`.  If it's false, the
+	## issuing :zeek:see:`protocol_confirmation`.  If it's false, the
 	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false
@@ -4965,7 +4965,7 @@ export {
 	## The set of UDP ports used for VXLAN traffic.  Traffic using this
 	## UDP destination port will attempt to be decapsulated.  Note that if
 	## if you customize this, you may still want to manually ensure that
-	## :bro:see:`likely_server_ports` also gets populated accordingly.
+	## :zeek:see:`likely_server_ports` also gets populated accordingly.
 	const vxlan_ports: set[port] = { 4789/udp } &redef;
 } # end export
 
@@ -5044,7 +5044,7 @@ export {
 	## "conn" weirds, counters and expiration timers are kept for the duration
 	## of the connection for each named weird and reset when necessary. E.g.
 	## if a "conn" weird by the name of "foo" is seen more than
-	## :bro:see:`Weird::sampling_threshold` times, then an expiration timer
+	## :zeek:see:`Weird::sampling_threshold` times, then an expiration timer
 	## begins for "foo" and upon triggering will reset the counter for "foo"
 	## and unthrottle its rate-limiting until it once again exceeds the
 	## threshold.
@@ -5064,7 +5064,7 @@ export {
 
 	## The threshold, in bytes, at which the BinPAC flowbuffer of a given
 	## connection/analyzer will have its capacity contracted to
-	## :bro:see:`BinPAC::flowbuffer_capacity_min` after parsing a full unit.
+	## :zeek:see:`BinPAC::flowbuffer_capacity_min` after parsing a full unit.
 	## I.e. this is the maximum capacity to reserve in between the parsing of
 	## units.  If, after parsing a unit, the flowbuffer capacity is greater
 	## than this value, it will be contracted.

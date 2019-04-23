@@ -75,7 +75,7 @@ export {
 	## c: The connection over which the :abbr:`SSH (Secure Shell)`
 	##    connection took place.
 	##
-	## .. bro:see:: ssh_server_version ssh_client_version
+	## .. zeek:see:: ssh_server_version ssh_client_version
 	##    ssh_auth_successful ssh_auth_result ssh_auth_attempted
 	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -98,7 +98,7 @@ export {
 	## auth_attempts: The number of authentication attempts that were
 	##    observed.
 	##
-	## .. bro:see:: ssh_server_version ssh_client_version
+	## .. zeek:see:: ssh_server_version ssh_client_version
 	##    ssh_auth_successful ssh_auth_failed ssh_auth_attempted
 	##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 	##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -106,10 +106,10 @@ export {
 	global ssh_auth_result: event(c: connection, result: bool, auth_attempts: count);
 
 	## Event that can be handled when the analyzer sees an SSH server host
-	## key. This abstracts :bro:id:`ssh1_server_host_key` and
-	## :bro:id:`ssh2_server_host_key`.
+	## key. This abstracts :zeek:id:`ssh1_server_host_key` and
+	## :zeek:id:`ssh2_server_host_key`.
 	##
-	## .. bro:see:: ssh_server_version ssh_client_version
+	## .. zeek:see:: ssh_server_version ssh_client_version
 	##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 	##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 	##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params

@@ -11,7 +11,7 @@ export {
 	## tracefile rotation is required with the caveat that the script
 	## doesn't currently attempt to get back on schedule automatically and
 	## the next trim likely won't happen on the
-	## :bro:id:`TrimTraceFile::trim_interval`.
+	## :zeek:id:`TrimTraceFile::trim_interval`.
 	global go: event(first_trim: bool);
 	}
 

@@ -50,7 +50,7 @@ export {
 	## r: The rule to be added.
 	global NetControl::drop_rule_policy: hook(r: Rule);
 
-	## Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
+	## Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
 	## record as it is sent on to the logging framework.
 	global log_netcontrol_drop: event(rec: DropInfo);
 }

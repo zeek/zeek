@@ -175,6 +175,14 @@ Changed Functionality
   the end of a connection (in a FIN or RST) are considered unreliable
   and aren't counted as true gaps.
 
+- The Broxygen component, which is used to generate our Doxygen-like
+  scripting API documentation has been renamed to Zeexygen.  This likely has
+  no breaking or visible changes for most users, except in the case one
+  used it to generate their own documentation via the ``--broxygen`` flag,
+  which is now named ``--zeexygen``.  Besides that, the various documentation
+  in scripts has also been updated to replace Sphinx cross-referencing roles
+  and directives like ":bro:see:" with ":zeek:zee:".
+
 Removed Functionality
 ---------------------
 

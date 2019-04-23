@@ -8,7 +8,7 @@ export {
 	## The topic prefix used for exchanging control messages via Broker.
 	const topic_prefix = "bro/control";
 
-	## Whether the controllee should call :bro:see:`Broker::listen`.
+	## Whether the controllee should call :zeek:see:`Broker::listen`.
 	## In a cluster, this isn't needed since the setup process calls it.
 	const controllee_listen = T &redef;
 
@@ -18,7 +18,7 @@ export {
 	## The port of the host that will be controlled.
 	const host_port = 0/tcp &redef;
 
-	## If :bro:id:`Control::host` is a non-global IPv6 address and
+	## If :zeek:id:`Control::host` is a non-global IPv6 address and
 	## requires a specific :rfc:`4007` ``zone_id``, it can be set here.
 	const zone_id = "" &redef;
 
@@ -45,7 +45,7 @@ export {
 	## Event for requesting the value of an ID (a variable).
 	global id_value_request: event(id: string);
 	## Event for returning the value of an ID after an
-	## :bro:id:`Control::id_value_request` event.
+	## :zeek:id:`Control::id_value_request` event.
 	global id_value_response: event(id: string, val: string);
 
 	## Requests the current communication status.
@@ -62,7 +62,7 @@ export {
 	## updated.
 	global configuration_update_request: event();
 	## This event is a wrapper and alias for the
-	## :bro:id:`Control::configuration_update_request` event.
+	## :zeek:id:`Control::configuration_update_request` event.
 	## This event is also a primary hooking point for the control framework.
 	global configuration_update: event();
 	## Message in response to a configuration update request.

@@ -17,18 +17,18 @@ export {
 	## Returns: A vector of strings containing the keys.
 	global extract_keys: function(data: string, kv_splitter: pattern): string_vec;
 	
-	## Creates a URL from an :bro:type:`HTTP::Info` record.  This should
+	## Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
 	## handle edge cases such as proxied requests appropriately.
 	##
-	## rec: An :bro:type:`HTTP::Info` record.
+	## rec: An :zeek:type:`HTTP::Info` record.
 	##
 	## Returns: A URL, not prefixed by ``"http://"``.
 	global build_url: function(rec: Info): string;
 	
-	## Creates a URL from an :bro:type:`HTTP::Info` record.  This should
+	## Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
 	## handle edge cases such as proxied requests appropriately.
 	##
-	## rec: An :bro:type:`HTTP::Info` record.
+	## rec: An :zeek:type:`HTTP::Info` record.
 	##
 	## Returns: A URL prefixed with ``"http://"``.
 	global build_url_http: function(rec: Info): string;

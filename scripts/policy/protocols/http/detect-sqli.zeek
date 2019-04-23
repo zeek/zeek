@@ -35,7 +35,7 @@ export {
 	const sqli_requests_threshold: double = 50.0 &redef;
 
 	## Interval at which to watch for the
-	## :bro:id:`HTTP::sqli_requests_threshold` variable to be crossed.
+	## :zeek:id:`HTTP::sqli_requests_threshold` variable to be crossed.
 	## At the end of each interval the counter is reset.
 	const sqli_requests_interval = 5min &redef;
 

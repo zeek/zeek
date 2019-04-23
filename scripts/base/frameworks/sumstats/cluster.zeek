@@ -35,12 +35,12 @@ export {
 	global cluster_get_result: event(uid: string, ss_name: string, key: Key, cleanup: bool);
 
 	## This event is sent by nodes in response to a
-	## :bro:id:`SumStats::cluster_get_result` event.
+	## :zeek:id:`SumStats::cluster_get_result` event.
 	global cluster_send_result: event(uid: string, ss_name: string, key: Key, result: Result, cleanup: bool);
 
 	## This is sent by workers to indicate that they crossed the percent
 	## of the current threshold by the percentage defined globally in
-	## :bro:id:`SumStats::cluster_request_global_view_percent`.
+	## :zeek:id:`SumStats::cluster_request_global_view_percent`.
 	global cluster_key_intermediate_response: event(ss_name: string, key: SumStats::Key);
 
 	## This event is scheduled internally on workers to send result chunks.

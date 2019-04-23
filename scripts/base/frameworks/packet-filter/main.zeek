@@ -2,7 +2,7 @@
 ##! Bro sets a capture filter that allows all traffic.  If a filter
 ##! is set on the command line, that filter takes precedence over the default
 ##! open filter and all filters defined in Bro scripts with the
-##! :bro:id:`capture_filters` and :bro:id:`restrict_filters` variables.
+##! :zeek:id:`capture_filters` and :zeek:id:`restrict_filters` variables.
 
 @load base/frameworks/notice
 @load base/frameworks/analyzer
@@ -48,7 +48,7 @@ export {
 	};
 
 	## The BPF filter that is used by default to define what traffic should
-	## be captured.  Filters defined in :bro:id:`restrict_filters` will
+	## be captured.  Filters defined in :zeek:id:`restrict_filters` will
 	## still be applied to reduce the captured traffic.
 	const default_capture_filter = "ip or not ip" &redef;
 
@@ -64,7 +64,7 @@ export {
 	## The maximum amount of time that you'd like to allow for BPF filters to compile.
 	## If this time is exceeded, compensation measures may be taken by the framework
 	## to reduce the filter size.  This threshold being crossed also results
-	## in the :bro:see:`PacketFilter::Too_Long_To_Compile_Filter` notice.
+	## in the :zeek:see:`PacketFilter::Too_Long_To_Compile_Filter` notice.
 	const max_filter_compile_time = 100msec &redef;
 
 	## Install a BPF filter to exclude some traffic.  The filter should

@@ -5,7 +5,7 @@
 ##! particular analyzer for new connections.
 ##!
 ##! Protocol analyzers are identified by unique tags of type
-##! :bro:type:`Analyzer::Tag`, such as :bro:enum:`Analyzer::ANALYZER_HTTP`.
+##! :zeek:type:`Analyzer::Tag`, such as :zeek:enum:`Analyzer::ANALYZER_HTTP`.
 ##! These tags are defined internally by
 ##! the analyzers themselves, and documented in their analyzer-specific
 ##! description along with the events that they generate.
@@ -17,7 +17,7 @@ module Analyzer;
 export {
 	## If true, all available analyzers are initially disabled at startup.
 	## One can then selectively enable them with
-	## :bro:id:`Analyzer::enable_analyzer`.
+	## :zeek:id:`Analyzer::enable_analyzer`.
 	global disable_all = F &redef;
 
 	## Enables an analyzer. Once enabled, the analyzer may be used for analysis
@@ -109,7 +109,7 @@ export {
 
 	## Automatically creates a BPF filter for the specified protocol based
 	## on the data supplied for the protocol through the
-	## :bro:see:`Analyzer::register_for_ports` function.
+	## :zeek:see:`Analyzer::register_for_ports` function.
 	##
 	## tag: The analyzer tag.
 	##

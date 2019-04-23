@@ -15,7 +15,7 @@
 ##
 ## arguments: The arguments for the command.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -23,7 +23,7 @@
 ##
 ## .. note:: This event is generated only for messages that originate
 ##    at the client-side. Commands coming in from remote trigger
-##    the :bro:id:`irc_message` event instead.
+##    the :zeek:id:`irc_message` event instead.
 event irc_request%(c: connection, is_orig: bool, prefix: string,
 			command: string, arguments: string%);
 
@@ -45,7 +45,7 @@ event irc_request%(c: connection, is_orig: bool, prefix: string,
 ##
 ## params: The reply's parameters.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -69,7 +69,7 @@ event irc_reply%(c: connection, is_orig: bool, prefix: string,
 ##
 ## message: TODO.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message  irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -79,7 +79,7 @@ event irc_reply%(c: connection, is_orig: bool, prefix: string,
 ##
 ##    This event is generated only for messages that are forwarded by the server
 ##    to the client. Commands coming from client trigger the
-##    :bro:id:`irc_request` event instead.
+##    :zeek:id:`irc_request` event instead.
 event irc_message%(c: connection, is_orig: bool, prefix: string,
 			command: string, message: string%);
 
@@ -98,7 +98,7 @@ event irc_message%(c: connection, is_orig: bool, prefix: string,
 ##
 ## message: The text included with the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -122,7 +122,7 @@ event irc_quit_message%(c: connection, is_orig: bool, nick: string, message: str
 ##
 ## message: The text of communication.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -147,7 +147,7 @@ event irc_privmsg_message%(c: connection, is_orig: bool, source: string,
 ##
 ## message: The text of communication.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message  irc_oper_message irc_oper_response irc_part_message
@@ -172,7 +172,7 @@ event irc_notice_message%(c: connection, is_orig: bool, source: string,
 ##
 ## message: The text of communication.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -193,7 +193,7 @@ event irc_squery_message%(c: connection, is_orig: bool, source: string,
 ##
 ## info_list: The user information coming with the command.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -217,7 +217,7 @@ event irc_join_message%(c: connection, is_orig: bool, info_list: irc_join_list%)
 ##
 ## message: The text coming with the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -240,7 +240,7 @@ event irc_part_message%(c: connection, is_orig: bool, nick: string,
 ##
 ## newnick: The new nickname.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -257,7 +257,7 @@ event irc_nick_message%(c: connection, is_orig: bool, who: string, newnick: stri
 ## is_orig: True if the command was sent by the originator of the TCP
 ##          connection.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users  irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -280,7 +280,7 @@ event irc_invalid_nick%(c: connection, is_orig: bool%);
 ##
 ## servers: The number of servers as returned in the reply.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -304,7 +304,7 @@ event irc_network_info%(c: connection, is_orig: bool, users: count,
 ##
 ## servers: The number of servers as returned in the reply.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -324,7 +324,7 @@ event irc_server_info%(c: connection, is_orig: bool, users: count,
 ##
 ## chans: The number of channels as returned in the reply.
 ##
-## .. bro:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
+## .. zeek:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -359,7 +359,7 @@ event irc_channel_info%(c: connection, is_orig: bool, chans: count%);
 ##
 ## real_name: The real name.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -386,7 +386,7 @@ event irc_who_line%(c: connection, is_orig: bool, target_nick: string,
 ##
 ## users: The set of users.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message  irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -406,7 +406,7 @@ event irc_names_info%(c: connection, is_orig: bool, c_type: string,
 ##
 ## nick: The nickname specified in the reply.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -427,7 +427,7 @@ event irc_whois_operator_line%(c: connection, is_orig: bool, nick: string%);
 ##
 ## chans: The set of channels returned.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -453,7 +453,7 @@ event irc_whois_channel_line%(c: connection, is_orig: bool, nick: string,
 ##
 ## real_name: The real name specified in the reply.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -474,7 +474,7 @@ event irc_whois_user_line%(c: connection, is_orig: bool, nick: string,
 ## got_oper: True if the *oper* command was executed successfully
 ##           (*youreport*) and false otherwise (*nooperhost*).
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_part_message
@@ -496,7 +496,7 @@ event irc_oper_response%(c: connection, is_orig: bool, got_oper: bool%);
 ##
 ## msg: The message coming with the reply.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -517,7 +517,7 @@ event irc_global_users%(c: connection, is_orig: bool, prefix: string, msg: strin
 ##
 ## topic: The topic specified in the reply.
 ##
-## .. bro:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
+## .. zeek:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -539,7 +539,7 @@ event irc_channel_topic%(c: connection, is_orig: bool, channel: string, topic: s
 ##
 ## oper: True if the operator flag was set.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -561,7 +561,7 @@ event irc_who_message%(c: connection, is_orig: bool, mask: string, oper: bool%);
 ##
 ## users: TODO.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -583,7 +583,7 @@ event irc_whois_message%(c: connection, is_orig: bool, server: string, users: st
 ##
 ## password: The password specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message  irc_oper_response irc_part_message
@@ -610,7 +610,7 @@ event irc_oper_message%(c: connection, is_orig: bool, user: string, password: st
 ##
 ## comment: The comment specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -634,7 +634,7 @@ event irc_kick_message%(c: connection, is_orig: bool, prefix: string,
 ##
 ## message: The textual description specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -659,7 +659,7 @@ event irc_error_message%(c: connection, is_orig: bool, prefix: string, message: 
 ##
 ## channel: The channel specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick  irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -683,7 +683,7 @@ event irc_invite_message%(c: connection, is_orig: bool, prefix: string,
 ##
 ## params: The parameters coming with the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message  irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -708,7 +708,7 @@ event irc_mode_message%(c: connection, is_orig: bool, prefix: string, params: st
 ##
 ## message: The textual description specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -742,7 +742,7 @@ event irc_squit_message%(c: connection, is_orig: bool, prefix: string,
 ##
 ## size: The size specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
+## .. zeek:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
@@ -771,7 +771,7 @@ event irc_dcc_message%(c: connection, is_orig: bool,
 ##
 ## real_name: The real name specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
@@ -791,7 +791,7 @@ event irc_user_message%(c: connection, is_orig: bool, user: string, host: string
 ##
 ## password: The password specified in the message.
 ##
-## .. bro:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response

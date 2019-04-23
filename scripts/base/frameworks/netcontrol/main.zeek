@@ -98,7 +98,7 @@ export {
 	## Returns: Vector of inserted rules on success, empty list on failure.
 	global quarantine_host: function(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string;
 
-	## Flushes all state by calling :bro:see:`NetControl::remove_rule` on all currently active rules.
+	## Flushes all state by calling :zeek:see:`NetControl::remove_rule` on all currently active rules.
 	global clear: function();
 
 	# ###
@@ -122,7 +122,7 @@ export {
 
 	## Removes a rule.
 	##
-	## id: The rule to remove, specified as the ID returned by :bro:see:`NetControl::add_rule`.
+	## id: The rule to remove, specified as the ID returned by :zeek:see:`NetControl::add_rule`.
 	##
 	## reason: Optional string argument giving information on why the rule was removed.
 	##
@@ -138,7 +138,7 @@ export {
 	## the rule has been added; if it is not removed from them by a separate mechanism,
 	## it will stay installed and not be removed later.
 	##
-	## id: The rule to delete, specified as the ID returned by :bro:see:`NetControl::add_rule`.
+	## id: The rule to delete, specified as the ID returned by :zeek:see:`NetControl::add_rule`.
 	##
 	## reason: Optional string argument giving information on why the rule was deleted.
 	##
@@ -321,7 +321,7 @@ export {
 		plugin: string		&log &optional;
 	};
 
-	## Event that can be handled to access the :bro:type:`NetControl::Info`
+	## Event that can be handled to access the :zeek:type:`NetControl::Info`
 	## record as it is sent on to the logging framework.
 	global log_netcontrol: event(rec: Info);
 }

@@ -23,7 +23,7 @@ export {
 	## update done by the `PacketFilter` framework.
 	global unshunt_host_pair: function(id: conn_id): bool;
 
-	## Performs the same function as the :bro:id:`PacketFilter::unshunt_host_pair`
+	## Performs the same function as the :zeek:id:`PacketFilter::unshunt_host_pair`
 	## function, but it forces an immediate filter update.
 	global force_unshunt_host_pair: function(id: conn_id): bool;
 
@@ -34,7 +34,7 @@ export {
 	global current_shunted_host_pairs: function(): set[conn_id];
 
 	redef enum Notice::Type += {
-		## Indicative that :bro:id:`PacketFilter::max_bpf_shunts`
+		## Indicative that :zeek:id:`PacketFilter::max_bpf_shunts`
 		## connections are already being shunted with BPF filters and
 		## no more are allowed.
 		No_More_Conn_Shunts_Available,

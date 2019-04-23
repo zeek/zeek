@@ -80,7 +80,7 @@ export {
 	## again.
 	##
 	## In cluster mode, this function works on workers as well as the manager. On managers,
-	## the returned :bro:see:`NetControl::BlockInfo` record will not contain the block ID,
+	## the returned :zeek:see:`NetControl::BlockInfo` record will not contain the block ID,
 	## which will be assigned on the manager.
 	##
 	## a: The address to be dropped.
@@ -89,7 +89,7 @@ export {
 	##
 	## location: An optional string describing where the drop was triggered.
 	##
-	## Returns: The :bro:see:`NetControl::BlockInfo` record containing information about
+	## Returns: The :zeek:see:`NetControl::BlockInfo` record containing information about
 	##          the inserted block.
 	global drop_address_catch_release: function(a: addr, location: string &default="") : BlockInfo;
 
@@ -114,7 +114,7 @@ export {
 	## a: The address that was seen and should be re-dropped if it is being watched.
 	global catch_release_seen: function(a: addr);
 
-	## Get the :bro:see:`NetControl::BlockInfo` record for an address currently blocked by catch and release.
+	## Get the :zeek:see:`NetControl::BlockInfo` record for an address currently blocked by catch and release.
 	## If the address is unknown to catch and release, the watch_until time will be set to 0.
 	##
 	## In cluster mode, this function works on the manager and workers. On workers, the data will
@@ -123,7 +123,7 @@ export {
 	##
 	## a: The address to get information about.
 	##
-	## Returns: The :bro:see:`NetControl::BlockInfo` record containing information about
+	## Returns: The :zeek:see:`NetControl::BlockInfo` record containing information about
 	##          the inserted block.
 	global get_catch_release_info: function(a: addr) : BlockInfo;
 
@@ -132,7 +132,7 @@ export {
 	##
 	## a: The address that is no longer being managed.
 	##
-	## bi: The :bro:see:`NetControl::BlockInfo` record containing information about the block.
+	## bi: The :zeek:see:`NetControl::BlockInfo` record containing information about the block.
 	global catch_release_forgotten: event(a: addr, bi: BlockInfo);
 
 	## If true, catch_release_seen is called on the connection originator in new_connection,
@@ -148,7 +148,7 @@ export {
 	## effect.
 	const catch_release_intervals: vector of interval = vector(10min, 1hr, 24hrs, 7days) &redef;
 
-	## Event that can be handled to access the :bro:type:`NetControl::CatchReleaseInfo`
+	## Event that can be handled to access the :zeek:type:`NetControl::CatchReleaseInfo`
 	## record as it is sent on to the logging framework.
 	global log_netcontrol_catch_release: event(rec: CatchReleaseInfo);
 

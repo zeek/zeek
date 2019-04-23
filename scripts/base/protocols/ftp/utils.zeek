@@ -7,16 +7,16 @@
 module FTP;
 
 export {
-	## Creates a URL from an :bro:type:`FTP::Info` record.
+	## Creates a URL from an :zeek:type:`FTP::Info` record.
 	##
-	## rec: An :bro:type:`FTP::Info` record.
+	## rec: An :zeek:type:`FTP::Info` record.
 	##
 	## Returns: A URL, not prefixed by ``"ftp://"``.
 	global build_url: function(rec: Info): string;
 
-	## Creates a URL from an :bro:type:`FTP::Info` record.
+	## Creates a URL from an :zeek:type:`FTP::Info` record.
 	##
-	## rec: An :bro:type:`FTP::Info` record.
+	## rec: An :zeek:type:`FTP::Info` record.
 	##
 	## Returns: A URL prefixed with ``"ftp://"``.
 	global build_url_ftp: function(rec: Info): string;

@@ -80,7 +80,7 @@ export {
 		saw_reply: bool                &default=F;
 	};
 
-	## An event that can be handled to access the :bro:type:`DNS::Info`
+	## An event that can be handled to access the :zeek:type:`DNS::Info`
 	## record as it is sent to the logging framework.
 	global log_dns: event(rec: Info);
 
@@ -109,7 +109,7 @@ export {
 	## is_query: Indicator for if this is being called for a query or a response.
 	global set_session: hook(c: connection, msg: dns_msg, is_query: bool);
 
-	## Yields a queue of :bro:see:`DNS::Info` objects for a given
+	## Yields a queue of :zeek:see:`DNS::Info` objects for a given
 	## DNS message query/transaction ID.
 	type PendingMessages: table[count] of Queue::Queue;
 
@@ -126,7 +126,7 @@ export {
 	option max_pending_query_ids = 50;
 
 	## A record type which tracks the status of DNS queries for a given
-	## :bro:type:`connection`.
+	## :zeek:type:`connection`.
 	type State: record {
 		## A single query that hasn't been matched with a response yet.
 		## Note this is maintained separate from the *pending_queries*

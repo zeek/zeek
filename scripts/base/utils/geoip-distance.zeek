@@ -10,7 +10,7 @@
 ## Returns: The distance between *a1* and *a2* in miles, or -1.0 if GeoIP data
 ##          is not available for either of the IP addresses.
 ##
-## .. bro:see:: haversine_distance lookup_location
+## .. zeek:see:: haversine_distance lookup_location
 function haversine_distance_ip(a1: addr, a2: addr): double
 	{
 	local loc1 = lookup_location(a1);

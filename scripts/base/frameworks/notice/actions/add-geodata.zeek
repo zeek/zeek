@@ -13,7 +13,7 @@ module Notice;
 export {
 	redef enum Action += {
 		## Indicates that the notice should have geodata added for the
-		## "remote" host.  :bro:id:`Site::local_nets` must be defined
+		## "remote" host.  :zeek:id:`Site::local_nets` must be defined
 		## in order for this to work.
 		ACTION_ADD_GEODATA
 	};

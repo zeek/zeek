@@ -7,7 +7,7 @@
 module NetControl;
 
 export {
-	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_openflow`.
+	## This record specifies the configuration that is passed to :zeek:see:`NetControl::create_openflow`.
 	type OfConfig: record {
 		monitor: bool &default=T; ##< Accept rules that target the monitor path.
 		forward: bool &default=T; ##< Accept rules that target the forward path.

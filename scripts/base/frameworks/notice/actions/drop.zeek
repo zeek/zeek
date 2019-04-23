@@ -8,7 +8,7 @@ module Notice;
 
 export {
 	redef enum Action += {
-		## Drops the address via :bro:see:`NetControl::drop_address_catch_release`.
+		## Drops the address via :zeek:see:`NetControl::drop_address_catch_release`.
 		ACTION_DROP
 	};
 

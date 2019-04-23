@@ -58,17 +58,17 @@ export {
 		alive_count: count &default = 0;
 	};
 
-	## The specification for :bro:see:`Cluster::proxy_pool`.
+	## The specification for :zeek:see:`Cluster::proxy_pool`.
 	global proxy_pool_spec: PoolSpec =
 		PoolSpec($topic = "bro/cluster/pool/proxy",
 				 $node_type = Cluster::PROXY) &redef;
 
-	## The specification for :bro:see:`Cluster::worker_pool`.
+	## The specification for :zeek:see:`Cluster::worker_pool`.
 	global worker_pool_spec: PoolSpec =
 		PoolSpec($topic = "bro/cluster/pool/worker",
 				 $node_type = Cluster::WORKER) &redef;
 
-	## The specification for :bro:see:`Cluster::logger_pool`.
+	## The specification for :zeek:see:`Cluster::logger_pool`.
 	global logger_pool_spec: PoolSpec =
 		PoolSpec($topic = "bro/cluster/pool/logger",
 				 $node_type = Cluster::LOGGER) &redef;
@@ -120,10 +120,10 @@ export {
 	global rr_topic: function(pool: Pool, key: string &default=""): string;
 
 	## Distributes log message topics among logger nodes via round-robin.
-	## This will be automatically assigned to :bro:see:`Broker::log_topic`
-	## if :bro:see:`Cluster::enable_round_robin_logging` is enabled.
+	## This will be automatically assigned to :zeek:see:`Broker::log_topic`
+	## if :zeek:see:`Cluster::enable_round_robin_logging` is enabled.
 	## If no logger nodes are active, then this will return the value
-	## of :bro:see:`Broker::default_log_topic`.
+	## of :zeek:see:`Broker::default_log_topic`.
 	global rr_log_topic: function(id: Log::ID, path: string): string;
 }
 
@@ -136,7 +136,7 @@ export {
 ## Returns: F if a node of the same name already exists in the pool, else T.
 global init_pool_node: function(pool: Pool, name: string): bool;
 
-## Mark a pool node as alive/online/available. :bro:see:`Cluster::hrw_topic`
+## Mark a pool node as alive/online/available. :zeek:see:`Cluster::hrw_topic`
 ## will distribute keys to nodes marked as alive.
 ##
 ## pool: the pool to which the node belongs.
@@ -146,7 +146,7 @@ global init_pool_node: function(pool: Pool, name: string): bool;
 ## Returns: F if the node does not exist in the pool, else T.
 global mark_pool_node_alive: function(pool: Pool, name: string): bool;
 
-## Mark a pool node as dead/offline/unavailable. :bro:see:`Cluster::hrw_topic`
+## Mark a pool node as dead/offline/unavailable. :zeek:see:`Cluster::hrw_topic`
 ## will not distribute keys to nodes marked as dead.
 ##
 ## pool: the pool to which the node belongs.

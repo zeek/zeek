@@ -18,7 +18,7 @@ export {
 
 	## Scripts creating new notices need to redef this enum to add their
 	## own specific notice types which would then get used when they call
-	## the :bro:id:`NOTICE` function.  The convention is to give a general
+	## the :zeek:id:`NOTICE` function.  The convention is to give a general
 	## category along with the specific notice separating words with
 	## underscores and using leading capitals on each word except for
 	## abbreviations which are kept in all capitals. For example,
@@ -37,12 +37,12 @@ export {
 		## logging stream.
 		ACTION_LOG,
 		## Indicates that the notice should be sent to the email
-		## address(es) configured in the :bro:id:`Notice::mail_dest`
+		## address(es) configured in the :zeek:id:`Notice::mail_dest`
 		## variable.
 		ACTION_EMAIL,
 		## Indicates that the notice should be alarmed.  A readable
 		## ASCII version of the alarm log is emailed in bulk to the
-		## address(es) configured in :bro:id:`Notice::mail_dest`.
+		## address(es) configured in :zeek:id:`Notice::mail_dest`.
 		ACTION_ALARM,
 	};
 
@@ -50,7 +50,7 @@ export {
 	type ActionSet: set[Notice::Action];
 
 	## The notice framework is able to do automatic notice suppression by
-	## utilizing the *identifier* field in :bro:type:`Notice::Info` records.
+	## utilizing the *identifier* field in :zeek:type:`Notice::Info` records.
 	## Set this to "0secs" to completely disable automated notice
 	## suppression.
 	option default_suppression_interval = 1hrs;
@@ -103,18 +103,18 @@ export {
 		## *conn*, *iconn* or *p* is specified.
 		proto:          transport_proto &log &optional;
 
-		## The :bro:type:`Notice::Type` of the notice.
+		## The :zeek:type:`Notice::Type` of the notice.
 		note:           Type           &log;
 		## The human readable message for the notice.
 		msg:            string         &log &optional;
 		## The human readable sub-message.
 		sub:            string         &log &optional;
 
-		## Source address, if we don't have a :bro:type:`conn_id`.
+		## Source address, if we don't have a :zeek:type:`conn_id`.
 		src:            addr           &log &optional;
 		## Destination address.
 		dst:            addr           &log &optional;
-		## Associated port, if we don't have a :bro:type:`conn_id`.
+		## Associated port, if we don't have a :zeek:type:`conn_id`.
 		p:              port           &log &optional;
 		## Associated count, or perhaps a status code.
 		n:              count          &log &optional;
@@ -131,14 +131,14 @@ export {
 		## By adding chunks of text into this element, other scripts
 		## can expand on notices that are being emailed.  The normal
 		## way to add text is to extend the vector by handling the
-		## :bro:id:`Notice::notice` event and modifying the notice in
+		## :zeek:id:`Notice::notice` event and modifying the notice in
 		## place.
 		email_body_sections:  vector of string &optional;
 
 		## Adding a string "token" to this set will cause the notice
 		## framework's built-in emailing functionality to delay sending
 		## the email until either the token has been removed or the
-		## email has been delayed for :bro:id:`Notice::max_email_delay`.
+		## email has been delayed for :zeek:id:`Notice::max_email_delay`.
 		email_delay_tokens:   set[string] &optional;
 
 		## This field is to be provided when a notice is generated for
@@ -192,8 +192,8 @@ export {
 	## Note that this is overridden by the BroControl SendMail option.
 	option sendmail            = "/usr/sbin/sendmail";
 	## Email address to send notices with the
-	## :bro:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
-	## on rotation with :bro:enum:`Notice::ACTION_ALARM`.
+	## :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
+	## on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
 	##
 	## Note that this is overridden by the BroControl MailTo option.
 	const mail_dest           = ""                   &redef;
@@ -212,18 +212,18 @@ export {
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;
 
-	## Contains a portion of :bro:see:`fa_file` that's also contained in
-	## :bro:see:`Notice::Info`.
+	## Contains a portion of :zeek:see:`fa_file` that's also contained in
+	## :zeek:see:`Notice::Info`.
 	type FileInfo: record {
 		fuid: string;            ##< File UID.
 		desc: string;            ##< File description from e.g.
-		                         ##< :bro:see:`Files::describe`.
+		                         ##< :zeek:see:`Files::describe`.
 		mime: string  &optional; ##< Strongest mime type match for file.
 		cid:  conn_id &optional; ##< Connection tuple over which file is sent.
 		cuid: string  &optional; ##< Connection UID over which file is sent.
 	};
 
-	## Creates a record containing a subset of a full :bro:see:`fa_file` record.
+	## Creates a record containing a subset of a full :zeek:see:`fa_file` record.
 	##
 	## f: record containing metadata about a file.
 	##
@@ -245,7 +245,7 @@ export {
 	global populate_file_info2: function(fi: Notice::FileInfo, n: Notice::Info);
 
 	## A log postprocessing function that implements emailing the contents
-	## of a log upon rotation to any configured :bro:id:`Notice::mail_dest`.
+	## of a log upon rotation to any configured :zeek:id:`Notice::mail_dest`.
 	## The rotated log is removed upon being sent.
 	##
 	## info: A record containing the rotated log file information.
@@ -254,9 +254,9 @@ export {
 	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the
-	## notice framework by the global :bro:id:`NOTICE` function.  By the
+	## notice framework by the global :zeek:id:`NOTICE` function.  By the
 	## time this event is generated, default values have already been
-	## filled out in the :bro:type:`Notice::Info` record and the notice
+	## filled out in the :zeek:type:`Notice::Info` record and the notice
 	## policy has also been applied.
 	##
 	## n: The record containing notice data.
@@ -268,7 +268,7 @@ export {
 	##
 	## suppress_for: length of time that this notice should be suppressed.
 	##
-	## note: The :bro:type:`Notice::Type` of the notice.
+	## note: The :zeek:type:`Notice::Type` of the notice.
 	##
 	## identifier: The identifier string of the notice that should be suppressed.
 	global begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
@@ -286,8 +286,8 @@ export {
 	global suppressed: event(n: Notice::Info);
 
 	## Call this function to send a notice in an email.  It is already used
-	## by default with the built in :bro:enum:`Notice::ACTION_EMAIL` and
-	## :bro:enum:`Notice::ACTION_PAGE` actions.
+	## by default with the built in :zeek:enum:`Notice::ACTION_EMAIL` and
+	## :zeek:enum:`Notice::ACTION_PAGE` actions.
 	##
 	## n: The record of notice data to email.
 	##
@@ -308,13 +308,13 @@ export {
 	##          appended.
 	global email_headers: function(subject_desc: string, dest: string): string;
 
-	## This event can be handled to access the :bro:type:`Notice::Info`
+	## This event can be handled to access the :zeek:type:`Notice::Info`
 	## record as it is sent on to the logging framework.
 	##
 	## rec: The record containing notice data before it is logged.
 	global log_notice: event(rec: Info);
 
-	## This is an internal wrapper for the global :bro:id:`NOTICE`
+	## This is an internal wrapper for the global :zeek:id:`NOTICE`
 	## function; disregard.
 	##
 	## n: The record of notice data.
@@ -598,7 +598,7 @@ function populate_file_info2(fi: Notice::FileInfo, n: Notice::Info)
 
 # This is run synchronously as a function before all of the other
 # notice related functions and events.  It also modifies the
-# :bro:type:`Notice::Info` record in place.
+# :zeek:type:`Notice::Info` record in place.
 function apply_policy(n: Notice::Info)
 	{
 	# Fill in some defaults.

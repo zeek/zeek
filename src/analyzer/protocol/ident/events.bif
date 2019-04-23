@@ -9,7 +9,7 @@
 ##
 ## rport: The request's remote port.
 ##
-## .. bro:see:: ident_error ident_reply
+## .. zeek:see:: ident_error ident_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -32,7 +32,7 @@ event ident_request%(c: connection, lport: port, rport: port%);
 ##
 ## system: The operating system returned by the reply.
 ##
-## .. bro:see:: ident_error  ident_request
+## .. zeek:see:: ident_error  ident_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -53,7 +53,7 @@ event ident_reply%(c: connection, lport: port, rport: port, user_id: string, sys
 ##
 ## line: The error description returned by the reply.
 ##
-## .. bro:see:: ident_reply ident_request
+## .. zeek:see:: ident_reply ident_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet

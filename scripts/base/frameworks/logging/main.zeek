@@ -176,7 +176,7 @@ export {
 		## easy to flood the disk by returning a new string for each
 		## connection.  Upon adding a filter to a stream, if neither
 		## ``path`` nor ``path_func`` is explicitly set by them, then
-		## :bro:see:`Log::default_path_func` is used.
+		## :zeek:see:`Log::default_path_func` is used.
 		##
 		## id: The ID associated with the log stream.
 		##
@@ -191,7 +191,7 @@ export {
 		##
 		## Returns: The path to be used for the filter, which will be
 		##          subject to the same automatic correction rules as
-		##          the *path* field of :bro:type:`Log::Filter` in the
+		##          the *path* field of :zeek:type:`Log::Filter` in the
 		##          case of conflicts with other filters trying to use
 		##          the same writer/path pair.
 		path_func: function(id: ID, path: string, rec: any): string &optional;
@@ -232,7 +232,7 @@ export {
 		interv: interval &default=default_rotation_interval;
 
 		## Callback function to trigger for rotated files. If not set, the
-		## default comes out of :bro:id:`Log::default_rotation_postprocessors`.
+		## default comes out of :zeek:id:`Log::default_rotation_postprocessors`.
 		postprocessor: function(info: RotationInfo) : bool &optional;
 
 		## A key/value table that will be passed on to the writer.
@@ -253,7 +253,7 @@ export {
 	## Returns: True if a new logging stream was successfully created and
 	##          a default filter added to it.
 	##
-	## .. bro:see:: Log::add_default_filter Log::remove_default_filter
+	## .. zeek:see:: Log::add_default_filter Log::remove_default_filter
 	global create_stream: function(id: ID, stream: Stream) : bool;
 
 	## Removes a logging stream completely, stopping all the threads.
@@ -262,7 +262,7 @@ export {
 	##
 	## Returns: True if the stream was successfully removed.
 	##
-	## .. bro:see:: Log::create_stream
+	## .. zeek:see:: Log::create_stream
 	global remove_stream: function(id: ID) : bool;
 
 	## Enables a previously disabled logging stream.  Disabled streams
@@ -273,7 +273,7 @@ export {
 	##
 	## Returns: True if the stream is re-enabled or was not previously disabled.
 	##
-	## .. bro:see:: Log::disable_stream
+	## .. zeek:see:: Log::disable_stream
 	global enable_stream: function(id: ID) : bool;
 
 	## Disables a currently enabled logging stream.  Disabled streams
@@ -284,7 +284,7 @@ export {
 	##
 	## Returns: True if the stream is now disabled or was already disabled.
 	##
-	## .. bro:see:: Log::enable_stream
+	## .. zeek:see:: Log::enable_stream
 	global disable_stream: function(id: ID) : bool;
 
 	## Adds a custom filter to an existing logging stream.  If a filter
@@ -299,7 +299,7 @@ export {
 	##          the filter was not added or the *filter* argument was not
 	##          the correct type.
 	##
-	## .. bro:see:: Log::remove_filter Log::add_default_filter
+	## .. zeek:see:: Log::remove_filter Log::add_default_filter
 	##    Log::remove_default_filter Log::get_filter Log::get_filter_names
 	global add_filter: function(id: ID, filter: Filter) : bool;
 
@@ -309,12 +309,12 @@ export {
 	##     remove a filter.
 	##
 	## name: A string to match against the ``name`` field of a
-	##       :bro:type:`Log::Filter` for identification purposes.
+	##       :zeek:type:`Log::Filter` for identification purposes.
 	##
 	## Returns: True if the logging stream's filter was removed or
 	##          if no filter associated with *name* was found.
 	##
-	## .. bro:see:: Log::remove_filter Log::add_default_filter
+	## .. zeek:see:: Log::remove_filter Log::add_default_filter
 	##    Log::remove_default_filter Log::get_filter Log::get_filter_names
 	global remove_filter: function(id: ID, name: string) : bool;
 
@@ -326,7 +326,7 @@ export {
 	##
 	## Returns: The set of filter names associated with the stream.
 	##
-	## ..bro:see:: Log::remove_filter Log::add_default_filter
+	## ..zeek:see:: Log::remove_filter Log::add_default_filter
 	##   Log::remove_default_filter Log::get_filter
 	global get_filter_names: function(id: ID) : set[string];
 
@@ -336,13 +336,13 @@ export {
 	##     obtain one of its filters.
 	##
 	## name: A string to match against the ``name`` field of a
-	##       :bro:type:`Log::Filter` for identification purposes.
+	##       :zeek:type:`Log::Filter` for identification purposes.
 	##
 	## Returns: A filter attached to the logging stream *id* matching
 	##          *name* or, if no matches are found returns the
-	##          :bro:id:`Log::no_filter` sentinel value.
+	##          :zeek:id:`Log::no_filter` sentinel value.
 	##
-	## .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
+	## .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
 	##              Log::remove_default_filter Log::get_filter_names
 	global get_filter: function(id: ID, name: string) : Filter;
 
@@ -360,7 +360,7 @@ export {
 	##          to handle, or one of the stream's filters has an invalid
 	##          ``path_func``.
 	##
-	## .. bro:see:: Log::enable_stream Log::disable_stream
+	## .. zeek:see:: Log::enable_stream Log::disable_stream
 	global write: function(id: ID, columns: any) : bool;
 
 	## Sets the buffering status for all the writers of a given logging stream.
@@ -375,7 +375,7 @@ export {
 	## Returns: True if buffering status was set, false if the logging stream
 	##          does not exist.
 	##
-	## .. bro:see:: Log::flush
+	## .. zeek:see:: Log::flush
 	global set_buf: function(id: ID, buffered: bool): bool;
 
 	## Flushes any currently buffered output for all the writers of a given
@@ -388,50 +388,50 @@ export {
 	##          buffered data or if the logging stream is disabled,
 	##          false if the logging stream does not exist.
 	##
-	## .. bro:see:: Log::set_buf Log::enable_stream Log::disable_stream
+	## .. zeek:see:: Log::set_buf Log::enable_stream Log::disable_stream
 	global flush: function(id: ID): bool;
 
-	## Adds a default :bro:type:`Log::Filter` record with ``name`` field
+	## Adds a default :zeek:type:`Log::Filter` record with ``name`` field
 	## set as "default" to a given logging stream.
 	##
 	## id: The ID associated with a logging stream for which to add a default
 	##     filter.
 	##
-	## Returns: The status of a call to :bro:id:`Log::add_filter` using a
-	##          default :bro:type:`Log::Filter` argument with ``name`` field
+	## Returns: The status of a call to :zeek:id:`Log::add_filter` using a
+	##          default :zeek:type:`Log::Filter` argument with ``name`` field
 	##          set to "default".
 	##
-	## .. bro:see:: Log::add_filter Log::remove_filter
+	## .. zeek:see:: Log::add_filter Log::remove_filter
 	##    Log::remove_default_filter
 	global add_default_filter: function(id: ID) : bool;
 
-	## Removes the :bro:type:`Log::Filter` with ``name`` field equal to
+	## Removes the :zeek:type:`Log::Filter` with ``name`` field equal to
 	## "default".
 	##
 	## id: The ID associated with a logging stream from which to remove the
 	##     default filter.
 	##
-	## Returns: The status of a call to :bro:id:`Log::remove_filter` using
+	## Returns: The status of a call to :zeek:id:`Log::remove_filter` using
 	##          "default" as the argument.
 	##
-	## .. bro:see:: Log::add_filter Log::remove_filter Log::add_default_filter
+	## .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
 	global remove_default_filter: function(id: ID) : bool;
 
-	## Runs a command given by :bro:id:`Log::default_rotation_postprocessor_cmd`
+	## Runs a command given by :zeek:id:`Log::default_rotation_postprocessor_cmd`
 	## on a rotated file.  Meant to be called from postprocessor functions
-	## that are added to :bro:id:`Log::default_rotation_postprocessors`.
+	## that are added to :zeek:id:`Log::default_rotation_postprocessors`.
 	##
 	## info: A record holding meta-information about the log being rotated.
 	##
 	## npath: The new path of the file (after already being rotated/processed
 	##        by writer-specific postprocessor as defined in
-	##        :bro:id:`Log::default_rotation_postprocessors`).
+	##        :zeek:id:`Log::default_rotation_postprocessors`).
 	##
-	## Returns: True when :bro:id:`Log::default_rotation_postprocessor_cmd`
+	## Returns: True when :zeek:id:`Log::default_rotation_postprocessor_cmd`
 	##          is empty or the system command given by it has been invoked
 	##          to postprocess a rotated log file.
 	##
-	## .. bro:see:: Log::default_rotation_date_format
+	## .. zeek:see:: Log::default_rotation_date_format
 	##    Log::default_rotation_postprocessor_cmd
 	##    Log::default_rotation_postprocessors
 	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;

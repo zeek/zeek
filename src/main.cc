@@ -55,7 +55,7 @@ extern "C" {
 #include "analyzer/Tag.h"
 #include "plugin/Manager.h"
 #include "file_analysis/Manager.h"
-#include "broxygen/Manager.h"
+#include "zeexygen/Manager.h"
 #include "iosource/Manager.h"
 #include "broker/Manager.h"
 
@@ -91,7 +91,7 @@ input::Manager* input_mgr = 0;
 plugin::Manager* plugin_mgr = 0;
 analyzer::Manager* analyzer_mgr = 0;
 file_analysis::Manager* file_mgr = 0;
-broxygen::Manager* broxygen_mgr = 0;
+zeexygen::Manager* zeexygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
 
@@ -194,7 +194,7 @@ void usage(int code = 1)
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
-	fprintf(stderr, "    -X|--broxygen <cfgfile>        | generate documentation based on config file\n");
+	fprintf(stderr, "    -X|--zeexygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
 	fprintf(stderr, "    -m|--mem-leaks                 | show leaks  [perftools]\n");
@@ -214,7 +214,7 @@ void usage(int code = 1)
 	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Broxygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Zeexygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 
 	fprintf(stderr, "\n");
 
@@ -370,7 +370,7 @@ void terminate_bro()
 
 	plugin_mgr->FinishPlugins();
 
-	delete broxygen_mgr;
+	delete zeexygen_mgr;
 	delete timer_mgr;
 	delete persistence_serializer;
 	delete event_serializer;
@@ -534,7 +534,7 @@ int main(int argc, char** argv)
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
 		{"iface",		required_argument,	0,	'i'},
-		{"broxygen",		required_argument,		0,	'X'},
+		{"zeexygen",		required_argument,		0,	'X'},
 		{"prefix",		required_argument,	0,	'p'},
 		{"readfile",		required_argument,	0,	'r'},
 		{"rulefile",		required_argument,	0,	's'},
@@ -586,7 +586,7 @@ int main(int argc, char** argv)
 	if ( p )
 		add_to_name_list(p, ':', prefixes);
 
-	string broxygen_config;
+	string zeexygen_config;
 
 #ifdef USE_IDMEF
 	string libidmef_dtd_path = "idmef-message.dtd";
@@ -739,7 +739,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'X':
-			broxygen_config = optarg;
+			zeexygen_config = optarg;
 			break;
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -821,7 +821,7 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	broxygen_mgr = new broxygen::Manager(broxygen_config, bro_argv[0]);
+	zeexygen_mgr = new zeexygen::Manager(zeexygen_config, bro_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
@@ -872,7 +872,7 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
 	file_mgr->InitPreScript();
-	broxygen_mgr->InitPreScript();
+	zeexygen_mgr->InitPreScript();
 
 	bool missing_plugin = false;
 
@@ -958,7 +958,7 @@ int main(int argc, char** argv)
 		exit(1);
 
 	plugin_mgr->InitPostScript();
-	broxygen_mgr->InitPostScript();
+	zeexygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
 
 	if ( print_plugins )
@@ -988,7 +988,7 @@ int main(int argc, char** argv)
 		}
 
 	reporter->InitOptions();
-	broxygen_mgr->GenerateDocs();
+	zeexygen_mgr->GenerateDocs();
 
 	if ( user_pcap_filter )
 		{

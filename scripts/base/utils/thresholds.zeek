@@ -1,8 +1,8 @@
 ##! Functions for using multiple thresholds with a counting tracker.  For
 ##! example, you may want to generate a notice when something happens 10 times
 ##! and again when it happens 100 times but nothing in between.  You can use
-##! the :bro:id:`check_threshold` function to define your threshold points
-##! and the :bro:type:`TrackCount` variable where you are keeping track of your
+##! the :zeek:id:`check_threshold` function to define your threshold points
+##! and the :zeek:type:`TrackCount` variable where you are keeping track of your
 ##! counter.
 
 module GLOBAL;
@@ -18,12 +18,12 @@ export {
 	};
 	
 	## The thresholds you would like to use as defaults with the 
-	## :bro:id:`default_check_threshold` function.
+	## :zeek:id:`default_check_threshold` function.
 	const default_notice_thresholds: vector of count = {
 		30, 100, 1000, 10000, 100000, 1000000, 10000000,
 	} &redef;
 	
-	## This will check if a :bro:type:`TrackCount` variable has crossed any
+	## This will check if a :zeek:type:`TrackCount` variable has crossed any
 	## thresholds in a given set.
 	##
 	## v: a vector holding counts that represent thresholds.
@@ -34,8 +34,8 @@ export {
 	## Returns: T if a threshold has been crossed, else F.
 	global check_threshold: function(v: vector of count, tracker: TrackCount): bool;
 	
-	## This will use the :bro:id:`default_notice_thresholds` variable to
-	## check a :bro:type:`TrackCount` variable to see if it has crossed
+	## This will use the :zeek:id:`default_notice_thresholds` variable to
+	## check a :zeek:type:`TrackCount` variable to see if it has crossed
 	## another threshold.
 	global default_check_threshold: function(tracker: TrackCount): bool;
 }

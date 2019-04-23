@@ -12,7 +12,7 @@ export {
 		## For certain software, a version changing may matter.  In that
 		## case, this notice will be generated.  Software that matters
 		## if the version changes can be configured with the
-		## :bro:id:`Software::interesting_version_changes` variable.
+		## :zeek:id:`Software::interesting_version_changes` variable.
 		Software_Version_Change,
 	};
 	

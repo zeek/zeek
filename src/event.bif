@@ -24,7 +24,7 @@
 #
 #         - Parameters
 #
-#         - .. bro:see::
+#         - .. zeek:see::
 #
 #         - .. note::
 #
@@ -35,12 +35,12 @@
 ## one-time initialization code at startup. At the time a handler runs, Zeek will
 ## have executed any global initializations and statements.
 ##
-## .. bro:see:: zeek_done
+## .. zeek:see:: zeek_done
 ##
 ## .. note::
 ##
 ##    When a ``zeek_init`` handler executes, Zeek has not yet seen any input
-##    packets and therefore :bro:id:`network_time` is not initialized yet. An
+##    packets and therefore :zeek:id:`network_time` is not initialized yet. An
 ##    artifact of that is that any timer installed in a ``zeek_init`` handler
 ##    will fire immediately with the first packet. The standard way to work
 ##    around that is to ignore the first time the timer fires and immediately
@@ -50,7 +50,7 @@ event zeek_init%(%);
 
 ## Deprecated synonym for ``zeek_init``.
 ##
-## .. bro:see: zeek_init
+## .. zeek:see: zeek_init
 event bro_init%(%) &deprecated;
 
 ## Generated at Zeek termination time. The event engine generates this event when
@@ -58,17 +58,17 @@ event bro_init%(%) &deprecated;
 ## trace file(s), receiving a termination signal, or because Zeek was run without
 ## a network input source and has finished executing any global statements.
 ##
-## .. bro:see:: zeek_init
+## .. zeek:see:: zeek_init
 ##
 ## .. note::
 ##
-##    If Zeek terminates due to an invocation of :bro:id:`exit`, then this event
+##    If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
 ##    is not generated.
 event zeek_done%(%);
 
 ## Deprecated synonym for ``zeek_done``.
 ##
-## .. bro:see: zeek_done
+## .. zeek:see: zeek_done
 event bro_done%(%) &deprecated;
 
 ## Generated for every new connection. This event is raised with the first
@@ -78,7 +78,7 @@ event bro_done%(%) &deprecated;
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -108,12 +108,12 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 
 ## Generated when a TCP connection timed out. This event is raised when
 ## no activity was seen for an interval of at least
-## :bro:id:`tcp_connection_linger`, and either one endpoint has already
+## :zeek:id:`tcp_connection_linger`, and either one endpoint has already
 ## closed the connection or one side never became active.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -125,7 +125,7 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 ##
 ##    The precise semantics of this event can be unintuitive as it only
 ##    covers a subset of cases where a connection times out. Often, handling
-##    :bro:id:`connection_state_remove` is the better option. That one will be
+##    :zeek:id:`connection_state_remove` is the better option. That one will be
 ##    generated reliably when an interval of ``tcp_inactivity_timeout`` has
 ##    passed without any activity seen (but also for all other ways a
 ##    connection may terminate).
@@ -140,7 +140,7 @@ event connection_timeout%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -155,7 +155,7 @@ event connection_state_remove%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_state_remove
@@ -169,7 +169,7 @@ event connection_reused%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -188,7 +188,7 @@ event connection_status_update%(c: connection%);
 ##
 ## new_label: The new flow label that the endpoint is using.
 ##
-## .. bro:see:: connection_established new_connection
+## .. zeek:see:: connection_established new_connection
 event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: count, new_label: count%);
 
 ## Generated for a new connection received from the communication subsystem.
@@ -208,11 +208,11 @@ event connection_external%(c: connection, tag: string%);
 ##
 ## u: The connection record for the corresponding UDP flow.
 ##
-## .. bro:see:: udp_contents udp_reply udp_request
+## .. zeek:see:: udp_contents udp_reply udp_request
 event udp_session_done%(u: connection%);
 
 ## Generated when a connection is seen that is marked as being expected.
-## The function :bro:id:`Analyzer::schedule_analyzer` tells Bro to expect a
+## The function :zeek:id:`Analyzer::schedule_analyzer` tells Bro to expect a
 ## particular connection to come up, and which analyzer to associate with it.
 ## Once the first packet of such a connection is indeed seen, this event is
 ## raised.
@@ -220,11 +220,11 @@ event udp_session_done%(u: connection%);
 ## c: The connection.
 ##
 ## a: The analyzer that was scheduled for the connection with the
-##    :bro:id:`Analyzer::schedule_analyzer` call. When the event is raised, that
+##    :zeek:id:`Analyzer::schedule_analyzer` call. When the event is raised, that
 ##    analyzer will already have been activated to process the connection. The
 ##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -243,11 +243,11 @@ event scheduled_analyzer_applied%(c: connection, a: Analyzer::Tag%);
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: new_packet packet_contents
+## .. zeek:see:: new_packet packet_contents
 event raw_packet%(p: raw_pkt_hdr%);
 
 ## Generated for all packets that make it into Bro's connection processing. In
-## contrast to :bro:id:`raw_packet` this filters out some more packets that don't
+## contrast to :zeek:id:`raw_packet` this filters out some more packets that don't
 ## pass certain sanity checks.
 ##
 ## This is a very low-level and expensive event that should be avoided when at all
@@ -259,7 +259,7 @@ event raw_packet%(p: raw_pkt_hdr%);
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: tcp_packet packet_contents raw_packet
+## .. zeek:see:: tcp_packet packet_contents raw_packet
 event new_packet%(c: connection, p: pkt_hdr%);
 
 ## Generated for every IPv6 packet that contains extension headers.
@@ -270,7 +270,7 @@ event new_packet%(c: connection, p: pkt_hdr%);
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: new_packet tcp_packet packet_contents esp_packet
+## .. zeek:see:: new_packet tcp_packet packet_contents esp_packet
 event ipv6_ext_headers%(c: connection, p: pkt_hdr%);
 
 ## Generated for any packets using the IPv6 Encapsulating Security Payload (ESP)
@@ -278,35 +278,35 @@ event ipv6_ext_headers%(c: connection, p: pkt_hdr%);
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
+## .. zeek:see:: new_packet tcp_packet ipv6_ext_headers
 event esp_packet%(p: pkt_hdr%);
 
 ## Generated for any packet using a Mobile IPv6 Mobility Header.
 ##
 ## p: Information from the header of the packet that triggered the event.
 ##
-## .. bro:see:: new_packet tcp_packet ipv6_ext_headers
+## .. zeek:see:: new_packet tcp_packet ipv6_ext_headers
 event mobile_ipv6_message%(p: pkt_hdr%);
 
 ## Generated for every packet that has a non-empty transport-layer payload.
 ## This is a very low-level and expensive event that should be avoided when
 ## at all possible.  It's usually infeasible to handle when processing even
 ## medium volumes of traffic in real-time. It's even worse than
-## :bro:id:`new_packet`. That said, if you work from a trace and want to
+## :zeek:id:`new_packet`. That said, if you work from a trace and want to
 ## do some packet-level analysis, it may come in handy.
 ##
 ## c: The connection the packet is part of.
 ##
 ## contents: The raw transport-layer payload.
 ##
-## .. bro:see:: new_packet tcp_packet
+## .. zeek:see:: new_packet tcp_packet
 event packet_contents%(c: connection, contents: string%);
 
 ## Generated when Bro detects a TCP retransmission inconsistency. When
 ## reassembling a TCP stream, Bro buffers all payload until it sees the
 ## responder acking it. If during that time, the sender resends a chunk of
 ## payload but with different content than originally, this event will be
-## raised. In addition, if :bro:id:`tcp_max_old_segments` is larger than zero,
+## raised. In addition, if :zeek:id:`tcp_max_old_segments` is larger than zero,
 ## mismatches with that older still-buffered data will likewise trigger the event.
 ##
 ## c: The connection showing the inconsistency.
@@ -321,7 +321,7 @@ event packet_contents%(c: connection, contents: string%);
 ##            ``A`` -> ACK; ``P`` -> PUSH. This string will not always be set,
 ##            only if the information is available; it's "best effort".
 ##
-## .. bro:see:: tcp_rexmit tcp_contents
+## .. zeek:see:: tcp_rexmit tcp_contents
 event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: string%);
 
 ## Generated when Bro detects a gap in a reassembled TCP payload stream. This
@@ -362,14 +362,14 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ## aid:   A unique integer ID identifying the specific *instance* of the
 ##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
 ##        be used to reference the analyzer when using builtin functions like
-##        :bro:id:`disable_analyzer`.
+##        :zeek:id:`disable_analyzer`.
 ##
-## .. bro:see:: protocol_violation
+## .. zeek:see:: protocol_violation
 ##
 ## .. note::
 ##
 ##    Bro's default scripts use this event to determine the ``service`` column
-##    of :bro:type:`Conn::Info`: once confirmed, the protocol will be listed
+##    of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
 ##    there (and thus in ``conn.log``).
 event protocol_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
 
@@ -390,16 +390,16 @@ event protocol_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
 ## aid:   A unique integer ID identifying the specific *instance* of the
 ##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
 ##        be used to reference the analyzer when using builtin functions like
-##        :bro:id:`disable_analyzer`.
+##        :zeek:id:`disable_analyzer`.
 ##
 ## reason: TODO.
 ##
-## .. bro:see:: protocol_confirmation
+## .. zeek:see:: protocol_confirmation
 ##
 ## .. note::
 ##
 ##    Bro's default scripts use this event to disable an analyzer via
-##    :bro:id:`disable_analyzer` if it's parsing the wrong protocol. That's
+##    :zeek:id:`disable_analyzer` if it's parsing the wrong protocol. That's
 ##    however a script-level decision and not done automatically by the event
 ##    engine.
 event protocol_violation%(c: connection, atype: Analyzer::Tag, aid: count, reason: string%);
@@ -414,7 +414,7 @@ event protocol_violation%(c: connection, atype: Analyzer::Tag, aid: count, reaso
 ##
 ## rs: Statistics for the responder endpoint.
 ##
-## .. bro:see:: connection_state_remove
+## .. zeek:see:: connection_state_remove
 event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 
 ## Generated for unexpected activity related to a specific connection.  When
@@ -431,7 +431,7 @@ event conn_stats%(c: connection, os: endpoint_stats, rs: endpoint_stats%);
 ##
 ## addl: Optional additional context further describing the situation.
 ##
-## .. bro:see:: flow_weird net_weird file_weird
+## .. zeek:see:: flow_weird net_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -454,7 +454,7 @@ event conn_weird%(name: string, c: connection, addl: string%);
 ##
 ## dst: The destination address corresponding to the activity.
 ##
-## .. bro:see:: conn_weird net_weird file_weird
+## .. zeek:see:: conn_weird net_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -472,7 +472,7 @@ event flow_weird%(name: string, src: addr, dst: addr%);
 ##       scripts use this name in filtering policies that specify which
 ##       "weirds" are worth reporting.
 ##
-## .. bro:see:: flow_weird file_weird
+## .. zeek:see:: flow_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -493,7 +493,7 @@ event net_weird%(name: string%);
 ##
 ## addl: Additional information related to the weird.
 ##
-## .. bro:see:: flow_weird net_weird conn_weird
+## .. zeek:see:: flow_weird net_weird conn_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
@@ -502,7 +502,7 @@ event net_weird%(name: string%);
 event file_weird%(name: string, f: fa_file, addl: string%);
 
 ## Generated regularly for the purpose of profiling Bro's processing. This event
-## is raised for every :bro:id:`load_sample_freq` packet. For these packets,
+## is raised for every :zeek:id:`load_sample_freq` packet. For these packets,
 ## Bro records script-level functions executed during their processing as well
 ## as further internal locations. By sampling the processing in this form, one
 ## can understand where Bro spends its time.
@@ -538,7 +538,7 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ## used on a system. This is a protocol-independent event that is fed by
 ## different analyzers. For example, the HTTP analyzer reports user-agent and
 ## server software by raising this event, assuming it can parse it (if not,
-## :bro:id:`software_parse_error` will be generated instead).
+## :zeek:id:`software_parse_error` will be generated instead).
 ##
 ## c: The connection.
 ##
@@ -549,7 +549,7 @@ event signature_match%(state: signature_state, msg: string, data: string%);
 ## descr: The raw (unparsed) software identification string as extracted from
 ##        the protocol.
 ##
-## .. bro:see:: software_parse_error software_unparsed_version_found OS_version_found
+## .. zeek:see:: software_parse_error software_unparsed_version_found OS_version_found
 event software_version_found%(c: connection, host: addr,
 			      s: software, descr: string%);
 
@@ -557,7 +557,7 @@ event software_version_found%(c: connection, host: addr,
 ## used on a system but cannot parse it. This is a protocol-independent event
 ## that is fed by different analyzers. For example, the HTTP analyzer reports
 ## user-agent and server software by raising this event if it cannot parse them
-## directly (if it can :bro:id:`software_version_found` will be generated
+## directly (if it can :zeek:id:`software_version_found` will be generated
 ## instead).
 ##
 ## c: The connection.
@@ -567,7 +567,7 @@ event software_version_found%(c: connection, host: addr,
 ## descr: The raw (unparsed) software identification string as extracted from
 ##        the protocol.
 ##
-## .. bro:see:: software_version_found software_unparsed_version_found
+## .. zeek:see:: software_version_found software_unparsed_version_found
 ##    OS_version_found
 event software_parse_error%(c: connection, host: addr, descr: string%);
 
@@ -575,7 +575,7 @@ event software_parse_error%(c: connection, host: addr, descr: string%);
 ## used on a system. This is a protocol-independent event that is fed by
 ## different analyzers. For example, the HTTP analyzer reports user-agent and
 ## server software by raising this event. Different from
-## :bro:id:`software_version_found`  and :bro:id:`software_parse_error`, this
+## :zeek:id:`software_version_found`  and :zeek:id:`software_parse_error`, this
 ## event is always raised, independent of whether Bro can parse the version
 ## string.
 ##
@@ -585,13 +585,13 @@ event software_parse_error%(c: connection, host: addr, descr: string%);
 ##
 ## str: The software identification string as extracted from the protocol.
 ##
-## .. bro:see:: software_parse_error software_version_found OS_version_found
+## .. zeek:see:: software_parse_error software_version_found OS_version_found
 event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 
 ## Generated when an operating system has been fingerprinted. Bro uses `p0f
 ## <http://lcamtuf.coredump.cx/p0f.shtml>`__ to fingerprint endpoints passively,
 ## and it raises this event for each system identified. The p0f fingerprints are
-## defined by :bro:id:`passive_fingerprint_file`.
+## defined by :zeek:id:`passive_fingerprint_file`.
 ##
 ## c: The connection.
 ##
@@ -599,7 +599,7 @@ event software_unparsed_version_found%(c: connection, host: addr, str: string%);
 ##
 ## OS: The OS version string.
 ##
-## .. bro:see:: passive_fingerprint_file software_parse_error
+## .. zeek:see:: passive_fingerprint_file software_parse_error
 ##    software_version_found software_unparsed_version_found
 ##    generate_OS_version_event
 event OS_version_found%(c: connection, host: addr, OS: OS_version%);
@@ -610,7 +610,7 @@ event OS_version_found%(c: connection, host: addr, OS: OS_version%);
 ##
 ## p: A record describing the peer.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_handshake_done remote_event_registered remote_log remote_pong
 ##    remote_state_access_performed remote_state_inconsistency print_hook
 event remote_connection_established%(p: event_peer%);
@@ -621,7 +621,7 @@ event remote_connection_established%(p: event_peer%);
 ##
 ## p: A record describing the peer.
 ##
-## .. bro:see:: remote_capture_filter  remote_connection_error
+## .. zeek:see:: remote_capture_filter  remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log remote_pong remote_state_access_performed
 ##    remote_state_inconsistency print_hook
@@ -633,7 +633,7 @@ event remote_connection_closed%(p: event_peer%);
 ##
 ## p: A record describing the peer.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_event_registered remote_log remote_pong
 ##    remote_state_access_performed remote_state_inconsistency print_hook
 event remote_connection_handshake_done%(p: event_peer%);
@@ -646,7 +646,7 @@ event remote_connection_handshake_done%(p: event_peer%);
 ##
 ## name: TODO.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed
+## .. zeek:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
 ##    remote_connection_handshake_done remote_log remote_pong
 ##    remote_state_access_performed remote_state_inconsistency print_hook
@@ -660,7 +660,7 @@ event remote_event_registered%(p: event_peer, name: string%);
 ##
 ## reason: A textual description of the error.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed
+## .. zeek:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log remote_pong remote_state_access_performed
 ##    remote_state_inconsistency print_hook
@@ -674,20 +674,20 @@ event remote_connection_error%(p: event_peer, reason: string%);
 ##
 ## filter: The filter string sent by the peer.
 ##
-## .. bro:see::  remote_connection_closed remote_connection_error
+## .. zeek:see::  remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log remote_pong remote_state_access_performed
 ##    remote_state_inconsistency print_hook
 event remote_capture_filter%(p: event_peer, filter: string%);
 
-## Generated after a call to :bro:id:`send_state` when all data has been
+## Generated after a call to :zeek:id:`send_state` when all data has been
 ## successfully sent to the remote side. While this event is
 ## intended primarily for use by Bro's communication framework, it can also
 ## trigger additional code if helpful.
 ##
 ## p: A record describing the remote peer.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed
+## .. zeek:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
 ##    remote_connection_handshake_done remote_event_registered remote_log remote_pong
 ##    remote_state_access_performed remote_state_inconsistency print_hook
@@ -696,7 +696,7 @@ event finished_send_state%(p: event_peer%);
 ## Generated if state synchronization detects an inconsistency.  While this
 ## event is intended primarily for use by Bro's communication framework, it can
 ## also trigger additional code if helpful. This event is only raised if
-## :bro:id:`remote_check_sync_consistency` is false.
+## :zeek:id:`remote_check_sync_consistency` is false.
 ##
 ## operation: The textual description of the state operation performed.
 ##
@@ -709,7 +709,7 @@ event finished_send_state%(p: event_peer%);
 ##           found before the operation was carried out. The difference between
 ##           *real_old* and *expected_old* is the inconsistency being reported.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed
+## .. zeek:see:: remote_capture_filter remote_connection_closed
 ##    remote_connection_error remote_connection_established
 ##    remote_connection_handshake_done remote_event_registered remote_log remote_pong
 ##    remote_state_access_performed print_hook remote_check_sync_consistency
@@ -720,17 +720,17 @@ event remote_state_inconsistency%(operation: string, id: string,
 ## intended primarily for use by Bro's communication framework, it can also
 ## trigger additional code if helpful.
 ##
-## level: The log level, which is either :bro:id:`REMOTE_LOG_INFO` or
-##        :bro:id:`REMOTE_LOG_ERROR`.
+## level: The log level, which is either :zeek:id:`REMOTE_LOG_INFO` or
+##        :zeek:id:`REMOTE_LOG_ERROR`.
 ##
 ## src: The component of the communication system that logged the message.
-##      Currently, this will be one of :bro:id:`REMOTE_SRC_CHILD` (Bro's
-##      child process), :bro:id:`REMOTE_SRC_PARENT` (Bro's main process), or
-##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).
+##      Currently, this will be one of :zeek:id:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :zeek:id:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :zeek:id:`REMOTE_SRC_SCRIPT` (the script level).
 ##
 ## msg: The message logged.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered  remote_pong remote_state_access_performed
 ##    remote_state_inconsistency print_hook remote_log_peer
@@ -739,21 +739,21 @@ event remote_log%(level: count, src: count, msg: string%);
 ## Generated for communication log messages. While this event is
 ## intended primarily for use by Bro's communication framework, it can also
 ## trigger additional code if helpful.  This event is equivalent to
-## :bro:see:`remote_log` except the message is with respect to a certain peer.
+## :zeek:see:`remote_log` except the message is with respect to a certain peer.
 ##
 ## p: A record describing the remote peer.
 ##
-## level: The log level, which is either :bro:id:`REMOTE_LOG_INFO` or
-##        :bro:id:`REMOTE_LOG_ERROR`.
+## level: The log level, which is either :zeek:id:`REMOTE_LOG_INFO` or
+##        :zeek:id:`REMOTE_LOG_ERROR`.
 ##
 ## src: The component of the communication system that logged the message.
-##      Currently, this will be one of :bro:id:`REMOTE_SRC_CHILD` (Bro's
-##      child process), :bro:id:`REMOTE_SRC_PARENT` (Bro's main process), or
-##      :bro:id:`REMOTE_SRC_SCRIPT` (the script level).
+##      Currently, this will be one of :zeek:id:`REMOTE_SRC_CHILD` (Bro's
+##      child process), :zeek:id:`REMOTE_SRC_PARENT` (Bro's main process), or
+##      :zeek:id:`REMOTE_SRC_SCRIPT` (the script level).
 ##
 ## msg: The message logged.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered  remote_pong remote_state_access_performed
 ##    remote_state_inconsistency print_hook remote_log
@@ -761,12 +761,12 @@ event remote_log_peer%(p: event_peer, level: count, src: count, msg: string%);
 
 ## Generated when a remote peer has answered to our ping. This event is part of
 ## Bro's infrastructure for measuring communication latency. One can send a ping
-## by calling :bro:id:`send_ping` and when a corresponding reply is received,
+## by calling :zeek:id:`send_ping` and when a corresponding reply is received,
 ## this event will be raised.
 ##
 ## p: The peer sending us the pong.
 ##
-## seq: The sequence number passed to the original :bro:id:`send_ping` call.
+## seq: The sequence number passed to the original :zeek:id:`send_ping` call.
 ##      The number is sent back by the peer in its response.
 ##
 ## d1: The time interval between sending the ping and receiving the pong. This
@@ -779,7 +779,7 @@ event remote_log_peer%(p: event_peer, level: count, src: count, msg: string%);
 ##     ping and when its parent process sent the pong. This is the
 ##     processing latency at the peer.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log  remote_state_access_performed
 ##    remote_state_inconsistency print_hook
@@ -793,27 +793,27 @@ event remote_pong%(p: event_peer, seq: count,
 ##
 ## v: The new value of the variable.
 ##
-## .. bro:see:: remote_capture_filter remote_connection_closed remote_connection_error
+## .. zeek:see:: remote_capture_filter remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log remote_pong remote_state_inconsistency
 ##    print_hook
 event remote_state_access_performed%(id: string, v: any%);
 
 ## Generated each time Bro's internal profiling log is updated. The file is
-## defined by :bro:id:`profiling_file`, and its update frequency by
-## :bro:id:`profiling_interval` and :bro:id:`expensive_profiling_multiple`.
+## defined by :zeek:id:`profiling_file`, and its update frequency by
+## :zeek:id:`profiling_interval` and :zeek:id:`expensive_profiling_multiple`.
 ##
 ## f: The profiling file.
 ##
 ## expensive: True if this event corresponds to heavier-weight profiling as
-##            indicated by the :bro:id:`expensive_profiling_multiple` variable.
+##            indicated by the :zeek:id:`expensive_profiling_multiple` variable.
 ##
-## .. bro:see::  profiling_interval expensive_profiling_multiple
+## .. zeek:see::  profiling_interval expensive_profiling_multiple
 event profiling_update%(f: file, expensive: bool%);
 
 ## Raised for informational messages reported via Bro's reporter framework. Such
 ## messages may be generated internally by the event engine and also by other
-## scripts calling :bro:id:`Reporter::info`.
+## scripts calling :zeek:id:`Reporter::info`.
 ##
 ## t: The time the message was passed to the reporter.
 ##
@@ -822,7 +822,7 @@ event profiling_update%(f: file, expensive: bool%);
 ## location: A (potentially empty) string describing a location associated with
 ##           the message.
 ##
-## .. bro:see:: reporter_warning reporter_error Reporter::info Reporter::warning
+## .. zeek:see:: reporter_warning reporter_error Reporter::info Reporter::warning
 ##    Reporter::error
 ##
 ## .. note:: Bro will not call reporter events recursively. If the handler of
@@ -832,7 +832,7 @@ event reporter_info%(t: time, msg: string, location: string%) &error_handler;
 
 ## Raised for warnings reported via Bro's reporter framework. Such messages may
 ## be generated internally by the event engine and also by other scripts calling
-## :bro:id:`Reporter::warning`.
+## :zeek:id:`Reporter::warning`.
 ##
 ## t: The time the warning was passed to the reporter.
 ##
@@ -841,7 +841,7 @@ event reporter_info%(t: time, msg: string, location: string%) &error_handler;
 ## location: A (potentially empty) string describing a location associated with
 ##     the warning.
 ##
-## .. bro:see:: reporter_info reporter_error Reporter::info Reporter::warning
+## .. zeek:see:: reporter_info reporter_error Reporter::info Reporter::warning
 ##    Reporter::error
 ##
 ## .. note:: Bro will not call reporter events recursively. If the handler of
@@ -851,7 +851,7 @@ event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
 
 ## Raised for errors reported via Bro's reporter framework. Such messages may
 ## be generated internally by the event engine and also by other scripts calling
-## :bro:id:`Reporter::error`.
+## :zeek:id:`Reporter::error`.
 ##
 ## t: The time the error was passed to the reporter.
 ##
@@ -860,7 +860,7 @@ event reporter_warning%(t: time, msg: string, location: string%) &error_handler;
 ## location: A (potentially empty) string describing a location associated with
 ##     the error.
 ##
-## .. bro:see:: reporter_info reporter_warning Reporter::info Reporter::warning
+## .. zeek:see:: reporter_info reporter_warning Reporter::info Reporter::warning
 ##    Reporter::error
 ##
 ## .. note:: Bro will not call reporter events recursively. If the handler of
@@ -878,11 +878,11 @@ event zeek_script_loaded%(path: string, level: count%);
 
 ## Deprecated synonym for ``zeek_script_loaded``.
 ##
-## .. bro:see: zeek_script_loaded
+## .. zeek:see: zeek_script_loaded
 event bro_script_loaded%(path: string, level: count%) &deprecated;
 
 ## Generated each time Bro's script interpreter opens a file. This event is
-## triggered only for files opened via :bro:id:`open`, and in particular not for
+## triggered only for files opened via :zeek:id:`open`, and in particular not for
 ## normal log files as created by log writers.
 ##
 ## f: The opened file.
@@ -896,7 +896,7 @@ event event_queue_flush_point%(%);
 ## belongs.  All incoming data to the framework is buffered, and depends
 ## on a handler for this event to return a string value that uniquely
 ## identifies a file.  Among all handlers of this event, the last one to
-## call :bro:see:`set_file_handle` will "win".
+## call :zeek:see:`set_file_handle` will "win".
 ##
 ## tag: The analyzer which is carrying the file data.
 ##
@@ -904,15 +904,15 @@ event event_queue_flush_point%(%);
 ##
 ## is_orig: The direction the file data is flowing over the connection.
 ##
-## .. bro:see:: set_file_handle
+## .. zeek:see:: set_file_handle
 event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 
 ## Indicates that an analysis of a new file has begun. The analysis can be
-## augmented at this time via :bro:see:`Files::add_analyzer`.
+## augmented at this time via :zeek:see:`Files::add_analyzer`.
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_over_new_connection file_timeout file_gap
+## .. zeek:see:: file_over_new_connection file_timeout file_gap
 ##    file_sniff file_state_remove
 event file_new%(f: fa_file%);
 
@@ -925,16 +925,16 @@ event file_new%(f: fa_file%);
 ##
 ## is_orig: true if the originator of *c* is the one sending the file.
 ##
-## .. bro:see:: file_new file_timeout file_gap file_sniff
+## .. zeek:see:: file_new file_timeout file_gap file_sniff
 ##    file_state_remove
 event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 
 ## Provide all metadata that has been inferred about a particular file
 ## from inspection of the initial content that been seen at the beginning
 ## of the file.  The analysis can be augmented at this time via
-## :bro:see:`Files::add_analyzer`.  The amount of data fed into the file
+## :zeek:see:`Files::add_analyzer`.  The amount of data fed into the file
 ## sniffing can be increased or decreased by changing either
-## :bro:see:`default_file_bof_buffer_size` or the `bof_buffer_size` field
+## :zeek:see:`default_file_bof_buffer_size` or the `bof_buffer_size` field
 ## in an `fa_file` record. The event will be raised even if content inspection
 ## has been unable to infer any metadata, in which case the fields in *meta*
 ## will be left all unset.
@@ -943,7 +943,7 @@ event file_over_new_connection%(f: fa_file, c: connection, is_orig: bool%);
 ##
 ## meta: Metadata that's been discovered about the file.
 ##
-## .. bro:see:: file_over_new_connection file_timeout file_gap
+## .. zeek:see:: file_over_new_connection file_timeout file_gap
 ##    file_state_remove
 event file_sniff%(f: fa_file, meta: fa_metadata%);
 
@@ -952,7 +952,7 @@ event file_sniff%(f: fa_file, meta: fa_metadata%);
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_new file_over_new_connection file_gap
+## .. zeek:see:: file_new file_over_new_connection file_gap
 ##    file_sniff file_state_remove default_file_timeout_interval
 ##    Files::set_timeout_interval
 event file_timeout%(f: fa_file%);
@@ -965,12 +965,12 @@ event file_timeout%(f: fa_file%);
 ##
 ## len: The number of missing bytes.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout
+## .. zeek:see:: file_new file_over_new_connection file_timeout
 ##    file_sniff file_state_remove file_reassembly_overflow
 event file_gap%(f: fa_file, offset: count, len: count%);
 
 ## Indicates that the file had an overflow of the reassembly buffer.
-## This is a specialization of the :bro:id:`file_gap` event.
+## This is a specialization of the :zeek:id:`file_gap` event.
 ##
 ## f: The file.
 ##
@@ -981,7 +981,7 @@ event file_gap%(f: fa_file, offset: count, len: count%);
 ##          file data and get back under the reassembly buffer size limit.
 ##          This value will also be represented as a gap.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout
+## .. zeek:see:: file_new file_over_new_connection file_timeout
 ##    file_sniff file_state_remove file_gap
 ##    Files::enable_reassembler Files::reassembly_buffer_size
 ##    Files::enable_reassembly Files::disable_reassembly
@@ -992,7 +992,7 @@ event file_reassembly_overflow%(f: fa_file, offset: count, skipped: count%);
 ##
 ## f: The file.
 ##
-## .. bro:see:: file_new file_over_new_connection file_timeout file_gap
+## .. zeek:see:: file_new file_over_new_connection file_timeout file_gap
 ##    file_sniff
 event file_state_remove%(f: fa_file%);
 
@@ -1003,7 +1003,7 @@ event file_state_remove%(f: fa_file%);
 ##
 ## dm: A record describing the new resolver result (which matches the old one).
 ##
-## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+## .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified
 event dns_mapping_valid%(dm: dns_mapping%);
 
@@ -1015,7 +1015,7 @@ event dns_mapping_valid%(dm: dns_mapping%);
 ##
 ## dm: A record describing the old resolver result.
 ##
-## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+## .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_valid
 event dns_mapping_unverified%(dm: dns_mapping%);
 
@@ -1026,7 +1026,7 @@ event dns_mapping_unverified%(dm: dns_mapping%);
 ##
 ## dm: A record describing the new resolver result.
 ##
-## .. bro:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_unverified
+## .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_new_name%(dm: dns_mapping%);
 
@@ -1038,7 +1038,7 @@ event dns_mapping_new_name%(dm: dns_mapping%);
 ##
 ## dm: A record describing the old resolver result.
 ##
-## .. bro:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
+## .. zeek:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_lost_name%(dm: dns_mapping%);
 
@@ -1055,7 +1055,7 @@ event dns_mapping_lost_name%(dm: dns_mapping%);
 ## new_addrs: Addresses that were not part of the returned set for the query
 ##            described by *dm*, but now are.
 ##
-## .. bro:see:: dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
+## .. zeek:see:: dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr_set%);
 

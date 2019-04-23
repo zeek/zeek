@@ -1,8 +1,8 @@
 ##! A framework for establishing and controlling a cluster of Bro instances.
 ##! In order to use the cluster framework, a script named
 ##! ``cluster-layout.zeek`` must exist somewhere in Bro's script search path
-##! which has a cluster definition of the :bro:id:`Cluster::nodes` variable.
-##! The ``CLUSTER_NODE`` environment variable or :bro:id:`Cluster::node`
+##! which has a cluster definition of the :zeek:id:`Cluster::nodes` variable.
+##! The ``CLUSTER_NODE`` environment variable or :zeek:id:`Cluster::node`
 ##! must also be sent and the cluster framework loaded as a package like
 ##! ``@load base/frameworks/cluster``.
 
@@ -44,23 +44,23 @@ export {
 	const nodeid_topic_prefix = "bro/cluster/nodeid/" &redef;
 
 	## Name of the node on which master data stores will be created if no other
-	## has already been specified by the user in :bro:see:`Cluster::stores`.
+	## has already been specified by the user in :zeek:see:`Cluster::stores`.
 	## An empty value means "use whatever name corresponds to the manager
 	## node".
 	const default_master_node = "" &redef;
 
 	## The type of data store backend that will be used for all data stores if
-	## no other has already been specified by the user in :bro:see:`Cluster::stores`.
+	## no other has already been specified by the user in :zeek:see:`Cluster::stores`.
 	const default_backend = Broker::MEMORY &redef;
 
 	## The type of persistent data store backend that will be used for all data
 	## stores if no other has already been specified by the user in
-	## :bro:see:`Cluster::stores`.  This will be used when script authors call
-	## :bro:see:`Cluster::create_store` with the *persistent* argument set true.
+	## :zeek:see:`Cluster::stores`.  This will be used when script authors call
+	## :zeek:see:`Cluster::create_store` with the *persistent* argument set true.
 	const default_persistent_backend = Broker::SQLITE &redef;
 
 	## Setting a default dir will, for persistent backends that have not
-	## been given an explicit file path via :bro:see:`Cluster::stores`,
+	## been given an explicit file path via :zeek:see:`Cluster::stores`,
 	## automatically create a path within this dir that is based on the name of
 	## the data store.
 	const default_store_dir = "" &redef;
@@ -81,21 +81,21 @@ export {
 		## Parameters used for configuring the backend.
 		options: Broker::BackendOptions &default=Broker::BackendOptions();
 		## A resync/reconnect interval to pass through to
-		## :bro:see:`Broker::create_clone`.
+		## :zeek:see:`Broker::create_clone`.
 		clone_resync_interval: interval &default=Broker::default_clone_resync_interval;
 		## A staleness duration to pass through to
-		## :bro:see:`Broker::create_clone`.
+		## :zeek:see:`Broker::create_clone`.
 		clone_stale_interval: interval &default=Broker::default_clone_stale_interval;
 		## A mutation buffer interval to pass through to
-		## :bro:see:`Broker::create_clone`.
+		## :zeek:see:`Broker::create_clone`.
 		clone_mutation_buffer_interval: interval &default=Broker::default_clone_mutation_buffer_interval;
 	};
 
 	## A table of cluster-enabled data stores that have been created, indexed
 	## by their name.  This table will be populated automatically by
-	## :bro:see:`Cluster::create_store`, but if you need to customize
+	## :zeek:see:`Cluster::create_store`, but if you need to customize
 	## the options related to a particular data store, you may redef this
-	## table.  Calls to :bro:see:`Cluster::create_store` will first check
+	## table.  Calls to :zeek:see:`Cluster::create_store` will first check
 	## the table for an entry of the same name and, if found, will use the
 	## predefined options there when setting up the store.
 	global stores: table[string] of StoreInfo &default=StoreInfo() &redef;
@@ -174,15 +174,15 @@ export {
 	## This function can be called at any time to determine if the cluster
 	## framework is being enabled for this run.
 	##
-	## Returns: True if :bro:id:`Cluster::node` has been set.
+	## Returns: True if :zeek:id:`Cluster::node` has been set.
 	global is_enabled: function(): bool;
 
 	## This function can be called at any time to determine what type of
 	## cluster node the current Bro instance is going to be acting as.
-	## If :bro:id:`Cluster::is_enabled` returns false, then
-	## :bro:enum:`Cluster::NONE` is returned.
+	## If :zeek:id:`Cluster::is_enabled` returns false, then
+	## :zeek:enum:`Cluster::NONE` is returned.
 	##
-	## Returns: The :bro:type:`Cluster::NodeType` the calling node acts as.
+	## Returns: The :zeek:type:`Cluster::NodeType` the calling node acts as.
 	global local_node_type: function(): NodeType;
 
 	## This gives the value for the number of workers currently connected to,
@@ -241,8 +241,8 @@ export {
 
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
-	## id: the id of the cluster node (from :bro:see:`Broker::EndpointInfo`
-	##     or :bro:see:`Broker::node_id`.
+	## id: the id of the cluster node (from :zeek:see:`Broker::EndpointInfo`
+	##     or :zeek:see:`Broker::node_id`.
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.

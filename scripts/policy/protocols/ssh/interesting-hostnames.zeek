@@ -12,7 +12,7 @@ export {
 	redef enum Notice::Type += {
 		## Generated if a login originates or responds with a host where
 		## the reverse hostname lookup resolves to a name matched by the
-		## :bro:id:`SSH::interesting_hostnames` regular expression.
+		## :zeek:id:`SSH::interesting_hostnames` regular expression.
 		Interesting_Hostname_Login,
 	};
 	

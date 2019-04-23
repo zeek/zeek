@@ -1,6 +1,6 @@
 ##! This file defines the types that are used by the NetControl framework.
 ##!
-##! The most important type defined in this file is :bro:see:`NetControl::Rule`,
+##! The most important type defined in this file is :zeek:see:`NetControl::Rule`,
 ##! which is used to describe all rules that can be expressed by the NetControl framework. 
 
 module NetControl;
@@ -10,11 +10,11 @@ export {
 	option default_priority: int = +0;
 
 	## The default priority that is used when using the high-level functions to
-	## push whitelist entries to the backends (:bro:see:`NetControl::whitelist_address` and
-	## :bro:see:`NetControl::whitelist_subnet`).
+	## push whitelist entries to the backends (:zeek:see:`NetControl::whitelist_address` and
+	## :zeek:see:`NetControl::whitelist_subnet`).
 	##
 	## Note that this priority is not automatically used when manually creating rules
-	## that have a :bro:see:`NetControl::RuleType` of :bro:enum:`NetControl::WHITELIST`.
+	## that have a :zeek:see:`NetControl::RuleType` of :zeek:enum:`NetControl::WHITELIST`.
 	const whitelist_priority: int = +5 &redef;
 
 	## Type defining the entity that a rule applies to.
@@ -25,7 +25,7 @@ export {
 		MAC,		##< Activity involving a MAC address.
 	};
 
-	## Flow is used in :bro:type:`NetControl::Entity` together with :bro:enum:`NetControl::FLOW` to specify
+	## Flow is used in :zeek:type:`NetControl::Entity` together with :zeek:enum:`NetControl::FLOW` to specify
 	## a uni-directional flow that a rule applies to.
 	##
 	## If optional fields are not set, they are interpreted as wildcarded.
@@ -41,10 +41,10 @@ export {
 	## Type defining the entity a rule is operating on.
 	type Entity: record {
 		ty: EntityType;			##< Type of entity.
-		conn: conn_id &optional;	##< Used with :bro:enum:`NetControl::CONNECTION`.
-		flow: Flow &optional;	##< Used with :bro:enum:`NetControl::FLOW`.
-		ip: subnet &optional;		##< Used with :bro:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
-		mac: string &optional;		##< Used with :bro:enum:`NetControl::MAC`.
+		conn: conn_id &optional;	##< Used with :zeek:enum:`NetControl::CONNECTION`.
+		flow: Flow &optional;	##< Used with :zeek:enum:`NetControl::FLOW`.
+		ip: subnet &optional;		##< Used with :zeek:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
+		mac: string &optional;		##< Used with :zeek:enum:`NetControl::MAC`.
 	};
 
 	## Type defining the target of a rule.
@@ -59,7 +59,7 @@ export {
 	};
 
 	## Type of rules that the framework supports. Each type lists the extra
-	## :bro:type:`NetControl::Rule` fields it uses, if any.
+	## :zeek:type:`NetControl::Rule` fields it uses, if any.
 	##
 	## Plugins may extend this type to define their own.
 	type RuleType: enum {
@@ -108,8 +108,8 @@ export {
 		priority: int &default=default_priority;	##< Priority if multiple rules match an entity (larger value is higher priority).
 		location: string &optional;	##< Optional string describing where/what installed the rule.
 
-		out_port: count &optional;		##< Argument for :bro:enum:`NetControl::REDIRECT` rules.
-		mod: FlowMod &optional; ##< Argument for :bro:enum:`NetControl::MODIFY` rules.
+		out_port: count &optional;		##< Argument for :zeek:enum:`NetControl::REDIRECT` rules.
+		mod: FlowMod &optional; ##< Argument for :zeek:enum:`NetControl::MODIFY` rules.
 
 		id: string &default="";		##< Internally determined unique ID for this rule. Will be set when added.
 		cid: count &default=0;		##< Internally determined unique numeric ID for this rule. Set when added.

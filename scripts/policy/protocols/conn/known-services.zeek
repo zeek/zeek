@@ -34,7 +34,7 @@ export {
 	const use_service_store = T &redef;
 	
 	## The hosts whose services should be tracked and logged.
-	## See :bro:type:`Host` for possible choices.
+	## See :zeek:type:`Host` for possible choices.
 	option service_tracking = LOCAL_HOSTS;
 
 	type AddrPortPair: record {
@@ -43,19 +43,19 @@ export {
 	};
 
 	## Holds the set of all known services.  Keys in the store are
-	## :bro:type:`Known::AddrPortPair` and their associated value is
+	## :zeek:type:`Known::AddrPortPair` and their associated value is
 	## always the boolean value of "true".
 	global service_store: Cluster::StoreInfo;
 
-	## The Broker topic name to use for :bro:see:`Known::service_store`.
+	## The Broker topic name to use for :zeek:see:`Known::service_store`.
 	const service_store_name = "bro/known/services" &redef;
 
-	## The expiry interval of new entries in :bro:see:`Known::service_store`.
+	## The expiry interval of new entries in :zeek:see:`Known::service_store`.
 	## This also changes the interval at which services get logged.
 	const service_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :bro:see:`Known::service_store`.
+	## :zeek:see:`Known::service_store`.
 	option service_store_timeout = 15sec;
 
 	## Tracks the set of daily-detected services for preventing the logging
@@ -68,7 +68,7 @@ export {
 	## This set is automatically populated and shouldn't be directly modified.
 	global services: set[addr, port] &create_expire=1day;
 
-	## Event that can be handled to access the :bro:type:`Known::ServicesInfo`
+	## Event that can be handled to access the :zeek:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
 	global log_known_services: event(rec: ServicesInfo);
 }

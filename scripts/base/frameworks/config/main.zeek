@@ -24,14 +24,14 @@ export {
 		location: string &optional &log;
 	};
 
-	## Event that can be handled to access the :bro:type:`Config::Info`
+	## Event that can be handled to access the :zeek:type:`Config::Info`
 	## record as it is sent on to the logging framework.
 	global log_config: event(rec: Info);
 
 	## This function is the config framework layer around the lower-level
-	## :bro:see:`Option::set` call. Config::set_value will set the configuration
+	## :zeek:see:`Option::set` call. Config::set_value will set the configuration
 	## value for all nodes in the cluster, no matter where it was called. Note
-	## that :bro:see:`Option::set` does not distribute configuration changes
+	## that :zeek:see:`Option::set` does not distribute configuration changes
 	## to other nodes.
 	##
 	## ID: The ID of the option to update.

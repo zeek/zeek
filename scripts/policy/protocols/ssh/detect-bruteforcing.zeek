@@ -11,7 +11,7 @@ module SSH;
 export {
 	redef enum Notice::Type += {
 		## Indicates that a host has been identified as crossing the
-		## :bro:id:`SSH::password_guesses_limit` threshold with
+		## :zeek:id:`SSH::password_guesses_limit` threshold with
 		## failed logins.
 		Password_Guessing,
 		## Indicates that a host previously identified as a "password

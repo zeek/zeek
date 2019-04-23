@@ -10,7 +10,7 @@
 ##
 ## dialects: A vector of the client's supported dialects.
 ##
-## .. bro:see:: smb2_message smb2_negotiate_response
+## .. zeek:see:: smb2_message smb2_negotiate_response
 event smb2_negotiate_request%(c: connection, hdr: SMB2::Header, dialects: index_vec%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -25,7 +25,7 @@ event smb2_negotiate_request%(c: connection, hdr: SMB2::Header, dialects: index_
 ##
 ## response: The negotiate response data structure.
 ##
-## .. bro:see:: smb2_message smb2_negotiate_request
+## .. zeek:see:: smb2_message smb2_negotiate_request
 event smb2_negotiate_response%(c: connection, hdr: SMB2::Header, response: SMB2::NegotiateResponse%);
 
 #### Types

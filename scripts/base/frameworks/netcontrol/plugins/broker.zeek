@@ -9,7 +9,7 @@ module NetControl;
 @load base/frameworks/broker
 
 export {
-	## This record specifies the configuration that is passed to :bro:see:`NetControl::create_broker`.
+	## This record specifies the configuration that is passed to :zeek:see:`NetControl::create_broker`.
 	type BrokerConfig: record {
 		## The broker topic to send events to.
 		topic: string &optional;

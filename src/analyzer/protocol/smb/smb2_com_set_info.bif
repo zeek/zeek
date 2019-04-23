@@ -11,7 +11,7 @@
 ##
 ## dst_filename: The filename to rename the file into.
 ##
-## .. bro:see:: smb2_message smb2_file_delete smb2_file_sattr
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr
 event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -28,7 +28,7 @@ event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ## delete_pending: A boolean value to indicate that a file should be deleted 
 ##                 when it's closed if set to T.
 ##
-## .. bro:see:: smb2_message smb2_file_rename smb2_file_sattr
+## .. zeek:see:: smb2_message smb2_file_rename smb2_file_sattr
 event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -46,7 +46,7 @@ event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ##
 ## attrs: File attributes.
 ##
-## .. bro:see:: smb2_message smb2_file_rename smb2_file_delete
+## .. zeek:see:: smb2_message smb2_file_rename smb2_file_delete
 event smb2_file_sattr%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, times: SMB::MACTimes, attrs: SMB2::FileAttrs%);
 
 # TODO - Not implemented
@@ -60,7 +60,7 @@ event smb2_file_sattr%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, ti
 #
 # request: A record containing more information related to the request.
 #
-# .. bro:see:: smb2_message smb2_file_rename smb2_file_delete
+# .. zeek:see:: smb2_message smb2_file_rename smb2_file_delete
 # event smb2_set_info_request%(c: connection, hdr: SMB2::Header, request: SMB2::SetInfoRequest%);
 #
 # type SMB2::SetInfoRequest: record;

@@ -2,7 +2,7 @@
 ##! parsing but doesn't actually do any detection on it's own.  It relies on
 ##! other protocol specific scripts to parse out software from the protocols
 ##! that they analyze.  The entry point for providing new software detections
-##! to this framework is through the :bro:id:`Software::found` function.
+##! to this framework is through the :zeek:id:`Software::found` function.
 
 @load base/utils/directions-and-hosts
 @load base/utils/numbers
@@ -16,7 +16,7 @@ export {
 	
 	## Scripts detecting new types of software need to redef this enum to add
 	## their own specific software types which would then be used when they 
-	## create :bro:type:`Software::Info` records.
+	## create :zeek:type:`Software::Info` records.
 	type Type: enum {
 		## A placeholder type for when the type of software is not known.
 		UNKNOWN,
@@ -45,7 +45,7 @@ export {
 		## The port on which the software is running. Only sensible for
 		## server software.
 		host_p:           port &log &optional;
-		## The type of software detected (e.g. :bro:enum:`HTTP::SERVER`).
+		## The type of software detected (e.g. :zeek:enum:`HTTP::SERVER`).
 		software_type:    Type &log &default=UNKNOWN;
 		## Name of the software (e.g. Apache).
 		name:             string &log &optional;
@@ -96,9 +96,9 @@ export {
 		["Flash Player"] = "Flash",
 	} &default=function(a: string): string { return a; };
 
-	## Type to represent a collection of :bro:type:`Software::Info` records.
+	## Type to represent a collection of :zeek:type:`Software::Info` records.
 	## It's indexed with the name of a piece of software such as "Firefox" 
-	## and it yields a :bro:type:`Software::Info` record with more
+	## and it yields a :zeek:type:`Software::Info` record with more
 	## information about the software.
 	type SoftwareSet: table[string] of Info;
 	
@@ -108,7 +108,7 @@ export {
 	## uniformly distributed among proxy nodes.
 	global tracked: table[addr] of SoftwareSet &create_expire=1day;
 	
-	## This event can be handled to access the :bro:type:`Software::Info`
+	## This event can be handled to access the :zeek:type:`Software::Info`
 	## record as it is sent on to the logging framework.
 	global log_software: event(rec: Info);
 
@@ -117,7 +117,7 @@ export {
 	global version_change: event(old: Info, new: Info);
 
 	## This event is raised when software is about to be registered for
-	## tracking in :bro:see:`Software::tracked`.
+	## tracking in :zeek:see:`Software::tracked`.
 	global register: event(info: Info);
 }
 

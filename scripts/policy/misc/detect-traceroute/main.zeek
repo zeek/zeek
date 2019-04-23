@@ -34,7 +34,7 @@ export {
 	const icmp_time_exceeded_threshold: double = 3 &redef;
 
 	## Interval at which to watch for the
-	## :bro:id:`Traceroute::icmp_time_exceeded_threshold` variable to be
+	## :zeek:id:`Traceroute::icmp_time_exceeded_threshold` variable to be
 	## crossed.  At the end of each interval the counter is reset.
 	const icmp_time_exceeded_interval = 3min &redef;
 

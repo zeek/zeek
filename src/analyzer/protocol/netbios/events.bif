@@ -16,7 +16,7 @@
 ##
 ## data_len: The length of the message's payload.
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_keepalive
+## .. zeek:see:: netbios_session_accepted netbios_session_keepalive
 ##    netbios_session_raw_message netbios_session_rejected netbios_session_request
 ##    netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
 ##
@@ -44,7 +44,7 @@ event netbios_session_message%(c: connection, is_orig: bool, msg_type: count, da
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header.
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_keepalive
+## .. zeek:see:: netbios_session_accepted netbios_session_keepalive
 ##    netbios_session_message netbios_session_raw_message netbios_session_rejected
 ##    netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
 ##
@@ -72,7 +72,7 @@ event netbios_session_request%(c: connection, msg: string%);
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header.
 ##
-## .. bro:see::  netbios_session_keepalive netbios_session_message
+## .. zeek:see::  netbios_session_keepalive netbios_session_message
 ##    netbios_session_raw_message netbios_session_rejected netbios_session_request
 ##    netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
 ##
@@ -100,7 +100,7 @@ event netbios_session_accepted%(c: connection, msg: string%);
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header.
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_keepalive
+## .. zeek:see:: netbios_session_accepted netbios_session_keepalive
 ##    netbios_session_message netbios_session_raw_message netbios_session_request
 ##    netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
 ##
@@ -132,7 +132,7 @@ event netbios_session_rejected%(c: connection, msg: string%);
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header (i.e., the ``user_data``).
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_keepalive
+## .. zeek:see:: netbios_session_accepted netbios_session_keepalive
 ##    netbios_session_message netbios_session_rejected netbios_session_request
 ##    netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
 ##
@@ -163,7 +163,7 @@ event netbios_session_raw_message%(c: connection, is_orig: bool, msg: string%);
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header.
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_keepalive
+## .. zeek:see:: netbios_session_accepted netbios_session_keepalive
 ##    netbios_session_message netbios_session_raw_message netbios_session_rejected
 ##    netbios_session_request decode_netbios_name decode_netbios_name_type
 ##
@@ -193,7 +193,7 @@ event netbios_session_ret_arg_resp%(c: connection, msg: string%);
 ## msg: The raw payload of the message sent, excluding the common NetBIOS
 ##      header.
 ##
-## .. bro:see:: netbios_session_accepted netbios_session_message
+## .. zeek:see:: netbios_session_accepted netbios_session_message
 ##    netbios_session_raw_message netbios_session_rejected netbios_session_request
 ##    netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
 ##

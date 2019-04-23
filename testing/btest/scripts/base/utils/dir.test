@@ -1,12 +1,12 @@
-# @TEST-EXEC: btest-bg-run bro bro -b ../dirtest.zeek
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/next1 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: btest-bg-run zeek zeek -b ../dirtest.zeek
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next1 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: touch testdir/newone
 # @TEST-EXEC: rm testdir/bye
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/next2 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next2 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: touch testdir/bye
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: touch testdir/newone
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-diff zeek/.stdout
 
 @TEST-START-FILE dirtest.zeek
 

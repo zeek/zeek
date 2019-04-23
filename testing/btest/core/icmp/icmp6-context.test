@@ -1,9 +1,9 @@
 # These tests all check that IPv6 context packet construction for ICMP6 works.
 
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-no-context.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-trunc.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-udp.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-ip6ext.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-destunreach-no-context.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-trunc.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-udp.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-destunreach-ip6ext.pcap %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 event icmp_unreachable(c: connection, icmp: icmp_conn, code: count, context: icmp_context)

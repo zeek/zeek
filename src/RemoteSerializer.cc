@@ -159,7 +159,7 @@
 #include <strings.h>
 #include <stdarg.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>

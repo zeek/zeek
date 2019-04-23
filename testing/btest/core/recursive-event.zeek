@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT 2>&1 | grep -v termination | sort | uniq | wc -l | awk '{print $1}' >output
+# @TEST-EXEC: zeek %INPUT 2>&1 | grep -v termination | sort | uniq | wc -l | awk '{print $1}' >output
 # @TEST-EXEC: btest-diff output
 
 # In old version, the event would keep triggering endlessely, with the network

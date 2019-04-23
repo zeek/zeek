@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+#
+# Wrapper to continue supporting old names of executables.
+# This will print a deprecation warning to stderr if (1) stdin/stdout/stderr
+# are all connected to a tty, and (2) the environment variable ZEEK_IS_BRO
+# is unset.
+
+function deprecated {
+cat >&2 <<EOF
+Warning: Use of '$1' is deprecated. It is linked to a wrapper that
+         will be removed in the future. Please use '$2' instead.
+
+EOF
+}
+
+base=$(dirname $0)
+old=$(basename $0)
+new=$(echo "${old}" | sed 's/^bro/zeek/')
+
+if [ ! -x "${base}/${new}" ]; then
+    echo "zeek-wrapper: ${new} not found"
+    exit 1
+fi
+
+test -t 0 && test -t 1 && test -t 2 && test -z "${ZEEK_IS_BRO}" && deprecated "${old}" "${new}"
+
+test "${new}" != "${old}" && "${base}/${new}"

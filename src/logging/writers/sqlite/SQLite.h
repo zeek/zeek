@@ -5,7 +5,7 @@
 #ifndef LOGGING_WRITER_SQLITE_H
 #define LOGGING_WRITER_SQLITE_H
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"

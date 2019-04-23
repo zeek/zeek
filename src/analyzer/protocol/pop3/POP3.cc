@@ -1,7 +1,7 @@
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 #include <iostream>

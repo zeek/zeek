@@ -1,9 +1,9 @@
 # @TEST-PORT: BROKER_PORT
-# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../recv.zeek >recv.out"
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../send.zeek >send.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "zeek -m -b ../recv.zeek >recv.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "zeek -m -b ../send.zeek >send.out"
 
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out

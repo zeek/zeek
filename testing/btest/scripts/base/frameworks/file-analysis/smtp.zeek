@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/smtp.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/smtp.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff thefile0
 # @TEST-EXEC: btest-diff thefile1

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tcp/handshake-reorder.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/tcp/handshake-reorder.trace %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 # This tests the Connection::FlipRoles code path (SYN/SYN-ACK reversal).

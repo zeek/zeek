@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 local ten = "0123456789";

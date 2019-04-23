@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/ip6_esp.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/ip6_esp.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # Just check that the event is raised correctly for a packet containing

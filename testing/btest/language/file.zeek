@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff out1
 # @TEST-EXEC: btest-diff out2
 

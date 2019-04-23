@@ -2,8 +2,8 @@
 # variables to verify that setting these prefixes has no effect when
 # an input file uses an absolute-path source.
 #
-# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD|" >input.bro
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix bro -b input.bro >output
+# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD|" >input.zeek
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b input.zeek >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE input.data

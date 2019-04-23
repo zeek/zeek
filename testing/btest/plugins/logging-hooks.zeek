@@ -1,7 +1,7 @@
 # @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin -u . Log Hooks
 # @TEST-EXEC: cp -r %DIR/logging-hooks-plugin/* .
 # @TEST-EXEC: ./configure --bro-dist=${DIST} && make
-# @TEST-EXEC: BRO_PLUGIN_ACTIVATE="Log::Hooks" BRO_PLUGIN_PATH=`pwd` bro -b %INPUT 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output
+# @TEST-EXEC: BRO_PLUGIN_ACTIVATE="Log::Hooks" BRO_PLUGIN_PATH=`pwd` zeek -b %INPUT 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff ssh.log
 

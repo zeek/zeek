@@ -3,9 +3,9 @@
 #
 # @TEST-EXEC: btest-bg-run httpd python $SCRIPTS/httpd.py --max 2 --addr=127.0.0.1
 # @TEST-EXEC: sleep 3
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: cat bro/.stdout | sort >output
+# @TEST-EXEC: cat zeek/.stdout | sort >output
 # @TEST-EXEC: btest-diff output
 
 @load base/utils/active-http

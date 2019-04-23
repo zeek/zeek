@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT --pseudo-realtime >output
+# @TEST-EXEC: zeek -C -r $TRACES/wikipedia.trace %INPUT --pseudo-realtime >output
 # @TEST-EXEC: btest-diff output
 
 global init = F;

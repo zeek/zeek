@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/tunnels/false-teredo.pcap %INPUT >output
 # @TEST-EXEC: test ! -e weird.log
 # @TEST-EXEC: test ! -e dpd.log
 

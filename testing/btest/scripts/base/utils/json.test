@@ -2,7 +2,7 @@
 # test with no elements, with one element, and with more than one element.
 # Test that the "only_loggable" option works (output only record fields with
 # the &log attribute).
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: zeek %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 type color: enum { Red, White, Blue };

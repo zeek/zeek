@@ -2,9 +2,9 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -r $TRACES/irc-dcc-send.trace %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -r $TRACES/irc-dcc-send.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
 event irc_names_info(c: connection, is_orig: bool, c_type: string, channel: string, users: string_set)

@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: TESTBRO=testvalue bro -b %INPUT >out
+# @TEST-EXEC: TESTBRO=testvalue zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event zeek_init()

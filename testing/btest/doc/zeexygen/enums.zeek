@@ -1,4 +1,4 @@
-# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; bro -b -X zeexygen.config %INPUT
+# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; zeek -b -X zeexygen.config %INPUT
 # @TEST-EXEC: btest-diff autogen-reST-enums.rst
 
 @TEST-START-FILE zeexygen.config

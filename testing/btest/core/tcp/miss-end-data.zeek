@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tcp/miss_end_data.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/tcp/miss_end_data.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log
 

@@ -1,7 +1,7 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run clone "bro -B broker -b  ../clone-main.zeek >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -B broker -b  ../master-main.zeek >master.out"
+# @TEST-EXEC: btest-bg-run clone "zeek -B broker -b  ../clone-main.zeek >clone.out"
+# @TEST-EXEC: btest-bg-run master "zeek -B broker -b  ../master-main.zeek >master.out"
 #
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff clone/clone.out

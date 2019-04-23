@@ -1,5 +1,5 @@
 # @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/ipv6-mobile-routing.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/ipv6-mobile-routing.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # Just check that the responder of the connection is the final routing

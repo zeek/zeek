@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: bro -b %INPUT 
+# @TEST-EXEC: zeek -b %INPUT 
 # @TEST-EXEC: btest-diff ssh-new-default.log
 # @TEST-EXEC: test '!' -e ssh.log
 

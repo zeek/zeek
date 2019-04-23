@@ -1,6 +1,6 @@
 # @TEST-EXEC: mv input1.log input.log
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv input3.log input.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff event.out

@@ -1,6 +1,6 @@
 # @TEST-EXEC: cp input.log input2.log
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: echo "hi" >> input2.log
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out

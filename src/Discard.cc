@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Net.h"
 #include "Var.h"

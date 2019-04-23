@@ -1,4 +1,4 @@
-#@TEST-EXEC: bro -b -C -r $TRACES/smb/smb1_transaction2_secondary_request.pcap %INPUT
+#@TEST-EXEC: zeek -b -C -r $TRACES/smb/smb1_transaction2_secondary_request.pcap %INPUT
 #@TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/smb

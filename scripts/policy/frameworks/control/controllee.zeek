@@ -5,7 +5,7 @@
 ##! to the specific analysis scripts desired.  It may also need a node
 ##! configured as a controller node in the communications nodes configuration::
 ##!
-##!     bro <scripts> frameworks/control/controllee
+##!     zeek <scripts> frameworks/control/controllee
 
 @load base/frameworks/control
 @load base/frameworks/broker

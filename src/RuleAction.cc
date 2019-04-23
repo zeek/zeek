@@ -1,7 +1,7 @@
 #include <string>
 using std::string;
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleAction.h"
 #include "RuleMatcher.h"

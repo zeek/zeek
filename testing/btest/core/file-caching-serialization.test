@@ -4,11 +4,11 @@
 # second case, files are eventually forced out of the cache and
 # undergo serialization, which requires re-opening.
 
-# @TEST-EXEC: bro -b %INPUT "test_file_prefix=one"
+# @TEST-EXEC: zeek -b %INPUT "test_file_prefix=one"
 # @TEST-EXEC: btest-diff one0
 # @TEST-EXEC: btest-diff one1
 # @TEST-EXEC: btest-diff one2
-# @TEST-EXEC: bro -b %INPUT "test_file_prefix=two" "max_files_in_cache=2"
+# @TEST-EXEC: zeek -b %INPUT "test_file_prefix=two" "max_files_in_cache=2"
 # @TEST-EXEC: btest-diff two0
 # @TEST-EXEC: btest-diff two1
 # @TEST-EXEC: btest-diff two2

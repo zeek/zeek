@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT 2>&1
+# @TEST-EXEC: zeek -b %INPUT 2>&1
 # @TEST-EXEC: btest-diff .stdout
 
 event zeek_init()

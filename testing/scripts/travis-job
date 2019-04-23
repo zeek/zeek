@@ -247,7 +247,7 @@ run() {
         for cf in $COREFILES; do
             echo
             echo "############# Begin stack trace for $cf ###############"
-            gdb build/src/bro -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
+            gdb build/src/zeek -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
             echo "############# End stack trace for $cf #################"
             echo
         done

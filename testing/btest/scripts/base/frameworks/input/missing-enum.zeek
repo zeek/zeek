@@ -1,7 +1,7 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: btest-diff bro/.stderr
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-diff zeek/.stderr
+# @TEST-EXEC: btest-diff zeek/.stdout
 
 @TEST-START-FILE input.log
 #fields	e	i

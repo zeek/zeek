@@ -1,12 +1,12 @@
 # Needs perftools support.
 #
-# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro1 bro -m -b -r $TRACES/tunnels/6in6.pcap %INPUT
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro2 bro -m -b -r $TRACES/tunnels/6in6in6.pcap %INPUT
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro3 bro -m -b -r $TRACES/tunnels/6in6-tunnel-change.pcap %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro1 zeek -m -b -r $TRACES/tunnels/6in6.pcap %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro2 zeek -m -b -r $TRACES/tunnels/6in6in6.pcap %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro3 zeek -m -b -r $TRACES/tunnels/6in6-tunnel-change.pcap %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
 event new_connection(c: connection)

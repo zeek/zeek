@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/modbus/fuzz-1011.trace %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/modbus/fuzz-1011.trace %INPUT >output
 # @TEST-EXEC: btest-diff modbus.log
 # @TEST-EXEC: btest-diff output
 

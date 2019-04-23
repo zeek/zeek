@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # set()/table() constructors are allowed to have attributes.  When initializing

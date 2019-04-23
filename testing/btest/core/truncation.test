@@ -1,43 +1,43 @@
 # Truncated IP packet's should not be analyzed, and generate truncated_IP weird
 
-# @TEST-EXEC: bro -r $TRACES/trunc/ip4-trunc.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/ip4-trunc.pcap
 # @TEST-EXEC: mv weird.log output
-# @TEST-EXEC: bro -r $TRACES/trunc/ip6-trunc.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/ip6-trunc.pcap
 # @TEST-EXEC: cat weird.log >> output
-# @TEST-EXEC: bro -r $TRACES/trunc/ip6-ext-trunc.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/ip6-ext-trunc.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # If an ICMP packet's payload is truncated due to too small snaplen,
 # the checksum calculation is bypassed (and Bro doesn't crash, of course).
 
 # @TEST-EXEC: rm -f weird.log
-# @TEST-EXEC: bro -r $TRACES/trunc/icmp-payload-trunc.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/icmp-payload-trunc.pcap
 # @TEST-EXEC: test ! -e weird.log
 
 # If an ICMP packet has the ICMP header truncated due to too small snaplen,
 # an internally_truncated_header weird gets generated.
 
-# @TEST-EXEC: bro -r $TRACES/trunc/icmp-header-trunc.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/icmp-header-trunc.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # Truncated packets where the captured length is less than the length required
 # for the packet header should also raise a Weird
-# @TEST-EXEC: bro -r $TRACES/trunc/trunc-hdr.pcap
+# @TEST-EXEC: zeek -r $TRACES/trunc/trunc-hdr.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # Truncated packet where the length of the IP header is larger than the total
 # packet length
-# @TEST-EXEC: bro -C -r $TRACES/trunc/ipv4-truncated-broken-header.pcap
+# @TEST-EXEC: zeek -C -r $TRACES/trunc/ipv4-truncated-broken-header.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # Truncated packet where the captured length is big enough for the ip header
 # struct, but not large enough to capture the full header length (with options)
-# @TEST-EXEC: bro -C -r $TRACES/trunc/ipv4-internally-truncated-header.pcap
+# @TEST-EXEC: zeek -C -r $TRACES/trunc/ipv4-internally-truncated-header.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # Truncated packet where the length of the IP header is larger than the total
 # packet length inside several tunnels
-# @TEST-EXEC: bro -C -r $TRACES/trunc/mpls-6in6-6in6-4in6-trunc.pcap
+# @TEST-EXEC: zeek -C -r $TRACES/trunc/mpls-6in6-6in6-4in6-trunc.pcap
 # @TEST-EXEC: cat weird.log >> output
 
 # @TEST-EXEC: btest-diff output

@@ -25,12 +25,12 @@ case $output_dir in
 esac
 
 cd $build_dir
-. bro-path-dev.sh
+. zeek-path-dev.sh
 export BRO_SEED_FILE=$source_dir/testing/btest/random.seed
 
 function run_zeek
     {
-    ZEEK_ALLOW_INIT_ERRORS=1 bro -X $conf_file zeexygen >/dev/null 2>$zeek_error_file
+    ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeexygen >/dev/null 2>$zeek_error_file
 
     if [ $? -ne 0 ]; then
         echo "Failed running zeek with zeexygen config file $conf_file"

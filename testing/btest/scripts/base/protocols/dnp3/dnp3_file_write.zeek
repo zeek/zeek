@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -r $TRACES/dnp3/dnp3_file_write.pcap %DIR/events.zeek >output
+# @TEST-EXEC: zeek -r $TRACES/dnp3/dnp3_file_write.pcap %DIR/events.zeek >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/dnp3/events.bif  | grep "^event dnp3_" | wc -l >total

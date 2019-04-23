@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 
 type Tag: enum {
     SOMETHING

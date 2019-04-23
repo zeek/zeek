@@ -1,5 +1,5 @@
-# @TEST-EXEC-FAIL: bro -b a.zeek >output1 2>&1
-# @TEST-EXEC-FAIL: bro -b a.zeek b.zeek >output2 2>&1
+# @TEST-EXEC-FAIL: zeek -b a.zeek >output1 2>&1
+# @TEST-EXEC-FAIL: zeek -b a.zeek b.zeek >output2 2>&1
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 

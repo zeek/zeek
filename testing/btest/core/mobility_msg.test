@@ -1,12 +1,12 @@
 # @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT >output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_be.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_brr.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_bu.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_cot.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_coti.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_hot.trace %INPUT >>output
-# @TEST-EXEC: bro -b -r $TRACES/mobile-ipv6/mip6_hoti.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_be.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_brr.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_bu.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_cot.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_coti.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hot.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hoti.trace %INPUT >>output
 # @TEST-EXEC: btest-diff output
 
 event mobile_ipv6_message(p: pkt_hdr)

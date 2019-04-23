@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function myfunc1(a: addr, b: addr): int

@@ -39,15 +39,15 @@ get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
 
 set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
 
-configure_file(bro-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev)
+configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.sh
-     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
+     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev.csh
-     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev`\n"
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
+     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
@@ -254,35 +254,42 @@ if ( NOT BINARY_PACKAGING_MODE )
 endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/bro)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/bro)
 
 if ( CAF_ROOT_DIR )
-  set(BRO_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
+  set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
 else ()
-  set(BRO_CONFIG_CAF_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_CAF_ROOT_DIR ${BRO_ROOT_DIR})
 endif ()
 
 if ( BinPAC_ROOT_DIR )
-  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
+  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
 else ()
-  set(BRO_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
 endif ()
 
 if ( BROKER_ROOT_DIR )
-  set(BRO_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
+  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
 else ()
-  set(BRO_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
 endif ()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.in
-               ${CMAKE_CURRENT_BINARY_DIR}/bro-config @ONLY)
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bro-config DESTINATION bin)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/bro
         USE_SOURCE_PERMISSIONS)
+
+# Install wrapper script for Bro-to-Zeek renaming.
+include(InstallShellScript)
+include(InstallSymlink)
+InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
+InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
+InstallSymlink("${CMAKE_INSTALL_PREFIX}/include/bro/zeek-config.h" "${CMAKE_INSTALL_PREFIX}/include/bro/bro-config.h")
 
 ########################################################################
 ## Recurse on sub-directories

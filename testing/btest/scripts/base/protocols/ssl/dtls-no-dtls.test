@@ -1,6 +1,6 @@
 # This tests checks that non-dtls connections to which we attach don't trigger tons of errors.
 
-# @TEST-EXEC: bro -C -r $TRACES/dns-txt-multiple.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/dns-txt-multiple.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event zeek_init()

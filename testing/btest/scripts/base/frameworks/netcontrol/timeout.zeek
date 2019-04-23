@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/ecdhe.pcap --pseudo-realtime %INPUT
 # @TEST-EXEC: btest-diff netcontrol.log
 
 @load base/frameworks/netcontrol

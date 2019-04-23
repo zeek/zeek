@@ -1,7 +1,7 @@
 # Files which enable raw output via the BiF shouldn't interpret NUL characters
 # in strings that are `print`ed to it.
 
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: tr '\000' 'X' <myfile >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cmp myfile hookfile

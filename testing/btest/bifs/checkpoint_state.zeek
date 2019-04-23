@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: test -f .state/state.bst
 
 event zeek_init()

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: btest-diff out
 
 @load base/frameworks/netcontrol

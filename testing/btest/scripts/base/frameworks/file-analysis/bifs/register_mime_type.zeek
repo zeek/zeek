@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT
 # @TEST-EXEC: btest-diff files.log
 
 event zeek_init()

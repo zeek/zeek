@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/http/multipart.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/http/multipart.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff 1-file
 # @TEST-EXEC: btest-diff 2-file

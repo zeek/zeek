@@ -1,9 +1,9 @@
-# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/http/get.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 45
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-diff zeek/.stdout
 
 type bro_set: set[string];
 type bro_table: table[string] of count;

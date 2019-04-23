@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 type my_table: table[string] of double;

@@ -20,9 +20,9 @@ Events
 =========================================================================== =============================================================================
 :zeek:id:`OS_version_found`: :zeek:type:`event`                             Generated when an operating system has been fingerprinted.
 :zeek:id:`anonymization_mapping`: :zeek:type:`event`                        Deprecated.
-:zeek:id:`bro_done`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for ``zeek_done``.
-:zeek:id:`bro_init`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for ``zeek_init``.
-:zeek:id:`bro_script_loaded`: :zeek:type:`event` :zeek:attr:`&deprecated`   Deprecated synonym for ``zeek_script_loaded``.
+:zeek:id:`bro_done`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for :zeek:see:`zeek_done`.
+:zeek:id:`bro_init`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for :zeek:see:`zeek_init`.
+:zeek:id:`bro_script_loaded`: :zeek:type:`event` :zeek:attr:`&deprecated`   Deprecated synonym for :zeek:see:`zeek_script_loaded`.
 :zeek:id:`conn_stats`: :zeek:type:`event`                                   Generated when a TCP connection terminated, passing on statistics about the
                                                                             two endpoints.
 :zeek:id:`conn_weird`: :zeek:type:`event`                                   Generated for unexpected activity related to a specific connection.
@@ -157,27 +157,21 @@ Events
    :Type: :zeek:type:`event` ()
    :Attributes: :zeek:attr:`&deprecated`
 
-   Deprecated synonym for ``zeek_done``.
-   
-   .. zeek:see: zeek_done
+   Deprecated synonym for :zeek:see:`zeek_done`.
 
 .. zeek:id:: bro_init
 
    :Type: :zeek:type:`event` ()
    :Attributes: :zeek:attr:`&deprecated`
 
-   Deprecated synonym for ``zeek_init``.
-   
-   .. zeek:see: zeek_init
+   Deprecated synonym for :zeek:see:`zeek_init`.
 
 .. zeek:id:: bro_script_loaded
 
    :Type: :zeek:type:`event` (path: :zeek:type:`string`, level: :zeek:type:`count`)
    :Attributes: :zeek:attr:`&deprecated`
 
-   Deprecated synonym for ``zeek_script_loaded``.
-   
-   .. zeek:see: zeek_script_loaded
+   Deprecated synonym for :zeek:see:`zeek_script_loaded`.
 
 .. zeek:id:: conn_stats
 

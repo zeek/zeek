@@ -48,9 +48,7 @@
 ##
 event zeek_init%(%);
 
-## Deprecated synonym for ``zeek_init``.
-##
-## .. zeek:see: zeek_init
+## Deprecated synonym for :zeek:see:`zeek_init`.
 event bro_init%(%) &deprecated;
 
 ## Generated at Zeek termination time. The event engine generates this event when
@@ -66,9 +64,7 @@ event bro_init%(%) &deprecated;
 ##    is not generated.
 event zeek_done%(%);
 
-## Deprecated synonym for ``zeek_done``.
-##
-## .. zeek:see: zeek_done
+## Deprecated synonym for :zeek:see:`zeek_done`.
 event bro_done%(%) &deprecated;
 
 ## Generated for every new connection. This event is raised with the first
@@ -876,9 +872,7 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 ##        recursively for each ``@load``.
 event zeek_script_loaded%(path: string, level: count%);
 
-## Deprecated synonym for ``zeek_script_loaded``.
-##
-## .. zeek:see: zeek_script_loaded
+## Deprecated synonym for :zeek:see:`zeek_script_loaded`.
 event bro_script_loaded%(path: string, level: count%) &deprecated;
 
 ## Generated each time Bro's script interpreter opens a file. This event is

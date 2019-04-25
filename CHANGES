@@ -1,4 +1,8 @@
 
+2.6-246 | 2019-04-25 10:22:11 -0700
+
+  * Add Zeexygen cross-reference links for some events (Jon Siwek, Corelight)
+
 2.6-245 | 2019-04-23 18:42:02 -0700
 
   * Expose TCP analyzer utility functions to derived classes (Vern Paxson, Corelight)

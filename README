@@ -9,7 +9,7 @@ It is the root of a Sphinx source tree and can be modified to add more
 documentation, style sheets, JavaScript, etc.  The Sphinx config file
 is ``conf.py``.
 
-There is also a custom Sphinx domain implemented in ``ext/bro.py``
+There is also a custom Sphinx domain implemented in ``ext/zeek.py``
 which adds some reST directives and roles that aid in generating useful
 index entries and cross-references.  Other extensions can be added in
 a similar fashion.

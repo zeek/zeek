@@ -1,4 +1,8 @@
 
+2.6-249 | 2019-04-26 19:26:44 -0700
+
+  * Fix parsing of hybrid IPv6-IPv4 addr literals with no zero compression (Jon Siwek, Corelight)
+
 2.6-246 | 2019-04-25 10:22:11 -0700
 
   * Add Zeexygen cross-reference links for some events (Jon Siwek, Corelight)

@@ -38,15 +38,13 @@ refine connection SMB_Conn += {
 			requestinfo->Assign(2, val_mgr->GetCount(${val.create_options}));
 			requestinfo->Assign(3, val_mgr->GetCount(${val.access_mask}));
 			requestinfo->Assign(4, val_mgr->GetCount(${val.share_access}));
-
+			
+                	VectorVal* cv = new VectorVal(BifType::Vector::SMB2::CreateContextValues);
             		if (${val.contexts})
-                		{
-                		VectorVal* cv = new VectorVal(BifType::Vector::SMB2::CreateContextValues);
-
-		        	for ( auto i = 0u; i < ${val.contexts}->size(); ++i )
+  		        	for ( auto i = 0u; i < ${val.contexts}->size(); ++i )
 	                		cv->Assign(i, BuildSMB2CreateContextVal(${val.contexts[i]}));
-                		requestinfo->Assign(5, cv);
-                		}
+
+                	requestinfo->Assign(5, cv);
 
 			BifEvent::generate_smb2_create_request(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),

@@ -6,7 +6,7 @@
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
-## .. bro:see:: smb2_message
+## .. zeek:see:: smb2_message
 event smb2_tree_disconnect_request%(c: connection, hdr: SMB2::Header%);
 
 
@@ -18,5 +18,5 @@ event smb2_tree_disconnect_request%(c: connection, hdr: SMB2::Header%);
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
 ##
-## .. bro:see:: smb2_message
+## .. zeek:see:: smb2_message
 event smb2_tree_disconnect_response%(c: connection, hdr: SMB2::Header%);

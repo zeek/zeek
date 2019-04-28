@@ -1019,9 +1019,9 @@ void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
 		}
 	}
 
-static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
-			       uint32 cur_base, uint32 last, uint32 wraps,
-			       bool* underflow = 0)
+uint64 TCP_Analyzer::get_relative_seq(const TCP_Endpoint* endpoint,
+                                      uint32 cur_base, uint32 last,
+                                      uint32 wraps, bool* underflow)
 	{
 	int32 delta = seq_delta(cur_base, last);
 
@@ -1052,7 +1052,7 @@ static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
 	return endpoint->ToRelativeSeqSpace(cur_base, wraps);
 	}
 
-static int get_segment_len(int payload_len, TCP_Flags flags)
+int TCP_Analyzer::get_segment_len(int payload_len, TCP_Flags flags)
 	{
 	int seg_len = payload_len;
 
@@ -1350,11 +1350,9 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				Weird("TCP_ack_underflow_or_misorder");
 				}
 			else if ( ! flags.RST() )
-				// Don't trust ack's in RSt packets.
+				// Don't trust ack's in RST packets.
 				update_ack_seq(peer, ack_seq);
 			}
-
-		peer->AckReceived(rel_ack);
 		}
 
 	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
@@ -1364,6 +1362,15 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int gen_event;
 	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event);
+
+	if ( flags.ACK() )
+		// We wait on doing this until we've updated the state
+		// machine so that if the ack reveals a content gap,
+		// we can tell whether it came at the very end of the
+		// connection (in a FIN or RST).  Those gaps aren't
+		// reliable - especially those for RSTs - and we refrain
+		// from flagging them in the connection history.
+		peer->AckReceived(rel_ack);
 
 	if ( tcp_packet )
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,

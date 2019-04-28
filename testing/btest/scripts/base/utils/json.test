@@ -16,7 +16,7 @@ type myrec2: record {
 	m: myrec1 &log;
 };
 
-event bro_init()
+event zeek_init()
 	{
 	# #####################################
 	# Test the basic (non-container) types:

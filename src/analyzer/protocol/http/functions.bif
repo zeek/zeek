@@ -9,7 +9,7 @@
 ##
 ## is_orig: If true, the client data is skipped, and the server data otherwise.
 ##
-## .. bro:see:: skip_smtp_data
+## .. zeek:see:: skip_smtp_data
 function skip_http_entity_data%(c: connection, is_orig: bool%): any
 	%{
 	analyzer::ID id = mgr.CurrentAnalyzer();

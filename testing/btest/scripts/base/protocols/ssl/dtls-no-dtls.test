@@ -3,7 +3,7 @@
 # @TEST-EXEC: bro -C -r $TRACES/dns-txt-multiple.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
-event bro_init()
+event zeek_init()
 	{
 	const add_ports = { 53/udp };
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, add_ports);

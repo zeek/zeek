@@ -13,7 +13,7 @@
 ##
 ## len: The length of the message's raw representation (i.e., the DNS payload).
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
 ##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -40,7 +40,7 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 ##
 ## qclass: The queried resource record class.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
 ##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -69,7 +69,7 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ##
 ## qclass: The queried resource record class.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
 ##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -95,7 +95,7 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 ##
 ## qclass: The queried resource record class.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
 ##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -121,7 +121,7 @@ event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 ##
 ## a: The address returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
+## .. zeek:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
 ##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -146,7 +146,7 @@ event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## a: The address returned by the reply.
 ##
-## .. bro:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+## .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -171,7 +171,7 @@ event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## a: The address returned by the reply.
 ##
-## .. bro:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+## .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -196,7 +196,7 @@ event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## name: The name returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -221,7 +221,7 @@ event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%)
 ##
 ## name: The name returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+## .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -246,7 +246,7 @@ event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: strin
 ##
 ## name: The name returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -271,7 +271,7 @@ event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%
 ##
 ## soa: The parsed SOA value.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -294,7 +294,7 @@ event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply  dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -317,7 +317,7 @@ event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -344,7 +344,7 @@ event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## preference: The preference for *name* specified by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -369,7 +369,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##
 ## strs: The textual information returned by the reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -423,7 +423,7 @@ event dns_CAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, flags: count,
 ## p: Port of the SRV response -- the TCP or UDP port on which the
 ##    service is to be found.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -442,7 +442,7 @@ event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: strin
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_SRV_reply dns_end
 event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
@@ -461,7 +461,7 @@ event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## ans: The parsed EDNS reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -484,7 +484,7 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ##
 ## ans: The parsed TSIG reply.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply  dns_TXT_reply dns_WKS_reply dns_end dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -573,7 +573,7 @@ event dns_DS%(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr%);
 ##
 ## msg: The parsed DNS message header.
 ##
-## .. bro:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_full_request
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name

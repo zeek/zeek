@@ -12,7 +12,7 @@
 ##
 ## service: The ``service`` attribute specified in the message.
 ##
-## .. bro:see:: smb1_message smb1_tree_connect_andx_response
+## .. zeek:see:: smb1_message smb1_tree_connect_andx_response
 event smb1_tree_connect_andx_request%(c: connection, hdr: SMB1::Header, path: string, service: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -29,6 +29,6 @@ event smb1_tree_connect_andx_request%(c: connection, hdr: SMB1::Header, path: st
 ##
 ## native_file_system: The file system of the remote server as indicate by the server.
 ##
-## .. bro:see:: smb1_message smb1_tree_connect_andx_request
+## .. zeek:see:: smb1_message smb1_tree_connect_andx_request
 event smb1_tree_connect_andx_response%(c: connection, hdr: SMB1::Header, service: string, native_file_system: string%);
 

@@ -11,7 +11,7 @@
 ##
 ## dialects: The SMB dialects supported by the client.
 ##
-## .. bro:see:: smb1_message smb1_negotiate_response
+## .. zeek:see:: smb1_message smb1_negotiate_response
 event smb1_negotiate_request%(c: connection, hdr: SMB1::Header, dialects: string_vec%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -26,7 +26,7 @@ event smb1_negotiate_request%(c: connection, hdr: SMB1::Header, dialects: string
 ##
 ## response: A record structure containing more information from the response.
 ##
-## .. bro:see:: smb1_message smb1_negotiate_request
+## .. zeek:see:: smb1_message smb1_negotiate_request
 event smb1_negotiate_response%(c: connection, hdr: SMB1::Header, response: SMB1::NegotiateResponse%);
 
 #### Types

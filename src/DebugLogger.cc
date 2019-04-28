@@ -18,7 +18,7 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "dpd", 0, false }, { "tm", 0, false },
 	{ "logging", 0, false }, {"input", 0, false },
 	{ "threading", 0, false }, { "file_analysis", 0, false },
-	{ "plugins", 0, false }, { "broxygen", 0, false },
+	{ "plugins", 0, false }, { "zeexygen", 0, false },
 	{ "pktio", 0, false }, { "broker", 0, false },
 	{ "scripts", 0, false}
 };

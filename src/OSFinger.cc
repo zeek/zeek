@@ -295,7 +295,7 @@ void OSFingerprint::load_config(const char* file)
   char buf[MAXLINE];
   char* p;
 
-  FILE* c = open_file(find_file(file, bro_path(), "osf"));
+  FILE* c = open_file(find_file(file, bro_path(), ".osf"));
 
   if (!c)
     {

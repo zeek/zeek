@@ -3,7 +3,7 @@
 
 @load base/utils/addrs
 
-event bro_init()
+event zeek_init()
 	{
 	local ip = "0.0.0.0";
 

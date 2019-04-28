@@ -1,4 +1,4 @@
-expression error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/core.init-error/init-error.bro, line 15: no such index (v[10])
+expression error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/core.init-error/init-error.zeek, line 15: no such index (v[10])
 fatal error: errors occurred while initializing
 1st event
 2nd event

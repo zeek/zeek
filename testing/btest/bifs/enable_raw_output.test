@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cmp myfile hookfile
 
-event bro_init()
+event zeek_init()
     {
     local myfile: file;
     myfile = open("myfile");

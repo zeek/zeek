@@ -32,8 +32,8 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
-	chk_cnt = rxmt_cnt = win0_cnt = 0;
-	chk_thresh = rxmt_thresh = win0_thresh = 1;
+	gap_cnt = chk_cnt = rxmt_cnt = win0_cnt = 0;
+	gap_thresh = chk_thresh = rxmt_thresh = win0_thresh = 1;
 
 	hist_last_SYN = hist_last_FIN = hist_last_RST = 0;
 
@@ -312,4 +312,12 @@ void TCP_Endpoint::ZeroWindow()
 	                                win0_cnt, win0_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows,
 		                              IsOrig(), t);
+	}
+
+void TCP_Endpoint::Gap(uint64 seq, uint64 len)
+	{
+	uint32 t = gap_thresh;
+	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'G' : 'g',
+					gap_cnt, gap_thresh) )
+		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);
 	}

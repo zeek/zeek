@@ -26,7 +26,7 @@ static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 ##
 ## is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
 ##
-## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+## .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##              get_current_conn_bytes_threshold get_current_conn_packets_threshold
 function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
 	%{
@@ -49,7 +49,7 @@ function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_or
 ##
 ## is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
 ##
-## .. bro:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+## .. zeek:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##              get_current_conn_bytes_threshold get_current_conn_packets_threshold
 function set_current_conn_packets_threshold%(cid: conn_id, threshold: count, is_orig: bool%): bool
 	%{
@@ -70,7 +70,7 @@ function set_current_conn_packets_threshold%(cid: conn_id, threshold: count, is_
 ##
 ## Returns: 0 if no threshold is set or the threshold in bytes
 ##
-## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+## .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##              get_current_conn_packets_threshold
 function get_current_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 	%{
@@ -89,7 +89,7 @@ function get_current_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 ##
 ## Returns: 0 if no threshold is set or the threshold in packets
 ##
-## .. bro:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+## .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##              get_current_conn_bytes_threshold
 function get_current_conn_packets_threshold%(cid: conn_id, is_orig: bool%): count
 	%{

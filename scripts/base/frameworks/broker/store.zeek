@@ -353,7 +353,7 @@ export {
 	##
 	## Returns: a set with the keys.  If you expect the keys to be of
 	##          non-uniform type, consider using
-	##          :bro:see:`Broker::set_iterator` to iterate over the result.
+	##          :zeek:see:`Broker::set_iterator` to iterate over the result.
 	global keys: function(h: opaque of Broker::Store): QueryResult;
 
 	## Deletes all of a store's content, it will be empty afterwards.

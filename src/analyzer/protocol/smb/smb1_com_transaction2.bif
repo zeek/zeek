@@ -15,7 +15,7 @@
 ##
 ## sub_cmd: The sub command, some are parsed and have their own events.
 ##
-## .. bro:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
+## .. zeek:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
 ##    smb1_trans2_get_dfs_referral_request smb1_transaction_request
 event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, args: SMB1::Trans2_Args, sub_cmd: count%);
 
@@ -31,7 +31,7 @@ event smb1_transaction2_request%(c: connection, hdr: SMB1::Header, args: SMB1::T
 ##
 ## args: A record data structure with arguments given to the command.
 ##
-## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
+## .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
 ##    smb1_trans2_get_dfs_referral_request
 event smb1_trans2_find_first2_request%(c: connection, hdr: SMB1::Header, args: SMB1::Find_First2_Request_Args%);
 
@@ -47,7 +47,7 @@ event smb1_trans2_find_first2_request%(c: connection, hdr: SMB1::Header, args: S
 ##
 ## file_name: File name the request is in reference to. 
 ##
-## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+## .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
 ##    smb1_trans2_get_dfs_referral_request
 event smb1_trans2_query_path_info_request%(c: connection, hdr: SMB1::Header, file_name: string%);
 
@@ -63,7 +63,7 @@ event smb1_trans2_query_path_info_request%(c: connection, hdr: SMB1::Header, fil
 ##
 ## file_name: File name the request is in reference to.
 ##
-## .. bro:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
+## .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
 ##    smb1_trans2_query_path_info_request
 event smb1_trans2_get_dfs_referral_request%(c: connection, hdr: SMB1::Header, file_name: string%);
 

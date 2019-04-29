@@ -10,19 +10,19 @@ export {
 	## Default interval to retry listening on a port if it's currently in
 	## use already.  Use of the BRO_DEFAULT_LISTEN_RETRY environment variable
 	## (set as a number of seconds) will override this option and also
-	## any values given to :bro:see:`Broker::listen`.
+	## any values given to :zeek:see:`Broker::listen`.
 	const default_listen_retry = 30sec &redef;
 
 	## Default address on which to listen.
 	##
-	## .. bro:see:: Broker::listen
+	## .. zeek:see:: Broker::listen
 	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
 	## work initially, or if it ever becomes disconnected.  Use of the
 	## BRO_DEFAULT_CONNECT_RETRY environment variable (set as number of
 	## seconds) will override this option and also any values given to
-	## :bro:see:`Broker::peer`.
+	## :zeek:see:`Broker::peer`.
 	const default_connect_retry = 30sec &redef;
 
 	## If true, do not use SSL for network connections. By default, SSL will
@@ -47,7 +47,7 @@ export {
 	const ssl_certificate = "" &redef;
 
 	## Passphrase to decrypt the private key specified by
-	## :bro:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+	## :zeek:see:`Broker::ssl_keyfile`. If set, Bro will require valid
 	## certificates for all peers.
 	const ssl_passphrase = "" &redef;
 
@@ -96,7 +96,7 @@ export {
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;
 
-	## Whether calling :bro:see:`Broker::peer` will register the Broker
+	## Whether calling :zeek:see:`Broker::peer` will register the Broker
 	## system as an I/O source that will block the process from shutting
 	## down.  For example, set this to false when you are reading pcaps,
 	## but also want to initaiate a Broker peering and still shutdown after
@@ -107,7 +107,7 @@ export {
 	## id is appended when writing to a particular stream.
 	const default_log_topic_prefix = "bro/logs/" &redef;
 
-	## The default implementation for :bro:see:`Broker::log_topic`.
+	## The default implementation for :zeek:see:`Broker::log_topic`.
 	function default_log_topic(id: Log::ID, path: string): string
 		{
 		return default_log_topic_prefix + cat(id);
@@ -116,7 +116,7 @@ export {
 	## A function that will be called for each log entry to determine what
 	## broker topic string will be used for sending it to peers.  The
 	## default implementation will return a value based on
-	## :bro:see:`Broker::default_log_topic_prefix`.
+	## :zeek:see:`Broker::default_log_topic_prefix`.
 	##
 	## id: the ID associated with the log stream entry that will be sent.
 	##
@@ -232,7 +232,7 @@ export {
 	##
 	## Returns: the bound port or 0/? on failure.
 	##
-	## .. bro:see:: Broker::status
+	## .. zeek:see:: Broker::status
 	global listen: function(a: string &default = default_listen_address,
 	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
@@ -252,7 +252,7 @@ export {
 	##          it's a new peer. The actual connection may not be established
 	##          until a later point in time.
 	##
-	## .. bro:see:: Broker::status
+	## .. zeek:see:: Broker::status
 	global peer: function(a: string, p: port &default=default_port,
 	                      retry: interval &default=default_connect_retry): bool;
 
@@ -262,12 +262,12 @@ export {
 	## just means that we won't exchange any further information with it
 	## unless peering resumes later.
 	##
-	## a: the address used in previous successful call to :bro:see:`Broker::peer`.
+	## a: the address used in previous successful call to :zeek:see:`Broker::peer`.
 	##
-	## p: the port used in previous successful call to :bro:see:`Broker::peer`.
+	## p: the port used in previous successful call to :zeek:see:`Broker::peer`.
 	##
 	## Returns: true if the arguments match a previously successful call to
-	##          :bro:see:`Broker::peer`.
+	##          :zeek:see:`Broker::peer`.
 	##
 	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
@@ -298,7 +298,7 @@ export {
 
 	## Register interest in all peer event messages that use a certain topic
 	## prefix.  Note that subscriptions may not be altered immediately after
-	## calling (except during :bro:see:`zeek_init`).
+	## calling (except during :zeek:see:`zeek_init`).
 	##
 	## topic_prefix: a prefix to match against remote message topics.
 	##               e.g. an empty prefix matches everything and "a" matches
@@ -309,10 +309,10 @@ export {
 
 	## Unregister interest in all peer event messages that use a topic prefix.
 	## Note that subscriptions may not be altered immediately after calling
-	## (except during :bro:see:`zeek_init`).
+	## (except during :zeek:see:`zeek_init`).
 	##
 	## topic_prefix: a prefix previously supplied to a successful call to
-	##               :bro:see:`Broker::subscribe` or :bro:see:`Broker::forward`.
+	##               :zeek:see:`Broker::subscribe` or :zeek:see:`Broker::forward`.
 	##
 	## Returns: true if interest in the topic prefix is no longer advertised.
 	global unsubscribe: function(topic_prefix: string): bool;
@@ -320,8 +320,8 @@ export {
 	## Register a topic prefix subscription for events that should only be
 	## forwarded to any subscribing peers and not raise any event handlers
 	## on the receiving/forwarding node.  i.e. it's the same as
-	## :bro:see:`Broker::subscribe` except matching events are not raised
-	## on the receiver, just forwarded.  Use :bro:see:`Broker::unsubscribe`
+	## :zeek:see:`Broker::subscribe` except matching events are not raised
+	## on the receiver, just forwarded.  Use :zeek:see:`Broker::unsubscribe`
 	## with the same argument to undo this operation.
 	##
 	## topic_prefix: a prefix to match against remote message topics.
@@ -346,9 +346,9 @@ export {
 
 	## Stop automatically sending an event to peers upon local dispatch.
 	##
-	## topic: a topic originally given to :bro:see:`Broker::auto_publish`.
+	## topic: a topic originally given to :zeek:see:`Broker::auto_publish`.
 	##
-	## ev: an event originally given to :bro:see:`Broker::auto_publish`.
+	## ev: an event originally given to :zeek:see:`Broker::auto_publish`.
 	##
 	## Returns: true if automatic events will not occur for the topic/event
 	##          pair.

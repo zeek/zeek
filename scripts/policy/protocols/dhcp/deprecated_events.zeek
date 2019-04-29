@@ -11,9 +11,9 @@
 ## .. note:: This type is included to support the deprecated events dhcp_ack,
 ##           dhcp_decline, dhcp_discover, dhcp_inform, dhcp_nak, dhcp_offer,
 ##           dhcp_release and dhcp_request and is thus similarly deprecated
-##           itself. Use :bro:see:`dhcp_message` instead.
+##           itself. Use :zeek:see:`dhcp_message` instead.
 ##
-## .. bro:see:: dhcp_message dhcp_ack dhcp_decline dhcp_discover
+## .. zeek:see:: dhcp_message dhcp_ack dhcp_decline dhcp_discover
 ##              dhcp_inform dhcp_nak dhcp_offer dhcp_release dhcp_request
 type dhcp_msg: record {
 	op: count;      ##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
@@ -28,9 +28,9 @@ type dhcp_msg: record {
 ##
 ## .. note:: This type is included to support the deprecated events dhcp_ack
 ##           and dhcp_offer and is thus similarly deprecated
-##           itself. Use :bro:see:`dhcp_message` instead.
+##           itself. Use :zeek:see:`dhcp_message` instead.
 ##
-## .. bro:see:: dhcp_message dhcp_ack dhcp_offer
+## .. zeek:see:: dhcp_message dhcp_ack dhcp_offer
 type dhcp_router_list: table[count] of addr;
 
 ## Generated for DHCP messages of type *DHCPDISCOVER* (client broadcast to locate
@@ -44,7 +44,7 @@ type dhcp_router_list: table[count] of addr;
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_decline dhcp_ack dhcp_nak dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -74,7 +74,7 @@ global dhcp_discover: event(c: connection, msg: dhcp_msg, req_addr: addr, host_n
 ## host_name: Optional host name value. May differ from the host name requested
 ##            from the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_request dhcp_decline
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_request dhcp_decline
 ##              dhcp_ack dhcp_nak dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -101,7 +101,7 @@ global dhcp_offer: event(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_decline
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_decline
 ##    	       dhcp_ack dhcp_nak dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -122,7 +122,7 @@ global dhcp_request: event(c: connection, msg: dhcp_msg, req_addr: addr, serv_ad
 ##
 ## host_name: Optional host name value.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_ack dhcp_nak dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -152,7 +152,7 @@ global dhcp_decline: event(c: connection, msg: dhcp_msg, host_name: string) &dep
 ## host_name: Optional host name value. May differ from the host name requested
 ##            from the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_decline dhcp_nak dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -170,7 +170,7 @@ global dhcp_ack: event(c: connection, msg: dhcp_msg, mask: addr, router: dhcp_ro
 ##
 ## host_name: Optional host name value.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_decline dhcp_ack dhcp_release dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -191,7 +191,7 @@ global dhcp_nak: event(c: connection, msg: dhcp_msg, host_name: string) &depreca
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_decline dhcp_ack dhcp_nak dhcp_inform
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.
@@ -209,7 +209,7 @@ global dhcp_release: event(c: connection, msg: dhcp_msg, host_name: string) &dep
 ##
 ## host_name: The value of the host name option, if specified by the client.
 ##
-## .. bro:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
+## .. zeek:see:: dhcp_message dhcp_discover dhcp_offer dhcp_request
 ##              dhcp_decline dhcp_ack dhcp_nak dhcp_release
 ##
 ## .. note:: This event has been deprecated, and will be removed in the next version.

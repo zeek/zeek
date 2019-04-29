@@ -22,9 +22,9 @@ export {
 	option local_nets: set[subnet] = {};
 
 	## This is used for retrieving the subnet when using multiple entries in
-	## :bro:id:`Site::local_nets`.  It's populated automatically from there.
+	## :zeek:id:`Site::local_nets`.  It's populated automatically from there.
 	## A membership query can be done with an
-	## :bro:type:`addr` and the table will yield the subnet it was found
+	## :zeek:type:`addr` and the table will yield the subnet it was found
 	## within.
 	global local_nets_table: table[subnet] of subnet = {};
 
@@ -45,33 +45,33 @@ export {
 
 	## Function that returns true if an address corresponds to one of
 	## the local networks, false if not.
-	## The function inspects :bro:id:`Site::local_nets`.
+	## The function inspects :zeek:id:`Site::local_nets`.
 	global is_local_addr: function(a: addr): bool;
 
 	## Function that returns true if an address corresponds to one of
 	## the neighbor networks, false if not.
-	## The function inspects :bro:id:`Site::neighbor_nets`.
+	## The function inspects :zeek:id:`Site::neighbor_nets`.
 	global is_neighbor_addr: function(a: addr): bool;
 
 	## Function that returns true if an address corresponds to one of
 	## the private/unrouted networks, false if not.
-	## The function inspects :bro:id:`Site::private_address_space`.
+	## The function inspects :zeek:id:`Site::private_address_space`.
 	global is_private_addr: function(a: addr): bool;
 
 	## Function that returns true if a host name is within a local
 	## DNS zone.
-	## The function inspects :bro:id:`Site::local_zones`.
+	## The function inspects :zeek:id:`Site::local_zones`.
 	global is_local_name: function(name: string): bool;
 
 	## Function that returns true if a host name is within a neighbor
 	## DNS zone.
-	## The function inspects :bro:id:`Site::neighbor_zones`.
+	## The function inspects :zeek:id:`Site::neighbor_zones`.
 	global is_neighbor_name: function(name: string): bool;
 
 	## Function that returns a comma-separated list of email addresses
 	## that are considered administrators for the IP address provided as
 	## an argument.
-	## The function inspects :bro:id:`Site::local_admins`.
+	## The function inspects :zeek:id:`Site::local_admins`.
 	global get_emails: function(a: addr): string;
 }
 

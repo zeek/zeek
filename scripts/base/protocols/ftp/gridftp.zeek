@@ -6,7 +6,7 @@
 ##! indicating the GSI mechanism for GSSAPI was used.  This analysis
 ##! is all supported internally, this script simply adds the "gridftp"
 ##! label to the *service* field of the control channel's
-##! :bro:type:`connection` record.
+##! :zeek:type:`connection` record.
 ##!
 ##! GridFTP data channels are identified by a heuristic that relies on
 ##! the fact that default settings for GridFTP clients typically
@@ -33,7 +33,7 @@ export {
 	option size_threshold = 1073741824;
 
 	## Time during which we check whether a connection's size exceeds the
-	## :bro:see:`GridFTP::size_threshold`.
+	## :zeek:see:`GridFTP::size_threshold`.
 	option max_time = 2 min;
 
 	## Whether to skip further processing of the GridFTP data channel once
@@ -46,8 +46,8 @@ export {
 	global data_channel_detected: event(c: connection);
 
 	## The initial criteria used to determine whether to start polling
-	## the connection for the :bro:see:`GridFTP::size_threshold` to have
-	## been exceeded.  This is called in a :bro:see:`ssl_established` event
+	## the connection for the :zeek:see:`GridFTP::size_threshold` to have
+	## been exceeded.  This is called in a :zeek:see:`ssl_established` event
 	## handler and by default looks for both a client and server certificate
 	## and for a NULL bulk cipher.  One way in which this function could be
 	## redefined is to make it also consider client/server certificate
@@ -56,7 +56,7 @@ export {
 	## c: The connection which may possibly be a GridFTP data channel.
 	##
 	## Returns: true if the connection should be further polled for an
-	##          exceeded :bro:see:`GridFTP::size_threshold`, else false.
+	##          exceeded :zeek:see:`GridFTP::size_threshold`, else false.
 	const data_channel_initial_criteria: function(c: connection): bool &redef;
 }
 

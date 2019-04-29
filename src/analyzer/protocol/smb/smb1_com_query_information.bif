@@ -11,6 +11,6 @@
 ##
 ## filename: The filename that the client is querying.
 ##
-## .. bro:see:: smb1_message smb1_transaction2_request
+## .. zeek:see:: smb1_message smb1_transaction2_request
 event smb1_query_information_request%(c: connection, hdr: SMB1::Header, filename: string%);
 

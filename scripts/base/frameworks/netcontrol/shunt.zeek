@@ -31,7 +31,7 @@ export {
 		location: string &log &optional;
 	};
 
-	## Event that can be handled to access the :bro:type:`NetControl::ShuntInfo`
+	## Event that can be handled to access the :zeek:type:`NetControl::ShuntInfo`
 	## record as it is sent on to the logging framework.
 	global log_netcontrol_shunt: event(rec: ShuntInfo);
 }

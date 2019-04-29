@@ -41,7 +41,7 @@ export {
 		flow_mod: ofp_flow_mod &log;
 	};
 
-	## Event that can be handled to access the :bro:type:`OpenFlow::Info`
+	## Event that can be handled to access the :zeek:type:`OpenFlow::Info`
 	## record as it is sent on to the logging framework.
 	global log_openflow: event(rec: Info);
 }

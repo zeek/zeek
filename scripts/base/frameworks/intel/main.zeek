@@ -35,7 +35,7 @@ export {
 	## Set of intelligence data types.
 	type TypeSet: set[Type];
 
-	## Data about an :bro:type:`Intel::Item`.
+	## Data about an :zeek:type:`Intel::Item`.
 	type MetaData: record {
 		## An arbitrary string value representing the data source. This
 		## value is used as unique key to identify a metadata record in
@@ -75,7 +75,7 @@ export {
 		## The type of data that the indicator represents.
 		indicator_type:  Type          &log &optional;
 
-		## If the indicator type was :bro:enum:`Intel::ADDR`, then this
+		## If the indicator type was :zeek:enum:`Intel::ADDR`, then this
 		## field will be present.
 		host:            addr          &optional;
 
@@ -155,7 +155,7 @@ export {
 	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
 
 	## The expiration timeout for intelligence items. Once an item expires, the
-	## :bro:id:`Intel::item_expired` hook is called. Reinsertion of an item 
+	## :zeek:id:`Intel::item_expired` hook is called. Reinsertion of an item 
 	## resets the timeout. A negative value disables expiration of intelligence 
 	## items.
 	const item_expiration = -1 min &redef;

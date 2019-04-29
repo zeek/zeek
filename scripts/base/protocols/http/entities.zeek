@@ -14,44 +14,44 @@ export {
 	};
 
 	## Maximum number of originator files to log.
-	## :bro:see:`HTTP::max_files_policy` even is called once this
+	## :zeek:see:`HTTP::max_files_policy` even is called once this
 	## limit is reached to determine if it's enforced.
 	option max_files_orig = 15;
 
 	## Maximum number of responder files to log.
-	## :bro:see:`HTTP::max_files_policy` even is called once this
+	## :zeek:see:`HTTP::max_files_policy` even is called once this
 	## limit is reached to determine if it's enforced.
 	option max_files_resp = 15;
 
 	## Called when reaching the max number of files across a given HTTP
-	## connection according to :bro:see:`HTTP::max_files_orig`
-	## or :bro:see:`HTTP::max_files_resp`.  Break from the hook
+	## connection according to :zeek:see:`HTTP::max_files_orig`
+	## or :zeek:see:`HTTP::max_files_resp`.  Break from the hook
 	## early to signal that the file limit should not be applied.
 	global max_files_policy: hook(f: fa_file, is_orig: bool);
 
 	redef record Info += {
 		## An ordered vector of file unique IDs.
-		## Limited to :bro:see:`HTTP::max_files_orig` entries.
+		## Limited to :zeek:see:`HTTP::max_files_orig` entries.
 		orig_fuids:      vector of string &log &optional;
 
 		## An ordered vector of filenames from the client.
-		## Limited to :bro:see:`HTTP::max_files_orig` entries.
+		## Limited to :zeek:see:`HTTP::max_files_orig` entries.
 		orig_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
-		## Limited to :bro:see:`HTTP::max_files_orig` entries.
+		## Limited to :zeek:see:`HTTP::max_files_orig` entries.
 		orig_mime_types: vector of string &log &optional;
 
 		## An ordered vector of file unique IDs.
-		## Limited to :bro:see:`HTTP::max_files_resp` entries.
+		## Limited to :zeek:see:`HTTP::max_files_resp` entries.
 		resp_fuids:      vector of string &log &optional;
 
 		## An ordered vector of filenames from the server.
-		## Limited to :bro:see:`HTTP::max_files_resp` entries.
+		## Limited to :zeek:see:`HTTP::max_files_resp` entries.
 		resp_filenames:  vector of string &log &optional;
 
 		## An ordered vector of mime types.
-		## Limited to :bro:see:`HTTP::max_files_resp` entries.
+		## Limited to :zeek:see:`HTTP::max_files_resp` entries.
 		resp_mime_types: vector of string &log &optional;
 
 		## The current entity.

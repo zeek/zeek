@@ -13,7 +13,7 @@ export {
 	## on the right to the originator on the left.
 	global reverse_id_string: function(id: conn_id): string;
 	
-	## Calls :bro:id:`id_string` or :bro:id:`reverse_id_string` if the
+	## Calls :zeek:id:`id_string` or :zeek:id:`reverse_id_string` if the
 	## second argument is T or F, respectively.
 	global directed_id_string: function(id: conn_id, is_orig: bool): string;
 }

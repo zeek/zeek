@@ -29,7 +29,7 @@
 #include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
-#include "broxygen/Manager.h"
+#include "zeexygen/Manager.h"
 
 #include "plugin/Manager.h"
 
@@ -152,7 +152,7 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
-IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
+IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\n]+
 PREFIX	[^ \t\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
@@ -162,19 +162,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	broxygen_mgr->SummaryComment(::filename, yytext + 3);
+	zeexygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
 	string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
-	broxygen_mgr->PostComment(yytext + 3, hint);
+	zeexygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
 	if ( yytext[2] != '#' )
-		broxygen_mgr->PreComment(yytext + 2);
+		zeexygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -376,7 +376,7 @@ when	return TOK_WHEN;
 	string loader = ::filename;  // load_files may change ::filename, save copy
 	string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
-	broxygen_mgr->ScriptDependency(loader, loading);
+	zeexygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
@@ -720,7 +720,7 @@ static int load_files(const char* orig_file)
 	else
 		file_stack.append(new FileInfo);
 
-	broxygen_mgr->Script(file_path);
+	zeexygen_mgr->Script(file_path);
 
 	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
 

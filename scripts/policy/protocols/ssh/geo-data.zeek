@@ -8,7 +8,7 @@ module SSH;
 export {
 	redef enum Notice::Type += {
 		## If an SSH login is seen to or from a "watched" country based
-		## on the :bro:id:`SSH::watched_countries` variable then this
+		## on the :zeek:id:`SSH::watched_countries` variable then this
 		## notice will be generated.
 		Watched_Country_Login,
 	};

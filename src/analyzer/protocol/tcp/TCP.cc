@@ -1019,9 +1019,9 @@ void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
 		}
 	}
 
-static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
-			       uint32 cur_base, uint32 last, uint32 wraps,
-			       bool* underflow = 0)
+uint64 TCP_Analyzer::get_relative_seq(const TCP_Endpoint* endpoint,
+                                      uint32 cur_base, uint32 last,
+                                      uint32 wraps, bool* underflow)
 	{
 	int32 delta = seq_delta(cur_base, last);
 
@@ -1052,7 +1052,7 @@ static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
 	return endpoint->ToRelativeSeqSpace(cur_base, wraps);
 	}
 
-static int get_segment_len(int payload_len, TCP_Flags flags)
+int TCP_Analyzer::get_segment_len(int payload_len, TCP_Flags flags)
 	{
 	int seg_len = payload_len;
 

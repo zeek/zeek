@@ -13,22 +13,22 @@ export {
 		Sensitive_Signature,
 		## Host has triggered many signatures on the same host.  The
 		## number of signatures is defined by the
-		## :bro:id:`Signatures::vert_scan_thresholds` variable.
+		## :zeek:id:`Signatures::vert_scan_thresholds` variable.
 		Multiple_Signatures,
 		## Host has triggered the same signature on multiple hosts as
-		## defined by the :bro:id:`Signatures::horiz_scan_thresholds`
+		## defined by the :zeek:id:`Signatures::horiz_scan_thresholds`
 		## variable.
 		Multiple_Sig_Responders,
 		## The same signature has triggered multiple times for a host.
 		## The number of times the signature has been triggered is
-		## defined by the :bro:id:`Signatures::count_thresholds`
+		## defined by the :zeek:id:`Signatures::count_thresholds`
 		## variable. To generate this notice, the
-		## :bro:enum:`Signatures::SIG_COUNT_PER_RESP` action must be
+		## :zeek:enum:`Signatures::SIG_COUNT_PER_RESP` action must be
 		## set for the signature.
 		Count_Signature,
 		## Summarize the number of times a host triggered a signature.
 		## The interval between summaries is defined by the
-		## :bro:id:`Signatures::summary_interval` variable.
+		## :zeek:id:`Signatures::summary_interval` variable.
 		Signature_Summary,
 	};
 
@@ -48,7 +48,7 @@ export {
 		SIG_QUIET,
 		## Generate a notice.
 		SIG_LOG,
-		## The same as :bro:enum:`Signatures::SIG_LOG`, but ignore for
+		## The same as :zeek:enum:`Signatures::SIG_LOG`, but ignore for
 		## aggregate/scan processing.
 		SIG_FILE_BUT_NO_SCAN,
 		## Generate a notice and set it to be alarmed upon.
@@ -58,8 +58,8 @@ export {
 		## Alarm once and then never again.
 		SIG_ALARM_ONCE,
 		## Count signatures per responder host and alarm with the 
-		## :bro:enum:`Signatures::Count_Signature` notice if a threshold
-		## defined by :bro:id:`Signatures::count_thresholds` is reached.
+		## :zeek:enum:`Signatures::Count_Signature` notice if a threshold
+		## defined by :zeek:id:`Signatures::count_thresholds` is reached.
 		SIG_COUNT_PER_RESP,
 		## Don't alarm, but generate per-orig summary.
 		SIG_SUMMARY,
@@ -114,11 +114,11 @@ export {
 	## different signature matches has reached one of the thresholds.
 	const vert_scan_thresholds = { 5, 10, 50, 100, 500, 1000 } &redef;
 
-	## Generate a notice if a :bro:enum:`Signatures::SIG_COUNT_PER_RESP`
+	## Generate a notice if a :zeek:enum:`Signatures::SIG_COUNT_PER_RESP`
 	## signature is triggered as often as given by one of these thresholds.
 	const count_thresholds = { 5, 10, 50, 100, 500, 1000, 10000, 1000000, } &redef;
 	
-	## The interval between when :bro:enum:`Signatures::Signature_Summary`
+	## The interval between when :zeek:enum:`Signatures::Signature_Summary`
 	## notices are generated.
 	option summary_interval = 1 day;
 

@@ -19,7 +19,7 @@ export {
 	redef record ResultVal += {
 		## This is the queue where elements are maintained.
 		## Don't access this value directly, instead use the
-		## :bro:see:`SumStats::get_last` function to get a vector of
+		## :zeek:see:`SumStats::get_last` function to get a vector of
 		## the current element values.
 		last_elements: Queue::Queue &optional;
 	};

@@ -1,5 +1,5 @@
 ##! This script establishes communication among all nodes in a cluster
-##! as defined by :bro:id:`Cluster::nodes`.
+##! as defined by :zeek:id:`Cluster::nodes`.
 
 @load ./main
 @load ./pools

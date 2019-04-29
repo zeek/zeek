@@ -75,7 +75,7 @@ function build_path(dir: string, file_name: string): string
 	}
 
 ## Returns a compressed path to a file given a directory and file name.
-## See :bro:id:`build_path` and :bro:id:`compress_path`.
+## See :zeek:id:`build_path` and :zeek:id:`compress_path`.
 function build_path_compressed(dir: string, file_name: string): string
 	{
 	return compress_path(build_path(dir, file_name));

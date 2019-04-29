@@ -78,13 +78,13 @@ export {
 
 		## If the connection is originated locally, this value will be T.
 		## If it was originated remotely it will be F.  In the case that
-		## the :bro:id:`Site::local_nets` variable is undefined, this
+		## the :zeek:id:`Site::local_nets` variable is undefined, this
 		## field will be left empty at all times.
 		local_orig:   bool            &log &optional;
 
 		## If the connection is responded to locally, this value will be T.
 		## If it was responded to remotely it will be F.  In the case that
-		## the :bro:id:`Site::local_nets` variable is undefined, this
+		## the :zeek:id:`Site::local_nets` variable is undefined, this
 		## field will be left empty at all times.
 		local_resp:   bool            &log &optional;
 
@@ -128,18 +128,18 @@ export {
 		## (at least) 10 times; the third instance, 100 times; etc.
 		history:      string          &log &optional;
 		## Number of packets that the originator sent.
-		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		## Only set if :zeek:id:`use_conn_size_analyzer` = T.
 		orig_pkts:     count      &log &optional;
 		## Number of IP level bytes that the originator sent (as seen on
 		## the wire, taken from the IP total_length header field).
-		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		## Only set if :zeek:id:`use_conn_size_analyzer` = T.
 		orig_ip_bytes: count      &log &optional;
 		## Number of packets that the responder sent.
-		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		## Only set if :zeek:id:`use_conn_size_analyzer` = T.
 		resp_pkts:     count      &log &optional;
 		## Number of IP level bytes that the responder sent (as seen on
 		## the wire, taken from the IP total_length header field).
-		## Only set if :bro:id:`use_conn_size_analyzer` = T.
+		## Only set if :zeek:id:`use_conn_size_analyzer` = T.
 		resp_ip_bytes: count      &log &optional;
 		## If this connection was over a tunnel, indicate the
 		## *uid* values for any encapsulating parent connections
@@ -147,7 +147,7 @@ export {
 		tunnel_parents: set[string] &log &optional;
 	};
 
-	## Event that can be handled to access the :bro:type:`Conn::Info`
+	## Event that can be handled to access the :zeek:type:`Conn::Info`
 	## record as it is sent on to the logging framework.
 	global log_conn: event(rec: Info);
 }

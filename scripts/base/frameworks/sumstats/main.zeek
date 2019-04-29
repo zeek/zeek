@@ -105,7 +105,7 @@ export {
 		reducers:           set[Reducer];
 
 		## A function that will be called once for each observation in order
-		## to calculate a value from the :bro:see:`SumStats::Result` structure
+		## to calculate a value from the :zeek:see:`SumStats::Result` structure
 		## which will be used for thresholding.
 		## This function is required if a *threshold* value or
 		## a *threshold_series* is given.
@@ -157,7 +157,7 @@ export {
 
 	## Dynamically request a sumstat key.  This function should be
 	## used sparingly and not as a replacement for the callbacks 
-	## from the :bro:see:`SumStats::SumStat` record.  The function is only
+	## from the :zeek:see:`SumStats::SumStat` record.  The function is only
 	## available for use within "when" statements as an asynchronous
 	## function.
 	##
@@ -168,7 +168,7 @@ export {
 	## Returns: The result for the requested sumstat key.
 	global request_key: function(ss_name: string, key: Key): Result;
 
-	## Helper function to represent a :bro:type:`SumStats::Key` value as
+	## Helper function to represent a :zeek:type:`SumStats::Key` value as
 	## a simple string.
 	##
 	## key: The metric key that is to be converted into a string.

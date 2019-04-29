@@ -15,17 +15,17 @@ export {
 	redef enum Notice::Type += {
 		## Address scans detect that a host appears to be scanning some
 		## number of destinations on a single port. This notice is
-		## generated when more than :bro:id:`Scan::addr_scan_threshold`
+		## generated when more than :zeek:id:`Scan::addr_scan_threshold`
 		## unique hosts are seen over the previous
-		## :bro:id:`Scan::addr_scan_interval` time range.
+		## :zeek:id:`Scan::addr_scan_interval` time range.
 		Address_Scan,
 
 		## Port scans detect that an attacking host appears to be
 		## scanning a single victim host on several ports.  This notice
 		## is generated when an attacking host attempts to connect to
-		## :bro:id:`Scan::port_scan_threshold`
+		## :zeek:id:`Scan::port_scan_threshold`
 		## unique ports on a single host over the previous
-		## :bro:id:`Scan::port_scan_interval` time range.
+		## :zeek:id:`Scan::port_scan_interval` time range.
 		Port_Scan,
 	};
 

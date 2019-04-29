@@ -5,7 +5,7 @@
 ##
 ## Returns: The decoded NetBIOS name, e.g., ``"THE NETBIOS NAME"``.
 ##
-## .. bro:see:: decode_netbios_name_type
+## .. zeek:see:: decode_netbios_name_type
 function decode_netbios_name%(name: string%): string
 	%{
 	char buf[16];
@@ -41,7 +41,7 @@ function decode_netbios_name%(name: string%): string
 ##
 ## Returns: The numeric value of *name*.
 ##
-## .. bro:see:: decode_netbios_name
+## .. zeek:see:: decode_netbios_name
 function decode_netbios_name_type%(name: string%): count
 	%{
 	const u_char* s = name->Bytes();

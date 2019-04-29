@@ -11,7 +11,7 @@
 ##
 ## name: The ``name`` attribute  specified in the message.
 ##
-## .. bro:see:: smb1_message smb1_nt_create_andx_response
+## .. zeek:see:: smb1_message smb1_nt_create_andx_response
 event smb1_nt_create_andx_request%(c: connection, hdr: SMB1::Header, file_name: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -30,7 +30,7 @@ event smb1_nt_create_andx_request%(c: connection, hdr: SMB1::Header, file_name: 
 ##
 ## times: Timestamps associated with the file in question.
 ##
-## .. bro:see:: smb1_message smb1_nt_create_andx_request
+## .. zeek:see:: smb1_message smb1_nt_create_andx_request
 event smb1_nt_create_andx_response%(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes%);
 
 

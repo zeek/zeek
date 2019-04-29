@@ -31,6 +31,7 @@ event zeek_init()
 	local b6: addr = [aaaa:bbbb:cccc:dddd:eeee:ffff:1111:2222];
 	local b7: addr = [AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222];
 	local b8 = [a::b];
+	local b9 = [2001:db8:0:0:0:FFFF:192.168.0.5];
 
 	test_case( "IPv6 address inequality", b1 != b2 );
 	test_case( "IPv6 address equality", b1 == b5 );

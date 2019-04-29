@@ -1,6 +1,6 @@
 ##! This script detects names which are not within zones considered to be
 ##! local but resolving to addresses considered local.  
-##! The :bro:id:`Site::local_zones` variable **must** be set appropriately for 
+##! The :zeek:id:`Site::local_zones` variable **must** be set appropriately for 
 ##! this detection.
 
 @load base/frameworks/notice
@@ -11,7 +11,7 @@ module DNS;
 export {
 	redef enum Notice::Type += { 
 		## Raised when a non-local name is found to be pointing at a
-		## local host.  The :bro:id:`Site::local_zones` variable
+		## local host.  The :zeek:id:`Site::local_zones` variable
 		## **must** be set appropriately for this detection.
 		External_Name,
 		};

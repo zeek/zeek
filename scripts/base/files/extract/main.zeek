@@ -29,12 +29,12 @@ export {
 		## to know where to write the file to.  If not specified, then
 		## a filename in the format "extract-<source>-<id>" is
 		## automatically assigned (using the *source* and *id*
-		## fields of :bro:see:`fa_file`).
+		## fields of :zeek:see:`fa_file`).
 		extract_filename: string &optional;
 		## The maximum allowed file size in bytes of *extract_filename*.
-		## Once reached, a :bro:see:`file_extraction_limit` event is
+		## Once reached, a :zeek:see:`file_extraction_limit` event is
 		## raised and the analyzer will be removed unless
-		## :bro:see:`FileExtract::set_limit` is called to increase the
+		## :zeek:see:`FileExtract::set_limit` is called to increase the
 		## limit.  A value of zero means "no limit".
 		extract_limit: count &default=default_limit;
 	};

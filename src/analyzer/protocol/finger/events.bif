@@ -11,7 +11,7 @@
 ##
 ## hostname: The request's host name.
 ##
-## .. bro:see:: finger_reply
+## .. zeek:see:: finger_reply
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
@@ -28,7 +28,7 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 ##
 ## reply_line: The reply as returned by the server
 ##
-## .. bro:see:: finger_request
+## .. zeek:see:: finger_request
 ##
 ## .. todo:: Bro's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet

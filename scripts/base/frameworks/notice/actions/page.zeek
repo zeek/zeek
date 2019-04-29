@@ -7,12 +7,12 @@ module Notice;
 export {
 	redef enum Action += {
 		## Indicates that the notice should be sent to the pager email
-		## address configured in the :bro:id:`Notice::mail_page_dest`
+		## address configured in the :zeek:id:`Notice::mail_page_dest`
 		## variable.
 		ACTION_PAGE
 	};
 	
-	## Email address to send notices with the :bro:enum:`Notice::ACTION_PAGE`
+	## Email address to send notices with the :zeek:enum:`Notice::ACTION_PAGE`
 	## action.
 	option mail_page_dest = "";
 }

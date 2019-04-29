@@ -3,7 +3,7 @@
 ## A regular expression for matching and extracting URLs.
 const url_regex = /^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*)/ &redef;
 
-## A URI, as parsed by :bro:id:`decompose_uri`.
+## A URI, as parsed by :zeek:id:`decompose_uri`.
 type URI: record {
 	## The URL's scheme..
 	scheme:       string &optional;

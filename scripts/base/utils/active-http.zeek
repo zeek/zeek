@@ -46,7 +46,7 @@ export {
 	};
 
 	## Perform an HTTP request according to the
-	## :bro:type:`ActiveHTTP::Request` record.  This is an asynchronous
+	## :zeek:type:`ActiveHTTP::Request` record.  This is an asynchronous
 	## function and must be called within a "when" statement.
 	##
 	## req: A record instance representing all options for an HTTP request.

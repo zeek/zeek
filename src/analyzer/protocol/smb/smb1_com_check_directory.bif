@@ -10,7 +10,7 @@
 ##
 ## directory_name: The directory name to check for existence.
 ##
-## .. bro:see:: smb1_message smb1_check_directory_response
+## .. zeek:see:: smb1_message smb1_check_directory_response
 event smb1_check_directory_request%(c: connection, hdr: SMB1::Header, directory_name: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -23,5 +23,5 @@ event smb1_check_directory_request%(c: connection, hdr: SMB1::Header, directory_
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
-## .. bro:see:: smb1_message smb1_check_directory_request
+## .. zeek:see:: smb1_message smb1_check_directory_request
 event smb1_check_directory_response%(c: connection, hdr: SMB1::Header%);

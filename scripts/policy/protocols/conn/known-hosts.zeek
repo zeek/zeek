@@ -28,22 +28,22 @@ export {
 	const use_host_store = T &redef;
 	
 	## The hosts whose existence should be logged and tracked.
-	## See :bro:type:`Host` for possible choices.
+	## See :zeek:type:`Host` for possible choices.
 	option host_tracking = LOCAL_HOSTS;
 	
 	## Holds the set of all known hosts.  Keys in the store are addresses
 	## and their associated value will always be the "true" boolean.
 	global host_store: Cluster::StoreInfo;
 
-	## The Broker topic name to use for :bro:see:`Known::host_store`.
+	## The Broker topic name to use for :zeek:see:`Known::host_store`.
 	const host_store_name = "bro/known/hosts" &redef;
 
-	## The expiry interval of new entries in :bro:see:`Known::host_store`.
+	## The expiry interval of new entries in :zeek:see:`Known::host_store`.
 	## This also changes the interval at which hosts get logged.
 	const host_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :bro:see:`Known::host_store`.
+	## :zeek:see:`Known::host_store`.
 	option host_store_timeout = 15sec;
 
 	## The set of all known addresses to store for preventing duplicate 
@@ -56,7 +56,7 @@ export {
 	## proxy nodes.
 	global hosts: set[addr] &create_expire=1day &redef;
 
-	## An event that can be handled to access the :bro:type:`Known::HostsInfo`
+	## An event that can be handled to access the :zeek:type:`Known::HostsInfo`
 	## record as it is sent on to the logging framework.
 	global log_known_hosts: event(rec: HostsInfo);
 }

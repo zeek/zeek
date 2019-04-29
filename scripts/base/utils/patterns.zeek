@@ -37,7 +37,7 @@ type PatternMatchResult: record {
 };
 
 ## Matches the given pattern against the given string, returning
-## a :bro:type:`PatternMatchResult` record.
+## a :zeek:type:`PatternMatchResult` record.
 ## For example: ``match_pattern("foobar", /o*[a-k]/)`` returns
 ## ``[matched=T, str=f, off=1]``,  because the *first* match is for
 ## zero o's followed by an [a-k], but ``match_pattern("foobar", /o+[a-k]/)``

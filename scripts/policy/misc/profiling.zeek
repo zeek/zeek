@@ -9,7 +9,7 @@ redef profiling_file = open_log_file("prof");
 redef profiling_interval = 15 secs;
 
 ## Set the expensive profiling interval (multiple of
-## :bro:id:`profiling_interval`).
+## :zeek:id:`profiling_interval`).
 redef expensive_profiling_multiple = 20;
 
 event zeek_init()

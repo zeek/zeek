@@ -2,7 +2,7 @@
 ## Generated for HTTP requests. Bro supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
 ## dialogues. This event is generated as soon as a request's initial line has
-## been parsed, and before any :bro:id:`http_header` events are raised.
+## been parsed, and before any :zeek:id:`http_header` events are raised.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
 ## for more information about the HTTP protocol.
@@ -17,7 +17,7 @@
 ##
 ## version: The version number specified in the request (e.g., ``1.1``).
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_reply http_stats
 ##    truncate_http_URI http_connection_upgrade
 event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%);
@@ -25,7 +25,7 @@ event http_request%(c: connection, method: string, original_URI: string, unescap
 ## Generated for HTTP replies. Bro supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
 ## dialogues. This event is generated as soon as a reply's initial line has
-## been parsed, and before any :bro:id:`http_header` events are raised.
+## been parsed, and before any :zeek:id:`http_header` events are raised.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
 ## for more information about the HTTP protocol.
@@ -38,7 +38,7 @@ event http_request%(c: connection, method: string, original_URI: string, unescap
 ##
 ## reason: The textual description returned by the server along with *code*.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_request
 ##    http_stats http_connection_upgrade
 event http_reply%(c: connection, version: string, code: count, reason: string%);
@@ -58,7 +58,7 @@ event http_reply%(c: connection, version: string, code: count, reason: string%);
 ##
 ## value: The value of the header.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event  http_message_done http_reply http_request
 ##    http_stats http_connection_upgrade
 ##
@@ -81,7 +81,7 @@ event http_header%(c: connection, is_orig: bool, name: string, value: string%);
 ##        The table is indexed by the position of the header (1 for the first,
 ##        2 for the second, etc.).
 ##
-## .. bro:see::  http_begin_entity http_content_type http_end_entity http_entity_data
+## .. zeek:see::  http_begin_entity http_content_type http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    http_connection_upgrade
 ##
@@ -103,7 +103,7 @@ event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 ## is_orig: True if the entity was sent by the originator of the TCP
 ##          connection.
 ##
-## .. bro:see:: http_all_headers  http_content_type http_end_entity http_entity_data
+## .. zeek:see:: http_all_headers  http_content_type http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    mime_begin_entity http_connection_upgrade
 event http_begin_entity%(c: connection, is_orig: bool%);
@@ -122,7 +122,7 @@ event http_begin_entity%(c: connection, is_orig: bool%);
 ## is_orig: True if the entity was sent by the originator of the TCP
 ##          connection.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_entity_data
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_entity_data
 ##    http_event http_header http_message_done http_reply http_request
 ##    http_stats mime_end_entity http_connection_upgrade
 event http_end_entity%(c: connection, is_orig: bool%);
@@ -134,7 +134,7 @@ event http_end_entity%(c: connection, is_orig: bool%);
 ## A common idiom for using this event is to first *reassemble* the data
 ## at the scripting layer by concatenating it to a successively growing
 ## string; and only perform further content analysis once the corresponding
-## :bro:id:`http_end_entity` event has been raised. Note, however, that doing so
+## :zeek:id:`http_end_entity` event has been raised. Note, however, that doing so
 ## can be quite expensive for HTTP tranders. At the very least, one should
 ## impose an upper size limit on how much data is being buffered.
 ##
@@ -150,7 +150,7 @@ event http_end_entity%(c: connection, is_orig: bool%);
 ##
 ## data: One chunk of raw entity data.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    mime_entity_data http_entity_data_delivery_size skip_http_data
 ##    http_connection_upgrade
@@ -173,7 +173,7 @@ event http_entity_data%(c: connection, is_orig: bool, length: count, data: strin
 ##
 ## subty: The subtype.
 ##
-## .. bro:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
+## .. zeek:see:: http_all_headers http_begin_entity  http_end_entity http_entity_data
 ##    http_event http_header http_message_done http_reply http_request http_stats
 ##    http_connection_upgrade
 ##
@@ -199,7 +199,7 @@ event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string
 ##
 ## stat: Further meta information about the message.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header  http_reply http_request http_stats
 ##    http_connection_upgrade
 event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%);
@@ -216,7 +216,7 @@ event http_message_done%(c: connection, is_orig: bool, stat: http_message_stat%)
 ##
 ## detail: Further more detailed description of the error.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data  http_header http_message_done http_reply http_request
 ##    http_stats mime_event http_connection_upgrade
 event http_event%(c: connection, event_type: string, detail: string%);
@@ -230,7 +230,7 @@ event http_event%(c: connection, event_type: string, detail: string%);
 ## stats: Statistics summarizing HTTP-level properties of the finished
 ##        connection.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_reply
 ##    http_request http_connection_upgrade
 event http_stats%(c: connection, stats: http_stats_rec%);
@@ -243,7 +243,7 @@ event http_stats%(c: connection, stats: http_stats_rec%);
 ##
 ## protocol: The protocol to which the connection is switching.
 ##
-## .. bro:see:: http_all_headers http_begin_entity http_content_type http_end_entity
+## .. zeek:see:: http_all_headers http_begin_entity http_content_type http_end_entity
 ##    http_entity_data http_event http_header http_message_done http_reply
 ##    http_request
 event http_connection_upgrade%(c: connection, protocol: string%);

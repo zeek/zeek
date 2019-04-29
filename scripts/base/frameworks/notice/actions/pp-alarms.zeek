@@ -12,7 +12,7 @@ export {
 	const pretty_print_alarms = T &redef;
 	
 	## Address to send the pretty-printed reports to. Default if not set is
-	## :bro:id:`Notice::mail_dest`.
+	## :zeek:id:`Notice::mail_dest`.
 	##
 	## Note that this is overridden by the BroControl MailAlarmsTo option.
 	const mail_dest_pretty_printed = "" &redef;

@@ -10,7 +10,7 @@
 ##
 ## file_name: The SMB2 GUID of the file being closed.
 ##
-## .. bro:see:: smb2_message smb2_close_response
+## .. zeek:see:: smb2_message smb2_close_response
 event smb2_close_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -25,7 +25,7 @@ event smb2_close_request%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID%
 ##
 ## response: A record of attributes returned from the server from the close.
 ##
-## .. bro:see:: smb2_message smb2_close_request
+## .. zeek:see:: smb2_message smb2_close_request
 event smb2_close_response%(c: connection, hdr: SMB2::Header, response: SMB2::CloseResponse%);
 
 

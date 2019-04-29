@@ -89,13 +89,13 @@ export {
 	## This event is used internally to distribute data around clusters
 	## since DHCP doesn't follow the normal "connection" model used by
 	## most protocols. It can also be handled to extend the DHCP log.
-	## bro:see::`DHCP::log_info`.
+	## :zeek:see:`DHCP::log_info`.
 	global DHCP::aggregate_msgs: event(ts: time, id: conn_id, uid: string, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options);
 
 	## This is a global variable that is only to be used in the
-	## :bro::see::`DHCP::aggregate_msgs` event. It can be used to avoid
+	## :zeek:see:`DHCP::aggregate_msgs` event. It can be used to avoid
 	## looking up the info record for a transaction ID in every event handler
-	## for :bro:see::`DHCP::aggregate_msgs`.
+	## for :zeek:see:`DHCP::aggregate_msgs`.
 	global DHCP::log_info: Info;
 
 	## Event that can be handled to access the DHCP

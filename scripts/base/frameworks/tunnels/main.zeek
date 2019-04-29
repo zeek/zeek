@@ -3,7 +3,7 @@
 ##!
 ##! For any connection that occurs over a tunnel, information about its
 ##! encapsulating tunnels is also found in the *tunnel* field of
-##! :bro:type:`connection`.
+##! :zeek:type:`connection`.
 
 module Tunnel;
 
@@ -18,7 +18,7 @@ export {
 		## A tunnel connection has closed.
 		CLOSE,
 		## No new connections over a tunnel happened in the amount of
-		## time indicated by :bro:see:`Tunnel::expiration_interval`.
+		## time indicated by :zeek:see:`Tunnel::expiration_interval`.
 		EXPIRE,
 	};
 
@@ -27,7 +27,7 @@ export {
 		## Time at which some tunnel activity occurred.
 		ts:          time         &log;
 		## The unique identifier for the tunnel, which may correspond
-		## to a :bro:type:`connection`'s *uid* field for non-IP-in-IP tunnels.
+		## to a :zeek:type:`connection`'s *uid* field for non-IP-in-IP tunnels.
 		## This is optional because there could be numerous connections
 		## for payload proxies like SOCKS but we should treat it as a
 		## single tunnel.
@@ -42,29 +42,29 @@ export {
 	};
 
 	## Logs all tunnels in an encapsulation chain with action
-	## :bro:see:`Tunnel::DISCOVER` that aren't already in the
-	## :bro:id:`Tunnel::active` table and adds them if not.
+	## :zeek:see:`Tunnel::DISCOVER` that aren't already in the
+	## :zeek:id:`Tunnel::active` table and adds them if not.
 	global register_all: function(ecv: EncapsulatingConnVector);
 
 	## Logs a single tunnel "connection" with action
-	## :bro:see:`Tunnel::DISCOVER` if it's not already in the
-	## :bro:id:`Tunnel::active` table and adds it if not.
+	## :zeek:see:`Tunnel::DISCOVER` if it's not already in the
+	## :zeek:id:`Tunnel::active` table and adds it if not.
 	global register: function(ec: EncapsulatingConn);
 
 	## Logs a single tunnel "connection" with action
-	## :bro:see:`Tunnel::EXPIRE` and removes it from the
-	## :bro:id:`Tunnel::active` table.
+	## :zeek:see:`Tunnel::EXPIRE` and removes it from the
+	## :zeek:id:`Tunnel::active` table.
 	##
 	## t: A table of tunnels.
 	##
 	## idx: The index of the tunnel table corresponding to the tunnel to expire.
 	##
 	## Returns: 0secs, which when this function is used as an
-	##          :bro:attr:`&expire_func`, indicates to remove the element at
+	##          :zeek:attr:`&expire_func`, indicates to remove the element at
 	##          *idx* immediately.
 	global expire: function(t: table[conn_id] of Info, idx: conn_id): interval;
 
-	## Removes a single tunnel from the :bro:id:`Tunnel::active` table
+	## Removes a single tunnel from the :zeek:id:`Tunnel::active` table
 	## and logs the closing/expiration of the tunnel.
 	##
 	## tunnel: The tunnel which has closed or expired.
@@ -78,7 +78,7 @@ export {
 
 	## Currently active tunnels.  That is, tunnels for which new,
 	## encapsulated connections have been seen in the interval indicated by
-	## :bro:see:`Tunnel::expiration_interval`.
+	## :zeek:see:`Tunnel::expiration_interval`.
 	global active: table[conn_id] of Info = table() &read_expire=expiration_interval &expire_func=expire;
 }
 

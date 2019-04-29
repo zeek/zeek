@@ -36,7 +36,7 @@ export {
 	## Parse FTP reply codes into the three constituent single digit values.
 	global parse_ftp_reply_code: function(code: count): ReplyCode;
 
-	## Event that can be handled to access the :bro:type:`FTP::Info`
+	## Event that can be handled to access the :zeek:type:`FTP::Info`
 	## record as it is sent on to the logging framework.
 	global log_ftp: event(rec: Info);
 }

@@ -1,7 +1,7 @@
 module PacketFilter;
 
 export {
-	## Takes a :bro:type:`port` and returns a BPF expression which will
+	## Takes a :zeek:type:`port` and returns a BPF expression which will
 	## match the port.
 	##
 	## p: The port.

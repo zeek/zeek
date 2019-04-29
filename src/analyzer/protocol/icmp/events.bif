@@ -12,10 +12,10 @@
 ## icmp: Additional ICMP-specific information augmenting the standard
 ##       connection record *c*.
 ##
-## .. bro:see:: icmp_error_message icmp_sent_payload
+## .. zeek:see:: icmp_error_message icmp_sent_payload
 event icmp_sent%(c: connection, icmp: icmp_conn%);
 
-## The same as :bro:see:`icmp_sent` except containing the ICMP payload.
+## The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
 ##
 ## c: The connection record for the corresponding ICMP flow.
 ##
@@ -24,7 +24,7 @@ event icmp_sent%(c: connection, icmp: icmp_conn%);
 ##
 ## payload: The payload of the ICMP message.
 ##
-## .. bro:see:: icmp_error_message icmp_sent_payload
+## .. zeek:see:: icmp_error_message icmp_sent_payload
 event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
 
 ## Generated for ICMP *echo request* messages.
@@ -45,7 +45,7 @@ event icmp_sent_payload%(c: connection, icmp: icmp_conn, payload: string%);
 ## payload: The message-specific data of the packet payload, i.e., everything
 ##          after the first 8 bytes of the ICMP header.
 ##
-## .. bro:see:: icmp_echo_reply
+## .. zeek:see:: icmp_echo_reply
 event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
 
 ## Generated for ICMP *echo reply* messages.
@@ -66,7 +66,7 @@ event icmp_echo_request%(c: connection, icmp: icmp_conn, id: count, seq: count, 
 ## payload: The message-specific data of the packet payload, i.e., everything
 ##          after the first 8 bytes of the ICMP header.
 ##
-## .. bro:see:: icmp_echo_request
+## .. zeek:see:: icmp_echo_request
 event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, payload: string%);
 
 ## Generated for all ICMPv6 error messages that are not handled
@@ -88,7 +88,7 @@ event icmp_echo_reply%(c: connection, icmp: icmp_conn, id: count, seq: count, pa
 ## context: A record with specifics of the original packet that the message
 ##          refers to.
 ##
-## .. bro:see:: icmp_unreachable icmp_packet_too_big
+## .. zeek:see:: icmp_unreachable icmp_packet_too_big
 ##    icmp_time_exceeded icmp_parameter_problem
 event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 
@@ -112,7 +112,7 @@ event icmp_error_message%(c: connection, icmp: icmp_conn, code: count, context: 
 ##          includes only a partial IP header for some reason, no
 ##          fields of *context* will be filled out.
 ##
-## .. bro:see:: icmp_error_message icmp_packet_too_big
+## .. zeek:see:: icmp_error_message icmp_packet_too_big
 ##    icmp_time_exceeded icmp_parameter_problem
 event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 
@@ -136,7 +136,7 @@ event icmp_unreachable%(c: connection, icmp: icmp_conn, code: count, context: ic
 ##          a partial IP header for some reason, no fields of *context* will
 ##          be filled out.
 ##
-## .. bro:see:: icmp_error_message icmp_unreachable
+## .. zeek:see:: icmp_error_message icmp_unreachable
 ##    icmp_time_exceeded icmp_parameter_problem
 event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 
@@ -160,7 +160,7 @@ event icmp_packet_too_big%(c: connection, icmp: icmp_conn, code: count, context:
 ##          only a partial IP header for some reason, no fields of *context*
 ##          will be filled out.
 ##
-## .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+## .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
 ##    icmp_parameter_problem
 event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 
@@ -184,7 +184,7 @@ event icmp_time_exceeded%(c: connection, icmp: icmp_conn, code: count, context: 
 ##          includes only a partial IP header for some reason, no fields
 ##          of *context* will be filled out.
 ##
-## .. bro:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
+## .. zeek:see:: icmp_error_message icmp_unreachable icmp_packet_too_big
 ##    icmp_time_exceeded
 event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, context: icmp_context%);
 
@@ -201,7 +201,7 @@ event icmp_parameter_problem%(c: connection, icmp: icmp_conn, code: count, conte
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
-## .. bro:see:: icmp_router_advertisement
+## .. zeek:see:: icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_nd_options%);
 
@@ -239,7 +239,7 @@ event icmp_router_solicitation%(c: connection, icmp: icmp_conn, options: icmp6_n
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
-## .. bro:see:: icmp_router_solicitation
+## .. zeek:see:: icmp_router_solicitation
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement icmp_redirect
 event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: count, managed: bool, other: bool, home_agent: bool, pref: count, proxy: bool, rsv: count, router_lifetime: interval, reachable_time: interval, retrans_timer: interval, options: icmp6_nd_options%);
 
@@ -258,7 +258,7 @@ event icmp_router_advertisement%(c: connection, icmp: icmp_conn, cur_hop_limit: 
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
-## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_advertisement icmp_redirect
 event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, options: icmp6_nd_options%);
 
@@ -284,7 +284,7 @@ event icmp_neighbor_solicitation%(c: connection, icmp: icmp_conn, tgt: addr, opt
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
-## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_redirect
 event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool, solicited: bool, override: bool, tgt: addr, options: icmp6_nd_options%);
 
@@ -306,7 +306,7 @@ event icmp_neighbor_advertisement%(c: connection, icmp: icmp_conn, router: bool,
 ##
 ## options: Any Neighbor Discovery options included with message (:rfc:`4861`).
 ##
-## .. bro:see:: icmp_router_solicitation icmp_router_advertisement
+## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement
 event icmp_redirect%(c: connection, icmp: icmp_conn, tgt: addr, dest: addr, options: icmp6_nd_options%);
 

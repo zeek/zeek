@@ -6,7 +6,7 @@ module Dir;
 
 export {
 	## The default interval this module checks for files in directories when
-	## using the :bro:see:`Dir::monitor` function.
+	## using the :zeek:see:`Dir::monitor` function.
 	option polling_interval = 30sec;
 
 	## Register a directory to monitor with a callback that is called

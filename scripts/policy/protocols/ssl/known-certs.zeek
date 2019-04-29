@@ -43,19 +43,19 @@ export {
 	};
 
 	## Holds the set of all known certificates.  Keys in the store are of
-	## type :bro:type:`Known::AddrCertHashPair` and their associated value is
+	## type :zeek:type:`Known::AddrCertHashPair` and their associated value is
 	## always the boolean value of "true".
 	global cert_store: Cluster::StoreInfo;
 
-	## The Broker topic name to use for :bro:see:`Known::cert_store`.
+	## The Broker topic name to use for :zeek:see:`Known::cert_store`.
 	const cert_store_name = "bro/known/certs" &redef;
 
-	## The expiry interval of new entries in :bro:see:`Known::cert_store`.
+	## The expiry interval of new entries in :zeek:see:`Known::cert_store`.
 	## This also changes the interval at which certs get logged.
 	option cert_store_expiry = 1day;
 
 	## The timeout interval to use for operations against
-	## :bro:see:`Known::cert_store`.
+	## :zeek:see:`Known::cert_store`.
 	option cert_store_timeout = 15sec;
 
 	## The set of all known certificates to store for preventing duplicate 

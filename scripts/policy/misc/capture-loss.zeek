@@ -41,7 +41,7 @@ export {
 	option watch_interval = 15mins;
 	
 	## The percentage of missed data that is considered "too much" 
-	## when the :bro:enum:`CaptureLoss::Too_Much_Loss` notice should be
+	## when the :zeek:enum:`CaptureLoss::Too_Much_Loss` notice should be
 	## generated. The value is expressed as a double between 0 and 1 with 1
 	## being 100%.
 	option too_much_loss: double = 0.1;

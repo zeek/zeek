@@ -56,13 +56,15 @@ event ssl_client_hello%(c: connection, version: count, record_version: count, po
 ##
 ## possible_ts: The current time as sent by the server. Note that SSL/TLS does
 ##              not require clocks to be set correctly, so treat with care. This value
-##              is not sent in TLSv1.3.
+##              is meaningless in SSLv2 and TLSv1.3.
 ##
 ## session_id: The session ID as sent back by the server (if any). This value is not
 ##             sent in TLSv1.3.
 ##
 ## server_random: The random value sent by the server. For version 2 connections,
-##		  the connection-id is returned.
+##		  the connection-id is returned. Note - the full 32 bytes are included in
+##		  server_random. This means that the 4 bytes present in possible_ts are repeated;
+##		  if you do not want this behavior ignore the first 4 bytes.
 ##
 ## cipher: The cipher chosen by the server.  The values are standardized as part
 ##         of the SSL/TLS protocol. The :zeek:id:`SSL::cipher_desc` table maps

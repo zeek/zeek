@@ -465,7 +465,7 @@ refine typeattr ClientHello += &let {
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
+			0, random_bytes, session_id, cipher_suite, 0,
 			compression_method);
 };
 

@@ -116,8 +116,7 @@ type ServerHelloChoice(rec: HandshakeRecord) = record {
 };
 
 type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
-	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28;
+	random_bytes : bytestring &length = 32;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];

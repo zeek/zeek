@@ -388,6 +388,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	num_requests = 0;
 	successful = 0;
 	failed = 0;
+	nb_dns = nullptr;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -399,16 +400,21 @@ DNS_Mgr::~DNS_Mgr()
 	delete [] dir;
 	}
 
-void DNS_Mgr::InitPostScript()
+void DNS_Mgr::Init()
 	{
 	if ( did_init )
 		return;
 
-	auto dns_resolver_id = global_scope()->Lookup("dns_resolver");
-	auto dns_resolver_addr = dns_resolver_id->ID_Val()->AsAddr();
+	// Note that Init() may be called by way of LookupHost() during the act of
+	// parsing a hostname literal (e.g. google.com), so we can't use a
+	// script-layer option to configure the DNS resolver as it may not be
+	// configured to the user's desired address at the time when we need to to
+	// the lookup.
+	auto dns_resolver = getenv("ZEEK_DNS_RESOLVER");
+	auto dns_resolver_addr = dns_resolver ? IPAddr(dns_resolver) : IPAddr();
 	char err[NB_DNS_ERRSIZE];
 
-	if ( dns_resolver_addr == IPAddr("::") )
+	if ( dns_resolver_addr == IPAddr() )
 		nb_dns = nb_dns_init(err);
 	else
 		{
@@ -433,19 +439,11 @@ void DNS_Mgr::InitPostScript()
 	if ( ! nb_dns )
 		reporter->Warning("problem initializing NB-DNS: %s", err);
 
-	const char* cache_dir = dir ? dir : ".";
+	did_init = true;
+	}
 
-	if ( mode == DNS_PRIME && ! ensure_dir(cache_dir) )
-		{
-		did_init = 0;
-		return;
-		}
-
-	cache_name = new char[strlen(cache_dir) + 64];
-	sprintf(cache_name, "%s/%s", cache_dir, ".bro-dns-cache");
-
-	LoadCache(fopen(cache_name, "r"));
-
+void DNS_Mgr::InitPostScript()
+	{
 	dns_mapping_valid = internal_handler("dns_mapping_valid");
 	dns_mapping_unverified = internal_handler("dns_mapping_unverified");
 	dns_mapping_new_name = internal_handler("dns_mapping_new_name");
@@ -455,14 +453,18 @@ void DNS_Mgr::InitPostScript()
 
 	dm_rec = internal_type("dns_mapping")->AsRecordType();
 
-	did_init = 1;
-
+	// Registering will call Init()
 	iosource_mgr->Register(this, true);
 
 	// We never set idle to false, having the main loop only calling us from
 	// time to time. If we're issuing more DNS requests than we can handle
 	// in this way, we are having problems anyway ...
 	SetIdle(true);
+
+	const char* cache_dir = dir ? dir : ".";
+	cache_name = new char[strlen(cache_dir) + 64];
+	sprintf(cache_name, "%s/%s", cache_dir, ".bro-dns-cache");
+	LoadCache(fopen(cache_name, "r"));
 	}
 
 static TableVal* fake_name_lookup_result(const char* name)
@@ -497,11 +499,10 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	if ( mode == DNS_FAKE )
 		return fake_name_lookup_result(name);
 
+	Init();
+
 	if ( ! nb_dns )
 		return empty_addr_set();
-
-	if ( ! did_init )
-		Init();
 
 	if ( mode != DNS_PRIME )
 		{
@@ -553,8 +554,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 
 Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
-	if ( ! did_init )
-		Init();
+	Init();
 
 	if ( mode != DNS_PRIME )
 		{
@@ -1072,8 +1072,7 @@ static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
 
 void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 	{
-	if ( ! did_init )
-		Init();
+	Init();
 
 	if ( mode == DNS_FAKE )
 		{
@@ -1111,8 +1110,7 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 
 void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 	{
-	if ( ! did_init )
-		Init();
+	Init();
 
 	if ( mode == DNS_FAKE )
 		{
@@ -1150,8 +1148,7 @@ void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 
 void DNS_Mgr::AsyncLookupNameText(const string& name, LookupCallback* callback)
 	{
-	if ( ! did_init )
-		Init();
+	Init();
 
 	if ( mode == DNS_FAKE )
 		{

@@ -72,6 +72,10 @@ New Functionality
   (capital for originator, lowercase responder) to indicate a content
   gap in the TCP stream.  These are recorded logarithmically.
 
+- The ``ZEEK_DNS_RESOLVER`` environment variable now controls
+  the DNS resolver to use by setting it to an IPv4 or IPv6 address.  If
+  not set, then the first IPv4 address from /etc/resolv.conf gets used.
+
 Changed Functionality
 ---------------------
 

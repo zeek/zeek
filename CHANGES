@@ -1,4 +1,8 @@
 
+2.6-250 | 2019-04-29 18:09:29 -0700
+
+  * Remove 'dns_resolver' option, replace w/ ZEEK_DNS_RESOLVER env. var. (Jon Siwek, Corelight)
+
 2.6-249 | 2019-04-26 19:26:44 -0700
 
   * Fix parsing of hybrid IPv6-IPv4 addr literals with no zero compression (Jon Siwek, Corelight)

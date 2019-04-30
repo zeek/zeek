@@ -115,7 +115,6 @@ Redefinable Options
 :zeek:id:`cmd_line_bpf_filter`: :zeek:type:`string` :zeek:attr:`&redef`                    BPF filter the user has set via the -f command line options.
 :zeek:id:`detect_filtered_trace`: :zeek:type:`bool` :zeek:attr:`&redef`                    Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
                                                                                            and not report missing segments for such connections.
-:zeek:id:`dns_resolver`: :zeek:type:`addr` :zeek:attr:`&redef`                             The address of the DNS resolver to use.
 :zeek:id:`dns_session_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                  Time to wait before timing out a DNS request.
 :zeek:id:`dpd_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`                         Size of per-connection buffer used for dynamic protocol detection.
 :zeek:id:`dpd_ignore_ports`: :zeek:type:`bool` :zeek:attr:`&redef`                         If true, don't consider any ports for deciding which protocol analyzer to
@@ -1164,17 +1163,6 @@ Redefinable Options
    and not report missing segments for such connections.
    If this is enabled, then missing data at the end of connections may not
    be reported via :zeek:see:`content_gap`.
-
-.. zeek:id:: dns_resolver
-
-   :Type: :zeek:type:`addr`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``::``
-
-   The address of the DNS resolver to use.  If not changed from the
-   unspecified address, ``[::]``, the first nameserver from /etc/resolv.conf
-   gets used (IPv6 is currently only supported if set via this option, not
-   when parsed from the file).
 
 .. zeek:id:: dns_session_timeout
 

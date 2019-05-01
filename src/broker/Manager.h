@@ -382,6 +382,7 @@ private:
 	bool reading_pcaps;
 	bool after_zeek_init;
 	int peer_count;
+	int times_processed_without_idle;
 
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;

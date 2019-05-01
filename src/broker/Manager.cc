@@ -140,6 +140,7 @@ Manager::Manager(bool arg_reading_pcaps)
 	reading_pcaps = arg_reading_pcaps;
 	after_zeek_init = false;
 	peer_count = 0;
+	times_processed_without_idle = 0;
 	log_topic_func = nullptr;
 	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
@@ -942,7 +943,32 @@ void Manager::Process()
 			}
 		}
 
-	SetIdle(! had_input);
+	if ( had_input )
+		{
+		++times_processed_without_idle;
+
+		// The max number of Process calls allowed to happen in a row without
+		// idling is chosen a bit arbitrarily, except 12 is around half of the
+		// SELECT_FREQUENCY (25).
+		//
+		// But probably the general idea should be for it to have some relation
+		// to the SELECT_FREQUENCY: less than it so other busy IOSources can
+		// fit several Process loops in before the next poll event (e.g. the
+		// select() call ), but still large enough such that we don't have to
+		// wait long before the next poll ourselves after being forced to idle.
+		if ( times_processed_without_idle > 12 )
+			{
+			times_processed_without_idle = 0;
+			SetIdle(true);
+			}
+		else
+			SetIdle(false);
+		}
+	else
+		{
+		times_processed_without_idle = 0;
+		SetIdle(true);
+		}
 	}
 
 

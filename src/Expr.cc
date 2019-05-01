@@ -2565,7 +2565,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 		if ( attrs )
 			{
-			attr_copy = new attr_list;
+			attr_copy = new attr_list(attrs->length());
 			loop_over_list(*attrs, i)
 				attr_copy->append((*attrs)[i]);
 			}
@@ -2634,7 +2634,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				if ( sce->Attrs() )
 					{
 					attr_list* a = sce->Attrs()->Attrs();
-					attrs = new attr_list;
+					attrs = new attr_list(a->length());
 					loop_over_list(*a, i)
 						attrs->append((*a)[i]);
 					}
@@ -3467,9 +3467,9 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	// Spin through the list, which should be comprised only of
 	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
-	type_decl_list* record_types = new type_decl_list;
-
 	const expr_list& exprs = constructor_list->Exprs();
+	type_decl_list* record_types = new type_decl_list(exprs.length());
+
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
@@ -4469,11 +4469,12 @@ bool FlattenExpr::DoUnserialize(UnserialInfo* info)
 
 ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, val_list* arg_args,
 				double t, TimerMgr* arg_tmgr)
-: Timer(t, TIMER_SCHEDULE)
+	: Timer(t, TIMER_SCHEDULE),
+	  event(arg_event),
+	  args(std::move(*arg_args)),
+	  tmgr(arg_tmgr)
 	{
-	event = arg_event;
-	args = arg_args;
-	tmgr = arg_tmgr;
+	delete arg_args;
 	}
 
 ScheduleTimer::~ScheduleTimer()
@@ -4482,7 +4483,7 @@ ScheduleTimer::~ScheduleTimer()
 
 void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
 	{
-	mgr.QueueEvent(event, args, SOURCE_LOCAL, 0, tmgr);
+	mgr.QueueEvent(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
 	}
 
 ScheduleExpr::ScheduleExpr(Expr* arg_when, EventExpr* arg_event)
@@ -4998,7 +4999,8 @@ Val* EventExpr::Eval(Frame* f) const
 		return 0;
 
 	val_list* v = eval_list(f, args);
-	mgr.QueueEvent(handler, v);
+	mgr.QueueEvent(handler, std::move(*v));
+	delete v;
 
 	return 0;
 	}
@@ -5128,7 +5130,7 @@ BroType* ListExpr::InitType() const
 
 	if ( exprs[0]->IsRecordElement(0) )
 		{
-		type_decl_list* types = new type_decl_list;
+		type_decl_list* types = new type_decl_list(exprs.length());
 		loop_over_list(exprs, i)
 			{
 			TypeDecl* td = new TypeDecl(0, 0);

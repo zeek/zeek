@@ -216,36 +216,30 @@ void Reporter::Syslog(const char* fmt, ...)
 
 void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::File* f, const char* addl, const char* fmt_name, ...)
 	{
-	val_list* vl = new val_list(1);
+	val_list vl(2);
 
 	if ( conn_val )
-		vl->append(conn_val);
+		vl.append(conn_val);
 	else if ( f )
-		vl->append(f->GetVal()->Ref());
+		vl.append(f->GetVal()->Ref());
 
 	if ( addl )
-		vl->append(new StringVal(addl));
+		vl.append(new StringVal(addl));
 
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", event, 0, 0, vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", event, 0, 0, &vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
-
-	delete vl;
 	}
 
 void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...)
 	{
-	val_list* vl = new val_list(2);
-	vl->append(new AddrVal(orig));
-	vl->append(new AddrVal(resp));
+	val_list vl{new AddrVal(orig), new AddrVal(resp)};
 
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", flow_weird, 0, 0, vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", flow_weird, 0, 0, &vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
-
-	delete vl;
 	}
 
 void Reporter::UpdateWeirdStats(const char* name)
@@ -489,29 +483,32 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 	if ( raise_event && event && via_events && ! in_error_handler )
 		{
-		val_list* vl = new val_list;
+		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn +
+		               (addl ? addl->length() : 0);
+
+		val_list vl(vl_size);
 
 		if ( time )
-			vl->append(new Val((bro_start_network_time != 0.0) ? network_time : 0, TYPE_TIME));
+			vl.append(new Val((bro_start_network_time != 0.0) ? network_time : 0, TYPE_TIME));
 
-		vl->append(new StringVal(buffer));
+		vl.append(new StringVal(buffer));
 
 		if ( location )
-			vl->append(new StringVal(loc_str.c_str()));
+			vl.append(new StringVal(loc_str.c_str()));
 
 		if ( conn )
-			vl->append(conn->BuildConnVal());
+			vl.append(conn->BuildConnVal());
 
 		if ( addl )
 			{
 			loop_over_list(*addl, i)
-				vl->append((*addl)[i]);
+				vl.append((*addl)[i]);
 			}
 
 		if ( conn )
-			conn->ConnectionEvent(event, 0, vl);
+			conn->ConnectionEventFast(event, 0, std::move(vl));
 		else
-			mgr.QueueEvent(event, vl);
+			mgr.QueueEventFast(event, std::move(vl));
 		}
 	else
 		{

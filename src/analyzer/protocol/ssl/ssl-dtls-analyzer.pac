@@ -31,8 +31,9 @@ refine connection SSL_Conn += {
 
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
-		BifEvent::generate_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
-						${rec.is_orig}, level, desc);
+		if ( ssl_alert )
+			BifEvent::generate_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
+							${rec.is_orig}, level, desc);
 		return true;
 		%}
 	function proc_unknown_record(rec: SSLRecord) : bool
@@ -50,8 +51,8 @@ refine connection SSL_Conn += {
 		      established_ == false )
 			{
 			established_ = true;
-			BifEvent::generate_ssl_established(bro_analyzer(),
-							bro_analyzer()->Conn());
+			if ( ssl_established )
+				BifEvent::generate_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
 			}
 
 		if ( ssl_encrypted_data )
@@ -72,9 +73,10 @@ refine connection SSL_Conn += {
 
 	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16, data: bytestring) : bool
 		%{
-		BifEvent::generate_ssl_heartbeat(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
-			new StringVal(data.length(), (const char*) data.data()));
+		if ( ssl_heartbeat )
+			BifEvent::generate_ssl_heartbeat(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
+				new StringVal(data.length(), (const char*) data.data()));
 		return true;
 		%}
 
@@ -93,8 +95,9 @@ refine connection SSL_Conn += {
 
 	function proc_ccs(rec: SSLRecord) : bool
 		%{
-		BifEvent::generate_ssl_change_cipher_spec(bro_analyzer(),
-			bro_analyzer()->Conn(), ${rec.is_orig});
+		if ( ssl_change_cipher_spec )
+			BifEvent::generate_ssl_change_cipher_spec(bro_analyzer(),
+				bro_analyzer()->Conn(), ${rec.is_orig});
 
 		return true;
 		%}

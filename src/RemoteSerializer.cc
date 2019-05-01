@@ -1435,7 +1435,9 @@ void RemoteSerializer::Process()
 			break;
 
 		BufferedEvent* be = events[0];
-		::Event* event = new ::Event(be->handler, be->args, be->src);
+		::Event* event = new ::Event(be->handler, std::move(*be->args), be->src);
+		delete be->args;
+		be->args = nullptr;
 
 		Peer* old_current_peer = current_peer;
 		// Prevent the source peer from getting the event back.
@@ -2260,14 +2262,14 @@ bool RemoteSerializer::ProcessPongMsg()
 
 	ping_args* args = (ping_args*) current_args->data;
 
-	val_list* vl = new val_list;
-	vl->append(current_peer->val->Ref());
-	vl->append(val_mgr->GetCount((unsigned int) ntohl(args->seq)));
-	vl->append(new Val(current_time(true) - ntohd(args->time1),
-				TYPE_INTERVAL));
-	vl->append(new Val(ntohd(args->time2), TYPE_INTERVAL));
-	vl->append(new Val(ntohd(args->time3), TYPE_INTERVAL));
-	mgr.QueueEvent(remote_pong, vl);
+	mgr.QueueEvent(remote_pong, {
+		current_peer->val->Ref(),
+		val_mgr->GetCount((unsigned int) ntohl(args->seq)),
+		new Val(current_time(true) - ntohd(args->time1),
+					TYPE_INTERVAL),
+		new Val(ntohd(args->time2), TYPE_INTERVAL),
+		new Val(ntohd(args->time3), TYPE_INTERVAL)
+	});
 	return true;
 	}
 
@@ -3006,20 +3008,20 @@ void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 	{
 	if ( peer )
 		{
-		val_list* vl = new val_list();
-		vl->append(peer->val->Ref());
-		vl->append(val_mgr->GetCount(level));
-		vl->append(val_mgr->GetCount(src));
-		vl->append(new StringVal(msg));
-		mgr.QueueEvent(remote_log_peer, vl);
+		mgr.QueueEvent(remote_log_peer, {
+			peer->val->Ref(),
+			val_mgr->GetCount(level),
+			val_mgr->GetCount(src),
+			new StringVal(msg)
+		});
 		}
 	else
 		{
-		val_list* vl = new val_list();
-		vl->append(val_mgr->GetCount(level));
-		vl->append(val_mgr->GetCount(src));
-		vl->append(new StringVal(msg));
-		mgr.QueueEvent(remote_log, vl);
+		mgr.QueueEvent(remote_log, {
+			val_mgr->GetCount(level),
+			val_mgr->GetCount(src),
+			new StringVal(msg)
+		});
 		}
 
 #ifdef DEBUG
@@ -3041,27 +3043,27 @@ void RemoteSerializer::Log(LogLevel level, const char* msg, Peer* peer,
 void RemoteSerializer::RaiseEvent(EventHandlerPtr event, Peer* peer,
 					const char* arg)
 	{
-	val_list* vl = new val_list;
+	val_list vl(1 + (bool)arg);
 
 	if ( peer )
 		{
 		Ref(peer->val);
-		vl->append(peer->val);
+		vl.append(peer->val);
 		}
 	else
 		{
 		Val* v = mgr.GetLocalPeerVal();
 		v->Ref();
-		vl->append(v);
+		vl.append(v);
 		}
 
 	if ( arg )
-		vl->append(new StringVal(arg));
+		vl.append(new StringVal(arg));
 
 	// If we only have remote sources, the network time
 	// will not increase as long as no peers are connected.
 	// Therefore, we send these events immediately.
-	mgr.Dispatch(new Event(event, vl, PEER_LOCAL));
+	mgr.Dispatch(new Event(event, std::move(vl), PEER_LOCAL));
 	}
 
 void RemoteSerializer::LogStats()

@@ -715,11 +715,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 	// Raise the log event.
 	if ( stream->event )
-		{
-		val_list* vl = new val_list(1);
-		vl->append(columns->Ref());
-		mgr.QueueEvent(stream->event, vl, SOURCE_LOCAL);
-		}
+		mgr.QueueEventFast(stream->event, {columns->Ref()}, SOURCE_LOCAL);
 
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();
@@ -732,8 +728,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			{
 			// See whether the predicates indicates that we want
 			// to log this record.
-			val_list vl(1);
-			vl.append(columns->Ref());
+			val_list vl{columns->Ref()};
 
 			int result = 1;
 
@@ -750,16 +745,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 		if ( filter->path_func )
 			{
-			val_list vl(3);
-			vl.append(id->Ref());
-
 			Val* path_arg;
 			if ( filter->path_val )
 				path_arg = filter->path_val->Ref();
 			else
 				path_arg = val_mgr->GetEmptyString();
-
-			vl.append(path_arg);
 
 			Val* rec_arg;
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
@@ -770,7 +760,11 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				// Can be TYPE_ANY here.
 				rec_arg = columns->Ref();
 
-			vl.append(rec_arg);
+			val_list vl{
+				id->Ref(),
+				path_arg,
+				rec_arg,
+			};
 
 			Val* v = 0;
 
@@ -1087,8 +1081,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	RecordVal* ext_rec = nullptr;
 	if ( filter->num_ext_fields > 0 )
 		{
-		val_list vl(1);
-		vl.append(filter->path_val->Ref());
+		val_list vl{filter->path_val->Ref()};
 		Val* res = filter->ext_func->Call(&vl);
 		if ( res )
 			ext_rec = res->AsRecordVal();
@@ -1593,8 +1586,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	assert(func);
 
 	// Call the postprocessor function.
-	val_list vl(1);
-	vl.append(info);
+	val_list vl{info};
 
 	int result = 0;
 

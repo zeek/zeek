@@ -699,25 +699,27 @@ int DNS_Mgr::Save()
 	return 1;
 	}
 
+void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
+	{
+	if ( ! e )
+		return;
+
+	mgr.QueueEventFast(e, {BuildMappingVal(dm)});
+	}
+
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2)
 	{
 	if ( ! e )
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(BuildMappingVal(dm));
+	Unref(l1);
+	Unref(l2);
 
-	if ( l1 )
-		{
-		vl->append(l1->ConvertToSet());
-		if ( l2 )
-			vl->append(l2->ConvertToSet());
-
-		Unref(l1);
-		Unref(l2);
-		}
-
-	mgr.QueueEvent(e, vl);
+	mgr.QueueEventFast(e, {
+		BuildMappingVal(dm),
+		l1->ConvertToSet(),
+		l2->ConvertToSet(),
+	});
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
@@ -725,10 +727,10 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	if ( ! e )
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(BuildMappingVal(old_dm));
-	vl->append(BuildMappingVal(new_dm));
-	mgr.QueueEvent(e, vl);
+	mgr.QueueEventFast(e, {
+		BuildMappingVal(old_dm),
+		BuildMappingVal(new_dm),
+	});
 	}
 
 Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)

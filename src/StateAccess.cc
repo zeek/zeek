@@ -192,12 +192,12 @@ bool StateAccess::CheckOld(const char* op, ID* id, Val* index,
 	else
 		arg3 = new StringVal("<none>");
 
-	val_list* args = new val_list;
-	args->append(new StringVal(op));
-	args->append(arg1);
-	args->append(arg2);
-	args->append(arg3);
-	mgr.QueueEvent(remote_state_inconsistency, args);
+	mgr.QueueEvent(remote_state_inconsistency, {
+		new StringVal(op),
+		arg1,
+		arg2,
+		arg3,
+	});
 
 	return false;
 	}
@@ -219,12 +219,12 @@ bool StateAccess::CheckOldSet(const char* op, ID* id, Val* index,
 	Val* arg2 = new StringVal(should ? "set" : "not set");
 	Val* arg3 = new StringVal(is ? "set" : "not set");
 
-	val_list* args = new val_list;
-	args->append(new StringVal(op));
-	args->append(arg1);
-	args->append(arg2);
-	args->append(arg3);
-	mgr.QueueEvent(remote_state_inconsistency, args);
+	mgr.QueueEvent(remote_state_inconsistency, {
+		new StringVal(op),
+		arg1,
+		arg2,
+		arg3,
+	});
 
 	return false;
 	}
@@ -514,12 +514,12 @@ void StateAccess::Replay()
 					d.SetShort();
 					op1.val->Describe(&d);
 
-					val_list* args = new val_list;
-					args->append(new StringVal("read"));
-					args->append(new StringVal(fmt("%s[%s]", target.id->Name(), d.Description())));
-					args->append(new StringVal("existent"));
-					args->append(new StringVal("not existent"));
-					mgr.QueueEvent(remote_state_inconsistency, args);
+					mgr.QueueEvent(remote_state_inconsistency, {
+						new StringVal("read"),
+						new StringVal(fmt("%s[%s]", target.id->Name(), d.Description())),
+						new StringVal("existent"),
+						new StringVal("not existent"),
+					});
 					}
 				}
 			}
@@ -536,10 +536,10 @@ void StateAccess::Replay()
 
 	if ( remote_state_access_performed )
 		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(target.id->Name()));
-		vl->append(target.id->ID_Val()->Ref());
-		mgr.QueueEvent(remote_state_access_performed, vl);
+		mgr.QueueEventFast(remote_state_access_performed, {
+			new StringVal(target.id->Name()),
+			target.id->ID_Val()->Ref(),
+		});
 		}
 	}
 
@@ -943,8 +943,7 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 		}
 	else
 		{
-		attr_list* a = new attr_list;
-		a->append(attr);
+		attr_list* a = new attr_list{attr};
 		id->SetAttrs(new Attributes(a, id->Type(), false));
 		}
 

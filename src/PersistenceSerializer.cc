@@ -201,7 +201,8 @@ void PersistenceSerializer::RaiseFinishedSendState()
 void PersistenceSerializer::GotEvent(const char* name, double time,
 					EventHandlerPtr event, val_list* args)
 	{
-	mgr.QueueEvent(event, args);
+	mgr.QueueEvent(event, std::move(*args));
+	delete args;
 	}
 
 void PersistenceSerializer::GotFunctionCall(const char* name, double time,

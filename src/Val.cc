@@ -1861,28 +1861,29 @@ Val* TableVal::Default(Val* index)
 		return def_attr->AttrExpr()->IsConst() ? def_val->Ref() : def_val->Clone();
 
 	const Func* f = def_val->AsFunc();
-	val_list* vl = new val_list();
+	val_list vl;
 
 	if ( index->Type()->Tag() == TYPE_LIST )
 		{
 		const val_list* vl0 = index->AsListVal()->Vals();
+		vl = val_list(vl0->length());
 		loop_over_list(*vl0, i)
-			vl->append((*vl0)[i]->Ref());
+			vl.append((*vl0)[i]->Ref());
 		}
 	else
-		vl->append(index->Ref());
+		{
+		vl = val_list{index->Ref()};
+		}
 
 	Val* result = 0;
 
 	try
 		{
-		result = f->Call(vl);
+		result = f->Call(&vl);
 		}
 
 	catch ( InterpreterException& e )
 		{ /* Already reported. */ }
-
-	delete vl;
 
 	if ( ! result )
 		{
@@ -2423,21 +2424,6 @@ double TableVal::CallExpireFunc(Val* idx)
 		return 0;
 		}
 
-	val_list* vl = new val_list;
-	vl->append(Ref());
-
-	// Flatten lists of a single element.
-	if ( idx->Type()->Tag() == TYPE_LIST &&
-	     idx->AsListVal()->Length() == 1 )
-		{
-		Val* old = idx;
-		idx = idx->AsListVal()->Index(0);
-		idx->Ref();
-		Unref(old);
-		}
-
-	vl->append(idx);
-
 	double secs = 0;
 
 	try
@@ -2447,19 +2433,31 @@ double TableVal::CallExpireFunc(Val* idx)
 		if ( ! vf )
 			{
 			// Will have been reported already.
-			delete_vals(vl);
+			Unref(idx);
 			return 0;
 			}
 
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
-			Unref(vf);
-			delete_vals(vl);
 			vf->Error("not a function");
+			Unref(vf);
+			Unref(idx);
 			return 0;
 			}
 
-		Val* vs = vf->AsFunc()->Call(vl);
+
+		// Flatten lists of a single element.
+		if ( idx->Type()->Tag() == TYPE_LIST &&
+		     idx->AsListVal()->Length() == 1 )
+			{
+			Val* old = idx;
+			idx = idx->AsListVal()->Index(0);
+			idx->Ref();
+			Unref(old);
+			}
+
+		val_list vl{Ref(), idx};
+		Val* vs = vf->AsFunc()->Call(&vl);
 
 		if ( vs )
 			{
@@ -2468,7 +2466,6 @@ double TableVal::CallExpireFunc(Val* idx)
 			}
 
 		Unref(vf);
-		delete vl;
 		}
 
 	catch ( InterpreterException& e )

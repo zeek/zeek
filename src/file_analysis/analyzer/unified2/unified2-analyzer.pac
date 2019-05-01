@@ -81,10 +81,11 @@ refine flow Flow += {
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
 			ids_event->Assign(17, val_mgr->GetCount(${ev.packet_action}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(ids_event);
-			mgr.QueueEvent(::unified2_event, vl, SOURCE_LOCAL);
+			mgr.QueueEventFast(::unified2_event, {
+					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+					ids_event,
+					},
+				SOURCE_LOCAL);
 			}
 		return true;
 		%}
@@ -112,10 +113,11 @@ refine flow Flow += {
 			ids_event->Assign(15, val_mgr->GetCount(${ev.mpls_label}));
 			ids_event->Assign(16, val_mgr->GetCount(${ev.vlan_id}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(ids_event);
-			mgr.QueueEvent(::unified2_event, vl, SOURCE_LOCAL);
+			mgr.QueueEventFast(::unified2_event, {
+					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+					ids_event,
+					},
+				SOURCE_LOCAL);
 			}
 
 		return true;
@@ -133,10 +135,11 @@ refine flow Flow += {
 			packet->Assign(4, val_mgr->GetCount(${pkt.link_type}));
 			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(packet);
-			mgr.QueueEvent(::unified2_packet, vl, SOURCE_LOCAL);
+			mgr.QueueEventFast(::unified2_packet, {
+					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+					packet,
+					},
+				SOURCE_LOCAL);
 			}
 
 		return true;

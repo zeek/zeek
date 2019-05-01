@@ -1,4 +1,38 @@
 
+2.6-255 | 2019-05-01 08:38:49 -0700
+
+  * Add methods to queue events without handler existence check
+
+    Added ConnectionEventFast() and QueueEventFast() methods to avoid
+    redundant event handler existence checks.
+
+    It's common practice for caller to already check for event handler
+    existence before doing all the work of constructing the arguments, so
+    it's desirable to not have to check for existence again.
+
+    E.g. going through ConnectionEvent() means 3 existence checks:
+    one you do yourself before calling it, one in ConnectionEvent(), and then
+    another in QueueEvent().
+
+    The existence check itself can be more than a few operations sometimes
+    as it needs to check a few flags that determine if it's enabled, has
+    a local body, or has any remote receivers in the old comm. system or
+    has been flagged as something to publish in the new comm. system. (Jon Siwek, Corelight)
+
+  * Cleanup/improve PList usage and Event API
+
+    Majority of PLists are now created as automatic/stack objects,
+    rather than on heap and initialized either with the known-capacity
+    reserved upfront or directly from an initializer_list (so there's no
+    wasted slack in the memory that gets allocated for lists containing
+    a fixed/known number of elements).
+
+    Added versions of the ConnectionEvent/QueueEvent methods that take
+    a val_list by value.
+
+    Added a move ctor/assign-operator to Plists to allow passing them
+    around without having to copy the underlying array of pointers. (Jon Siwek, Corelight)
+
 2.6-250 | 2019-04-29 18:09:29 -0700
 
   * Remove 'dns_resolver' option, replace w/ ZEEK_DNS_RESOLVER env. var. (Jon Siwek, Corelight)

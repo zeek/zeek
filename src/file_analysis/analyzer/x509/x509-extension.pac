@@ -35,6 +35,9 @@ refine connection MockConnection += {
 
 	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
 		%{
+		if ( ! x509_ocsp_ext_signed_certificate_timestamp )
+			return true;
+
 		BifEvent::generate_x509_ocsp_ext_signed_certificate_timestamp((analyzer::Analyzer *) bro_analyzer(),
 			bro_analyzer()->GetFile()->GetVal()->Ref(),
 			version,

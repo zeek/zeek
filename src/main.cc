@@ -285,12 +285,11 @@ void done_with_network()
 
 	if ( net_done )
 		{
-		val_list* args = new val_list;
-		args->append(new Val(timer_mgr->Time(), TYPE_TIME));
 		mgr.Drain();
-
 		// Don't propagate this event to remote clients.
-		mgr.Dispatch(new Event(net_done, args), true);
+		mgr.Dispatch(new Event(net_done,
+		                       {new Val(timer_mgr->Time(), TYPE_TIME)}),
+		             true);
 		}
 
 	// Save state before expiring the remaining events/timers.
@@ -342,7 +341,7 @@ void terminate_bro()
 
 	EventHandlerPtr zeek_done = internal_handler("zeek_done");
 	if ( zeek_done )
-		mgr.QueueEvent(zeek_done, new val_list);
+		mgr.QueueEventFast(zeek_done, val_list{});
 
 	timer_mgr->Expire();
 	mgr.Drain();
@@ -1139,7 +1138,7 @@ int main(int argc, char** argv)
 
 	EventHandlerPtr zeek_init = internal_handler("zeek_init");
 	if ( zeek_init )	//### this should be a function
-		mgr.QueueEvent(zeek_init, new val_list);
+		mgr.QueueEventFast(zeek_init, val_list{});
 
 	EventRegistry::string_list* dead_handlers =
 		event_registry->UnusedHandlers();
@@ -1185,16 +1184,19 @@ int main(int argc, char** argv)
 	if ( override_ignore_checksums )
 		ignore_checksums = 1;
 
-	// Queue events reporting loaded scripts.
-	for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+	if ( zeek_script_loaded )
 		{
-		if ( i->skipped )
-			continue;
+		// Queue events reporting loaded scripts.
+		for ( std::list<ScannedFile>::iterator i = files_scanned.begin(); i != files_scanned.end(); i++ )
+			{
+			if ( i->skipped )
+				continue;
 
-		val_list* vl = new val_list;
-		vl->append(new StringVal(i->name.c_str()));
-		vl->append(val_mgr->GetCount(i->include_level));
-		mgr.QueueEvent(zeek_script_loaded, vl);
+			mgr.QueueEventFast(zeek_script_loaded, {
+				new StringVal(i->name.c_str()),
+				val_mgr->GetCount(i->include_level),
+			});
+			}
 		}
 
 	reporter->ReportViaEvents(true);

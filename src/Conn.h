@@ -174,10 +174,41 @@ public:
 	int UnparsedVersionFoundEvent(const IPAddr& addr,
 			const char* full_descr, int len, analyzer::Analyzer* analyzer);
 
+	// If a handler exists for 'f', an event will be generated.  If 'name' is
+	// given that event's first argument will be it, and it's second will be
+	// the connection value.  If 'name' is null, then the event's first
+	// argument is the connection value.
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = 0);
+
+	// If a handler exists for 'f', an event will be generated.  In any case,
+	// 'v1' and 'v2' reference counts get decremented.  The event's first
+	// argument is the connection value, second argument is 'v1', and if 'v2'
+	// is given that will be it's third argument.
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = 0);
+
+	// If a handler exists for 'f', an event will be generated.  In any case,
+	// reference count for each element in the 'vl' list are decremented.  The
+	// arguments used for the event are whatevever is provided in 'vl'.
+	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+				val_list vl);
+
+	// Same as ConnectionEvent, except taking the event's argument list via a
+	// pointer instead of by value.  This function takes ownership of the
+	// memory pointed to by 'vl' and also for decrementing the reference count
+	// of each of its elements.
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
+
+	// Queues an event without first checking if there's any available event
+	// handlers (or remote consumes).  If it turns out there's actually nothing
+	// that will consume the event, then this may leak memory due to failing to
+	// decrement the reference count of each element in 'vl'.  i.e. use this
+	// function instead of ConnectionEvent() if you've already guarded against
+	// the case where there's no handlers (one usually also does that because
+	// it would be a waste of effort to construct all the event arguments when
+	// there's no handlers to consume them).
+	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+				val_list vl);
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }

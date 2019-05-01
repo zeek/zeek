@@ -73,7 +73,7 @@ EventRegistry::string_list* EventRegistry::UsedHandlers()
 
 EventRegistry::string_list* EventRegistry::AllHandlers()
 	{
-	string_list* names = new string_list;
+	string_list* names = new string_list(handlers.Length());
 
 	IterCookie* c = handlers.InitForIteration();
 

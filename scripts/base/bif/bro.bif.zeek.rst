@@ -133,6 +133,7 @@ Functions
 :zeek:id:`is_v4_subnet`: :zeek:type:`function`                                     Returns whether a subnet specification is IPv4 or not.
 :zeek:id:`is_v6_addr`: :zeek:type:`function`                                       Returns whether an address is IPv6 or not.
 :zeek:id:`is_v6_subnet`: :zeek:type:`function`                                     Returns whether a subnet specification is IPv6 or not.
+:zeek:id:`is_valid_ip`: :zeek:type:`function`                                      Checks if a string is a valid IPv4 or IPv6 address.
 :zeek:id:`listen`: :zeek:type:`function` :zeek:attr:`&deprecated`                  Listens on a given IP address and port for remote connections.
 :zeek:id:`ln`: :zeek:type:`function`                                               Computes the natural logarithm of a number.
 :zeek:id:`log10`: :zeek:type:`function`                                            Computes the common logarithm of a number.
@@ -1824,6 +1825,18 @@ Functions
    
 
    :returns: true if *s* is an IPv6 subnet, else false.
+
+.. zeek:id:: is_valid_ip
+
+   :Type: :zeek:type:`function` (ip: :zeek:type:`string`) : :zeek:type:`bool`
+
+   Checks if a string is a valid IPv4 or IPv6 address.
+   
+
+   :ip: the string to check for valid IP formatting.
+   
+
+   :returns: T if the string is a valid IPv4 or IPv6 address format.
 
 .. zeek:id:: listen
 

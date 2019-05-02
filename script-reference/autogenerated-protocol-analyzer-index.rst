@@ -13047,7 +13047,7 @@ Events
                 sent in TLSv1.3 or SSLv2.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_extension
-      ssl_session_ticket_handshake x509_certificate ssl_server_curve
+      ssl_session_ticket_handshake x509_certificate
       ssl_dh_server_params ssl_handshake_message ssl_change_cipher_spec
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms
@@ -13103,7 +13103,7 @@ Events
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_ec_point_formats ssl_extension_application_layer_protocol_negotiation
-      ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
+      ssl_extension_server_name ssl_extension_signature_algorithm
       ssl_extension_key_share ssl_rsa_client_pms ssl_server_signature
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
@@ -13129,7 +13129,7 @@ Events
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-      ssl_extension_server_name ssl_server_curve ssl_extension_signature_algorithm
+      ssl_extension_server_name ssl_extension_signature_algorithm
       ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
@@ -13156,7 +13156,7 @@ Events
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-      ssl_extension_server_name ssl_server_curve ssl_extension_key_share
+      ssl_extension_server_name ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
@@ -13181,33 +13181,7 @@ Events
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-      ssl_extension_server_name ssl_server_curve
-      ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
-      ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
-      ssl_rsa_client_pms ssl_server_signature
-
-.. zeek:id:: ssl_server_curve
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, curve: :zeek:type:`count`)
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Generated if a named curve is chosen by the server for an SSL/TLS connection.
-   The curve is sent by the server in the ServerKeyExchange message as defined
-   in :rfc:`4492`, in case an ECDH or ECDHE cipher suite is chosen.
-   
-
-   :c: The connection.
-   
-
-   :curve: The curve.
-   
-   .. note:: This event is deprecated and superseded by the ssl_ecdh_server_params
-             event. This event will be removed in a future version of Bro.
-   
-   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_extension
-      ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
-      ssl_extension_server_name ssl_extension_key_share
+      ssl_extension_server_name
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
@@ -13230,7 +13204,7 @@ Events
    :point: The server's ECDH public key.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+      ssl_session_ticket_handshake ssl_server_signature
       ssl_dh_client_params ssl_ecdh_client_params ssl_rsa_client_pms
 
 .. zeek:id:: ssl_dh_server_params
@@ -13254,7 +13228,7 @@ Events
    :Ys: The server's DH public key.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+      ssl_session_ticket_handshake ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms
 
@@ -13283,7 +13257,7 @@ Events
               message is used for signing.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_rsa_client_pms
+      ssl_session_ticket_handshake ssl_rsa_client_pms
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 
 .. zeek:id:: ssl_ecdh_client_params
@@ -13301,7 +13275,7 @@ Events
    :point: The client's ECDH public key.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+      ssl_session_ticket_handshake ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_rsa_client_pms
 
 .. zeek:id:: ssl_dh_client_params
@@ -13319,7 +13293,7 @@ Events
    :Yc: The client's DH public key.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+      ssl_session_ticket_handshake ssl_server_signature
       ssl_ecdh_server_params ssl_ecdh_client_params ssl_rsa_client_pms
 
 .. zeek:id:: ssl_rsa_client_pms
@@ -13337,7 +13311,7 @@ Events
    :pms: The encrypted pre-master secret.
    
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
-      ssl_session_ticket_handshake ssl_server_curve ssl_server_signature
+      ssl_session_ticket_handshake ssl_server_signature
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 
 .. zeek:id:: ssl_extension_application_layer_protocol_negotiation

@@ -7345,14 +7345,11 @@ Types
 
    A communication peer.
    
-   .. zeek:see:: complete_handshake disconnect finished_send_state
-      get_event_peer get_local_event_peer remote_capture_filter
+   .. zeek:see:: finished_send_state remote_capture_filter
       remote_connection_closed remote_connection_error
       remote_connection_established remote_connection_handshake_done
       remote_event_registered remote_log_peer remote_pong
-      request_remote_events request_remote_logs request_remote_sync
-      send_capture_filter send_current_packet send_id send_ping send_state
-      set_accept_state set_compression_level
+      send_state
    
    .. todo::The type's name is too narrow these days, should rename.
 

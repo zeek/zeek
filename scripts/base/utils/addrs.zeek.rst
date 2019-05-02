@@ -22,16 +22,15 @@ Constants
 
 Functions
 #########
-============================================================================ =========================================================================
-:zeek:id:`addr_to_uri`: :zeek:type:`function`                                Returns the string representation of an IP address suitable for inclusion
-                                                                             in a URI.
-:zeek:id:`extract_ip_addresses`: :zeek:type:`function`                       Extracts all IP (v4 or v6) address strings from a given string.
-:zeek:id:`find_ip_addresses`: :zeek:type:`function` :zeek:attr:`&deprecated` Extracts all IP (v4 or v6) address strings from a given string.
-:zeek:id:`has_valid_octets`: :zeek:type:`function`                           Checks if all elements of a string array are a valid octet value.
-:zeek:id:`is_valid_ip`: :zeek:type:`function`                                Checks if a string appears to be a valid IPv4 or IPv6 address.
-:zeek:id:`normalize_mac`: :zeek:type:`function`                              Given a string, extracts the hex digits and returns a MAC address in
-                                                                             the format: 00:a0:32:d7:81:8f.
-============================================================================ =========================================================================
+====================================================== =========================================================================
+:zeek:id:`addr_to_uri`: :zeek:type:`function`          Returns the string representation of an IP address suitable for inclusion
+                                                       in a URI.
+:zeek:id:`extract_ip_addresses`: :zeek:type:`function` Extracts all IP (v4 or v6) address strings from a given string.
+:zeek:id:`has_valid_octets`: :zeek:type:`function`     Checks if all elements of a string array are a valid octet value.
+:zeek:id:`is_valid_ip`: :zeek:type:`function`          Checks if a string appears to be a valid IPv4 or IPv6 address.
+:zeek:id:`normalize_mac`: :zeek:type:`function`        Given a string, extracts the hex digits and returns a MAC address in
+                                                       the format: 00:a0:32:d7:81:8f.
+====================================================== =========================================================================
 
 
 Detailed Interface
@@ -127,19 +126,6 @@ Functions
 .. zeek:id:: extract_ip_addresses
 
    :Type: :zeek:type:`function` (input: :zeek:type:`string`) : :zeek:type:`string_vec`
-
-   Extracts all IP (v4 or v6) address strings from a given string.
-   
-
-   :input: a string that may contain an IP address anywhere within it.
-   
-
-   :returns: an array containing all valid IP address strings found in *input*.
-
-.. zeek:id:: find_ip_addresses
-
-   :Type: :zeek:type:`function` (input: :zeek:type:`string`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
 
    Extracts all IP (v4 or v6) address strings from a given string.
    

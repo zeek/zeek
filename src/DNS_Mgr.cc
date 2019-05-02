@@ -1418,9 +1418,6 @@ void DNS_Mgr::DoProcess()
 		delete req;
 		}
 
-	if ( asyncs_addrs.size() == 0 && asyncs_names.size() == 0 && asyncs_texts.size() == 0 )
-		return;
-
 	if ( AnswerAvailable(0) <= 0 )
 		return;
 

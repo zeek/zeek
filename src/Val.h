@@ -524,9 +524,6 @@ public:
 	// values.  (In any case, don't forget to call the parent's method.)
 	typedef char Properties;
 
-	static const int PERSISTENT = 0x01;
-	static const int SYNCHRONIZED = 0x02;
-
 	// Tracked by NotifierRegistry, not recursive.
 	static const int TRACKED = 0x04;
 
@@ -540,10 +537,10 @@ public:
 	bool LoggingAccess() const
 		{
 #ifndef DEBUG
-		return props & (SYNCHRONIZED|PERSISTENT|TRACKED);
+		return props & TRACKED;
 #else
 		return debug_logger.IsVerbose() ||
-			(props & (SYNCHRONIZED|PERSISTENT|TRACKED));
+			(props & TRACKED);
 #endif
 		}
 

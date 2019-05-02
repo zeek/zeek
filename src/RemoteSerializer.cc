@@ -2946,7 +2946,8 @@ void RemoteSerializer::GotID(ID* id, Val* val)
 		assert(global_scope()->Lookup(id->Name()));
 
 		// Only synchronized values can arrive here.
-		assert(((MutableVal*) val)->GetProperties() & MutableVal::SYNCHRONIZED);
+		// FIXME: Johanna, rip me out.
+		// assert(((MutableVal*) val)->GetProperties() & MutableVal::SYNCHRONIZED);
 
 		DBG_LOG(DBG_COMM, "got ID %s from peer\n", id->Name());
 		}

@@ -310,11 +310,6 @@ when	return TOK_WHEN;
 	return TOK_ATTR_MERGEABLE;
 	}
 
-&persistent {
-	deprecated_attr(yytext);
-	return TOK_ATTR_PERSISTENT;
-	}
-
 &rotate_interval {
 	deprecated_attr(yytext);
 	return TOK_ATTR_ROTATE_INTERVAL;
@@ -323,11 +318,6 @@ when	return TOK_WHEN;
 &rotate_size {
 	deprecated_attr(yytext);
 	return TOK_ATTR_ROTATE_SIZE;
-	}
-
-&synchronized  {
-	deprecated_attr(yytext);
-	return TOK_ATTR_SYNCHRONIZED;
 	}
 
 @deprecated.* {

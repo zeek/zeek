@@ -876,23 +876,11 @@ void StateAccess::Log(StateAccess* access)
 
 	if ( access->target_type == TYPE_ID )
 		{
-		if ( access->target.id->FindAttr(ATTR_SYNCHRONIZED) )
-			synchronized = true;
-
-		if ( access->target.id->FindAttr(ATTR_PERSISTENT) )
-			persistent = true;
-
 		if ( access->target.id->FindAttr(ATTR_TRACKED) )
 			tracked = true;
 		}
 	else
 		{
-		if ( access->target.val->GetProperties() & MutableVal::SYNCHRONIZED )
-			synchronized = true;
-
-		if ( access->target.val->GetProperties() & MutableVal::PERSISTENT )
-			persistent = true;
-
 		if ( access->target.val->GetProperties() & MutableVal::TRACKED )
 			tracked = true;
 		}

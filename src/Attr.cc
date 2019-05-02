@@ -438,8 +438,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_PERSISTENT:
-	case ATTR_SYNCHRONIZED:
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;

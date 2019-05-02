@@ -142,26 +142,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		}
 		}
 
-	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
-		{
-		if ( dt == VAR_CONST )
-			{
-			id->Error("&persistent/synchronized with constant");
-			return;
-			}
-		else if ( dt == VAR_OPTION )
-			{
-			id->Error("&persistent/synchronized with option");
-			return;
-			}
-
-		if ( ! id->IsGlobal() )
-			{
-			id->Error("&persistant/synchronized with non-global");
-			return;
-			}
-		}
-
 	if ( do_init )
 		{
 		if ( c == INIT_NONE && dt == VAR_REDEF && t->IsTable() &&

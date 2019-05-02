@@ -78,12 +78,6 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 
 		MutableVal::Properties props = 0;
 
-		if ( attrs && attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs && attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
-
 		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
 			props |= MutableVal::TRACKED;
 
@@ -198,25 +192,10 @@ void ID::UpdateValAttrs()
 
 	if ( val && val->IsMutableVal() )
 		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
-
 		if ( attrs->FindAttr(ATTR_TRACKED) )
 			props |= MutableVal::TRACKED;
 
 		val->AsMutableVal()->AddProperties(props);
-		}
-
-	if ( ! IsInternalGlobal() )
-		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			remote_serializer->Register(this);
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			persistence_serializer->Register(this);
 		}
 
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
@@ -280,12 +259,6 @@ void ID::RemoveAttr(attr_tag a)
 	if ( val && val->IsMutableVal() )
 		{
 		MutableVal::Properties props = 0;
-
-		if ( a == ATTR_SYNCHRONIZED )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( a == ATTR_PERSISTENT )
-			props |= MutableVal::PERSISTENT;
 
 		if ( a == ATTR_TRACKED )
 			props |= MutableVal::TRACKED;
@@ -472,12 +445,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 			reporter->InternalError("unknown type for UnserialInfo::id_policy");
 		}
 		}
-
-	if ( id->FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Register(id);
-
-	if ( id->FindAttr(ATTR_SYNCHRONIZED) )
-		remote_serializer->Register(id);
 
 	return id;
 

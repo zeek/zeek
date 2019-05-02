@@ -2409,6 +2409,19 @@ function to_addr%(ip: string%): addr
 	return ret;
 	%}
 
+## Checks if a string is a valid IPv4 or IPv6 address.
+##
+## ip: the string to check for valid IP formatting.
+##
+## Returns: T if the string is a valid IPv4 or IPv6 address format.
+function is_valid_ip%(ip: string%): bool
+	%{
+	char* s = ip->AsString()->Render();
+	auto rval = IPAddr::IsValid(s);
+	delete [] s;
+	return val_mgr->GetBool(rval);
+	%}
+
 ## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
 ##
 ## sn: The subnet to convert.

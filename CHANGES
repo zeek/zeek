@@ -1,4 +1,12 @@
 
+2.6-258 | 2019-05-02 12:26:54 -0700
+
+  * GH-340: Improve IPv4/IPv6 regexes, extraction, and validity functions.
+
+    is_valid_ip() is not a BIF, the IP regular expressions are improved and
+    extract_ip_addresses should give better results due to this.
+    (Jon Siwek, Corelight)
+
 2.6-255 | 2019-05-01 08:38:49 -0700
 
   * Add methods to queue events without handler existence check

@@ -1407,12 +1407,15 @@ void DNS_Mgr::DoProcess()
 		if ( req->time + DNS_TIMEOUT > current_time() )
 			break;
 
-		if ( req->IsAddrReq() )
-			CheckAsyncAddrRequest(req->host, true);
-		else if ( req->is_txt )
-			CheckAsyncTextRequest(req->name.c_str(), true);
-		else
-			CheckAsyncHostRequest(req->name.c_str(), true);
+		if ( ! req->processed )
+			{
+			if ( req->IsAddrReq() )
+				CheckAsyncAddrRequest(req->host, true);
+			else if ( req->is_txt )
+				CheckAsyncTextRequest(req->name.c_str(), true);
+			else
+				CheckAsyncHostRequest(req->name.c_str(), true);
+			}
 
 		asyncs_timeouts.pop();
 		delete req;

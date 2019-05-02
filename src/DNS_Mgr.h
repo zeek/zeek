@@ -172,12 +172,13 @@ protected:
 
 	struct AsyncRequest {
 		double time;
+		bool is_txt;
+		bool processed;
 		IPAddr host;
 		string name;
-		bool is_txt;
 		CallbackList callbacks;
 
-		AsyncRequest() : time(0.0), is_txt(false) { }
+		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 
 		bool IsAddrReq() const	{ return name.length() == 0; }
 
@@ -190,6 +191,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Resolved(TableVal* addrs)
@@ -201,6 +203,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Timeout()
@@ -212,6 +215,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 	};

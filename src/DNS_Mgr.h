@@ -132,7 +132,7 @@ protected:
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
 	// Process outstanding requests.
-	void DoProcess(bool flush);
+	void DoProcess();
 
 	// IOSource interface.
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,

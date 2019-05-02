@@ -1369,7 +1369,7 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 void DNS_Mgr::Flush()
 	{
-	DoProcess(false);
+	DoProcess();
 
 	HostMap::iterator it;
 	for ( it = host_mappings.begin(); it != host_mappings.end(); ++it )
@@ -1391,11 +1391,11 @@ void DNS_Mgr::Flush()
 
 void DNS_Mgr::Process()
 	{
-	DoProcess(false);
+	DoProcess();
 	next_timestamp = -1.0;
 	}
 
-void DNS_Mgr::DoProcess(bool flush)
+void DNS_Mgr::DoProcess()
 	{
 	if ( ! nb_dns )
 		return;
@@ -1404,7 +1404,7 @@ void DNS_Mgr::DoProcess(bool flush)
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() || flush )
+		if ( req->time + DNS_TIMEOUT > current_time() )
 			break;
 
 		if ( req->IsAddrReq() )

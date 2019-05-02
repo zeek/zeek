@@ -289,10 +289,13 @@ ListVal* DNS_Mapping::Addrs()
 
 TableVal* DNS_Mapping::AddrsSet() {
 	ListVal* l = Addrs();
-	if ( l )
-		return l->ConvertToSet();
-	else
+
+	if ( ! l )
 		return empty_addr_set();
+
+	auto rval = l->ConvertToSet();
+	Unref(l);
+	return rval;
 	}
 
 StringVal* DNS_Mapping::Host()

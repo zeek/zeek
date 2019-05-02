@@ -236,6 +236,7 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
+	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

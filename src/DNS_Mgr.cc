@@ -392,6 +392,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	successful = 0;
 	failed = 0;
 	nb_dns = nullptr;
+	next_timestamp = -1.0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -1252,8 +1253,17 @@ void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 double DNS_Mgr::NextTimestamp(double* network_time)
 	{
-	// This is kind of cheating ...
-	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
+	if ( asyncs_timeouts.empty() )
+		// No pending requests.
+		return -1.0;
+
+	if ( next_timestamp < 0 )
+		// Store the timestamp to help prevent starvation by some other
+		// IOSource always trying to use the same timestamp
+		// (assuming network_time does actually increase).
+		next_timestamp = timer_mgr->Time();
+
+	return next_timestamp;
 	}
 
 void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
@@ -1382,6 +1392,7 @@ void DNS_Mgr::Flush()
 void DNS_Mgr::Process()
 	{
 	DoProcess(false);
+	next_timestamp = -1.0;
 	}
 
 void DNS_Mgr::DoProcess(bool flush)

@@ -166,7 +166,6 @@ public:
 	static void Log(LogLevel level, const char* msg);
 
 protected:
-	friend class PersistenceSerializer;
 	friend class IncrementalSendTimer;
 
 	// Maximum size of serialization caches.

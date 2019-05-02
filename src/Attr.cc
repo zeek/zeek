@@ -14,7 +14,6 @@ const char* attr_name(attr_tag t)
 		"&rotate_interval", "&rotate_size",
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
-		"&persistent", "&synchronized",
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",

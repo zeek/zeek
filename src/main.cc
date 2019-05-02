@@ -40,7 +40,6 @@ extern "C" {
 #include "Anon.h"
 #include "Serializer.h"
 #include "RemoteSerializer.h"
-#include "PersistenceSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
@@ -101,7 +100,6 @@ name_list prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
-PersistenceSerializer* persistence_serializer = 0;
 FileSerializer* event_serializer = 0;
 FileSerializer* state_serializer = 0;
 RemoteSerializer* remote_serializer = 0;
@@ -167,7 +165,6 @@ void usage(int code = 1)
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <bro code>           | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
-	fprintf(stderr, "    -g|--dump-config               | dump current config into .state dir\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
@@ -291,9 +288,6 @@ void done_with_network()
 		             true);
 		}
 
-	// Save state before expiring the remaining events/timers.
-	persistence_serializer->WriteState(false);
-
 	if ( profiling_logger )
 		profiling_logger->Log();
 
@@ -371,7 +365,6 @@ void terminate_bro()
 
 	delete zeexygen_mgr;
 	delete timer_mgr;
-	delete persistence_serializer;
 	delete event_serializer;
 	delete state_serializer;
 	delete event_registry;
@@ -452,7 +445,6 @@ int main(int argc, char** argv)
 	char* debug_streams = 0;
 	int parse_only = false;
 	int bare_mode = false;
-	int dump_cfg = false;
 	int do_watchdog = 0;
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
@@ -464,7 +456,6 @@ int main(int argc, char** argv)
 		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
 		{"debug-policy",	no_argument,		0,	'd'},
-		{"dump-config",		no_argument,		0,	'g'},
 		{"exec",		required_argument,	0,	'e'},
 		{"filter",		required_argument,	0,	'f'},
 		{"help",		no_argument,		0,	'h'},
@@ -563,10 +554,6 @@ int main(int argc, char** argv)
 
 		case 'f':
 			user_pcap_filter = optarg;
-			break;
-
-		case 'g':
-			dump_cfg = true;
 			break;
 
 		case 'h':
@@ -795,7 +782,6 @@ int main(int argc, char** argv)
 	dns_mgr->SetDir(".state");
 
 	iosource_mgr = new iosource::Manager();
-	persistence_serializer = new PersistenceSerializer();
 	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
 	analyzer_mgr = new analyzer::Manager();
@@ -1012,13 +998,9 @@ int main(int argc, char** argv)
 		exit(0);
 		}
 
-	persistence_serializer->SetDir((const char *)state_dir->AsString()->CheckString());
-
 	// Print the ID.
 	if ( id_name )
 		{
-		persistence_serializer->ReadAll(true, false);
-
 		ID* id = global_scope()->Lookup(id_name);
 		if ( ! id )
 			reporter->FatalError("No such ID: %s\n", id_name);
@@ -1029,14 +1011,6 @@ int main(int argc, char** argv)
 		id->DescribeExtended(&desc);
 
 		fprintf(stdout, "%s\n", desc.Description());
-		exit(0);
-		}
-
-	persistence_serializer->ReadAll(true, true);
-
-	if ( dump_cfg )
-		{
-		persistence_serializer->WriteConfig(false);
 		exit(0);
 		}
 
@@ -1205,7 +1179,6 @@ int main(int argc, char** argv)
 		}
 	else
 		{
-		persistence_serializer->WriteState(false);
 		terminate_bro();
 		}
 

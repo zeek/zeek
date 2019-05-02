@@ -508,8 +508,6 @@ bool Serializer::UnserializeConnection(UnserialInfo* info)
 
 	if ( info->install_conns )
 		{
-		if ( c->IsPersistent() && c->Key() )
-			persistence_serializer->Register(c);
 		Ref(c);
 		sessions->Insert(c);
 		}

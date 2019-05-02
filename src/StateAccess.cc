@@ -5,7 +5,6 @@
 #include "NetVar.h"
 #include "DebugLogger.h"
 #include "RemoteSerializer.h"
-#include "PersistenceSerializer.h"
 
 int StateAccess::replaying = 0;
 
@@ -870,8 +869,6 @@ void StateAccess::Describe(ODesc* d) const
 
 void StateAccess::Log(StateAccess* access)
 	{
-	bool synchronized = false;
-	bool persistent = false;
 	bool tracked = false;
 
 	if ( access->target_type == TYPE_ID )
@@ -885,30 +882,14 @@ void StateAccess::Log(StateAccess* access)
 			tracked = true;
 		}
 
-	if ( synchronized )
-		{
-		if ( state_serializer )
-			{
-			SerialInfo info(state_serializer);
-			state_serializer->Serialize(&info, *access);
-			}
-
-		SerialInfo info(remote_serializer);
-		remote_serializer->SendAccess(&info, *access);
-		}
-
-	if ( persistent && persistence_serializer->IsSerializationRunning() )
-		persistence_serializer->LogAccess(*access);
-
 	if ( tracked )
 		notifiers.AccessPerformed(*access);
 
 #ifdef DEBUG
 	ODesc desc;
 	access->Describe(&desc);
-	DBG_LOG(DBG_STATE, "operation: %s%s [%s%s]",
-			desc.Description(), replaying > 0 ? " (replay)" : "",
-			persistent ? "P" : "", synchronized ? "S" : "");
+	DBG_LOG(DBG_STATE, "operation: %s%s",
+			desc.Description(), replaying > 0 ? " (replay)" : "");
 #endif
 
 	delete access;

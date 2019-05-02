@@ -12,7 +12,6 @@
 #include "Val.h"
 #include "Timer.h"
 #include "Serializer.h"
-#include "PersistenceSerializer.h"
 #include "RuleMatcher.h"
 #include "IPAddr.h"
 #include "TunnelEncapsulation.h"
@@ -228,14 +227,6 @@ public:
 		return 1;
 		}
 
-	void MakePersistent()
-		{
-		persistent = 1;
-		persistence_serializer->Register(this);
-		}
-
-	bool IsPersistent()	{ return persistent; }
-
 	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
 
@@ -315,7 +306,7 @@ public:
 
 protected:
 
-	Connection()	{ persistent = 0; }
+	Connection()	{ }
 
 	// Add the given timer to expire at time t.  If do_expire
 	// is true, then the timer is also evaluated when Bro terminates,
@@ -361,7 +352,6 @@ protected:
 	unsigned int weird:1;
 	unsigned int finished:1;
 	unsigned int record_packets:1, record_contents:1;
-	unsigned int persistent:1;
 	unsigned int record_current_packet:1, record_current_content:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
 

@@ -92,24 +92,6 @@ function is_valid_ip(ip_str: string): bool
 ## input: a string that may contain an IP address anywhere within it.
 ##
 ## Returns: an array containing all valid IP address strings found in *input*.
-function find_ip_addresses(input: string): string_array &deprecated
-	{
-	local parts = split_string_all(input, ip_addr_regex);
-	local output: string_array;
-
-	for ( i in parts )
-		{
-		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
-			output[|output|] = parts[i];
-		}
-	return output;
-	}
-
-## Extracts all IP (v4 or v6) address strings from a given string.
-##
-## input: a string that may contain an IP address anywhere within it.
-##
-## Returns: an array containing all valid IP address strings found in *input*.
 function extract_ip_addresses(input: string): string_vec
 	{
 	local parts = split_string_all(input, ip_addr_regex);

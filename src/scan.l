@@ -326,7 +326,6 @@ when	return TOK_WHEN;
 	}
 
 &synchronized  {
-	++old_comm_usage_count;
 	deprecated_attr(yytext);
 	return TOK_ATTR_SYNCHRONIZED;
 	}

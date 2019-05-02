@@ -63,7 +63,6 @@
 @load protocols/conn/mac-logging.zeek
 @load protocols/conn/vlan-logging.zeek
 @load protocols/conn/weirds.zeek
-#@load protocols/dhcp/deprecated_events.zeek
 @load protocols/dhcp/msg-orig.zeek
 @load protocols/dhcp/software.zeek
 @load protocols/dhcp/sub-opts.zeek

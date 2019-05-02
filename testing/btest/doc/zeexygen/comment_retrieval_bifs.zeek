@@ -17,11 +17,7 @@ global print_lines: function(lines: string, prefix: string &default="");
 ## And some more comments on the function implementation.
 function print_lines(lines: string, prefix: string)
 	{
-	local v: vector of string;
-	local line_table = split(lines, /\n/);
-
-	for ( i in line_table )
-		v[i] = line_table[i];
+	local v = split_string(lines, /\n/);
 
 	for ( i in v )
 		print fmt("%s%s", prefix, v[i]);

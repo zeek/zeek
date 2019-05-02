@@ -228,7 +228,14 @@ protected:
 	typedef list<AsyncRequest*> QueuedList;
 	QueuedList asyncs_queued;
 
-	typedef priority_queue<AsyncRequest*> TimeoutQueue;
+    struct AsyncRequestCompare {
+		bool operator()(const AsyncRequest* a, const AsyncRequest* b)
+			{
+			return a->time > b->time;
+			}
+    };
+
+	typedef priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;

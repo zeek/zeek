@@ -18,7 +18,6 @@
 #include "NetVar.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "RemoteSerializer.h"
 #include "iosource/Manager.h"
 
 Serializer::Serializer(SerializationFormat* arg_format)

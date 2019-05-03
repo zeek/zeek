@@ -42,7 +42,6 @@
 #include "Sessions.h"
 #include "RE.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "Event.h"
 #include "Traverse.h"
 #include "Reporter.h"

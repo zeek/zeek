@@ -5,10 +5,6 @@
 
 @prefixes += cluster-proxy
 
-## The proxy only syncs state; does not forward events.
-redef forward_remote_events = F;
-redef forward_remote_state_changes = T;
-
 ## Don't do any local logging.
 redef Log::enable_local_logging = F;
 

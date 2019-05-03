@@ -10,7 +10,6 @@
 #include "Scope.h"
 #include "File.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
 #include "zeexygen/Manager.h"
@@ -361,11 +360,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 	else
 		{
-		if ( info->id_policy != UnserialInfo::InstantiateNew )
-			{
-			remote_serializer->Unregister(current);
-			}
-
 		switch ( info->id_policy ) {
 
 		case UnserialInfo::Keep:

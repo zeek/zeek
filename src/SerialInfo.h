@@ -3,6 +3,8 @@
 #ifndef serialinfo_h
 #define serialinfo_h
 
+#include "ChunkedIO.h"
+
 class SerialInfo {
 public:
 	SerialInfo(Serializer* arg_s)

@@ -241,6 +241,12 @@ Removed Functionality
     - ``dhcp_offer``
     - ``dhcp_release``
     - ``dhcp_request``
+		- ``remote_state_access_performed``
+		- ``remote_state_inconsistency``
+		- ``remote_log_peer``
+		- ``remote_log``
+		- ``finished_send_state``
+		- ``remote_pong``
 
 Deprecated Functionality
 ------------------------

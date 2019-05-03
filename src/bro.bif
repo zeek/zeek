@@ -4527,7 +4527,7 @@ function get_file_name%(f: file%): string
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. zeek:see:: rotate_file_by_name calc_next_rotate
-function rotate_file%(f: file%): rotate_info
+function rotate_file%(f: file%): rotate_info &deprecated
 	%{
 	RecordVal* info = f->Rotate();
 	if ( info )
@@ -4551,7 +4551,7 @@ function rotate_file%(f: file%): rotate_info
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. zeek:see:: rotate_file calc_next_rotate
-function rotate_file_by_name%(f: string%): rotate_info
+function rotate_file_by_name%(f: string%): rotate_info &deprecated
 	%{
 	RecordVal* info = new RecordVal(rotate_info);
 
@@ -4605,7 +4605,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 ## Returns: The duration until the next file rotation time.
 ##
 ## .. zeek:see:: rotate_file rotate_file_by_name
-function calc_next_rotate%(i: interval%) : interval
+function calc_next_rotate%(i: interval%) : interval &deprecated
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;

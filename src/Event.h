@@ -129,9 +129,6 @@ public:
 	int Size() const
 		{ return num_events_queued - num_events_dispatched; }
 
-	// Returns a peer record describing the local Bro.
-	RecordVal* GetLocalPeerVal();
-
 	void Describe(ODesc* d) const override;
 
 protected:

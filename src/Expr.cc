@@ -10,7 +10,6 @@
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
-#include "RemoteSerializer.h"
 #include "Net.h"
 #include "Traverse.h"
 #include "Trigger.h"

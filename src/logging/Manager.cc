@@ -2,11 +2,12 @@
 
 #include <algorithm>
 
-#include "../Event.h"
-#include "../EventHandler.h"
-#include "../NetVar.h"
-#include "../Net.h"
-#include "../Type.h"
+#include "Event.h"
+#include "EventHandler.h"
+#include "NetVar.h"
+#include "Net.h"
+#include "Type.h"
+#include "File.h"
 
 #include "broker/Manager.h"
 #include "threading/Manager.h"
@@ -16,8 +17,8 @@
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 #include "logging.bif.h"
-#include "../plugin/Plugin.h"
-#include "../plugin/Manager.h"
+#include "plugin/Plugin.h"
+#include "plugin/Manager.h"
 
 using namespace logging;
 
@@ -1298,32 +1299,6 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, string path, int num
 		path.c_str(), stream->name.c_str());
 
 	return true;
-	}
-
-void Manager::SendAllWritersTo(RemoteSerializer::PeerID peer)
-	{
-	auto et = internal_type("Log::Writer")->AsEnumType();
-
-	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
-		{
-		Stream* stream = (*s);
-
-		if ( ! (stream && stream->enable_remote) )
-			continue;
-
-		for ( Stream::WriterMap::iterator i = stream->writers.begin();
-		      i != stream->writers.end(); i++ )
-			{
-			WriterFrontend* writer = i->second->writer;
-			auto writer_val = et->GetVal(i->first.first);
-			remote_serializer->SendLogCreateWriter(peer, (*s)->id,
-							       writer_val,
-							       *i->second->info,
-							       writer->NumFields(),
-							       writer->Fields());
-			Unref(writer_val);
-			}
-		}
 	}
 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei)

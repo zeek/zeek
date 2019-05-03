@@ -1,6 +1,6 @@
 #include "EventRegistry.h"
 #include "RE.h"
-#include "RemoteSerializer.h"
+#include "Reporter.h"
 
 void EventRegistry::Register(EventHandlerPtr handler)
 	{

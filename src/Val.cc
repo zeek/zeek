@@ -21,7 +21,6 @@
 #include "NetVar.h"
 #include "Expr.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "PrefixTable.h"
 #include "Conn.h"
 #include "Reporter.h"
@@ -1562,18 +1561,9 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 		else
 			{
 			// A set.
-			if ( old_entry_val && remote_check_sync_consistency )
-				{
-				Val* has_old_val = val_mgr->GetInt(1);
-				StateAccess::Log(
-					new StateAccess(OP_ADD, this, index,
-							has_old_val));
-				Unref(has_old_val);
-				}
-			else
-				StateAccess::Log(
-					new StateAccess(OP_ADD, this,
-							index, 0, 0));
+			StateAccess::Log(
+				new StateAccess(OP_ADD, this,
+						index, 0, 0));
 			}
 
 		if ( rec_index )
@@ -2057,20 +2047,12 @@ Val* TableVal::Delete(const Val* index)
 		{
 		if ( v )
 			{
-			if ( v->Value() && remote_check_sync_consistency )
-				// A table.
-				StateAccess::Log(
-					new StateAccess(OP_DEL, this,
-							index, v->Value()));
-			else
-				{
-				// A set.
-				Val* has_old_val = val_mgr->GetInt(1);
-				StateAccess::Log(
-					new StateAccess(OP_DEL, this, index,
-							has_old_val));
-				Unref(has_old_val);
-				}
+			// A set.
+			Val* has_old_val = val_mgr->GetInt(1);
+			StateAccess::Log(
+				new StateAccess(OP_DEL, this, index,
+						has_old_val));
+			Unref(has_old_val);
 			}
 		else
 			StateAccess::Log(

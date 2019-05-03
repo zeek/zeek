@@ -7,7 +7,6 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
 

@@ -20,7 +20,6 @@ const char* TimerNames[] = {
 	"FileAnalysisInactivityTimer",
 	"FlowWeirdTimer",
 	"FragTimer",
-	"IncrementalSendTimer",
 	"InterconnTimer",
 	"IPTunnelInactivityTimer",
 	"NetbiosExpireTimer",

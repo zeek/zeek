@@ -2,8 +2,8 @@
 
 
 #include "SerialTypes.h"
-#include "../RemoteSerializer.h"
-
+#include "SerializationFormat.h"
+#include "Reporter.h"
 
 using namespace threading;
 

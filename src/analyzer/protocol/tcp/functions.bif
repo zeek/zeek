@@ -1,5 +1,6 @@
 
 %%{
+#include "File.h"
 #include "analyzer/protocol/tcp/TCP.h"
 %%}
 

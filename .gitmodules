@@ -4,9 +4,6 @@
 [submodule "aux/binpac"]
 	path = aux/binpac
 	url = https://github.com/zeek/binpac
-[submodule "aux/broccoli"]
-	path = aux/broccoli
-	url = https://github.com/zeek/broccoli
 [submodule "aux/broctl"]
 	path = aux/broctl
 	url = https://github.com/zeek/broctl

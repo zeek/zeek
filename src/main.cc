@@ -39,7 +39,6 @@ extern "C" {
 #include "RuleMatcher.h"
 #include "Anon.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
@@ -102,7 +101,6 @@ EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
 FileSerializer* event_serializer = 0;
 FileSerializer* state_serializer = 0;
-RemoteSerializer* remote_serializer = 0;
 EventPlayer* event_player = 0;
 EventRegistry* event_registry = 0;
 ProfileLogger* profiling_logger = 0;
@@ -272,10 +270,6 @@ void done_with_network()
 	{
 	set_processing_status("TERMINATING", "done_with_network");
 
-	// Release the port, which is important for checkpointing Bro.
-	if ( remote_serializer )
-		remote_serializer->StopListening();
-
 	// Cancel any pending alarms (watchdog, in particular).
 	(void) alarm(0);
 
@@ -298,9 +292,6 @@ void done_with_network()
 	dns_mgr->Flush();
 	mgr.Drain();
 	mgr.Drain();
-
-	if ( remote_serializer )
-		remote_serializer->Finish();
 
 	net_finish(1);
 
@@ -348,9 +339,6 @@ void terminate_bro()
 
 		delete profiling_logger;
 		}
-
-	if ( remote_serializer )
-		remote_serializer->LogStats();
 
 	mgr.Drain();
 
@@ -782,7 +770,6 @@ int main(int argc, char** argv)
 	dns_mgr->SetDir(".state");
 
 	iosource_mgr = new iosource::Manager();
-	remote_serializer = new RemoteSerializer();
 	event_registry = new EventRegistry();
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();

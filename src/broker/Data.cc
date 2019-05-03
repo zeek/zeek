@@ -1,4 +1,5 @@
 #include "Data.h"
+#include "File.h"
 #include "broker/data.bif.h"
 #include <caf/stream_serializer.hpp>
 #include <caf/stream_deserializer.hpp>

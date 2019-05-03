@@ -13,6 +13,7 @@
 #include "Reporter.h"
 #include "iosource/IOSource.h"
 #include "Val.h"
+#include "logging/WriterBackend.h"
 
 namespace bro_broker {
 

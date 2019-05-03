@@ -295,7 +295,6 @@ set(bro_SRCS
     RandTest.cc
     RE.cc
     Reassem.cc
-    RemoteSerializer.cc
     Rule.cc
     RuleAction.cc
     RuleCondition.cc

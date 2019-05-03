@@ -1,4 +1,8 @@
 
+2.6-261 | 2019-05-02 20:49:23 -0700
+
+  * Remove previously deprecated policy/protocols/smb/__load__ (Jon Siwek, Corelight)
+
 2.6-260 | 2019-05-02 19:16:48 -0700
 
   * GH-243: Remove deprecated functions/events from 2.6 and earlier (Johanna Amann, Corelight)

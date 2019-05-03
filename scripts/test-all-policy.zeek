@@ -83,7 +83,6 @@
 @load protocols/modbus/track-memmap.zeek
 @load protocols/mysql/software.zeek
 @load protocols/rdp/indicate_ssl.zeek
-#@load protocols/smb/__load__.zeek
 @load protocols/smb/log-cmds.zeek
 @load protocols/smtp/blocklists.zeek
 @load protocols/smtp/detect-suspicious-orig.zeek

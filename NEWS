@@ -243,6 +243,9 @@ Removed Functionality
     - ``dhcp_request``
     - ``finished_send_state``
 
+- The deprecated script ``policy/protocols/smb/__load__.bro`` was removed.
+  Instead of ``@load policy/protocols/smb`` use ``@load base/protocols/smb``.
+
 Deprecated Functionality
 ------------------------
 

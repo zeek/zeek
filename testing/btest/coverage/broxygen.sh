@@ -1,12 +1,12 @@
 # This check piggy-backs on the test-all-policy.zeek test, assuming that every
 # loadable script is referenced there.  The only additional check here is
-# that the zeexygen package should even load scripts that are commented
-# out in test-all-policy.zeek because the zeexygen package is only loaded
+# that the zeekygen package should even load scripts that are commented
+# out in test-all-policy.zeek because the zeekygen package is only loaded
 # when generated documentation and will terminate has soon as zeek_init
 # is handled, even if a script will e.g. put Zeek into listen mode or otherwise
 # cause it to not terminate after scripts are parsed.
 
-# @TEST-EXEC: bash %INPUT $DIST/scripts/test-all-policy.zeek $DIST/scripts/zeexygen/__load__.zeek
+# @TEST-EXEC: bash %INPUT $DIST/scripts/test-all-policy.zeek $DIST/scripts/zeekygen/__load__.zeek
 
 error_count=0
 
@@ -22,10 +22,10 @@ if [ $# -ne 2 ]; then
 fi
 
 all_loads=$(egrep "#[[:space:]]*@load.*" $1 | sed 's/#[[:space:]]*@load[[:space:]]*//g')
-zeexygen_loads=$(egrep "@load.*" $2 | sed 's/@load[[:space:]]*//g')
+zeekygen_loads=$(egrep "@load.*" $2 | sed 's/@load[[:space:]]*//g')
 
 for f in $all_loads; do
-    echo "$zeexygen_loads" | grep -q $f || error_msg "$f not loaded in zeexygen/__load__.zeek"
+    echo "$zeekygen_loads" | grep -q $f || error_msg "$f not loaded in zeekygen/__load__.zeek"
 done
 
 if [ $error_count -gt 0 ]; then

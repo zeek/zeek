@@ -275,7 +275,7 @@
 0.000000   MetaHookPost  LoadFile(./average) -> -1
 0.000000   MetaHookPost  LoadFile(./bloom-filter.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./bro.bif.bro) -> -1
-0.000000   MetaHookPost  LoadFile(./zeexygen.bif.bro) -> -1
+0.000000   MetaHookPost  LoadFile(./zeekygen.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./cardinality-counter.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./const.bif.bro) -> -1
 0.000000   MetaHookPost  LoadFile(./consts) -> -1
@@ -855,7 +855,7 @@
 0.000000   MetaHookPre   LoadFile(./average)
 0.000000   MetaHookPre   LoadFile(./bloom-filter.bif.bro)
 0.000000   MetaHookPre   LoadFile(./bro.bif.bro)
-0.000000   MetaHookPre   LoadFile(./zeexygen.bif.bro)
+0.000000   MetaHookPre   LoadFile(./zeekygen.bif.bro)
 0.000000   MetaHookPre   LoadFile(./cardinality-counter.bif.bro)
 0.000000   MetaHookPre   LoadFile(./const.bif.bro)
 0.000000   MetaHookPre   LoadFile(./consts)
@@ -1435,7 +1435,7 @@
 0.000000 | HookLoadFile  ./average.bro/bro
 0.000000 | HookLoadFile  ./bloom-filter.bif.bro/bro
 0.000000 | HookLoadFile  ./bro.bif.bro/bro
-0.000000 | HookLoadFile  ./zeexygen.bif.bro/bro
+0.000000 | HookLoadFile  ./zeekygen.bif.bro/bro
 0.000000 | HookLoadFile  ./cardinality-counter.bif.bro/bro
 0.000000 | HookLoadFile  ./const.bif.bro/bro
 0.000000 | HookLoadFile  ./consts.bif.bro/bro

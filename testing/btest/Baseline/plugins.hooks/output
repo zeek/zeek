@@ -785,7 +785,7 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/variance.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/weird.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, .<...>/zeexygen.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/zeekygen.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/hooks.zeek) -> -1
@@ -1688,7 +1688,7 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/variance.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/weird.zeek)
-0.000000   MetaHookPre   LoadFile(0, .<...>/zeexygen.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/zeekygen.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/hooks.zeek)
@@ -2599,7 +2599,7 @@
 0.000000 | HookLoadFile  .<...>/variance.zeek
 0.000000 | HookLoadFile  .<...>/video.sig
 0.000000 | HookLoadFile  .<...>/weird.zeek
-0.000000 | HookLoadFile  .<...>/zeexygen.bif.zeek
+0.000000 | HookLoadFile  .<...>/zeekygen.bif.zeek
 0.000000 | HookLoadFile  <...>/__load__.zeek
 0.000000 | HookLoadFile  <...>/__preload__.zeek
 0.000000 | HookLoadFile  <...>/hooks.zeek

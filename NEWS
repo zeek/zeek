@@ -80,10 +80,13 @@ Changed Functionality
 ---------------------
 
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
-  ``local.zeek``.  If you have made customizations to that file, it
-  will no longer be loaded by default by BroControl (ZeekControl),
-  but you can simply copy it to ``local.zeek`.  You may also want to
-  remove old ``local.bro`` files to avoid potential confusion.
+  ``local.zeek``.  If you have a ``local.bro`` file from a previous
+  installation, possibly with customizations made to it, the new
+  version of Zeek will install a ``local.zeek`` file that is a symlink
+  to the pre-existing ``local.bro``.  In that case, you may want to
+  just copy ``local.bro`` into the new ``local.zeek`` location to
+  avoid confusion, but things are otherwise meant to work properly
+  without intervention.
 
 - All scripts ending in ``.bro`` that ship with the Zeek source tree have
   been renamed to ``.zeek``.
@@ -180,10 +183,10 @@ Changed Functionality
   and aren't counted as true gaps.
 
 - The Broxygen component, which is used to generate our Doxygen-like
-  scripting API documentation has been renamed to Zeexygen.  This likely has
+  scripting API documentation has been renamed to Zeekygen.  This likely has
   no breaking or visible changes for most users, except in the case one
   used it to generate their own documentation via the ``--broxygen`` flag,
-  which is now named ``--zeexygen``.  Besides that, the various documentation
+  which is now named ``--zeekygen``.  Besides that, the various documentation
   in scripts has also been updated to replace Sphinx cross-referencing roles
   and directives like ":bro:see:" with ":zeek:zee:".
 
@@ -247,6 +250,10 @@ Removed Functionality
 		- ``remote_log``
 		- ``finished_send_state``
 		- ``remote_pong``
+    - ``finished_send_state``
+
+- The deprecated script ``policy/protocols/smb/__load__.bro`` was removed.
+  Instead of ``@load policy/protocols/smb`` use ``@load base/protocols/smb``.
 
 Deprecated Functionality
 ------------------------

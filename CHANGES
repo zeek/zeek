@@ -1,4 +1,37 @@
 
+2.6-264 | 2019-05-03 11:16:38 -0700
+
+  * Fix sporadic openflow/broker test failure (Jon Siwek, Corelight)
+
+2.6-263 | 2019-05-02 22:49:40 -0700
+
+  * Install local.zeek as symlink to pre-existing local.bro (Jon Siwek, Corelight)
+
+    This a convenience for those that are upgrading.  If we didn't do
+    this, then deployments can silently break until the user intervenes
+    since BroControl now prefers to load the initially-vanilla local.zeek
+    instead of the formerly-customized local.bro.
+
+2.6-262 | 2019-05-02 21:39:01 -0700
+
+  * Rename Zeexygen to Zeekygen (Jon Siwek, Corelight)
+
+2.6-261 | 2019-05-02 20:49:23 -0700
+
+  * Remove previously deprecated policy/protocols/smb/__load__ (Jon Siwek, Corelight)
+
+2.6-260 | 2019-05-02 19:16:48 -0700
+
+  * GH-243: Remove deprecated functions/events from 2.6 and earlier (Johanna Amann, Corelight)
+
+2.6-258 | 2019-05-02 12:26:54 -0700
+
+  * GH-340: Improve IPv4/IPv6 regexes, extraction, and validity functions.
+
+    is_valid_ip() is not a BIF, the IP regular expressions are improved and
+    extract_ip_addresses should give better results due to this.
+    (Jon Siwek, Corelight)
+
 2.6-255 | 2019-05-01 08:38:49 -0700
 
   * Add methods to queue events without handler existence check

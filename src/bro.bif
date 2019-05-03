@@ -2409,6 +2409,19 @@ function to_addr%(ip: string%): addr
 	return ret;
 	%}
 
+## Checks if a string is a valid IPv4 or IPv6 address.
+##
+## ip: the string to check for valid IP formatting.
+##
+## Returns: T if the string is a valid IPv4 or IPv6 address format.
+function is_valid_ip%(ip: string%): bool
+	%{
+	char* s = ip->AsString()->Render();
+	auto rval = IPAddr::IsValid(s);
+	delete [] s;
+	return val_mgr->GetBool(rval);
+	%}
+
 ## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
 ##
 ## sn: The subnet to convert.
@@ -3293,7 +3306,7 @@ const char* conn_id_string(Val* c)
 ##
 ## Returns: True on success.
 ##
-## .. zeek:see:: dump_packet get_current_packet send_current_packet
+## .. zeek:see:: dump_packet get_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
@@ -3324,7 +3337,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## Returns: The currently processed packet, which is a record
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
-## .. zeek:see:: dump_current_packet dump_packet send_current_packet
+## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p;
@@ -3380,7 +3393,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ##
 ## Returns: True on success
 ##
-## .. zeek:see:: get_current_packet dump_current_packet send_current_packet
+## .. zeek:see:: get_current_packet dump_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())

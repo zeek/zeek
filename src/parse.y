@@ -87,7 +87,7 @@
 #include "Scope.h"
 #include "Reporter.h"
 #include "Brofiler.h"
-#include "zeexygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 #include <set>
 #include <string>
@@ -1038,7 +1038,7 @@ type_decl:
 			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
 
 			if ( in_record > 0 && cur_decl_type_id )
-				zeexygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
+				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;
 
@@ -1072,7 +1072,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
-			zeexygen_mgr->ModuleUsage(::filename, current_module);
+			zeekygen_mgr->ModuleUsage(::filename, current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1081,36 +1081,36 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
-			zeexygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_OPTION);
-			zeexygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_CONST);
-			zeexygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-			zeexygen_mgr->Redef($2, ::filename);
+			zeekygen_mgr->Redef($2, ::filename);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ parser_redef_enum($3); zeexygen_mgr->Redef($3, ::filename); }
+			{ parser_redef_enum($3); zeekygen_mgr->Redef($3, ::filename); }
 		enum_body '}' ';'
 			{
-			// Zeexygen already grabbed new enum IDs as the type created them.
+			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; zeexygen_mgr->Redef($3, ::filename); }
+			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
 			{ ++in_record; }
 		type_decl_list
@@ -1126,12 +1126,12 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeexygen_mgr->StartType($2);  }
+			{ cur_decl_type_id = $2; zeekygen_mgr->StartType($2);  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 			add_type($2, $5, $6);
-			zeexygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier($2);
 			}
 
 	|	func_hdr func_body
@@ -1166,7 +1166,7 @@ func_hdr:
 			begin_func($2, current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, $3, $4);
 			$$ = $3;
-			zeexygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier($2);
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{

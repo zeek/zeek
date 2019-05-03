@@ -30,7 +30,7 @@ enum DebugStream {
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
 	DBG_PLUGINS,	// Plugin system
-	DBG_ZEEXYGEN,	// Zeexygen
+	DBG_ZEEKYGEN,	// Zeekygen
 	DBG_PKTIO,	// Packet sources and dumpers.
 	DBG_BROKER,	// Broker communication
 	DBG_SCRIPTS,	// Script initialization

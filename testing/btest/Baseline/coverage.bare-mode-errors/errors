@@ -1,6 +1,4 @@
 warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
 warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
-warning in /Users/johanna/bro/master/scripts/policy/protocols/smb/__load__.zeek, line 1: deprecated script loaded from /Users/johanna/bro/master/testing/btest/../../scripts//zeexygen/__load__.zeek:9 "Use '@load base/protocols/smb' instead"
 warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
 warning in /Users/johanna/bro/master/testing/btest/../../scripts//policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
-warning in /Users/johanna/bro/master/testing/btest/../../scripts//policy/protocols/smb/__load__.zeek, line 1: deprecated script loaded from command line arguments "Use '@load base/protocols/smb' instead"

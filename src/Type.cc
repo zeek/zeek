@@ -8,8 +8,8 @@
 #include "Scope.h"
 #include "Serializer.h"
 #include "Reporter.h"
-#include "zeexygen/Manager.h"
-#include "zeexygen/utils.h"
+#include "zeekygen/Manager.h"
+#include "zeekygen/utils.h"
 
 #include <string>
 #include <list>
@@ -1197,8 +1197,8 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		if ( func_args )
 			continue;
 
-		using zeexygen::IdentifierInfo;
-		IdentifierInfo* doc = zeexygen_mgr->GetIdentifierInfo(GetName());
+		using zeekygen::IdentifierInfo;
+		IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( ! doc )
 			{
@@ -1217,7 +1217,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		     field_from_script != type_from_script )
 			{
 			d->PushIndent();
-			d->Add(zeexygen::redef_indication(field_from_script).c_str());
+			d->Add(zeekygen::redef_indication(field_from_script).c_str());
 			d->PopIndent();
 			}
 
@@ -1237,7 +1237,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 				{
 				string s = cmnts[i];
 
-				if ( zeexygen::prettify_params(s) )
+				if ( zeekygen::prettify_params(s) )
 					d->NL();
 
 				d->Add(s.c_str());
@@ -1505,7 +1505,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		if ( deprecated )
 			id->MakeDeprecated();
 
-		zeexygen_mgr->Identifier(id);
+		zeekygen_mgr->Identifier(id);
 		}
 	else
 		{
@@ -1618,8 +1618,8 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		else
 			d->Add(fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
 
-		using zeexygen::IdentifierInfo;
-		IdentifierInfo* doc = zeexygen_mgr->GetIdentifierInfo(it->second);
+		using zeekygen::IdentifierInfo;
+		IdentifierInfo* doc = zeekygen_mgr->GetIdentifierInfo(it->second);
 
 		if ( ! doc )
 			{
@@ -1634,7 +1634,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		if ( doc->GetDeclaringScript() )
 			enum_from_script = doc->GetDeclaringScript()->Name();
 
-		IdentifierInfo* type_doc = zeexygen_mgr->GetIdentifierInfo(GetName());
+		IdentifierInfo* type_doc = zeekygen_mgr->GetIdentifierInfo(GetName());
 
 		if ( type_doc && type_doc->GetDeclaringScript() )
 			type_from_script = type_doc->GetDeclaringScript()->Name();
@@ -1644,7 +1644,7 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 			{
 			d->NL();
 			d->PushIndent();
-			d->Add(zeexygen::redef_indication(enum_from_script).c_str());
+			d->Add(zeekygen::redef_indication(enum_from_script).c_str());
 			d->PopIndent();
 			}
 

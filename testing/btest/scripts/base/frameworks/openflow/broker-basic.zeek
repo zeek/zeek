@@ -55,14 +55,26 @@ event connection_established(c: connection)
 	OpenFlow::flow_mod(of_controller, match_rev, flow_mod);
 	}
 
+global msg_count: count = 0;
+
+function got_message()
+	{
+	++msg_count;
+
+	if ( msg_count == 6 )
+		terminate();
+	}
+
 event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
 	{
 	print "Flow_mod_success";
+	got_message();
 	}
 
 event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod, msg: string)
 	{
 	print "Flow_mod_failure";
+	got_message();
 	}
 
 @TEST-END-FILE
@@ -72,13 +84,6 @@ event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_
 @load base/frameworks/openflow
 
 redef exit_only_after_terminate = T;
-
-global msg_count: count = 0;
-
-event die()
-	{
-	terminate();
-	}
 
 event zeek_init()
 	{
@@ -96,28 +101,16 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-function got_message()
-	{
-	++msg_count;
-
-	if ( msg_count >= 4 )
-		{
-		schedule 2sec { die() };
-		}
-	}
-
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
 	Broker::publish("bro/openflow", OpenFlow::flow_mod_success, name, match, flow_mod, "");
 	Broker::publish("bro/openflow", OpenFlow::flow_mod_failure, name, match, flow_mod, "");
-	got_message();
 	}
 
 event OpenFlow::broker_flow_clear(name: string, dpid: count)
 	{
 	print "flow_clear", dpid;
-	got_message();
 	}
 
 @TEST-END-FILE

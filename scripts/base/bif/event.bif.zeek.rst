@@ -60,8 +60,6 @@ Events
 :zeek:id:`file_timeout`: :zeek:type:`event`                                 Indicates that file analysis has timed out because no activity was seen
                                                                             for the file in a while.
 :zeek:id:`file_weird`: :zeek:type:`event`                                   Generated for unexpected activity that is tied to a file.
-:zeek:id:`finished_send_state`: :zeek:type:`event`                          Generated after a call to :zeek:id:`send_state` when all data has been
-                                                                            successfully sent to the remote side.
 :zeek:id:`flow_weird`: :zeek:type:`event`                                   Generated for unexpected activity related to a pair of hosts, but independent
                                                                             of a specific connection.
 :zeek:id:`gaobot_signature_found`: :zeek:type:`event`                       Deprecated.
@@ -637,23 +635,6 @@ Events
       violation could be an attack attempt, it's much more likely that an
       endpoint's implementation interprets an RFC quite liberally.
 
-.. zeek:id:: finished_send_state
-
-   :Type: :zeek:type:`event` (p: :zeek:type:`event_peer`)
-
-   Generated after a call to :zeek:id:`send_state` when all data has been
-   successfully sent to the remote side. While this event is
-   intended primarily for use by Bro's communication framework, it can also
-   trigger additional code if helpful.
-   
-
-   :p: A record describing the remote peer.
-   
-   .. zeek:see:: remote_capture_filter remote_connection_closed
-      remote_connection_error remote_connection_established
-      remote_connection_handshake_done remote_event_registered remote_log remote_pong
-      remote_state_access_performed remote_state_inconsistency print_hook
-
 .. zeek:id:: flow_weird
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, src: :zeek:type:`addr`, dst: :zeek:type:`addr`)
@@ -1147,14 +1128,14 @@ Events
 
    Generated when a remote peer has answered to our ping. This event is part of
    Bro's infrastructure for measuring communication latency. One can send a ping
-   by calling :zeek:id:`send_ping` and when a corresponding reply is received,
+   by calling ``send_ping`` and when a corresponding reply is received,
    this event will be raised.
    
 
    :p: The peer sending us the pong.
    
 
-   :seq: The sequence number passed to the original :zeek:id:`send_ping` call.
+   :seq: The sequence number passed to the original ``send_ping`` call.
         The number is sent back by the peer in its response.
    
 

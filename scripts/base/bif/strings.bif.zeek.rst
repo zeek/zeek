@@ -13,110 +13,59 @@ Summary
 ~~~~~~~
 Functions
 #########
-============================================================================= ============================================================================
-:zeek:id:`cat_string_array`: :zeek:type:`function` :zeek:attr:`&deprecated`   Concatenates all elements in an array of strings.
-:zeek:id:`cat_string_array_n`: :zeek:type:`function` :zeek:attr:`&deprecated` Concatenates a specific range of elements in an array of strings.
-:zeek:id:`clean`: :zeek:type:`function`                                       Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`edit`: :zeek:type:`function`                                        Returns an edited version of a string that applies a special
-                                                                              "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
-:zeek:id:`escape_string`: :zeek:type:`function`                               Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`find_all`: :zeek:type:`function`                                    Finds all occurrences of a pattern in a string.
-:zeek:id:`find_last`: :zeek:type:`function`                                   Finds the last occurrence of a pattern in a string.
-:zeek:id:`gsub`: :zeek:type:`function`                                        Substitutes a given replacement string for all occurrences of a pattern
-                                                                              in a given string.
-:zeek:id:`hexdump`: :zeek:type:`function`                                     Returns a hex dump for given input data.
-:zeek:id:`is_ascii`: :zeek:type:`function`                                    Determines whether a given string contains only ASCII characters.
-:zeek:id:`join_string_array`: :zeek:type:`function` :zeek:attr:`&deprecated`  Joins all values in the given array of strings with a separator placed
-                                                                              between each element.
-:zeek:id:`join_string_vec`: :zeek:type:`function`                             Joins all values in the given vector of strings with a separator placed
-                                                                              between each element.
-:zeek:id:`levenshtein_distance`: :zeek:type:`function`                        Calculates the Levenshtein distance between the two strings.
-:zeek:id:`lstrip`: :zeek:type:`function`                                      Removes all combinations of characters in the *chars* argument
-                                                                              starting at the beginning of the string until first mismatch.
-:zeek:id:`reverse`: :zeek:type:`function`                                     Returns a reversed copy of the string
-:zeek:id:`rstrip`: :zeek:type:`function`                                      Removes all combinations of characters in the *chars* argument
-                                                                              starting at the end of the string until first mismatch.
-:zeek:id:`safe_shell_quote`: :zeek:type:`function`                            Takes a string and escapes characters that would allow execution of
-                                                                              commands at the shell level.
-:zeek:id:`sort_string_array`: :zeek:type:`function` :zeek:attr:`&deprecated`  Sorts an array of strings.
-:zeek:id:`split`: :zeek:type:`function` :zeek:attr:`&deprecated`              Splits a string into an array of strings according to a pattern.
-:zeek:id:`split1`: :zeek:type:`function` :zeek:attr:`&deprecated`             Splits a string *once* into a two-element array of strings according to a
-                                                                              pattern.
-:zeek:id:`split_all`: :zeek:type:`function` :zeek:attr:`&deprecated`          Splits a string into an array of strings according to a pattern.
-:zeek:id:`split_n`: :zeek:type:`function` :zeek:attr:`&deprecated`            Splits a string a given number of times into an array of strings according
-                                                                              to a pattern.
-:zeek:id:`split_string`: :zeek:type:`function`                                Splits a string into an array of strings according to a pattern.
-:zeek:id:`split_string1`: :zeek:type:`function`                               Splits a string *once* into a two-element array of strings according to a
-                                                                              pattern.
-:zeek:id:`split_string_all`: :zeek:type:`function`                            Splits a string into an array of strings according to a pattern.
-:zeek:id:`split_string_n`: :zeek:type:`function`                              Splits a string a given number of times into an array of strings according
-                                                                              to a pattern.
-:zeek:id:`str_shell_escape`: :zeek:type:`function` :zeek:attr:`&deprecated`   Takes a string and escapes characters that would allow execution of
-                                                                              commands at the shell level.
-:zeek:id:`str_smith_waterman`: :zeek:type:`function`                          Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
-:zeek:id:`str_split`: :zeek:type:`function`                                   Splits a string into substrings with the help of an index vector of cutting
-                                                                              points.
-:zeek:id:`strcmp`: :zeek:type:`function`                                      Lexicographically compares two strings.
-:zeek:id:`string_cat`: :zeek:type:`function`                                  Concatenates all arguments into a single string.
-:zeek:id:`string_fill`: :zeek:type:`function`                                 Generates a string of a given size and fills it with repetitions of a source
-                                                                              string.
-:zeek:id:`string_to_ascii_hex`: :zeek:type:`function`                         Returns an ASCII hexadecimal representation of a string.
-:zeek:id:`strip`: :zeek:type:`function`                                       Strips whitespace at both ends of a string.
-:zeek:id:`strstr`: :zeek:type:`function`                                      Locates the first occurrence of one string in another.
-:zeek:id:`sub`: :zeek:type:`function`                                         Substitutes a given replacement string for the first occurrence of a pattern
-                                                                              in a given string.
-:zeek:id:`sub_bytes`: :zeek:type:`function`                                   Get a substring from a string, given a starting position and length.
-:zeek:id:`subst_string`: :zeek:type:`function`                                Substitutes each (non-overlapping) appearance of a string in another.
-:zeek:id:`to_lower`: :zeek:type:`function`                                    Replaces all uppercase letters in a string with their lowercase counterpart.
-:zeek:id:`to_string_literal`: :zeek:type:`function`                           Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`to_upper`: :zeek:type:`function`                                    Replaces all lowercase letters in a string with their uppercase counterpart.
-============================================================================= ============================================================================
+=========================================================================== ============================================================================
+:zeek:id:`clean`: :zeek:type:`function`                                     Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`edit`: :zeek:type:`function`                                      Returns an edited version of a string that applies a special
+                                                                            "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
+:zeek:id:`escape_string`: :zeek:type:`function`                             Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`find_all`: :zeek:type:`function`                                  Finds all occurrences of a pattern in a string.
+:zeek:id:`find_last`: :zeek:type:`function`                                 Finds the last occurrence of a pattern in a string.
+:zeek:id:`gsub`: :zeek:type:`function`                                      Substitutes a given replacement string for all occurrences of a pattern
+                                                                            in a given string.
+:zeek:id:`hexdump`: :zeek:type:`function`                                   Returns a hex dump for given input data.
+:zeek:id:`is_ascii`: :zeek:type:`function`                                  Determines whether a given string contains only ASCII characters.
+:zeek:id:`join_string_vec`: :zeek:type:`function`                           Joins all values in the given vector of strings with a separator placed
+                                                                            between each element.
+:zeek:id:`levenshtein_distance`: :zeek:type:`function`                      Calculates the Levenshtein distance between the two strings.
+:zeek:id:`lstrip`: :zeek:type:`function`                                    Removes all combinations of characters in the *chars* argument
+                                                                            starting at the beginning of the string until first mismatch.
+:zeek:id:`reverse`: :zeek:type:`function`                                   Returns a reversed copy of the string
+:zeek:id:`rstrip`: :zeek:type:`function`                                    Removes all combinations of characters in the *chars* argument
+                                                                            starting at the end of the string until first mismatch.
+:zeek:id:`safe_shell_quote`: :zeek:type:`function`                          Takes a string and escapes characters that would allow execution of
+                                                                            commands at the shell level.
+:zeek:id:`split_string`: :zeek:type:`function`                              Splits a string into an array of strings according to a pattern.
+:zeek:id:`split_string1`: :zeek:type:`function`                             Splits a string *once* into a two-element array of strings according to a
+                                                                            pattern.
+:zeek:id:`split_string_all`: :zeek:type:`function`                          Splits a string into an array of strings according to a pattern.
+:zeek:id:`split_string_n`: :zeek:type:`function`                            Splits a string a given number of times into an array of strings according
+                                                                            to a pattern.
+:zeek:id:`str_shell_escape`: :zeek:type:`function` :zeek:attr:`&deprecated` Takes a string and escapes characters that would allow execution of
+                                                                            commands at the shell level.
+:zeek:id:`str_smith_waterman`: :zeek:type:`function`                        Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
+:zeek:id:`str_split`: :zeek:type:`function`                                 Splits a string into substrings with the help of an index vector of cutting
+                                                                            points.
+:zeek:id:`strcmp`: :zeek:type:`function`                                    Lexicographically compares two strings.
+:zeek:id:`string_cat`: :zeek:type:`function`                                Concatenates all arguments into a single string.
+:zeek:id:`string_fill`: :zeek:type:`function`                               Generates a string of a given size and fills it with repetitions of a source
+                                                                            string.
+:zeek:id:`string_to_ascii_hex`: :zeek:type:`function`                       Returns an ASCII hexadecimal representation of a string.
+:zeek:id:`strip`: :zeek:type:`function`                                     Strips whitespace at both ends of a string.
+:zeek:id:`strstr`: :zeek:type:`function`                                    Locates the first occurrence of one string in another.
+:zeek:id:`sub`: :zeek:type:`function`                                       Substitutes a given replacement string for the first occurrence of a pattern
+                                                                            in a given string.
+:zeek:id:`sub_bytes`: :zeek:type:`function`                                 Get a substring from a string, given a starting position and length.
+:zeek:id:`subst_string`: :zeek:type:`function`                              Substitutes each (non-overlapping) appearance of a string in another.
+:zeek:id:`to_lower`: :zeek:type:`function`                                  Replaces all uppercase letters in a string with their lowercase counterpart.
+:zeek:id:`to_string_literal`: :zeek:type:`function`                         Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`to_upper`: :zeek:type:`function`                                  Replaces all lowercase letters in a string with their uppercase counterpart.
+=========================================================================== ============================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
-.. zeek:id:: cat_string_array
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string_array`) : :zeek:type:`string`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Concatenates all elements in an array of strings.
-   
-
-   :a: The :zeek:type:`string_array` (``table[count] of string``).
-   
-
-   :returns: The concatenation of all elements in *a*.
-   
-   .. zeek:see:: cat cat_sep string_cat cat_string_array_n
-                fmt
-                join_string_vec join_string_array
-
-.. zeek:id:: cat_string_array_n
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string_array`, start: :zeek:type:`count`, end: :zeek:type:`count`) : :zeek:type:`string`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Concatenates a specific range of elements in an array of strings.
-   
-
-   :a: The :zeek:type:`string_array` (``table[count] of string``).
-   
-
-   :start: The array index of the first element of the range.
-   
-
-   :end: The array index of the last element of the range.
-   
-
-   :returns: The concatenation of the range *[start, end]* in *a*.
-   
-   .. zeek:see:: cat string_cat cat_string_array
-                fmt
-                join_string_vec join_string_array
-
 .. zeek:id:: clean
 
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`string`
@@ -276,28 +225,6 @@ Functions
    
    .. zeek:see:: to_upper to_lower
 
-.. zeek:id:: join_string_array
-
-   :Type: :zeek:type:`function` (sep: :zeek:type:`string`, a: :zeek:type:`string_array`) : :zeek:type:`string`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Joins all values in the given array of strings with a separator placed
-   between each element.
-   
-
-   :sep: The separator to place between each element.
-   
-
-   :a: The :zeek:type:`string_array` (``table[count] of string``).
-   
-
-   :returns: The concatenation of all elements in *a*, with *sep* placed
-            between each element.
-   
-   .. zeek:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
-                fmt
-                join_string_vec
-
 .. zeek:id:: join_string_vec
 
    :Type: :zeek:type:`function` (vec: :zeek:type:`string_vec`, sep: :zeek:type:`string`) : :zeek:type:`string`
@@ -315,9 +242,8 @@ Functions
    :returns: The concatenation of all elements in *vec*, with *sep* placed
             between each element.
    
-   .. zeek:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+   .. zeek:see:: cat cat_sep string_cat
                 fmt
-                join_string_array
 
 .. zeek:id:: levenshtein_distance
 
@@ -409,124 +335,6 @@ Functions
             the literal value of all input characters.
    
    .. zeek:see:: system safe_shell_quote
-
-.. zeek:id:: sort_string_array
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string_array`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Sorts an array of strings.
-   
-
-   :a: The :zeek:type:`string_array` (``table[count] of string``).
-   
-
-   :returns: A sorted copy of *a*.
-   
-   .. zeek:see:: sort
-
-.. zeek:id:: split
-
-   :Type: :zeek:type:`function` (str: :zeek:type:`string`, re: :zeek:type:`pattern`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Splits a string into an array of strings according to a pattern.
-   
-
-   :str: The string to split.
-   
-
-   :re: The pattern describing the element separator in *str*.
-   
-
-   :returns: An array of strings where each element corresponds to a substring
-            in *str* separated by *re*.
-   
-   .. zeek:see:: split1 split_all split_n str_split split_string1 split_string_all split_string_n str_split
-   
-   .. note:: The returned table starts at index 1. Note that conceptually the
-             return value is meant to be a vector and this might change in the
-             future.
-   
-
-.. zeek:id:: split1
-
-   :Type: :zeek:type:`function` (str: :zeek:type:`string`, re: :zeek:type:`pattern`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Splits a string *once* into a two-element array of strings according to a
-   pattern. This function is the same as :zeek:id:`split`, but *str* is only
-   split once (if possible) at the earliest position and an array of two strings
-   is returned.
-   
-
-   :str: The string to split.
-   
-
-   :re: The pattern describing the separator to split *str* in two pieces.
-   
-
-   :returns: An array of strings with two elements in which the first represents
-            the substring in *str* up to the first occurence of *re*, and the
-            second everything after *re*. An array of one string is returned
-            when *s* cannot be split.
-   
-   .. zeek:see:: split split_all split_n str_split split_string split_string_all split_string_n str_split
-
-.. zeek:id:: split_all
-
-   :Type: :zeek:type:`function` (str: :zeek:type:`string`, re: :zeek:type:`pattern`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Splits a string into an array of strings according to a pattern. This
-   function is the same as :zeek:id:`split`, except that the separators are
-   returned as well. For example, ``split_all("a-b--cd", /(\-)+/)`` returns
-   ``{"a", "-", "b", "--", "cd"}``: odd-indexed elements do not match the
-   pattern and even-indexed ones do.
-   
-
-   :str: The string to split.
-   
-
-   :re: The pattern describing the element separator in *str*.
-   
-
-   :returns: An array of strings where each two successive elements correspond
-            to a substring in *str* of the part not matching *re* (odd-indexed)
-            and the part that matches *re* (even-indexed).
-   
-   .. zeek:see:: split split1 split_n str_split split_string split_string1 split_string_n str_split
-
-.. zeek:id:: split_n
-
-   :Type: :zeek:type:`function` (str: :zeek:type:`string`, re: :zeek:type:`pattern`, incl_sep: :zeek:type:`bool`, max_num_sep: :zeek:type:`count`) : :zeek:type:`string_array`
-   :Attributes: :zeek:attr:`&deprecated`
-
-   Splits a string a given number of times into an array of strings according
-   to a pattern. This function is similar to :zeek:id:`split1` and
-   :zeek:id:`split_all`, but with customizable behavior with respect to
-   including separators in the result and the number of times to split.
-   
-
-   :str: The string to split.
-   
-
-   :re: The pattern describing the element separator in *str*.
-   
-
-   :incl_sep: A flag indicating whether to include the separator matches in the
-             result (as in :zeek:id:`split_all`).
-   
-
-   :max_num_sep: The number of times to split *str*.
-   
-
-   :returns: An array of strings where, if *incl_sep* is true, each two
-            successive elements correspond to a substring in *str* of the part
-            not matching *re* (odd-indexed) and the part that matches *re*
-            (even-indexed).
-   
-   .. zeek:see:: split split1 split_all str_split split_string split_string1 split_string_all str_split
 
 .. zeek:id:: split_string
 
@@ -679,7 +487,7 @@ Functions
 
    :returns: A vector of strings.
    
-   .. zeek:see:: split split1 split_all split_n
+   .. zeek:see:: split_string split_string1 split_string_all split_string_n
 
 .. zeek:id:: strcmp
 
@@ -707,9 +515,9 @@ Functions
 
    :returns: The concatenation of all (string) arguments.
    
-   .. zeek:see:: cat cat_sep cat_string_array cat_string_array_n
+   .. zeek:see:: cat cat_sep
                 fmt
-                join_string_vec join_string_array
+                join_string_vec
 
 .. zeek:id:: string_fill
 

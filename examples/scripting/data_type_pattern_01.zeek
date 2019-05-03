@@ -5,9 +5,9 @@ event zeek_init()
     
     if ( test_pattern in test_string )
         {
-        local results = split(test_string, test_pattern);
+        local results = split_string(test_string, test_pattern);
+        print results[0];
         print results[1];
         print results[2];
-        print results[3];
         }
     }

@@ -1054,9 +1054,9 @@ this case will return true if the string contains either the word
 ``quick`` or the word ``lazy``. The ``if`` statement in the script uses
 embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
-:zeek:id:`split` is called to break the string into separate pieces.
-``Split`` takes a string and a pattern as its arguments and returns a
-table of strings indexed by a count.  Each element of the table will
+:zeek:id:`split_string` is called to break the string into separate pieces.
+:zeek:id:`split_string` takes a string and a pattern as its arguments and returns a
+vector of strings.  Each element of the table will
 be the segments before and after any matches against the pattern but
 excluding the actual matches.  In this case, our pattern matches
 twice, and results in a table with three entries.  The ``print`` statements

@@ -64,12 +64,12 @@ General Porting Tips
 
 - Instead of using the ``send_id`` BIF, use :zeek:see:`Broker::publish_id`.
 
-- Use :zeek:see:`terminate` instead of :zeek:see:`terminate_communication`.
+- Use :zeek:see:`terminate` instead of ``terminate_communication``.
   The latter refers to the old communication system and no longer affects
   the new Broker-based system.
 
-- For replacing :zeek:see:`remote_connection_established` and
-  :zeek:see:`remote_connection_closed`, consider :zeek:see:`Broker::peer_added`
+- For replacing ``remote_connection_established`` and
+  ``remote_connection_closed``, consider :zeek:see:`Broker::peer_added`
   or :zeek:see:`Broker::peer_lost`.  There's also :zeek:see:`Cluster::node_up`
   and :zeek:see:`Cluster::node_down`.
 

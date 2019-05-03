@@ -20,89 +20,17 @@ Broker-Enabled Communication/Cluster Framework
 
     In summary, the Bro's Broker framework provides basic facilities for
     connecting broker-enabled peers (e.g. Bro instances) to each other
-    and exchanging messages (e.g. events and logs).  With this comes
-    changes in how clusters operate and, since Broker significantly
-    differs from the previous communication framework, there are several
-    changes in the set of scripts that Bro ships with that may break
-    your own customizations.  This document aims to describe the changes
-    that have been made, making it easier to port your own scripts.  It
-    also gives examples of Broker and the new cluster framework that
-    show off all the new features and capabilities.
+    and exchanging messages (e.g. events and logs).
 
-Porting Guide
-=============
-
-Review and use the points below as a guide to port your own scripts
-to the latest version of Bro, which uses the new cluster and Broker
-communication framework.
-
-General Porting Tips
---------------------
-
-- ``@load policy/frameworks/communication/listen`` and
-  ``@load base/frameworks/communication`` indicates use of the
-  old communication framework, consider porting to
-  ``@load base/frameworks/broker`` and using the Broker API:
-  :doc:`/scripts/base/frameworks/broker/main.zeek`
-
-- The ``&synchronized`` and ``&persistent`` attributes are deprecated,
-  consider using `Data Stores`_ instead.
-
-- Usages of the old communications system features are all deprecated,
-  however, they also do not work in the default Bro configuration unless
-  you manually take action to set up the old communication system.
-  To aid in porting, such usages will default to raising a fatal error
-  unless you explicitly acknowledge that such usages of the old system
-  are ok.  Set the :zeek:see:`old_comm_usage_is_ok` flag in this case.
-
-- Instead of using e.g. ``Cluster::manager2worker_events`` (and all
-  permutations for every node type), what you'd now use is either 
-  :zeek:see:`Broker::publish` or :zeek:see:`Broker::auto_publish` with
-  either the topic associated with a specific node or class of nodes,
-  like :zeek:see:`Cluster::node_topic` or
-  :zeek:see:`Cluster::worker_topic`.
-
-- Instead of using the ``send_id`` BIF, use :zeek:see:`Broker::publish_id`.
-
-- Use :zeek:see:`terminate` instead of ``terminate_communication``.
-  The latter refers to the old communication system and no longer affects
-  the new Broker-based system.
-
-- For replacing ``remote_connection_established`` and
-  ``remote_connection_closed``, consider :zeek:see:`Broker::peer_added`
-  or :zeek:see:`Broker::peer_lost`.  There's also :zeek:see:`Cluster::node_up`
-  and :zeek:see:`Cluster::node_down`.
-
-Notable / Specific Script API Changes
--------------------------------------
-
-- :zeek:see:`Software::tracked` is now partitioned among proxy nodes
-  instead of synchronized in its entirety to all nodes.
-
-- ``Known::known_hosts`` is renamed to :zeek:see:`Known::host_store` and
-  implemented via the new Broker data store interface.
-
-- ``Known::known_services`` is renamed to :zeek:see:`Known::service_store`
-  and implemented via the new Broker data store interface.
-
-- ``Known::certs`` is renamed to :zeek:see:`Known::cert_store`
-  and implemented via the new Broker data store interface.
-
-New Cluster Layout / API
-========================
+Cluster Layout / API
+====================
 
 Layout / Topology
 -----------------
 
-The cluster topology has changed.
-
-- Proxy nodes no longer connect with each other.
-
 - Each worker node connects to all proxies.
 
 - All node types connect to all logger nodes and the manager node.
-
-This looks like:
 
 .. figure:: broker/cluster-layout.png
 
@@ -616,3 +544,65 @@ to uniformly map an arbitrary key space across all available proxies.
                              cat("example_key", ++my_counter),
                              worker_to_proxies, Cluster::node);
         }
+
+Tips for Porting Bro 2.5 and earlier to Bro 2.6 and later
+=========================================================
+
+Review and use the points below as a guide to port your own scripts
+to the latest version of Bro, which uses the new cluster and Broker
+communication framework.
+
+General Porting Tips
+--------------------
+
+- ``@load policy/frameworks/communication/listen`` and
+  ``@load base/frameworks/communication`` indicates use of the
+  old communication framework, consider porting to
+  ``@load base/frameworks/broker`` and using the Broker API:
+  :doc:`/scripts/base/frameworks/broker/main.zeek`
+
+- The ``&synchronized`` and ``&persistent`` attributes are deprecated,
+  consider using `Data Stores`_ instead.
+
+- Usages of the old communications system features are all deprecated,
+  however, they also do not work in the default Bro configuration unless
+  you manually take action to set up the old communication system.
+  To aid in porting, such usages will default to raising a fatal error
+  unless you explicitly acknowledge that such usages of the old system
+  are ok.  Set the :zeek:see:`old_comm_usage_is_ok` flag in this case.
+
+- Instead of using e.g. ``Cluster::manager2worker_events`` (and all
+  permutations for every node type), what you'd now use is either
+  :zeek:see:`Broker::publish` or :zeek:see:`Broker::auto_publish` with
+  either the topic associated with a specific node or class of nodes,
+  like :zeek:see:`Cluster::node_topic` or
+  :zeek:see:`Cluster::worker_topic`.
+
+- Instead of using the ``send_id`` BIF, use :zeek:see:`Broker::publish_id`.
+
+- Use :zeek:see:`terminate` instead of ``terminate_communication``.
+  The latter refers to the old communication system and no longer affects
+  the new Broker-based system.
+
+- For replacing ``remote_connection_established`` and
+  ``remote_connection_closed``, consider :zeek:see:`Broker::peer_added`
+  or :zeek:see:`Broker::peer_lost`.  There's also :zeek:see:`Cluster::node_up`
+  and :zeek:see:`Cluster::node_down`.
+
+- The general toplogogy of a cluster has changed: namely proxy nodes do not
+  connect to each other anymore.
+
+Notable / Specific Script API Changes
+-------------------------------------
+
+- :zeek:see:`Software::tracked` is now partitioned among proxy nodes
+  instead of synchronized in its entirety to all nodes.
+
+- ``Known::known_hosts`` is renamed to :zeek:see:`Known::host_store` and
+  implemented via the new Broker data store interface.
+
+- ``Known::known_services`` is renamed to :zeek:see:`Known::service_store`
+  and implemented via the new Broker data store interface.
+
+- ``Known::certs`` is renamed to :zeek:see:`Known::cert_store`
+  and implemented via the new Broker data store interface.

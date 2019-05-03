@@ -14,7 +14,7 @@
 #include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
-#include "zeexygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -680,7 +680,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 				if ( is_type )
 					d->Add(type_name(t));
 				else
-					d->Add(zeexygen_mgr->GetEnumTypeName(Name()).c_str());
+					d->Add(zeekygen_mgr->GetEnumTypeName(Name()).c_str());
 				break;
 
 			default:

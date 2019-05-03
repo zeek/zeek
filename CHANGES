@@ -1,4 +1,8 @@
 
+2.6-262 | 2019-05-02 21:39:01 -0700
+
+  * Rename Zeexygen to Zeekygen (Jon Siwek, Corelight)
+
 2.6-261 | 2019-05-02 20:49:23 -0700
 
   * Remove previously deprecated policy/protocols/smb/__load__ (Jon Siwek, Corelight)

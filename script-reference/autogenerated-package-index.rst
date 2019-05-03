@@ -304,6 +304,3 @@
    Sets various defaults, and prints warning messages to stdout under
    certain conditions.
 
-:doc:`policy/protocols/smb </scripts/policy/protocols/smb/index>`
-
-

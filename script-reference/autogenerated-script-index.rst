@@ -470,5 +470,4 @@
    policy/frameworks/control/controller.zeek </scripts/policy/frameworks/control/controller.zeek>
    policy/frameworks/files/extract-all-files.zeek </scripts/policy/frameworks/files/extract-all-files.zeek>
    policy/misc/dump-events.zeek </scripts/policy/misc/dump-events.zeek>
-   policy/protocols/smb/__load__.zeek </scripts/policy/protocols/smb/__load__.zeek>
    zeexygen/example.zeek </scripts/zeexygen/example.zeek>

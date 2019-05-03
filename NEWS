@@ -80,10 +80,13 @@ Changed Functionality
 ---------------------
 
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
-  ``local.zeek``.  If you have made customizations to that file, it
-  will no longer be loaded by default by BroControl (ZeekControl),
-  but you can simply copy it to ``local.zeek`.  You may also want to
-  remove old ``local.bro`` files to avoid potential confusion.
+  ``local.zeek``.  If you have a ``local.bro`` file from a previous
+  installation, possibly with customizations made to it, the new
+  version of Zeek will install a ``local.zeek`` file that is a symlink
+  to the pre-existing ``local.bro``.  In that case, you may want to
+  just copy ``local.bro`` into the new ``local.zeek`` location to
+  avoid confusion, but things are otherwise meant to work properly
+  without intervention.
 
 - All scripts ending in ``.bro`` that ship with the Zeek source tree have
   been renamed to ``.zeek``.

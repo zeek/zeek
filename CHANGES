@@ -1,4 +1,8 @@
 
+2.6-264 | 2019-05-03 11:16:38 -0700
+
+  * Fix sporadic openflow/broker test failure (Jon Siwek, Corelight)
+
 2.6-263 | 2019-05-02 22:49:40 -0700
 
   * Install local.zeek as symlink to pre-existing local.bro (Jon Siwek, Corelight)

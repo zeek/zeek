@@ -1,4 +1,8 @@
 
+2.6-260 | 2019-05-02 19:16:48 -0700
+
+  * GH-243: Remove deprecated functions/events from 2.6 and earlier (Johanna Amann, Corelight)
+
 2.6-258 | 2019-05-02 12:26:54 -0700
 
   * GH-340: Improve IPv4/IPv6 regexes, extraction, and validity functions.

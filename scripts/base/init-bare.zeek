@@ -775,26 +775,20 @@ type IPAddrAnonymizationClass: enum {
 	OTHER_ADDR,
 };
 
-## A locally unique ID identifying a communication peer. The ID is returned by
-## :zeek:id:`connect`.
+## A locally unique ID identifying a communication peer.
 ##
-## .. zeek:see:: connect
 type peer_id: count;
 
 ## A communication peer.
 ##
-## .. zeek:see:: complete_handshake disconnect finished_send_state
-##    get_event_peer get_local_event_peer remote_capture_filter
+## .. zeek:see:: remote_capture_filter
 ##    remote_connection_closed remote_connection_error
 ##    remote_connection_established remote_connection_handshake_done
 ##    remote_event_registered remote_log_peer remote_pong
-##    request_remote_events request_remote_logs request_remote_sync
-##    send_capture_filter send_current_packet send_id send_ping send_state
-##    set_accept_state set_compression_level
 ##
 ## .. todo::The type's name is too narrow these days, should rename.
 type event_peer: record {
-	id: peer_id;	##< Locally unique ID of peer (returned by :zeek:id:`connect`).
+	id: peer_id;	##< Locally unique ID of peer
 	host: addr;	##< The IP address of the peer.
 	## Either the port we connected to at the peer; or our port the peer
 	## connected to if the session is remotely initiated.

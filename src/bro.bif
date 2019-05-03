@@ -1512,7 +1512,7 @@ function cat%(...%): string
 ## Returns: A concatenation of all arguments with *sep* between each one and
 ##          empty strings replaced with *def*.
 ##
-## .. zeek:see:: cat string_cat cat_string_array cat_string_array_n
+## .. zeek:see:: cat string_cat
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -1579,7 +1579,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##          number of additional arguments for the given format specifier,
 ##          :zeek:id:`fmt` generates a run-time error.
 ##
-## .. zeek:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+## .. zeek:see:: cat cat_sep string_cat
 function fmt%(...%): string
 	%{
 	if ( @ARGC@ == 0 )
@@ -2852,29 +2852,6 @@ function encode_base64%(s: string, a: string &default=""%): string
 		}
 	%}
 
-
-## Encodes a Base64-encoded string with a custom alphabet.
-##
-## s: The string to encode.
-##
-## a: The custom alphabet. The string must consist of 64 unique
-##    characters. The empty string indicates the default alphabet.
-##
-## Returns: The encoded version of *s*.
-##
-## .. zeek:see:: encode_base64
-function encode_base64_custom%(s: string, a: string%): string &deprecated
-	%{
-	BroString* t = encode_base64(s->AsString(), a->AsString());
-	if ( t )
-		return new StringVal(t);
-	else
-		{
-		reporter->Error("error in encoding string %s", s->CheckString());
-		return val_mgr->GetEmptyString();
-		}
-	%}
-
 ## Decodes a Base64-encoded string.
 ##
 ## s: The Base64-encoded string.
@@ -2930,28 +2907,6 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		}
 	%}
 
-## Decodes a Base64-encoded string with a custom alphabet.
-##
-## s: The Base64-encoded string.
-##
-## a: The custom alphabet. The string must consist of 64 unique characters.
-##    The empty string indicates the default alphabet.
-##
-## Returns: The decoded version of *s*.
-##
-## .. zeek:see:: decode_base64 decode_base64_conn
-function decode_base64_custom%(s: string, a: string%): string &deprecated
-	%{
-	BroString* t = decode_base64(s->AsString(), a->AsString());
-	if ( t )
-		return new StringVal(t);
-	else
-		{
-		reporter->Error("error in decoding string %s", s->CheckString());
-		return val_mgr->GetEmptyString();
-		}
-	%}
-
 %%{
 typedef struct {
 	uint32 time_low;
@@ -2995,29 +2950,6 @@ function uuid_to_string%(uuid: string%): string
 	return new StringVal(s);
 	%}
 
-## Merges and compiles two regular expressions at initialization time.
-##
-## p1: The first pattern.
-##
-## p2: The second pattern.
-##
-## Returns: The compiled pattern of the concatenation of *p1* and *p2*.
-##
-## .. zeek:see:: convert_for_pattern string_to_pattern
-##
-## .. note::
-##
-##      This function must be called at Zeek startup time, e.g., in the event
-##      :zeek:id:`zeek_init`.
-function merge_pattern%(p1: pattern, p2: pattern%): pattern &deprecated
-	%{
-	RE_Matcher* re = new RE_Matcher();
-	re->AddPat(p1->PatternText());
-	re->AddPat(p2->PatternText());
-	re->Compile();
-	return new PatternVal(re);
-	%}
-
 %%{
 char* to_pat_str(int sn, const char* ss)
 	{
@@ -3050,7 +2982,7 @@ char* to_pat_str(int sn, const char* ss)
 ## Returns: An escaped version of *s* that has the structure of a valid
 ##          :zeek:type:`pattern`.
 ##
-## .. zeek:see:: merge_pattern string_to_pattern
+## .. zeek:see:: string_to_pattern
 ##
 function convert_for_pattern%(s: string%): string
 	%{
@@ -3070,7 +3002,7 @@ function convert_for_pattern%(s: string%): string
 ##
 ## Returns: *s* as :zeek:type:`pattern`.
 ##
-## .. zeek:see:: convert_for_pattern merge_pattern
+## .. zeek:see:: convert_for_pattern
 ##
 ## .. note::
 ##
@@ -3374,7 +3306,7 @@ const char* conn_id_string(Val* c)
 ##
 ## Returns: True on success.
 ##
-## .. zeek:see:: dump_packet get_current_packet send_current_packet
+## .. zeek:see:: dump_packet get_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
@@ -3405,7 +3337,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## Returns: The currently processed packet, which is a record
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
-## .. zeek:see:: dump_current_packet dump_packet send_current_packet
+## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p;
@@ -3461,7 +3393,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ##
 ## Returns: True on success
 ##
-## .. zeek:see:: get_current_packet dump_current_packet send_current_packet
+## .. zeek:see:: get_current_packet dump_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
@@ -4953,56 +4885,6 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 	return val_mgr->GetBool(sessions->GetPacketFilter()->RemoveDst(snet));
 	%}
 
-# ===========================================================================
-#
-#                                Communication
-#
-# ===========================================================================
-
-## Enables the communication system. By default, the communication is off until
-## explicitly enabled, and all other calls to communication-related functions
-## will be ignored until done so.
-function enable_communication%(%): any &deprecated
-	%{
-	if ( bro_start_network_time != 0.0 )
-		{
-		builtin_error("communication must be enabled in zeek_init");
-		return 0;
-		}
-
-	if ( using_communication )
-		// Ignore duplicate calls.
-		return 0;
-
-	using_communication = 1;
-	remote_serializer->Enable();
-	return 0;
-	%}
-
-## Flushes in-memory state tagged with the :zeek:attr:`&persistent` attribute
-## to disk. The function writes the state to the file ``.state/state.bst`` in
-## the directory where Bro was started.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: rescan_state
-function checkpoint_state%(%) : bool
-	%{
-	return val_mgr->GetBool(persistence_serializer->WriteState(true));
-	%}
-
-## Reads persistent state and populates the in-memory data structures
-## accordingly. Persistent state is read from the ``.state`` directory.
-## This function is the dual to :zeek:id:`checkpoint_state`.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: checkpoint_state
-function rescan_state%(%) : bool
-	%{
-	return val_mgr->GetBool(persistence_serializer->ReadAll(false, true));
-	%}
-
 ## Writes the binary event stream generated by the core to a given file.
 ## Use the ``-x <filename>`` command line switch to replay saved events.
 ##
@@ -5041,165 +4923,6 @@ function capture_state_updates%(filename: string%) : bool
 		(const char*) filename->CheckString()));
 	%}
 
-## Establishes a connection to a remote Bro or Broccoli instance.
-##
-## ip: The IP address of the remote peer.
-##
-## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
-##          ``zone_id`` can given here.  An empty string, ``""``, means
-##          not to add any ``zone_id``.
-##
-## p: The port of the remote peer.
-##
-## our_class: If a non-empty string, then the remote (listening) peer checks it
-##            against its class name in its peer table and terminates the
-##            connection if they don't match.
-##
-## retry: If the connection fails, try to reconnect with the peer after this
-##        time interval.
-##
-## ssl: If true, use SSL to encrypt the session.
-##
-## Returns: A locally unique ID of the new peer.
-##
-## .. zeek:see:: disconnect
-##              listen
-##              request_remote_events
-##              request_remote_sync
-##              request_remote_logs
-##              request_remote_events
-##              set_accept_state
-##              set_compression_level
-##              send_state
-##              send_id
-function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: interval, ssl: bool%) : count &deprecated
-	%{
-	return val_mgr->GetCount(uint32(remote_serializer->Connect(ip->AsAddr(),
-	               zone_id->CheckString(), p->Port(), our_class->CheckString(),
-	               retry, ssl)));
-	%}
-
-## Terminate the connection with a peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: connect listen
-function disconnect%(p: event_peer%) : bool &deprecated
-    %{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->CloseConnection(id));
-	%}
-
-## Subscribes to all events from a remote peer whose names match a given
-## pattern.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## handlers: The pattern describing the events to request from peer *p*.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: request_remote_sync
-##              request_remote_logs
-##              set_accept_state
-function request_remote_events%(p: event_peer, handlers: pattern%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->RequestEvents(id, handlers));
-	%}
-
-## Requests synchronization of IDs with a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## auth: If true, the local instance considers its current state authoritative
-##       and sends it to *p* right after the handshake.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: request_remote_events
-##              request_remote_logs
-##              set_accept_state
-function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->RequestSync(id, auth));
-	%}
-
-## Requests logs from a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: request_remote_events
-##              request_remote_sync
-function request_remote_logs%(p: event_peer%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->RequestLogs(id));
-	%}
-
-## Sets a boolean flag indicating whether Bro accepts state from a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## accept: True if Bro accepts state from peer *p*, or false otherwise.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: request_remote_events
-##              request_remote_sync
-##              set_compression_level
-function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->SetAcceptState(id, accept));
-	%}
-
-## Sets the compression level of the session with a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## level: Allowed values are in the range *[0, 9]*, where 0 is the default and
-##        means no compression.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: set_accept_state
-function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->SetCompressionLevel(id, level));
-	%}
-
-## Listens on a given IP address and port for remote connections.
-##
-## ip: The IP address to bind to.
-##
-## p: The TCP port to listen on.
-##
-## ssl: If true, Bro uses SSL to encrypt the session.
-##
-## ipv6: If true, enable listening on IPv6 addresses.
-##
-## zone_id: If *ip* is a non-global IPv6 address, a particular :rfc:`4007`
-##          ``zone_id`` can given here.  An empty string, ``""``, means
-##          not to add any ``zone_id``.
-##
-## retry_interval: If address *ip* is found to be already in use, this is
-##                 the interval at which to automatically retry binding.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: connect disconnect
-function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool &deprecated
-	%{
-	return val_mgr->GetBool(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval));
-	%}
-
 ## Checks whether the last raised event came from a remote peer.
 ##
 ## Returns: True if the last raised event came from a remote peer.
@@ -5208,179 +4931,11 @@ function is_remote_event%(%) : bool
 	return val_mgr->GetBool(mgr.CurrentSource() != SOURCE_LOCAL);
 	%}
 
-## Sends all persistent state to a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: send_id send_ping send_current_packet send_capture_filter
-function send_state%(p: event_peer%) : bool
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(persistence_serializer->SendState(id, true));
-	%}
-
-## Sends a global identifier to a remote peer, which then might install it
-## locally.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## id: The identifier to send.
-##
-## Returns: True on success.
-##
-## .. zeek:see:: send_state send_ping send_current_packet send_capture_filter
-function send_id%(p: event_peer, id: string%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
-
-	ID* i = global_scope()->Lookup(id->CheckString());
-	if ( ! i )
-		{
-		reporter->Error("send_id: no global id %s", id->CheckString());
-		return val_mgr->GetBool(0);
-		}
-
-	SerialInfo info(remote_serializer);
-	return val_mgr->GetBool(remote_serializer->SendID(&info, pid, *i));
-	%}
-
-## Gracefully finishes communication by first making sure that all remaining
-## data from parent and child has been sent out.
-##
-## Returns: True if the termination process has been started successfully.
-function terminate_communication%(%) : bool &deprecated
-	%{
-	return val_mgr->GetBool(remote_serializer->Terminate());
-	%}
-
-## Signals a remote peer that the local Bro instance finished the initial
-## handshake.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## Returns: True on success.
-function complete_handshake%(p: event_peer%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->CompleteHandshake(id));
-	%}
-
-## Sends a ping event to a remote peer. In combination with an event handler
-## for :zeek:id:`remote_pong`, this function can be used to measure latency
-## between two peers.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## seq: A sequence number (also included by :zeek:id:`remote_pong`).
-##
-## Returns: True if sending the ping succeeds.
-##
-## .. zeek:see:: send_state send_id send_current_packet send_capture_filter
-function send_ping%(p: event_peer, seq: count%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->SendPing(id, seq));
-	%}
-
-## Sends the currently processed packet to a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## Returns: True if sending the packet succeeds.
-##
-## .. zeek:see:: send_id send_state send_ping send_capture_filter
-##              dump_packet dump_current_packet get_current_packet
-function send_current_packet%(p: event_peer%) : bool &deprecated
-	%{
-	const Packet* pkt;
-
-	if ( ! current_pktsrc ||
-	     ! current_pktsrc->GetCurrentPacket(&pkt) )
-		return val_mgr->GetBool(0);
-
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-
-	SerialInfo info(remote_serializer);
-	return val_mgr->GetBool(remote_serializer->SendPacket(&info, id, *pkt));
-	%}
-
-## Returns the peer who generated the last event.
-##
-## Note, this function is deprecated. It works correctly only for local events and
-## events received through the legacy communication system. It does *not* work for
-## events received through Broker and will report an error in that case.
-##
-## Returns: The ID of the peer who generated the last event.
-##
-## .. zeek:see:: get_local_event_peer
-function get_event_peer%(%) : event_peer &deprecated
-	%{
-	SourceID src = mgr.CurrentSource();
-
-	if ( src == SOURCE_LOCAL )
-		{
-		RecordVal* p = mgr.GetLocalPeerVal();
-		Ref(p);
-		return p;
-		}
-
-	if ( src == SOURCE_BROKER )
-		{
-		reporter->Error("get_event_peer() does not support Broker events");
-		RecordVal* p = mgr.GetLocalPeerVal();
-		Ref(p);
-		return p;
-		}
-
-	if ( ! remote_serializer )
-		reporter->InternalError("remote_serializer not initialized");
-
-	Val* v = remote_serializer->GetPeerVal(src);
-	if ( ! v )
-		{
-		reporter->Error("peer %d does not exist anymore", int(src));
-		RecordVal* p = mgr.GetLocalPeerVal();
-		Ref(p);
-		return p;
-		}
-
-	return v;
-	%}
-
-## Returns the local peer ID.
-##
-## Returns: The peer ID of the local Bro instance.
-##
-## .. zeek:see:: get_event_peer
-function get_local_event_peer%(%) : event_peer &deprecated
-	%{
-	RecordVal* p = mgr.GetLocalPeerVal();
-	Ref(p);
-	return p;
-	%}
-
-## Sends a capture filter to a remote peer.
-##
-## p: The peer ID returned from :zeek:id:`connect`.
-##
-## s: The capture filter.
-##
-## Returns: True if sending the packet succeeds.
-##
-## .. zeek:see:: send_id send_state send_ping send_current_packet
-function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
-	%{
-	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
-	return val_mgr->GetBool(remote_serializer->SendCaptureFilter(id, s->CheckString()));
-	%}
-
 ## Stops Bro's packet processing. This function is used to synchronize
 ## distributed trace processing with communication enabled
 ## (*pseudo-realtime* mode).
 ##
-## .. zeek:see:: continue_processing suspend_state_updates resume_state_updates
+## .. zeek:see:: continue_processing
 function suspend_processing%(%) : any
 	%{
 	net_suspend_processing();
@@ -5389,30 +4944,10 @@ function suspend_processing%(%) : any
 
 ## Resumes Bro's packet processing.
 ##
-## .. zeek:see:: suspend_processing suspend_state_updates resume_state_updates
+## .. zeek:see:: suspend_processing
 function continue_processing%(%) : any
 	%{
 	net_continue_processing();
-	return 0;
-	%}
-
-## Stops propagating :zeek:attr:`&synchronized` accesses.
-##
-## .. zeek:see:: suspend_processing continue_processing resume_state_updates
-function suspend_state_updates%(%) : any &deprecated
-	%{
-	if ( remote_serializer )
-		remote_serializer->SuspendStateUpdates();
-	return 0;
-	%}
-
-## Resumes propagating :zeek:attr:`&synchronized` accesses.
-##
-## .. zeek:see:: suspend_processing continue_processing suspend_state_updates
-function resume_state_updates%(%) : any &deprecated
-	%{
-	if ( remote_serializer )
-		remote_serializer->ResumeStateUpdates();
 	return 0;
 	%}
 

@@ -320,10 +320,6 @@ refine connection Handshake_Conn += {
 		if ( ${kex.curve_type} != NAMED_CURVE )
 			return true;
 
-		if ( ssl_server_curve )
-			BifEvent::generate_ssl_server_curve(bro_analyzer(),
-				bro_analyzer()->Conn(), ${kex.params.curve});
-
 		if ( ssl_ecdh_server_params )
 			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
 				bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
@@ -354,10 +350,6 @@ refine connection Handshake_Conn += {
 		%{
 		if ( ${kex.curve_type} != NAMED_CURVE )
 			return true;
-
-		if ( ssl_server_curve )
-			BifEvent::generate_ssl_server_curve(bro_analyzer(),
-				bro_analyzer()->Conn(), ${kex.params.curve});
 
 		if ( ssl_ecdh_server_params )
 			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),

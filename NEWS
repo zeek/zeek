@@ -190,10 +190,63 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- A number of functions that were deprecated in version 2.6 or below and completely
+  removed from this release. Most of the functions were used for the old communication
+  code.
+
+    - ``find_ip_addresses``
+    - ``cat_string_array``
+    - ``cat_string_array_n``
+    - ``complete_handshake``
+    - ``connect``
+    - ``decode_base64_custom``
+    - ``disconnect``
+    - ``enable_communication``
+    - ``encode_base64_custom``
+    - ``get_event_peer``
+    - ``get_local_event_peer``
+    - ``join_string_array``
+    - ``listen``
+    - ``merge_pattern``
+    - ``request_remote_events``
+    - ``request_remote_logs``
+    - ``request_remote_sync``
+    - ``resume_state_updates``
+    - ``send_capture_filter``
+    - ``send_current_packet``
+    - ``send_id``
+    - ``send_ping``
+    - ``set_accept_state``
+    - ``set_compression_level``
+    - ``sort_string_array``
+    - ``split1``
+    - ``split_all``
+    - ``split``
+    - ``suspend_state_updates``
+    - ``terminate_communication``
+    - ``split``
+    - ``send_state``
+    - ``checkpoint_state``
+    - ``rescan_state``
+
+- The following events were deprecated in version 2.6 or below and are completely
+  removed from this release:
+
+    - ``ssl_server_curve``
+    - ``dhcp_ack``
+    - ``dhcp_decline``
+    - ``dhcp_discover``
+    - ``dhcp_inform``
+    - ``dhcp_nak``
+    - ``dhcp_offer``
+    - ``dhcp_release``
+    - ``dhcp_request``
+    - ``finished_send_state``
+
 Deprecated Functionality
 ------------------------
 
-- The ``str_shell_escape` function is now deprecated, use ``safe_shell_quote``
+- The ``str_shell_escape`` function is now deprecated, use ``safe_shell_quote``
   instead.  The later will automatically return a value that is enclosed
   in double-quotes.
 

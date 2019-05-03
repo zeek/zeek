@@ -482,7 +482,7 @@ Documenting Plugins
 
 .. todo::
 
-    Integrate all this with Zeexygen.
+    Integrate all this with Zeekygen.
 
 
 

@@ -736,9 +736,9 @@ Types
          (present if :doc:`/scripts/policy/protocols/ssl/known-certs.zeek` is loaded)
 
 
-      .. zeek:enum:: ZeexygenExample::LOG Log::ID
+      .. zeek:enum:: ZeekygenExample::LOG Log::ID
 
-         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
+         (present if :doc:`/scripts/zeekygen/example.zeek` is loaded)
 
 
    Type that defines an ID unique to each log stream. Scripts creating new

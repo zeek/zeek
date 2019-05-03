@@ -50,7 +50,7 @@
    base/utils/patterns.zeek </scripts/base/utils/patterns.zeek>
    base/frameworks/files/magic/__load__.zeek </scripts/base/frameworks/files/magic/__load__.zeek>
    base/bif/__load__.zeek </scripts/base/bif/__load__.zeek>
-   base/bif/zeexygen.bif.zeek </scripts/base/bif/zeexygen.bif.zeek>
+   base/bif/zeekygen.bif.zeek </scripts/base/bif/zeekygen.bif.zeek>
    base/bif/pcap.bif.zeek </scripts/base/bif/pcap.bif.zeek>
    base/bif/bloom-filter.bif.zeek </scripts/base/bif/bloom-filter.bif.zeek>
    base/bif/cardinality-counter.bif.zeek </scripts/base/bif/cardinality-counter.bif.zeek>
@@ -368,7 +368,7 @@
    base/misc/find-checksum-offloading.zeek </scripts/base/misc/find-checksum-offloading.zeek>
    base/misc/find-filtered-trace.zeek </scripts/base/misc/find-filtered-trace.zeek>
    base/misc/version.zeek </scripts/base/misc/version.zeek>
-   zeexygen/__load__.zeek </scripts/zeexygen/__load__.zeek>
+   zeekygen/__load__.zeek </scripts/zeekygen/__load__.zeek>
    test-all-policy.zeek </scripts/test-all-policy.zeek>
    policy/frameworks/dpd/detect-protocols.zeek </scripts/policy/frameworks/dpd/detect-protocols.zeek>
    policy/frameworks/dpd/packet-segment-logging.zeek </scripts/policy/frameworks/dpd/packet-segment-logging.zeek>
@@ -470,4 +470,4 @@
    policy/frameworks/control/controller.zeek </scripts/policy/frameworks/control/controller.zeek>
    policy/frameworks/files/extract-all-files.zeek </scripts/policy/frameworks/files/extract-all-files.zeek>
    policy/misc/dump-events.zeek </scripts/policy/misc/dump-events.zeek>
-   zeexygen/example.zeek </scripts/zeexygen/example.zeek>
+   zeekygen/example.zeek </scripts/zeekygen/example.zeek>

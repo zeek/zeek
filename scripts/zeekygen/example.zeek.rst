@@ -1,10 +1,10 @@
 :tocdepth: 3
 
-zeexygen/example.zeek
+zeekygen/example.zeek
 =====================
-.. zeek:namespace:: ZeexygenExample
+.. zeek:namespace:: ZeekygenExample
 
-This is an example script that demonstrates Zeexygen-style
+This is an example script that demonstrates Zeekygen-style
 documentation.  It generally will make most sense when viewing
 the script's raw source code and comparing to the HTML-rendered
 version.
@@ -19,14 +19,14 @@ purpose.  They are transferred directly in to the generated
 There's also a custom role to reference any identifier node in
 the Zeek Sphinx domain that's good for "see alsos", e.g.
 
-See also: :zeek:see:`ZeexygenExample::a_var`,
-:zeek:see:`ZeexygenExample::ONE`, :zeek:see:`SSH::Info`
+See also: :zeek:see:`ZeekygenExample::a_var`,
+:zeek:see:`ZeekygenExample::ONE`, :zeek:see:`SSH::Info`
 
 And a custom directive does the equivalent references:
 
-.. zeek:see:: ZeexygenExample::a_var ZeexygenExample::ONE SSH::Info
+.. zeek:see:: ZeekygenExample::a_var ZeekygenExample::ONE SSH::Info
 
-:Namespace: ZeexygenExample
+:Namespace: ZeekygenExample
 :Imports: :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`, :doc:`base/protocols/http </scripts/base/protocols/http/index>`, :doc:`policy/frameworks/software/vulnerable.zeek </scripts/policy/frameworks/software/vulnerable.zeek>`
 
 Summary
@@ -34,25 +34,25 @@ Summary
 Redefinable Options
 ###################
 ======================================================================================= =======================================================
-:zeek:id:`ZeexygenExample::an_option`: :zeek:type:`set` :zeek:attr:`&redef`             Add documentation for "an_option" here.
-:zeek:id:`ZeexygenExample::option_with_init`: :zeek:type:`interval` :zeek:attr:`&redef` Default initialization will be generated automatically.
+:zeek:id:`ZeekygenExample::an_option`: :zeek:type:`set` :zeek:attr:`&redef`             Add documentation for "an_option" here.
+:zeek:id:`ZeekygenExample::option_with_init`: :zeek:type:`interval` :zeek:attr:`&redef` Default initialization will be generated automatically.
 ======================================================================================= =======================================================
 
 State Variables
 ###############
 ========================================================================== ========================================================================
-:zeek:id:`ZeexygenExample::a_var`: :zeek:type:`bool`                       Put some documentation for "a_var" here.
-:zeek:id:`ZeexygenExample::summary_test`: :zeek:type:`string`              The first sentence for a particular identifier's summary text ends here.
-:zeek:id:`ZeexygenExample::var_without_explicit_type`: :zeek:type:`string` Types are inferred, that information is self-documenting.
+:zeek:id:`ZeekygenExample::a_var`: :zeek:type:`bool`                       Put some documentation for "a_var" here.
+:zeek:id:`ZeekygenExample::summary_test`: :zeek:type:`string`              The first sentence for a particular identifier's summary text ends here.
+:zeek:id:`ZeekygenExample::var_without_explicit_type`: :zeek:type:`string` Types are inferred, that information is self-documenting.
 ========================================================================== ========================================================================
 
 Types
 #####
 ==================================================================================== ===========================================================
-:zeek:type:`ZeexygenExample::ComplexRecord`: :zeek:type:`record` :zeek:attr:`&redef` General documentation for a type "ComplexRecord" goes here.
-:zeek:type:`ZeexygenExample::Info`: :zeek:type:`record`                              An example record to be used with a logging stream.
-:zeek:type:`ZeexygenExample::SimpleEnum`: :zeek:type:`enum`                          Documentation for the "SimpleEnum" type goes here.
-:zeek:type:`ZeexygenExample::SimpleRecord`: :zeek:type:`record`                      General documentation for a type "SimpleRecord" goes here.
+:zeek:type:`ZeekygenExample::ComplexRecord`: :zeek:type:`record` :zeek:attr:`&redef` General documentation for a type "ComplexRecord" goes here.
+:zeek:type:`ZeekygenExample::Info`: :zeek:type:`record`                              An example record to be used with a logging stream.
+:zeek:type:`ZeekygenExample::SimpleEnum`: :zeek:type:`enum`                          Documentation for the "SimpleEnum" type goes here.
+:zeek:type:`ZeekygenExample::SimpleRecord`: :zeek:type:`record`                      General documentation for a type "SimpleRecord" goes here.
 ==================================================================================== ===========================================================
 
 Redefinitions
@@ -60,21 +60,21 @@ Redefinitions
 =============================================================== ====================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`                         
 :zeek:type:`Notice::Type`: :zeek:type:`enum`                    
-:zeek:type:`ZeexygenExample::SimpleEnum`: :zeek:type:`enum`     Document the "SimpleEnum" redef here with any special info regarding
+:zeek:type:`ZeekygenExample::SimpleEnum`: :zeek:type:`enum`     Document the "SimpleEnum" redef here with any special info regarding
                                                                 the *redef* itself.
-:zeek:type:`ZeexygenExample::SimpleRecord`: :zeek:type:`record` Document the record extension *redef* itself here.
+:zeek:type:`ZeekygenExample::SimpleRecord`: :zeek:type:`record` Document the record extension *redef* itself here.
 =============================================================== ====================================================================
 
 Events
 ######
 ======================================================== ==========================
-:zeek:id:`ZeexygenExample::an_event`: :zeek:type:`event` Summarize "an_event" here.
+:zeek:id:`ZeekygenExample::an_event`: :zeek:type:`event` Summarize "an_event" here.
 ======================================================== ==========================
 
 Functions
 #########
 ============================================================= =======================================
-:zeek:id:`ZeexygenExample::a_function`: :zeek:type:`function` Summarize purpose of "a_function" here.
+:zeek:id:`ZeekygenExample::a_function`: :zeek:type:`function` Summarize purpose of "a_function" here.
 ============================================================= =======================================
 
 
@@ -82,7 +82,7 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
-.. zeek:id:: ZeexygenExample::an_option
+.. zeek:id:: ZeekygenExample::an_option
 
    :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`addr`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -91,7 +91,7 @@ Redefinable Options
    Add documentation for "an_option" here.
    The type/attribute information is all generated automatically.
 
-.. zeek:id:: ZeexygenExample::option_with_init
+.. zeek:id:: ZeekygenExample::option_with_init
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -102,7 +102,7 @@ Redefinable Options
 
 State Variables
 ###############
-.. zeek:id:: ZeexygenExample::a_var
+.. zeek:id:: ZeekygenExample::a_var
 
    :Type: :zeek:type:`bool`
 
@@ -110,7 +110,7 @@ State Variables
    isn't a function/event/hook is classified as a "state variable"
    in the generated docs.
 
-.. zeek:id:: ZeexygenExample::summary_test
+.. zeek:id:: ZeekygenExample::summary_test
 
    :Type: :zeek:type:`string`
 
@@ -118,7 +118,7 @@ State Variables
    And this second sentence doesn't show in the short description provided
    by the table of all identifiers declared by this script.
 
-.. zeek:id:: ZeexygenExample::var_without_explicit_type
+.. zeek:id:: ZeekygenExample::var_without_explicit_type
 
    :Type: :zeek:type:`string`
    :Default: ``"this works"``
@@ -127,7 +127,7 @@ State Variables
 
 Types
 #####
-.. zeek:type:: ZeexygenExample::ComplexRecord
+.. zeek:type:: ZeekygenExample::ComplexRecord
 
    :Type: :zeek:type:`record`
 
@@ -137,8 +137,8 @@ Types
       field2: :zeek:type:`bool`
          Toggles something.
 
-      field3: :zeek:type:`ZeexygenExample::SimpleRecord`
-         Zeexygen automatically tracks types
+      field3: :zeek:type:`ZeekygenExample::SimpleRecord`
+         Zeekygen automatically tracks types
          and cross-references are automatically
          inserted in to generated docs.
 
@@ -148,7 +148,7 @@ Types
 
    General documentation for a type "ComplexRecord" goes here.
 
-.. zeek:type:: ZeexygenExample::Info
+.. zeek:type:: ZeekygenExample::Info
 
    :Type: :zeek:type:`record`
 
@@ -164,33 +164,33 @@ Types
    fields plus the extensions and the scripts which contributed to it
    (provided they are also @load'ed).
 
-.. zeek:type:: ZeexygenExample::SimpleEnum
+.. zeek:type:: ZeekygenExample::SimpleEnum
 
    :Type: :zeek:type:`enum`
 
-      .. zeek:enum:: ZeexygenExample::ONE ZeexygenExample::SimpleEnum
+      .. zeek:enum:: ZeekygenExample::ONE ZeekygenExample::SimpleEnum
 
          Documentation for particular enum values is added like this.
          And can also span multiple lines.
 
-      .. zeek:enum:: ZeexygenExample::TWO ZeexygenExample::SimpleEnum
+      .. zeek:enum:: ZeekygenExample::TWO ZeekygenExample::SimpleEnum
 
          Or this style is valid to document the preceding enum value.
 
-      .. zeek:enum:: ZeexygenExample::THREE ZeexygenExample::SimpleEnum
+      .. zeek:enum:: ZeekygenExample::THREE ZeekygenExample::SimpleEnum
 
-      .. zeek:enum:: ZeexygenExample::FOUR ZeexygenExample::SimpleEnum
+      .. zeek:enum:: ZeekygenExample::FOUR ZeekygenExample::SimpleEnum
 
          And some documentation for "FOUR".
 
-      .. zeek:enum:: ZeexygenExample::FIVE ZeexygenExample::SimpleEnum
+      .. zeek:enum:: ZeekygenExample::FIVE ZeekygenExample::SimpleEnum
 
          Also "FIVE".
 
    Documentation for the "SimpleEnum" type goes here.
    It can span multiple lines.
 
-.. zeek:type:: ZeexygenExample::SimpleRecord
+.. zeek:type:: ZeekygenExample::SimpleRecord
 
    :Type: :zeek:type:`record`
 
@@ -210,23 +210,23 @@ Types
 
 Events
 ######
-.. zeek:id:: ZeexygenExample::an_event
+.. zeek:id:: ZeekygenExample::an_event
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`)
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
    
-   ZeexygenExample::a_function should not be confused as a parameter
+   ZeekygenExample::a_function should not be confused as a parameter
    in the generated docs, but it also doesn't generate a cross-reference
-   link.  Use the see role instead: :zeek:see:`ZeexygenExample::a_function`.
+   link.  Use the see role instead: :zeek:see:`ZeekygenExample::a_function`.
    
 
    :name: Describe the argument here.
 
 Functions
 #########
-.. zeek:id:: ZeexygenExample::a_function
+.. zeek:id:: ZeekygenExample::a_function
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`string`, msg: :zeek:type:`string`) : :zeek:type:`string`
 

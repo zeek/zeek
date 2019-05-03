@@ -266,10 +266,10 @@
 
    Support for Unified2 files in the file analysis framework.
 
-:doc:`zeexygen </scripts/zeexygen/index>`
+:doc:`zeekygen </scripts/zeekygen/index>`
 
    This package is loaded during the process which automatically generates
-   reference documentation for all Zeek scripts (i.e. "Zeexygen").  Its only
+   reference documentation for all Zeek scripts (i.e. "Zeekygen").  Its only
    purpose is to provide an easy way to load all known Zeek scripts plus any
    extra scripts needed or used by the documentation process.
 

@@ -839,30 +839,30 @@ Types
 
          Indicates that a server is using a potentially unsafe cipher
 
-      .. zeek:enum:: ZeexygenExample::Zeexygen_One Notice::Type
+      .. zeek:enum:: ZeekygenExample::Zeekygen_One Notice::Type
 
-         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
-
-
-         Any number of this type of comment
-         will document "Zeexygen_One".
-
-      .. zeek:enum:: ZeexygenExample::Zeexygen_Two Notice::Type
-
-         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
+         (present if :doc:`/scripts/zeekygen/example.zeek` is loaded)
 
 
          Any number of this type of comment
-         will document "ZEEXYGEN_TWO".
+         will document "Zeekygen_One".
 
-      .. zeek:enum:: ZeexygenExample::Zeexygen_Three Notice::Type
+      .. zeek:enum:: ZeekygenExample::Zeekygen_Two Notice::Type
 
-         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
+         (present if :doc:`/scripts/zeekygen/example.zeek` is loaded)
 
 
-      .. zeek:enum:: ZeexygenExample::Zeexygen_Four Notice::Type
+         Any number of this type of comment
+         will document "ZEEKYGEN_TWO".
 
-         (present if :doc:`/scripts/zeexygen/example.zeek` is loaded)
+      .. zeek:enum:: ZeekygenExample::Zeekygen_Three Notice::Type
+
+         (present if :doc:`/scripts/zeekygen/example.zeek` is loaded)
+
+
+      .. zeek:enum:: ZeekygenExample::Zeekygen_Four Notice::Type
+
+         (present if :doc:`/scripts/zeekygen/example.zeek` is loaded)
 
 
          Omitting comments is fine, and so is mixing ``##`` and ``##<``, but

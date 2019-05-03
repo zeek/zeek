@@ -12,8 +12,8 @@
 redirects:
   # All the following are needed due to the .bro -> .zeek file suffix renaming.
   "/scripts/test-all-policy.bro.html": "/scripts/test-all-policy.zeek.html"
-  "/scripts/zeexygen/__load__.bro.html": "/scripts/zeexygen/__load__.zeek.html"
-  "/scripts/zeexygen/example.bro.html": "/scripts/zeexygen/example.zeek.html"
+  "/scripts/broxygen/__load__.bro.html": "/scripts/zeekygen/__load__.zeek.html"
+  "/scripts/broxygen/example.bro.html": "/scripts/zeekygen/example.zeek.html"
   "/scripts/base/misc/find-filtered-trace.bro.html": "/scripts/base/misc/find-filtered-trace.zeek.html"
   "/scripts/base/misc/find-checksum-offloading.bro.html": "/scripts/base/misc/find-checksum-offloading.zeek.html"
   "/scripts/base/misc/version.bro.html": "/scripts/base/misc/version.zeek.html"
@@ -150,7 +150,7 @@ redirects:
   "/scripts/base/bif/event.bif.bro.html": "/scripts/base/bif/event.bif.zeek.html"
   "/scripts/base/bif/file_analysis.bif.bro.html": "/scripts/base/bif/file_analysis.bif.zeek.html"
   "/scripts/base/bif/data.bif.bro.html": "/scripts/base/bif/data.bif.zeek.html"
-  "/scripts/base/bif/zeexygen.bif.bro.html": "/scripts/base/bif/zeexygen.bif.zeek.html"
+  "/scripts/base/bif/broxygen.bif.bro.html": "/scripts/base/bif/zeekygen.bif.zeek.html"
   "/scripts/base/bif/cardinality-counter.bif.bro.html": "/scripts/base/bif/cardinality-counter.bif.zeek.html"
   "/scripts/base/bif/types.bif.bro.html": "/scripts/base/bif/types.bif.zeek.html"
   "/scripts/base/bif/logging.bif.bro.html": "/scripts/base/bif/logging.bif.zeek.html"

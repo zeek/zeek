@@ -1,6 +1,6 @@
 :tocdepth: 3
 
-base/bif/zeexygen.bif.zeek
+base/bif/zeekygen.bif.zeek
 ==========================
 .. zeek:namespace:: GLOBAL
 
@@ -13,11 +13,11 @@ Summary
 Functions
 #########
 =========================================================== =============================================================================
-:zeek:id:`get_identifier_comments`: :zeek:type:`function`   Retrieve the Zeexygen-style comments (``##``) associated with an identifier
+:zeek:id:`get_identifier_comments`: :zeek:type:`function`   Retrieve the Zeekygen-style comments (``##``) associated with an identifier
                                                             (e.g.
 :zeek:id:`get_package_readme`: :zeek:type:`function`        Retrieve the contents of a Bro script package's README file.
-:zeek:id:`get_record_field_comments`: :zeek:type:`function` Retrieve the Zeexygen-style comments (``##``) associated with a record field.
-:zeek:id:`get_script_comments`: :zeek:type:`function`       Retrieve the Zeexygen-style summary comments (``##!``) associated with
+:zeek:id:`get_record_field_comments`: :zeek:type:`function` Retrieve the Zeekygen-style comments (``##``) associated with a record field.
+:zeek:id:`get_script_comments`: :zeek:type:`function`       Retrieve the Zeekygen-style summary comments (``##!``) associated with
                                                             a Bro script.
 =========================================================== =============================================================================
 
@@ -30,7 +30,7 @@ Functions
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
-   Retrieve the Zeexygen-style comments (``##``) associated with an identifier
+   Retrieve the Zeekygen-style comments (``##``) associated with an identifier
    (e.g. a variable or type).
    
 
@@ -58,7 +58,7 @@ Functions
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
-   Retrieve the Zeexygen-style comments (``##``) associated with a record field.
+   Retrieve the Zeekygen-style comments (``##``) associated with a record field.
    
 
    :name: the name of a record type and a field within it formatted like
@@ -73,7 +73,7 @@ Functions
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
-   Retrieve the Zeexygen-style summary comments (``##!``) associated with
+   Retrieve the Zeekygen-style summary comments (``##!``) associated with
    a Bro script.
    
 

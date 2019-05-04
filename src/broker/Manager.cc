@@ -936,11 +936,15 @@ void Manager::Process()
 
 	for ( auto& s : data_stores )
 		{
-		while ( ! s.second->proxy.mailbox().empty() )
+		auto num_available = s.second->proxy.mailbox().size();
+
+		if ( num_available > 0 )
 			{
 			had_input = true;
-			auto response = s.second->proxy.receive();
-			ProcessStoreResponse(s.second, move(response));
+			auto responses = s.second->proxy.receive(num_available);
+
+			for ( auto& r : responses )
+				ProcessStoreResponse(s.second, move(r));
 			}
 		}
 

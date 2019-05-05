@@ -6,7 +6,7 @@ module Control;
 
 export {
 	## The topic prefix used for exchanging control messages via Broker.
-	const topic_prefix = "bro/control";
+	const topic_prefix = "zeek/control";
 
 	## Whether the controllee should call :zeek:see:`Broker::listen`.
 	## In a cluster, this isn't needed since the setup process calls it.

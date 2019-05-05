@@ -34,12 +34,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --prefix=PREFIX        installation directory [/usr/local/bro]
     --scriptdir=PATH       root installation directory for Bro scripts
                            [PREFIX/share/bro]
-    --localstatedir=PATH   when using BroControl, path to store log files
+    --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using BroControl, path to store run-time data
+    --spooldir=PATH        when using ZeekControl, path to store run-time data
                            [PREFIX/spool]
-    --logdir=PATH          when using BroControl, path to store log file
+    --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
@@ -54,7 +54,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-broccoli      build or install the Broccoli library (deprecated)
     --enable-static-broker build broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
-    --disable-broctl       don't install Broctl
+    --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for broker
@@ -132,7 +132,7 @@ prefix=/usr/local/bro
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   $prefix
 append_cache_entry BRO_ROOT_DIR         PATH   $prefix
-append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/zeekctl
 append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
 append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
@@ -142,7 +142,7 @@ append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
-append_cache_entry INSTALL_BROCTL       BOOL   true
+append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
@@ -182,7 +182,7 @@ while [ $# -ne 0 ]; do
             prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry BRO_ROOT_DIR         PATH   $optarg
-            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/zeekctl
             ;;
         --scriptdir=*)
             append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
@@ -231,8 +231,8 @@ while [ $# -ne 0 ]; do
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
             ;;
-        --disable-broctl)
-            append_cache_entry INSTALL_BROCTL       BOOL   false
+        --disable-zeekctl)
+            append_cache_entry INSTALL_ZEEKCTL       BOOL   false
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false

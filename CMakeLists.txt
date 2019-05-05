@@ -331,14 +331,14 @@ add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
-CheckOptionalBuildSources(aux/broctl   Broctl   INSTALL_BROCTL)
+CheckOptionalBuildSources(aux/broctl   ZeekControl INSTALL_ZEEKCTL)
 CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
 CheckOptionalBuildSources(aux/broccoli Broccoli INSTALL_BROCCOLI)
 
 ########################################################################
 ## Packaging Setup
 
-if (INSTALL_BROCTL)
+if (INSTALL_ZEEKCTL)
     # CPack RPM Generator may not automatically detect this
     set(CPACK_RPM_PACKAGE_REQUIRES "python >= 2.6.0")
 endif ()
@@ -374,7 +374,7 @@ message(
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
     "\nBroccoli:          ${INSTALL_BROCCOLI}"
-    "\nBroctl:            ${INSTALL_BROCTL}"
+    "\nZeekControl:       ${INSTALL_ZEEKCTL}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"

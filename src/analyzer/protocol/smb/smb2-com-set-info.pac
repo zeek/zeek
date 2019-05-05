@@ -357,6 +357,10 @@ type SMB2_set_info_file_class(sir: SMB2_set_info_request) = case sir.info_level 
 	SMB2_FILE_POSITION_INFO    	-> file_position       	: SMB2_file_position_info(sir);
 	SMB2_FILE_SHORTNAME_INFO      	-> file_shortname      	: SMB2_file_shortname_info(sir);
 	SMB2_FILE_VALIDDATALENGTH_INFO 	-> file_validdatalength	: SMB2_file_validdatalength_info(sir);
+	default                    	-> info_file_unhandled  : empty;
+};
+
+type SMB2_set_info_filesystem_class(sir: SMB2_set_info_request) = case sir.info_level of {
 	SMB2_FILE_FSCONTROL_INFO 	-> file_fscontrol     	: SMB2_file_fscontrol_info(sir);
 	SMB2_FILE_FSOBJECTID_INFO	-> file_fsobjectid	: SMB2_file_fsobjectid_info(sir);
 	default                    	-> info_file_unhandled  : empty;
@@ -375,8 +379,9 @@ type SMB2_set_info_request(header: SMB2_Header) = record {
 
 	pad             : padding to buffer_offset - header.head_length;
 	data            : case info_class of {
-		SMB2_0_INFO_FILE -> file_info       : SMB2_set_info_file_class(this);
-		# TODO: SMB2_0_INFO_FILESYSTEM, SMB2_0_INFO_SECURITY, SMB2_0_INFO_QUOTA
+		SMB2_0_INFO_FILE 	-> file_info		: SMB2_set_info_file_class(this);
+		SMB2_0_INFO_FILESYSTEM	-> filesystem_info 	: SMB2_set_info_filesystem_class(this);
+		# TODO: SMB2_0_INFO_SECURITY, SMB2_0_INFO_QUOTA
 		default          -> class_unhandled : empty;
 	};
 };

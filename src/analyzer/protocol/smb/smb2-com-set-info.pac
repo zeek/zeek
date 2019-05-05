@@ -89,16 +89,26 @@ refine connection SMB_Conn += {
 		return true;
 		%}
 
-	#TODO not sure how to handle multiple full_ea file information
 	function proc_smb2_set_info_request_file_fullea(val: SMB2_file_fullea_info): bool
 		%{
-		if ( smb2_file_fullea )
+		if ( smb2_file_fullea ) {
+			VectorVal* eas = new VectorVal(BifType::Vector::SMB2::FileEAs);
+
+			for ( auto i = 0u; i < ${val.ea_vector}->size(); ++i ) {
+
+				RecordVal* r = new RecordVal(BifType::Record::SMB2::FileEA);
+				r->Assign(0, smb2_string2stringval(${val.ea_vector[i].ea_name}));
+				r->Assign(1, smb2_string2stringval(${val.ea_vector[i].ea_value}));
+
+				eas->Assign(i, r);
+			}
+
 			BifEvent::generate_smb2_file_fullea(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
 			                                    BuildSMB2HeaderVal(${val.sir.header}),
 			                                    BuildSMB2GUID(${val.sir.file_id}),
-							    smb2_string2stringval(${val.ea_name}),
-							    smb2_string2stringval(${val.ea_value}));
+							    eas);
+		}
 
 		return true;
 		%}
@@ -180,21 +190,24 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_fscontrol(val: SMB2_file_fscontrol_info): bool
 		%{
 
-		RecordVal* r = new RecordVal(BifType::Record::SMB2::Fscontrol);
+		if ( smb2_file_fscontrol ) {
 
-		r->Assign(0, val_mgr->GetInt(${val.free_space_start_filtering}));
-		r->Assign(1, val_mgr->GetInt(${val.free_space_start_threshold}));
-		r->Assign(2, val_mgr->GetInt(${val.free_space_stop_filtering}));
-		r->Assign(3, val_mgr->GetCount(${val.default_quota_threshold}));
-		r->Assign(4, val_mgr->GetCount(${val.default_quota_limit}));
-		r->Assign(5, val_mgr->GetCount(${val.file_system_control_flags}));
+			RecordVal* r = new RecordVal(BifType::Record::SMB2::Fscontrol);
 
-		if ( smb2_file_fscontrol )
+			r->Assign(0, val_mgr->GetInt(${val.free_space_start_filtering}));
+			r->Assign(1, val_mgr->GetInt(${val.free_space_start_threshold}));
+			r->Assign(2, val_mgr->GetInt(${val.free_space_stop_filtering}));
+			r->Assign(3, val_mgr->GetCount(${val.default_quota_threshold}));
+			r->Assign(4, val_mgr->GetCount(${val.default_quota_limit}));
+			r->Assign(5, val_mgr->GetCount(${val.file_system_control_flags}));
+
 			BifEvent::generate_smb2_file_fscontrol(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
 			                                    BuildSMB2HeaderVal(${val.sir.header}),
 			                                    BuildSMB2GUID(${val.sir.file_id}),
 							    r);
+		}
+
 		return true;
 		%}
 
@@ -252,20 +265,27 @@ type SMB2_file_endoffile_info(sir: SMB2_set_info_request) = record {
 	proc: bool = $context.connection.proc_smb2_set_info_request_file_endoffile(this);
 };
 
-type SMB2_file_fullea_info(sir: SMB2_set_info_request) = record {
+type SMB2_file_fullea_info_element = record {
 	next_entry_offset : uint32;
 	flags		  : uint8;
 	ea_name_length    : uint8;
 	ea_value_length	  : uint16;
 	ea_name		  : SMB2_string(ea_name_length); 
 	ea_value	  : SMB2_string(ea_value_length);
+	pad_to_next	  : padding to next_entry_offset;
+} &let {
+	next_offset: int = next_entry_offset;
+};
+
+type SMB2_file_fullea_info(sir: SMB2_set_info_request) = record {
+	ea_vector 	  : SMB2_file_fullea_info_element[] &until($element.next_offset == 0);  
 } &let {
 	proc: bool = $context.connection.proc_smb2_set_info_request_file_fullea(this);
 };
 
 type SMB2_file_link_info(sir: SMB2_set_info_request) = record {
-	replace_if_exists : uint8;	#TODO this is a bool, not sure it is correct here
-	reserved	  : uint8[7];   #ignored...
+	replace_if_exists : uint8;
+	reserved	  : uint8[7];
 	root_directory 	  : uint64;
 	file_name_length  : uint32;
 	file_name	  : SMB2_string(file_name_length);

@@ -3410,6 +3410,23 @@ export {
 		fs_control_flags		: count;
 	};
 
+	## This information class is used to query or set extended attribute (EA) information for a file.
+	##
+	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	##
+	type SMB2::FileEA: record {
+		## Specifies the extended attribute name
+		ea_name  : string;
+		## Contains the extended attribute value
+		ea_value : string;
+	};
+
+	## A vector of extended attribute (EA) information for a file.
+	##
+	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	##
+	type SMB2::FileEAs: vector of SMB2::FileEA;
+
 	## An SMB2 transform header (for SMB 3.x dialects with encryption enabled).
 	##
 	## For more information, see MS-SMB2:2.2.41

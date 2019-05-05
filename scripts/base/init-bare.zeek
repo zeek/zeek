@@ -3408,6 +3408,7 @@ export {
 		default_quota_limit 		: count;
 		## file systems control flags passed as unsigned int
 		fs_control_flags		: count;
+	};
 
 	## An SMB2 transform header (for SMB 3.x dialects with encryption enabled).
 	##

@@ -356,6 +356,7 @@ type SMB2_set_info_request(header: SMB2_Header) = record {
 	pad             : padding to buffer_offset - header.head_length;
 	data            : case info_class of {
 		SMB2_0_INFO_FILE -> file_info       : SMB2_set_info_file_class(this);
+		# TODO: SMB2_0_INFO_FILESYSTEM, SMB2_0_INFO_SECURITY, SMB2_0_INFO_QUOTA
 		default          -> class_unhandled : empty;
 	};
 };

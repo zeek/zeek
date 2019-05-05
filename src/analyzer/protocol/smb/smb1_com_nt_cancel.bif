@@ -8,5 +8,5 @@
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_nt_cancel_request%(c: connection, hdr: SMB1::Header%);

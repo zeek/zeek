@@ -88,7 +88,7 @@
 #include "Scope.h"
 #include "Reporter.h"
 #include "Brofiler.h"
-#include "broxygen/Manager.h"
+#include "zeexygen/Manager.h"
 
 #include <set>
 #include <string>
@@ -1039,7 +1039,7 @@ type_decl:
 			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
 
 			if ( in_record > 0 && cur_decl_type_id )
-				broxygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
+				zeexygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
 			}
 	;
 
@@ -1073,7 +1073,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
-			broxygen_mgr->ModuleUsage(::filename, current_module);
+			zeexygen_mgr->ModuleUsage(::filename, current_module);
 			}
 
 	|	TOK_EXPORT '{' { is_export = true; } decl_list '}'
@@ -1082,36 +1082,36 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
-			broxygen_mgr->Identifier($2);
+			zeexygen_mgr->Identifier($2);
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_OPTION);
-			broxygen_mgr->Identifier($2);
+			zeexygen_mgr->Identifier($2);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_CONST);
-			broxygen_mgr->Identifier($2);
+			zeexygen_mgr->Identifier($2);
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-			broxygen_mgr->Redef($2, ::filename);
+			zeexygen_mgr->Redef($2, ::filename);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ parser_redef_enum($3); broxygen_mgr->Redef($3, ::filename); }
+			{ parser_redef_enum($3); zeexygen_mgr->Redef($3, ::filename); }
 		enum_body '}' ';'
 			{
-			// Broxygen already grabbed new enum IDs as the type created them.
+			// Zeexygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; broxygen_mgr->Redef($3, ::filename); }
+			{ cur_decl_type_id = $3; zeexygen_mgr->Redef($3, ::filename); }
 		TOK_ADD_TO '{'
 			{ ++in_record; }
 		type_decl_list
@@ -1127,12 +1127,12 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; broxygen_mgr->StartType($2);  }
+			{ cur_decl_type_id = $2; zeexygen_mgr->StartType($2);  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
 			add_type($2, $5, $6);
-			broxygen_mgr->Identifier($2);
+			zeexygen_mgr->Identifier($2);
 			}
 
 	|	func_hdr func_body
@@ -1167,10 +1167,19 @@ func_hdr:
 			begin_func($2, current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, $3, $4);
 			$$ = $3;
-			broxygen_mgr->Identifier($2);
+			zeexygen_mgr->Identifier($2);
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
+			// Gracefully handle the deprecation of bro_init, bro_done,
+			// and bro_script_loaded
+			if ( streq("bro_init", $2->Name()) )
+				$2 = global_scope()->Lookup("zeek_init");
+			else if ( streq("bro_done", $2->Name()) )
+				$2 = global_scope()->Lookup("zeek_done");
+			else if ( streq("bro_script_loaded", $2->Name()) )
+				$2 = global_scope()->Lookup("zeek_script_loaded");
+
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, $3, $4);
 			$$ = $3;
@@ -1592,7 +1601,7 @@ for_head:
 			if ( loop_var )
 				{
 				if ( loop_var->IsGlobal() )
-					loop_var->Error("global used in for loop");
+					loop_var->Error("global variable used in for loop");
 				}
 
 			else
@@ -1606,8 +1615,62 @@ for_head:
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' TOK_IN expr ')'
-			{ $$ = new ForStmt($4, $7); }
-		;
+			{
+			$$ = new ForStmt($4, $7);
+			}
+	|
+		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
+			{
+			set_location(@1, @8);
+			const char* module = current_module.c_str();
+
+			// Check for previous definitions of key and
+			// value variables.
+			ID* key_var = lookup_ID($3, module);
+			ID* val_var = lookup_ID($5, module);
+
+			// Validate previous definitions as needed.
+			if ( key_var )
+				{
+				if ( key_var->IsGlobal() )
+					key_var->Error("global variable used in for loop");
+				}
+			else
+				key_var = install_ID($3, module, false, false);
+
+			if ( val_var )
+				{
+				if ( val_var->IsGlobal() )
+					val_var->Error("global variable used in for loop");
+				}
+			else
+				val_var = install_ID($5, module, false, false);
+
+			id_list* loop_vars = new id_list;
+			loop_vars->append(key_var);
+
+			$$ = new ForStmt(loop_vars, $7, val_var);
+			}
+	|
+		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
+			{
+			set_location(@1, @10);
+			const char* module = current_module.c_str();
+
+			// Validate value variable
+			ID* val_var = lookup_ID($7, module);
+
+			if ( val_var )
+				{
+				if ( val_var->IsGlobal() )
+					val_var->Error("global variable used in for loop");
+				}
+			else
+				val_var = install_ID($7, module, false, false);
+
+			$$ = new ForStmt($4, $9, val_var);
+			}
+	;
 
 local_id_list:
 		local_id_list ',' local_id

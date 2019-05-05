@@ -35,6 +35,7 @@ bro_plugin_bif(
 	smb2_com_tree_connect.bif
 	smb2_com_tree_disconnect.bif
 	smb2_com_write.bif
+	smb2_com_transform_header.bif
 	smb2_events.bif
 
 	events.bif
@@ -84,5 +85,6 @@ bro_plugin_pac(
 	smb2-com-tree-connect.pac
 	smb2-com-tree-disconnect.pac
 	smb2-com-write.pac
+	smb2-com-transform-header.pac
 )
 bro_plugin_end()

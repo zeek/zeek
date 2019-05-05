@@ -303,7 +303,7 @@ static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
 
 ## Returns the current wall-clock time.
 ##
-## In general, you should use :bro:id:`network_time` instead
+## In general, you should use :zeek:id:`network_time` instead
 ## unless you are using Bro for non-networking uses (such as general
 ## scripting; not particularly recommended), because otherwise your script
 ## may behave very differently on live traffic versus played-back traffic
@@ -311,7 +311,7 @@ static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
 ##
 ## Returns: The wall-clock time.
 ##
-## .. bro:see:: network_time
+## .. zeek:see:: network_time
 function current_time%(%): time
 	%{
 	return new Val(current_time(), TYPE_TIME);
@@ -323,7 +323,7 @@ function current_time%(%): time
 ##
 ## Returns: The timestamp of the packet processed.
 ##
-## .. bro:see:: current_time
+## .. zeek:see:: current_time
 function network_time%(%): time
 	%{
 	return new Val(network_time, TYPE_TIME);
@@ -336,7 +336,7 @@ function network_time%(%): time
 ## Returns: The system environment variable identified by *var*, or an empty
 ##          string if it is not defined.
 ##
-## .. bro:see:: setenv
+## .. zeek:see:: setenv
 function getenv%(var: string%): string
 	%{
 	const char* env_val = getenv(var->CheckString());
@@ -353,7 +353,7 @@ function getenv%(var: string%): string
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: getenv
+## .. zeek:see:: getenv
 function setenv%(var: string, val: string%): bool
 	%{
 	int result = setenv(var->AsString()->CheckString(),
@@ -368,7 +368,7 @@ function setenv%(var: string, val: string%): bool
 ##
 ## code: The exit code to return with.
 ##
-## .. bro:see:: terminate
+## .. zeek:see:: terminate
 function exit%(code: int%): any
 	%{
 	exit(code);
@@ -380,7 +380,7 @@ function exit%(code: int%): any
 ## Returns: True after successful termination and false when Bro is still in
 ##          the process of shutting down.
 ##
-## .. bro:see:: exit bro_is_terminating
+## .. zeek:see:: exit bro_is_terminating
 function terminate%(%): bool
 	%{
 	if ( terminating )
@@ -440,13 +440,13 @@ static int do_system(const char* s)
 ## Invokes a command via the ``system`` function of the OS.
 ## The command runs in the background with ``stdout`` redirecting to
 ## ``stderr``. Here is a usage example:
-## ``system(fmt("rm \"%s\"", str_shell_escape(sniffed_data)));``
+## ``system(fmt("rm %s", safe_shell_quote(sniffed_data)));``
 ##
 ## str: The command to execute.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
-## .. bro:see:: system_env str_shell_escape piped_exec
+## .. zeek:see:: system_env safe_shell_quote piped_exec
 ##
 ## .. note::
 ##
@@ -461,18 +461,18 @@ function system%(str: string%): int
 	%}
 
 ## Invokes a command via the ``system`` function of the OS with a prepared
-## environment. The function is essentially the same as :bro:id:`system`,
+## environment. The function is essentially the same as :zeek:id:`system`,
 ## but changes the environment before invoking the command.
 ##
 ## str: The command to execute.
 ##
-## env: A :bro:type:`table` with the environment variables in the form
+## env: A :zeek:type:`table` with the environment variables in the form
 ##      of key-value pairs. Each specified environment variable name
 ##      will be automatically prepended with ``BRO_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##
-## .. bro:see:: system str_shell_escape piped_exec
+## .. zeek:see:: system safe_shell_quote piped_exec
 function system_env%(str: string, env: table_string_of_string%): int
 	%{
 	if ( env->Type()->Tag() != TYPE_TABLE )
@@ -500,7 +500,7 @@ function system_env%(str: string, env: table_string_of_string%): int
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: system system_env
+## .. zeek:see:: system system_env
 function piped_exec%(program: string, to_write: string%): bool
 	%{
 	const char* prog = program->CheckString();
@@ -536,14 +536,14 @@ function piped_exec%(program: string, to_write: string%): bool
 ##
 ## Returns: The MD5 hash value of the concatenated arguments.
 ##
-## .. bro:see:: md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##
 ## .. note::
 ##
 ##      This function performs a one-shot computation of its arguments.
-##      For incremental hash computation, see :bro:id:`md5_hash_init` and
+##      For incremental hash computation, see :zeek:id:`md5_hash_init` and
 ##      friends.
 function md5_hash%(...%): string
 	%{
@@ -556,14 +556,14 @@ function md5_hash%(...%): string
 ##
 ## Returns: The SHA1 hash value of the concatenated arguments.
 ##
-## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##
 ## .. note::
 ##
 ##      This function performs a one-shot computation of its arguments.
-##      For incremental hash computation, see :bro:id:`sha1_hash_init` and
+##      For incremental hash computation, see :zeek:id:`sha1_hash_init` and
 ##      friends.
 function sha1_hash%(...%): string
 	%{
@@ -576,14 +576,14 @@ function sha1_hash%(...%): string
 ##
 ## Returns: The SHA256 hash value of the concatenated arguments.
 ##
-## .. bro:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash_init sha256_hash_update sha256_hash_finish
 ##
 ## .. note::
 ##
 ##      This function performs a one-shot computation of its arguments.
-##      For incremental hash computation, see :bro:id:`sha256_hash_init` and
+##      For incremental hash computation, see :zeek:id:`sha256_hash_init` and
 ##      friends.
 function sha256_hash%(...%): string
 	%{
@@ -598,7 +598,7 @@ function sha256_hash%(...%): string
 ##
 ## Returns: The HMAC-MD5 hash value of the concatenated arguments.
 ##
-## .. bro:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
@@ -609,8 +609,8 @@ function md5_hmac%(...%): string
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
-## feed data to the returned opaque value with :bro:id:`md5_hash_update` and
-## eventually need to call :bro:id:`md5_hash_finish` to finish the computation
+## feed data to the returned opaque value with :zeek:id:`md5_hash_update` and
+## eventually need to call :zeek:id:`md5_hash_finish` to finish the computation
 ## and get the hash digest.
 ##
 ## For example, when computing incremental MD5 values of transferred files in
@@ -618,12 +618,12 @@ function md5_hmac%(...%): string
 ## HTTP session record. Then, one would call
 ## ``c$http$md5_handle = md5_hash_init()`` once before invoking
 ## ``md5_hash_update(c$http$md5_handle, some_more_data)`` in the
-## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
-## to :bro:id:`md5_hash_finish` returns the final hash value.
+## :zeek:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :zeek:id:`md5_hash_finish` returns the final hash value.
 ##
 ## Returns: The opaque handle associated with this hash computation.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_init%(%): opaque of md5
@@ -634,8 +634,8 @@ function md5_hash_init%(%): opaque of md5
 	%}
 
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
-## feed data to the returned opaque value with :bro:id:`sha1_hash_update` and
-## finally need to call :bro:id:`sha1_hash_finish` to finish the computation
+## feed data to the returned opaque value with :zeek:id:`sha1_hash_update` and
+## finally need to call :zeek:id:`sha1_hash_finish` to finish the computation
 ## and get the hash digest.
 ##
 ## For example, when computing incremental SHA1 values of transferred files in
@@ -643,12 +643,12 @@ function md5_hash_init%(%): opaque of md5
 ## HTTP session record. Then, one would call
 ## ``c$http$sha1_handle = sha1_hash_init()`` once before invoking
 ## ``sha1_hash_update(c$http$sha1_handle, some_more_data)`` in the
-## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
-## to :bro:id:`sha1_hash_finish` returns the final hash value.
+## :zeek:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :zeek:id:`sha1_hash_finish` returns the final hash value.
 ##
 ## Returns: The opaque handle associated with this hash computation.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function sha1_hash_init%(%): opaque of sha1
@@ -659,8 +659,8 @@ function sha1_hash_init%(%): opaque of sha1
 	%}
 
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
-## feed data to the returned opaque value with :bro:id:`sha256_hash_update` and
-## finally need to call :bro:id:`sha256_hash_finish` to finish the computation
+## feed data to the returned opaque value with :zeek:id:`sha256_hash_update` and
+## finally need to call :zeek:id:`sha256_hash_finish` to finish the computation
 ## and get the hash digest.
 ##
 ## For example, when computing incremental SHA256 values of transferred files in
@@ -668,12 +668,12 @@ function sha1_hash_init%(%): opaque of sha1
 ## HTTP session record. Then, one would call
 ## ``c$http$sha256_handle = sha256_hash_init()`` once before invoking
 ## ``sha256_hash_update(c$http$sha256_handle, some_more_data)`` in the
-## :bro:id:`http_entity_data` event handler. When all data has arrived, a call
-## to :bro:id:`sha256_hash_finish` returns the final hash value.
+## :zeek:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :zeek:id:`sha256_hash_finish` returns the final hash value.
 ##
 ## Returns: The opaque handle associated with this hash computation.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_update sha256_hash_finish
 function sha256_hash_init%(%): opaque of sha256
@@ -684,7 +684,7 @@ function sha256_hash_init%(%): opaque of sha256
 	%}
 
 ## Updates the MD5 value associated with a given index. It is required to
-## call :bro:id:`md5_hash_init` once before calling this
+## call :zeek:id:`md5_hash_init` once before calling this
 ## function.
 ##
 ## handle: The opaque handle associated with this hash computation.
@@ -693,7 +693,7 @@ function sha256_hash_init%(%): opaque of sha256
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_update%(handle: opaque of md5, data: string%): bool
@@ -703,7 +703,7 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%}
 
 ## Updates the SHA1 value associated with a given index. It is required to
-## call :bro:id:`sha1_hash_init` once before calling this
+## call :zeek:id:`sha1_hash_init` once before calling this
 ## function.
 ##
 ## handle: The opaque handle associated with this hash computation.
@@ -712,7 +712,7 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
@@ -722,7 +722,7 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%}
 
 ## Updates the SHA256 value associated with a given index. It is required to
-## call :bro:id:`sha256_hash_init` once before calling this
+## call :zeek:id:`sha256_hash_init` once before calling this
 ## function.
 ##
 ## handle: The opaque handle associated with this hash computation.
@@ -731,7 +731,7 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_finish
 function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
@@ -746,7 +746,7 @@ function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 ##
 ## Returns: The hash value associated with the computation of *handle*.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_finish%(handle: opaque of md5%): string
@@ -760,7 +760,7 @@ function md5_hash_finish%(handle: opaque of md5%): string
 ##
 ## Returns: The hash value associated with the computation of *handle*.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function sha1_hash_finish%(handle: opaque of sha1%): string
@@ -774,7 +774,7 @@ function sha1_hash_finish%(handle: opaque of sha1%): string
 ##
 ## Returns: The hash value associated with the computation of *handle*.
 ##
-## .. bro:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update
 function sha256_hash_finish%(handle: opaque of sha256%): string
@@ -789,7 +789,7 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ##
 ## Returns: The hashed value.
 ##
-## .. bro:see:: hrw_weight
+## .. zeek:see:: hrw_weight
 function fnv1a32%(input: any%): count
 	%{
 	ODesc desc(DESC_BINARY);
@@ -814,14 +814,14 @@ function fnv1a32%(input: any%): count
 ## The weight function used is the one recommended in the original
 ## paper: `<http://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
 ##
-## key_digest: A 32-bit digest of a key.  E.g. use :bro:see:`fnv1a32` to
+## key_digest: A 32-bit digest of a key.  E.g. use :zeek:see:`fnv1a32` to
 ##             produce this.
 ##
 ## site_id: A 32-bit site/node identifier.
 ##
 ## Returns: The weight value for the key/site pair.
 ##
-## .. bro:see:: fnv1a32
+## .. zeek:see:: fnv1a32
 function hrw_weight%(key_digest: count, site_id: count%): count
 	%{
 	uint32 d = key_digest;
@@ -845,7 +845,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##
 ## Returns: a random positive integer in the interval *[0, max)*.
 ##
-## .. bro:see:: srand
+## .. zeek:see:: srand
 ##
 ## .. note::
 ##
@@ -857,11 +857,11 @@ function rand%(max: count%): count
 	return val_mgr->GetCount(result);
 	%}
 
-## Sets the seed for subsequent :bro:id:`rand` calls.
+## Sets the seed for subsequent :zeek:id:`rand` calls.
 ##
 ## seed: The seed for the PRNG.
 ##
-## .. bro:see:: rand
+## .. zeek:see:: rand
 ##
 ## .. note::
 ##
@@ -897,7 +897,7 @@ function syslog%(s: string%): any
 ## Returns: The MIME type of *data*, or "<unknown>" if there was an error
 ##          or no match.  This is the strongest signature match.
 ##
-## .. bro:see:: file_magic
+## .. zeek:see:: file_magic
 function identify_data%(data: string, return_mime: bool &default=T%): string
 	%{
 	if ( ! return_mime )
@@ -918,7 +918,7 @@ function identify_data%(data: string, return_mime: bool &default=T%): string
 ##
 ## Returns: All matching signatures, in order of strength.
 ##
-## .. bro:see:: identify_data
+## .. zeek:see:: identify_data
 function file_magic%(data: string%): mime_matches
 	%{
 	RuleMatcher::MIME_Matches matches;
@@ -965,7 +965,7 @@ function file_magic%(data: string%): mime_matches
 ##                which each byte in the file depends upon the previous byte.
 ##                For random sequences this value will be close to zero.
 ##
-## .. bro:see:: entropy_test_init entropy_test_add entropy_test_finish
+## .. zeek:see:: entropy_test_init entropy_test_add entropy_test_finish
 function find_entropy%(data: string%): entropy_test_result
 	%{
 	double montepi, scc, ent, mean, chisq;
@@ -987,7 +987,7 @@ function find_entropy%(data: string%): entropy_test_result
 ##
 ## Returns: An opaque handle to be used in subsequent operations.
 ##
-## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
+## .. zeek:see:: find_entropy entropy_test_add entropy_test_finish
 function entropy_test_init%(%): opaque of entropy
 	%{
 	return new EntropyVal();
@@ -1001,7 +1001,7 @@ function entropy_test_init%(%): opaque of entropy
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: find_entropy entropy_test_add entropy_test_finish
+## .. zeek:see:: find_entropy entropy_test_add entropy_test_finish
 function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%{
 	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
@@ -1010,15 +1010,15 @@ function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%}
 
 ## Finishes an incremental entropy calculation. Before using this function,
-## one needs to obtain an opaque handle with :bro:id:`entropy_test_init` and
-## add data to it via :bro:id:`entropy_test_add`.
+## one needs to obtain an opaque handle with :zeek:id:`entropy_test_init` and
+## add data to it via :zeek:id:`entropy_test_add`.
 ##
 ## handle: The opaque handle representing the entropy calculation state.
 ##
-## Returns: The result of the entropy test. See :bro:id:`find_entropy` for a
+## Returns: The result of the entropy test. See :zeek:id:`find_entropy` for a
 ##          description of the individual components.
 ##
-## .. bro:see:: find_entropy entropy_test_init entropy_test_add
+## .. zeek:see:: find_entropy entropy_test_init entropy_test_add
 function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	%{
 	double montepi, scc, ent, mean, chisq;
@@ -1040,7 +1040,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 ##
 ## Returns: A string identifier that is unique.
 ##
-## .. bro:see:: unique_id_from
+## .. zeek:see:: unique_id_from
 function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
@@ -1056,7 +1056,7 @@ function unique_id%(prefix: string%) : string
 ##
 ## Returns: A string identifier that is unique.
 ##
-## .. bro:see:: unique_id
+## .. zeek:see:: unique_id
 function unique_id_from%(pool: int, prefix: string%) : string
 	%{
 	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
@@ -1181,7 +1181,7 @@ function val_size%(v: any%): count
 ##
 ## newsize: The new size of *aggr*.
 ##
-## Returns: The old size of *aggr*, or 0 if *aggr* is not a :bro:type:`vector`.
+## Returns: The old size of *aggr*, or 0 if *aggr* is not a :zeek:type:`vector`.
 function resize%(aggr: any, newsize: count%) : count
 	%{
 	if ( aggr->Type()->Tag() != TYPE_VECTOR )
@@ -1200,7 +1200,7 @@ function resize%(aggr: any, newsize: count%) : count
 ##
 ## Returns: True if any element in *v* is true.
 ##
-## .. bro:see:: all_set
+## .. zeek:see:: all_set
 function any_set%(v: any%) : bool
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
@@ -1225,7 +1225,7 @@ function any_set%(v: any%) : bool
 ##
 ## Returns: True iff all elements in *v* are true or there are no elements.
 ##
-## .. bro:see:: any_set
+## .. zeek:see:: any_set
 ##
 ## .. note::
 ##
@@ -1324,7 +1324,7 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 ## Returns: The vector, sorted from minimum to maximum value. If the vector
 ##          could not be sorted, then the original vector is returned instead.
 ##
-## .. bro:see:: order
+## .. zeek:see:: order
 function sort%(v: any, ...%) : any
 	%{
 	v->Ref();	// we always return v
@@ -1384,7 +1384,7 @@ function sort%(v: any, ...%) : any
 	%}
 
 ## Returns the order of the elements in a vector according to some
-## comparison function. See :bro:id:`sort` for details about the comparison
+## comparison function. See :zeek:id:`sort` for details about the comparison
 ## function.
 ##
 ## v: The vector whose order to compute.
@@ -1393,7 +1393,7 @@ function sort%(v: any, ...%) : any
 ##          For example, the elements of *v* in order are (assuming ``o``
 ##          is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
 ##
-## .. bro:see:: sort
+## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
 	VectorVal* result_v = new VectorVal(
@@ -1501,7 +1501,7 @@ function cat%(...%): string
 	%}
 
 ## Concatenates all arguments, with a separator placed between each one. This
-## function is similar to :bro:id:`cat`, but places a separator between each
+## function is similar to :zeek:id:`cat`, but places a separator between each
 ## given argument. If any of the variable arguments is an empty string it is
 ## replaced by a given default string instead.
 ##
@@ -1512,7 +1512,7 @@ function cat%(...%): string
 ## Returns: A concatenation of all arguments with *sep* between each one and
 ##          empty strings replaced with *def*.
 ##
-## .. bro:see:: cat string_cat cat_string_array cat_string_array_n
+## .. zeek:see:: cat string_cat cat_string_array cat_string_array_n
 function cat_sep%(sep: string, def: string, ...%): string
 	%{
 	ODesc d;
@@ -1574,12 +1574,12 @@ function cat_sep%(sep: string, def: string, ...%): string
 ##
 ##        - ``[efg]``: Double
 ##
-## Returns: Returns the formatted string. Given no arguments, :bro:id:`fmt`
+## Returns: Returns the formatted string. Given no arguments, :zeek:id:`fmt`
 ##          returns an empty string. Given no format string or the wrong
 ##          number of additional arguments for the given format specifier,
-##          :bro:id:`fmt` generates a run-time error.
+##          :zeek:id:`fmt` generates a run-time error.
 ##
-## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+## .. zeek:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
 function fmt%(...%): string
 	%{
 	if ( @ARGC@ == 0 )
@@ -1623,27 +1623,27 @@ function fmt%(...%): string
 #
 # ===========================================================================
 
-## Computes the greatest integer less than the given :bro:type:`double` value.
+## Computes the greatest integer less than the given :zeek:type:`double` value.
 ## For example, ``floor(3.14)`` returns ``3.0``, and ``floor(-3.14)``
 ## returns ``-4.0``.
 ##
-## d: The :bro:type:`double` to manipulate.
+## d: The :zeek:type:`double` to manipulate.
 ##
-## Returns: The next lowest integer of *d* as :bro:type:`double`.
+## Returns: The next lowest integer of *d* as :zeek:type:`double`.
 ##
-## .. bro:see:: sqrt exp ln log10
+## .. zeek:see:: sqrt exp ln log10
 function floor%(d: double%): double
 	%{
 	return new Val(floor(d), TYPE_DOUBLE);
 	%}
 
-## Computes the square root of a :bro:type:`double`.
+## Computes the square root of a :zeek:type:`double`.
 ##
 ## x: The number to compute the square root of.
 ##
 ## Returns: The square root of *x*.
 ##
-## .. bro:see:: floor exp ln log10
+## .. zeek:see:: floor exp ln log10
 function sqrt%(x: double%): double
 	%{
 	if ( x < 0 )
@@ -1661,7 +1661,7 @@ function sqrt%(x: double%): double
 ##
 ## Returns: *e* to the power of *d*.
 ##
-## .. bro:see:: floor sqrt ln log10
+## .. zeek:see:: floor sqrt ln log10
 function exp%(d: double%): double
 	%{
 	return new Val(exp(d), TYPE_DOUBLE);
@@ -1673,7 +1673,7 @@ function exp%(d: double%): double
 ##
 ## Returns: The natural logarithm of *d*.
 ##
-## .. bro:see:: exp floor sqrt log10
+## .. zeek:see:: exp floor sqrt log10
 function ln%(d: double%): double
 	%{
 	return new Val(log(d), TYPE_DOUBLE);
@@ -1685,7 +1685,7 @@ function ln%(d: double%): double
 ##
 ## Returns: The common logarithm of *d*.
 ##
-## .. bro:see:: exp floor sqrt ln
+## .. zeek:see:: exp floor sqrt ln
 function log10%(d: double%): double
 	%{
 	return new Val(log10(d), TYPE_DOUBLE);
@@ -1787,7 +1787,7 @@ function type_name%(t: any%): string
 ##
 ## Returns: True if reading traffic from a network interface.
 ##
-## .. bro:see:: reading_traces
+## .. zeek:see:: reading_traces
 function reading_live_traffic%(%): bool
 	%{
 	return val_mgr->GetBool(reading_live);
@@ -1798,7 +1798,7 @@ function reading_live_traffic%(%): bool
 ##
 ## Returns: True if reading traffic from a network trace.
 ##
-## .. bro:see:: reading_live_traffic
+## .. zeek:see:: reading_live_traffic
 function reading_traces%(%): bool
 	%{
 	return val_mgr->GetBool(reading_traces);
@@ -1810,7 +1810,7 @@ function reading_traces%(%): bool
 ##
 ## Returns: A table that maps variable names to their sizes.
 ##
-## .. bro:see:: global_ids
+## .. zeek:see:: global_ids
 function global_sizes%(%): var_sizes
 	%{
 	TableVal* sizes = new TableVal(var_sizes);
@@ -1837,7 +1837,7 @@ function global_sizes%(%): var_sizes
 ##
 ## Returns: A table that maps identifier names to information about them.
 ##
-## .. bro:see:: global_sizes
+## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
 	TableVal* ids = new TableVal(id_table);
@@ -1977,10 +1977,10 @@ function record_fields%(rec: any%): record_field_table
 
 ## Enables detailed collection of profiling statistics. Statistics include
 ## CPU/memory usage, connections, TCP states/reassembler, DNS lookups,
-## timers, and script-level state. The script variable :bro:id:`profiling_file`
+## timers, and script-level state. The script variable :zeek:id:`profiling_file`
 ## holds the name of the file.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -2052,7 +2052,7 @@ function is_local_interface%(ip: addr%) : bool
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: get_matcher_stats
+## .. zeek:see:: get_matcher_stats
 function dump_rule_stats%(f: file%): bool
 	%{
 	if ( rule_matcher )
@@ -2065,7 +2065,7 @@ function dump_rule_stats%(f: file%): bool
 ##
 ## Returns: True if Bro is in the process of shutting down.
 ##
-## .. bro:see:: terminate
+## .. zeek:see:: terminate
 function bro_is_terminating%(%): bool
 	%{
 	return val_mgr->GetBool(terminating);
@@ -2143,10 +2143,10 @@ function is_v6_subnet%(s: subnet%): bool
 #
 # ===========================================================================
 
-## Converts the *data* field of :bro:type:`ip6_routing` records that have
+## Converts the *data* field of :zeek:type:`ip6_routing` records that have
 ## *rtype* of 0 into a vector of addresses.
 ##
-## s: The *data* field of an :bro:type:`ip6_routing` record that has
+## s: The *data* field of an :zeek:type:`ip6_routing` record that has
 ##    an *rtype* of 0.
 ##
 ## Returns: The vector of addresses contained in the routing header data.
@@ -2173,14 +2173,14 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	return rval;
 	%}
 
-## Converts an :bro:type:`addr` to an :bro:type:`index_vec`.
+## Converts an :zeek:type:`addr` to an :zeek:type:`index_vec`.
 ##
 ## a: The address to convert into a vector of counts.
 ##
 ## Returns: A vector containing the host-order address representation,
 ##          four elements in size for IPv6 addresses, or one element for IPv4.
 ##
-## .. bro:see:: counts_to_addr
+## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
 	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
@@ -2193,14 +2193,14 @@ function addr_to_counts%(a: addr%): index_vec
 	return rval;
 	%}
 
-## Converts an :bro:type:`index_vec` to an :bro:type:`addr`.
+## Converts an :zeek:type:`index_vec` to an :zeek:type:`addr`.
 ##
 ## v: The vector containing host-order IP address representation,
 ##    one element for IPv4 addresses, four elements for IPv6 addresses.
 ##
 ## Returns: An IP address.
 ##
-## .. bro:see:: addr_to_counts
+## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
 	if ( v->AsVector()->size() == 1 )
@@ -2223,11 +2223,11 @@ function counts_to_addr%(v: index_vec%): addr
 		}
 	%}
 
-## Converts an :bro:type:`enum` to an :bro:type:`int`.
+## Converts an :zeek:type:`enum` to an :zeek:type:`int`.
 ##
-## e: The :bro:type:`enum` to convert.
+## e: The :zeek:type:`enum` to convert.
 ##
-## Returns: The :bro:type:`int` value that corresponds to the :bro:type:`enum`.
+## Returns: The :zeek:type:`int` value that corresponds to the :zeek:type:`enum`.
 function enum_to_int%(e: any%): int
 	%{
 	if ( e->Type()->Tag() != TYPE_ENUM )
@@ -2239,13 +2239,13 @@ function enum_to_int%(e: any%): int
 	return val_mgr->GetInt(e->AsEnum());
 	%}
 
-## Converts a :bro:type:`string` to an :bro:type:`int`.
+## Converts a :zeek:type:`string` to an :zeek:type:`int`.
 ##
-## str: The :bro:type:`string` to convert.
+## str: The :zeek:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *str* as :bro:type:`int`.
+## Returns: The :zeek:type:`string` *str* as :zeek:type:`int`.
 ##
-## .. bro:see:: to_addr to_port to_subnet
+## .. zeek:see:: to_addr to_port to_subnet
 function to_int%(str: string%): int
 	%{
 	const char* s = str->CheckString();
@@ -2264,11 +2264,11 @@ function to_int%(str: string%): int
 	%}
 
 
-## Converts a (positive) :bro:type:`int` to a :bro:type:`count`.
+## Converts a (positive) :zeek:type:`int` to a :zeek:type:`count`.
 ##
-## n: The :bro:type:`int` to convert.
+## n: The :zeek:type:`int` to convert.
 ##
-## Returns: The :bro:type:`int` *n* as unsigned integer, or 0 if *n* < 0.
+## Returns: The :zeek:type:`int` *n* as unsigned integer, or 0 if *n* < 0.
 function int_to_count%(n: int%): count
 	%{
 	if ( n < 0 )
@@ -2279,13 +2279,13 @@ function int_to_count%(n: int%): count
 	return val_mgr->GetCount(n);
 	%}
 
-## Converts a :bro:type:`double` to a :bro:type:`count`.
+## Converts a :zeek:type:`double` to a :zeek:type:`count`.
 ##
-## d: The :bro:type:`double` to convert.
+## d: The :zeek:type:`double` to convert.
 ##
-## Returns: The :bro:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
+## Returns: The :zeek:type:`double` *d* as unsigned integer, or 0 if *d* < 0.0.
 ##
-## .. bro:see:: double_to_time
+## .. zeek:see:: double_to_time
 function double_to_count%(d: double%): count
 	%{
 	if ( d < 0.0 )
@@ -2294,14 +2294,14 @@ function double_to_count%(d: double%): count
 	return val_mgr->GetCount(bro_uint_t(rint(d)));
 	%}
 
-## Converts a :bro:type:`string` to a :bro:type:`count`.
+## Converts a :zeek:type:`string` to a :zeek:type:`count`.
 ##
-## str: The :bro:type:`string` to convert.
+## str: The :zeek:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *str* as unsigned integer, or 0 if *str* has
+## Returns: The :zeek:type:`string` *str* as unsigned integer, or 0 if *str* has
 ##          an invalid format.
 ##
-## .. bro:see:: to_addr to_int to_port to_subnet
+## .. zeek:see:: to_addr to_int to_port to_subnet
 function to_count%(str: string%): count
 	%{
 	const char* s = str->CheckString();
@@ -2318,88 +2318,88 @@ function to_count%(str: string%): count
 	return val_mgr->GetCount(u);
 	%}
 
-## Converts an :bro:type:`interval` to a :bro:type:`double`.
+## Converts an :zeek:type:`interval` to a :zeek:type:`double`.
 ##
-## i: The :bro:type:`interval` to convert.
+## i: The :zeek:type:`interval` to convert.
 ##
-## Returns: The :bro:type:`interval` *i* as :bro:type:`double`.
+## Returns: The :zeek:type:`interval` *i* as :zeek:type:`double`.
 ##
-## .. bro:see:: double_to_interval
+## .. zeek:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
 	return new Val(i, TYPE_DOUBLE);
 	%}
 
-## Converts a :bro:type:`time` value to a :bro:type:`double`.
+## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
 ##
-## t: The :bro:type:`time` to convert.
+## t: The :zeek:type:`time` to convert.
 ##
-## Returns: The :bro:type:`time` value *t* as :bro:type:`double`.
+## Returns: The :zeek:type:`time` value *t* as :zeek:type:`double`.
 ##
-## .. bro:see:: double_to_time
+## .. zeek:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
 	return new Val(t, TYPE_DOUBLE);
 	%}
 
-## Converts a :bro:type:`double` value to a :bro:type:`time`.
+## Converts a :zeek:type:`double` value to a :zeek:type:`time`.
 ##
-## d: The :bro:type:`double` to convert.
+## d: The :zeek:type:`double` to convert.
 ##
-## Returns: The :bro:type:`double` value *d* as :bro:type:`time`.
+## Returns: The :zeek:type:`double` value *d* as :zeek:type:`time`.
 ##
-## .. bro:see:: time_to_double double_to_count
+## .. zeek:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
 	return new Val(d, TYPE_TIME);
 	%}
 
-## Converts a :bro:type:`double` to an :bro:type:`interval`.
+## Converts a :zeek:type:`double` to an :zeek:type:`interval`.
 ##
-## d: The :bro:type:`double` to convert.
+## d: The :zeek:type:`double` to convert.
 ##
-## Returns: The :bro:type:`double` *d* as :bro:type:`interval`.
+## Returns: The :zeek:type:`double` *d* as :zeek:type:`interval`.
 ##
-## .. bro:see:: interval_to_double
+## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
 	return new Val(d, TYPE_INTERVAL);
 	%}
 
-## Converts a :bro:type:`port` to a :bro:type:`count`.
+## Converts a :zeek:type:`port` to a :zeek:type:`count`.
 ##
-## p: The :bro:type:`port` to convert.
+## p: The :zeek:type:`port` to convert.
 ##
-## Returns: The :bro:type:`port` *p* as :bro:type:`count`.
+## Returns: The :zeek:type:`port` *p* as :zeek:type:`count`.
 ##
-## .. bro:see:: count_to_port
+## .. zeek:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
 	return val_mgr->GetCount(p->Port());
 	%}
 
-## Converts a :bro:type:`count` and ``transport_proto`` to a :bro:type:`port`.
+## Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
 ##
-## num: The :bro:type:`port` number.
+## num: The :zeek:type:`port` number.
 ##
 ## proto: The transport protocol.
 ##
-## Returns: The :bro:type:`count` *num* as :bro:type:`port`.
+## Returns: The :zeek:type:`count` *num* as :zeek:type:`port`.
 ##
-## .. bro:see:: port_to_count
+## .. zeek:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
 	return val_mgr->GetPort(num, (TransportProto)proto->AsEnum());
 	%}
 
-## Converts a :bro:type:`string` to an :bro:type:`addr`.
+## Converts a :zeek:type:`string` to an :zeek:type:`addr`.
 ##
-## ip: The :bro:type:`string` to convert.
+## ip: The :zeek:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *ip* as :bro:type:`addr`, or the unspecified
+## Returns: The :zeek:type:`string` *ip* as :zeek:type:`addr`, or the unspecified
 ##          address ``::`` if the input string does not parse correctly.
 ##
-## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
 ##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
@@ -2409,14 +2409,14 @@ function to_addr%(ip: string%): addr
 	return ret;
 	%}
 
-## Converts a :bro:type:`string` to a :bro:type:`subnet`.
+## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
 ##
 ## sn: The subnet to convert.
 ##
-## Returns: The *sn* string as a :bro:type:`subnet`, or the unspecified subnet
+## Returns: The *sn* string as a :zeek:type:`subnet`, or the unspecified subnet
 ##          ``::/0`` if the input string does not parse correctly.
 ##
-## .. bro:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
+## .. zeek:see:: to_count to_int to_port count_to_v4_addr raw_bytes_to_v4_addr
 ##    to_addr
 function to_subnet%(sn: string%): subnet
 	%{
@@ -2426,49 +2426,49 @@ function to_subnet%(sn: string%): subnet
 	return ret;
 	%}
 
-## Converts a :bro:type:`addr` to a :bro:type:`subnet`.
+## Converts a :zeek:type:`addr` to a :zeek:type:`subnet`.
 ##
 ## a: The address to convert.
 ##
-## Returns: The address as a :bro:type:`subnet`.
+## Returns: The address as a :zeek:type:`subnet`.
 ##
-## .. bro:see:: to_subnet
+## .. zeek:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
 	%{
 	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 	return new SubNetVal(a->AsAddr(), width);
 	%}
 
-## Converts a :bro:type:`subnet` to an :bro:type:`addr` by
+## Converts a :zeek:type:`subnet` to an :zeek:type:`addr` by
 ## extracting the prefix.
 ##
 ## sn: The subnet to convert.
 ##
-## Returns: The subnet as an :bro:type:`addr`.
+## Returns: The subnet as an :zeek:type:`addr`.
 ##
-## .. bro:see:: to_subnet
+## .. zeek:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
 	%{
 	return new AddrVal(sn->Prefix());
 	%}
 
-## Returns the width of a :bro:type:`subnet`.
+## Returns the width of a :zeek:type:`subnet`.
 ##
 ## sn: The subnet.
 ##
 ## Returns: The width of the subnet.
 ##
-## .. bro:see:: to_subnet
+## .. zeek:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
 	return val_mgr->GetCount(sn->Width());
 	%}
 
-## Converts a :bro:type:`string` to a :bro:type:`double`.
+## Converts a :zeek:type:`string` to a :zeek:type:`double`.
 ##
-## str: The :bro:type:`string` to convert.
+## str: The :zeek:type:`string` to convert.
 ##
-## Returns: The :bro:type:`string` *str* as double, or 0 if *str* has
+## Returns: The :zeek:type:`string` *str* as double, or 0 if *str* has
 ##          an invalid format.
 ##
 function to_double%(str: string%): double
@@ -2487,13 +2487,13 @@ function to_double%(str: string%): double
 	return new Val(d, TYPE_DOUBLE);
 	%}
 
-## Converts a :bro:type:`count` to an :bro:type:`addr`.
+## Converts a :zeek:type:`count` to an :zeek:type:`addr`.
 ##
-## ip: The :bro:type:`count` to convert.
+## ip: The :zeek:type:`count` to convert.
 ##
-## Returns: The :bro:type:`count` *ip* as :bro:type:`addr`.
+## Returns: The :zeek:type:`count` *ip* as :zeek:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
+## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	if ( ip > 4294967295LU )
@@ -2505,15 +2505,15 @@ function count_to_v4_addr%(ip: count%): addr
 	return new AddrVal(htonl(uint32(ip)));
 	%}
 
-## Converts a :bro:type:`string` of bytes into an IPv4 address. In particular,
+## Converts a :zeek:type:`string` of bytes into an IPv4 address. In particular,
 ## this function interprets the first 4 bytes of the string as an IPv4 address
 ## in network order.
 ##
-## b: The raw bytes (:bro:type:`string`) to convert.
+## b: The raw bytes (:zeek:type:`string`) to convert.
 ##
-## Returns: The byte :bro:type:`string` *b* as :bro:type:`addr`.
+## Returns: The byte :zeek:type:`string` *b* as :zeek:type:`addr`.
 ##
-## .. bro:see:: raw_bytes_to_v4_addr to_addr to_subnet
+## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function raw_bytes_to_v4_addr%(b: string%): addr
 	%{
 	uint32 a = 0;
@@ -2530,13 +2530,13 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	return new AddrVal(htonl(a));
 	%}
 
-## Converts a :bro:type:`string` to a :bro:type:`port`.
+## Converts a :zeek:type:`string` to a :zeek:type:`port`.
 ##
-## s: The :bro:type:`string` to convert.
+## s: The :zeek:type:`string` to convert.
 ##
-## Returns: A :bro:type:`port` converted from *s*.
+## Returns: A :zeek:type:`port` converted from *s*.
 ##
-## .. bro:see:: to_addr to_count to_int to_subnet
+## .. zeek:see:: to_addr to_count to_int to_subnet
 function to_port%(s: string%): port
     %{
     int port = 0;
@@ -2561,7 +2561,7 @@ function to_port%(s: string%): port
     return val_mgr->GetPort(port, TRANSPORT_UNKNOWN);
 	%}
 
-## Converts a string of bytes (in network byte order) to a :bro:type:`double`.
+## Converts a string of bytes (in network byte order) to a :zeek:type:`double`.
 ##
 ## s: A string of bytes containing the binary representation of a double value.
 ##
@@ -2582,7 +2582,7 @@ function bytestring_to_double%(s: string%): double
 	return new Val(ntohd(d), TYPE_DOUBLE);
 	%}
 
-## Converts a string of bytes to a :bro:type:`count`.
+## Converts a string of bytes to a :zeek:type:`count`.
 ##
 ## s: A string of bytes containing the binary representation of the value.
 ##
@@ -2680,7 +2680,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 ##
 ## Returns: The IP address corresponding to *s*.
 ##
-## .. bro:see:: addr_to_ptr_name to_addr
+## .. zeek:see:: addr_to_ptr_name to_addr
 function ptr_name_to_addr%(s: string%): addr
 	%{
 	if ( s->Len() != 72 )
@@ -2744,7 +2744,7 @@ function ptr_name_to_addr%(s: string%): addr
 ##
 ## Returns: The reverse pointer representation of *a*.
 ##
-## .. bro:see:: ptr_name_to_addr to_addr
+## .. zeek:see:: ptr_name_to_addr to_addr
 function addr_to_ptr_name%(a: addr%): string
 	%{
 	return new StringVal(a->AsAddr().PtrName().c_str());
@@ -2757,7 +2757,7 @@ function addr_to_ptr_name%(a: addr%): string
 ##
 ## Returns: The hexadecimal representation of *bytestring*.
 ##
-## .. bro:see:: hexdump hexstr_to_bytestring
+## .. zeek:see:: hexdump hexstr_to_bytestring
 function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	bro_uint_t len = bytestring->AsString()->Len();
@@ -2781,7 +2781,7 @@ function bytestring_to_hexstr%(bytestring: string%): string
 ##
 ## Returns: The binary representation of *hexstr*.
 ##
-## .. bro:see:: hexdump bytestring_to_hexstr
+## .. zeek:see:: hexdump bytestring_to_hexstr
 function hexstr_to_bytestring%(hexstr: string%): string
 	%{
 	bro_uint_t len = hexstr->AsString()->Len();
@@ -2826,7 +2826,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: decode_base64
+## .. zeek:see:: decode_base64
 function encode_base64%(s: string, a: string &default=""%): string
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
@@ -2849,7 +2849,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. bro:see:: encode_base64
+## .. zeek:see:: encode_base64
 function encode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = encode_base64(s->AsString(), a->AsString());
@@ -2871,7 +2871,7 @@ function encode_base64_custom%(s: string, a: string%): string &deprecated
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64_conn encode_base64
+## .. zeek:see:: decode_base64_conn encode_base64
 function decode_base64%(s: string, a: string &default=""%): string
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -2897,7 +2897,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64
+## .. zeek:see:: decode_base64
 function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): string
 	%{
 	Connection* conn = sessions->FindConnection(cid);
@@ -2926,7 +2926,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. bro:see:: decode_base64 decode_base64_conn
+## .. zeek:see:: decode_base64 decode_base64_conn
 function decode_base64_custom%(s: string, a: string%): string &deprecated
 	%{
 	BroString* t = decode_base64(s->AsString(), a->AsString());
@@ -2990,12 +2990,12 @@ function uuid_to_string%(uuid: string%): string
 ##
 ## Returns: The compiled pattern of the concatenation of *p1* and *p2*.
 ##
-## .. bro:see:: convert_for_pattern string_to_pattern
+## .. zeek:see:: convert_for_pattern string_to_pattern
 ##
 ## .. note::
 ##
-##      This function must be called at Bro startup time, e.g., in the event
-##      :bro:id:`bro_init`.
+##      This function must be called at Zeek startup time, e.g., in the event
+##      :zeek:id:`zeek_init`.
 function merge_pattern%(p1: pattern, p2: pattern%): pattern &deprecated
 	%{
 	RE_Matcher* re = new RE_Matcher();
@@ -3028,16 +3028,16 @@ char* to_pat_str(int sn, const char* ss)
 	}
 %%}
 
-## Escapes a string so that it becomes a valid :bro:type:`pattern` and can be
-## used with the :bro:id:`string_to_pattern`. Any character from the set
+## Escapes a string so that it becomes a valid :zeek:type:`pattern` and can be
+## used with the :zeek:id:`string_to_pattern`. Any character from the set
 ## ``^$-:"\/|*+?.(){}[]`` is prefixed with a ``\``.
 ##
 ## s: The string to escape.
 ##
 ## Returns: An escaped version of *s* that has the structure of a valid
-##          :bro:type:`pattern`.
+##          :zeek:type:`pattern`.
 ##
-## .. bro:see:: merge_pattern string_to_pattern
+## .. zeek:see:: merge_pattern string_to_pattern
 ##
 function convert_for_pattern%(s: string%): string
 	%{
@@ -3047,22 +3047,22 @@ function convert_for_pattern%(s: string%): string
 	return ret;
 	%}
 
-## Converts a :bro:type:`string` into a :bro:type:`pattern`.
+## Converts a :zeek:type:`string` into a :zeek:type:`pattern`.
 ##
 ## s: The string to convert.
 ##
 ## convert: If true, *s* is first passed through the function
-##          :bro:id:`convert_for_pattern` to escape special characters of
+##          :zeek:id:`convert_for_pattern` to escape special characters of
 ##          patterns.
 ##
-## Returns: *s* as :bro:type:`pattern`.
+## Returns: *s* as :zeek:type:`pattern`.
 ##
-## .. bro:see:: convert_for_pattern merge_pattern
+## .. zeek:see:: convert_for_pattern merge_pattern
 ##
 ## .. note::
 ##
-##      This function must be called at Bro startup time, e.g., in the event
-##      :bro:id:`bro_init`.
+##      This function must be called at Zeek startup time, e.g., in the event
+##      :zeek:id:`zeek_init`.
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
 	const char* ss = (const char*) (s->Bytes());
@@ -3147,7 +3147,7 @@ function strptime%(fmt: string, d: string%) : time
 ##
 ## Returns: The address *a* masked down to *top_bits_to_keep* bits.
 ##
-## .. bro:see:: remask_addr
+## .. zeek:see:: remask_addr
 function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 	%{
 	return new SubNetVal(a->AsAddr(), top_bits_to_keep);
@@ -3169,7 +3169,7 @@ function mask_addr%(a: addr, top_bits_to_keep: count%): subnet
 ##
 ## Returns: The address *a* masked down to *top_bits_to_keep* bits.
 ##
-## .. bro:see:: mask_addr
+## .. zeek:see:: mask_addr
 function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	%{
 	IPAddr addr1(a1->AsAddr());
@@ -3179,37 +3179,37 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 	return new AddrVal(addr1|addr2);
 	%}
 
-## Checks whether a given :bro:type:`port` has TCP as transport protocol.
+## Checks whether a given :zeek:type:`port` has TCP as transport protocol.
 ##
-## p: The :bro:type:`port` to check.
+## p: The :zeek:type:`port` to check.
 ##
 ## Returns: True iff *p* is a TCP port.
 ##
-## .. bro:see:: is_udp_port is_icmp_port
+## .. zeek:see:: is_udp_port is_icmp_port
 function is_tcp_port%(p: port%): bool
 	%{
 	return val_mgr->GetBool(p->IsTCP());
 	%}
 
-## Checks whether a given :bro:type:`port` has UDP as transport protocol.
+## Checks whether a given :zeek:type:`port` has UDP as transport protocol.
 ##
-## p: The :bro:type:`port` to check.
+## p: The :zeek:type:`port` to check.
 ##
 ## Returns: True iff *p* is a UDP port.
 ##
-## .. bro:see:: is_icmp_port is_tcp_port
+## .. zeek:see:: is_icmp_port is_tcp_port
 function is_udp_port%(p: port%): bool
 	%{
 	return val_mgr->GetBool(p->IsUDP());
 	%}
 
-## Checks whether a given :bro:type:`port` has ICMP as transport protocol.
+## Checks whether a given :zeek:type:`port` has ICMP as transport protocol.
 ##
-## p: The :bro:type:`port` to check.
+## p: The :zeek:type:`port` to check.
 ##
 ## Returns: True iff *p* is an ICMP port.
 ##
-## .. bro:see:: is_tcp_port is_udp_port
+## .. zeek:see:: is_tcp_port is_udp_port
 function is_icmp_port%(p: port%): bool
 	%{
 	return val_mgr->GetBool(p->IsICMP());
@@ -3251,7 +3251,7 @@ EnumVal* map_conn_type(TransportProto tp)
 ##
 ## Returns: The transport protocol of the connection identified by *cid*.
 ##
-## .. bro:see:: get_port_transport_proto
+## .. zeek:see:: get_port_transport_proto
 ##              get_orig_seq get_resp_seq
 function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	%{
@@ -3265,13 +3265,13 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	return map_conn_type(c->ConnTransport());
 	%}
 
-## Extracts the transport protocol from a :bro:type:`port`.
+## Extracts the transport protocol from a :zeek:type:`port`.
 ##
 ## p: The port.
 ##
 ## Returns: The transport protocol of the port *p*.
 ##
-## .. bro:see:: get_conn_transport_proto
+## .. zeek:see:: get_conn_transport_proto
 ##              get_orig_seq get_resp_seq
 function get_port_transport_proto%(p: port%): transport_proto
 	%{
@@ -3284,7 +3284,7 @@ function get_port_transport_proto%(p: port%): transport_proto
 ##
 ## Returns: True if the connection identified by *c* exists.
 ##
-## .. bro:see:: lookup_connection
+## .. zeek:see:: lookup_connection
 function connection_exists%(c: conn_id%): bool
 	%{
 	if ( sessions->FindConnection(c) )
@@ -3293,15 +3293,15 @@ function connection_exists%(c: conn_id%): bool
 		return val_mgr->GetBool(0);
 	%}
 
-## Returns the :bro:type:`connection` record for a given connection identifier.
+## Returns the :zeek:type:`connection` record for a given connection identifier.
 ##
 ## cid: The connection ID.
 ##
-## Returns: The :bro:type:`connection` record for *cid*. If *cid* does not point
+## Returns: The :zeek:type:`connection` record for *cid*. If *cid* does not point
 ##          to an existing connection, the function generates a run-time error
 ##          and returns a dummy value.
 ##
-## .. bro:see:: connection_exists
+## .. zeek:see:: connection_exists
 function lookup_connection%(cid: conn_id%): connection
 	%{
 	Connection* conn = sessions->FindConnection(cid);
@@ -3361,7 +3361,7 @@ const char* conn_id_string(Val* c)
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: dump_packet get_current_packet send_current_packet
+## .. zeek:see:: dump_packet get_current_packet send_current_packet
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
@@ -3392,7 +3392,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## Returns: The currently processed packet, which is a record
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
-## .. bro:see:: dump_current_packet dump_packet send_current_packet
+## .. zeek:see:: dump_current_packet dump_packet send_current_packet
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p;
@@ -3422,10 +3422,10 @@ function get_current_packet%(%) : pcap_packet
 
 ## Function to get the raw headers of the currently processed packet.
 ##
-## Returns: The :bro:type:`raw_pkt_hdr` record containing the Layer 2, 3 and
+## Returns: The :zeek:type:`raw_pkt_hdr` record containing the Layer 2, 3 and
 ##          4 headers of the currently processed packet.
 ##
-## .. bro:see:: raw_pkt_hdr get_current_packet
+## .. zeek:see:: raw_pkt_hdr get_current_packet
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;
@@ -3448,7 +3448,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 ##
 ## Returns: True on success
 ##
-## .. bro:see:: get_current_packet dump_current_packet send_current_packet
+## .. zeek:see:: get_current_packet dump_current_packet send_current_packet
 function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	%{
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
@@ -3555,7 +3555,7 @@ private:
 ##
 ## Returns: The DNS name of *host*.
 ##
-## .. bro:see:: lookup_hostname
+## .. zeek:see:: lookup_hostname
 function lookup_addr%(host: addr%) : string
 	%{
 	// FIXME: It should be easy to adapt the function to synchronous
@@ -3584,7 +3584,7 @@ function lookup_addr%(host: addr%) : string
 ##
 ## Returns: The DNS TXT record associated with *host*.
 ##
-## .. bro:see:: lookup_hostname
+## .. zeek:see:: lookup_hostname
 function lookup_hostname_txt%(host: string%) : string
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
@@ -3613,7 +3613,7 @@ function lookup_hostname_txt%(host: string%) : string
 ##
 ## Returns: A set of DNS A and AAAA records associated with *host*.
 ##
-## .. bro:see:: lookup_addr
+## .. zeek:see:: lookup_addr
 function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
@@ -3945,7 +3945,7 @@ static bool mmdb_try_open_asn ()
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. bro:see:: lookup_asn
+## .. zeek:see:: lookup_asn
 function mmdb_open_location_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -3962,7 +3962,7 @@ function mmdb_open_location_db%(f: string%) : bool
 ##
 ## Returns: A boolean indicating whether the db was successfully opened.
 ##
-## .. bro:see:: lookup_asn
+## .. zeek:see:: lookup_asn
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
 #ifdef USE_GEOIP
@@ -3979,7 +3979,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ##
 ## Returns: A record with country, region, city, latitude, and longitude.
 ##
-## .. bro:see:: lookup_asn
+## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
 	RecordVal* location = new RecordVal(geo_location);
@@ -4064,7 +4064,7 @@ function lookup_location%(a: addr%) : geo_location
 ##
 ## Returns: The number of the ASN that contains *a*.
 ##
-## .. bro:see:: lookup_location
+## .. zeek:see:: lookup_location
 function lookup_asn%(a: addr%) : count
 	%{
 #ifdef USE_GEOIP
@@ -4128,7 +4128,7 @@ function lookup_asn%(a: addr%) : count
 ##
 ## Returns: Distance in miles.
 ##
-## .. bro:see:: haversine_distance_ip
+## .. zeek:see:: haversine_distance_ip
 function haversine_distance%(lat1: double, long1: double, lat2: double, long2: double%): double
 	%{
 	const double PI = 3.14159;
@@ -4254,7 +4254,7 @@ function file_mode%(mode: count%): string
 ## Returns: True if the connection identified by *cid* exists and has analyzer
 ##          *aid*.
 ##
-## .. bro:see:: Analyzer::schedule_analyzer Analyzer::name
+## .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
 function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4289,7 +4289,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 ## .. note::
 ##
 ##     Bro will still generate connection-oriented events such as
-##     :bro:id:`connection_finished`.
+##     :zeek:id:`connection_finished`.
 function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4311,15 +4311,15 @@ function skip_further_processing%(cid: conn_id%): bool
 ## Returns: False if *cid* does not point to an active connection, and true
 ##          otherwise.
 ##
-## .. bro:see:: skip_further_processing
+## .. zeek:see:: skip_further_processing
 ##
 ## .. note::
 ##
 ##     This is independent of whether Bro processes the packets of this
 ##     connection, which is controlled separately by
-##     :bro:id:`skip_further_processing`.
+##     :zeek:id:`skip_further_processing`.
 ##
-## .. bro:see:: get_contents_file set_contents_file
+## .. zeek:see:: get_contents_file set_contents_file
 function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -4357,13 +4357,13 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 # ===========================================================================
 
 ## Opens a file for writing. If a file with the same name already exists, this
-## function overwrites it (as opposed to :bro:id:`open_for_append`).
+## function overwrites it (as opposed to :zeek:id:`open_for_append`).
 ##
 ## f: The path to the file.
 ##
-## Returns: A :bro:type:`file` handle for subsequent operations.
+## Returns: A :zeek:type:`file` handle for subsequent operations.
 ##
-## .. bro:see:: active_file open_for_append close write_file
+## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 ##              rmdir unlink rename
 function open%(f: string%): file
@@ -4377,13 +4377,13 @@ function open%(f: string%): file
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
-## exists, this function appends to it (as opposed to :bro:id:`open`).
+## exists, this function appends to it (as opposed to :zeek:id:`open`).
 ##
 ## f: The path to the file.
 ##
-## Returns: A :bro:type:`file` handle for subsequent operations.
+## Returns: A :zeek:type:`file` handle for subsequent operations.
 ##
-## .. bro:see:: active_file open close write_file
+## .. zeek:see:: active_file open close write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
@@ -4393,11 +4393,11 @@ function open_for_append%(f: string%): file
 
 ## Closes an open file and flushes any buffered content.
 ##
-## f: A :bro:type:`file` handle to an open file.
+## f: A :zeek:type:`file` handle to an open file.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: active_file open open_for_append write_file
+## .. zeek:see:: active_file open open_for_append write_file
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 ##              rmdir unlink rename
 function close%(f: file%): bool
@@ -4407,13 +4407,13 @@ function close%(f: file%): bool
 
 ## Writes data to an open file.
 ##
-## f: A :bro:type:`file` handle to an open file.
+## f: A :zeek:type:`file` handle to an open file.
 ##
 ## data: The data to write to *f*.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: active_file open open_for_append close
+## .. zeek:see:: active_file open open_for_append close
 ##              get_file_name set_buf flush_all mkdir enable_raw_output
 ##              rmdir unlink rename
 function write_file%(f: file, data: string%): bool
@@ -4426,14 +4426,14 @@ function write_file%(f: file, data: string%): bool
 
 ## Alters the buffering behavior of a file.
 ##
-## f: A :bro:type:`file` handle to an open file.
+## f: A :zeek:type:`file` handle to an open file.
 ##
 ## buffered: When true, *f* is fully buffered, i.e., bytes are saved in a
 ##           buffer until the block size has been reached. When
 ##           false, *f* is line buffered, i.e., bytes are saved up until a
 ##           newline occurs.
 ##
-## .. bro:see:: active_file open open_for_append close
+## .. zeek:see:: active_file open open_for_append close
 ##              get_file_name write_file flush_all mkdir enable_raw_output
 ##              rmdir unlink rename
 function set_buf%(f: file, buffered: bool%): any
@@ -4446,7 +4446,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: active_file open open_for_append close
+## .. zeek:see:: active_file open open_for_append close
 ##              get_file_name write_file set_buf mkdir enable_raw_output
 ##              rmdir unlink rename
 function flush_all%(%): bool
@@ -4461,7 +4461,7 @@ function flush_all%(%): bool
 ## Returns: True if the operation succeeds or if *f* already exists,
 ##          and false if the file creation fails.
 ##
-## .. bro:see:: active_file open_for_append close write_file
+## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 ##              rmdir unlink rename
 function mkdir%(f: string%): bool
@@ -4493,7 +4493,7 @@ function mkdir%(f: string%): bool
 ## Returns: True if the operation succeeds, and false if the
 ##          directory delete operation fails.
 ##
-## .. bro:see:: active_file open_for_append close write_file
+## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 ##              mkdir unlink rename
 function rmdir%(d: string%): bool
@@ -4517,7 +4517,7 @@ function rmdir%(d: string%): bool
 ## Returns: True if the operation succeeds and the file was deleted,
 ##          and false if the deletion fails.
 ##
-## .. bro:see:: active_file open_for_append close write_file
+## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 ##              mkdir rmdir rename
 function unlink%(f: string%): bool
@@ -4542,7 +4542,7 @@ function unlink%(f: string%): bool
 ##
 ## Returns: True if the rename succeeds and false otherwise.
 ##
-## .. bro:see:: active_file open_for_append close write_file
+## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 ##              mkdir rmdir unlink
 function rename%(src_f: string, dst_f: string%): bool
@@ -4564,7 +4564,7 @@ function rename%(src_f: string, dst_f: string%): bool
 ##
 ## f: The file to check.
 ##
-## Returns: True if *f* is an open :bro:type:`file`.
+## Returns: True if *f* is an open :zeek:type:`file`.
 ##
 ## .. todo:: Rename to ``is_open``.
 function active_file%(f: file%): bool
@@ -4578,7 +4578,7 @@ function active_file%(f: file%): bool
 ##
 ## Returns: The filename associated with *f*.
 ##
-## .. bro:see:: open
+## .. zeek:see:: open
 function get_file_name%(f: file%): string
 	%{
 	if ( ! f )
@@ -4594,7 +4594,7 @@ function get_file_name%(f: file%): string
 ## Returns: Rotation statistics which include the original file name, the name
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
-## .. bro:see:: rotate_file_by_name calc_next_rotate
+## .. zeek:see:: rotate_file_by_name calc_next_rotate
 function rotate_file%(f: file%): rotate_info
 	%{
 	RecordVal* info = f->Rotate();
@@ -4618,7 +4618,7 @@ function rotate_file%(f: file%): rotate_info
 ## Returns: Rotation statistics which include the original file name, the name
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
-## .. bro:see:: rotate_file calc_next_rotate
+## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
 	RecordVal* info = new RecordVal(rotate_info);
@@ -4672,7 +4672,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 ##
 ## Returns: The duration until the next file rotation time.
 ##
-## .. bro:see:: rotate_file rotate_file_by_name
+## .. zeek:see:: rotate_file rotate_file_by_name
 function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
@@ -4697,16 +4697,16 @@ function file_size%(f: string%) : double
 	return new Val(double(s.st_size), TYPE_DOUBLE);
 	%}
 
-## Disables sending :bro:id:`print_hook` events to remote peers for a given
+## Disables sending :zeek:id:`print_hook` events to remote peers for a given
 ## file. In a
 ## distributed setup, communicating Bro instances generate the event
-## :bro:id:`print_hook` for each print statement and send it to the remote
+## :zeek:id:`print_hook` for each print statement and send it to the remote
 ## side. When disabled for a particular file, these events will not be
 ## propagated to other peers.
 ##
-## f: The file to disable :bro:id:`print_hook` events for.
+## f: The file to disable :zeek:id:`print_hook` events for.
 ##
-## .. bro:see:: enable_raw_output
+## .. zeek:see:: enable_raw_output
 function disable_print_hook%(f: file%): any
 	%{
 	f->DisablePrintHook();
@@ -4714,11 +4714,11 @@ function disable_print_hook%(f: file%): any
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
-## This function is equivalent to :bro:attr:`&raw_output`.
+## This function is equivalent to :zeek:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
 ##
-## .. bro:see:: disable_print_hook
+## .. zeek:see:: disable_print_hook
 function enable_raw_output%(f: file%): any
 	%{
 	f->EnableRawOutput();
@@ -4745,7 +4745,7 @@ function enable_raw_output%(f: file%): any
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -4775,7 +4775,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              uninstall_src_addr_filter
@@ -4799,7 +4799,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4820,7 +4820,7 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4850,7 +4850,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4880,7 +4880,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 ##
 ## Returns: True (unconditionally).
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4904,7 +4904,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4925,7 +4925,7 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -4953,7 +4953,7 @@ function enable_communication%(%): any &deprecated
 	%{
 	if ( bro_start_network_time != 0.0 )
 		{
-		builtin_error("communication must be enabled in bro_init");
+		builtin_error("communication must be enabled in zeek_init");
 		return 0;
 		}
 
@@ -4966,13 +4966,13 @@ function enable_communication%(%): any &deprecated
 	return 0;
 	%}
 
-## Flushes in-memory state tagged with the :bro:attr:`&persistent` attribute
+## Flushes in-memory state tagged with the :zeek:attr:`&persistent` attribute
 ## to disk. The function writes the state to the file ``.state/state.bst`` in
 ## the directory where Bro was started.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: rescan_state
+## .. zeek:see:: rescan_state
 function checkpoint_state%(%) : bool
 	%{
 	return val_mgr->GetBool(persistence_serializer->WriteState(true));
@@ -4980,11 +4980,11 @@ function checkpoint_state%(%) : bool
 
 ## Reads persistent state and populates the in-memory data structures
 ## accordingly. Persistent state is read from the ``.state`` directory.
-## This function is the dual to :bro:id:`checkpoint_state`.
+## This function is the dual to :zeek:id:`checkpoint_state`.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: checkpoint_state
+## .. zeek:see:: checkpoint_state
 function rescan_state%(%) : bool
 	%{
 	return val_mgr->GetBool(persistence_serializer->ReadAll(false, true));
@@ -4997,7 +4997,7 @@ function rescan_state%(%) : bool
 ##
 ## Returns: True if opening the target file succeeds.
 ##
-## .. bro:see:: capture_state_updates
+## .. zeek:see:: capture_state_updates
 function capture_events%(filename: string%) : bool
 	%{
 	if ( ! event_serializer )
@@ -5009,14 +5009,14 @@ function capture_events%(filename: string%) : bool
 		(const char*) filename->CheckString()));
 	%}
 
-## Writes state updates generated by :bro:attr:`&synchronized` variables to a
+## Writes state updates generated by :zeek:attr:`&synchronized` variables to a
 ## file.
 ##
 ## filename: The name of the file which stores the state updates.
 ##
 ## Returns: True if opening the target file succeeds.
 ##
-## .. bro:see:: capture_events
+## .. zeek:see:: capture_events
 function capture_state_updates%(filename: string%) : bool
 	%{
 	if ( ! state_serializer )
@@ -5049,7 +5049,7 @@ function capture_state_updates%(filename: string%) : bool
 ##
 ## Returns: A locally unique ID of the new peer.
 ##
-## .. bro:see:: disconnect
+## .. zeek:see:: disconnect
 ##              listen
 ##              request_remote_events
 ##              request_remote_sync
@@ -5068,11 +5068,11 @@ function connect%(ip: addr, zone_id: string, p: port, our_class: string, retry: 
 
 ## Terminate the connection with a peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: connect listen
+## .. zeek:see:: connect listen
 function disconnect%(p: event_peer%) : bool &deprecated
     %{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5082,13 +5082,13 @@ function disconnect%(p: event_peer%) : bool &deprecated
 ## Subscribes to all events from a remote peer whose names match a given
 ## pattern.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## handlers: The pattern describing the events to request from peer *p*.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: request_remote_sync
+## .. zeek:see:: request_remote_sync
 ##              request_remote_logs
 ##              set_accept_state
 function request_remote_events%(p: event_peer, handlers: pattern%) : bool &deprecated
@@ -5099,14 +5099,14 @@ function request_remote_events%(p: event_peer, handlers: pattern%) : bool &depre
 
 ## Requests synchronization of IDs with a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## auth: If true, the local instance considers its current state authoritative
 ##       and sends it to *p* right after the handshake.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: request_remote_events
+## .. zeek:see:: request_remote_events
 ##              request_remote_logs
 ##              set_accept_state
 function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
@@ -5117,11 +5117,11 @@ function request_remote_sync%(p: event_peer, auth: bool%) : bool &deprecated
 
 ## Requests logs from a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: request_remote_events
+## .. zeek:see:: request_remote_events
 ##              request_remote_sync
 function request_remote_logs%(p: event_peer%) : bool &deprecated
 	%{
@@ -5131,13 +5131,13 @@ function request_remote_logs%(p: event_peer%) : bool &deprecated
 
 ## Sets a boolean flag indicating whether Bro accepts state from a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## accept: True if Bro accepts state from peer *p*, or false otherwise.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: request_remote_events
+## .. zeek:see:: request_remote_events
 ##              request_remote_sync
 ##              set_compression_level
 function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
@@ -5148,14 +5148,14 @@ function set_accept_state%(p: event_peer, accept: bool%) : bool &deprecated
 
 ## Sets the compression level of the session with a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## level: Allowed values are in the range *[0, 9]*, where 0 is the default and
 ##        means no compression.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: set_accept_state
+## .. zeek:see:: set_accept_state
 function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5181,7 +5181,7 @@ function set_compression_level%(p: event_peer, level: count%) : bool &deprecated
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: connect disconnect
+## .. zeek:see:: connect disconnect
 function listen%(ip: addr, p: port, ssl: bool, ipv6: bool, zone_id: string, retry_interval: interval%) : bool &deprecated
 	%{
 	return val_mgr->GetBool(remote_serializer->Listen(ip->AsAddr(), p->Port(), ssl, ipv6, zone_id->CheckString(), retry_interval));
@@ -5197,11 +5197,11 @@ function is_remote_event%(%) : bool
 
 ## Sends all persistent state to a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: send_id send_ping send_current_packet send_capture_filter
+## .. zeek:see:: send_id send_ping send_current_packet send_capture_filter
 function send_state%(p: event_peer%) : bool
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5211,13 +5211,13 @@ function send_state%(p: event_peer%) : bool
 ## Sends a global identifier to a remote peer, which then might install it
 ## locally.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## id: The identifier to send.
 ##
 ## Returns: True on success.
 ##
-## .. bro:see:: send_state send_ping send_current_packet send_capture_filter
+## .. zeek:see:: send_state send_ping send_current_packet send_capture_filter
 function send_id%(p: event_peer, id: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID pid = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5245,7 +5245,7 @@ function terminate_communication%(%) : bool &deprecated
 ## Signals a remote peer that the local Bro instance finished the initial
 ## handshake.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## Returns: True on success.
 function complete_handshake%(p: event_peer%) : bool &deprecated
@@ -5255,16 +5255,16 @@ function complete_handshake%(p: event_peer%) : bool &deprecated
 	%}
 
 ## Sends a ping event to a remote peer. In combination with an event handler
-## for :bro:id:`remote_pong`, this function can be used to measure latency
+## for :zeek:id:`remote_pong`, this function can be used to measure latency
 ## between two peers.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
-## seq: A sequence number (also included by :bro:id:`remote_pong`).
+## seq: A sequence number (also included by :zeek:id:`remote_pong`).
 ##
 ## Returns: True if sending the ping succeeds.
 ##
-## .. bro:see:: send_state send_id send_current_packet send_capture_filter
+## .. zeek:see:: send_state send_id send_current_packet send_capture_filter
 function send_ping%(p: event_peer, seq: count%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5273,11 +5273,11 @@ function send_ping%(p: event_peer, seq: count%) : bool &deprecated
 
 ## Sends the currently processed packet to a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## Returns: True if sending the packet succeeds.
 ##
-## .. bro:see:: send_id send_state send_ping send_capture_filter
+## .. zeek:see:: send_id send_state send_ping send_capture_filter
 ##              dump_packet dump_current_packet get_current_packet
 function send_current_packet%(p: event_peer%) : bool &deprecated
 	%{
@@ -5301,7 +5301,7 @@ function send_current_packet%(p: event_peer%) : bool &deprecated
 ##
 ## Returns: The ID of the peer who generated the last event.
 ##
-## .. bro:see:: get_local_event_peer
+## .. zeek:see:: get_local_event_peer
 function get_event_peer%(%) : event_peer &deprecated
 	%{
 	SourceID src = mgr.CurrentSource();
@@ -5340,7 +5340,7 @@ function get_event_peer%(%) : event_peer &deprecated
 ##
 ## Returns: The peer ID of the local Bro instance.
 ##
-## .. bro:see:: get_event_peer
+## .. zeek:see:: get_event_peer
 function get_local_event_peer%(%) : event_peer &deprecated
 	%{
 	RecordVal* p = mgr.GetLocalPeerVal();
@@ -5350,13 +5350,13 @@ function get_local_event_peer%(%) : event_peer &deprecated
 
 ## Sends a capture filter to a remote peer.
 ##
-## p: The peer ID returned from :bro:id:`connect`.
+## p: The peer ID returned from :zeek:id:`connect`.
 ##
 ## s: The capture filter.
 ##
 ## Returns: True if sending the packet succeeds.
 ##
-## .. bro:see:: send_id send_state send_ping send_current_packet
+## .. zeek:see:: send_id send_state send_ping send_current_packet
 function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
 	%{
 	RemoteSerializer::PeerID id = p->AsRecordVal()->Lookup(0)->AsCount();
@@ -5367,7 +5367,7 @@ function send_capture_filter%(p: event_peer, s: string%) : bool &deprecated
 ## distributed trace processing with communication enabled
 ## (*pseudo-realtime* mode).
 ##
-## .. bro:see:: continue_processing suspend_state_updates resume_state_updates
+## .. zeek:see:: continue_processing suspend_state_updates resume_state_updates
 function suspend_processing%(%) : any
 	%{
 	net_suspend_processing();
@@ -5376,16 +5376,16 @@ function suspend_processing%(%) : any
 
 ## Resumes Bro's packet processing.
 ##
-## .. bro:see:: suspend_processing suspend_state_updates resume_state_updates
+## .. zeek:see:: suspend_processing suspend_state_updates resume_state_updates
 function continue_processing%(%) : any
 	%{
 	net_continue_processing();
 	return 0;
 	%}
 
-## Stops propagating :bro:attr:`&synchronized` accesses.
+## Stops propagating :zeek:attr:`&synchronized` accesses.
 ##
-## .. bro:see:: suspend_processing continue_processing resume_state_updates
+## .. zeek:see:: suspend_processing continue_processing resume_state_updates
 function suspend_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
@@ -5393,9 +5393,9 @@ function suspend_state_updates%(%) : any &deprecated
 	return 0;
 	%}
 
-## Resumes propagating :bro:attr:`&synchronized` accesses.
+## Resumes propagating :zeek:attr:`&synchronized` accesses.
 ##
-## .. bro:see:: suspend_processing continue_processing suspend_state_updates
+## .. zeek:see:: suspend_processing continue_processing suspend_state_updates
 function resume_state_updates%(%) : any &deprecated
 	%{
 	if ( remote_serializer )
@@ -5442,7 +5442,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 ##
 ## width: The number of bits from the top that should remain intact.
 ##
-## .. bro:see:: preserve_subnet anonymize_addr
+## .. zeek:see:: preserve_subnet anonymize_addr
 ##
 ## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
@@ -5468,7 +5468,7 @@ function preserve_prefix%(a: addr, width: count%): any
 ##
 ## a: The subnet to preserve.
 ##
-## .. bro:see:: preserve_prefix anonymize_addr
+## .. zeek:see:: preserve_prefix anonymize_addr
 ##
 ## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
@@ -5504,7 +5504,7 @@ function preserve_subnet%(a: subnet%): any
 ##
 ## Returns: An anonymized version of *a*.
 ##
-## .. bro:see:: preserve_prefix preserve_subnet
+## .. zeek:see:: preserve_prefix preserve_subnet
 ##
 ## .. todo:: Currently dysfunctional.
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr

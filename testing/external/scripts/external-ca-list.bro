@@ -1,1 +1,0 @@
-../../scripts/external-ca-list.bro

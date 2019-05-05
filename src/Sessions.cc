@@ -537,8 +537,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
-			Weird(fmt("unknown_gre_version_%d", gre_version), ip_hdr,
-			      encapsulation);
+			Weird("unknown_gre_version", ip_hdr, encapsulation);
 			return;
 			}
 
@@ -613,8 +612,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			else
 				{
 				// Not IPv4/IPv6 payload.
-				Weird(fmt("unknown_gre_protocol_%" PRIu16, proto_typ), ip_hdr,
-				      encapsulation);
+				Weird("unknown_gre_protocol", ip_hdr, encapsulation);
 				return;
 				}
 
@@ -747,7 +745,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		}
 
 	default:
-		Weird(fmt("unknown_protocol_%d", proto), pkt, encapsulation);
+		Weird("unknown_protocol", pkt, encapsulation);
 		return;
 	}
 

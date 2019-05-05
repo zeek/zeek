@@ -7,7 +7,7 @@
 ##
 ## version: The identification string
 ##
-## .. bro:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
+## .. zeek:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
 ##    ssh_auth_result ssh_auth_attempted ssh_capabilities
 ##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
 ##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
@@ -23,7 +23,7 @@ event ssh_server_version%(c: connection, version: string%);
 ##
 ## version: The identification string
 ##
-## .. bro:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
+## .. zeek:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
 ##    ssh_auth_result ssh_auth_attempted ssh_capabilities
 ##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
 ##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
@@ -44,7 +44,7 @@ event ssh_client_version%(c: connection, version: string%);
 ##    :abbr:`SSH (Secure Shell)` protocol provides a mechanism for
 ##    unauthenticated access, which some servers support.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version ssh_auth_failed
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
 ##    ssh_auth_result ssh_auth_attempted ssh_capabilities
 ##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
 ##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
@@ -74,7 +74,7 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ## authenticated: This is true if the analyzer detected a
 ##    successful connection from the authentication attempt.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -96,7 +96,7 @@ event ssh_auth_attempted%(c: connection, authenticated: bool%);
 ## capabilities: The list of algorithms and languages that the sender
 ##    advertises support for, in order of preference.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -113,7 +113,7 @@ event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabi
 ## key: The server's public host key. Note that this is the public key
 ##    itself, and not just the fingerprint or hash.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -131,7 +131,7 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ##
 ## e: The exponent for the serer's public host key.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
@@ -141,7 +141,7 @@ event ssh1_server_host_key%(c: connection, p: string, e: string%);
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
 ## encrypted packet is seen. This event is not handled by default, but
 ## is provided for heuristic analysis scripts. Note that you have to set
-## :bro:id:`SSH::disable_analyzer_after_detection` to false to use this
+## :zeek:id:`SSH::disable_analyzer_after_detection` to false to use this
 ## event. This carries a performance penalty.
 ##
 ## c: The connection over which the :abbr:`SSH (Secure Shell)`
@@ -153,7 +153,7 @@ event ssh1_server_host_key%(c: connection, p: string, e: string%);
 ## len: The length of the :abbr:`SSH (Secure Shell)` payload, in
 ##    bytes. Note that this ignores reassembly, as this is unknown.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh1_server_host_key ssh_server_host_key ssh2_dh_server_params
@@ -171,7 +171,7 @@ event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 ##
 ## q: The DH generator.
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
@@ -191,7 +191,7 @@ event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 ##
 ## err_msg: Detailed human-readable error message
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
@@ -211,7 +211,7 @@ event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, e
 ##
 ## q: The ephemeral public key
 ##
-## .. bro:see:: ssh_server_version ssh_client_version
+## .. zeek:see:: ssh_server_version ssh_client_version
 ##    ssh_auth_successful ssh_auth_failed ssh_auth_result
 ##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
 ##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet

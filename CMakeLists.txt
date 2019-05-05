@@ -97,7 +97,15 @@ FindRequiredPackage(ZLIB)
 
 if (NOT BINPAC_EXE_PATH AND
     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+
+    set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
+    if ( BUILD_STATIC_BINPAC )
+      set(ENABLE_STATIC_ONLY true)
+    endif()
+
     add_subdirectory(aux/binpac)
+    set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 endif ()
 FindRequiredPackage(BinPAC)
 
@@ -286,10 +294,14 @@ if ( BROKER_ROOT_DIR )
   set(brodeps ${brodeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
   include_directories(BEFORE ${BROKER_INCLUDE_DIR})
 else ()
+  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
   if ( BUILD_STATIC_BROKER )
     set(ENABLE_STATIC_ONLY true)
   endif()
+
   add_subdirectory(aux/broker)
+  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
   if ( BUILD_STATIC_BROKER )
     set(brodeps ${brodeps} broker_static)

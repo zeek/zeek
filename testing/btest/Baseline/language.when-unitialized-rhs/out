@@ -1,5 +1,5 @@
-expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.when-unitialized-rhs/when-unitialized-rhs.bro, line 9: value used but not set (crashMe)
-expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.when-unitialized-rhs/when-unitialized-rhs.bro, line 14: value used but not set (x)
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.when-unitialized-rhs/when-unitialized-rhs.zeek, line 9: value used but not set (crashMe)
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/language.when-unitialized-rhs/when-unitialized-rhs.zeek, line 14: value used but not set (x)
 1
 2
 3

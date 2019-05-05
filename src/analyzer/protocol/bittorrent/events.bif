@@ -3,7 +3,7 @@
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
 ##    bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -16,7 +16,7 @@ event bittorrent_peer_handshake%(c: connection, is_orig: bool,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -28,7 +28,7 @@ event bittorrent_peer_keep_alive%(c: connection, is_orig: bool%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -40,7 +40,7 @@ event bittorrent_peer_choke%(c: connection, is_orig: bool%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request
@@ -52,7 +52,7 @@ event bittorrent_peer_unchoke%(c: connection, is_orig: bool%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_keep_alive
 ##    bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -64,7 +64,7 @@ event bittorrent_peer_interested%(c: connection, is_orig: bool%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive  bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -76,7 +76,7 @@ event bittorrent_peer_not_interested%(c: connection, is_orig: bool%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake  bittorrent_peer_interested bittorrent_peer_keep_alive
 ##    bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -88,7 +88,7 @@ event bittorrent_peer_have%(c: connection, is_orig: bool, piece_index: count%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
+## .. zeek:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
 ##    bittorrent_peer_have bittorrent_peer_interested bittorrent_peer_keep_alive
 ##    bittorrent_peer_not_interested bittorrent_peer_piece bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -100,7 +100,7 @@ event bittorrent_peer_bitfield%(c: connection, is_orig: bool, bitfield: string%)
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port  bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -113,7 +113,7 @@ event bittorrent_peer_request%(c: connection, is_orig: bool, index: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_port
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -126,7 +126,7 @@ event bittorrent_peer_piece%(c: connection, is_orig: bool, index: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -139,7 +139,7 @@ event bittorrent_peer_cancel%(c: connection, is_orig: bool, index: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_request bittorrent_peer_unchoke bittorrent_peer_unknown
@@ -151,7 +151,7 @@ event bittorrent_peer_port%(c: connection, is_orig: bool, listen_port: port%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -164,7 +164,7 @@ event bittorrent_peer_unknown%(c: connection, is_orig: bool, message_id: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -176,7 +176,7 @@ event bittorrent_peer_weird%(c: connection, is_orig: bool, msg: string%);
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -189,7 +189,7 @@ event bt_tracker_request%(c: connection, uri: string,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -204,7 +204,7 @@ event bt_tracker_response%(c: connection, status: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke
@@ -217,7 +217,7 @@ event bt_tracker_response_not_ok%(c: connection, status: count,
 ## See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
 ## more information about the BitTorrent protocol.
 ##
-## .. bro:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
+## .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
 ##    bittorrent_peer_handshake bittorrent_peer_have bittorrent_peer_interested
 ##    bittorrent_peer_keep_alive bittorrent_peer_not_interested bittorrent_peer_piece
 ##    bittorrent_peer_port bittorrent_peer_request bittorrent_peer_unchoke

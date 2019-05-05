@@ -1,4 +1,4 @@
-expression error in ./1.bro, line 9: field value missing (mr$f)
+expression error in ./1.zeek, line 9: field value missing (mr$f)
 bar start
 foo start
-other bro_init
+other zeek_init

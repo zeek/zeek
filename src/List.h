@@ -11,7 +11,7 @@
 //	element up, and resizing the list, which involves getting new space
 //	and moving the data.  Resizing occurs automatically when inserting
 //	more elements than the list can currently hold.  Automatic
-//	resizing is done one "chunk_size" of elements at a time and
+//	resizing is done by growing by GROWTH_FACTOR at a time and
 //	always increases the size of the list.  Resizing to zero
 //	(or to less than the current value of num_entries)
 //	will decrease the size of the list to the current number of
@@ -32,7 +32,6 @@ public:
 
 	void clear();		// remove all entries
 	int length() const	{ return num_entries; }
-	int chunk() const	{ return chunk_size; }
 	int max() const		{ return max_entries; }
 	int resize(int = 0);	// 0 => size to fit current number of entries
 
@@ -79,7 +78,6 @@ protected:
 	void operator=(BaseList&);
 
 	ent* entry;
-	int chunk_size;		// increase size by this amount when necessary
 	int max_entries;
 	int num_entries;
 	};

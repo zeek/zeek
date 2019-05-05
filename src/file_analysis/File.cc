@@ -649,3 +649,9 @@ void File::FileEvent(EventHandlerPtr h, val_list* vl)
 		analyzers.DrainModifications();
 		}
 	}
+
+bool File::PermitWeird(const char* name, uint64 threshold, uint64 rate,
+                       double duration)
+	{
+	return ::PermitWeird(weird_state, name, threshold, rate, duration);
+	}

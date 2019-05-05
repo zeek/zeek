@@ -29,8 +29,8 @@ protected:
 	OCSP(RecordVal* args, File* file, bool request);
 
 private:
-	void ParseResponse(OCSP_RESPVal*, const char* fid = 0);
-	void ParseRequest(OCSP_REQUEST*, const char* fid = 0);
+	void ParseResponse(OCSP_RESPVal*);
+	void ParseRequest(OCSP_REQUEST*);
 	void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) override;
 
 	std::string ocsp_data;

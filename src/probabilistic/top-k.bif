@@ -10,7 +10,7 @@
 ##
 ## Returns: Opaque pointer to the data structure.
 ##
-## .. bro:see:: topk_add topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_add topk_get_top topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_init%(size: count%): opaque of topk
 	%{
@@ -28,7 +28,7 @@ function topk_init%(size: count%): opaque of topk
 ##
 ## value: observed value.
 ##
-## .. bro:see:: topk_init topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_get_top topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_add%(handle: opaque of topk, value: any%): any
 	%{
@@ -47,7 +47,7 @@ function topk_add%(handle: opaque of topk, value: any%): any
 ##
 ## Returns: vector of the first k elements.
 ##
-## .. bro:see:: topk_init topk_add topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_get_top%(handle: opaque of topk, k: count%): any_vec
 	%{
@@ -68,7 +68,7 @@ function topk_get_top%(handle: opaque of topk, k: count%): any_vec
 ##
 ## Returns: Overestimated number for how often the element has been encountered.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_get_top topk_epsilon
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_count%(handle: opaque of topk, value: any%): count
 	%{
@@ -79,7 +79,7 @@ function topk_count%(handle: opaque of topk, value: any%): count
 
 ## Get the maximal overestimation for count.
 ##
-## .. note:: Same restrictions as for :bro:id:`topk_count` apply.
+## .. note:: Same restrictions as for :zeek:id:`topk_count` apply.
 ##
 ## handle: the TopK handle.
 ##
@@ -88,7 +88,7 @@ function topk_count%(handle: opaque of topk, value: any%): count
 ## Returns: Number which represents the maximal overestimation for the count of
 ##          this element.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_count
+## .. zeek:see:: topk_init topk_add topk_get_top topk_count
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_epsilon%(handle: opaque of topk, value: any%): count
 	%{
@@ -107,7 +107,7 @@ function topk_epsilon%(handle: opaque of topk, value: any%): count
 ##
 ## Returns: size given during initialization.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
 ##    topk_sum topk_merge topk_merge_prune
 function topk_size%(handle: opaque of topk%): count
 	%{
@@ -120,14 +120,14 @@ function topk_size%(handle: opaque of topk%): count
 ##
 ## .. note:: This is equal to the number of all inserted objects if the data
 ##    structure never has been pruned. Do not use after
-##    calling :bro:id:`topk_merge_prune` (will throw a warning message if used
+##    calling :zeek:id:`topk_merge_prune` (will throw a warning message if used
 ##    afterwards).
 ##
 ## handle: the TopK handle.
 ##
 ## Returns: sum of all counts.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
 ##    topk_size topk_merge topk_merge_prune
 function topk_sum%(handle: opaque of topk%): count
 	%{
@@ -145,7 +145,7 @@ function topk_sum%(handle: opaque of topk%): count
 ## .. note:: This does not remove any elements, the resulting data structure
 ##    can be bigger than the maximum size given on initialization.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge_prune
 function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
 	%{
@@ -164,14 +164,14 @@ function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
 ## data structure back to the size given on initialization.
 ##
 ## .. note:: Use with care and only when being aware of the restrictions this
-##    entails. Do not call :bro:id:`topk_size` or :bro:id:`topk_add` afterwards,
+##    entails. Do not call :zeek:id:`topk_size` or :zeek:id:`topk_add` afterwards,
 ##    results will probably not be what you expect.
 ##
 ## handle1: the TopK handle in which the second TopK structure is merged.
 ##
 ## handle2: the TopK handle in which is merged into the first TopK structure.
 ##
-## .. bro:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
+## .. zeek:see:: topk_init topk_add topk_get_top topk_count topk_epsilon
 ##    topk_size topk_sum topk_merge
 function topk_merge_prune%(handle1: opaque of topk, handle2: opaque of topk%): any
 	%{

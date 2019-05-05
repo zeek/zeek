@@ -13,10 +13,6 @@ class IterCookie;
 declare(PList,DictEntry);
 declare(PList,IterCookie);
 
-// Default number of hash buckets in dictionary.  The dictionary will
-// increase the size of the hash table as needed.
-#define DEFAULT_DICT_SIZE 16
-
 // Type indicating whether the dictionary should keep track of the order
 // of insertions.
 typedef enum { ORDERED, UNORDERED } dict_order;
@@ -30,7 +26,7 @@ extern void generic_delete_func(void*);
 class Dictionary {
 public:
 	explicit Dictionary(dict_order ordering = UNORDERED,
-			int initial_size = DEFAULT_DICT_SIZE);
+			int initial_size = 0);
 	virtual ~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
@@ -196,7 +192,7 @@ private:
 class PDict(type) : public Dictionary {	\
 public:	\
 	explicit PDict(type)(dict_order ordering = UNORDERED,	\
-			int initial_size = DEFAULT_DICT_SIZE) :	\
+			int initial_size = 0) :	\
 		Dictionary(ordering, initial_size) {}	\
 	type* Lookup(const char* key) const	\
 		{	\

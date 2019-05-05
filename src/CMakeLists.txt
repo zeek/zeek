@@ -143,7 +143,7 @@ set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 
 add_subdirectory(analyzer)
 add_subdirectory(broker)
-add_subdirectory(broxygen)
+add_subdirectory(zeexygen)
 add_subdirectory(file_analysis)
 add_subdirectory(input)
 add_subdirectory(iosource)
@@ -319,6 +319,7 @@ set(bro_SRCS
     UID.cc
     Val.cc
     Var.cc
+    WeirdState.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c
@@ -385,17 +386,17 @@ add_dependencies(generate_outputs_stage2b generate_outputs_stage1)
 add_custom_target(generate_outputs)
 add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stage2b)
 
-# Build __load__.bro files for standard *.bif.bro.
+# Build __load__.zeek files for standard *.bif.zeek.
 bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
 add_dependencies(bif_loader ${bro_SUBDIRS})
 add_dependencies(bro bif_loader)
 
-# Build __load__.bro files for plugins/*.bif.bro.
+# Build __load__.zeek files for plugins/*.bif.zeek.
 bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
 add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
 add_dependencies(bro bif_loader_plugins)
 
-# Install *.bif.bro.
+# Install *.bif.zeek.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
 
 # Create plugin directory at install time.

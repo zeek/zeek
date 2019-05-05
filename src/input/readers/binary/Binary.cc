@@ -81,6 +81,9 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 	ino = 0;
 	firstrun = true;
 
+	path_prefix.assign((const char*) BifConst::InputBinary::path_prefix->Bytes(),
+	                   BifConst::InputBinary::path_prefix->Len());
+
 	if ( ! info.source || strlen(info.source) == 0 )
 		{
 		Error("No source path provided");
@@ -103,6 +106,20 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 
 	// do initialization
 	fname = info.source;
+
+	// Handle path-prefixing. See similar logic in Ascii::OpenFile().
+	if ( fname.front() != '/' && ! path_prefix.empty() )
+		{
+		string path = path_prefix;
+		std::size_t last = path.find_last_not_of("/");
+
+		if ( last == string::npos ) // Nothing but slashes -- weird but ok...
+			path = "/";
+		else
+			path.erase(last + 1);
+
+		fname = path + "/" + fname;
+		}
 
 	if ( ! OpenInput() )
 		return false;

@@ -1,0 +1,1 @@
+error in /Users/jon/pro/zeek/zeek/testing/btest/.tmp/language.ternary-record-mismatch/ternary-record-mismatch.zeek, lines 13-14: operands must be of the same type ((F) ? (coerce [$a=a string, $b=6] to MyRecord) : [$a=a different string, $b=7])

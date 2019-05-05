@@ -4,7 +4,7 @@
 ##! If event handlers do exist, it's assumed they take care of determining
 ##! how/where to output the messages.
 ##!
-##! See :doc:`/scripts/base/frameworks/reporter/main.bro` for a convenient
+##! See :doc:`/scripts/base/frameworks/reporter/main.zeek` for a convenient
 ##! reporter message logging framework.
 
 module Reporter;
@@ -19,7 +19,7 @@ module Reporter;
 ##
 ## Returns: Always true.
 ##
-## .. bro:see:: reporter_info
+## .. zeek:see:: reporter_info
 function Reporter::info%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
@@ -34,7 +34,7 @@ function Reporter::info%(msg: string%): bool
 ##
 ## Returns: Always true.
 ##
-## .. bro:see:: reporter_warning
+## .. zeek:see:: reporter_warning
 function Reporter::warning%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
@@ -50,7 +50,7 @@ function Reporter::warning%(msg: string%): bool
 ##
 ## Returns: Always true.
 ##
-## .. bro:see:: reporter_error
+## .. zeek:see:: reporter_error
 function Reporter::error%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
@@ -124,6 +124,27 @@ function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
 function Reporter::conn_weird%(name: string, c: connection, addl: string &default=""%): bool
 	%{
 	reporter->Weird(c, name->CheckString(), addl->CheckString());
+	return val_mgr->GetBool(1);
+	%}
+
+## Generates a "file" weird.
+##
+## name: the name of the weird.
+##
+## f: the file associated with the weird.
+##
+## addl: additional information to accompany the weird.
+##
+## Returns: true if the file was still valid, else false.
+function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
+	%{
+	auto fuid = f->AsRecordVal()->Lookup(0)->AsStringVal();
+	auto file = file_mgr->LookupFile(fuid->CheckString());
+
+	if ( ! file )
+		return val_mgr->GetBool(0);
+
+	reporter->Weird(file, name->CheckString(), addl->CheckString());
 	return val_mgr->GetBool(1);
 	%}
 

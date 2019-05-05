@@ -415,7 +415,7 @@ refine connection SSH_Conn += {
 						return true;
 
 
-					bro_analyzer()->Weird(fmt("ssh_unknown_kex_algorithm=%s", c_str(kex_algorithm_)));
+					bro_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
 					return true;
 
 					}

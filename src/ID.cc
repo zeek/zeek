@@ -14,7 +14,7 @@
 #include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
-#include "broxygen/Manager.h"
+#include "zeexygen/Manager.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -651,9 +651,9 @@ void ID::DescribeExtended(ODesc* d) const
 void ID::DescribeReSTShort(ODesc* d) const
 	{
 	if ( is_type )
-		d->Add(":bro:type:`");
+		d->Add(":zeek:type:`");
 	else
-		d->Add(":bro:id:`");
+		d->Add(":zeek:id:`");
 
 	d->Add(name);
 	d->Add("`");
@@ -661,7 +661,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 	if ( type )
 		{
 		d->Add(": ");
-		d->Add(":bro:type:`");
+		d->Add(":zeek:type:`");
 
 		if ( ! is_type && ! type->GetName().empty() )
 			d->Add(type->GetName().c_str());
@@ -682,7 +682,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 				if ( is_type )
 					d->Add(type_name(t));
 				else
-					d->Add(broxygen_mgr->GetEnumTypeName(Name()).c_str());
+					d->Add(zeexygen_mgr->GetEnumTypeName(Name()).c_str());
 				break;
 
 			default:
@@ -706,18 +706,18 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 	if ( roles_only )
 		{
 		if ( is_type )
-			d->Add(":bro:type:`");
+			d->Add(":zeek:type:`");
 		else
-			d->Add(":bro:id:`");
+			d->Add(":zeek:id:`");
 		d->Add(name);
 		d->Add("`");
 		}
 	else
 		{
 		if ( is_type )
-			d->Add(".. bro:type:: ");
+			d->Add(".. zeek:type:: ");
 		else
-			d->Add(".. bro:id:: ");
+			d->Add(".. zeek:id:: ");
 		d->Add(name);
 		}
 
@@ -730,7 +730,7 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 
 		if ( ! is_type && ! type->GetName().empty() )
 			{
-			d->Add(":bro:type:`");
+			d->Add(":zeek:type:`");
 			d->Add(type->GetName());
 			d->Add("`");
 			}

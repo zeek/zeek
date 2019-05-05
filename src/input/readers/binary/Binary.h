@@ -42,6 +42,7 @@ private:
 
 	// options set from the script-level.
 	static streamsize chunk_size;
+	string path_prefix;
 };
 
 }

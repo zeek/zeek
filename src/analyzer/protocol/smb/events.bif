@@ -3,7 +3,7 @@
 ## up is when the drive mapping isn't seen so the analyzer is not able
 ## to determine whether to send the data to the files framework or to
 ## the DCE_RPC analyzer. This heuristic can be tuned by adding or
-## removing "named pipe" names from the :bro:see:`SMB::pipe_filenames`
+## removing "named pipe" names from the :zeek:see:`SMB::pipe_filenames`
 ## const.
 ##
 ## c: The connection.

@@ -45,15 +45,40 @@ type Handshake(rec: SSLRecord) = record {
 
 refine connection SSL_Conn += {
 
+	%member{
+		uint16 invalid_version_count_;
+		uint16 reported_errors_;
+	%}
+
+	%init{
+		invalid_version_count_ = 0;
+		reported_errors_ = 0;
+	%}
+
 	function dtls_version_ok(version: uint16): uint16
 		%{
 		switch ( version ) {
 		case DTLSv10:
 		case DTLSv12:
+			// Reset only to 0 once we have seen a client hello.
+			// This means the connection gets a limited amount of valid/invalid
+			// packets before a client hello has to be seen - which seems reasonable.
+			if ( bro_analyzer()->ProtocolConfirmed() )
+				invalid_version_count_ = 0;
 			return true;
 
 		default:
-			bro_analyzer()->ProtocolViolation(fmt("Invalid version in DTLS connection. Packet reported version: %d", version));			
+			invalid_version_count_++;
+
+			if ( bro_analyzer()->ProtocolConfirmed() )
+				{
+				reported_errors_++;
+				if ( reported_errors_ <= BifConst::SSL::dtls_max_reported_version_errors )
+					bro_analyzer()->ProtocolViolation(fmt("Invalid version in DTLS connection. Packet reported version: %d", version));
+				}
+
+			if ( invalid_version_count_ > BifConst::SSL::dtls_max_version_errors )
+				bro_analyzer()->SetSkip(true);
 			return false;
 		}
 		%}

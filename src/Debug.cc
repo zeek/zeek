@@ -348,7 +348,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = plrUnknown;
 
-			string path(find_file(filename, bro_path(), "bro"));
+			string path(find_script_file(filename, bro_path()));
 
 			if ( path.empty() )
 				{

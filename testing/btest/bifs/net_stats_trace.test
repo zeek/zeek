@@ -2,7 +2,7 @@
 # @TEST-EXEC: bro -r $TRACES/wikipedia.trace >output %INPUT
 # @TEST-EXEC: btest-diff output
 
-event bro_done()
+event zeek_done()
 	{
 	print get_net_stats();
 	}

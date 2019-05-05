@@ -17,7 +17,7 @@ using namespace analyzer::rpc;
 int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )
-		Weird(fmt("bad_RPC_program (%d)", c->Program()));
+		Weird("bad_RPC_program", fmt("%d", c->Program()));
 
 	uint32 proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
@@ -103,7 +103,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 			n = 0;
 			}
 		else
-			Weird(fmt("unknown_NFS_request(%u)", proc));
+			Weird("unknown_NFS_request", fmt("%u", proc));
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.

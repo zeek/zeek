@@ -22,6 +22,7 @@
 #define ANALYZER_MANAGER_H
 
 #include <queue>
+#include <vector>
 
 #include "Analyzer.h"
 #include "Component.h"
@@ -77,10 +78,10 @@ public:
 
 	/**
 	 * Dumps out the state of all registered analyzers to the \c analyzer
-	 * debug stream. Should be called only after any \c bro_init events
+	 * debug stream. Should be called only after any \c zeek_init events
 	 * have executed to ensure that any of their changes are applied.
 	 */
-	void DumpDebug(); // Called after bro_init() events.
+	void DumpDebug(); // Called after zeek_init() events.
 
 	/**
 	 * Enables an analyzer type. Only enabled analyzers will be
@@ -335,6 +336,12 @@ public:
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			      Val* analyzer, double timeout);
 
+	/**
+	 * @return the UDP port numbers to be associated with VXLAN traffic.
+	 */
+	const std::vector<uint16>& GetVxlanPorts() const
+		{ return vxlan_ports; }
+
 private:
 	typedef set<Tag> tag_set;
 	typedef map<uint32, tag_set*> analyzer_map_by_port;
@@ -390,6 +397,7 @@ private:
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
+	std::vector<uint16> vxlan_ports;
 };
 
 }

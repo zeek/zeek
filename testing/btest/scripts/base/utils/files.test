@@ -12,7 +12,7 @@ event connection_established(c: connection)
 	print generate_extraction_filename("", c, "");
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	print extract_filename_from_content_disposition("attachment; filename=Economy");
 	print extract_filename_from_content_disposition("attachment; name=\"US-$ rates\"");

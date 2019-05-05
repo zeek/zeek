@@ -40,7 +40,6 @@ flow BitTorrent_Flow(is_orig: bool) {
 		if ( pstrlen != 19 ||
 		     memcmp("BitTorrent protocol", pstr.begin(), 19) )
 			{
-			connection()->bro_analyzer()->Weird(fmt("BitTorrent: invalid handshake (pstrlen: %hhu, pstr: %.*s)", pstrlen, 19, pstr.begin()));
 			throw Exception("invalid handshake");
 			}
 

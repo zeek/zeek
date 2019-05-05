@@ -425,7 +425,7 @@ Val* Val::SizeVal() const
 		return val_mgr->GetCount(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
-		return new Val(fabs(val.double_val), type->Tag());
+		return new Val(fabs(val.double_val), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
@@ -2319,7 +2319,7 @@ void TableVal::DoExpire(double t)
 		if ( v->ExpireAccessTime() == 0 )
 			{
 			// This happens when we insert val while network_time
-			// hasn't been initialized yet (e.g. in bro_init()), and
+			// hasn't been initialized yet (e.g. in zeek_init()), and
 			// also when bro_start_network_time hasn't been initialized
 			// (e.g. before first packet).  The expire_access_time is
 			// correct, so we just need to wait.

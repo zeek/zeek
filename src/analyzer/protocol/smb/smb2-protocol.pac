@@ -100,6 +100,74 @@ refine connection SMB_Conn += {
 		std::map<uint64,uint64> smb2_request_tree_id;
 	%}
 
+	function BuildSMB2ContextVal(ncv: SMB3_negotiate_context_value): BroVal
+		%{
+		RecordVal* r = new RecordVal(BifType::Record::SMB2::NegotiateContextValue);
+
+		r->Assign(0, val_mgr->GetCount(${ncv.context_type}));
+		r->Assign(1, val_mgr->GetCount(${ncv.data_length}));
+
+		switch ( ${ncv.context_type} ) {
+			case SMB2_PREAUTH_INTEGRITY_CAPABILITIES:
+				{
+				RecordVal* rpreauth = new RecordVal(BifType::Record::SMB2::PreAuthIntegrityCapabilities);
+				rpreauth->Assign(0, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg_count}));
+				rpreauth->Assign(1, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.salt_length}));
+
+				VectorVal* ha = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+				for ( int i = 0; i < (${ncv.preauth_integrity_capabilities.hash_alg_count}); ++i )
+						ha->Assign(i, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
+
+				rpreauth->Assign(2, ha);
+				rpreauth->Assign(3, bytestring_to_val(${ncv.preauth_integrity_capabilities.salt}));
+				r->Assign(2, rpreauth);
+				}
+				break;
+
+			case SMB2_ENCRYPTION_CAPABILITIES:
+				{
+				RecordVal* rencr = new RecordVal(BifType::Record::SMB2::EncryptionCapabilities);
+				rencr->Assign(0, val_mgr->GetCount(${ncv.encryption_capabilities.cipher_count}));
+
+				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+				for ( int i = 0; i < (${ncv.encryption_capabilities.cipher_count}); ++i )
+						c->Assign(i, val_mgr->GetCount(${ncv.encryption_capabilities.ciphers[i]}));
+
+				rencr->Assign(1, c);
+				r->Assign(3, rencr);
+				}
+				break;
+
+			case SMB2_COMPRESSION_CAPABILITIES:
+				{
+				RecordVal* rcomp = new RecordVal(BifType::Record::SMB2::CompressionCapabilities);
+				rcomp->Assign(0, val_mgr->GetCount(${ncv.compression_capabilities.alg_count}));
+
+				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+				for ( int i = 0; i < (${ncv.compression_capabilities.alg_count}); ++i )
+						c->Assign(i, val_mgr->GetCount(${ncv.compression_capabilities.algs[i]}));
+
+				rcomp->Assign(1, c);
+				r->Assign(4, rcomp);
+				}
+				break;
+
+			case SMB2_NETNAME_NEGOTIATE_CONTEXT_ID:
+				{
+				r->Assign(5, bytestring_to_val(${ncv.netname_negotiate_context_id.net_name}));
+				}
+				break;
+
+			default:
+				break;
+		}
+
+		return r;
+		%}
+
 	function BuildSMB2HeaderVal(hdr: SMB2_Header): BroVal
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);

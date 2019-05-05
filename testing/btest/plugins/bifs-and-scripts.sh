@@ -6,43 +6,43 @@
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -r $TRACES/empty.trace >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro Demo/Foo -r $TRACES/empty.trace >>output
 
 # @TEST-EXEC: echo =-= >>output
 # @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b -r $TRACES/empty.trace >>output
 # @TEST-EXEC: echo =-= >>output
-# @TEST-EXEC-FAIL: BRO_PLUGIN_PATH=`pwd` bro -b demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC-FAIL: BRO_PLUGIN_PATH=`pwd` bro -b Demo/Foo -r $TRACES/empty.trace >>output
 
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.zeek -r $TRACES/empty.trace >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.bro  demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b ./activate.zeek  Demo/Foo -r $TRACES/empty.trace >>output
 
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b Demo::Foo  demo/foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` bro -b Demo::Foo  Demo/Foo -r $TRACES/empty.trace >>output
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
-mkdir -p scripts/demo/foo/base/
+mkdir -p scripts/Demo/Foo/base/
 
-cat >scripts/__load__.bro <<EOF
-@load ./demo/foo/base/at-startup.bro
+cat >scripts/__load__.zeek <<EOF
+@load ./Demo/Foo/base/at-startup.zeek
 EOF
 
-cat >scripts/demo/foo/__load__.bro <<EOF
-@load ./manually.bro
+cat >scripts/Demo/Foo/__load__.zeek <<EOF
+@load ./manually.zeek
 EOF
 
-cat >scripts/demo/foo/manually.bro <<EOF
-event bro_init() &priority=-10
+cat >scripts/Demo/Foo/manually.zeek <<EOF
+event zeek_init() &priority=-10
         {
         print "plugin: manually loaded";
         print "calling bif", hello_plugin_world();
         }
 EOF
 
-cat >scripts/demo/foo/base/at-startup.bro <<EOF
-event bro_init() &priority=10
+cat >scripts/Demo/Foo/base/at-startup.zeek <<EOF
+event zeek_init() &priority=10
         {
         print "plugin: automatically loaded at startup";
         }
@@ -57,7 +57,7 @@ function hello_plugin_world%(%): string
 event plugin_event%(foo: count%);
 EOF
 
-cat >activate.bro <<EOF
+cat >activate.zeek <<EOF
 @load-plugin Demo::Foo
 EOF
 

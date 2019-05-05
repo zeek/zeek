@@ -9,12 +9,12 @@
 ##
 ## c: The connection.
 ##
-## .. bro:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
+## .. zeek:see:: mime_all_data mime_all_headers  mime_content_hash mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
 ##    http_begin_entity
 ##
 ## .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_begin_entity` instead.
+##    however, it raises :zeek:id:`http_begin_entity` instead.
 event mime_begin_entity%(c: connection%);
 
 ## Generated when finishing parsing an email MIME entity.  MIME is a
@@ -28,12 +28,12 @@ event mime_begin_entity%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
 ##    http_end_entity
 ##
 ## .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_end_entity` instead.
+##    however, it raises :zeek:id:`http_end_entity` instead.
 event mime_end_entity%(c: connection%);
 
 ## Generated for individual MIME headers extracted from email MIME
@@ -48,12 +48,12 @@ event mime_end_entity%(c: connection%);
 ##
 ## h: The parsed MIME header.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event  mime_segment_data
 ##    http_header  http_all_headers
 ##
 ## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_header` instead.
+##    however, it raises :zeek:id:`http_header` instead.
 event mime_one_header%(c: connection, h: mime_header_rec%);
 
 ## Generated for MIME headers extracted from email MIME entities, passing all
@@ -70,12 +70,12 @@ event mime_one_header%(c: connection, h: mime_header_rec%);
 ##        The table is indexed by the position of the header (1 for the first,
 ##        2 for the second, etc.).
 ##
-## .. bro:see:: mime_all_data  mime_begin_entity mime_content_hash mime_end_entity
+## .. zeek:see:: mime_all_data  mime_begin_entity mime_content_hash mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data
 ##    http_header  http_all_headers
 ##
 ## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_header` instead.
+##    however, it raises :zeek:id:`http_header` instead.
 event mime_all_headers%(c: connection, hlist: mime_header_list%);
 
 ## Generated for chunks of decoded MIME data from email MIME entities.  MIME
@@ -83,7 +83,7 @@ event mime_all_headers%(c: connection, hlist: mime_header_list%);
 ## corresponding metadata, for transmission. As Bro parses the data of an
 ## entity, it raises a sequence of these events, each coming as soon as a new
 ## chunk of data is available. In contrast, there is also
-## :bro:id:`mime_entity_data`, which passes all of an entities data at once
+## :zeek:id:`mime_entity_data`, which passes all of an entities data at once
 ## in a single block. While the latter is more convenient to handle,
 ## ``mime_segment_data`` is more efficient as Bro does not need to buffer
 ## the data. Thus, if possible, this event should be preferred.
@@ -98,17 +98,17 @@ event mime_all_headers%(c: connection, hlist: mime_header_list%);
 ##
 ## data: The raw data of one segment of the current entity.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
 ##    mime_segment_length mime_segment_overlap_length
 ##
 ## .. note:: Bro also extracts MIME data from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_entity_data` (sic!) instead.
+##    however, it raises :zeek:id:`http_entity_data` (sic!) instead.
 event mime_segment_data%(c: connection, length: count, data: string%);
 
 ## Generated for data decoded from an email MIME entity. This event delivers
 ## the complete content of a single MIME entity with the quoted-printable and
-## and base64 data decoded. In contrast, there is also :bro:id:`mime_segment_data`,
+## and base64 data decoded. In contrast, there is also :zeek:id:`mime_segment_data`,
 ## which passes on a sequence of data chunks as they come in. While
 ## ``mime_entity_data`` is more convenient to handle, ``mime_segment_data`` is
 ## more efficient as Bro does not need to buffer the data. Thus, if possible,
@@ -124,7 +124,7 @@ event mime_segment_data%(c: connection, length: count, data: string%);
 ##
 ## data: The raw data of the complete entity.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity  mime_event mime_one_header mime_segment_data
 ##
 ## .. note:: While Bro also decodes MIME entities extracted from HTTP
@@ -147,7 +147,7 @@ event mime_entity_data%(c: connection, length: count, data: string%);
 ##
 ## data: The raw data of all MIME entities concatenated.
 ##
-## .. bro:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
+## .. zeek:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data
 ##
 ## .. note:: While Bro also decodes MIME entities extracted from HTTP
@@ -167,11 +167,11 @@ event mime_all_data%(c: connection, length: count, data: string%);
 ##
 ## detail: Further more detailed description of the error.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data  mime_one_header mime_segment_data http_event
 ##
 ## .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
-##    however, it raises :bro:id:`http_event` instead.
+##    however, it raises :zeek:id:`http_event` instead.
 event mime_event%(c: connection, event_type: string, detail: string%);
 
 ## Generated for decoded MIME entities extracted from email messages, passing on
@@ -188,7 +188,7 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ##
 ## hash_value: The MD5 hash.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data
 ##
 ## .. note:: While Bro also decodes MIME entities extracted from HTTP

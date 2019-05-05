@@ -97,7 +97,7 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 		return ParseDatagram(data, len, is_query);
 
  	default:
-		analyzer->Weird(fmt("unknown_netbios_type: 0x%x", type));
+		analyzer->Weird("unknown_netbios_type", fmt("0x%x", type));
  		return 1;
 	}
 	}
@@ -143,7 +143,7 @@ int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 	NetbiosSSN_RawMsgHdr hdr(data, len);
 
 	if ( hdr.length > unsigned(len) )
-		analyzer->Weird(fmt("excess_netbios_hdr_len (%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
 					hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
@@ -162,12 +162,12 @@ int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 	NetbiosDGM_RawMsgHdr hdr(data, len);
 
 	if ( unsigned(hdr.length-14) > unsigned(len) )
-		analyzer->Weird(fmt("excess_netbios_hdr_len (%d > %d)",
+		analyzer->Weird("excess_netbios_hdr_len", fmt("(%d > %d)",
 				hdr.length, len));
 
 	else if ( hdr.length < unsigned(len) )
 		{
-		analyzer->Weird(fmt("deficit_netbios_hdr_len (%d < %d)",
+		analyzer->Weird("deficit_netbios_hdr_len", fmt("(%d < %d)",
 				hdr.length, len));
 		len = hdr.length;
 		}

@@ -112,27 +112,36 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 	record_contents_file = f;
 	}
 
-static inline bool established(const TCP_Endpoint* a, const TCP_Endpoint* b)
+static inline bool is_clean(const TCP_Endpoint* a)
 	{
-	return a->state == TCP_ENDPOINT_ESTABLISHED &&
-	       b->state == TCP_ENDPOINT_ESTABLISHED;
+	return a->state == TCP_ENDPOINT_ESTABLISHED ||
+		(a->state == TCP_ENDPOINT_CLOSED &&
+		 a->prev_state == TCP_ENDPOINT_ESTABLISHED);
+	}
+
+static inline bool established_or_cleanly_closing(const TCP_Endpoint* a,
+							const TCP_Endpoint* b)
+	{
+	return is_clean(a) && is_clean(b);
 	}
 
 static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
 	{
 	return content_gap &&
-	       ( BifConst::report_gaps_for_partial || established(a, b) );
+	       ( BifConst::report_gaps_for_partial ||
+	         established_or_cleanly_closing(a, b) );
 	}
 
 void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 	{
 	// Only report on content gaps for connections that
-	// are in a cleanly established state.  In other
-	// states, these can arise falsely due to things
+	// are in a cleanly established or closing  state. In
+	// other states, these can arise falsely due to things
 	// like sequence number mismatches in RSTs, or
 	// unseen previous packets in partial connections.
-	// The one opportunity we lose here is on clean FIN
-	// handshakes, but Oh Well.
+
+	if ( established_or_cleanly_closing(endp, endp->peer) )
+		endp->Gap(seq, len);
 
 	if ( report_gap(endp, endp->peer) )
 		{

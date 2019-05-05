@@ -6,7 +6,7 @@ module FileExtract;
 #include "file_analysis/Manager.h"
 %%}
 
-## :bro:see:`FileExtract::set_limit`.
+## :zeek:see:`FileExtract::set_limit`.
 function FileExtract::__set_limit%(file_id: string, args: any, n: count%): bool
     %{
 	using BifType::Record::Files::AnalyzerArgs;

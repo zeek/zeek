@@ -76,6 +76,9 @@ New Functionality
   the DNS resolver to use by setting it to an IPv4 or IPv6 address.  If
   not set, then the first IPv4 address from /etc/resolv.conf gets used.
 
+- The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
+  also allowed when specifying patterns used in signature files.
+
 Changed Functionality
 ---------------------
 

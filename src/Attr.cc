@@ -556,8 +556,7 @@ bool Attributes::DoSerialize(SerialInfo* info) const
 		{
 		Attr* a = (*attrs)[i];
 
-		// Broccoli doesn't support expressions.
-		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
+		Expr* e = a->AttrExpr();
 		SERIALIZE_OPTIONAL(e);
 
 		if ( ! SERIALIZE(char(a->Tag())) )

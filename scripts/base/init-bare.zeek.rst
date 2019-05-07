@@ -123,14 +123,11 @@ Redefinable Options
                                                                                            reached.
 :zeek:id:`dpd_reassemble_first_packets`: :zeek:type:`bool` :zeek:attr:`&redef`             Reassemble the beginning of all TCP connections before doing
                                                                                            signature matching.
-:zeek:id:`enable_syslog`: :zeek:type:`bool` :zeek:attr:`&redef`                            Deprecated.
 :zeek:id:`encap_hdr_size`: :zeek:type:`count` :zeek:attr:`&redef`                          If positive, indicates the encapsulation header size that should
                                                                                            be skipped.
 :zeek:id:`exit_only_after_terminate`: :zeek:type:`bool` :zeek:attr:`&redef`                Flag to prevent Bro from exiting automatically when input is exhausted.
 :zeek:id:`expensive_profiling_multiple`: :zeek:type:`count` :zeek:attr:`&redef`            Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
                                                                                            profiling is done (0 disables).
-:zeek:id:`forward_remote_events`: :zeek:type:`bool` :zeek:attr:`&redef`                    If true, broadcast events received from one peer to all other peers.
-:zeek:id:`forward_remote_state_changes`: :zeek:type:`bool` :zeek:attr:`&redef`             If true, broadcast state updates received from one peer to all other peers.
 :zeek:id:`frag_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                         How long to hold onto fragments for possible reassembly.
 :zeek:id:`global_hash_seed`: :zeek:type:`string` :zeek:attr:`&redef`                       Seed for hashes computed internally for probabilistic data structures.
 :zeek:id:`icmp_inactivity_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`              If an ICMP flow is inactive, time it out after this interval.
@@ -148,8 +145,6 @@ Redefinable Options
 :zeek:id:`log_rotate_base_time`: :zeek:type:`string` :zeek:attr:`&redef`                   Deprecated.
 :zeek:id:`log_rotate_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                  Deprecated.
 :zeek:id:`max_files_in_cache`: :zeek:type:`count` :zeek:attr:`&redef`                      The maximum number of open files to keep cached at a given time.
-:zeek:id:`max_remote_events_processed`: :zeek:type:`count` :zeek:attr:`&redef`             With a similar trade-off, this gives the number of remote events
-                                                                                           to process in a batch before interleaving other activity.
 :zeek:id:`max_timer_expires`: :zeek:type:`count` :zeek:attr:`&redef`                       The maximum number of timers to expire after processing each new
                                                                                            packet.
 :zeek:id:`mmdb_dir`: :zeek:type:`string` :zeek:attr:`&redef`                               The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
@@ -167,11 +162,6 @@ Redefinable Options
 :zeek:id:`pkt_profile_mode`: :zeek:type:`pkt_profile_modes` :zeek:attr:`&redef`            Output mode for packet profiling information.
 :zeek:id:`profiling_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                   Update interval for profiling (0 disables).
 :zeek:id:`record_all_packets`: :zeek:type:`bool` :zeek:attr:`&redef`                       If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
-:zeek:id:`remote_check_sync_consistency`: :zeek:type:`bool` :zeek:attr:`&redef`            Whether for :zeek:attr:`&synchronized` state to send the old value as a
-                                                                                           consistency check.
-:zeek:id:`remote_trace_sync_interval`: :zeek:type:`interval` :zeek:attr:`&redef`           Synchronize trace processing at a regular basis in pseudo-realtime mode.
-:zeek:id:`remote_trace_sync_peers`: :zeek:type:`count` :zeek:attr:`&redef`                 Number of peers across which to synchronize trace processing in
-                                                                                           pseudo-realtime mode.
 :zeek:id:`report_gaps_for_partial`: :zeek:type:`bool` :zeek:attr:`&redef`                  Whether we want :zeek:see:`content_gap` for partial
                                                                                            connections.
 :zeek:id:`rpc_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                          Time to wait before timing out an RPC request.
@@ -292,12 +282,6 @@ Constants
 :zeek:id:`LOGIN_STATE_CONFUSED`: :zeek:type:`count`         
 :zeek:id:`LOGIN_STATE_LOGGED_IN`: :zeek:type:`count`        
 :zeek:id:`LOGIN_STATE_SKIP`: :zeek:type:`count`             
-:zeek:id:`PEER_ID_NONE`: :zeek:type:`count`                 Place-holder constant indicating "no peer".
-:zeek:id:`REMOTE_LOG_ERROR`: :zeek:type:`count`             Deprecated.
-:zeek:id:`REMOTE_LOG_INFO`: :zeek:type:`count`              Deprecated.
-:zeek:id:`REMOTE_SRC_CHILD`: :zeek:type:`count`             Message from the child process.
-:zeek:id:`REMOTE_SRC_PARENT`: :zeek:type:`count`            Message from the parent process.
-:zeek:id:`REMOTE_SRC_SCRIPT`: :zeek:type:`count`            Message from a policy script.
 :zeek:id:`RPC_status`: :zeek:type:`table`                   Mapping of numerical RPC status codes to readable messages.
 :zeek:id:`SNMP::OBJ_COUNTER32_TAG`: :zeek:type:`count`      Unsigned 32-bit integer.
 :zeek:id:`SNMP::OBJ_COUNTER64_TAG`: :zeek:type:`count`      Unsigned 64-bit integer.
@@ -572,7 +556,6 @@ Types
 :zeek:type:`endpoint`: :zeek:type:`record`                                    Statistics about a :zeek:type:`connection` endpoint.
 :zeek:type:`endpoint_stats`: :zeek:type:`record`                              Statistics about what a TCP endpoint sent.
 :zeek:type:`entropy_test_result`: :zeek:type:`record`                         Computed entropy values.
-:zeek:type:`event_peer`: :zeek:type:`record`                                  A communication peer.
 :zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`                 A file that Bro is analyzing.
 :zeek:type:`fa_metadata`: :zeek:type:`record`                                 Metadata that's been inferred about a particular file.
 :zeek:type:`files_tag_set`: :zeek:type:`set`                                  A set of file analyzer tags.
@@ -661,7 +644,6 @@ Types
 :zeek:type:`ntp_msg`: :zeek:type:`record`                                     An NTP message.
 :zeek:type:`packet`: :zeek:type:`record`                                      Deprecated.
 :zeek:type:`pcap_packet`: :zeek:type:`record`                                 Policy-level representation of a packet passed on by libpcap.
-:zeek:type:`peer_id`: :zeek:type:`count`                                      A locally unique ID identifying a communication peer.
 :zeek:type:`pkt_hdr`: :zeek:type:`record`                                     A packet header, consisting of an IP header and transport-layer header.
 :zeek:type:`pkt_profile_modes`: :zeek:type:`enum`                             Output modes for packet profiling information.
 :zeek:type:`pm_callit_request`: :zeek:type:`record`                           An RPC portmapper *callit* request.
@@ -1232,14 +1214,6 @@ Redefinable Options
    .. note:: Despite the name, this option affects *all* signature matching, not
       only signatures used for dynamic protocol detection.
 
-.. zeek:id:: enable_syslog
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   Deprecated. No longer functional.
-
 .. zeek:id:: encap_hdr_size
 
    :Type: :zeek:type:`count`
@@ -1273,32 +1247,6 @@ Redefinable Options
    profiling is done (0 disables).
    
    .. zeek:see:: profiling_interval profiling_file segment_profiling
-
-.. zeek:id:: forward_remote_events
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   If true, broadcast events received from one peer to all other peers.
-   
-   .. zeek:see:: forward_remote_state_changes
-   
-   .. note:: This option is only temporary and will disappear once we get a
-      more sophisticated script-level communication framework.
-
-.. zeek:id:: forward_remote_state_changes
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   If true, broadcast state updates received from one peer to all other peers.
-   
-   .. zeek:see:: forward_remote_events
-   
-   .. note:: This option is only temporary and will disappear once we get a
-      more sophisticated script-level communication framework.
 
 .. zeek:id:: frag_timeout
 
@@ -1511,15 +1459,6 @@ Redefinable Options
    If set to zero, this is automatically determined by inspecting
    the current/maximum limit on open files for the process.
 
-.. zeek:id:: max_remote_events_processed
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``10``
-
-   With a similar trade-off, this gives the number of remote events
-   to process in a batch before interleaving other activity.
-
 .. zeek:id:: max_timer_expires
 
    :Type: :zeek:type:`count`
@@ -1656,36 +1595,6 @@ Redefinable Options
    analysis triggers a crash.
    
    .. zeek:see:: trace_output_file
-
-.. zeek:id:: remote_check_sync_consistency
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   Whether for :zeek:attr:`&synchronized` state to send the old value as a
-   consistency check.
-
-.. zeek:id:: remote_trace_sync_interval
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``0 secs``
-
-   Synchronize trace processing at a regular basis in pseudo-realtime mode.
-   
-   .. zeek:see:: remote_trace_sync_peers
-
-.. zeek:id:: remote_trace_sync_peers
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``0``
-
-   Number of peers across which to synchronize trace processing in
-   pseudo-realtime mode.
-   
-   .. zeek:see:: remote_trace_sync_interval
 
 .. zeek:id:: report_gaps_for_partial
 
@@ -2470,48 +2379,6 @@ Constants
    :Type: :zeek:type:`count`
    :Default: ``2``
 
-
-.. zeek:id:: PEER_ID_NONE
-
-   :Type: :zeek:type:`count`
-   :Default: ``0``
-
-   Place-holder constant indicating "no peer".
-
-.. zeek:id:: REMOTE_LOG_ERROR
-
-   :Type: :zeek:type:`count`
-   :Default: ``2``
-
-   Deprecated.
-
-.. zeek:id:: REMOTE_LOG_INFO
-
-   :Type: :zeek:type:`count`
-   :Default: ``1``
-
-   Deprecated.
-
-.. zeek:id:: REMOTE_SRC_CHILD
-
-   :Type: :zeek:type:`count`
-   :Default: ``1``
-
-   Message from the child process.
-
-.. zeek:id:: REMOTE_SRC_PARENT
-
-   :Type: :zeek:type:`count`
-   :Default: ``2``
-
-   Message from the parent process.
-
-.. zeek:id:: REMOTE_SRC_SCRIPT
-
-   :Type: :zeek:type:`count`
-   :Default: ``3``
-
-   Message from a policy script.
 
 .. zeek:id:: RPC_status
 
@@ -7320,38 +7187,6 @@ Types
    
    .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
 
-.. zeek:type:: event_peer
-
-   :Type: :zeek:type:`record`
-
-      id: :zeek:type:`peer_id`
-         Locally unique ID of peer
-
-      host: :zeek:type:`addr`
-         The IP address of the peer.
-
-      p: :zeek:type:`port`
-         Either the port we connected to at the peer; or our port the peer
-         connected to if the session is remotely initiated.
-
-      is_local: :zeek:type:`bool`
-         True if this record describes the local process.
-
-      descr: :zeek:type:`string`
-         The peer's :zeek:see:`peer_description`.
-
-      class: :zeek:type:`string` :zeek:attr:`&optional`
-         The self-assigned *class* of the peer.
-
-   A communication peer.
-   
-   .. zeek:see:: remote_capture_filter
-      remote_connection_closed remote_connection_error
-      remote_connection_established remote_connection_handshake_done
-      remote_event_registered remote_log_peer remote_pong
-   
-   .. todo::The type's name is too narrow these days, should rename.
-
 .. zeek:type:: fa_file
 
    :Type: :zeek:type:`record`
@@ -8832,13 +8667,6 @@ Types
    header.
    
    .. zeek:see:: dump_packet get_current_packet
-
-.. zeek:type:: peer_id
-
-   :Type: :zeek:type:`count`
-
-   A locally unique ID identifying a communication peer.
-   
 
 .. zeek:type:: pkt_hdr
 

@@ -1,4 +1,18 @@
 
+2.6-272 | 2019-05-06 18:43:13 -0700
+
+  * Remove support for using && and || with patterns. (Johanna Amann, Corelight)
+
+    This was never documented and previously deprecated.
+
+  * Remove RemoteSerializer and related code/types. (Johanna Amann, Corelight)
+
+    Also removes broccoli from the source tree.
+
+  * Remove PersistenceSerializer. (Johanna Amann, Corelight)
+
+  * Remove &synchronized and &persistent attributes. (Johanna Amann, Corelight)
+
 2.6-264 | 2019-05-03 11:16:38 -0700
 
   * Fix sporadic openflow/broker test failure (Jon Siwek, Corelight)

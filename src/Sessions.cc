@@ -1101,9 +1101,6 @@ void NetSessions::Remove(Connection* c)
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
 
-		if ( c->IsPersistent() )
-			persistence_serializer->Unregister(c);
-
 		c->Done();
 
 		if ( connection_state_remove )
@@ -1194,8 +1191,6 @@ void NetSessions::Insert(Connection* c)
 		// Some clean-ups similar to those in Remove() (but invisible
 		// to the script layer).
 		old->CancelTimers();
-		if ( old->IsPersistent() )
-			persistence_serializer->Unregister(old);
 		delete old->Key();
 		old->ClearKey();
 		Unref(old);

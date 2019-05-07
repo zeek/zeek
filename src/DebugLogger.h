@@ -16,10 +16,8 @@
 enum DebugStream {
 	DBG_SERIAL,	// Serialization
 	DBG_RULES,	// Signature matching
-	DBG_COMM,	// Remote communication
 	DBG_STATE,	// StateAccess logging
 	DBG_CHUNKEDIO,	// ChunkedIO logging
-	DBG_COMPRESSOR,	// Connection compressor
 	DBG_STRING,	// String code
 	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
 	DBG_MAINLOOP,	// Main IOSource loop

@@ -18,7 +18,6 @@
 #include "NetVar.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "RemoteSerializer.h"
 #include "iosource/Manager.h"
 
 Serializer::Serializer(SerializationFormat* arg_format)
@@ -508,8 +507,6 @@ bool Serializer::UnserializeConnection(UnserialInfo* info)
 
 	if ( info->install_conns )
 		{
-		if ( c->IsPersistent() && c->Key() )
-			persistence_serializer->Register(c);
 		Ref(c);
 		sessions->Insert(c);
 		}

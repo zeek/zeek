@@ -14,7 +14,6 @@
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
-#include "RemoteSerializer.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -301,9 +300,6 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 			        {new Val(f), new StringVal(d.Len(), d.Description())}),
 			    true);
 			}
-
-		if ( remote_serializer )
-			remote_serializer->SendPrintHookEvent(f, d.Description(), d.Len());
 		}
 
 	return 0;

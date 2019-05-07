@@ -151,7 +151,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	is_active = 1;
 	skip = 0;
 	weird = 0;
-	persistent = 0;
 
 	suppress_event = 0;
 
@@ -951,15 +950,11 @@ bool Connection::DoSerialize(SerialInfo* info) const
 		SERIALIZE_BIT(weird) &&
 		SERIALIZE_BIT(finished) &&
 		SERIALIZE_BIT(record_packets) &&
-		SERIALIZE_BIT(record_contents) &&
-		SERIALIZE_BIT(persistent);
+		SERIALIZE_BIT(record_contents);
 	}
 
 bool Connection::DoUnserialize(UnserialInfo* info)
 	{
-	// Make sure this is initialized for the condition in Unserialize().
-	persistent = 0;
-
 	DO_UNSERIALIZE(BroObj);
 
 	// Build the hash key first. Some of the recursive *::Unserialize()
@@ -1022,7 +1017,6 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 	UNSERIALIZE_BIT(finished);
 	UNSERIALIZE_BIT(record_packets);
 	UNSERIALIZE_BIT(record_contents);
-	UNSERIALIZE_BIT(persistent);
 
 	// Hmm... Why does each connection store a sessions ptr?
 	sessions = ::sessions;

@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
+#include <fcntl.h>
 
 #include "Extract.h"
 #include "util.h"

@@ -189,21 +189,3 @@ void EventMgr::Describe(ODesc* d) const
 		d->NL();
 		}
 	}
-
-RecordVal* EventMgr::GetLocalPeerVal()
-	{
-	if ( ! src_val )
-		{
-		src_val = new RecordVal(peer);
-		src_val->Assign(0, val_mgr->GetCount(0));
-		src_val->Assign(1, new AddrVal("127.0.0.1"));
-		src_val->Assign(2, val_mgr->GetPort(0));
-		src_val->Assign(3, val_mgr->GetTrue());
-
-		Ref(peer_description);
-		src_val->Assign(4, peer_description);
-		src_val->Assign(5, 0);	// class (optional).
-		}
-
-	return src_val;
-	}

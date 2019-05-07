@@ -287,7 +287,6 @@ set(bro_SRCS
     OpaqueVal.cc
     OSFinger.cc
     PacketFilter.cc
-    PersistenceSerializer.cc
     Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
@@ -296,7 +295,6 @@ set(bro_SRCS
     RandTest.cc
     RE.cc
     Reassem.cc
-    RemoteSerializer.cc
     Rule.cc
     RuleAction.cc
     RuleCondition.cc

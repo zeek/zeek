@@ -7,7 +7,6 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
 
@@ -140,26 +139,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		default:
 			break;
 		}
-		}
-
-	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
-		{
-		if ( dt == VAR_CONST )
-			{
-			id->Error("&persistent/synchronized with constant");
-			return;
-			}
-		else if ( dt == VAR_OPTION )
-			{
-			id->Error("&persistent/synchronized with option");
-			return;
-			}
-
-		if ( ! id->IsGlobal() )
-			{
-			id->Error("&persistant/synchronized with non-global");
-			return;
-			}
 		}
 
 	if ( do_init )

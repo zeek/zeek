@@ -51,7 +51,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
-    --enable-broccoli      build or install the Broccoli library (deprecated)
     --enable-static-broker build broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --disable-broctl       don't install Broctl
@@ -140,7 +139,6 @@ append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
-append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_BROCTL       BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
@@ -220,10 +218,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
-            ;;
-        --enable-broccoli)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-            append_cache_entry INSTALL_BROCCOLI     BOOL   yes
             ;;
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER    BOOL    true

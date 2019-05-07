@@ -244,10 +244,54 @@ Removed Functionality
     - ``dhcp_offer``
     - ``dhcp_release``
     - ``dhcp_request``
+    - ``remote_state_access_performed``
+    - ``remote_state_inconsistency``
+    - ``remote_connection_established``
+    - ``remote_connection_closed``
+    - ``remote_connection_handshake_done``
+    - ``remote_event_registered``
+    - ``remote_connection_error``
+    - ``remote_capture_filter``
+    - ``remote_log_peer``
+    - ``remote_log``
     - ``finished_send_state``
+    - ``remote_pong``
+
+- The following types/records were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``peer_id``
+    - ``event_peer``
+
+- The following configuration options were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``max_remote_events_processed``
+    - ``forward_remote_events``
+    - ``forward_remote_state_changes``
+    - ``enable_syslog``
+    - ``remote_trace_sync_interval``
+    - ``remote_trace_sync_peers``
+    - ``remote_check_sync_consistency``
+
+- The following constants were used as part of deprecated functionality in version 2.6
+  or below and are removed from this release:
+
+    - ``PEER_ID_NONE``
+    - ``REMOTE_LOG_INFO``
+    - ``REMOTE_SRC_CHILD``
+    - ``REMOTE_SRC_PARENT``
+    - ``REMOTE_SRC_SCRIPT``
 
 - The deprecated script ``policy/protocols/smb/__load__.bro`` was removed.
   Instead of ``@load policy/protocols/smb`` use ``@load base/protocols/smb``.
+
+- Broccoli, which had been deprecated in version 2.6 and was no longer built by default
+  was removed from the source tree.
+
+- Support for the &persistent and the &synchronized attributes, which were deprecated
+  in Bro 2.6, was removed. The ``-g`` command-line option (dump-config) which relied on
+  this functionality was also removed.
 
 Deprecated Functionality
 ------------------------
@@ -262,6 +306,11 @@ Deprecated Functionality
   the deprecated versions will automatically alias to the new events
   such that existing code will not break, but will emit a deprecation
   warning.
+
+- The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
+  were marked as deprecated. These functions were used with the old pre-2.0 logging
+  framework and are no longer used. They also were marked as deprecated in their
+  documentation, however the functions themselves did not carry the deprecation marker.
 
 Bro 2.6
 =======
@@ -634,7 +683,7 @@ New Functionality
   Each has the same form, e.g.::
 
       event tcp_multiple_retransmissions(c: connection, is_orig: bool,
-				                         threshold: count);
+                                         threshold: count);
 
 - Added support for set union, intersection, difference, and comparison
   operations.  The corresponding operators for the first three are

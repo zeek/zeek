@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "File.h"
 #include "analyzer/Analyzer.h"
 #include "TCP_Reassembler.h"
 #include "analyzer/protocol/tcp/TCP.h"

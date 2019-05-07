@@ -13,7 +13,6 @@
 using namespace std;
 
 class SerializationFormat;
-class RemoteSerializer;
 
 namespace threading {
 
@@ -78,8 +77,6 @@ struct Field {
 	string TypeName() const;
 
 private:
-	friend class ::RemoteSerializer;
-
 	// Force usage of constructor above.
 	Field()	{}
 };

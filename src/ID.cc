@@ -10,8 +10,6 @@
 #include "Scope.h"
 #include "File.h"
 #include "Serializer.h"
-#include "RemoteSerializer.h"
-#include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
 #include "zeekygen/Manager.h"
@@ -77,12 +75,6 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 			}
 
 		MutableVal::Properties props = 0;
-
-		if ( attrs && attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs && attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
 
 		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
 			props |= MutableVal::TRACKED;
@@ -198,25 +190,10 @@ void ID::UpdateValAttrs()
 
 	if ( val && val->IsMutableVal() )
 		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
-
 		if ( attrs->FindAttr(ATTR_TRACKED) )
 			props |= MutableVal::TRACKED;
 
 		val->AsMutableVal()->AddProperties(props);
-		}
-
-	if ( ! IsInternalGlobal() )
-		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			remote_serializer->Register(this);
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			persistence_serializer->Register(this);
 		}
 
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
@@ -281,12 +258,6 @@ void ID::RemoveAttr(attr_tag a)
 		{
 		MutableVal::Properties props = 0;
 
-		if ( a == ATTR_SYNCHRONIZED )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( a == ATTR_PERSISTENT )
-			props |= MutableVal::PERSISTENT;
-
 		if ( a == ATTR_TRACKED )
 			props |= MutableVal::TRACKED;
 
@@ -337,9 +308,6 @@ void ID::CopyFrom(const ID* id)
 	offset = id->offset ;
 	infer_return_type = id->infer_return_type;
 
-	if ( FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Unregister(this);
-
 	if ( id->type )
 		Ref(id->type);
 	if ( id->val && ! id->weak_ref )
@@ -360,10 +328,6 @@ void ID::CopyFrom(const ID* id)
 #ifdef DEBUG
 	UpdateValID();
 #endif
-
-	if ( FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Unregister(this);
-	}
 #endif
 
 ID* ID::Unserialize(UnserialInfo* info)
@@ -396,12 +360,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 
 	else
 		{
-		if ( info->id_policy != UnserialInfo::InstantiateNew )
-			{
-			persistence_serializer->Unregister(current);
-			remote_serializer->Unregister(current);
-			}
-
 		switch ( info->id_policy ) {
 
 		case UnserialInfo::Keep:
@@ -472,12 +430,6 @@ ID* ID::Unserialize(UnserialInfo* info)
 			reporter->InternalError("unknown type for UnserialInfo::id_policy");
 		}
 		}
-
-	if ( id->FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Register(id);
-
-	if ( id->FindAttr(ATTR_SYNCHRONIZED) )
-		remote_serializer->Register(id);
 
 	return id;
 

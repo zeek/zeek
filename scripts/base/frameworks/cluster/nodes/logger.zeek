@@ -24,6 +24,3 @@ redef Log::default_mail_alarms_interval = 24 hrs;
 
 ## Use the cluster's archive logging script.
 redef Log::default_rotation_postprocessor_cmd = "archive-log";
-
-## We're processing essentially *only* remote events.
-redef max_remote_events_processed = 10000;

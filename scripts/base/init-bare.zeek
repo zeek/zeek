@@ -775,29 +775,6 @@ type IPAddrAnonymizationClass: enum {
 	OTHER_ADDR,
 };
 
-## A locally unique ID identifying a communication peer.
-##
-type peer_id: count;
-
-## A communication peer.
-##
-## .. zeek:see:: remote_capture_filter
-##    remote_connection_closed remote_connection_error
-##    remote_connection_established remote_connection_handshake_done
-##    remote_event_registered remote_log_peer remote_pong
-##
-## .. todo::The type's name is too narrow these days, should rename.
-type event_peer: record {
-	id: peer_id;	##< Locally unique ID of peer
-	host: addr;	##< The IP address of the peer.
-	## Either the port we connected to at the peer; or our port the peer
-	## connected to if the session is remotely initiated.
-	p: port;
-	is_local: bool;		##< True if this record describes the local process.
-	descr: string;		##< The peer's :zeek:see:`peer_description`.
-	class: string &optional;	##< The self-assigned *class* of the peer.
-};
-
 ## Deprecated.
 ##
 ## .. zeek:see:: rotate_file rotate_file_by_name rotate_interval
@@ -1966,10 +1943,6 @@ const watchdog_interval = 10 sec &redef;
 ## with possibly having to hold state longer.  A value of 0 means
 ## "process all expired timers with each new packet".
 const max_timer_expires = 300 &redef;
-
-## With a similar trade-off, this gives the number of remote events
-## to process in a batch before interleaving other activity.
-const max_remote_events_processed = 10 &redef;
 
 # These need to match the definitions in Login.h.
 #
@@ -4737,69 +4710,13 @@ const packet_filter_default = F &redef;
 ## Maximum size of regular expression groups for signature matching.
 const sig_max_group_size = 50 &redef;
 
-## Deprecated. No longer functional.
-const enable_syslog = F &redef;
-
 ## Description transmitted to remote communication peers for identification.
 const peer_description = "bro" &redef;
-
-## If true, broadcast events received from one peer to all other peers.
-##
-## .. zeek:see:: forward_remote_state_changes
-##
-## .. note:: This option is only temporary and will disappear once we get a
-##    more sophisticated script-level communication framework.
-const forward_remote_events = F &redef;
-
-## If true, broadcast state updates received from one peer to all other peers.
-##
-## .. zeek:see:: forward_remote_events
-##
-## .. note:: This option is only temporary and will disappear once we get a
-##    more sophisticated script-level communication framework.
-const forward_remote_state_changes = F &redef;
 
 ## The number of IO chunks allowed to be buffered between the child
 ## and parent process of remote communication before Bro starts dropping
 ## connections to remote peers in an attempt to catch up.
 const chunked_io_buffer_soft_cap = 800000 &redef;
-
-## Place-holder constant indicating "no peer".
-const PEER_ID_NONE = 0;
-
-# Signature payload pattern types.
-# todo:: use enum to help autodoc
-# todo:: Still used?
-#const SIG_PATTERN_PAYLOAD = 0;
-#const SIG_PATTERN_HTTP = 1;
-#const SIG_PATTERN_FTP = 2;
-#const SIG_PATTERN_FINGER = 3;
-
-# Deprecated.
-# todo::Should use the new logging framework directly.
-const REMOTE_LOG_INFO = 1;	##< Deprecated.
-const REMOTE_LOG_ERROR = 2;	##< Deprecated.
-
-# Source of logging messages from the communication framework.
-# todo:: these should go into an enum to make them autodoc'able.
-const REMOTE_SRC_CHILD = 1;	##< Message from the child process.
-const REMOTE_SRC_PARENT = 2;	##< Message from the parent process.
-const REMOTE_SRC_SCRIPT = 3;	##< Message from a policy script.
-
-## Synchronize trace processing at a regular basis in pseudo-realtime mode.
-##
-## .. zeek:see:: remote_trace_sync_peers
-const remote_trace_sync_interval = 0 secs &redef;
-
-## Number of peers across which to synchronize trace processing in
-## pseudo-realtime mode.
-##
-## .. zeek:see:: remote_trace_sync_interval
-const remote_trace_sync_peers = 0 &redef;
-
-## Whether for :zeek:attr:`&synchronized` state to send the old value as a
-## consistency check.
-const remote_check_sync_consistency = F &redef;
 
 ## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the

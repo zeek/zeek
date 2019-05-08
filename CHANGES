@@ -1,4 +1,9 @@
 
+2.6-276 | 2019-05-08 09:03:27 -0700
+
+  * Force the Broker IOSource to idle periodically, preventing packet
+	  IOSource starvation. (Jon Siwek, Corelight).
+
 2.6-274 | 2019-05-08 08:58:25 -0700
 
   * GH-353: Add `/<re>/i` case-insensitive signature syntax (Jon Siwek, Corelight)

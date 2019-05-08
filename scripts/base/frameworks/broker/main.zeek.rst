@@ -21,7 +21,7 @@ Runtime Options
 
 Redefinable Options
 ###################
-==================================================================================== ======================================================================
+==================================================================================== =======================================================================
 :zeek:id:`Broker::aggressive_interval`: :zeek:type:`count` :zeek:attr:`&redef`       Frequency of work-stealing polling attempts for Broker/CAF threads
                                                                                      in "aggressive" mode.
 :zeek:id:`Broker::aggressive_polls`: :zeek:type:`count` :zeek:attr:`&redef`          Number of work-stealing polling attempts for Broker/CAF threads
@@ -37,6 +37,10 @@ Redefinable Options
 :zeek:id:`Broker::default_port`: :zeek:type:`port` :zeek:attr:`&redef`               Default port for Broker communication.
 :zeek:id:`Broker::disable_ssl`: :zeek:type:`bool` :zeek:attr:`&redef`                If true, do not use SSL for network connections.
 :zeek:id:`Broker::forward_messages`: :zeek:type:`bool` :zeek:attr:`&redef`           Forward all received messages to subscribing peers.
+:zeek:id:`Broker::log_batch_interval`: :zeek:type:`interval` :zeek:attr:`&redef`     Max time to buffer log messages before sending the current set out as a
+                                                                                     batch.
+:zeek:id:`Broker::log_batch_size`: :zeek:type:`count` :zeek:attr:`&redef`            The max number of log entries per log stream to batch together when
+                                                                                     sending log messages to a remote logger.
 :zeek:id:`Broker::max_threads`: :zeek:type:`count` :zeek:attr:`&redef`               Max number of threads to use for Broker/CAF functionality.
 :zeek:id:`Broker::moderate_interval`: :zeek:type:`count` :zeek:attr:`&redef`         Frequency of work-stealing polling attempts for Broker/CAF threads
                                                                                      in "moderate" mode.
@@ -57,7 +61,7 @@ Redefinable Options
                                                                                      certificate.
 :zeek:id:`Broker::ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`           Passphrase to decrypt the private key specified by
                                                                                      :zeek:see:`Broker::ssl_keyfile`.
-==================================================================================== ======================================================================
+==================================================================================== =======================================================================
 
 Types
 #####
@@ -215,6 +219,24 @@ Redefinable Options
    :Default: ``F``
 
    Forward all received messages to subscribing peers.
+
+.. zeek:id:: Broker::log_batch_interval
+
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1.0 sec``
+
+   Max time to buffer log messages before sending the current set out as a
+   batch.
+
+.. zeek:id:: Broker::log_batch_size
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``400``
+
+   The max number of log entries per log stream to batch together when
+   sending log messages to a remote logger.
 
 .. zeek:id:: Broker::max_threads
 

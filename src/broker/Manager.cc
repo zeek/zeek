@@ -358,7 +358,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderEvent(topic, name, args).c_str());
 	broker::bro::Event ev(std::move(name), std::move(args));
-	bstate->endpoint.publish(move(topic), std::move(ev));
+	bstate->endpoint.publish(move(topic), ev.move_data());
 	++statistics.num_events_outgoing;
 	return true;
 	}
@@ -421,7 +421,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	broker::bro::IdentifierUpdate msg(move(id), move(*data));
 	DBG_LOG(DBG_BROKER, "Publishing id-update: %s",
 	        RenderMessage(topic, msg).c_str());
-	bstate->endpoint.publish(move(topic), move(msg));
+	bstate->endpoint.publish(move(topic), msg.move_data());
 	++statistics.num_ids_outgoing;
 	return true;
 	}
@@ -475,10 +475,10 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	if ( peer.node != NoPeer.node )
 		// Direct message.
-		bstate->endpoint.publish(peer, move(topic), move(msg));
+		bstate->endpoint.publish(peer, move(topic), msg.move_data());
 	else
 		// Broadcast.
-		bstate->endpoint.publish(move(topic), move(msg));
+		bstate->endpoint.publish(move(topic), msg.move_data());
 
 	return true;
 	}
@@ -566,7 +566,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	auto& lb = log_buffers[stream_id_num];
 	++lb.message_count;
 	auto& pending_batch = lb.msgs[topic];
-	pending_batch.emplace_back(std::move(msg));
+	pending_batch.emplace_back(msg.move_data());
 
 	if ( lb.message_count >= LOG_BATCH_SIZE ||
 	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
@@ -592,7 +592,7 @@ size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 		batch.reserve(LOG_BATCH_SIZE + 1);
 		pending_batch.swap(batch);
 		broker::bro::Batch msg(std::move(batch));
-		endpoint.publish(topic, move(msg));
+		endpoint.publish(topic, msg.move_data());
 		}
 
 	auto rval = message_count;

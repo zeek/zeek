@@ -1,4 +1,8 @@
 
+2.6-274 | 2019-05-08 08:58:25 -0700
+
+  * GH-353: Add `/<re>/i` case-insensitive signature syntax (Jon Siwek, Corelight)
+
 2.6-272 | 2019-05-06 18:43:13 -0700
 
   * Remove support for using && and || with patterns. (Johanna Amann, Corelight)

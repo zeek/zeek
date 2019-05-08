@@ -23,14 +23,6 @@ using namespace std;
 
 namespace bro_broker {
 
-// Max number of log messages buffered per stream before we send them out as
-// a batch.
-static const int LOG_BATCH_SIZE = 400;
-
-// Max secs to buffer log messages before sending the current set out as a
-// batch.
-static const double LOG_BUFFER_INTERVAL = 1.0;
-
 static inline Val* get_option(const char* option)
 	{
 	auto id = global_scope()->Lookup(option);
@@ -141,6 +133,8 @@ Manager::Manager(bool arg_reading_pcaps)
 	after_zeek_init = false;
 	peer_count = 0;
 	times_processed_without_idle = 0;
+	log_batch_size = 0;
+	log_batch_interval = 0;
 	log_topic_func = nullptr;
 	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
@@ -157,6 +151,8 @@ void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");
 
+	log_batch_size = get_option("Broker::log_batch_size")->AsCount();
+	log_batch_interval = get_option("Broker::log_batch_interval")->AsInterval();
 	default_log_topic_prefix =
 	    get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
@@ -574,14 +570,14 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	auto& pending_batch = lb.msgs[topic];
 	pending_batch.emplace_back(std::move(msg));
 
-	if ( lb.message_count >= LOG_BATCH_SIZE ||
-	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint);
+	if ( lb.message_count >= log_batch_size ||
+	     (network_time - lb.last_flush >= log_batch_interval ) )
+		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint, log_batch_size);
 
 	return true;
 	}
 
-size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
+size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_size)
 	{
 	if ( endpoint.is_shutdown() )
 		return 0;
@@ -595,7 +591,7 @@ size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 		auto& topic = kv.first;
 		auto& pending_batch = kv.second;
 		broker::vector batch;
-		batch.reserve(LOG_BATCH_SIZE + 1);
+		batch.reserve(log_batch_size + 1);
 		pending_batch.swap(batch);
 		broker::bro::Batch msg(std::move(batch));
 		endpoint.publish(topic, move(msg));
@@ -613,7 +609,7 @@ size_t Manager::FlushLogBuffers()
 	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		rval += lb.Flush(bstate->endpoint);
+		rval += lb.Flush(bstate->endpoint, log_batch_interval);
 
 	return rval;
 	}

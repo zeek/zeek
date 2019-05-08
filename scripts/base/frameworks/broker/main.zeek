@@ -61,6 +61,14 @@ export {
 	## control mechanisms).
 	const congestion_queue_size = 200 &redef;
 
+	## The max number of log entries per log stream to batch together when
+	## sending log messages to a remote logger.
+	const log_batch_size = 400 &redef;
+
+	## Max time to buffer log messages before sending the current set out as a
+	## batch.
+	const log_batch_interval = 1sec &redef;
+
 	## Max number of threads to use for Broker/CAF functionality.  The
 	## BRO_BROKER_MAX_THREADS environment variable overrides this setting.
 	const max_threads = 1 &redef;

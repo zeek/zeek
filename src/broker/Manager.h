@@ -353,7 +353,7 @@ private:
 		double last_flush;
 		size_t message_count;
 
-		size_t Flush(broker::endpoint& endpoint);
+		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
 	};
 
 	// Data stores
@@ -385,6 +385,8 @@ private:
 	int peer_count;
 	int times_processed_without_idle;
 
+	size_t log_batch_size;
+	double log_batch_interval;
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;
 	EnumType* log_id_type;

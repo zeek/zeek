@@ -127,7 +127,7 @@ public:
 
 	/**
 	 * Interprets the Layer 3 of the packet as IP and returns a
-	 * correspondign object.
+	 * corresponding object.
 	 */
 	const IP_Hdr IP() const;
 
@@ -141,14 +141,11 @@ public:
 	RecordVal* BuildPktHdrVal() const;
 
 	/**
-	 * Static method returning the link-layer header size for a given
-	 * link type.
+	 * Returns the end of the captured data for bound checking.
 	 *
-	 * @param link_type The link tyoe.
-	 *
-	 * @return The header size in bytes, or -1 if not known.
+	 * @return End of the packet data.
 	 */
-	static int GetLinkHeaderSize(int link_type);
+	const u_char* const GetEndOfData() const;
 
 	/**
 	 * Describes the packet, with standard signature.
@@ -158,7 +155,14 @@ public:
 	/**
 	 * Maximal length of a layer 2 address.
 	 */
-	static const int l2_addr_len = 6;
+	static const int L2_ADDR_LEN = 6;
+
+	/**
+	 * Empty layer 2 address to be used as default value. For example, the
+	 * LinuxSLL llanalyzer doesn't have a destination address in the header
+	 * and thus sets it to this default address.
+	 */
+	static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = { 0 };
 
 	// These are passed in through the constructor.
 	std::string tag;		/// Used in serialization
@@ -166,8 +170,9 @@ public:
 	pkt_timeval ts;			/// Capture timestamp
 	const u_char* data;		/// Packet data.
 	uint32_t len;			/// Actual length on wire
-	uint32_t cap_len;			/// Captured packet length
+	uint32_t cap_len;		/// Captured packet length
 	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
+	const uint8_t* cur_pos;	/// Pointer to the current start of unanalyzed payload data in the raw packet, used by llanalyzers
 
 	// These are computed from Layer 2 data. These fields are only valid if
 	// Layer2Valid() returns true.
@@ -224,13 +229,10 @@ public:
 	 */
 	bool l3_checksummed;
 
-private:
-	// Calculate layer 2 attributes.
-	void ProcessLayer2();
-
-	// Wrapper to generate a packet-level weird.
+	// Wrapper to generate a packet-level weird. Has to be public for llanalyzers to use it.
 	void Weird(const char* name);
 
+private:
 	// Renders an MAC address into its ASCII representation.
 	ValPtr FmtEUI48(const u_char* mac) const;
 

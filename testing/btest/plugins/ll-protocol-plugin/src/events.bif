@@ -1,0 +1,2 @@
+
+event bar_message%(dsap: count, ssap: count, control: count%);

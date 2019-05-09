@@ -90,16 +90,6 @@ double PktSrc::CurrentPacketWallClock()
 
 void PktSrc::Opened(const Properties& arg_props)
 	{
-	if ( Packet::GetLinkHeaderSize(arg_props.link_type) < 0 )
-		{
-		char buf[512];
-		snprintf(buf, sizeof(buf),
-			 "unknown data link type 0x%x", arg_props.link_type);
-		Error(buf);
-		Close();
-		return;
-		}
-
 	props = arg_props;
 	SetClosed(false);
 

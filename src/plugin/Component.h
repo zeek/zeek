@@ -18,6 +18,7 @@ enum Type {
 	READER,	/// An input reader (not currently used).
 	WRITER,	/// A logging writer (not currenly used).
 	ANALYZER,	/// A protocol analyzer.
+	LLANALYZER,	/// A low layer protocol analyzer.
 	FILE_ANALYZER,	/// A file analyzer.
 	IOSOURCE,	/// An I/O source, excluding packet sources.
 	PKTSRC,	/// A packet source.

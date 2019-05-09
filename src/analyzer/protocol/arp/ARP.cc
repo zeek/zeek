@@ -100,8 +100,8 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 		if ( ah->ar_hln != 6 )
 			{ // don't know how to handle the opcode
 			snprintf(errbuf, sizeof(errbuf),
-					"corrupt-arp-header (hrd=%i, hln=%i)",
-					ntohs(ah->ar_hrd), ah->ar_hln);
+			         "corrupt-arp-header (hrd=%i, hln=%i)",
+			         ntohs(ah->ar_hrd), ah->ar_hln);
 			BadARP(ah, errbuf);
 			return;
 			}
@@ -110,7 +110,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	default:
 		{ // don't know how to proceed
 		snprintf(errbuf, sizeof(errbuf),
-			"unknown-arp-hw-address (hrd=%i)", ntohs(ah->ar_hrd));
+		         "unknown-arp-hw-address (hrd=%i)", ntohs(ah->ar_hrd));
 		BadARP(ah, errbuf);
 		return;
 		}
@@ -122,8 +122,8 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 		if ( ah->ar_pln != 4 )
 			{ // don't know how to handle the opcode
 			snprintf(errbuf, sizeof(errbuf),
-					"corrupt-arp-header (pro=%i, pln=%i)",
-					ntohs(ah->ar_pro), ah->ar_pln);
+			         "corrupt-arp-header (pro=%i, pln=%i)",
+			         ntohs(ah->ar_pro), ah->ar_pln);
 			BadARP(ah, errbuf);
 			return;
 			}
@@ -132,8 +132,8 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	default:
 		{ // don't know how to proceed
 		snprintf(errbuf, sizeof(errbuf),
-				"unknown-arp-proto-address (pro=%i)",
-				ntohs(ah->ar_pro));
+		         "unknown-arp-proto-address (pro=%i)",
+		         ntohs(ah->ar_pro));
 		BadARP(ah, errbuf);
 		return;
 		}
@@ -151,12 +151,12 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	switch ( ntohs(ah->ar_op) ) {
 	case ARPOP_REQUEST:
 		RREvent(arp_request, pkt->l2_src, pkt->l2_dst,
-				ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
+		        ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
 		break;
 
 	case ARPOP_REPLY:
 		RREvent(arp_reply, pkt->l2_src, pkt->l2_dst,
-				ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
+		        ar_spa(ah), ar_sha(ah), ar_tpa(ah), ar_tha(ah));
 		break;
 
 	case ARPOP_REVREQUEST:
@@ -165,7 +165,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	case ARPOP_INVREPLY:
 		{ // don't know how to handle the opcode
 		snprintf(errbuf, sizeof(errbuf),
-			"unimplemented-arp-opcode (%i)", ntohs(ah->ar_op));
+		         "unimplemented-arp-opcode (%i)", ntohs(ah->ar_op));
 		BadARP(ah, errbuf);
 		break;
 		}
@@ -173,7 +173,7 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 	default:
 		{ // invalid opcode
 		snprintf(errbuf, sizeof(errbuf),
-			"invalid-arp-opcode (opcode=%i)", ntohs(ah->ar_op));
+		         "invalid-arp-opcode (opcode=%i)", ntohs(ah->ar_op));
 		BadARP(ah, errbuf);
 		return;
 		}
@@ -237,7 +237,7 @@ StringValPtr ARP_Analyzer::ToEthAddrStr(const u_char* addr)
 	{
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
-			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+	         addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 	return make_intrusive<StringVal>(buf);
 	}
 

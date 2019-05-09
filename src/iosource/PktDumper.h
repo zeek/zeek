@@ -50,11 +50,6 @@ public:
 	 */
 	const char* ErrorMsg() const;
 
-	/**
-	 * Returns the size of the link-layer headers with this dumper.
-	 */
-	int HdrSize() const;
-
 	// PktDumper interface for derived classes to implement.
 
 	/**
@@ -97,7 +92,6 @@ protected:
 	 */
 	struct Properties {
 		std::string path;
-		int hdr_size;
 		double open_time;
 	};
 

@@ -188,7 +188,6 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 		return;
 		}
 
-
 	if ( dump_this_packet && ! zeek::detail::record_all_packets )
 		DumpPacket(pkt);
 	}

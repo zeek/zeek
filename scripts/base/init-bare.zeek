@@ -5341,3 +5341,30 @@ event net_done(t: time)
 # execution would be another idea.
 @if ( __init_primary_bifs() )
 @endif
+
+module LLAnalyzer;
+
+# Defines a mapping for the LLAnalyzer's configuration tree. This
+# maps from a parent analyzer to a child analyzer through a numeric
+# identifier.
+export {
+    type ConfigEntry : record {
+        # The parent analyzer. This analyzer will check for the *identifier* in the
+        # packet data to know whether to call the next analyzer. This field is optional.
+        # If it is not included, the identifier will attach to the "root" analyzer. This
+        # means that the identifier will be searched for the initial packet header instead
+        # of later headers.
+        parent : LLAnalyzer::Tag &optional;
+
+        # A numeric identifier that can be found in the packet data that denotes an
+        # analyzer should be called.
+        identifier : count;
+
+        # The analyzer that corresponds to the above identifier.
+        analyzer : LLAnalyzer::Tag;
+    };
+
+    const config_map : vector of LLAnalyzer::ConfigEntry &redef;
+}
+
+@load base/llprotocols

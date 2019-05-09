@@ -20,7 +20,6 @@ Foo::~Foo()
 void Foo::Open()
 	{
 	props.open_time = zeek::run_state::network_time;
-	props.hdr_size = 0;
 	Opened(props);
 	}
 

@@ -5,7 +5,6 @@
 #include <limits>
 
 #include "BitVector.h"
-#include "Serializer.h"
 #include "digest.h"
 
 using namespace probabilistic;
@@ -539,56 +538,3 @@ BitVector::size_type BitVector::find_from(size_type i) const
 	return i * bits_per_block + lowest_bit(bits[i]);
 	}
 
-bool BitVector::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-BitVector* BitVector::Unserialize(UnserialInfo* info)
-	{
-	return reinterpret_cast<BitVector*>(SerialObj::Unserialize(info, SER_BITVECTOR));
-	}
-
-IMPLEMENT_SERIAL(BitVector, SER_BITVECTOR);
-
-bool BitVector::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BITVECTOR, SerialObj);
-
-	if ( ! SERIALIZE(static_cast<uint64>(bits.size())) )
-		return false;
-
-	for ( size_t i = 0; i < bits.size(); ++i )
-		if ( ! SERIALIZE(static_cast<uint64>(bits[i])) )
-			return false;
-
-	return SERIALIZE(static_cast<uint64>(num_bits));
-	}
-
-bool BitVector::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	uint64 size;
-	if ( ! UNSERIALIZE(&size) )
-		return false;
-
-	bits.resize(static_cast<size_t>(size));
-
-	for ( size_t i = 0; i < bits.size(); ++i )
-		{
-		uint64 block;
-		if ( ! UNSERIALIZE(&block) )
-			return false;
-
-		bits[i] = static_cast<block_type>(block);
-		}
-
-	uint64 n;
-	if ( ! UNSERIALIZE(&n) )
-		return false;
-
-	num_bits = static_cast<size_type>(n);
-
-	return true;
-	}

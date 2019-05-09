@@ -24,12 +24,6 @@ enum Layer3Proto {
 
 /**
  * A link-layer packet.
- *
- * Note that for serialization we don't use much of the support provided by
- * the serialization framework. Serialize/Unserialize do all the work by
- * themselves. In particular, Packets aren't derived from SerialObj. They are
- * completely seperate and self-contained entities, and we don't need any of
- * the sophisticated features like object caching.
  */
 class Packet {
 public:
@@ -143,16 +137,6 @@ public:
 	 * Describes the packet, with standard signature.
 	 */
 	void Describe(ODesc* d) const;
-
-	/**
-	 * Serializes the packet, with standard signature.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes the packet, with standard signature.
-	 */
-	static Packet* Unserialize(UnserialInfo* info);
 
 	/**
 	 * Maximal length of a layer 2 address.

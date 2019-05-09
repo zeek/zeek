@@ -10,7 +10,6 @@
 #include <string>
 
 class Val;
-class SerialInfo;
 class Func;
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
@@ -98,9 +97,6 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 	void DescribeReSTShort(ODesc* d) const;
 
-	bool Serialize(SerialInfo* info) const;
-	static ID* Unserialize(UnserialInfo* info);
-
 	bool DoInferReturnType() const
 		{ return infer_return_type; }
 	void SetInferReturnType(bool infer)
@@ -123,8 +119,6 @@ protected:
 #ifdef DEBUG
 	void UpdateValID();
 #endif
-
-	DECLARE_SERIAL(ID);
 
 	const char* name;
 	IDScope scope;

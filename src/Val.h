@@ -20,6 +20,7 @@
 #include "Scope.h"
 #include "StateAccess.h"
 #include "IPAddr.h"
+#include "DebugLogger.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -36,7 +37,6 @@ class Func;
 class BroFile;
 class RE_Matcher;
 class PrefixTable;
-class SerialInfo;
 
 class PortVal;
 class AddrVal;
@@ -344,14 +344,6 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
-	bool Serialize(SerialInfo* info) const;
-	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
-		{ return Unserialize(info, type, 0); }
-	static Val* Unserialize(UnserialInfo* info, const BroType* exact_type)
-		{ return Unserialize(info, exact_type->Tag(), exact_type); }
-
-	DECLARE_SERIAL(Val);
-
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
@@ -414,10 +406,6 @@ protected:
 
 	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
-
-	// Just an internal helper.
-	static Val* Unserialize(UnserialInfo* info, TypeTag type,
-			const BroType* exact_type);
 
 	BroValUnion val;
 	BroType* type;
@@ -544,26 +532,16 @@ public:
 #endif
 		}
 
-	uint64 LastModified() const override	{ return last_modified; }
-
-	// Mark value as changed.
-	void Modified()
-		{
-		last_modified = IncreaseTimeCounter();
-		}
-
 protected:
 	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
+		{ props = 0; id = 0; }
+	MutableVal()	{ props = 0; id = 0; }
 	~MutableVal() override;
 
 	friend class ID;
 	friend class Val;
 
 	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
-
-	DECLARE_SERIAL(MutableVal);
 
 private:
 	ID* Bind() const;
@@ -589,8 +567,6 @@ protected:
 	IntervalVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(IntervalVal);
 };
 
 
@@ -636,8 +612,6 @@ protected:
 	PortVal(uint32 p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(PortVal);
 };
 
 class AddrVal : public Val {
@@ -660,8 +634,6 @@ protected:
 	AddrVal()	{}
 	explicit AddrVal(TypeTag t) : Val(t)	{ }
 	explicit AddrVal(BroType* t) : Val(t)	{ }
-
-	DECLARE_SERIAL(AddrVal);
 };
 
 class SubNetVal : public Val {
@@ -689,8 +661,6 @@ protected:
 	SubNetVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(SubNetVal);
 };
 
 class StringVal : public Val {
@@ -721,8 +691,6 @@ protected:
 	StringVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(StringVal);
 };
 
 class PatternVal : public Val {
@@ -741,8 +709,6 @@ protected:
 	PatternVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(PatternVal);
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -785,8 +751,6 @@ public:
 protected:
 	friend class Val;
 	ListVal()	{}
-
-	DECLARE_SERIAL(ListVal);
 
 	val_list vals;
 	TypeTag tag;
@@ -994,8 +958,6 @@ protected:
 	// Propagates a read operation if necessary.
 	void ReadOperation(Val* index, TableEntryVal *v);
 
-	DECLARE_SERIAL(TableVal);
-
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
@@ -1066,8 +1028,6 @@ protected:
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
 
-	DECLARE_SERIAL(RecordVal);
-
 	RecordType* record_type;
 	BroObj* origin;
 
@@ -1097,8 +1057,6 @@ protected:
 	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(EnumVal);
 };
 
 
@@ -1158,8 +1116,6 @@ protected:
 	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(VectorVal);
-
 	VectorType* vector_type;
 };
 
@@ -1174,8 +1130,6 @@ public:
 protected:
 	friend class Val;
 	OpaqueVal() { }
-
-	DECLARE_SERIAL(OpaqueVal);
 };
 
 // Checks the given value for consistency with the given type.  If an

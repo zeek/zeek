@@ -7,9 +7,9 @@
 #include "BloomFilter.h"
 
 #include "CounterVector.h"
-#include "Serializer.h"
 
 #include "../util.h"
+#include "../Reporter.h"
 
 using namespace probabilistic;
 
@@ -26,31 +26,6 @@ BloomFilter::BloomFilter(const Hasher* arg_hasher)
 BloomFilter::~BloomFilter()
 	{
 	delete hasher;
-	}
-
-bool BloomFilter::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
-	{
-	return reinterpret_cast<BloomFilter*>(SerialObj::Unserialize(info, SER_BLOOMFILTER));
-	}
-
-bool BloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
-
-	return hasher->Serialize(info);
-	}
-
-bool BloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	hasher = Hasher::Unserialize(info);
-	return hasher != 0;
 	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)
@@ -128,21 +103,6 @@ BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
 BasicBloomFilter::~BasicBloomFilter()
 	{
 	delete bits;
-	}
-
-IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
-
-bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-	return bits->Serialize(info);
-	}
-
-bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BloomFilter);
-	bits = BitVector::Unserialize(info);
-	return (bits != 0);
 	}
 
 void BasicBloomFilter::Add(const HashKey* key)
@@ -230,21 +190,6 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 string CountingBloomFilter::InternalState() const
 	{
 	return fmt("%" PRIu64, cells->Hash());
-	}
-
-IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
-
-bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COUNTINGBLOOMFILTER, BloomFilter);
-	return cells->Serialize(info);
-	}
-
-bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BloomFilter);
-	cells = CounterVector::Unserialize(info);
-	return (cells != 0);
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.

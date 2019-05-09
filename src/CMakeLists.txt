@@ -247,7 +247,6 @@ set(bro_SRCS
     Brofiler.cc
     BroString.cc
     CCL.cc
-    ChunkedIO.cc
     CompHash.cc
     Conn.cc
     ConvertUTF.c
@@ -302,8 +301,6 @@ set(bro_SRCS
     SmithWaterman.cc
     Scope.cc
     SerializationFormat.cc
-    SerialObj.cc
-    Serializer.cc
     Sessions.cc
     StateAccess.cc
     Stats.cc

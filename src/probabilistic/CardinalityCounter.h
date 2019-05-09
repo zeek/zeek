@@ -84,25 +84,6 @@ public:
 	 */
 	bool Merge(CardinalityCounter* c);
 
-	/**
-	 * Serializes the cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes a cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized cardinality counter, or null if an error
-	 * 	   occured.
-	 */
-	static CardinalityCounter* Unserialize(UnserialInfo* info);
-
 protected:
 	/**
 	 * Return the number of buckets.

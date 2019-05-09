@@ -29,8 +29,6 @@ protected:
 	virtual bool DoFeed(const void* data, size_t size);
 	virtual StringVal* DoGet();
 
-	DECLARE_SERIAL(HashVal);
-
 private:
 	// This flag exists because Get() can only be called once.
 	bool valid;
@@ -54,8 +52,6 @@ protected:
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
 
-	DECLARE_SERIAL(MD5Val);
-
 private:
 	EVP_MD_CTX* ctx;
 };
@@ -73,8 +69,6 @@ protected:
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
-
-	DECLARE_SERIAL(SHA1Val);
 
 private:
 	EVP_MD_CTX* ctx;
@@ -94,8 +88,6 @@ protected:
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
 
-	DECLARE_SERIAL(SHA256Val);
-
 private:
 	EVP_MD_CTX* ctx;
 };
@@ -110,8 +102,6 @@ public:
 
 protected:
 	friend class Val;
-
-	DECLARE_SERIAL(EntropyVal);
 
 private:
 	RandTest state;
@@ -138,8 +128,6 @@ protected:
 	friend class Val;
 	BloomFilterVal();
 	explicit BloomFilterVal(OpaqueType* t);
-
-	DECLARE_SERIAL(BloomFilterVal);
 
 private:
 	// Disable.
@@ -171,8 +159,6 @@ private:
 	BroType* type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
-
-	DECLARE_SERIAL(CardinalityVal);
 };
 
 #endif

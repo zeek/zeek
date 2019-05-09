@@ -116,8 +116,6 @@ public:
 
 	void ValDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(StoreHandleVal);
-
 	broker::store store;
 	broker::store::proxy proxy;
 

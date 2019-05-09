@@ -110,19 +110,4 @@ void FileReassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 	{
 	// Not doing anything here yet.
 	}
-
-IMPLEMENT_SERIAL(FileReassembler, SER_FILE_REASSEMBLER);
-
-bool FileReassembler::DoSerialize(SerialInfo* info) const
-	{
-	reporter->InternalError("FileReassembler::DoSerialize not implemented");
-	return false; // Cannot be reached.
-	}
-
-bool FileReassembler::DoUnserialize(UnserialInfo* info)
-	{
-	reporter->InternalError("FileReassembler::DoUnserialize not implemented");
-	return false; // Cannot be reached.
-	}
-
 } // end file_analysis

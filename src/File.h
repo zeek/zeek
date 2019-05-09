@@ -79,9 +79,6 @@ public:
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }
 
-	bool Serialize(SerialInfo* info) const;
-	static BroFile* Unserialize(UnserialInfo* info);
-
 protected:
 	friend class RotateTimer;
 
@@ -123,8 +120,6 @@ protected:
 	void InitEncrypt(const char* keyfile);
 	// Finalize encryption.
 	void FinishEncrypt();
-
-	DECLARE_SERIAL(BroFile);
 
 	FILE* f;
 	BroType* t;

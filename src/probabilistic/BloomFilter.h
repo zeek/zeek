@@ -14,12 +14,12 @@ class CounterVector;
 /**
  * The abstract base class for Bloom filters.
  */
-class BloomFilter : public SerialObj {
+class BloomFilter {
 public:
 	/**
 	 * Destructor.
 	 */
-	~BloomFilter() override;
+	virtual ~BloomFilter();
 
 	/**
 	 * Adds an element to the Bloom filter.
@@ -71,28 +71,7 @@ public:
 	 */
 	virtual string InternalState() const = 0;
 
-	/**
-	 * Serializes the Bloom filter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes a Bloom filter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized Bloom filter, or null if an error
-	 * occured.
-	 */
-	static BloomFilter* Unserialize(UnserialInfo* info);
-
 protected:
-	DECLARE_ABSTRACT_SERIAL(BloomFilter);
-
 	/**
 	 * Default constructor.
 	 */
@@ -165,8 +144,6 @@ public:
 	string InternalState() const override;
 
 protected:
-	DECLARE_SERIAL(BasicBloomFilter);
-
 	/**
 	 * Default constructor.
 	 */
@@ -210,8 +187,6 @@ public:
 	string InternalState() const override;
 
 protected:
-	DECLARE_SERIAL(CountingBloomFilter);
-
 	/**
 	 * Default constructor.
 	 */

@@ -46,7 +46,6 @@ protected:
 	OCSP_RESPVal();
 private:
 	OCSP_RESPONSE *ocsp_resp;
-	DECLARE_SERIAL(OCSP_RESPVal);
 };
 
 }

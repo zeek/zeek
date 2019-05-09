@@ -4,7 +4,6 @@
 #define event_h
 
 #include "EventRegistry.h"
-#include "Serializer.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"

@@ -6,7 +6,6 @@
 #include "Func.h"
 #include "Stmt.h"
 #include "Scope.h"
-#include "Serializer.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
 

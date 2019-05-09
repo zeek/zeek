@@ -120,8 +120,6 @@ public:
 		return script_data_type;
 		}
 
-	DECLARE_SERIAL(DataVal);
-
 	broker::data data;
 
 protected:

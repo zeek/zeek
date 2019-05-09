@@ -128,12 +128,8 @@ struct val_converter {
 			}
 		case TYPE_OPAQUE:
 			{
-			SerializationFormat* form = new BinarySerializationFormat();
-			form->StartRead(a.data(), a.size());
-			CloneSerializer ss(form);
-			UnserialInfo uinfo(&ss);
-			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, type->Tag());
+			// Fixme: Johanna
+			return nullptr;
 			}
 		default:
 			return nullptr;
@@ -511,12 +507,8 @@ struct type_checker {
 		case TYPE_OPAQUE:
 			{
 			// TODO
-			SerializationFormat* form = new BinarySerializationFormat();
-			form->StartRead(a.data(), a.size());
-			CloneSerializer ss(form);
-			UnserialInfo uinfo(&ss);
-			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, type->Tag());
+			// Fixme: johanna
+			return false;
 			}
 		default:
 			return false;
@@ -978,24 +970,10 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
-	case TYPE_OPAQUE:
-		{
-		SerializationFormat* form = new BinarySerializationFormat();
-		form->StartWrite();
-		CloneSerializer ss(form);
-		SerialInfo sinfo(&ss);
-		sinfo.cache = false;
-		sinfo.include_locations = false;
-
-		if ( ! v->Serialize(&sinfo) )
-			return broker::ec::invalid_data;
-
-		char* data;
-		uint32 len = form->EndWrite(&data);
-		string rval(data, len);
-		free(data);
-		return {std::move(rval)};
-		}
+	// Fixme: johanna
+	// case TYPE_OPAQUE:
+	//	{
+	//	}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
 		                type_name(v->Type()->Tag()));
@@ -1129,42 +1107,6 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 Val* bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
-	}
-
-IMPLEMENT_SERIAL(bro_broker::DataVal, SER_COMM_DATA_VAL);
-
-bool bro_broker::DataVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COMM_DATA_VAL, OpaqueVal);
-
-	std::string buffer;
-	caf::containerbuf<std::string> sb{buffer};
-	caf::stream_serializer<caf::containerbuf<std::string>&> serializer{sb};
-	serializer << data;
-
-	if ( ! SERIALIZE_STR(buffer.data(), buffer.size()) )
-		return false;
-
-	return true;
-	}
-
-bool bro_broker::DataVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	const char* serial;
-	int len;
-
-	if ( ! UNSERIALIZE_STR(&serial, &len) )
-		return false;
-
-	caf::arraybuf<char> sb{const_cast<char*>(serial), // will not write
-	                       static_cast<size_t>(len)};
-	caf::stream_deserializer<caf::arraybuf<char>&> deserializer{sb};
-	deserializer >> data;
-
-	delete [] serial;
-	return true;
 	}
 
 broker::data bro_broker::threading_field_to_data(const threading::Field* f)

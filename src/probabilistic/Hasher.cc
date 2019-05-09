@@ -5,7 +5,6 @@
 
 #include "Hasher.h"
 #include "NetVar.h"
-#include "Serializer.h"
 #include "digest.h"
 #include "siphash24.h"
 
@@ -39,52 +38,6 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 Hasher::digest_vector Hasher::Hash(const HashKey* key) const
 	{
 	return Hash(key->Key(), key->Size());
-	}
-
-bool Hasher::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Hasher* Hasher::Unserialize(UnserialInfo* info)
-	{
-	return reinterpret_cast<Hasher*>(SerialObj::Unserialize(info, SER_HASHER));
-	}
-
-bool Hasher::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_HASHER, SerialObj);
-
-	if ( ! SERIALIZE(static_cast<uint16>(k)) )
-		return false;
-
-	if ( ! SERIALIZE(static_cast<uint64>(seed.h1)) )
-		return false;
-
-	return SERIALIZE(static_cast<uint64>(seed.h2));
-	}
-
-bool Hasher::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	uint16 serial_k;
-	if ( ! UNSERIALIZE(&serial_k) )
-		return false;
-
-	k = serial_k;
-	assert(k > 0);
-
-	seed_t serial_seed;
-	if ( ! UNSERIALIZE(&serial_seed.h1) )
-		return false;
-
-	if ( ! UNSERIALIZE(&serial_seed.h2) )
-		return false;
-
-	seed = serial_seed;
-
-	return true;
 	}
 
 Hasher::Hasher(size_t arg_k, seed_t arg_seed)
@@ -167,31 +120,6 @@ bool DefaultHasher::Equals(const Hasher* other) const
 	return hash_functions == o->hash_functions;
 	}
 
-IMPLEMENT_SERIAL(DefaultHasher, SER_DEFAULTHASHER)
-
-bool DefaultHasher::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_DEFAULTHASHER, Hasher);
-
-	// Nothing to do here, the base class has all we need serialized already.
-	return true;
-	}
-
-bool DefaultHasher::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Hasher);
-
-	hash_functions.clear();
-	for ( size_t i = 0; i < K(); ++i )
-		{
-		Hasher::seed_t s = Seed();
-		s.h1 += bro_prng(i);
-		hash_functions.push_back(UHF(s));
-		}
-
-	return true;
-	}
-
 DoubleHasher::DoubleHasher(size_t k, seed_t seed)
 	: Hasher(k, seed), h1(seed + bro_prng(1)), h2(seed + bro_prng(2))
 	{
@@ -223,22 +151,3 @@ bool DoubleHasher::Equals(const Hasher* other) const
 	return h1 == o->h1 && h2 == o->h2;
 	}
 
-IMPLEMENT_SERIAL(DoubleHasher, SER_DOUBLEHASHER)
-
-bool DoubleHasher::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_DOUBLEHASHER, Hasher);
-
-	// Nothing to do here, the base class has all we need serialized already.
-	return true;
-	}
-
-bool DoubleHasher::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Hasher);
-
-	h1 = UHF(Seed() + bro_prng(1));
-	h2 = UHF(Seed() + bro_prng(2));
-
-	return true;
-	}

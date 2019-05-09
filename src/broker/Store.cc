@@ -49,48 +49,6 @@ void StoreHandleVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
-IMPLEMENT_SERIAL(StoreHandleVal, SER_COMM_STORE_HANDLE_VAL);
-
-bool StoreHandleVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COMM_STORE_HANDLE_VAL, OpaqueVal);
-
-	auto name = store.name();
-	if ( ! SERIALIZE_STR(name.data(), name.size()) )
-		return false;
-
-	return true;
-	}
-
-bool StoreHandleVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	const char* name_str;
-	int len;
-
-	if ( ! UNSERIALIZE_STR(&name_str, &len) )
-		return false;
-
-	std::string name(name_str, len);
-	delete [] name_str;
-
-	auto handle = broker_mgr->LookupStore(name);
-	if ( ! handle )
-		{
-		// Passing serialized version of store handles to other Bro processes
-		// doesn't make sense, only allow local clones of the handle val.
-		reporter->Error("failed to look up unserialized store handle %s",
-		                name.c_str());
-		return false;
-		}
-
-	store = handle->store;
-	proxy = broker::store::proxy{store};
-
-	return true;
-	}
-
 broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
 	switch ( type ) {

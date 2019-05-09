@@ -89,8 +89,6 @@ public:
 private:
 	TCP_Reassembler()	{ }
 
-	DECLARE_SERIAL(TCP_Reassembler);
-
 	void Undelivered(uint64 up_to_seq) override;
 	void Gap(uint64 seq, uint64 len);
 

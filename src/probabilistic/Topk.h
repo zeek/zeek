@@ -161,8 +161,6 @@ private:
 	uint64 size; // how many elements are we tracking?
 	uint64 numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?
-
-	DECLARE_SERIAL(TopkVal);
 };
 
 };

@@ -72,7 +72,6 @@ class SubNetType;
 class FuncType;
 class ListExpr;
 class EnumType;
-class Serializer;
 class VectorType;
 class TypeType;
 class OpaqueType;
@@ -256,9 +255,6 @@ public:
 
 	virtual unsigned MemoryAllocation() const;
 
-	bool Serialize(SerialInfo* info) const;
-	static BroType* Unserialize(UnserialInfo* info, bool use_existing = true);
-
 	void SetName(const string& arg_name) { name = arg_name; }
 	string GetName() const { return name; }
 
@@ -274,8 +270,6 @@ protected:
 	BroType()	{ }
 
 	void SetError();
-
-	DECLARE_SERIAL(BroType)
 
 private:
 	TypeTag tag;
@@ -325,8 +319,6 @@ public:
 		}
 
 protected:
-	DECLARE_SERIAL(TypeList)
-
 	BroType* pure_type;
 	type_list types;
 };
@@ -356,8 +348,6 @@ protected:
 		}
 	~IndexType() override;
 
-	DECLARE_SERIAL(IndexType)
-
 	TypeList* indices;
 	BroType* yield_type;
 };
@@ -374,8 +364,6 @@ protected:
 	TableType()	{}
 
 	TypeList* ExpandRecordIndex(RecordType* rt) const;
-
-	DECLARE_SERIAL(TableType)
 };
 
 class SetType : public TableType {
@@ -389,8 +377,6 @@ protected:
 	SetType()	{}
 
 	ListExpr* elements;
-
-	DECLARE_SERIAL(SetType)
 };
 
 class FuncType : public BroType {
@@ -420,8 +406,6 @@ public:
 
 protected:
 	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
-	DECLARE_SERIAL(FuncType)
-
 	RecordType* args;
 	TypeList* arg_types;
 	BroType* yield;
@@ -449,9 +433,6 @@ public:
 
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->FindAttr(a) : 0; }
-
-	bool Serialize(SerialInfo* info) const;
-	static TypeDecl* Unserialize(UnserialInfo* info);
 
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
@@ -501,8 +482,6 @@ public:
 protected:
 	RecordType() { types = 0; }
 
-	DECLARE_SERIAL(RecordType)
-
 	int num_fields;
 	type_decl_list* types;
 };
@@ -511,8 +490,6 @@ class SubNetType : public BroType {
 public:
 	SubNetType();
 	void Describe(ODesc* d) const override;
-protected:
-	DECLARE_SERIAL(SubNetType)
 };
 
 class FileType : public BroType {
@@ -526,8 +503,6 @@ public:
 
 protected:
 	FileType()	{ yield = 0; }
-
-	DECLARE_SERIAL(FileType)
 
 	BroType* yield;
 };
@@ -544,8 +519,6 @@ public:
 
 protected:
 	OpaqueType() { }
-
-	DECLARE_SERIAL(OpaqueType)
 
 	string name;
 };
@@ -581,8 +554,6 @@ public:
 
 protected:
 	EnumType() { counter = 0; }
-
-	DECLARE_SERIAL(EnumType)
 
 	void AddNameInternal(const string& module_name,
 			const char* name, bro_int_t val, bool is_export);
@@ -624,8 +595,6 @@ public:
 
 protected:
 	VectorType()	{ yield_type = 0; }
-
-	DECLARE_SERIAL(VectorType)
 
 	BroType* yield_type;
 };

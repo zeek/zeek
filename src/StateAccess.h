@@ -7,14 +7,11 @@
 #include <map>
 #include <string>
 
-#include "SerialObj.h"
-
 class Val;
 class ID;
 class MutableVal;
 class HashKey;
 class ODesc;
-class Serializer;
 class TableVal;
 
 enum Opcode {	// Op1	Op2 Op3 (Vals)
@@ -30,7 +27,7 @@ enum Opcode {	// Op1	Op2 Op3 (Vals)
 	OP_READ_IDX,	// idx
 };
 
-class StateAccess : public SerialObj {
+class StateAccess {
 public:
 	StateAccess(Opcode opcode, const ID* target, const Val* op1,
 			const Val* op2 = 0, const Val* op3 = 0);
@@ -48,7 +45,7 @@ public:
 
 	StateAccess(const StateAccess& sa);
 
-	~StateAccess() override;
+	virtual ~StateAccess();
 
 	// Replays this access in the our environment.
 	void Replay();
@@ -57,9 +54,6 @@ public:
 	ID* Target() const;
 
 	void Describe(ODesc* d) const;
-
-	bool Serialize(SerialInfo* info) const;
-	static StateAccess* Unserialize(UnserialInfo* info);
 
 	// Main entry point when StateAcesses are performed.
 	// For every state-changing operation, this has to be called.
@@ -75,8 +69,6 @@ private:
 	void RefThem();
 
 	bool MergeTables(TableVal* dst, Val* src);
-
-	DECLARE_SERIAL(StateAccess);
 
 	Opcode opcode;
 	union {

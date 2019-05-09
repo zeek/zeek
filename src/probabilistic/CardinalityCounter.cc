@@ -6,7 +6,6 @@
 
 #include "CardinalityCounter.h"
 #include "Reporter.h"
-#include "Serializer.h"
 
 using namespace probabilistic;
 
@@ -195,51 +194,6 @@ const vector<uint8_t> &CardinalityCounter::GetBuckets() const
 uint64_t CardinalityCounter::GetM() const
 	{
 	return m;
-	}
-
-bool CardinalityCounter::Serialize(SerialInfo* info) const
-	{
-	bool valid = true;
-
-	valid &= SERIALIZE(m);
-	valid &= SERIALIZE(V);
-	valid &= SERIALIZE(alpha_m);
-
-	for ( unsigned int i = 0; i < m; i++ )
-		valid &= SERIALIZE((char)buckets[i]);
-
-	return valid;
-	}
-
-CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
-	{
-	uint64_t m;
-	uint64_t V;
-	double alpha_m;
-
-	bool valid = true;
-	valid &= UNSERIALIZE(&m);
-	valid &= UNSERIALIZE(&V);
-	valid &= UNSERIALIZE(&alpha_m);
-
-	CardinalityCounter* c = new CardinalityCounter(m, V, alpha_m);
-
-	vector<uint8_t>& buckets = c->buckets;
-
-	for ( unsigned int i = 0; i < m; i++ )
-		{
-		char c;
-		valid &= UNSERIALIZE(&c);
-		buckets[i] = (uint8_t)c;
-		}
-
-	if ( ! valid )
-		{
-		delete c;
-		c = 0;
-		}
-
-	return c;
 	}
 
 /**

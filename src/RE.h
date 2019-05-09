@@ -171,12 +171,12 @@ protected:
 	int current_pos;
 };
 
-class RE_Matcher : SerialObj {
+class RE_Matcher {
 public:
 	RE_Matcher();
 	explicit RE_Matcher(const char* pat);
 	RE_Matcher(const char* exact_pat, const char* anywhere_pat);
-	virtual ~RE_Matcher() override;
+	virtual ~RE_Matcher();
 
 	void AddPat(const char* pat);
 
@@ -212,9 +212,6 @@ public:
 	const char* PatternText() const	{ return re_exact->PatternText(); }
 	const char* AnywherePatternText() const	{ return re_anywhere->PatternText(); }
 
-	bool Serialize(SerialInfo* info) const;
-	static RE_Matcher* Unserialize(UnserialInfo* info);
-
 	unsigned int MemoryAllocation() const
 		{
 		return padded_sizeof(*this)
@@ -223,8 +220,6 @@ public:
 		}
 
 protected:
-	DECLARE_SERIAL(RE_Matcher);
-
 	Specific_RE_Matcher* re_anywhere;
 	Specific_RE_Matcher* re_exact;
 };

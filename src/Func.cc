@@ -41,7 +41,6 @@
 #include "analyzer/protocol/login/Login.h"
 #include "Sessions.h"
 #include "RE.h"
-#include "Serializer.h"
 #include "Event.h"
 #include "Traverse.h"
 #include "Reporter.h"
@@ -127,110 +126,6 @@ void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
 	Internal("Func::AddBody called");
 	}
 
-bool Func::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Func* Func::Unserialize(UnserialInfo* info)
-	{
-	Func* f = (Func*) SerialObj::Unserialize(info, SER_FUNC);
-
-	// For builtins, we return a reference to the (hopefully) already
-	// existing function.
-	if ( f && f->kind == BUILTIN_FUNC )
-		{
-		const char* name = ((BuiltinFunc*) f)->Name();
-		ID* id = global_scope()->Lookup(name);
-		if ( ! id )
-			{
-			info->s->Error(fmt("can't find built-in %s", name));
-			return 0;
-			}
-
-		if ( ! (id->HasVal() && id->ID_Val()->Type()->Tag() == TYPE_FUNC) )
-			{
-			info->s->Error(fmt("ID %s is not a built-in", name));
-			return 0;
-			}
-
-		Unref(f);
-		f = id->ID_Val()->AsFunc();
-		Ref(f);
-		}
-
-	return f;
-	}
-
-bool Func::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FUNC, BroObj);
-
-	if ( ! SERIALIZE(int(bodies.size())) )
-		return false;
-
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
-		{
-		if ( ! bodies[i].stmts->Serialize(info) )
-			return false;
-		if ( ! SERIALIZE(bodies[i].priority) )
-			return false;
-		}
-
-	if ( ! SERIALIZE(char(kind) ) )
-		return false;
-
-	if ( ! type->Serialize(info) )
-		return false;
-
-	if ( ! SERIALIZE(Name()) )
-		return false;
-
-	// We don't serialize scope as only global functions are considered here
-	// anyway.
-	return true;
-	}
-
-bool Func::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		Body b;
-		b.stmts = Stmt::Unserialize(info);
-		if ( ! b.stmts )
-			return false;
-
-		if ( ! UNSERIALIZE(&b.priority) )
-			return false;
-
-		bodies.push_back(b);
-		}
-
-	char c;
-	if ( ! UNSERIALIZE(&c) )
-		return false;
-
-	kind = (Kind) c;
-
-	type = BroType::Unserialize(info);
-	if ( ! type )
-		return false;
-
-	const char* n;
-	if ( ! UNSERIALIZE_STR(&n, 0) )
-		return false;
-
-	name = n;
-	delete [] n;
-
-	return true;
-	}
 
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
 	{
@@ -584,21 +479,6 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 	return stmt_series;
 	}
 
-IMPLEMENT_SERIAL(BroFunc, SER_BRO_FUNC);
-
-bool BroFunc::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BRO_FUNC, Func);
-	return SERIALIZE(frame_size);
-	}
-
-bool BroFunc::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Func);
-
-	return UNSERIALIZE(&frame_size);
-	}
-
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 			int arg_is_pure)
 : Func(BUILTIN_FUNC)
@@ -679,20 +559,6 @@ void BuiltinFunc::Describe(ODesc* d) const
 	{
 	d->Add(Name());
 	d->AddCount(is_pure);
-	}
-
-IMPLEMENT_SERIAL(BuiltinFunc, SER_BUILTIN_FUNC);
-
-bool BuiltinFunc::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BUILTIN_FUNC, Func);
-	return true;
-	}
-
-bool BuiltinFunc::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Func);
-	return true;
 	}
 
 void builtin_error(const char* msg, BroObj* arg)

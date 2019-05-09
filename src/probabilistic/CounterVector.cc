@@ -4,7 +4,6 @@
 
 #include <limits>
 #include "BitVector.h"
-#include "Serializer.h"
 
 using namespace probabilistic;
 
@@ -153,46 +152,8 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y)
 
 }
 
-uint64 CounterVector::Hash() const
+uint64_t CounterVector::Hash() const
 	{
 	return bits->Hash();
 	}
 
-bool CounterVector::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-CounterVector* CounterVector::Unserialize(UnserialInfo* info)
-	{
-	return reinterpret_cast<CounterVector*>(SerialObj::Unserialize(info, SER_COUNTERVECTOR));
-	}
-
-IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
-
-bool CounterVector::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COUNTERVECTOR, SerialObj);
-
-	if ( ! bits->Serialize(info) )
-		return false;
-
-	return SERIALIZE(static_cast<uint64>(width));
-	}
-
-bool CounterVector::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	bits = BitVector::Unserialize(info);
-	if ( ! bits )
-		return false;
-
-	uint64 w;
-	if ( ! UNSERIALIZE(&w) )
-		return false;
-
-	width = static_cast<size_t>(w);
-
-	return true;
-	}

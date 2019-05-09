@@ -4,7 +4,6 @@
 #define PROBABILISTIC_HASHER_H
 
 #include "Hash.h"
-#include "SerialObj.h"
 
 namespace probabilistic {
 
@@ -12,7 +11,7 @@ namespace probabilistic {
  * Abstract base class for hashers. A hasher creates a family of hash
  * functions to hash an element *k* times.
  */
-class Hasher : public SerialObj {
+class Hasher {
 public:
 	typedef hash_t digest;
 	typedef std::vector<digest> digest_vector;
@@ -43,7 +42,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Hasher() override { }
+	virtual ~Hasher() { }
 
 	/**
 	 * Computes hash values for an element.
@@ -99,12 +98,7 @@ public:
 	 */
 	seed_t Seed() const	{ return seed; }
 
-	bool Serialize(SerialInfo* info) const;
-	static Hasher* Unserialize(UnserialInfo* info);
-
 protected:
-	DECLARE_ABSTRACT_SERIAL(Hasher);
-
 	Hasher() { }
 
 	/**
@@ -208,8 +202,6 @@ public:
 	DefaultHasher* Clone() const final;
 	bool Equals(const Hasher* other) const final;
 
-	DECLARE_SERIAL(DefaultHasher);
-
 private:
 	DefaultHasher() { }
 
@@ -235,8 +227,6 @@ public:
 	digest_vector Hash(const void* x, size_t n) const final;
 	DoubleHasher* Clone() const final;
 	bool Equals(const Hasher* other) const final;
-
-	DECLARE_SERIAL(DoubleHasher);
 
 private:
 	DoubleHasher() { }

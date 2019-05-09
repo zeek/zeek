@@ -144,8 +144,6 @@ protected:
 
 private:
 	::X509* certificate; // the wrapped certificate
-
-	DECLARE_SERIAL(X509Val);
 };
 
 }

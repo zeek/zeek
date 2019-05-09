@@ -3,7 +3,6 @@
 #include "OpaqueVal.h"
 #include "NetVar.h"
 #include "Reporter.h"
-#include "Serializer.h"
 #include "probabilistic/BloomFilter.h"
 #include "probabilistic/CardinalityCounter.h"
 
@@ -61,20 +60,6 @@ StringVal* HashVal::DoGet()
 HashVal::HashVal(OpaqueType* t) : OpaqueVal(t)
 	{
 	valid = false;
-	}
-
-IMPLEMENT_SERIAL(HashVal, SER_HASH_VAL);
-
-bool HashVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_HASH_VAL, OpaqueVal);
-	return SERIALIZE(valid);
-	}
-
-bool HashVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-	return UNSERIALIZE(&valid);
 	}
 
 MD5Val::MD5Val() : HashVal(md5_type)
@@ -147,67 +132,6 @@ StringVal* MD5Val::DoGet()
 	return new StringVal(md5_digest_print(digest));
 	}
 
-IMPLEMENT_SERIAL(MD5Val, SER_MD5_VAL);
-
-bool MD5Val::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_MD5_VAL, HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	if ( ! (SERIALIZE(md->A) &&
-		SERIALIZE(md->B) &&
-		SERIALIZE(md->C) &&
-		SERIALIZE(md->D) &&
-		SERIALIZE(md->Nl) &&
-		SERIALIZE(md->Nh)) )
-		return false;
-
-	for ( int i = 0; i < MD5_LBLOCK; ++i )
-		{
-		if ( ! SERIALIZE(md->data[i]) )
-			return false;
-		}
-
-	if ( ! SERIALIZE(md->num) )
-		return false;
-
-	return true;
-	}
-
-bool MD5Val::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	ctx = hash_init(Hash_MD5);
-	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	if ( ! (UNSERIALIZE(&md->A) &&
-		UNSERIALIZE(&md->B) &&
-		UNSERIALIZE(&md->C) &&
-		UNSERIALIZE(&md->D) &&
-		UNSERIALIZE(&md->Nl) &&
-		UNSERIALIZE(&md->Nh)) )
-		return false;
-
-	for ( int i = 0; i < MD5_LBLOCK; ++i )
-		{
-		if ( ! UNSERIALIZE(&md->data[i]) )
-			return false;
-		}
-
-	if ( ! UNSERIALIZE(&md->num) )
-		return false;
-
-	return true;
-	}
-
 SHA1Val::SHA1Val() : HashVal(sha1_type)
 	{
 	}
@@ -265,69 +189,6 @@ StringVal* SHA1Val::DoGet()
 	u_char digest[SHA_DIGEST_LENGTH];
 	hash_final(ctx, digest);
 	return new StringVal(sha1_digest_print(digest));
-	}
-
-IMPLEMENT_SERIAL(SHA1Val, SER_SHA1_VAL);
-
-bool SHA1Val::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SHA1_VAL, HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	if ( ! (SERIALIZE(md->h0) &&
-		SERIALIZE(md->h1) &&
-		SERIALIZE(md->h2) &&
-		SERIALIZE(md->h3) &&
-		SERIALIZE(md->h4) &&
-		SERIALIZE(md->Nl) &&
-		SERIALIZE(md->Nh)) )
-		return false;
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! SERIALIZE(md->data[i]) )
-			return false;
-		}
-
-	if ( ! SERIALIZE(md->num) )
-		return false;
-
-	return true;
-	}
-
-bool SHA1Val::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	ctx = hash_init(Hash_SHA1);
-	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	if ( ! (UNSERIALIZE(&md->h0) &&
-		UNSERIALIZE(&md->h1) &&
-		UNSERIALIZE(&md->h2) &&
-		UNSERIALIZE(&md->h3) &&
-		UNSERIALIZE(&md->h4) &&
-		UNSERIALIZE(&md->Nl) &&
-		UNSERIALIZE(&md->Nh)) )
-		return false;
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! UNSERIALIZE(&md->data[i]) )
-			return false;
-		}
-
-	if ( ! UNSERIALIZE(&md->num) )
-		return false;
-
-	return true;
 	}
 
 SHA256Val::SHA256Val() : HashVal(sha256_type)
@@ -389,74 +250,6 @@ StringVal* SHA256Val::DoGet()
 	return new StringVal(sha256_digest_print(digest));
 	}
 
-IMPLEMENT_SERIAL(SHA256Val, SER_SHA256_VAL);
-
-bool SHA256Val::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SHA256_VAL, HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	for ( int i = 0; i < 8; ++i )
-		{
-		if ( ! SERIALIZE(md->h[i]) )
-			return false;
-		}
-
-	if ( ! (SERIALIZE(md->Nl) &&
-		SERIALIZE(md->Nh)) )
-		return false;
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! SERIALIZE(md->data[i]) )
-			return false;
-		}
-
-	if ( ! (SERIALIZE(md->num) &&
-		SERIALIZE(md->md_len)) )
-	     return false;
-
-	return true;
-	}
-
-bool SHA256Val::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(HashVal);
-
-	if ( ! IsValid() )
-		return true;
-
-	ctx = hash_init(Hash_SHA256);
-	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
-
-	for ( int i = 0; i < 8; ++i )
-		{
-		if ( ! UNSERIALIZE(&md->h[i]) )
-			return false;
-		}
-
-	if ( ! (UNSERIALIZE(&md->Nl) &&
-		UNSERIALIZE(&md->Nh)) )
-	     return false;
-
-	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		{
-		if ( ! UNSERIALIZE(&md->data[i]) )
-			return false;
-		}
-
-
-	if ( ! (UNSERIALIZE(&md->num) &&
-		UNSERIALIZE(&md->md_len)) )
-		return false;
-
-	return true;
-	}
-
 EntropyVal::EntropyVal() : OpaqueVal(entropy_type)
 	{
 	}
@@ -471,82 +264,6 @@ bool EntropyVal::Get(double *r_ent, double *r_chisq, double *r_mean,
                      double *r_montepicalc, double *r_scc)
 	{
 	state.end(r_ent, r_chisq, r_mean, r_montepicalc, r_scc);
-	return true;
-	}
-
-IMPLEMENT_SERIAL(EntropyVal, SER_ENTROPY_VAL);
-
-bool EntropyVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ENTROPY_VAL, OpaqueVal);
-
-	for ( int i = 0; i < 256; ++i )
-		{
-		if ( ! SERIALIZE(state.ccount[i]) )
-			return false;
-		}
-
-	if ( ! (SERIALIZE(state.totalc) &&
-		SERIALIZE(state.mp) &&
-		SERIALIZE(state.sccfirst)) )
-		return false;
-
-	for ( int i = 0; i < RT_MONTEN; ++i )
-		{
-		if ( ! SERIALIZE(state.monte[i]) )
-			return false;
-		}
-
-	if ( ! (SERIALIZE(state.inmont) &&
-		SERIALIZE(state.mcount) &&
-		SERIALIZE(state.cexp) &&
-		SERIALIZE(state.montex) &&
-		SERIALIZE(state.montey) &&
-		SERIALIZE(state.montepi) &&
-		SERIALIZE(state.sccu0) &&
-		SERIALIZE(state.scclast) &&
-		SERIALIZE(state.scct1) &&
-		SERIALIZE(state.scct2) &&
-		SERIALIZE(state.scct3)) )
-		return false;
-
-	return true;
-	}
-
-bool EntropyVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	for ( int i = 0; i < 256; ++i )
-		{
-		if ( ! UNSERIALIZE(&state.ccount[i]) )
-			return false;
-		}
-
-	if ( ! (UNSERIALIZE(&state.totalc) &&
-		UNSERIALIZE(&state.mp) &&
-		UNSERIALIZE(&state.sccfirst)) )
-		return false;
-
-	for ( int i = 0; i < RT_MONTEN; ++i )
-		{
-		if ( ! UNSERIALIZE(&state.monte[i]) )
-			return false;
-		}
-
-	if ( ! (UNSERIALIZE(&state.inmont) &&
-		UNSERIALIZE(&state.mcount) &&
-		UNSERIALIZE(&state.cexp) &&
-		UNSERIALIZE(&state.montex) &&
-		UNSERIALIZE(&state.montey) &&
-		UNSERIALIZE(&state.montepi) &&
-		UNSERIALIZE(&state.sccu0) &&
-		UNSERIALIZE(&state.scclast) &&
-		UNSERIALIZE(&state.scct1) &&
-		UNSERIALIZE(&state.scct2) &&
-		UNSERIALIZE(&state.scct3)) )
-		return false;
-
 	return true;
 	}
 
@@ -668,44 +385,6 @@ BloomFilterVal::~BloomFilterVal()
 	delete bloom_filter;
 	}
 
-IMPLEMENT_SERIAL(BloomFilterVal, SER_BLOOMFILTER_VAL);
-
-bool BloomFilterVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BLOOMFILTER_VAL, OpaqueVal);
-
-	bool is_typed = (type != 0);
-
-	if ( ! SERIALIZE(is_typed) )
-		return false;
-
-	if ( is_typed && ! type->Serialize(info) )
-		return false;
-
-	return bloom_filter->Serialize(info);
-	}
-
-bool BloomFilterVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	bool is_typed;
-	if ( ! UNSERIALIZE(&is_typed) )
-		return false;
-
-	if ( is_typed )
-		{
-		BroType* t = BroType::Unserialize(info);
-		if ( ! Typify(t) )
-			return false;
-
-		Unref(t);
-		}
-
-	bloom_filter = probabilistic::BloomFilter::Unserialize(info);
-	return bloom_filter != 0;
-	}
-
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
 	c = 0;
@@ -726,44 +405,6 @@ CardinalityVal::~CardinalityVal()
 	Unref(type);
 	delete c;
 	delete hash;
-	}
-
-IMPLEMENT_SERIAL(CardinalityVal, SER_CARDINALITY_VAL);
-
-bool CardinalityVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CARDINALITY_VAL, OpaqueVal);
-
-	bool valid = true;
-	bool is_typed = (type != 0);
-
-	valid &= SERIALIZE(is_typed);
-
-	if ( is_typed )
-		valid &= type->Serialize(info);
-
-	return c->Serialize(info);
-	}
-
-bool CardinalityVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	bool is_typed;
-	if ( ! UNSERIALIZE(&is_typed) )
-		return false;
-
-	if ( is_typed )
-		{
-		BroType* t = BroType::Unserialize(info);
-		if ( ! Typify(t) )
-			return false;
-
-		Unref(t);
-		}
-
-	c = probabilistic::CardinalityCounter::Unserialize(info);
-	return c != 0;
 	}
 
 bool CardinalityVal::Typify(BroType* arg_type)

@@ -17,11 +17,16 @@ base=$(dirname $0)
 old=$(basename $0)
 new=$(echo "${old}" | sed 's/^bro/zeek/')
 
-if [ ! -x "${base}/${new}" ]; then
+if [ "${new}" = "${old}" ]; then
+    echo "zeek-wrapper: this script is just a wrapper for old commands"
+    exit 1
+fi
+
+if [ ! -f "${base}/${new}" ]; then
     echo "zeek-wrapper: ${new} not found"
     exit 1
 fi
 
 test -t 0 && test -t 1 && test -t 2 && test -z "${ZEEK_IS_BRO}" && deprecated "${old}" "${new}"
 
-test "${new}" != "${old}" && "${base}/${new}"
+"${base}/${new}" "$@"

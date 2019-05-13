@@ -859,7 +859,7 @@ void Manager::Process()
 	{
 	bool had_input = false;
 
-	auto status_msgs = bstate->status_subscriber.poll();
+	auto status_msgs = bstate->status_subscriber.timed_poll(std::chrono::milliseconds(1));
 
 	for ( auto& status_msg : status_msgs )
 		{
@@ -880,7 +880,7 @@ void Manager::Process()
 		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
 		}
 
-	auto messages = bstate->subscriber.poll();
+	auto messages = bstate->subscriber.timed_poll(std::chrono::milliseconds(1));
 
 	for ( auto& message : messages )
 		{

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
+# @TEST-EXEC: zeek -C -r $TRACES/ssh/sshguess.pcap %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
 
 event ssh_auth_attempted(c: connection, authenticated: bool)

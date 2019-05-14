@@ -2,14 +2,14 @@
 # variables to verify that an absolute path prefix gets added correctly
 # to relative/path-less input sources.
 #
-# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD/subdir|" >input.bro
+# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD/subdir|" >input.zeek
 # @TEST-EXEC: mkdir -p subdir
 #
 # Note, in the following we'd ideally use %DIR to express the
 # additional path, but there's currently a problem in btest with using
 # %DIR after TEST-START-NEXT.
 #
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix bro -b input.bro >output
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b input.zeek >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE subdir/input.data

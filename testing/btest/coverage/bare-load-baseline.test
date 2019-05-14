@@ -7,7 +7,7 @@
 # prefix to make the test work everywhere. That's what the sed magic
 # below does. Don't ask. :-)
 
-# @TEST-EXEC: bro -b misc/loaded-scripts
+# @TEST-EXEC: zeek -b misc/loaded-scripts
 # @TEST-EXEC: test -e loaded_scripts.log
 # @TEST-EXEC: cat loaded_scripts.log | egrep -v '#' | awk 'NR>0{print $1}' | sed -e ':a' -e '$!N' -e 's/^\(.*\).*\n\1.*/\1/' -e 'ta' >prefix
 # @TEST-EXEC: (test -L $BUILD && basename $(readlink $BUILD) || basename $BUILD) >buildprefix

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/udp-signature-test.pcap %INPUT | sort >out
+# @TEST-EXEC: zeek -r $TRACES/udp-signature-test.pcap %INPUT | sort >out
 # @TEST-EXEC: btest-diff out
 
 @load-sigs test.sig

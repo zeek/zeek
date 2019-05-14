@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/certificate-with-sct.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/certificate-with-sct.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load protocols/ssl/validate-certs

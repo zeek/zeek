@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline

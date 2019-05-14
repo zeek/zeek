@@ -1,6 +1,6 @@
 # @TEST-DOC: Check that assignment to event parameters isn't visible to other handlers.
 #
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 event f(a: int) &priority=5

@@ -1,12 +1,12 @@
 # @TEST-EXEC: cp intel1.dat intel.dat
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file broproc/got1 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeekproc/got1 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp intel2.dat intel.dat
-# @TEST-EXEC: $SCRIPTS/wait-for-file broproc/got2 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeekproc/got2 5 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp intel3.dat intel.dat
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: cat broproc/intel.log > output
-# @TEST-EXEC: cat broproc/notice.log >> output
+# @TEST-EXEC: cat zeekproc/intel.log > output
+# @TEST-EXEC: cat zeekproc/notice.log >> output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE intel1.dat

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/nfs/nfs_base.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/nfs/nfs_base.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 global nfs_ports: set[port] = { 2049/tcp, 2049/udp } &redef;

@@ -2,7 +2,7 @@
 # can't parse much of value. We're testing for an empty mysql.log file.
 
 # @TEST-EXEC: touch mysql.log
-# @TEST-EXEC: bro -b -r $TRACES/mysql/encrypted.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/encrypted.trace %INPUT
 # @TEST-EXEC: btest-diff mysql.log
 
 @load base/protocols/mysql

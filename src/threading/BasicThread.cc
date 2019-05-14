@@ -1,7 +1,7 @@
 
 #include <signal.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "BasicThread.h"
 #include "Manager.h"
 #include "pthread.h"

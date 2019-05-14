@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -b %INPUT global_hash_seed="foo" >>output
-# @TEST-EXEC: bro -b %INPUT global_hash_seed="my_seed" >>output 
+# @TEST-EXEC: zeek -b %INPUT global_hash_seed="foo" >>output
+# @TEST-EXEC: zeek -b %INPUT global_hash_seed="my_seed" >>output 
 # @TEST-EXEC: btest-diff output
 
 type Foo: record 

@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b -B logging %INPUT
+# @TEST-EXEC: zeek -b -B logging %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff ssh.failure.log
 # @TEST-EXEC: btest-diff .stdout

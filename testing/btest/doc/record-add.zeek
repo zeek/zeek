@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 
 # To support documentation of type aliases, Bro clones declared types
 # (see add_type() in Var.cc) in order to keep track of type names and aliases.

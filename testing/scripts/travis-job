@@ -53,7 +53,7 @@ build_coverity() {
     # outside of Travis).
     make distclean > /dev/null
 
-    ./configure --prefix=`pwd`/build/root --enable-debug --disable-perftools --disable-broker-tests --disable-python --disable-broctl
+    ./configure --prefix=`pwd`/build/root --enable-debug --disable-perftools --disable-broker-tests --disable-python --disable-zeekctl
 
     export PATH=`pwd`/coverity-tools/bin:$PATH
     cd build
@@ -124,9 +124,9 @@ build() {
     # outside of Travis).
     make distclean > /dev/null
 
-    # Skip building broker tests, python bindings, and broctl, as these are
+    # Skip building broker tests, python bindings, and zeekctl, as these are
     # not needed by the bro tests.
-    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-broctl && make -j 2
+    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
 }
 
 
@@ -247,7 +247,7 @@ run() {
         for cf in $COREFILES; do
             echo
             echo "############# Begin stack trace for $cf ###############"
-            gdb build/src/bro -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
+            gdb build/src/zeek -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
             echo "############# End stack trace for $cf #################"
             echo
         done

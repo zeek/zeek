@@ -1,6 +1,6 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
-# @TEST-EXEC: btest-diff bro/.stderr
+# @TEST-EXEC: btest-diff zeek/.stderr
 
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_file_problem = T;

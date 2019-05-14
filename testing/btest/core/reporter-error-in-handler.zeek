@@ -2,7 +2,7 @@
 # This test procudes a recursive error: the error handler is itself broken. Rather
 # than looping indefinitly, the error inside the handler should reported to stderr.
 #
-# @TEST-EXEC: bro %INPUT >output 2>&1
+# @TEST-EXEC: zeek %INPUT >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 global a: table[count] of count;

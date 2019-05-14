@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleCondition.h"
 #include "analyzer/protocol/tcp/TCP.h"

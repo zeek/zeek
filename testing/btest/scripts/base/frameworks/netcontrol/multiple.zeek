@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/ecdhe.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ecdhe.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v ^# | $SCRIPTS/diff-sort' btest-diff netcontrol.log
 # @TEST-EXEC: btest-diff openflow.log
 

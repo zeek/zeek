@@ -11,4 +11,4 @@
 # as that can cause reading from a location that exceeds the end of the
 # data buffer.
 
-# @TEST-EXEC: bro -r $TRACES/modbus/4SICS-GeekLounge-151022-min.pcap
+# @TEST-EXEC: zeek -r $TRACES/modbus/4SICS-GeekLounge-151022-min.pcap

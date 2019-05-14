@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
 # Returns true if Bro has been compiled with support for writer type
-# $1. The type name must match the plugin name that "bro -N" prints.
+# $1. The type name must match the plugin name that "zeek -N" prints.
 
-bro -N | grep -q $1 >/dev/null
+zeek -N | grep -q $1 >/dev/null

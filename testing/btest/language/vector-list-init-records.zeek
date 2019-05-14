@@ -1,7 +1,7 @@
 # Initializing a vector with a list of records should promote elements as
 # necessary to match the vector's yield type.
 
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 type Foo: record {

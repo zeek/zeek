@@ -37,7 +37,7 @@
 #include "DebugLogger.h"
 #include "Continuation.h"
 #include "SerialTypes.h"
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #if SIZEOF_LONG_LONG < 8
 # error "Serialization requires that sizeof(long long) is at least 8. (Remove this message only if you know what you're doing.)"

@@ -1,15 +1,15 @@
 # @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
-# @TEST-EXEC: bro -r $TRACES/chksums/mip6-bad-mh-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/mip6-bad-mh-chksum.pcap
 # @TEST-EXEC: mv weird.log bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-hoa-tcp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-hoa-tcp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-hoa-udp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-hoa-udp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
 # @TEST-EXEC: rm weird.log
-# @TEST-EXEC: bro -r $TRACES/chksums/mip6-good-mh-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/mip6-good-mh-chksum.pcap
 # @TEST-EXEC: test ! -e weird.log
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-hoa-tcp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-hoa-tcp-good-chksum.pcap
 # @TEST-EXEC: test ! -e weird.log
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-hoa-udp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-hoa-udp-good-chksum.pcap
 # @TEST-EXEC: test ! -e weird.log
 # @TEST-EXEC: btest-diff bad.out

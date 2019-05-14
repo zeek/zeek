@@ -1,10 +1,10 @@
-# @TEST-EXEC: bro local-`cat $DIST/VERSION | sed 's/\([0-9].[0-9]\).*/\1/g'`.bro
+# @TEST-EXEC: zeek local-`cat $DIST/VERSION | sed 's/\([0-9].[0-9]\).*/\1/g'`.bro
 
 # This tests the compatibility of the past release's site/local.bro
 # script with the current version of Bro.  If the test fails because
 # it doesn't find the right file, that means everything stayed
 # compatibile between releases, so just add a TEST-START-FILE with
-# the contents the latest Bro version's site/local.bro script.
+# the contents the latest Bro version's site/local.zeek script.
 # If the test fails while loading the old local.bro, it usually
 # indicates a note will need to be made in NEWS explaining to users
 # how to migrate to the new version and this test's TEST-START-FILE

@@ -22,7 +22,7 @@ import os, sys
 
 scriptdir = sys.argv[1]
 
-# Return a list of all bro script files.
+# Return a list of all zeek script files.
 def find_scripts():
     scripts = []
 

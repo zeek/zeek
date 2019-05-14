@@ -1,5 +1,5 @@
 # @TEST-REQUIRES: which hexdump
-# @TEST-EXEC: bro -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: hexdump -C 1.pcap >1.hex
 # @TEST-EXEC: hexdump -C 2.pcap >2.hex
 # @TEST-EXEC: btest-diff 1.hex

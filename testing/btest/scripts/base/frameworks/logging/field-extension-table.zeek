@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: bro -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC-FAIL: zeek -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @load base/protocols/conn

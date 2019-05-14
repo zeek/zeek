@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-run broproc zeek %INPUT
 # @TEST-EXEC: btest-bg-wait -k 21
 # @TEST-EXEC: cat broproc/intel.log > output
 # @TEST-EXEC: cat broproc/.stdout >> output

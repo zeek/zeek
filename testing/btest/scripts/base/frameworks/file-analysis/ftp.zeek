@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ftp/retr.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/ftp/retr.trace $SCRIPTS/file-analysis-test.zeek %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff thefile
 

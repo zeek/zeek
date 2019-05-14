@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/smb/smb2readwrite.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/smb/smb2readwrite.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 @load base/frameworks/intel

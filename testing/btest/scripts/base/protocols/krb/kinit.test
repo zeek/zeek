@@ -1,6 +1,6 @@
 # This test exercises many of the Linux kinit options against a KDC
 
-# @TEST-EXEC: bro -b -r $TRACES/krb/kinit.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.trace %INPUT > output
 # @TEST-EXEC: btest-diff kerberos.log
 # @TEST-EXEC: btest-diff output
 

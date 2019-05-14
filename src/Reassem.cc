@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Reassem.h"
 #include "Serializer.h"

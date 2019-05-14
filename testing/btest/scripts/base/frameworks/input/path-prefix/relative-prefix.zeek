@@ -3,7 +3,7 @@
 # from the current working directory.
 #
 # @TEST-EXEC: mkdir -p alternative
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix bro -b %INPUT >output
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE alternative/input.data

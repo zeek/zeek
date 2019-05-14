@@ -1,6 +1,6 @@
 # This tests a pair of normal OCSP request and response
 
-# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-request-response.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/ocsp-request-response.pcap %INPUT
 # @TEST-EXEC: btest-diff ocsp.log
 # @TEST-EXEC: btest-diff .stdout
 

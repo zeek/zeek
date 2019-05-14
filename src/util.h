@@ -34,7 +34,7 @@
 #include <stdarg.h>
 #include <libgen.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "siphash24.h"
 
 #ifdef DEBUG

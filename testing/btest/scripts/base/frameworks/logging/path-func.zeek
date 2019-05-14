@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: ( ls static-*; cat static-* ) >output
 # @TEST-EXEC: btest-diff output
 

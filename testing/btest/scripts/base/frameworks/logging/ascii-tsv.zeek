@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: cat ssh.log | grep -v PREFIX.*20..- >ssh-filtered.log
 # @TEST-EXEC: btest-diff ssh-filtered.log
 

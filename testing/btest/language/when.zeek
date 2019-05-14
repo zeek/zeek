@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run test1 bro %INPUT
+# @TEST-EXEC: btest-bg-run test1 zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: mv test1/.stdout out
 # @TEST-EXEC: btest-diff out

@@ -5,7 +5,7 @@
 # @TEST-REQUIRES: grep -q "#define USE_KRB5" $BUILD/bro-config.h
 #
 # @TEST-COPY-FILE: ${TRACES}/krb/smb2_krb.keytab
-# @TEST-EXEC: bro -b -C -r $TRACES/krb/smb2_krb.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/krb/smb2_krb.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 redef KRB::keytab = "smb2_krb.keytab";

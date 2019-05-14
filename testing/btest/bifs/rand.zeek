@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
-# @TEST-EXEC: bro -b %INPUT do_seed=F >out.2
+# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT do_seed=F >out.2
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff out.2
 

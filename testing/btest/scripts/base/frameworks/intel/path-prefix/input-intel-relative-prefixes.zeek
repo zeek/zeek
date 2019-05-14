@@ -3,7 +3,7 @@
 # prepended first, then the input framework one.
 #
 # @TEST-EXEC: mkdir -p input/intel
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix bro -b %INPUT >output
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE input/intel/test.data

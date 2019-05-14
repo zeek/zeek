@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b -s mysig %INPUT
+# @TEST-EXEC: zeek -b -s mysig %INPUT
 
 @TEST-START-FILE mysig.sig
 signature my_ftp_client {

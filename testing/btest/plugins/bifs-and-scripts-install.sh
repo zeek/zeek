@@ -3,8 +3,8 @@
 # @TEST-EXEC: ./configure --bro-dist=${DIST} --install-root=`pwd`/test-install
 # @TEST-EXEC: make
 # @TEST-EXEC: make install
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro -NN Demo::Foo >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install bro Demo/Foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install zeek -NN Demo::Foo >>output
+# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install zeek Demo/Foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 mkdir -p scripts/Demo/Foo/base/

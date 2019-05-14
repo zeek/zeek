@@ -82,6 +82,25 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The following executable names have changed (the old names will
+  continue to work, but emit a deprecation warning):
+
+  - ``bro`` is now ``zeek``
+
+  - ``bro-config`` is now ``zeek-config``
+
+  - ``broctl`` is now ``zeekctl``
+
+  - ``bro-cut`` is now ``zeek-cut``
+
+- BroControl has been completely renamed to ZeekControl.  Many installation
+  directories and files with "broctl" in their name have been changed
+  to use "zeekctl" instead.  It's expected this has been done in a way
+  that's backwards compatible with previous Bro installations.  E.g.
+  if you made customizations to the ``broctl.cfg`` file of a previous
+  installation, installing the newer Zeek version over it will retain that
+  file and even symlink the new ``zeekctl.cfg`` to it.
+
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
   installation, possibly with customizations made to it, the new

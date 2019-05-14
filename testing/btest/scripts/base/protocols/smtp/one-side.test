@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/smtp-one-side-only.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/smtp-one-side-only.trace %INPUT
 # @TEST-EXEC: btest-diff smtp.log
 
 @load base/protocols/smtp

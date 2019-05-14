@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/ncp.pcap %INPUT NCP::max_frame_size=150 >out
+# @TEST-EXEC: zeek -C -r $TRACES/ncp.pcap %INPUT NCP::max_frame_size=150 >out
 # @TEST-EXEC: btest-diff out
 
 redef likely_server_ports += { 524/tcp };

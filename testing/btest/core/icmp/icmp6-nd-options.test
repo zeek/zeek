@@ -1,7 +1,7 @@
 # These tests all check that ICMP6 events get raised with correct arguments.
 
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-redirect-hdr-opt.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-nd-options.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-redirect-hdr-opt.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-nd-options.pcap %INPUT >>output 2>&1
 
 # @TEST-EXEC: btest-diff output
 

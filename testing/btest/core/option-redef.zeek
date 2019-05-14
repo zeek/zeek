@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 # options are allowed to be redef-able.

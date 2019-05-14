@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT  >output 2>&1 || echo $? >>output
+# @TEST-EXEC: zeek -b %INPUT  >output 2>&1 || echo $? >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 type MyRecordType: record

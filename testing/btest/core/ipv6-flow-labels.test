@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/ftp/ipv6.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 function print_connection(c: connection, event_name: string)

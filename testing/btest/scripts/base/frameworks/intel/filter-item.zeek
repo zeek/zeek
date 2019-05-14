@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-run broproc zeek %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff broproc/intel.log
 

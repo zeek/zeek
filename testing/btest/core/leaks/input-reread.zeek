@@ -2,17 +2,17 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-EXEC: cp input1.log input.log
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got2 60 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b %INPUT
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 60 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input2.log input.log
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got4 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got4 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input3.log input.log
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got6 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got6 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input4.log input.log
-# @TEST-EXEC: $SCRIPTS/wait-for-file bro/got8 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got8 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cp input5.log input.log
 # @TEST-EXEC: btest-bg-wait 120
 

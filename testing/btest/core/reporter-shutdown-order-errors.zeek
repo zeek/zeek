@@ -1,5 +1,5 @@
 # @TEST-EXEC: touch reporter.log && chmod -w reporter.log
-# @TEST-EXEC: bro %INPUT >out 2>&1
+# @TEST-EXEC: zeek %INPUT >out 2>&1
 
 # Output doesn't really matter, but we just want to know that Bro shutdowns
 # without crashing in such scenarios (reporter log not writable

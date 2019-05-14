@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "XDR.h"

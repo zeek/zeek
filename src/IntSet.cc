@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #ifdef HAVE_MEMORY_H
 #include <memory.h>

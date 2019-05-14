@@ -1,4 +1,20 @@
 
+2.6-286 | 2019-05-14 13:19:12 -0700
+
+  * Undo an unintentional change to btest.cfg from a recent commit (Daniel Thayer)
+
+  * Fix zeek-wrapper and improve error messages (Daniel Thayer)
+
+    The script was not passing command-line arguments to the new program.
+
+  * Update for renaming BroControl to ZeekControl. (Robin Sommer, Corelight)
+
+  * GH-239: Rename bro to zeek, bro-config to zeek-config, and bro-path-dev to zeek-path-dev.
+    (Robin Sommer, Corelight)
+
+    This also installs symlinks from "zeek" and "bro-config" to a wrapper
+    script that prints a deprecation warning.
+
 2.6-279 | 2019-05-13 20:02:59 -0700
 
   * GH-365: improve un-indexable type error message (Jon Siwek, Corelight)

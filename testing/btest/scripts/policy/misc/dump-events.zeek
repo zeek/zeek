@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -r $TRACES/smtp.trace policy/misc/dump-events %INPUT >all-events.log
-# @TEST-EXEC: bro -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include_args=F >all-events-no-args.log
-# @TEST-EXEC: bro -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include=/smtp_/ >smtp-events.log
+# @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT >all-events.log
+# @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include_args=F >all-events-no-args.log
+# @TEST-EXEC: zeek -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include=/smtp_/ >smtp-events.log
 #
 # @TEST-EXEC: btest-diff all-events.log
 # @TEST-EXEC: btest-diff all-events-no-args.log

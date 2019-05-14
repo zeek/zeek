@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/auth_change_session_keys.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/auth_change_session_keys.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 
 # The other tests of Log::default_field_name_map used to not catch an invalid

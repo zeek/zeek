@@ -139,7 +139,7 @@ Constants
 .. zeek:id:: Control::topic_prefix
 
    :Type: :zeek:type:`string`
-   :Default: ``"bro/control"``
+   :Default: ``"zeek/control"``
 
    The topic prefix used for exchanging control messages via Broker.
 

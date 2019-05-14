@@ -3,6 +3,8 @@
 module Broker;
 
 export {
+	const timing_stats_period = 60sec;
+
 	## Default port for Broker communication. Where not specified
 	## otherwise, this is the port to connect to and listen on.
 	const default_port = 9999/tcp &redef;
@@ -429,4 +431,16 @@ function auto_publish(topic: string, ev: any): bool
 function auto_unpublish(topic: string, ev: any): bool
 	{
 	return __auto_unpublish(topic, ev);
+	}
+
+event report_timing_stats()
+	{
+	local ss = Broker::get_timing_stats_string();
+	Reporter::info(fmt("Broker timing stats (%s): %s", peer_description, ss));
+	schedule Broker::timing_stats_period { report_timing_stats() };
+	}
+
+event bro_init()
+	{
+	schedule Broker::timing_stats_period { report_timing_stats() };
 	}

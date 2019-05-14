@@ -320,6 +320,29 @@ public:
 		~ScriptScopeGuard() { --script_scope; }
 	};
 
+	std::string GetTimingStatsString();
+
+	double aggregate_process_time = 0;
+	double aggregate_publish_time = 0;
+
+	size_t process_count = 0;
+	size_t publish_count = 0;
+
+	double longest_process = 0;
+	double longest_process_poll = 0;
+	size_t longest_process_mesgs = 0;
+	size_t longest_process_resps = 0;
+	size_t longest_process_stats = 0;
+	double longest_poll = 0;
+
+	double longest_single_event_process = 0;
+	double longest_single_event_publish = 0;
+	std::string longest_single_event_process_name = "";
+	std::string longest_single_event_publish_name = "";
+
+	std::map<std::string, double> events_processed;
+	std::map<std::string, double> events_published;
+
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);

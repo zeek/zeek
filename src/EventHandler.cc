@@ -81,6 +81,9 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 		if ( ! auto_publish.empty() )
 			{
+			using hrc = std::chrono::high_resolution_clock;
+			auto t0 = hrc::now();
+
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
 			xs.reserve(vl->length());
@@ -117,6 +120,19 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 						}
 					}
 				}
+
+			auto t1 = hrc::now();
+			auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
+			broker_mgr->aggregate_publish_time += duration;
+			++broker_mgr->publish_count;
+
+			if ( duration > broker_mgr->longest_single_event_publish )
+				{
+				broker_mgr->longest_single_event_publish = duration;
+				broker_mgr->longest_single_event_publish_name = Name();
+				}
+
+			broker_mgr->events_published[Name()] += duration;
 			}
 		}
 

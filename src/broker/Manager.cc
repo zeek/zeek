@@ -20,6 +20,7 @@
 #include "iosource/Manager.h"
 
 using namespace std;
+using hrc = std::chrono::high_resolution_clock;
 
 namespace bro_broker {
 
@@ -366,6 +367,8 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 
 bool Manager::PublishEvent(string topic, RecordVal* args)
 	{
+	auto t0 = hrc::now();
+
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
 
@@ -387,7 +390,22 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
-	return PublishEvent(topic, event_name, std::move(xs));
+	auto rval = PublishEvent(topic, event_name, std::move(xs));
+
+	auto t1 = hrc::now();
+	auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
+	aggregate_publish_time += duration;
+	++publish_count;
+
+	if ( duration > longest_single_event_publish )
+		{
+		longest_single_event_publish = duration;
+		longest_single_event_publish_name = event_name;
+		}
+
+	events_published[event_name] += duration;
+
+	return rval;
 	}
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)
@@ -855,14 +873,90 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	}
 	}
 
+std::string Manager::GetTimingStatsString()
+	{
+	std::string rval;
+
+	double longest_aggregate_event_process = 0;
+	double longest_aggregate_event_publish = 0;
+	std::string longest_aggregate_event_process_name = "";
+	std::string longest_aggregate_event_publish_name = "";
+
+	for ( auto& kv : events_processed )
+		{
+		if ( kv.second > longest_aggregate_event_process )
+			{
+			longest_aggregate_event_process = kv.second;
+			longest_aggregate_event_process_name = kv.first;
+			}
+		}
+
+	for ( auto& kv : events_published )
+		{
+		if ( kv.second > longest_aggregate_event_publish )
+			{
+			longest_aggregate_event_publish = kv.second;
+			longest_aggregate_event_publish_name = kv.first;
+			}
+		}
+
+	rval = fmt("aggregates: %f process / %f publish |"
+	           " counts: %zu process / %zu publish |"
+	           " longest process: %f total / %f poll / %zu mesgs / %zu resps / %zu stats |"
+	           " longest poll: %f |"
+	           " longest single event process: %f '%s' |"
+	           " longest single event publish: %f '%s' |"
+	           " longest aggregate event process: %f '%s' |"
+	           " longest aggregate event publish: %f '%s' |",
+	           aggregate_process_time, aggregate_publish_time,
+	           process_count, publish_count,
+	           longest_process, longest_process_poll,
+	           longest_process_mesgs, longest_process_resps, longest_process_stats,
+	           longest_poll,
+	           longest_single_event_process, longest_single_event_process_name.data(),
+	           longest_single_event_publish, longest_single_event_publish_name.data(),
+	           longest_aggregate_event_process, longest_aggregate_event_process_name.data(),
+	           longest_aggregate_event_publish, longest_aggregate_event_publish_name.data()
+	           );
+
+	aggregate_process_time = 0;
+	aggregate_publish_time = 0;
+
+	process_count = 0;
+	publish_count = 0;
+
+	longest_process = 0;
+	longest_process_poll = 0;
+	longest_process_mesgs = 0;
+	longest_process_resps = 0;
+	longest_process_stats = 0;
+	longest_poll = 0;
+
+	longest_single_event_process = 0;
+	longest_single_event_publish = 0;
+	longest_single_event_process_name = "";
+	longest_single_event_publish_name = "";
+
+	events_processed.clear();
+	events_published.clear();
+
+	return rval;
+	}
+
 void Manager::Process()
 	{
+	auto process_t0 = hrc::now();
+
+	size_t num_mesgs = 0;
+	size_t num_resps = 0;
+	size_t num_stats = 0;
 	bool had_input = false;
 
 	auto status_msgs = bstate->status_subscriber.timed_poll(std::chrono::milliseconds(1));
 
 	for ( auto& status_msg : status_msgs )
 		{
+		++num_stats;
 		had_input = true;
 
 		if ( auto stat = caf::get_if<broker::status>(&status_msg) )
@@ -880,10 +974,18 @@ void Manager::Process()
 		reporter->InternalWarning("ignoring status_subscriber message with unexpected type");
 		}
 
+	auto poll_t0 = hrc::now();
 	auto messages = bstate->subscriber.timed_poll(std::chrono::milliseconds(1));
+	auto poll_t1 = hrc::now();
+
+	auto poll_duration = std::chrono::duration_cast<std::chrono::duration<double>>(poll_t1 - poll_t0).count();
+
+	if ( poll_duration > longest_poll )
+		longest_poll = poll_duration;
 
 	for ( auto& message : messages )
 		{
+		++num_mesgs;
 		had_input = true;
 
 		auto& topic = message.first;
@@ -906,6 +1008,7 @@ void Manager::Process()
 
 		if ( num_available > 0 )
 			{
+			num_resps += num_available;
 			had_input = true;
 			auto responses = s.second->proxy.receive(num_available);
 
@@ -940,11 +1043,27 @@ void Manager::Process()
 		times_processed_without_idle = 0;
 		SetIdle(true);
 		}
+
+	auto process_t1 = hrc::now();
+	auto process_duration = std::chrono::duration_cast<std::chrono::duration<double>>(process_t1 - process_t0).count();
+	aggregate_process_time += process_duration;
+	++process_count;
+
+	if ( process_duration > longest_process )
+		{
+		longest_process = process_duration;
+		longest_process_poll = poll_duration;
+		longest_process_mesgs  = num_mesgs;
+		longest_process_resps = num_resps;
+		longest_process_stats = num_stats;
+		}
 	}
 
 
 void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 	{
+	auto t0 = hrc::now();
+
 	auto name = std::move(ev.name());
 	auto args = std::move(ev.args());
 
@@ -1007,6 +1126,17 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
 	else
 		delete_vals(vl);
+
+	auto t1 = hrc::now();
+	auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0).count();
+
+	if ( duration > longest_single_event_process )
+		{
+		longest_single_event_process = duration;
+		longest_single_event_process_name = handler->Name();
+		}
+
+	events_processed[handler->Name()] += duration;
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)

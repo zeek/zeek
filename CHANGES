@@ -1,4 +1,8 @@
 
+2.6-279 | 2019-05-13 20:02:59 -0700
+
+  * GH-365: improve un-indexable type error message (Jon Siwek, Corelight)
+
 2.6-277 | 2019-05-08 12:42:18 -0700
 
   * Allow tuning Broker log batching via scripts (Jon Siwek, Corelight)

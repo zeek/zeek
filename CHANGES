@@ -1,4 +1,8 @@
 
+2.6-301 | 2019-05-15 10:05:53 -0700
+
+  * Fix potential race in openflow broker plugin (Jon Siwek, Corelight)
+
 2.6-300 | 2019-05-15 09:00:57 -0700
 
   * Fixes to DNS lookup, including ref-counting bugs, preventing starvation

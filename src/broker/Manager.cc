@@ -1,6 +1,6 @@
 
 #include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/zeek.hh>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
@@ -357,7 +357,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderEvent(topic, name, args).c_str());
-	broker::bro::Event ev(std::move(name), std::move(args));
+	broker::zeek::Event ev(std::move(name), std::move(args));
 	bstate->endpoint.publish(move(topic), std::move(ev));
 	++statistics.num_events_outgoing;
 	return true;
@@ -418,7 +418,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 		return false;
 		}
 
-	broker::bro::IdentifierUpdate msg(move(id), move(*data));
+	broker::zeek::IdentifierUpdate msg(move(id), move(*data));
 	DBG_LOG(DBG_BROKER, "Publishing id-update: %s",
 	        RenderMessage(topic, msg).c_str());
 	bstate->endpoint.publish(move(topic), move(msg));
@@ -469,7 +469,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	std::string topic = default_log_topic_prefix + stream_id;
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
+	broker::zeek::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg).c_str());
 
@@ -557,7 +557,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
+	broker::zeek::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
 	                          move(serial_data));
 
 	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg).c_str());
@@ -593,7 +593,7 @@ size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_si
 		broker::vector batch;
 		batch.reserve(log_batch_size + 1);
 		pending_batch.swap(batch);
-		broker::bro::Batch msg(std::move(batch));
+		broker::zeek::Batch msg(std::move(batch));
 		endpoint.publish(topic, move(msg));
 		}
 
@@ -838,31 +838,31 @@ double Manager::NextTimestamp(double* local_network_time)
 
 void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	{
-	switch ( broker::bro::Message::type(msg) ) {
-	case broker::bro::Message::Type::Invalid:
+	switch ( broker::zeek::Message::type(msg) ) {
+	case broker::zeek::Message::Type::Invalid:
 		reporter->Warning("received invalid broker message: %s",
 						  broker::to_string(msg).data());
 		break;
 
-	case broker::bro::Message::Type::Event:
+	case broker::zeek::Message::Type::Event:
 		ProcessEvent(topic, std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::LogCreate:
+	case broker::zeek::Message::Type::LogCreate:
 		ProcessLogCreate(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::LogWrite:
+	case broker::zeek::Message::Type::LogWrite:
 		ProcessLogWrite(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::IdentifierUpdate:
+	case broker::zeek::Message::Type::IdentifierUpdate:
 		ProcessIdentifierUpdate(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::Batch:
+	case broker::zeek::Message::Type::Batch:
 		{
-		broker::bro::Batch batch(std::move(msg));
+		broker::zeek::Batch batch(std::move(msg));
 
 		if ( ! batch.valid() )
 			{
@@ -970,7 +970,7 @@ void Manager::Process()
 	}
 
 
-void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
+void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	{
 	if ( ! ev.valid() )
 		{
@@ -1046,7 +1046,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		}
 	}
 
-bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
+bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc).c_str());
 	if ( ! lc.valid() )
@@ -1116,7 +1116,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
 	return true;
 	}
 
-bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
+bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw).c_str());
 
@@ -1203,7 +1203,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 	return true;
 	}
 
-bool Manager::ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu)
+bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	{
 	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu).c_str());
 

@@ -1,4 +1,10 @@
 
+2.6-300 | 2019-05-15 09:00:57 -0700
+
+  * Fixes to DNS lookup, including ref-counting bugs, preventing starvation
+    of the DNS_Mgr in the I/O loop, dead code removal, and a fix that
+    prevents the timeout of already resolved DNS lookups (Jon Siwek, Corelight)
+
 2.6-292 | 2019-05-14 19:01:05 -0700
 
   * Fix maybe-uninitialized compiler warning (Jon Siwek, Corelight)

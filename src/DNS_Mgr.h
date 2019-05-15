@@ -132,7 +132,7 @@ protected:
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
 	// Process outstanding requests.
-	void DoProcess(bool flush);
+	void DoProcess();
 
 	// IOSource interface.
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
@@ -172,12 +172,13 @@ protected:
 
 	struct AsyncRequest {
 		double time;
+		bool is_txt;
+		bool processed;
 		IPAddr host;
 		string name;
-		bool is_txt;
 		CallbackList callbacks;
 
-		AsyncRequest() : time(0.0), is_txt(false) { }
+		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 
 		bool IsAddrReq() const	{ return name.length() == 0; }
 
@@ -190,6 +191,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Resolved(TableVal* addrs)
@@ -201,6 +203,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Timeout()
@@ -212,6 +215,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 	};
@@ -228,7 +232,14 @@ protected:
 	typedef list<AsyncRequest*> QueuedList;
 	QueuedList asyncs_queued;
 
-	typedef priority_queue<AsyncRequest*> TimeoutQueue;
+	struct AsyncRequestCompare {
+		bool operator()(const AsyncRequest* a, const AsyncRequest* b)
+			{
+			return a->time > b->time;
+			}
+	};
+
+	typedef priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
@@ -236,6 +247,7 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
+	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

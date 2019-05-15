@@ -331,8 +331,8 @@ add_subdirectory(man)
 
 include(CheckOptionalBuildSources)
 
-CheckOptionalBuildSources(aux/broctl   ZeekControl INSTALL_ZEEKCTL)
-CheckOptionalBuildSources(aux/bro-aux  Bro-Aux  INSTALL_AUX_TOOLS)
+CheckOptionalBuildSources(aux/zeekctl   ZeekControl INSTALL_ZEEKCTL)
+CheckOptionalBuildSources(aux/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
 
 ########################################################################
 ## Packaging Setup

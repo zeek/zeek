@@ -1,4 +1,8 @@
 
+2.6-292 | 2019-05-14 19:01:05 -0700
+
+  * Fix maybe-uninitialized compiler warning (Jon Siwek, Corelight)
+
 2.6-290 | 2019-05-14 18:35:25 -0700
 
   * Update btest.cfg path to use zeek-aux (Jon Siwek, Corelight)

@@ -1,4 +1,8 @@
 
+2.6-290 | 2019-05-14 18:35:25 -0700
+
+  * Update btest.cfg path to use zeek-aux (Jon Siwek, Corelight)
+
 2.6-288 | 2019-05-14 17:47:55 -0700
 
   * Update CMake to use aux/zeekctl and aux/zeek-aux submodules (Jon Siwek, Corelight)

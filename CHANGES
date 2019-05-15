@@ -1,4 +1,8 @@
 
+2.6-303 | 2019-05-15 15:03:11 -0700
+
+  * Changes needed due to bro-to-zeek renaming in broker (Daniel Thayer)
+
 2.6-301 | 2019-05-15 10:05:53 -0700
 
   * Fix potential race in openflow broker plugin (Jon Siwek, Corelight)

@@ -2,7 +2,7 @@
 #define BRO_COMM_MANAGER_H
 
 #include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/zeek.hh>
 #include <memory>
 #include <string>
 #include <map>
@@ -324,10 +324,10 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
-	void ProcessEvent(const broker::topic& topic, broker::bro::Event ev);
-	bool ProcessLogCreate(broker::bro::LogCreate lc);
-	bool ProcessLogWrite(broker::bro::LogWrite lw);
-	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
+	bool ProcessLogCreate(broker::zeek::LogCreate lc);
+	bool ProcessLogWrite(broker::zeek::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);

@@ -1,4 +1,8 @@
 
+2.6-287 | 2019-05-14 17:40:40 -0700
+
+  * Rename broctl submodule to zeekctl (Jon Siwek, Corelight)
+
 2.6-286 | 2019-05-14 13:19:12 -0700
 
   * Undo an unintentional change to btest.cfg from a recent commit (Daniel Thayer)

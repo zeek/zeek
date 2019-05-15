@@ -315,6 +315,8 @@ Removed Functionality
   in Bro 2.6, was removed. The ``-g`` command-line option (dump-config) which relied on
   this functionality was also removed.
 
+- Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
+
 Deprecated Functionality
 ------------------------
 

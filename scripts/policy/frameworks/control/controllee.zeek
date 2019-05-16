@@ -1,5 +1,5 @@
 ##! The controllee portion of the control framework.  Load this script if remote
-##! runtime control of the Bro process is desired.
+##! runtime control of the Zeek process is desired.
 ##!
 ##! A controllee only needs to load the controllee script in addition
 ##! to the specific analysis scripts desired.  It may also need a node

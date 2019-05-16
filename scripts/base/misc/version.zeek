@@ -1,4 +1,4 @@
-##! Provide information about the currently running Bro version.
+##! Provide information about the currently running Zeek version.
 ##! The most convenient way to access this are the Version::number
 ##! and Version::info constants.
 
@@ -8,12 +8,12 @@
 module Version;
 
 export {
-	## A type exactly describing a Bro version
+	## A type exactly describing a Zeek version
 	type VersionDescription: record {
 		## Number representing the version which can be used for easy comparison.
 		## The format of the number is ABBCC with A being the major version,
 		## bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
-		## As an example, Bro 2.4.1 results in the number 20401.
+		## As an example, Zeek 2.4.1 results in the number 20401.
 		version_number: count;
 		## Major version number (e.g. 2 for 2.5)
 		major: count;
@@ -23,7 +23,7 @@ export {
 		patch: count;
 		## Commit number for development versions, e.g. 12 for 2.4-12. 0 for non-development versions
 		commit: count;
-		## If set to true, the version is a beta build of Bro
+		## If set to true, the version is a beta build of Zeek
 		beta: bool;
 		## If set to true, the version is a debug build
 		debug: bool;
@@ -33,12 +33,12 @@ export {
 
 	## Parse a given version string.
 	##
-	## version_string: Bro version string.
+	## version_string: Zeek version string.
 	##
 	## Returns: `VersionDescription` record.
 	global parse: function(version_string: string): VersionDescription;
 
-	## Test if the current running version of Bro is greater or equal to the given version
+	## Test if the current running version of Zeek is greater or equal to the given version
 	## string.
 	##
 	## version_string: Version to check against the current running version.
@@ -74,13 +74,13 @@ function parse(version_string: string): VersionDescription
 	}
 
 export {
-	## version number of the currently running version of Bro as a numeric representation.
+	## version number of the currently running version of Zeek as a numeric representation.
 	## The format of the number is ABBCC with A being the major version,
 	## bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
-	## As an example, Bro 2.4.1 results in the number 20401
+	## As an example, Zeek 2.4.1 results in the number 20401
 	const number = Version::parse(bro_version())$version_number;
 
-	## `VersionDescription` record pertaining to the currently running version of Bro.
+	## `VersionDescription` record pertaining to the currently running version of Zeek.
 	const info = Version::parse(bro_version());
 }
 

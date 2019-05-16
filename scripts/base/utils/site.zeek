@@ -17,7 +17,7 @@ export {
 		[::1]/128,
 	};
 
-	## Networks that are considered "local".  Note that BroControl sets
+	## Networks that are considered "local".  Note that ZeekControl sets
 	## this automatically.
 	option local_nets: set[subnet] = {};
 

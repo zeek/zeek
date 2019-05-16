@@ -1,4 +1,4 @@
-##! This script logs hosts that Bro determines have performed complete TCP 
+##! This script logs hosts that Zeek determines have performed complete TCP
 ##! handshakes and logs the address once per day (by default).  The log that 
 ##! is output provides an easy way to determine a count of the IP addresses in
 ##! use on a network per day.
@@ -22,7 +22,7 @@ export {
 	};
 
 	## Toggles between different implementations of this script.
-	## When true, use a Broker data store, else use a regular Bro set
+	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_host_store = T &redef;

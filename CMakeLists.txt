@@ -1,7 +1,7 @@
 project(Bro C CXX)
 
 # When changing the minimum version here, also adapt
-# aux/bro-aux/plugin-support/skeleton/CMakeLists.txt
+# aux/zeek-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
@@ -23,16 +23,16 @@ endif ()
 
 set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT BRO_SCRIPT_INSTALL_PATH)
-    # set the default Bro script installation path (user did not specify one)
+    # set the default Zeek script installation path (user did not specify one)
     set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
 endif ()
 
 if (NOT BRO_MAN_INSTALL_PATH)
-    # set the default Bro man page installation path (user did not specify one)
+    # set the default Zeek man page installation path (user did not specify one)
     set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
 endif ()
 
-# sanitize the Bro script install directory into an absolute path
+# sanitize the Zeek script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
 get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
@@ -358,12 +358,12 @@ if (CMAKE_BUILD_TYPE)
 endif ()
 
 message(
-    "\n====================|  Bro Build Summary  |====================="
+    "\n====================|  Zeek Build Summary  |===================="
     "\n"
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
     "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nBro Script Path:   ${BRO_SCRIPT_INSTALL_PATH}"
+    "\nZeek Script Path:  ${BRO_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"

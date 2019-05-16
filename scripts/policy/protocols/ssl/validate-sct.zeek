@@ -34,7 +34,7 @@ export {
 		logid: string;
 		## The timestamp at which this SCT was issued measured since the
 		## epoch (January 1, 1970, 00:00), ignoring leap seconds, in
-		## milliseconds. Not converted to a Bro timestamp because we need
+		## milliseconds. Not converted to a Zeek timestamp because we need
 		## the exact value for validation.
 		timestamp: count;
 		## The signature algorithm used for this sct.

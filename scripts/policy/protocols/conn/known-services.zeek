@@ -28,7 +28,7 @@ export {
 	};
 
 	## Toggles between different implementations of this script.
-	## When true, use a Broker data store, else use a regular Bro set
+	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_service_store = T &redef;

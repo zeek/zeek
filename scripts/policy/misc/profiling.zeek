@@ -1,4 +1,4 @@
-##! Turns on profiling of Bro resource consumption.
+##! Turns on profiling of Zeek resource consumption.
 
 module Profiling;
 

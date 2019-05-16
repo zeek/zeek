@@ -14,7 +14,7 @@ export {
 	## Address to send the pretty-printed reports to. Default if not set is
 	## :zeek:id:`Notice::mail_dest`.
 	##
-	## Note that this is overridden by the BroControl MailAlarmsTo option.
+	## Note that this is overridden by the ZeekControl MailAlarmsTo option.
 	const mail_dest_pretty_printed = "" &redef;
 	## If an address from one of these networks is reported, we mark
 	## the entry with an additional quote symbol (i.e., ">"). Many MUAs

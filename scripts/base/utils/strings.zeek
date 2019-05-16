@@ -1,5 +1,5 @@
 ##! Functions to assist with small string analysis and manipulation that can
-##! be implemented as Bro functions and don't need to be implemented as built-in
+##! be implemented as Zeek functions and don't need to be implemented as built-in
 ##! functions.
 
 ## Returns true if the given string is at least 25% composed of 8-bit

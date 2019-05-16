@@ -1,4 +1,4 @@
-##! This is the core Bro script to support the notion of a cluster manager.
+##! This is the core Zeek script to support the notion of a cluster manager.
 ##!
 ##! The manager is passive (the workers connect to us), and once connected
 ##! the manager registers for the events on the workers that are needed

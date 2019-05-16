@@ -1,4 +1,4 @@
-# This file loads ALL policy scripts that are part of the Bro distribution.
+# This file loads ALL policy scripts that are part of the Zeek distribution.
 # 
 # This is rarely makes sense, and is for testing only.
 # 

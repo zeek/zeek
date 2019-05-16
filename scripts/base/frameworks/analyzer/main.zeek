@@ -1,4 +1,4 @@
-##! Framework for managing Bro's protocol analyzers.
+##! Framework for managing Zeek's protocol analyzers.
 ##!
 ##! The analyzer framework allows to dynamically enable or disable analyzers, as
 ##! well as to manage the well-known ports which automatically activate a
@@ -21,7 +21,7 @@ export {
 	global disable_all = F &redef;
 
 	## Enables an analyzer. Once enabled, the analyzer may be used for analysis
-	## of future connections as decided by Bro's dynamic protocol detection.
+	## of future connections as decided by Zeek's dynamic protocol detection.
 	##
 	## tag: The tag of the analyzer to enable.
 	##

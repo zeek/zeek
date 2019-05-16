@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-diff 2.hex
 
 # Note that the hex output will contain global pcap header information,
-# including Bro's snaplen setting (so maybe check that out in the case
+# including Zeek's snaplen setting (so maybe check that out in the case
 # you are reading this message due to this test failing in the future).
 
 global i: count = 0;

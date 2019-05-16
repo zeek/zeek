@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff output
 
 # In old version, the event would keep triggering endlessely, with the network
-# time not moving forward and Bro not terminating. 
+# time not moving forward and Zeek not terminating.
 # 
 # Note that the output will not be 20 because we still execute two rounds
 # of events every time we drain and also at startup several (currently 3)

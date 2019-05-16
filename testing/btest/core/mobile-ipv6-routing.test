@@ -1,4 +1,5 @@
-# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/bro-config.h
+# @TEST-REQUIRES: grep -q "#define ENABLE_MOBILE_IPV6" $BUILD/zeek-config.h
+#
 # @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/ipv6-mobile-routing.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 

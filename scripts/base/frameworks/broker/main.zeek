@@ -32,27 +32,27 @@ export {
 	const disable_ssl = F &redef;
 
 	## Path to a file containing concatenated trusted certificates 
-	## in PEM format. If set, Bro will require valid certificates for
+	## in PEM format. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_cafile = "" &redef;
 
 	## Path to an OpenSSL-style directory of trusted certificates.
-	## If set, Bro will require valid certificates for
+	## If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_capath = "" &redef;
 
 	## Path to a file containing a X.509 certificate for this
-	## node in PEM format. If set, Bro will require valid certificates for
+	## node in PEM format. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_certificate = "" &redef;
 
 	## Passphrase to decrypt the private key specified by
-	## :zeek:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+	## :zeek:see:`Broker::ssl_keyfile`. If set, Zeek will require valid
 	## certificates for all peers.
 	const ssl_passphrase = "" &redef;
 
 	## Path to the file containing the private key for this node's
-	## certificate. If set, Bro will require valid certificates for
+	## certificate. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_keyfile = "" &redef;
 
@@ -347,7 +347,7 @@ export {
 	##        Peers advertise interest by registering a subscription to some
 	##        prefix of this topic name.
 	##
-	## ev: a Bro event value.
+	## ev: a Zeek event value.
 	##
 	## Returns: true if automatic event sending is now enabled.
 	global auto_publish: function(topic: string, ev: any): bool;

@@ -1,6 +1,6 @@
-##! This is the notice framework which enables Bro to "notice" things which
+##! This is the notice framework which enables Zeek to "notice" things which
 ##! are odd or potentially bad.  Decisions of the meaning of various notices
-##! need to be done per site because Bro does not ship with assumptions about
+##! need to be done per site because Zeek does not ship with assumptions about
 ##! what is bad activity for sites.  More extensive documentation about using
 ##! the notice framework can be found in :doc:`/frameworks/notice`.
 
@@ -189,26 +189,26 @@ export {
 
 	## Local system sendmail program.
 	##
-	## Note that this is overridden by the BroControl SendMail option.
+	## Note that this is overridden by the ZeekControl SendMail option.
 	option sendmail            = "/usr/sbin/sendmail";
 	## Email address to send notices with the
 	## :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
 	## on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
 	##
-	## Note that this is overridden by the BroControl MailTo option.
+	## Note that this is overridden by the ZeekControl MailTo option.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.
 	##
-	## Note that this is overridden by the BroControl MailFrom option.
-	option mail_from           = "Big Brother <bro@localhost>";
+	## Note that this is overridden by the ZeekControl MailFrom option.
+	option mail_from           = "Zeek <zeek@localhost>";
 	## Reply-to address used in outbound email.
 	option reply_to            = "";
 	## Text string prefixed to the subject of all emails sent out.
 	##
-	## Note that this is overridden by the BroControl MailSubjectPrefix
+	## Note that this is overridden by the ZeekControl MailSubjectPrefix
 	## option.
-	option mail_subject_prefix = "[Bro]";
+	option mail_subject_prefix = "[Zeek]";
 	## The maximum amount of time a plugin can delay email from being sent.
 	const max_email_delay     = 15secs &redef;
 
@@ -390,7 +390,7 @@ event zeek_init() &priority=5
 	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice"]);
 
 	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm"]);
-	# If Bro is configured for mailing notices, set up mailing for alarms.
+	# If Zeek is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.
 	if ( ! reading_traces() && mail_dest != "" )

@@ -32,7 +32,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/bro]
-    --scriptdir=PATH       root installation directory for Bro scripts
+    --scriptdir=PATH       root installation directory for Zeek scripts
                            [PREFIX/share/bro]
     --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
@@ -51,12 +51,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
-    --enable-static-broker build broker statically (ignored if --with-broker is specified)
+    --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
-    --disable-python       don't try to build python bindings for broker
+    --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
 
   Required Packages in Non-Standard Locations:
@@ -65,13 +65,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-pcap=PATH       path to libpcap install root
     --with-binpac=PATH     path to BinPAC executable
                            (useful for cross-compiling)
-    --with-bifcl=PATH      path to Bro BIF compiler executable
+    --with-bifcl=PATH      path to Zeek BIF compiler executable
                            (useful for cross-compiling)
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
     --with-broker=PATH     path to Broker install root
-                           (Bro uses an embedded version by default)
+                           (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
 

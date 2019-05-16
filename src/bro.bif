@@ -3990,7 +3990,7 @@ function lookup_location%(a: addr%) : geo_location
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_error("Bro was not configured for GeoIP support");
+		builtin_error("Zeek was not configured for GeoIP support");
 		missing_geoip_reported = 1;
 		}
 #endif
@@ -4047,7 +4047,7 @@ function lookup_asn%(a: addr%) : count
 
 	if ( ! missing_geoip_reported )
 		{
-		builtin_error("Bro was not configured for GeoIP ASN support");
+		builtin_error("Zeek was not configured for GeoIP ASN support");
 		missing_geoip_reported = 1;
 		}
 #endif

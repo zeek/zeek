@@ -1,4 +1,4 @@
-##! The configuration framework provides a way to change Bro options
+##! The configuration framework provides a way to change Zeek options
 ##! (as specified by the "option" keyword) at runtime. It also logs runtime
 ##! changes to options to config.log.
 

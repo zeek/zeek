@@ -1,4 +1,4 @@
-##! Bro's OpenFlow control framework.
+##! Zeek's OpenFlow control framework.
 ##!
 ##! This plugin-based framework allows to control OpenFlow capable
 ##! switches by implementing communication to an OpenFlow controller

@@ -11,7 +11,7 @@ install(DIRECTORY ./ DESTINATION ${BRO_SCRIPT_INSTALL_PATH} FILES_MATCHING
 if ( NOT BINARY_PACKAGING_MODE )
   # If the user has a local.bro file from a previous installation, prefer to
   # symlink local.zeek to it to avoid breaking their custom configuration --
-  # because BroControl will now prefer to load local.zeek rather than local.bro
+  # because ZeekControl will now prefer to load local.zeek rather than local.bro
   # and we're about to install a default version of local.zeek.
 
   set(_local_bro_dst ${BRO_SCRIPT_INSTALL_PATH}/site/local.bro)

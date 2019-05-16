@@ -1,9 +1,9 @@
-##! Functions to assist with generating JSON data from Bro data scructures.
+##! Functions to assist with generating JSON data from Zeek data scructures.
 # We might want to implement this in core somtime, this looks... hacky at best.
 
 @load base/utils/strings
 
-## A function to convert arbitrary Bro data into a JSON string.
+## A function to convert arbitrary Zeek data into a JSON string.
 ##
 ## v: The value to convert to JSON.  Typically a record.
 ##

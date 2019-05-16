@@ -5,13 +5,13 @@ bro \- passive network traffic analyzer
 .B bro
 \/\fP [\fIoptions\fR] [\fIfile\fR ...]
 .SH DESCRIPTION
-Bro is primarily a security monitor that inspects all traffic on a link in
-depth for signs of suspicious activity. More generally, however, Bro
+Zeek is primarily a security monitor that inspects all traffic on a link in
+depth for signs of suspicious activity. More generally, however, Zeek
 supports a wide range of traffic analysis tasks even outside of the
 security domain, including performance measurements and helping with
 trouble-shooting.
 
-Bro comes with built-in functionality for a range of analysis and detection
+Zeek comes with built-in functionality for a range of analysis and detection
 tasks, including detecting malware by interfacing to external registries,
 reporting vulnerable versions of software seen on the network, identifying
 popular web applications, detecting SSH brute-forcing, validating SSL
@@ -108,12 +108,12 @@ load seeds from given file
 \fB\-\-save\-seeds\fR <file>
 save seeds to given file
 .TP
-The following option is available only when Bro is built with the \-\-enable\-debug configure option:
+The following option is available only when Zeek is built with the \-\-enable\-debug configure option:
 .TP
 \fB\-B\fR,\ \-\-debug <dbgstreams>
 Enable debugging output for selected streams ('-B help' for help)
 .TP
-The following options are available only when Bro is built with gperftools support (use the \-\-enable\-perftools and \-\-enable\-perftools\-debug configure options):
+The following options are available only when Zeek is built with gperftools support (use the \-\-enable\-perftools and \-\-enable\-perftools\-debug configure options):
 .TP
 \fB\-m\fR,\ \-\-mem-leaks
 show leaks
@@ -150,4 +150,4 @@ Output file for script execution statistics
 Disable Zeekygen (Broxygen) documentation support
 .SH AUTHOR
 .B bro
-was written by The Bro Project <info@bro.org>.
+was written by The Zeek Project <info@zeek.org>.

@@ -222,12 +222,12 @@
 /* String with extension of dynamic libraries (e.g., ".so") */
 #define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
 
-/* True if we're building outside of the main Bro source code tree. */
+/* True if we're building outside of the main Zeek source code tree. */
 #ifndef BRO_PLUGIN_INTERNAL_BUILD
 #define BRO_PLUGIN_INTERNAL_BUILD @BRO_PLUGIN_INTERNAL_BUILD@
 #endif
 
-/* A C function that has the Bro version encoded into its name. */
+/* A C function that has the Zeek version encoded into its name. */
 #define BRO_VERSION_FUNCTION bro_version_@VERSION_C_IDENT@
 #ifdef __cplusplus
 extern "C" {

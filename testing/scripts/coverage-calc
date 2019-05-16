@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
-# This script aggregates many files containing Bro script coverage information
+# This script aggregates many files containing Zeek script coverage information
 # into a single file and reports the overall coverage information. Usage:
 #
 #   coverage-calc <quoted glob of filenames> <output file> <script dir>
 #
 # The last argument is used to point to a root directory containing all
-# the Bro distribution's scripts.  It's used to cull out test scripts
+# the Zeek distribution's scripts.  It's used to cull out test scripts
 # that are not part of the distribution and which should not count towards
 # the coverage calculation.
 
@@ -27,7 +27,7 @@ for filename in glob.glob(inputglob):
             # grab file path and line numbers separately
             filepath, srclines = parts[1].rsplit(",", 1)
             filepath = os.path.normpath(filepath)
-            # ignore scripts that don't appear to be part of Bro distribution
+            # ignore scripts that don't appear to be part of Zeek distribution
             if not filepath.startswith(scriptdir):
                 continue
             # keep only the line number (or line number range)
@@ -56,4 +56,4 @@ for k in stats:
         num_covered += 1
 
 if len(stats) > 0:
-    print("%s/%s (%.1f%%) Bro script statements covered." % (num_covered, len(stats), float(num_covered)/len(stats)*100))
+    print("%s/%s (%.1f%%) Zeek script statements covered." % (num_covered, len(stats), float(num_covered)/len(stats)*100))

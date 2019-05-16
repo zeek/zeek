@@ -1,5 +1,5 @@
 
-This document summarizes the most important changes in the current Bro
+This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
@@ -18,7 +18,7 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
-- Bro's Plugin framework now allows a patch version.  If a patch version is not
+- Zeek's Plugin framework now allows a patch version.  If a patch version is not
   provided, it will default to 0.  To specify this, modify the plugin
   Configuration class in your ``src/Plugin.cc`` and set
   ``config.version.patch``.  Note that the default plugin skeleton

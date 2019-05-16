@@ -53,5 +53,5 @@ event zeek_init()
 
 	test_case("keys that are tuples", s1 == "1 2 hi");
 
-	# Tests for key value for loop are in key-value-for.bro
+	# Note: Tests for key value "for" loop are in key-value-for.zeek
 }

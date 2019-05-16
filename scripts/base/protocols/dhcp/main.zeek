@@ -138,7 +138,7 @@ function join_data_expiration(t: table[count] of Info, idx: count): interval
 	# If a message hasn't been seen in the past 5 seconds or the
 	# total time watching has been more than the maximum time
 	# allowed by the configuration then log this data and expire it.
-	# Also, if Bro is shutting down.
+	# Also, if Zeek is shutting down.
 	if ( (now - info$last_message_ts) > 5sec ||
 	     (now - info$ts) > max_txid_watch_time ||
 	     bro_is_terminating() )

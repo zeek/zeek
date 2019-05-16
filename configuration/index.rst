@@ -1,4 +1,4 @@
-.. _BroControl documentation: https://github.com/zeek/broctl
+.. _ZeekControl documentation: https://github.com/zeek/zeekctl
 
 .. _configuration:
 
@@ -6,21 +6,21 @@
 Cluster Configuration
 =====================
 
-A *Bro Cluster* is a set of systems jointly analyzing the traffic of
+A *Zeek Cluster* is a set of systems jointly analyzing the traffic of
 a network link in a coordinated fashion.  You can operate such a setup from
-a central manager system easily using BroControl because BroControl
+a central manager system easily using ZeekControl because it
 hides much of the complexity of the multi-machine installation.
 
 This section gives examples of how to setup common cluster configurations
-using BroControl.  For a full reference on BroControl, see the
-`BroControl documentation`_.
+using ZeekControl.  For a full reference on ZeekControl, see the
+`ZeekControl documentation`_.
 
 
 Preparing to Setup a Cluster
 ============================
 
 In this document we refer to the user account used to set up the cluster
-as the "Bro user".  When setting up a cluster the Bro user must be set up
+as the "Zeek user".  When setting up a cluster the Zeek user must be set up
 on all hosts, and this user must have ssh access from the manager to all
 machines in the cluster, and it must work without being prompted for a
 password/passphrase (for example, using ssh public key authentication).
@@ -29,14 +29,14 @@ network interface in promiscuous mode.
 
 Additional storage must be available on all hosts under the same path,
 which we will call the cluster's prefix path.  We refer to this directory
-as ``<prefix>``.  If you build Bro from source, then ``<prefix>`` is
+as ``<prefix>``.  If you build Zeek from source, then ``<prefix>`` is
 the directory specified with the ``--prefix`` configure option,
-or ``/usr/local/bro`` by default.  The Bro user must be able to either
+or ``/usr/local/zeek`` by default.  The Zeek user must be able to either
 create this directory or, where it already exists, must have write
 permission inside this directory on all hosts.
 
-When trying to decide how to configure the Bro nodes, keep in mind that
-there can be multiple Bro instances running on the same host.  For example,
+When trying to decide how to configure the Zeek nodes, keep in mind that
+there can be multiple Zeek instances running on the same host.  For example,
 it's possible to run a proxy and the manager on the same host.  However, it is
 recommended to run workers on a different machine than the manager because
 workers can consume a lot of CPU resources.  The maximum recommended
@@ -53,21 +53,21 @@ Basic Cluster Configuration
 ===========================
 
 With all prerequisites in place, perform the following steps to setup
-a Bro cluster (do this as the Bro user on the manager host only):
+a Zeek cluster (do this as the Zeek user on the manager host only):
 
-- Edit the BroControl configuration file, ``<prefix>/etc/broctl.cfg``,
-  and change the value of any BroControl options to be more suitable for
+- Edit the ZeekControl configuration file, ``<prefix>/etc/zeekctl.cfg``,
+  and change the value of any options to be more suitable for
   your environment.  You will most likely want to change the value of
   the ``MailTo`` and ``LogRotationInterval`` options.  A complete
-  reference of all BroControl options can be found in the
-  `BroControl documentation`_.
+  reference of all ZeekControl options can be found in the
+  `ZeekControl documentation`_.
 
-- Edit the BroControl node configuration file, ``<prefix>/etc/node.cfg``
+- Edit the ZeekControl node configuration file, ``<prefix>/etc/node.cfg``
   to define where logger, manager, proxies, and workers are to run.  For a
   cluster configuration, you must comment-out (or remove) the standalone node
   in that file, and either uncomment or add node entries for each node
   in your cluster (logger, manager, proxy, and workers).  For example, if you
-  wanted to run five Bro nodes (two workers, one proxy, a logger, and a
+  wanted to run five Zeek nodes (two workers, one proxy, a logger, and a
   manager) on a cluster consisting of three machines, your cluster
   configuration would look like this::
 
@@ -94,17 +94,17 @@ a Bro cluster (do this as the Bro user on the manager host only):
     interface=eth0
 
   For a complete reference of all options that are allowed in the ``node.cfg``
-  file, see the `BroControl documentation`_.
+  file, see the `ZeekControl documentation`_.
 
 - Edit the network configuration file ``<prefix>/etc/networks.cfg``.  This
   file lists all of the networks which the cluster should consider as local
   to the monitored environment.
 
-- Install Bro on all machines in the cluster using BroControl::
+- Install Zeek on all machines in the cluster using ZeekControl::
 
-    > broctl install
+    > zeekctl install
 
-- See the `BroControl documentation`_
+- See the `ZeekControl documentation`_
   for information on setting up a cron job on the manager host that can
   monitor the cluster.
 
@@ -149,32 +149,32 @@ Installing PF_RING
    pf_ring module at boot time.  You will need to install the PF_RING
    library files and kernel module on all of the workers in your cluster.
 
-2. Download the Bro source code.
+2. Download the Zeek source code.
 
-3. Configure and install Bro using the following commands::
+3. Configure and install Zeek using the following commands::
 
      ./configure --with-pcap=/opt/pfring
      make
      make install
 
-4. Make sure Bro is correctly linked to the PF_RING libpcap libraries::
+4. Make sure Zeek is correctly linked to the PF_RING libpcap libraries::
 
      ldd /usr/local/bro/bin/bro | grep pcap
            libpcap.so.1 => /opt/pfring/lib/libpcap.so.1 (0x00007fa6d7d24000)
 
-5. Configure BroControl to use PF_RING (explained below).
+5. Configure ZeekControl to use PF_RING (explained below).
 
-6. Run "broctl install" on the manager.  This command will install Bro and
+6. Run "zeekctl install" on the manager.  This command will install Zeek and
    required scripts to all machines in your cluster.
 
 Using PF_RING
 ^^^^^^^^^^^^^
 
 In order to use PF_RING, you need to specify the correct configuration
-options for your worker nodes in BroControl's node configuration file.
+options for your worker nodes in ZeekControl's node configuration file.
 Edit the ``node.cfg`` file and specify ``lb_method=pf_ring`` for each of
 your worker nodes.  Next, use the ``lb_procs`` node option to specify how
-many Bro processes you'd like that worker node to run, and optionally pin
+many Zeek processes you'd like that worker node to run, and optionally pin
 those processes to certain CPU cores with the ``pin_cpus`` option (CPU
 numbering starts at zero).  The correct ``pin_cpus`` setting to use is
 dependent on your CPU architecture (Intel and AMD systems enumerate
@@ -236,11 +236,11 @@ same packets multiple times with different tools.
    the lb_procs option in the node.cfg file.
 
 4. If you are load balancing to other processes, you can use the
-   pfringfirstappinstance variable in broctl.cfg to set the first
-   application instance that Bro should use.  For example, if you are running
+   pfringfirstappinstance variable in zeekctl.cfg to set the first
+   application instance that Zeek should use.  For example, if you are running
    pfdnacluster_master with "-n 10,4" you would set
    pfringfirstappinstance=4.  Unfortunately that's still a global setting
-   in broctl.cfg at the moment but we may change that to something you can
+   in zeekctl.cfg at the moment but we may change that to something you can
    set in node.cfg eventually.
 
 5. On the manager, configure your worker(s) in node.cfg::

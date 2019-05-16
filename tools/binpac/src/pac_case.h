@@ -32,6 +32,8 @@ public:
 
 	Type *ValueType() const;
 
+	Expr* IndexExpr() const { return index_expr_; }
+
 	bool IsPointerType() const	{ return ValueType()->IsPointerType(); }
 
 protected:
@@ -94,6 +96,6 @@ protected:
 
 // Generate a list of "case X:" lines from index_list. Each index
 // expression must be constant foldable.
-void GenCaseStr(ExprList *index_list, Output *out_cc, Env *env);
+void GenCaseStr(ExprList *index_list, Output *out_cc, Env *env, Type* switch_type);
 
 #endif  // pac_case_h

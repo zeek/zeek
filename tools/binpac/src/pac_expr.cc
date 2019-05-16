@@ -257,6 +257,7 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 		(*i)->value()->ForceIDEval(out_cc, env);
 
 	out_cc->println("switch ( %s )", operand_[0]->EvalExpr(out_cc, env));
+	Type* switch_type = operand_[0]->DataType(env);
 
 	out_cc->inc_indent();
 	out_cc->println("{");
@@ -274,7 +275,7 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 			}
 		else
 			{
-			GenCaseStr(index, out_cc, env);
+			GenCaseStr(index, out_cc, env, switch_type);
 			out_cc->inc_indent();
 			out_cc->println("%s = %s;", 
 			                env->LValue(val_var),
@@ -285,7 +286,7 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 		}
 
 	// Generate the default case after all other cases
-	GenCaseStr(0, out_cc, env);
+	GenCaseStr(0, out_cc, env, switch_type);
 	out_cc->inc_indent();
 	if ( default_case )
 		{
@@ -295,7 +296,7 @@ void Expr::GenCaseEval(Output *out_cc, Env *env)
 		}
 	else
 		{
-		out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", %s);",
+		out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", (int64)%s);",
 			Location(), operand_[0]->EvalExpr(out_cc, env));
 		}
 	out_cc->println("break;");

@@ -69,3 +69,15 @@ ExceptionNonConstExpr::ExceptionNonConstExpr(const Expr* expr)
 	{
 	append(strfmt("Expression `%s' is not constant", expr->orig()));
 	}
+
+ExceptionInvalidCaseSizeExpr::ExceptionInvalidCaseSizeExpr(const Expr* expr)
+	: Exception(expr), expr(expr)
+	{
+	append(strfmt("Expression `%s' is greater than the 32-bit limit for use as a case index", expr->orig()));
+	}
+
+ExceptionInvalidCaseLimitExpr::ExceptionInvalidCaseLimitExpr(const Expr* expr)
+	: Exception(expr), expr(expr)
+	{
+	append(strfmt("Expression `%s' as a case index is outside the numeric limit of the type used for the switch expression", expr->orig()));
+	}

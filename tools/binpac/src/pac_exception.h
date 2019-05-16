@@ -92,4 +92,22 @@ private:
 	const Expr *expr;
 };
 
+class ExceptionInvalidCaseSizeExpr : public Exception
+{
+public:
+	ExceptionInvalidCaseSizeExpr(const Expr* expr);
+
+private:
+	const Expr *expr;
+};
+
+class ExceptionInvalidCaseLimitExpr : public Exception
+{
+public:
+	ExceptionInvalidCaseLimitExpr(const Expr* expr);
+
+private:
+	const Expr *expr;
+};
+
 #endif /* pac_exception_h */

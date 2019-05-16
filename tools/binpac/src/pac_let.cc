@@ -126,7 +126,7 @@ LetDecl::LetDecl(ID *id, Type *type, Expr *expr)
 	Env *env = global_env();
 	int c;
 	if ( expr_ && expr_->ConstFold(env, &c) )
-		env->AddConstID(id_, c);
+		env->AddConstID(id_, c, type);
 	else
 		env->AddID(id_, GLOBAL_VAR, type_);
 	}

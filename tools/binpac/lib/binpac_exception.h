@@ -1,6 +1,9 @@
 #ifndef binpac_exception_h
 #define binpac_exception_h
 
+#include <stdint.h>
+#include <inttypes.h>
+
 namespace binpac {
 
 class Exception
@@ -45,19 +48,19 @@ class ExceptionInvalidCase : public Exception
 {
 public:
 	ExceptionInvalidCase(const char* location, 
-			int index,
+			int64_t index,
 			const char *expected)
 		: location_(location), 
 		  index_(index), 
 		  expected_(expected)
 		{
-		append(binpac_fmt("invalid case: %s: %d (%s)",
+		append(binpac_fmt("invalid case: %s: %" PRIi64 " (%s)",
 			location, index, expected));
 		}
 
 protected:
 	const char* location_;
-	int index_;
+	int64_t index_;
 	string expected_;
 };
 
@@ -65,17 +68,17 @@ class ExceptionInvalidCaseIndex : public Exception
 {
 public:
 	ExceptionInvalidCaseIndex(const char* location, 
-			int index)
+			int64_t index)
 		: location_(location), 
 		  index_(index)
 		{
-		append(binpac_fmt("invalid index for case: %s: %d",
+		append(binpac_fmt("invalid index for case: %s: %" PRIi64,
 			location, index));
 		}
 
 protected:
 	const char* location_;
-	int index_;
+	int64_t index_;
 };
 
 class ExceptionInvalidOffset : public Exception

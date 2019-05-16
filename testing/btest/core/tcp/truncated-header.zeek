@@ -3,7 +3,7 @@
 
 event tcp_packet(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string)
 	{
-	# Just having this handler used to crash Bro on this trace.
-        print network_time(), c$id;
+	# Just having this handler used to crash Zeek on this trace.
+	print network_time(), c$id;
 	}
 

@@ -10,5 +10,3 @@
 
 # @TEST-EXEC: btest-diff output
 
-@load base/frameworks/notice/weird.bro
-

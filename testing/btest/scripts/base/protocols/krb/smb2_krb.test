@@ -2,7 +2,7 @@
 # Kerberos analyzer can open the AD ticket in the Negociate
 # Protocol Request and find the user.
 #
-# @TEST-REQUIRES: grep -q "#define USE_KRB5" $BUILD/bro-config.h
+# @TEST-REQUIRES: grep -q "#define USE_KRB5" $BUILD/zeek-config.h
 #
 # @TEST-COPY-FILE: ${TRACES}/krb/smb2_krb.keytab
 # @TEST-EXEC: zeek -b -C -r $TRACES/krb/smb2_krb.pcap %INPUT

@@ -1,4 +1,4 @@
-# @TEST-EXEC: ${DIST}/aux/bro-aux/plugin-support/init-plugin -u . Demo Foo
+# @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: ./configure --bro-dist=${DIST} --install-root=`pwd`/test-install
 # @TEST-EXEC: make

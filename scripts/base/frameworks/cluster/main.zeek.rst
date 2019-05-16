@@ -4,9 +4,9 @@ base/frameworks/cluster/main.zeek
 =================================
 .. zeek:namespace:: Cluster
 
-A framework for establishing and controlling a cluster of Bro instances.
+A framework for establishing and controlling a cluster of Zeek instances.
 In order to use the cluster framework, a script named
-``cluster-layout.zeek`` must exist somewhere in Bro's script search path
+``cluster-layout.zeek`` must exist somewhere in Zeek's script search path
 which has a cluster definition of the :zeek:id:`Cluster::nodes` variable.
 The ``CLUSTER_NODE`` environment variable or :zeek:id:`Cluster::node`
 must also be sent and the cluster framework loaded as a package like
@@ -98,7 +98,7 @@ Functions
 :zeek:id:`Cluster::is_enabled`: :zeek:type:`function`      This function can be called at any time to determine if the cluster
                                                            framework is being enabled for this run.
 :zeek:id:`Cluster::local_node_type`: :zeek:type:`function` This function can be called at any time to determine what type of
-                                                           cluster node the current Bro instance is going to be acting as.
+                                                           cluster node the current Zeek instance is going to be acting as.
 :zeek:id:`Cluster::log`: :zeek:type:`function`             Write a message to the cluster logging stream.
 :zeek:id:`Cluster::node_topic`: :zeek:type:`function`      Retrieve the topic associated with a specific node in the cluster.
 :zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function`    Retrieve the topic associated with a specific node in the cluster.
@@ -177,7 +177,7 @@ Redefinable Options
    Indicates whether or not the manager will act as the logger and receive
    logs.  This value should be set in the cluster-layout.zeek script (the
    value should be true only if no logger is specified in Cluster::nodes).
-   Note that BroControl handles this automatically.
+   Note that ZeekControl handles this automatically.
 
 .. zeek:id:: Cluster::manager_topic
 
@@ -224,7 +224,7 @@ Redefinable Options
    The cluster layout definition.  This should be placed into a filter
    named cluster-layout.zeek somewhere in the BROPATH.  It will be
    automatically loaded if the CLUSTER_NODE environment variable is set.
-   Note that BroControl handles all of this automatically.
+   Note that ZeekControl handles all of this automatically.
    The table is typically indexed by node names/labels (e.g. "manager"
    or "worker-1").
 
@@ -486,7 +486,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`Cluster::NodeType`
 
    This function can be called at any time to determine what type of
-   cluster node the current Bro instance is going to be acting as.
+   cluster node the current Zeek instance is going to be acting as.
    If :zeek:id:`Cluster::is_enabled` returns false, then
    :zeek:enum:`Cluster::NONE` is returned.
    

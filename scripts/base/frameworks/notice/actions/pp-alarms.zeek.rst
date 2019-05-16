@@ -49,7 +49,7 @@ Redefinable Options
    Address to send the pretty-printed reports to. Default if not set is
    :zeek:id:`Notice::mail_dest`.
    
-   Note that this is overridden by the BroControl MailAlarmsTo option.
+   Note that this is overridden by the ZeekControl MailAlarmsTo option.
 
 .. zeek:id:: Notice::pretty_print_alarms
 

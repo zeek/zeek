@@ -5,7 +5,7 @@ base/frameworks/openflow/plugins/log.zeek
 .. zeek:namespace:: OpenFlow
 
 OpenFlow plugin that outputs flow-modification commands
-to a Bro log file.
+to a Zeek log file.
 
 :Namespace: OpenFlow
 :Imports: :doc:`base/frameworks/logging </scripts/base/frameworks/logging/index>`, :doc:`base/frameworks/openflow </scripts/base/frameworks/openflow/index>`

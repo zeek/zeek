@@ -5,7 +5,7 @@ policy/frameworks/control/controller.zeek
 .. zeek:namespace:: Control
 
 This is a utility script that implements the controller interface for the
-control framework.  It's intended to be run to control a remote Bro
+control framework.  It's intended to be run to control a remote Zeek
 and then shutdown.
 
 It's intended to be used from the command line like this::

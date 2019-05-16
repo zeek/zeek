@@ -80,7 +80,7 @@ Functions
    
 
    :pat: the pattern containing a "~~"  in it.  If a literal backslash is
-        included, it needs to be escaped with another backslash due to Bro's
+        included, it needs to be escaped with another backslash due to Zeek's
         string parsing reducing it to a single backslash upon rendering.
    
 

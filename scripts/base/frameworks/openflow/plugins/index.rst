@@ -15,7 +15,7 @@ Plugins for the OpenFlow framework.
 :doc:`/scripts/base/frameworks/openflow/plugins/log.zeek`
 
    OpenFlow plugin that outputs flow-modification commands
-   to a Bro log file.
+   to a Zeek log file.
 
 :doc:`/scripts/base/frameworks/openflow/plugins/broker.zeek`
 

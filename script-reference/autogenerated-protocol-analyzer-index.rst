@@ -9721,7 +9721,7 @@ Options/Constants
 
    A set of file names used as named pipes over SMB. This
    only comes into play as a heuristic to identify named
-   pipes when the drive mapping wasn't seen by Bro.
+   pipes when the drive mapping wasn't seen by Zeek.
    
    .. zeek:see:: smb_pipe_connect_heuristic
 

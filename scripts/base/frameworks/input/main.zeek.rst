@@ -5,7 +5,7 @@ base/frameworks/input/main.zeek
 .. zeek:namespace:: Input
 
 The input framework provides a way to read previously stored data either
-as an event stream or into a Bro table.
+as an event stream or into a Zeek table.
 
 :Namespace: Input
 :Imports: :doc:`base/bif/input.bif.zeek </scripts/base/bif/input.bif.zeek>`
@@ -37,9 +37,9 @@ Types
 :zeek:type:`Input::AnalysisDescription`: :zeek:type:`record` A file analysis input stream type used to forward input data to the
                                                              file analysis framework.
 :zeek:type:`Input::Event`: :zeek:type:`enum`                 Type that describes what kind of change occurred.
-:zeek:type:`Input::EventDescription`: :zeek:type:`record`    An event input stream type used to send input data to a Bro event.
+:zeek:type:`Input::EventDescription`: :zeek:type:`record`    An event input stream type used to send input data to a Zeek event.
 :zeek:type:`Input::Mode`: :zeek:type:`enum`                  Type that defines the input stream read mode.
-:zeek:type:`Input::TableDescription`: :zeek:type:`record`    A table input stream type used to send data to a Bro table.
+:zeek:type:`Input::TableDescription`: :zeek:type:`record`    A table input stream type used to send data to a Zeek table.
 :zeek:type:`Input::Reader`: :zeek:type:`enum`                
 ============================================================ ===================================================================
 
@@ -228,14 +228,14 @@ Types
          
          The event is raised like it had been declared as follows:
          error_ev: function(desc: EventDescription, message: string, level: Reporter::Level) &optional;
-         The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+         The actual declaration uses the ``any`` type because of deficiencies of the Zeek type system.
 
       config: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string` :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          A key/value table that will be passed to the reader.
          Interpretation of the values is left to the reader, but
          usually they will be used for configuration purposes.
 
-   An event input stream type used to send input data to a Bro event.
+   An event input stream type used to send input data to a Zeek event.
 
 .. zeek:type:: Input::Mode
 
@@ -311,14 +311,14 @@ Types
          
          The event is raised like if it had been declared as follows:
          error_ev: function(desc: TableDescription, message: string, level: Reporter::Level) &optional;
-         The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+         The actual declaration uses the ``any`` type because of deficiencies of the Zeek type system.
 
       config: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string` :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
          A key/value table that will be passed to the reader.
          Interpretation of the values is left to the reader, but
          usually they will be used for configuration purposes.
 
-   A table input stream type used to send data to a Bro table.
+   A table input stream type used to send data to a Zeek table.
 
 .. zeek:type:: Input::Reader
 

@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=============================================================================== ======================================================================
-:zeek:id:`PacketFilter::max_bpf_shunts`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of BPF based shunts that Bro is allowed to perform.
-=============================================================================== ======================================================================
+=============================================================================== =======================================================================
+:zeek:id:`PacketFilter::max_bpf_shunts`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of BPF based shunts that Zeek is allowed to perform.
+=============================================================================== =======================================================================
 
 Redefinitions
 #############
@@ -30,10 +30,10 @@ Functions
 :zeek:id:`PacketFilter::force_unshunt_host_pair`: :zeek:type:`function`    Performs the same function as the :zeek:id:`PacketFilter::unshunt_host_pair`
                                                                            function, but it forces an immediate filter update.
 :zeek:id:`PacketFilter::shunt_conn`: :zeek:type:`function`                 Call this function to use BPF to shunt a connection (to prevent the
-                                                                           data packets from reaching Bro).
+                                                                           data packets from reaching Zeek).
 :zeek:id:`PacketFilter::shunt_host_pair`: :zeek:type:`function`            This function will use a BPF expression to shunt traffic between
                                                                            the two hosts given in the `conn_id` so that the traffic is never
-                                                                           exposed to Bro's traffic processing.
+                                                                           exposed to Zeek's traffic processing.
 :zeek:id:`PacketFilter::unshunt_host_pair`: :zeek:type:`function`          Remove shunting for a host pair given as a `conn_id`.
 ========================================================================== ============================================================================
 
@@ -48,7 +48,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``100``
 
-   The maximum number of BPF based shunts that Bro is allowed to perform.
+   The maximum number of BPF based shunts that Zeek is allowed to perform.
 
 Functions
 #########
@@ -76,8 +76,8 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`conn_id`) : :zeek:type:`bool`
 
    Call this function to use BPF to shunt a connection (to prevent the
-   data packets from reaching Bro).  For TCP connections, control
-   packets are still allowed through so that Bro can continue logging
+   data packets from reaching Zeek).  For TCP connections, control
+   packets are still allowed through so that Zeek can continue logging
    the connection and it can stop shunting once the connection ends.
 
 .. zeek:id:: PacketFilter::shunt_host_pair
@@ -86,7 +86,7 @@ Functions
 
    This function will use a BPF expression to shunt traffic between
    the two hosts given in the `conn_id` so that the traffic is never
-   exposed to Bro's traffic processing.
+   exposed to Zeek's traffic processing.
 
 .. zeek:id:: PacketFilter::unshunt_host_pair
 

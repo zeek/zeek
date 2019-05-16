@@ -299,7 +299,7 @@ Redefinable Options
    :Default: ``""``
 
    Path to a file containing concatenated trusted certificates 
-   in PEM format. If set, Bro will require valid certificates for
+   in PEM format. If set, Zeek will require valid certificates for
    all peers.
 
 .. zeek:id:: Broker::ssl_capath
@@ -309,7 +309,7 @@ Redefinable Options
    :Default: ``""``
 
    Path to an OpenSSL-style directory of trusted certificates.
-   If set, Bro will require valid certificates for
+   If set, Zeek will require valid certificates for
    all peers.
 
 .. zeek:id:: Broker::ssl_certificate
@@ -319,7 +319,7 @@ Redefinable Options
    :Default: ``""``
 
    Path to a file containing a X.509 certificate for this
-   node in PEM format. If set, Bro will require valid certificates for
+   node in PEM format. If set, Zeek will require valid certificates for
    all peers.
 
 .. zeek:id:: Broker::ssl_keyfile
@@ -329,7 +329,7 @@ Redefinable Options
    :Default: ``""``
 
    Path to the file containing the private key for this node's
-   certificate. If set, Bro will require valid certificates for
+   certificate. If set, Zeek will require valid certificates for
    all peers.
 
 .. zeek:id:: Broker::ssl_passphrase
@@ -339,7 +339,7 @@ Redefinable Options
    :Default: ``""``
 
    Passphrase to decrypt the private key specified by
-   :zeek:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+   :zeek:see:`Broker::ssl_keyfile`. If set, Zeek will require valid
    certificates for all peers.
 
 Types
@@ -525,7 +525,7 @@ Functions
           prefix of this topic name.
    
 
-   :ev: a Bro event value.
+   :ev: a Zeek event value.
    
 
    :returns: true if automatic event sending is now enabled.

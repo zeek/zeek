@@ -110,7 +110,7 @@ Redefinable Options
                                                                                            files.
 :zeek:id:`check_for_unused_event_handlers`: :zeek:type:`bool` :zeek:attr:`&redef`          If true, warns about unused event handlers at startup.
 :zeek:id:`chunked_io_buffer_soft_cap`: :zeek:type:`count` :zeek:attr:`&redef`              The number of IO chunks allowed to be buffered between the child
-                                                                                           and parent process of remote communication before Bro starts dropping
+                                                                                           and parent process of remote communication before Zeek starts dropping
                                                                                            connections to remote peers in an attempt to catch up.
 :zeek:id:`cmd_line_bpf_filter`: :zeek:type:`string` :zeek:attr:`&redef`                    BPF filter the user has set via the -f command line options.
 :zeek:id:`detect_filtered_trace`: :zeek:type:`bool` :zeek:attr:`&redef`                    Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
@@ -125,7 +125,7 @@ Redefinable Options
                                                                                            signature matching.
 :zeek:id:`encap_hdr_size`: :zeek:type:`count` :zeek:attr:`&redef`                          If positive, indicates the encapsulation header size that should
                                                                                            be skipped.
-:zeek:id:`exit_only_after_terminate`: :zeek:type:`bool` :zeek:attr:`&redef`                Flag to prevent Bro from exiting automatically when input is exhausted.
+:zeek:id:`exit_only_after_terminate`: :zeek:type:`bool` :zeek:attr:`&redef`                Flag to prevent Zeek from exiting automatically when input is exhausted.
 :zeek:id:`expensive_profiling_multiple`: :zeek:type:`count` :zeek:attr:`&redef`            Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
                                                                                            profiling is done (0 disables).
 :zeek:id:`frag_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                         How long to hold onto fragments for possible reassembly.
@@ -153,7 +153,7 @@ Redefinable Options
 :zeek:id:`ntp_session_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                  Time to wait before timing out an NTP request.
 :zeek:id:`old_comm_usage_is_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                     Whether usage of the old communication system is considered an error or
                                                                                            not.
-:zeek:id:`packet_filter_default`: :zeek:type:`bool` :zeek:attr:`&redef`                    Default mode for Bro's user-space dynamic packet filter.
+:zeek:id:`packet_filter_default`: :zeek:type:`bool` :zeek:attr:`&redef`                    Default mode for Zeek's user-space dynamic packet filter.
 :zeek:id:`partial_connection_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                    If true, instantiate connection state when a partial connection
                                                                                            (one missing its initial establishment negotiation) is seen.
 :zeek:id:`passive_fingerprint_file`: :zeek:type:`string` :zeek:attr:`&redef`               ``p0f`` fingerprint file to use.
@@ -161,7 +161,7 @@ Redefinable Options
 :zeek:id:`pkt_profile_freq`: :zeek:type:`double` :zeek:attr:`&redef`                       Frequency associated with packet profiling.
 :zeek:id:`pkt_profile_mode`: :zeek:type:`pkt_profile_modes` :zeek:attr:`&redef`            Output mode for packet profiling information.
 :zeek:id:`profiling_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                   Update interval for profiling (0 disables).
-:zeek:id:`record_all_packets`: :zeek:type:`bool` :zeek:attr:`&redef`                       If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
+:zeek:id:`record_all_packets`: :zeek:type:`bool` :zeek:attr:`&redef`                       If a trace file is given with ``-w``, dump *all* packets seen by Zeek into it.
 :zeek:id:`report_gaps_for_partial`: :zeek:type:`bool` :zeek:attr:`&redef`                  Whether we want :zeek:see:`content_gap` for partial
                                                                                            connections.
 :zeek:id:`rpc_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                          Time to wait before timing out an RPC request.
@@ -169,10 +169,10 @@ Redefinable Options
                                                                                            in addition to profiling statistics.
 :zeek:id:`sig_max_group_size`: :zeek:type:`count` :zeek:attr:`&redef`                      Maximum size of regular expression groups for signature matching.
 :zeek:id:`skip_http_data`: :zeek:type:`bool` :zeek:attr:`&redef`                           Skip HTTP data for performance considerations.
-:zeek:id:`ssl_ca_certificate`: :zeek:type:`string` :zeek:attr:`&redef`                     The CA certificate file to authorize remote Bros/Broccolis.
+:zeek:id:`ssl_ca_certificate`: :zeek:type:`string` :zeek:attr:`&redef`                     The CA certificate file to authorize remote Zeeks/Broccolis.
 :zeek:id:`ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`                         The passphrase for our private key.
 :zeek:id:`ssl_private_key`: :zeek:type:`string` :zeek:attr:`&redef`                        File containing our private key and our certificate.
-:zeek:id:`state_dir`: :zeek:type:`string` :zeek:attr:`&redef`                              Specifies a directory for Bro to store its persistent state.
+:zeek:id:`state_dir`: :zeek:type:`string` :zeek:attr:`&redef`                              Specifies a directory for Zeek to store its persistent state.
 :zeek:id:`state_write_delay`: :zeek:type:`interval` :zeek:attr:`&redef`                    Length of the delays inserted when storing state incrementally.
 :zeek:id:`stp_delta`: :zeek:type:`interval` :zeek:attr:`&redef`                            Internal to the stepping stone detector.
 :zeek:id:`stp_idle_min`: :zeek:type:`interval` :zeek:attr:`&redef`                         Internal to the stepping stone detector.
@@ -237,7 +237,7 @@ Redefinable Options
 :zeek:id:`udp_inactivity_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`               If a UDP flow is inactive, time it out after this interval.
 :zeek:id:`use_conn_size_analyzer`: :zeek:type:`bool` :zeek:attr:`&redef`                   Whether to use the ``ConnSize`` analyzer to count the number of packets and
                                                                                            IP-level bytes transferred by each endpoint.
-:zeek:id:`watchdog_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                    Bro's watchdog interval.
+:zeek:id:`watchdog_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                    Zeek's watchdog interval.
 ========================================================================================== ================================================================================
 
 Constants
@@ -370,7 +370,7 @@ Types
 :zeek:type:`DHCP::SubOpt`: :zeek:type:`record`                                DHCP Relay Agent Information Option (Option 82)
                                                                               ..
 :zeek:type:`DHCP::SubOpts`: :zeek:type:`vector`                               
-:zeek:type:`DNSStats`: :zeek:type:`record`                                    Statistics related to Bro's active use of DNS.
+:zeek:type:`DNSStats`: :zeek:type:`record`                                    Statistics related to Zeek's active use of DNS.
 :zeek:type:`EncapsulatingConnVector`: :zeek:type:`vector`                     A type alias for a vector of encapsulating "connections", i.e.
 :zeek:type:`EventStats`: :zeek:type:`record`                                  
 :zeek:type:`FileAnalysisStats`: :zeek:type:`record`                           Statistics of file analysis.
@@ -442,7 +442,7 @@ Types
 :zeek:type:`PE::OptionalHeader`: :zeek:type:`record`                          
 :zeek:type:`PE::SectionHeader`: :zeek:type:`record`                           Record for Portable Executable (PE) section headers.
 :zeek:type:`PcapFilterID`: :zeek:type:`enum`                                  Enum type identifying dynamic BPF filters.
-:zeek:type:`ProcStats`: :zeek:type:`record`                                   Statistics about Bro's process.
+:zeek:type:`ProcStats`: :zeek:type:`record`                                   Statistics about Zeek's process.
 :zeek:type:`RADIUS::AttributeList`: :zeek:type:`vector`                       
 :zeek:type:`RADIUS::Attributes`: :zeek:type:`table`                           
 :zeek:type:`RADIUS::Message`: :zeek:type:`record`                             
@@ -556,7 +556,7 @@ Types
 :zeek:type:`endpoint`: :zeek:type:`record`                                    Statistics about a :zeek:type:`connection` endpoint.
 :zeek:type:`endpoint_stats`: :zeek:type:`record`                              Statistics about what a TCP endpoint sent.
 :zeek:type:`entropy_test_result`: :zeek:type:`record`                         Computed entropy values.
-:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`                 A file that Bro is analyzing.
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`                 A file that Zeek is analyzing.
 :zeek:type:`fa_metadata`: :zeek:type:`record`                                 Metadata that's been inferred about a particular file.
 :zeek:type:`files_tag_set`: :zeek:type:`set`                                  A set of file analyzer tags.
 :zeek:type:`flow_id`: :zeek:type:`record` :zeek:attr:`&log`                   The identifying 4-tuple of a uni-directional flow.
@@ -896,7 +896,7 @@ Redefinable Options
    :Default: ``T``
 
    Tunable for sending reporter error messages to STDERR.  The option to
-   turn it off is presented here in case Bro is being run by some
+   turn it off is presented here in case Zeek is being run by some
    external harness and shouldn't output anything to the console.
 
 .. zeek:id:: Reporter::info_to_stderr
@@ -906,7 +906,7 @@ Redefinable Options
    :Default: ``T``
 
    Tunable for sending reporter info messages to STDERR.  The option to
-   turn it off is presented here in case Bro is being run by some
+   turn it off is presented here in case Zeek is being run by some
    external harness and shouldn't output anything to the console.
 
 .. zeek:id:: Reporter::warnings_to_stderr
@@ -916,7 +916,7 @@ Redefinable Options
    :Default: ``T``
 
    Tunable for sending reporter warning messages to STDERR.  The option
-   to turn it off is presented here in case Bro is being run by some
+   to turn it off is presented here in case Zeek is being run by some
    external harness and shouldn't output anything to the console.
 
 .. zeek:id:: SMB::pipe_filenames
@@ -940,7 +940,7 @@ Redefinable Options
 
    A set of file names used as named pipes over SMB. This
    only comes into play as a heuristic to identify named
-   pipes when the drive mapping wasn't seen by Bro.
+   pipes when the drive mapping wasn't seen by Zeek.
    
    .. zeek:see:: smb_pipe_connect_heuristic
 
@@ -1124,7 +1124,7 @@ Redefinable Options
    :Default: ``800000``
 
    The number of IO chunks allowed to be buffered between the child
-   and parent process of remote communication before Bro starts dropping
+   and parent process of remote communication before Zeek starts dropping
    connections to remote peers in an attempt to catch up.
 
 .. zeek:id:: cmd_line_bpf_filter
@@ -1161,7 +1161,7 @@ Redefinable Options
    :Default: ``1024``
 
    Size of per-connection buffer used for dynamic protocol detection. For each
-   connection, Bro buffers this initial amount of payload in memory so that
+   connection, Zeek buffers this initial amount of payload in memory so that
    complete protocol analysis can start even after the initial packets have
    already passed through (i.e., when a DPD signature matches only later).
    However, once the buffer is full, data is deleted and lost to analyzers that
@@ -1229,9 +1229,9 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
-   Flag to prevent Bro from exiting automatically when input is exhausted.
-   Normally Bro terminates when all packet sources have gone dry
-   and communication isn't enabled. If this flag is set, Bro's main loop will
+   Flag to prevent Zeek from exiting automatically when input is exhausted.
+   Normally Zeek terminates when all packet sources have gone dry
+   and communication isn't enabled. If this flag is set, Zeek's main loop will
    instead keep idling until :zeek:see:`terminate` is explicitly called.
    
    This is mainly for testing purposes when termination behaviour needs to be
@@ -1264,8 +1264,8 @@ Redefinable Options
    :Default: ``""``
 
    Seed for hashes computed internally for probabilistic data structures. Using
-   the same value here will make the hashes compatible between independent Bro
-   instances. If left unset, Bro will use a temporary local seed.
+   the same value here will make the hashes compatible between independent Zeek
+   instances. If left unset, Zeek will use a temporary local seed.
 
 .. zeek:id:: icmp_inactivity_timeout
 
@@ -1504,7 +1504,7 @@ Redefinable Options
    :Default: ``F``
 
    Whether usage of the old communication system is considered an error or
-   not.  The default Bro configuration no longer works with the non-Broker
+   not.  The default Zeek configuration no longer works with the non-Broker
    communication system unless you have manually taken action to initialize
    and set up the old comm. system.  Deprecation warnings are still emitted
    when setting this flag, but they will not result in a fatal error.
@@ -1515,12 +1515,12 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
-   Default mode for Bro's user-space dynamic packet filter. If true, packets
+   Default mode for Zeek's user-space dynamic packet filter. If true, packets
    that aren't explicitly allowed through, are dropped from any further
    processing.
    
    .. note:: This is not the BPF packet filter but an additional dynamic filter
-      that Bro optionally applies just before normal processing starts.
+      that Zeek optionally applies just before normal processing starts.
    
    .. zeek:see:: install_dst_addr_filter install_dst_net_filter
       install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
@@ -1588,8 +1588,8 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
-   If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
-   By default, Bro applies (very few) heuristics to reduce the volume. A side
+   If a trace file is given with ``-w``, dump *all* packets seen by Zeek into it.
+   By default, Zeek applies (very few) heuristics to reduce the volume. A side
    effect of setting this to true is that we can write the packets out before we
    actually process them, which can be helpful for debugging in case the
    analysis triggers a crash.
@@ -1652,7 +1652,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"<undefined>"``
 
-   The CA certificate file to authorize remote Bros/Broccolis.
+   The CA certificate file to authorize remote Zeeks/Broccolis.
    
    .. zeek:see:: ssl_private_key ssl_passphrase
 
@@ -1663,7 +1663,7 @@ Redefinable Options
    :Default: ``"<undefined>"``
 
    The passphrase for our private key. Keeping this undefined
-   causes Bro to prompt for the passphrase.
+   causes Zeek to prompt for the passphrase.
    
    .. zeek:see:: ssl_private_key ssl_ca_certificate
 
@@ -1683,7 +1683,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``".state"``
 
-   Specifies a directory for Bro to store its persistent state. All globals can
+   Specifies a directory for Zeek to store its persistent state. All globals can
    be declared persistent via the :zeek:attr:`&persistent` attribute.
 
 .. zeek:id:: state_write_delay
@@ -1694,7 +1694,7 @@ Redefinable Options
 
    Length of the delays inserted when storing state incrementally. To avoid
    dropping packets when serializing larger volumes of persistent state to
-   disk, Bro interleaves the operation with continued packet processing.
+   disk, Zeek interleaves the operation with continued packet processing.
 
 .. zeek:id:: stp_delta
 
@@ -1859,7 +1859,7 @@ Redefinable Options
 
    If we've seen this much data without any of it being acked, we give up
    on that connection to avoid memory exhaustion due to buffering all that
-   stuff.  If set to zero, then we don't ever give up.  Ideally, Bro would
+   stuff.  If set to zero, then we don't ever give up.  Ideally, Zeek would
    track the current window on a connection and use it to infer that data
    has in fact gone too far, but for now we just make this quite beefy.
    
@@ -2107,7 +2107,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``10.0 secs``
 
-   Bro's watchdog interval.
+   Zeek's watchdog interval.
 
 Constants
 #########
@@ -2625,7 +2625,7 @@ State Variables
    :Default: ``{}``
 
    Set of BPF capture filters to use for capturing, indexed by a user-definable
-   ID (which must be unique). If Bro is *not* configured with
+   ID (which must be unique). If Zeek is *not* configured with
    :zeek:id:`PacketFilter::enable_auto_protocol_capture_filters`,
    all packets matching at least one of the filters in this table (and all in
    :zeek:id:`restrict_filters`) will be analyzed.
@@ -3230,8 +3230,8 @@ Types
       cached_addresses: :zeek:type:`count`
          Number of cached addresses.
 
-   Statistics related to Bro's active use of DNS.  These numbers are
-   about Bro performing DNS queries on it's own, not traffic
+   Statistics related to Zeek's active use of DNS.  These numbers are
+   about Zeek performing DNS queries on it's own, not traffic
    being seen.
    
    .. zeek:see:: get_dns_stats
@@ -3334,7 +3334,7 @@ Types
       .. zeek:enum:: JSON::TS_EPOCH JSON::TimestampFormat
 
          Timestamps will be formatted as UNIX epoch doubles.  This is
-         the format that Bro typically writes out timestamps.
+         the format that Zeek typically writes out timestamps.
 
       .. zeek:enum:: JSON::TS_MILLIS JSON::TimestampFormat
 
@@ -4497,7 +4497,7 @@ Types
    :Type: :zeek:type:`record`
 
       pkts_recvd: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
-         Packets received by Bro.
+         Packets received by Zeek.
 
       pkts_dropped: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
          Packets reported dropped by the system.
@@ -4510,7 +4510,7 @@ Types
          be always set to zero.
 
       bytes_recvd: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
-         Bytes received by Bro.
+         Bytes received by Zeek.
 
    Packet capture statistics.  All counts are cumulative.
    
@@ -4785,7 +4785,7 @@ Types
          Start time of process.
 
       real_time: :zeek:type:`interval`
-         Elapsed real time since Bro started running.
+         Elapsed real time since Zeek started running.
 
       user_time: :zeek:type:`interval`
          User CPU seconds.
@@ -4814,11 +4814,11 @@ Types
       num_context: :zeek:type:`count`
          Number of involuntary context switches.
 
-   Statistics about Bro's process.
+   Statistics about Zeek's process.
    
    .. zeek:see:: get_proc_stats
    
-   .. note:: All process-level values refer to Bro's main process only, not to
+   .. note:: All process-level values refer to Zeek's main process only, not to
       the child process it spawns for doing communication.
 
 .. zeek:type:: RADIUS::AttributeList
@@ -6563,7 +6563,7 @@ Types
          may adjust it somewhat in ambiguous cases).
 
       service: :zeek:type:`set` [:zeek:type:`string`]
-         The set of services the connection is using as determined by Bro's
+         The set of services the connection is using as determined by Zeek's
          dynamic protocol detection. Each entry is the label of an analyzer
          that confirmed that it could parse the connection payload.  While
          typically, there will be at most one entry for each connection, in
@@ -6575,8 +6575,8 @@ Types
          State history of connections. See *history* in :zeek:see:`Conn::Info`.
 
       uid: :zeek:type:`string`
-         A globally unique connection identifier. For each connection, Bro
-         creates an ID that is very likely unique across independent Bro runs.
+         A globally unique connection identifier. For each connection, Zeek
+         creates an ID that is very likely unique across independent Zeek runs.
          These IDs can thus be used to tag and locate information associated
          with that connection.
 
@@ -6734,8 +6734,8 @@ Types
          (present if :doc:`/scripts/policy/protocols/conn/known-services.zeek` is loaded)
 
 
-   A connection. This is Bro's basic connection type describing IP- and
-   transport-layer information about the conversation. Note that Bro uses a
+   A connection. This is Zeek's basic connection type describing IP- and
+   transport-layer information about the conversation. Note that Zeek uses a
    liberal interpretation of "connection" and associates instances of this type
    also with UDP and ICMP flows.
 
@@ -7182,7 +7182,7 @@ Types
 
    Computed entropy values. The record captures a number of measures that are
    computed in parallel. See `A Pseudorandom Number Sequence Test Program
-   <http://www.fourmilab.ch/random>`_ for more information, Bro uses the same
+   <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
    code.
    
    .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
@@ -7273,7 +7273,7 @@ Types
 
    :Attributes: :zeek:attr:`&redef`
 
-   A file that Bro is analyzing.  This is Bro's type for describing the basic
+   A file that Zeek is analyzing.  This is Zeek's type for describing the basic
    internal metadata collected about a "file", which is essentially just a
    byte stream that is e.g. pulled from a network connection or possibly
    some other input source.
@@ -9178,7 +9178,7 @@ Types
 
          ICMP.
 
-   A connection's transport-layer protocol. Note that Bro uses the term
+   A connection's transport-layer protocol. Note that Zeek uses the term
    "connection" broadly, using flow semantics for ICMP and UDP.
 
 .. zeek:type:: udp_hdr
@@ -9239,7 +9239,7 @@ Functions
    :Type: :zeek:type:`function` (p: :zeek:type:`pkt_hdr`) : :zeek:type:`bool`
 
    Function for skipping packets based on their ICMP header. If defined, this
-   function will be called for all ICMP packets before Bro performs any further
+   function will be called for all ICMP packets before Zeek performs any further
    analysis. If the function signals to discard a packet, no further processing
    will be performed on it.
    
@@ -9260,7 +9260,7 @@ Functions
    :Type: :zeek:type:`function` (p: :zeek:type:`pkt_hdr`) : :zeek:type:`bool`
 
    Function for skipping packets based on their IP header. If defined, this
-   function will be called for all IP packets before Bro performs any further
+   function will be called for all IP packets before Zeek performs any further
    analysis. If the function signals to discard a packet, no further processing
    will be performed on it.
    
@@ -9281,7 +9281,7 @@ Functions
    :Type: :zeek:type:`function` (p: :zeek:type:`pkt_hdr`, d: :zeek:type:`string`) : :zeek:type:`bool`
 
    Function for skipping packets based on their TCP header. If defined, this
-   function will be called for all TCP packets before Bro performs any further
+   function will be called for all TCP packets before Zeek performs any further
    analysis. If the function signals to discard a packet, no further processing
    will be performed on it.
    
@@ -9305,7 +9305,7 @@ Functions
    :Type: :zeek:type:`function` (p: :zeek:type:`pkt_hdr`, d: :zeek:type:`string`) : :zeek:type:`bool`
 
    Function for skipping packets based on their UDP header. If defined, this
-   function will be called for all UDP packets before Bro performs any further
+   function will be called for all UDP packets before Zeek performs any further
    analysis. If the function signals to discard a packet, no further processing
    will be performed on it.
    

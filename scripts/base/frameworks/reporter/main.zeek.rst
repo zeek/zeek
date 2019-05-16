@@ -53,10 +53,10 @@ Types
 
       message: :zeek:type:`string` :zeek:attr:`&log`
          An info/warning/error message that could have either been
-         generated from the internal Bro core or at the scripting-layer.
+         generated from the internal Zeek core or at the scripting-layer.
 
       location: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
-         This is the location in a Bro script where the message originated.
+         This is the location in a Zeek script where the message originated.
          Not all reporter messages will have locations in them though.
 
    The record type which contains the column fields of the reporter log.

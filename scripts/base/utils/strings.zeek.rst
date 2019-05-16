@@ -4,7 +4,7 @@ base/utils/strings.zeek
 =======================
 
 Functions to assist with small string analysis and manipulation that can
-be implemented as Bro functions and don't need to be implemented as built-in
+be implemented as Zeek functions and don't need to be implemented as built-in
 functions.
 
 

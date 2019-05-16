@@ -4,7 +4,7 @@ Package: base/frameworks/input
 ==============================
 
 The input framework provides a way to read previously stored data either as
-an event stream or into a Bro table.
+an event stream or into a Zeek table.
 
 :doc:`/scripts/base/frameworks/input/__load__.zeek`
 
@@ -12,13 +12,13 @@ an event stream or into a Bro table.
 :doc:`/scripts/base/frameworks/input/main.zeek`
 
    The input framework provides a way to read previously stored data either
-   as an event stream or into a Bro table.
+   as an event stream or into a Zeek table.
 
 :doc:`/scripts/base/frameworks/input/readers/ascii.zeek`
 
    Interface for the ascii input reader.
    
-   The defaults are set to match Bro's ASCII output.
+   The defaults are set to match Zeek's ASCII output.
 
 :doc:`/scripts/base/frameworks/input/readers/raw.zeek`
 

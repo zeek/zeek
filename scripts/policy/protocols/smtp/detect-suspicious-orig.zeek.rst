@@ -37,7 +37,7 @@ Runtime Options
 
    Places where it's suspicious for mail to originate from represented
    as all-capital, two character country codes (e.g., US).  It requires
-   Bro to be built with GeoIP support.
+   Zeek to be built with GeoIP support.
 
 .. zeek:id:: SMTP::suspicious_origination_networks
 

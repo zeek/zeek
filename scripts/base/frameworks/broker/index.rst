@@ -3,7 +3,7 @@
 Package: base/frameworks/broker
 ===============================
 
-The Broker communication framework facilitates connecting to remote Bro
+The Broker communication framework facilitates connecting to remote Zeek
 instances to share state and transfer events.
 
 :doc:`/scripts/base/frameworks/broker/__load__.zeek`

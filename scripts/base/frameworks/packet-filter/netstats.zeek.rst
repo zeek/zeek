@@ -5,7 +5,7 @@ base/frameworks/packet-filter/netstats.zeek
 .. zeek:namespace:: PacketFilter
 
 This script reports on packet loss from the various packet sources.
-When Bro is reading input from trace files, this script will not
+When Zeek is reading input from trace files, this script will not
 report any packet loss statistics.
 
 :Namespace: PacketFilter

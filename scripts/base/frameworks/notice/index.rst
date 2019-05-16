@@ -3,26 +3,26 @@
 Package: base/frameworks/notice
 ===============================
 
-The notice framework enables Bro to "notice" things which are odd or
+The notice framework enables Zeek to "notice" things which are odd or
 potentially bad, leaving it to the local configuration to define which
 of them are actionable.  This decoupling of detection and reporting allows
-Bro to be customized to the different needs that sites have.
+Zeek to be customized to the different needs that sites have.
 
 :doc:`/scripts/base/frameworks/notice/__load__.zeek`
 
 
 :doc:`/scripts/base/frameworks/notice/main.zeek`
 
-   This is the notice framework which enables Bro to "notice" things which
+   This is the notice framework which enables Zeek to "notice" things which
    are odd or potentially bad.  Decisions of the meaning of various notices
-   need to be done per site because Bro does not ship with assumptions about
+   need to be done per site because Zeek does not ship with assumptions about
    what is bad activity for sites.  More extensive documentation about using
    the notice framework can be found in :doc:`/frameworks/notice`.
 
 :doc:`/scripts/base/frameworks/notice/weird.zeek`
 
    This script provides a default set of actions to take for "weird activity"
-   events generated from Bro's event engine.  Weird activity is defined as
+   events generated from Zeek's event engine.  Weird activity is defined as
    unusual or exceptional activity that can indicate malformed connections,
    traffic that doesn't conform to a particular protocol, malfunctioning
    or misconfigured hardware, or even an attacker attempting to avoid/confuse

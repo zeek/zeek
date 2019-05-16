@@ -8,7 +8,7 @@ Discovers trace files that contain TCP traffic consisting only of
 control packets (e.g. it's been filtered to contain only SYN/FIN/RST
 packets and no content).  On finding such a trace, a warning is
 emitted that suggests toggling the :zeek:see:`detect_filtered_trace`
-option may be desired if the user does not want Bro to report
+option may be desired if the user does not want Zeek to report
 missing TCP segments.
 
 :Namespace: FilteredTraceDetection

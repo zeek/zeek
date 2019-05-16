@@ -18,7 +18,7 @@ Runtime Options
 :zeek:id:`DNS::max_pending_msgs`: :zeek:type:`count` :zeek:attr:`&redef`      Give up trying to match pending DNS queries or replies for a given
                                                                               query/transaction ID once this number of unmatched queries or replies
                                                                               is reached (this shouldn't happen unless either the DNS server/resolver
-                                                                              is broken, Bro is not seeing all the DNS traffic, or an AXFR query
+                                                                              is broken, Zeek is not seeing all the DNS traffic, or an AXFR query
                                                                               response is ongoing).
 :zeek:id:`DNS::max_pending_query_ids`: :zeek:type:`count` :zeek:attr:`&redef` Give up trying to match pending DNS queries or replies across all
                                                                               query/transaction IDs once there is at least one unmatched query or
@@ -74,7 +74,7 @@ Runtime Options
    Give up trying to match pending DNS queries or replies for a given
    query/transaction ID once this number of unmatched queries or replies
    is reached (this shouldn't happen unless either the DNS server/resolver
-   is broken, Bro is not seeing all the DNS traffic, or an AXFR query
+   is broken, Zeek is not seeing all the DNS traffic, or an AXFR query
    response is ongoing).
 
 .. zeek:id:: DNS::max_pending_query_ids

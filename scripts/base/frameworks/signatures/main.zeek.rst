@@ -6,7 +6,7 @@ base/frameworks/signatures/main.zeek
 
 Script level signature support.  See the
 :doc:`signature documentation </frameworks/signatures>` for more
-information about Bro's signature engine.
+information about Zeek's signature engine.
 
 :Namespace: Signatures
 :Imports: :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`

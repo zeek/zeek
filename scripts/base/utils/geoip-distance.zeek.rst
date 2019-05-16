@@ -25,7 +25,7 @@ Functions
    :Type: :zeek:type:`function` (a1: :zeek:type:`addr`, a2: :zeek:type:`addr`) : :zeek:type:`double`
 
    Returns the distance between two IP addresses using the haversine formula,
-   based on GeoIP database locations.  Requires Bro to be built with GeoIP.
+   based on GeoIP database locations.  Requires Zeek to be built with GeoIP.
    
 
    :a1: First IP address.

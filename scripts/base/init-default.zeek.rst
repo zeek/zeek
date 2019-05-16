@@ -4,7 +4,7 @@ base/init-default.zeek
 ======================
 
 This script loads everything in the base/ script directory.  If you want
-to run Bro without all of these scripts loaded by default, you can use
+to run Zeek without all of these scripts loaded by default, you can use
 the ``-b`` (``--bare-mode``) command line argument.  You can also copy the
 "@load" lines from this script to your own script to load only the scripts
 that you actually want.

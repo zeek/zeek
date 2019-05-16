@@ -77,7 +77,7 @@ Types
          The time delay between this measurement and the last.
 
       peer: :zeek:type:`string` :zeek:attr:`&log`
-         In the event that there are multiple Bro instances logging
+         In the event that there are multiple Zeek instances logging
          to the same host, this distinguishes each peer with its
          individual name.
 

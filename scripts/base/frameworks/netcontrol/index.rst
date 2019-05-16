@@ -3,7 +3,7 @@
 Package: base/frameworks/netcontrol
 ===================================
 
-The NetControl framework provides a way for Bro to interact with networking
+The NetControl framework provides a way for Zeek to interact with networking
 hard- and software, e.g. for dropping and shunting IP addresses/connections,
 etc.
 
@@ -19,11 +19,11 @@ etc.
 
 :doc:`/scripts/base/frameworks/netcontrol/main.zeek`
 
-   Bro's NetControl framework.
+   Zeek's NetControl framework.
    
-   This plugin-based framework allows to control the traffic that Bro monitors
+   This plugin-based framework allows to control the traffic that Zeek monitors
    as well as, if having access to the forwarding path, the traffic the network
-   forwards. By default, the framework lets everything through, to both Bro
+   forwards. By default, the framework lets everything through, to both Zeek
    itself as well as on the network. Scripts can then add rules to impose
    restrictions on entities, such as specific connections or IP addresses.
    
@@ -50,7 +50,7 @@ etc.
 :doc:`/scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek`
 
    NetControl plugin for the process-level PacketFilter that comes with
-   Bro. Since the PacketFilter in Bro is quite limited in scope
+   Zeek. Since the PacketFilter in Zeek is quite limited in scope
    and can only add/remove filters for addresses, this is quite
    limited in scope at the moment. 
 

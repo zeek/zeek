@@ -73,7 +73,7 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``{}``
 
-   Networks that are considered "local".  Note that BroControl sets
+   Networks that are considered "local".  Note that ZeekControl sets
    this automatically.
 
 .. zeek:id:: Site::local_zones

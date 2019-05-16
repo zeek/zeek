@@ -42,7 +42,7 @@ Functions
 :zeek:id:`Broker::close`: :zeek:type:`function`                 Close a data store.
 :zeek:id:`Broker::create_clone`: :zeek:type:`function`          Create a clone of a master data store which may live with a remote peer.
 :zeek:id:`Broker::create_master`: :zeek:type:`function`         Create a master data store which contains key-value pairs.
-:zeek:id:`Broker::data`: :zeek:type:`function`                  Convert any Bro value to communication data.
+:zeek:id:`Broker::data`: :zeek:type:`function`                  Convert any Zeek value to communication data.
 :zeek:id:`Broker::data_type`: :zeek:type:`function`             Retrieve the type of data associated with communication data.
 :zeek:id:`Broker::decrement`: :zeek:type:`function`             Decrements an existing value by a given amount.
 :zeek:id:`Broker::erase`: :zeek:type:`function`                 Remove a key-value pair from the store.
@@ -322,17 +322,17 @@ Functions
 
    :Type: :zeek:type:`function` (d: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
-   Convert any Bro value to communication data.
+   Convert any Zeek value to communication data.
    
    .. note:: Normally you won't need to use this function as data
-      conversion happens implicitly when passing Bro values into Broker
+      conversion happens implicitly when passing Zeek values into Broker
       functions.
    
 
-   :d: any Bro value to attempt to convert (not all types are supported).
+   :d: any Zeek value to attempt to convert (not all types are supported).
    
 
-   :returns: the converted communication data.  If the supplied Bro data
+   :returns: the converted communication data.  If the supplied Zeek data
             type does not support conversion to communication data, the
             returned record's optional field will not be set.
 

@@ -4,8 +4,8 @@ policy/misc/load-balancing.zeek
 ===============================
 .. zeek:namespace:: LoadBalancing
 
-This script implements the "Bro side" of several load balancing
-approaches for Bro clusters.
+This script implements the "Zeek side" of several load balancing
+approaches for Zeek clusters.
 
 :Namespace: LoadBalancing
 :Imports: :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`, :doc:`base/frameworks/packet-filter </scripts/base/frameworks/packet-filter/index>`

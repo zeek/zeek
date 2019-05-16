@@ -32,9 +32,9 @@ Events
 
 Functions
 #########
-======================================================== =========================================================
-:zeek:id:`NetControl::shunt_flow`: :zeek:type:`function` Stops forwarding a uni-directional flow's packets to Bro.
-======================================================== =========================================================
+======================================================== ==========================================================
+:zeek:id:`NetControl::shunt_flow`: :zeek:type:`function` Stops forwarding a uni-directional flow's packets to Zeek.
+======================================================== ==========================================================
 
 
 Detailed Interface
@@ -49,7 +49,7 @@ Types
          Time at which the recorded activity occurred.
 
       rule_id: :zeek:type:`string` :zeek:attr:`&log`
-         ID of the rule; unique during each Bro run.
+         ID of the rule; unique during each Zeek run.
 
       f: :zeek:type:`flow_id` :zeek:attr:`&log`
          Flow ID of the shunted flow.
@@ -76,7 +76,7 @@ Functions
 
    :Type: :zeek:type:`function` (f: :zeek:type:`flow_id`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
-   Stops forwarding a uni-directional flow's packets to Bro.
+   Stops forwarding a uni-directional flow's packets to Zeek.
    
 
    :f: The flow to shunt.

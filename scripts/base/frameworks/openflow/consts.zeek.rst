@@ -35,7 +35,7 @@ Constants
 :zeek:id:`OpenFlow::ETH_WOL`: :zeek:type:`count`                
 :zeek:id:`OpenFlow::INVALID_COOKIE`: :zeek:type:`count`         Return value for a cookie from a flow
                                                                 which is not added, modified or deleted
-                                                                from the bro openflow framework.
+                                                                from the Zeek openflow framework.
 :zeek:id:`OpenFlow::IP_CBT`: :zeek:type:`count`                 
 :zeek:id:`OpenFlow::IP_EGP`: :zeek:type:`count`                 
 :zeek:id:`OpenFlow::IP_ETHERIP`: :zeek:type:`count`             
@@ -215,7 +215,7 @@ Constants
 
    Return value for a cookie from a flow
    which is not added, modified or deleted
-   from the bro openflow framework.
+   from the Zeek openflow framework.
 
 .. zeek:id:: OpenFlow::IP_CBT
 

@@ -4,9 +4,9 @@ policy/misc/dump-events.zeek
 ============================
 .. zeek:namespace:: DumpEvents
 
-This script dumps the events that Bro raises out to standard output in a
+This script dumps the events that Zeek raises out to standard output in a
 readable form. This is for debugging only and allows to understand events and
-their parameters as Bro processes input. Note that it will show only events
+their parameters as Zeek processes input. Note that it will show only events
 for which a handler is defined.
 
 :Namespace: DumpEvents

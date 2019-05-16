@@ -4,7 +4,7 @@ base/misc/version.zeek
 ======================
 .. zeek:namespace:: Version
 
-Provide information about the currently running Bro version.
+Provide information about the currently running Zeek version.
 The most convenient way to access this are the Version::number
 and Version::info constants.
 
@@ -15,24 +15,24 @@ Summary
 ~~~~~~~
 Constants
 #########
-================================================================== ===================================================================================
-:zeek:id:`Version::info`: :zeek:type:`Version::VersionDescription` `VersionDescription` record pertaining to the currently running version of Bro.
-:zeek:id:`Version::number`: :zeek:type:`count`                     version number of the currently running version of Bro as a numeric representation.
-================================================================== ===================================================================================
+================================================================== ====================================================================================
+:zeek:id:`Version::info`: :zeek:type:`Version::VersionDescription` `VersionDescription` record pertaining to the currently running version of Zeek.
+:zeek:id:`Version::number`: :zeek:type:`count`                     version number of the currently running version of Zeek as a numeric representation.
+================================================================== ====================================================================================
 
 Types
 #####
-============================================================= =======================================
-:zeek:type:`Version::VersionDescription`: :zeek:type:`record` A type exactly describing a Bro version
-============================================================= =======================================
+============================================================= ========================================
+:zeek:type:`Version::VersionDescription`: :zeek:type:`record` A type exactly describing a Zeek version
+============================================================= ========================================
 
 Functions
 #########
-=================================================== ===================================================================================
-:zeek:id:`Version::at_least`: :zeek:type:`function` Test if the current running version of Bro is greater or equal to the given version
+=================================================== ====================================================================================
+:zeek:id:`Version::at_least`: :zeek:type:`function` Test if the current running version of Zeek is greater or equal to the given version
                                                     string.
 :zeek:id:`Version::parse`: :zeek:type:`function`    Parse a given version string.
-=================================================== ===================================================================================
+=================================================== ====================================================================================
 
 
 Detailed Interface
@@ -43,16 +43,16 @@ Constants
 
    :Type: :zeek:type:`Version::VersionDescription`
 
-   `VersionDescription` record pertaining to the currently running version of Bro.
+   `VersionDescription` record pertaining to the currently running version of Zeek.
 
 .. zeek:id:: Version::number
 
    :Type: :zeek:type:`count`
 
-   version number of the currently running version of Bro as a numeric representation.
+   version number of the currently running version of Zeek as a numeric representation.
    The format of the number is ABBCC with A being the major version,
    bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
-   As an example, Bro 2.4.1 results in the number 20401
+   As an example, Zeek 2.4.1 results in the number 20401
 
 Types
 #####
@@ -64,7 +64,7 @@ Types
          Number representing the version which can be used for easy comparison.
          The format of the number is ABBCC with A being the major version,
          bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
-         As an example, Bro 2.4.1 results in the number 20401.
+         As an example, Zeek 2.4.1 results in the number 20401.
 
       major: :zeek:type:`count`
          Major version number (e.g. 2 for 2.5)
@@ -79,7 +79,7 @@ Types
          Commit number for development versions, e.g. 12 for 2.4-12. 0 for non-development versions
 
       beta: :zeek:type:`bool`
-         If set to true, the version is a beta build of Bro
+         If set to true, the version is a beta build of Zeek
 
       debug: :zeek:type:`bool`
          If set to true, the version is a debug build
@@ -87,7 +87,7 @@ Types
       version_string: :zeek:type:`string`
          String representation of this version
 
-   A type exactly describing a Bro version
+   A type exactly describing a Zeek version
 
 Functions
 #########
@@ -95,7 +95,7 @@ Functions
 
    :Type: :zeek:type:`function` (version_string: :zeek:type:`string`) : :zeek:type:`bool`
 
-   Test if the current running version of Bro is greater or equal to the given version
+   Test if the current running version of Zeek is greater or equal to the given version
    string.
    
 
@@ -111,7 +111,7 @@ Functions
    Parse a given version string.
    
 
-   :version_string: Bro version string.
+   :version_string: Zeek version string.
    
 
    :returns: `VersionDescription` record.

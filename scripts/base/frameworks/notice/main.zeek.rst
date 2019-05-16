@@ -5,9 +5,9 @@ base/frameworks/notice/main.zeek
 .. zeek:namespace:: GLOBAL
 .. zeek:namespace:: Notice
 
-This is the notice framework which enables Bro to "notice" things which
+This is the notice framework which enables Zeek to "notice" things which
 are odd or potentially bad.  Decisions of the meaning of various notices
-need to be done per site because Bro does not ship with assumptions about
+need to be done per site because Zeek does not ship with assumptions about
 what is bad activity for sites.  More extensive documentation about using
 the notice framework can be found in :doc:`/frameworks/notice`.
 
@@ -141,21 +141,21 @@ Runtime Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"Big Brother <bro@localhost>"``
+   :Default: ``"Zeek <zeek@localhost>"``
 
    Address that emails will be from.
    
-   Note that this is overridden by the BroControl MailFrom option.
+   Note that this is overridden by the ZeekControl MailFrom option.
 
 .. zeek:id:: Notice::mail_subject_prefix
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"[Bro]"``
+   :Default: ``"[Zeek]"``
 
    Text string prefixed to the subject of all emails sent out.
    
-   Note that this is overridden by the BroControl MailSubjectPrefix
+   Note that this is overridden by the ZeekControl MailSubjectPrefix
    option.
 
 .. zeek:id:: Notice::not_suppressed_types
@@ -182,7 +182,7 @@ Runtime Options
 
    Local system sendmail program.
    
-   Note that this is overridden by the BroControl SendMail option.
+   Note that this is overridden by the ZeekControl SendMail option.
 
 Redefinable Options
 ###################
@@ -196,7 +196,7 @@ Redefinable Options
    :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
    on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
    
-   Note that this is overridden by the BroControl MailTo option.
+   Note that this is overridden by the ZeekControl MailTo option.
 
 .. zeek:id:: Notice::max_email_delay
 

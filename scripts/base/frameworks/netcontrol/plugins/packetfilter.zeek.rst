@@ -5,7 +5,7 @@ base/frameworks/netcontrol/plugins/packetfilter.zeek
 .. zeek:namespace:: NetControl
 
 NetControl plugin for the process-level PacketFilter that comes with
-Bro. Since the PacketFilter in Bro is quite limited in scope
+Zeek. Since the PacketFilter in Zeek is quite limited in scope
 and can only add/remove filters for addresses, this is quite
 limited in scope at the moment. 
 

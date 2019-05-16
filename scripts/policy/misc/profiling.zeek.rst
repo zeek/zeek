@@ -4,7 +4,7 @@ policy/misc/profiling.zeek
 ==========================
 .. zeek:namespace:: Profiling
 
-Turns on profiling of Bro resource consumption.
+Turns on profiling of Zeek resource consumption.
 
 :Namespace: Profiling
 

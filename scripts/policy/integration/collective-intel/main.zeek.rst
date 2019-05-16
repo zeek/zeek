@@ -12,10 +12,10 @@ Summary
 ~~~~~~~
 Redefinitions
 #############
-================================================= =======================================================================
-:zeek:type:`Intel::MetaData`: :zeek:type:`record` These are some fields to add extended compatibility between Bro and the
+================================================= ========================================================================
+:zeek:type:`Intel::MetaData`: :zeek:type:`record` These are some fields to add extended compatibility between Zeek and the
                                                   Collective Intelligence Framework.
-================================================= =======================================================================
+================================================= ========================================================================
 
 
 Detailed Interface

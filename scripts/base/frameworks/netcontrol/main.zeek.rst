@@ -4,11 +4,11 @@ base/frameworks/netcontrol/main.zeek
 ====================================
 .. zeek:namespace:: NetControl
 
-Bro's NetControl framework.
+Zeek's NetControl framework.
 
-This plugin-based framework allows to control the traffic that Bro monitors
+This plugin-based framework allows to control the traffic that Zeek monitors
 as well as, if having access to the forwarding path, the traffic the network
-forwards. By default, the framework lets everything through, to both Bro
+forwards. By default, the framework lets everything through, to both Zeek
 itself as well as on the network. Scripts can then add rules to impose
 restrictions on entities, such as specific connections or IP addresses.
 
@@ -95,7 +95,7 @@ Types
          Time at which the recorded activity occurred.
 
       rule_id: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
-         ID of the rule; unique during each Bro run.
+         ID of the rule; unique during each Zeek run.
 
       category: :zeek:type:`NetControl::InfoCategory` :zeek:attr:`&log` :zeek:attr:`&optional`
          Type of the log entry.

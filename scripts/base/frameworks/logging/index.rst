@@ -10,9 +10,9 @@ The logging framework provides a flexible key-value based logging interface.
 
 :doc:`/scripts/base/frameworks/logging/main.zeek`
 
-   The Bro logging interface.
+   The Zeek logging interface.
    
-   See :doc:`/frameworks/logging` for an introduction to Bro's
+   See :doc:`/frameworks/logging` for an introduction to Zeek's
    logging framework.
 
 :doc:`/scripts/base/frameworks/logging/postprocessors/__load__.zeek`

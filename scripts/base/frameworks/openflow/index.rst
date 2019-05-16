@@ -19,7 +19,7 @@ necessary to interface to OpenFlow capable hardware.
 
 :doc:`/scripts/base/frameworks/openflow/main.zeek`
 
-   Bro's OpenFlow control framework.
+   Zeek's OpenFlow control framework.
    
    This plugin-based framework allows to control OpenFlow capable
    switches by implementing communication to an OpenFlow controller
@@ -39,7 +39,7 @@ necessary to interface to OpenFlow capable hardware.
 :doc:`/scripts/base/frameworks/openflow/plugins/log.zeek`
 
    OpenFlow plugin that outputs flow-modification commands
-   to a Bro log file.
+   to a Zeek log file.
 
 :doc:`/scripts/base/frameworks/openflow/plugins/broker.zeek`
 

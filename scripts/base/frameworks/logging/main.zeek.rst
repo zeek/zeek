@@ -4,9 +4,9 @@ base/frameworks/logging/main.zeek
 =================================
 .. zeek:namespace:: Log
 
-The Bro logging interface.
+The Zeek logging interface.
 
-See :doc:`/frameworks/logging` for an introduction to Bro's
+See :doc:`/frameworks/logging` for an introduction to Zeek's
 logging framework.
 
 :Namespace: Log
@@ -123,7 +123,7 @@ Redefinable Options
    Default alarm summary mail interval. Zero disables alarm summary
    mails.
    
-   Note that this is overridden by the BroControl MailAlarmsInterval
+   Note that this is overridden by the ZeekControl MailAlarmsInterval
    option.
 
 .. zeek:id:: Log::default_rotation_date_format
@@ -144,7 +144,7 @@ Redefinable Options
    Default rotation interval to use for filters that do not specify
    an interval. Zero disables rotation.
    
-   Note that this is overridden by the BroControl LogRotationInterval
+   Note that this is overridden by the ZeekControl LogRotationInterval
    option.
 
 .. zeek:id:: Log::default_rotation_postprocessor_cmd
@@ -396,7 +396,7 @@ Types
 
       ext_prefix: :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Log::default_ext_prefix` :zeek:attr:`&optional`
          Default prefix for all extension fields. It's typically
-         prudent to set this to something that Bro's logging
+         prudent to set this to something that Zeek's logging
          framework can't normally write out in a field name.
 
       ext_func: :zeek:type:`function` (path: :zeek:type:`string`) : :zeek:type:`any` :zeek:attr:`&default` = :zeek:see:`Log::default_ext_func` :zeek:attr:`&optional`
@@ -766,7 +766,7 @@ Types
          Time when closed.
 
       terminating: :zeek:type:`bool`
-         True if rotation occured due to Bro shutting down.
+         True if rotation occured due to Zeek shutting down.
 
    Information passed into rotation callback functions.
 

@@ -22,7 +22,7 @@ Runtime Options
 ###############
 ======================================================================================= ===================================================================
 :zeek:id:`SMTP::detect_clients_in_messages_from`: :zeek:type:`Host` :zeek:attr:`&redef` Assuming that local mail servers are more trustworthy with the
-                                                                                        headers they insert into message envelopes, this default makes Bro
+                                                                                        headers they insert into message envelopes, this default makes Zeek
                                                                                         not attempt to detect software in inbound message bodies.
 :zeek:id:`SMTP::webmail_user_agents`: :zeek:type:`pattern` :zeek:attr:`&redef`          A regular expression to match USER-AGENT-like headers to find if a 
                                                                                         message was sent with a webmail interface.
@@ -47,7 +47,7 @@ Runtime Options
    :Default: ``LOCAL_HOSTS``
 
    Assuming that local mail servers are more trustworthy with the
-   headers they insert into message envelopes, this default makes Bro
+   headers they insert into message envelopes, this default makes Zeek
    not attempt to detect software in inbound message bodies.  If mail
    coming in from external addresses gives incorrect data in
    the Received headers, it could populate your SOFTWARE logging stream

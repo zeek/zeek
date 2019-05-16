@@ -57,7 +57,7 @@ Types
          Time at which the recorded activity occurred.
 
       rule_id: :zeek:type:`string` :zeek:attr:`&log`
-         ID of the rule; unique during each Bro run.
+         ID of the rule; unique during each Zeek run.
 
       orig_h: :zeek:type:`addr` :zeek:attr:`&log`
          The originator's IP address.

@@ -5,7 +5,7 @@ base/frameworks/control/main.zeek
 .. zeek:namespace:: Control
 
 The control framework provides the foundation for providing "commands"
-that can be taken remotely at runtime to modify a running Bro instance
+that can be taken remotely at runtime to modify a running Zeek instance
 or collect information from the running instance.
 
 :Namespace: Control
@@ -35,10 +35,10 @@ Constants
 
 Events
 ######
-===================================================================== ====================================================================
+===================================================================== =====================================================================
 :zeek:id:`Control::configuration_update`: :zeek:type:`event`          This event is a wrapper and alias for the
                                                                       :zeek:id:`Control::configuration_update_request` event.
-:zeek:id:`Control::configuration_update_request`: :zeek:type:`event`  Inform the remote Bro instance that it's configuration may have been
+:zeek:id:`Control::configuration_update_request`: :zeek:type:`event`  Inform the remote Zeek instance that it's configuration may have been
                                                                       updated.
 :zeek:id:`Control::configuration_update_response`: :zeek:type:`event` Message in response to a configuration update request.
 :zeek:id:`Control::id_value_request`: :zeek:type:`event`              Event for requesting the value of an ID (a variable).
@@ -48,9 +48,9 @@ Events
 :zeek:id:`Control::net_stats_response`: :zeek:type:`event`            Returns the current net_stats.
 :zeek:id:`Control::peer_status_request`: :zeek:type:`event`           Requests the current communication status.
 :zeek:id:`Control::peer_status_response`: :zeek:type:`event`          Returns the current communication status.
-:zeek:id:`Control::shutdown_request`: :zeek:type:`event`              Requests that the Bro instance begins shutting down.
+:zeek:id:`Control::shutdown_request`: :zeek:type:`event`              Requests that the Zeek instance begins shutting down.
 :zeek:id:`Control::shutdown_response`: :zeek:type:`event`             Message in response to a shutdown request.
-===================================================================== ====================================================================
+===================================================================== =====================================================================
 
 
 Detailed Interface
@@ -157,7 +157,7 @@ Events
 
    :Type: :zeek:type:`event` ()
 
-   Inform the remote Bro instance that it's configuration may have been
+   Inform the remote Zeek instance that it's configuration may have been
    updated.
 
 .. zeek:id:: Control::configuration_update_response
@@ -207,7 +207,7 @@ Events
 
    :Type: :zeek:type:`event` ()
 
-   Requests that the Bro instance begins shutting down.
+   Requests that the Zeek instance begins shutting down.
 
 .. zeek:id:: Control::shutdown_response
 

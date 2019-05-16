@@ -8,17 +8,17 @@
 
 :doc:`base/frameworks/broker </scripts/base/frameworks/broker/index>`
 
-   The Broker communication framework facilitates connecting to remote Bro
+   The Broker communication framework facilitates connecting to remote Zeek
    instances to share state and transfer events.
 
 :doc:`base/frameworks/input </scripts/base/frameworks/input/index>`
 
    The input framework provides a way to read previously stored data either as
-   an event stream or into a Bro table.
+   an event stream or into a Zeek table.
 
 :doc:`base/frameworks/analyzer </scripts/base/frameworks/analyzer/index>`
 
-   The analyzer framework allows to dynamically enable or disable Bro's
+   The analyzer framework allows to dynamically enable or disable Zeek's
    protocol analyzers, as well as to manage the well-known ports which
    automatically activate a particular analyzer for new connections.
 
@@ -44,25 +44,25 @@
 
 :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`
 
-   The notice framework enables Bro to "notice" things which are odd or
+   The notice framework enables Zeek to "notice" things which are odd or
    potentially bad, leaving it to the local configuration to define which
    of them are actionable.  This decoupling of detection and reporting allows
-   Bro to be customized to the different needs that sites have.
+   Zeek to be customized to the different needs that sites have.
 
 :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`
 
    The cluster framework provides for establishing and controlling a cluster
-   of Bro instances.
+   of Zeek instances.
 
 :doc:`base/frameworks/control </scripts/base/frameworks/control/index>`
 
    The control framework provides the foundation for providing "commands"
-   that can be taken remotely at runtime to modify a running Bro instance
+   that can be taken remotely at runtime to modify a running Zeek instance
    or collect information from the running instance.
 
 :doc:`base/frameworks/netcontrol </scripts/base/frameworks/netcontrol/index>`
 
-   The NetControl framework provides a way for Bro to interact with networking
+   The NetControl framework provides a way for Zeek to interact with networking
    hard- and software, e.g. for dropping and shunting IP addresses/connections,
    etc.
 
@@ -87,13 +87,13 @@
 :doc:`base/frameworks/signatures </scripts/base/frameworks/signatures/index>`
 
    The signature framework provides for doing low-level pattern matching.  While
-   signatures are not Bro's preferred detection tool, they sometimes come in
+   signatures are not Zeek's preferred detection tool, they sometimes come in
    handy and are closer to what many people are familiar with from using
    other NIDS.
 
 :doc:`base/frameworks/packet-filter </scripts/base/frameworks/packet-filter/index>`
 
-   The packet filter framework supports how Bro sets its BPF capture filter.
+   The packet filter framework supports how Zeek sets its BPF capture filter.
 
 :doc:`base/frameworks/software </scripts/base/frameworks/software/index>`
 
@@ -110,7 +110,7 @@
 
 :doc:`base/frameworks/config </scripts/base/frameworks/config/index>`
 
-   The configuration framework provides a way to change the Bro configuration
+   The configuration framework provides a way to change the Zeek configuration
    in "option" values at run-time.
 
 :doc:`base/frameworks/sumstats </scripts/base/frameworks/sumstats/index>`
@@ -287,7 +287,7 @@
 :doc:`policy/integration/collective-intel </scripts/policy/integration/collective-intel/index>`
 
    The scripts in this module are for deeper integration with the
-   Collective Intelligence Framework (CIF) since Bro's Intel framework
+   Collective Intelligence Framework (CIF) since Zeek's Intel framework
    doesn't natively behave the same as CIF nor does it store and maintain
    the same data in all cases.
 

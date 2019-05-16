@@ -4,10 +4,10 @@ base/frameworks/packet-filter/main.zeek
 =======================================
 .. zeek:namespace:: PacketFilter
 
-This script supports how Bro sets its BPF capture filter.  By default
-Bro sets a capture filter that allows all traffic.  If a filter
+This script supports how Zeek sets its BPF capture filter.  By default
+Zeek sets a capture filter that allows all traffic.  If a filter
 is set on the command line, that filter takes precedence over the default
-open filter and all filters defined in Bro scripts with the
+open filter and all filters defined in Zeek scripts with the
 :zeek:id:`capture_filters` and :zeek:id:`restrict_filters` variables.
 
 :Namespace: PacketFilter

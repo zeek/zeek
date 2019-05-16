@@ -289,8 +289,8 @@ Types
    Type defining the target of a rule.
    
    Rules can either be applied to the forward path, affecting all network traffic, or
-   on the monitor path, only affecting the traffic that is sent to Bro. The second
-   is mostly used for shunting, which allows Bro to tell the networking hardware that
+   on the monitor path, only affecting the traffic that is sent to Zeek. The second
+   is mostly used for shunting, which allows Zeek to tell the networking hardware that
    it wants to no longer see traffic that it identified as benign.
 
 

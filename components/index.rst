@@ -8,8 +8,8 @@ respective GitHub repositories or documentation:
 
 * `BinPAC <https://github.com/zeek/binpac>`__
   - A protocol parser generator
-* `BroControl <https://github.com/zeek/broctl>`__
-  - Interactive Bro/Zeek management shell
+* `ZeekControl <https://github.com/zeek/zeekctl>`__
+  - Interactive Zeek management shell
 * `Zeek-Aux <https://github.com/zeek/zeek-aux>`__
   - Small auxiliary tools for Zeek
 * `BTest <https://github.com/zeek/btest>`__

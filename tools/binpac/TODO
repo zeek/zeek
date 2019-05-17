@@ -5,7 +5,7 @@ Big features
 * Case and analyzer redef
 * &also withinput
 * Explicit analyzer context (interface + instantiation) "withcontext"
-+ Interface with C++ and Bro (events, extern, weird)
++ Interface with C++ and Zeek (events, extern, weird)
 + Incremental input
 + ASCII protocols
 + Reassembly

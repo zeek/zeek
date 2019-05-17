@@ -12,7 +12,7 @@ namespace binpac
 // Must be called before any binpac functionality is used.
 //
 // Note, this must be declared/defined here, and inline, because the RE
-// functionality can only be used when compiling from inside Bro.
+// functionality can only be used when compiling from inside Zeek.
 // A copy is made of any FlowBuffer policy struct data passed.
 inline void init(FlowBuffer::Policy* fbp = 0);
 

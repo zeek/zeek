@@ -18,7 +18,7 @@ private:
 	string msg_;
 };
 
-// Copied from util.cc of Bro
+// Copied from util.cc of Zeek
 int expand_escape(const char*& s)
 	{
 	switch ( *(s++) ) {
@@ -80,7 +80,7 @@ int expand_escape(const char*& s)
 ConstString::ConstString(const string &s)
 	: str_(s)
 	{
-	// Copied from scan.l of Bro
+	// Copied from scan.l of Zeek
 	try 
 		{
 		const char* text = str_.c_str();

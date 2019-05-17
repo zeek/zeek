@@ -105,7 +105,7 @@ HEX	[0-9a-fA-F]+
 
   /*
   Hacky way to pass along arbitrary attribute expressions since the BIF parser
-  has little understanding of valid Bro expressions.  With this pattern, the
+  has little understanding of valid Zeek expressions.  With this pattern, the
   attribute expression should stop when it reaches another attribute, another
   function argument, or the end of the function declaration.
   */

@@ -337,7 +337,7 @@ module_def:	TOK_MODULE opt_ws TOK_ID opt_ws ';'
 	 // the type. One still has to define the type in bro.init.
 	 // Would be nice, if we could just define the record type here
 	 // and then copy to the .bif.zeek file, but type declarations in
-	 // Bro can be quite powerful. Don't know whether it's worth it
+	 // Zeek can be quite powerful. Don't know whether it's worth it
 	 // extend the bif-language to be able to handle that all....
 	 // Or we just support a simple form of record type definitions
 	 // TODO: add other types (tables, sets)
@@ -596,7 +596,7 @@ args_1:		args_1 ',' opt_ws arg opt_ws opt_attr_list
 	;
 
 // TODO: Migrate all other compound types to this rule. Once the BiF language
-// can parse all regular Bro types, we can throw out the unnecessary
+// can parse all regular Zeek types, we can throw out the unnecessary
 // boilerplate typedefs for addr_set, string_set, etc.
 type:
                 TOK_OPAQUE opt_ws TOK_OF opt_ws TOK_ID

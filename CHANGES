@@ -1,4 +1,8 @@
 
+2.6-308 | 2019-05-17 14:13:46 -0700
+
+  * Always emit scripting errors to stderr during zeek_init (Jon Siwek, Corelight)
+
 2.6-307 | 2019-05-16 13:37:24 -0700
 
   * More bro-to-zeek renaming in scripts and other files (Daniel Thayer)

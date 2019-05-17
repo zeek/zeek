@@ -7,7 +7,14 @@ redef Reporter::errors_to_stderr = F;
 
 global test: table[count] of string = {};
 
-event zeek_init()
+event my_event()
 	{
 	print test[3];
+	}
+
+event zeek_init()
+	{
+	# Errors within zeek_init are always printed to stderr, so check whether
+	# an error that happens later is suppressed.
+	schedule 0.2sec { my_event() };
 	}

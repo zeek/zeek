@@ -121,9 +121,29 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
-BroType* BroType::Clone() const
+BroType* BroType::ShallowClone() const
 	{
-	// Fixme: Johanna
+	switch ( tag ) {
+		case TYPE_VOID:
+		case TYPE_BOOL:
+		case TYPE_INT:
+		case TYPE_COUNT:
+		case TYPE_COUNTER:
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+		case TYPE_STRING:
+		case TYPE_PATTERN:
+		case TYPE_TIMER:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+		case TYPE_ANY:
+			return new BroType(tag, base_type);
+
+		default:
+			reporter->InternalError("cloning illegal base BroType");
+	}
 	return nullptr;
 	}
 
@@ -381,6 +401,16 @@ TableType::TableType(TypeList* ind, BroType* yield)
 		}
 	}
 
+TableType* TableType::ShallowClone() const
+	{
+	if ( indices )
+		indices->Ref();
+	if ( yield_type )
+		yield_type->Ref();
+
+	return new TableType(indices, yield_type);
+	}
+
 bool TableType::IsUnspecifiedTable() const
 	{
 	// Unspecified types have an empty list of indices.
@@ -486,6 +516,16 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 
 		arg_types->Append(args->FieldType(i)->Ref());
 		}
+	}
+
+FuncType* FuncType::ShallowClone() const
+	{
+	auto f = new FuncType();
+	f->args = args->Ref()->AsRecordType();
+	f->arg_types = arg_types->Ref()->AsTypeList();
+	f->yield = yield->Ref();
+	f->flavor = flavor;
+	return f;
 	}
 
 string FuncType::FlavorString() const
@@ -644,6 +684,16 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	{
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
+	}
+
+// in this case the clone is actually not so shallow, since
+// it gets modified by everyone.
+RecordType* RecordType::ShallowClone() const
+	{
+	auto pass = new type_decl_list();
+	loop_over_list(*types, i)
+		pass->append(new TypeDecl(*(*types)[i]));
+	return new RecordType(pass);
 	}
 
 RecordType::~RecordType()
@@ -991,16 +1041,24 @@ EnumType::EnumType(const string& name)
 	SetName(name);
 	}
 
-EnumType::EnumType(EnumType* e)
+EnumType::EnumType(const EnumType* e)
 	: BroType(TYPE_ENUM)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
 
-	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+	for ( auto it = e->names.begin(); it != e->names.end(); ++it )
 		names[it->first] = it->second;
 
 	vals = e->vals;
+	}
+
+EnumType* EnumType::ShallowClone() const
+	{
+	if ( counter == 0 )
+		return new EnumType(GetName());
+
+	return new EnumType(this);
 	}
 
 EnumType::~EnumType()
@@ -1229,6 +1287,11 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 VectorType::VectorType(BroType* element_type)
     : BroType(TYPE_VECTOR), yield_type(element_type)
 	{
+	}
+
+VectorType* VectorType::ShallowClone() const
+	{
+	return new VectorType(yield_type);
 	}
 
 VectorType::~VectorType()

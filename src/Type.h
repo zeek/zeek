@@ -86,7 +86,15 @@ public:
 	explicit BroType(TypeTag tag, bool base_type = false);
 	~BroType() override { }
 
-	BroType* Clone() const;
+	// Performs a shallow clone operation of the Bro type.
+	// This especially means that especially for tables the types
+	// are not recursively cloned; altering one type will in this case
+	// alter one of them.
+	// The main use for this is alias tracking.
+	// Clone operations will mostly be implemented in the derived classes;
+	// in addition cloning will be limited to classes that can be reached by
+	// the script-level.
+	virtual BroType* ShallowClone() const;
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -107,7 +115,7 @@ public:
 	// this type is a table[string] of port, then returns the "port"
 	// type.  Returns nil if this is not an index type.
 	virtual BroType* YieldType();
-	const BroType* YieldType() const
+	virtual const BroType* YieldType() const
 		{ return ((BroType*) this)->YieldType(); }
 
 	// Returns true if this type is a record and contains the
@@ -330,7 +338,7 @@ public:
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -355,6 +363,8 @@ protected:
 class TableType : public IndexType {
 public:
 	TableType(TypeList* ind, BroType* yield);
+
+	TableType* ShallowClone() const override;
 
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
@@ -382,12 +392,13 @@ protected:
 class FuncType : public BroType {
 public:
 	FuncType(RecordType* args, BroType* yield, function_flavor f);
+	FuncType* ShallowClone() const override;
 
 	~FuncType() override;
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;
@@ -405,7 +416,7 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
+	FuncType() : BroType(TYPE_FUNC) { args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
 	RecordType* args;
 	TypeList* arg_types;
 	BroType* yield;
@@ -415,6 +426,7 @@ protected:
 class TypeType : public BroType {
 public:
 	explicit TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	TypeType* ShallowClone() const override { return new TypeType(type); }
 	~TypeType() override { Unref(type); }
 
 	BroType* Type()	{ return type; }
@@ -447,6 +459,7 @@ typedef PList(TypeDecl) type_decl_list;
 class RecordType : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
+	RecordType* ShallowClone() const override;
 
 	~RecordType() override;
 
@@ -495,6 +508,7 @@ public:
 class FileType : public BroType {
 public:
 	explicit FileType(BroType* yield_type);
+	FileType* ShallowClone() const override { return new FileType(yield->Ref()); }
 	~FileType() override;
 
 	BroType* YieldType() override;
@@ -510,6 +524,7 @@ protected:
 class OpaqueType : public BroType {
 public:
 	explicit OpaqueType(const string& name);
+	OpaqueType* ShallowClone() const override { return new OpaqueType(name); }
 	~OpaqueType() override { };
 
 	const string& Name() const { return name; }
@@ -527,8 +542,9 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-	explicit EnumType(EnumType* e);
+	explicit EnumType(const EnumType* e);
 	explicit EnumType(const string& arg_name);
+	EnumType* ShallowClone() const override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
@@ -580,9 +596,10 @@ protected:
 class VectorType : public BroType {
 public:
 	explicit VectorType(BroType* t);
+	VectorType* ShallowClone() const override;
 	~VectorType() override;
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 
 	int MatchesIndex(ListExpr*& index) const override;
 

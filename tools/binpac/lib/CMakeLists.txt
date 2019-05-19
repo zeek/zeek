@@ -41,7 +41,7 @@ if ( ENABLE_STATIC )
   install(TARGETS binpac_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()
 
-if ( BRO_ROOT_DIR )
+if ( ZEEK_ROOT_DIR )
     # Installed in binpac subdir just for organization purposes.
     install(FILES ${binpac_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/binpac)
 else ()

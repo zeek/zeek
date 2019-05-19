@@ -1,6 +1,6 @@
 include(InstallPackageConfigFile)
 
-install(DIRECTORY ./ DESTINATION ${BRO_SCRIPT_INSTALL_PATH} FILES_MATCHING
+install(DIRECTORY ./ DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH} FILES_MATCHING
         PATTERN "site/local*" EXCLUDE
         PATTERN "test-all-policy.zeek" EXCLUDE
         PATTERN "*.zeek"
@@ -14,8 +14,8 @@ if ( NOT BINARY_PACKAGING_MODE )
   # because ZeekControl will now prefer to load local.zeek rather than local.bro
   # and we're about to install a default version of local.zeek.
 
-  set(_local_bro_dst ${BRO_SCRIPT_INSTALL_PATH}/site/local.bro)
-  set(_local_zeek_dst ${BRO_SCRIPT_INSTALL_PATH}/site/local.zeek)
+  set(_local_bro_dst ${ZEEK_SCRIPT_INSTALL_PATH}/site/local.bro)
+  set(_local_zeek_dst ${ZEEK_SCRIPT_INSTALL_PATH}/site/local.zeek)
 
   install(CODE "
     if ( \"\$ENV{DESTDIR}\" STREQUAL \"\" )
@@ -31,5 +31,5 @@ endif ()
 # Install local script as a config file since it's meant to be modified directly.
 InstallPackageConfigFile(
     ${CMAKE_CURRENT_SOURCE_DIR}/site/local.zeek
-    ${BRO_SCRIPT_INSTALL_PATH}/site
+    ${ZEEK_SCRIPT_INSTALL_PATH}/site
     local.zeek)

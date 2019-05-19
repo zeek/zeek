@@ -961,7 +961,7 @@ const std::string& bro_path()
 		const char* path = getenv("BROPATH");
 
 		if ( ! path )
-			path = DEFAULT_BROPATH;
+			path = DEFAULT_ZEEKPATH;
 
 		bro_path_value = path;
 		}

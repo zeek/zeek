@@ -28,3 +28,6 @@
 [submodule "doc"]
 	path = doc
 	url = https://github.com/zeek/zeek-docs
+[submodule "aux/paraglob"]
+	path = aux/paraglob
+	url = https://github.com/zeek/paraglob

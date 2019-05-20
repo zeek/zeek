@@ -106,9 +106,6 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 			RecordToSeq(blocks->seq, last_reassem_seq, f);
 		}
 
-	// Don't want rotation on these files.
-	f->SetRotateInterval(0);
-
 	Ref(f);
 	record_contents_file = f;
 	}

@@ -10,7 +10,7 @@
 #include "pac_case.h"
 
 #include <limits>
-#include <cstdint>
+#include <stdint.h>
 
 CaseType::CaseType(Expr* index_expr, CaseFieldList* cases)
 	: Type(CASE), index_expr_(index_expr), cases_(cases) 

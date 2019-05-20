@@ -11,10 +11,9 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "ChunkedIO.h"
 #include "NetVar.h"
-#include "RemoteSerializer.h"
 
 ChunkedIO::ChunkedIO() : stats(), tag(), pure()
 	{
@@ -377,7 +376,7 @@ ChunkedIO::Chunk* ChunkedIOFd::ConcatChunks(Chunk* c1, Chunk* c2)
 
 void ChunkedIO::Log(const char* str)
 	{
-	RemoteSerializer::Log(RemoteSerializer::LogError, str);
+	//RemoteSerializer::Log(RemoteSerializer::LogError, str);
 	}
 
 bool ChunkedIOFd::Read(Chunk** chunk, bool may_block)

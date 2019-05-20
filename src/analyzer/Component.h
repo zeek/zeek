@@ -7,7 +7,7 @@
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-#include "../bro-config.h"
+#include "../zeek-config.h"
 #include "../util.h"
 
 class Connection;

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff reporter.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff http-2.log

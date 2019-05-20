@@ -1,5 +1,5 @@
-##! This script implements the "Bro side" of several load balancing
-##! approaches for Bro clusters.
+##! This script implements the "Zeek side" of several load balancing
+##! approaches for Zeek clusters.
 
 @load base/frameworks/cluster
 @load base/frameworks/packet-filter

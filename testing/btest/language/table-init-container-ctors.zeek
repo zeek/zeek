@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # The various container constructor expressions should work in table

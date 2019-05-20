@@ -1,10 +1,10 @@
-# @TEST-EXEC: bro -C -r $TRACES/http/multipart.trace
+# @TEST-EXEC: zeek -C -r $TRACES/http/multipart.trace
 # @TEST-EXEC: btest-diff http.log
-# @TEST-EXEC: bro -C -r $TRACES/http/multipart.trace %INPUT >out-limited
+# @TEST-EXEC: zeek -C -r $TRACES/http/multipart.trace %INPUT >out-limited
 # @TEST-EXEC: mv http.log http-limited.log
 # @TEST-EXEC: btest-diff http-limited.log
 # @TEST-EXEC: btest-diff out-limited
-# @TEST-EXEC: bro -C -r $TRACES/http/multipart.trace %INPUT ignore_http_file_limit=T >out-limit-ignored
+# @TEST-EXEC: zeek -C -r $TRACES/http/multipart.trace %INPUT ignore_http_file_limit=T >out-limit-ignored
 # @TEST-EXEC: mv http.log http-limit-ignored.log
 # @TEST-EXEC: btest-diff http-limit-ignored.log
 # @TEST-EXEC: btest-diff out-limit-ignored

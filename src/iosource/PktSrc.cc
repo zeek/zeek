@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "util.h"
 #include "PktSrc.h"
@@ -160,21 +160,6 @@ double PktSrc::CheckPseudoTime()
 	if ( ! ExtractNextPacketInternal() )
 		return 0;
 
-	if ( remote_trace_sync_interval )
-		{
-		if ( next_sync_point == 0 || current_packet.time >= next_sync_point )
-			{
-			int n = remote_serializer->SendSyncPoint();
-			next_sync_point = first_timestamp +
-						n * remote_trace_sync_interval;
-			remote_serializer->Log(RemoteSerializer::LogInfo,
-				fmt("stopping at packet %.6f, next sync-point at %.6f",
-					current_packet.time, next_sync_point));
-
-			return 0;
-			}
-		}
-
 	double pseudo_time = current_packet.time - first_timestamp;
 	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
 
@@ -308,15 +293,6 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( pseudo_realtime && ! IsOpen() )
 		{
-		if ( using_communication )
-			{
-			// Source has gone dry, we're done.
-			if ( remote_trace_sync_interval )
-				remote_serializer->SendFinalSyncPoint();
-			else
-				remote_serializer->Terminate();
-			}
-
 		if ( broker_mgr->Active() )
 			iosource_mgr->Terminate();
 		}

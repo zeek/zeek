@@ -1,3 +1,3 @@
-# @TEST-EXEC: bro -f "tcp port 21" -r $TRACES/ftp/ipv6.trace "Conn::default_extract=T"
+# @TEST-EXEC: zeek -f "tcp port 21" -r $TRACES/ftp/ipv6.trace "Conn::default_extract=T"
 # @TEST-EXEC: btest-diff contents_[2001:470:1f11:81f:c999:d94:aa7c:2e3e]:49185-[2001:470:4867:99::21]:21_orig.dat
 # @TEST-EXEC: btest-diff contents_[2001:470:1f11:81f:c999:d94:aa7c:2e3e]:49185-[2001:470:4867:99::21]:21_resp.dat

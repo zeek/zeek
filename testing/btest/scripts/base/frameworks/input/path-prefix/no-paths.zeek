@@ -1,7 +1,7 @@
 # These tests verify that when setting neither InputAscii::path_prefix
 # nor InputBinary::path_prefix, Zeek correctly locates local input files.
 #
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix bro -b %INPUT >output
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE input.data

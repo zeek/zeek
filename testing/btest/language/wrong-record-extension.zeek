@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: bro -b %INPUT  >output.tmp 2>&1 
+# @TEST-EXEC-FAIL: zeek -b %INPUT  >output.tmp 2>&1 
 # @TEST-EXEC: sed 's#^.*:##g' <output.tmp >output
 # @TEST-EXEC: btest-diff output
 

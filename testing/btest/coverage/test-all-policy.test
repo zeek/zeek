@@ -1,9 +1,9 @@
 # Makes sure that all policy/* scripts are loaded in
 # scripts/test-all-policy.zeek and that all scripts loaded there actually exist.
 #
-# This test will fail if new bro scripts are added to the scripts/policy/
+# This test will fail if new zeek scripts are added to the scripts/policy/
 # directory.  Correcting that just involves updating
-# scripts/test-all-policy.zeek to @load the new bro scripts.
+# scripts/test-all-policy.zeek to @load the new zeek scripts.
 
 @TEST-EXEC: test -e $DIST/scripts/test-all-policy.zeek
 @TEST-EXEC: test -d $DIST/scripts

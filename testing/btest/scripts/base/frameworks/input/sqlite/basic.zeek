@@ -4,7 +4,7 @@
 # @TEST-REQUIRES: which sqlite3
 #
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 

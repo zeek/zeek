@@ -1,14 +1,14 @@
-# @TEST-EXEC: bro -r $TRACES/tls/dhe.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/dhe.pcap %INPUT
 # @TEST-EXEC: cat ssl.log > ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/ecdhe.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ecdhe.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/tls1_1.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/tls1_1.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/dtls1_0.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/dtls1_0.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/dtls1_2.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/dtls1_2.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: btest-diff ssl-all.log
 

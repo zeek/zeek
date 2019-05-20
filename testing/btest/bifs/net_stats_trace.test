@@ -1,5 +1,5 @@
 # Checks that accurate stats are returned when reading from a trace file.
-# @TEST-EXEC: bro -r $TRACES/wikipedia.trace >output %INPUT
+# @TEST-EXEC: zeek -r $TRACES/wikipedia.trace >output %INPUT
 # @TEST-EXEC: btest-diff output
 
 event zeek_done()

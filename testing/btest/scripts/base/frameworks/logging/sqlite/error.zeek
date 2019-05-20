@@ -4,7 +4,7 @@
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr
 #
 # Testing all possible types.

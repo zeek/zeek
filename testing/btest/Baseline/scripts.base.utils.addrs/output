@@ -1,4 +1,4 @@
-============ test ipv4 regex
+============ test ipv4 regex (good strings)
 T
 T
 T
@@ -6,9 +6,24 @@ T
 T
 T
 T
+T
+T
+T
+T
+T
+T
+T
+============ bad ipv4 decimals
 F
 F
 F
+F
+F
+F
+============ too many ipv4 decimals
+F
+F
+============ typical looking ipv4
 T
 T
 ============ test ipv6 regex
@@ -30,6 +45,9 @@ T
 F
 F
 F
+F
+F
 ============ test extract_ip_addresses()
 [1.1.1.1, 2.2.2.2, 3.3.3.3]
 [1.1.1.1, 0:0:0:0:0:0:0:0, 3.3.3.3]
+[6:1:2::3:4:5:6]

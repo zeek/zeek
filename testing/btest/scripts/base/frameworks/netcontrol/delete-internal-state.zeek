@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/ecdhe.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ecdhe.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 # Verify the state of internal tables after rules have been deleted...

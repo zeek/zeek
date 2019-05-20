@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <ctype.h>
 
@@ -151,7 +151,6 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	is_active = 1;
 	skip = 0;
 	weird = 0;
-	persistent = 0;
 
 	suppress_event = 0;
 
@@ -325,12 +324,11 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		// and at this stage it's not a *multiple* instance.
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(val_mgr->GetBool(is_orig));
-	vl->append(val_mgr->GetCount(threshold));
-
-	ConnectionEvent(e, 0, vl);
+	ConnectionEventFast(e, 0, {
+		BuildConnVal(),
+		val_mgr->GetBool(is_orig),
+		val_mgr->GetCount(threshold)
+	});
 	}
 
 void Connection::DeleteTimer(double /* t */)
@@ -390,9 +388,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	val_list* vl = new val_list(1);
-	vl->append(BuildConnVal());
-	ConnectionEvent(connection_status_update, 0, vl);
+	ConnectionEventFast(connection_status_update, 0, { BuildConnVal() });
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -630,23 +626,23 @@ int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
 		{
 		if ( software_parse_error )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new AddrVal(addr));
-			vl->append(new StringVal(len, s));
-			ConnectionEvent(software_parse_error, analyzer, vl);
+			ConnectionEventFast(software_parse_error, analyzer, {
+				BuildConnVal(),
+				new AddrVal(addr),
+				new StringVal(len, s),
+			});
 			}
 		return 0;
 		}
 
 	if ( software_version_found )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new AddrVal(addr));
-		vl->append(val);
-		vl->append(new StringVal(len, s));
-		ConnectionEvent(software_version_found, 0, vl);
+		ConnectionEventFast(software_version_found, 0, {
+			BuildConnVal(),
+			new AddrVal(addr),
+			val,
+			new StringVal(len, s),
+		});
 		}
 	else
 		Unref(val);
@@ -669,11 +665,11 @@ int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
 
 	if ( software_unparsed_version_found )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new AddrVal(addr));
-		vl->append(new StringVal(len, full));
-		ConnectionEvent(software_unparsed_version_found, analyzer, vl);
+		ConnectionEventFast(software_unparsed_version_found, analyzer, {
+			BuildConnVal(),
+			new AddrVal(addr),
+			new StringVal(len, full),
+		});
 		}
 
 	return 1;
@@ -684,12 +680,11 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 	if ( ! f )
 		return;
 
-	val_list* vl = new val_list(2);
 	if ( name )
-		vl->append(new StringVal(name));
-	vl->append(BuildConnVal());
+		ConnectionEventFast(f, analyzer, {new StringVal(name), BuildConnVal()});
+	else
+		ConnectionEventFast(f, analyzer, {BuildConnVal()});
 
-	ConnectionEvent(f, analyzer, vl);
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -701,31 +696,40 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		return;
 		}
 
-	val_list* vl = new val_list(3);
-	vl->append(BuildConnVal());
-	vl->append(v1);
-
 	if ( v2 )
-		vl->append(v2);
-
-	ConnectionEvent(f, analyzer, vl);
+		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1, v2});
+	else
+		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1});
 	}
 
-void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
 	if ( ! f )
 		{
 		// This may actually happen if there is no local handler
 		// and a previously existing remote handler went away.
-		loop_over_list(*vl, i)
-			Unref((*vl)[i]);
-		delete vl;
+		loop_over_list(vl, i)
+			Unref(vl[i]);
+
 		return;
 		}
 
 	// "this" is passed as a cookie for the event
-	mgr.QueueEvent(f, vl, SOURCE_LOCAL,
+	mgr.QueueEvent(f, std::move(vl), SOURCE_LOCAL,
 			a ? a->GetID() : 0, GetTimerMgr(), this);
+	}
+
+void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+	{
+	// "this" is passed as a cookie for the event
+	mgr.QueueEventFast(f, std::move(vl), SOURCE_LOCAL,
+			a ? a->GetID() : 0, GetTimerMgr(), this);
+	}
+
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
+	{
+	ConnectionEvent(f, a, std::move(*vl));
+	delete vl;
 	}
 
 void Connection::Weird(const char* name, const char* addl)
@@ -946,15 +950,11 @@ bool Connection::DoSerialize(SerialInfo* info) const
 		SERIALIZE_BIT(weird) &&
 		SERIALIZE_BIT(finished) &&
 		SERIALIZE_BIT(record_packets) &&
-		SERIALIZE_BIT(record_contents) &&
-		SERIALIZE_BIT(persistent);
+		SERIALIZE_BIT(record_contents);
 	}
 
 bool Connection::DoUnserialize(UnserialInfo* info)
 	{
-	// Make sure this is initialized for the condition in Unserialize().
-	persistent = 0;
-
 	DO_UNSERIALIZE(BroObj);
 
 	// Build the hash key first. Some of the recursive *::Unserialize()
@@ -1017,7 +1017,6 @@ bool Connection::DoUnserialize(UnserialInfo* info)
 	UNSERIALIZE_BIT(finished);
 	UNSERIALIZE_BIT(record_packets);
 	UNSERIALIZE_BIT(record_contents);
-	UNSERIALIZE_BIT(persistent);
 
 	// Hmm... Why does each connection store a sessions ptr?
 	sessions = ::sessions;
@@ -1055,12 +1054,12 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			val_list* vl = new val_list(4);
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(is_orig));
-			vl->append(val_mgr->GetCount(my_flow_label));
-			vl->append(val_mgr->GetCount(flow_label));
-			ConnectionEvent(connection_flow_label_changed, 0, vl);
+			ConnectionEventFast(connection_flow_label_changed, 0, {
+				BuildConnVal(),
+				val_mgr->GetBool(is_orig),
+				val_mgr->GetCount(my_flow_label),
+				val_mgr->GetCount(flow_label),
+			});
 			}
 
 		my_flow_label = flow_label;

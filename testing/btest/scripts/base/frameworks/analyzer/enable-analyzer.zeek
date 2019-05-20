@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: bro -r ${TRACES}/var-services-std-ports.trace %INPUT
-# @TEST-EXEC: cat conn.log | bro-cut service | grep -q dns
+# @TEST-EXEC: zeek -r ${TRACES}/var-services-std-ports.trace %INPUT
+# @TEST-EXEC: cat conn.log | zeek-cut service | grep -q dns
 #
 
 redef Analyzer::disable_all = T;

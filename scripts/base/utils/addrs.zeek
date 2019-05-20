@@ -1,31 +1,67 @@
 ##! Functions for parsing and manipulating IP and MAC addresses.
 
 # Regular expressions for matching IP addresses in strings.
-const ipv4_addr_regex = /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/;
-const ipv6_8hex_regex = /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/;
-const ipv6_compressed_hex_regex = /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/;
-const ipv6_hex4dec_regex = /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/;
-const ipv6_compressed_hex4dec_regex = /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/;
 
-# These are commented out until patterns can be constructed this way at init time.
-#const ipv6_addr_regex = ipv6_8hex_regex |
-#                        ipv6_compressed_hex_regex |
-#                        ipv6_hex4dec_regex |
-#                        ipv6_compressed_hex4dec_regex;
-#const ip_addr_regex = ipv4_addr_regex | ipv6_addr_regex;
+const ipv4_decim = /[0-9]{1}|[0-9]{2}|0[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5]/;
 
-const ipv6_addr_regex =
-    /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
-    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
-    /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
-    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
+const ipv4_addr_regex = ipv4_decim & /\./ & ipv4_decim & /\./ & ipv4_decim & /\./ & ipv4_decim;
 
-const ip_addr_regex =
-    /[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}/ |
-    /([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}/ |
-    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)/ | # IPv6 Compressed Hex
-    /(([0-9A-Fa-f]{1,4}:){6,6})([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ | # 6Hex4Dec
-    /(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}:)*)([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/; # CompressedHex4Dec
+const ipv6_hextet = /[0-9A-Fa-f]{1,4}/;
+
+const ipv6_8hex_regex = /([0-9A-Fa-f]{1,4}:){7}/ & ipv6_hextet;
+
+const ipv6_hex4dec_regex = /([0-9A-Fa-f]{1,4}:){6}/ & ipv4_addr_regex;
+
+const ipv6_compressed_lead_hextets0 = /::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,6})?/;
+
+const ipv6_compressed_lead_hextets1 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?/;
+
+const ipv6_compressed_lead_hextets2 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){1}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,4})?/;
+
+const ipv6_compressed_lead_hextets3 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){2}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,3})?/;
+
+const ipv6_compressed_lead_hextets4 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){3}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,2})?/;
+
+const ipv6_compressed_lead_hextets5 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){4}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,1})?/;
+
+const ipv6_compressed_lead_hextets6 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){5}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,0})?/;
+
+const ipv6_compressed_lead_hextets7 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){6}::/;
+
+const ipv6_compressed_hex_regex = ipv6_compressed_lead_hextets0 |
+                                  ipv6_compressed_lead_hextets1 |
+                                  ipv6_compressed_lead_hextets2 |
+                                  ipv6_compressed_lead_hextets3 |
+                                  ipv6_compressed_lead_hextets4 |
+                                  ipv6_compressed_lead_hextets5 |
+                                  ipv6_compressed_lead_hextets6 |
+                                  ipv6_compressed_lead_hextets7;
+
+const ipv6_compressed_hext4dec_lead_hextets0 = /::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,4})?/ & ipv4_addr_regex;
+
+const ipv6_compressed_hext4dec_lead_hextets1 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,3})?/ & ipv4_addr_regex;
+
+const ipv6_compressed_hext4dec_lead_hextets2 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){1}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,2})?/ & ipv4_addr_regex;
+
+const ipv6_compressed_hext4dec_lead_hextets3 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){2}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,1})?/ & ipv4_addr_regex;
+
+const ipv6_compressed_hext4dec_lead_hextets4 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){3}::([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,0})?/ & ipv4_addr_regex;
+
+const ipv6_compressed_hext4dec_lead_hextets5 = /[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){4}::/ & ipv4_addr_regex;
+
+const ipv6_compressed_hex4dec_regex = ipv6_compressed_hext4dec_lead_hextets0 |
+                                      ipv6_compressed_hext4dec_lead_hextets1 |
+                                      ipv6_compressed_hext4dec_lead_hextets2 |
+                                      ipv6_compressed_hext4dec_lead_hextets3 |
+                                      ipv6_compressed_hext4dec_lead_hextets4 |
+                                      ipv6_compressed_hext4dec_lead_hextets5;
+
+const ipv6_addr_regex = ipv6_8hex_regex |
+                        ipv6_compressed_hex_regex |
+                        ipv6_hex4dec_regex |
+                        ipv6_compressed_hex4dec_regex;
+
+const ip_addr_regex = ipv4_addr_regex | ipv6_addr_regex;
 
 ## Checks if all elements of a string array are a valid octet value.
 ##
@@ -42,67 +78,6 @@ function has_valid_octets(octets: string_vec): bool
 			return F;
 		}
 	return T;
-	}
-
-## Checks if a string appears to be a valid IPv4 or IPv6 address.
-##
-## ip_str: the string to check for valid IP formatting.
-##
-## Returns: T if the string is a valid IPv4 or IPv6 address format.
-function is_valid_ip(ip_str: string): bool
-	{
-	local octets: string_vec;
-	if ( ip_str == ipv4_addr_regex )
-		{
-		octets = split_string(ip_str, /\./);
-		if ( |octets| != 4 )
-			return F;
-
-		return has_valid_octets(octets);
-		}
-	else if ( ip_str == ipv6_addr_regex )
-		{
-		if ( ip_str == ipv6_hex4dec_regex ||
-		     ip_str == ipv6_compressed_hex4dec_regex )
-			{
-			# the regexes for hybrid IPv6-IPv4 address formats don't for valid
-			# octets within the IPv4 part, so do that now
-			octets = split_string(ip_str, /\./);
-			if ( |octets| != 4 )
-				return F;
-
-			# get rid of remaining IPv6 stuff in first octet
-			local tmp = split_string(octets[0], /:/);
-			octets[0] = tmp[|tmp| - 1];
-
-			return has_valid_octets(octets);
-			}
-		else
-			{
-			# pure IPv6 address formats that only use hex digits don't need
-			# any additional checks -- the regexes should be complete
-			return T;
-			}
-		}
-	return F;
-	}
-
-## Extracts all IP (v4 or v6) address strings from a given string.
-##
-## input: a string that may contain an IP address anywhere within it.
-##
-## Returns: an array containing all valid IP address strings found in *input*.
-function find_ip_addresses(input: string): string_array &deprecated
-	{
-	local parts = split_string_all(input, ip_addr_regex);
-	local output: string_array;
-
-	for ( i in parts )
-		{
-		if ( i % 2 == 1 && is_valid_ip(parts[i]) )
-			output[|output|] = parts[i];
-		}
-	return output;
 	}
 
 ## Extracts all IP (v4 or v6) address strings from a given string.

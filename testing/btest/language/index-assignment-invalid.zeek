@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: grep "error" output >output2
 # @TEST-EXEC: for i in 1 2 3 4 5; do cat output2 | cut -d'|' -f$i >>out; done
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out

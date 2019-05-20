@@ -1,6 +1,6 @@
-# @TEST-EXEC: btest-bg-run bro bro -b ../exectest.zeek
+# @TEST-EXEC: btest-bg-run zeek zeek -b ../exectest.zeek
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 
 @TEST-START-FILE exectest.zeek
 

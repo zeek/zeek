@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/var-services-std-ports.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 function inform_me(s: set[string], idx: string): interval

@@ -18,7 +18,6 @@
 #include "NetVar.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "RemoteSerializer.h"
 #include "iosource/Manager.h"
 
 Serializer::Serializer(SerializationFormat* arg_format)
@@ -365,7 +364,7 @@ bool Serializer::UnserializeCall(UnserialInfo* info)
 	d.SetIncludeStats(true);
 	d.SetShort();
 
-	val_list* args = new val_list;
+	val_list* args = new val_list(len);
 	for ( int i = 0; i < len; ++i )
 		{
 		Val* v = Val::Unserialize(info);
@@ -508,8 +507,6 @@ bool Serializer::UnserializeConnection(UnserialInfo* info)
 
 	if ( info->install_conns )
 		{
-		if ( c->IsPersistent() && c->Key() )
-			persistence_serializer->Register(c);
 		Ref(c);
 		sessions->Insert(c);
 		}
@@ -996,7 +993,8 @@ void EventPlayer::GotEvent(const char* name, double time,
 	{
 	ne_time = time;
 	ne_handler = event;
-	ne_args = args;
+	ne_args = std::move(*args);
+	delete args;
 	}
 
 void EventPlayer::GotFunctionCall(const char* name, double time,
@@ -1054,7 +1052,7 @@ void EventPlayer::Process()
 	if ( ! (io && ne_time) )
 		return;
 
-	Event* event = new Event(ne_handler, ne_args);
+	Event* event = new Event(ne_handler, std::move(ne_args));
 	mgr.Dispatch(event);
 
 	ne_time = 0;

@@ -5,8 +5,8 @@
 # /foo/bar/intel).
 #
 # @TEST-EXEC: mkdir -p intel
-# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD/intel|" >input.bro
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix bro -b input.bro >output
+# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD/intel|" >input.zeek
+# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b input.zeek >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE intel/test.data

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp_sent.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp_sent.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event icmp_sent(c: connection, icmp: icmp_conn)

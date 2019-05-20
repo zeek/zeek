@@ -1,24 +1,24 @@
-# @TEST-EXEC: bro -b -s dst-port-eq -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq.out
-# @TEST-EXEC: bro -b -s dst-port-eq-nomatch -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq-nomatch.out
-# @TEST-EXEC: bro -b -s dst-port-eq-list -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq-list.out
-# @TEST-EXEC: bro -b -s dst-port-eq -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-eq-ip6.out
+# @TEST-EXEC: zeek -b -s dst-port-eq -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq.out
+# @TEST-EXEC: zeek -b -s dst-port-eq-nomatch -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-eq-list -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >dst-port-eq-list.out
+# @TEST-EXEC: zeek -b -s dst-port-eq -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-eq-ip6.out
 
-# @TEST-EXEC: bro -b -s dst-port-ne -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne.out
-# @TEST-EXEC: bro -b -s dst-port-ne-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-nomatch.out
-# @TEST-EXEC: bro -b -s dst-port-ne-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-list.out
-# @TEST-EXEC: bro -b -s dst-port-ne-list-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-list-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-ne -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne.out
+# @TEST-EXEC: zeek -b -s dst-port-ne-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-ne-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-list.out
+# @TEST-EXEC: zeek -b -s dst-port-ne-list-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-ne-list-nomatch.out
 
-# @TEST-EXEC: bro -b -s dst-port-lt -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lt.out
-# @TEST-EXEC: bro -b -s dst-port-lt-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lt-nomatch.out
-# @TEST-EXEC: bro -b -s dst-port-lte1 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte1.out
-# @TEST-EXEC: bro -b -s dst-port-lte2 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte2.out
-# @TEST-EXEC: bro -b -s dst-port-lte-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-lt -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lt.out
+# @TEST-EXEC: zeek -b -s dst-port-lt-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lt-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-lte1 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte1.out
+# @TEST-EXEC: zeek -b -s dst-port-lte2 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte2.out
+# @TEST-EXEC: zeek -b -s dst-port-lte-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-lte-nomatch.out
 
-# @TEST-EXEC: bro -b -s dst-port-gt -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gt.out
-# @TEST-EXEC: bro -b -s dst-port-gt-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gt-nomatch.out
-# @TEST-EXEC: bro -b -s dst-port-gte1 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte1.out
-# @TEST-EXEC: bro -b -s dst-port-gte2 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte2.out
-# @TEST-EXEC: bro -b -s dst-port-gte-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-gt -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gt.out
+# @TEST-EXEC: zeek -b -s dst-port-gt-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gt-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-port-gte1 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte1.out
+# @TEST-EXEC: zeek -b -s dst-port-gte2 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte2.out
+# @TEST-EXEC: zeek -b -s dst-port-gte-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-port-gte-nomatch.out
 
 # @TEST-EXEC: btest-diff dst-port-eq.out
 # @TEST-EXEC: btest-diff dst-port-eq-nomatch.out

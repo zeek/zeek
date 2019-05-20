@@ -3,10 +3,10 @@
 # @TEST-PORT: BROKER_PORT3
 # @TEST-PORT: BROKER_PORT4
 #
-# @TEST-EXEC: btest-bg-run logger-1 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-1 bro %INPUT
-# @TEST-EXEC: btest-bg-run logger-2 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-2 bro %INPUT
-# @TEST-EXEC: btest-bg-run manager BROPATH=$BROPATH:.. CLUSTER_NODE=manager bro %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 bro %INPUT
+# @TEST-EXEC: btest-bg-run logger-1 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-1 zeek %INPUT
+# @TEST-EXEC: btest-bg-run logger-2 BROPATH=$BROPATH:.. CLUSTER_NODE=logger-2 zeek %INPUT
+# @TEST-EXEC: btest-bg-run manager BROPATH=$BROPATH:.. CLUSTER_NODE=manager zeek %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff logger-1/test.log
 # @TEST-EXEC: btest-diff logger-2/test.log

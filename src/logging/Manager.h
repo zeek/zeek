@@ -10,14 +10,12 @@
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
-#include "../RemoteSerializer.h"
 #include "../plugin/ComponentManager.h"
 
 #include "Component.h"
 #include "WriterBackend.h"
 
 class SerializationFormat;
-class RemoteSerializer;
 class RotationTimer;
 
 namespace logging {
@@ -234,7 +232,6 @@ protected:
 	friend class WriterFrontend;
 	friend class RotationFinishedMessage;
 	friend class RotationFailedMessage;
-	friend class ::RemoteSerializer;
 	friend class ::RotationTimer;
 
 	// Instantiates a new WriterBackend of the given type (note that
@@ -247,9 +244,6 @@ protected:
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
 				bool local, bool remote, bool from_remote, const string& instantiating_filter="");
-
-	// Announces all instantiated writers to peer.
-	void SendAllWritersTo(RemoteSerializer::PeerID peer);
 
 	// Signals that a file has been rotated.
 	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,

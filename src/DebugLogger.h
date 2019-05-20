@@ -16,10 +16,8 @@
 enum DebugStream {
 	DBG_SERIAL,	// Serialization
 	DBG_RULES,	// Signature matching
-	DBG_COMM,	// Remote communication
 	DBG_STATE,	// StateAccess logging
 	DBG_CHUNKEDIO,	// ChunkedIO logging
-	DBG_COMPRESSOR,	// Connection compressor
 	DBG_STRING,	// String code
 	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
 	DBG_MAINLOOP,	// Main IOSource loop
@@ -30,7 +28,7 @@ enum DebugStream {
 	DBG_THREADING,	// Threading system
 	DBG_FILE_ANALYSIS,	// File analysis
 	DBG_PLUGINS,	// Plugin system
-	DBG_ZEEXYGEN,	// Zeexygen
+	DBG_ZEEKYGEN,	// Zeekygen
 	DBG_PKTIO,	// Packet sources and dumpers.
 	DBG_BROKER,	// Broker communication
 	DBG_SCRIPTS,	// Script initialization

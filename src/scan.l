@@ -29,7 +29,7 @@
 #include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
-#include "zeexygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 #include "plugin/Manager.h"
 
@@ -162,19 +162,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	zeexygen_mgr->SummaryComment(::filename, yytext + 3);
+	zeekygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
 	string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
-	zeexygen_mgr->PostComment(yytext + 3, hint);
+	zeekygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
 	if ( yytext[2] != '#' )
-		zeexygen_mgr->PreComment(yytext + 2);
+		zeekygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -310,11 +310,6 @@ when	return TOK_WHEN;
 	return TOK_ATTR_MERGEABLE;
 	}
 
-&persistent {
-	deprecated_attr(yytext);
-	return TOK_ATTR_PERSISTENT;
-	}
-
 &rotate_interval {
 	deprecated_attr(yytext);
 	return TOK_ATTR_ROTATE_INTERVAL;
@@ -323,12 +318,6 @@ when	return TOK_WHEN;
 &rotate_size {
 	deprecated_attr(yytext);
 	return TOK_ATTR_ROTATE_SIZE;
-	}
-
-&synchronized  {
-	++old_comm_usage_count;
-	deprecated_attr(yytext);
-	return TOK_ATTR_SYNCHRONIZED;
 	}
 
 @deprecated.* {
@@ -376,7 +365,7 @@ when	return TOK_WHEN;
 	string loader = ::filename;  // load_files may change ::filename, save copy
 	string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
-	zeexygen_mgr->ScriptDependency(loader, loading);
+	zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
@@ -720,7 +709,7 @@ static int load_files(const char* orig_file)
 	else
 		file_stack.append(new FileInfo);
 
-	zeexygen_mgr->Script(file_path);
+	zeekygen_mgr->Script(file_path);
 
 	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
 

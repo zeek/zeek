@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT > output
+# @TEST-EXEC: zeek %INPUT > output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff output
 
 module Software;

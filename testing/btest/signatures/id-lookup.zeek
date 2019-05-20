@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
+# @TEST-EXEC: zeek -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
 # @TEST-EXEC: btest-diff id.out
 
 @TEST-START-FILE id.sig

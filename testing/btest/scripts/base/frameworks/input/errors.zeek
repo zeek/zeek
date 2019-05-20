@@ -1,6 +1,6 @@
 # Test different kinds of errors of the input framework
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: btest-diff out
 

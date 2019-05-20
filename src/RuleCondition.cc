@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleCondition.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -162,7 +162,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		return id->ID_Val()->AsBool();
 
 	// Call function with a signature_state value as argument.
-	val_list args;
+	val_list args(2);
 	args.append(rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )

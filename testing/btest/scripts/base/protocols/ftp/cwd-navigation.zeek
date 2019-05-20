@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ftp/cwd-navigation.pcap >output.log %INPUT
+# @TEST-EXEC: zeek -r $TRACES/ftp/cwd-navigation.pcap >output.log %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ftp.log
 # @TEST-EXEC: btest-diff output.log

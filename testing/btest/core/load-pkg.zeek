@@ -1,17 +1,17 @@
 # Test that package loading works when a package loader script is present.
 #
 # Test that ".zeek" is loaded when there is also a ".bro"
-# @TEST-EXEC: bro -b foo >output
+# @TEST-EXEC: zeek -b foo >output
 # @TEST-EXEC: btest-diff output
 #
 # Test that ".bro" is loaded when there is no ".zeek"
 # @TEST-EXEC: rm foo/__load__.zeek
-# @TEST-EXEC: bro -b foo >output2
+# @TEST-EXEC: zeek -b foo >output2
 # @TEST-EXEC: btest-diff output2
 #
 # Test that package cannot be loaded when no package loader script exists.
 # @TEST-EXEC: rm foo/__load__.bro
-# @TEST-EXEC-FAIL: bro -b foo
+# @TEST-EXEC-FAIL: zeek -b foo
 
 @TEST-START-FILE foo/__load__.bro
 @load ./test

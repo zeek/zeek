@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT 
+# @TEST-EXEC: zeek -b %INPUT 
 # @TEST-EXEC: cat ssh.log | egrep -v '#open|#close' >ssh.log.tmp && mv ssh.log.tmp ssh.log
 # @TEST-EXEC: btest-diff ssh.log
 

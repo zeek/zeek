@@ -1,7 +1,7 @@
 ##! Functions to calculate distance between two locations, based on GeoIP data.
 
 ## Returns the distance between two IP addresses using the haversine formula,
-## based on GeoIP database locations.  Requires Bro to be built with GeoIP.
+## based on GeoIP database locations.  Requires Zeek to be built with GeoIP.
 ##
 ## a1: First IP address.
 ##

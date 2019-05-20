@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=1 >get.out
-# @TEST-EXEC: bro -r $TRACES/http/get-gzip.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=2 >get-gzip.out
+# @TEST-EXEC: zeek -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=1 >get.out
+# @TEST-EXEC: zeek -r $TRACES/http/get-gzip.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=2 >get-gzip.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: btest-diff get-gzip.out
 # @TEST-EXEC: btest-diff 1-file

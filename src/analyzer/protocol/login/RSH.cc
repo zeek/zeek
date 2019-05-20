@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "Event.h"
@@ -156,31 +156,38 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	Login_Analyzer::DeliverStream(len, data, orig);
 
+	if ( orig )
+		{
+		if ( ! rsh_request )
+			return;
+		}
+	else
+		{
+		if ( ! rsh_reply )
+			return;
+		}
+
+	val_list vl(4 + orig);
 	const char* line = (const char*) data;
-	val_list* vl = new val_list;
-
 	line = skip_whitespace(line);
-	vl->append(BuildConnVal());
-	vl->append(client_name ? client_name->Ref() : new StringVal("<none>"));
-	vl->append(username ? username->Ref() : new StringVal("<none>"));
-	vl->append(new StringVal(line));
+	vl.append(BuildConnVal());
+	vl.append(client_name ? client_name->Ref() : new StringVal("<none>"));
+	vl.append(username ? username->Ref() : new StringVal("<none>"));
+	vl.append(new StringVal(line));
 
-	if ( orig && rsh_request )
+	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl->append(val_mgr->GetTrue());
+			vl.append(val_mgr->GetTrue());
 		else
-			vl->append(val_mgr->GetFalse());
+			vl.append(val_mgr->GetFalse());
 
-		ConnectionEvent(rsh_request, vl);
+		ConnectionEventFast(rsh_request, std::move(vl));
 		}
 
-	else if ( rsh_reply )
-		ConnectionEvent(rsh_reply, vl);
-
 	else
-		delete_vals(vl);
+		ConnectionEventFast(rsh_reply, std::move(vl));
 	}
 
 void Rsh_Analyzer::ClientUserName(const char* s)

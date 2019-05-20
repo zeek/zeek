@@ -1,9 +1,9 @@
-# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/http/get.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 45
-# @TEST-EXEC: btest-diff bro/.stdout
+# @TEST-EXEC: btest-diff zeek/.stdout
 
 type bro_set: set[string];
 type bro_table: table[string] of count;
@@ -110,7 +110,7 @@ if ( did_it ) return;
 
 did_it = T;
 
-### Print every broker data type
+### Print every Broker data type
 
 print Broker::data_type(Broker::data(T));
 print Broker::data_type(Broker::data(+1));
@@ -134,7 +134,7 @@ print Broker::data_type(Broker::data(r));
 
 print "***************************";
 
-### Convert a Bro value to a broker value, then print the result
+### Convert a Zeek value to a Broker value, then print the result
 
 print (Broker::data(T)) as bool;
 print (Broker::data(F)) as bool;
@@ -175,7 +175,7 @@ print broker_to_bro_record(cr);
 
 print "***************************";
 
-### Test the broker set BIFs
+### Test the Broker set BIFs
 
 cs = Broker::set_create();
 print Broker::set_size(cs);
@@ -197,7 +197,7 @@ print broker_to_bro_set(cs);
 
 print "***************************";
 
-### Test the broker table BIFs
+### Test the Broker table BIFs
 
 ct = Broker::table_create();
 print Broker::table_size(ct);
@@ -221,7 +221,7 @@ print broker_to_bro_table(ct);
 
 print "***************************";
 
-### Test the broker vector BIFs
+### Test the Broker vector BIFs
 
 cv = Broker::vector_create();
 print Broker::vector_size(cv);
@@ -244,7 +244,7 @@ print broker_to_bro_vector(cv);
 
 print "***************************";
 
-### Test the broker record BIFs
+### Test the Broker record BIFs
 
 cr = Broker::record_create(3);
 print Broker::record_size(cr);

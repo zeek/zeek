@@ -9,8 +9,6 @@
 
 #include "Component.h"
 
-class RemoteSerializer;
-
 namespace broker { class data; }
 
 namespace logging  {

@@ -1,11 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "ID.h"
 #include "Val.h"
 #include "Scope.h"
 #include "Reporter.h"
+
+declare(PList,Scope);
+typedef PList(Scope) scope_list;
 
 static scope_list scopes;
 static Scope* top_scope;

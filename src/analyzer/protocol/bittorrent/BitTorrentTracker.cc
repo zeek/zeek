@@ -247,11 +247,11 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(msg));
-		ConnectionEvent(bt_tracker_weird, vl);
+		ConnectionEventFast(bt_tracker_weird, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(msg),
+		});
 		}
 	}
 
@@ -346,19 +346,17 @@ void BitTorrentTracker_Analyzer::RequestGet(char* uri)
 
 void BitTorrentTracker_Analyzer::EmitRequest(void)
 	{
-	val_list* vl;
-
 	ProtocolConfirmation();
 
-	vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(req_val_uri);
-	vl->append(req_val_headers);
+	if ( bt_tracker_request )
+		ConnectionEventFast(bt_tracker_request, {
+			BuildConnVal(),
+			req_val_uri,
+			req_val_headers,
+		});
 
 	req_val_uri = 0;
 	req_val_headers = 0;
-
-	ConnectionEvent(bt_tracker_request, vl);
 	}
 
 bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
@@ -404,11 +402,12 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			{
 			if ( res_status != 200 )
 				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetCount(res_status));
-				vl->append(res_val_headers);
-				ConnectionEvent(bt_tracker_response_not_ok, vl);
+				if ( bt_tracker_response_not_ok )
+					ConnectionEventFast(bt_tracker_response_not_ok, {
+						BuildConnVal(),
+						val_mgr->GetCount(res_status),
+						res_val_headers,
+					});
 				res_val_headers = 0;
 				res_buf_pos = res_buf + res_buf_len;
 				res_state = BTT_RES_DONE;
@@ -790,16 +789,16 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	{
 	ProtocolConfirmation();
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(val_mgr->GetCount(res_status));
-	vl->append(res_val_headers);
-	vl->append(res_val_peers);
-	vl->append(res_val_benc);
+	if ( bt_tracker_response )
+		ConnectionEventFast(bt_tracker_response, {
+			BuildConnVal(),
+			val_mgr->GetCount(res_status),
+			res_val_headers,
+			res_val_peers,
+			res_val_benc,
+		});
 
 	res_val_headers = 0;
 	res_val_peers = 0;
 	res_val_benc = 0;
-
-	ConnectionEvent(bt_tracker_response, vl);
 	}

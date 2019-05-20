@@ -1,5 +1,5 @@
 ##! OpenFlow plugin that outputs flow-modification commands
-##! to a Bro log file.
+##! to a Zeek log file.
 
 @load base/frameworks/openflow
 @load base/frameworks/logging

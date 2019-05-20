@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: btest-diff certs-remote.pem
 
 @load protocols/ssl/extract-certs-pem

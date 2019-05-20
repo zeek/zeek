@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -C -r $TRACES/modbus/modbusBig.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: zeek -C -r $TRACES/modbus/modbusBig.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total

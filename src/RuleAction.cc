@@ -1,7 +1,7 @@
 #include <string>
 using std::string;
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleAction.h"
 #include "RuleMatcher.h"
@@ -17,16 +17,11 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 	{
 	if ( signature_match )
 		{
-		val_list* vl = new val_list;
-		vl->append(rule_matcher->BuildRuleStateValue(parent, state));
-		vl->append(new StringVal(msg));
-
-		if ( data )
-			vl->append(new StringVal(len, (const char*)data));
-		else
-			vl->append(val_mgr->GetEmptyString());
-
-		mgr.QueueEvent(signature_match, vl);
+		mgr.QueueEventFast(signature_match, {
+			rule_matcher->BuildRuleStateValue(parent, state),
+			new StringVal(msg),
+			data ? new StringVal(len, (const char*)data) : val_mgr->GetEmptyString(),
+		});
 		}
 	}
 

@@ -1,6 +1,6 @@
 # A test of relative-path-based @load'ing
 
-# @TEST-EXEC: bro -b foo/foo >output
+# @TEST-EXEC: zeek -b foo/foo >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE foo/foo.zeek

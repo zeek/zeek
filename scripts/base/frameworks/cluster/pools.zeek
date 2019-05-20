@@ -351,7 +351,7 @@ event zeek_init() &priority=-5
 		return;
 
 	# Sorting now ensures the node distribution process is stable even if
-	# there's a change in the order of time-of-registration between Bro runs.
+	# there's a change in the order of time-of-registration between Zeek runs.
 	sort(registered_pools, pool_sorter);
 
 	pool_eligibility[Cluster::WORKER] =

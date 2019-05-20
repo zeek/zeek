@@ -1865,11 +1865,12 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	bool convert_error = false;
 
-	val_list* vl = new val_list;
+	val_list vl(num_vals);
+
 	for ( int j = 0; j < num_vals; j++)
 		{
 		Val* v = ValueToVal(i, vals[j], convert_error);
-		vl->append(v);
+		vl.append(v);
 		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
 			{
 			convert_error = true;
@@ -1881,18 +1882,20 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	if ( convert_error )
 		{
-		delete_vals(vl);
+		loop_over_list(vl, i)
+			Unref(vl[i]);
+
 		return false;
 		}
 	else
-		mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
+		mgr.QueueEvent(handler, std::move(vl), SOURCE_LOCAL);
 
 	return true;
 }
 
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	{
-	val_list* vl = new val_list;
+	val_list vl(numvals);
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
@@ -1902,16 +1905,16 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl->append( va_arg(lP, Val*) );
+		vl.append( va_arg(lP, Val*) );
 
 	va_end(lP);
 
-	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 	{
-	val_list* vl = new val_list;
+	val_list vl(events.size());
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
@@ -1919,11 +1922,9 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		{
-		vl->append( *i );
-		}
+		vl.append( *i );
 
-	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.

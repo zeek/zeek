@@ -120,10 +120,10 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(msg));
-		ConnectionEvent(bittorrent_peer_weird, vl);
+		ConnectionEventFast(bittorrent_peer_weird, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(msg),
+		});
 		}
 	}

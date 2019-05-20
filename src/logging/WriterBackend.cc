@@ -4,6 +4,7 @@
 
 #include "util.h"
 #include "threading/SerialTypes.h"
+#include "SerializationFormat.h"
 
 #include "Manager.h"
 #include "WriterBackend.h"

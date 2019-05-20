@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Attr.h"
 #include "Expr.h"
@@ -14,7 +14,6 @@ const char* attr_name(attr_tag t)
 		"&rotate_interval", "&rotate_size",
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
-		"&persistent", "&synchronized",
 		"&encrypt",
 		"&raw_output", "&mergeable", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
@@ -141,7 +140,7 @@ Attributes::~Attributes()
 void Attributes::AddAttr(Attr* attr)
 	{
 	if ( ! attrs )
-		attrs = new attr_list;
+		attrs = new attr_list(1);
 
 	if ( ! attr->RedundantAttrOkay() )
 		// We overwrite old attributes by deleting them first.
@@ -438,8 +437,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_PERSISTENT:
-	case ATTR_SYNCHRONIZED:
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;
@@ -559,8 +556,7 @@ bool Attributes::DoSerialize(SerialInfo* info) const
 		{
 		Attr* a = (*attrs)[i];
 
-		// Broccoli doesn't support expressions.
-		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
+		Expr* e = a->AttrExpr();
 		SERIALIZE_OPTIONAL(e);
 
 		if ( ! SERIALIZE(char(a->Tag())) )

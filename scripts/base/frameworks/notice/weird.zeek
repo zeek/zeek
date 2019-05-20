@@ -1,5 +1,5 @@
 ##! This script provides a default set of actions to take for "weird activity"
-##! events generated from Bro's event engine.  Weird activity is defined as
+##! events generated from Zeek's event engine.  Weird activity is defined as
 ##! unusual or exceptional activity that can indicate malformed connections,
 ##! traffic that doesn't conform to a particular protocol, malfunctioning
 ##! or misconfigured hardware, or even an attacker attempting to avoid/confuse

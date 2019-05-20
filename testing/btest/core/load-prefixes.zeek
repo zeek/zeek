@@ -1,6 +1,6 @@
 # A test of prefix-based @load'ing
 
-# @TEST-EXEC: bro addprefixes >output
+# @TEST-EXEC: zeek addprefixes >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE addprefixes.zeek

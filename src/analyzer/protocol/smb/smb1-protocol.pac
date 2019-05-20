@@ -66,9 +66,10 @@ refine connection SMB_Conn += {
 			}
 		else
 			{
-			BifEvent::generate_smb1_error(bro_analyzer(),
-			                              bro_analyzer()->Conn(),
-			                              BuildHeaderVal(h), is_orig);
+			if ( smb1_error )
+				BifEvent::generate_smb1_error(bro_analyzer(),
+				                              bro_analyzer()->Conn(),
+				                              BuildHeaderVal(h), is_orig);
 			}
 		return true;
 		%}

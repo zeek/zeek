@@ -6,7 +6,7 @@
 # @TEST-REQUIRES: has-writer Bro::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: sqlite3 ssh.sqlite 'select * from ssh' > ssh.select
 # @TEST-EXEC: btest-diff ssh.select
 #

@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/chrome-34-google.trace %INPUT
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)

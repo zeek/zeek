@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/http/pipelined-requests.trace %INPUT > output
+# @TEST-EXEC: zeek -r $TRACES/http/pipelined-requests.trace %INPUT > output
 # @TEST-EXEC: btest-diff http.log
 
 # mime type is irrelevant to this test, so filter it out

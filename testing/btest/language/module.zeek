@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT secondtestfile >out
+# @TEST-EXEC: zeek -b %INPUT secondtestfile >out
 # @TEST-EXEC: btest-diff out
 
 # In this source file, we define a module and export some objects

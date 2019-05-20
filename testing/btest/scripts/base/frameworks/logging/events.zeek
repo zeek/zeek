@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 module SSH;

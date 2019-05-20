@@ -4,18 +4,18 @@
 module PacketFilter;
 
 export {
-	## The maximum number of BPF based shunts that Bro is allowed to perform.
+	## The maximum number of BPF based shunts that Zeek is allowed to perform.
 	const max_bpf_shunts = 100 &redef;
 
 	## Call this function to use BPF to shunt a connection (to prevent the
-	## data packets from reaching Bro).  For TCP connections, control
-	## packets are still allowed through so that Bro can continue logging
+	## data packets from reaching Zeek).  For TCP connections, control
+	## packets are still allowed through so that Zeek can continue logging
 	## the connection and it can stop shunting once the connection ends.
 	global shunt_conn: function(id: conn_id): bool;
 
 	## This function will use a BPF expression to shunt traffic between
 	## the two hosts given in the `conn_id` so that the traffic is never
-	## exposed to Bro's traffic processing.
+	## exposed to Zeek's traffic processing.
 	global shunt_host_pair: function(id: conn_id): bool;
 
 	## Remove shunting for a host pair given as a `conn_id`.  The filter

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -C -r $TRACES/dce-rpc/cs_window7-join_stream092.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -C -r $TRACES/dce-rpc/cs_window7-join_stream092.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff dce_rpc.log
 

@@ -233,14 +233,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				// else ###
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(val_mgr->GetInt(users));
-			vl->append(val_mgr->GetInt(services));
-			vl->append(val_mgr->GetInt(servers));
-
-			ConnectionEvent(irc_network_info, vl);
+			ConnectionEventFast(irc_network_info, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				val_mgr->GetInt(users),
+				val_mgr->GetInt(services),
+				val_mgr->GetInt(servers),
+			});
 			}
 			break;
 
@@ -271,13 +270,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(type.c_str()));
-			vl->append(new StringVal(channel.c_str()));
-
 			TableVal* set = new TableVal(string_set);
+
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				if ( parts[i][0] == '@' )
@@ -286,9 +280,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				set->Assign(idx, 0);
 				Unref(idx);
 				}
-			vl->append(set);
 
-			ConnectionEvent(irc_names_info, vl);
+			ConnectionEventFast(irc_names_info, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(type.c_str()),
+				new StringVal(channel.c_str()),
+				set,
+			});
 			}
 			break;
 
@@ -316,14 +315,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				// else ###
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(val_mgr->GetInt(users));
-			vl->append(val_mgr->GetInt(services));
-			vl->append(val_mgr->GetInt(servers));
-
-			ConnectionEvent(irc_server_info, vl);
+			ConnectionEventFast(irc_server_info, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				val_mgr->GetInt(users),
+				val_mgr->GetInt(services),
+				val_mgr->GetInt(servers),
+			});
 			}
 			break;
 
@@ -339,12 +337,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				if ( parts[i] == ":channels" )
 					channels = atoi(parts[i - 1].c_str());
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(val_mgr->GetInt(channels));
-
-			ConnectionEvent(irc_channel_info, vl);
+			ConnectionEventFast(irc_channel_info, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				val_mgr->GetInt(channels),
+			});
 			}
 			break;
 
@@ -372,12 +369,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				break;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(eop - prefix, prefix));
-			vl->append(new StringVal(++msg));
-			ConnectionEvent(irc_global_users, vl);
+			ConnectionEventFast(irc_global_users, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(eop - prefix, prefix),
+				new StringVal(++msg),
+			});
 			break;
 			}
 
@@ -397,12 +394,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-			vl->append(new StringVal(parts[2].c_str()));
+			val_list vl(6);
+			vl.append(BuildConnVal());
+			vl.append(val_mgr->GetBool(orig));
+			vl.append(new StringVal(parts[0].c_str()));
+			vl.append(new StringVal(parts[1].c_str()));
+			vl.append(new StringVal(parts[2].c_str()));
 
 			parts.erase(parts.begin(), parts.begin() + 4);
 
@@ -413,9 +410,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( real_name[0] == ':' )
 				real_name = real_name.substr(1);
 
-			vl->append(new StringVal(real_name.c_str()));
+			vl.append(new StringVal(real_name.c_str()));
 
-			ConnectionEvent(irc_whois_user_line, vl);
+			ConnectionEventFast(irc_whois_user_line, std::move(vl));
 			}
 			break;
 
@@ -436,12 +433,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(parts[0].c_str()));
-
-			ConnectionEvent(irc_whois_operator_line, vl);
+			ConnectionEventFast(irc_whois_operator_line, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(parts[0].c_str()),
+			});
 			}
 			break;
 
@@ -467,11 +463,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(nick.c_str()));
 			TableVal* set = new TableVal(string_set);
+
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				Val* idx = new StringVal(parts[i].c_str());
@@ -479,9 +472,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				Unref(idx);
 				}
 
-			vl->append(set);
-
-			ConnectionEvent(irc_whois_channel_line, vl);
+			ConnectionEventFast(irc_whois_channel_line, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(nick.c_str()),
+				set,
+			});
 			}
 			break;
 
@@ -502,19 +498,17 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( pos < params.size() )
 				{
 				string topic = params.substr(pos + 1);
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				vl->append(new StringVal(parts[1].c_str()));
-
 				const char* t = topic.c_str();
+
 				if ( *t == ':' )
 					++t;
 
-				vl->append(new StringVal(t));
-
-				ConnectionEvent(irc_channel_topic, vl);
+				ConnectionEventFast(irc_channel_topic, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(parts[1].c_str()),
+					new StringVal(t),
+				});
 				}
 			else
 				{
@@ -537,24 +531,25 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
 			if ( parts[2][0] == '~' )
 				parts[2] = parts[2].substr(1);
-			vl->append(new StringVal(parts[2].c_str()));
-			vl->append(new StringVal(parts[3].c_str()));
-			vl->append(new StringVal(parts[4].c_str()));
-			vl->append(new StringVal(parts[5].c_str()));
-			vl->append(new StringVal(parts[6].c_str()));
+
 			if ( parts[7][0] == ':' )
 				parts[7] = parts[7].substr(1);
-			vl->append(val_mgr->GetInt(atoi(parts[7].c_str())));
-			vl->append(new StringVal(parts[8].c_str()));
 
-			ConnectionEvent(irc_who_line, vl);
+			ConnectionEventFast(irc_who_line, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(parts[0].c_str()),
+				new StringVal(parts[1].c_str()),
+				new StringVal(parts[2].c_str()),
+				new StringVal(parts[3].c_str()),
+				new StringVal(parts[4].c_str()),
+				new StringVal(parts[5].c_str()),
+				new StringVal(parts[6].c_str()),
+				val_mgr->GetInt(atoi(parts[7].c_str())),
+				new StringVal(parts[8].c_str()),
+			});
 			}
 			break;
 
@@ -565,10 +560,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 436:
 			if ( irc_invalid_nick )
 				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				ConnectionEvent(irc_invalid_nick, vl);
+				ConnectionEventFast(irc_invalid_nick, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+				});
 				}
 			break;
 
@@ -577,11 +572,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 491:  // user is not operator
 			if ( irc_oper_response )
 				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				vl->append(val_mgr->GetBool(code == 381));
-				ConnectionEvent(irc_oper_response, vl);
+				ConnectionEventFast(irc_oper_response, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					val_mgr->GetBool(code == 381),
+				});
 				}
 			break;
 
@@ -592,14 +587,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		// All other server replies.
 		default:
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(val_mgr->GetCount(code));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_reply, vl);
+			if ( irc_reply )
+				ConnectionEventFast(irc_reply, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(prefix.c_str()),
+					val_mgr->GetCount(code),
+					new StringVal(params.c_str()),
+				});
 			break;
 		}
 		return;
@@ -662,33 +657,33 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				raw_ip = (10 * raw_ip) + atoi(s.c_str());
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(target.c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-			vl->append(new StringVal(parts[2].c_str()));
-			vl->append(new AddrVal(htonl(raw_ip)));
-			vl->append(val_mgr->GetCount(atoi(parts[4].c_str())));
-			if ( parts.size() >= 6 )
-				vl->append(val_mgr->GetCount(atoi(parts[5].c_str())));
-			else
-				vl->append(val_mgr->GetCount(0));
 
-			ConnectionEvent(irc_dcc_message, vl);
+			if ( irc_dcc_message )
+				ConnectionEventFast(irc_dcc_message, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(prefix.c_str()),
+					new StringVal(target.c_str()),
+					new StringVal(parts[1].c_str()),
+					new StringVal(parts[2].c_str()),
+					new AddrVal(htonl(raw_ip)),
+					val_mgr->GetCount(atoi(parts[4].c_str())),
+					parts.size() >= 6 ?
+						val_mgr->GetCount(atoi(parts[5].c_str())) :
+						val_mgr->GetCount(0),
+				});
 			}
 
 		else
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(target.c_str()));
-			vl->append(new StringVal(message.c_str()));
-
-			ConnectionEvent(irc_privmsg_message, vl);
+			if ( irc_privmsg_message )
+				ConnectionEventFast(irc_privmsg_message, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(prefix.c_str()),
+					new StringVal(target.c_str()),
+					new StringVal(message.c_str()),
+				});
 			}
 		}
 
@@ -707,14 +702,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(target.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_notice_message, vl);
+		ConnectionEventFast(irc_notice_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(prefix.c_str()),
+			new StringVal(target.c_str()),
+			new StringVal(message.c_str()),
+		});
 		}
 
 	else if ( irc_squery_message && command == "SQUERY" )
@@ -732,35 +726,34 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(target.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_squery_message, vl);
+		ConnectionEventFast(irc_squery_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(prefix.c_str()),
+			new StringVal(target.c_str()),
+			new StringVal(message.c_str()),
+		});
 		}
 
 	else if ( irc_user_message && command == "USER" )
 		{
 		// extract username and real name
 		vector<string> parts = SplitWords(params, ' ');
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
+		val_list vl(6);
+		vl.append(BuildConnVal());
+		vl.append(val_mgr->GetBool(orig));
 
 		if ( parts.size() > 0 )
-			vl->append(new StringVal(parts[0].c_str()));
-		else vl->append(val_mgr->GetEmptyString());
+			vl.append(new StringVal(parts[0].c_str()));
+		else vl.append(val_mgr->GetEmptyString());
 
 		if ( parts.size() > 1 )
-			vl->append(new StringVal(parts[1].c_str()));
-		else vl->append(val_mgr->GetEmptyString());
+			vl.append(new StringVal(parts[1].c_str()));
+		else vl.append(val_mgr->GetEmptyString());
 
 		if ( parts.size() > 2 )
-			vl->append(new StringVal(parts[2].c_str()));
-		else vl->append(val_mgr->GetEmptyString());
+			vl.append(new StringVal(parts[2].c_str()));
+		else vl.append(val_mgr->GetEmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -771,9 +764,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		const char* name = realname.c_str();
-		vl->append(new StringVal(*name == ':' ? name + 1 : name));
+		vl.append(new StringVal(*name == ':' ? name + 1 : name));
 
-		ConnectionEvent(irc_user_message, vl);
+		ConnectionEventFast(irc_user_message, std::move(vl));
 		}
 
 	else if ( irc_oper_message && command == "OPER" )
@@ -782,13 +775,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		vector<string> parts = SplitWords(params, ' ');
 		if ( parts.size() == 2 )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-
-			ConnectionEvent(irc_oper_message, vl);
+			ConnectionEventFast(irc_oper_message, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(parts[0].c_str()),
+				new StringVal(parts[1].c_str()),
+			});
 			}
 
 		else
@@ -805,12 +797,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			return;
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(parts[0].c_str()));
-		vl->append(new StringVal(parts[1].c_str()));
+		val_list vl(6);
+		vl.append(BuildConnVal());
+		vl.append(val_mgr->GetBool(orig));
+		vl.append(new StringVal(prefix.c_str()));
+		vl.append(new StringVal(parts[0].c_str()));
+		vl.append(new StringVal(parts[1].c_str()));
 		if ( parts.size() > 2 )
 			{
 			string comment = parts[2];
@@ -820,12 +812,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( comment[0] == ':' )
 				comment = comment.substr(1);
 
-			vl->append(new StringVal(comment.c_str()));
+			vl.append(new StringVal(comment.c_str()));
 			}
 		else
-			vl->append(val_mgr->GetEmptyString());
+			vl.append(val_mgr->GetEmptyString());
 
-		ConnectionEvent(irc_kick_message, vl);
+		ConnectionEventFast(irc_kick_message, std::move(vl));
 		}
 
 	else if ( irc_join_message && command == "JOIN" )
@@ -849,11 +841,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-
 		TableVal* list = new TableVal(irc_join_list);
+
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
 
@@ -876,9 +865,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			Unref(info);
 			}
 
-		vl->append(list);
-
-		ConnectionEvent(irc_join_message, vl);
+		ConnectionEventFast(irc_join_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			list,
+		});
 		}
 
 	else if ( irc_join_message && command == "NJOIN" )
@@ -895,12 +886,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-
 		TableVal* list = new TableVal(irc_join_list);
+
 		string empty_string = "";
 
 		for ( unsigned int i = 0; i < users.size(); ++i )
@@ -939,9 +926,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			Unref(info);
 			}
 
-		vl->append(list);
-
-		ConnectionEvent(irc_join_message, vl);
+		ConnectionEventFast(irc_join_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			list,
+		});
 		}
 
 	else if ( irc_part_message && command == "PART" )
@@ -977,14 +966,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			Unref(idx);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(nick.c_str()));
-		vl->append(set);
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_part_message, vl);
+		ConnectionEventFast(irc_part_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(nick.c_str()),
+			set,
+			new StringVal(message.c_str()),
+		});
 		}
 
 	else if ( irc_quit_message && command == "QUIT" )
@@ -1001,13 +989,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(nickname.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_quit_message, vl);
+		ConnectionEventFast(irc_quit_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(nickname.c_str()),
+			new StringVal(message.c_str()),
+		});
 		}
 
 	else if ( irc_nick_message && command == "NICK" )
@@ -1016,13 +1003,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( nick[0] == ':' )
 			nick = nick.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(nick.c_str()));
-
-		ConnectionEvent(irc_nick_message, vl);
+		ConnectionEventFast(irc_nick_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(prefix.c_str()),
+			new StringVal(nick.c_str())
+		});
 		}
 
 	else if ( irc_who_message && command == "WHO" )
@@ -1042,16 +1028,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( parts.size() > 0 && parts[0].size() > 0 && parts[0][0] == ':' )
 			parts[0] = parts[0].substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		if ( parts.size() > 0 )
-			vl->append(new StringVal(parts[0].c_str()));
-		else
-			vl->append(val_mgr->GetEmptyString());
-		vl->append(val_mgr->GetBool(oper));
-
-		ConnectionEvent(irc_who_message, vl);
+		ConnectionEventFast(irc_who_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			parts.size() > 0 ?
+				new StringVal(parts[0].c_str()) :
+				val_mgr->GetEmptyString(),
+			val_mgr->GetBool(oper),
+		});
 		}
 
 	else if ( irc_whois_message && command == "WHOIS" )
@@ -1074,26 +1058,25 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		else
 			users = parts[0];
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(server.c_str()));
-		vl->append(new StringVal(users.c_str()));
-
-		ConnectionEvent(irc_whois_message, vl);
+		ConnectionEventFast(irc_whois_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(server.c_str()),
+			new StringVal(users.c_str()),
+		});
 		}
 
 	else if ( irc_error_message && command == "ERROR" )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
 		if ( params[0] == ':' )
 			params = params.substr(1);
-		vl->append(new StringVal(params.c_str()));
 
-		ConnectionEvent(irc_error_message, vl);
+		ConnectionEventFast(irc_error_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(prefix.c_str()),
+			new StringVal(params.c_str()),
+		});
 		}
 
 	else if ( irc_invite_message && command == "INVITE" )
@@ -1104,14 +1087,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts[1].size() > 0 && parts[1][0] == ':' )
 				parts[1] = parts[1].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-
-			ConnectionEvent(irc_invite_message, vl);
+			ConnectionEventFast(irc_invite_message, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(prefix.c_str()),
+				new StringVal(parts[0].c_str()),
+				new StringVal(parts[1].c_str()),
+			});
 			}
 		else
 			Weird("irc_invalid_invite_message_format");
@@ -1121,13 +1103,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( params.size() > 0 )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_mode_message, vl);
+			ConnectionEventFast(irc_mode_message, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(prefix.c_str()),
+				new StringVal(params.c_str()),
+			});
 			}
 
 		else
@@ -1136,11 +1117,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 	else if ( irc_password_message && command == "PASS" )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(params.c_str()));
-		ConnectionEvent(irc_password_message, vl);
+		ConnectionEventFast(irc_password_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(params.c_str()),
+		});
 		}
 
 	else if ( irc_squit_message && command == "SQUIT" )
@@ -1158,14 +1139,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				message = message.substr(1);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(orig));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(server.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_squit_message, vl);
+		ConnectionEventFast(irc_squit_message, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig),
+			new StringVal(prefix.c_str()),
+			new StringVal(server.c_str()),
+			new StringVal(message.c_str()),
+		});
 		}
 
 
@@ -1173,14 +1153,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( irc_request )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(command.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_request, vl);
+			ConnectionEventFast(irc_request, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(prefix.c_str()),
+				new StringVal(command.c_str()),
+				new StringVal(params.c_str()),
+			});
 			}
 		}
 
@@ -1188,14 +1167,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( irc_message )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(orig));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(command.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_message, vl);
+			ConnectionEventFast(irc_message, {
+				BuildConnVal(),
+				val_mgr->GetBool(orig),
+				new StringVal(prefix.c_str()),
+				new StringVal(command.c_str()),
+				new StringVal(params.c_str()),
+			});
 			}
 		}
 
@@ -1224,10 +1202,8 @@ void IRC_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(irc_starttls, vl);
+	if ( irc_starttls )
+		ConnectionEventFast(irc_starttls, {BuildConnVal()});
 	}
 
 vector<string> IRC_Analyzer::SplitWords(const string input, const char split)

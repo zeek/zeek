@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "File.h"
 #include "analyzer/Analyzer.h"
 #include "TCP_Reassembler.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -145,12 +146,12 @@ void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 
 	if ( report_gap(endp, endp->peer) )
 		{
-		val_list* vl = new val_list;
-		vl->append(dst_analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(IsOrig()));
-		vl->append(val_mgr->GetCount(seq));
-		vl->append(val_mgr->GetCount(len));
-		dst_analyzer->ConnectionEvent(content_gap, vl);
+		dst_analyzer->ConnectionEventFast(content_gap, {
+			dst_analyzer->BuildConnVal(),
+			val_mgr->GetBool(IsOrig()),
+			val_mgr->GetCount(seq),
+			val_mgr->GetCount(len),
+		});
 		}
 
 	if ( type == Direct )
@@ -344,11 +345,11 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 
 	if ( contents_file_write_failure )
 		{
-		val_list* vl = new val_list();
-		vl->append(Endpoint()->Conn()->BuildConnVal());
-		vl->append(val_mgr->GetBool(IsOrig()));
-		vl->append(new StringVal("TCP reassembler content write failure"));
-		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
+			Endpoint()->Conn()->BuildConnVal(),
+			val_mgr->GetBool(IsOrig()),
+			new StringVal("TCP reassembler content write failure"),
+		});
 		}
 	}
 
@@ -361,11 +362,11 @@ void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
 
 	if ( contents_file_write_failure )
 		{
-		val_list* vl = new val_list();
-		vl->append(Endpoint()->Conn()->BuildConnVal());
-		vl->append(val_mgr->GetBool(IsOrig()));
-		vl->append(new StringVal("TCP reassembler gap write failure"));
-		tcp_analyzer->ConnectionEvent(contents_file_write_failure, vl);
+		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
+			Endpoint()->Conn()->BuildConnVal(),
+			val_mgr->GetBool(IsOrig()),
+			new StringVal("TCP reassembler gap write failure"),
+		});
 		}
 	}
 
@@ -434,12 +435,12 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		BroString* b1_s = new BroString((const u_char*) b1, n, 0);
 		BroString* b2_s = new BroString((const u_char*) b2, n, 0);
 
-		val_list* vl = new val_list(3);
-		vl->append(tcp_analyzer->BuildConnVal());
-		vl->append(new StringVal(b1_s));
-		vl->append(new StringVal(b2_s));
-		vl->append(new StringVal(flags.AsString()));
-		tcp_analyzer->ConnectionEvent(rexmit_inconsistency, vl);
+		tcp_analyzer->ConnectionEventFast(rexmit_inconsistency, {
+			tcp_analyzer->BuildConnVal(),
+			new StringVal(b1_s),
+			new StringVal(b2_s),
+			new StringVal(flags.AsString()),
+		});
 		}
 	}
 
@@ -605,13 +606,12 @@ void TCP_Reassembler::DeliverBlock(uint64 seq, int len, const u_char* data)
 
 	if ( deliver_tcp_contents )
 		{
-		val_list* vl = new val_list();
-		vl->append(tcp_analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(IsOrig()));
-		vl->append(val_mgr->GetCount(seq));
-		vl->append(new StringVal(len, (const char*) data));
-
-		tcp_analyzer->ConnectionEvent(tcp_contents, vl);
+		tcp_analyzer->ConnectionEventFast(tcp_contents, {
+			tcp_analyzer->BuildConnVal(),
+			val_mgr->GetBool(IsOrig()),
+			val_mgr->GetCount(seq),
+			new StringVal(len, (const char*) data),
+		});
 		}
 
 	// Q. Can we say this because it is already checked in DataSent()?

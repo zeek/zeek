@@ -1,11 +1,11 @@
-# @TEST-EXEC: bro -b %INPUT >output
+# @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff test.txt
 
 
 global cmds = "print \"hello world\";";
 cmds = string_cat(cmds, "\nprint \"foobar\";");
-if ( piped_exec("bro", cmds) != T )
+if ( piped_exec("zeek", cmds) != T )
 	exit(1);
 
 # Test null output.

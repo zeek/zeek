@@ -3,7 +3,7 @@
 #ifndef TUNNELS_H
 #define TUNNELS_H
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "Val.h"

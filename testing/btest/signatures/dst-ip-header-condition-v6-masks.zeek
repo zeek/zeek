@@ -1,11 +1,11 @@
-# @TEST-EXEC: bro -b -s dst-ip-eq -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq.out
-# @TEST-EXEC: bro -b -s dst-ip-eq-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq-nomatch.out
-# @TEST-EXEC: bro -b -s dst-ip-eq-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq-list.out
+# @TEST-EXEC: zeek -b -s dst-ip-eq -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq.out
+# @TEST-EXEC: zeek -b -s dst-ip-eq-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-ip-eq-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-eq-list.out
 
-# @TEST-EXEC: bro -b -s dst-ip-ne -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne.out
-# @TEST-EXEC: bro -b -s dst-ip-ne-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-nomatch.out
-# @TEST-EXEC: bro -b -s dst-ip-ne-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-list.out
-# @TEST-EXEC: bro -b -s dst-ip-ne-list-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-list-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-ip-ne -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne.out
+# @TEST-EXEC: zeek -b -s dst-ip-ne-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-nomatch.out
+# @TEST-EXEC: zeek -b -s dst-ip-ne-list -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-list.out
+# @TEST-EXEC: zeek -b -s dst-ip-ne-list-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >dst-ip-ne-list-nomatch.out
 
 # @TEST-EXEC: btest-diff dst-ip-eq.out
 # @TEST-EXEC: btest-diff dst-ip-eq-nomatch.out

@@ -1,7 +1,7 @@
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
-# @TEST-EXEC: cat broproc/intel.log > output
-# @TEST-EXEC: cat broproc/.stdout >> output
+# @TEST-EXEC: cat zeekproc/intel.log > output
+# @TEST-EXEC: cat zeekproc/.stdout >> output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE intel.dat

@@ -229,9 +229,6 @@ protected:
 	Specific_RE_Matcher* re_exact;
 };
 
-declare(PList, RE_Matcher);
-typedef PList(RE_Matcher) re_matcher_list;
-
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 extern RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 

@@ -180,7 +180,6 @@ public:
 	analyzer::tcp::TCPStateStats tcp_stats;	// keeps statistics on TCP states
 
 protected:
-	friend class RemoteSerializer;
 	friend class ConnCompressor;
 	friend class TimerMgrExpireTimer;
 	friend class IPTunnelTimer;

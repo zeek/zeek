@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 function test_basic_bloom_filter()

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/tunnels/gtp/gtp2_different_udp_port.pcap
+# @TEST-EXEC: zeek -C -r $TRACES/tunnels/gtp/gtp2_different_udp_port.pcap
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff tunnel.log

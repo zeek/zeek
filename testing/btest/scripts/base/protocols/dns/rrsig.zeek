@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/dnssec/rrsig.pcap %INPUT > output
+# @TEST-EXEC: zeek -C -r $TRACES/dnssec/rrsig.pcap %INPUT > output
 # @TEST-EXEC: btest-diff dns.log
 # @TEST-EXEC: btest-diff output
 

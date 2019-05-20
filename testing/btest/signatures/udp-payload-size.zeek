@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ntp.pcap %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/ntp.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE a.sig

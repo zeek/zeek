@@ -1,11 +1,11 @@
 # @TEST-PORT: BROKER_PORT
 
-# @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.zeek >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.zeek >send.out"
+# @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
 
 # @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 45 || (btest-bg-wait -k 1 && false)
 
-# @TEST-EXEC: btest-bg-run recv2 "bro -B broker -b ../recv.zeek >recv2.out"
+# @TEST-EXEC: btest-bg-run recv2 "zeek -B broker -b ../recv.zeek >recv2.out"
 # @TEST-EXEC: btest-bg-wait 45
 
 # @TEST-EXEC: btest-diff send/send.out

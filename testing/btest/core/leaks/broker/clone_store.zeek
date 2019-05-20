@@ -1,9 +1,9 @@
 # @TEST-PORT: BROKER_PORT
-# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run clone "bro -m -b ../clone.zeek >clone.out"
-# @TEST-EXEC: btest-bg-run master "bro -b ../master.zeek >master.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run clone "zeek -m -b ../clone.zeek >clone.out"
+# @TEST-EXEC: btest-bg-run master "zeek -b ../master.zeek >master.out"
 
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out

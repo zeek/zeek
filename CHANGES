@@ -1,4 +1,9 @@
 
+2.6-311 | 2019-05-20 09:07:58 -0700
+
+  * Add missing &optional attr to KRB record fields; also add existence
+    checks to scripts (Jon Siwek, Corelight).
+
 2.6-308 | 2019-05-17 14:13:46 -0700
 
   * Always emit scripting errors to stderr during zeek_init (Jon Siwek, Corelight)

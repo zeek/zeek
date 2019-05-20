@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This script (along with the .travis.yml file) is used by Travis CI to
-# build Bro and run the tests.
+# build Zeek and run the tests.
 #
 # This script can also be used outside of Travis (the "all" build step is
 # especially convenient in this case).  Note that if you use this script
@@ -12,7 +12,7 @@ usage() {
     echo "usage: $0 CMD DISTRO"
     echo "  CMD is a build step:"
     echo "    install: install prereqs"
-    echo "    build: build bro"
+    echo "    build: build zeek"
     echo "    run: run the tests"
     echo "    all: do all of the above"
     echo "  DISTRO is a Linux distro, 'travis' to run without docker, or 'coverity' to run a coverity scan"
@@ -47,13 +47,13 @@ install_coverity() {
 }
 
 
-# Build Bro with the coverity tools.
+# Build Zeek with the coverity tools.
 build_coverity() {
     # Cleanup any previous build (this is really only necessary if running this
     # outside of Travis).
     make distclean > /dev/null
 
-    ./configure --prefix=`pwd`/build/root --enable-debug --disable-perftools --disable-broker-tests --disable-python --disable-broctl
+    ./configure --prefix=`pwd`/build/root --enable-debug --disable-perftools --disable-broker-tests --disable-python --disable-zeekctl
 
     export PATH=`pwd`/coverity-tools/bin:$PATH
     cd build
@@ -64,7 +64,7 @@ build_coverity() {
 
 # Create a tar file and send it to coverity.
 run_coverity() {
-    EMAIL=bro-commits-internal@bro.org
+    EMAIL=zeek-commits-internal@zeek.org
     FILE=myproject.tgz
     VER=`cat VERSION`
     DESC=`git rev-parse HEAD`
@@ -76,7 +76,7 @@ run_coverity() {
 }
 
 
-# Create a docker container, and install all packages needed to build Bro.
+# Create a docker container, and install all packages needed to build Zeek.
 install_in_docker() {
     case $distro in
         centos_7)
@@ -101,32 +101,32 @@ install_in_docker() {
     esac
 
     docker_image=`echo $distro | tr '_' ':'`
-    docker run --name brotest -id -v "`pwd`:/bro" -w /bro ${docker_image} sh
-    docker exec brotest sh -c "${distro_cmds}"
+    docker run --name zeektest -id -v "`pwd`:/zeek" -w /zeek ${docker_image} sh
+    docker exec zeektest sh -c "${distro_cmds}"
 }
 
 
-# Build bro in a docker container.
+# Build Zeek in a docker container.
 build_in_docker() {
-    docker exec brotest sh testing/scripts/travis-job build travis
+    docker exec zeektest sh testing/scripts/travis-job build travis
 }
 
 
-# Run Bro tests in a docker container.
+# Run Zeek tests in a docker container.
 run_in_docker() {
-    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY brotest sh testing/scripts/travis-job run travis
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY zeektest sh testing/scripts/travis-job run travis
 }
 
 
-# Build Bro.
+# Build Zeek.
 build() {
     # Cleanup any previous build (this is really only necessary if running this
     # outside of Travis).
     make distclean > /dev/null
 
-    # Skip building broker tests, python bindings, and broctl, as these are
-    # not needed by the bro tests.
-    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-broctl && make -j 2
+    # Skip building Broker tests, python bindings, and zeekctl, as these are
+    # not needed by the Zeek tests.
+    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
 }
 
 
@@ -159,7 +159,7 @@ get_private_tests() {
 }
 
 
-# Run Bro tests.
+# Run Zeek tests.
 run() {
     ulimit -c unlimited
     ulimit -a
@@ -247,7 +247,7 @@ run() {
         for cf in $COREFILES; do
             echo
             echo "############# Begin stack trace for $cf ###############"
-            gdb build/src/bro -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
+            gdb build/src/zeek -c "$cf" -ex "thread apply all bt" -ex "set pagination 0" -batch;
             echo "############# End stack trace for $cf #################"
             echo
         done
@@ -271,12 +271,12 @@ showdiag() {
 # Remove the docker container.
 remove_container() {
     echo "Removing the docker container..."
-    docker rm -f brotest > /dev/null
+    docker rm -f zeektest > /dev/null
 }
 
 
 if [ ! -f testing/scripts/travis-job ]; then
-    echo "Error: must change directory to root of bro source tree before running this script."
+    echo "Error: must change directory to root of zeek source tree before running this script."
     exit 1
 fi
 
@@ -329,7 +329,7 @@ if [ "${TRAVIS_EVENT_TYPE}" = "cron" ] || [ "$distro" = "coverity" ]; then
         run_coverity
     fi
 elif [ "$distro" = "travis" ]; then
-    # Build bro and run tests.
+    # Build Zeek and run tests.
 
     # The "build" and "run" steps are split up into separate steps because the
     # build outputs thousands of lines (which are conveniently collapsed into
@@ -343,7 +343,7 @@ elif [ "$distro" = "travis" ]; then
         run
     fi
 else
-    # Build bro and run tests in a docker container.
+    # Build Zeek and run tests in a docker container.
 
     if [ "$step" = "install" ]; then
         install_in_docker

@@ -1,6 +1,6 @@
 # A test of signature loading using @load-sigs.
 
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/wikipedia.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @load-sigs ./subdir/mysigs.sig

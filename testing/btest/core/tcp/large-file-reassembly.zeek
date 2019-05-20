@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ftp/bigtransfer.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/ftp/bigtransfer.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff files.log
 # @TEST-EXEC: btest-diff conn.log

@@ -1,6 +1,6 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: btest-diff bro/config.log
+# @TEST-EXEC: btest-diff zeek/config.log
 
 @load base/frameworks/config
 @load base/protocols/conn

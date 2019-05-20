@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT 2>&1 >out
+# @TEST-EXEC: zeek -b %INPUT 2>&1 >out
 # @TEST-EXEC: btest-diff out
 
 type Outer: record {

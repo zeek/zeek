@@ -1,7 +1,7 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run recv "bro -B broker -b ../recv.zeek >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -B broker -b ../send.zeek test_var=newval >send.out"
+# @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek test_var=newval >send.out"
 #
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out

@@ -1,8 +1,8 @@
-# @TEST-EXEC: bro -b valid.zeek 2>valid.stderr 1>valid.stdout
+# @TEST-EXEC: zeek -b valid.zeek 2>valid.stderr 1>valid.stdout
 # @TEST-EXEC: btest-diff valid.stderr
 # @TEST-EXEC: btest-diff valid.stdout
 
-# @TEST-EXEC-FAIL: bro -b invalid.zeek 2>invalid.stderr 1>invalid.stdout
+# @TEST-EXEC-FAIL: zeek -b invalid.zeek 2>invalid.stderr 1>invalid.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff invalid.stderr
 # @TEST-EXEC: btest-diff invalid.stdout
 

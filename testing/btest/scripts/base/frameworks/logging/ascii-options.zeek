@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 
 redef LogAscii::output_to_stdout = F;

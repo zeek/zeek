@@ -9,6 +9,6 @@
 
 @ifdef ( LogAscii::use_json )
 	# Don't start logging everything as JSON.
-	# (json-logs.bro activates this).
+	# (json-logs.zeek activates this).
 	redef LogAscii::use_json = F;
 @endif

@@ -1,6 +1,6 @@
 # Test a heavily fragmented tls connection
 
-# @TEST-EXEC: cat $TRACES/tls/tls-fragmented-handshake.pcap.gz | gunzip | bro -r - %INPUT
+# @TEST-EXEC: cat $TRACES/tls/tls-fragmented-handshake.pcap.gz | gunzip | zeek -r - %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff .stdout
 

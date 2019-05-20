@@ -1,5 +1,5 @@
 
-This document summarizes the most important changes in the current Bro
+This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
@@ -18,7 +18,7 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
-- Bro's Plugin framework now allows a patch version.  If a patch version is not
+- Zeek's Plugin framework now allows a patch version.  If a patch version is not
   provided, it will default to 0.  To specify this, modify the plugin
   Configuration class in your ``src/Plugin.cc`` and set
   ``config.version.patch``.  Note that the default plugin skeleton
@@ -76,8 +76,30 @@ New Functionality
   the DNS resolver to use by setting it to an IPv4 or IPv6 address.  If
   not set, then the first IPv4 address from /etc/resolv.conf gets used.
 
+- The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
+  also allowed when specifying patterns used in signature files.
+
 Changed Functionality
 ---------------------
+
+- The following executable names have changed (the old names will
+  continue to work, but emit a deprecation warning):
+
+  - ``bro`` is now ``zeek``
+
+  - ``bro-config`` is now ``zeek-config``
+
+  - ``broctl`` is now ``zeekctl``
+
+  - ``bro-cut`` is now ``zeek-cut``
+
+- BroControl has been completely renamed to ZeekControl.  Many installation
+  directories and files with "broctl" in their name have been changed
+  to use "zeekctl" instead.  It's expected this has been done in a way
+  that's backwards compatible with previous Bro installations.  E.g.
+  if you made customizations to the ``broctl.cfg`` file of a previous
+  installation, installing the newer Zeek version over it will retain that
+  file and even symlink the new ``zeekctl.cfg`` to it.
 
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
@@ -292,6 +314,8 @@ Removed Functionality
 - Support for the &persistent and the &synchronized attributes, which were deprecated
   in Bro 2.6, was removed. The ``-g`` command-line option (dump-config) which relied on
   this functionality was also removed.
+
+- Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
 
 Deprecated Functionality
 ------------------------

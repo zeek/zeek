@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "util.h"
 #include "PktSrc.h"

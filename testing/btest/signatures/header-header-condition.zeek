@@ -1,11 +1,11 @@
-# @TEST-EXEC: bro -b -s ip -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >ip.out
-# @TEST-EXEC: bro -b -s ip-mask -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >ip-mask.out
-# @TEST-EXEC: bro -b -s ip6 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >ip6.out
-# @TEST-EXEC: bro -b -s udp -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >udp.out
-# @TEST-EXEC: bro -b -s tcp -r $TRACES/chksums/ip4-tcp-good-chksum.pcap %INPUT >tcp.out
-# @TEST-EXEC: bro -b -s icmp -r $TRACES/chksums/ip4-icmp-good-chksum.pcap %INPUT >icmp.out
-# @TEST-EXEC: bro -b -s icmp6 -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap %INPUT >icmp6.out
-# @TEST-EXEC: bro -b -s val-mask -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >val-mask.out
+# @TEST-EXEC: zeek -b -s ip -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >ip.out
+# @TEST-EXEC: zeek -b -s ip-mask -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >ip-mask.out
+# @TEST-EXEC: zeek -b -s ip6 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >ip6.out
+# @TEST-EXEC: zeek -b -s udp -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >udp.out
+# @TEST-EXEC: zeek -b -s tcp -r $TRACES/chksums/ip4-tcp-good-chksum.pcap %INPUT >tcp.out
+# @TEST-EXEC: zeek -b -s icmp -r $TRACES/chksums/ip4-icmp-good-chksum.pcap %INPUT >icmp.out
+# @TEST-EXEC: zeek -b -s icmp6 -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap %INPUT >icmp6.out
+# @TEST-EXEC: zeek -b -s val-mask -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >val-mask.out
 
 # @TEST-EXEC: btest-diff ip.out
 # @TEST-EXEC: btest-diff ip-mask.out

@@ -3,7 +3,7 @@
 # files when there isn't actually any body there and shouldn't
 # create a file.
 #
-# @TEST-EXEC: bro -r $TRACES/http/zero-length-bodies-with-drops.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/http/zero-length-bodies-with-drops.pcap %INPUT
 
 # There shouldn't be a files log (no files!)
 # @TEST-EXEC: test ! -f files.log

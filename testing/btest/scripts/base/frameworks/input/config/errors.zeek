@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: tail -n +2 .stderr > errout
 # @TEST-EXEC: btest-diff errout

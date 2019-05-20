@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/smb/dssetup_DsRoleGetPrimaryDomainInformation_standalone_workstation.cap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/smb/dssetup_DsRoleGetPrimaryDomainInformation_standalone_workstation.cap %INPUT
 # @TEST-EXEC: [ ! -f dce_rpc.log ]
 
 @load base/protocols/smb

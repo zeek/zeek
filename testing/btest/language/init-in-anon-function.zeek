@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r ${TRACES}/wikipedia.trace  %INPUT >out
+# @TEST-EXEC: zeek -r ${TRACES}/wikipedia.trace  %INPUT >out
 # @TEST-EXEC: btest-diff http.log
 
 module Foo;

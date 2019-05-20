@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/mount/mount_base.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/mount/mount_base.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 global mount_ports: set[port] = { 635/tcp, 635/udp, 20048/tcp, 20048/udp } &redef;

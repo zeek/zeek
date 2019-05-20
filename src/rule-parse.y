@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <vector>
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "RuleMatcher.h"
 #include "Reporter.h"
 #include "IPAddr.h"

@@ -1,15 +1,15 @@
 # These tests all check that ICMP6 events get raised with correct arguments.
 
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-udp.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-toobig.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-timeexceeded.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-paramprob.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-ping.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-redirect.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-router-advert.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-neighbor-advert.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-router-solicit.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -b -r $TRACES/icmp/icmp6-neighbor-solicit.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-destunreach-ip6ext-udp.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-toobig.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-timeexceeded.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-paramprob.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-ping.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-redirect.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-router-advert.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-neighbor-advert.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-router-solicit.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp6-neighbor-solicit.pcap %INPUT >>output 2>&1
 
 # @TEST-EXEC: btest-diff output
 

@@ -1,5 +1,5 @@
 # @TEST-EXEC: dd if=/dev/zero of=input.log bs=8193 count=1
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 #

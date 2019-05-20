@@ -26,7 +26,7 @@ export {
 	};
 	
 	## Assuming that local mail servers are more trustworthy with the
-	## headers they insert into message envelopes, this default makes Bro
+	## headers they insert into message envelopes, this default makes Zeek
 	## not attempt to detect software in inbound message bodies.  If mail
 	## coming in from external addresses gives incorrect data in
 	## the Received headers, it could populate your SOFTWARE logging stream

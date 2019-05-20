@@ -1,3 +1,3 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/gre-within-gre.pcap
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gre-within-gre.pcap
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log

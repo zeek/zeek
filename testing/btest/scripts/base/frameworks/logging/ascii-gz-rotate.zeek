@@ -1,6 +1,6 @@
 # Test that log rotation works with compressed logs.
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: gunzip test.*.log.gz
 #
 

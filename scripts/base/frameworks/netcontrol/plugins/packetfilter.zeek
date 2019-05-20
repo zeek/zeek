@@ -1,5 +1,5 @@
 ##! NetControl plugin for the process-level PacketFilter that comes with
-##! Bro. Since the PacketFilter in Bro is quite limited in scope
+##! Zeek. Since the PacketFilter in Zeek is quite limited in scope
 ##! and can only add/remove filters for addresses, this is quite
 ##! limited in scope at the moment. 
 
@@ -13,7 +13,7 @@ export {
 }
 
 # Check if we can handle this rule. If it specifies ports or
-# anything Bro cannot handle, simply ignore it for now.
+# anything Zeek cannot handle, simply ignore it for now.
 function packetfilter_check_rule(r: Rule) : bool
 	{
 	if ( r$ty != DROP )

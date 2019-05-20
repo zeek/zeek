@@ -3,7 +3,7 @@
 # a given request.  The http scripts should also be able log such replies
 # in a way that correlates the final response with the request.
 #
-# @TEST-EXEC: bro -r $TRACES/http/100-continue.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/http/100-continue.trace %INPUT
 # @TEST-EXEC: test ! -f weird.log
 # @TEST-EXEC: btest-diff http.log
 

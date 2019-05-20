@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Expr.h"
 #include "Event.h"
@@ -2457,7 +2457,12 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 
 	int match_type = op1->Type()->MatchesIndex(arg_op2);
 	if ( match_type == DOES_NOT_MATCH_INDEX )
-		SetError("not an index type");
+		{
+		std::string error_msg =
+		    fmt("expression with type '%s' is not a type that can be indexed",
+		        type_name(op1->Type()->Tag()));
+		SetError(error_msg.data());
+		}
 
 	else if ( ! op1->Type()->YieldType() )
 		{

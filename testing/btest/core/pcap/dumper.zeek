@@ -1,5 +1,5 @@
 # @TEST-REQUIRES: which hexdump
-# @TEST-EXEC: bro -r $TRACES/workshop_2011_browse.trace -w dump
+# @TEST-EXEC: zeek -r $TRACES/workshop_2011_browse.trace -w dump
 # @TEST-EXEC: hexdump -C $TRACES/workshop_2011_browse.trace >1
 # @TEST-EXEC: hexdump -C dump >2
 # @TEST-EXEC: diff 1 2 >output || true

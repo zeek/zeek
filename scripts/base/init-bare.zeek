@@ -113,7 +113,7 @@ type mime_match: record {
 ## :zeek:see:`file_magic`
 type mime_matches: vector of mime_match;
 
-## A connection's transport-layer protocol. Note that Bro uses the term
+## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {
     unknown_transport,	##< An unknown transport-layer protocol.
@@ -235,7 +235,7 @@ type icmp6_nd_option: record {
 ## A type alias for a vector of ICMPv6 neighbor discovery message options.
 type icmp6_nd_options: vector of icmp6_nd_option;
 
-# A DNS mapping between IP address and hostname resolved by Bro's internal
+# A DNS mapping between IP address and hostname resolved by Zeek's internal
 # resolver.
 #
 # .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
@@ -340,8 +340,8 @@ type endpoint: record {
 	l2_addr: string &optional;
 };
 
-## A connection. This is Bro's basic connection type describing IP- and
-## transport-layer information about the conversation. Note that Bro uses a
+## A connection. This is Zeek's basic connection type describing IP- and
+## transport-layer information about the conversation. Note that Zeek uses a
 ## liberal interpretation of "connection" and associates instances of this type
 ## also with UDP and ICMP flows.
 type connection: record {
@@ -353,7 +353,7 @@ type connection: record {
 	## interval between first and last data packet (low-level TCP details
 	## may adjust it somewhat in ambiguous cases).
 	duration: interval;
-	## The set of services the connection is using as determined by Bro's
+	## The set of services the connection is using as determined by Zeek's
 	## dynamic protocol detection. Each entry is the label of an analyzer
 	## that confirmed that it could parse the connection payload.  While
 	## typically, there will be at most one entry for each connection, in
@@ -362,8 +362,8 @@ type connection: record {
 	## the recorded services are independent of any transport-level protocols.
 	service: set[string];
 	history: string;	##< State history of connections. See *history* in :zeek:see:`Conn::Info`.
-	## A globally unique connection identifier. For each connection, Bro
-	## creates an ID that is very likely unique across independent Bro runs.
+	## A globally unique connection identifier. For each connection, Zeek
+	## creates an ID that is very likely unique across independent Zeek runs.
 	## These IDs can thus be used to tag and locate information associated
 	## with that connection.
 	uid: string;
@@ -390,7 +390,7 @@ option default_file_timeout_interval: interval = 2 mins;
 ## matching or later, will receive a copy of this buffer.
 option default_file_bof_buffer_size: count = 4096;
 
-## A file that Bro is analyzing.  This is Bro's type for describing the basic
+## A file that Zeek is analyzing.  This is Zeek's type for describing the basic
 ## internal metadata collected about a "file", which is essentially just a
 ## byte stream that is e.g. pulled from a network connection or possibly
 ## some other input source.
@@ -476,7 +476,7 @@ type SYN_packet: record {
 ##
 ## .. zeek:see:: get_net_stats
 type NetStats: record {
-	pkts_recvd:   count &default=0;	##< Packets received by Bro.
+	pkts_recvd:   count &default=0;	##< Packets received by Zeek.
 	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
@@ -484,7 +484,7 @@ type NetStats: record {
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
 	pkts_link:    count &default=0;
-	bytes_recvd:  count &default=0;	##< Bytes received by Bro.
+	bytes_recvd:  count &default=0;	##< Bytes received by Zeek.
 };
 
 type ConnStats: record {
@@ -512,16 +512,16 @@ type ConnStats: record {
 	killed_by_inactivity: count;
 };
 
-## Statistics about Bro's process.
+## Statistics about Zeek's process.
 ##
 ## .. zeek:see:: get_proc_stats
 ##
-## .. note:: All process-level values refer to Bro's main process only, not to
+## .. note:: All process-level values refer to Zeek's main process only, not to
 ##    the child process it spawns for doing communication.
 type ProcStats: record {
 	debug: bool;                  ##< True if compiled with --enable-debug.
 	start_time: time;             ##< Start time of process.
-	real_time: interval;          ##< Elapsed real time since Bro started running.
+	real_time: interval;          ##< Elapsed real time since Zeek started running.
 	user_time: interval;          ##< User CPU seconds.
 	system_time: interval;        ##< System CPU seconds.
 	mem: count;                   ##< Maximum memory consumed, in KB.
@@ -579,8 +579,8 @@ type FileAnalysisStats: record {
 	cumulative: count; ##< Cumulative number of files analyzed.
 };
 
-## Statistics related to Bro's active use of DNS.  These numbers are
-## about Bro performing DNS queries on it's own, not traffic
+## Statistics related to Zeek's active use of DNS.  These numbers are
+## about Zeek performing DNS queries on it's own, not traffic
 ## being seen.
 ##
 ## .. zeek:see:: get_dns_stats
@@ -735,7 +735,7 @@ type call_argument_vector: vector of call_argument;
 # dependent on the names remaining as they are now.
 
 ## Set of BPF capture filters to use for capturing, indexed by a user-definable
-## ID (which must be unique). If Bro is *not* configured with
+## ID (which must be unique). If Zeek is *not* configured with
 ## :zeek:id:`PacketFilter::enable_auto_protocol_capture_filters`,
 ## all packets matching at least one of the filters in this table (and all in
 ## :zeek:id:`restrict_filters`) will be analyzed.
@@ -866,7 +866,7 @@ const mmdb_dir: string = "" &redef;
 
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
-## <http://www.fourmilab.ch/random>`_ for more information, Bro uses the same
+## <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
 ## code.
 ##
 ## .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
@@ -993,7 +993,7 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 
 ## If we've seen this much data without any of it being acked, we give up
 ## on that connection to avoid memory exhaustion due to buffering all that
-## stuff.  If set to zero, then we don't ever give up.  Ideally, Bro would
+## stuff.  If set to zero, then we don't ever give up.  Ideally, Zeek would
 ## track the current window on a connection and use it to infer that data
 ## has in fact gone too far, but for now we just make this quite beefy.
 ##
@@ -1788,7 +1788,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 	ext:   gtp_private_extension &optional;
 };
 
-# Prototypes of Bro built-in functions.
+# Prototypes of Zeek built-in functions.
 @load base/bif/bro.bif
 @load base/bif/stats.bif
 @load base/bif/reporter.bif
@@ -1801,13 +1801,13 @@ global log_file_name: function(tag: string): string &redef;
 ## Deprecated. This is superseded by the new logging framework.
 global open_log_file: function(tag: string): file &redef;
 
-## Specifies a directory for Bro to store its persistent state. All globals can
+## Specifies a directory for Zeek to store its persistent state. All globals can
 ## be declared persistent via the :zeek:attr:`&persistent` attribute.
 const state_dir = ".state" &redef;
 
 ## Length of the delays inserted when storing state incrementally. To avoid
 ## dropping packets when serializing larger volumes of persistent state to
-## disk, Bro interleaves the operation with continued packet processing.
+## disk, Zeek interleaves the operation with continued packet processing.
 const state_write_delay = 0.01 secs &redef;
 
 global done_with_network = F;
@@ -1868,7 +1868,7 @@ global secondary_filters: table[string] of event(filter: string, pkt: pkt_hdr)
 global discarder_maxlen = 128 &redef;
 
 ## Function for skipping packets based on their IP header. If defined, this
-## function will be called for all IP packets before Bro performs any further
+## function will be called for all IP packets before Zeek performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
@@ -1884,7 +1884,7 @@ global discarder_maxlen = 128 &redef;
 global discarder_check_ip: function(p: pkt_hdr): bool;
 
 ## Function for skipping packets based on their TCP header. If defined, this
-## function will be called for all TCP packets before Bro performs any further
+## function will be called for all TCP packets before Zeek performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
@@ -1902,7 +1902,7 @@ global discarder_check_ip: function(p: pkt_hdr): bool;
 global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their UDP header. If defined, this
-## function will be called for all UDP packets before Bro performs any further
+## function will be called for all UDP packets before Zeek performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
@@ -1920,7 +1920,7 @@ global discarder_check_tcp: function(p: pkt_hdr, d: string): bool;
 global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 
 ## Function for skipping packets based on their ICMP header. If defined, this
-## function will be called for all ICMP packets before Bro performs any further
+## function will be called for all ICMP packets before Zeek performs any further
 ## analysis. If the function signals to discard a packet, no further processing
 ## will be performed on it.
 ##
@@ -1935,7 +1935,7 @@ global discarder_check_udp: function(p: pkt_hdr, d: string): bool;
 ##    Avoid using it.
 global discarder_check_icmp: function(p: pkt_hdr): bool;
 
-## Bro's watchdog interval.
+## Zeek's watchdog interval.
 const watchdog_interval = 10 sec &redef;
 
 ## The maximum number of timers to expire after processing each new
@@ -2711,7 +2711,7 @@ export {
 
 	## A set of file names used as named pipes over SMB. This
 	## only comes into play as a heuristic to identify named
-	## pipes when the drive mapping wasn't seen by Bro.
+	## pipes when the drive mapping wasn't seen by Zeek.
 	##
 	## .. zeek:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
@@ -4483,13 +4483,13 @@ export {
 	## The data from the ERROR_MSG message. See :rfc:`4120`.
 	type KRB::Error_Msg: record {
 		## Protocol version number (5 for KRB5)
-		pvno		: count;
+		pvno		: count &optional;
 		## The message type (30 for ERROR_MSG)
-		msg_type	: count;
+		msg_type	: count &optional;
 		## Current time on the client
 		client_time	: time &optional;
 		## Current time on the server
-		server_time	: time;
+		server_time	: time &optional;
 		## The specific error code
 		error_code	: count;
 		## Realm of the ticket
@@ -4497,9 +4497,9 @@ export {
 		## Name on the ticket
 		client_name	: string &optional;
 		## Realm of the service
-		service_realm	: string;
+		service_realm	: string &optional;
 		## Name of the service
-		service_name	: string;
+		service_name	: string &optional;
 		## Additional text to explain the error
 		error_text	: string &optional;
 		## Optional pre-authentication data
@@ -4533,25 +4533,25 @@ export {
 		## Optional pre-authentication data
 		pa_data			: vector of KRB::Type_Value &optional;
 		## Options specified in the request
-		kdc_options		: KRB::KDC_Options;
+		kdc_options		: KRB::KDC_Options &optional;
 		## Name on the ticket
 		client_name		: string &optional;
 
 		## Realm of the service
-		service_realm		: string;
+		service_realm		: string &optional;
 		## Name of the service
 		service_name		: string &optional;
 		## Time the ticket is good from
 		from			: time &optional;
 		## Time the ticket is good till
-		till			: time;
+		till			: time &optional;
 		## The requested renew-till time
 		rtime			: time &optional;
 
 		## A random nonce generated by the client
-		nonce			: count;
+		nonce			: count &optional;
 		## The desired encryption algorithms, in order of preference
-		encryption_types	: vector of count;
+		encryption_types	: vector of count &optional;
 		## Any additional addresses the ticket should be valid for
 		host_addrs		: vector of KRB::Host_Address &optional;
 		## Additional tickets may be included for certain transactions
@@ -4670,16 +4670,16 @@ const detect_filtered_trace = F &redef;
 ## .. zeek:see:: content_gap partial_connection
 const report_gaps_for_partial = F &redef;
 
-## Flag to prevent Bro from exiting automatically when input is exhausted.
-## Normally Bro terminates when all packet sources have gone dry
-## and communication isn't enabled. If this flag is set, Bro's main loop will
+## Flag to prevent Zeek from exiting automatically when input is exhausted.
+## Normally Zeek terminates when all packet sources have gone dry
+## and communication isn't enabled. If this flag is set, Zeek's main loop will
 ## instead keep idling until :zeek:see:`terminate` is explicitly called.
 ##
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.
 const exit_only_after_terminate = F &redef;
 
-## The CA certificate file to authorize remote Bros/Broccolis.
+## The CA certificate file to authorize remote Zeeks/Broccolis.
 ##
 ## .. zeek:see:: ssl_private_key ssl_passphrase
 const ssl_ca_certificate = "<undefined>" &redef;
@@ -4690,17 +4690,17 @@ const ssl_ca_certificate = "<undefined>" &redef;
 const ssl_private_key = "<undefined>" &redef;
 
 ## The passphrase for our private key. Keeping this undefined
-## causes Bro to prompt for the passphrase.
+## causes Zeek to prompt for the passphrase.
 ##
 ## .. zeek:see:: ssl_private_key ssl_ca_certificate
 const ssl_passphrase = "<undefined>" &redef;
 
-## Default mode for Bro's user-space dynamic packet filter. If true, packets
+## Default mode for Zeek's user-space dynamic packet filter. If true, packets
 ## that aren't explicitly allowed through, are dropped from any further
 ## processing.
 ##
 ## .. note:: This is not the BPF packet filter but an additional dynamic filter
-##    that Bro optionally applies just before normal processing starts.
+##    that Zeek optionally applies just before normal processing starts.
 ##
 ## .. zeek:see:: install_dst_addr_filter install_dst_net_filter
 ##    install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
@@ -4714,10 +4714,11 @@ const sig_max_group_size = 50 &redef;
 const peer_description = "bro" &redef;
 
 ## The number of IO chunks allowed to be buffered between the child
-## and parent process of remote communication before Bro starts dropping
+## and parent process of remote communication before Zeek starts dropping
 ## connections to remote peers in an attempt to catch up.
 const chunked_io_buffer_soft_cap = 800000 &redef;
 
+## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the
 ## expense of CPU cycles.
 ##
@@ -4729,7 +4730,7 @@ const chunked_io_buffer_soft_cap = 800000 &redef;
 const dpd_reassemble_first_packets = T &redef;
 
 ## Size of per-connection buffer used for dynamic protocol detection. For each
-## connection, Bro buffers this initial amount of payload in memory so that
+## connection, Zeek buffers this initial amount of payload in memory so that
 ## complete protocol analysis can start even after the initial packets have
 ## already passed through (i.e., when a DPD signature matches only later).
 ## However, once the buffer is full, data is deleted and lost to analyzers that
@@ -4783,8 +4784,8 @@ const suppress_local_output = F &redef;
 ## .. zeek:see:: record_all_packets
 const trace_output_file = "";
 
-## If a trace file is given with ``-w``, dump *all* packets seen by Bro into it.
-## By default, Bro applies (very few) heuristics to reduce the volume. A side
+## If a trace file is given with ``-w``, dump *all* packets seen by Zeek into it.
+## By default, Zeek applies (very few) heuristics to reduce the volume. A side
 ## effect of setting this to true is that we can write the packets out before we
 ## actually process them, which can be helpful for debugging in case the
 ## analysis triggers a crash.
@@ -4805,7 +4806,7 @@ module JSON;
 export {
 	type TimestampFormat: enum {
 		## Timestamps will be formatted as UNIX epoch doubles.  This is
-		## the format that Bro typically writes out timestamps.
+		## the format that Zeek typically writes out timestamps.
 		TS_EPOCH,
 		## Timestamps will be formatted as unsigned integers that
 		## represent the number of milliseconds since the UNIX
@@ -4876,17 +4877,17 @@ export {
 module Reporter;
 export {
 	## Tunable for sending reporter info messages to STDERR.  The option to
-	## turn it off is presented here in case Bro is being run by some
+	## turn it off is presented here in case Zeek is being run by some
 	## external harness and shouldn't output anything to the console.
 	const info_to_stderr = T &redef;
 
 	## Tunable for sending reporter warning messages to STDERR.  The option
-	## to turn it off is presented here in case Bro is being run by some
+	## to turn it off is presented here in case Zeek is being run by some
 	## external harness and shouldn't output anything to the console.
 	const warnings_to_stderr = T &redef;
 
 	## Tunable for sending reporter error messages to STDERR.  The option to
-	## turn it off is presented here in case Bro is being run by some
+	## turn it off is presented here in case Zeek is being run by some
 	## external harness and shouldn't output anything to the console.
 	const errors_to_stderr = T &redef;
 }
@@ -4978,8 +4979,8 @@ export {
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
-## the same value here will make the hashes compatible between independent Bro
-## instances. If left unset, Bro will use a temporary local seed.
+## the same value here will make the hashes compatible between independent Zeek
+## instances. If left unset, Zeek will use a temporary local seed.
 const global_hash_seed: string = "" &redef;
 
 ## Number of bits in UIDs that are generated to identify connections and
@@ -4988,7 +4989,7 @@ const global_hash_seed: string = "" &redef;
 const bits_per_uid: count = 96 &redef;
 
 ## Whether usage of the old communication system is considered an error or
-## not.  The default Bro configuration no longer works with the non-Broker
+## not.  The default Zeek configuration no longer works with the non-Broker
 ## communication system unless you have manually taken action to initialize
 ## and set up the old comm. system.  Deprecation warnings are still emitted
 ## when setting this flag, but they will not result in a fatal error.

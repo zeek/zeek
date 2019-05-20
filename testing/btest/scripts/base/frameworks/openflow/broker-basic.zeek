@@ -1,8 +1,8 @@
 # @TEST-PORT: BROKER_PORT
-# @TEST-EXEC: btest-bg-run recv "bro -b ../recv.zeek >recv.out"
-# @TEST-EXEC: btest-bg-run send "bro -b -r $TRACES/smtp.trace --pseudo-realtime ../send.zeek >send.out"
+# @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run send "zeek -b -r $TRACES/smtp.trace --pseudo-realtime ../send.zeek >send.out"
 
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
@@ -33,7 +33,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event OpenFlow::controller_activated(name: string, controller: OpenFlow::Controller)
 	{
-	continue_processing();
 	OpenFlow::flow_clear(of_controller);
 	OpenFlow::flow_mod(of_controller, [], [$cookie=OpenFlow::generate_cookie(1), $command=OpenFlow::OFPFC_ADD, $actions=[$out_ports=vector(3, 7)]]);
 	}
@@ -61,7 +60,9 @@ function got_message()
 	{
 	++msg_count;
 
-	if ( msg_count == 6 )
+	if ( msg_count == 2 )
+		continue_processing();
+	else if ( msg_count == 6 )
 		terminate();
 	}
 

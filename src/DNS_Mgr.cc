@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -289,10 +289,13 @@ ListVal* DNS_Mapping::Addrs()
 
 TableVal* DNS_Mapping::AddrsSet() {
 	ListVal* l = Addrs();
-	if ( l )
-		return l->ConvertToSet();
-	else
+
+	if ( ! l )
 		return empty_addr_set();
+
+	auto rval = l->ConvertToSet();
+	Unref(l);
+	return rval;
 	}
 
 StringVal* DNS_Mapping::Host()
@@ -389,6 +392,7 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	successful = 0;
 	failed = 0;
 	nb_dns = nullptr;
+	next_timestamp = -1.0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -1249,8 +1253,17 @@ void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 double DNS_Mgr::NextTimestamp(double* network_time)
 	{
-	// This is kind of cheating ...
-	return asyncs_timeouts.size() ? timer_mgr->Time() : -1.0;
+	if ( asyncs_timeouts.empty() )
+		// No pending requests.
+		return -1.0;
+
+	if ( next_timestamp < 0 )
+		// Store the timestamp to help prevent starvation by some other
+		// IOSource always trying to use the same timestamp
+		// (assuming network_time does actually increase).
+		next_timestamp = timer_mgr->Time();
+
+	return next_timestamp;
 	}
 
 void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
@@ -1356,7 +1369,7 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 void DNS_Mgr::Flush()
 	{
-	DoProcess(false);
+	DoProcess();
 
 	HostMap::iterator it;
 	for ( it = host_mappings.begin(); it != host_mappings.end(); ++it )
@@ -1378,10 +1391,11 @@ void DNS_Mgr::Flush()
 
 void DNS_Mgr::Process()
 	{
-	DoProcess(false);
+	DoProcess();
+	next_timestamp = -1.0;
 	}
 
-void DNS_Mgr::DoProcess(bool flush)
+void DNS_Mgr::DoProcess()
 	{
 	if ( ! nb_dns )
 		return;
@@ -1390,22 +1404,22 @@ void DNS_Mgr::DoProcess(bool flush)
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() || flush )
+		if ( req->time + DNS_TIMEOUT > current_time() )
 			break;
 
-		if ( req->IsAddrReq() )
-			CheckAsyncAddrRequest(req->host, true);
-		else if ( req->is_txt )
-			CheckAsyncTextRequest(req->name.c_str(), true);
-		else
-			CheckAsyncHostRequest(req->name.c_str(), true);
+		if ( ! req->processed )
+			{
+			if ( req->IsAddrReq() )
+				CheckAsyncAddrRequest(req->host, true);
+			else if ( req->is_txt )
+				CheckAsyncTextRequest(req->name.c_str(), true);
+			else
+				CheckAsyncHostRequest(req->name.c_str(), true);
+			}
 
 		asyncs_timeouts.pop();
 		delete req;
 		}
-
-	if ( asyncs_addrs.size() == 0 && asyncs_names.size() == 0 && asyncs_texts.size() == 0 )
-		return;
 
 	if ( AnswerAvailable(0) <= 0 )
 		return;

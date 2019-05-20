@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/webrtc-stun.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/webrtc-stun.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: touch dpd.log
 # @TEST-EXEC: btest-diff dpd.log

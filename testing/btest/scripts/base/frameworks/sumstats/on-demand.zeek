@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 redef exit_only_after_terminate=T;

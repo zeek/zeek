@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -b -r $TRACES/snmp/snmpwalk-short.pcap %INPUT
+# @TEST-EXEC: zeek -C -b -r $TRACES/snmp/snmpwalk-short.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/snmp

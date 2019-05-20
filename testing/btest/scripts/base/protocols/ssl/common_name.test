@@ -1,7 +1,7 @@
 # This tests a normal SSL connection and the log it outputs.
 
-# @TEST-EXEC: bro -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
-# @TEST-EXEC: bro -C -r $TRACES/tls/cert-no-cn.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/cert-no-cn.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)

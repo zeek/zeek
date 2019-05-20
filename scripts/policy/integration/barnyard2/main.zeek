@@ -1,4 +1,4 @@
-##! This script lets Barnyard2 integrate with Bro.  It receives alerts from
+##! This script lets Barnyard2 integrate with Zeek.  It receives alerts from
 ##! Barnyard2 and logs them.  In the future it will do more correlation
 ##! and derive new notices from the alerts.
 
@@ -20,7 +20,7 @@ export {
 	
 	## This can convert a Barnyard :zeek:type:`Barnyard2::PacketID` value to
 	## a :zeek:type:`conn_id` value in the case that you might need to index 
-	## into an existing data structure elsewhere within Bro.
+	## into an existing data structure elsewhere within Zeek.
 	global pid2cid: function(p: PacketID): conn_id;
 }
 

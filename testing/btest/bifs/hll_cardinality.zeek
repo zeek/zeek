@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro %INPUT>out
+# @TEST-EXEC: zeek %INPUT>out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 

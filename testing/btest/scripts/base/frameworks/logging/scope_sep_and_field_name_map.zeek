@@ -1,7 +1,7 @@
 # This tests the order in which the unrolling and field name 
 # renaming occurs.
 
-# @TEST-EXEC: bro -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff conn.log
 
 @load base/protocols/conn

@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp.pcap $SCRIPTS/external-ca-list.zeek %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/signed_certificate_timestamp.pcap $SCRIPTS/external-ca-list.zeek %INPUT
 # @TEST-EXEC: cat ssl.log > ssl-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp-2.pcap $SCRIPTS/external-ca-list.zeek %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/signed_certificate_timestamp-2.pcap $SCRIPTS/external-ca-list.zeek %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-x509-names | $SCRIPTS/diff-remove-timestamps" btest-diff ssl-all.log

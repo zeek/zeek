@@ -3,7 +3,7 @@
 #ifndef netutil_h
 #define netutil_h
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 // Define first.
 typedef enum {

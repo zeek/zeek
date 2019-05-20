@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function test_case(msg: string, expect: bool)
@@ -7,7 +7,7 @@ function test_case(msg: string, expect: bool)
         }
 
 # This is an incomplete set of tests to demonstrate the order of precedence
-# of bro script operators
+# of zeek script operators
 
 event zeek_init()
 {

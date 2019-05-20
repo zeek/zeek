@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT  >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT  >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 # This script tests "next" being called during the last iteration of a

@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function test(la1: double, lo1: double, la2: double, lo2: double)

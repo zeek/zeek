@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Var.h"
 #include "NetVar.h"
@@ -193,8 +193,6 @@ double gap_report_freq;
 int packet_filter_default;
 
 int sig_max_group_size;
-
-int enable_syslog;
 
 TableType* irc_join_list;
 RecordType* irc_join_info;

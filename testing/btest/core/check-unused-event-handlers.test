@@ -1,5 +1,5 @@
 # This test should print a warning that the event handler is never invoked.
-# @TEST-EXEC: bro -b %INPUT check_for_unused_event_handlers=T
+# @TEST-EXEC: zeek -b %INPUT check_for_unused_event_handlers=T
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stderr
 
 event this_is_never_used()

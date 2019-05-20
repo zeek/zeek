@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff .stderr
 
@@ -21,7 +21,7 @@ print Version::parse("12.5");
 print Version::parse("1.12-beta-drunk");
 print Version::parse("JustARandomString");
 
-# check that current running version of Bro parses without error
+# check that current running version of Zeek parses without error
 Version::parse(bro_version());
 
 @TEST-START-NEXT

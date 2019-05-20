@@ -2,7 +2,7 @@
 #define BRO_COMM_MANAGER_H
 
 #include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/zeek.hh>
 #include <memory>
 #include <string>
 #include <map>
@@ -324,10 +324,10 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
-	void ProcessEvent(const broker::topic& topic, broker::bro::Event ev);
-	bool ProcessLogCreate(broker::bro::LogCreate lc);
-	bool ProcessLogWrite(broker::bro::LogWrite lw);
-	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
+	bool ProcessLogCreate(broker::zeek::LogCreate lc);
+	bool ProcessLogWrite(broker::zeek::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
@@ -353,7 +353,7 @@ private:
 		double last_flush;
 		size_t message_count;
 
-		size_t Flush(broker::endpoint& endpoint);
+		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
 	};
 
 	// Data stores
@@ -383,7 +383,10 @@ private:
 	bool reading_pcaps;
 	bool after_zeek_init;
 	int peer_count;
+	int times_processed_without_idle;
 
+	size_t log_batch_size;
+	double log_batch_interval;
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;
 	EnumType* log_id_type;

@@ -1,4 +1,4 @@
-##! Redefines the options common to all proxy nodes within a Bro cluster.
+##! Redefines the options common to all proxy nodes within a Zeek cluster.
 ##! In particular, proxies are not meant to produce logs locally and they
 ##! do not forward events anywhere, they mainly synchronize state between
 ##! worker nodes.

@@ -1,8 +1,8 @@
-# @TEST-EXEC: bro -C -r $TRACES/ipv4/fragmented-1.pcap %INPUT >>output
-# @TEST-EXEC: bro -C -r $TRACES/ipv4/fragmented-2.pcap %INPUT >>output
-# @TEST-EXEC: bro -C -r $TRACES/ipv4/fragmented-3.pcap %INPUT >>output
-# @TEST-EXEC: bro -C -r $TRACES/ipv4/fragmented-4.pcap %INPUT >>output
-# @TEST-EXEC: bro -C -r $TRACES/tcp/reassembly.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -r $TRACES/ipv4/fragmented-1.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -r $TRACES/ipv4/fragmented-2.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -r $TRACES/ipv4/fragmented-3.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -r $TRACES/ipv4/fragmented-4.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -r $TRACES/tcp/reassembly.pcap %INPUT >>output
 # @TEST-EXEC: btest-diff output
 
 event zeek_init()

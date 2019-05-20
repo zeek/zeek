@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -b -r $TRACES/tls/xmpp-dialback-starttls.pcap %INPUT
+# @TEST-EXEC: zeek -C -b -r $TRACES/tls/xmpp-dialback-starttls.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 
 @load base/frameworks/dpd

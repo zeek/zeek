@@ -44,7 +44,7 @@ function connect_peers_with_type(node_type: NodeType)
 
 event zeek_init() &priority=-10
 	{
-	if ( getenv("BROCTL_CHECK_CONFIG") != "" )
+	if ( getenv("ZEEKCTL_CHECK_CONFIG") != "" )
 		return;
 
 	local self = nodes[node];

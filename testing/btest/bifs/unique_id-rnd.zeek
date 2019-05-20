@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: BRO_SEED_FILE= bro -b %INPUT >out
-# @TEST-EXEC: BRO_SEED_FILE= bro -b %INPUT >>out
+# @TEST-EXEC: BRO_SEED_FILE= zeek -b %INPUT >out
+# @TEST-EXEC: BRO_SEED_FILE= zeek -b %INPUT >>out
 # @TEST-EXEC: cat out | sort | uniq | wc -l | sed 's/ //g' >count
 # @TEST-EXEC: btest-diff count
 

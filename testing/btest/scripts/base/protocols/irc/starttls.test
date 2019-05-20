@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -C -r $TRACES/tls/irc-starttls.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/irc-starttls.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log

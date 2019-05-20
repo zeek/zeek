@@ -1,7 +1,7 @@
 
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
-# @TEST-EXEC: btest-diff broproc/intel.log
+# @TEST-EXEC: btest-diff zeekproc/intel.log
 
 @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.remove

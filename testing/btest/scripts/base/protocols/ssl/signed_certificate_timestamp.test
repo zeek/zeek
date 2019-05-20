@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
 #
 # The following file contains a tls 1.0 connection with a SCT in a TLS extension.
 # This is interesting because the digitally-signed struct in TLS 1.0 does not come
@@ -7,7 +7,7 @@
 # uses in the end. So this one does have a Signature/Hash alg, even if the protocol
 # itself does not carry it in the same struct.
 #
-# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp_tls1_0.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/signed_certificate_timestamp_tls1_0.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: test ! -f dpd.log
 

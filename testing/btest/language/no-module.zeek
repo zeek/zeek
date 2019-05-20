@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -b %INPUT secondtestfile >out
+# @TEST-EXEC: zeek -b %INPUT secondtestfile >out
 # @TEST-EXEC: btest-diff out
 
-# This is the same test as "module.bro", but here we omit the module definition
+# This is the same test as "module.zeek", but here we omit the module definition
 
 
 global num: count = 123;

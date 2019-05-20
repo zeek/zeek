@@ -1,6 +1,6 @@
 // Implementation of breakpoints.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <assert.h>
 

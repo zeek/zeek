@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1067,6 +1067,7 @@ int main(int argc, char** argv)
 		reporter->FatalError("errors occurred while initializing");
 
 	broker_mgr->ZeekInitDone();
+	reporter->ZeekInitDone();
 	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;

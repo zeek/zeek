@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT Unified2::watch_file=$FILES/unified2.u2
+# @TEST-EXEC: zeek -b %INPUT Unified2::watch_file=$FILES/unified2.u2
 # @TEST-EXEC: btest-diff unified2.log
 
 @TEST-START-FILE sid_msg.map

@@ -4,7 +4,7 @@
 
 #include <syslog.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "Reporter.h"
 #include "Event.h"
 #include "NetVar.h"
@@ -31,12 +31,14 @@ Reporter::Reporter()
 	via_events = false;
 	in_error_handler = 0;
 
-	// Always use stderr at startup/init before scripts have been fully parsed.
+	// Always use stderr at startup/init before scripts have been fully parsed
+	// and zeek_init() processed.
 	// Messages may otherwise be missed if an error occurs that prevents events
 	// from ever being dispatched.
 	info_to_stderr = true;
 	warnings_to_stderr = true;
 	errors_to_stderr = true;
+	after_zeek_init = false;
 
 	weird_count = 0;
 	weird_sampling_rate = 0;
@@ -80,7 +82,7 @@ void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = info_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(info_to_stderr) ? stderr : 0;
 	DoLog("", reporter_info, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
@@ -89,7 +91,7 @@ void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = warnings_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
 	DoLog("warning", reporter_warning, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
@@ -99,7 +101,7 @@ void Reporter::Error(const char* fmt, ...)
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
 	DoLog("error", reporter_error, out, 0, 0, true, true, 0, fmt, ap);
 	va_end(ap);
 	}
@@ -142,7 +144,7 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	PushLocation(expr->GetLocationInfo());
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
 	DoLog("expression error", reporter_error, out, 0, 0, true, true,
 	      d.Description(), fmt, ap);
 	va_end(ap);
@@ -156,7 +158,7 @@ void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
 	PushLocation(location);
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
 	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
@@ -196,7 +198,7 @@ void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = warnings_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
 	// TODO: would be nice to also log a call stack.
 	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
 	      ap);

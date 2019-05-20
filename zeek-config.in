@@ -12,12 +12,12 @@ cmake_dir=@CMAKE_INSTALL_PREFIX@/share/bro/cmake
 include_dir=@CMAKE_INSTALL_PREFIX@/include/bro
 bropath=@DEFAULT_BROPATH@
 bro_dist=@BRO_DIST@
-binpac_root=@BRO_CONFIG_BINPAC_ROOT_DIR@
-caf_root=@BRO_CONFIG_CAF_ROOT_DIR@
-broker_root=@BRO_CONFIG_BROKER_ROOT_DIR@
+binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
+caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
+broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
 
 usage="\
-Usage: bro-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist] [--binpac_root] [--caf_root] [--broker_root]"
+Usage: zeek-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist] [--binpac_root] [--caf_root] [--broker_root]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2

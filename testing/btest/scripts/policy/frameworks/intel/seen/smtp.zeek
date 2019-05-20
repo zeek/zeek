@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/smtp-multi-addr.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/smtp-multi-addr.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 @TEST-START-FILE intel.dat

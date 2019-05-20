@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: bro order_rand | sort >out.1
-# @TEST-EXEC: bro order_base | sort >out.2
+# @TEST-EXEC: zeek order_rand | sort >out.1
+# @TEST-EXEC: zeek order_base | sort >out.2
 # @TEST-EXEC: cmp out.1 out.2
 
 @TEST-START-FILE order_rand.zeek

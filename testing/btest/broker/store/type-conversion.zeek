@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run master "bro -b %INPUT >out"
+# @TEST-EXEC: btest-bg-run master "zeek -b %INPUT >out"
 # @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff master/out
 
@@ -13,7 +13,7 @@ type R2: record {
 
 event zeek_init()
 	{
-	### Print every broker data type
+	### Print every Broker data type
 	print Broker::data_type(Broker::data(T));
 	print Broker::data_type(Broker::data(+1));
 	print Broker::data_type(Broker::data(1));
@@ -33,7 +33,7 @@ event zeek_init()
 
 	print "***************************";
 
-        ### Convert a Bro value to a broker value, then print the result
+	### Convert a Zeek value to a Broker value, then print the result
 
 	print (Broker::data(T) as bool);
 	print (Broker::data(F) as bool);

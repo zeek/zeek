@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tls/tls-expired-cert.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/tls-expired-cert.trace %INPUT
 
 # This is a hack: the results of OpenSSL 1.1's vs 1.0's
 # X509_verify_cert() -> X509_STORE_CTX_get1_chain() calls

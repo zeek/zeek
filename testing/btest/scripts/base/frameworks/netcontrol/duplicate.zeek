@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tls/google-duplicate.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.trace %INPUT
 # @TEST-EXEC: btest-diff netcontrol.log
 
 @load base/frameworks/netcontrol

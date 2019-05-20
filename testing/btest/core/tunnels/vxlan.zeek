@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/vxlan.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/tunnels/vxlan.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log

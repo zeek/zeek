@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -b -s myftp -r $TRACES/ftp/ipv4.trace %INPUT >dpd-ipv4.out
-# @TEST-EXEC: bro -b -s myftp -r $TRACES/ftp/ipv6.trace %INPUT >dpd-ipv6.out
-# @TEST-EXEC: bro -b -r $TRACES/ftp/ipv4.trace %INPUT >nosig-ipv4.out
-# @TEST-EXEC: bro -b -r $TRACES/ftp/ipv6.trace %INPUT >nosig-ipv6.out
+# @TEST-EXEC: zeek -b -s myftp -r $TRACES/ftp/ipv4.trace %INPUT >dpd-ipv4.out
+# @TEST-EXEC: zeek -b -s myftp -r $TRACES/ftp/ipv6.trace %INPUT >dpd-ipv6.out
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv4.trace %INPUT >nosig-ipv4.out
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6.trace %INPUT >nosig-ipv6.out
 # @TEST-EXEC: btest-diff dpd-ipv4.out
 # @TEST-EXEC: btest-diff dpd-ipv6.out
 # @TEST-EXEC: btest-diff nosig-ipv4.out

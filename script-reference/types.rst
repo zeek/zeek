@@ -957,6 +957,24 @@ Here is a more detailed description of each type:
     necessary to have a handle as a way of identifying it and
     distinguishing it from other such resources.
 
+    The scripting layer implementations of these types are found primarily in
+    :doc:`/scripts/base/bif/bro.bif.zeek` and a more granular look at them
+    can be found in ``src/OpaqueVal.h`` inside the Zeek repo. Opaque types serve
+    as an excellent way to integrate functionality into Zeek without needing to
+    add a new type to the scripting language.
+
+    Another example of an opaque type is paraglob, a data structure for fast
+    pattern matching which can be used as follows:
+
+    .. sourcecode:: bro
+
+      local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+      local p = paraglob_init(v);
+      print paraglob_get(p1, "dog");
+      # out: [*, *og, d?g, d[!wl]g]
+
+    For more documentation on paraglob see :doc:`/components/index`.
+
 .. zeek:type:: any
 
     Used to bypass strong typing.  For example, a function can take an
@@ -964,11 +982,12 @@ Here is a more detailed description of each type:
     The only operation allowed on a variable of type ``any`` is assignment.
 
     Note that users aren't expected to use this type.  It's provided mainly
-    for use by some built-in functions and scripts included with Bro.
+    for use by some built-in functions and scripts included with Bro. For
+    example, passing a vector into a ``.bif`` function is best accomplished by
+    taking :zeek:type:`any` as an argument and casting it to a vector.
 
 .. zeek:type:: void
 
     An internal Bro type (i.e., "void" is not a reserved keyword in the Bro
     scripting language) representing the absence of a return type for a
     function.
-

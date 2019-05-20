@@ -140,10 +140,7 @@ Redefinable Options
 :zeek:id:`interconn_stat_backoff`: :zeek:type:`double` :zeek:attr:`&redef`                 Deprecated.
 :zeek:id:`interconn_stat_period`: :zeek:type:`interval` :zeek:attr:`&redef`                Deprecated.
 :zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef`                       Ports which the core considers being likely used by servers.
-:zeek:id:`log_encryption_key`: :zeek:type:`string` :zeek:attr:`&redef`                     Deprecated.
-:zeek:id:`log_max_size`: :zeek:type:`double` :zeek:attr:`&redef`                           Deprecated.
 :zeek:id:`log_rotate_base_time`: :zeek:type:`string` :zeek:attr:`&redef`                   Deprecated.
-:zeek:id:`log_rotate_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                  Deprecated.
 :zeek:id:`max_files_in_cache`: :zeek:type:`count` :zeek:attr:`&redef`                      The maximum number of open files to keep cached at a given time.
 :zeek:id:`max_timer_expires`: :zeek:type:`count` :zeek:attr:`&redef`                       The maximum number of timers to expire after processing each new
                                                                                            packet.
@@ -1417,35 +1414,11 @@ Redefinable Options
    this set, it may heuristically decide to flip the direction of the
    connection if it misses the initial handshake.
 
-.. zeek:id:: log_encryption_key
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"<undefined>"``
-
-   Deprecated.
-
-.. zeek:id:: log_max_size
-
-   :Type: :zeek:type:`double`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``0.0``
-
-   Deprecated.
-
 .. zeek:id:: log_rotate_base_time
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"0:00"``
-
-   Deprecated.
-
-.. zeek:id:: log_rotate_interval
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``0 secs``
 
    Deprecated.
 

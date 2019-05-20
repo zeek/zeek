@@ -89,8 +89,6 @@ Events
 :zeek:id:`reporter_warning`: :zeek:type:`event` :zeek:attr:`&error_handler` Raised for warnings reported via Bro's reporter framework.
 :zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                         Generated when Bro detects a TCP retransmission inconsistency.
 :zeek:id:`root_backdoor_signature_found`: :zeek:type:`event`                Deprecated.
-:zeek:id:`rotate_interval`: :zeek:type:`event`                              Deprecated.
-:zeek:id:`rotate_size`: :zeek:type:`event`                                  Deprecated.
 :zeek:id:`scheduled_analyzer_applied`: :zeek:type:`event`                   Generated when a connection is seen that is marked as being expected.
 :zeek:id:`signature_match`: :zeek:type:`event`                              Generated when a signature matches.
 :zeek:id:`software_parse_error`: :zeek:type:`event`                         Generated when a protocol analyzer finds an identification of a software
@@ -1062,18 +1060,6 @@ Events
 .. zeek:id:: root_backdoor_signature_found
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: rotate_interval
-
-   :Type: :zeek:type:`event` (f: :zeek:type:`file`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: rotate_size
-
-   :Type: :zeek:type:`event` (f: :zeek:type:`file`)
 
    Deprecated. Will be removed.
 

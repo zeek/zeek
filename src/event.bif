@@ -885,10 +885,4 @@ event gaobot_signature_found%(c: connection%);
 event anonymization_mapping%(orig: addr, mapped: addr%);
 
 ## Deprecated. Will be removed.
-event rotate_interval%(f: file%);
-
-## Deprecated. Will be removed.
-event rotate_size%(f: file%);
-
-## Deprecated. Will be removed.
 event print_hook%(f:file, s: string%);

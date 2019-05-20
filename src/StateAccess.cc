@@ -133,29 +133,6 @@ void StateAccess::RefThem()
 		Ref(op3);
 	}
 
-bool StateAccess::MergeTables(TableVal* dst, Val* src)
-	{
-	if ( src->Type()->Tag() != TYPE_TABLE )
-		{
-		reporter->Error("type mismatch while merging tables");
-		return false;
-		}
-
-	if ( ! src->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-		return false;
-
-	DBG_LOG(DBG_STATE, "merging tables %s += %s", dst->UniqueID()->Name(),
-			src->AsTableVal()->UniqueID()->Name());
-
-	src->AsTableVal()->AddTo(dst, 0);
-
-	// We need to make sure that the resulting table is accessible by
-	// the new name (while keeping the old as an alias).
-	dst->TransferUniqueID(src->AsMutableVal());
-
-	return true;
-	}
-
 static Val* GetInteger(bro_int_t n, TypeTag t)
 	{
 	if ( t == TYPE_INT )
@@ -192,11 +169,6 @@ void StateAccess::Replay()
 		// There mustn't be a direct assignment to a unique ID.
 		assert(target.id->Name()[0] != '#');
 
-		if ( t == TYPE_TABLE && v &&
-		     v->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			if ( MergeTables(v->AsTableVal(), op1.val) )
-				break;
-
 		target.id->SetVal(op1.val->Ref());
 		break;
 
@@ -227,9 +199,6 @@ void StateAccess::Replay()
 				{
 				TableVal* tv = v->AsTableVal();
 				Val* w = tv->Lookup(op1.val);
-				if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-					if ( MergeTables(w->AsTableVal(), op2) )
-						break;
 				}
 
 			v->AsTableVal()->Assign(op1.val, op2 ? op2->Ref() : 0);
@@ -248,9 +217,6 @@ void StateAccess::Replay()
 					{
 					RecordVal* rv = v->AsRecordVal();
 					Val* w = rv->Lookup(idx);
-					if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-						if ( MergeTables(w->AsTableVal(), op2) )
-							break;
 					}
 
 				v->AsRecordVal()->Assign(idx, op2 ? op2->Ref() : 0);
@@ -270,9 +236,6 @@ void StateAccess::Replay()
 				{
 				VectorVal* vv = v->AsVectorVal();
 				Val* w = vv->Lookup(index);
-				if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-					if ( MergeTables(w->AsTableVal(), op2) )
-						break;
 				}
 
 			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0);

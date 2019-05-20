@@ -944,8 +944,6 @@ int main(int argc, char** argv)
 	if ( dns_type != DNS_PRIME )
 		net_init(interfaces, read_files, writefile, do_watchdog);
 
-	BroFile::SetDefaultRotation(log_rotate_interval, log_max_size);
-
 	net_done = internal_handler("net_done");
 
 	if ( ! g_policy_debug )

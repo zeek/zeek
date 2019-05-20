@@ -4589,16 +4589,7 @@ const cmd_line_bpf_filter = "" &redef;
 const max_files_in_cache = 0 &redef;
 
 ## Deprecated.
-const log_rotate_interval = 0 sec &redef;
-
-## Deprecated.
 const log_rotate_base_time = "0:00" &redef;
-
-## Deprecated.
-const log_max_size = 0.0 &redef;
-
-## Deprecated.
-const log_encryption_key = "<undefined>" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.

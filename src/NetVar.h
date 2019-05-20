@@ -168,10 +168,7 @@ extern StringVal* state_dir;
 extern double state_write_delay;
 
 extern int max_files_in_cache;
-extern double log_rotate_interval;
-extern double log_max_size;
 extern RecordType* rotate_info;
-extern StringVal* log_encryption_key;
 extern StringVal* log_rotate_base_time;
 
 extern StringVal* peer_description;

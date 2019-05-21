@@ -1741,7 +1741,7 @@ Functions
 
    Issues an asynchronous DNS lookup and delays the function result.
    This function can therefore only be called inside a ``when`` condition,
-   e.g., ``when ( local h = lookup_hostname("www.bro.org") ) { f(h); }``.
+   e.g., ``when ( local h = lookup_hostname("www.zeek.org") ) { f(h); }``.
    
 
    :host: The hostname to lookup.
@@ -1757,7 +1757,7 @@ Functions
 
    Issues an asynchronous TEXT DNS lookup and delays the function result.
    This function can therefore only be called inside a ``when`` condition,
-   e.g., ``when ( local h = lookup_hostname_txt("www.bro.org") ) { f(h); }``.
+   e.g., ``when ( local h = lookup_hostname_txt("www.zeek.org") ) { f(h); }``.
    
 
    :host: The hostname to lookup.

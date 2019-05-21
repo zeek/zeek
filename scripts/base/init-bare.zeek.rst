@@ -169,8 +169,6 @@ Redefinable Options
 :zeek:id:`ssl_ca_certificate`: :zeek:type:`string` :zeek:attr:`&redef`                     The CA certificate file to authorize remote Zeeks/Broccolis.
 :zeek:id:`ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`                         The passphrase for our private key.
 :zeek:id:`ssl_private_key`: :zeek:type:`string` :zeek:attr:`&redef`                        File containing our private key and our certificate.
-:zeek:id:`state_dir`: :zeek:type:`string` :zeek:attr:`&redef`                              Specifies a directory for Zeek to store its persistent state.
-:zeek:id:`state_write_delay`: :zeek:type:`interval` :zeek:attr:`&redef`                    Length of the delays inserted when storing state incrementally.
 :zeek:id:`stp_delta`: :zeek:type:`interval` :zeek:attr:`&redef`                            Internal to the stepping stone detector.
 :zeek:id:`stp_idle_min`: :zeek:type:`interval` :zeek:attr:`&redef`                         Internal to the stepping stone detector.
 :zeek:id:`suppress_local_output`: :zeek:type:`bool` :zeek:attr:`&redef`                    Deprecated.
@@ -1649,25 +1647,6 @@ Redefinable Options
    File containing our private key and our certificate.
    
    .. zeek:see:: ssl_ca_certificate ssl_passphrase
-
-.. zeek:id:: state_dir
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``".state"``
-
-   Specifies a directory for Zeek to store its persistent state. All globals can
-   be declared persistent via the :zeek:attr:`&persistent` attribute.
-
-.. zeek:id:: state_write_delay
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``10.0 msecs``
-
-   Length of the delays inserted when storing state incrementally. To avoid
-   dropping packets when serializing larger volumes of persistent state to
-   disk, Zeek interleaves the operation with continued packet processing.
 
 .. zeek:id:: stp_delta
 

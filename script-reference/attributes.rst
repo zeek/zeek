@@ -29,19 +29,7 @@ The Bro scripting language supports the following attributes.
 +------------------------------+-----------------------------------------------+
 | :zeek:attr:`&create_expire`  |Specify a creation timeout interval.           |
 +------------------------------+-----------------------------------------------+
-| :zeek:attr:`&synchronized`   |Synchronize a variable across nodes.           |
-+------------------------------+-----------------------------------------------+
-| :zeek:attr:`&persistent`     |Make a variable persistent (written to disk).  |
-+------------------------------+-----------------------------------------------+
-| :zeek:attr:`&rotate_interval`|Rotate a file after specified interval.        |
-+------------------------------+-----------------------------------------------+
-| :zeek:attr:`&rotate_size`    |Rotate a file after specified file size.       |
-+------------------------------+-----------------------------------------------+
-| :zeek:attr:`&encrypt`        |Encrypt a file when writing to disk.           |
-+------------------------------+-----------------------------------------------+
 | :zeek:attr:`&raw_output`     |Open file in raw mode (chars. are not escaped).|
-+------------------------------+-----------------------------------------------+
-| :zeek:attr:`&mergeable`      |Prefer set union for synchronized state.       |
 +------------------------------+-----------------------------------------------+
 | :zeek:attr:`&error_handler`  |Used internally for reporter framework events. |
 +------------------------------+-----------------------------------------------+
@@ -161,49 +149,10 @@ Here is a more detailed explanation of each attribute:
     is, the element expires after the given amount of time since it has
     been inserted into the container, regardless of any reads or writes.
 
-.. zeek:attr:: &synchronized
-
-    Synchronizes variable accesses across nodes. The value of a
-    ``&synchronized`` variable is automatically propagated to all peers
-    when it changes.
-
-.. zeek:attr:: &persistent
-
-    Makes a variable persistent, i.e., its value is written to disk (per
-    default at shutdown time).
-
-.. zeek:attr:: &rotate_interval
-
-    Rotates a file after a specified interval.
-
-    Note: This attribute is deprecated and will be removed in a future release.
-
-.. zeek:attr:: &rotate_size
-
-    Rotates a file after it has reached a given size in bytes.
-
-    Note: This attribute is deprecated and will be removed in a future release.
-
-.. zeek:attr:: &encrypt
-
-    Encrypts files right before writing them to disk.
-
-    Note: This attribute is deprecated and will be removed in a future release.
-
 .. zeek:attr:: &raw_output
 
     Opens a file in raw mode, i.e., non-ASCII characters are not
     escaped.
-
-.. zeek:attr:: &mergeable
-
-    Prefers merging sets on assignment for synchronized state. This
-    attribute is used in conjunction with :zeek:attr:`&synchronized`
-    container types: when the same container is updated at two peers
-    with different values, the propagation of the state causes a race
-    condition, where the last update succeeds. This can cause
-    inconsistencies and can be avoided by unifying the two sets, rather
-    than merely overwriting the old value.
 
 .. zeek:attr:: &error_handler
 

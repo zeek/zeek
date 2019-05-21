@@ -1,4 +1,10 @@
 
+2.6-318 | 2019-05-21 09:17:53 -0700
+
+  * Remove state_dir and state_write_delay options (Jon Siwek, Corelight)
+
+  * Remove a reference to &synchronized from docs (Jon Siwek, Corelight)
+
 2.6-316 | 2019-05-20 20:56:46 -0700
 
   * Additional Bro to Zeek renaming (Daniel Thayer)

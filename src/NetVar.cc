@@ -155,9 +155,6 @@ RecordType* packet_type;
 
 double connection_status_update_interval;
 
-StringVal* state_dir;
-double state_write_delay;
-
 int orig_addr_anonymization, resp_addr_anonymization;
 int other_addr_anonymization;
 TableVal* preserve_orig_addr;
@@ -241,9 +238,6 @@ void init_general_global_var()
 	table_expire_interval = opt_internal_double("table_expire_interval");
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
-
-	state_dir = internal_val("state_dir")->AsStringVal();
-	state_write_delay = opt_internal_double("state_write_delay");
 
 	max_files_in_cache = opt_internal_int("max_files_in_cache");
 	rotate_info = internal_type("rotate_info")->AsRecordType();

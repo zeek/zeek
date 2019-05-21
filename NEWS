@@ -298,6 +298,8 @@ Removed Functionality
     - ``log_rotate_interval``
     - ``log_max_size``
     - ``log_encryption_key``
+    - ``state_dir``
+    - ``state_write_delay``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

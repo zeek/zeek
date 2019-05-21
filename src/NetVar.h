@@ -164,9 +164,6 @@ extern TableVal* preserve_other_addr;
 
 extern double connection_status_update_interval;
 
-extern StringVal* state_dir;
-extern double state_write_delay;
-
 extern int max_files_in_cache;
 extern RecordType* rotate_info;
 extern StringVal* log_rotate_base_time;

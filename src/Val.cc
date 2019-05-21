@@ -1216,6 +1216,7 @@ Val* PatternVal::DoClone(CloneState* state)
 	{
 	// TODO: Double-check
 	auto re = new RE_Matcher(val.re_val->PatternText(), val.re_val->AnywherePatternText());
+	re->Compile();
 	return new PatternVal(re);
 	}
 
@@ -2557,7 +2558,14 @@ Val* TableVal::DoClone(CloneState* state)
 	while ( (val = tbl->NextEntry(key, cookie)) )
     		{
 		Val* idx = RecoverIndex(key);
-		TableEntryVal* nval = val ? new TableEntryVal(*val) : nullptr;
+		TableEntryVal* nval = nullptr;
+		if ( val )
+			{
+			if ( val->Value() )
+				nval = new TableEntryVal(val->Value()->Clone());
+			else
+				nval = new TableEntryVal(nullptr);
+			}
 		tv->AsNonConstTable()->Insert(key, nval);
 
 		if ( subnets )
@@ -3175,17 +3183,22 @@ void RecordVal::DescribeReST(ODesc* d) const
 
 Val* RecordVal::DoClone(CloneState* state)
 	{
-	// TODO: We leave origin unset, ok?
+	// We set origin to 0 here.
+	// Origin only seems to be used for exactly one purpose - to find the connection record that is associated
+	// with a record. As we cannot guarantee that it will ber zeroed out at the approproate time (as it seems to be
+	// guaranteed for the original record) we don't touch it.
 	::Ref(record_type);
 	auto rv = new RecordVal(record_type);
+	rv->origin = nullptr;
+	rv->val.val_list_val = new val_list(val.val_list_val->length());
 
 	loop_over_list(*val.val_list_val, i)
 		{
-		Val* v = (*val.val_list_val)[i]->Clone(state);
+		Val* v = (*val.val_list_val)[i] ? (*val.val_list_val)[i]->Clone(state) : nullptr;
   		rv->val.val_list_val->append(v);
 		}
 
-	return nullptr;
+	return rv;
 	}
 
 IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);

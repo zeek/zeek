@@ -223,8 +223,8 @@
 #define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
 
 /* True if we're building outside of the main Zeek source code tree. */
-#ifndef BRO_PLUGIN_INTERNAL_BUILD
-#define BRO_PLUGIN_INTERNAL_BUILD @BRO_PLUGIN_INTERNAL_BUILD@
+#ifndef ZEEK_PLUGIN_INTERNAL_BUILD
+#define ZEEK_PLUGIN_INTERNAL_BUILD @ZEEK_PLUGIN_INTERNAL_BUILD@
 #endif
 
 /* A C function that has the Zeek version encoded into its name. */

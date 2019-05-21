@@ -1,4 +1,12 @@
 
+2.6-316 | 2019-05-20 20:56:46 -0700
+
+  * Additional Bro to Zeek renaming (Daniel Thayer)
+
+  * Added a new unit test for legacy Bro Plugins (Daniel Thayer)
+
+  * Added a symlink bro-path-dev.in for use by legacy Bro packages (Daniel Thayer)
+
 2.6-314 | 2019-05-20 16:20:33 -0700
 
   * Remove deprecated attributes. (Johanna Amann, Corelight)

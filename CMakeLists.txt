@@ -1,4 +1,4 @@
-project(Bro C CXX)
+project(Zeek C CXX)
 
 # When changing the minimum version here, also adapt
 # aux/zeek-aux/plugin-support/skeleton/CMakeLists.txt
@@ -21,23 +21,23 @@ if ( ENABLE_CCACHE )
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif ()
 
-set(BRO_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
-if (NOT BRO_SCRIPT_INSTALL_PATH)
+set(ZEEK_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
+if (NOT ZEEK_SCRIPT_INSTALL_PATH)
     # set the default Zeek script installation path (user did not specify one)
-    set(BRO_SCRIPT_INSTALL_PATH ${BRO_ROOT_DIR}/share/bro)
+    set(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/bro)
 endif ()
 
-if (NOT BRO_MAN_INSTALL_PATH)
+if (NOT ZEEK_MAN_INSTALL_PATH)
     # set the default Zeek man page installation path (user did not specify one)
-    set(BRO_MAN_INSTALL_PATH ${BRO_ROOT_DIR}/share/man)
+    set(ZEEK_MAN_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/man)
 endif ()
 
 # sanitize the Zeek script install directory into an absolute path
 # (CMake is confused by ~ as a representation of home directory)
-get_filename_component(BRO_SCRIPT_INSTALL_PATH ${BRO_SCRIPT_INSTALL_PATH}
+get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
-set(BRO_PLUGIN_INSTALL_PATH ${BRO_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
+set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
@@ -211,7 +211,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
     endif ()
 endif ()
 
-set(brodeps
+set(zeekdeps
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
     ${OPENSSL_LIBRARIES}
@@ -241,16 +241,16 @@ include(GetArchitecture)
 include(RequireCXX11)
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
-  set(BRO_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
+  set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
 endif()
 
 # Tell the plugin code that we're building as part of the main tree.
-set(BRO_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
+set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-set(DEFAULT_BROPATH .:${BRO_SCRIPT_INSTALL_PATH}:${BRO_SCRIPT_INSTALL_PATH}/policy:${BRO_SCRIPT_INSTALL_PATH}/site)
+set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site)
 
 if ( NOT BINARY_PACKAGING_MODE )
-    set(BRO_DIST ${CMAKE_SOURCE_DIR})
+    set(ZEEK_DIST ${CMAKE_SOURCE_DIR})
 endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
@@ -262,19 +262,19 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/bro)
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
 else ()
-  set(ZEEK_CONFIG_CAF_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_CAF_ROOT_DIR ${ZEEK_ROOT_DIR})
 endif ()
 
 if ( BinPAC_ROOT_DIR )
   set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
 else ()
-  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${ZEEK_ROOT_DIR})
 endif ()
 
 if ( BROKER_ROOT_DIR )
   set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
 else ()
-  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BRO_ROOT_DIR})
+  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${ZEEK_ROOT_DIR})
 endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
@@ -298,7 +298,7 @@ if ( BROKER_ROOT_DIR )
   find_package(Broker REQUIRED)
   find_package(CAF COMPONENTS core io openssl REQUIRED)
 
-  set(brodeps ${brodeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
   include_directories(BEFORE ${BROKER_INCLUDE_DIR})
 else ()
   set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
@@ -311,9 +311,9 @@ else ()
   set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
   if ( BUILD_STATIC_BROKER )
-    set(brodeps ${brodeps} broker_static)
+    set(zeekdeps ${zeekdeps} broker_static)
   else()
-    set(brodeps ${brodeps} broker)
+    set(zeekdeps ${zeekdeps} broker)
   endif()
   include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
                              ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
@@ -363,7 +363,7 @@ message(
     "\nBuild type:        ${CMAKE_BUILD_TYPE}"
     "\nBuild dir:         ${CMAKE_BINARY_DIR}"
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-    "\nZeek Script Path:  ${BRO_SCRIPT_INSTALL_PATH}"
+    "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"

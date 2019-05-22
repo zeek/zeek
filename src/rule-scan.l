@@ -21,7 +21,7 @@ D	[0-9]+
 H	[0-9a-fA-F]+
 HEX {H}
 STRING	\"([^\n\"]|\\\")*\"
-IDCOMPONENT [0-9a-zA-Z_][0-9a-zA-Z_-]*
+IDCOMPONENT [a-zA-Z_][0-9a-zA-Z_-]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 IP6	("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/i?

@@ -109,9 +109,14 @@ Val* Val::DoClone(CloneState* state)
 
 		if ( type->Tag() == TYPE_FILE )
 			{
-			auto f = AsFile();
-			::Ref(f);
-			return new Val(f);
+			// I think we can just ref the file here - it is unclear what else to do.
+			// In the case of cached files, I think this is equivalent to what happened before
+			// - serialization + unserialization just have you the same pointer that you already had.
+			// In the case of non-cached files, the behavior now is different; in the past, serialize +
+			// unserialize gave you a new file object because the old one was not in the list anymore. This object
+			// was automatically opened. This does not happen anymore - instead you get the non-cached pointer back
+			// which is brought back into the cache when written too.
+			return Ref();
 			}
 
 		// Fall-through.
@@ -3595,7 +3600,7 @@ OpaqueVal::~OpaqueVal()
 
 Val* OpaqueVal::DoClone(CloneState* state)
 	{
-	// TODO
+	reporter->InternalError("cloning opaque type without clone implementation");
 	return nullptr;
 	}
 

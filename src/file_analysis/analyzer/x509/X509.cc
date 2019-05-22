@@ -477,6 +477,15 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
+Val* X509Val::DoClone(CloneState* state)
+	{
+	auto copy = new X509Val();
+	if ( certificate )
+		copy->certificate = X509_dup(certificate);
+
+	return copy;
+	}
+
 ::X509* X509Val::GetCertificate() const
 	{
 	return certificate;

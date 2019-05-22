@@ -169,7 +169,7 @@ const char* BroFile::Name() const
 		return name;
 
 	if ( f == stdin )
-		return"/dev/stdin";
+		return "/dev/stdin";
 
 	if ( f == stdout )
 		return "/dev/stdout";
@@ -316,7 +316,6 @@ FILE* BroFile::BringIntoCache()
 		return 0;
 		}
 
-	RaiseOpenEvent();
 	UpdateFileSize();
 
 	if ( fseek(f, position, SEEK_SET) < 0 )
@@ -326,6 +325,8 @@ FILE* BroFile::BringIntoCache()
 		}
 
 	InsertAtBeginning();
+
+	RaiseOpenEvent();
 
 	return f;
 	}

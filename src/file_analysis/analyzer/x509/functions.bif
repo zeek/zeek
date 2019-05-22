@@ -13,20 +13,6 @@
 // This is the indexed map of X509 certificate stores.
 static map<Val*, X509_STORE*> x509_stores;
 
-// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
-// here we assume d2i_X509 does not write to <data>, so it is safe to
-// convert data to a non-const pointer.  Could some X509 guru verify
-// this?
-
-X509* d2i_X509_(X509** px, const u_char** in, int len)
-	{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-	  return d2i_X509(px, in, len);
-#else
-	  return d2i_X509(px, (u_char**)in, len);
-#endif
-	}
-
 // construct an error record
 RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = 0)
 	{
@@ -56,7 +42,7 @@ X509_STORE* x509_get_root_store(TableVal* root_certs)
 		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
 		assert(sv);
 		const uint8* data = sv->Bytes();
-		X509* x = d2i_X509_(NULL, &data, sv->Len());
+		X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
 			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
@@ -202,6 +188,19 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 
 	return file_analysis::X509::ParseCertificate(h);
 	%}
+
+## Constructs an opaque of X509 from a der-formatted string.
+##
+## Note: this function is mostly meant for testing purposes
+##
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_verify
+##              x509_get_certificate_string x509_parse
+function x509_from_der%(der: string%): opaque of x509
+    %{
+    const u_char* data = der->Bytes();
+    return new file_analysis::X509Val(d2i_X509(nullptr, &data, der->Len()));
+    %}
 
 ## Returns the string form of a certificate.
 ##

@@ -1,3 +1,4 @@
+# Note: opaque types in separate test
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 

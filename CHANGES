@@ -1,4 +1,26 @@
 
+2.6-318 | 2019-05-21 09:17:53 -0700
+
+  * Remove state_dir and state_write_delay options (Jon Siwek, Corelight)
+
+  * Remove a reference to &synchronized from docs (Jon Siwek, Corelight)
+
+2.6-316 | 2019-05-20 20:56:46 -0700
+
+  * Additional Bro to Zeek renaming (Daniel Thayer)
+
+  * Added a new unit test for legacy Bro Plugins (Daniel Thayer)
+
+  * Added a symlink bro-path-dev.in for use by legacy Bro packages (Daniel Thayer)
+
+2.6-314 | 2019-05-20 16:20:33 -0700
+
+  * Remove deprecated attributes. (Johanna Amann, Corelight)
+    To be more exact: &encrypt, &mergeable, &rotate_interval, &rotate_size
+
+    Also removes no longer used redef-able constants:
+    log_rotate_interval, log_max_size, log_encryption_key
+
 2.6-311 | 2019-05-20 09:07:58 -0700
 
   * Add missing &optional attr to KRB record fields; also add existence

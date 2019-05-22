@@ -1,6 +1,6 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
-include(BroSubdir)
+include(ZeekSubdir)
 
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}

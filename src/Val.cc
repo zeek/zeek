@@ -1555,24 +1555,6 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 	if ( (is_set && new_val) || (! is_set && ! new_val) )
 		InternalWarning("bad set/table in TableVal::Assign");
 
-	BroType* yt = Type()->AsTableType()->YieldType();
-
-	if ( yt && yt->Tag() == TYPE_TABLE &&
-	     new_val->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-		{
-		// Join two mergeable sets.
-		Val* old = Lookup(index, false);
-		if ( old && old->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			{
-			if ( LoggingAccess() && op != OP_NONE )
-				StateAccess::Log(new StateAccess(OP_ASSIGN_IDX,
-						this, index, new_val, old));
-			new_val->AsTableVal()->AddTo(old->AsTableVal(), 0, false);
-			Unref(new_val);
-			return 1;
-			}
-		}
-
 	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
 	HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k, new_entry_val);
@@ -2961,27 +2943,6 @@ RecordVal::~RecordVal()
 
 void RecordVal::Assign(int field, Val* new_val, Opcode op)
 	{
-	if ( new_val && Lookup(field) &&
-	     record_type->FieldType(field)->Tag() == TYPE_TABLE &&
-	     new_val->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-		{
-		// Join two mergeable sets.
-		Val* old = Lookup(field);
-		if ( old->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			{
-			if ( LoggingAccess() && op != OP_NONE )
-				{
-				StringVal* index = new StringVal(Type()->AsRecordType()->FieldName(field));
-				StateAccess::Log(new StateAccess(OP_ASSIGN_IDX, this, index, new_val, old));
-				Unref(index);
-				}
-
-			new_val->AsTableVal()->AddTo(old->AsTableVal(), 0, false);
-			Unref(new_val);
-			return;
-			}
-		}
-
 	Val* old_val = AsNonConstRecord()->replace(field, new_val);
 
 	if ( LoggingAccess() && op != OP_NONE )
@@ -3365,30 +3326,6 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 		{
 		Unref(element);
 		return false;
-		}
-
-	BroType* yt = Type()->AsVectorType()->YieldType();
-
-	if ( yt && yt->Tag() == TYPE_TABLE &&
-	     element->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-		{
-		// Join two mergeable sets.
-		Val* old = Lookup(index);
-		if ( old && old->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			{
-			if ( LoggingAccess() && op != OP_NONE )
-				{
-				Val* ival = val_mgr->GetCount(index);
-				StateAccess::Log(new StateAccess(OP_ASSIGN_IDX,
-						this, ival, element,
-						(*val.vector_val)[index]));
-				Unref(ival);
-				}
-
-			element->AsTableVal()->AddTo(old->AsTableVal(), 0, false);
-			Unref(element);
-			return true;
-			}
 		}
 
 	Val* val_at_index = 0;

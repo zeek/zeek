@@ -3,21 +3,21 @@
 version=@VERSION@
 build_type=@CMAKE_BUILD_TYPE_LOWER@
 prefix=@CMAKE_INSTALL_PREFIX@
-script_dir=@BRO_SCRIPT_INSTALL_PATH@
-site_dir=@BRO_SCRIPT_INSTALL_PATH@/site
+script_dir=@ZEEK_SCRIPT_INSTALL_PATH@
+site_dir=@ZEEK_SCRIPT_INSTALL_PATH@/site
 plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
-config_dir=@BRO_ETC_INSTALL_DIR@
+config_dir=@ZEEK_ETC_INSTALL_DIR@
 python_dir=@PY_MOD_INSTALL_DIR@
 cmake_dir=@CMAKE_INSTALL_PREFIX@/share/bro/cmake
 include_dir=@CMAKE_INSTALL_PREFIX@/include/bro
-bropath=@DEFAULT_BROPATH@
-bro_dist=@BRO_DIST@
+zeekpath=@DEFAULT_ZEEKPATH@
+zeek_dist=@ZEEK_DIST@
 binpac_root=@ZEEK_CONFIG_BINPAC_ROOT_DIR@
 caf_root=@ZEEK_CONFIG_CAF_ROOT_DIR@
 broker_root=@ZEEK_CONFIG_BROKER_ROOT_DIR@
 
 usage="\
-Usage: zeek-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--bropath] [--bro_dist] [--binpac_root] [--caf_root] [--broker_root]"
+Usage: zeek-config [--version] [--build_type] [--prefix] [--script_dir] [--site_dir] [--plugin_dir] [--config_dir] [--python_dir] [--include_dir] [--cmake_dir] [--zeekpath] [--zeek_dist] [--binpac_root] [--caf_root] [--broker_root]"
 
 if [ $# -eq 0 ] ; then
       echo "${usage}" 1>&2
@@ -61,11 +61,17 @@ while [ $# -ne 0 ]; do
     --include_dir)
       echo $include_dir
       ;;
-    --bropath)
-      echo $bropath
+    --bropath)   # For compatibility with legacy Bro plugins.
+      echo $zeekpath
       ;;
-    --bro_dist)
-      echo $bro_dist
+    --zeekpath)
+      echo $zeekpath
+      ;;
+    --bro_dist)  # For compatibility with legacy Bro plugins.
+      echo $zeek_dist
+      ;;
+    --zeek_dist)
+      echo $zeek_dist
       ;;
     --binpac_root)
       echo $binpac_root

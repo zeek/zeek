@@ -1801,15 +1801,6 @@ global log_file_name: function(tag: string): string &redef;
 ## Deprecated. This is superseded by the new logging framework.
 global open_log_file: function(tag: string): file &redef;
 
-## Specifies a directory for Zeek to store its persistent state. All globals can
-## be declared persistent via the :zeek:attr:`&persistent` attribute.
-const state_dir = ".state" &redef;
-
-## Length of the delays inserted when storing state incrementally. To avoid
-## dropping packets when serializing larger volumes of persistent state to
-## disk, Zeek interleaves the operation with continued packet processing.
-const state_write_delay = 0.01 secs &redef;
-
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }
 
@@ -4589,16 +4580,7 @@ const cmd_line_bpf_filter = "" &redef;
 const max_files_in_cache = 0 &redef;
 
 ## Deprecated.
-const log_rotate_interval = 0 sec &redef;
-
-## Deprecated.
 const log_rotate_base_time = "0:00" &redef;
-
-## Deprecated.
-const log_max_size = 0.0 &redef;
-
-## Deprecated.
-const log_encryption_key = "<undefined>" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.

@@ -74,8 +74,6 @@ private:
 	StateAccess()	{ target.id = 0; op1.val = op2 = op3 = 0; }
 	void RefThem();
 
-	bool MergeTables(TableVal* dst, Val* src);
-
 	DECLARE_SERIAL(StateAccess);
 
 	Opcode opcode;

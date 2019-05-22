@@ -52,7 +52,7 @@ signatures: By using the ``-s`` flag when you invoke Bro, or by
 extending the Bro variable :zeek:id:`signature_files` using the ``+=``
 operator, or by using the ``@load-sigs`` directive inside a Bro script.
 If a signature file is given without a full path, it is searched for
-along the normal ``BROPATH``.  Additionally, the ``@load-sigs``
+along the normal ``ZEEKPATH``.  Additionally, the ``@load-sigs``
 directive can be used to load signature files in a path relative to the
 Bro script in which it's placed, e.g. ``@load-sigs ./mysigs.sig`` will
 expect that signature file in the same directory as the Bro script. The

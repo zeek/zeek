@@ -439,7 +439,7 @@ Running Bro Without Installing
 
 For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have
-to first adjust ``BROPATH`` to look for scripts and
+to first adjust ``ZEEKPATH`` to look for scripts and
 additional files inside the build directory.  Sourcing either
 ``build/bro-path-dev.sh`` or ``build/bro-path-dev.csh`` as appropriate
 for the current shell accomplishes this and also augments your

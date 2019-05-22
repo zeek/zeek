@@ -16,7 +16,7 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 
 # If this script isn't found anywhere, the cluster bombs out.
 # Loading the cluster framework requires that a script by this name exists
-# somewhere in the BROPATH.  The only thing in the file should be the
+# somewhere in the ZEEKPATH.  The only thing in the file should be the
 # cluster definition in the :zeek:id:`Cluster::nodes` variable.
 @load cluster-layout
 

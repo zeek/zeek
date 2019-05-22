@@ -1,2 +1,2 @@
-# @TEST-EXEC: BRO_LOG_SUFFIX=txt zeek -r $TRACES/wikipedia.trace
+# @TEST-EXEC: ZEEK_LOG_SUFFIX=txt zeek -r $TRACES/wikipedia.trace
 # @TEST-EXEC: test -f conn.txt

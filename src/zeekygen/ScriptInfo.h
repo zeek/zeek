@@ -33,7 +33,7 @@ public:
 
 	/**
 	 * Ctor.
-	 * @param name Name of script: a path relative to a component in BROPATH.
+	 * @param name Name of script: a path relative to a component in ZEEKPATH.
 	 * @param path Absolute path to the script.
 	 */
 	ScriptInfo(const std::string& name, const std::string& path);
@@ -48,7 +48,7 @@ public:
 	/**
 	 * Register a dependency on another script.
 	 * @param name Name of a script with this one @loads.  This is the
-	 * "normalized" name (a path relative to a component in BROPATH).
+	 * "normalized" name (a path relative to a component in ZEEKPATH).
 	 */
 	void AddDependency(const std::string& name)
 		{ dependencies.insert(name); }

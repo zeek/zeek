@@ -179,8 +179,8 @@ public:
 	    { return identifiers.GetInfo(name); }
 
 	/**
-	 * @param name Name of a Bro script ("normalized" to be a path relative
-	 * to a component within BROPATH).
+	 * @param name Name of a Zeek script ("normalized" to be a path relative
+	 * to a component within ZEEKPATH).
 	 * @return a script info object associated with \a name or a null pointer
 	 * if it's not a known script name.
 	 */
@@ -188,8 +188,8 @@ public:
 	    { return scripts.GetInfo(name); }
 
 	/**
-	 * @param name Nmae of a Bro script package ("normalized" to be a path
-	 * relative to a component within BROPATH).
+	 * @param name Name of a Zeek script package ("normalized" to be a path
+	 * relative to a component within ZEEKPATH).
 	 * @return a package info object assocated with \a name or a null pointer
 	 * if it's not a known package name.
 	 */

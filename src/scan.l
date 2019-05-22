@@ -927,8 +927,8 @@ int yywrap()
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a
-	// prefixed and flattened version of the loaded file in BROPATH. The
-	// flattening involves taking the path in BROPATH in which the
+	// prefixed and flattened version of the loaded file in ZEEKPATH. The
+	// flattening involves taking the path in ZEEKPATH in which the
 	// scanned file lives and replacing '/' path separators with a '.' If
 	// the scanned file is "__load__.zeek", that part of the flattened
 	// file name is discarded. If the prefix is non-empty, it gets placed

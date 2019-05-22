@@ -17,9 +17,13 @@ Brofiler::~Brofiler()
 
 bool Brofiler::ReadStats()
 	{
-	char* bf = getenv("BRO_PROFILER_FILE");
+	char* bf = getenv("ZEEK_PROFILER_FILE");
 	if ( ! bf )
-		return false;
+		{
+		bf = getenv("BRO_PROFILER_FILE");
+		if ( ! bf )
+			return false;
+		}
 
 	FILE* f = fopen(bf, "r");
 	if ( ! f )
@@ -47,14 +51,19 @@ bool Brofiler::ReadStats()
 
 bool Brofiler::WriteStats()
 	{
-	char* bf = getenv("BRO_PROFILER_FILE");
-	if ( ! bf ) return false;
+	char* bf = getenv("ZEEK_PROFILER_FILE");
+	if ( ! bf )
+		{
+		bf = getenv("BRO_PROFILER_FILE");
+		if ( ! bf )
+			return false;
+		}
 
 	SafeDirname dirname{bf};
 
 	if ( ! ensure_intermediate_dirs(dirname.result.data()) )
 		{
-		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
@@ -69,7 +78,7 @@ bool Brofiler::WriteStats()
 
 		if ( fd == -1 )
 			{
-			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s", bf);
+			reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
 			return false;
 			}
 		f = fdopen(fd, "w");
@@ -81,7 +90,7 @@ bool Brofiler::WriteStats()
 
 	if ( ! f )
 		{
-		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 

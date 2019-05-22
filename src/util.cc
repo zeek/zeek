@@ -958,10 +958,15 @@ const std::string& bro_path()
 	{
 	if ( bro_path_value.empty() )
 		{
-		const char* path = getenv("BROPATH");
+		const char* path = getenv("ZEEKPATH");
 
 		if ( ! path )
-			path = DEFAULT_ZEEKPATH;
+			{
+			path = getenv("BROPATH");
+
+			if ( ! path )
+				path = DEFAULT_ZEEKPATH;
+			}
 
 		bro_path_value = path;
 		}
@@ -979,20 +984,30 @@ extern void add_to_bro_path(const string& dir)
 
 const char* bro_plugin_path()
 	{
-	const char* path = getenv("BRO_PLUGIN_PATH");
+	const char* path = getenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
-		path = BRO_PLUGIN_INSTALL_PATH;
+		{
+		path = getenv("BRO_PLUGIN_PATH");
+
+		if ( ! path )
+			path = BRO_PLUGIN_INSTALL_PATH;
+		}
 
 	return path;
 	}
 
 const char* bro_plugin_activate()
 	{
-	const char* names = getenv("BRO_PLUGIN_ACTIVATE");
+	const char* names = getenv("ZEEK_PLUGIN_ACTIVATE");
 
 	if ( ! names )
-		names = "";
+		{
+		names = getenv("BRO_PLUGIN_ACTIVATE");
+
+		if ( ! names )
+			names = "";
+		}
 
 	return names;
 	}
@@ -1388,7 +1403,11 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 const char* log_file_name(const char* tag)
 	{
-	const char* env = getenv("BRO_LOG_SUFFIX");
+	const char* env = getenv("ZEEK_LOG_SUFFIX");
+
+	if ( ! env )
+		env = getenv("BRO_LOG_SUFFIX");
+
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 

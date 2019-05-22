@@ -1806,7 +1806,14 @@ event net_done(t: time) { done_with_network = T; }
 
 function log_file_name(tag: string): string
 	{
-	local suffix = getenv("BRO_LOG_SUFFIX") == "" ? "log" : getenv("BRO_LOG_SUFFIX");
+	local suffix = getenv("ZEEK_LOG_SUFFIX");
+	if ( suffix == "" )
+		{
+		suffix = getenv("BRO_LOG_SUFFIX");
+		if ( suffix == "" )
+			suffix = "log";
+		}
+
 	return fmt("%s.%s", tag, suffix);
 	}
 
@@ -1839,11 +1846,11 @@ function add_signature_file(sold: string, snew: string): string
 
 ## Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
 ## extend. Signature files added this way will be searched relative to
-## ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+## ``ZEEKPATH``.  Using the ``@load-sigs`` directive instead is preferred
 ## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
-## ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
+## ``p0f`` fingerprint file to use. Will be searched relative to ``ZEEKPATH``.
 const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
 
 ## Definition of "secondary filters". A secondary filter is a BPF filter given

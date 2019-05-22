@@ -42,13 +42,13 @@ set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/bro/plugins CACHE STRING "Insta
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
-     "export BROPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
-     "export BRO_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
+     "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
+     "export ZEEK_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
      "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
-     "setenv BROPATH `${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
-     "setenv BRO_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${BRO_PLUGIN_PATH}\n"
+     "setenv ZEEKPATH `${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
+     "setenv ZEEK_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
      "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":$PATH\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)

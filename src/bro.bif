@@ -412,7 +412,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 
 		char* tmp = copy_string(key->AsString()->CheckString());
 		to_upper(tmp);
-		const char* var = fmt("BRO_ARG_%s", tmp);
+		const char* var = fmt("ZEEK_ARG_%s", tmp);
 		delete [] tmp;
 
 		if ( set )
@@ -468,7 +468,7 @@ function system%(str: string%): int
 ##
 ## env: A :zeek:type:`table` with the environment variables in the form
 ##      of key-value pairs. Each specified environment variable name
-##      will be automatically prepended with ``BRO_ARG_``.
+##      will be automatically prepended with ``ZEEK_ARG_``.
 ##
 ## Returns: The return value from the OS ``system`` function.
 ##

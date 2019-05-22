@@ -9,7 +9,7 @@
 # additional path, but there's currently a problem in btest with using
 # %DIR after TEST-START-NEXT.
 #
-# @TEST-EXEC: BROPATH=$BROPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b input.zeek >output
+# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b input.zeek >output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE subdir/input.data

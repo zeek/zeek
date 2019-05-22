@@ -11,7 +11,7 @@
 namespace zeekygen {
 
 /**
- * Information about a Bro script package.
+ * Information about a Zeek script package.
  */
 class PackageInfo : public Info {
 
@@ -19,8 +19,8 @@ public:
 
 	/**
 	 * Ctor.
-	 * @param name The name of the Bro script package (relative path from a
-	 * component within BROPATH.
+	 * @param name The name of the Zeek script package (relative path from a
+	 * component within ZEEKPATH).
 	 */
 	explicit PackageInfo(const std::string& name);
 

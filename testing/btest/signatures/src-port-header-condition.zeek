@@ -20,6 +20,8 @@
 # @TEST-EXEC: zeek -b -s src-port-gte2 -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >src-port-gte2.out
 # @TEST-EXEC: zeek -b -s src-port-gte-nomatch -r $TRACES/chksums/ip6-udp-good-chksum.pcap %INPUT >src-port-gte-nomatch.out
 
+# @TEST-EXEC: zeek -b -s src-port-range -r $TRACES/udp-multiple-source-ports.pcap %INPUT >src-port-range.out
+
 # @TEST-EXEC: btest-diff src-port-eq.out
 # @TEST-EXEC: btest-diff src-port-eq-nomatch.out
 # @TEST-EXEC: btest-diff src-port-eq-list.out
@@ -38,6 +40,8 @@
 # @TEST-EXEC: btest-diff src-port-gte1.out
 # @TEST-EXEC: btest-diff src-port-gte2.out
 # @TEST-EXEC: btest-diff src-port-gte-nomatch.out
+
+# @TEST-EXEC: btest-diff src-port-range.out
 
 @TEST-START-FILE src-port-eq.sig
 signature id {
@@ -155,6 +159,13 @@ signature id {
 signature id {
   src-port >= 30001
   event "src-port-gte-nomatch"
+}
+@TEST-END-FILE
+
+@TEST-START-FILE src-port-range.sig
+signature id {
+  src-port == 29997-29999,30001-30002,30003
+  event "src-port-range"
 }
 @TEST-END-FILE
 

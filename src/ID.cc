@@ -63,16 +63,6 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 	{
 	if ( op != OP_NONE )
 		{
-		if ( type && val && type->Tag() == TYPE_TABLE &&
-		     val->AsTableVal()->FindAttr(ATTR_MERGEABLE) &&
-		     v->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			{
-			StateAccess::Log(new StateAccess(OP_ASSIGN, this,
-								v, val));
-			v->AsTableVal()->AddTo(val->AsTableVal(), 0, false);
-			return;
-			}
-
 		MutableVal::Properties props = 0;
 
 		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )

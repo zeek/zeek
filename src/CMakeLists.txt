@@ -349,10 +349,10 @@ collect_headers(bro_HEADERS ${bro_SRCS})
 
 if ( bro_HAVE_OBJECT_LIBRARIES )
     add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
-    target_link_libraries(zeek ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 else ()
     add_executable(zeek ${bro_SRCS} ${bro_HEADERS})
-    target_link_libraries(zeek ${bro_SUBDIRS} ${brodeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    target_link_libraries(zeek ${bro_SUBDIRS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
@@ -396,7 +396,7 @@ add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
 add_dependencies(zeek bif_loader_plugins)
 
 # Install *.bif.zeek.
-install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${BRO_SCRIPT_INSTALL_PATH}/base)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)
 
 # Create plugin directory at install time.
 install(DIRECTORY DESTINATION ${BRO_PLUGIN_INSTALL_PATH})
@@ -408,9 +408,9 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_D
 # place, yet make confuse us now. This makes upgrading easier.
 install(CODE "
    file(REMOVE_RECURSE
-       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/dataseries.bro
-       ${BRO_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/elasticsearch.bro
-       ${BRO_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
+       ${ZEEK_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/dataseries.bro
+       ${ZEEK_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/elasticsearch.bro
+       ${ZEEK_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
    )
 ")
 

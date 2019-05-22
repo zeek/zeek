@@ -300,26 +300,6 @@ when	return TOK_WHEN;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
-&encrypt {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ENCRYPT;
-	}
-
-&mergeable {
-	deprecated_attr(yytext);
-	return TOK_ATTR_MERGEABLE;
-	}
-
-&rotate_interval {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_INTERVAL;
-	}
-
-&rotate_size {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_SIZE;
-	}
-
 @deprecated.* {
 	auto num_files = file_stack.length();
 	auto comment = skip_whitespace(yytext + 11);

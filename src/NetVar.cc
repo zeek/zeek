@@ -155,9 +155,6 @@ RecordType* packet_type;
 
 double connection_status_update_interval;
 
-StringVal* state_dir;
-double state_write_delay;
-
 int orig_addr_anonymization, resp_addr_anonymization;
 int other_addr_anonymization;
 TableVal* preserve_orig_addr;
@@ -165,10 +162,7 @@ TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
 int max_files_in_cache;
-double log_rotate_interval;
-double log_max_size;
 RecordType* rotate_info;
-StringVal* log_encryption_key;
 StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
@@ -245,14 +239,8 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	state_dir = internal_val("state_dir")->AsStringVal();
-	state_write_delay = opt_internal_double("state_write_delay");
-
 	max_files_in_cache = opt_internal_int("max_files_in_cache");
-	log_rotate_interval = opt_internal_double("log_rotate_interval");
-	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
-	log_encryption_key = opt_internal_string("log_encryption_key");
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 
 	peer_description =

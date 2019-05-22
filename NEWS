@@ -295,6 +295,11 @@ Removed Functionality
     - ``remote_trace_sync_interval``
     - ``remote_trace_sync_peers``
     - ``remote_check_sync_consistency``
+    - ``log_rotate_interval``
+    - ``log_max_size``
+    - ``log_encryption_key``
+    - ``state_dir``
+    - ``state_write_delay``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:
@@ -311,9 +316,9 @@ Removed Functionality
 - Broccoli, which had been deprecated in version 2.6 and was no longer built by default
   was removed from the source tree.
 
-- Support for the &persistent and the &synchronized attributes, which were deprecated
-  in Bro 2.6, was removed. The ``-g`` command-line option (dump-config) which relied on
-  this functionality was also removed.
+- Support for the &persistent, &synchronized, &mergeable, &encrypt, &rotate_interval,
+  and &rotate_size attributes, which were deprecated in Bro 2.6, was removed. The ``-g``
+  command-line option (dump-config) which relied on this functionality was also removed.
 
 - Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
 

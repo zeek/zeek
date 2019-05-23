@@ -71,30 +71,66 @@ Val::~Val()
 #endif
 	}
 
-Val* Val::Clone() const
+Val* Val::Clone()
 	{
-	SerializationFormat* form = new BinarySerializationFormat();
-	form->StartWrite();
-
-	CloneSerializer ss(form);
-	SerialInfo sinfo(&ss);
-	sinfo.cache = false;
-	sinfo.include_locations = false;
-
-	if ( ! this->Serialize(&sinfo) )
-		return 0;
-
-	char* data;
-	uint32 len = form->EndWrite(&data);
-	form->StartRead(data, len);
-
-	UnserialInfo uinfo(&ss);
-	uinfo.cache = false;
-	Val* clone = Unserialize(&uinfo, type);
-
-	free(data);
-	return clone;
+	Val::CloneState state;
+	return Clone(&state);
 	}
+
+Val* Val::Clone(CloneState* state)
+	{
+	auto i = state->clones.find(this);
+
+	if ( i != state->clones.end() )
+		return i->second->Ref();
+
+	auto c = DoClone(state);
+	assert(c);
+
+	state->clones.insert(std::make_pair(this, c));
+	return c;
+	}
+
+Val* Val::DoClone(CloneState* state)
+	{
+	switch ( type->InternalType() ) {
+	case TYPE_INTERNAL_INT:
+	case TYPE_INTERNAL_UNSIGNED:
+	case TYPE_INTERNAL_DOUBLE:
+	 	// Immutable.
+		return Ref();
+
+	case TYPE_INTERNAL_OTHER:
+		// Derived classes are responsible for this. Exception:
+		// Functions and files. There aren't any derived classes.
+		if ( type->Tag() == TYPE_FUNC )
+			// Immutable.
+			return Ref();
+
+		if ( type->Tag() == TYPE_FILE )
+			{
+			// I think we can just ref the file here - it is unclear what else
+			// to do.  In the case of cached files, I think this is equivalent
+			// to what happened before - serialization + unserialization just
+			// have you the same pointer that you already had.  In the case of
+			// non-cached files, the behavior now is different; in the past,
+			// serialize + unserialize gave you a new file object because the
+			// old one was not in the list anymore. This object was
+			// automatically opened. This does not happen anymore - instead you
+			// get the non-cached pointer back which is brought back into the
+			// cache when written too.
+			return Ref();
+			}
+
+		// Fall-through.
+
+	default:
+		reporter->InternalError("cloning illegal base type");
+	}
+
+	reporter->InternalError("cannot be reached");
+	return nullptr;
+ 	}
 
 bool Val::Serialize(SerialInfo* info) const
 	{
@@ -861,6 +897,12 @@ void PortVal::ValDescribe(ODesc* d) const
 		d->Add("/unknown");
 	}
 
+Val* PortVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return Ref();
+	}
+
 IMPLEMENT_SERIAL(PortVal, SER_PORT_VAL);
 
 bool PortVal::DoSerialize(SerialInfo* info) const
@@ -917,6 +959,12 @@ Val* AddrVal::SizeVal() const
 		return val_mgr->GetCount(32);
 	else
 		return val_mgr->GetCount(128);
+	}
+
+Val* AddrVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return Ref();
 	}
 
 IMPLEMENT_SERIAL(AddrVal, SER_ADDR_VAL);
@@ -1043,6 +1091,12 @@ bool SubNetVal::Contains(const IPAddr& addr) const
 	return val.subnet_val->Contains(a);
 	}
 
+Val* SubNetVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return Ref();
+	}
+
 IMPLEMENT_SERIAL(SubNetVal, SER_SUBNET_VAL);
 
 bool SubNetVal::DoSerialize(SerialInfo* info) const
@@ -1097,6 +1151,12 @@ void StringVal::ValDescribe(ODesc* d) const
 unsigned int StringVal::MemoryAllocation() const
 	{
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
+	}
+
+Val* StringVal::DoClone(CloneState* state)
+	{
+	return new StringVal(new BroString((u_char*) val.string_val->Bytes(),
+	                                   val.string_val->Len(), 1));
 	}
 
 IMPLEMENT_SERIAL(StringVal, SER_STRING_VAL);
@@ -1159,6 +1219,14 @@ void PatternVal::ValDescribe(ODesc* d) const
 unsigned int PatternVal::MemoryAllocation() const
 	{
 	return padded_sizeof(*this) + val.re_val->MemoryAllocation();
+	}
+
+Val* PatternVal::DoClone(CloneState* state)
+	{
+	auto re = new RE_Matcher(val.re_val->PatternText(),
+	                         val.re_val->AnywherePatternText());
+	re->Compile();
+	return new PatternVal(re);
 	}
 
 IMPLEMENT_SERIAL(PatternVal, SER_PATTERN_VAL);
@@ -1257,6 +1325,17 @@ void ListVal::Describe(ODesc* d) const
 
 		vals[i]->Describe(d);
 		}
+	}
+
+Val* ListVal::DoClone(CloneState* state)
+	{
+	auto lv = new ListVal(tag);
+	lv->vals.resize(vals.length());
+
+	loop_over_list(vals, i)
+		lv->Append(vals[i]->Clone(state));
+
+	return lv;
 	}
 
 IMPLEMENT_SERIAL(ListVal, SER_LIST_VAL);
@@ -2459,6 +2538,55 @@ void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 		}
 	}
 
+Val* TableVal::DoClone(CloneState* state)
+	{
+	auto tv = new TableVal(table_type);
+
+	const PDict(TableEntryVal)* tbl = AsTable();
+	IterCookie* cookie = tbl->InitForIteration();
+
+	HashKey* key;
+	TableEntryVal* val;
+	while ( (val = tbl->NextEntry(key, cookie)) )
+		{
+		TableEntryVal* nval = val->Clone();
+		tv->AsNonConstTable()->Insert(key, nval);
+
+		if ( subnets )
+			{
+			Val* idx = RecoverIndex(key);
+			tv->subnets->Insert(idx, nval);
+			Unref(idx);
+			}
+
+		delete key;
+		}
+
+	if ( attrs )
+		{
+		::Ref(attrs);
+		tv->attrs = attrs;
+		}
+
+	if ( expire_time )
+		{
+		tv->expire_time = expire_time->Ref();
+
+		// As network_time is not necessarily initialized yet, we set
+		// a timer which fires immediately.
+		timer = new TableValTimer(this, 1);
+		timer_mgr->Add(timer);
+		}
+
+	if ( expire_func )
+		tv->expire_func = expire_func->Ref();
+
+	if ( def_val )
+		tv->def_val = def_val->Ref();
+
+	return tv;
+	}
+
 IMPLEMENT_SERIAL(TableVal, SER_TABLE_VAL);
 
 // This is getting rather complex due to the ability to suspend even within
@@ -2752,12 +2880,15 @@ unsigned int TableVal::MemoryAllocation() const
 
 vector<RecordVal*> RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t) : MutableVal(t)
+RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	{
 	origin = 0;
 	record_type = t;
 	int n = record_type->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
+
+	if ( ! init_fields )
+		return;
 
 	// Initialize to default values from RecordType (which are nil
 	// by default).
@@ -2992,7 +3123,7 @@ void RecordVal::Describe(ODesc* d) const
 void RecordVal::DescribeReST(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
-	int n = vl->length();
+     	int n = vl->length();
 
 	d->Add("{");
 	d->PushIndent();
@@ -3015,6 +3146,25 @@ void RecordVal::DescribeReST(ODesc* d) const
 
 	d->PopIndent();
 	d->Add("}");
+	}
+
+Val* RecordVal::DoClone(CloneState* state)
+	{
+	// We set origin to 0 here.  Origin only seems to be used for exactly one
+	// purpose - to find the connection record that is associated with a
+	// record. As we cannot guarantee that it will ber zeroed out at the
+	// approproate time (as it seems to be guaranteed for the original record)
+	// we don't touch it.
+	auto rv = new RecordVal(record_type, false);
+	rv->origin = nullptr;
+
+	loop_over_list(*val.val_list_val, i)
+		{
+		Val* v = (*val.val_list_val)[i] ? (*val.val_list_val)[i]->Clone(state) : nullptr;
+  		rv->val.val_list_val->append(v);
+		}
+
+	return rv;
 	}
 
 IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);
@@ -3131,6 +3281,12 @@ void EnumVal::ValDescribe(ODesc* d) const
 		ename = "<undefined>";
 
 	d->Add(ename);
+	}
+
+Val* EnumVal::DoClone(CloneState* state)
+	{
+	// Immutable.
+	return Ref();
 	}
 
 IMPLEMENT_SERIAL(EnumVal, SER_ENUM_VAL);
@@ -3294,6 +3450,21 @@ bool VectorVal::RemoveProperties(Properties arg_props)
 	return true;
 	}
 
+
+Val* VectorVal::DoClone(CloneState* state)
+	{
+	auto vv = new VectorVal(vector_type);
+	vv->val.vector_val->reserve(val.vector_val->size());
+
+	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
+		{
+		auto v = (*val.vector_val)[i]->Clone(state);
+		vv->val.vector_val->push_back(v);
+		}
+
+	return vv;
+	}
+
 IMPLEMENT_SERIAL(VectorVal, SER_VECTOR_VAL);
 
 bool VectorVal::DoSerialize(SerialInfo* info) const
@@ -3364,6 +3535,12 @@ OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
 
 OpaqueVal::~OpaqueVal()
 	{
+	}
+
+Val* OpaqueVal::DoClone(CloneState* state)
+	{
+	reporter->InternalError("cloning opaque type without clone implementation");
+	return nullptr;
 	}
 
 IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);

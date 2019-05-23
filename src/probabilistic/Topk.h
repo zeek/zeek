@@ -122,6 +122,15 @@ public:
 	 */
 	void Merge(const TopkVal* value, bool doPrune=false);
 
+	/**
+	 * Clone the Opaque Type
+	 *
+	 * @param state Clone state (tracking duplicate pointers)
+	 *
+	 * @returns cloned TopkVal
+	 */
+	Val* DoClone(CloneState* state) override;
+
 protected:
 	/**
 	 * Construct an empty TopkVal. Only used for deserialization

@@ -45,6 +45,8 @@ public:
 	MD5Val();
 	~MD5Val();
 
+	Val* DoClone(CloneState* state) override;
+
 protected:
 	friend class Val;
 
@@ -62,6 +64,8 @@ public:
 
 	SHA1Val();
 	~SHA1Val();
+
+	Val* DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
@@ -81,6 +85,8 @@ public:
 	SHA256Val();
 	~SHA256Val();
 
+	Val* DoClone(CloneState* state) override;
+
 protected:
 	friend class Val;
 
@@ -95,6 +101,8 @@ private:
 class EntropyVal : public OpaqueVal {
 public:
 	EntropyVal();
+
+	Val* DoClone(CloneState* state) override;
 
 	bool Feed(const void* data, size_t size);
 	bool Get(double *r_ent, double *r_chisq, double *r_mean,
@@ -111,6 +119,8 @@ class BloomFilterVal : public OpaqueVal {
 public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
+
+	Val* DoClone(CloneState* state) override;
 
 	BroType* Type() const;
 	bool Typify(BroType* type);
@@ -137,7 +147,7 @@ private:
 	BroType* type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
-	};
+};
 
 
 class CardinalityVal: public OpaqueVal {
@@ -145,10 +155,13 @@ public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
 	~CardinalityVal() override;
 
+	Val* DoClone(CloneState* state) override;
+
 	void Add(const Val* val);
 
 	BroType* Type() const;
 	bool Typify(BroType* type);
+
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 

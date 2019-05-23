@@ -72,6 +72,19 @@ MD5Val::~MD5Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
+Val* MD5Val::DoClone(CloneState* state)
+	{
+	auto out = new MD5Val();
+	if ( IsValid() )
+		{
+		if ( ! out->Init() )
+			return nullptr;
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		}
+
+	return out;
+	}
+
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_MD5);
@@ -142,6 +155,19 @@ SHA1Val::~SHA1Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
+Val* SHA1Val::DoClone(CloneState* state)
+	{
+	auto out = new SHA1Val();
+	if ( IsValid() )
+		{
+		if ( ! out->Init() )
+			return nullptr;
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		}
+
+	return out;
+	}
+
 void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_SHA1);
@@ -201,6 +227,19 @@ SHA256Val::~SHA256Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
+Val* SHA256Val::DoClone(CloneState* state)
+	{
+	auto out = new SHA256Val();
+	if ( IsValid() )
+		{
+		if ( ! out->Init() )
+			return nullptr;
+		EVP_MD_CTX_copy_ex(out->ctx, ctx);
+		}
+
+	return out;
+	}
+
 void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_SHA256);
@@ -254,6 +293,12 @@ EntropyVal::EntropyVal() : OpaqueVal(entropy_type)
 	{
 	}
 
+Val* EntropyVal::DoClone(CloneState* state)
+	{
+	// Fixme
+	return nullptr;
+	}
+
 bool EntropyVal::Feed(const void* data, size_t size)
 	{
 	state.add(data, size);
@@ -289,6 +334,18 @@ BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	type = 0;
 	hash = 0;
 	bloom_filter = bf;
+	}
+
+Val* BloomFilterVal::DoClone(CloneState* state)
+	{
+	if ( bloom_filter )
+		{
+		auto bf = new BloomFilterVal(bloom_filter->Clone());
+		bf->Typify(type);
+		return bf;
+		}
+
+	return new BloomFilterVal();
 	}
 
 bool BloomFilterVal::Typify(BroType* arg_type)
@@ -407,6 +464,11 @@ CardinalityVal::~CardinalityVal()
 	delete hash;
 	}
 
+Val* CardinalityVal::DoClone(CloneState* state)
+	{
+	return new CardinalityVal(new probabilistic::CardinalityCounter(*c));
+	}
+
 bool CardinalityVal::Typify(BroType* arg_type)
 	{
 	if ( type )
@@ -434,4 +496,3 @@ void CardinalityVal::Add(const Val* val)
 	c->AddElement(key->Hash());
 	delete key;
 	}
-

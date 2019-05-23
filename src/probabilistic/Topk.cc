@@ -180,6 +180,13 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
+Val* TopkVal::DoClone(CloneState* state)
+	{
+	auto clone = new TopkVal(size);
+	clone->Merge(this);
+	return clone;
+	}
+
 VectorVal* TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )

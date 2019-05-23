@@ -172,7 +172,7 @@ public:
 	~Val() override;
 
 	Val* Ref()			{ ::Ref(this); return this; }
-	virtual Val* Clone() const;
+	Val* Clone();
 
 	int IsZero() const;
 	int IsOne() const;
@@ -362,6 +362,9 @@ public:
 protected:
 
 	friend class EnumType;
+	friend class ListVal;
+	friend class RecordVal;
+	friend class VectorVal;
 	friend class ValManager;
 
 	virtual void ValDescribe(ODesc* d) const;
@@ -406,6 +409,14 @@ protected:
 
 	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
+
+	// For internal use by the Val::Clone() methods.
+	struct CloneState {
+	    std::unordered_map<const Val*, Val*> clones;
+	};
+
+	Val* Clone(CloneState* state);
+	virtual Val* DoClone(CloneState* state);
 
 	BroValUnion val;
 	BroType* type;
@@ -612,6 +623,7 @@ protected:
 	PortVal(uint32 p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 };
 
 class AddrVal : public Val {
@@ -634,6 +646,8 @@ protected:
 	AddrVal()	{}
 	explicit AddrVal(TypeTag t) : Val(t)	{ }
 	explicit AddrVal(BroType* t) : Val(t)	{ }
+
+	Val* DoClone(CloneState* state) override;
 };
 
 class SubNetVal : public Val {
@@ -661,6 +675,7 @@ protected:
 	SubNetVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 };
 
 class StringVal : public Val {
@@ -691,6 +706,7 @@ protected:
 	StringVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 };
 
 class PatternVal : public Val {
@@ -709,6 +725,7 @@ protected:
 	PatternVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -752,6 +769,8 @@ protected:
 	friend class Val;
 	ListVal()	{}
 
+	Val* DoClone(CloneState* state) override;
+
 	val_list vals;
 	TypeTag tag;
 };
@@ -767,6 +786,16 @@ public:
 		expire_access_time = last_read_update =
 			int(network_time - bro_start_network_time);
 		}
+
+	TableEntryVal* Clone()
+		{
+		auto rval = new TableEntryVal(val ? val->Clone() : nullptr);
+		rval->last_access_time = last_access_time;
+		rval->expire_access_time = expire_access_time;
+		rval->last_read_update = last_read_update;
+		return rval;
+		}
+
 	~TableEntryVal()	{ }
 
 	Val* Value()	{ return val; }
@@ -958,6 +987,8 @@ protected:
 	// Propagates a read operation if necessary.
 	void ReadOperation(Val* index, TableEntryVal *v);
 
+	Val* DoClone(CloneState* state) override;
+
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
@@ -971,7 +1002,7 @@ protected:
 
 class RecordVal : public MutableVal {
 public:
-	explicit RecordVal(RecordType* t);
+	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
 
 	Val* SizeVal() const override
@@ -1028,6 +1059,8 @@ protected:
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
 
+	Val* DoClone(CloneState* state) override;
+
 	RecordType* record_type;
 	BroObj* origin;
 
@@ -1057,6 +1090,7 @@ protected:
 	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 };
 
 
@@ -1115,6 +1149,7 @@ protected:
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	VectorType* vector_type;
 };
@@ -1130,6 +1165,8 @@ public:
 protected:
 	friend class Val;
 	OpaqueVal() { }
+
+	Val* DoClone(CloneState* state) override;
 };
 
 // Checks the given value for consistency with the given type.  If an

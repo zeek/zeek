@@ -124,6 +124,15 @@ public:
 	explicit X509Val(::X509* certificate);
 
 	/**
+	 * Clone an X509Val
+	 *
+	 * @param state certifies the state of the clone operation (duplicate tracking)
+	 *
+	 * @return A cloned X509Val.
+	 */
+	Val* DoClone(CloneState* state) override;
+
+	/**
 	 * Destructor.
 	 */
 	~X509Val() override;

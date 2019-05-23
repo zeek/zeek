@@ -1,4 +1,39 @@
 
+2.6-325 | 2019-05-22 23:56:23 -0700
+
+  * Add leak-checks for new copy operations (Johanna Amann, Corelight)
+
+  * Finish implementation of new copy method. (Johanna Amann, Corelight)
+
+    All types (besides EntropyVal) now support a native copy operation,
+    which uses primitives of the underlying datatypes to perform a quick
+    copy, without serialization.
+
+    EntropyVal is the one exception - since that type is rather complex
+    (many members) and will probably not be copied a lot, if at all, it
+    makes sense to just use the serialization function.
+
+    This will have to be slightly re-written in the near-term-future to use
+    the new serialization function for that opaque type.
+
+    This change also introduces a new x509_from_der bif, which allows to
+    parse a der into an opaque of x509.
+
+    This change removes the d2i_X509_ wrapper function; this was a remnant
+    when d2i_X509 took non-const arguments. We directly use d2i_X509 at
+    several places assuming const-ness, so there does not seem to ba a
+    reason to keep the wrapper.
+
+    This change also exposed a problem in the File cache - cases in which an
+    object was brought back into the cache, and writing occurred in the
+    file_open event were never correctly handeled as far as I can tell.
+
+  * Reimplement copy(). (Robin Sommer, Corelight)
+
+    The old implementation used the serialization framework, which is
+    going away. This is a new standalone implementation that should also
+    be quite a bit faster.
+
 2.6-318 | 2019-05-21 09:17:53 -0700
 
   * Remove state_dir and state_write_delay options (Jon Siwek, Corelight)

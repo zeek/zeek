@@ -1,4 +1,8 @@
 
+2.6-326 | 2019-05-23 10:49:38 -0700
+
+  * Fix parse-time RecordVal tracking containing duplicates (Jon Siwek, Corelight)
+
 2.6-325 | 2019-05-22 23:56:23 -0700
 
   * Add leak-checks for new copy operations (Johanna Amann, Corelight)

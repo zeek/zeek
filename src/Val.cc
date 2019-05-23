@@ -2887,6 +2887,12 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	int n = record_type->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
 
+	if ( is_parsing )
+		{
+		parse_time_records.emplace_back(this);
+		Ref();
+		}
+
 	if ( ! init_fields )
 		return;
 
@@ -2928,12 +2934,6 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 		vl->append(def ? def->Ref() : 0);
 
 		Unref(def);
-
-		if ( is_parsing )
-			{
-			parse_time_records.emplace_back(this);
-			Ref();
-			}
 		}
 	}
 

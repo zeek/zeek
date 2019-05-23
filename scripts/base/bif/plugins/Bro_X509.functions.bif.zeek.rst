@@ -13,6 +13,7 @@ Functions
 #########
 ============================================================= =============================================================================
 :zeek:id:`sct_verify`: :zeek:type:`function`                  Verifies a Signed Certificate Timestamp as used for Certificate Transparency.
+:zeek:id:`x509_from_der`: :zeek:type:`function`               Constructs an opaque of X509 from a der-formatted string.
 :zeek:id:`x509_get_certificate_string`: :zeek:type:`function` Returns the string form of a certificate.
 :zeek:id:`x509_issuer_name_hash`: :zeek:type:`function`       Get the hash of the issuer's distinguished name.
 :zeek:id:`x509_ocsp_verify`: :zeek:type:`function`            Verifies an OCSP reply.
@@ -60,6 +61,19 @@ Functions
    .. zeek:see:: ssl_extension_signed_certificate_timestamp
                 x509_ocsp_ext_signed_certificate_timestamp
                 x509_verify
+
+.. zeek:id:: x509_from_der
+
+   :Type: :zeek:type:`function` (der: :zeek:type:`string`) : :zeek:type:`opaque` of x509
+
+   Constructs an opaque of X509 from a der-formatted string.
+   
+
+   :Note: this function is mostly meant for testing purposes
+   
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
+                x509_ext_subject_alternative_name x509_verify
+                x509_get_certificate_string x509_parse
 
 .. zeek:id:: x509_get_certificate_string
 

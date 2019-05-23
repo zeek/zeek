@@ -778,6 +778,19 @@ Functions
                 x509_ext_subject_alternative_name x509_verify
                 x509_get_certificate_string
 
+.. zeek:id:: x509_from_der
+
+   :Type: :zeek:type:`function` (der: :zeek:type:`string`) : :zeek:type:`opaque` of x509
+
+   Constructs an opaque of X509 from a der-formatted string.
+   
+
+   :Note: this function is mostly meant for testing purposes
+   
+   .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
+                x509_ext_subject_alternative_name x509_verify
+                x509_get_certificate_string x509_parse
+
 .. zeek:id:: x509_get_certificate_string
 
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, pem: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`string`

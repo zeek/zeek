@@ -2883,8 +2883,7 @@ vector<RecordVal*> RecordVal::parse_time_records;
 RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	{
 	origin = 0;
-	record_type = t;
-	int n = record_type->NumFields();
+	int n = t->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
 
 	if ( is_parsing )
@@ -2900,10 +2899,10 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	// by default).
 	for ( int i = 0; i < n; ++i )
 		{
-		Attributes* a = record_type->FieldDecl(i)->attrs;
+		Attributes* a = t->FieldDecl(i)->attrs;
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : 0;
 		Val* def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
-		BroType* type = record_type->FieldDecl(i)->type;
+		BroType* type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->Type()->Tag() == TYPE_RECORD &&
@@ -2975,7 +2974,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	return record_type->FieldDefault(field);
+	return Type()->AsRecordType()->FieldDefault(field);
 	}
 
 void RecordVal::ResizeParseTimeRecords()
@@ -2983,7 +2982,7 @@ void RecordVal::ResizeParseTimeRecords()
 	for ( auto& rv : parse_time_records )
 		{
 		auto vs = rv->val.val_list_val;
-		auto rt = rv->record_type;
+		auto rt = rv->Type()->AsRecordType();
 		auto current_length = vs->length();
 		auto required_length = rt->NumFields();
 
@@ -3003,7 +3002,7 @@ void RecordVal::ResizeParseTimeRecords()
 
 Val* RecordVal::Lookup(const char* field, bool with_default) const
 	{
-	int idx = record_type->FieldOffset(field);
+	int idx = Type()->AsRecordType()->FieldOffset(field);
 
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
@@ -3088,6 +3087,7 @@ void RecordVal::Describe(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
 	int n = vl->length();
+	auto record_type = Type()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
@@ -3123,7 +3123,8 @@ void RecordVal::Describe(ODesc* d) const
 void RecordVal::DescribeReST(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
-     	int n = vl->length();
+	int n = vl->length();
+	auto record_type = Type()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
@@ -3155,7 +3156,7 @@ Val* RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = new RecordVal(record_type, false);
+	auto rv = new RecordVal(Type()->AsRecordType(), false);
 	rv->origin = nullptr;
 
 	loop_over_list(*val.val_list_val, i)
@@ -3175,9 +3176,8 @@ bool RecordVal::DoSerialize(SerialInfo* info) const
 
 	// We could use the type name as a tag here.
 	info->s->WriteOpenTag("record");
+	auto record_type = Type()->AsRecordType();
 
-	// We don't need to serialize record_type as it's simply the
-	// casted table_type.
 	// FIXME: What about origin?
 
 	if ( ! SERIALIZE(val.val_list_val->length()) )
@@ -3200,7 +3200,6 @@ bool RecordVal::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(MutableVal);
 
-	record_type = (RecordType*) type;
 	origin = 0;
 
 	int len;

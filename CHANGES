@@ -1,4 +1,8 @@
 
+2.6-327 | 2019-05-23 11:56:11 -0700
+
+  * Remove redundant RecordVal::record_type member (Jon Siwek, Corelight)
+
 2.6-326 | 2019-05-23 10:49:38 -0700
 
   * Fix parse-time RecordVal tracking containing duplicates (Jon Siwek, Corelight)

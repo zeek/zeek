@@ -1044,7 +1044,7 @@ public:
 	~RecordVal() override;
 
 	Val* SizeVal() const override
-		{ return val_mgr->GetCount(record_type->NumFields()); }
+		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
@@ -1101,7 +1101,6 @@ protected:
 
 	DECLARE_SERIAL(RecordVal);
 
-	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;

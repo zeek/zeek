@@ -85,8 +85,9 @@ There are pre-defined header conditions for some of the most used
 header fields. All of them generally have the format ``<keyword> <cmp>
 <value-list>``, where ``<keyword>`` names the header field; ``cmp`` is
 one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``; and
-``<value-list>`` is a list of comma-separated values to compare
-against. The following keywords are defined:
+``<value-list>`` is a list of comma-separated values or value-ranges to
+compare against (e.g. ``5,7-10`` for numbers 5 to 10, excluding 6).
+The following keywords are defined:
 
 ``src-ip``/``dst-ip <cmp> <address-list>``
     Source and destination address, respectively. Addresses can be given
@@ -124,10 +125,10 @@ either 1, 2, or 4 and specifies the value to have a size of this many
 bytes. If the optional ``& <integer>`` is given, the packet's value is
 first masked with the integer before it is compared to the value-list.
 ``cmp`` is one of ``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``.
-``value-list`` is a list of comma-separated integers similar to those
-described above.  The integers within the list may be followed by an
-additional ``/ mask`` where ``mask`` is a value from 0 to 32. This
-corresponds to the CIDR notation for netmasks and is translated into a
+``value-list`` is a list of comma-separated integers or integer-ranges
+similar to those described above.  The integers within the list may be
+followed by an additional ``/ mask`` where ``mask`` is a value from 0 to 32.
+This corresponds to the CIDR notation for netmasks and is translated into a
 corresponding bitmask applied to the packet's value prior to the
 comparison (similar to the optional ``& integer``).  IPv6 address values
 are not allowed in the value-list, though you can still inspect any 1,

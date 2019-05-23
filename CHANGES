@@ -1,4 +1,12 @@
 
+2.6-330 | 2019-05-23 13:04:26 -0700
+
+  * GH-173: Support ranges of values for value_list elements in the signature parser
+    (Tim Wojtulewicz, Corelight)
+
+  * GH-173: Modify the signature parser so ID components can't start with numbers
+    (Tim Wojtulewicz, Corelight)
+
 2.6-327 | 2019-05-23 11:56:11 -0700
 
   * Remove redundant RecordVal::record_type member (Jon Siwek, Corelight)

@@ -70,6 +70,7 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 %type <vallist> value_list
 %type <prefix_val_list> prefix_value_list
 %type <mval> TOK_IP value
+%type <vallist> ranged_value
 %type <prefixval> TOK_IP6 prefix_value
 %type <prot> TOK_PROT
 %type <ptype> TOK_PATTERN_TYPE
@@ -274,12 +275,26 @@ hdr_expr:
 value_list:
 		value_list ',' value
 			{ $1->append(new MaskedValue($3)); $$ = $1; }
+	|	value_list ',' ranged_value
+			{
+			int numVals = $3->length();
+			for ( int idx = 0; idx < numVals; idx++ )
+				{
+				MaskedValue* val = (*$3)[idx];
+				$1->append(val);
+				}
+			$$ = $1;
+			}
 	|	value_list ',' TOK_IDENT
 			{ id_to_maskedvallist($3, $1); $$ = $1; }
 	|	value
 			{
 			$$ = new maskedvalue_list();
 			$$->append(new MaskedValue($1));
+			}
+	|	ranged_value
+			{
+			$$ = $1;
 			}
 	|	TOK_IDENT
 			{
@@ -319,6 +334,20 @@ prefix_value:
 			}
 	|	TOK_IP6
 	;
+
+ranged_value:
+		TOK_INT '-' TOK_INT
+			{
+			$$ = new maskedvalue_list();
+			for ( int val = $1; val <= $3; val++ )
+				{
+				MaskedValue* masked = new MaskedValue();
+				masked->val = val;
+				masked->mask = 0xffffffff;
+				$$->append(masked);
+				}
+			}
+		;
 
 value:
 		TOK_INT

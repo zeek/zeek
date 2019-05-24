@@ -947,6 +947,7 @@ Here is a more detailed description of each type:
     .. sourcecode:: bro
 
         local handle = md5_hash_init();
+        # Explicitly -> local handle : opaque of md5 = ...
         md5_hash_update(handle, "test");
         md5_hash_update(handle, "testing");
         print md5_hash_finish(handle);
@@ -959,21 +960,37 @@ Here is a more detailed description of each type:
 
     The scripting layer implementations of these types are found primarily in
     :doc:`/scripts/base/bif/bro.bif.zeek` and a more granular look at them
-    can be found in ``src/OpaqueVal.h`` inside the Zeek repo. Opaque types serve
-    as an excellent way to integrate functionality into Zeek without needing to
-    add a new type to the scripting language.
+    can be found in ``src/OpaqueVal.h/cc`` inside the Zeek repo. Opaque types
+    are an good way to integrate functionality into Zeek without needing to
+    add an entire new type to the scripting language.
 
-    Another example of an opaque type is paraglob, a data structure for fast
-    pattern matching which can be used as follows:
+    .. zeek:type:: paraglob
 
-    .. sourcecode:: bro
+      An opqaue type for creating and using paraglob data structures inside of
+      Zeek. A paraglob is a data structure for fast string matching against a
+      large set of glob style patterns. It can be loaded with a vector of
+      patterns, and then queried with input strings. For a query it returns all
+      of the patterns that it contains matching that input string.
 
-      local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
-      local p = paraglob_init(v);
-      print paraglob_get(p1, "dog");
-      # out: [*, *og, d?g, d[!wl]g]
+      Paraglobs offer significant performance advantages over making a pass over
+      a vector of patterns and checking each one. Note though that initializing a
+      paraglob can take some time for very large pattern sets (1,000,000+
+      patterns) and care should be taken to only initialize one with a large
+      pattern set when there is time for the paraglob to compile. Subsequent get
+      operations run very quickly though, even for very large pattern sets.
 
-    For more documentation on paraglob see :doc:`/components/index`.
+      .. sourcecode:: bro
+
+        local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+        local p : opaque of paraglob = paraglob_init(v);
+        print paraglob_get(p1, "dog");
+        # out: [*, *og, d?g, d[!wl]g]
+
+      For more documentation on paraglob see :doc:`/components/index`.
+
+    .. zeek:see:: md5_hash_init sha1_hash_init sha256_hash_init
+                  hll_cardinality_add bloomfilter_basic_init
+
 
 .. zeek:type:: any
 

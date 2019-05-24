@@ -1,4 +1,8 @@
 
+2.6-336 | 2019-05-24 10:23:20 -0700
+
+  * GH-378: check validity of missing 'val' field in Input::add_table (Jon Siwek, Corelight)
+
 2.6-335 | 2019-05-24 08:58:59 -0700
 
   * Fix memory leak when no protocol_violation event handler exists (Jon Siwek, Corelight)

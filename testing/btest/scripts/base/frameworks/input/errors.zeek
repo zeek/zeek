@@ -188,5 +188,7 @@ event zeek_init()
 	Input::add_event([$source="input.log", $name="error4", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler4]);
 	Input::add_event([$source="input.log", $name="error5", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler5]);
 
+	Input::add_table([$source="input.log", $name="error6", $idx=Idx, $destination=val_table]);
+
 	schedule 3secs { kill_me() };
 	}

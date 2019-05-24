@@ -38,4 +38,5 @@ error: Input stream error2: Error event's first attribute must be of type Input:
 error: Input stream error3: Error event's first attribute must be of type Input::EventDescription
 error: Input stream error4: Error event's second attribute must be of type string
 error: Input stream error5: Error event's third attribute must be of type Reporter::Level
+error: Input stream error6: 'destination' field is a table, but 'val' field is not provided (did you mean to use a set instead of a table?)
 received termination signal

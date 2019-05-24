@@ -547,6 +547,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	Val *want_record = fval->Lookup("want_record", true);
 
+	if ( val )
 		{
 		const BroType* table_yield = dst->Type()->AsTableType()->YieldType();
 		const BroType* compare_type = val;
@@ -562,6 +563,17 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			table_yield->Describe(&desc2);
 			reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
+			return false;
+			}
+		}
+	else
+		{
+		if ( ! dst->Type()->IsSet() )
+			{
+			reporter->Error("Input stream %s: 'destination' field is a table,"
+			                " but 'val' field is not provided"
+			                " (did you mean to use a set instead of a table?)",
+			                stream_name.c_str());
 			return false;
 			}
 		}

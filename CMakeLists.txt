@@ -24,7 +24,7 @@ endif ()
 set(ZEEK_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
 if (NOT ZEEK_SCRIPT_INSTALL_PATH)
     # set the default Zeek script installation path (user did not specify one)
-    set(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/bro)
+    set(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/zeek)
 endif ()
 
 if (NOT ZEEK_MAN_INSTALL_PATH)
@@ -37,7 +37,7 @@ endif ()
 get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
     ABSOLUTE)
 
-set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/bro/plugins CACHE STRING "Installation path for plugins" FORCE)
+set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
@@ -257,7 +257,7 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/bro)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
@@ -281,7 +281,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/bro
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
         USE_SOURCE_PERMISSIONS)
 
 # Install wrapper script for Bro-to-Zeek renaming.
@@ -289,7 +289,7 @@ include(InstallShellScript)
 include(InstallSymlink)
 InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
 InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
-InstallSymlink("${CMAKE_INSTALL_PREFIX}/include/bro/zeek-config.h" "${CMAKE_INSTALL_PREFIX}/include/bro/bro-config.h")
+InstallSymlink("${CMAKE_INSTALL_PREFIX}/include/zeek/zeek-config.h" "${CMAKE_INSTALL_PREFIX}/include/zeek/bro-config.h")
 
 ########################################################################
 ## Recurse on sub-directories

@@ -52,7 +52,7 @@ Some general suggestions as to the purpose/utilization of each node type:
   work that you don't want interfering with the workers' capacity to
   keep up with capturing and parsing packets.  Note that the default scripts
   that come with Bro don't utilize proxies themselves, so if you are coming
-  from a previous BroControl deployment, you may want to try reducing down
+  from a previous ZeekControl deployment, you may want to try reducing down
   to a single proxy node.  If you come to have custom/community scripts
   that utilize proxies, that would be the time to start considering scaling
   up the number of proxies to meet demands.

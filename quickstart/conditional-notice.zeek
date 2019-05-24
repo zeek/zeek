@@ -5,7 +5,7 @@ const watched_servers: set[addr] = {
 } &redef;
 
 # Site::local_nets usually isn't something you need to modify if
-# BroControl automatically sets it up from networks.cfg.  It's
+# ZeekControl automatically sets it up from networks.cfg.  It's
 # shown here for completeness.
 redef Site::local_nets += {
 	87.98.0.0/16,

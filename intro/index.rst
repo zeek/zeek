@@ -72,7 +72,7 @@ instances on their individual traffic slices. A central manager system
 coordinates the process, synchronizing state across the backends and
 providing the operators with a central management interface for
 configuration and access to aggregated logs. Bro's integrated
-management framework, BroControl, supports such cluster setups
+management framework, ZeekControl, supports such cluster setups
 out-of-the-box.
 
 Features

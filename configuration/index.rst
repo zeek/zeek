@@ -159,7 +159,7 @@ Installing PF_RING
 
 4. Make sure Zeek is correctly linked to the PF_RING libpcap libraries::
 
-     ldd /usr/local/bro/bin/bro | grep pcap
+     ldd /usr/local/zeek/bin/zeek | grep pcap
            libpcap.so.1 => /opt/pfring/lib/libpcap.so.1 (0x00007fa6d7d24000)
 
 5. Configure ZeekControl to use PF_RING (explained below).

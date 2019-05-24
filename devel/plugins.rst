@@ -39,7 +39,7 @@ in a string by 13 places.
 
 Generally, a plugin comes in the form of a directory following a
 certain structure. To get started, Bro's distribution provides a
-helper script ``aux/bro-aux/plugin-support/init-plugin`` that creates
+helper script ``aux/zeek-aux/plugin-support/init-plugin`` that creates
 a skeleton plugin that can then be customized. Let's use that::
 
     # init-plugin ./rot13-plugin Demo Rot13
@@ -85,7 +85,7 @@ configure script (that ``init-plugin`` created) where the Bro
 source tree is located (Bro needs to have been built there first)::
 
     # cd rot13-plugin
-    # ./configure --bro-dist=/path/to/bro/dist && make
+    # ./configure --zeek-dist=/path/to/zeek/dist && make
     [... cmake output ...]
 
 This builds the plugin in a subdirectory ``build/``. In fact, that
@@ -97,7 +97,7 @@ pull in our new plugin automatically, as we can check with the ``-N``
 option::
 
     # export ZEEK_PLUGIN_PATH=/path/to/rot13-plugin/build
-    # bro -N
+    # zeek -N
     [...]
     Demo::Rot13 - <Insert description> (dynamic, version 0.1.0)
     [...]
@@ -124,13 +124,13 @@ Now rebuild and verify that the description is visible::
 
     # make
     [...]
-    # bro -N | grep Rot13
+    # zeek -N | grep Rot13
     Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1.0)
 
 Bro can also show us what exactly the plugin provides with the
 more verbose option ``-NN``::
 
-    # bro -NN
+    # zeek -NN
     [...]
     Demo::Rot13 - Caesar cipher rotating a string's characters by 13 places. (dynamic, version 0.1.0)
         [Function] Demo::rot13
@@ -138,7 +138,7 @@ more verbose option ``-NN``::
 
 There's our function. Now let's use it::
 
-    # bro -e 'print Demo::rot13("Hello")'
+    # zeek -e 'print Demo::rot13("Hello")'
     Uryyb
 
 It works. We next install the plugin along with Bro itself, so that it
@@ -147,17 +147,17 @@ environment variable. If we first unset the variable, the function
 will no longer be available::
 
     # unset ZEEK_PLUGIN_PATH
-    # bro -e 'print Demo::rot13("Hello")'
+    # zeek -e 'print Demo::rot13("Hello")'
     error in <command line>, line 1: unknown identifier Demo::rot13, at or near "Demo::rot13"
 
 Once we install it, it works again::
 
     # make install
-    # bro -e 'print Demo::rot13("Hello")'
+    # zeek -e 'print Demo::rot13("Hello")'
     Uryyb
 
 The installed version went into
-``<bro-install-prefix>/lib/bro/plugins/Demo_Rot13``.
+``<zeek-install-prefix>/lib/zeek/plugins/Demo_Rot13``.
 
 One can distribute the plugin independently of Bro for others to use.
 To distribute in source form, just remove the ``build/`` directory
@@ -175,7 +175,7 @@ further files by specifying them in the plugin's ``CMakeLists.txt``
 through the ``bro_plugin_dist_files`` macro; the skeleton does that
 for ``README``, ``VERSION``, ``CHANGES``, and ``COPYING``. To use the
 plugin through the binary tarball, just unpack it into
-``<bro-install-prefix>/lib/bro/plugins/``.  Alternatively, if you unpack
+``<zeek-install-prefix>/lib/zeek/plugins/``.  Alternatively, if you unpack
 it in another location, then you need to point ``ZEEK_PLUGIN_PATH`` there.
 
 Before distributing your plugin, you should edit some of the meta
@@ -268,7 +268,7 @@ with ``-u``.
 ``init-plugin`` puts a ``configure`` script in place that wraps
 ``cmake`` with a more familiar configure-style configuration. By
 default, the script provides two options for specifying paths to the
-Bro source (``--bro-dist``) and to the plugin's installation directory
+Zeek source (``--zeek-dist``) and to the plugin's installation directory
 (``--install-root``). To extend ``configure`` with plugin-specific
 options (such as search paths for its dependencies) don't edit the
 script directly but instead extend ``configure.plugin``, which
@@ -292,7 +292,7 @@ Activating a plugin will:
     6. Load ``scripts/__load__.zeek``
 
 By default, Bro will automatically activate all dynamic plugins found
-in its search path ``ZEEK_PLUGIN_PATH``. However, in bare mode (``bro
+in its search path ``ZEEK_PLUGIN_PATH``. However, in bare mode (``zeek
 -b``), no dynamic plugins will be activated by default; instead the
 user can selectively enable individual plugins in scriptland using the
 ``@load-plugin <qualified-plugin-name>`` directive (e.g.,
@@ -302,7 +302,7 @@ plugin from the command-line by specifying its full name
 ``ZEEK_PLUGIN_ACTIVATE`` to a list of comma(!)-separated names of
 plugins to unconditionally activate, even in bare mode.
 
-``bro -N`` shows activated plugins separately from found but not yet
+``zeek -N`` shows activated plugins separately from found but not yet
 activated plugins. Note that plugins compiled statically into Bro are
 always activated, and hence show up as such even in bare mode.
 
@@ -419,7 +419,7 @@ correctly::
     # cd tests
     # cat >rot13/bif-rot13.zeek
 
-    # @TEST-EXEC: bro %INPUT >output
+    # @TEST-EXEC: zeek %INPUT >output
     # @TEST-EXEC: btest-diff output
 
     event zeek_init()

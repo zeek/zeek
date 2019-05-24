@@ -383,7 +383,7 @@ and use the "path_func" filter attribute:
 
 .. sourcecode:: bro
 
-    # Note: if using BroControl then you don't need to redef local_nets.
+    # Note: if using ZeekControl then you don't need to redef local_nets.
     redef Site::local_nets = { 192.168.0.0/16 };
 
     function myfunc(id: Log::ID, path: string, rec: Conn::Info) : string
@@ -455,8 +455,8 @@ Rotation
 
 The log rotation interval is globally controllable for all
 filters by redefining the :zeek:id:`Log::default_rotation_interval` option
-(note that when using BroControl, this option is set automatically via
-the BroControl configuration).
+(note that when using ZeekControl, this option is set automatically via
+the ZeekControl configuration).
 
 Or specifically for certain :zeek:type:`Log::Filter` instances by setting
 their ``interv`` field.  Here's an example of changing just the

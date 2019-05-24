@@ -158,7 +158,7 @@ Redefinable Options
 
    Default interval to retry connecting to a peer if it cannot be made to
    work initially, or if it ever becomes disconnected.  Use of the
-   BRO_DEFAULT_CONNECT_RETRY environment variable (set as number of
+   ZEEK_DEFAULT_CONNECT_RETRY environment variable (set as number of
    seconds) will override this option and also any values given to
    :zeek:see:`Broker::peer`.
 
@@ -179,7 +179,7 @@ Redefinable Options
    :Default: ``30.0 secs``
 
    Default interval to retry listening on a port if it's currently in
-   use already.  Use of the BRO_DEFAULT_LISTEN_RETRY environment variable
+   use already.  Use of the ZEEK_DEFAULT_LISTEN_RETRY environment variable
    (set as a number of seconds) will override this option and also
    any values given to :zeek:see:`Broker::listen`.
 
@@ -245,7 +245,7 @@ Redefinable Options
    :Default: ``1``
 
    Max number of threads to use for Broker/CAF functionality.  The
-   BRO_BROKER_MAX_THREADS environment variable overrides this setting.
+   ZEEK_BROKER_MAX_THREADS environment variable overrides this setting.
 
 .. zeek:id:: Broker::moderate_interval
 
@@ -595,7 +595,7 @@ Functions
 
    :retry: If non-zero, retries listening in regular intervals if the port cannot be
           acquired immediately. 0 disables retries.  If the
-          BRO_DEFAULT_LISTEN_RETRY environment variable is set (as number
+          ZEEK_DEFAULT_LISTEN_RETRY environment variable is set (as number
           of seconds), it overrides any value given here.
    
 
@@ -648,7 +648,7 @@ Functions
    :retry: an interval at which to retry establishing the
           connection with the remote peer if it cannot be made initially, or
           if it ever becomes disconnected.  If the
-          BRO_DEFAULT_CONNECT_RETRY environment variable is set (as number
+          ZEEK_DEFAULT_CONNECT_RETRY environment variable is set (as number
           of seconds), it overrides any value given here.
    
 

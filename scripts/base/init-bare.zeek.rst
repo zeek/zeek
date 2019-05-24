@@ -1512,7 +1512,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"base/misc/p0f.fp"``
 
-   ``p0f`` fingerprint file to use. Will be searched relative to ``BROPATH``.
+   ``p0f`` fingerprint file to use. Will be searched relative to ``ZEEKPATH``.
 
 .. zeek:id:: peer_description
 
@@ -2828,7 +2828,7 @@ State Variables
 
    Signature files to read. Use ``redef signature_files  += "foo.sig"`` to
    extend. Signature files added this way will be searched relative to
-   ``BROPATH``.  Using the ``@load-sigs`` directive instead is preferred
+   ``ZEEKPATH``.  Using the ``@load-sigs`` directive instead is preferred
    since that can search paths relative to the current script.
 
 .. zeek:id:: skip_authentication

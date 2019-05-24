@@ -46,7 +46,7 @@ executed.  Directives are evaluated before script execution begins.
 
     In this example, Bro will try to load a script
     "policy/misc/capture-loss.zeek" by looking in each directory in the file
-    search path (the file search path can be changed by setting the BROPATH
+    search path (the file search path can be changed by setting the ZEEKPATH
     environment variable)::
 
         @load policy/misc/capture-loss
@@ -77,11 +77,11 @@ executed.  Directives are evaluated before script execution begins.
 
     By default, Bro will automatically activate all dynamic plugins found
     in the plugin search path (the search path can be changed by setting
-    the environment variable BRO_PLUGIN_PATH to a colon-separated list of
+    the environment variable ZEEK_PLUGIN_PATH to a colon-separated list of
     directories). However, in bare mode ("bro -b"), dynamic plugins can be
     activated only by using "@load-plugin", or by specifying the full
     plugin name on the Bro command-line (e.g., "bro Demo::Rot13"), or by
-    setting the environment variable BRO_PLUGIN_ACTIVATE to a
+    setting the environment variable ZEEK_PLUGIN_ACTIVATE to a
     comma-separated list of plugin names.
 
 

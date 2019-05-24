@@ -47,8 +47,8 @@ Functions
    Retrieve the contents of a Bro script package's README file.
    
 
-   :name: the name of a Bro script package.  It must be a relative path
-         to where it is located within a particular component of BROPATH.
+   :name: the name of a Zeek script package.  It must be a relative path
+         to where it is located within a particular component of ZEEKPATH.
    
 
    :returns: contents of the package's README file.  If *name* is not a known
@@ -77,8 +77,8 @@ Functions
    a Bro script.
    
 
-   :name: the name of a Bro script.  It must be a relative path to where
-         it is located within a particular component of BROPATH and use
+   :name: the name of a Zeek script.  It must be a relative path to where
+         it is located within a particular component of ZEEKPATH and use
          the same file name extension/suffix as the actual file (e.g. ".zeek").
    
 

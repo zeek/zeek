@@ -222,7 +222,7 @@ Redefinable Options
    :Default: ``{}``
 
    The cluster layout definition.  This should be placed into a filter
-   named cluster-layout.zeek somewhere in the BROPATH.  It will be
+   named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
    automatically loaded if the CLUSTER_NODE environment variable is set.
    Note that ZeekControl handles all of this automatically.
    The table is typically indexed by node names/labels (e.g. "manager"
@@ -244,8 +244,8 @@ Redefinable Options
    :Default: ``1.0 min``
 
    Interval for retrying failed connections between cluster nodes.
-   If set, the BRO_DEFAULT_CONNECT_RETRY (given in number of seconds)
-   overrides this option.
+   If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
+   environment variable overrides this option.
 
 .. zeek:id:: Cluster::time_machine_topic
 

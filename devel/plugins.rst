@@ -96,7 +96,7 @@ Let's try that. Once we point Bro to the ``build/`` directory, it will
 pull in our new plugin automatically, as we can check with the ``-N``
 option::
 
-    # export BRO_PLUGIN_PATH=/path/to/rot13-plugin/build
+    # export ZEEK_PLUGIN_PATH=/path/to/rot13-plugin/build
     # bro -N
     [...]
     Demo::Rot13 - <Insert description> (dynamic, version 0.1.0)
@@ -142,11 +142,11 @@ There's our function. Now let's use it::
     Uryyb
 
 It works. We next install the plugin along with Bro itself, so that it
-will find it directly without needing the ``BRO_PLUGIN_PATH``
+will find it directly without needing the ``ZEEK_PLUGIN_PATH``
 environment variable. If we first unset the variable, the function
 will no longer be available::
 
-    # unset BRO_PLUGIN_PATH
+    # unset ZEEK_PLUGIN_PATH
     # bro -e 'print Demo::rot13("Hello")'
     error in <command line>, line 1: unknown identifier Demo::rot13, at or near "Demo::rot13"
 
@@ -176,7 +176,7 @@ through the ``bro_plugin_dist_files`` macro; the skeleton does that
 for ``README``, ``VERSION``, ``CHANGES``, and ``COPYING``. To use the
 plugin through the binary tarball, just unpack it into
 ``<bro-install-prefix>/lib/bro/plugins/``.  Alternatively, if you unpack
-it in another location, then you need to point ``BRO_PLUGIN_PATH`` there.
+it in another location, then you need to point ``ZEEK_PLUGIN_PATH`` there.
 
 Before distributing your plugin, you should edit some of the meta
 files that ``init-plugin`` puts in place. Edit ``README`` and
@@ -206,7 +206,7 @@ directory. With the skeleton, ``<base>`` corresponds to ``build/``.
 ``scripts/``
     A directory with the plugin's custom Bro scripts. When the plugin
     gets activated, this directory will be automatically added to
-    ``BROPATH``, so that any scripts/modules inside can be
+    ``ZEEKPATH``, so that any scripts/modules inside can be
     "@load"ed.
 
 ``scripts``/__load__.zeek
@@ -246,7 +246,7 @@ function.
 the above layout and augments it with a CMake build and installation
 system. Plugins with this structure can be used both directly out of
 their source directory (after ``make`` and setting Bro's
-``BRO_PLUGIN_PATH``), and when installed alongside Bro (after ``make
+``ZEEK_PLUGIN_PATH``), and when installed alongside Bro (after ``make
 install``).
 
 ``make install`` copies over the ``lib`` and ``scripts`` directories,
@@ -286,20 +286,20 @@ Activating a plugin will:
 
     1. Load the dynamic module
     2. Make any bif items available
-    3. Add the ``scripts/`` directory to ``BROPATH``
+    3. Add the ``scripts/`` directory to ``ZEEKPATH``
     4. Load ``scripts/__preload__.zeek``
     5. Make BiF elements available to scripts.
     6. Load ``scripts/__load__.zeek``
 
 By default, Bro will automatically activate all dynamic plugins found
-in its search path ``BRO_PLUGIN_PATH``. However, in bare mode (``bro
+in its search path ``ZEEK_PLUGIN_PATH``. However, in bare mode (``bro
 -b``), no dynamic plugins will be activated by default; instead the
 user can selectively enable individual plugins in scriptland using the
 ``@load-plugin <qualified-plugin-name>`` directive (e.g.,
 ``@load-plugin Demo::Rot13``). Alternatively, one can activate a
 plugin from the command-line by specifying its full name
 (``Demo::Rot13``), or set the environment variable
-``BRO_PLUGIN_ACTIVATE`` to a list of comma(!)-separated names of
+``ZEEK_PLUGIN_ACTIVATE`` to a list of comma(!)-separated names of
 plugins to unconditionally activate, even in bare mode.
 
 ``bro -N`` shows activated plugins separately from found but not yet

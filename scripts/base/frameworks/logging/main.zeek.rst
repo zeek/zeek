@@ -171,7 +171,7 @@ Redefinable Options
          [Log::WRITER_ASCII] = LogAscii::default_rotation_postprocessor_func
          { 
          LogAscii::gz = LogAscii::info$fname[-3, (coerce flattenLogAscii::info$fname to int)] == ".gz" ? ".gz" : "";
-         LogAscii::bls = getenv("BRO_LOG_SUFFIX");
+         LogAscii::bls = getenv("ZEEK_LOG_SUFFIX");
          if ("" == LogAscii::bls) 
             LogAscii::bls = "log";
 

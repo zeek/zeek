@@ -2786,7 +2786,7 @@ Functions
 
    :env: A :zeek:type:`table` with the environment variables in the form
         of key-value pairs. Each specified environment variable name
-        will be automatically prepended with ``BRO_ARG_``.
+        will be automatically prepended with ``ZEEK_ARG_``.
    
 
    :returns: The return value from the OS ``system`` function.

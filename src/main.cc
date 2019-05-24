@@ -145,12 +145,12 @@ const char* bro_version()
 #endif
 	}
 
-const char* bro_dns_fake()
+bool bro_dns_fake()
 	{
-	if ( ! getenv("BRO_DNS_FAKE") )
-		return "off";
+	if ( getenv("ZEEK_DNS_FAKE") || getenv("BRO_DNS_FAKE") )
+		return true;
 	else
-		return "on";
+		return false;
 	}
 
 void usage(int code = 1)
@@ -200,15 +200,15 @@ void usage(int code = 1)
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
-	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
-	fprintf(stderr, "    $BRO_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", bro_plugin_activate());
-	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
-	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
-	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
-	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Zeekygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", bro_path().c_str());
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
+	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", bro_prefixes().c_str());
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", bro_dns_fake() ? "on" : "off");
+	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
+	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", getenv("ZEEK_DISABLE_ZEEKYGEN") || getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
 	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
 
 	fprintf(stderr, "\n");
@@ -427,7 +427,11 @@ int main(int argc, char** argv)
 	char* bst_file = 0;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = getenv("BRO_SEED_FILE");
+
+	char* seed_load_file = getenv("ZEEK_SEED_FILE");
+	if ( ! seed_load_file )
+		seed_load_file = getenv("BRO_SEED_FILE");
+
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
@@ -488,7 +492,7 @@ int main(int argc, char** argv)
 
 	enum DNS_MgrMode dns_type = DNS_DEFAULT;
 
-	dns_type = getenv("BRO_DNS_FAKE") ? DNS_FAKE : DNS_DEFAULT;
+	dns_type = bro_dns_fake() ? DNS_FAKE : DNS_DEFAULT;
 
 	RETSIGTYPE (*oldhandler)(int);
 
@@ -496,7 +500,10 @@ int main(int argc, char** argv)
 
 	prefixes.append(strdup(""));	// "" = "no prefix"
 
-	char* p = getenv("BRO_PREFIXES");
+	char* p = getenv("ZEEK_PREFIXES");
+	if ( ! p )
+		p = getenv("BRO_PREFIXES");
+
 	if ( p )
 		add_to_name_list(p, ':', prefixes);
 

@@ -2,7 +2,7 @@
 # Test the quality of HLL once by checking adding a large number of IP entries.
 #
 # @TEST-EXEC: zeek -b %INPUT > out
-# @TEST-EXEC: BRO_SEED_FILE="" zeek -b %INPUT > out2
+# @TEST-EXEC: ZEEK_SEED_FILE="" zeek -b %INPUT > out2
 # @TEST-EXEC: head -n1 out2 >> out
 # @TEST-EXEC: btest-diff out
 

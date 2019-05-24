@@ -294,7 +294,7 @@ public:
 	 * @param name Output file name or directory.  If it's a directory,
 	 * then one document for each script that matches the pattern is written to
 	 * the directory in a directory structure which mirrors the script's path
-	 * relative to a component in BROPATH.
+	 * relative to a component in ZEEKPATH.
 	 * @param pattern Dependency pattern.
 	 */
 	ScriptTarget(const std::string& name, const std::string& pattern)

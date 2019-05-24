@@ -326,9 +326,9 @@ std::string flatten_script_name(const std::string& name,
 std::string normalize_path(const std::string& path);
 
 /**
- * Strip the BROPATH component from a path.
- * @param path A file/directory path that may be within a BROPATH component.
- * @return *path* minus the common BROPATH component (if any) removed.
+ * Strip the ZEEKPATH component from a path.
+ * @param path A file/directory path that may be within a ZEEKPATH component.
+ * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
 std::string without_bropath_component(const std::string& path);
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: unset BRO_DNS_FAKE && zeek -b %INPUT >out
+# @TEST-EXEC: unset ZEEK_DNS_FAKE && unset BRO_DNS_FAKE && zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 

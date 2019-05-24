@@ -192,7 +192,7 @@ export {
 	global worker_count: count = 0;
 
 	## The cluster layout definition.  This should be placed into a filter
-	## named cluster-layout.zeek somewhere in the BROPATH.  It will be
+	## named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that ZeekControl handles all of this automatically.
 	## The table is typically indexed by node names/labels (e.g. "manager"
@@ -210,8 +210,8 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 
 	## Interval for retrying failed connections between cluster nodes.
-	## If set, the BRO_DEFAULT_CONNECT_RETRY (given in number of seconds)
-	## overrides this option.
+	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
+	## environment variable overrides this option.
 	const retry_interval = 1min &redef;
 
 	## When using broker-enabled cluster framework, nodes broadcast this event

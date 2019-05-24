@@ -444,9 +444,13 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 string Ascii::LogExt()
 	{
-	const char* ext = getenv("BRO_LOG_SUFFIX");
+	const char* ext = getenv("ZEEK_LOG_SUFFIX");
 	if ( ! ext )
-		ext = "log";
+		{
+		ext = getenv("BRO_LOG_SUFFIX");
+		if ( ! ext )
+			ext = "log";
+		}
 
 	return ext;
 	}

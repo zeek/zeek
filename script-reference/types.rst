@@ -961,7 +961,7 @@ Here is a more detailed description of each type:
     The scripting layer implementations of these types are found primarily in
     :doc:`/scripts/base/bif/bro.bif.zeek` and a more granular look at them
     can be found in ``src/OpaqueVal.h/cc`` inside the Zeek repo. Opaque types
-    are an good way to integrate functionality into Zeek without needing to
+    are a good way to integrate functionality into Zeek without needing to
     add an entire new type to the scripting language.
 
     .. zeek:type:: paraglob

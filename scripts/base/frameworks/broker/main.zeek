@@ -16,7 +16,7 @@ export {
 	## Default address on which to listen.
 	##
 	## .. zeek:see:: Broker::listen
-	const default_listen_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") != "" ? getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") : getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
+	const default_listen_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
 	## work initially, or if it ever becomes disconnected.  Use of the
@@ -380,8 +380,6 @@ function listen(a: string, p: port, retry: interval): port
 	if ( bound == 0/tcp )
 		{
 		local e = getenv("ZEEK_DEFAULT_LISTEN_RETRY");
-		if ( e == "" )
-			e = getenv("BRO_DEFAULT_LISTEN_RETRY");
 
 		if ( e != "" )
 			retry = double_to_interval(to_double(e));

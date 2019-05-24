@@ -549,4 +549,10 @@ std::string canonify_name(const std::string& name);
  */
 void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
 
+/**
+ * A wrapper function for getenv().  Helps check for existence of
+ * legacy environment variable names that map to the latest \a name.
+ */
+char* zeekenv(const char* name);
+
 #endif

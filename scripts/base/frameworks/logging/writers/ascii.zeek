@@ -84,11 +84,7 @@ function default_rotation_postprocessor_func(info: Log::RotationInfo) : bool
 	local bls = getenv("ZEEK_LOG_SUFFIX");
 
 	if ( bls == "" )
-		{
-		bls = getenv("BRO_LOG_SUFFIX");
-		if ( bls == "" )
-			bls = "log";
-		}
+		bls = "log";
 
 	# Move file to name including both opening and closing time.
 	local dst = fmt("%s.%s.%s%s", info$path,

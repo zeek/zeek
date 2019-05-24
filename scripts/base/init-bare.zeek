@@ -1807,12 +1807,9 @@ event net_done(t: time) { done_with_network = T; }
 function log_file_name(tag: string): string
 	{
 	local suffix = getenv("ZEEK_LOG_SUFFIX");
+
 	if ( suffix == "" )
-		{
-		suffix = getenv("BRO_LOG_SUFFIX");
-		if ( suffix == "" )
-			suffix = "log";
-		}
+		suffix = "log";
 
 	return fmt("%s.%s", tag, suffix);
 	}

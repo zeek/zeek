@@ -339,7 +339,7 @@ function network_time%(%): time
 ## .. zeek:see:: setenv
 function getenv%(var: string%): string
 	%{
-	const char* env_val = getenv(var->CheckString());
+	const char* env_val = zeekenv(var->CheckString());
 	if ( ! env_val )
 		env_val = "";	// ###
 	return new StringVal(env_val);

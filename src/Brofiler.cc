@@ -17,13 +17,10 @@ Brofiler::~Brofiler()
 
 bool Brofiler::ReadStats()
 	{
-	char* bf = getenv("ZEEK_PROFILER_FILE");
+	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+
 	if ( ! bf )
-		{
-		bf = getenv("BRO_PROFILER_FILE");
-		if ( ! bf )
-			return false;
-		}
+		return false;
 
 	FILE* f = fopen(bf, "r");
 	if ( ! f )
@@ -51,13 +48,10 @@ bool Brofiler::ReadStats()
 
 bool Brofiler::WriteStats()
 	{
-	char* bf = getenv("ZEEK_PROFILER_FILE");
+	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+
 	if ( ! bf )
-		{
-		bf = getenv("BRO_PROFILER_FILE");
-		if ( ! bf )
-			return false;
-		}
+		return false;
 
 	SafeDirname dirname{bf};
 

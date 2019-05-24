@@ -958,15 +958,10 @@ const std::string& bro_path()
 	{
 	if ( bro_path_value.empty() )
 		{
-		const char* path = getenv("ZEEKPATH");
+		const char* path = zeekenv("ZEEKPATH");
 
 		if ( ! path )
-			{
-			path = getenv("BROPATH");
-
-			if ( ! path )
-				path = DEFAULT_ZEEKPATH;
-			}
+			path = DEFAULT_ZEEKPATH;
 
 		bro_path_value = path;
 		}
@@ -984,30 +979,20 @@ extern void add_to_bro_path(const string& dir)
 
 const char* bro_plugin_path()
 	{
-	const char* path = getenv("ZEEK_PLUGIN_PATH");
+	const char* path = zeekenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
-		{
-		path = getenv("BRO_PLUGIN_PATH");
-
-		if ( ! path )
-			path = BRO_PLUGIN_INSTALL_PATH;
-		}
+		path = BRO_PLUGIN_INSTALL_PATH;
 
 	return path;
 	}
 
 const char* bro_plugin_activate()
 	{
-	const char* names = getenv("ZEEK_PLUGIN_ACTIVATE");
+	const char* names = zeekenv("ZEEK_PLUGIN_ACTIVATE");
 
 	if ( ! names )
-		{
-		names = getenv("BRO_PLUGIN_ACTIVATE");
-
-		if ( ! names )
-			names = "";
-		}
+		names = "";
 
 	return names;
 	}
@@ -1403,11 +1388,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 const char* log_file_name(const char* tag)
 	{
-	const char* env = getenv("ZEEK_LOG_SUFFIX");
-
-	if ( ! env )
-		env = getenv("BRO_LOG_SUFFIX");
-
+	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
@@ -1861,4 +1842,35 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen)
 	auto res = strerror_r(bro_errno, buf, buflen);
 	// GNU vs. XSI flavors make it harder to use strerror_r.
 	strerror_r_helper(res, buf, buflen);
+	}
+
+char* zeekenv(const char* name)
+	{
+	static std::map<const char*, const char*, CompareString> legacy_vars = {
+		{ "ZEEKPATH", "BROPATH" },
+		{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
+		{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
+		{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
+		{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
+		{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
+		{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
+		{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
+		{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
+		{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
+		{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
+		{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
+		{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
+	};
+
+	auto rval = getenv(name);
+
+	if ( rval )
+		return rval;
+
+	auto it = legacy_vars.find(name);
+
+	if ( it == legacy_vars.end() )
+		return rval;
+
+	return getenv(it->second);
 	}

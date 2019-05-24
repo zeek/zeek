@@ -1,4 +1,11 @@
 
+2.6-331 | 2019-05-23 18:03:42 -0700
+
+  * Update broker unit test output. (Jon Siwek, Corelight)
+
+    Due to string representation of Broker vectors changing (they now
+    use parentheses instead of square brackets).
+
 2.6-330 | 2019-05-23 13:04:26 -0700
 
   * GH-173: Support ranges of values for value_list elements in the signature parser

@@ -1,4 +1,8 @@
 
+2.6-335 | 2019-05-24 08:58:59 -0700
+
+  * Fix memory leak when no protocol_violation event handler exists (Jon Siwek, Corelight)
+
 2.6-334 | 2019-05-23 20:40:03 -0700
 
   * Add an internal getenv wrapper function: zeekenv (Jon Siwek, Corelight)

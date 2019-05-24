@@ -121,7 +121,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
-BroType* BroType::ShallowClone() const
+BroType* BroType::ShallowClone()
 	{
 	switch ( tag ) {
 		case TYPE_VOID:
@@ -401,7 +401,7 @@ TableType::TableType(TypeList* ind, BroType* yield)
 		}
 	}
 
-TableType* TableType::ShallowClone() const
+TableType* TableType::ShallowClone()
 	{
 	if ( indices )
 		indices->Ref();
@@ -518,7 +518,7 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 		}
 	}
 
-FuncType* FuncType::ShallowClone() const
+FuncType* FuncType::ShallowClone()
 	{
 	auto f = new FuncType();
 	f->args = args->Ref()->AsRecordType();
@@ -688,7 +688,7 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 
 // in this case the clone is actually not so shallow, since
 // it gets modified by everyone.
-RecordType* RecordType::ShallowClone() const
+RecordType* RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	loop_over_list(*types, i)
@@ -1053,7 +1053,7 @@ EnumType::EnumType(const EnumType* e)
 	vals = e->vals;
 	}
 
-EnumType* EnumType::ShallowClone() const
+EnumType* EnumType::ShallowClone()
 	{
 	if ( counter == 0 )
 		return new EnumType(GetName());
@@ -1289,7 +1289,7 @@ VectorType::VectorType(BroType* element_type)
 	{
 	}
 
-VectorType* VectorType::ShallowClone() const
+VectorType* VectorType::ShallowClone()
 	{
 	return new VectorType(yield_type);
 	}

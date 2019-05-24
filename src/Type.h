@@ -94,7 +94,7 @@ public:
 	// Clone operations will mostly be implemented in the derived classes;
 	// in addition cloning will be limited to classes that can be reached by
 	// the script-level.
-	virtual BroType* ShallowClone() const;
+	virtual BroType* ShallowClone();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -364,7 +364,7 @@ class TableType : public IndexType {
 public:
 	TableType(TypeList* ind, BroType* yield);
 
-	TableType* ShallowClone() const override;
+	TableType* ShallowClone() override;
 
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
@@ -392,7 +392,7 @@ protected:
 class FuncType : public BroType {
 public:
 	FuncType(RecordType* args, BroType* yield, function_flavor f);
-	FuncType* ShallowClone() const override;
+	FuncType* ShallowClone() override;
 
 	~FuncType() override;
 
@@ -426,7 +426,7 @@ protected:
 class TypeType : public BroType {
 public:
 	explicit TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
-	TypeType* ShallowClone() const override { return new TypeType(type); }
+	TypeType* ShallowClone() override { return new TypeType(type); }
 	~TypeType() override { Unref(type); }
 
 	BroType* Type()	{ return type; }
@@ -459,7 +459,7 @@ typedef PList(TypeDecl) type_decl_list;
 class RecordType : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
-	RecordType* ShallowClone() const override;
+	RecordType* ShallowClone() override;
 
 	~RecordType() override;
 
@@ -508,7 +508,7 @@ public:
 class FileType : public BroType {
 public:
 	explicit FileType(BroType* yield_type);
-	FileType* ShallowClone() const override { return new FileType(yield->Ref()); }
+	FileType* ShallowClone() override { return new FileType(yield->Ref()); }
 	~FileType() override;
 
 	BroType* YieldType() override;
@@ -524,7 +524,7 @@ protected:
 class OpaqueType : public BroType {
 public:
 	explicit OpaqueType(const string& name);
-	OpaqueType* ShallowClone() const override { return new OpaqueType(name); }
+	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
 	~OpaqueType() override { };
 
 	const string& Name() const { return name; }
@@ -544,7 +544,7 @@ public:
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const string& arg_name);
-	EnumType* ShallowClone() const override;
+	EnumType* ShallowClone() override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
@@ -596,7 +596,7 @@ protected:
 class VectorType : public BroType {
 public:
 	explicit VectorType(BroType* t);
-	VectorType* ShallowClone() const override;
+	VectorType* ShallowClone() override;
 	~VectorType() override;
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;

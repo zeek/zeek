@@ -3143,6 +3143,20 @@ Types
       auto_proxy_config: :zeek:type:`string` :zeek:attr:`&optional`
          URL to find a proxy.pac for auto proxy config (Option 252)
 
+      time_offset: :zeek:type:`int` :zeek:attr:`&optional`
+         The offset of the client's subnet in seconds from UTC. (Option 2)
+
+      time_servers: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
+         A list of :rfc:`868` time servers available to the client.
+         (Option 4)
+
+      name_servers: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
+         A list of IEN 116 name servers available to the client. (Option 5)
+
+      ntp_servers: :zeek:type:`DHCP::Addrs` :zeek:attr:`&optional`
+         A list of IP addresses indicating NTP servers available to the
+         client. (Option 42)
+
 
 .. zeek:type:: DHCP::SubOpt
 

@@ -1,4 +1,15 @@
 
+2.6-340 | 2019-05-24 18:02:43 -0700
+
+  * Add support for parsing additional DHCP options (Jay Wren)
+
+    The following optional fields were added to the DHCP::Options record:
+
+      - time_offset  (Option 2)
+      - time_servers (Option 4)
+      - name_servers (Option 5)
+      - ntp_servers  (Option 42)
+
 2.6-338 | 2019-05-24 17:06:08 -0700
 
   * Add input file name to additional ASCII reader warning messages (Christian Kreibich, Corelight)

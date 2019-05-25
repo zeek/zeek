@@ -22,6 +22,29 @@ refine typeattr Option += &let {
 
 
 ##############################
+# TIME OFFSET OPTION
+##############################
+let TIME_OFFSET_OPTION = 2;
+
+# Parse the option
+refine casetype OptionValue += {
+	TIME_OFFSET_OPTION -> time_offset : int32;
+};
+
+refine flow DHCP_Flow += {
+	function process_time_offset_option(v: OptionValue): bool
+		%{
+		${context.flow}->options->Assign(25, val_mgr->GetInt(${v.time_offset}));
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_timeoffset_option = $context.flow.process_time_offset_option(info.value) &if(code==TIME_OFFSET_OPTION);
+};
+
+
+##############################
 # ROUTER OPTION
 ##############################
 let ROUTER_OPTION = 3;
@@ -52,6 +75,74 @@ refine flow DHCP_Flow += {
 
 refine typeattr Option += &let {
 	proc_router_option = $context.flow.process_router_option(info.value) &if(code==ROUTER_OPTION);
+};
+
+
+##############################
+# TIME SERVER OPTION
+##############################
+let TIME_SERVER_OPTION = 4;
+
+# Parse the option
+refine casetype OptionValue += {
+	TIME_SERVER_OPTION -> timeserver_list : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_timeserver_option(v: OptionValue): bool
+		%{
+		VectorVal* timeserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_servers = ${v.timeserver_list}->size();
+		vector<uint32>* rlist = ${v.timeserver_list};
+
+		for ( int i = 0; i < num_servers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			timeserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(26, timeserver_list);
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_timeserver_option = $context.flow.process_timeserver_option(info.value) &if(code==TIME_SERVER_OPTION);
+};
+
+
+##############################
+# NAME SERVER OPTION
+##############################
+let NAME_SERVER_OPTION = 5;
+
+# Parse the option
+refine casetype OptionValue += {
+	NAME_SERVER_OPTION -> nameserver_list : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_nameserver_option(v: OptionValue): bool
+		%{
+		VectorVal* nameserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_servers = ${v.nameserver_list}->size();
+		vector<uint32>* rlist = ${v.nameserver_list};
+
+		for ( int i = 0; i < num_servers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			nameserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(27, nameserver_list);
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_nameserver_option = $context.flow.process_nameserver_option(info.value) &if(code==NAME_SERVER_OPTION);
 };
 
 
@@ -193,6 +284,39 @@ refine typeattr Option += &let {
 	proc_broadcast_address_option = $context.flow.process_broadcast_address_option(info.value) &if(code==BROADCAST_ADDRESS_OPTION);
 };
 
+
+##############################
+# NTP SERVER OPTION
+##############################
+let NTP_SERVER_OPTION = 42;
+
+# Parse the option
+refine casetype OptionValue += {
+	NTP_SERVER_OPTION -> ntpserver_list : uint32[length/4];
+};
+
+refine flow DHCP_Flow += {
+	function process_ntpserver_option(v: OptionValue): bool
+		%{
+		VectorVal* ntpserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		int num_servers = ${v.ntpserver_list}->size();
+		vector<uint32>* rlist = ${v.ntpserver_list};
+
+		for ( int i = 0; i < num_servers; ++i )
+			{
+			uint32 raddr = (*rlist)[i];
+			ntpserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			}
+
+		${context.flow}->options->Assign(28, ntpserver_list);
+
+		return true;
+		%}
+};
+
+refine typeattr Option += &let {
+	proc_ntpserver_option = $context.flow.process_ntpserver_option(info.value) &if(code==NTP_SERVER_OPTION);
+};
 
 ##############################
 # VENDOR SPECIFIC OPTION

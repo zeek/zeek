@@ -1,0 +1,4 @@
+time_offset, -18000
+timeserver_list, [192.168.15.101]
+nameserver_list, [192.168.15.101]
+ntpserver_list, [192.168.15.101]

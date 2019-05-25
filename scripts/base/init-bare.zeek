@@ -3521,6 +3521,20 @@ export {
 
 		## URL to find a proxy.pac for auto proxy config (Option 252)
 		auto_proxy_config: string &optional;
+
+		## The offset of the client's subnet in seconds from UTC. (Option 2)
+		time_offset:     int &optional;
+
+		## A list of :rfc:`868` time servers available to the client.
+		## (Option 4)
+		time_servers:    DHCP::Addrs &optional;
+
+		## A list of IEN 116 name servers available to the client. (Option 5)
+		name_servers:    DHCP::Addrs &optional;
+
+		## A list of IP addresses indicating NTP servers available to the
+		## client. (Option 42)
+		ntp_servers:     DHCP::Addrs &optional;
 	};
 }
 

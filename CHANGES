@@ -1,4 +1,8 @@
 
+2.6-338 | 2019-05-24 17:06:08 -0700
+
+  * Add input file name to additional ASCII reader warning messages (Christian Kreibich, Corelight)
+
 2.6-336 | 2019-05-24 10:23:20 -0700
 
   * GH-378: check validity of missing 'val' field in Input::add_table (Jon Siwek, Corelight)

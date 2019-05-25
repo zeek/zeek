@@ -243,8 +243,8 @@ bool Ascii::ReadHeader(bool useCached)
 			map<string, uint32_t>::iterator fit2 = ifields.find(field->secondary_name);
 			if ( fit2 == ifields.end() )
 				{
-				FailWarn(fail_on_file_problem, Fmt("Could not find requested port type field %s in input data file.",
-								 field->secondary_name), true);
+				FailWarn(fail_on_file_problem, Fmt("Could not find requested port type field %s in input data file %s.",
+				                                   field->secondary_name, fname.c_str()), true);
 
 				return false;
 				}
@@ -387,8 +387,8 @@ bool Ascii::DoUpdate()
 
 			if ( (*fit).position > pos || (*fit).secondary_position > pos )
 				{
-				FailWarn(fail_on_invalid_lines, Fmt("Not enough fields in line %s. Found %d fields, want positions %d and %d",
-					  line.c_str(), pos, (*fit).position, (*fit).secondary_position));
+				FailWarn(fail_on_invalid_lines, Fmt("Not enough fields in line '%s' of %s. Found %d fields, want positions %d and %d",
+				                                    line.c_str(), fname.c_str(), pos, (*fit).position, (*fit).secondary_position));
 
 				if ( fail_on_invalid_lines )
 					{
@@ -410,7 +410,7 @@ bool Ascii::DoUpdate()
 
 			if ( val == 0 )
 				{
-				Warning(Fmt("Could not convert line '%s' to Val. Ignoring line.", line.c_str()));
+				Warning(Fmt("Could not convert line '%s' of %s to Val. Ignoring line.", line.c_str(), fname.c_str()));
 				error = true;
 				break;
 				}

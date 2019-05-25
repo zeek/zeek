@@ -2553,8 +2553,8 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
+		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
 		attr_list* attr_copy = 0;
-
 		if ( attrs )
 			{
 			attr_copy = new attr_list(attrs->length());
@@ -2565,7 +2565,22 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		if ( op1->Type()->IsSet() )
 			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
 		else
-			op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+			{
+				op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+
+				// Verify that both tables yield the same type.
+				// Skip when assigning to empty lists.
+				if (!empty_list_assignment)
+					{
+					const BroType* yield1 = op1->Type()->AsTableType()->YieldType();
+					const BroType* yield2 = op2->Type()->AsTableType()->YieldType();
+					if (yield1->Tag() != TYPE_ANY && !same_type(yield1, yield2))
+						{
+						ExprError("table yield type mismatch");
+						return false;
+						}
+					}
+			}
 
 		return true;
 		}

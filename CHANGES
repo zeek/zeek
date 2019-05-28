@@ -1,4 +1,8 @@
 
+2.6-342 | 2019-05-28 10:48:37 -0700
+
+  * GH-168: Improve type-checking for table/set list assignment. (Zeke Medley and Jon Siwek, Corelight)
+
 2.6-340 | 2019-05-24 18:02:43 -0700
 
   * Add support for parsing additional DHCP options (Jay Wren)

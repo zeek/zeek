@@ -2554,7 +2554,6 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
 		attr_list* attr_copy = 0;
-
 		if ( attrs )
 			{
 			attr_copy = new attr_list(attrs->length());
@@ -2562,10 +2561,22 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				attr_copy->append((*attrs)[i]);
 			}
 
+		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
+
 		if ( op1->Type()->IsSet() )
 			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
 		else
 			op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+
+		if ( ! empty_list_assignment && ! same_type(op1->Type(), op2->Type()) )
+			{
+			if ( op1->Type()->IsSet() )
+				ExprError("set type mismatch in assignment");
+			else
+				ExprError("table type mismatch in assignment");
+
+			return false;
+			}
 
 		return true;
 		}

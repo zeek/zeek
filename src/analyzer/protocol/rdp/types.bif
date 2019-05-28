@@ -3,3 +3,6 @@ module RDP;
 
 type EarlyCapabilityFlags: record;
 type ClientCoreData: record;
+
+type ClientChannelList: vector;
+type ClientChannelDef: record;

@@ -4261,6 +4261,39 @@ export {
 		ec_flags:               RDP::EarlyCapabilityFlags &optional;
 		dig_product_id:         string &optional;
 	};
+
+	## Name and flags for a single channel requested by the client.
+	type RDP::ClientChannelDef: record {
+		## A unique name for the channel
+		name: 	        string;
+		## Absence of this flag indicates that this channel is
+                ## a placeholder and that the server MUST NOT set it
+                ## up.
+		initialized:    bool;
+		## Unused, must be ignored by the server.
+		encrypt_rdp:    bool;
+		## Unused, must be ignored by the server.
+		encrypt_sc:     bool;
+		## Unused, must be ignored by the server.
+		encrypt_cs:     bool;
+		## Channel data must be sent with high MCS priority.
+		pri_high:       bool;
+		## Channel data must be sent with medium MCS priority.
+		pri_med:        bool;
+		## Channel data must be sent with low MCS priority.
+		pri_low:        bool;
+		## Virtual channel data must be compressed if RDP data is being compressed.
+		compress_rdp:   bool;
+		## Virtual channel data must be compressed.
+		compress:       bool;
+		## Ignored by the server.
+		show_protocol:  bool;
+		## Channel must be persistent across remote control transactions.
+		persistent:     bool;
+	};
+
+	## The list of channels requested by the client.
+	type RDP::ClientChannelList: vector of ClientChannelDef;
 }
 
 @load base/bif/plugins/Bro_SNMP.types.bif

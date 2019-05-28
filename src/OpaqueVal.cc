@@ -869,3 +869,28 @@ void CardinalityVal::Add(const Val* val)
 	c->AddElement(key->Hash());
 	delete key;
 	}
+
+
+ParaglobVal::ParaglobVal(paraglob::Paraglob* p)
+: OpaqueVal(paraglob_type)
+	{
+	this->internal_paraglob = p;
+	}
+
+VectorVal* ParaglobVal::get(StringVal* &pattern)
+	{
+	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
+	std::string string_pattern (pattern->CheckString(), pattern->Len());
+	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
+
+	for (unsigned int i = 0; i < matches.size(); i++) {
+		rval->Assign(i, new StringVal(matches.at(i).c_str()));
+	}
+
+	return rval;
+	}
+
+bool ParaglobVal::operator==(const ParaglobVal *other)
+	{
+	return (*(this->internal_paraglob) == *(other->internal_paraglob));
+	}

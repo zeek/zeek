@@ -8,6 +8,7 @@
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
+#include "src/paraglob.h"
 
 namespace probabilistic {
 	class BloomFilter;
@@ -186,6 +187,16 @@ private:
 	probabilistic::CardinalityCounter* c;
 
 	DECLARE_SERIAL(CardinalityVal);
+};
+
+class ParaglobVal : public OpaqueVal {
+public:
+	explicit ParaglobVal(paraglob::Paraglob* p);
+	VectorVal* get(StringVal* &pattern);
+	bool operator==(const ParaglobVal *other);
+
+private:
+	paraglob::Paraglob* internal_paraglob;
 };
 
 #endif

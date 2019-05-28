@@ -92,6 +92,9 @@ Types
       security_protocol: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Security protocol chosen by the server.
 
+      client_channels: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+         The channels requested by the client
+
       keyboard_layout: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Keyboard layout (language) of the client machine.
 

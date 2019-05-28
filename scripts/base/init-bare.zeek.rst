@@ -441,6 +441,8 @@ Types
 :zeek:type:`RADIUS::AttributeList`: :zeek:type:`vector`                       
 :zeek:type:`RADIUS::Attributes`: :zeek:type:`table`                           
 :zeek:type:`RADIUS::Message`: :zeek:type:`record`                             
+:zeek:type:`RDP::ClientChannelDef`: :zeek:type:`record`                       Name and flags for a single channel requested by the client.
+:zeek:type:`RDP::ClientChannelList`: :zeek:type:`vector`                      The list of channels requested by the client.
 :zeek:type:`RDP::ClientCoreData`: :zeek:type:`record`                         
 :zeek:type:`RDP::EarlyCapabilityFlags`: :zeek:type:`record`                   
 :zeek:type:`ReassemblerStats`: :zeek:type:`record`                            Holds statistics for all types of reassembly.
@@ -4813,6 +4815,55 @@ Types
       attributes: :zeek:type:`RADIUS::Attributes` :zeek:attr:`&optional`
          Any attributes.
 
+
+.. zeek:type:: RDP::ClientChannelDef
+
+   :Type: :zeek:type:`record`
+
+      name: :zeek:type:`string`
+         A unique name for the channel
+
+      initialized: :zeek:type:`bool`
+         Absence of this flag indicates that this channel is
+         a placeholder and that the server MUST NOT set it up.
+
+      encrypt_rdp: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      encrypt_sc: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      encrypt_cs: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      pri_high: :zeek:type:`bool`
+         Channel data must be sent with high MCS priority.
+
+      pri_med: :zeek:type:`bool`
+         Channel data must be sent with medium MCS priority.
+
+      pri_low: :zeek:type:`bool`
+         Channel data must be sent with low MCS priority.
+
+      compress_rdp: :zeek:type:`bool`
+         Virtual channel data must be compressed if RDP data is being compressed.
+
+      compress: :zeek:type:`bool`
+         Virtual channel data must be compressed.
+
+      show_protocol: :zeek:type:`bool`
+         Ignored by the server.
+
+      persistent: :zeek:type:`bool`
+         Channel must be persistent across remote control transactions.
+
+   Name and flags for a single channel requested by the client.
+
+.. zeek:type:: RDP::ClientChannelList
+
+   :Type: :zeek:type:`vector` of :zeek:type:`RDP::ClientChannelDef`
+
+   The list of channels requested by the client.
 
 .. zeek:type:: RDP::ClientCoreData
 

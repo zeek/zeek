@@ -8114,6 +8114,55 @@ Types
       dig_product_id: :zeek:type:`string` :zeek:attr:`&optional`
 
 
+.. zeek:type:: RDP::ClientChannelList
+
+   :Type: :zeek:type:`vector` of :zeek:type:`RDP::ClientChannelDef`
+
+   The list of channels requested by the client.
+
+.. zeek:type:: RDP::ClientChannelDef
+
+   :Type: :zeek:type:`record`
+
+      name: :zeek:type:`string`
+         A unique name for the channel
+
+      initialized: :zeek:type:`bool`
+         Absence of this flag indicates that this channel is
+         a placeholder and that the server MUST NOT set it up.
+
+      encrypt_rdp: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      encrypt_sc: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      encrypt_cs: :zeek:type:`bool`
+         Unused, must be ignored by the server.
+
+      pri_high: :zeek:type:`bool`
+         Channel data must be sent with high MCS priority.
+
+      pri_med: :zeek:type:`bool`
+         Channel data must be sent with medium MCS priority.
+
+      pri_low: :zeek:type:`bool`
+         Channel data must be sent with low MCS priority.
+
+      compress_rdp: :zeek:type:`bool`
+         Virtual channel data must be compressed if RDP data is being compressed.
+
+      compress: :zeek:type:`bool`
+         Virtual channel data must be compressed.
+
+      show_protocol: :zeek:type:`bool`
+         Ignored by the server.
+
+      persistent: :zeek:type:`bool`
+         Channel must be persistent across remote control transactions.
+
+   Name and flags for a single channel requested by the client.
+
 Events
 ++++++
 
@@ -8164,6 +8213,18 @@ Events
    
 
    :data: The data contained in the client core data structure.
+
+.. zeek:id:: rdp_client_network_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, channels: :zeek:type:`RDP::ClientChannelList`)
+
+   Generated for Client Network Data (TS_UD_CS_NET) packets
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :channels: The channels that were requested
 
 .. zeek:id:: rdp_gcc_server_create_response
 

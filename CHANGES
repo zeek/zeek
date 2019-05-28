@@ -1,4 +1,11 @@
 
+2.6-345 | 2019-05-28 11:32:16 -0700
+
+  * RDP: Add parsing and logging of channels requested by the client. (Vlad Grigorescu)
+
+    Can determine capabilities requested by the client, as well as attacks such
+    as CVE-2019-0708.
+
 2.6-342 | 2019-05-28 10:48:37 -0700
 
   * GH-168: Improve type-checking for table/set list assignment. (Zeke Medley and Jon Siwek, Corelight)

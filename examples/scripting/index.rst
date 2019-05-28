@@ -1320,7 +1320,7 @@ output is all in ``factor.log``, properly formatted and organized.
    #close    2018-12-14-21-47-18
 
 While the previous example is a simplistic one, it serves to
-demonstrate the small pieces of script code hat need to be in place in
+demonstrate the small pieces of script code that need to be in place in
 order to generate logs.  For example, it's common to call
 ``Log::create_stream`` in :zeek:id:`zeek_init` and while in a live
 example, determining when to call ``Log::write`` would likely be

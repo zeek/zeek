@@ -566,6 +566,35 @@ void Val::ValDescribeReST(ODesc* d) const
 	}
 	}
 
+
+bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val)
+	{
+	if ( !to_type || !from_type )
+		return true;
+	else if ( same_type(to_type, from_type) )
+		return false;
+
+	if ( to_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+		return false;
+	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
+			return (val->InternalInt() < 0);
+		}
+	else if ( to_type->InternalType() == TYPE_INTERNAL_INT )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < static_cast<double>(INT64_MIN) ||
+			        val->InternalDouble() > static_cast<double>(INT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			return (val->InternalUnsigned() > INT64_MAX);
+		}
+
+	return false;
+	}
+
 MutableVal::~MutableVal()
 	{
 	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
@@ -3599,7 +3628,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 	if ( v_tag == t_tag )
 		return v;
 
-	if ( t_tag != TYPE_TIME )
+	if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) )
 		{
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
@@ -3621,7 +3650,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 	Val* promoted_v;
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( t_tag == TYPE_INT )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_INT )
 			promoted_v = val_mgr->GetInt(v->CoerceToInt());
 		else if ( t_tag == TYPE_BOOL )
 			promoted_v = val_mgr->GetBool(v->CoerceToInt());
@@ -3635,7 +3670,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
 			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
 		else // port
 			{

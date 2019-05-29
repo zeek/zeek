@@ -4136,15 +4136,15 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
-				if ( sup_t_i->Tag() != TYPE_RECORD ||
-				     sub_t_i->Tag() != TYPE_RECORD ||
-				     ! record_promotion_compatible(sup_t_i->AsRecordType(),
-				                                   sub_t_i->AsRecordType()) )
+				if ( ( ! BothArithmetic(sup_t_i->Tag(), sub_t_i->Tag()) || ( sub_t_i->Tag() == TYPE_DOUBLE && IsIntegral(sup_t_i->Tag()) ) ) &&
+					 ( sup_t_i->Tag() != TYPE_RECORD ||
+					   sub_t_i->Tag() != TYPE_RECORD ||
+					   ! record_promotion_compatible(sup_t_i->AsRecordType(),
+						                             sub_t_i->AsRecordType()) ) )
 					{
-					char buf[512];
-					safe_snprintf(buf, sizeof(buf),
+					string error_msg = fmt(
 						"type clash for field \"%s\"", sub_r->FieldName(i));
-					Error(buf, sub_t_i);
+					Error(error_msg.c_str(), sub_t_i);
 					SetError();
 					break;
 					}
@@ -4162,11 +4162,9 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 				{
 				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					char buf[512];
-					safe_snprintf(buf, sizeof(buf),
-					              "non-optional field \"%s\" missing",
-					              t_r->FieldName(i));
-					Error(buf);
+					string error_msg = fmt(
+						"non-optional field \"%s\" missing", t_r->FieldName(i));
+					Error(error_msg.c_str());
 					SetError();
 					break;
 					}
@@ -4252,6 +4250,20 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 					{
 					Unref(rhs);
 					rhs = new_val;
+					}
+				}
+			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
+				      ! same_type(rhs_type, field_type) )
+				{
+				if ( Val *new_val = check_and_promote(rhs, field_type, false, op->GetLocationInfo()) )
+					{
+					// Don't call unref here on rhs because check_and_promote already called it.
+					rhs = new_val;
+					}
+				else
+					{
+					Unref(val);
+					RuntimeError("Failed type conversion");
 					}
 				}
 

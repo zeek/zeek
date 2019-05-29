@@ -118,7 +118,9 @@ event krb_error(c: connection, msg: Error_Msg) &priority=5
 		c$krb$client = fmt("%s%s", msg?$client_name ? msg$client_name + "/" : "",
 		                           msg?$client_realm ? msg$client_realm : "");
 
-	c$krb$service    = msg$service_name;
+	if ( msg?$service_name )
+		c$krb$service    = msg$service_name;
+
 	c$krb$success    = F;
 	c$krb$error_code = msg$error_code;
 
@@ -139,16 +141,23 @@ event krb_as_request(c: connection, msg: KDC_Request) &priority=5
 		return;
 
 	c$krb$request_type = "AS";
-	c$krb$client       = fmt("%s/%s", msg?$client_name ? msg$client_name : "", msg$service_realm);
+
+	c$krb$client       = fmt("%s/%s", msg?$client_name ? msg$client_name : "",
+	                                  msg?$service_realm ? msg$service_realm : "");
+
 	if ( msg?$service_name )
 		c$krb$service      = msg$service_name;
 
 	if ( msg?$from )
 		c$krb$from = msg$from;
-	c$krb$till        = msg$till;
+	if ( msg?$till )
+		c$krb$till = msg$till;
 
-	c$krb$forwardable = msg$kdc_options$forwardable;
-	c$krb$renewable   = msg$kdc_options$renewable;
+	if ( msg?$kdc_options )
+		{
+		c$krb$forwardable = msg$kdc_options$forwardable;
+		c$krb$renewable   = msg$kdc_options$renewable;
+		}
 	}
 
 event krb_as_response(c: connection, msg: KDC_Response) &priority=5
@@ -188,10 +197,14 @@ event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5
 		c$krb$service = msg$service_name;
 	if ( msg?$from ) 
 		c$krb$from = msg$from;
-	c$krb$till = msg$till;
+	if ( msg?$till )
+		c$krb$till = msg$till;
 
-	c$krb$forwardable = msg$kdc_options$forwardable;
-	c$krb$renewable   = msg$kdc_options$renewable;
+	if ( msg?$kdc_options )
+		{
+		c$krb$forwardable = msg$kdc_options$forwardable;
+		c$krb$renewable   = msg$kdc_options$renewable;
+		}
 	}
 
 event krb_tgs_response(c: connection, msg: KDC_Response) &priority=5

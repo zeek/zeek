@@ -332,17 +332,17 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		// a '/'. Rather or not the rest of the string is legal will
 		// be determined later when it is given to the RE engine.
 		if ( cannidate.size() >= 2 )
-			{
-				if ( cannidate.front() == cannidate.back() &&
-					cannidate.back() == '/' )
-					{
-					// Remove the '/'s
-					cannidate.erase(0, 1);
-					cannidate.erase(cannidate.size() - 1);
-					val->val.pattern_text_val = copy_string(cannidate.c_str());
-					break;
-					}
+		{
+			if ( cannidate.front() == cannidate.back() &&
+			cannidate.back() == '/' )
+				{
+				// Remove the '/'s
+				cannidate.erase(0, 1);
+				cannidate.erase(cannidate.size() - 1);
+				val->val.pattern_text_val = copy_string(cannidate.c_str());
+				break;
 			}
+		}
 		GetThread()->Error(GetThread()->Fmt("String '%s' contained no parseable pattern.", cannidate.c_str()));
 		goto parse_error;
 		}

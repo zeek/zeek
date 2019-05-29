@@ -1113,9 +1113,6 @@ const table_expire_delay = 0.01 secs &redef;
 ## Time to wait before timing out a DNS request.
 const dns_session_timeout = 10 sec &redef;
 
-## Time to wait before timing out an NTP request.
-const ntp_session_timeout = 300 sec &redef;
-
 ## Time to wait before timing out an RPC request.
 const rpc_timeout = 24 sec &redef;
 
@@ -2528,26 +2525,6 @@ export {
 		is_server:                  bool;
 	};
 }
-
-module GLOBAL;
-
-## An NTP message.
-##
-## .. zeek:see:: ntp_message
-type ntp_msg: record {
-	id: count;	##< Message ID.
-	code: count;	##< Message code.
-	stratum: count;	##< Stratum.
-	poll: count;	##< Poll.
-	precision: int;	##< Precision.
-	distance: interval;	##< Distance.
-	dispersion: interval;	##< Dispersion.
-	ref_t: time;	##< Reference time.
-	originate_t: time;	##< Originating time.
-	receive_t: time;	##< Receive time.
-	xmit_t: time;	##< Send time.
-};
-
 
 module NTLM;
 

@@ -82,7 +82,7 @@ State Variables
    ::
 
       {
-         topic="bro/cluster/pool/logger"
+         topic="zeek/cluster/pool/logger"
          node_type=Cluster::LOGGER
          max_nodes=<uninitialized>
          exclusive=F
@@ -125,7 +125,7 @@ State Variables
    ::
 
       {
-         topic="bro/cluster/pool/proxy"
+         topic="zeek/cluster/pool/proxy"
          node_type=Cluster::PROXY
          max_nodes=<uninitialized>
          exclusive=F
@@ -168,7 +168,7 @@ State Variables
    ::
 
       {
-         topic="bro/cluster/pool/worker"
+         topic="zeek/cluster/pool/worker"
          node_type=Cluster::WORKER
          max_nodes=<uninitialized>
          exclusive=F

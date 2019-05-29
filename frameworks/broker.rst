@@ -185,10 +185,10 @@ the subscription matching is purely a byte-per-byte prefix comparison.
 However, Bro scripts generally will follow a topic naming hierarchy and
 any given script will make the topic names it uses apparent via some
 redef'able constant in its export section.  Generally topics that Bro
-scripts use will be along the lines of "bro/<namespace>/<specifics>"
+scripts use will be along the lines of "zeek/<namespace>/<specifics>"
 with "<namespace>" being the script's module name (in all-undercase).
 For example, you might expect an imaginary "Pretend" framework to
-publish/subscribe using topic names like "bro/pretend/my_cool_event".
+publish/subscribe using topic names like "zeek/pretend/my_cool_event".
 For scripts that use Broker as a means of cluster-aware analysis,
 it's usually sufficient for them to make use of the topics declared
 by the cluster framework.  For scripts that are meant to establish
@@ -209,7 +209,7 @@ processes, logs get published to the topic indicated by
 
 For those writing their own scripts which need new topic names, a
 suggestion would be to avoid prefixing any new topics/prefixes with
-"bro/" as any changes in scripts shipping with Bro will use that prefix
+"zeek/" as any changes in scripts shipping with Bro will use that prefix
 and it's better to not risk unintended conflicts.  Again, it's
 often less confusing to just re-use existing topic names instead
 of introducing new topic names.  The typical use case is writing
@@ -274,8 +274,8 @@ in addition to sending the event to any subscribed peers.
    :linenos:
 
 Note that the subscription model is prefix-based, meaning that if you subscribe
-to the "bro/events" topic prefix you would receive events that are published
-to topic names  "bro/events/foo" and "bro/events/bar" but not "bro/misc".
+to the "zeek/events" topic prefix you would receive events that are published
+to topic names  "zeek/events/foo" and "zeek/events/bar" but not "zeek/misc".
 
 Remote Logging
 --------------

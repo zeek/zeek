@@ -163,7 +163,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/logger"``
+   :Default: ``"zeek/cluster/logger"``
 
    The topic name used for exchanging messages that are relevant to
    logger nodes in a cluster.  Used with broker-enabled cluster communication.
@@ -183,7 +183,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/manager"``
+   :Default: ``"zeek/cluster/manager"``
 
    The topic name used for exchanging messages that are relevant to
    manager nodes in a cluster.  Used with broker-enabled cluster communication.
@@ -201,7 +201,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/node/"``
+   :Default: ``"zeek/cluster/node/"``
 
    The topic prefix used for exchanging messages that are relevant to
    a named node in a cluster.  Used with broker-enabled cluster communication.
@@ -210,7 +210,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/nodeid/"``
+   :Default: ``"zeek/cluster/nodeid/"``
 
    The topic prefix used for exchanging messages that are relevant to
    a unique node in a cluster.  Used with broker-enabled cluster communication.
@@ -232,7 +232,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/proxy"``
+   :Default: ``"zeek/cluster/proxy"``
 
    The topic name used for exchanging messages that are relevant to
    proxy nodes in a cluster.  Used with broker-enabled cluster communication.
@@ -251,7 +251,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/time_machine"``
+   :Default: ``"zeek/cluster/time_machine"``
 
    The topic name used for exchanging messages that are relevant to
    time machine nodes in a cluster.  Used with broker-enabled cluster communication.
@@ -260,7 +260,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/cluster/worker"``
+   :Default: ``"zeek/cluster/worker"``
 
    The topic name used for exchanging messages that are relevant to
    worker nodes in a cluster.  Used with broker-enabled cluster communication.

@@ -95,7 +95,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/known/hosts"``
+   :Default: ``"zeek/known/hosts"``
 
    The Broker topic name to use for :zeek:see:`Known::host_store`.
 

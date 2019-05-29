@@ -187,7 +187,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/logs/"``
+   :Default: ``"zeek/logs/"``
 
    The default topic prefix where logs will be published.  The log's stream
    id is appended when writing to a particular stream.

@@ -233,6 +233,20 @@ bool BinarySerializationFormat::Read(string* v, const char* tag)
 	return true;
 	}
 
+bool BinarySerializationFormat::Read (vector<uint8_t>* v, const char* tag)
+  {
+  uint64_t size = 0;
+  if ( ! Read(&size, "vec-size"))
+    return false;
+
+  v->resize(size);
+  uint8_t* data = v->data();
+  if ( ! ReadData(data, size*sizeof(uint8_t)) )
+    return false;
+
+  return true;
+  }
+
 bool BinarySerializationFormat::Read(IPAddr* addr, const char* tag)
 	{
 	int n = 0;
@@ -367,6 +381,13 @@ bool BinarySerializationFormat::Write(const string& s, const char* tag)
 	return Write(s.data(), s.size(), tag);
 	}
 
+bool BinarySerializationFormat::Write (const vector<uint8_t>* v, const char* tag)
+  {
+  uint64_t size = v->size();
+  bool valid = Write(size, "vec-size");
+  return valid && WriteData(v->data(), size);
+  }
+
 bool BinarySerializationFormat::Write(const IPAddr& addr, const char* tag)
 	{
 	const uint32_t* raw;
@@ -435,4 +456,3 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	uint32 l = htonl(len);
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}
-

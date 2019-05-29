@@ -4,6 +4,7 @@
 #define OPAQUEVAL_H
 
 #include <typeinfo>
+#include <memory> // std::unique_ptr
 
 #include "RandTest.h"
 #include "Val.h"
@@ -191,12 +192,24 @@ private:
 
 class ParaglobVal : public OpaqueVal {
 public:
-	explicit ParaglobVal(paraglob::Paraglob* p);
+	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
 	VectorVal* get(StringVal* &pattern);
-	bool operator==(const ParaglobVal *other);
+	Val* DoClone(CloneState* state) override;
+	bool operator==(const ParaglobVal& other) const;
+
+protected:
+	ParaglobVal() : OpaqueVal(paraglob_type) {}
 
 private:
-	paraglob::Paraglob* internal_paraglob;
+	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
+	// Small convenience function. Does what std::make_unique does in C++14. Wont
+	// work on arrays.
+	template <typename T, typename ... Args>
+	std::unique_ptr<T> build_unique (Args&&... args) {
+		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+	}
+
+	DECLARE_SERIAL(ParaglobVal)
 };
 
 #endif

@@ -212,7 +212,7 @@ Val* Val::Unserialize(UnserialInfo* info, TypeTag type, const BroType* exact_typ
 			}
 
 		}
-
+		
 	return v;
 	}
 

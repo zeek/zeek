@@ -802,7 +802,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
 	     v->Type()->YieldType()->Tag() != TYPE_STRING )
 		{
-		builtin_error("paraglob requires a vector for initialization.");
+		builtin_error("paraglob requires a vector of strings for initialization.");
 		return nullptr;
 		}
 
@@ -814,7 +814,17 @@ function paraglob_init%(v: any%) : opaque of paraglob
 		patterns.push_back(std::string(s->CheckString(), s->Len()));
 		}
 
-	return new ParaglobVal(new paraglob::Paraglob(patterns));
+	try
+		{
+		std::unique_ptr<paraglob::Paraglob> p (new paraglob::Paraglob(patterns));
+		return new ParaglobVal(std::move(p));
+		}
+	// Thrown if paraglob fails to add a pattern.
+	catch (const paraglob::add_error& e)
+		{
+		builtin_error(e.what());
+		return nullptr;
+		}
 	%}
 
 ## Gets all the strings inside the handle associated with an input pattern.
@@ -835,15 +845,14 @@ function paraglob_get%(handle: opaque of paraglob, pat: string%): string_vec
 ## p_one: A compiled paraglob.
 ## p_two: A compiled paraglob.
 ##
-## Returns: True of both paraglobs contain the same patterns, false otherwise.
+## Returns: True if both paraglobs contain the same patterns, false otherwise.
 ##
 ## ## .. zeek:see::paraglob_add paraglob_get paraglob_init
 function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 	: bool
 	%{
-	bool eq =
-		(static_cast<ParaglobVal*>(p_one) == static_cast<ParaglobVal*>(p_two));
-	return val_mgr->GetBool(eq);
+	return val_mgr->GetBool(
+		*(static_cast<ParaglobVal*>(p_one)) ==  *(static_cast<ParaglobVal*>(p_two)));
 	%}
 
 ## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.

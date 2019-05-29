@@ -31,6 +31,7 @@ public:
 	virtual bool Read(bool* v, const char* tag) = 0;
 	virtual bool Read(double* d, const char* tag) = 0;
 	virtual bool Read(string* s, const char* tag) = 0;
+	virtual bool Read(vector<uint8>* v, const char* tag) = 0;
 	virtual bool Read(IPAddr* addr, const char* tag) = 0;
 	virtual bool Read(IPPrefix* prefix, const char* tag) = 0;
 	virtual bool Read(struct in_addr* addr, const char* tag) = 0;
@@ -65,6 +66,7 @@ public:
 	virtual bool Write(const char* s, const char* tag) = 0;
 	virtual bool Write(const char* buf, int len, const char* tag) = 0;
 	virtual bool Write(const string& s, const char* tag) = 0;
+	virtual bool Write(const vector<uint8>* v, const char* tag) = 0;
 	virtual bool Write(const IPAddr& addr, const char* tag) = 0;
 	virtual bool Write(const IPPrefix& prefix, const char* tag) = 0;
 	virtual bool Write(const struct in_addr& addr, const char* tag) = 0;
@@ -110,10 +112,12 @@ public:
 	bool Read(double* d, const char* tag) override;
 	bool Read(char** str, int* len, const char* tag) override;
 	bool Read(string* s, const char* tag) override;
+	bool Read(vector<uint8>* v, const char* tag) override;
 	bool Read(IPAddr* addr, const char* tag) override;
 	bool Read(IPPrefix* prefix, const char* tag) override;
 	bool Read(struct in_addr* addr, const char* tag) override;
 	bool Read(struct in6_addr* addr, const char* tag) override;
+
 	bool Write(int v, const char* tag) override;
 	bool Write(uint16 v, const char* tag) override;
 	bool Write(uint32 v, const char* tag) override;
@@ -125,6 +129,7 @@ public:
 	bool Write(const char* s, const char* tag) override;
 	bool Write(const char* buf, int len, const char* tag) override;
 	bool Write(const string& s, const char* tag) override;
+	bool Write(const vector<uint8>* v, const char* tag) override;
 	bool Write(const IPAddr& addr, const char* tag) override;
 	bool Write(const IPPrefix& prefix, const char* tag) override;
 	bool Write(const struct in_addr& addr, const char* tag) override;

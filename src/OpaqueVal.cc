@@ -871,18 +871,18 @@ void CardinalityVal::Add(const Val* val)
 	}
 
 
-ParaglobVal::ParaglobVal(paraglob::Paraglob* p)
+ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p)
 : OpaqueVal(paraglob_type)
 	{
-	this->internal_paraglob = p;
+	this->internal_paraglob = std::move(p);
 	}
 
 VectorVal* ParaglobVal::get(StringVal* &pattern)
 	{
 	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
 	std::string string_pattern (pattern->CheckString(), pattern->Len());
-	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
 
+	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
 	for (unsigned int i = 0; i < matches.size(); i++) {
 		rval->Assign(i, new StringVal(matches.at(i).c_str()));
 	}
@@ -890,7 +890,45 @@ VectorVal* ParaglobVal::get(StringVal* &pattern)
 	return rval;
 	}
 
-bool ParaglobVal::operator==(const ParaglobVal *other)
+bool ParaglobVal::operator==(const ParaglobVal& other) const
 	{
-	return (*(this->internal_paraglob) == *(other->internal_paraglob));
+	return *(this->internal_paraglob) == *(other.internal_paraglob);
+	}
+
+IMPLEMENT_SERIAL(ParaglobVal, SER_PARAGLOB_VAL)
+
+bool ParaglobVal::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_PARAGLOB_VAL, OpaqueVal)
+
+	std::unique_ptr<std::vector<uint8_t>> iv = this->internal_paraglob->serialize();
+
+	return SERIALIZE(iv.get());
+	}
+
+bool ParaglobVal::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(OpaqueVal)
+
+	std::unique_ptr<std::vector<uint8_t>> iv (new std::vector<uint8_t>);
+
+	bool success = UNSERIALIZE(iv.get());
+
+	try {
+		this->internal_paraglob = build_unique<paraglob::Paraglob>(std::move(iv));
+	} catch (const paraglob::underflow_error& e) {
+		reporter->Error(e.what());
+		return false;
+	} catch (const paraglob::overflow_error& e) {
+		reporter->Error(e.what());
+		return false;
+	}
+
+	return success;
+	}
+
+Val* ParaglobVal::DoClone(CloneState* state)
+	{
+	return new ParaglobVal
+		(build_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
 	}

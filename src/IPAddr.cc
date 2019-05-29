@@ -281,4 +281,3 @@ string IPPrefix::AsString() const
 
 	return prefix.AsString() +"/" + l;
 	}
-

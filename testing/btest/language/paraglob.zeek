@@ -15,9 +15,11 @@ event zeek_init ()
   # paraglob_init should not modify v1
   print (v1 == vector("*", "d?g", "*og", "d?", "d[!wl]g"));
   # p_eq and p1 should be the same paraglobs
-  print paraglob_equals(p1, p_eq);
+  print paraglob_equals(p_eq, p1);
 
   print paraglob_get(p1, "dog");
+
+
   print paraglob_get(p2, "once");
   print paraglob_get(p3, "www.strange-malware-domain.gov");
 

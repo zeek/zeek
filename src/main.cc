@@ -943,6 +943,17 @@ int main(int argc, char** argv)
 	init_net_var();
 	init_builtin_funcs_subdirs();
 
+	// Must come after plugin activation (and also after hash
+	// initialization).
+	binpac::FlowBuffer::Policy flowbuffer_policy;
+	flowbuffer_policy.max_capacity = global_scope()->Lookup(
+		"BinPAC::flowbuffer_capacity_max")->ID_Val()->AsCount();
+	flowbuffer_policy.min_capacity = global_scope()->Lookup(
+		"BinPAC::flowbuffer_capacity_min")->ID_Val()->AsCount();
+	flowbuffer_policy.contract_threshold = global_scope()->Lookup(
+		"BinPAC::flowbuffer_contract_threshold")->ID_Val()->AsCount();
+	binpac::init(&flowbuffer_policy);
+
 	plugin_mgr->InitBifs();
 
 	if ( reporter->Errors() > 0 )

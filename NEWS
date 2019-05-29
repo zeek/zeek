@@ -80,7 +80,8 @@ New Functionality
   also allowed when specifying patterns used in signature files.
 
 - Add a new "client_channels" field to rdp.log based on data parsed from
-  the Client Network Data (TS_UD_CS_NET) packet.
+  the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
+  available in a new event, "rdp_client_network_data".
 
 Changed Functionality
 ---------------------

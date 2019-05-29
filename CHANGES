@@ -1,4 +1,8 @@
 
+2.6-354 | 2019-05-29 09:46:19 -0700
+
+  * Add weird: "RDP_channels_requested_exceeds_max" (Vlad Grigorescu)
+
 2.6-352 | 2019-05-28 17:57:36 -0700
 
   * Reduce data copying in Broker message processing (Jon Siwek, Corelight)

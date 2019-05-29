@@ -201,6 +201,9 @@ event rdp_client_network_data(c: connection, channels: ClientChannelList)
 	for ( i in channels )
 		# Remove the NULs at the end
 		c$rdp$client_channels[i] = gsub(channels[i]$name, /\x00+$/, "");
+
+	if ( |channels| > 31 )
+		Reporter::conn_weird("RDP_channels_requested_exceeds_max", c, fmt("%s", |channels|));
 	}
 
 event rdp_gcc_server_create_response(c: connection, result: count) &priority=5

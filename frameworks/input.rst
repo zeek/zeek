@@ -124,6 +124,29 @@ table and blacklist entries can easily be tested:
         if ( 192.168.18.12 in blacklist )
                 # take action
 
+Sets instead of tables
+----------------------
+
+For some use cases the key/value notion that drives tabular data does
+not apply, for example when the main purpose of the data is to test
+for membership in a set. The input framework supports this approach by
+using sets as the destination data type, and omitting ``$val`` in
+:zeek:id:`Input::add_table`:
+
+.. sourcecode:: bro
+
+        type Idx: record {
+                ip: addr;
+        };
+
+        global blacklist: set[addr] = set();
+
+        event zeek_init() {
+                Input::add_table([$source="blacklist.file", $name="blacklist",
+                                  $idx=Idx, $destination=blacklist]);
+                Input::remove("blacklist");
+        }
+
 
 Re-reading and streaming data
 -----------------------------
@@ -262,6 +285,35 @@ contain the new values, but the destination (``blacklist`` in our example)
 still contains the old values. This allows predicate functions to examine
 the changes between the old and the new version before deciding if they
 should be allowed.
+
+
+Broken input data
+-----------------
+
+The input framework notifies you of problems during data ingestion in
+two ways. First, reporter messages, ending up in ``reporter.log``,
+indicate the type of problem and the file in which the problem
+occurred::
+
+    #fields ts      level   message location
+    0.000000        Reporter::WARNING       blacklist.file/Input::READER_ASCII: Did not find requested field ip in input data file blacklist.file.   (empty)
+
+Second, the :zeek:type:`Input::TableDescription` and
+:zeek:type:`Input::EventDescription` records feature an ``$error_ev`` member to
+handle events indicating the same message and severity levels as shown
+above. The use of these events mirrors that of change events.
+
+For both approaches the framework suppresses repeated messages
+regarding the same file, so mistakes in large data files do not
+trigger a message flood.
+
+Finally, the ASCII reader allows coarse control over the robustness in
+case of problems during data ingestion. Concretely, the
+:zeek:id:`InputAscii::fail_on_invalid_lines` and
+:zeek:id:`InputAscii::fail_on_file_problem` flags indicate whether
+problems should merely trigger warnings or lead to processing failure.
+Both default to warnings.
+
 
 Different readers
 -----------------

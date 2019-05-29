@@ -1,4 +1,19 @@
 
+2.6-352 | 2019-05-28 17:57:36 -0700
+
+  * Reduce data copying in Broker message processing (Jon Siwek, Corelight)
+
+  * Improve Broker I/O loop integration: less mutex locking (Jon Siwek, Corelight)
+
+    Checking a subscriber for available messages required locking a mutex,
+    but we should never actually need to do that in the main-loop to check
+    for Broker readiness since we can rely on file descriptor polling.
+
+  * Improve processing of broker data store responses (Jon Siwek, Corelight)
+
+    Now retrieves and processes all N available responses at once instead
+    of one-by-one-until-empty.
+
 2.6-345 | 2019-05-28 11:32:16 -0700
 
   * RDP: Add parsing and logging of channels requested by the client. (Vlad Grigorescu)

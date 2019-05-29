@@ -17,8 +17,8 @@ global ping: event(msg: string, c: count);
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
-    Broker::auto_publish("bro/event/my_topic", ping);
+    Broker::subscribe("zeek/event/my_topic");
+    Broker::auto_publish("zeek/event/my_topic", ping);
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 
@@ -61,8 +61,8 @@ global pong: event(msg: string, c: count);
 
 event zeek_init()
         {
-        Broker::subscribe("bro/event/my_topic");
-	Broker::auto_publish("bro/event/my_topic", pong);
+        Broker::subscribe("zeek/event/my_topic");
+        Broker::auto_publish("zeek/event/my_topic", pong);
         Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
         }
 

@@ -772,6 +772,15 @@ bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
 	bstate->subscriber.add_topic(topic_prefix, ! after_zeek_init);
+
+	// For backward compatibility, we also may receive messages on
+	// "bro/" topic prefixes in addition to "zeek/".
+	if ( strncmp(topic_prefix.data(), "zeek/", 5) == 0 )
+		{
+		std::string alt_topic = "bro/" + topic_prefix.substr(5);
+		bstate->subscriber.add_topic(std::move(alt_topic), ! after_zeek_init);
+		}
+
 	return true;
 	}
 

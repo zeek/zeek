@@ -105,7 +105,7 @@ event do_terminate()
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
+    Broker::subscribe("zeek/event/my_topic");
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     schedule 5secs { do_terminate()   };
     }

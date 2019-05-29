@@ -22,7 +22,7 @@ event zeek_init()
 
 event NetControl::init()
 	{
-	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=to_port(getenv("BROKER_PORT")), $topic="bro/event/netcontroltest"), T);
+	local netcontrol_broker = NetControl::create_broker(NetControl::BrokerConfig($host=127.0.0.1, $bport=to_port(getenv("BROKER_PORT")), $topic="zeek/event/netcontroltest"), T);
 	NetControl::activate(netcontrol_broker, 0);
 	}
 
@@ -92,7 +92,7 @@ event die()
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/event/netcontroltest");
+	Broker::subscribe("zeek/event/netcontroltest");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
@@ -106,19 +106,19 @@ event NetControl::broker_add_rule(id: count, r: NetControl::Rule)
 	print "add_rule", id, r$entity, r$ty;
 
 	if ( r$cid == 3 )
-		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_added, id, r, "");
+		Broker::publish("zeek/event/netcontroltest", NetControl::broker_rule_added, id, r, "");
 	if ( r$cid == 2 )
-		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_exists, id, r, "");
+		Broker::publish("zeek/event/netcontroltest", NetControl::broker_rule_exists, id, r, "");
 
 	if ( r$cid == 2 )
-		Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo());
+		Broker::publish("zeek/event/netcontroltest", NetControl::broker_rule_timeout, id, r, NetControl::FlowInfo());
 	}
 
 event NetControl::broker_remove_rule(id: count, r: NetControl::Rule, reason: string)
 	{
 	print "remove_rule", id, r$entity, r$ty, reason;
 
-	Broker::publish("bro/event/netcontroltest", NetControl::broker_rule_removed, id, r, "");
+	Broker::publish("zeek/event/netcontroltest", NetControl::broker_rule_removed, id, r, "");
 
 	if ( r$cid == 3 )
 		{

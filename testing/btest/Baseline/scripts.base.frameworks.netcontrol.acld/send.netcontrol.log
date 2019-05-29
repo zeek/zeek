@@ -6,20 +6,20 @@
 #open	2017-04-07-17-26-05
 #fields	ts	rule_id	category	cmd	state	action	target	entity_type	entity	mod	msg	priority	expire	location	plugin
 #types	time	string	enum	string	enum	string	enum	string	string	string	string	int	interval	string	string
-0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Acld-bro/event/netcontroltest
+0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activating plugin with priority 0	-	-	-	Acld-zeek/event/netcontroltest
 0.000000	-	NetControl::MESSAGE	-	-	-	-	-	-	-	waiting for plugins to initialize	-	-	-	-
-1491585965.002956	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Acld-bro/event/netcontroltest
+1491585965.002956	-	NetControl::MESSAGE	-	-	-	-	-	-	-	activation finished	-	-	-	Acld-zeek/event/netcontroltest
 1491585965.002956	-	NetControl::MESSAGE	-	-	-	-	-	-	-	plugin initialization done	-	-	-	-
-1491585965.027155	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	-	0	36000.000000	here	Acld-bro/event/netcontroltest
-1491585965.027155	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	-	0	36000.000000	there	Acld-bro/event/netcontroltest
-1491585965.027155	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	36000.000000	-	Acld-bro/event/netcontroltest
-1491585965.027706	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	blockhosthost	0	36000.000000	here	Acld-bro/event/netcontroltest
-1491585965.027706	2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	-	0	36000.000000	here	Acld-bro/event/netcontroltest
-1491585965.027706	3	NetControl::RULE	ADD	NetControl::EXISTS	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	droptcpport	0	36000.000000	there	Acld-bro/event/netcontroltest
-1491585965.027706	3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	-	0	36000.000000	there	Acld-bro/event/netcontroltest
-1491585965.027706	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	drop	0	36000.000000	-	Acld-bro/event/netcontroltest
-1491585965.027706	4	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	36000.000000	-	Acld-bro/event/netcontroltest
-1491585965.027706	2	NetControl::ERROR	-	-	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	restorehosthost	0	36000.000000	here	Acld-bro/event/netcontroltest
-1491585965.027706	3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	restoretcpport	0	36000.000000	there	Acld-bro/event/netcontroltest
-1491585965.027706	4	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	restore	0	36000.000000	-	Acld-bro/event/netcontroltest
+1491585965.027155	2	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	-	0	36000.000000	here	Acld-zeek/event/netcontroltest
+1491585965.027155	3	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	-	0	36000.000000	there	Acld-zeek/event/netcontroltest
+1491585965.027155	4	NetControl::RULE	ADD	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	36000.000000	-	Acld-zeek/event/netcontroltest
+1491585965.027706	2	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	blockhosthost	0	36000.000000	here	Acld-zeek/event/netcontroltest
+1491585965.027706	2	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	-	0	36000.000000	here	Acld-zeek/event/netcontroltest
+1491585965.027706	3	NetControl::RULE	ADD	NetControl::EXISTS	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	droptcpport	0	36000.000000	there	Acld-zeek/event/netcontroltest
+1491585965.027706	3	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	-	0	36000.000000	there	Acld-zeek/event/netcontroltest
+1491585965.027706	4	NetControl::RULE	ADD	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	drop	0	36000.000000	-	Acld-zeek/event/netcontroltest
+1491585965.027706	4	NetControl::RULE	REMOVE	NetControl::REQUESTED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	-	0	36000.000000	-	Acld-zeek/event/netcontroltest
+1491585965.027706	2	NetControl::ERROR	-	-	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	192.168.18.50/32/*->74.125.239.97/32/*	-	restorehosthost	0	36000.000000	here	Acld-zeek/event/netcontroltest
+1491585965.027706	3	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::FLOW	*/*->*/443	-	restoretcpport	0	36000.000000	there	Acld-zeek/event/netcontroltest
+1491585965.027706	4	NetControl::RULE	REMOVE	NetControl::SUCCEEDED	NetControl::DROP	NetControl::FORWARD	NetControl::ADDRESS	192.168.18.50/32	-	restore	0	36000.000000	-	Acld-zeek/event/netcontroltest
 #close	2017-04-07-17-26-05

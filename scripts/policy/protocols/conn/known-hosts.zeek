@@ -36,7 +36,7 @@ export {
 	global host_store: Cluster::StoreInfo;
 
 	## The Broker topic name to use for :zeek:see:`Known::host_store`.
-	const host_store_name = "bro/known/hosts" &redef;
+	const host_store_name = "zeek/known/hosts" &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::host_store`.
 	## This also changes the interval at which hosts get logged.

@@ -60,7 +60,7 @@ event zeek_init() &priority=5
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/");
+	Broker::subscribe("zeek/");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
@@ -123,7 +123,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		]);
 
 	local e = Broker::make_event(quit_receiver);
-	Broker::publish("bro/", e);
+	Broker::publish("zeek/", e);
 	schedule 1sec { quit_sender() };
         }
 

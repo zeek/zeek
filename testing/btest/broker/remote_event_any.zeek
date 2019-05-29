@@ -17,7 +17,7 @@ global ping: event(msg: string, c: any);
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
+    Broker::subscribe("zeek/event/my_topic");
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     print "is_remote should be F, and is", is_remote_event();
     }
@@ -26,7 +26,7 @@ function send_event()
     {
     ++event_count;
     local e = Broker::make_event(ping, "my-message", event_count);
-    Broker::publish("bro/event/my_topic", e);
+    Broker::publish("zeek/event/my_topic", e);
     }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -69,7 +69,7 @@ global pong: event(msg: string, c: any);
 
 event zeek_init()
         {
-        Broker::subscribe("bro/event/my_topic");
+        Broker::subscribe("zeek/event/my_topic");
         Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
         }
 
@@ -98,10 +98,10 @@ event ping(msg: string, n: any)
                 }
 
 		if ( (n as count) % 2 == 0 )
-			Broker::publish("bro/event/my_topic", pong, msg, n as count);
+			Broker::publish("zeek/event/my_topic", pong, msg, n as count);
 		else
 			# internals should not wrap n into another Broker::Data record
-			Broker::publish("bro/event/my_topic", pong, msg, n);
+			Broker::publish("zeek/event/my_topic", pong, msg, n);
         }
 
 @TEST-END-FILE

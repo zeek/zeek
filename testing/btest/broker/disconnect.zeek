@@ -17,7 +17,7 @@
 redef exit_only_after_terminate = T;
 
 global peers = 0;
-const test_topic = "bro/test/my_topic";
+const test_topic = "zeek/test/my_topic";
 
 event my_event(i: count)
 	{
@@ -52,7 +52,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 redef exit_only_after_terminate = T;
 
-const test_topic = "bro/test/my_topic";
+const test_topic = "zeek/test/my_topic";
 
 event my_event(i: count)
 	{

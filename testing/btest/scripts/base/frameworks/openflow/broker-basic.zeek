@@ -18,7 +18,7 @@ global of_controller: OpenFlow::Controller;
 event zeek_init()
 	{
 	suspend_processing();
-	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, to_port(getenv("BROKER_PORT")), "bro/openflow", 42);
+	of_controller = OpenFlow::broker_new("broker1", 127.0.0.1, to_port(getenv("BROKER_PORT")), "zeek/openflow", 42);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -88,7 +88,7 @@ redef exit_only_after_terminate = T;
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/openflow");
+	Broker::subscribe("zeek/openflow");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
@@ -105,8 +105,8 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event OpenFlow::broker_flow_mod(name: string, dpid: count, match: OpenFlow::ofp_match, flow_mod: OpenFlow::ofp_flow_mod)
 	{
 	print "got flow_mod", dpid, match, flow_mod;
-	Broker::publish("bro/openflow", OpenFlow::flow_mod_success, name, match, flow_mod, "");
-	Broker::publish("bro/openflow", OpenFlow::flow_mod_failure, name, match, flow_mod, "");
+	Broker::publish("zeek/openflow", OpenFlow::flow_mod_success, name, match, flow_mod, "");
+	Broker::publish("zeek/openflow", OpenFlow::flow_mod_failure, name, match, flow_mod, "");
 	}
 
 event OpenFlow::broker_flow_clear(name: string, dpid: count)

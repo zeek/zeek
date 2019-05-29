@@ -44,7 +44,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/");
+	Broker::subscribe("zeek/");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 

@@ -22,7 +22,7 @@ event zeek_init()
 
 event NetControl::init()
 	{
-	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=to_port(getenv("BROKER_PORT")), $acld_topic="bro/event/netcontroltest"));
+	local netcontrol_acld = NetControl::create_acld(NetControl::AcldConfig($acld_host=127.0.0.1, $acld_port=to_port(getenv("BROKER_PORT")), $acld_topic="zeek/event/netcontroltest"));
 	NetControl::activate(netcontrol_acld, 0);
 	}
 
@@ -108,7 +108,7 @@ event die()
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/event/netcontroltest");
+	Broker::subscribe("zeek/event/netcontroltest");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
@@ -122,9 +122,9 @@ event NetControl::acld_add_rule(id: count, r: NetControl::Rule, ar: NetControl::
 	print "add_rule", id, r$entity, r$ty, ar;
 
 	if ( r$cid != 3 )
-		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_added, id, r, ar$command);
+		Broker::publish("zeek/event/netcontroltest", NetControl::acld_rule_added, id, r, ar$command);
 	else
-		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_exists, id, r, ar$command);
+		Broker::publish("zeek/event/netcontroltest", NetControl::acld_rule_exists, id, r, ar$command);
 	}
 
 event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetControl::AclRule)
@@ -132,9 +132,9 @@ event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetContro
 	print "remove_rule", id, r$entity, r$ty, ar;
 
 	if ( r$cid != 2 )
-		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_removed, id, r, ar$command);
+		Broker::publish("zeek/event/netcontroltest", NetControl::acld_rule_removed, id, r, ar$command);
 	else
-		Broker::publish("bro/event/netcontroltest", NetControl::acld_rule_error, id, r, ar$command);
+		Broker::publish("zeek/event/netcontroltest", NetControl::acld_rule_error, id, r, ar$command);
 
 	if ( r$cid == 4 )
 		{

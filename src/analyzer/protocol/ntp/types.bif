@@ -1,0 +1,5 @@
+module NTP;
+
+type NTP::Message: record;
+
+module GLOBAL;

@@ -3556,7 +3556,7 @@ bool OpaqueVal::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
-Val* check_and_promote(Val* v, const BroType* t, int is_init)
+Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
 		return 0;
@@ -3580,7 +3580,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v);
+		t->Error("type clash", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -3589,9 +3589,9 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	     (! IsArithmetic(v_tag) || t_tag != TYPE_TIME || ! v->IsZero()) )
 		{
 		if ( t_tag == TYPE_LIST || v_tag == TYPE_LIST )
-			t->Error("list mixed with scalar", v);
+			t->Error("list mixed with scalar", v, 0, expr_location);
 		else
-			t->Error("arithmetic mixed with non-arithmetic", v);
+			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -3604,7 +3604,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", v);
+			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
 			Unref(v);
 			return 0;
 			}

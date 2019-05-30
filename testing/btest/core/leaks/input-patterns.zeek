@@ -19,11 +19,13 @@ redef exit_only_after_terminate = T;
 4	/^oob/
 5 /foo/
 6 /foo/
+7	/dog/
+8	/cat/
+9	/foo|bar/
+10	/^oob/
+11 /foo/
+12 /foo/
 @TEST-END-FILE
-
-global outfile: file;
-
-module A;
 
 type Idx: record {
 	i: int;
@@ -37,8 +39,6 @@ global pats: table[int] of Val = table();
 
 event zeek_init()
 	{
-	outfile = open("../out");
-	# first read in the old stuff into the table...
 	Input::add_table([$source="../input.log", $name="pats", $idx=Idx, $val=Val, $destination=pats]);
 	}
 

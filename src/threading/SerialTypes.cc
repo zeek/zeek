@@ -92,7 +92,7 @@ Value::~Value()
 		delete [] val.string_val.data;
 
 	if ( type == TYPE_PATTERN && present)
-		delete val.pattern_text_val;
+		delete [] val.pattern_text_val;
 
 	if ( type == TYPE_TABLE && present )
 		{

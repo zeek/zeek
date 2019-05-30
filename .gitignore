@@ -1,3 +1,7 @@
 build
 tmp
 *.gcov
+
+# Configuration and build directories for CLion
+.idea
+cmake-build-debug

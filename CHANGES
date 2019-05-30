@@ -1,4 +1,14 @@
 
+2.6-357 | 2019-05-30 10:57:54 -0700
+
+  * Tweak to ASCII reader warning suppression (Christian Kreibich, Corelight)
+
+    Warnings in the ASCII reader so far remained suppressed even
+    when an input file changed. It's helpful to learn about problems
+    in the data when putting in place new data files, so this change
+    maintains the existing warning suppression while processing a file,
+    but re-enables warnings after updates to a file.
+
 2.6-354 | 2019-05-29 09:46:19 -0700
 
   * Add weird: "RDP_channels_requested_exceeds_max" (Vlad Grigorescu)

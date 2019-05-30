@@ -4,6 +4,39 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.6.2
+=========
+
+This is a security patch release to address potential Denial of
+Service vulnerabilities:
+
+- Integer type mismatches in BinPAC-generated parser code and Bro
+  analyzer code may allow for crafted packet data to cause
+  unintentional code paths in the analysis logic to be taken due to
+  unsafe integer conversions causing the parser and analysis logic
+  to each expect different fields to have been parsed.  One such
+  example, reported by Maksim Shudrak, causes the Kerberos analyzer
+  to dereference a null pointer.  CVE-2019-12175 was assigned for
+  this issue.
+
+- The Kerberos parser allows for several fields to be left
+  uninitialized, but they were not marked with an &optional attribute
+  and several usages lacked existence checks.  Crafted packet data
+  could potentially cause an attempt to access such uninitialized
+  fields, generate a runtime error/exception, and leak memory.
+  Existence checks and &optional attributes have been added to the
+  relevent Kerberos fields.
+
+- BinPAC-generated protocol parsers commonly contain fields whose
+  length is derived from other packet input, and for those that allow
+  for incremental parsing, BinPAC did not impose a limit on how
+  large such a field could grow, allowing for remotely-controlled
+  packet data to cause growth of BinPAC's flowbuffer bounded only
+  by the numeric limit of an unsigned 64-bit integer, leading
+  to memory exhaustion.  There is now a generalized limit for
+  how large flowbuffers are allowed to grow, tunable by setting
+  "BinPAC::flowbuffer_capacity_max".
+
 Bro 2.6.1
 =========
 

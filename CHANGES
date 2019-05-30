@@ -1,4 +1,41 @@
 
+2.6.2 | 2019-05-29 19:05:52 -0700
+
+  * Update NEWS/CHANGES (Jon Siwek, Corelight)
+
+  * Add missing &optional attr to KRB record fields (Jon Siwek, Corelight)
+
+    The KRB parser allowed for the following types/fields to be left
+    uninitialized, so an &optional attribute was added to reflect that:
+
+      - KRB::Error_Msg
+        - pvno
+        - msg_type
+        - server_time
+        - service_realm
+        - service_name
+
+      - KRB::KDC_Request
+        - kdc_options
+        - service_realm
+        - till
+        - nonce
+        - encryption_types
+
+    Usages have also been adapted to perform existence checks.
+
+  * Improve PE file analysis (Jon Siwek, Corelight)
+
+    * Consider parsing done after processing headers
+
+    * Remove the analyzer when done parsing
+
+    * Enforce a maximum DOS stub program length (helps filter out non-PE)
+
+  * Set PE analyzer CMake dependencies correctly (Jon Siwek, Corelight)
+
+  * Add options to tune binpac flowbuffer policy (Jon Siwek, Corelight)
+
 2.6.1 | 2018-12-19 10:33:44 -0600
 
   * Release 2.6.1

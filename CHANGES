@@ -1,4 +1,8 @@
 
+2.6-359 | 2019-05-31 13:37:17 -0700
+
+  * Remove old documentation reference to rotate_interval (Jon Siwek, Corelight)
+
 2.6-357 | 2019-05-30 10:57:54 -0700
 
   * Tweak to ASCII reader warning suppression (Christian Kreibich, Corelight)

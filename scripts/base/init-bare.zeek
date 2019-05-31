@@ -777,7 +777,7 @@ type IPAddrAnonymizationClass: enum {
 
 ## Deprecated.
 ##
-## .. zeek:see:: rotate_file rotate_file_by_name rotate_interval
+## .. zeek:see:: rotate_file rotate_file_by_name
 type rotate_info: record {
 	old_name: string;	##< Original filename.
 	new_name: string;	##< File name after rotation.

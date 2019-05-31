@@ -8873,7 +8873,7 @@ Types
 
    Deprecated.
    
-   .. zeek:see:: rotate_file rotate_file_by_name rotate_interval
+   .. zeek:see:: rotate_file rotate_file_by_name
 
 .. zeek:type:: script_id
 

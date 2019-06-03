@@ -53,7 +53,6 @@ event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: 
 event ssl_extension_pre_shared_key_client_hello(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec)
 	{
 	print "pre_shared_key client hello", c$id$orig_h, c$id$resp_h, identities, binders;
-
 	}
 
 event ssl_extension_pre_shared_key_server_hello(c: connection, is_orig: bool, selected_identity: count)

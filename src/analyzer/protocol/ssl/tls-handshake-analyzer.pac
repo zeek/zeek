@@ -138,6 +138,18 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_hello_retry_request_key_share(rec: HandshakeRecord, namedgroup: uint16) : bool
+		%{
+		if ( ! ssl_extension_key_share )
+			return true;
+
+		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		nglist->Assign(0u, val_mgr->GetCount(namedgroup));
+		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+		return true;
+		%}
+
 	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
 		%{
 		if ( ! ssl_extension_signature_algorithm )
@@ -550,6 +562,10 @@ refine typeattr EllipticCurves += &let {
 
 refine typeattr ServerHelloKeyShare += &let {
 	proc : bool = $context.connection.proc_server_key_share(rec, keyshare);
+};
+
+refine typeattr HelloRetryRequestKeyShare += &let {
+	proc : bool = $context.connection.proc_hello_retry_request_key_share(rec, namedgroup);
 };
 
 refine typeattr ClientHelloKeyShare += &let {

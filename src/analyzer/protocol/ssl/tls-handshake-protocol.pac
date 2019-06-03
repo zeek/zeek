@@ -774,7 +774,8 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
-		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
+		EXT_KEY_SHARE -> key_share: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
+		EXT_KEY_SHARE_OLD -> key_share_old: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
 		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
 		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
 		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == 0 || $element != 0);
@@ -852,14 +853,23 @@ type ServerHelloKeyShare(rec: HandshakeRecord) = record {
 	keyshare : KeyShareEntry;
 };
 
+type HelloRetryRequestKeyShare(rec: HandshakeRecord) = record {
+	namedgroup : uint16;
+};
+
+type ServerHelloKeyShareChoice(rec: HandshakeRecord, ext: SSLExtension) = case (ext.data_len) of {
+	2 -> hrr : HelloRetryRequestKeyShare(rec);
+	default -> server : ServerHelloKeyShare(rec);
+};
+
 type ClientHelloKeyShare(rec: HandshakeRecord) = record {
 	length: uint16;
 	keyshares : KeyShareEntry[] &until($input.length() == 0);
-};
+} &length=(length+2);
 
-type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
+type KeyShare(rec: HandshakeRecord, ext: SSLExtension) = case rec.msg_type of {
 	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
-	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShare(rec);
+	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShareChoice(rec, ext);
 	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
 	default -> other : bytestring &restofdata &transient;
 };

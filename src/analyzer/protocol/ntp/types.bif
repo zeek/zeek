@@ -1,5 +1,6 @@
 module NTP;
 
+type NTP::std: record;
+type NTP::control: record;
+type NTP::mode7: record;
 type NTP::Message: record;
-
-module GLOBAL;

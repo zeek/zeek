@@ -1,21 +1,12 @@
-## Generated for all NTP messages. Different from many other of Bro's events,
-## this one is generated for both client-side and server-side messages.
+## Generated for NTP time synchronization messages
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
-## more information about the NTP protocol.
+## For more information about NTP, refer to :rfc:`5905`
 ##
-## u: The connection record describing the corresponding UDP flow.
+## c: The connection
 ##
-## msg: The parsed NTP message.
+## msg: The NTP message record
 ##
-## excess: The raw bytes of any optional parts of the NTP packet. Bro does not
-##         further parse any optional fields.
-##
-## .. zeek:see:: ntp_session_timeout
-##
-## .. todo:: Bro's current default configuration does not activate the protocol
-##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
-##    register a port for it or add a DPD payload signature.
-event ntp_message%(u: connection, msg: ntp_msg, excess: string%);
+event ntp_message%(c: connection, is_orig: bool, msg: NTP::Message%);
 
+event ntp_mode6_message%(c: connection, is_orig: bool, opcode: count%);
+event ntp_mode7_message%(c: connection, is_orig: bool, opcode: count%);

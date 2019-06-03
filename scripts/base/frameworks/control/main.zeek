@@ -1,12 +1,12 @@
 ##! The control framework provides the foundation for providing "commands"
-##! that can be taken remotely at runtime to modify a running Bro instance
+##! that can be taken remotely at runtime to modify a running Zeek instance
 ##! or collect information from the running instance.
 
 module Control;
 
 export {
 	## The topic prefix used for exchanging control messages via Broker.
-	const topic_prefix = "bro/control";
+	const topic_prefix = "zeek/control";
 
 	## Whether the controllee should call :zeek:see:`Broker::listen`.
 	## In a cluster, this isn't needed since the setup process calls it.
@@ -58,7 +58,7 @@ export {
 	## Returns the current net_stats.
 	global net_stats_response: event(s: string);
 
-	## Inform the remote Bro instance that it's configuration may have been
+	## Inform the remote Zeek instance that it's configuration may have been
 	## updated.
 	global configuration_update_request: event();
 	## This event is a wrapper and alias for the
@@ -68,7 +68,7 @@ export {
 	## Message in response to a configuration update request.
 	global configuration_update_response: event();
 
-	## Requests that the Bro instance begins shutting down.
+	## Requests that the Zeek instance begins shutting down.
 	global shutdown_request: event();
 	## Message in response to a shutdown request.
 	global shutdown_response: event();

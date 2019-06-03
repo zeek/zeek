@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "NTP.h"
@@ -62,6 +62,9 @@ void NTP_Analyzer::Message(const u_char* data, int len)
 	len -= sizeof *ntp_data;
 	data += sizeof *ntp_data;
 
+	if ( ! ntp_message )
+		return;
+
 	RecordVal* msg = new RecordVal(ntp_msg);
 
 	unsigned int code = ntp_data->status & 0x7;
@@ -78,12 +81,11 @@ void NTP_Analyzer::Message(const u_char* data, int len)
 	msg->Assign(9, new Val(LongFloat(ntp_data->rec), TYPE_TIME));
 	msg->Assign(10, new Val(LongFloat(ntp_data->xmt), TYPE_TIME));
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(msg);
-	vl->append(new StringVal(new BroString(data, len, 0)));
-
-	ConnectionEvent(ntp_message, vl);
+	ConnectionEventFast(ntp_message, {
+		BuildConnVal(),
+		msg,
+		new StringVal(new BroString(data, len, 0)),
+	});
 	}
 
 double NTP_Analyzer::ShortFloat(struct s_fixedpt fp)

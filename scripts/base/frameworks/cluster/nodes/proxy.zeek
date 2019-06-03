@@ -1,13 +1,9 @@
-##! Redefines the options common to all proxy nodes within a Bro cluster.
+##! Redefines the options common to all proxy nodes within a Zeek cluster.
 ##! In particular, proxies are not meant to produce logs locally and they
 ##! do not forward events anywhere, they mainly synchronize state between
 ##! worker nodes.
 
 @prefixes += cluster-proxy
-
-## The proxy only syncs state; does not forward events.
-redef forward_remote_events = F;
-redef forward_remote_state_changes = T;
 
 ## Don't do any local logging.
 redef Log::enable_local_logging = F;

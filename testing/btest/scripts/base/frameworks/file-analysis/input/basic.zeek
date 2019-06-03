@@ -1,7 +1,7 @@
-# @TEST-EXEC: btest-bg-run bro bro -b $SCRIPTS/file-analysis-test.zeek %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b $SCRIPTS/file-analysis-test.zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 8
-# @TEST-EXEC: btest-diff bro/.stdout
-# @TEST-EXEC: diff -q bro/FK8WqY1Q9U1rVxnDge-file input.log
+# @TEST-EXEC: btest-diff zeek/.stdout
+# @TEST-EXEC: diff -q zeek/FK8WqY1Q9U1rVxnDge-file input.log
 
 redef exit_only_after_terminate = T;
 

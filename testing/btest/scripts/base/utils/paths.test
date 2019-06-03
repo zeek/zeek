@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: zeek %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # This is loaded by default.
@@ -41,18 +41,18 @@ print "===============================";
 test_extract("\"/this/is/a/dir\" is current directory", "/this/is/a/dir");
 test_extract("/this/is/a/dir is current directory", "/this/is/a/dir");
 test_extract("/this/is/a/dir\\ is\\ current\\ directory", "/this/is/a/dir\\ is\\ current\\ directory");
-test_extract("hey, /foo/bar/baz.bro is a cool script", "/foo/bar/baz.bro");
+test_extract("hey, /foo/bar/baz.zeek is a cool script", "/foo/bar/baz.zeek");
 test_extract("here's two dirs: /foo/bar and /foo/baz", "/foo/bar");
 
 print "test build_path_compressed()";
 print "===============================";
-print build_path_compressed("/home/bro/", "policy/somefile.bro");
-print build_path_compressed("/home/bro/", "/usr/local/bro/share/bro/somefile.bro");
-print build_path_compressed("/home/bro/", "/usr/local/bro/share/../../bro/somefile.bro");
+print build_path_compressed("/home/bro/", "policy/somefile.zeek");
+print build_path_compressed("/home/bro/", "/usr/local/bro/share/bro/somefile.zeek");
+print build_path_compressed("/home/bro/", "/usr/local/bro/share/../../bro/somefile.zeek");
 
 print "===============================";
 print "test build_full_path()";
 print "===============================";
-print build_path("/home/bro/", "policy/somefile.bro");
-print build_path("/home/bro/", "/usr/local/bro/share/bro/somefile.bro");
+print build_path("/home/bro/", "policy/somefile.zeek");
+print build_path("/home/bro/", "/usr/local/bro/share/bro/somefile.zeek");
 

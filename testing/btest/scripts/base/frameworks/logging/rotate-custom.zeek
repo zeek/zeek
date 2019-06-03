@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out.tmp
+# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT | egrep "test|test2" | sort >out.tmp
 # @TEST-EXEC: cat out.tmp pp.log | sort >out
 # @TEST-EXEC: for i in `ls test*.log | sort`; do printf '> %s\n' $i; cat $i; done | sort | $SCRIPTS/diff-remove-timestamps | uniq >>out
 # @TEST-EXEC: btest-diff out

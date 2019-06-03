@@ -1,11 +1,11 @@
 ##! The controllee portion of the control framework.  Load this script if remote
-##! runtime control of the Bro process is desired.
+##! runtime control of the Zeek process is desired.
 ##!
 ##! A controllee only needs to load the controllee script in addition
 ##! to the specific analysis scripts desired.  It may also need a node
 ##! configured as a controller node in the communications nodes configuration::
 ##!
-##!     bro <scripts> frameworks/control/controllee
+##!     zeek <scripts> frameworks/control/controllee
 
 @load base/frameworks/control
 @load base/frameworks/broker

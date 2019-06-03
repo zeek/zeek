@@ -1,8 +1,9 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-# Errors that happen during runtime. At least at the moment we are not checking these early enough
-# that Bro will bail out during startup. Perhaps we want to change this later.
+# Errors that happen during runtime.  At least at the moment we are not
+# checking these early enough that Zeek will bail out during startup. Perhaps
+# we want to change this later.
 
 option A = 5;
 Option::set("B", 6);

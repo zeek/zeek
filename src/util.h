@@ -34,7 +34,7 @@
 #include <stdarg.h>
 #include <libgen.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "siphash24.h"
 
 #ifdef DEBUG
@@ -326,9 +326,9 @@ std::string flatten_script_name(const std::string& name,
 std::string normalize_path(const std::string& path);
 
 /**
- * Strip the BROPATH component from a path.
- * @param path A file/directory path that may be within a BROPATH component.
- * @return *path* minus the common BROPATH component (if any) removed.
+ * Strip the ZEEKPATH component from a path.
+ * @param path A file/directory path that may be within a ZEEKPATH component.
+ * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
 std::string without_bropath_component(const std::string& path);
 
@@ -548,5 +548,11 @@ std::string canonify_name(const std::string& name);
  * XSI-compliant and the GNU-specific version of strerror_r().
  */
 void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
+
+/**
+ * A wrapper function for getenv().  Helps check for existence of
+ * legacy environment variable names that map to the latest \a name.
+ */
+char* zeekenv(const char* name);
 
 #endif

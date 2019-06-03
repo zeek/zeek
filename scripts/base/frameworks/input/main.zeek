@@ -1,5 +1,5 @@
 ##! The input framework provides a way to read previously stored data either
-##! as an event stream or into a Bro table.
+##! as an event stream or into a Zeek table.
 
 module Input;
 
@@ -55,7 +55,7 @@ export {
 	## abort. Defaults to false (abort).
 	const accept_unsupported_types = F &redef;
 
-	## A table input stream type used to send data to a Bro table.
+	## A table input stream type used to send data to a Zeek table.
 	type TableDescription: record {
 		# Common definitions for tables and events
 
@@ -112,7 +112,7 @@ export {
 		##
 		## The event is raised like if it had been declared as follows:
 		## error_ev: function(desc: TableDescription, message: string, level: Reporter::Level) &optional;
-		## The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+		## The actual declaration uses the ``any`` type because of deficiencies of the Zeek type system.
 		error_ev: any &optional;
 
 		## A key/value table that will be passed to the reader.
@@ -121,7 +121,7 @@ export {
 		config: table[string] of string &default=table();
 	};
 
-	## An event input stream type used to send input data to a Bro event.
+	## An event input stream type used to send input data to a Zeek event.
 	type EventDescription: record {
 		# Common definitions for tables and events
 
@@ -166,7 +166,7 @@ export {
 		##
 		## The event is raised like it had been declared as follows:
 		## error_ev: function(desc: EventDescription, message: string, level: Reporter::Level) &optional;
-		## The actual declaration uses the ``any`` type because of deficiencies of the Bro type system.
+		## The actual declaration uses the ``any`` type because of deficiencies of the Zeek type system.
 		error_ev: any &optional;
 
 		## A key/value table that will be passed to the reader.

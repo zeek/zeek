@@ -9,6 +9,8 @@
 #include <krb5.h>
 #endif
 
+#include <mutex>
+
 namespace analyzer { namespace krb {
 
 class KRB_Analyzer : public analyzer::Analyzer {

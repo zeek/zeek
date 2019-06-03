@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 # In this script, we try to access each object defined in a "@load"ed script
@@ -18,7 +18,7 @@ event zeek_init()
 
 # In this script, we define some objects to be used in another script
 
-# Note: this script is not listed on the bro command-line (instead, it
+# Note: this script is not listed on the zeek command-line (instead, it
 # is "@load"ed from the other script)
 
 global test_case: function(msg: string, expect: bool);

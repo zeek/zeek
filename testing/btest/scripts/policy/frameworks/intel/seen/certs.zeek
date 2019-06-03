@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -Cr $TRACES/tls/ecdsa-cert.pcap %INPUT
+# @TEST-EXEC: zeek -Cr $TRACES/tls/ecdsa-cert.pcap %INPUT
 # @TEST-EXEC: cat intel.log > intel-all.log
-# @TEST-EXEC: bro -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ssl.v3.trace %INPUT
 # @TEST-EXEC: cat intel.log >> intel-all.log
 # @TEST-EXEC: btest-diff intel-all.log
 

@@ -1,8 +1,8 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-global a = "bro test";
+global a = "zeek test";
 
 event zeek_init()
 	{

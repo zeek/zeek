@@ -1,9 +1,9 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event zeek_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="test.metric", 
+	local r1: SumStats::Reducer = [$stream="test.metric",
 	                               $apply=set(SumStats::TOPK)];
 	# Merge two empty sets
 	local topk1: opaque of topk = topk_init(4);
@@ -18,9 +18,9 @@ event zeek_init() &priority=5
 	                  	local r = result["test.metric"];
 	                  	local s: vector of SumStats::Observation;
 	                  	s = topk_get_top(r$topk, 5);
-	                  	
+
 	                  	print fmt("Top entries for key %s", key$str);
-	                  	for ( element in s ) 
+	                  	for ( element in s )
 	                  		{
 	                  		print fmt("Num: %d, count: %d, epsilon: %d", s[element]$num, topk_count(r$topk, s[element]), topk_epsilon(r$topk, s[element]));
 	                  		}
@@ -32,16 +32,16 @@ event zeek_init() &priority=5
 	local a: count;
 	a = 0;
 
-	for ( i in loop_v ) 
+	for ( i in loop_v )
 		{
 		a = a + 1;
 		for ( j in loop_v )
 			{
-			if ( i < j ) 
+			if ( i < j )
 				SumStats::observe("test.metric", [$str="counter"], [$num=a]);
 			}
 		}
-	
+
 
 	SumStats::observe("test.metric", [$str="two"], [$num=1]);
 	SumStats::observe("test.metric", [$str="two"], [$num=1]);

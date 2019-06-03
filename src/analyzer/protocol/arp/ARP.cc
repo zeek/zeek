@@ -190,13 +190,13 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 	if ( ! bad_arp )
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(ConstructAddrVal(ar_spa(hdr)));
-	vl->append(EthAddrToStr((const u_char*) ar_sha(hdr)));
-	vl->append(ConstructAddrVal(ar_tpa(hdr)));
-	vl->append(EthAddrToStr((const u_char*) ar_tha(hdr)));
-	vl->append(new StringVal(msg));
-	mgr.QueueEvent(bad_arp, vl);
+	mgr.QueueEventFast(bad_arp, {
+		ConstructAddrVal(ar_spa(hdr)),
+		EthAddrToStr((const u_char*) ar_sha(hdr)),
+		ConstructAddrVal(ar_tpa(hdr)),
+		EthAddrToStr((const u_char*) ar_tha(hdr)),
+		new StringVal(msg),
+	});
 	}
 
 void ARP_Analyzer::Corrupted(const char* msg)
@@ -212,18 +212,14 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 	if ( ! e )
 		return;
 
-	// init the val_list
-	val_list* vl = new val_list;
-
-	// prepare the event arguments
-	vl->append(EthAddrToStr(src));
-	vl->append(EthAddrToStr(dst));
-	vl->append(ConstructAddrVal(spa));
-	vl->append(EthAddrToStr((const u_char*) sha));
-	vl->append(ConstructAddrVal(tpa));
-	vl->append(EthAddrToStr((const u_char*) tha));
-
-	mgr.QueueEvent(e, vl);
+	mgr.QueueEventFast(e, {
+		EthAddrToStr(src),
+		EthAddrToStr(dst),
+		ConstructAddrVal(spa),
+		EthAddrToStr((const u_char*) sha),
+		ConstructAddrVal(tpa),
+		EthAddrToStr((const u_char*) tha),
+	});
 	}
 
 AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)

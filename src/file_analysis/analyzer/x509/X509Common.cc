@@ -277,13 +277,18 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 	// parsed. And if we have it, we send the specialized event on top of the
 	// generic event that we just had. I know, that is... kind of not nice,
 	// but I am not sure if there is a better way to do it...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Ext);
-	if ( h == ocsp_extension )
-		vl->append(val_mgr->GetBool(global ? 1 : 0));
 
-	mgr.QueueEvent(h, vl);
+	if ( h == ocsp_extension )
+		mgr.QueueEvent(h, {
+			GetFile()->GetVal()->Ref(),
+			pX509Ext,
+			val_mgr->GetBool(global ? 1 : 0),
+		});
+	else
+		mgr.QueueEvent(h, {
+			GetFile()->GetVal()->Ref(),
+			pX509Ext,
+		});
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);

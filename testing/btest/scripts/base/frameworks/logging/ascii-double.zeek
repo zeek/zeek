@@ -1,8 +1,8 @@
 # @TEST-DOC: Test that the ASCII writer logs values of type "double" correctly.
 #
-# @TEST-EXEC: bro -b %INPUT test-json.zeek
+# @TEST-EXEC: zeek -b %INPUT test-json.zeek
 # @TEST-EXEC: mv test.log json.log
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff test.log
 # @TEST-EXEC: btest-diff json.log
 # 

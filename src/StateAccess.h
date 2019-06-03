@@ -74,10 +74,6 @@ private:
 	StateAccess()	{ target.id = 0; op1.val = op2 = op3 = 0; }
 	void RefThem();
 
-	bool CheckOld(const char* op, ID* id, Val* index, Val* should, Val* is);
-	bool CheckOldSet(const char* op, ID* id, Val* index, bool should, bool is);
-	bool MergeTables(TableVal* dst, Val* src);
-
 	DECLARE_SERIAL(StateAccess);
 
 	Opcode opcode;

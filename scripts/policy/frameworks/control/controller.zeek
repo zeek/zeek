@@ -1,10 +1,10 @@
 ##! This is a utility script that implements the controller interface for the
-##! control framework.  It's intended to be run to control a remote Bro
+##! control framework.  It's intended to be run to control a remote Zeek
 ##! and then shutdown.
 ##!
 ##! It's intended to be used from the command line like this::
 ##!
-##!     bro <scripts> frameworks/control/controller Control::host=<host_addr> Control::host_port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
+##!     zeek <scripts> frameworks/control/controller Control::host=<host_addr> Control::host_port=<host_port> Control::cmd=<command> [Control::arg=<arg>]
 
 @load base/frameworks/control
 @load base/frameworks/broker

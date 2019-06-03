@@ -1,7 +1,7 @@
-# @TEST-EXEC: btest-bg-run broproc bro %INPUT
+# @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
 # @TEST-EXEC: btest-bg-wait -k 5
-# @TEST-EXEC: cat broproc/reporter.log > output
-# @TEST-EXEC: cat broproc/.stdout >> output
+# @TEST-EXEC: cat zeekproc/reporter.log > output
+# @TEST-EXEC: cat zeekproc/.stdout >> output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff output
 
 # @TEST-START-FILE intel.dat

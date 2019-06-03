@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT  >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT  >output 2>&1
 # @TEST-EXEC: btest-diff output
 
 global params: sw_params = [ $min_strlen = 2, $sw_variant = 0 ];

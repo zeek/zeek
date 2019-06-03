@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Attr.h"
 #include "Expr.h"
@@ -11,12 +11,9 @@ const char* attr_name(attr_tag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
 		"&optional", "&default", "&redef",
-		"&rotate_interval", "&rotate_size",
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
-		"&persistent", "&synchronized",
-		"&encrypt",
-		"&raw_output", "&mergeable", "&priority",
+		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
 		"(&tracked)", "&deprecated",
 	};
@@ -141,7 +138,7 @@ Attributes::~Attributes()
 void Attributes::AddAttr(Attr* attr)
 	{
 	if ( ! attrs )
-		attrs = new attr_list;
+		attrs = new attr_list(1);
 
 	if ( ! attr->RedundantAttrOkay() )
 		// We overwrite old attributes by deleting them first.
@@ -358,21 +355,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_ROTATE_INTERVAL:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&rotate_interval only applicable to files");
-		break;
-
-	case ATTR_ROTATE_SIZE:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&rotate_size only applicable to files");
-		break;
-
-	case ATTR_ENCRYPT:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&encrypt only applicable to files");
-		break;
-
 	case ATTR_EXPIRE_READ:
 	case ATTR_EXPIRE_WRITE:
 	case ATTR_EXPIRE_CREATE:
@@ -438,8 +420,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_PERSISTENT:
-	case ATTR_SYNCHRONIZED:
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;
@@ -447,11 +427,6 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_RAW_OUTPUT:
 		if ( type->Tag() != TYPE_FILE )
 			Error("&raw_output only applicable to files");
-		break;
-
-	case ATTR_MERGEABLE:
-		if ( type->Tag() != TYPE_TABLE )
-			Error("&mergeable only applicable to tables/sets");
 		break;
 
 	case ATTR_PRIORITY:
@@ -559,8 +534,7 @@ bool Attributes::DoSerialize(SerialInfo* info) const
 		{
 		Attr* a = (*attrs)[i];
 
-		// Broccoli doesn't support expressions.
-		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
+		Expr* e = a->AttrExpr();
 		SERIALIZE_OPTIONAL(e);
 
 		if ( ! SERIALIZE(char(a->Tag())) )

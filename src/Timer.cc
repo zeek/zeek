@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "util.h"
 #include "Timer.h"
@@ -20,8 +20,6 @@ const char* TimerNames[] = {
 	"FileAnalysisInactivityTimer",
 	"FlowWeirdTimer",
 	"FragTimer",
-	"IncrementalSendTimer",
-	"IncrementalWriteTimer",
 	"InterconnTimer",
 	"IPTunnelInactivityTimer",
 	"NetbiosExpireTimer",

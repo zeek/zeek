@@ -20,6 +20,8 @@
 //	Entries must be either a pointer to the data or nonzero data with
 //	sizeof(data) <= sizeof(void*).
 
+#include <initializer_list>
+#include <utility>
 #include <stdarg.h>
 #include "util.h"
 
@@ -28,8 +30,6 @@ typedef int (*list_cmp_func)(const void* v1, const void* v2);
 
 class BaseList {
 public:
-	~BaseList()		{ clear(); }
-
 	void clear();		// remove all entries
 	int length() const	{ return num_entries; }
 	int max() const		{ return max_entries; }
@@ -41,8 +41,14 @@ public:
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(ent)); }
 
 protected:
+	~BaseList()		{ free(entry); }
 	explicit BaseList(int = 0);
-	BaseList(BaseList&);
+	BaseList(const BaseList&);
+	BaseList(BaseList&&);
+	BaseList(const ent* arr, int n);
+
+	BaseList& operator=(const BaseList&);
+	BaseList& operator=(BaseList&&);
 
 	void insert(ent);	// add at head of list
 
@@ -75,7 +81,29 @@ protected:
 			return entry[i];
 		}
 
-	void operator=(BaseList&);
+	// This could essentially be an std::vector if we wanted.  Some
+	// reasons to maybe not refactor to use std::vector ?
+	//
+	//  - Harder to use a custom growth factor.  Also, the growth
+	//    factor would be implementation-specific, taking some control over
+	//    performance out of our hands.
+	//
+	//  - It won't ever take advantage of realloc's occasional ability to
+	//    grow in-place.
+	//
+	//  - Combine above point this with lack of control of growth
+	//    factor means the common choice of 2x growth factor causes
+	//    a growth pattern that crawls forward in memory with no possible
+	//    re-use of previous chunks (the new capacity is always larger than
+	//    all previously allocated chunks combined).  This point and
+	//    whether 2x is empirically an issue still seems debated (at least
+	//    GCC seems to stand by 2x as empirically better).
+	//
+	//  - Sketchy shrinking behavior: standard says that requests to
+	//    shrink are non-binding (it's expected implementations heed, but
+	//    still not great to have no guarantee).  Also, it would not take
+	//    advantage of realloc's ability to contract in-place, it would
+	//    allocate-and-copy.
 
 	ent* entry;
 	int max_entries;
@@ -103,10 +131,13 @@ struct List(type) : BaseList						\
 	explicit List(type)(type ...);						\
 	List(type)() : BaseList(0) {}					\
 	explicit List(type)(int sz) : BaseList(sz) {}				\
-	List(type)(List(type)& l) : BaseList((BaseList&)l) {}		\
+	List(type)(const List(type)& l) : BaseList(l) {}		\
+	List(type)(List(type)&& l) : BaseList(std::move(l)) {}		\
 									\
-	void operator=(List(type)& l)					\
-		{ BaseList::operator=((BaseList&)l); }			\
+	List(type)& operator=(const List(type)& l)					\
+		{ return (List(type)&) BaseList::operator=(l); }			\
+	List(type)& operator=(List(type)&& l)					\
+		{ return (List(type)&) BaseList::operator=(std::move(l)); }			\
 	void insert(type a)	{ BaseList::insert(ent(a)); }		\
 	void sortedinsert(type a, list_cmp_func cmp_func)		\
 		{ BaseList::sortedinsert(ent(a), cmp_func); }		\
@@ -144,10 +175,14 @@ struct PList(type) : BaseList						\
 	explicit PList(type)(type* ...);						\
 	PList(type)() : BaseList(0) {}					\
 	explicit PList(type)(int sz) : BaseList(sz) {}				\
-	PList(type)(PList(type)& l) : BaseList((BaseList&)l) {}		\
+	PList(type)(const PList(type)& l) : BaseList(l) {}		\
+	PList(type)(PList(type)&& l) : BaseList(std::move(l)) {}		\
+	PList(type)(std::initializer_list<type*> il) : BaseList((const ent*)il.begin(), il.size()) {}		\
 									\
-	void operator=(PList(type)& l)					\
-		{ BaseList::operator=((BaseList&)l); }			\
+	PList(type)& operator=(const PList(type)& l)					\
+		{ return (PList(type)&) BaseList::operator=(l); }			\
+	PList(type)& operator=(PList(type)&& l)					\
+		{ return (PList(type)&) BaseList::operator=(std::move(l)); }			\
 	void insert(type* a)	{ BaseList::insert(ent(a)); }		\
 	void sortedinsert(type* a, list_cmp_func cmp_func)		\
 		{ BaseList::sortedinsert(ent(a), cmp_func); }		\

@@ -1,5 +1,5 @@
 
-# @TEST-EXEC: bro -b %INPUT 
+# @TEST-EXEC: zeek -b %INPUT 
 # @TEST-EXEC: btest-diff test.success.log
 # @TEST-EXEC: btest-diff test.failure.log
 

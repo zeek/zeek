@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Expr.h"
 #include "Event.h"
@@ -10,7 +10,6 @@
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
-#include "RemoteSerializer.h"
 #include "Net.h"
 #include "Traverse.h"
 #include "Trigger.h"
@@ -1884,13 +1883,6 @@ BoolExpr::BoolExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
 		else
 			SetType(base_type(TYPE_BOOL));
 		}
-
-	else if ( bt1 == TYPE_PATTERN && bt2 == bt1 )
-		{
-		reporter->Warning("&& and || operators deprecated for pattern operands");
-		SetType(base_type(TYPE_PATTERN));
-		}
-
 	else
 		ExprError("requires boolean operands");
 	}
@@ -2562,18 +2554,29 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
 		attr_list* attr_copy = 0;
-
 		if ( attrs )
 			{
-			attr_copy = new attr_list;
+			attr_copy = new attr_list(attrs->length());
 			loop_over_list(*attrs, i)
 				attr_copy->append((*attrs)[i]);
 			}
+
+		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
 
 		if ( op1->Type()->IsSet() )
 			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
 		else
 			op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+
+		if ( ! empty_list_assignment && ! same_type(op1->Type(), op2->Type()) )
+			{
+			if ( op1->Type()->IsSet() )
+				ExprError("set type mismatch in assignment");
+			else
+				ExprError("table type mismatch in assignment");
+
+			return false;
+			}
 
 		return true;
 		}
@@ -2634,7 +2637,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				if ( sce->Attrs() )
 					{
 					attr_list* a = sce->Attrs()->Attrs();
-					attrs = new attr_list;
+					attrs = new attr_list(a->length());
 					loop_over_list(*a, i)
 						attrs->append((*a)[i]);
 					}
@@ -2925,7 +2928,12 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 
 	int match_type = op1->Type()->MatchesIndex(arg_op2);
 	if ( match_type == DOES_NOT_MATCH_INDEX )
-		SetError("not an index type");
+		{
+		std::string error_msg =
+		    fmt("expression with type '%s' is not a type that can be indexed",
+		        type_name(op1->Type()->Tag()));
+		SetError(error_msg.data());
+		}
 
 	else if ( ! op1->Type()->YieldType() )
 		{
@@ -3467,9 +3475,9 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	// Spin through the list, which should be comprised only of
 	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
-	type_decl_list* record_types = new type_decl_list;
-
 	const expr_list& exprs = constructor_list->Exprs();
+	type_decl_list* record_types = new type_decl_list(exprs.length());
+
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
@@ -4469,11 +4477,12 @@ bool FlattenExpr::DoUnserialize(UnserialInfo* info)
 
 ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, val_list* arg_args,
 				double t, TimerMgr* arg_tmgr)
-: Timer(t, TIMER_SCHEDULE)
+	: Timer(t, TIMER_SCHEDULE),
+	  event(arg_event),
+	  args(std::move(*arg_args)),
+	  tmgr(arg_tmgr)
 	{
-	event = arg_event;
-	args = arg_args;
-	tmgr = arg_tmgr;
+	delete arg_args;
 	}
 
 ScheduleTimer::~ScheduleTimer()
@@ -4482,7 +4491,7 @@ ScheduleTimer::~ScheduleTimer()
 
 void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
 	{
-	mgr.QueueEvent(event, args, SOURCE_LOCAL, 0, tmgr);
+	mgr.QueueEvent(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
 	}
 
 ScheduleExpr::ScheduleExpr(Expr* arg_when, EventExpr* arg_event)
@@ -4998,7 +5007,8 @@ Val* EventExpr::Eval(Frame* f) const
 		return 0;
 
 	val_list* v = eval_list(f, args);
-	mgr.QueueEvent(handler, v);
+	mgr.QueueEvent(handler, std::move(*v));
+	delete v;
 
 	return 0;
 	}
@@ -5128,7 +5138,7 @@ BroType* ListExpr::InitType() const
 
 	if ( exprs[0]->IsRecordElement(0) )
 		{
-		type_decl_list* types = new type_decl_list;
+		type_decl_list* types = new type_decl_list(exprs.length());
 		loop_over_list(exprs, i)
 			{
 			TypeDecl* td = new TypeDecl(0, 0);

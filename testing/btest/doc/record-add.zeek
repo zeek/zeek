@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 
-# To support documentation of type aliases, Bro clones declared types
+# To support documentation of type aliases, Zeek clones declared types
 # (see add_type() in Var.cc) in order to keep track of type names and aliases.
 # This test makes sure that the cloning is done in a way that's compatible
 # with adding fields to a record type -- we want to be sure that cloning

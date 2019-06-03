@@ -1,8 +1,8 @@
-##! Bro's NetControl framework.
+##! Zeek's NetControl framework.
 ##!
-##! This plugin-based framework allows to control the traffic that Bro monitors
+##! This plugin-based framework allows to control the traffic that Zeek monitors
 ##! as well as, if having access to the forwarding path, the traffic the network
-##! forwards. By default, the framework lets everything through, to both Bro
+##! forwards. By default, the framework lets everything through, to both Zeek
 ##! itself as well as on the network. Scripts can then add rules to impose
 ##! restrictions on entities, such as specific connections or IP addresses.
 ##!
@@ -291,7 +291,7 @@ export {
 	type Info: record {
 		## Time at which the recorded activity occurred.
 		ts: time		&log;
-		## ID of the rule; unique during each Bro run.
+		## ID of the rule; unique during each Zeek run.
 		rule_id: string  &log &optional;
 		## Type of the log entry.
 		category: InfoCategory	&log &optional;
@@ -632,7 +632,7 @@ event NetControl::init() &priority=-20
 		log_msg_no_plugin("waiting for plugins to initialize");
 	}
 
-# Low-level functions that only runs on the manager (or standalone) Bro node.
+# Low-level functions that only runs on the manager (or standalone) Zeek node.
 
 function activate_impl(p: PluginState, priority: int)
 	{

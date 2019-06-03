@@ -1,4 +1,4 @@
-# @TEST-EXEC: btest-bg-run standalone bro %INPUT
+# @TEST-EXEC: btest-bg-run standalone zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff standalone/.stdout
 

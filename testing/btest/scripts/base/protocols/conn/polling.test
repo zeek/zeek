@@ -1,6 +1,6 @@
-# @TEST-EXEC: bro -b -r $TRACES/http/100-continue.trace %INPUT >out1
+# @TEST-EXEC: zeek -b -r $TRACES/http/100-continue.trace %INPUT >out1
 # @TEST-EXEC: btest-diff out1
-# @TEST-EXEC: bro -b -r $TRACES/http/100-continue.trace %INPUT stop_cnt=2 >out2
+# @TEST-EXEC: zeek -b -r $TRACES/http/100-continue.trace %INPUT stop_cnt=2 >out2
 # @TEST-EXEC: btest-diff out2
 
 @load base/protocols/conn

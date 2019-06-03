@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tcp/qi_internet_SYNACK_curl_jsonip.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tcp/qi_internet_SYNACK_curl_jsonip.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 # Quantum Insert like attack, overlapping TCP packet with different content

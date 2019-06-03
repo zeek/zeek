@@ -1,0 +1,153 @@
+.TH ZEEK "8" "November 2014" "zeek" "System Administration Utilities"
+.SH NAME
+zeek \- passive network traffic analyzer
+.SH SYNOPSIS
+.B zeek
+\/\fP [\fIoptions\fR] [\fIfile\fR ...]
+.SH DESCRIPTION
+Zeek is primarily a security monitor that inspects all traffic on a link in
+depth for signs of suspicious activity. More generally, however, Zeek
+supports a wide range of traffic analysis tasks even outside of the
+security domain, including performance measurements and helping with
+trouble-shooting.
+
+Zeek comes with built-in functionality for a range of analysis and detection
+tasks, including detecting malware by interfacing to external registries,
+reporting vulnerable versions of software seen on the network, identifying
+popular web applications, detecting SSH brute-forcing, validating SSL
+certificate chains, among others.
+.SH OPTIONS
+.TP
+.B <file>
+policy file, or read stdin
+.TP
+\fB\-a\fR,\ \-\-parse\-only
+exit immediately after parsing scripts
+.TP
+\fB\-b\fR,\ \-\-bare\-mode
+don't load scripts from the base/ directory
+.TP
+\fB\-d\fR,\ \-\-debug\-policy
+activate policy file debugging
+.TP
+\fB\-e\fR,\ \-\-exec <zeek code>
+augment loaded policies by given code
+.TP
+\fB\-f\fR,\ \-\-filter <filter>
+tcpdump filter
+.TP
+\fB\-h\fR,\ \-\-help|\-?
+command line help
+.TP
+\fB\-i\fR,\ \-\-iface <interface>
+read from given interface
+.TP
+\fB\-p\fR,\ \-\-prefix <prefix>
+add given prefix to policy file resolution
+.TP
+\fB\-r\fR,\ \-\-readfile <readfile>
+read from given tcpdump file
+.TP
+\fB\-s\fR,\ \-\-rulefile <rulefile>
+read rules from given file
+.TP
+\fB\-t\fR,\ \-\-tracefile <tracefile>
+activate execution tracing
+.TP
+\fB\-w\fR,\ \-\-writefile <writefile>
+write to given tcpdump file
+.TP
+\fB\-v\fR,\ \-\-version
+print version and exit
+.TP
+\fB\-x\fR,\ \-\-print\-state <file.bst>
+print contents of state file
+.TP
+\fB\-C\fR,\ \-\-no\-checksums
+ignore checksums
+.TP
+\fB\-F\fR,\ \-\-force\-dns
+force DNS
+.TP
+\fB\-I\fR,\ \-\-print\-id <ID name>
+print out given ID
+.TP
+\fB\-N\fR,\ \-\-print\-plugins
+print available plugins and exit (\fB\-NN\fR for verbose)
+.TP
+\fB\-P\fR,\ \-\-prime\-dns
+prime DNS
+.TP
+\fB\-Q\fR,\ \-\-time
+print execution time summary to stderr
+.TP
+\fB\-R\fR,\ \-\-replay <events.bst>
+replay events
+.TP
+\fB\-S\fR,\ \-\-debug\-rules
+enable rule debugging
+.TP
+\fB\-T\fR,\ \-\-re\-level <level>
+set 'RE_level' for rules
+.TP
+\fB\-U\fR,\ \-\-status\-file <file>
+Record process status in file
+.TP
+\fB\-W\fR,\ \-\-watchdog
+activate watchdog timer
+.TP
+\fB\-X\fR,\ \-\-zeekygen <cfgfile>
+generate documentation based on config file
+.TP
+\fB\-\-pseudo\-realtime[=\fR<speedup>]
+enable pseudo\-realtime for performance evaluation (default 1)
+.TP
+\fB\-\-load\-seeds\fR <file>
+load seeds from given file
+.TP
+\fB\-\-save\-seeds\fR <file>
+save seeds to given file
+.TP
+The following option is available only when Zeek is built with the \-\-enable\-debug configure option:
+.TP
+\fB\-B\fR,\ \-\-debug <dbgstreams>
+Enable debugging output for selected streams ('-B help' for help)
+.TP
+The following options are available only when Zeek is built with gperftools support (use the \-\-enable\-perftools and \-\-enable\-perftools\-debug configure options):
+.TP
+\fB\-m\fR,\ \-\-mem-leaks
+show leaks
+.TP
+\fB\-M\fR,\ \-\-mem-profile
+record heap
+.SH ENVIRONMENT
+.TP
+.B ZEEKPATH
+file search path
+.TP
+.B ZEEK_PLUGIN_PATH
+plugin search path
+.TP
+.B ZEEK_PLUGIN_ACTIVATE
+plugins to always activate
+.TP
+.B ZEEK_PREFIXES
+prefix list
+.TP
+.B ZEEK_DNS_FAKE
+disable DNS lookups
+.TP
+.B ZEEK_SEED_FILE
+file to load seeds from
+.TP
+.B ZEEK_LOG_SUFFIX
+ASCII log file extension
+.TP
+.B ZEEK_PROFILER_FILE
+Output file for script execution statistics
+.TP
+.B ZEEK_DISABLE_ZEEKYGEN
+Disable Zeekygen (Broxygen) documentation support
+.SH AUTHOR
+.B zeek
+was written by The Zeek Project <info@zeek.org>.

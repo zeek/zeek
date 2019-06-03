@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <string>
+#include <fcntl.h>
 
 #include "Extract.h"
 #include "util.h"
@@ -90,12 +91,12 @@ bool Extract::DeliverStream(const u_char* data, uint64 len)
 	if ( limit_exceeded && file_extraction_limit )
 		{
 		File* f = GetFile();
-		val_list* vl = new val_list();
-		vl->append(f->GetVal()->Ref());
-		vl->append(Args()->Ref());
-		vl->append(val_mgr->GetCount(limit));
-		vl->append(val_mgr->GetCount(len));
-		f->FileEvent(file_extraction_limit, vl);
+		f->FileEvent(file_extraction_limit, {
+			f->GetVal()->Ref(),
+			Args()->Ref(),
+			val_mgr->GetCount(limit),
+			val_mgr->GetCount(len),
+		});
 
 		// Limit may have been modified by a BIF, re-check it.
 		limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);

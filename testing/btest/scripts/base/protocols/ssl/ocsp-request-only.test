@@ -1,6 +1,6 @@
 # This tests a OCSP request missing response
 
-# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-request-only.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/ocsp-request-only.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load files/x509/log-ocsp

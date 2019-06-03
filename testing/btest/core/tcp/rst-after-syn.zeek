@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tcp/rst-inject-rae.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tcp/rst-inject-rae.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 # Mostly just checking that c$resp$size isn't huge due to the injected

@@ -1,4 +1,4 @@
-# This file loads ALL policy scripts that are part of the Bro distribution.
+# This file loads ALL policy scripts that are part of the Zeek distribution.
 # 
 # This is rarely makes sense, and is for testing only.
 # 
@@ -63,7 +63,6 @@
 @load protocols/conn/mac-logging.zeek
 @load protocols/conn/vlan-logging.zeek
 @load protocols/conn/weirds.zeek
-#@load protocols/dhcp/deprecated_events.zeek
 @load protocols/dhcp/msg-orig.zeek
 @load protocols/dhcp/software.zeek
 @load protocols/dhcp/sub-opts.zeek
@@ -84,7 +83,6 @@
 @load protocols/modbus/track-memmap.zeek
 @load protocols/mysql/software.zeek
 @load protocols/rdp/indicate_ssl.zeek
-#@load protocols/smb/__load__.zeek
 @load protocols/smb/log-cmds.zeek
 @load protocols/smtp/blocklists.zeek
 @load protocols/smtp/detect-suspicious-orig.zeek

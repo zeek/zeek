@@ -937,7 +937,7 @@ public:
 
 protected:
 	EventHandlerPtr event;
-	val_list* args;
+	val_list args;
 	TimerMgr* tmgr;
 };
 

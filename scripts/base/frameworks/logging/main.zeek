@@ -1,6 +1,6 @@
-##! The Bro logging interface.
+##! The Zeek logging interface.
 ##!
-##! See :doc:`/frameworks/logging` for an introduction to Bro's
+##! See :doc:`/frameworks/logging` for an introduction to Zeek's
 ##! logging framework.
 
 module Log;
@@ -84,13 +84,13 @@ export {
 		path: string;		##< Original path value.
 		open: time;		##< Time when opened.
 		close: time;		##< Time when closed.
-		terminating: bool;	##< True if rotation occured due to Bro shutting down.
+		terminating: bool;	##< True if rotation occured due to Zeek shutting down.
 	};
 
 	## Default rotation interval to use for filters that do not specify
 	## an interval. Zero disables rotation.
 	##
-	## Note that this is overridden by the BroControl LogRotationInterval
+	## Note that this is overridden by the ZeekControl LogRotationInterval
 	## option.
 	const default_rotation_interval = 0secs &redef;
 
@@ -108,7 +108,7 @@ export {
 	## Default alarm summary mail interval. Zero disables alarm summary
 	## mails.
 	##
-	## Note that this is overridden by the BroControl MailAlarmsInterval
+	## Note that this is overridden by the ZeekControl MailAlarmsInterval
 	## option.
 	const default_mail_alarms_interval = 0secs &redef;
 
@@ -219,7 +219,7 @@ export {
 		scope_sep: string &default=default_scope_sep;
 
 		## Default prefix for all extension fields. It's typically
-		## prudent to set this to something that Bro's logging
+		## prudent to set this to something that Zeek's logging
 		## framework can't normally write out in a field name.
 		ext_prefix: string &default=default_ext_prefix;
 

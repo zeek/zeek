@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # The "Test_Notice" should be logged twice
 # @TEST-EXEC: test `grep Test_Notice notice.log | wc -l` -eq 2
 

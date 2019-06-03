@@ -1,6 +1,6 @@
 # This tests some SSH connections and the output log.
 
-# @TEST-EXEC: bro -r $TRACES/ssh/ssh.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/ssh/ssh.trace %INPUT
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff .stdout

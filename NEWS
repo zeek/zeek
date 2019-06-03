@@ -1,5 +1,5 @@
 
-This document summarizes the most important changes in the current Bro
+This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
@@ -18,7 +18,7 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
-- Bro's Plugin framework now allows a patch version.  If a patch version is not
+- Zeek's Plugin framework now allows a patch version.  If a patch version is not
   provided, it will default to 0.  To specify this, modify the plugin
   Configuration class in your ``src/Plugin.cc`` and set
   ``config.version.patch``.  Note that the default plugin skeleton
@@ -72,14 +72,47 @@ New Functionality
   (capital for originator, lowercase responder) to indicate a content
   gap in the TCP stream.  These are recorded logarithmically.
 
+- The ``ZEEK_DNS_RESOLVER`` environment variable now controls
+  the DNS resolver to use by setting it to an IPv4 or IPv6 address.  If
+  not set, then the first IPv4 address from /etc/resolv.conf gets used.
+
+- The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
+  also allowed when specifying patterns used in signature files.
+
+- Add a new "client_channels" field to rdp.log based on data parsed from
+  the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
+  available in a new event, "rdp_client_network_data".
+
 Changed Functionality
 ---------------------
 
+- The following executable names have changed (the old names will
+  continue to work, but emit a deprecation warning):
+
+  - ``bro`` is now ``zeek``
+
+  - ``bro-config`` is now ``zeek-config``
+
+  - ``broctl`` is now ``zeekctl``
+
+  - ``bro-cut`` is now ``zeek-cut``
+
+- BroControl has been completely renamed to ZeekControl.  Many installation
+  directories and files with "broctl" in their name have been changed
+  to use "zeekctl" instead.  It's expected this has been done in a way
+  that's backwards compatible with previous Bro installations.  E.g.
+  if you made customizations to the ``broctl.cfg`` file of a previous
+  installation, installing the newer Zeek version over it will retain that
+  file and even symlink the new ``zeekctl.cfg`` to it.
+
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
-  ``local.zeek``.  If you have made customizations to that file, it
-  will no longer be loaded by default by BroControl (ZeekControl),
-  but you can simply copy it to ``local.zeek`.  You may also want to
-  remove old ``local.bro`` files to avoid potential confusion.
+  ``local.zeek``.  If you have a ``local.bro`` file from a previous
+  installation, possibly with customizations made to it, the new
+  version of Zeek will install a ``local.zeek`` file that is a symlink
+  to the pre-existing ``local.bro``.  In that case, you may want to
+  just copy ``local.bro`` into the new ``local.zeek`` location to
+  avoid confusion, but things are otherwise meant to work properly
+  without intervention.
 
 - All scripts ending in ``.bro`` that ship with the Zeek source tree have
   been renamed to ``.zeek``.
@@ -176,20 +209,127 @@ Changed Functionality
   and aren't counted as true gaps.
 
 - The Broxygen component, which is used to generate our Doxygen-like
-  scripting API documentation has been renamed to Zeexygen.  This likely has
+  scripting API documentation has been renamed to Zeekygen.  This likely has
   no breaking or visible changes for most users, except in the case one
   used it to generate their own documentation via the ``--broxygen`` flag,
-  which is now named ``--zeexygen``.  Besides that, the various documentation
+  which is now named ``--zeekygen``.  Besides that, the various documentation
   in scripts has also been updated to replace Sphinx cross-referencing roles
   and directives like ":bro:see:" with ":zeek:zee:".
 
 Removed Functionality
 ---------------------
 
+- A number of functions that were deprecated in version 2.6 or below and completely
+  removed from this release. Most of the functions were used for the old communication
+  code.
+
+    - ``find_ip_addresses``
+    - ``cat_string_array``
+    - ``cat_string_array_n``
+    - ``complete_handshake``
+    - ``connect``
+    - ``decode_base64_custom``
+    - ``disconnect``
+    - ``enable_communication``
+    - ``encode_base64_custom``
+    - ``get_event_peer``
+    - ``get_local_event_peer``
+    - ``join_string_array``
+    - ``listen``
+    - ``merge_pattern``
+    - ``request_remote_events``
+    - ``request_remote_logs``
+    - ``request_remote_sync``
+    - ``resume_state_updates``
+    - ``send_capture_filter``
+    - ``send_current_packet``
+    - ``send_id``
+    - ``send_ping``
+    - ``set_accept_state``
+    - ``set_compression_level``
+    - ``sort_string_array``
+    - ``split1``
+    - ``split_all``
+    - ``split``
+    - ``suspend_state_updates``
+    - ``terminate_communication``
+    - ``split``
+    - ``send_state``
+    - ``checkpoint_state``
+    - ``rescan_state``
+
+- The following events were deprecated in version 2.6 or below and are completely
+  removed from this release:
+
+    - ``ssl_server_curve``
+    - ``dhcp_ack``
+    - ``dhcp_decline``
+    - ``dhcp_discover``
+    - ``dhcp_inform``
+    - ``dhcp_nak``
+    - ``dhcp_offer``
+    - ``dhcp_release``
+    - ``dhcp_request``
+    - ``remote_state_access_performed``
+    - ``remote_state_inconsistency``
+    - ``remote_connection_established``
+    - ``remote_connection_closed``
+    - ``remote_connection_handshake_done``
+    - ``remote_event_registered``
+    - ``remote_connection_error``
+    - ``remote_capture_filter``
+    - ``remote_log_peer``
+    - ``remote_log``
+    - ``finished_send_state``
+    - ``remote_pong``
+
+- The following types/records were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``peer_id``
+    - ``event_peer``
+
+- The following configuration options were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``max_remote_events_processed``
+    - ``forward_remote_events``
+    - ``forward_remote_state_changes``
+    - ``enable_syslog``
+    - ``remote_trace_sync_interval``
+    - ``remote_trace_sync_peers``
+    - ``remote_check_sync_consistency``
+    - ``log_rotate_interval``
+    - ``log_max_size``
+    - ``log_encryption_key``
+    - ``state_dir``
+    - ``state_write_delay``
+
+- The following constants were used as part of deprecated functionality in version 2.6
+  or below and are removed from this release:
+
+    - ``PEER_ID_NONE``
+    - ``REMOTE_LOG_INFO``
+    - ``REMOTE_SRC_CHILD``
+    - ``REMOTE_SRC_PARENT``
+    - ``REMOTE_SRC_SCRIPT``
+
+- The deprecated script ``policy/protocols/smb/__load__.bro`` was removed.
+  Instead of ``@load policy/protocols/smb`` use ``@load base/protocols/smb``.
+
+- Broccoli, which had been deprecated in version 2.6 and was no longer built by default
+  was removed from the source tree.
+
+- Support for the &persistent, &synchronized, &mergeable, &encrypt, &rotate_interval,
+  and &rotate_size attributes, which were deprecated in Bro 2.6, was removed. The ``-g``
+  command-line option (dump-config) which relied on this functionality was also removed.
+
+- Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
+
 Deprecated Functionality
 ------------------------
 
-- The ``str_shell_escape` function is now deprecated, use ``safe_shell_quote``
+- The ``str_shell_escape`` function is now deprecated, use ``safe_shell_quote``
   instead.  The later will automatically return a value that is enclosed
   in double-quotes.
 
@@ -199,6 +339,11 @@ Deprecated Functionality
   the deprecated versions will automatically alias to the new events
   such that existing code will not break, but will emit a deprecation
   warning.
+
+- The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
+  were marked as deprecated. These functions were used with the old pre-2.0 logging
+  framework and are no longer used. They also were marked as deprecated in their
+  documentation, however the functions themselves did not carry the deprecation marker.
 
 Bro 2.6
 =======
@@ -571,7 +716,7 @@ New Functionality
   Each has the same form, e.g.::
 
       event tcp_multiple_retransmissions(c: connection, is_orig: bool,
-				                         threshold: count);
+                                         threshold: count);
 
 - Added support for set union, intersection, difference, and comparison
   operations.  The corresponding operators for the first three are

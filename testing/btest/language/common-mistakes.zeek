@@ -2,13 +2,13 @@
 # handled internally by way of throwing an exception to unwind out
 # of the current event handler body.
 
-# @TEST-EXEC: bro -b 1.zeek >1.out 2>&1
+# @TEST-EXEC: zeek -b 1.zeek >1.out 2>&1
 # @TEST-EXEC: btest-diff 1.out
 
-# @TEST-EXEC: bro -b 2.zeek >2.out 2>&1
+# @TEST-EXEC: zeek -b 2.zeek >2.out 2>&1
 # @TEST-EXEC: btest-diff 2.out
 
-# @TEST-EXEC: bro -b 3.zeek >3.out 2>&1
+# @TEST-EXEC: zeek -b 3.zeek >3.out 2>&1
 # @TEST-EXEC: btest-diff 3.out
 
 @TEST-START-FILE 1.zeek

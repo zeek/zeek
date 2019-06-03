@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -b -C -r $TRACES/wikipedia.trace discarder-ip.zeek >output
-# @TEST-EXEC: bro -b -C -r $TRACES/wikipedia.trace discarder-tcp.zeek >>output
-# @TEST-EXEC: bro -b -C -r $TRACES/wikipedia.trace discarder-udp.zeek >>output
-# @TEST-EXEC: bro -b -C -r $TRACES/icmp/icmp-destunreach-udp.pcap discarder-icmp.zeek >>output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-ip.zeek >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-tcp.zeek >>output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-udp.zeek >>output
+# @TEST-EXEC: zeek -b -C -r $TRACES/icmp/icmp-destunreach-udp.pcap discarder-icmp.zeek >>output
 # @TEST-EXEC: btest-diff output
 
 @TEST-START-FILE discarder-ip.zeek

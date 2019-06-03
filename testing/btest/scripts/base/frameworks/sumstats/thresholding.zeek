@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT | sort >output
+# @TEST-EXEC: zeek %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
 
 redef enum Notice::Type += {

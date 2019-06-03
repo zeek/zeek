@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 #include <string>
@@ -61,21 +61,27 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 	EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
 	if ( f )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(frame->frame_type()));
-		vl->append(val_mgr->GetCount(frame->body_length()));
-
 		if ( frame->is_orig() )
-			vl->append(val_mgr->GetCount(req_func));
+			{
+			analyzer->ConnectionEventFast(f, {
+				analyzer->BuildConnVal(),
+				val_mgr->GetCount(frame->frame_type()),
+				val_mgr->GetCount(frame->body_length()),
+				val_mgr->GetCount(req_func),
+			});
+			}
 		else
 			{
-			vl->append(val_mgr->GetCount(req_frame_type));
-			vl->append(val_mgr->GetCount(req_func));
-			vl->append(val_mgr->GetCount(frame->reply()->completion_code()));
+			analyzer->ConnectionEventFast(f, {
+				analyzer->BuildConnVal(),
+				val_mgr->GetCount(frame->frame_type()),
+				val_mgr->GetCount(frame->body_length()),
+				val_mgr->GetCount(req_frame_type),
+				val_mgr->GetCount(req_func),
+				val_mgr->GetCount(frame->reply()->completion_code()),
+			});
 			}
 
-		analyzer->ConnectionEvent(f, vl);
 		}
 	}
 

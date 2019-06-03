@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/http/bro.org.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/http/bro.org.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 redef Weird::sampling_duration = 5sec;

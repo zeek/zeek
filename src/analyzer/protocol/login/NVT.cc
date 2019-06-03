@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 
@@ -461,11 +461,10 @@ void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	{
 	if ( login_terminal )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(new BroString(terminal, len, 0)));
-
-		ConnectionEvent(login_terminal, vl);
+		ConnectionEventFast(login_terminal, {
+			BuildConnVal(),
+			new StringVal(new BroString(terminal, len, 0)),
+		});
 		}
 	}
 

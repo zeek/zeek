@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,11 +12,13 @@
 BaseList::BaseList(int size)
 	{
 	num_entries = 0;
-	max_entries = 0;
-	entry = 0;
 
 	if ( size <= 0 )
+		{
+		max_entries = 0;
+		entry = 0;
 		return;
+		}
 
 	max_entries = size;
 
@@ -24,7 +26,7 @@ BaseList::BaseList(int size)
 	}
 
 
-BaseList::BaseList(BaseList& b)
+BaseList::BaseList(const BaseList& b)
 	{
 	max_entries = b.max_entries;
 	num_entries = b.num_entries;
@@ -36,6 +38,23 @@ BaseList::BaseList(BaseList& b)
 
 	for ( int i = 0; i < num_entries; ++i )
 		entry[i] = b.entry[i];
+	}
+
+BaseList::BaseList(BaseList&& b)
+	{
+	entry = b.entry;
+	num_entries = b.num_entries;
+	max_entries = b.max_entries;
+
+	b.entry = 0;
+	b.num_entries = b.max_entries = 0;
+	}
+
+BaseList::BaseList(const ent* arr, int n)
+	{
+	num_entries = max_entries = n;
+	entry = (ent*) safe_malloc(max_entries * sizeof(ent));
+	memcpy(entry, arr, n * sizeof(ent));
 	}
 
 void BaseList::sort(list_cmp_func cmp_func)
@@ -43,13 +62,12 @@ void BaseList::sort(list_cmp_func cmp_func)
 	qsort(entry, num_entries, sizeof(ent), cmp_func);
 	}
 
-void BaseList::operator=(BaseList& b)
+BaseList& BaseList::operator=(const BaseList& b)
 	{
 	if ( this == &b )
-		return;	// i.e., this already equals itself
+		return *this;
 
-	if ( entry )
-		free(entry);
+	free(entry);
 
 	max_entries = b.max_entries;
 	num_entries = b.num_entries;
@@ -61,6 +79,23 @@ void BaseList::operator=(BaseList& b)
 
 	for ( int i = 0; i < num_entries; ++i )
 		entry[i] = b.entry[i];
+
+	return *this;
+	}
+
+BaseList& BaseList::operator=(BaseList&& b)
+	{
+	if ( this == &b )
+		return *this;
+
+	free(entry);
+	entry = b.entry;
+	num_entries = b.num_entries;
+	max_entries = b.max_entries;
+
+	b.entry = 0;
+	b.num_entries = b.max_entries = 0;
+	return *this;
 	}
 
 void BaseList::insert(ent a)
@@ -145,12 +180,8 @@ ent BaseList::get()
 
 void BaseList::clear()
 	{
-	if ( entry )
-		{
-		free(entry);
-		entry = 0;
-		}
-
+	free(entry);
+	entry = 0;
 	num_entries = max_entries = 0;
 	}
 

@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -C -b -r $TRACES/wikipedia.trace %INPUT >>output
-# @TEST-EXEC: bro -C -b -r $TRACES/radiotap.pcap %INPUT >>output
+# @TEST-EXEC: zeek -C -b -r $TRACES/wikipedia.trace %INPUT >>output
+# @TEST-EXEC: zeek -C -b -r $TRACES/radiotap.pcap %INPUT >>output
 # @TEST-EXEC: btest-diff output
 
 event new_connection(c: connection)

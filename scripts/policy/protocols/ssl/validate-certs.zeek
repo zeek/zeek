@@ -34,7 +34,7 @@ export {
 		&read_expire=5mins &redef;
 
 	## Use intermediate CA certificate caching when trying to validate
-	## certificates. When this is enabled, Bro keeps track of all valid
+	## certificates. When this is enabled, Zeek keeps track of all valid
 	## intermediate CA certificates that it has seen in the past. When
 	## encountering a host certificate that cannot be validated because
 	## of missing intermediate CA certificate, the cached list is used

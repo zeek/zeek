@@ -1,6 +1,6 @@
-# @TEST-EXEC: btest-bg-run bro bro %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 20
-# @TEST-EXEC: btest-diff bro/weird_stats.log
+# @TEST-EXEC: btest-diff zeek/weird_stats.log
 
 @load misc/weird-stats
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: bro -b %INPUT 2>out
+# @TEST-EXEC-FAIL: zeek -b %INPUT 2>out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 
 type Foo: record  {

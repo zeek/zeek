@@ -1,5 +1,5 @@
 # Text encodings may vary with libmagic version so don't test that part.
-# @TEST-EXEC: bro -b %INPUT | sed 's/; charset=.*//g' >out
+# @TEST-EXEC: zeek -b %INPUT | sed 's/; charset=.*//g' >out
 # @TEST-EXEC: btest-diff out
 
 event zeek_init()

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "XDR.h"
@@ -147,9 +147,9 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 	if ( nfs_reply_status )
 		{
-		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
-					       start_time, last_time, reply_len);
-		analyzer->ConnectionEvent(nfs_reply_status, vl);
+		auto vl = event_common_vl(c, rpc_status, nfs_status,
+					       start_time, last_time, reply_len, 0);
+		analyzer->ConnectionEventFast(nfs_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -274,18 +274,18 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 	// optional and all are set to 0 ...
 	if ( event )
 		{
-		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
-					start_time, last_time, reply_len);
-
 		Val *request = c->TakeRequestVal();
 
+		auto vl = event_common_vl(c, rpc_status, nfs_status,
+					start_time, last_time, reply_len, (bool)request + (bool)reply);
+
 		if ( request )
-			vl->append(request);
+			vl.append(request);
 
 		if ( reply )
-			vl->append(reply);
+			vl.append(reply);
 
-		analyzer->ConnectionEvent(event, vl);
+		analyzer->ConnectionEventFast(event, std::move(vl));
 		}
 	else
 		Unref(reply);
@@ -317,15 +317,15 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 	return 0;
 	}
 
-val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
+val_list NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
 				      BifEnum::NFS3::status_t nfs_status,
 				      double rep_start_time,
-				      double rep_last_time, int reply_len)
+				      double rep_last_time, int reply_len, int extra_elements)
 	{
 	// Returns a new val_list that already has a conn_val, and nfs3_info.
 	// These are the first parameters for each nfs_* event ...
-	val_list *vl = new val_list;
-	vl->append(analyzer->BuildConnVal());
+	val_list vl(2 + extra_elements);
+	vl.append(analyzer->BuildConnVal());
 	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
@@ -346,7 +346,7 @@ val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_s
 	info->Assign(11, new StringVal(c->MachineName()));
 	info->Assign(12, auxgids);
 
-	vl->append(info);
+	vl.append(info);
 	return vl;
 	}
 

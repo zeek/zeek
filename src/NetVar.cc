@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Var.h"
 #include "NetVar.h"
@@ -30,7 +30,6 @@ RecordType* mime_match;
 int watchdog_interval;
 
 int max_timer_expires;
-int max_remote_events_processed;
 
 int ignore_checksums;
 int partial_connection_ok;
@@ -156,9 +155,6 @@ RecordType* packet_type;
 
 double connection_status_update_interval;
 
-StringVal* state_dir;
-double state_write_delay;
-
 int orig_addr_anonymization, resp_addr_anonymization;
 int other_addr_anonymization;
 TableVal* preserve_orig_addr;
@@ -166,17 +162,10 @@ TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
 int max_files_in_cache;
-double log_rotate_interval;
-double log_max_size;
 RecordType* rotate_info;
-StringVal* log_encryption_key;
 StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
-RecordType* peer;
-int forward_remote_state_changes;
-int forward_remote_events;
-int remote_check_sync_consistency;
 bro_uint_t chunked_io_buffer_soft_cap;
 
 StringVal* ssl_ca_certificate;
@@ -199,8 +188,6 @@ int packet_filter_default;
 
 int sig_max_group_size;
 
-int enable_syslog;
-
 TableType* irc_join_list;
 RecordType* irc_join_info;
 TableVal* irc_servers;
@@ -211,9 +198,6 @@ int dpd_match_only_beginning;
 int dpd_ignore_ports;
 
 TableVal* likely_server_ports;
-
-double remote_trace_sync_interval;
-int remote_trace_sync_peers;
 
 int check_for_unused_event_handlers;
 int dump_used_event_handlers;
@@ -255,24 +239,12 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	state_dir = internal_val("state_dir")->AsStringVal();
-	state_write_delay = opt_internal_double("state_write_delay");
-
 	max_files_in_cache = opt_internal_int("max_files_in_cache");
-	log_rotate_interval = opt_internal_double("log_rotate_interval");
-	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
-	log_encryption_key = opt_internal_string("log_encryption_key");
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
-	peer = internal_type("event_peer")->AsRecordType();
-	forward_remote_state_changes =
-		opt_internal_int("forward_remote_state_changes");
-	forward_remote_events = opt_internal_int("forward_remote_events");
-	remote_check_sync_consistency =
-		opt_internal_int("remote_check_sync_consistency");
 	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
 
 	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
@@ -282,7 +254,6 @@ void init_general_global_var()
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
-	enable_syslog = opt_internal_int("enable_syslog");
 
 	check_for_unused_event_handlers =
 		opt_internal_int("check_for_unused_event_handlers");
@@ -395,8 +366,6 @@ void init_net_var()
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
 
 	max_timer_expires = opt_internal_int("max_timer_expires");
-	max_remote_events_processed =
-		opt_internal_int("max_remote_events_processed");
 
 	skip_authentication = internal_list_val("skip_authentication");
 	direct_login_prompts = internal_list_val("direct_login_prompts");
@@ -497,10 +466,6 @@ void init_net_var()
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();
 	irc_servers = internal_val("irc_servers")->AsTableVal();
-
-	remote_trace_sync_interval =
-		opt_internal_double("remote_trace_sync_interval");
-	remote_trace_sync_peers = opt_internal_int("remote_trace_sync_peers");
 
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");

@@ -2,7 +2,7 @@
 ##! control packets (e.g. it's been filtered to contain only SYN/FIN/RST
 ##! packets and no content).  On finding such a trace, a warning is
 ##! emitted that suggests toggling the :zeek:see:`detect_filtered_trace`
-##! option may be desired if the user does not want Bro to report
+##! option may be desired if the user does not want Zeek to report
 ##! missing TCP segments.
 
 module FilteredTraceDetection;
@@ -45,5 +45,5 @@ event zeek_done()
 		return;
 
 	if ( ! saw_tcp_conn_with_data )
-		Reporter::warning("The analyzed trace file was determined to contain only TCP control packets, which may indicate it's been pre-filtered.  By default, Bro reports the missing segments for this type of trace, but the 'detect_filtered_trace' option may be toggled if that's not desired.");
+		Reporter::warning("The analyzed trace file was determined to contain only TCP control packets, which may indicate it's been pre-filtered.  By default, Zeek reports the missing segments for this type of trace, but the 'detect_filtered_trace' option may be toggled if that's not desired.");
 	}

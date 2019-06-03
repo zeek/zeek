@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 function print_string_vector(v: string_vec)

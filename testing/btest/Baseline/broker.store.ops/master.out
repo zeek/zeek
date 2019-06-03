@@ -6,7 +6,7 @@
 [6], {
 y,
 x
-}, Broker::SUCCESS, [data=broker::data{[1/tcp, 2/tcp, 3/tcp]}]
+}, Broker::SUCCESS, [data=broker::data{(1/tcp, 2/tcp, 3/tcp)}]
 [7], two, Broker::SUCCESS, [data=broker::data{230}]
 [8], three, Broker::SUCCESS, [data=broker::data{320}]
 [9], four, Broker::SUCCESS, [data=broker::data{{1, 2, 3}}]
@@ -14,7 +14,7 @@ keys, [status=Broker::SUCCESS, result=[data=broker::data{{four, one, set, str, t
 [11], str, Broker::SUCCESS, [data=broker::data{foobar}]
 [12], set, Broker::SUCCESS, [data=broker::data{{A, B, C}}]
 [13], table, Broker::SUCCESS, [data=broker::data{{a -> 1, c -> 3}}]
-[14], vec, Broker::SUCCESS, [data=broker::data{[1, 2, 3, 4]}]
+[14], vec, Broker::SUCCESS, [data=broker::data{(1, 2, 3, 4)}]
 [15], one, [status=Broker::SUCCESS, result=[data=broker::data{T}]]
 [16], NOPE, [status=Broker::SUCCESS, result=[data=broker::data{F}]]
 [17], vec, Broker::SUCCESS, [data=broker::data{2}]

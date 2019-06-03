@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/smtp.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/conn

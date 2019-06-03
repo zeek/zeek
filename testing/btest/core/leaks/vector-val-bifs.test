@@ -2,13 +2,13 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
 # The BIFS used in this test originally didn't call the VectorVal() ctor right,
 # assuming that it didn't automatically Ref the VectorType argument and thus
 # leaked that memeory.
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b -r $TRACES/ftp/ipv4.trace %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/ftp/ipv4.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
 function myfunc(aa: interval, bb: interval): int

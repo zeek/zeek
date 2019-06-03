@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/x509-generalizedtime.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls1.2.trace %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -C -r $TRACES/tls/x509-generalizedtime.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls1.2.trace %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)
         {

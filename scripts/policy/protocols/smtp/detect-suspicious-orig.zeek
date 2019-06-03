@@ -10,7 +10,7 @@ export {
 
 	## Places where it's suspicious for mail to originate from represented
 	## as all-capital, two character country codes (e.g., US).  It requires
-	## Bro to be built with GeoIP support.
+	## Zeek to be built with GeoIP support.
 	option suspicious_origination_countries: set[string] = {};
 	option suspicious_origination_networks: set[subnet] = {};
 

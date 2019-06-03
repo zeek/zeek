@@ -78,7 +78,7 @@ function request2curl(r: Request, bodyfile: string, headersfile: string): string
 
 function request(req: Request): ActiveHTTP::Response
 	{
-	local tmpfile     = "/tmp/bro-activehttp-" + unique_id("");
+	local tmpfile     = "/tmp/zeek-activehttp-" + unique_id("");
 	local bodyfile    = fmt("%s_body", tmpfile);
 	local headersfile = fmt("%s_headers", tmpfile);
 

@@ -1,10 +1,10 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary-aborted.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary-aborted.pcap %INPUT
 # @TEST-EXEC: cat ssl.log > ssl-out.log
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13draft16-chrome55.0.2879.0-canary.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-out.log
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-ff52.a01-aborted.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13draft16-ff52.a01-aborted.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-out.log
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls13draft16-ff52.a01.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13draft16-ff52.a01.pcap %INPUT
 # @TEST-EXEC: cat ssl.log >> ssl-out.log
 # @TEST-EXEC: btest-diff ssl-out.log
 # @TEST-EXEC: btest-diff .stdout

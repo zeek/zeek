@@ -17,8 +17,8 @@ refine connection SSL_Conn += {
 
 	function proc_v2_client_master_key(rec: SSLRecord, cipher_kind: int) : bool
 		%{
-		BifEvent::generate_ssl_established(bro_analyzer(),
-				bro_analyzer()->Conn());
+		if ( ssl_established )
+			BifEvent::generate_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
 
 		return true;
 		%}

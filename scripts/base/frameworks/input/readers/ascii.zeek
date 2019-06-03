@@ -1,6 +1,6 @@
 ##! Interface for the ascii input reader.
 ##!
-##! The defaults are set to match Bro's ASCII output.
+##! The defaults are set to match Zeek's ASCII output.
 
 module InputAscii;
 

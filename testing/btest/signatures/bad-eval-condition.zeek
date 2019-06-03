@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: bro -r $TRACES/ftp/ipv4.trace %INPUT
+# @TEST-EXEC-FAIL: zeek -r $TRACES/ftp/ipv4.trace %INPUT
 # @TEST-EXEC: btest-diff .stderr
 
 @load-sigs blah.sig

@@ -1,5 +1,5 @@
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 char version[] = "@VERSION@";
 

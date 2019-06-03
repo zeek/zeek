@@ -1,6 +1,6 @@
 # This tests events not covered by other tests
 
-# @TEST-EXEC: bro -b -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/ssl

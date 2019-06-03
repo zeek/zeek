@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "util.h"
-#include "BroList.h"
+#include "List.h"
 #include "Dict.h"
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
@@ -22,6 +22,9 @@ class Func;
 class EventHandler;
 class RecordType;
 class DNS_Mgr_Request;
+
+declare(PList,DNS_Mgr_Request);
+typedef PList(DNS_Mgr_Request) DNS_mgr_request_list;
 
 struct nb_dns_info;
 struct nb_dns_result;
@@ -96,8 +99,8 @@ protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
-	void Event(EventHandlerPtr e, DNS_Mapping* dm,
-			ListVal* l1 = 0, ListVal* l2 = 0);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2);
 	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
 	Val* BuildMappingVal(DNS_Mapping* dm);
@@ -129,13 +132,14 @@ protected:
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
 	// Process outstanding requests.
-	void DoProcess(bool flush);
+	void DoProcess();
 
 	// IOSource interface.
 	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 	                    iosource::FD_Set* except) override;
 	double NextTimestamp(double* network_time) override;
 	void Process() override;
+	void Init() override;
 	const char* Tag() override { return "DNS_Mgr"; }
 
 	DNS_MgrMode mode;
@@ -168,12 +172,13 @@ protected:
 
 	struct AsyncRequest {
 		double time;
+		bool is_txt;
+		bool processed;
 		IPAddr host;
 		string name;
-		bool is_txt;
 		CallbackList callbacks;
 
-		AsyncRequest() : time(0.0), is_txt(false) { }
+		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 
 		bool IsAddrReq() const	{ return name.length() == 0; }
 
@@ -186,6 +191,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Resolved(TableVal* addrs)
@@ -197,6 +203,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 		void Timeout()
@@ -208,6 +215,7 @@ protected:
 				delete *i;
 				}
 			callbacks.clear();
+			processed = true;
 			}
 
 	};
@@ -224,7 +232,14 @@ protected:
 	typedef list<AsyncRequest*> QueuedList;
 	QueuedList asyncs_queued;
 
-	typedef priority_queue<AsyncRequest*> TimeoutQueue;
+	struct AsyncRequestCompare {
+		bool operator()(const AsyncRequest* a, const AsyncRequest* b)
+			{
+			return a->time > b->time;
+			}
+	};
+
+	typedef priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
@@ -232,6 +247,7 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
+	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

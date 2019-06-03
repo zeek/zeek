@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: bro -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: gunzip ssh.log.gz
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff ssh-uncompressed.log

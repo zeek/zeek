@@ -21,10 +21,10 @@ D	[0-9]+
 H	[0-9a-fA-F]+
 HEX {H}
 STRING	\"([^\n\"]|\\\")*\"
-IDCOMPONENT [0-9a-zA-Z_][0-9a-zA-Z_-]*
+IDCOMPONENT [a-zA-Z_][0-9a-zA-Z_-]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 IP6	("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
-RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/
+RE	\/(\\\/)?([^/]|[^\\]\\\/)*\/i?
 META	\.[^ \t]+{WS}[^\n]+
 PIDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
@@ -189,8 +189,23 @@ finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
 	}
 
 {RE}	{
-	*(yytext + strlen(yytext) - 1) = '\0';
-	rules_lval.str = yytext + 1;
+	auto len = strlen(yytext);
+
+	if ( yytext[len - 1] == 'i' )
+		{
+		*(yytext + len - 2) = '\0';
+		const char fmt[] = "(?i:%s)";
+		int n = len + strlen(fmt);
+		char* s = new char[n + 5 /* slop */];
+		safe_snprintf(s, n + 5, fmt, yytext + 1);
+		rules_lval.str = s;
+		}
+	else
+		{
+		*(yytext + len - 1) = '\0';
+		rules_lval.str = yytext + 1;
+		}
+
 	return TOK_PATTERN;
 	}
 

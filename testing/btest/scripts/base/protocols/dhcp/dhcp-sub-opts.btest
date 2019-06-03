@@ -1,2 +1,2 @@
-# @TEST-EXEC: bro -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT protocols/dhcp/sub-opts
+# @TEST-EXEC: zeek -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT protocols/dhcp/sub-opts
 # @TEST-EXEC: btest-diff dhcp.log

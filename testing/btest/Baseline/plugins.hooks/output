@@ -564,8 +564,8 @@
 0.000000   MetaHookPost  CallFunction(Unified2::start_watching, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(getenv, <null>, (BRO_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
+0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(global_ids, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
@@ -785,7 +785,7 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/variance.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/weird.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, .<...>/zeexygen.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/zeekygen.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/hooks.zeek) -> -1
@@ -1467,8 +1467,8 @@
 0.000000   MetaHookPre   CallFunction(Unified2::start_watching, <frame>, ())
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
-0.000000   MetaHookPre   CallFunction(getenv, <null>, (BRO_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
+0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(global_ids, <frame>, ())
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
@@ -1688,7 +1688,7 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/variance.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/weird.zeek)
-0.000000   MetaHookPre   LoadFile(0, .<...>/zeexygen.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/zeekygen.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/hooks.zeek)
@@ -2369,8 +2369,8 @@
 0.000000 | HookCallFunction Unified2::start_watching()
 0.000000 | HookCallFunction current_time()
 0.000000 | HookCallFunction filter_change_tracking()
-0.000000 | HookCallFunction getenv(BRO_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
+0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction global_ids()
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction reading_live_traffic()
@@ -2599,7 +2599,7 @@
 0.000000 | HookLoadFile  .<...>/variance.zeek
 0.000000 | HookLoadFile  .<...>/video.sig
 0.000000 | HookLoadFile  .<...>/weird.zeek
-0.000000 | HookLoadFile  .<...>/zeexygen.bif.zeek
+0.000000 | HookLoadFile  .<...>/zeekygen.bif.zeek
 0.000000 | HookLoadFile  <...>/__load__.zeek
 0.000000 | HookLoadFile  <...>/__preload__.zeek
 0.000000 | HookLoadFile  <...>/hooks.zeek

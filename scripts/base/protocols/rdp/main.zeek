@@ -23,6 +23,8 @@ export {
 		result:                string  &log &optional;
 		## Security protocol chosen by the server.
 		security_protocol:     string &log &optional;
+		## The channels requested by the client
+		client_channels:       vector of string &log &optional;
 
 		## Keyboard layout (language) of the client machine.
 		keyboard_layout:       string  &log &optional;
@@ -187,6 +189,21 @@ event rdp_client_core_data(c: connection, data: RDP::ClientCoreData) &priority=5
 		c$rdp$requested_color_depth = "32bit";
 	else
 		c$rdp$requested_color_depth = RDP::high_color_depths[data$high_color_depth];
+	}
+
+event rdp_client_network_data(c: connection, channels: ClientChannelList)
+	{
+	set_session(c);
+
+	if ( ! c$rdp?$client_channels )
+		c$rdp$client_channels = vector();
+
+	for ( i in channels )
+		# Remove the NULs at the end
+		c$rdp$client_channels[i] = gsub(channels[i]$name, /\x00+$/, "");
+
+	if ( |channels| > 31 )
+		Reporter::conn_weird("RDP_channels_requested_exceeds_max", c, fmt("%s", |channels|));
 	}
 
 event rdp_gcc_server_create_response(c: connection, result: count) &priority=5

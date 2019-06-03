@@ -4,8 +4,6 @@
 #include "Event.h"
 #include "NetVar.h"
 #include "DebugLogger.h"
-#include "RemoteSerializer.h"
-#include "PersistenceSerializer.h"
 
 int StateAccess::replaying = 0;
 
@@ -135,123 +133,6 @@ void StateAccess::RefThem()
 		Ref(op3);
 	}
 
-bool StateAccess::CheckOld(const char* op, ID* id, Val* index,
-				Val* should, Val* is)
-	{
-	if ( ! remote_check_sync_consistency )
-		return true;
-
-	if ( ! should && ! is )
-		return true;
-
-	// 'should == index' means that 'is' should be non-nil.
-	if ( should == index && is )
-		return true;
-
-	if ( should && is )
-		{
-		// There's no general comparison for non-atomic vals currently.
-		if ( ! (is_atomic_val(is) && is_atomic_val(should)) )
-			return true;
-
-		if ( same_atomic_val(should, is) )
-			return true;
-		}
-
-	Val* arg1;
-	Val* arg2;
-	Val* arg3;
-
-	if ( index )
-		{
-		ODesc d;
-		d.SetShort();
-		index->Describe(&d);
-		arg1 = new StringVal(fmt("%s[%s]", id->Name(), d.Description()));
-		}
-	else
-		arg1 = new StringVal(id->Name());
-
-	if ( should )
-		{
-		ODesc d;
-		d.SetShort();
-		should->Describe(&d);
-		arg2 = new StringVal(d.Description());
-		}
-	else
-		arg2 = new StringVal("<none>");
-
-	if ( is )
-		{
-		ODesc d;
-		d.SetShort();
-		is->Describe(&d);
-		arg3 = new StringVal(d.Description());
-		}
-	else
-		arg3 = new StringVal("<none>");
-
-	val_list* args = new val_list;
-	args->append(new StringVal(op));
-	args->append(arg1);
-	args->append(arg2);
-	args->append(arg3);
-	mgr.QueueEvent(remote_state_inconsistency, args);
-
-	return false;
-	}
-
-bool StateAccess::CheckOldSet(const char* op, ID* id, Val* index,
-				bool should, bool is)
-	{
-	if ( ! remote_check_sync_consistency )
-		return true;
-
-	if ( should == is )
-		return true;
-
-	ODesc d;
-	d.SetShort();
-	index->Describe(&d);
-
-	Val* arg1 = new StringVal(fmt("%s[%s]", id->Name(), d.Description()));
-	Val* arg2 = new StringVal(should ? "set" : "not set");
-	Val* arg3 = new StringVal(is ? "set" : "not set");
-
-	val_list* args = new val_list;
-	args->append(new StringVal(op));
-	args->append(arg1);
-	args->append(arg2);
-	args->append(arg3);
-	mgr.QueueEvent(remote_state_inconsistency, args);
-
-	return false;
-	}
-
-bool StateAccess::MergeTables(TableVal* dst, Val* src)
-	{
-	if ( src->Type()->Tag() != TYPE_TABLE )
-		{
-		reporter->Error("type mismatch while merging tables");
-		return false;
-		}
-
-	if ( ! src->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-		return false;
-
-	DBG_LOG(DBG_STATE, "merging tables %s += %s", dst->UniqueID()->Name(),
-			src->AsTableVal()->UniqueID()->Name());
-
-	src->AsTableVal()->AddTo(dst, 0);
-
-	// We need to make sure that the resulting table is accessible by
-	// the new name (while keeping the old as an alias).
-	dst->TransferUniqueID(src->AsMutableVal());
-
-	return true;
-	}
-
 static Val* GetInteger(bro_int_t n, TypeTag t)
 	{
 	if ( t == TYPE_INT )
@@ -287,12 +168,6 @@ void StateAccess::Replay()
 		assert(op1.val);
 		// There mustn't be a direct assignment to a unique ID.
 		assert(target.id->Name()[0] != '#');
-		CheckOld("assign", target.id, 0, op2, v);
-
-		if ( t == TYPE_TABLE && v &&
-		     v->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			if ( MergeTables(v->AsTableVal(), op1.val) )
-				break;
 
 		target.id->SetVal(op1.val->Ref());
 		break;
@@ -317,21 +192,6 @@ void StateAccess::Replay()
 		if ( t == TYPE_TABLE )
 			{
 			assert(op2);
-
-			BroType* yt = v->Type()->AsTableType()->YieldType();
-
-			if ( yt && yt->Tag() == TYPE_TABLE )
-				{
-				TableVal* tv = v->AsTableVal();
-				Val* w = tv->Lookup(op1.val);
-				if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-					if ( MergeTables(w->AsTableVal(), op2) )
-						break;
-				}
-
-			CheckOld("index assign", target.id, op1.val, op3,
-					v->AsTableVal()->Lookup(op1.val));
-
 			v->AsTableVal()->Assign(op1.val, op2 ? op2->Ref() : 0);
 			}
 
@@ -341,22 +201,7 @@ void StateAccess::Replay()
 			int idx = v->Type()->AsRecordType()->FieldOffset(field);
 
 			if ( idx >= 0 )
-				{
-				BroType* ft = v->Type()->AsRecordType()->FieldType(field);
-
-				if ( ft && ft->Tag() == TYPE_TABLE )
-					{
-					RecordVal* rv = v->AsRecordVal();
-					Val* w = rv->Lookup(idx);
-					if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-						if ( MergeTables(w->AsTableVal(), op2) )
-							break;
-					}
-
-				CheckOld("index assign", target.id, op1.val, op3,
-					v->AsRecordVal()->Lookup(idx));
 				v->AsRecordVal()->Assign(idx, op2 ? op2->Ref() : 0);
-				}
 			else
 				reporter->Error("access replay: unknown record field %s for assign", field);
 			}
@@ -365,20 +210,6 @@ void StateAccess::Replay()
 			{
 			assert(op2);
 			bro_uint_t index = op1.val->AsCount();
-
-			BroType* yt = v->Type()->AsVectorType()->YieldType();
-
-			if ( yt && yt->Tag() == TYPE_TABLE )
-				{
-				VectorVal* vv = v->AsVectorVal();
-				Val* w = vv->Lookup(index);
-				if ( w && w->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-					if ( MergeTables(w->AsTableVal(), op2) )
-						break;
-				}
-
-			CheckOld("index assign", target.id, op1.val, op3,
-					v->AsVectorVal()->Lookup(index));
 			v->AsVectorVal()->Assign(index, op2 ? op2->Ref() : 0);
 			}
 
@@ -442,8 +273,6 @@ void StateAccess::Replay()
 		assert(op1.val);
 		if ( t == TYPE_TABLE )
 			{
-			CheckOldSet("add", target.id, op1.val, op2 != 0,
-					v->AsTableVal()->Lookup(op1.val) != 0);
 			v->AsTableVal()->Assign(op1.val, 0);
 			}
 		break;
@@ -452,13 +281,6 @@ void StateAccess::Replay()
 		assert(op1.val);
 		if ( t == TYPE_TABLE )
 			{
-			if ( v->Type()->AsTableType()->IsSet() )
-				CheckOldSet("delete", target.id, op1.val, op2 != 0,
-					v->AsTableVal()->Lookup(op1.val) != 0);
-			else
-				CheckOld("delete", target.id, op1.val, op2,
-					v->AsTableVal()->Lookup(op1.val));
-
 			Unref(v->AsTableVal()->Delete(op1.val));
 			}
 		break;
@@ -477,13 +299,7 @@ void StateAccess::Replay()
 				// are performed in the expire_func.
 				StateAccess::ResumeReplay();
 
-				if ( remote_serializer )
-					remote_serializer->ResumeStateUpdates();
-
 				tv->CallExpireFunc(op1.val->Ref());
-
-				if ( remote_serializer )
-					remote_serializer->SuspendStateUpdates();
 
 				StateAccess::SuspendReplay();
 
@@ -507,20 +323,7 @@ void StateAccess::Replay()
 			// Update the timestamp if we have a read_expire.
 			if ( tv->FindAttr(ATTR_EXPIRE_READ) )
 				{
-				if ( ! tv->UpdateTimestamp(op1.val) &&
-				     remote_check_sync_consistency )
-					{
-					ODesc d;
-					d.SetShort();
-					op1.val->Describe(&d);
-
-					val_list* args = new val_list;
-					args->append(new StringVal("read"));
-					args->append(new StringVal(fmt("%s[%s]", target.id->Name(), d.Description())));
-					args->append(new StringVal("existent"));
-					args->append(new StringVal("not existent"));
-					mgr.QueueEvent(remote_state_inconsistency, args);
-					}
+				tv->UpdateTimestamp(op1.val);
 				}
 			}
 		else
@@ -533,14 +336,6 @@ void StateAccess::Replay()
 		}
 
 	--replaying;
-
-	if ( remote_state_access_performed )
-		{
-		val_list* vl = new val_list;
-		vl->append(new StringVal(target.id->Name()));
-		vl->append(target.id->ID_Val()->Ref());
-		mgr.QueueEvent(remote_state_access_performed, vl);
-		}
 	}
 
 ID* StateAccess::Target() const
@@ -597,50 +392,41 @@ bool StateAccess::DoSerialize(SerialInfo* info) const
 
 	const Val* null = 0;
 
-	if ( remote_check_sync_consistency )
-		{
+	switch ( opcode ) {
+	case OP_PRINT:
+	case OP_EXPIRE:
+	case OP_READ_IDX:
+		// No old.
+		SERIALIZE_OPTIONAL(null);
+		SERIALIZE_OPTIONAL(null);
+		break;
+
+	case OP_INCR:
+	case OP_INCR_IDX:
+		// Always need old.
 		SERIALIZE_OPTIONAL(op2);
 		SERIALIZE_OPTIONAL(op3);
-		}
+		break;
 
-	else
-		{
-		switch ( opcode ) {
-		case OP_PRINT:
-		case OP_EXPIRE:
-		case OP_READ_IDX:
-			// No old.
-			SERIALIZE_OPTIONAL(null);
-			SERIALIZE_OPTIONAL(null);
-			break;
+	case OP_ASSIGN:
+	case OP_ADD:
+	case OP_DEL:
+		// Op2 is old.
+		SERIALIZE_OPTIONAL(null);
+		SERIALIZE_OPTIONAL(null);
+		break;
 
-		case OP_INCR:
-		case OP_INCR_IDX:
-			// Always need old.
-			SERIALIZE_OPTIONAL(op2);
-			SERIALIZE_OPTIONAL(op3);
-			break;
+	case OP_ASSIGN_IDX:
+		// Op3 is old.
+		SERIALIZE_OPTIONAL(op2);
+		SERIALIZE_OPTIONAL(null);
+		break;
 
-		case OP_ASSIGN:
-		case OP_ADD:
-		case OP_DEL:
-			// Op2 is old.
-			SERIALIZE_OPTIONAL(null);
-			SERIALIZE_OPTIONAL(null);
-			break;
+	default:
+		reporter->InternalError("StateAccess::DoSerialize: unknown opcode");
+	}
 
-		case OP_ASSIGN_IDX:
-			// Op3 is old.
-			SERIALIZE_OPTIONAL(op2);
-			SERIALIZE_OPTIONAL(null);
-			break;
-
-		default:
-			reporter->InternalError("StateAccess::DoSerialize: unknown opcode");
-		}
-		}
-
-		return true;
+	return true;
 	}
 
 bool StateAccess::DoUnserialize(UnserialInfo* info)
@@ -870,47 +656,18 @@ void StateAccess::Describe(ODesc* d) const
 
 void StateAccess::Log(StateAccess* access)
 	{
-	bool synchronized = false;
-	bool persistent = false;
 	bool tracked = false;
 
 	if ( access->target_type == TYPE_ID )
 		{
-		if ( access->target.id->FindAttr(ATTR_SYNCHRONIZED) )
-			synchronized = true;
-
-		if ( access->target.id->FindAttr(ATTR_PERSISTENT) )
-			persistent = true;
-
 		if ( access->target.id->FindAttr(ATTR_TRACKED) )
 			tracked = true;
 		}
 	else
 		{
-		if ( access->target.val->GetProperties() & MutableVal::SYNCHRONIZED )
-			synchronized = true;
-
-		if ( access->target.val->GetProperties() & MutableVal::PERSISTENT )
-			persistent = true;
-
 		if ( access->target.val->GetProperties() & MutableVal::TRACKED )
 			tracked = true;
 		}
-
-	if ( synchronized )
-		{
-		if ( state_serializer )
-			{
-			SerialInfo info(state_serializer);
-			state_serializer->Serialize(&info, *access);
-			}
-
-		SerialInfo info(remote_serializer);
-		remote_serializer->SendAccess(&info, *access);
-		}
-
-	if ( persistent && persistence_serializer->IsSerializationRunning() )
-		persistence_serializer->LogAccess(*access);
 
 	if ( tracked )
 		notifiers.AccessPerformed(*access);
@@ -918,9 +675,8 @@ void StateAccess::Log(StateAccess* access)
 #ifdef DEBUG
 	ODesc desc;
 	access->Describe(&desc);
-	DBG_LOG(DBG_STATE, "operation: %s%s [%s%s]",
-			desc.Description(), replaying > 0 ? " (replay)" : "",
-			persistent ? "P" : "", synchronized ? "S" : "");
+	DBG_LOG(DBG_STATE, "operation: %s%s",
+			desc.Description(), replaying > 0 ? " (replay)" : "");
 #endif
 
 	delete access;
@@ -943,8 +699,7 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 		}
 	else
 		{
-		attr_list* a = new attr_list;
-		a->append(attr);
+		attr_list* a = new attr_list{attr};
 		id->SetAttrs(new Attributes(a, id->Type(), false));
 		}
 

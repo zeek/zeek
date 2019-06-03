@@ -2,6 +2,8 @@
 #include "Packet.h"
 #include "Sessions.h"
 #include "iosource/Manager.h"
+#include "SerialInfo.h"
+#include "Serializer.h"
 
 extern "C" {
 #ifdef HAVE_NET_ETHERNET_H

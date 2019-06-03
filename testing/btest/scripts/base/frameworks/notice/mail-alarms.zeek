@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/web.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/web.trace %INPUT
 # @TEST-EXEC: btest-diff alarm-mail.txt
 
 hook Notice::policy(n: Notice::Info) &priority=1

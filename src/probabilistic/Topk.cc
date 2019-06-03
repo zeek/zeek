@@ -183,6 +183,13 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
+Val* TopkVal::DoClone(CloneState* state)
+	{
+	auto clone = new TopkVal(size);
+	clone->Merge(this);
+	return clone;
+	}
+
 bool TopkVal::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_TOPK_VAL, OpaqueVal);

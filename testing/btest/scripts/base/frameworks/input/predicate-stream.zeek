@@ -1,8 +1,8 @@
-# @TEST-EXEC: btest-bg-run bro bro -b %INPUT
+# @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 #
-# only difference from predicate.bro is, that this one uses a stream source.
+# only difference from predicate.zeek is, that this one uses a stream source.
 # the reason is, that the code-paths are quite different, because then the
 # ascii reader uses the put and not the sendevent interface
 

@@ -1,6 +1,6 @@
 ##! Script level signature support.  See the
 ##! :doc:`signature documentation </frameworks/signatures>` for more
-##! information about Bro's signature engine.
+##! information about Zeek's signature engine.
 
 @load base/frameworks/notice
 

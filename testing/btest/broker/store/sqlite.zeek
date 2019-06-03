@@ -1,5 +1,5 @@
-# @TEST-EXEC: bro -b %INPUT RUN=1 >out
-# @TEST-EXEC: bro -b %INPUT RUN=2 >>out
+# @TEST-EXEC: zeek -b %INPUT RUN=1 >out
+# @TEST-EXEC: zeek -b %INPUT RUN=2 >>out
 # @TEST-EXEC: btest-diff out
 
 global RUN = 0 &redef;

@@ -26,9 +26,6 @@ public:
 
 	void SetLocalHandler(Func* f);
 
-	void AddRemoteHandler(SourceID peer);
-	void RemoveRemoteHandler(SourceID peer);
-
 	void AutoPublish(std::string topic)
 		{
 		auto_publish.insert(std::move(topic));
@@ -74,10 +71,6 @@ private:
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
 	bool generate_always;
-
-	declare(List, SourceID);
-	typedef List(SourceID) receiver_list;
-	receiver_list receivers;
 
 	std::unordered_set<std::string> auto_publish;
 };

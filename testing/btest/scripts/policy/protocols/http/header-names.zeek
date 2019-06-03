@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff http.log
 
 @load protocols/http/header-names

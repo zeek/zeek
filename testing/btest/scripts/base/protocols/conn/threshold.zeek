@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/irc-dcc-send.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/irc-dcc-send.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event connection_established(c: connection)

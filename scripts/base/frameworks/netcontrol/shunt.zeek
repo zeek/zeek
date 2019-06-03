@@ -7,7 +7,7 @@ module NetControl;
 export {
 	redef enum Log::ID += { SHUNT };
 
-	## Stops forwarding a uni-directional flow's packets to Bro.
+	## Stops forwarding a uni-directional flow's packets to Zeek.
 	##
 	## f: The flow to shunt.
 	##
@@ -21,7 +21,7 @@ export {
 	type ShuntInfo: record {
 		## Time at which the recorded activity occurred.
 		ts: time &log;
-		## ID of the rule; unique during each Bro run.
+		## ID of the rule; unique during each Zeek run.
 		rule_id: string  &log;
 		## Flow ID of the shunted flow.
 		f: flow_id &log;

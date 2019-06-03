@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Net.h"
 #include "NetVar.h"
@@ -157,11 +157,11 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( do_udp_contents )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(val_mgr->GetBool(is_orig));
-			vl->append(new StringVal(len, (const char*) data));
-			ConnectionEvent(udp_contents, vl);
+			ConnectionEventFast(udp_contents, {
+				BuildConnVal(),
+				val_mgr->GetBool(is_orig),
+				new StringVal(len, (const char*) data),
+			});
 			}
 
 		Unref(port_val);

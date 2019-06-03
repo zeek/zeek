@@ -8,7 +8,7 @@ export {
 	const default_port = 9999/tcp &redef;
 
 	## Default interval to retry listening on a port if it's currently in
-	## use already.  Use of the BRO_DEFAULT_LISTEN_RETRY environment variable
+	## use already.  Use of the ZEEK_DEFAULT_LISTEN_RETRY environment variable
 	## (set as a number of seconds) will override this option and also
 	## any values given to :zeek:see:`Broker::listen`.
 	const default_listen_retry = 30sec &redef;
@@ -16,11 +16,11 @@ export {
 	## Default address on which to listen.
 	##
 	## .. zeek:see:: Broker::listen
-	const default_listen_address = getenv("BRO_DEFAULT_LISTEN_ADDRESS") &redef;
+	const default_listen_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
 	## work initially, or if it ever becomes disconnected.  Use of the
-	## BRO_DEFAULT_CONNECT_RETRY environment variable (set as number of
+	## ZEEK_DEFAULT_CONNECT_RETRY environment variable (set as number of
 	## seconds) will override this option and also any values given to
 	## :zeek:see:`Broker::peer`.
 	const default_connect_retry = 30sec &redef;
@@ -32,27 +32,27 @@ export {
 	const disable_ssl = F &redef;
 
 	## Path to a file containing concatenated trusted certificates 
-	## in PEM format. If set, Bro will require valid certificates for
+	## in PEM format. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_cafile = "" &redef;
 
 	## Path to an OpenSSL-style directory of trusted certificates.
-	## If set, Bro will require valid certificates for
+	## If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_capath = "" &redef;
 
 	## Path to a file containing a X.509 certificate for this
-	## node in PEM format. If set, Bro will require valid certificates for
+	## node in PEM format. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_certificate = "" &redef;
 
 	## Passphrase to decrypt the private key specified by
-	## :zeek:see:`Broker::ssl_keyfile`. If set, Bro will require valid
+	## :zeek:see:`Broker::ssl_keyfile`. If set, Zeek will require valid
 	## certificates for all peers.
 	const ssl_passphrase = "" &redef;
 
 	## Path to the file containing the private key for this node's
-	## certificate. If set, Bro will require valid certificates for
+	## certificate. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_keyfile = "" &redef;
 
@@ -61,8 +61,16 @@ export {
 	## control mechanisms).
 	const congestion_queue_size = 200 &redef;
 
+	## The max number of log entries per log stream to batch together when
+	## sending log messages to a remote logger.
+	const log_batch_size = 400 &redef;
+
+	## Max time to buffer log messages before sending the current set out as a
+	## batch.
+	const log_batch_interval = 1sec &redef;
+
 	## Max number of threads to use for Broker/CAF functionality.  The
-	## BRO_BROKER_MAX_THREADS environment variable overrides this setting.
+	## ZEEK_BROKER_MAX_THREADS environment variable overrides this setting.
 	const max_threads = 1 &redef;
 
 	## Interval of time for under-utilized Broker/CAF threads to sleep
@@ -227,7 +235,7 @@ export {
 	##
 	## retry: If non-zero, retries listening in regular intervals if the port cannot be
 	##        acquired immediately. 0 disables retries.  If the
-	##        BRO_DEFAULT_LISTEN_RETRY environment variable is set (as number
+	##        ZEEK_DEFAULT_LISTEN_RETRY environment variable is set (as number
 	##        of seconds), it overrides any value given here.
 	##
 	## Returns: the bound port or 0/? on failure.
@@ -245,7 +253,7 @@ export {
 	## retry: an interval at which to retry establishing the
 	##        connection with the remote peer if it cannot be made initially, or
 	##        if it ever becomes disconnected.  If the
-	##        BRO_DEFAULT_CONNECT_RETRY environment variable is set (as number
+	##        ZEEK_DEFAULT_CONNECT_RETRY environment variable is set (as number
 	##        of seconds), it overrides any value given here.
 	##
 	## Returns: true if it's possible to try connecting with the peer and
@@ -339,7 +347,7 @@ export {
 	##        Peers advertise interest by registering a subscription to some
 	##        prefix of this topic name.
 	##
-	## ev: a Bro event value.
+	## ev: a Zeek event value.
 	##
 	## Returns: true if automatic event sending is now enabled.
 	global auto_publish: function(topic: string, ev: any): bool;
@@ -371,7 +379,7 @@ function listen(a: string, p: port, retry: interval): port
 
 	if ( bound == 0/tcp )
 		{
-		local e = getenv("BRO_DEFAULT_LISTEN_RETRY");
+		local e = getenv("ZEEK_DEFAULT_LISTEN_RETRY");
 
 		if ( e != "" )
 			retry = double_to_interval(to_double(e));

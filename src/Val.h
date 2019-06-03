@@ -172,7 +172,7 @@ public:
 	~Val() override;
 
 	Val* Ref()			{ ::Ref(this); return this; }
-	virtual Val* Clone() const;
+	Val* Clone();
 
 	int IsZero() const;
 	int IsOne() const;
@@ -370,6 +370,9 @@ public:
 protected:
 
 	friend class EnumType;
+	friend class ListVal;
+	friend class RecordVal;
+	friend class VectorVal;
 	friend class ValManager;
 
 	virtual void ValDescribe(ODesc* d) const;
@@ -418,6 +421,14 @@ protected:
 	// Just an internal helper.
 	static Val* Unserialize(UnserialInfo* info, TypeTag type,
 			const BroType* exact_type);
+
+	// For internal use by the Val::Clone() methods.
+	struct CloneState {
+	    std::unordered_map<const Val*, Val*> clones;
+	};
+
+	Val* Clone(CloneState* state);
+	virtual Val* DoClone(CloneState* state);
 
 	BroValUnion val;
 	BroType* type;
@@ -524,9 +535,6 @@ public:
 	// values.  (In any case, don't forget to call the parent's method.)
 	typedef char Properties;
 
-	static const int PERSISTENT = 0x01;
-	static const int SYNCHRONIZED = 0x02;
-
 	// Tracked by NotifierRegistry, not recursive.
 	static const int TRACKED = 0x04;
 
@@ -540,10 +548,10 @@ public:
 	bool LoggingAccess() const
 		{
 #ifndef DEBUG
-		return props & (SYNCHRONIZED|PERSISTENT|TRACKED);
+		return props & TRACKED;
 #else
 		return debug_logger.IsVerbose() ||
-			(props & (SYNCHRONIZED|PERSISTENT|TRACKED));
+			(props & TRACKED);
 #endif
 		}
 
@@ -639,6 +647,7 @@ protected:
 	PortVal(uint32 p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(PortVal);
 };
@@ -663,6 +672,8 @@ protected:
 	AddrVal()	{}
 	explicit AddrVal(TypeTag t) : Val(t)	{ }
 	explicit AddrVal(BroType* t) : Val(t)	{ }
+
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(AddrVal);
 };
@@ -692,6 +703,7 @@ protected:
 	SubNetVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(SubNetVal);
 };
@@ -724,6 +736,7 @@ protected:
 	StringVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(StringVal);
 };
@@ -744,6 +757,7 @@ protected:
 	PatternVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(PatternVal);
 };
@@ -789,6 +803,8 @@ protected:
 	friend class Val;
 	ListVal()	{}
 
+	Val* DoClone(CloneState* state) override;
+
 	DECLARE_SERIAL(ListVal);
 
 	val_list vals;
@@ -806,6 +822,16 @@ public:
 		expire_access_time = last_read_update =
 			int(network_time - bro_start_network_time);
 		}
+
+	TableEntryVal* Clone()
+		{
+		auto rval = new TableEntryVal(val ? val->Clone() : nullptr);
+		rval->last_access_time = last_access_time;
+		rval->expire_access_time = expire_access_time;
+		rval->last_read_update = last_read_update;
+		return rval;
+		}
+
 	~TableEntryVal()	{ }
 
 	Val* Value()	{ return val; }
@@ -997,6 +1023,8 @@ protected:
 	// Propagates a read operation if necessary.
 	void ReadOperation(Val* index, TableEntryVal *v);
 
+	Val* DoClone(CloneState* state) override;
+
 	DECLARE_SERIAL(TableVal);
 
 	TableType* table_type;
@@ -1012,11 +1040,11 @@ protected:
 
 class RecordVal : public MutableVal {
 public:
-	explicit RecordVal(RecordType* t);
+	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
 
 	Val* SizeVal() const override
-		{ return val_mgr->GetCount(record_type->NumFields()); }
+		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
@@ -1069,9 +1097,10 @@ protected:
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
 
+	Val* DoClone(CloneState* state) override;
+
 	DECLARE_SERIAL(RecordVal);
 
-	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;
@@ -1100,6 +1129,7 @@ protected:
 	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(EnumVal);
 };
@@ -1160,6 +1190,7 @@ protected:
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(VectorVal);
 
@@ -1177,6 +1208,8 @@ public:
 protected:
 	friend class Val;
 	OpaqueVal() { }
+
+	Val* DoClone(CloneState* state) override;
 
 	DECLARE_SERIAL(OpaqueVal);
 };

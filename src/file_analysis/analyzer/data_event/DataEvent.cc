@@ -41,12 +41,11 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	{
 	if ( ! chunk_event ) return true;
 
-	val_list* args = new val_list;
-	args->append(GetFile()->GetVal()->Ref());
-	args->append(new StringVal(new BroString(data, len, 0)));
-	args->append(val_mgr->GetCount(offset));
-
-	mgr.QueueEvent(chunk_event, args);
+	mgr.QueueEventFast(chunk_event, {
+		GetFile()->GetVal()->Ref(),
+		new StringVal(new BroString(data, len, 0)),
+		val_mgr->GetCount(offset),
+	});
 
 	return true;
 	}
@@ -55,11 +54,10 @@ bool DataEvent::DeliverStream(const u_char* data, uint64 len)
 	{
 	if ( ! stream_event ) return true;
 
-	val_list* args = new val_list;
-	args->append(GetFile()->GetVal()->Ref());
-	args->append(new StringVal(new BroString(data, len, 0)));
-
-	mgr.QueueEvent(stream_event, args);
+	mgr.QueueEventFast(stream_event, {
+		GetFile()->GetVal()->Ref(),
+		new StringVal(new BroString(data, len, 0)),
+	});
 
 	return true;
 	}

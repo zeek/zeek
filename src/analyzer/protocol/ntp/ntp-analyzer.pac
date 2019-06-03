@@ -89,11 +89,3 @@ refine flow NTP_Flow += {
 refine typeattr NTP_Association += &let {
 	proc: bool = $context.flow.proc_ntp_association(this);
 };
-
-refine typeattr NTP_Mode6 += &let {
-	proc: bool = $context.flow.proc_ntp_mode6(this);
-};
-
-refine typeattr NTP_Mode7 += &let {
-	proc: bool = $context.flow.proc_ntp_mode7(this);
-};

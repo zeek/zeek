@@ -17,17 +17,15 @@
 	Val* proc_ntp_short(const NTP_Short_Time* t)
 	{
   	   if ( t->seconds() == 0 && t->fractions() == 0 )
-    		return new IntervalVal(0.0, Milliseconds);
-   	   return new IntervalVal((double)ntohl(t->seconds() + t->fractions()*FRAC_16), Milliseconds);
-   	   //return new IntervalVal((double)ntohs(t->seconds() + t->fractions()*FRAC_16), Seconds);
+    		return new Val(0.0, TYPE_INTERVAL);
+   	   return new Val(t->seconds() + t->fractions()*FRAC_16, TYPE_INTERVAL);
 	}
 
 	Val* proc_ntp_timestamp(const NTP_Time* t)
  	{
    	   if ( t->seconds() == 0 && t->fractions() == 0)
      		return new Val(0.0, TYPE_TIME);
-   	   return new IntervalVal((double)ntohl(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32), Milliseconds);
-   	   //return new IntervalVal((double)ntohs(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32), Seconds);
+   	   return new Val(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32, TYPE_TIME);
  	}
 %}
 
@@ -40,8 +38,8 @@ refine flow NTP_Flow += {
                 RecordVal* rv = new RecordVal(BifType::Record::NTP::std);
 
                	rv->Assign(0, val_mgr->GetCount(${nsm.stratum}));
-                rv->Assign(1, new IntervalVal(pow(2, ${nsm.poll}), Milliseconds));
-                rv->Assign(2, new IntervalVal(pow(2, ${nsm.precision}), Milliseconds));
+                rv->Assign(1, new Val(pow(2, ${nsm.poll}), TYPE_INTERVAL));
+                rv->Assign(2, new Val(pow(2, ${nsm.precision}), TYPE_INTERVAL));
                 rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
                 rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 

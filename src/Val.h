@@ -424,7 +424,16 @@ protected:
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
-	    std::unordered_map<const Val*, Val*> clones;
+		// Caches a cloned value for later reuse during the same
+		// cloning operation. For recursive types, call this *before*
+		// descending down.
+		Val* NewClone(Val *src, Val* dst)
+			{
+			clones.insert(std::make_pair(src, dst));
+			return dst;
+			}
+
+		std::unordered_map<Val*, Val*> clones;
 	};
 
 	Val* Clone(CloneState* state);

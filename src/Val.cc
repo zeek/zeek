@@ -86,8 +86,6 @@ Val* Val::Clone(CloneState* state)
 
 	auto c = DoClone(state);
 	assert(c);
-
-	state->clones.insert(std::make_pair(this, c));
 	return c;
 	}
 
@@ -1155,8 +1153,12 @@ unsigned int StringVal::MemoryAllocation() const
 
 Val* StringVal::DoClone(CloneState* state)
 	{
-	return new StringVal(new BroString((u_char*) val.string_val->Bytes(),
-	                                   val.string_val->Len(), 1));
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
+	return state->NewClone(this, new StringVal(
+	        new BroString((u_char*) val.string_val->Bytes(),
+	                      val.string_val->Len(), 1)));
 	}
 
 IMPLEMENT_SERIAL(StringVal, SER_STRING_VAL);
@@ -1223,10 +1225,13 @@ unsigned int PatternVal::MemoryAllocation() const
 
 Val* PatternVal::DoClone(CloneState* state)
 	{
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
 	auto re = new RE_Matcher(val.re_val->PatternText(),
 	                         val.re_val->AnywherePatternText());
 	re->Compile();
-	return new PatternVal(re);
+	return state->NewClone(this, new PatternVal(re));
 	}
 
 IMPLEMENT_SERIAL(PatternVal, SER_PATTERN_VAL);
@@ -1331,6 +1336,7 @@ Val* ListVal::DoClone(CloneState* state)
 	{
 	auto lv = new ListVal(tag);
 	lv->vals.resize(vals.length());
+	state->NewClone(this, lv);
 
 	loop_over_list(vals, i)
 		lv->Append(vals[i]->Clone(state));
@@ -2541,6 +2547,7 @@ void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 Val* TableVal::DoClone(CloneState* state)
 	{
 	auto tv = new TableVal(table_type);
+	state->NewClone(this, tv);
 
 	const PDict(TableEntryVal)* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
@@ -3158,6 +3165,7 @@ Val* RecordVal::DoClone(CloneState* state)
 	// we don't touch it.
 	auto rv = new RecordVal(Type()->AsRecordType(), false);
 	rv->origin = nullptr;
+	state->NewClone(this, rv);
 
 	loop_over_list(*val.val_list_val, i)
 		{
@@ -3454,6 +3462,7 @@ Val* VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = new VectorVal(vector_type);
 	vv->val.vector_val->reserve(val.vector_val->size());
+	state->NewClone(this, vv);
 
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		{

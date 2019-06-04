@@ -1,4 +1,12 @@
 
+2.6-361 | 2019-06-04 10:30:21 -0700
+
+  * GH-293: Protect copy() against reference cycles. (Robin Sommer, Corelight)
+
+    Reference cycles shouldn't occur but there's nothing really preventing
+    people from creating them, so may just as well be safe and deal with
+    them when cloning values.
+
 2.6-359 | 2019-05-31 13:37:17 -0700
 
   * Remove old documentation reference to rotate_interval (Jon Siwek, Corelight)

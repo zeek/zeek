@@ -4979,6 +4979,149 @@ export {
 	const max_frame_size = 65536 &redef;
 }
 
+module NTP;
+
+export {
+
+	## NTP standard message as defined in :rfc:`5905` for mode=1-5
+	## This record contains the standard fields used by the NTP protocol
+	## for standard syncronization operations. 
+	type NTP::std: record {
+        ## The stratum (primary server, secondary server, etc.)
+        stratum:            count;
+        ## The maximum interval between successive messages
+        poll:               interval;
+        ## The precision of the system clock
+        precision:          interval;
+        ## Total round-trip delay to the reference clock
+        root_delay:         interval;
+        ## Total dispersion to the reference clock
+        root_disp:          interval;
+        ## For stratum 0, 4 character string used for debugging
+        kiss_code:          string &optional;
+        ## For stratum 1, ID assigned to the reference clock by IANA
+        ref_id:             string &optional;
+        ## Above stratum 1, when using IPv4, the IP address of the reference clock
+        ref_addr:           addr &optional;
+        ## Above stratum 1, when using IPv6, the first four bytes of the MD5 hash of the
+        ## IPv6 address of the reference clock
+        ref_v6_hash_prefix: string &optional;
+        ## Time when the system clock was last set or correct
+        ref_time:           time;
+        ## Time at the client when the request departed for the NTP server
+        org_time:           time;
+        ## Time at the server when the request arrived from the NTP client
+        rec_time:           time;
+        ## Time at the server when the response departed for the NTP client
+        xmt_time:           time;
+        ## Key used to designate a secret MD5 key
+        key_id:             count &optional;
+        ## MD5 hash computed over the key followed by the NTP packet header and extension fields
+        digest:             string &optional;
+        ## Number of extension fields  (which are not currently parsed)
+        num_exts:           count &default=0;
+	};
+
+        ## NTP control message as defined in :rfc:`1119` for mode=6
+        ## This record contains the fields used by the NTP protocol
+        ## for control operations.
+        type NTP::control: record {
+	## An integer specifying the command function. Values currently defined includes:
+	## 1 read status command/response
+	## 2 read variables command/response
+	## 3 write variables command/response
+	## 4 read clock variables command/response
+	## 5 write clock variables command/response
+	## 6 set trap address/port command/response
+	## 7 trap response
+	## Other values are reserved.
+        OpCode     	: count;
+	## The response bit. Set to zero for commands, one for responses.
+        resp_bit        : bool;
+        ## The error bit. Set to zero for normal response, one for error response.
+        err_bit		: bool;
+        ## The more bit. Set to zero for last fragment, one for all others.
+        more_bit        : bool;
+	## The sequence number of the command or response
+        sequence        : count;
+	## The current status of the system, peer or clock
+        status          : count;    #TODO: this must be further specified
+	## A 16-bit integer identifying a valid association
+        association_id  : count;
+	## A 16-bit integer indicating the offset, in octets, of the first octet in the data area
+        offs            : count;
+	## A 16-bit integer indicating the length of the data field, in octets
+        c		: count;
+	## The message data for the command or response + Authenticator (optional)
+        data            : string &optional;   # TODO: distinguish data and authenticator
+	};
+
+        ## NTP mode7 message for mode=7. Note that this is not defined in any RFC
+	## and is implementation dependent. We used the official implementation from
+	## the NTP official project (www.ntp.org).
+	## A mode 7 packet is used exchanging data between an NTP server
+	## and a client for purposes other than time synchronization, e.g.
+	## monitoring, statistics gathering and configuration. 
+	## For details see the documentation from the NTP official project (www.ntp.org),
+	## code v. ntp-4.2.8p13, in include/ntp_request.h.
+        type NTP::mode7: record {
+        ## An implementation-specific code which specifies the
+	## operation to be (which has been) performed and/or the
+	## format and semantics of the data included in the packet.
+        ReqCode		: count;
+        ## The authenticated bit. If set, this packet is authenticated.
+        auth_bit        : bool;
+        ## For a multipacket response, contains the sequence
+	## number of this packet.  0 is the first in the sequence,
+	## 127 (or less) is the last.  The More Bit must be set in
+	## all packets but the last.
+        sequence        : count;
+        ## The number of the implementation this request code
+	## is defined by.  An implementation number of zero is used
+	## for requst codes/data formats which all implementations
+	## agree on.  Implementation number 255 is reserved (for
+	## extensions, in case we run out).
+        implementation	: count;    
+        ##  Must be 0 for a request.  For a response, holds an error
+	##  code relating to the request.  If nonzero, the operation
+	##  requested wasn't performed.
+	##
+	##               0 - no error
+	##               1 - incompatible implementation number
+	##               2 - unimplemented request code
+	##               3 - format error (wrong data items, data size, packet size etc.)
+	##               4 - no data available (e.g. request for details on unknown peer)
+	##               5-6 I don't know
+	##               7 - authentication failure (i.e. permission denied)
+        err  		: count;
+        ## Rest of data
+        data            : string &optional;   # TODO: can be further parsed
+        };
+
+        ## NTP message as defined in :rfc:`5905`.
+        ## Doesn't include fields for mode 7 (reserved for private use), e.g. monlist
+        type NTP::Message: record {
+        ## The NTP version number (1, 2, 3, 4)
+        version:            count;
+        ## The NTP mode being used
+        mode:               count;
+	## If mode=1-5, the standard fields for syncronization operations are here.
+	## See :rfc:`5905`
+	std_msg:	    NTP::std &optional;
+	## If mode=6, the fields for control operations are here.
+	## See :rfc:`1119`
+	control_msg:	    NTP::control &optional;
+        ## If mode=7, the fields for extra operations are here.
+        ## Note that this is not defined in any RFC
+        ## and is implementation dependent. We used the official implementation from
+        ## the NTP official project (www.ntp.org).
+        ## A mode 7 packet is used exchanging data between an NTP server
+        ## and a client for purposes other than time synchronization, e.g.
+        ## monitoring, statistics gathering and configuration.
+        mode7_msg:	    NTP::mode7 &optional;
+        };
+}
+
 module Cluster;
 export {
 	type Cluster::Pool: record {};

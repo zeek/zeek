@@ -2591,7 +2591,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 		if ( op2->Tag() == EXPR_LIST )
 			{
-			op2 = new VectorConstructorExpr(op2->AsListExpr());
+			op2 = new VectorConstructorExpr(op2->AsListExpr(), op1->Type());
 			return true;
 			}
 		}

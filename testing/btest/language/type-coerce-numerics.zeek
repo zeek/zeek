@@ -4,6 +4,8 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure1.out
 # @TEST-EXEC-FAIL: zeek -b double_convert_failure2.zeek >double_convert_failure2.out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff double_convert_failure2.out
+# @TEST-EXEC: zeek -b vectors.zeek >vectors.out 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.out
 
 @TEST-START-FILE first_set.zeek
 type myrecord : record {
@@ -81,5 +83,40 @@ type myrecord : record {
 event zeek_init()
 	{
 	local convert = myrecord($cc = -5.0);
+	}
+@TEST-END-FILE
+
+@TEST-START-FILE vectors.zeek
+event zeek_init()
+	{
+	local c1 : vector of count = { 1 , 2 };
+	local c2 : vector of count = { 3 , 4 };
+	local c3 = c1 + c2;
+	print type_name(c1);
+	print type_name(c2);
+	print type_name(c3);
+	print c1;
+	print c2;
+	print c3;
+
+	local i1 : vector of int = { 1, 2 };
+	local i2 : vector of int = { 3, 4 };
+	local i3 = i1 + i2;
+	print type_name(i1);
+	print type_name(i2);
+	print type_name(i3);
+	print i1;
+	print i2;
+	print i3;
+
+	local d1 : vector of double = { 1, 2 };
+	local d2 : vector of double = { 3, 4 };
+	local d3 = d1 + d2;
+	print type_name(d1);
+	print type_name(d2);
+	print type_name(d3);
+	print d1;
+	print d2;
+	print d3;
 	}
 @TEST-END-FILE

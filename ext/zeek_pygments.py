@@ -29,10 +29,11 @@ class ZeekLexer(RegexLexer):
             include('literals'),
             include('operators'),
             include('punctuation'),
-            include('identifiers'),
 
             (r'\b((?:[A-Za-z_][A-Za-z_0-9]*)(?:::(?:[A-Za-z_][A-Za-z_0-9]*))*)(?=\s*\()',
                 Name.Function),
+
+            include('identifiers'),
         ],
 
         'whitespace': [

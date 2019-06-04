@@ -38,7 +38,7 @@ The following example code adds SQLite as a filter for the connection log:
 
 .. literalinclude:: sqlite-conn-filter.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Bro will create the database file ``/var/db/conn.sqlite``, if it does not
@@ -67,7 +67,7 @@ same fields that are present in the ASCII log files::
 Note that the ASCII ``conn.log`` will still be created. To prevent this file
 from being created, you can remove the default filter:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     Log::remove_filter(Conn::LOG, "default");
 
@@ -113,7 +113,7 @@ read the resulting table into Bro:
 
 .. literalinclude:: sqlite-read-table.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Afterwards, that table can be used to check logins into hosts against
@@ -160,7 +160,7 @@ against our malware-database and output the matching hash.
 
 .. literalinclude:: sqlite-read-events.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 If you run this script against the trace in

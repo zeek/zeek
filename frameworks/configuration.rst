@@ -38,7 +38,7 @@ Declaring options
 
 The "option" keyword allows variables to be declared as configuration options.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module TestModule;
 
@@ -63,7 +63,7 @@ being that there is no need to specify the :zeek:attr:`&redef` attribute in
 the declaration of an option.  For example, given the above option
 declarations, here are some possible redefs:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     redef TestModule::enable_feature = T;
     redef TestModule::my_networks += { 10.1.0.0/16, 10.2.0.0/16 };
@@ -86,7 +86,7 @@ only the manager node attempts to read the specified configuration files.
 
 For example, simply add something like this to local.zeek:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     redef Config::config_files += { "/path/to/config.dat" };
 
@@ -127,7 +127,7 @@ supported by the config input reader.  In that case you would need to use
 the Config::set_value function to change the value of such an option as
 shown in the following example.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module TestModule;
 
@@ -154,7 +154,7 @@ change handler for an option that has a data type of "addr" (for other
 data types, the return type and 2nd parameter data type must be adjusted
 accordingly):
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module TestModule;
 

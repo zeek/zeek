@@ -63,7 +63,7 @@ Backends should be initialized in the :zeek:see:`NetControl::init` event, callin
 the :zeek:see:`NetControl::activate` function after the plugin instance has been
 initialized. The debug plugin can be initialized as follows:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
   event NetControl::init()
     {
@@ -133,7 +133,7 @@ sees being established:
 
 .. literalinclude:: netcontrol-1-drop-with-debug.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Running this script on a file containing one connection will cause the debug
@@ -198,7 +198,7 @@ following code automatically blocks a recognized SSH guesser:
 
 .. literalinclude:: netcontrol-2-ssh-guesser.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -228,7 +228,7 @@ the :zeek:see:`Notice::ACTION_DROP` action of the notice framework:
 
 .. literalinclude:: netcontrol-3-ssh-guesser.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -321,7 +321,7 @@ drops all connections on the network:
 
 .. literalinclude:: netcontrol-4-drop.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -381,7 +381,7 @@ originating from the 192.168.* network:
 
 .. literalinclude:: netcontrol-5-hook.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -460,7 +460,7 @@ address is already blocked in the second connection.
 
 .. literalinclude:: netcontrol-6-find.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -514,7 +514,7 @@ Using catch and release in your scripts is easy; just use
 
 .. literalinclude:: netcontrol-7-catch-release.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -659,7 +659,7 @@ plugin. We manually block a few addresses in the
 
 .. literalinclude:: netcontrol-8-multiple.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -779,7 +779,7 @@ when a rule was added and removed successfully.
 
 .. literalinclude:: netcontrol-9-skeleton.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 This example is already fully functional and we can use it with a script similar
@@ -787,7 +787,7 @@ to our very first example:
 
 .. literalinclude:: netcontrol-10-use-skeleton.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console

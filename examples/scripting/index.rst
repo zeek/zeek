@@ -39,7 +39,7 @@ script :doc:`/scripts/policy/frameworks/files/detect-MHR.zeek`
 that is responsible for generating the
 appropriate DNS lookup, parsing the response, and generating a notice if appropriate.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: detect-MHR.zeek
 
    ##! Detect file downloads that have hash values matching files in Team
@@ -124,7 +124,7 @@ specific event (``event file_hash``).  Don't get discouraged if you don't
 understand every section of the script; we'll cover the basics of the
 script and much more in following sections.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: detect-MHR.zeek
 
    @load base/frameworks/files
@@ -143,7 +143,7 @@ this level of granularity might not be entirely necessary.  The ``@load`` direct
 are ensuring the Files framework, the Notice framework and the script to hash all files has
 been loaded by Bro.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: detect-MHR.zeek
 
    export {
@@ -194,7 +194,7 @@ Up until this point, the script has merely done some basic setup.  With
 the next section, the script starts to define instructions to take in
 a given event.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: detect-MHR.zeek
 
    function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
@@ -322,7 +322,7 @@ This effort resulted in built-in-function files organized such that
 each entry contains a descriptive event name, the arguments passed to
 the event, and a concise explanation of the functions use.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
    ## Generated for DNS requests. For requests with multiple queries, this event
    ## is raised once for each.
@@ -394,7 +394,7 @@ for a single connection.
 
 .. literalinclude:: connection_record_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Again, we start with ``@load``, this time importing the
@@ -444,7 +444,7 @@ brackets, which would correspond to the ``$``-delimiter in a Bro script.
 
 .. literalinclude:: connection_record_02.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -490,7 +490,7 @@ use is likely to be dictated by personal preference and readability.
 
 .. literalinclude:: data_type_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Global Variables
@@ -534,7 +534,7 @@ excerpt from :doc:`/scripts/base/protocols/http/main.zeek` below.
 
 .. literalinclude:: http_main.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Because the constant was declared with the ``&redef`` attribute, if we
@@ -543,7 +543,7 @@ following line to our ``site/local.zeek`` file before firing up Bro.
 
 .. literalinclude:: data_type_const_simple.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 While the idea of a re-definable constant might be odd, the constraint
@@ -557,7 +557,7 @@ would fail.
 
 .. literalinclude:: data_type_const.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -582,7 +582,7 @@ visible ones, an example of which is illustrated below.
 
 .. literalinclude:: data_type_local.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 The script executes the event handler :zeek:id:`zeek_init` which in turn calls
@@ -658,7 +658,7 @@ declaration of a locally scoped set.
 
 .. literalinclude:: data_struct_set_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 1-4,22
 
@@ -673,7 +673,7 @@ process each element of the set as seen below.
 
 .. literalinclude:: data_struct_set_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 17-21
    :lineno-start: 17
@@ -697,7 +697,7 @@ which will aid in the readability of your script.
 
 .. literalinclude:: data_struct_set_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 13-15
    :lineno-start: 13
@@ -706,7 +706,7 @@ You can see the full script and its output below.
 
 .. literalinclude:: data_struct_set_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -730,7 +730,7 @@ to preserve a one-to-one mapping of keys to values.
 
 .. literalinclude:: data_struct_table_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -766,7 +766,7 @@ security platform.
 
 .. literalinclude:: data_struct_table_complex.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -819,7 +819,7 @@ lengths.
 
 .. literalinclude:: data_struct_vector_declaration.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -841,7 +841,7 @@ current item in the vector with ``addr_vector[i]``.
 
 .. literalinclude:: data_struct_vector_iter.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -904,7 +904,7 @@ using a 20 bit subnet mask.
 
 .. literalinclude:: data_type_subnets.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Because this is a script that doesn't use any kind of network
@@ -951,7 +951,7 @@ produce a common date time formatted time stamp.
 
 .. literalinclude:: data_type_time.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 When the script is executed we get an output showing the details of
@@ -1000,7 +1000,7 @@ establishment report.
 
 .. literalinclude:: data_type_interval.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 This time, when we execute the script we see an additional line in the
@@ -1045,7 +1045,7 @@ string against which it will be tested to be on the right.
 
 .. literalinclude:: data_type_pattern_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 In the sample above, two local variables are declared to hold our
@@ -1078,6 +1078,9 @@ operator with patterns.  The output is altered based
 on the result of the comparison between the pattern and the string.  
 
 .. literalinclude:: data_type_pattern_02.zeek
+   :caption:
+   :language: zeek
+   :linenos:
 
 .. sourcecode:: console
 
@@ -1105,7 +1108,7 @@ example of the ``record`` data type in the earlier sections, the
 
 .. literalinclude:: data_type_record.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Looking at the structure of the definition, a new collection of data
@@ -1121,7 +1124,7 @@ field is unique.
 
 .. literalinclude:: data_struct_record_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -1150,6 +1153,9 @@ the example above to include another record that contains a Service
 record.
 
 .. literalinclude:: data_struct_record_02.zeek
+   :caption:
+   :language: zeek
+   :linenos:
 
 .. sourcecode:: console
 
@@ -1171,7 +1177,7 @@ It's also common to see a ``type`` used to simply alias a data
 structure to a more descriptive name.  The example below shows an
 example of this from Bro's own type definitions file.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: init-bare.zeek
 
    type string_array: table[count] of string;
@@ -1235,7 +1241,7 @@ into the Logging Framework.
 
 .. literalinclude:: framework_logging_factorial_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -1262,7 +1268,7 @@ to integrate the Logging Framework.
 
 .. literalinclude:: framework_logging_factorial_02.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 As mentioned above we have to perform a few steps before we can
@@ -1347,7 +1353,7 @@ remaining logs to factor.log.
 
 .. literalinclude:: framework_logging_factorial_03.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 To dynamically alter the file in which a stream writes its logs, a
@@ -1419,7 +1425,7 @@ the ``$ev`` field in the call to ``Log::create_stream``
 
 .. literalinclude:: framework_logging_factorial_04.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 
@@ -1471,7 +1477,7 @@ or not that notice is acted upon is decided by the local Notice
 Policy, but the script attempts to supply as much information as
 possible while staying concise.  
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: scripts/policy/protocols/ssh/interesting-hostnames.zeek
 
    ##! This script will generate a notice if an apparent SSH login originates
@@ -1564,7 +1570,7 @@ action based on the answer.  The hook below adds the
 
 .. literalinclude:: framework_notice_hook_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 In the example above we've added ``Notice::ACTION_EMAIL`` to the
@@ -1602,7 +1608,7 @@ identifier.  An identifier is a unique string of information collected
 from the connection relative to the behavior that has been observed by
 Bro.  
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
    :caption: scripts/policy/protocols/ssl/expiring-certs.zeek
 
    NOTICE([$note=Certificate_Expires_Soon,
@@ -1642,7 +1648,7 @@ variable to a shorter time.
 
 .. literalinclude:: framework_notice_hook_suppression_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 While ``Notice::policy`` hooks allow you to build custom
@@ -1692,7 +1698,7 @@ in the call to ``NOTICE``.
 
 .. literalinclude:: framework_notice_shortcuts_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 The Notice Policy shortcut above adds the ``Notice::Type`` of
@@ -1702,5 +1708,5 @@ of time for which those notices will be suppressed.
 
 .. literalinclude:: framework_notice_shortcuts_02.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:

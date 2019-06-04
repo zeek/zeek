@@ -73,7 +73,7 @@ inline documentation that does this with the Sumstats framework:
 
 .. literalinclude:: sumstats-countconns.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 When run on a sample PCAP file from the Bro test suite, the following output
@@ -95,7 +95,7 @@ real-world functional example, that is left to the
 
 .. literalinclude:: sumstats-toy-scan.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Let's see if there are any hosts that crossed the threshold in a PCAP file

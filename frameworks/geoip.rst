@@ -111,7 +111,7 @@ Usage
 
 There is a built-in function that provides the GeoIP functionality:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     function lookup_location(a:addr): geo_location
 
@@ -128,7 +128,7 @@ Example
 
 To show every ftp connection from hosts in Ohio, this is now very easy:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
     {

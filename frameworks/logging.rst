@@ -63,7 +63,7 @@ done:
 In the following example, we create a new module "Foo" which creates
 a new log stream.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module Foo;
 
@@ -113,7 +113,7 @@ In this example, the :zeek:id:`connection_established` event provides our data,
 and we also store a copy of the data being logged into the
 :zeek:type:`connection` record:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event connection_established(c: connection)
         {
@@ -156,7 +156,7 @@ Let's say we want to add a boolean field ``is_private`` to
 :zeek:type:`Conn::Info` that indicates whether the originator IP address
 is part of the :rfc:`1918` space:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     # Add a field to the connection log record.
     redef record Conn::Info += {
@@ -182,7 +182,7 @@ In this example, since a connection's summary is generated at
 the time its state is removed from memory, we can add another handler
 at that time that sets our field correctly:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event connection_state_remove(c: connection)
         {
@@ -215,7 +215,7 @@ being logged. For these cases, a stream can specify an event that will
 be generated every time a log record is written to it.  To do this, we
 need to modify the example module shown above to look something like this:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module Foo;
 
@@ -246,7 +246,7 @@ connection log stream raises the event :zeek:id:`Conn::log_conn`. You
 could use that for example for flagging when a connection to a
 specific destination exceeds a certain duration:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     redef enum Notice::Type += {
         ## Indicates that a connection remained established longer
@@ -273,7 +273,7 @@ Disable a Stream
 One way to "turn off" a log is to completely disable the stream.  For
 example, the following example will prevent the conn.log from being written:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -308,7 +308,7 @@ The easiest way to change a log filename is to simply replace the
 default log filter with a new filter that specifies a value for the "path"
 field.  In this example, "conn.log" will be changed to "myconn.log":
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -333,7 +333,7 @@ if you want to restrict the set of fields being logged to the new file.
 In this example, a new filter is added to the Conn::LOG stream that writes
 two fields to a new log file:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -364,7 +364,7 @@ corresponding ``exclude`` filter attribute that you can use instead of
 If you want to make this the only log file for the stream, you can
 remove the default filter:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -381,7 +381,7 @@ allows, e.g., to record local and remote connections into separate
 files. To do this, you define a function that returns the desired path,
 and use the "path_func" filter attribute:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     # Note: if using BroControl then you don't need to redef local_nets.
     redef Site::local_nets = { 192.168.0.0/16 };
@@ -413,7 +413,7 @@ only with the :zeek:enum:`Conn::LOG` stream as the record type is hardcoded
 into its argument list. However, Bro allows to do a more generic
 variant:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     function myfunc(id: Log::ID, path: string,
                     rec: record { id: conn_id; } ) : string
@@ -432,7 +432,7 @@ We have seen how to customize the columns being logged, but
 you can also control which records are written out by providing a
 predicate that will be called for each log record:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     function http_only(rec: Conn::Info) : bool
         {
@@ -462,7 +462,7 @@ Or specifically for certain :zeek:type:`Log::Filter` instances by setting
 their ``interv`` field.  Here's an example of changing just the
 :zeek:enum:`Conn::LOG` stream's default filter rotation.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -501,7 +501,7 @@ Some writer options are global (i.e., they affect all log filters using
 that log writer).  For example, to change the output format of all ASCII
 logs to JSON format:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     redef LogAscii::use_json = T;
 
@@ -509,7 +509,7 @@ Some writer options are filter-specific (i.e., they affect only the filters
 that explicitly specify the option).  For example, to change the output
 format of the ``conn.log`` only:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {

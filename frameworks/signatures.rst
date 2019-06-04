@@ -31,7 +31,7 @@ This signature asks Bro to match the regular expression ``.*root`` on
 all TCP connections going to port 80. When the signature triggers, Bro
 will raise an event :zeek:id:`signature_match` of the form:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event signature_match(state: signature_state, msg: string, data: string)
     
@@ -262,7 +262,7 @@ two actions defined:
     Raises a :zeek:id:`signature_match` event. The event handler has the
     following type:
 
-    .. sourcecode:: bro
+    .. sourcecode:: zeek
 
         event signature_match(state: signature_state, msg: string, data: string)
 

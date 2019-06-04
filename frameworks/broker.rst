@@ -224,14 +224,14 @@ Bro can accept incoming connections by calling :zeek:see:`Broker::listen`.
 
 .. literalinclude:: broker/connecting-listener.zeek
    :caption: connecting-listener.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 Bro can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
 
 .. literalinclude:: broker/connecting-connector.zeek
    :caption: connecting-connector.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 In either case, connection status updates are monitored via the
@@ -251,7 +251,7 @@ define any event handlers for events that peers will send.
 
 .. literalinclude:: broker/events-listener.zeek
    :caption: events-listener.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 There are two different ways to send events.
@@ -270,7 +270,7 @@ in addition to sending the event to any subscribed peers.
 
 .. literalinclude:: broker/events-connector.zeek
    :caption: events-connector.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 Note that the subscription model is prefix-based, meaning that if you subscribe
@@ -282,7 +282,7 @@ Remote Logging
 
 .. literalinclude:: broker/testlog.zeek
    :caption: testlog.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 To toggle remote logs, redef :zeek:see:`Log::enable_remote_logging`.
@@ -292,12 +292,12 @@ in logs written by peers.  The topic names that Bro uses are determined by
 
 .. literalinclude:: broker/logs-listener.zeek
    :caption: logs-listener.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. literalinclude:: broker/logs-connector.zeek
    :caption: logs-connector.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 Note that logging events are only raised locally on the node that performs
@@ -328,12 +328,12 @@ time relative to the entry's last modification time.
 
 .. literalinclude:: broker/stores-listener.zeek
    :caption: stores-listener.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. literalinclude:: broker/stores-connector.zeek
    :caption: stores-connector.zeek
-   :language: bro
+   :language: zeek
    :linenos:
 
 Note that all data store queries must be made within Bro's asynchronous
@@ -356,7 +356,7 @@ should always use the fully-qualified event name.
 
 For example, this will likely not work as expected:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module MyModule;
 
@@ -380,7 +380,7 @@ will never be called and also not any remote handlers either, even if
 :zeek:see:`Broker::auto_publish` was used elsewhere for it.  Instead, at
 minimum you would need change the ``zeek_init()`` handler:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event zeek_init()
         {
@@ -391,7 +391,7 @@ minimum you would need change the ``zeek_init()`` handler:
 Though, an easy rule of thumb to remember would be to always use the
 explicit module namespace scoping and you can't go wrong:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module MyModule;
 
@@ -420,7 +420,7 @@ Manager Sending Events To Workers
 This is fairly straightforward, we just need a topic name which we know
 all workers are subscribed combined with the event we want to send them.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event manager_to_workers(s: string)
         {
@@ -463,7 +463,7 @@ This should look almost identical to the previous case of sending an event
 from the manager to workers, except it simply changes the topic name to
 one which the manager is subscribed.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event worker_to_manager(worker_name: string)
         {
@@ -484,7 +484,7 @@ topology, this type of communication is a bit different than what we
 did before since we have to manually relay the event via some node that *is*
 connected to all workers.  The manager or a proxy satisfies that requirement:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event worker_to_workers(worker_name: string)
         {
@@ -523,7 +523,7 @@ we can make use of a `Highest Random Weight (HRW) hashing
 <https://en.wikipedia.org/wiki/Rendezvous_hashing>`_ distribution strategy
 to uniformly map an arbitrary key space across all available proxies.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event worker_to_proxies(worker_name: string)
         {

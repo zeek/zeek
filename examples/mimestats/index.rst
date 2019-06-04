@@ -39,14 +39,14 @@ observers for the other two values.
 
 .. literalinclude:: mimestats.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 6-29
    :lineno-start: 6
 
 .. literalinclude:: mimestats.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 54-64
    :lineno-start: 54
@@ -57,7 +57,7 @@ the partial code from a :zeek:see:`zeek_init` handler.
 
 .. literalinclude:: mimestats.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 34-37
    :lineno-start: 34
@@ -68,7 +68,7 @@ observation interval.  Once it expires, we populate the record
 
 .. literalinclude:: mimestats.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
    :lines: 38-51
    :lineno-start: 38
@@ -78,7 +78,7 @@ final code for our script.
 
 .. literalinclude:: mimestats.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console

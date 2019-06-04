@@ -198,7 +198,7 @@ Let's continue on our path to modify the behavior for the two SSL
 notices.  Looking at :doc:`/scripts/base/frameworks/notice/main.zeek`,
 we see that it advertises:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     module Notice;
 
@@ -210,7 +210,7 @@ we see that it advertises:
 
 That's exactly what we want to do for the first notice.  Add to ``local.zeek``:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     redef Notice::ignored_types += { SSL::Invalid_Server_Cert };
 
@@ -255,7 +255,7 @@ In ``local.zeek``, let's define a new ``policy`` hook handler body:
 
 .. literalinclude:: conditional-notice.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console

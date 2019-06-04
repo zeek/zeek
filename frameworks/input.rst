@@ -51,7 +51,7 @@ the table content.
 
 The two records are defined as:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         type Idx: record {
                 ip: addr;
@@ -70,7 +70,7 @@ columns does not matter, because each column is identified by name.
 The log file is read into the table with a simple call of the
 :zeek:id:`Input::add_table` function:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         global blacklist: table[addr] of Val = table();
 
@@ -107,7 +107,7 @@ Once the input framework finishes reading from a data source, it fires
 the :zeek:id:`Input::end_of_data` event. Once this event has been received all
 data from the input file is available in the table.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         event Input::end_of_data(name: string, source: string) {
                 # now all data is in the table
@@ -119,7 +119,7 @@ just might not contain all lines from the input file before the event has
 fired. After the table has been populated it can be used like any other Bro
 table and blacklist entries can easily be tested:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         if ( 192.168.18.12 in blacklist )
                 # take action
@@ -133,7 +133,7 @@ for membership in a set. The input framework supports this approach by
 using sets as the destination data type, and omitting ``$val`` in
 :zeek:id:`Input::add_table`:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         type Idx: record {
                 ip: addr;
@@ -164,7 +164,7 @@ elements from the file will be updated.  After the update is finished the
 
 In our example the call would look like:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         Input::force_update("blacklist");
 
@@ -176,7 +176,7 @@ of the :zeek:id:`Input::add_table` call.  Valid values are ``Input::MANUAL``
 setting the value of the ``mode`` option in the previous example
 would look like this:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         Input::add_table([$source="blacklist.file", $name="blacklist",
                           $idx=Idx, $val=Val, $destination=blacklist,
@@ -210,7 +210,7 @@ item is added to, removed from, or changed in a table.
 The event definition looks like this (note that you can change the name of
 this event in your own Bro script):
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         event entry(description: Input::TableDescription, tpe: Input::Event,
                     left: Idx, right: Val) {
@@ -220,7 +220,7 @@ this event in your own Bro script):
 
 The event must be specified in ``$ev`` in the ``add_table`` call:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         Input::add_table([$source="blacklist.file", $name="blacklist",
                           $idx=Idx, $val=Val, $destination=blacklist,
@@ -265,7 +265,7 @@ The following example filter will reject adding entries to the table when
 they were generated over a month ago. It will accept all changes and all
 removals of values that are already present in the table.
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         Input::add_table([$source="blacklist.file", $name="blacklist",
                           $idx=Idx, $val=Val, $destination=blacklist,
@@ -357,7 +357,7 @@ discussed in much detail. To read the blacklist of the previous example
 into an event stream, the :zeek:id:`Input::add_event` function is used.
 For example:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
         type Val: record {
                 ip: addr;

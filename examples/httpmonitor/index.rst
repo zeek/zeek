@@ -86,7 +86,7 @@ detect a reply for a ``GET http://`` request.
 
 .. literalinclude:: http_proxy_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -101,7 +101,7 @@ will extend our basic script to also consider the additional codes.
 
 .. literalinclude:: http_proxy_02.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -114,7 +114,7 @@ network.
 
 .. literalinclude:: http_proxy_03.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -137,7 +137,7 @@ Below is the complete script.
 
 .. literalinclude:: http_proxy_04.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -175,7 +175,7 @@ using the :ref:`File Analysis Framework <file-analysis-framework>`
 
 .. literalinclude:: file_extraction.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console

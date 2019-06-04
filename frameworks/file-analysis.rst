@@ -36,7 +36,7 @@ Here's a simple example:
 
 .. literalinclude:: file_analysis_01.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -83,7 +83,7 @@ calculate the MD5 of plain text files:
 
 .. literalinclude:: file_analysis_02.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 .. sourcecode:: console
@@ -95,7 +95,7 @@ calculate the MD5 of plain text files:
 Some file analyzers might have tunable parameters that need to be
 specified in the call to :zeek:see:`Files::add_analyzer`:
 
-.. sourcecode:: bro
+.. sourcecode:: zeek
 
     event file_new(f: fa_file)
         {
@@ -126,7 +126,7 @@ a network interface it's monitoring.  It only requires a call to
 
 .. literalinclude:: file_analysis_03.zeek
    :caption:
-   :language: bro
+   :language: zeek
    :linenos:
 
 Note that the "source" field of :zeek:see:`fa_file` corresponds to the

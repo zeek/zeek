@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath('ext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions += ['zeek', 'sphinx.ext.todo']
+extensions += ['zeek', 'sphinx.ext.todo', 'zeek_pygments']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -159,6 +159,9 @@ html_static_path = ['_static']
 
 def setup(app):
     app.add_stylesheet("theme_overrides.css")
+    from sphinx.highlighting import lexers
+    from zeek_pygments import ZeekLexer
+    lexers['zeek'] = ZeekLexer()
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

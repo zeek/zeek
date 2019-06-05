@@ -1,4 +1,12 @@
 
+2.6-376 | 2019-06-05 13:29:57 -0700
+
+  * GH-379: move catch-and-release and unified2 scripts to policy/ (Jon Siwek, Corelight)
+
+    These are no longer loaded by default due to the performance impact they
+    cause simply by being loaded (they have event handlers for commonly
+    generated events) and they aren't generally useful enough to justify it.
+
 2.6-375 | 2019-06-04 19:28:06 -0700
 
   * Simplify threading::Value destructor (Jon Siwek, Corelight)

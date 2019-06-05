@@ -3,6 +3,7 @@
 # @TEST-EXEC: btest-diff netcontrol_catch_release.log
 
 @load base/frameworks/netcontrol
+@load policy/frameworks/netcontrol/catch-and-release
 
 event NetControl::init()
 	{
@@ -33,6 +34,7 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 @TEST-START-NEXT
 
 @load base/frameworks/netcontrol
+@load policy/frameworks/netcontrol/catch-and-release
 
 event NetControl::init()
 	{

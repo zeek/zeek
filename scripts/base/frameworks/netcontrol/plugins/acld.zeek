@@ -1,10 +1,10 @@
 ##! Acld plugin for the netcontrol framework.
 
-module NetControl;
-
 @load ../main
 @load ../plugin
 @load base/frameworks/broker
+
+module NetControl;
 
 export {
 	type AclRule : record {

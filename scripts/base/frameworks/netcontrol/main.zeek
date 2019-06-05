@@ -10,10 +10,10 @@
 ##! provides convenience functions for a set of common operations. The
 ##! low-level API provides full flexibility.
 
-module NetControl;
-
 @load ./plugin
 @load ./types
+
+module NetControl;
 
 export {
 	## The framework's logging stream identifier.

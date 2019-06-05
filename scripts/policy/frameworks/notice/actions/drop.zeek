@@ -1,8 +1,9 @@
 ##! This script extends the built in notice code to implement the IP address
 ##! dropping functionality.
 
-@load ../main
+@load base/frameworks/notice/main
 @load base/frameworks/netcontrol
+@load policy/frameworks/netcontrol/catch-and-release
 
 module Notice;
 

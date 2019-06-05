@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <unistd.h>
+
 #include "KRB.h"
 #include "types.bif.h"
 #include "events.bif.h"

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ntp/ntp2.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/ntp/ntp2.pcap %INPUT
 # @TEST-EXEC: btest-diff ntp.log
 # @TEST-EXEC: btest-diff .stdout
 

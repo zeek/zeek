@@ -87,7 +87,7 @@ typedef union {
 
 class Val : public BroObj {
 public:
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(bool b, TypeTag t)
 		{
 		val.int_val = b;
@@ -97,7 +97,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
@@ -107,7 +107,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
@@ -117,7 +117,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int64 i, TypeTag t)
 		{
 		val.int_val = i;
@@ -127,7 +127,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint64 u, TypeTag t)
 		{
 		val.uint_val = u;
@@ -454,15 +454,15 @@ protected:
 class PortManager {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num) const;
 
 	// Returns a masked port number
-	BRO_DEPRECATED("use PortVal::Mask() instead")
+	ZEEK_DEPRECATED("use PortVal::Mask() instead")
 	uint32 Mask(uint32 port_num, TransportProto port_type) const;
 };
 
@@ -619,11 +619,11 @@ protected:
 class PortVal : public Val {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal(uint32 p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	explicit PortVal(uint32 p);
 
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
@@ -1120,7 +1120,7 @@ protected:
 class EnumVal : public Val {
 public:
 
-	BRO_DEPRECATED("use t->GetVal(i) instead")
+	ZEEK_DEPRECATED("use t->GetVal(i) instead")
 	EnumVal(int i, EnumType* t) : Val(t)
 		{
 		val.int_val = i;

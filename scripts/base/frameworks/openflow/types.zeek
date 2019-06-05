@@ -89,7 +89,7 @@ export {
 		## Opaque controller-issued identifier.
 		# This is optional in the specification - but let's force
 		# it so we always can identify our flows...
-		cookie: count; # &default=BRO_COOKIE_ID * COOKIE_BID_START;
+		cookie: count; # &default=ZEEK_COOKIE_ID * COOKIE_BID_START;
 		# Flow actions
 		## Table to put the flow in. OFPTT_ALL can be used for delete,
 		## to delete flows from all matching tables.

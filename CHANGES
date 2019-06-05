@@ -1,4 +1,14 @@
 
+2.6-377 | 2019-06-05 16:15:58 -0700
+
+  * Deprecate functions with "bro" in them. (Jon Siwek, Corelight)
+
+    * "bro_is_terminating" is now "zeek_is_terminating"
+
+    * "bro_version" is now "zeek_version"
+
+    The old functions still exist for now, but are deprecated.
+
 2.6-376 | 2019-06-05 13:29:57 -0700
 
   * GH-379: move catch-and-release and unified2 scripts to policy/ (Jon Siwek, Corelight)

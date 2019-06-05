@@ -361,6 +361,9 @@ Deprecated Functionality
   such that existing code will not break, but will emit a deprecation
   warning.
 
+- The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
+  replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
+
 - The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
   were marked as deprecated. These functions were used with the old pre-2.0 logging
   framework and are no longer used. They also were marked as deprecated in their

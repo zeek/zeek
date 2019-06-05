@@ -17,7 +17,7 @@ export {
 
 event TrimTraceFile::go(first_trim: bool)
 	{
-	if ( bro_is_terminating() || trace_output_file == "" )
+	if ( zeek_is_terminating() || trace_output_file == "" )
 		return;
 	
 	if ( ! first_trim )

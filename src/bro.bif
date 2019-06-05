@@ -1735,15 +1735,24 @@ function getpid%(%) : count
 	%}
 
 %%{
-extern const char* bro_version();
+extern const char* zeek_version();
 %%}
 
-## Returns the Bro version string.
+## Returns the Zeek version string.  This function is deprecated, use
+## :zeek:see:`zeek_version` instead.
 ##
-## Returns: Bro's version, e.g., 2.0-beta-47-debug.
-function bro_version%(%): string
+## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
+function bro_version%(%): string &deprecated
 	%{
-	return new StringVal(bro_version());
+	return new StringVal(zeek_version());
+	%}
+
+## Returns the Zeek version string.
+##
+## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
+function zeek_version%(%): string
+	%{
+	return new StringVal(zeek_version());
 	%}
 
 ## Converts a record type name to a vector of strings, where each element is
@@ -2068,12 +2077,23 @@ function dump_rule_stats%(f: file%): bool
 	return val_mgr->GetBool(1);
 	%}
 
-## Checks if Bro is terminating.
+## Checks if Zeek is terminating.  This function is deprecated, use
+## :zeek:see:`zeek_is_terminating` instead.
 ##
-## Returns: True if Bro is in the process of shutting down.
+## Returns: True if Zeek is in the process of shutting down.
 ##
 ## .. zeek:see:: terminate
-function bro_is_terminating%(%): bool
+function bro_is_terminating%(%): bool &deprecated
+	%{
+	return val_mgr->GetBool(terminating);
+	%}
+
+## Checks if Zeek is terminating.
+##
+## Returns: True if Zeek is in the process of shutting down.
+##
+## .. zeek:see:: terminate
+function zeek_is_terminating%(%): bool
 	%{
 	return val_mgr->GetBool(terminating);
 	%}

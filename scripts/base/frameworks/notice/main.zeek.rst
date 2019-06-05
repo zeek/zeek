@@ -242,13 +242,6 @@ Types
          ASCII version of the alarm log is emailed in bulk to the
          address(es) configured in :zeek:id:`Notice::mail_dest`.
 
-      .. zeek:enum:: Notice::ACTION_DROP Notice::Action
-
-         (present if :doc:`/scripts/base/frameworks/notice/actions/drop.zeek` is loaded)
-
-
-         Drops the address via :zeek:see:`NetControl::drop_address_catch_release`.
-
       .. zeek:enum:: Notice::ACTION_EMAIL_ADMIN Notice::Action
 
          (present if :doc:`/scripts/base/frameworks/notice/actions/email_admin.zeek` is loaded)
@@ -276,6 +269,13 @@ Types
          Indicates that the notice should have geodata added for the
          "remote" host.  :zeek:id:`Site::local_nets` must be defined
          in order for this to work.
+
+      .. zeek:enum:: Notice::ACTION_DROP Notice::Action
+
+         (present if :doc:`/scripts/policy/frameworks/notice/actions/drop.zeek` is loaded)
+
+
+         Drops the address via :zeek:see:`NetControl::drop_address_catch_release`.
 
    These are values representing actions that can be taken with notices.
 
@@ -433,17 +433,17 @@ Types
          This field indicates the length of time that this
          unique notice should be suppressed.
 
-      dropped: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-         (present if :doc:`/scripts/base/frameworks/notice/actions/drop.zeek` is loaded)
-
-         Indicate if the $src IP address was dropped and denied
-         network access.
-
       remote_location: :zeek:type:`geo_location` :zeek:attr:`&log` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/notice/actions/add-geodata.zeek` is loaded)
 
          If GeoIP support is built in, notices can have geographic
          information attached to them.
+
+      dropped: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/frameworks/notice/actions/drop.zeek` is loaded)
+
+         Indicate if the $src IP address was dropped and denied
+         network access.
 
    The record type that is used for representing and logging notices.
 

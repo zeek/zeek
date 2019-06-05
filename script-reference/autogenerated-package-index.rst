@@ -60,25 +60,6 @@
    that can be taken remotely at runtime to modify a running Zeek instance
    or collect information from the running instance.
 
-:doc:`base/frameworks/netcontrol </scripts/base/frameworks/netcontrol/index>`
-
-   The NetControl framework provides a way for Zeek to interact with networking
-   hard- and software, e.g. for dropping and shunting IP addresses/connections,
-   etc.
-
-:doc:`base/frameworks/netcontrol/plugins </scripts/base/frameworks/netcontrol/plugins/index>`
-
-   Plugins for the NetControl framework.
-
-:doc:`base/frameworks/openflow </scripts/base/frameworks/openflow/index>`
-
-   The OpenFlow framework exposes the data structures and functions
-   necessary to interface to OpenFlow capable hardware.
-
-:doc:`base/frameworks/openflow/plugins </scripts/base/frameworks/openflow/plugins/index>`
-
-   Plugins for the OpenFlow framework.
-
 :doc:`base/frameworks/dpd </scripts/base/frameworks/dpd/index>`
 
    The DPD (dynamic protocol detection) activates port-independent protocol
@@ -126,6 +107,25 @@
 
    The tunnels framework handles the tracking/logging of tunnels (e.g. Teredo,
    AYIYA, or IP-in-IP such as 6to4 where "IP" is either IPv4 or IPv6).
+
+:doc:`base/frameworks/openflow </scripts/base/frameworks/openflow/index>`
+
+   The OpenFlow framework exposes the data structures and functions
+   necessary to interface to OpenFlow capable hardware.
+
+:doc:`base/frameworks/openflow/plugins </scripts/base/frameworks/openflow/plugins/index>`
+
+   Plugins for the OpenFlow framework.
+
+:doc:`base/frameworks/netcontrol </scripts/base/frameworks/netcontrol/index>`
+
+   The NetControl framework provides a way for Zeek to interact with networking
+   hard- and software, e.g. for dropping and shunting IP addresses/connections,
+   etc.
+
+:doc:`base/frameworks/netcontrol/plugins </scripts/base/frameworks/netcontrol/plugins/index>`
+
+   Plugins for the NetControl framework.
 
 :doc:`base/protocols/conn </scripts/base/protocols/conn/index>`
 
@@ -262,10 +262,6 @@
 
    Support for extracting files with the file analysis framework.
 
-:doc:`base/files/unified2 </scripts/base/files/unified2/index>`
-
-   Support for Unified2 files in the file analysis framework.
-
 :doc:`zeekygen </scripts/zeekygen/index>`
 
    This package is loaded during the process which automatically generates
@@ -279,6 +275,10 @@
 
 :doc:`policy/frameworks/notice </scripts/policy/frameworks/notice/index>`
 
+
+:doc:`policy/files/unified2 </scripts/policy/files/unified2/index>`
+
+   Support for Unified2 files in the file analysis framework.
 
 :doc:`policy/integration/barnyard2 </scripts/policy/integration/barnyard2/index>`
 

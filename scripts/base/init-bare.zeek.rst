@@ -7280,7 +7280,7 @@ Types
 
 
       u2_events: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`Unified2::IDSEvent` :zeek:attr:`&optional` :zeek:attr:`&create_expire` = ``5.0 secs`` :zeek:attr:`&expire_func` = :zeek:type:`function`
-         (present if :doc:`/scripts/base/files/unified2/main.zeek` is loaded)
+         (present if :doc:`/scripts/policy/files/unified2/main.zeek` is loaded)
 
          Recently received IDS events.  This is primarily used
          for tying together Unified2 events and packets.

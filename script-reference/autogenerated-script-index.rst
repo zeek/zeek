@@ -201,31 +201,6 @@
    base/frameworks/control/main.zeek </scripts/base/frameworks/control/main.zeek>
    base/frameworks/cluster/pools.zeek </scripts/base/frameworks/cluster/pools.zeek>
    base/frameworks/notice/weird.zeek </scripts/base/frameworks/notice/weird.zeek>
-   base/frameworks/notice/actions/drop.zeek </scripts/base/frameworks/notice/actions/drop.zeek>
-   base/frameworks/netcontrol/__load__.zeek </scripts/base/frameworks/netcontrol/__load__.zeek>
-   base/frameworks/netcontrol/types.zeek </scripts/base/frameworks/netcontrol/types.zeek>
-   base/frameworks/netcontrol/main.zeek </scripts/base/frameworks/netcontrol/main.zeek>
-   base/frameworks/netcontrol/plugin.zeek </scripts/base/frameworks/netcontrol/plugin.zeek>
-   base/frameworks/netcontrol/plugins/__load__.zeek </scripts/base/frameworks/netcontrol/plugins/__load__.zeek>
-   base/frameworks/netcontrol/plugins/debug.zeek </scripts/base/frameworks/netcontrol/plugins/debug.zeek>
-   base/frameworks/netcontrol/plugins/openflow.zeek </scripts/base/frameworks/netcontrol/plugins/openflow.zeek>
-   base/frameworks/openflow/__load__.zeek </scripts/base/frameworks/openflow/__load__.zeek>
-   base/frameworks/openflow/consts.zeek </scripts/base/frameworks/openflow/consts.zeek>
-   base/frameworks/openflow/types.zeek </scripts/base/frameworks/openflow/types.zeek>
-   base/frameworks/openflow/main.zeek </scripts/base/frameworks/openflow/main.zeek>
-   base/frameworks/openflow/plugins/__load__.zeek </scripts/base/frameworks/openflow/plugins/__load__.zeek>
-   base/frameworks/openflow/plugins/ryu.zeek </scripts/base/frameworks/openflow/plugins/ryu.zeek>
-   base/utils/json.zeek </scripts/base/utils/json.zeek>
-   base/frameworks/openflow/plugins/log.zeek </scripts/base/frameworks/openflow/plugins/log.zeek>
-   base/frameworks/openflow/plugins/broker.zeek </scripts/base/frameworks/openflow/plugins/broker.zeek>
-   base/frameworks/openflow/non-cluster.zeek </scripts/base/frameworks/openflow/non-cluster.zeek>
-   base/frameworks/netcontrol/plugins/packetfilter.zeek </scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek>
-   base/frameworks/netcontrol/plugins/broker.zeek </scripts/base/frameworks/netcontrol/plugins/broker.zeek>
-   base/frameworks/netcontrol/plugins/acld.zeek </scripts/base/frameworks/netcontrol/plugins/acld.zeek>
-   base/frameworks/netcontrol/drop.zeek </scripts/base/frameworks/netcontrol/drop.zeek>
-   base/frameworks/netcontrol/shunt.zeek </scripts/base/frameworks/netcontrol/shunt.zeek>
-   base/frameworks/netcontrol/catch-and-release.zeek </scripts/base/frameworks/netcontrol/catch-and-release.zeek>
-   base/frameworks/netcontrol/non-cluster.zeek </scripts/base/frameworks/netcontrol/non-cluster.zeek>
    base/frameworks/notice/actions/email_admin.zeek </scripts/base/frameworks/notice/actions/email_admin.zeek>
    base/frameworks/notice/actions/page.zeek </scripts/base/frameworks/notice/actions/page.zeek>
    base/frameworks/notice/actions/add-geodata.zeek </scripts/base/frameworks/notice/actions/add-geodata.zeek>
@@ -264,6 +239,29 @@
    base/frameworks/sumstats/non-cluster.zeek </scripts/base/frameworks/sumstats/non-cluster.zeek>
    base/frameworks/tunnels/__load__.zeek </scripts/base/frameworks/tunnels/__load__.zeek>
    base/frameworks/tunnels/main.zeek </scripts/base/frameworks/tunnels/main.zeek>
+   base/frameworks/openflow/__load__.zeek </scripts/base/frameworks/openflow/__load__.zeek>
+   base/frameworks/openflow/consts.zeek </scripts/base/frameworks/openflow/consts.zeek>
+   base/frameworks/openflow/types.zeek </scripts/base/frameworks/openflow/types.zeek>
+   base/frameworks/openflow/main.zeek </scripts/base/frameworks/openflow/main.zeek>
+   base/frameworks/openflow/plugins/__load__.zeek </scripts/base/frameworks/openflow/plugins/__load__.zeek>
+   base/frameworks/openflow/plugins/ryu.zeek </scripts/base/frameworks/openflow/plugins/ryu.zeek>
+   base/utils/json.zeek </scripts/base/utils/json.zeek>
+   base/frameworks/openflow/plugins/log.zeek </scripts/base/frameworks/openflow/plugins/log.zeek>
+   base/frameworks/openflow/plugins/broker.zeek </scripts/base/frameworks/openflow/plugins/broker.zeek>
+   base/frameworks/openflow/non-cluster.zeek </scripts/base/frameworks/openflow/non-cluster.zeek>
+   base/frameworks/netcontrol/__load__.zeek </scripts/base/frameworks/netcontrol/__load__.zeek>
+   base/frameworks/netcontrol/types.zeek </scripts/base/frameworks/netcontrol/types.zeek>
+   base/frameworks/netcontrol/main.zeek </scripts/base/frameworks/netcontrol/main.zeek>
+   base/frameworks/netcontrol/plugin.zeek </scripts/base/frameworks/netcontrol/plugin.zeek>
+   base/frameworks/netcontrol/plugins/__load__.zeek </scripts/base/frameworks/netcontrol/plugins/__load__.zeek>
+   base/frameworks/netcontrol/plugins/debug.zeek </scripts/base/frameworks/netcontrol/plugins/debug.zeek>
+   base/frameworks/netcontrol/plugins/openflow.zeek </scripts/base/frameworks/netcontrol/plugins/openflow.zeek>
+   base/frameworks/netcontrol/plugins/packetfilter.zeek </scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek>
+   base/frameworks/netcontrol/plugins/broker.zeek </scripts/base/frameworks/netcontrol/plugins/broker.zeek>
+   base/frameworks/netcontrol/plugins/acld.zeek </scripts/base/frameworks/netcontrol/plugins/acld.zeek>
+   base/frameworks/netcontrol/drop.zeek </scripts/base/frameworks/netcontrol/drop.zeek>
+   base/frameworks/netcontrol/shunt.zeek </scripts/base/frameworks/netcontrol/shunt.zeek>
+   base/frameworks/netcontrol/non-cluster.zeek </scripts/base/frameworks/netcontrol/non-cluster.zeek>
    base/protocols/conn/__load__.zeek </scripts/base/protocols/conn/__load__.zeek>
    base/protocols/conn/main.zeek </scripts/base/protocols/conn/main.zeek>
    base/protocols/conn/contents.zeek </scripts/base/protocols/conn/contents.zeek>
@@ -363,8 +361,6 @@
    base/files/pe/main.zeek </scripts/base/files/pe/main.zeek>
    base/files/extract/__load__.zeek </scripts/base/files/extract/__load__.zeek>
    base/files/extract/main.zeek </scripts/base/files/extract/main.zeek>
-   base/files/unified2/__load__.zeek </scripts/base/files/unified2/__load__.zeek>
-   base/files/unified2/main.zeek </scripts/base/files/unified2/main.zeek>
    base/misc/find-checksum-offloading.zeek </scripts/base/misc/find-checksum-offloading.zeek>
    base/misc/find-filtered-trace.zeek </scripts/base/misc/find-filtered-trace.zeek>
    base/misc/version.zeek </scripts/base/misc/version.zeek>
@@ -390,11 +386,15 @@
    policy/frameworks/intel/seen/smtp.zeek </scripts/policy/frameworks/intel/seen/smtp.zeek>
    policy/frameworks/intel/seen/smtp-url-extraction.zeek </scripts/policy/frameworks/intel/seen/smtp-url-extraction.zeek>
    policy/frameworks/intel/seen/x509.zeek </scripts/policy/frameworks/intel/seen/x509.zeek>
+   policy/frameworks/netcontrol/catch-and-release.zeek </scripts/policy/frameworks/netcontrol/catch-and-release.zeek>
    policy/frameworks/files/detect-MHR.zeek </scripts/policy/frameworks/files/detect-MHR.zeek>
    policy/frameworks/files/hash-all-files.zeek </scripts/policy/frameworks/files/hash-all-files.zeek>
    policy/frameworks/files/entropy-test-all-files.zeek </scripts/policy/frameworks/files/entropy-test-all-files.zeek>
    policy/frameworks/notice/__load__.zeek </scripts/policy/frameworks/notice/__load__.zeek>
    policy/frameworks/notice/extend-email/hostnames.zeek </scripts/policy/frameworks/notice/extend-email/hostnames.zeek>
+   policy/frameworks/notice/actions/drop.zeek </scripts/policy/frameworks/notice/actions/drop.zeek>
+   policy/files/unified2/__load__.zeek </scripts/policy/files/unified2/__load__.zeek>
+   policy/files/unified2/main.zeek </scripts/policy/files/unified2/main.zeek>
    policy/files/x509/log-ocsp.zeek </scripts/policy/files/x509/log-ocsp.zeek>
    policy/frameworks/packet-filter/shunt.zeek </scripts/policy/frameworks/packet-filter/shunt.zeek>
    policy/frameworks/software/version-changes.zeek </scripts/policy/frameworks/software/version-changes.zeek>

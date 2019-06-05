@@ -30,11 +30,6 @@ Zeek to be customized to the different needs that sites have.
    category of weird activity is interesting, but this script provides
    a starting point for the user.
 
-:doc:`/scripts/base/frameworks/notice/actions/drop.zeek`
-
-   This script extends the built in notice code to implement the IP address
-   dropping functionality.
-
 :doc:`/scripts/base/frameworks/notice/actions/email_admin.zeek`
 
    Adds a new notice action type which can be used to email notices

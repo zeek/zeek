@@ -72,10 +72,6 @@ etc.
 
    Implementation of the shunt functionality for NetControl.
 
-:doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek`
-
-   Implementation of catch-and-release functionality for NetControl.
-
 :doc:`/scripts/base/frameworks/netcontrol/non-cluster.zeek`
 
 

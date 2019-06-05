@@ -14,3 +14,8 @@ Package: policy/frameworks/notice
    :zeek:type:`Notice::Info`'s *src* and *dst* fields as determined by a
    DNS lookup.
 
+:doc:`/scripts/policy/frameworks/notice/actions/drop.zeek`
+
+   This script extends the built in notice code to implement the IP address
+   dropping functionality.
+

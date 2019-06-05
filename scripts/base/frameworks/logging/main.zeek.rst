@@ -467,35 +467,6 @@ Types
          (present if :doc:`/scripts/base/frameworks/notice/weird.zeek` is loaded)
 
 
-      .. zeek:enum:: NetControl::LOG Log::ID
-
-         (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
-
-
-      .. zeek:enum:: OpenFlow::LOG Log::ID
-
-         (present if :doc:`/scripts/base/frameworks/openflow/plugins/log.zeek` is loaded)
-
-
-      .. zeek:enum:: NetControl::DROP Log::ID
-
-         (present if :doc:`/scripts/base/frameworks/netcontrol/types.zeek` is loaded)
-
-
-         Stop forwarding all packets matching the entity.
-         
-         No additional arguments.
-
-      .. zeek:enum:: NetControl::SHUNT Log::ID
-
-         (present if :doc:`/scripts/base/frameworks/netcontrol/shunt.zeek` is loaded)
-
-
-      .. zeek:enum:: NetControl::CATCH_RELEASE Log::ID
-
-         (present if :doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek` is loaded)
-
-
       .. zeek:enum:: DPD::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/dpd/main.zeek` is loaded)
@@ -529,6 +500,30 @@ Types
       .. zeek:enum:: Tunnel::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/tunnels/main.zeek` is loaded)
+
+
+      .. zeek:enum:: OpenFlow::LOG Log::ID
+
+         (present if :doc:`/scripts/base/frameworks/openflow/plugins/log.zeek` is loaded)
+
+
+      .. zeek:enum:: NetControl::LOG Log::ID
+
+         (present if :doc:`/scripts/base/frameworks/netcontrol/main.zeek` is loaded)
+
+
+      .. zeek:enum:: NetControl::DROP Log::ID
+
+         (present if :doc:`/scripts/base/frameworks/netcontrol/types.zeek` is loaded)
+
+
+         Stop forwarding all packets matching the entity.
+         
+         No additional arguments.
+
+      .. zeek:enum:: NetControl::SHUNT Log::ID
+
+         (present if :doc:`/scripts/base/frameworks/netcontrol/shunt.zeek` is loaded)
 
 
       .. zeek:enum:: Conn::LOG Log::ID
@@ -666,9 +661,14 @@ Types
          (present if :doc:`/scripts/base/files/pe/main.zeek` is loaded)
 
 
+      .. zeek:enum:: NetControl::CATCH_RELEASE Log::ID
+
+         (present if :doc:`/scripts/policy/frameworks/netcontrol/catch-and-release.zeek` is loaded)
+
+
       .. zeek:enum:: Unified2::LOG Log::ID
 
-         (present if :doc:`/scripts/base/files/unified2/main.zeek` is loaded)
+         (present if :doc:`/scripts/policy/files/unified2/main.zeek` is loaded)
 
 
       .. zeek:enum:: OCSP::LOG Log::ID

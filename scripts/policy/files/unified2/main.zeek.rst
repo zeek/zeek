@@ -1,7 +1,7 @@
 :tocdepth: 3
 
-base/files/unified2/main.zeek
-=============================
+policy/files/unified2/main.zeek
+===============================
 .. zeek:namespace:: Unified2
 
 

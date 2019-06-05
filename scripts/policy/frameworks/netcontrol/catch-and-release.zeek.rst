@@ -1,13 +1,13 @@
 :tocdepth: 3
 
-base/frameworks/netcontrol/catch-and-release.zeek
-=================================================
+policy/frameworks/netcontrol/catch-and-release.zeek
+===================================================
 .. zeek:namespace:: NetControl
 
 Implementation of catch-and-release functionality for NetControl.
 
 :Namespace: NetControl
-:Imports: :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`, :doc:`base/frameworks/netcontrol/drop.zeek </scripts/base/frameworks/netcontrol/drop.zeek>`, :doc:`base/frameworks/netcontrol/main.zeek </scripts/base/frameworks/netcontrol/main.zeek>`
+:Imports: :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`, :doc:`base/frameworks/netcontrol </scripts/base/frameworks/netcontrol/index>`
 
 Summary
 ~~~~~~~

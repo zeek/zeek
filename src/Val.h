@@ -367,6 +367,8 @@ public:
 		}
 #endif
 
+	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
+
 protected:
 
 	friend class EnumType;
@@ -1228,7 +1230,7 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init);
+extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
 // Given a pointer to where a Val's core (i.e., its BRO value) resides,
 // returns a corresponding newly-created or Ref()'d Val.  ptr must already

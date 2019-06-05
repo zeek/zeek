@@ -2,6 +2,7 @@
 
 #include "CounterVector.h"
 
+#include <cassert>
 #include <limits>
 #include "BitVector.h"
 

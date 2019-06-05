@@ -57,13 +57,17 @@ type NTP_control_msg = record {
         association_id	: uint16;
         offs		: uint16;
         c	   	: uint16;
-        data		: bytestring &restofdata;
-	#auth		: #TODO
+	data		: bytestring &length=c;
+        have_mac       : case (offsetof(have_mac) < length) of {
+                                true  -> mac : NTP_MAC;
+                                false -> nil : empty;
+                         } &requires(length);
 } &let {
         R:	bool   = (second_byte & 0x80) > 0;	# First bit of 8-bits value
         E:	bool   = (second_byte & 0x40) > 0;	# Second bit of 8-bits value
         M:     	bool   = (second_byte & 0x20) > 0;	# Third bit of 8-bits value
         OpCode:	uint8  = (second_byte & 0x1F);	# Last 5 bits of 8-bits value
+        length          = sourcedata.length();
 } &byteorder=bigendian &exportsourcedata;
 
 

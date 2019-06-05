@@ -216,6 +216,11 @@ Changed Functionality
   in scripts has also been updated to replace Sphinx cross-referencing roles
   and directives like ":bro:see:" with ":zeek:zee:".
 
+- The "remote_ip" field of "addr" type was removed from radius.log and
+  replaced with a field named "tunnel_client" of "string" type.  The
+  reason for this is that the Tunnel-Client-Endpoint RADIUS attribute
+  this data is derived from may also be a FQDN, not just an IP address.
+
 Removed Functionality
 ---------------------
 

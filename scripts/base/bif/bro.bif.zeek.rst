@@ -29,8 +29,8 @@ Functions
 :zeek:id:`anonymize_addr`: :zeek:type:`function`                               Anonymizes an IP address.
 :zeek:id:`any_set`: :zeek:type:`function`                                      Tests whether a boolean vector (``vector of bool``) has *any* true
                                                                                element.
-:zeek:id:`bro_is_terminating`: :zeek:type:`function`                           Checks if Bro is terminating.
-:zeek:id:`bro_version`: :zeek:type:`function`                                  Returns the Bro version string.
+:zeek:id:`bro_is_terminating`: :zeek:type:`function` :zeek:attr:`&deprecated`  Checks if Zeek is terminating.
+:zeek:id:`bro_version`: :zeek:type:`function` :zeek:attr:`&deprecated`         Returns the Zeek version string.
 :zeek:id:`bytestring_to_count`: :zeek:type:`function`                          Converts a string of bytes to a :zeek:type:`count`.
 :zeek:id:`bytestring_to_double`: :zeek:type:`function`                         Converts a string of bytes (in network byte order) to a :zeek:type:`double`.
 :zeek:id:`bytestring_to_hexstr`: :zeek:type:`function`                         Converts a string of bytes into its hexadecimal representation.
@@ -223,6 +223,8 @@ Functions
 :zeek:id:`uuid_to_string`: :zeek:type:`function`                               Converts a bytes representation of a UUID into its string form.
 :zeek:id:`val_size`: :zeek:type:`function`                                     Returns the number of bytes that a value occupies in memory.
 :zeek:id:`write_file`: :zeek:type:`function`                                   Writes data to an open file.
+:zeek:id:`zeek_is_terminating`: :zeek:type:`function`                          Checks if Zeek is terminating.
+:zeek:id:`zeek_version`: :zeek:type:`function`                                 Returns the Zeek version string.
 ============================================================================== ===============================================================================
 
 
@@ -350,22 +352,26 @@ Functions
 .. zeek:id:: bro_is_terminating
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&deprecated`
 
-   Checks if Bro is terminating.
+   Checks if Zeek is terminating.  This function is deprecated, use
+   :zeek:see:`zeek_is_terminating` instead.
    
 
-   :returns: True if Bro is in the process of shutting down.
+   :returns: True if Zeek is in the process of shutting down.
    
    .. zeek:see:: terminate
 
 .. zeek:id:: bro_version
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
+   :Attributes: :zeek:attr:`&deprecated`
 
-   Returns the Bro version string.
+   Returns the Zeek version string.  This function is deprecated, use
+   :zeek:see:`zeek_version` instead.
    
 
-   :returns: Bro's version, e.g., 2.0-beta-47-debug.
+   :returns: Zeek's version, e.g., 2.0-beta-47-debug.
 
 .. zeek:id:: bytestring_to_count
 
@@ -3105,5 +3111,25 @@ Functions
    .. zeek:see:: active_file open open_for_append close
                 get_file_name set_buf flush_all mkdir enable_raw_output
                 rmdir unlink rename
+
+.. zeek:id:: zeek_is_terminating
+
+   :Type: :zeek:type:`function` () : :zeek:type:`bool`
+
+   Checks if Zeek is terminating.
+   
+
+   :returns: True if Zeek is in the process of shutting down.
+   
+   .. zeek:see:: terminate
+
+.. zeek:id:: zeek_version
+
+   :Type: :zeek:type:`function` () : :zeek:type:`string`
+
+   Returns the Zeek version string.
+   
+
+   :returns: Zeek's version, e.g., 2.0-beta-47-debug.
 
 

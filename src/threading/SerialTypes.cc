@@ -87,14 +87,16 @@ string Field::TypeName() const
 
 Value::~Value()
 	{
-	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
-	     && present )
+	if ( ! present )
+		return;
+
+	if ( type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC )
 		delete [] val.string_val.data;
 
-	if ( type == TYPE_PATTERN && present)
+	else if ( type == TYPE_PATTERN )
 		delete [] val.pattern_text_val;
 
-	if ( type == TYPE_TABLE && present )
+	else if ( type == TYPE_TABLE )
 		{
 		for ( int i = 0; i < val.set_val.size; i++ )
 			delete val.set_val.vals[i];
@@ -102,7 +104,7 @@ Value::~Value()
 		delete [] val.set_val.vals;
 		}
 
-	if ( type == TYPE_VECTOR && present )
+	else if ( type == TYPE_VECTOR )
 		{
 		for ( int i = 0; i < val.vector_val.size; i++ )
 			delete val.vector_val.vals[i];

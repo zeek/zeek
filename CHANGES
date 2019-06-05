@@ -1,4 +1,10 @@
 
+2.6-375 | 2019-06-04 19:28:06 -0700
+
+  * Simplify threading::Value destructor (Jon Siwek, Corelight)
+
+  * Add pattern support to input framework. (Zeke Medley, Corelight)
+
 2.6-369 | 2019-06-04 17:53:10 -0700
 
   * GH-155: Improve coercion of expression lists to vector types (Tim Wojtulewicz, Corelight)

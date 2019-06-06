@@ -76,6 +76,12 @@ export {
 	        status          : count &log;    
         	## A 16-bit integer identifying a valid association
 	        association_id  : count &log;
+	        ## This is an integer identifying the cryptographic
+	        ## key used to generate the message-authentication code
+        	ctrl_key_id          : count &optional &log;
+        	## This is a crypto-checksum computed by the encryption procedure
+        	crypto_checksum : string &optional &log;
+	
 
 		## An implementation-specific code which specifies the
 		## operation to be (which has been) performed and/or the
@@ -133,13 +139,13 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 		info$root_delay =  msg$std_msg$root_delay;
 		info$root_disp =  msg$std_msg$root_disp;
 
-		if ( info?$kiss_code) 
+		if ( msg$std_msg?$kiss_code) 
 			info$kiss_code =  msg$std_msg$kiss_code;
-                if ( info?$ref_id)
+                if ( msg$std_msg?$ref_id)
                         info$ref_id =  msg$std_msg$ref_id;
-                if ( info?$ref_addr)
+                if ( msg$std_msg?$ref_addr)
                         info$ref_addr =  msg$std_msg$ref_addr;
-                if ( info?$ref_v6_hash_prefix)
+                if ( msg$std_msg?$ref_v6_hash_prefix)
                         info$ref_v6_hash_prefix =  msg$std_msg$ref_v6_hash_prefix;
 
                 info$ref_time =  msg$std_msg$ref_time;
@@ -147,9 +153,9 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
                 info$rec_time =  msg$std_msg$rec_time;
                 info$xmt_time =  msg$std_msg$xmt_time;
 
-                if ( info?$key_id)
+                if ( msg$std_msg?$key_id)
                         info$key_id =  msg$std_msg$key_id;
-                if ( info?$digest)
+                if ( msg$std_msg?$digest)
                         info$digest =  msg$std_msg$digest;
 
 		info$num_exts =  msg$std_msg$num_exts;
@@ -163,6 +169,12 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
              info$sequence = msg$control_msg$sequence;
              info$status = msg$control_msg$status;
              info$association_id = msg$control_msg$association_id;
+
+                if ( msg$control_msg?$key_id)
+                        info$ctrl_key_id =  msg$control_msg$key_id;
+                if ( msg$control_msg?$crypto_checksum)
+                        info$crypto_checksum =  msg$control_msg$crypto_checksum;
+
 	  }
 
           if ( msg$mode==7 ) {

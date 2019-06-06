@@ -221,8 +221,8 @@ type Client_Core_Data = record {
 } &byteorder=littleendian;
 
 type Client_Security_Data = record {
-	encryption_methods:	uint16;
-	ext_encryption_methods:	uint16;
+	encryption_methods:	uint32;
+	ext_encryption_methods:	uint32;
 } &byteorder=littleendian;
 
 type Client_Network_Data = record {

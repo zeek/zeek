@@ -4276,6 +4276,11 @@ export {
 		dig_product_id:         string &optional;
 	};
 
+	type RDP::ClientSecurityData: record {
+		encryption_methods:	count;
+		ext_encryption_methods:	count;
+	};
+
 	## Name and flags for a single channel requested by the client.
 	type RDP::ClientChannelDef: record {
 		## A unique name for the channel

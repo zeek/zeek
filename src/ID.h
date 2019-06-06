@@ -70,10 +70,6 @@ public:
 
 	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
 
-	// Returns true if ID is one of those internal globally unique IDs
-	// to which MutableVals are bound (there name start with a '#').
-	bool IsInternalGlobal() const	{ return name && name[0] == '#'; }
-
 	void SetAttrs(Attributes* attr);
 	void AddAttrs(Attributes* attr);
 	void RemoveAttr(attr_tag a);

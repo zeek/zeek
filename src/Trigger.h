@@ -64,7 +64,7 @@ public:
 	void Modified(notifier::Modifiable* m) override
 		{ QueueTrigger(this); }
 
-	const char* Name() const override;
+	const char* Name() const;
 
 	static void QueueTrigger(Trigger* trigger);
 
@@ -102,7 +102,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	std::vector<BroObj *> objs;
+	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
 
 	typedef map<const CallExpr*, Val*> ValCache;
 	ValCache cache;

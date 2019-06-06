@@ -33,7 +33,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	while ( auto id = globals->NextEntry(c) )
 		{
-		if ( id->IsInternalGlobal() || ! id->IsOption() )
+		if ( ! id->IsOption() )
 			continue;
 
 		if ( id->Type()->Tag() == TYPE_RECORD ||

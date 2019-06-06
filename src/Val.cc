@@ -349,10 +349,6 @@ void Val::ValDescribeReST(ODesc* d) const
 	}
 	}
 
-MutableVal::~MutableVal()
-	{
-	}
-
 IntervalVal::IntervalVal(double quantity, double units) :
 	Val(quantity * units, TYPE_INTERVAL)
 	{

@@ -18,6 +18,7 @@
 #include <string>
 
 #include "util.h"
+#include "DebugLogger.h"
 
 namespace notifier  {
 
@@ -25,11 +26,18 @@ class Modifiable;
 
 class Notifier {
 public:
-	virtual ~Notifier()	{ }
+	Notifier()
+		{
+		DBG_LOG(DBG_NOTIFIERS, "creating notifier %p", this);
+		}
 
-	// Called afger a change has been performed.
+	virtual ~Notifier()
+		{
+		DBG_LOG(DBG_NOTIFIERS, "destroying notifier %p", this);
+		}
+
+	// Called after a change has been performed.
 	virtual void Modified(Modifiable* m) = 0;
-	virtual const char* Name() const;	// for debugging
 };
 
 // Singleton class.
@@ -67,12 +75,7 @@ protected:
 	friend class Registry;
 
 	Modifiable()	{}
-	~Modifiable()
-		{
-		if ( notifiers )
-			registry.Unregister(this);
-
-		};
+	virtual ~Modifiable();
 
 	void Modified()
 		{

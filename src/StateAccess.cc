@@ -14,8 +14,8 @@ notifier::Registry::~Registry()
 
 void notifier::Registry::Register(Modifiable* m, notifier::Notifier* notifier)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "registering modifiable %p for notifier %s",
-		m, notifier->Name());
+	DBG_LOG(DBG_NOTIFIERS, "registering modifiable %p for notifier %p",
+		m, notifier);
 
 	registrations.insert({m, notifier});
 	++m->notifiers;
@@ -23,16 +23,16 @@ void notifier::Registry::Register(Modifiable* m, notifier::Notifier* notifier)
 
 void notifier::Registry::Unregister(Modifiable* m, notifier::Notifier* notifier)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "unregistering modifiable %p from notifier %s",
-		m, notifier->Name());
+	DBG_LOG(DBG_NOTIFIERS, "unregistering modifiable %p from notifier %p",
+		m, notifier);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
 		{
 		if ( i->second == notifier )
 			{
-			registrations.erase(i);
 			--i->first->notifiers;
+			registrations.erase(i);
 			break;
 			}
 		}
@@ -40,9 +40,14 @@ void notifier::Registry::Unregister(Modifiable* m, notifier::Notifier* notifier)
 
 void notifier::Registry::Unregister(Modifiable* m)
 	{
+	DBG_LOG(DBG_NOTIFIERS, "unregistering modifiable %p from all notifiers",
+		m);
+
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
-		Unregister(m, i->second);
+		--i->first->notifiers;
+
+	registrations.erase(x.first, x.second);
 	}
 
 void notifier::Registry::Modified(Modifiable* m)
@@ -54,8 +59,8 @@ void notifier::Registry::Modified(Modifiable* m)
 		i->second->Modified(m);
 	}
 
-const char* notifier::Notifier::Name() const
+notifier::Modifiable::~Modifiable()
 	{
-	return fmt("%p", this);
+	if ( notifiers )
+		registry.Unregister(this);
 	}
-

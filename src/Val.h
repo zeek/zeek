@@ -49,7 +49,6 @@ class RecordVal;
 class ListVal;
 class StringVal;
 class EnumVal;
-class MutableVal;
 
 class VectorVal;
 
@@ -320,11 +319,6 @@ public:
 	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 
-	bool IsMutableVal() const
-		{
-		return IsMutable(type->Tag());
-		}
-
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
@@ -485,14 +479,6 @@ private:
 };
 
 extern ValManager* val_mgr;
-
-class MutableVal : public Val {
-protected:
-	explicit MutableVal(BroType* t) : Val(t)	{}
-
-	MutableVal()	{}
-	~MutableVal() override;
-};
 
 #define Microseconds 1e-6
 #define Milliseconds 1e-3

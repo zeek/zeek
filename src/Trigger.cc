@@ -385,7 +385,7 @@ void Trigger::Register(ID* id)
 	notifier::registry.Register(id, this);
 
 	Ref(id);
-	objs.push_back(id);
+	objs.push_back({id, id});
 	}
 
 void Trigger::Register(Val* val)
@@ -397,13 +397,18 @@ void Trigger::Register(Val* val)
 	notifier::registry.Register(val->Modifiable(), this);
 
 	Ref(val);
-	objs.push_back(val);
+	objs.emplace_back(val, val->Modifiable());
 	}
 
 void Trigger::UnregisterAll()
 	{
+	DBG_LOG(DBG_NOTIFIERS, "%s: unregistering all", Name());
+
 	for ( auto o : objs )
-		Unref(o); // this will unregister with the registry as well
+		{
+		notifier::registry.Unregister(o.second, this);
+		Unref(o.first);
+		}
 
 	objs.clear();
 	}

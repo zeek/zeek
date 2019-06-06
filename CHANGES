@@ -1,4 +1,8 @@
 
+2.6-379 | 2019-06-06 11:56:58 -0700
+
+  * Improve sqlite logging unit tests (Jon Siwek, Corelight)
+
 2.6-378 | 2019-06-05 16:23:04 -0700
 
   * Rename BRO_DEPRECATED macro to ZEEK_DEPRECATED (Jon Siwek, Corelight)

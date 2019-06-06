@@ -14,19 +14,6 @@ class HashKey;
 class ODesc;
 class TableVal;
 
-enum Opcode {	// Op1	Op2 Op3 (Vals)
-	OP_NONE,
-	OP_ASSIGN,	// new	old
-	OP_ASSIGN_IDX,	// idx new  old
-	OP_ADD,		// idx  old
-	OP_INCR,	// idx  new old
-	OP_INCR_IDX,	// idx  new old
-	OP_DEL,		// idx  old
-	OP_PRINT,	// args
-	OP_EXPIRE,	// idx
-	OP_READ_IDX,	// idx
-};
-
 // We provide a notifier framework to inform interested parties of
 // modifications to selected global IDs/Vals. To get notified about a change,
 // derive a class from Notifier and register the interesting IDs/Vals with

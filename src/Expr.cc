@@ -97,7 +97,7 @@ void Expr::EvalIntoAggregate(const BroType* /* t */, Val* /* aggr */,
 	Internal("Expr::EvalIntoAggregate called");
 	}
 
-void Expr::Assign(Frame* /* f */, Val* /* v */, Opcode /* op */)
+void Expr::Assign(Frame* /* f */, Val* /* v */)
 	{
 	Internal("Expr::Assign called");
 	}
@@ -261,10 +261,10 @@ Expr* NameExpr::MakeLvalue()
 	return new RefExpr(this);
 	}
 
-void NameExpr::Assign(Frame* f, Val* v, Opcode op)
+void NameExpr::Assign(Frame* f, Val* v)
 	{
 	if ( id->IsGlobal() )
-		id->SetVal(v, op);
+		id->SetVal(v);
 	else
 		f->SetElement(id->Offset(), v);
 	}
@@ -1007,18 +1007,18 @@ Val* IncrExpr::Eval(Frame* f) const
 			if ( elt )
 				{
 				Val* new_elt = DoSingleEval(f, elt);
-				v_vec->Assign(i, new_elt, OP_INCR);
+				v_vec->Assign(i, new_elt);
 				}
 			else
-				v_vec->Assign(i, 0, OP_INCR);
+				v_vec->Assign(i, 0);
 			}
-		op->Assign(f, v_vec, OP_INCR);
+		op->Assign(f, v_vec);
 		}
 
 	else
 		{
 		Val* old_v = v;
-		op->Assign(f, v = DoSingleEval(f, old_v), OP_INCR);
+		op->Assign(f, v = DoSingleEval(f, old_v));
 		Unref(old_v);
 		}
 
@@ -2041,9 +2041,9 @@ Expr* RefExpr::MakeLvalue()
 	return this;
 	}
 
-void RefExpr::Assign(Frame* f, Val* v, Opcode opcode)
+void RefExpr::Assign(Frame* f, Val* v)
 	{
-	op->Assign(f, v, opcode);
+	op->Assign(f, v);
 	}
 
 AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
@@ -2684,7 +2684,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	return 0;
 	}
 
-void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
+void IndexExpr::Assign(Frame* f, Val* v)
 	{
 	if ( IsError() )
 		return;
@@ -2704,7 +2704,7 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		if ( ! v1->AsVectorVal()->Assign(v2, v, op) )
+		if ( ! v1->AsVectorVal()->Assign(v2, v) )
 			{
 			if ( v )
 				{
@@ -2723,7 +2723,7 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 		break;
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2, v, op) )
+		if ( ! v1->AsTableVal()->Assign(v2, v) )
 			{
 			if ( v )
 				{
@@ -2826,7 +2826,7 @@ int FieldExpr::CanDel() const
 	return td->FindAttr(ATTR_DEFAULT) || td->FindAttr(ATTR_OPTIONAL);
 	}
 
-void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
+void FieldExpr::Assign(Frame* f, Val* v)
 	{
 	if ( IsError() )
 		return;
@@ -2835,14 +2835,14 @@ void FieldExpr::Assign(Frame* f, Val* v, Opcode opcode)
 	if ( op_v )
 		{
 		RecordVal* r = op_v->AsRecordVal();
-		r->Assign(field, v, opcode);
+		r->Assign(field, v);
 		Unref(r);
 		}
 	}
 
 void FieldExpr::Delete(Frame* f)
 	{
-	Assign(f, 0, OP_ASSIGN_IDX);
+	Assign(f, 0);
 	}
 
 Val* FieldExpr::Fold(Val* v) const
@@ -4635,7 +4635,7 @@ Expr* ListExpr::MakeLvalue()
 	return new RefExpr(this);
 	}
 
-void ListExpr::Assign(Frame* f, Val* v, Opcode op)
+void ListExpr::Assign(Frame* f, Val* v)
 	{
 	ListVal* lv = v->AsListVal();
 
@@ -4643,7 +4643,7 @@ void ListExpr::Assign(Frame* f, Val* v, Opcode op)
 		RuntimeError("mismatch in list lengths");
 
 	loop_over_list(exprs, i)
-		exprs[i]->Assign(f, (*lv->Vals())[i]->Ref(), op);
+		exprs[i]->Assign(f, (*lv->Vals())[i]->Ref());
 
 	Unref(lv);
 	}

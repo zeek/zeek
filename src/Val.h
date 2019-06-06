@@ -840,8 +840,8 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
-	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
+	int Assign(Val* index, Val* new_val);
+	int Assign(Val* index, HashKey* k, Val* new_val);
 
 	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
 
@@ -951,7 +951,7 @@ protected:
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
-	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
+	int CheckAndAssign(Val* index, Val* new_val);
 
 	bool AddProperties(Properties arg_state) override;
 	bool RemoveProperties(Properties arg_state) override;
@@ -995,7 +995,7 @@ public:
 	Val* SizeVal() const override
 		{ return val_mgr->GetCount(record_type->NumFields()); }
 
-	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
+	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
@@ -1095,11 +1095,11 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
-	bool Assign(unsigned int index, Val* element, Opcode op = OP_ASSIGN);
-	bool Assign(Val* index, Val* element, Opcode op = OP_ASSIGN)
+	bool Assign(unsigned int index, Val* element);
+	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element, op);
+				element);
 		}
 
 	// Assigns the value to how_many locations starting at index.

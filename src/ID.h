@@ -46,7 +46,7 @@ public:
 	// reference to the Val, the Val will be destroyed (naturally,
 	// you have to take care that it will not be accessed via
 	// the ID afterwards).
-	void SetVal(Val* v, Opcode op = OP_ASSIGN, bool weak_ref = false);
+	void SetVal(Val* v, bool weak_ref = false);
 
 	void SetVal(Val* v, init_class c);
 	void SetVal(Expr* ev, init_class c);

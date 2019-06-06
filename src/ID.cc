@@ -59,34 +59,14 @@ void ID::ClearVal()
 	val = 0;
 	}
 
-void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
+void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( op != OP_NONE )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		if ( props )
-			{
-			if ( v->IsMutableVal() )
-				v->AsMutableVal()->AddProperties(props);
-			}
-
-#ifndef DEBUG
-		if ( props )
-#else
-		if ( debug_logger.IsVerbose() || props )
-#endif
-			notifiers.Modified(this);
-		}
-
 	if ( ! weak_ref )
 		Unref(val);
 
 	val = v;
 	weak_ref = arg_weak_ref;
+	notifiers.Modified(this);
 
 #ifdef DEBUG
 	UpdateValID();

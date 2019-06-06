@@ -443,7 +443,7 @@ ID* MutableVal::Bind() const
 
 	global_scope()->Insert(name, id);
 
-	id->SetVal(const_cast<MutableVal*>(this), OP_NONE, true);
+	id->SetVal(const_cast<MutableVal*>(this), true);
 
 	return id;
 	}
@@ -461,7 +461,7 @@ void MutableVal::TransferUniqueID(MutableVal* mv)
 	id = new ID(new_name, SCOPE_GLOBAL, true);
 	id->SetType(const_cast<MutableVal*>(this)->Type()->Ref());
 	global_scope()->Insert(new_name, id);
-	id->SetVal(const_cast<MutableVal*>(this), OP_NONE, true);
+	id->SetVal(const_cast<MutableVal*>(this), true);
 
 	Unref(mv->id);
 	mv->id = 0;
@@ -1132,7 +1132,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-int TableVal::Assign(Val* index, Val* new_val, Opcode op)
+int TableVal::Assign(Val* index, Val* new_val)
 	{
 	HashKey* k = ComputeHash(index);
 	if ( ! k )
@@ -1142,10 +1142,10 @@ int TableVal::Assign(Val* index, Val* new_val, Opcode op)
 		return 0;
 		}
 
-	return Assign(index, k, new_val, op);
+	return Assign(index, k, new_val);
 	}
 
-int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
+int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
 	int is_set = table_type->IsSet();
 
@@ -1227,15 +1227,13 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->Value(), k, 0,
-					propagate_ops ? OP_ASSIGN : OP_NONE) )
+			if ( ! t->Assign(v->Value(), k, 0) )
 				 return 0;
 			}
 		else
 			{
 			v->Ref();
-			if ( ! t->Assign(0, k, v->Value(),
-					propagate_ops ? OP_ASSIGN : OP_NONE) )
+			if ( ! t->Assign(0, k, v->Value()) )
 				 return 0;
 			}
 		}
@@ -1822,7 +1820,7 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 	return 1;
 	}
 
-int TableVal::CheckAndAssign(Val* index, Val* new_val, Opcode op)
+int TableVal::CheckAndAssign(Val* index, Val* new_val)
 	{
 	Val* v = 0;
 	if ( subnets )
@@ -1834,7 +1832,7 @@ int TableVal::CheckAndAssign(Val* index, Val* new_val, Opcode op)
 	if ( v )
 		index->Warn("multiple initializations for index");
 
-	return Assign(index, new_val, op);
+	return Assign(index, new_val);
 	}
 
 void TableVal::InitTimer(double delay)
@@ -2219,7 +2217,7 @@ RecordVal::~RecordVal()
 	delete_vals(AsNonConstRecord());
 	}
 
-void RecordVal::Assign(int field, Val* new_val, Opcode op)
+void RecordVal::Assign(int field, Val* new_val)
 	{
 	Val* old_val = AsNonConstRecord()->replace(field, new_val);
 	Unref(old_val);
@@ -2513,7 +2511,7 @@ VectorVal::~VectorVal()
 	delete val.vector_val;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
+bool VectorVal::Assign(unsigned int index, Val* element)
 	{
 	if ( element &&
 	     ! same_type(element->Type(), vector_type->YieldType(), 0) )

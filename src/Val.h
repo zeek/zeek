@@ -325,20 +325,6 @@ public:
 		return IsMutable(type->Tag());
 		}
 
-	const MutableVal* AsMutableVal() const
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
-
-	MutableVal* AsMutableVal()
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
-
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
@@ -499,56 +485,13 @@ private:
 extern ValManager* val_mgr;
 
 class MutableVal : public Val {
-public:
-	// Each MutableVal gets a globally unique ID that can be used to
-	// reference it no matter if it's directly bound to any user-visible
-	// ID. This ID is inserted into the global namespace.
-	ID* UniqueID() const	{ return id ? id : Bind(); }
-
-	// Returns true if we've already generated a unique ID.
-	bool HasUniqueID() const	{ return id; }
-
-	// Transfers the unique ID of the given value to this value. We keep our
-	// old ID as an alias.
-	void TransferUniqueID(MutableVal* mv);
-
-	// MutableVals can have properties (let's refrain from calling them
-	// attributes!).  Most properties are recursive.  If a derived object
-	// can contain MutableVals itself, the object has to override
-	// {Add,Remove}Properties(). RecursiveProp(state) masks out all non-
-	// recursive properties. If this is non-null, an overriden method must
-	// call itself with RecursiveProp(state) as argument for all contained
-	// values.  (In any case, don't forget to call the parent's method.)
-	typedef char Properties;
-
-	// Tracked by NotifierRegistry, not recursive.
-	static const int TRACKED = 0x04;
-
-	int RecursiveProps(int prop) const	{ return prop & ~TRACKED; }
-
-	Properties GetProperties() const	{ return props; }
-	virtual bool AddProperties(Properties state);
-	virtual bool RemoveProperties(Properties state);
-
 protected:
-	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; }
-	MutableVal()	{ props = 0; id = 0; }
+	explicit MutableVal(BroType* t) : Val(t)	{}
+
+	MutableVal()	{}
 	~MutableVal() override;
 
-	friend class ID;
-	friend class Val;
-
-	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
 	void Modified()	{ notifiers.Modified(this); }
-
-private:
-	ID* Bind() const;
-
-	mutable ID* id;
-	list<ID*> aliases;
-	Properties props;
-	uint64 last_modified;
 };
 
 #define Microseconds 1e-6
@@ -771,7 +714,7 @@ public:
 		{
 		val = v;
 		last_access_time = network_time;
-		expire_access_time = last_read_update =
+		expire_access_time =
 			int(network_time - bro_start_network_time);
 		}
 
@@ -780,7 +723,6 @@ public:
 		auto rval = new TableEntryVal(val ? val->Clone() : nullptr);
 		rval->last_access_time = last_access_time;
 		rval->expire_access_time = expire_access_time;
-		rval->last_read_update = last_read_update;
 		return rval;
 		}
 
@@ -796,24 +738,16 @@ public:
 	void SetExpireAccess(double time)
 		{ expire_access_time = int(time - bro_start_network_time); }
 
-	// Returns/sets time of when we propagated the last OP_READ_IDX
-	// for this item.
-	double LastReadUpdate() const
-		{ return bro_start_network_time + last_read_update; }
-	void SetLastReadUpdate(double time)
-		{ last_read_update = int(time - bro_start_network_time); }
-
 protected:
 	friend class TableVal;
 
 	Val* val;
 	double last_access_time;
 
-	// The next two entries store seconds since Bro's start.  We use
-	// ints here to save a few bytes, as we do not need a high resolution
-	// for these anyway.
+	// The next entry stores seconds since Bro's start.  We use ints here
+	// to save a few bytes, as we do not need a high resolution for these
+	// anyway.
 	int expire_access_time;
-	int last_read_update;
 };
 
 class TableValTimer : public Timer {
@@ -953,9 +887,6 @@ protected:
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
 	int CheckAndAssign(Val* index, Val* new_val);
 
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
-
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
 
@@ -970,9 +901,6 @@ protected:
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
-
-	// Propagates a read operation if necessary.
-	void ReadOperation(Val* index, TableEntryVal *v);
 
 	Val* DoClone(CloneState* state) override;
 
@@ -1042,9 +970,6 @@ public:
 protected:
 	friend class Val;
 	RecordVal()	{}
-
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
 
 	Val* DoClone(CloneState* state) override;
 
@@ -1133,8 +1058,6 @@ protected:
 	friend class Val;
 	VectorVal()	{ }
 
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 

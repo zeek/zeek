@@ -351,120 +351,6 @@ void Val::ValDescribeReST(ODesc* d) const
 
 MutableVal::~MutableVal()
 	{
-	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
-		{
-		if ( global_scope() )
-			global_scope()->Remove((*i)->Name());
-		(*i)->ClearVal();	// just to make sure.
-		Unref((*i));
-		}
-
-	if ( id )
-		{
-		if ( global_scope() )
-			global_scope()->Remove(id->Name());
-		id->ClearVal(); // just to make sure.
-		Unref(id);
-		}
-	}
-
-bool MutableVal::AddProperties(Properties arg_props)
-	{
-	if ( (props | arg_props) == props )
-		// No change.
-		return false;
-
-	props |= arg_props;
-
-	if ( ! id )
-		Bind();
-
-	return true;
-	}
-
-
-bool MutableVal::RemoveProperties(Properties arg_props)
-	{
-	if ( (props & ~arg_props) == props )
-		// No change.
-		return false;
-
-	props &= ~arg_props;
-
-	return true;
-	}
-
-ID* MutableVal::Bind() const
-	{
-	static bool initialized = false;
-
-	assert(!id);
-
-	static unsigned int id_counter = 0;
-	static const int MAX_NAME_SIZE = 128;
-	static char name[MAX_NAME_SIZE];
-	static char* end_of_static_str = 0;
-
-	if ( ! initialized )
-		{
-		// Get local IP.
-		char host[MAXHOSTNAMELEN];
-		strcpy(host, "localhost");
-		gethostname(host, MAXHOSTNAMELEN);
-		host[MAXHOSTNAMELEN-1] = '\0';
-#if 0
-		// We ignore errors.
-		struct hostent* ent = gethostbyname(host);
-
-		uint32 ip;
-		if ( ent && ent->h_addr_list[0] )
-			ip = *(uint32*) ent->h_addr_list[0];
-		else
-			ip = htonl(0x7f000001);	// 127.0.0.1
-
-		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#",
-			      IPAddr(IPv4, &ip, IPAddr::Network)->AsString().c_str(),
-			      getpid());
-#else
-		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#", host, getpid());
-#endif
-
-		end_of_static_str = name + strlen(name);
-
-		initialized = true;
-		}
-
-	safe_snprintf(end_of_static_str, MAX_NAME_SIZE - (end_of_static_str - name),
-		      "%u", ++id_counter);
-	name[MAX_NAME_SIZE-1] = '\0';
-
-	id = new ID(name, SCOPE_GLOBAL, true);
-	id->SetType(const_cast<MutableVal*>(this)->Type()->Ref());
-
-	global_scope()->Insert(name, id);
-
-	id->SetVal(const_cast<MutableVal*>(this), true);
-
-	return id;
-	}
-
-void MutableVal::TransferUniqueID(MutableVal* mv)
-	{
-	const char* new_name = mv->UniqueID()->Name();
-
-	if ( ! id )
-		Bind();
-
-	// Keep old name as alias.
-	aliases.push_back(id);
-
-	id = new ID(new_name, SCOPE_GLOBAL, true);
-	id->SetType(const_cast<MutableVal*>(this)->Type()->Ref());
-	global_scope()->Insert(new_name, id);
-	id->SetVal(const_cast<MutableVal*>(this), true);
-
-	Unref(mv->id);
-	mv->id = 0;
 	}
 
 IntervalVal::IntervalVal(double quantity, double units) :
@@ -2026,23 +1912,6 @@ double TableVal::CallExpireFunc(Val* idx)
 	return secs;
 	}
 
-void TableVal::ReadOperation(Val* index, TableEntryVal* v)
-	{
-	double timeout = GetExpireTime();
-
-	if ( timeout < 0 )
-		// Skip in case of unset/invalid expiration value. If it's an
-		// error, it has been reported already.
-		return;
-
-	// In theory we need to only propagate one update per &read_expire
-	// interval to prevent peers from expiring intervals. To account for
-	// practical issues such as latency, we send one update every half
-	// &read_expire.
-	if ( network_time - v->LastReadUpdate() > timeout / 2 )
-		v->SetLastReadUpdate(network_time);
-	}
-
 Val* TableVal::DoClone(CloneState* state)
 	{
 	auto tv = new TableVal(table_type);
@@ -2090,48 +1959,6 @@ Val* TableVal::DoClone(CloneState* state)
 		tv->def_val = def_val->Ref();
 
 	return tv;
-	}
-
-bool TableVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( Type()->IsSet() || ! RecursiveProps(arg_props) )
-		return true;
-
-	// For a large table, this could get expensive. So, let's hope
-	// that nobody creates such a table *before* making it persistent
-	// (for example by inserting it into another table).
-	TableEntryVal* v;
-	PDict(TableEntryVal)* tbl = val.table_val;
-	IterCookie* c = tbl->InitForIteration();
-	while ( (v = tbl->NextEntry(c)) )
-		if ( v->Value()->IsMutableVal() )
-			v->Value()->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
-bool TableVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( Type()->IsSet() || ! RecursiveProps(arg_props) )
-		return true;
-
-	// For a large table, this could get expensive.  So, let's hope
-	// that nobody creates such a table *before* making it persistent
-	// (for example by inserting it into another table).
-	TableEntryVal* v;
-	PDict(TableEntryVal)* tbl = val.table_val;
-	IterCookie* c = tbl->InitForIteration();
-	while ( (v = tbl->NextEntry(c)) )
-		if ( v->Value()->IsMutableVal() )
-			v->Value()->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-
-	return true;
 	}
 
 unsigned int TableVal::MemoryAllocation() const
@@ -2428,41 +2255,6 @@ Val* RecordVal::DoClone(CloneState* state)
 	return rv;
 	}
 
-bool RecordVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	loop_over_list(*val.val_list_val, i)
-		{
-		Val* v = (*val.val_list_val)[i];
-		if ( v && v->IsMutableVal() )
-			v->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-		}
-	return true;
-	}
-
-
-bool RecordVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	loop_over_list(*val.val_list_val, i)
-		{
-		Val* v = (*val.val_list_val)[i];
-		if ( v && v->IsMutableVal() )
-			v->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-		}
-	return true;
-	}
-
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
@@ -2598,37 +2390,6 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 	 return Resize(new_num_elements);
 	 }
-
-bool VectorVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		if ( (*val.vector_val)[i]->IsMutableVal() )
-			(*val.vector_val)[i]->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
-bool VectorVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		if ( (*val.vector_val)[i]->IsMutableVal() )
-			(*val.vector_val)[i]->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
 
 Val* VectorVal::DoClone(CloneState* state)
 	{

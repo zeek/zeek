@@ -155,16 +155,6 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	MutableVal::Properties props = 0;
-
-	if ( val && val->IsMutableVal() )
-		{
-		if ( attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->AddProperties(props);
-		}
-
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
 		val->AsTableVal()->SetAttrs(attrs);
 
@@ -222,16 +212,6 @@ void ID::RemoveAttr(attr_tag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
-
-	if ( val && val->IsMutableVal() )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( a == ATTR_TRACKED )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->RemoveProperties(props);
-		}
 	}
 
 void ID::SetOption()

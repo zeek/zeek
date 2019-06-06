@@ -39,13 +39,14 @@ type NTP_std_msg = record {
         origin_ts      : NTP_Time;
         receive_ts     : NTP_Time;
         transmit_ts    : NTP_Time;
-        extensions     : Extension_Field[] &until($input.length() <= 18);
-        have_mac       : case (offsetof(have_mac) < length) of {
+        #extensions     : Extension_Field[] &until($input.length() == 20); #TODO: this need to be properly parsed 
+        mac_fields     : case (has_mac) of {
                                 true  -> mac : NTP_MAC;
                                 false -> nil : empty;
-                         } &requires(length);
+                         } &requires(has_mac);
 } &let {
         length          = sourcedata.length();
+	has_mac: bool	= (length - offsetof(mac_fields)) == 20;
 } &byteorder=bigendian &exportsourcedata;
 
 # This format is for mode==6, control msg
@@ -53,29 +54,40 @@ type NTP_std_msg = record {
 type NTP_control_msg = record {
         second_byte	: uint8;
         sequence	: uint16;
-        status      	: uint16;    #TODO: this must be further specified
+        status      	: uint16;    #TODO: this can be further parsed internally
         association_id	: uint16;
         offs		: uint16;
         c	   	: uint16;
-        data		: bytestring &restofdata;
-	#auth		: #TODO
+	data		: bytestring &length=c;
+        mac_fields     : case (has_control_mac) of {
+                                true  -> mac : NTP_CONTROL_MAC;
+                                false -> nil : empty;
+                         } &requires(has_control_mac);
 } &let {
         R:	bool   = (second_byte & 0x80) > 0;	# First bit of 8-bits value
         E:	bool   = (second_byte & 0x40) > 0;	# Second bit of 8-bits value
         M:     	bool   = (second_byte & 0x20) > 0;	# Third bit of 8-bits value
-        OpCode:	uint8  = (second_byte & 0x1F);	# Last 5 bits of 8-bits value
+        OpCode:	uint8  = (second_byte & 0x1F);		# Last 5 bits of 8-bits value
+        length          = sourcedata.length();
+        has_control_mac: bool   = (length - offsetof(mac_fields)) == 12;
 } &byteorder=bigendian &exportsourcedata;
 
-
+# As in RFC 5905
 type NTP_MAC = record {
 	key_id: uint32;
 	digest: bytestring &length=16;
-} &length=18;
+} &length=20;
+
+# As in RFC 1119
+type NTP_CONTROL_MAC = record {
+        key_id: uint32;
+     	crypto_checksum: bytestring &length=8;
+} &length=12;
 
 type Extension_Field = record {
   field_type: uint16;
-  length    : uint16;
-  data      : bytestring &length=length-4;
+  ext_len   : uint16;
+  data      : bytestring &length=ext_len-4;
 };
 
 type NTP_Short_Time = record {

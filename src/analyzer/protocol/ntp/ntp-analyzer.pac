@@ -65,7 +65,12 @@ refine flow NTP_Flow += {
                 rv->Assign(11, proc_ntp_timestamp(${nsm.receive_ts}));
                 rv->Assign(12, proc_ntp_timestamp(${nsm.transmit_ts}));
 
-                rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.extensions}->size()));
+		if (${nsm.has_mac}) {
+		    rv->Assign(13, val_mgr->GetCount(${nsm.mac.key_id}));
+		    rv->Assign(14, bytestring_to_val(${nsm.mac.digest}));
+		}
+		// TODO: add extension fields
+                //rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.extensions}->size()));
 
         	return rv;
         %}

@@ -4996,15 +4996,16 @@ export {
 	## The sequence number of the command or response
         sequence        : count;
 	## The current status of the system, peer or clock
-        status          : count;    #TODO: this must be further specified
+        status          : count;    #TODO: this can be further parsed internally
 	## A 16-bit integer identifying a valid association
         association_id  : count;
-	## A 16-bit integer indicating the offset, in octets, of the first octet in the data area
-        offs            : count;
-	## A 16-bit integer indicating the length of the data field, in octets
-        c		: count;
 	## The message data for the command or response + Authenticator (optional)
-        data            : string &optional;   # TODO: distinguish data and authenticator
+        data            : string &optional;
+        ## This is an integer identifying the cryptographic
+	## key used to generate the message-authentication code
+        key_id		: count &optional;
+	## This is a crypto-checksum computed by the encryption procedure
+        crypto_checksum	: string &optional;
 	};
 
         ## NTP mode7 message for mode=7. Note that this is not defined in any RFC
@@ -5046,7 +5047,7 @@ export {
 	##               7 - authentication failure (i.e. permission denied)
         err  		: count;
         ## Rest of data
-        data            : string &optional;   # TODO: can be further parsed
+        data            : string &optional;   
         };
 
         ## NTP message as defined in :rfc:`5905`.

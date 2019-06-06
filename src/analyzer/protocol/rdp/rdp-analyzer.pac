@@ -106,13 +106,14 @@ refine flow RDP_Flow += {
 		if ( ! rdp_client_security_data )
                         return false;
 	 
-			RecordVal* csd = new RecordVal(BifType::Record::RDP::ClientSecurityData);
-			csd->Assign(0, val_mgr->GetCount(${csec.encryption_methods}));
-			csd->Assign(1, val_mgr->GetCount(${csec.ext_encryption_methods}));
-    
-			BifEvent::generate_rdp_client_security_data(connection()->bro_analyzer(),
-								    connection()->bro_analyzer()->Conn(),
-								    csd);
+		RecordVal* csd = new RecordVal(BifType::Record::RDP::ClientSecurityData);
+		csd->Assign(0, val_mgr->GetCount(${csec.encryption_methods}));
+		csd->Assign(1, val_mgr->GetCount(${csec.ext_encryption_methods}));
+   
+		BifEvent::generate_rdp_client_security_data(connection()->bro_analyzer(),
+							    connection()->bro_analyzer()->Conn(),
+							    csd);
+		return true;
 		%}
 
 	function proc_rdp_client_network_data(cnetwork: Client_Network_Data): bool

@@ -1,3 +1,12 @@
+## Generated for each packet after RDP native encryption begins
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## orig: True if the packet was sent by the originator of the connection.
+##
+## len: The length of the encrypted data.
+event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
+
 ## Generated for X.224 client requests.
 ##
 ## c: The connection record for the underlying transport-layer session/flow.

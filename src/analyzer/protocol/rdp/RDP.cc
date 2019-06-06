@@ -10,7 +10,7 @@ RDP_Analyzer::RDP_Analyzer(Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("RDP", c)
 	{
 	interp = new binpac::RDP::RDP_Conn(this);
-	
+
 	had_gap = false;
 	pia = 0;
 	}
@@ -71,6 +71,11 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				}
 
 			ForwardStream(len, data, orig);
+			}
+		else
+			{
+			BifEvent::generate_rdp_native_encrypted_data(interp->bro_analyzer(),
+				interp->bro_analyzer()->Conn(), orig, len);
 			}
 		}
 	else // if not encrypted

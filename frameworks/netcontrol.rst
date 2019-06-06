@@ -507,7 +507,7 @@ In contrast to the other high-level functions that we documented so far, the
 catch and release functionality is much more complex and adds a number of
 different specialized functions to NetControl. The documentation for catch and
 release is contained in the file
-:doc:`/scripts/base/frameworks/netcontrol/catch-and-release.zeek`.
+:doc:`/scripts/policy/frameworks/netcontrol/catch-and-release.zeek`.
 
 Using catch and release in your scripts is easy; just use
 :zeek:see:`NetControl::drop_address_catch_release` like in this example:

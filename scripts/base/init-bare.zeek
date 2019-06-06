@@ -2526,55 +2526,6 @@ export {
 	};
 }
 
-module NTP;
-
-export {
-	## NTP message as defined in :rfc:`5905`.
-	## Doesn't include fields for mode 7 (reserved for private use), e.g. monlist
-	type NTP::Message: record {
-		## The NTP version number
-		version:            count;
-		## The NTP mode being used
-		mode:               count;
-		## The stratum (primary server, secondary server, etc.)
-		stratum:            count;
-		## The maximum interval between successive messages
-		poll:               interval;
-		## The precision of the system clock
-		precision:          interval;
-
-		## Total round-trip delay to the reference clock
-		root_delay:         interval;
-		## Total dispersion to the reference clock
-		root_disp:          interval;
-		## For stratum 0, 4 character string used for debugging
-		kiss_code:          string &optional;
-		## For stratum 1, ID assigned to the reference clock by IANA
-		ref_id:             string &optional;
-		## Above stratum 1, when using IPv4, the IP address of the reference clock
-		ref_addr:           addr &optional;
-
-		## Above stratum 1, when using IPv6, the first four bytes of the MD5 hash of the
-		## IPv6 address of the reference clock
-		ref_v6_hash_prefix: string &optional;
-		## Time when the system clock was last set or correct
-		ref_time:           time;
-		## Time at the client when the request departed for the NTP server
-		org_time:           time;
-		## Time at the server when the request arrived from the NTP client
-		rec_time:           time;
-		## Time at the server when the response departed for the NTP client
-		xmt_time:           time;
-		## Key used to designate a secret MD5 key
-		key_id:             count &optional;
-		## MD5 hash computed over the key followed by the NTP packet header and extension fields
-		digest:             string &optional;
-		## Number of extension fields (which are not currently parsed)
-		num_exts:           count &default=0;
-	};
-}
-
-
 module NTLM;
 
 export {

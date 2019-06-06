@@ -899,7 +899,7 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-TableVal::TableVal(TableType* t, Attributes* a) : MutableVal(t)
+TableVal::TableVal(TableType* t, Attributes* a) : Val(t)
 	{
 	Init(t);
 	SetAttrs(a);
@@ -1982,7 +1982,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 vector<RecordVal*> RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
+RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
 	origin = 0;
 	record_type = t;
@@ -2287,7 +2287,7 @@ Val* EnumVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-VectorVal::VectorVal(VectorType* t) : MutableVal(t)
+VectorVal::VectorVal(VectorType* t) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	val.vector_val = new vector<Val*>();

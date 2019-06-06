@@ -15,7 +15,7 @@ class Func;
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
 
-class ID : public BroObj {
+class ID : public BroObj, public notifier::Modifiable {
 public:
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
 	~ID() override;

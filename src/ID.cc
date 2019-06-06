@@ -66,7 +66,7 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 
 	val = v;
 	weak_ref = arg_weak_ref;
-	notifiers.Modified(this);
+	Modified();
 
 #ifdef DEBUG
 	UpdateValID();

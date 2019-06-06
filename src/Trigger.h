@@ -13,7 +13,7 @@
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger : public NotifierRegistry::Notifier, public BroObj {
+class Trigger : public notifier::Notifier, public BroObj {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
@@ -61,9 +61,7 @@ public:
 		{ d->Add("<trigger>"); }
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Modified(ID* id) override
-		{ QueueTrigger(this); }
-	void Modified(Val* val) override
+	void Modified(notifier::Modifiable* m) override
 		{ QueueTrigger(this); }
 
 	const char* Name() const override;
@@ -104,8 +102,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	val_list vals;
-	id_list ids;
+	std::vector<BroObj *> objs;
 
 	typedef map<const CallExpr*, Val*> ValCache;
 	ValCache cache;

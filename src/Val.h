@@ -328,6 +328,8 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
+	virtual notifier::Modifiable* Modifiable()	{ return 0; }
+
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
@@ -490,8 +492,6 @@ protected:
 
 	MutableVal()	{}
 	~MutableVal() override;
-
-	void Modified()	{ notifiers.Modified(this); }
 };
 
 #define Microseconds 1e-6
@@ -764,7 +764,7 @@ protected:
 };
 
 class CompositeHash;
-class TableVal : public MutableVal {
+class TableVal : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal() override;
@@ -877,6 +877,8 @@ public:
 	HashKey* ComputeHash(const Val* index) const
 		{ return table_hash->ComputeHash(index, 1); }
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 protected:
 	friend class Val;
 	TableVal()	{}
@@ -915,7 +917,7 @@ protected:
 	Val* def_val;
 };
 
-class RecordVal : public MutableVal {
+class RecordVal : public Val, public notifier::Modifiable {
 public:
 	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
@@ -962,6 +964,8 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
@@ -1006,7 +1010,7 @@ protected:
 };
 
 
-class VectorVal : public MutableVal {
+class VectorVal : public Val, public notifier::Modifiable {
 public:
 	explicit VectorVal(VectorType* t);
 	~VectorVal() override;
@@ -1053,6 +1057,8 @@ public:
 
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
+
+	notifier::Modifiable* Modifiable() override	{ return this; }
 
 protected:
 	friend class Val;

@@ -33,7 +33,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 			trigger->Register(e->Id());
 
 		Val* v = e->Id()->ID_Val();
-		if ( v && v->IsMutableVal() )
+		if ( v && v->Modifiable() )
 			trigger->Register(v);
 		break;
 		};
@@ -382,38 +382,30 @@ void Trigger::Timeout()
 void Trigger::Register(ID* id)
 	{
 	assert(! disabled);
-	notifiers.Register(id, this);
+	notifier::registry.Register(id, this);
 
 	Ref(id);
-	ids.insert(id);
+	objs.push_back(id);
 	}
 
 void Trigger::Register(Val* val)
 	{
+	if ( ! val->Modifiable() )
+		return;
+
 	assert(! disabled);
-	notifiers.Register(val, this);
+	notifier::registry.Register(val->Modifiable(), this);
 
 	Ref(val);
-	vals.insert(val);
+	objs.push_back(val);
 	}
 
 void Trigger::UnregisterAll()
 	{
-	loop_over_list(ids, i)
-		{
-		notifiers.Unregister(ids[i], this);
-		Unref(ids[i]);
-		}
+	for ( auto o : objs )
+		Unref(o); // this will unregister with the registry as well
 
-	ids.clear();
-
-	loop_over_list(vals, j)
-		{
-		notifiers.Unregister(vals[j], this);
-		Unref(vals[j]);
-		}
-
-	vals.clear();
+	objs.clear();
 	}
 
 void Trigger::Attach(Trigger *trigger)

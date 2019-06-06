@@ -1,4 +1,8 @@
 
+2.6-384 | 2019-06-06 16:49:14 -0700
+
+  * Add new RDP event: rdp_client_security_data (Jeff Atkinson)
+
 2.6-379 | 2019-06-06 11:56:58 -0700
 
   * Improve sqlite logging unit tests (Jon Siwek, Corelight)

@@ -4276,8 +4276,11 @@ export {
 		dig_product_id:         string &optional;
 	};
 
+	## The TS_UD_CS_SEC data block contains security-related information used to advertise client cryptographic support.
 	type RDP::ClientSecurityData: record {
+ 		## Cryptographic encryption methods supported by the client and used in conjunction with Standard RDP Security.
 		encryption_methods:	count;
+		## Only used in French locale and designates the encryption method.  If set then encryption methods should be set to 0.
 		ext_encryption_methods:	count;
 	};
 

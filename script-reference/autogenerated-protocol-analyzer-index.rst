@@ -8114,6 +8114,26 @@ Types
       dig_product_id: :zeek:type:`string` :zeek:attr:`&optional`
 
 
+.. zeek:type:: RDP::ClientSecurityData
+
+   :Type: :zeek:type:`record`
+
+      encryption_methods: :zeek:type:`count`
+         Cryptographic encryption methods supported by the client and used in
+         conjunction with Standard RDP Security.  Known flags:
+         
+         - 0x00000001: support for 40-bit session encryption keys
+         - 0x00000002: support for 128-bit session encryption keys
+         - 0x00000008: support for 56-bit session encryption keys
+         - 0x00000010: support for FIPS compliant encryption and MAC methods
+
+      ext_encryption_methods: :zeek:type:`count`
+         Only used in French locale and designates the encryption method.  If
+         non-zero, then encryption_methods should be set to 0.
+
+   The TS_UD_CS_SEC data block contains security-related information used
+   to advertise client cryptographic support.
+
 .. zeek:type:: RDP::ClientChannelList
 
    :Type: :zeek:type:`vector` of :zeek:type:`RDP::ClientChannelDef`
@@ -8213,6 +8233,18 @@ Events
    
 
    :data: The data contained in the client core data structure.
+
+.. zeek:id:: rdp_client_security_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientSecurityData`)
+
+   Generated for client security data packets.
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_client_network_data
 

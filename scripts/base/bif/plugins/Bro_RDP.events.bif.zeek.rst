@@ -15,6 +15,7 @@ Events
 :zeek:id:`rdp_begin_encryption`: :zeek:type:`event`           Generated when an RDP session becomes encrypted.
 :zeek:id:`rdp_client_core_data`: :zeek:type:`event`           Generated for MCS client requests.
 :zeek:id:`rdp_client_network_data`: :zeek:type:`event`        Generated for Client Network Data (TS_UD_CS_NET) packets
+:zeek:id:`rdp_client_security_data`: :zeek:type:`event`       Generated for client security data packets.
 :zeek:id:`rdp_connect_request`: :zeek:type:`event`            Generated for X.224 client requests.
 :zeek:id:`rdp_gcc_server_create_response`: :zeek:type:`event` Generated for MCS server responses.
 :zeek:id:`rdp_negotiation_failure`: :zeek:type:`event`        Generated for RDP Negotiation Failure messages.
@@ -63,6 +64,18 @@ Events
    
 
    :channels: The channels that were requested
+
+.. zeek:id:: rdp_client_security_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientSecurityData`)
+
+   Generated for client security data packets.
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_connect_request
 

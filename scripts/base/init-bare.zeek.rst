@@ -444,6 +444,8 @@ Types
 :zeek:type:`RDP::ClientChannelDef`: :zeek:type:`record`                       Name and flags for a single channel requested by the client.
 :zeek:type:`RDP::ClientChannelList`: :zeek:type:`vector`                      The list of channels requested by the client.
 :zeek:type:`RDP::ClientCoreData`: :zeek:type:`record`                         
+:zeek:type:`RDP::ClientSecurityData`: :zeek:type:`record`                     The TS_UD_CS_SEC data block contains security-related information used
+                                                                              to advertise client cryptographic support.
 :zeek:type:`RDP::EarlyCapabilityFlags`: :zeek:type:`record`                   
 :zeek:type:`ReassemblerStats`: :zeek:type:`record`                            Holds statistics for all types of reassembly.
 :zeek:type:`ReporterStats`: :zeek:type:`record`                               Statistics about reporter messages and weirds.
@@ -4909,6 +4911,26 @@ Types
 
       dig_product_id: :zeek:type:`string` :zeek:attr:`&optional`
 
+
+.. zeek:type:: RDP::ClientSecurityData
+
+   :Type: :zeek:type:`record`
+
+      encryption_methods: :zeek:type:`count`
+         Cryptographic encryption methods supported by the client and used in
+         conjunction with Standard RDP Security.  Known flags:
+         
+         - 0x00000001: support for 40-bit session encryption keys
+         - 0x00000002: support for 128-bit session encryption keys
+         - 0x00000008: support for 56-bit session encryption keys
+         - 0x00000010: support for FIPS compliant encryption and MAC methods
+
+      ext_encryption_methods: :zeek:type:`count`
+         Only used in French locale and designates the encryption method.  If
+         non-zero, then encryption_methods should be set to 0.
+
+   The TS_UD_CS_SEC data block contains security-related information used
+   to advertise client cryptographic support.
 
 .. zeek:type:: RDP::EarlyCapabilityFlags
 

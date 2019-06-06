@@ -4,7 +4,7 @@
 #define STATEACESSS_H
 
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 class Val;
@@ -105,32 +105,39 @@ public:
 	public:
 		virtual ~Notifier()	{ }
 
-		// Called when a change is being performed. Note that when these
-		// methods are called, it is undefined whether the change has
-		// already been done or is just going to be performed soon.
-		virtual void Access(ID* id, const StateAccess& sa) = 0;
-		virtual void Access(Val* val, const StateAccess& sa) = 0;
+		// Called when a change is being performed. Note that when
+		// these methods are called, it is undefined whether the
+		// change has already been done or is just going to be
+		// performed soon.
+		virtual void Modified(ID* id) = 0;
+		virtual void Modified(Val* val) = 0;
 		virtual const char* Name() const;	// for debugging
 	};
 
 	NotifierRegistry()	{ }
-	~NotifierRegistry()	{ }
+	~NotifierRegistry();
 
-	// Inform the given notifier if ID/Val changes.
+	// Register a new notifier to be informed when ID/Val changes. Note
+	// that the registry will store a reference to the target, keeping
+	// the instance alive for as long as it's registered.
 	void Register(ID* id, Notifier* notifier);
 	void Register(Val* val, Notifier* notifier);
 
-	// Cancel notification for this ID/Val.
+	// Cancel a notifier's tracking for this ID/Val, also releasing the
+	// referencee being held.
 	void Unregister(ID* id, Notifier* notifier);
 	void Unregister(Val* val, Notifier* notifier);
 
-private:
-	friend class StateAccess;
-	void AccessPerformed(const StateAccess& sa);
+	// Inform all registered notifiiers of a modification to a value/ID.
+	void Modified(ID *id);
+	void Modified(Val *val);
 
-	typedef std::set<Notifier*> NotifierSet;
-	typedef std::map<std::string, NotifierSet*> NotifierMap;
-	NotifierMap ids;
+private:
+	typedef std::unordered_multimap<Val*, Notifier*> ValMap;
+	typedef std::unordered_multimap<ID*, Notifier*> IDMap;
+
+	ValMap vals;
+	IDMap ids;
 };
 
 extern NotifierRegistry notifiers;

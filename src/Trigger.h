@@ -61,9 +61,9 @@ public:
 		{ d->Add("<trigger>"); }
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Access(ID* id, const StateAccess& sa) override
+	void Modified(ID* id) override
 		{ QueueTrigger(this); }
-	void Access(Val* val, const StateAccess& sa) override
+	void Modified(Val* val) override
 		{ QueueTrigger(this); }
 
 	const char* Name() const override;

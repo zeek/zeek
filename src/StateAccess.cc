@@ -149,7 +149,7 @@ void StateAccess::Replay()
 
 	Val* v = target.id->ID_Val();
 	TypeTag t = v ? v->Type()->Tag() : TYPE_VOID;
-		
+
 	if ( opcode != OP_ASSIGN && ! v )
 		{
 		// FIXME: I think this warrants an internal error,
@@ -514,21 +514,16 @@ void StateAccess::Describe(ODesc* d) const
 
 void StateAccess::Log(StateAccess* access)
 	{
-	bool tracked = false;
-
 	if ( access->target_type == TYPE_ID )
 		{
 		if ( access->target.id->FindAttr(ATTR_TRACKED) )
-			tracked = true;
+			notifiers.Modified(access->target.id);
 		}
 	else
 		{
 		if ( access->target.val->GetProperties() & MutableVal::TRACKED )
-			tracked = true;
+			notifiers.Modified(access->target.val);
 		}
-
-	if ( tracked )
-		notifiers.AccessPerformed(*access);
 
 #ifdef DEBUG
 	ODesc desc;
@@ -542,6 +537,15 @@ void StateAccess::Log(StateAccess* access)
 	}
 
 NotifierRegistry notifiers;
+
+NotifierRegistry::~NotifierRegistry()
+	{
+	for ( auto i : ids )
+		Unref(i.first);
+
+	for ( auto i : vals )
+		Unref(i.first);
+	}
 
 void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 	{
@@ -563,24 +567,20 @@ void NotifierRegistry::Register(ID* id, NotifierRegistry::Notifier* notifier)
 
 	Unref(attr);
 
-	NotifierMap::iterator i = ids.find(id->Name());
-
-	if ( i != ids.end() )
-		i->second->insert(notifier);
-	else
-		{
-		NotifierSet* s = new NotifierSet;
-		s->insert(notifier);
-		ids.insert(NotifierMap::value_type(id->Name(), s));
-		}
-
+	ids.insert({id, notifier});
 	Ref(id);
 	}
 
 void NotifierRegistry::Register(Val* val, NotifierRegistry::Notifier* notifier)
 	{
-	if ( val->IsMutableVal() )
-		Register(val->AsMutableVal()->UniqueID(), notifier);
+	if ( ! val->IsMutableVal() )
+		return;
+
+	DBG_LOG(DBG_NOTIFIERS, "registering value %p for notifier %s",
+		val, notifier->Name());
+
+	vals.insert({val, notifier});
+	Ref(val);
 	}
 
 void NotifierRegistry::Unregister(ID* id, NotifierRegistry::Notifier* notifier)
@@ -588,52 +588,55 @@ void NotifierRegistry::Unregister(ID* id, NotifierRegistry::Notifier* notifier)
 	DBG_LOG(DBG_NOTIFIERS, "unregistering ID %s for notifier %s",
 		id->Name(), notifier->Name());
 
-	NotifierMap::iterator i = ids.find(id->Name());
-
-	if ( i == ids.end() )
-		return;
-
-	Attr* attr = id->Attrs()->FindAttr(ATTR_TRACKED);
-	id->Attrs()->RemoveAttr(ATTR_TRACKED);
-	Unref(attr);
-
-	NotifierSet* s = i->second;
-	s->erase(notifier);
-
-	if ( s->size() == 0 )
+	auto x = ids.equal_range(id);
+	for ( auto i = x.first; i != x.second; i++ )
 		{
-		delete s;
-		ids.erase(i);
+		if ( i->second == notifier )
+			{
+			ids.erase(i);
+			Unref(id);
+			break;
+			}
 		}
 
-	Unref(id);
+	if ( ids.find(id) == ids.end() )
+		// Last registered notifier for this ID
+		id->Attrs()->RemoveAttr(ATTR_TRACKED);
 	}
 
 void NotifierRegistry::Unregister(Val* val, NotifierRegistry::Notifier* notifier)
 	{
-	if ( val->IsMutableVal() )
-		Unregister(val->AsMutableVal()->UniqueID(), notifier);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering Val %p for notifier %s",
+		val, notifier->Name());
+
+	auto x = vals.equal_range(val);
+	for ( auto i = x.first; i != x.second; i++ )
+		{
+		if ( i->second == notifier )
+			{
+			vals.erase(i);
+			Unref(val);
+			break;
+			}
+		}
 	}
 
-void NotifierRegistry::AccessPerformed(const StateAccess& sa)
+void NotifierRegistry::Modified(Val *val)
 	{
-	ID* id = sa.Target();
+	DBG_LOG(DBG_NOTIFIERS, "modification to tracked value %p", val);
 
-	NotifierMap::iterator i = ids.find(id->Name());
+	auto x = vals.equal_range(val);
+	for ( auto i = x.first; i != x.second; i++ )
+		i->second->Modified(val);
+	}
 
-	if ( i == ids.end() )
-		return;
-
+void NotifierRegistry::Modified(ID *id)
+	{
 	DBG_LOG(DBG_NOTIFIERS, "modification to tracked ID %s", id->Name());
 
-	NotifierSet* s = i->second;
-
-	if ( id->IsInternalGlobal() )
-		for ( NotifierSet::iterator j = s->begin(); j != s->end(); j++ )
-			(*j)->Access(id->ID_Val(), sa);
-	else
-		for ( NotifierSet::iterator j = s->begin(); j != s->end(); j++ )
-			(*j)->Access(id, sa);
+	auto x = ids.equal_range(id);
+	for ( auto i = x.first; i != x.second; i++ )
+		i->second->Modified(id);
 	}
 
 const char* NotifierRegistry::Notifier::Name() const

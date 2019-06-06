@@ -12,7 +12,7 @@ DebugLogger debug_logger;
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "serial", 0, false }, { "rules", 0, false },
-	{ "state", 0, false }, {"string", 0, false },
+	{ "string", 0, false },
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
 	{ "logging", 0, false }, {"input", 0, false },

@@ -1843,17 +1843,6 @@ function global_ids%(%): id_table
 	TableVal* ids = new TableVal(id_table);
 	PDict(ID)* globals = global_scope()->Vars();
 	IterCookie* c = globals->InitForIteration();
-#ifdef DEBUG
-  /**
-	 * Explanation time: c needs to be a robust cookie when one is in debug mode,
-	 * otherwise the Zeek process will crash in ~80% of cases when -B all is specified.
-	 * The reason for this are the RecordVals that we create. RecordVal::Assign triggers
-	 * a StateAccess::Log, which in turn (only in debug mode) triggers StateAccess::Describe,
-	 * which creates a UniqueID for the variable, which triggers an insert into global_scope.
-	 * Which invalidates the iteration cookie if it is not robust.
-	 **/
-	globals->MakeRobustCookie(c);
-#endif
 
 	ID* id;
 	while ( (id = globals->NextEntry(c)) )

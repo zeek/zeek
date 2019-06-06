@@ -51,8 +51,6 @@ class StringVal;
 class EnumVal;
 class MutableVal;
 
-class StateAccess;
-
 class VectorVal;
 
 class TableEntryVal;
@@ -532,17 +530,6 @@ public:
 	virtual bool AddProperties(Properties state);
 	virtual bool RemoveProperties(Properties state);
 
-	// Whether StateAccess:LogAccess needs to be called.
-	bool LoggingAccess() const
-		{
-#ifndef DEBUG
-		return props & TRACKED;
-#else
-		return debug_logger.IsVerbose() ||
-			(props & TRACKED);
-#endif
-		}
-
 protected:
 	explicit MutableVal(BroType* t) : Val(t)
 		{ props = 0; id = 0; }
@@ -553,6 +540,7 @@ protected:
 	friend class Val;
 
 	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
+	void Modified()	{ notifiers.Modified(this); }
 
 private:
 	ID* Bind() const;
@@ -957,7 +945,6 @@ public:
 
 protected:
 	friend class Val;
-	friend class StateAccess;
 	TableVal()	{}
 
 	void Init(TableType* t);

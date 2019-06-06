@@ -27,69 +27,6 @@ enum Opcode {	// Op1	Op2 Op3 (Vals)
 	OP_READ_IDX,	// idx
 };
 
-class StateAccess {
-public:
-	StateAccess(Opcode opcode, const ID* target, const Val* op1,
-			const Val* op2 = 0, const Val* op3 = 0);
-	StateAccess(Opcode opcode, const MutableVal* target, const Val* op1,
-			const Val* op2 = 0, const Val* op3 = 0);
-
-	// For tables, the idx operand may be given as an index HashKey.
-	// This is for efficiency. While we need to reconstruct the index
-	// if we are actually going to serialize the access, we can at
-	// least skip it if we don't.
-	StateAccess(Opcode opcode, const ID* target, const HashKey* op1,
-			const Val* op2 = 0, const Val* op3 = 0);
-	StateAccess(Opcode opcode, const MutableVal* target, const HashKey* op1,
-			const Val* op2 = 0, const Val* op3 = 0);
-
-	StateAccess(const StateAccess& sa);
-
-	virtual ~StateAccess();
-
-	// Replays this access in the our environment.
-	void Replay();
-
-	// Returns target ID which may be an internal one for unbound vals.
-	ID* Target() const;
-
-	void Describe(ODesc* d) const;
-
-	// Main entry point when StateAcesses are performed.
-	// For every state-changing operation, this has to be called.
-	static void Log(StateAccess* access);
-
-	// If we're going to make additional non-replaying accesses during a
-	// Replay(), we have to call these.
-	static void SuspendReplay()	{ --replaying; }
-	static void ResumeReplay()	{ ++replaying; }
-
-private:
-	StateAccess()	{ target.id = 0; op1.val = op2 = op3 = 0; }
-	void RefThem();
-
-	Opcode opcode;
-	union {
-		ID* id;
-		MutableVal* val;
-	} target;
-
-	union {
-		Val* val;
-		const HashKey* key;
-	} op1;
-
-	Val* op2;
-	Val* op3;
-
-	enum Type { TYPE_ID, TYPE_VAL, TYPE_MVAL, TYPE_KEY };
-	Type target_type;
-	Type op1_type;
-	bool delete_op1_key;
-
-	static int replaying;
-};
-
 // We provide a notifier framework to inform interested parties of
 // modifications to selected global IDs/Vals. To get notified about a change,
 // derive a class from Notifier and register the interesting IDs/Vals with

@@ -79,7 +79,7 @@ void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
 #else
 		if ( debug_logger.IsVerbose() || props )
 #endif
-			StateAccess::Log(new StateAccess(op, this, v, val));
+			notifiers.Modified(this);
 		}
 
 	if ( ! weak_ref )

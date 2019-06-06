@@ -101,6 +101,20 @@ refine flow RDP_Flow += {
 		return true;
 		%}
 
+	function proc_rdp_client_security_data(csec: Client_Security_Data): bool
+		%{
+		if ( ! rdp_client_security_data )
+                        return false;
+	 
+			RecordVal* csd = new RecordVal(BifType::Record::RDP::ClientSecurityData);
+			csd->Assign(0, val_mgr->GetCount(${csec.encryption_methods}));
+			csd->Assign(1, val_mgr->GetCount(${csec.ext_encryption_methods}));
+    
+			BifEvent::generate_rdp_client_security_data(connection()->bro_analyzer(),
+								    connection()->bro_analyzer()->Conn(),
+								    csd);
+		%}
+
 	function proc_rdp_client_network_data(cnetwork: Client_Network_Data): bool
 		%{
 		if ( ! rdp_client_network_data )
@@ -201,6 +215,10 @@ refine typeattr RDP_Negotiation_Failure += &let {
 
 refine typeattr Client_Core_Data += &let {
 	proc: bool = $context.flow.proc_rdp_client_core_data(this);
+};
+
+refine typeattr Client_Security_Data += &let {
+        proc: bool = $context.flow.proc_rdp_client_security_data(this);
 };
 
 refine typeattr Client_Network_Data += &let {

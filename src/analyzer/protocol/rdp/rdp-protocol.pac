@@ -52,7 +52,7 @@ type Data_Block = record {
 	header: Data_Header;
 	block: case header.type of {
 		0xc001  -> client_core:       Client_Core_Data;
-		#0xc002  -> client_security:   Client_Security_Data;
+		0xc002  -> client_security:   Client_Security_Data;
 		0xc003  -> client_network:    Client_Network_Data;
 		#0xc004  -> client_cluster:    Client_Cluster_Data;
 		#0xc005  -> client_monitor:    Client_Monitor_Data;
@@ -218,6 +218,11 @@ type Client_Core_Data = record {
 	SUPPORT_DYNVC_GFX_PROTOCOL: bool = early_capability_flags & 0x0100;
 	SUPPORT_DYNAMIC_TIME_ZONE:  bool = early_capability_flags & 0x0200;
 	SUPPORT_HEARTBEAT_PDU:      bool = early_capability_flags & 0x0400;
+} &byteorder=littleendian;
+
+type Client_Security_Data = record {
+	encryption_methods:	uint16;
+	ext_encryption_methods:	uint16;
 } &byteorder=littleendian;
 
 type Client_Network_Data = record {

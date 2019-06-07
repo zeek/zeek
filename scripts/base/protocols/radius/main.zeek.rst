@@ -62,9 +62,10 @@ Types
          and the network access server is not required to honor 
          the address.
 
-      remote_ip: :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&optional`
-         Remote IP address, if present.  This is collected
-         from the Tunnel-Client-Endpoint attribute.
+      tunnel_client: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+         Address (IPv4, IPv6, or FQDN) of the initiator end of the tunnel,
+         if present.  This is collected from the Tunnel-Client-Endpoint
+         attribute.
 
       connect_info: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
          Connect info, if present.

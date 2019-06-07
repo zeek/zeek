@@ -8186,6 +8186,21 @@ Types
 Events
 ++++++
 
+.. zeek:id:: rdp_native_encrypted_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
+
+   Generated for each packet after RDP native encryption begins
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :orig: True if the packet was sent by the originator of the connection.
+   
+
+   :len: The length of the encrypted data.
+
 .. zeek:id:: rdp_connect_request
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`)

@@ -11,18 +11,19 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================================= ========================================================
+============================================================= ============================================================
 :zeek:id:`rdp_begin_encryption`: :zeek:type:`event`           Generated when an RDP session becomes encrypted.
 :zeek:id:`rdp_client_core_data`: :zeek:type:`event`           Generated for MCS client requests.
 :zeek:id:`rdp_client_network_data`: :zeek:type:`event`        Generated for Client Network Data (TS_UD_CS_NET) packets
 :zeek:id:`rdp_client_security_data`: :zeek:type:`event`       Generated for client security data packets.
 :zeek:id:`rdp_connect_request`: :zeek:type:`event`            Generated for X.224 client requests.
 :zeek:id:`rdp_gcc_server_create_response`: :zeek:type:`event` Generated for MCS server responses.
+:zeek:id:`rdp_native_encrypted_data`: :zeek:type:`event`      Generated for each packet after RDP native encryption begins
 :zeek:id:`rdp_negotiation_failure`: :zeek:type:`event`        Generated for RDP Negotiation Failure messages.
 :zeek:id:`rdp_negotiation_response`: :zeek:type:`event`       Generated for RDP Negotiation Response messages.
 :zeek:id:`rdp_server_certificate`: :zeek:type:`event`         Generated for a server certificate section.
 :zeek:id:`rdp_server_security`: :zeek:type:`event`            Generated for MCS server responses.
-============================================================= ========================================================
+============================================================= ============================================================
 
 
 Detailed Interface
@@ -100,6 +101,21 @@ Events
    
 
    :result: The 8-bit integer representing the GCC Conference Create Response result.
+
+.. zeek:id:: rdp_native_encrypted_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
+
+   Generated for each packet after RDP native encryption begins
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :orig: True if the packet was sent by the originator of the connection.
+   
+
+   :len: The length of the encrypted data.
 
 .. zeek:id:: rdp_negotiation_failure
 

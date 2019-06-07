@@ -802,7 +802,8 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
 	     v->Type()->YieldType()->Tag() != TYPE_STRING )
 		{
-		builtin_error("paraglob requires a vector of strings for initialization.");
+		// reporter->Error will throw an exception.
+		reporter->Error("paraglob requires a vector of strings for initialization.");
 		return nullptr;
 		}
 
@@ -822,8 +823,8 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	// Thrown if paraglob fails to add a pattern.
 	catch (const paraglob::add_error& e)
 		{
-		builtin_error(e.what());
-		return nullptr;
+			reporter->Error(e.what());
+			return nullptr;
 		}
 	%}
 

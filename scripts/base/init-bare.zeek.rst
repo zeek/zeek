@@ -515,6 +515,7 @@ Types
                                                                               in each direction.
 :zeek:type:`SSH::Capabilities`: :zeek:type:`record`                           This record lists the preferences of an SSH endpoint for
                                                                               algorithm selection.
+:zeek:type:`SSL::PSKIdentity`: :zeek:type:`record`                            
 :zeek:type:`SSL::SignatureAndHashAlgorithm`: :zeek:type:`record`              
 :zeek:type:`SYN_packet`: :zeek:type:`record`                                  Fields of a SYN packet.
 :zeek:type:`ThreadStats`: :zeek:type:`record`                                 Statistics about threads.
@@ -649,6 +650,7 @@ Types
 :zeek:type:`pm_mapping`: :zeek:type:`record`                                  An RPC portmapper mapping.
 :zeek:type:`pm_mappings`: :zeek:type:`table`                                  Table of RPC portmapper mappings.
 :zeek:type:`pm_port_request`: :zeek:type:`record`                             An RPC portmapper request.
+:zeek:type:`psk_identity_vec`: :zeek:type:`vector`                            
 :zeek:type:`raw_pkt_hdr`: :zeek:type:`record`                                 A raw packet header, consisting of L2 header and everything in
                                                                               :zeek:see:`pkt_hdr`.
 :zeek:type:`record_field`: :zeek:type:`record`                                Meta-information about a record field.
@@ -6151,6 +6153,16 @@ Types
    that it supports, in order of preference. See
    :rfc:`4253#section-7.1` for details.
 
+.. zeek:type:: SSL::PSKIdentity
+
+   :Type: :zeek:type:`record`
+
+      identity: :zeek:type:`string`
+         PSK identity
+
+      obfuscated_ticket_age: :zeek:type:`count`
+
+
 .. zeek:type:: SSL::SignatureAndHashAlgorithm
 
    :Type: :zeek:type:`record`
@@ -8815,6 +8827,11 @@ Types
    An RPC portmapper request.
    
    .. zeek:see:: pm_attempt_getport pm_request_getport
+
+.. zeek:type:: psk_identity_vec
+
+   :Type: :zeek:type:`vector` of :zeek:type:`SSL::PSKIdentity`
+
 
 .. zeek:type:: raw_pkt_hdr
 

@@ -13068,6 +13068,16 @@ Types
          Signature algorithm number
 
 
+.. zeek:type:: SSL::PSKIdentity
+
+   :Type: :zeek:type:`record`
+
+      identity: :zeek:type:`string`
+         PSK identity
+
+      obfuscated_ticket_age: :zeek:type:`count`
+
+
 Events
 ++++++
 
@@ -13148,7 +13158,7 @@ Events
 
    :possible_ts: The current time as sent by the server. Note that SSL/TLS does
                 not require clocks to be set correctly, so treat with care. This value
-                is not sent in TLSv1.3.
+                is meaningless in SSLv2 and TLSv1.3.
    
 
    :session_id: The session ID as sent back by the server (if any). This value is not
@@ -13156,7 +13166,9 @@ Events
    
 
    :server_random: The random value sent by the server. For version 2 connections,
-   		  the connection-id is returned.
+   		  the connection-id is returned. Note - the full 32 bytes are included in
+   		  server_random. This means that the 4 bytes present in possible_ts are repeated;
+   		  if you do not want this behavior ignore the first 4 bytes.
    
 
    :cipher: The cipher chosen by the server.  The values are standardized as part
@@ -13204,6 +13216,7 @@ Events
       ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
       ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_elliptic_curves
 
@@ -13229,6 +13242,7 @@ Events
       ssl_extension_key_share ssl_rsa_client_pms ssl_server_signature
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_ec_point_formats
 
@@ -13256,6 +13270,7 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_signature_algorithm
 
@@ -13282,6 +13297,7 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_key_share
 
@@ -13295,7 +13311,7 @@ Events
    :c: The connection.
    
 
-   :is_orig: True if event is raised for originator side of the connection.
+   :is_orig: True if event is raised for the originator side of the connection.
    
 
    :curves: List of supported/chosen named groups.
@@ -13307,6 +13323,60 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
       ssl_rsa_client_pms ssl_server_signature
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
+
+.. zeek:id:: ssl_extension_pre_shared_key_client_hello
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, identities: :zeek:type:`psk_identity_vec`, binders: :zeek:type:`string_vec`)
+
+   Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
+   
+   The extension lists the identities the client is willing to negotiate with the server;
+   they can either be pre-shared or be based on previous handshakes.
+   
+
+   :c: The connection.
+   
+
+   :is_orig: True if event is raised for the originator side of the connection
+   
+
+   :identities: A list of the identities the client is willing to negotiate with the server.
+   
+
+   :binders: A series of HMAC values; for computation, see the TLS 1.3 RFC.
+   
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+      ssl_session_ticket_handshake ssl_extension
+      ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+      ssl_extension_server_name
+      ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+      ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+      ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_server_hello
+
+.. zeek:id:: ssl_extension_pre_shared_key_server_hello
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, selected_identity: :zeek:type:`count`)
+
+   Generated for the pre-shared key extension as it is sent in the TLS 1.3 server hello.
+   
+
+   :c: The connection.
+   
+
+   :is_orig: True if event is raised for the originator side of the connection
+   
+
+   :selected_identity: The identity the server chose as a 0-based index into the identities
+                      the client sent.
+   
+   .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+      ssl_session_ticket_handshake ssl_extension
+      ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+      ssl_extension_server_name
+      ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+      ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+      ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_ecdh_server_params
 
@@ -13462,6 +13532,7 @@ Events
       ssl_extension_server_name ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_extension_signed_certificate_timestamp
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_server_name
 
@@ -13489,6 +13560,7 @@ Events
       ssl_extension_key_share
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_extension_signed_certificate_timestamp
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_signed_certificate_timestamp
 
@@ -13529,6 +13601,7 @@ Events
       ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
       ssl_extension_application_layer_protocol_negotiation
       x509_ocsp_ext_signed_certificate_timestamp sct_verify
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_supported_versions
 
@@ -13554,6 +13627,7 @@ Events
       ssl_extension_application_layer_protocol_negotiation
       ssl_extension_key_share ssl_extension_server_name
       ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_extension_psk_key_exchange_modes
 
@@ -13577,6 +13651,7 @@ Events
       ssl_extension_application_layer_protocol_negotiation
       ssl_extension_key_share ssl_extension_server_name
       ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
+      ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 
 .. zeek:id:: ssl_established
 

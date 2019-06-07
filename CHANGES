@@ -1,4 +1,8 @@
 
+2.6-389 | 2019-06-06 20:02:19 -0700
+
+  * Update plugin unit tests to use --zeek-dist (Jon Siwek, Corelight)
+
 2.6-388 | 2019-06-06 19:48:55 -0700
 
   * Change default value of peer_description "zeek" (Jon Siwek, Corelight)

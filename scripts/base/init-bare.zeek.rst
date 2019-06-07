@@ -1522,7 +1522,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro"``
+   :Default: ``"zeek"``
 
    Description transmitted to remote communication peers for identification.
 

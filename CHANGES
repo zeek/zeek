@@ -1,4 +1,9 @@
 
+2.6-391 | 2019-06-07 17:29:28 +1000
+
+  * GH-209: replace "remote_ip" field of radius.log with "tunnel_client".
+    Also changes type from addr to string. (Jon Siwek, Corelight)
+
 2.6-389 | 2019-06-06 20:02:19 -0700
 
   * Update plugin unit tests to use --zeek-dist (Jon Siwek, Corelight)

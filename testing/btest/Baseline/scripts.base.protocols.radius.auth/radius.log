@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	radius
-#open	2017-02-20-04-53-55
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	mac	framed_addr	remote_ip	connect_info	reply_msg	result	ttl
-#types	time	string	addr	port	addr	port	string	string	addr	addr	string	string	string	interval
+#open	2019-06-05-18-03-41
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	mac	framed_addr	tunnel_client	connect_info	reply_msg	result	ttl
+#types	time	string	addr	port	addr	port	string	string	addr	string	string	string	string	interval
 1217631137.872968	CHhAvVGS1DHFjwGM9	10.0.0.1	1645	10.0.0.100	1812	John.McGuirk	00:14:22:e9:54:5e	255.255.255.254	-	-	Hello, %u	success	0.043882
-#close	2017-02-20-04-53-55
+#close	2019-06-05-18-03-41

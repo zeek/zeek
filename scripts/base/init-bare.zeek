@@ -4140,6 +4140,10 @@ export {
 		SignatureAlgorithm: count; ##< Signature algorithm number
 	};
 
+	type PSKIdentity: record {
+		identity: string; ##< PSK identity
+		obfuscated_ticket_age: count;
+	};
 
 ## Number of non-DTLS frames that can occur in a DTLS connection before
 ## parsing of the connection is suspended.
@@ -4160,6 +4164,8 @@ module GLOBAL;
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type signature_and_hashalgorithm_vec: vector of SSL::SignatureAndHashAlgorithm;
+
+type psk_identity_vec: vector of SSL::PSKIdentity;
 
 module X509;
 export {

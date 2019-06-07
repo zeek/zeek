@@ -825,7 +825,7 @@
                   [1] version: count     = 771
                   [2] record_version: count = 771
                   [3] possible_ts: time  = 1437831799.0
-                  [4] server_random: string = \xe2RB\xdds\x11\xa9\xd4\x1d\xbc\x8e\xe2]\x09\xc5\xfc\xb1\xedl\xed\x17\xb2?a\xac\x81QM
+                  [4] server_random: string = U\xb3\x92w\xe2RB\xdds\x11\xa9\xd4\x1d\xbc\x8e\xe2]\x09\xc5\xfc\xb1\xedl\xed\x17\xb2?a\xac\x81QM
                   [5] session_id: string = \x17x\xe5j\x19T\x12vWY\xcf\xf3\xeai\\xdf\x09[]\xb7\xdf.[\x0e\x04\xa8\x89bJ\x94\xa7\x0c
                   [6] cipher: count      = 4
                   [7] comp_method: count = 0

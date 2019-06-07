@@ -1,10 +1,19 @@
-#include "Val.h"
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "StateAccess.h"
-#include "Event.h"
-#include "NetVar.h"
 #include "DebugLogger.h"
 
 notifier::Registry notifier::registry;
+
+notifier::Receiver::Receiver()
+	{
+	DBG_LOG(DBG_NOTIFIERS, "creating receiver %p", this);
+	}
+
+notifier::Receiver::~Receiver()
+	{
+	DBG_LOG(DBG_NOTIFIERS, "deleting receiver %p", this);
+	}
 
 notifier::Registry::~Registry()
 	{
@@ -12,26 +21,24 @@ notifier::Registry::~Registry()
 		Unregister(i.first);
 	}
 
-void notifier::Registry::Register(Modifiable* m, notifier::Notifier* notifier)
+void notifier::Registry::Register(Modifiable* m, notifier::Receiver* r)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "registering modifiable %p for notifier %p",
-		m, notifier);
+	DBG_LOG(DBG_NOTIFIERS, "registering object %p for receiver %p", m, r);
 
-	registrations.insert({m, notifier});
-	++m->notifiers;
+	registrations.insert({m, r});
+	++m->num_receivers;
 	}
 
-void notifier::Registry::Unregister(Modifiable* m, notifier::Notifier* notifier)
+void notifier::Registry::Unregister(Modifiable* m, notifier::Receiver* r)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "unregistering modifiable %p from notifier %p",
-		m, notifier);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from receiver %p", m, r);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
 		{
-		if ( i->second == notifier )
+		if ( i->second == r )
 			{
-			--i->first->notifiers;
+			--i->first->num_receivers;
 			registrations.erase(i);
 			break;
 			}
@@ -40,19 +47,18 @@ void notifier::Registry::Unregister(Modifiable* m, notifier::Notifier* notifier)
 
 void notifier::Registry::Unregister(Modifiable* m)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "unregistering modifiable %p from all notifiers",
-		m);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from all notifiers", m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
-		--i->first->notifiers;
+		--i->first->num_receivers;
 
 	registrations.erase(x.first, x.second);
 	}
 
 void notifier::Registry::Modified(Modifiable* m)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "modification to modifiable %p", m);
+	DBG_LOG(DBG_NOTIFIERS, "object %p has been modified", m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
@@ -61,6 +67,6 @@ void notifier::Registry::Modified(Modifiable* m)
 
 notifier::Modifiable::~Modifiable()
 	{
-	if ( notifiers )
+	if ( num_receivers )
 		registry.Unregister(this);
 	}

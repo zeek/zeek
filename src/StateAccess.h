@@ -1,14 +1,9 @@
-// A class describing a state-modyfing access to a Value or an ID.
+// See the file "COPYING" in the main distribution directory for copyright.
 //
-// TODO UPDATE: We provide a notifier framework to inform interested parties
-// of modifications to selected global IDs/Vals. To get notified about a
-// change, derive a class from Notifier and register the interesting
-// instances with the NotifierRegistry.
-//
-// Note: For containers (e.g., tables), notifications are only issued if the
-// container itself is modified, *not* for changes to the values contained
-// therein.
-
+// A notification framework to inform interested parties of modifications to
+// selected global objects. To get notified about a change, derive a class
+// from notifier::Receiver and register the interesting objects with the
+// notification::Registry.
 
 #ifndef STATEACESSS_H
 #define STATEACESSS_H
@@ -24,70 +19,98 @@ namespace notifier  {
 
 class Modifiable;
 
-class Notifier {
+/** Interface class for receivers of notifications. */
+class Receiver {
 public:
-	Notifier()
-		{
-		DBG_LOG(DBG_NOTIFIERS, "creating notifier %p", this);
-		}
+	Receiver();
+	virtual ~Receiver();
 
-	virtual ~Notifier()
-		{
-		DBG_LOG(DBG_NOTIFIERS, "destroying notifier %p", this);
-		}
-
-	// Called after a change has been performed.
+	/**
+	 * Callback executed when a register object has been modified.
+	 *
+	 * @param m object that was modified
+	 */
 	virtual void Modified(Modifiable* m) = 0;
 };
 
-// Singleton class.
+/** Singleton class tracking all notification requests globally. */
 class Registry {
 public:
-	Registry()	{ }
 	~Registry();
 
-	// Register a new notifier to be informed when an instance changes.
-	void Register(Modifiable* m, Notifier* notifier);
+	/**
+	 * Registers a receiver to be informed when a modifiable object has
+	 * changed.
+	 *
+	 * @param m object to track. Does not take ownership, but the object
+	 * will automatically unregister itself on destruction.
+	 *
+	 * @param r receiver to notify on changes. Does not take ownershop,
+	 * the receiver must remain valid as long as the registration stays
+	 * in place.
+	 */
+	void Register(Modifiable* m, Receiver* r);
 
-	// Cancel a notifier's tracking an instace.
-	void Unregister(Modifiable* m, Notifier* notifier);
+	/**
+	 * Cancels a receiver's request to be informed about an object's
+	 * modification. The arguments to the method must match what was
+	 * originally registered.
+	 *
+	 * @param m object to no loger track.
+	 *
+	 * @param r receiver to no longer notify.
+	 */
+	void Unregister(Modifiable* m, Receiver* Receiver);
 
-	// Cancel all notifiers registered for an instance.
+	/**
+	 * Cancels any active receiver requests to be informed about a
+	 * partilar object's modifications.
+	 *
+	 * @param m object to no loger track.
+	 */
 	void Unregister(Modifiable* m);
 
 private:
 	friend class Modifiable;
 
-	// Inform all registered notifiers of a modification to an instance.
+	// Inform all registered receivers of a modification to an object.
+	// Will be called from the object itself.
 	void Modified(Modifiable* m);
 
-	typedef std::unordered_multimap<Modifiable*, Notifier*> ModifiableMap;
+	typedef std::unordered_multimap<Modifiable*, Receiver*> ModifiableMap;
 	ModifiableMap registrations;
 };
 
-
-class Registry;
+/**
+ * Singleton object tracking all global notification requests.
+ */
 extern Registry registry;
 
-// Base class for objects wanting to signal modifications to the registry.
+/**
+ * Base class for objects that can trigger notifications to receivers when
+ * modified.
+ */
 class Modifiable {
-protected:
-	friend class Registry;
-
-	Modifiable()	{}
-	virtual ~Modifiable();
-
+public:
+	/**
+	 * Calling this method signals to all registered receivers that the
+	 * object has been modified.
+	 */
 	void Modified()
 		{
-		if ( notifiers )
+		if ( num_receivers )
 			registry.Modified(this);
 		}
 
-	// Number of currently registered notifiers for this instance.
-	uint64 notifiers;
+protected:
+	friend class Registry;
+
+	virtual ~Modifiable();
+
+	// Number of currently registered receivers.
+	uint64 num_receivers;
 };
 
 }
-
 
 #endif

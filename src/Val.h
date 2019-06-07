@@ -322,6 +322,8 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
+	// To be overridden by mutable derived class to enable change
+	// notification.
 	virtual notifier::Modifiable* Modifiable()	{ return 0; }
 
 #ifdef DEBUG

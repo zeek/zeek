@@ -13,7 +13,7 @@
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger : public notifier::Notifier, public BroObj {
+class Trigger : public BroObj, public notifier::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the

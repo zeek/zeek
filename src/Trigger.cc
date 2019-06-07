@@ -404,7 +404,7 @@ void Trigger::UnregisterAll()
 	{
 	DBG_LOG(DBG_NOTIFIERS, "%s: unregistering all", Name());
 
-	for ( auto o : objs )
+	for ( const auto& o : objs )
 		{
 		notifier::registry.Unregister(o.second, this);
 		Unref(o.first);

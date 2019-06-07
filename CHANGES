@@ -1,4 +1,8 @@
 
+2.6-386 | 2019-06-06 17:17:55 -0700
+
+  * Add new RDP event: rdp_native_encrytped_data (Anthony Kasza, Corelight)
+
 2.6-384 | 2019-06-06 16:49:14 -0700
 
   * Add new RDP event: rdp_client_security_data (Jeff Atkinson)

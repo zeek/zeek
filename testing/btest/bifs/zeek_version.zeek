@@ -3,7 +3,7 @@
 
 event zeek_init()
 	{
-	local a = bro_version();
+	local a = zeek_version();
 	if ( |a| == 0 )
 		exit(1);
 	}

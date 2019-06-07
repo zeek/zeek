@@ -78,10 +78,10 @@ export {
 	## The format of the number is ABBCC with A being the major version,
 	## bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
 	## As an example, Zeek 2.4.1 results in the number 20401
-	const number = Version::parse(bro_version())$version_number;
+	const number = Version::parse(zeek_version())$version_number;
 
 	## `VersionDescription` record pertaining to the currently running version of Zeek.
-	const info = Version::parse(bro_version());
+	const info = Version::parse(zeek_version());
 }
 
 function at_least(version_string: string): bool

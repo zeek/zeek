@@ -100,21 +100,21 @@ BroObj::~BroObj()
 	delete location;
 	}
 
-void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only) const
+void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only, const Location* expr_location) const
 	{
 	ODesc d;
-	DoMsg(&d, msg, obj2, pinpoint_only);
+	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	reporter->Warning("%s", d.Description());
 	reporter->PopLocation();
 	}
 
-void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only) const
+void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only, const Location* expr_location) const
 	{
 	if ( suppress_errors )
 		return;
 
 	ODesc d;
-	DoMsg(&d, msg, obj2, pinpoint_only);
+	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	reporter->Error("%s", d.Description());
 	reporter->PopLocation();
 	}
@@ -200,7 +200,7 @@ void BroObj::UpdateLocationEndInfo(const Location& end)
 	}
 
 void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
-			int pinpoint_only) const
+			int pinpoint_only, const Location* expr_location) const
 	{
 	d->SetShort();
 
@@ -211,6 +211,8 @@ void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
 	if ( obj2 && obj2->GetLocationInfo() != &no_location &&
 		 *obj2->GetLocationInfo() != *GetLocationInfo() )
 		loc2 = obj2->GetLocationInfo();
+	else if ( expr_location )
+		loc2 = expr_location;
 
 	reporter->PushLocation(GetLocationInfo(), loc2);
 	}

@@ -1,6 +1,7 @@
-module NetControl;
 
 @load ./main
+
+module NetControl;
 
 function activate(p: PluginState, priority: int)
 	{

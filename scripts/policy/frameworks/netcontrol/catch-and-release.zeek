@@ -1,10 +1,9 @@
 ##! Implementation of catch-and-release functionality for NetControl.
 
-module NetControl;
-
+@load base/frameworks/netcontrol
 @load base/frameworks/cluster
-@load ./main
-@load ./drop
+
+module NetControl;
 
 export {
 

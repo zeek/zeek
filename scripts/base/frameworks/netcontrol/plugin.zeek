@@ -1,8 +1,8 @@
 ##! This file defines the plugin interface for NetControl.
 
-module NetControl;
-
 @load ./types
+
+module NetControl;
 
 export {
 	## This record keeps the per instance state of a plugin.

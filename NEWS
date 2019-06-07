@@ -79,9 +79,16 @@ New Functionality
 - The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
   also allowed when specifying patterns used in signature files.
 
-- Add a new "client_channels" field to rdp.log based on data parsed from
-  the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
-  available in a new event, "rdp_client_network_data".
+- New RDP functionality.
+
+  - New events:
+    - rdp_client_network_data
+    - rdp_client_security_data
+    - rdp_native_encrypted_data
+
+  - Add a new "client_channels" field to rdp.log based on data parsed from
+    the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
+    available in the new ``rdp_client_network_data`` event.
 
 Changed Functionality
 ---------------------
@@ -216,6 +223,33 @@ Changed Functionality
   in scripts has also been updated to replace Sphinx cross-referencing roles
   and directives like ":bro:see:" with ":zeek:zee:".
 
+- The catch-and-release and unified2 scripts are no longer loaded by
+  default.  Because there was a performance impact simply from loading
+  them and it's unlikely a majority of user make use of their features,
+  they've been moved from the scripts/base/ directory into
+  scripts/policy/ and must be manually loaded to use their
+  functionality.  The "drop" action for the notice framework is likewise
+  moved since it was implemented via catch-and-release.  As a result,
+  the default notice.log no longer contains a "dropped" field.
+
+  If you previously used the catch-and-release functionality add this:
+
+      @load policy/frameworks/netcontrol/catch-and-release
+
+  If you previously used Notice::ACTION_DROP add:
+
+      @load policy/frameworks/notice/actions/drop
+
+  If you previously used the Unified2 file analysis support add:
+
+      @load policy/files/unified2
+
+- The default value of ``peer_description`` has changed from "bro"
+  to "zeek".  This won't effect most users, except for the fact that
+  this value may appear in several log files, so any external plugins
+  that have written unit tests that compare baselines of such log
+  files may need to be updated.
+
 Removed Functionality
 ---------------------
 
@@ -339,6 +373,9 @@ Deprecated Functionality
   the deprecated versions will automatically alias to the new events
   such that existing code will not break, but will emit a deprecation
   warning.
+
+- The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
+  replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
 
 - The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
   were marked as deprecated. These functions were used with the old pre-2.0 logging

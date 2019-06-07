@@ -127,7 +127,7 @@ OpaqueType* ocsp_resp_opaque_type = 0;
 int bro_argc;
 char** bro_argv;
 
-const char* bro_version()
+const char* zeek_version()
 	{
 #ifdef DEBUG
 	static char* debug_version = 0;
@@ -152,7 +152,7 @@ bool bro_dns_fake()
 
 void usage(int code = 1)
 	{
-	fprintf(stderr, "bro version %s\n", bro_version());
+	fprintf(stderr, "zeek version %s\n", zeek_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
@@ -569,7 +569,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'v':
-			fprintf(stdout, "%s version %s\n", prog, bro_version());
+			fprintf(stdout, "%s version %s\n", prog, zeek_version());
 			exit(0);
 			break;
 

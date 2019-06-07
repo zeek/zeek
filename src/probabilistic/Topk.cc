@@ -187,7 +187,7 @@ Val* TopkVal::DoClone(CloneState* state)
 	{
 	auto clone = new TopkVal(size);
 	clone->Merge(this);
-	return clone;
+	return state->NewClone(this, clone);
 	}
 
 bool TopkVal::DoSerialize(SerialInfo* info) const

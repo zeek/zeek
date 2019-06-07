@@ -3,6 +3,7 @@
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/frameworks/netcontrol
+@load policy/frameworks/netcontrol/catch-and-release
 
 redef NetControl::catch_release_intervals = vector(1sec, 2sec, 2sec);
 

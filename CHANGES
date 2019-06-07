@@ -1,4 +1,80 @@
 
+2.6-389 | 2019-06-06 20:02:19 -0700
+
+  * Update plugin unit tests to use --zeek-dist (Jon Siwek, Corelight)
+
+2.6-388 | 2019-06-06 19:48:55 -0700
+
+  * Change default value of peer_description "zeek" (Jon Siwek, Corelight)
+
+2.6-387 | 2019-06-06 18:51:09 -0700
+
+  * Rename Bro to Zeek in Zeekygen-generated documentation (Jon Siwek, Corelight)
+
+2.6-386 | 2019-06-06 17:17:55 -0700
+
+  * Add new RDP event: rdp_native_encrytped_data (Anthony Kasza, Corelight)
+
+2.6-384 | 2019-06-06 16:49:14 -0700
+
+  * Add new RDP event: rdp_client_security_data (Jeff Atkinson)
+
+2.6-379 | 2019-06-06 11:56:58 -0700
+
+  * Improve sqlite logging unit tests (Jon Siwek, Corelight)
+
+2.6-378 | 2019-06-05 16:23:04 -0700
+
+  * Rename BRO_DEPRECATED macro to ZEEK_DEPRECATED (Jon Siwek, Corelight)
+
+2.6-377 | 2019-06-05 16:15:58 -0700
+
+  * Deprecate functions with "bro" in them. (Jon Siwek, Corelight)
+
+    * "bro_is_terminating" is now "zeek_is_terminating"
+
+    * "bro_version" is now "zeek_version"
+
+    The old functions still exist for now, but are deprecated.
+
+2.6-376 | 2019-06-05 13:29:57 -0700
+
+  * GH-379: move catch-and-release and unified2 scripts to policy/ (Jon Siwek, Corelight)
+
+    These are no longer loaded by default due to the performance impact they
+    cause simply by being loaded (they have event handlers for commonly
+    generated events) and they aren't generally useful enough to justify it.
+
+2.6-375 | 2019-06-04 19:28:06 -0700
+
+  * Simplify threading::Value destructor (Jon Siwek, Corelight)
+
+  * Add pattern support to input framework. (Zeke Medley, Corelight)
+
+2.6-369 | 2019-06-04 17:53:10 -0700
+
+  * GH-155: Improve coercion of expression lists to vector types (Tim Wojtulewicz, Corelight)
+
+  * GH-159: Allow coercion of numeric record field values to other types (Tim Wojtulewicz, Corelight)
+
+  * Allow passing a location to BroObj::Warning and BroObj::Error. (Tim Wojtulewicz, Corelight)
+
+    This allows callers (such as check_and_promote) to pass an expression
+    location to be logged if the location doesn't exist in the value being
+    promoted.
+
+  * Add CLion directories to gitignore (Tim Wojtulewicz, Corelight)
+
+  * Move #define outside of max_type for clarity (Tim Wojtulewicz, Corelight)
+
+2.6-361 | 2019-06-04 10:30:21 -0700
+
+  * GH-293: Protect copy() against reference cycles. (Robin Sommer, Corelight)
+
+    Reference cycles shouldn't occur but there's nothing really preventing
+    people from creating them, so may just as well be safe and deal with
+    them when cloning values.
+
 2.6-359 | 2019-05-31 13:37:17 -0700
 
   * Remove old documentation reference to rotate_interval (Jon Siwek, Corelight)

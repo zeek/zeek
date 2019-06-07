@@ -1,8 +1,8 @@
 ##! Implementation of the drop functionality for NetControl.
 
-module NetControl;
-
 @load ./main
+
+module NetControl;
 
 export {
 	redef enum Log::ID += { DROP };

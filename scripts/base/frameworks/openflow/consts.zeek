@@ -11,7 +11,7 @@ const COOKIE_BID_SIZE = 16777216;
 # start at bit 40 (1 << 40)
 const COOKIE_BID_START = 1099511627776;
 # Zeek specific cookie ID shall have the 42 bit set (1 << 42)
-const BRO_COOKIE_ID = 4;
+const ZEEK_COOKIE_ID = 4;
 # 8 bits group identifier
 const COOKIE_GID_SIZE = 256;
 # start at bit 32 (1 << 32)

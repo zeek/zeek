@@ -4282,6 +4282,22 @@ export {
 		dig_product_id:         string &optional;
 	};
 
+	## The TS_UD_CS_SEC data block contains security-related information used
+	## to advertise client cryptographic support.
+	type RDP::ClientSecurityData: record {
+		## Cryptographic encryption methods supported by the client and used in
+		## conjunction with Standard RDP Security.  Known flags:
+		##
+		## - 0x00000001: support for 40-bit session encryption keys
+		## - 0x00000002: support for 128-bit session encryption keys
+		## - 0x00000008: support for 56-bit session encryption keys
+		## - 0x00000010: support for FIPS compliant encryption and MAC methods
+		encryption_methods:	count;
+		## Only used in French locale and designates the encryption method.  If
+		## non-zero, then encryption_methods should be set to 0.
+		ext_encryption_methods:	count;
+	};
+
 	## Name and flags for a single channel requested by the client.
 	type RDP::ClientChannelDef: record {
 		## A unique name for the channel
@@ -4749,7 +4765,7 @@ const packet_filter_default = F &redef;
 const sig_max_group_size = 50 &redef;
 
 ## Description transmitted to remote communication peers for identification.
-const peer_description = "bro" &redef;
+const peer_description = "zeek" &redef;
 
 ## The number of IO chunks allowed to be buffered between the child
 ## and parent process of remote communication before Zeek starts dropping

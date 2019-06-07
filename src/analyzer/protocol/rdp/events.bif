@@ -1,3 +1,12 @@
+## Generated for each packet after RDP native encryption begins
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## orig: True if the packet was sent by the originator of the connection.
+##
+## len: The length of the encrypted data.
+event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
+
 ## Generated for X.224 client requests.
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
@@ -25,6 +34,13 @@ event rdp_negotiation_failure%(c: connection, failure_code: count%);
 ##
 ## data: The data contained in the client core data structure.
 event rdp_client_core_data%(c: connection, data: RDP::ClientCoreData%);
+
+## Generated for client security data packets.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## data: The data contained in the client security data structure.
+event rdp_client_security_data%(c: connection, data: RDP::ClientSecurityData%);
 
 ## Generated for Client Network Data (TS_UD_CS_NET) packets
 ##

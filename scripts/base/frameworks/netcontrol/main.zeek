@@ -10,10 +10,10 @@
 ##! provides convenience functions for a set of common operations. The
 ##! low-level API provides full flexibility.
 
-module NetControl;
-
 @load ./plugin
 @load ./types
+
+module NetControl;
 
 export {
 	## The framework's logging stream identifier.
@@ -889,7 +889,7 @@ function remove_rule_impl(id: string, reason: string) : bool
 function rule_expire_impl(r: Rule, p: PluginState) &priority=-5
 	{
 	# do not emit timeout events on shutdown
-	if ( bro_is_terminating() )
+	if ( zeek_is_terminating() )
 		return;
 
 	if ( r$id !in rules )

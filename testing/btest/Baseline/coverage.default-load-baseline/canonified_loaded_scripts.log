@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-04-16-17-02-20
+#open	2019-06-05-18-41-18
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -206,31 +206,6 @@ scripts/base/init-default.zeek
             scripts/base/frameworks/control/main.zeek
         scripts/base/frameworks/cluster/pools.zeek
     scripts/base/frameworks/notice/weird.zeek
-    scripts/base/frameworks/notice/actions/drop.zeek
-      scripts/base/frameworks/netcontrol/__load__.zeek
-        scripts/base/frameworks/netcontrol/types.zeek
-        scripts/base/frameworks/netcontrol/main.zeek
-          scripts/base/frameworks/netcontrol/plugin.zeek
-        scripts/base/frameworks/netcontrol/plugins/__load__.zeek
-          scripts/base/frameworks/netcontrol/plugins/debug.zeek
-          scripts/base/frameworks/netcontrol/plugins/openflow.zeek
-            scripts/base/frameworks/openflow/__load__.zeek
-              scripts/base/frameworks/openflow/consts.zeek
-              scripts/base/frameworks/openflow/types.zeek
-              scripts/base/frameworks/openflow/main.zeek
-              scripts/base/frameworks/openflow/plugins/__load__.zeek
-                scripts/base/frameworks/openflow/plugins/ryu.zeek
-                  scripts/base/utils/json.zeek
-                scripts/base/frameworks/openflow/plugins/log.zeek
-                scripts/base/frameworks/openflow/plugins/broker.zeek
-              scripts/base/frameworks/openflow/non-cluster.zeek
-          scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek
-          scripts/base/frameworks/netcontrol/plugins/broker.zeek
-          scripts/base/frameworks/netcontrol/plugins/acld.zeek
-        scripts/base/frameworks/netcontrol/drop.zeek
-        scripts/base/frameworks/netcontrol/shunt.zeek
-        scripts/base/frameworks/netcontrol/catch-and-release.zeek
-        scripts/base/frameworks/netcontrol/non-cluster.zeek
     scripts/base/frameworks/notice/actions/email_admin.zeek
     scripts/base/frameworks/notice/actions/page.zeek
     scripts/base/frameworks/notice/actions/add-geodata.zeek
@@ -269,6 +244,29 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/sumstats/non-cluster.zeek
   scripts/base/frameworks/tunnels/__load__.zeek
     scripts/base/frameworks/tunnels/main.zeek
+  scripts/base/frameworks/openflow/__load__.zeek
+    scripts/base/frameworks/openflow/consts.zeek
+    scripts/base/frameworks/openflow/types.zeek
+    scripts/base/frameworks/openflow/main.zeek
+    scripts/base/frameworks/openflow/plugins/__load__.zeek
+      scripts/base/frameworks/openflow/plugins/ryu.zeek
+        scripts/base/utils/json.zeek
+      scripts/base/frameworks/openflow/plugins/log.zeek
+      scripts/base/frameworks/openflow/plugins/broker.zeek
+    scripts/base/frameworks/openflow/non-cluster.zeek
+  scripts/base/frameworks/netcontrol/__load__.zeek
+    scripts/base/frameworks/netcontrol/types.zeek
+    scripts/base/frameworks/netcontrol/main.zeek
+      scripts/base/frameworks/netcontrol/plugin.zeek
+    scripts/base/frameworks/netcontrol/plugins/__load__.zeek
+      scripts/base/frameworks/netcontrol/plugins/debug.zeek
+      scripts/base/frameworks/netcontrol/plugins/openflow.zeek
+      scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek
+      scripts/base/frameworks/netcontrol/plugins/broker.zeek
+      scripts/base/frameworks/netcontrol/plugins/acld.zeek
+    scripts/base/frameworks/netcontrol/drop.zeek
+    scripts/base/frameworks/netcontrol/shunt.zeek
+    scripts/base/frameworks/netcontrol/non-cluster.zeek
   scripts/base/protocols/conn/__load__.zeek
     scripts/base/protocols/conn/main.zeek
     scripts/base/protocols/conn/contents.zeek
@@ -368,10 +366,8 @@ scripts/base/init-default.zeek
     scripts/base/files/pe/main.zeek
   scripts/base/files/extract/__load__.zeek
     scripts/base/files/extract/main.zeek
-  scripts/base/files/unified2/__load__.zeek
-    scripts/base/files/unified2/main.zeek
   scripts/base/misc/find-checksum-offloading.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2019-04-16-17-02-20
+#close	2019-06-05-18-41-19

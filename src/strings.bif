@@ -160,7 +160,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 ## arg_s: The string to edit.
 ##
 ## arg_edit_char: A string of exactly one character that represents the
-##                "backspace character". If it is longer than one character Bro
+##                "backspace character". If it is longer than one character Zeek
 ##                generates a run-time error and uses the first character in
 ##                the string.
 ##

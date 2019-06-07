@@ -1,4 +1,8 @@
 
+2.6-387 | 2019-06-06 18:51:09 -0700
+
+  * Rename Bro to Zeek in Zeekygen-generated documentation (Jon Siwek, Corelight)
+
 2.6-386 | 2019-06-06 17:17:55 -0700
 
   * Add new RDP event: rdp_native_encrytped_data (Anthony Kasza, Corelight)

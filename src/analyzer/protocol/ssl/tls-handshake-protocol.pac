@@ -870,7 +870,9 @@ type ClientHelloKeyShare(rec: HandshakeRecord) = record {
 type KeyShare(rec: HandshakeRecord, ext: SSLExtension) = case rec.msg_type of {
 	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
 	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShareChoice(rec, ext);
-	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
+	# in old traces, theoretically hello retry requests might show up as a separate type here.
+	# If this happens, just ignore the extension - we do not have any example traffic for this.
+	# And it will not happen in anything speaking TLS 1.3, or not completely ancient drafts of it.
 	default -> other : bytestring &restofdata &transient;
 };
 

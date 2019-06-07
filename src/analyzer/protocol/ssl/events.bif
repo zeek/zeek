@@ -103,6 +103,7 @@ event ssl_server_hello%(c: connection, version: count, record_version: count, po
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
@@ -122,6 +123,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##    ssl_extension_key_share ssl_rsa_client_pms ssl_server_signature
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -143,6 +145,7 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
 
 ## Generated for an Signature Algorithms extension. This TLS extension
@@ -163,6 +166,7 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
 
 ## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
@@ -171,7 +175,7 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_orig: True if event is raised for the originator side of the connection.
 ##
 ## curves: List of supported/chosen named groups.
 ##
@@ -182,9 +186,47 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
 
+## Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
+##
+## The extension lists the identities the client is willing to negotiate with the server;
+## they can either be pre-shared or be based on previous handshakes.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for the originator side of the connection
+##
+## identities: A list of the identities the client is willing to negotiate with the server.
+##
+## binders: A series of HMAC values; for computation, see the TLS 1.3 RFC.
+##
+## .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_server_hello
 event ssl_extension_pre_shared_key_client_hello%(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec%);
+
+## Generated for the pre-shared key extension as it is sent in tht TLS 1.3 server hello.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for the originator side of the connection
+##
+## selected_identity: The identity the server chose as a 0-based index into the identities
+##                    the client sent.
+##
+## .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_client_hello
 event ssl_extension_pre_shared_key_server_hello%(c: connection, is_orig: bool, selected_identity: count%);
 
 ## Generated if a server uses an ECDH-anon or ECDHE cipher suite using a named curve
@@ -300,6 +342,7 @@ event ssl_rsa_client_pms%(c: connection, pms: string%);
 ##    ssl_extension_server_name ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -321,6 +364,7 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
 
 ## Generated for the signed_certificate_timestamp TLS extension as defined in
@@ -351,6 +395,7 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
@@ -370,6 +415,7 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, 
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
@@ -387,6 +433,7 @@ event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: 
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with

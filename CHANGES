@@ -1,4 +1,8 @@
 
+2.6-388 | 2019-06-06 19:48:55 -0700
+
+  * Change default value of peer_description "zeek" (Jon Siwek, Corelight)
+
 2.6-387 | 2019-06-06 18:51:09 -0700
 
   * Rename Bro to Zeek in Zeekygen-generated documentation (Jon Siwek, Corelight)

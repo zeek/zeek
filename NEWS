@@ -244,6 +244,12 @@ Changed Functionality
 
       @load policy/files/unified2
 
+- The default value of ``peer_description`` has changed from "bro"
+  to "zeek".  This won't effect most users, except for the fact that
+  this value may appear in several log files, so any external plugins
+  that have written unit tests that compare baselines of such log
+  files may need to be updated.
+
 Removed Functionality
 ---------------------
 

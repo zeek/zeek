@@ -11,11 +11,11 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================== ====================================================
+========================================== =====================================================
 :zeek:id:`arp_reply`: :zeek:type:`event`   Generated for ARP replies.
 :zeek:id:`arp_request`: :zeek:type:`event` Generated for ARP requests.
-:zeek:id:`bad_arp`: :zeek:type:`event`     Generated for ARP packets that Bro cannot interpret.
-========================================== ====================================================
+:zeek:id:`bad_arp`: :zeek:type:`event`     Generated for ARP packets that Zeek cannot interpret.
+========================================== =====================================================
 
 
 Detailed Interface
@@ -84,7 +84,7 @@ Events
 
    :Type: :zeek:type:`event` (SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`, explanation: :zeek:type:`string`)
 
-   Generated for ARP packets that Bro cannot interpret. Examples are packets
+   Generated for ARP packets that Zeek cannot interpret. Examples are packets
    with non-standard hardware address formats or hardware addresses that do not
    match the originator of the packet.
    
@@ -105,9 +105,9 @@ Events
    
    .. zeek:see:: arp_reply arp_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

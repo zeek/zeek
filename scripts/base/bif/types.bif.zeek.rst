@@ -8,7 +8,7 @@ base/bif/types.bif.zeek
 .. zeek:namespace:: Reporter
 .. zeek:namespace:: Tunnel
 
-Declaration of various types that the Bro core uses internally.
+Declaration of various types that the Zeek core uses internally.
 
 :Namespaces: GLOBAL, MOUNT3, NFS3, Reporter, Tunnel
 

@@ -10,7 +10,7 @@ introspection, type conversion, file/directory manipulation, packet
 filtering, interprocess communication and controlling protocol analyzer
 behavior.
 
-You'll find most of Bro's built-in functions that aren't protocol-specific
+You'll find most of Zeek's built-in functions that aren't protocol-specific
 in this file.
 
 :Namespace: GLOBAL
@@ -45,7 +45,7 @@ Functions
 :zeek:id:`clear_table`: :zeek:type:`function`                                  Removes all elements from a set or table.
 :zeek:id:`close`: :zeek:type:`function`                                        Closes an open file and flushes any buffered content.
 :zeek:id:`connection_exists`: :zeek:type:`function`                            Checks whether a connection is (still) active.
-:zeek:id:`continue_processing`: :zeek:type:`function`                          Resumes Bro's packet processing.
+:zeek:id:`continue_processing`: :zeek:type:`function`                          Resumes Zeek's packet processing.
 :zeek:id:`convert_for_pattern`: :zeek:type:`function`                          Escapes a string so that it becomes a valid :zeek:type:`pattern` and can be
                                                                                used with the :zeek:id:`string_to_pattern`.
 :zeek:id:`count_to_port`: :zeek:type:`function`                                Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
@@ -73,9 +73,9 @@ Functions
 :zeek:id:`entropy_test_finish`: :zeek:type:`function`                          Finishes an incremental entropy calculation.
 :zeek:id:`entropy_test_init`: :zeek:type:`function`                            Initializes data structures for incremental entropy calculation.
 :zeek:id:`enum_to_int`: :zeek:type:`function`                                  Converts an :zeek:type:`enum` to an :zeek:type:`int`.
-:zeek:id:`exit`: :zeek:type:`function`                                         Shuts down the Bro process immediately.
+:zeek:id:`exit`: :zeek:type:`function`                                         Shuts down the Zeek process immediately.
 :zeek:id:`exp`: :zeek:type:`function`                                          Computes the exponential function.
-:zeek:id:`file_magic`: :zeek:type:`function`                                   Determines the MIME type of a piece of data using Bro's file magic
+:zeek:id:`file_magic`: :zeek:type:`function`                                   Determines the MIME type of a piece of data using Zeek's file magic
                                                                                signatures.
 :zeek:id:`file_mode`: :zeek:type:`function`                                    Converts UNIX file permissions given by a mode to an ASCII string.
 :zeek:id:`file_size`: :zeek:type:`function`                                    Returns the size of a given file.
@@ -92,15 +92,15 @@ Functions
 :zeek:id:`get_file_name`: :zeek:type:`function`                                Gets the filename associated with a file handle.
 :zeek:id:`get_port_transport_proto`: :zeek:type:`function`                     Extracts the transport protocol from a :zeek:type:`port`.
 :zeek:id:`getenv`: :zeek:type:`function`                                       Returns a system environment variable.
-:zeek:id:`gethostname`: :zeek:type:`function`                                  Returns the hostname of the machine Bro runs on.
-:zeek:id:`getpid`: :zeek:type:`function`                                       Returns Bro's process ID.
+:zeek:id:`gethostname`: :zeek:type:`function`                                  Returns the hostname of the machine Zeek runs on.
+:zeek:id:`getpid`: :zeek:type:`function`                                       Returns Zeek's process ID.
 :zeek:id:`global_ids`: :zeek:type:`function`                                   Generates a table with information about all global identifiers.
 :zeek:id:`global_sizes`: :zeek:type:`function`                                 Generates a table of the size of all global variables.
 :zeek:id:`haversine_distance`: :zeek:type:`function`                           Calculates distance between two geographic locations using the haversine
                                                                                formula.
 :zeek:id:`hexstr_to_bytestring`: :zeek:type:`function`                         Converts a hex-string into its binary representation.
 :zeek:id:`hrw_weight`: :zeek:type:`function`                                   Calculates a weight value for use in a Rendezvous Hashing algorithm.
-:zeek:id:`identify_data`: :zeek:type:`function`                                Determines the MIME type of a piece of data using Bro's file magic
+:zeek:id:`identify_data`: :zeek:type:`function`                                Determines the MIME type of a piece of data using Zeek's file magic
                                                                                signatures.
 :zeek:id:`install_dst_addr_filter`: :zeek:type:`function`                      Installs a filter to drop packets destined to a given IP address with
                                                                                a certain probability if none of a given set of TCP flags are set.
@@ -156,9 +156,9 @@ Functions
 :zeek:id:`ptr_name_to_addr`: :zeek:type:`function`                             Converts a reverse pointer name to an address.
 :zeek:id:`rand`: :zeek:type:`function`                                         Generates a random number.
 :zeek:id:`raw_bytes_to_v4_addr`: :zeek:type:`function`                         Converts a :zeek:type:`string` of bytes into an IPv4 address.
-:zeek:id:`reading_live_traffic`: :zeek:type:`function`                         Checks whether Bro reads traffic from one or more network interfaces (as
+:zeek:id:`reading_live_traffic`: :zeek:type:`function`                         Checks whether Zeek reads traffic from one or more network interfaces (as
                                                                                opposed to from a network trace in a file).
-:zeek:id:`reading_traces`: :zeek:type:`function`                               Checks whether Bro reads traffic from a trace file (as opposed to from a
+:zeek:id:`reading_traces`: :zeek:type:`function`                               Checks whether Zeek reads traffic from a trace file (as opposed to from a
                                                                                network interface).
 :zeek:id:`record_fields`: :zeek:type:`function`                                Generates metadata about a record's fields.
 :zeek:id:`record_type_to_vector`: :zeek:type:`function`                        Converts a record type name to a vector of strings, where each element is
@@ -188,7 +188,7 @@ Functions
 :zeek:id:`sha256_hash_finish`: :zeek:type:`function`                           Returns the final SHA256 digest of an incremental hash computation.
 :zeek:id:`sha256_hash_init`: :zeek:type:`function`                             Constructs an SHA256 handle to enable incremental hash computation.
 :zeek:id:`sha256_hash_update`: :zeek:type:`function`                           Updates the SHA256 value associated with a given index.
-:zeek:id:`skip_further_processing`: :zeek:type:`function`                      Informs Bro that it should skip any further processing of the contents of
+:zeek:id:`skip_further_processing`: :zeek:type:`function`                      Informs Zeek that it should skip any further processing of the contents of
                                                                                a given connection.
 :zeek:id:`sort`: :zeek:type:`function`                                         Sorts a vector in place.
 :zeek:id:`sqrt`: :zeek:type:`function`                                         Computes the square root of a :zeek:type:`double`.
@@ -199,12 +199,12 @@ Functions
 :zeek:id:`subnet_to_addr`: :zeek:type:`function`                               Converts a :zeek:type:`subnet` to an :zeek:type:`addr` by
                                                                                extracting the prefix.
 :zeek:id:`subnet_width`: :zeek:type:`function`                                 Returns the width of a :zeek:type:`subnet`.
-:zeek:id:`suspend_processing`: :zeek:type:`function`                           Stops Bro's packet processing.
+:zeek:id:`suspend_processing`: :zeek:type:`function`                           Stops Zeek's packet processing.
 :zeek:id:`syslog`: :zeek:type:`function`                                       Send a string to syslog.
 :zeek:id:`system`: :zeek:type:`function`                                       Invokes a command via the ``system`` function of the OS.
 :zeek:id:`system_env`: :zeek:type:`function`                                   Invokes a command via the ``system`` function of the OS with a prepared
                                                                                environment.
-:zeek:id:`terminate`: :zeek:type:`function`                                    Gracefully shut down Bro by terminating outstanding processing.
+:zeek:id:`terminate`: :zeek:type:`function`                                    Gracefully shut down Zeek by terminating outstanding processing.
 :zeek:id:`time_to_double`: :zeek:type:`function`                               Converts a :zeek:type:`time` value to a :zeek:type:`double`.
 :zeek:id:`to_addr`: :zeek:type:`function`                                      Converts a :zeek:type:`string` to an :zeek:type:`addr`.
 :zeek:id:`to_count`: :zeek:type:`function`                                     Converts a :zeek:type:`string` to a :zeek:type:`count`.
@@ -212,7 +212,7 @@ Functions
 :zeek:id:`to_int`: :zeek:type:`function`                                       Converts a :zeek:type:`string` to an :zeek:type:`int`.
 :zeek:id:`to_port`: :zeek:type:`function`                                      Converts a :zeek:type:`string` to a :zeek:type:`port`.
 :zeek:id:`to_subnet`: :zeek:type:`function`                                    Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
-:zeek:id:`type_name`: :zeek:type:`function`                                    Returns the type name of an arbitrary Bro variable.
+:zeek:id:`type_name`: :zeek:type:`function`                                    Returns the type name of an arbitrary Zeek variable.
 :zeek:id:`uninstall_dst_addr_filter`: :zeek:type:`function`                    Removes a destination address filter.
 :zeek:id:`uninstall_dst_net_filter`: :zeek:type:`function`                     Removes a destination subnet filter.
 :zeek:id:`uninstall_src_addr_filter`: :zeek:type:`function`                    Removes a source address filter.
@@ -556,7 +556,7 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`any`
 
-   Resumes Bro's packet processing.
+   Resumes Zeek's packet processing.
    
    .. zeek:see:: suspend_processing
 
@@ -641,7 +641,7 @@ Functions
    Returns the current wall-clock time.
    
    In general, you should use :zeek:id:`network_time` instead
-   unless you are using Bro for non-networking uses (such as general
+   unless you are using Zeek for non-networking uses (such as general
    scripting; not particularly recommended), because otherwise your script
    may behave very differently on live traffic versus played-back traffic
    from a save file.
@@ -717,7 +717,7 @@ Functions
 
    Disables sending :zeek:id:`print_hook` events to remote peers for a given
    file. In a
-   distributed setup, communicating Bro instances generate the event
+   distributed setup, communicating Zeek instances generate the event
    :zeek:id:`print_hook` for each print statement and send it to the remote
    side. When disabled for a particular file, these events will not be
    propagated to other peers.
@@ -927,7 +927,7 @@ Functions
 
    :Type: :zeek:type:`function` (code: :zeek:type:`int`) : :zeek:type:`any`
 
-   Shuts down the Bro process immediately.
+   Shuts down the Zeek process immediately.
    
 
    :code: The exit code to return with.
@@ -952,7 +952,7 @@ Functions
 
    :Type: :zeek:type:`function` (data: :zeek:type:`string`) : :zeek:type:`mime_matches`
 
-   Determines the MIME type of a piece of data using Bro's file magic
+   Determines the MIME type of a piece of data using Zeek's file magic
    signatures.
    
 
@@ -1226,19 +1226,19 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
 
-   Returns the hostname of the machine Bro runs on.
+   Returns the hostname of the machine Zeek runs on.
    
 
-   :returns: The hostname of the machine Bro runs on.
+   :returns: The hostname of the machine Zeek runs on.
 
 .. zeek:id:: getpid
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
-   Returns Bro's process ID.
+   Returns Zeek's process ID.
    
 
-   :returns: Bro's process ID.
+   :returns: Zeek's process ID.
 
 .. zeek:id:: global_ids
 
@@ -1336,7 +1336,7 @@ Functions
 
    :Type: :zeek:type:`function` (data: :zeek:type:`string`, return_mime: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
-   Determines the MIME type of a piece of data using Bro's file magic
+   Determines the MIME type of a piece of data using Zeek's file magic
    signatures.
    
 
@@ -1520,7 +1520,7 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`bool`
 
    Determines whether a connection has been received externally. For example,
-   Broccoli or the Time Machine can send packets to Bro via a mechanism that is
+   Broccoli or the Time Machine can send packets to Zeek via a mechanism that is
    one step lower than sending events. This function checks whether the packets
    of a connection stem from one of these external *packet sources*.
    
@@ -1715,7 +1715,7 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`) : :zeek:type:`count`
 
    Performs an ASN lookup of an IP address.
-   Requires Bro to be built with ``libmaxminddb``.
+   Requires Zeek to be built with ``libmaxminddb``.
    
 
    :a: The IP address to lookup.
@@ -1778,7 +1778,7 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`) : :zeek:type:`geo_location`
 
    Performs a geo-lookup of an IP address.
-   Requires Bro to be built with ``libmaxminddb``.
+   Requires Zeek to be built with ``libmaxminddb``.
    
 
    :a: The IP address to lookup.
@@ -1914,7 +1914,7 @@ Functions
    :Type: :zeek:type:`function` (...) : :zeek:type:`string`
 
    Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
-   secret key is generated from available entropy when Bro starts up, or it can
+   secret key is generated from available entropy when Zeek starts up, or it can
    be specified for repeatability using the ``-K`` command line flag.
    
 
@@ -1946,7 +1946,7 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`string`) : :zeek:type:`bool`
 
    Initializes MMDB for later use of lookup_asn.
-   Requires Bro to be built with ``libmaxminddb``.
+   Requires Zeek to be built with ``libmaxminddb``.
    
 
    :f: The filename of the MaxMind ASN DB.
@@ -1961,7 +1961,7 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`string`) : :zeek:type:`bool`
 
    Initializes MMDB for later use of lookup_location.
-   Requires Bro to be built with ``libmaxminddb``.
+   Requires Zeek to be built with ``libmaxminddb``.
    
 
    :f: The filename of the MaxMind City or Country DB.
@@ -2151,9 +2151,9 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
-   Checks whether Bro reads traffic from one or more network interfaces (as
+   Checks whether Zeek reads traffic from one or more network interfaces (as
    opposed to from a network trace in a file). Note that this function returns
-   true even after Bro has stopped reading network traffic, for example due to
+   true even after Zeek has stopped reading network traffic, for example due to
    receiving a termination signal.
    
 
@@ -2165,7 +2165,7 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
-   Checks whether Bro reads traffic from a trace file (as opposed to from a
+   Checks whether Zeek reads traffic from a trace file (as opposed to from a
    network interface).
    
 
@@ -2397,7 +2397,7 @@ Functions
    
    .. note::
    
-       This is independent of whether Bro processes the packets of this
+       This is independent of whether Zeek processes the packets of this
        connection, which is controlled separately by
        :zeek:id:`skip_further_processing`.
    
@@ -2584,8 +2584,8 @@ Functions
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`bool`
 
-   Informs Bro that it should skip any further processing of the contents of
-   a given connection. In particular, Bro will refrain from reassembling the
+   Informs Zeek that it should skip any further processing of the contents of
+   a given connection. In particular, Zeek will refrain from reassembling the
    TCP byte stream and from generating events relating to any analyzers that
    have been processing the connection.
    
@@ -2598,7 +2598,7 @@ Functions
    
    .. note::
    
-       Bro will still generate connection-oriented events such as
+       Zeek will still generate connection-oriented events such as
        :zeek:id:`connection_finished`.
 
 .. zeek:id:: sort
@@ -2739,7 +2739,7 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`any`
 
-   Stops Bro's packet processing. This function is used to synchronize
+   Stops Zeek's packet processing. This function is used to synchronize
    distributed trace processing with communication enabled
    (*pseudo-realtime* mode).
    
@@ -2803,13 +2803,13 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
-   Gracefully shut down Bro by terminating outstanding processing.
+   Gracefully shut down Zeek by terminating outstanding processing.
    
 
-   :returns: True after successful termination and false when Bro is still in
+   :returns: True after successful termination and false when Zeek is still in
             the process of shutting down.
    
-   .. zeek:see:: exit bro_is_terminating
+   .. zeek:see:: exit zeek_is_terminating
 
 .. zeek:id:: time_to_double
 
@@ -2918,7 +2918,7 @@ Functions
 
    :Type: :zeek:type:`function` (t: :zeek:type:`any`) : :zeek:type:`string`
 
-   Returns the type name of an arbitrary Bro variable.
+   Returns the type name of an arbitrary Zeek variable.
    
 
    :t: An arbitrary object.

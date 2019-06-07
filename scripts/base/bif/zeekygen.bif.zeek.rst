@@ -15,10 +15,10 @@ Functions
 =========================================================== =============================================================================
 :zeek:id:`get_identifier_comments`: :zeek:type:`function`   Retrieve the Zeekygen-style comments (``##``) associated with an identifier
                                                             (e.g.
-:zeek:id:`get_package_readme`: :zeek:type:`function`        Retrieve the contents of a Bro script package's README file.
+:zeek:id:`get_package_readme`: :zeek:type:`function`        Retrieve the contents of a Zeek script package's README file.
 :zeek:id:`get_record_field_comments`: :zeek:type:`function` Retrieve the Zeekygen-style comments (``##``) associated with a record field.
 :zeek:id:`get_script_comments`: :zeek:type:`function`       Retrieve the Zeekygen-style summary comments (``##!``) associated with
-                                                            a Bro script.
+                                                            a Zeek script.
 =========================================================== =============================================================================
 
 
@@ -44,7 +44,7 @@ Functions
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
-   Retrieve the contents of a Bro script package's README file.
+   Retrieve the contents of a Zeek script package's README file.
    
 
    :name: the name of a Zeek script package.  It must be a relative path
@@ -74,7 +74,7 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
    Retrieve the Zeekygen-style summary comments (``##!``) associated with
-   a Bro script.
+   a Zeek script.
    
 
    :name: the name of a Zeek script.  It must be a relative path to where

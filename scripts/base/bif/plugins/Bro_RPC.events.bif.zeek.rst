@@ -11,9 +11,9 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================= =========================================================================
+========================================================= ==========================================================================
 :zeek:id:`mount_proc_mnt`: :zeek:type:`event`             Generated for MOUNT3 request/reply dialogues of type *mnt*.
-:zeek:id:`mount_proc_not_implemented`: :zeek:type:`event` Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
+:zeek:id:`mount_proc_not_implemented`: :zeek:type:`event` Generated for MOUNT3 request/reply dialogues of a type that Zeek's MOUNTv3
                                                           analyzer does not implement.
 :zeek:id:`mount_proc_null`: :zeek:type:`event`            Generated for MOUNT3 request/reply dialogues of type *null*.
 :zeek:id:`mount_proc_umnt`: :zeek:type:`event`            Generated for MOUNT3 request/reply dialogues of type *umnt*.
@@ -25,7 +25,7 @@ Events
 :zeek:id:`nfs_proc_link`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *link*.
 :zeek:id:`nfs_proc_lookup`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *lookup*.
 :zeek:id:`nfs_proc_mkdir`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *mkdir*.
-:zeek:id:`nfs_proc_not_implemented`: :zeek:type:`event`   Generated for NFSv3 request/reply dialogues of a type that Bro's NFSv3
+:zeek:id:`nfs_proc_not_implemented`: :zeek:type:`event`   Generated for NFSv3 request/reply dialogues of a type that Zeek's NFSv3
                                                           analyzer does not implement.
 :zeek:id:`nfs_proc_null`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *null*.
 :zeek:id:`nfs_proc_read`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *read*.
@@ -56,7 +56,7 @@ Events
 :zeek:id:`rpc_call`: :zeek:type:`event`                   Generated for RPC *call* messages.
 :zeek:id:`rpc_dialogue`: :zeek:type:`event`               Generated for RPC request/reply *pairs*.
 :zeek:id:`rpc_reply`: :zeek:type:`event`                  Generated for RPC *reply* messages.
-========================================================= =========================================================================
+========================================================= ==========================================================================
 
 
 Detailed Interface
@@ -88,16 +88,16 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_not_implemented
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, proc: :zeek:type:`MOUNT3::proc_t`)
 
-   Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
+   Generated for MOUNT3 request/reply dialogues of a type that Zeek's MOUNTv3
    analyzer does not implement.
    
 
@@ -107,14 +107,14 @@ Events
    :info: Reports the status of the dialogue, along with some meta information.
    
 
-   :proc: The procedure called that Bro does not implement.
+   :proc: The procedure called that Zeek does not implement.
    
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_null
@@ -135,9 +135,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt
@@ -161,9 +161,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt_all
@@ -187,9 +187,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_reply_status
@@ -208,9 +208,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_create
@@ -243,9 +243,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_getattr
@@ -278,9 +278,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_link
@@ -313,9 +313,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       nfs_proc_symlink rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_lookup
@@ -348,9 +348,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_mkdir
@@ -383,16 +383,16 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_not_implemented
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, proc: :zeek:type:`NFS3::proc_t`)
 
-   Generated for NFSv3 request/reply dialogues of a type that Bro's NFSv3
+   Generated for NFSv3 request/reply dialogues of a type that Zeek's NFSv3
    analyzer does not implement.
    
    NFS is a service running on top of RPC. See `Wikipedia
@@ -406,15 +406,15 @@ Events
    :info: Reports the status of the dialogue, along with some meta information.
    
 
-   :proc: The procedure called that Bro does not implement.
+   :proc: The procedure called that Zeek does not implement.
    
    .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_null nfs_proc_read nfs_proc_readdir nfs_proc_readlink nfs_proc_remove
       nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_null
@@ -440,9 +440,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_read
@@ -475,9 +475,9 @@ Events
       nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
       NFS3::return_data NFS3::return_data_first_only NFS3::return_data_max
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_readdir
@@ -510,9 +510,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_readlink
@@ -545,9 +545,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_symlink rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_remove
@@ -580,9 +580,9 @@ Events
       nfs_proc_readlink  nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_rename
@@ -615,9 +615,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rename nfs_proc_write
       nfs_reply_status rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_rmdir
@@ -650,9 +650,9 @@ Events
       nfs_proc_readlink nfs_proc_remove  nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_sattr
@@ -685,9 +685,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_symlink
@@ -720,9 +720,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_link rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_write
@@ -756,9 +756,9 @@ Events
       rpc_dialogue rpc_reply NFS3::return_data NFS3::return_data_first_only
       NFS3::return_data_max
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_reply_status
@@ -779,9 +779,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_callit
@@ -810,9 +810,9 @@ Events
       pm_attempt_getport pm_attempt_dump pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_dump
@@ -838,9 +838,9 @@ Events
       pm_attempt_getport pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_getport
@@ -868,9 +868,9 @@ Events
       pm_attempt_null pm_attempt_set pm_attempt_unset pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_null
@@ -896,9 +896,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_set
@@ -927,9 +927,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_unset
@@ -958,9 +958,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_bad_port
@@ -988,9 +988,9 @@ Events
       pm_attempt_getport pm_attempt_dump pm_attempt_callit rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_callit
@@ -1018,9 +1018,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_dump
@@ -1045,9 +1045,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_getport
@@ -1074,9 +1074,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_null
@@ -1097,9 +1097,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_set
@@ -1128,9 +1128,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_unset
@@ -1159,9 +1159,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: rpc_call
@@ -1194,9 +1194,9 @@ Events
    .. zeek:see::  rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -1241,9 +1241,9 @@ Events
    .. zeek:see:: rpc_call rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -1272,9 +1272,9 @@ Events
    .. zeek:see:: rpc_call rpc_dialogue  dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 

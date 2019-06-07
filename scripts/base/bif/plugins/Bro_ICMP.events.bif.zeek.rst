@@ -98,7 +98,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for all ICMPv6 error messages that are not handled
-   separately with dedicated events. Bro's ICMP analyzer handles a number
+   separately with dedicated events. Zeek's ICMP analyzer handles a number
    of ICMP error messages directly with dedicated events. This event acts
    as a fallback for those it doesn't.
    
@@ -208,7 +208,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Too big* messages should include the original IP header
-            from the packet that triggered them, and Bro parses that into
+            from the packet that triggered them, and Zeek parses that into
             the *context* structure. Note that if the *too big* includes only
             a partial IP header for some reason, no fields of *context* will
             be filled out.
@@ -239,7 +239,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Parameter problem* messages should include the original
-            IP header from the packet that triggered them, and Bro parses that
+            IP header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *parameter problem*
             includes only a partial IP header for some reason, no fields
             of *context* will be filled out.
@@ -359,7 +359,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`)
 
    Generated for all ICMP messages that are not handled separately with
-   dedicated ICMP events. Bro's ICMP analyzer handles a number of ICMP messages
+   dedicated ICMP events. Zeek's ICMP analyzer handles a number of ICMP messages
    directly with dedicated events. This event acts as a fallback for those it
    doesn't.
    
@@ -417,7 +417,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Unreachable* messages should include the original IP
-            header from the packet that triggered them, and Bro parses that
+            header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *exceeded* includes
             only a partial IP header for some reason, no fields of *context*
             will be filled out.
@@ -448,7 +448,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Unreachable* messages should include the original IP
-            header from the packet that triggered them, and Bro parses that
+            header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *unreachable*
             includes only a partial IP header for some reason, no
             fields of *context* will be filled out.

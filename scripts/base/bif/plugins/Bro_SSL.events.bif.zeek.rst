@@ -60,7 +60,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, level: :zeek:type:`count`, desc: :zeek:type:`count`)
 
    Generated for SSL/TLS alert records. SSL/TLS sessions start with an
-   unencrypted handshake, and Bro extracts as much information out of that as
+   unencrypted handshake, and Zeek extracts as much information out of that as
    it can. If during that handshake, an endpoint encounters a fatal error, it
    sends an *alert* record, that in turn triggers this event. After an *alert*,
    any endpoint may close the connection immediately.
@@ -107,7 +107,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, client_random: :zeek:type:`string`, session_id: :zeek:type:`string`, ciphers: :zeek:type:`index_vec`, comp_methods: :zeek:type:`index_vec`)
 
    Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
-   start with an unencrypted handshake, and Bro extracts as much information out
+   start with an unencrypted handshake, and Zeek extracts as much information out
    of that as it can. This event provides access to the initial information
    sent by the client.
    
@@ -269,7 +269,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
-   an unencrypted handshake, and Bro extracts as much information out of that
+   an unencrypted handshake, and Zeek extracts as much information out of that
    as it can. This event signals the time when an SSL/TLS has finished the
    handshake and its endpoints consider it as fully established. Typically,
    everything from now on will be encrypted.
@@ -288,11 +288,11 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, code: :zeek:type:`count`, val: :zeek:type:`string`)
 
    Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
-   sessions start with an unencrypted handshake, and Bro extracts as much
+   sessions start with an unencrypted handshake, and Zeek extracts as much
    information out of that as it can. This event provides access to any
    extensions either side sends as part of an extended *hello* message.
    
-   Note that Bro offers more specialized events for a few extensions.
+   Note that Zeek offers more specialized events for a few extensions.
    
 
    :c: The connection.
@@ -619,7 +619,7 @@ Events
    Generated for SSL/TLS messages that are sent before full session encryption
    starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
    here this event will be raised for early packets that are already using
-   pre-encryption.  # This event is also used by Bro internally to determine if
+   pre-encryption.  # This event is also used by Zeek internally to determine if
    the connection has been completely setup. This is necessary as TLS 1.3 does
    not have CCS anymore.
    
@@ -666,7 +666,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, server_random: :zeek:type:`string`, session_id: :zeek:type:`string`, cipher: :zeek:type:`count`, comp_method: :zeek:type:`count`)
 
    Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
-   start with an unencrypted handshake, and Bro extracts as much information out
+   start with an unencrypted handshake, and Zeek extracts as much information out
    of that as it can. This event provides access to the initial information
    sent by the client.
    
@@ -748,7 +748,7 @@ Events
 
    Generated for SSL/TLS handshake messages that are a part of the
    stateless-server session resumption mechanism. SSL/TLS sessions start with
-   an unencrypted handshake, and Bro extracts as much information out of that
+   an unencrypted handshake, and Zeek extracts as much information out of that
    as it can. This event is raised when an SSL/TLS server passes a session
    ticket to the client that can later be used for resuming the session. The
    mechanism is described in :rfc:`4507`.

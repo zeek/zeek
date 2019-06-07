@@ -93,7 +93,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
    
-   .. note:: Bro doesn't support the newer ETRN extension yet.
+   .. note:: Zeek doesn't support the newer ETRN extension yet.
 
 .. zeek:id:: smtp_request
 
@@ -125,7 +125,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
    
-   .. note:: Bro does not support the newer ETRN extension yet.
+   .. note:: Zeek does not support the newer ETRN extension yet.
 
 .. zeek:id:: smtp_starttls
 

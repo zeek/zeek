@@ -31,13 +31,13 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *positive session response*. Bro's
+   Generated for NetBIOS messages of type *positive session response*. Zeek's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -52,25 +52,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_keepalive
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *keep-alive*. Bro's NetBIOS analyzer
+   Generated for NetBIOS messages of type *keep-alive*. Zeek's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -85,25 +85,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_message
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, data_len: :zeek:type:`count`)
 
-   Generated for all NetBIOS SSN and DGM messages. Bro's NetBIOS analyzer
+   Generated for all NetBIOS SSN and DGM messages. Zeek's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -124,12 +124,12 @@ Events
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_raw_message
@@ -144,7 +144,7 @@ Events
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -162,28 +162,28 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event. In fact, it's probably an odd event
       to have to begin with.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_rejected
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *negative session response*. Bro's
+   Generated for NetBIOS messages of type *negative session response*. Zeek's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -198,25 +198,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_request
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *session request*. Bro's NetBIOS
+   Generated for NetBIOS messages of type *session request*. Zeek's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -231,25 +231,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_ret_arg_resp
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *retarget response*. Bro's NetBIOS
+   Generated for NetBIOS messages of type *retarget response*. Zeek's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -264,14 +264,14 @@ Events
       netbios_session_request decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

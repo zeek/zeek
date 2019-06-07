@@ -224,7 +224,7 @@ Events
 
    :Type: :zeek:type:`event` (SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`, explanation: :zeek:type:`string`)
 
-   Generated for ARP packets that Bro cannot interpret. Examples are packets
+   Generated for ARP packets that Zeek cannot interpret. Examples are packets
    with non-standard hardware address formats or hardware addresses that do not
    match the originator of the packet.
    
@@ -245,9 +245,9 @@ Events
    
    .. zeek:see:: arp_reply arp_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::AYIYA
@@ -1769,7 +1769,7 @@ Events
    Generated for all DNS messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1801,7 +1801,7 @@ Events
    is raised once for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1838,7 +1838,7 @@ Events
    the reply; there's no stateful correlation with the query.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1872,7 +1872,7 @@ Events
    Generated for each entry in the Question section of a DNS reply.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1907,7 +1907,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1939,7 +1939,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -1971,7 +1971,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2003,7 +2003,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2035,7 +2035,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2067,7 +2067,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2099,7 +2099,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2131,7 +2131,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2160,7 +2160,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2189,7 +2189,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2224,7 +2224,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2284,7 +2284,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2326,7 +2326,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated on DNS reply resource records when the type of record is not one
-   that Bro knows how to parse and generate another more specific event.
+   that Zeek knows how to parse and generate another more specific event.
    
 
    :c: The connection, which may be UDP or TCP depending on the type of the
@@ -2350,7 +2350,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2379,7 +2379,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2512,7 +2512,7 @@ Events
    all resource records have been passed on.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -2546,7 +2546,7 @@ Events
 
    :msg: The raw DNS payload.
    
-   .. note:: This event is deprecated and superseded by Bro's dynamic protocol
+   .. note:: This event is deprecated and superseded by Zeek's dynamic protocol
       detection framework.
 
 Bro::File
@@ -2620,9 +2620,9 @@ Events
    
    .. zeek:see:: finger_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: finger_reply
@@ -2642,9 +2642,9 @@ Events
    
    .. zeek:see:: finger_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::FTP
@@ -2841,9 +2841,9 @@ Events
       gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
    
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_binary_msg
@@ -2858,9 +2858,9 @@ Events
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_partial_binary_msg
@@ -2875,9 +2875,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish  gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_establish
@@ -2892,9 +2892,9 @@ Events
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_not_establish
@@ -2909,9 +2909,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_http_notify
@@ -2926,9 +2926,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::GSSAPI
@@ -3108,7 +3108,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, unescaped_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 
-   Generated for HTTP requests. Bro supports persistent and pipelined HTTP
+   Generated for HTTP requests. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a request's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
@@ -3139,7 +3139,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
-   Generated for HTTP replies. Bro supports persistent and pipelined HTTP
+   Generated for HTTP replies. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a reply's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
@@ -3167,7 +3167,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
-   Generated for HTTP headers. Bro supports persistent and pipelined HTTP
+   Generated for HTTP headers. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues.
    
@@ -3198,7 +3198,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, hlist: :zeek:type:`mime_header_list`)
 
    Generated for HTTP headers, passing on all headers of an HTTP message at
-   once. Bro supports persistent and pipelined HTTP sessions and raises
+   once. Zeek supports persistent and pipelined HTTP sessions and raises
    corresponding events as it parses client/server dialogues.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -3229,7 +3229,7 @@ Events
    Generated when starting to parse an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
    potentially more than once if the body contains further nested MIME
-   entities. Bro raises this event just before it starts parsing each entity's
+   entities. Zeek raises this event just before it starts parsing each entity's
    content.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -3253,7 +3253,7 @@ Events
    Generated when finishing parsing an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
    potentially more than once if the body contains further nested MIME
-   entities. Bro raises this event at the point when it has finished parsing an
+   entities. Zeek raises this event at the point when it has finished parsing an
    entity's content.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -3342,7 +3342,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, stat: :zeek:type:`http_message_stat`)
 
-   Generated once at the end of parsing an HTTP message. Bro supports persistent
+   Generated once at the end of parsing an HTTP message. Zeek supports persistent
    and pipelined HTTP sessions and raises corresponding events as it parses
    client/server dialogues. A "message" is one top-level HTTP entity, such as a
    complete request or reply. Each message can have further nested sub-entities
@@ -3482,7 +3482,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`)
 
    Generated for all ICMP messages that are not handled separately with
-   dedicated ICMP events. Bro's ICMP analyzer handles a number of ICMP messages
+   dedicated ICMP events. Zeek's ICMP analyzer handles a number of ICMP messages
    directly with dedicated events. This event acts as a fallback for those it
    doesn't.
    
@@ -3580,7 +3580,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, icmp: :zeek:type:`icmp_conn`, code: :zeek:type:`count`, context: :zeek:type:`icmp_context`)
 
    Generated for all ICMPv6 error messages that are not handled
-   separately with dedicated events. Bro's ICMP analyzer handles a number
+   separately with dedicated events. Zeek's ICMP analyzer handles a number
    of ICMP error messages directly with dedicated events. This event acts
    as a fallback for those it doesn't.
    
@@ -3628,7 +3628,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Unreachable* messages should include the original IP
-            header from the packet that triggered them, and Bro parses that
+            header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *unreachable*
             includes only a partial IP header for some reason, no
             fields of *context* will be filled out.
@@ -3659,7 +3659,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Too big* messages should include the original IP header
-            from the packet that triggered them, and Bro parses that into
+            from the packet that triggered them, and Zeek parses that into
             the *context* structure. Note that if the *too big* includes only
             a partial IP header for some reason, no fields of *context* will
             be filled out.
@@ -3690,7 +3690,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Unreachable* messages should include the original IP
-            header from the packet that triggered them, and Bro parses that
+            header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *exceeded* includes
             only a partial IP header for some reason, no fields of *context*
             will be filled out.
@@ -3721,7 +3721,7 @@ Events
 
    :context: A record with specifics of the original packet that the message
             refers to. *Parameter problem* messages should include the original
-            IP header from the packet that triggered them, and Bro parses that
+            IP header from the packet that triggered them, and Zeek parses that
             into the *context* structure. Note that if the *parameter problem*
             includes only a partial IP header for some reason, no fields
             of *context* will be filled out.
@@ -3931,9 +3931,9 @@ Events
    
    .. zeek:see:: ident_error ident_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: ident_reply
@@ -3962,9 +3962,9 @@ Events
    
    .. zeek:see:: ident_error  ident_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: ident_error
@@ -3990,9 +3990,9 @@ Events
    
    .. zeek:see:: ident_reply ident_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::IMAP
@@ -5666,9 +5666,9 @@ Events
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: rsh_reply
@@ -5700,9 +5700,9 @@ Events
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: login_failure
@@ -5739,12 +5739,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeeks's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5782,12 +5782,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5807,9 +5807,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_output_line login_prompt login_success login_terminal    rsh_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5829,9 +5829,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line  login_prompt login_success login_terminal rsh_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5839,7 +5839,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`, line: :zeek:type:`string`)
 
-   Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
+   Generated when tracking of Telnet/Rlogin authentication failed. As Zeek's
    *login* analyzer uses a number of heuristics to extract authentication
    information, it may become confused. If it can no longer correctly track
    the authentication dialog, it raises this event.
@@ -5862,9 +5862,9 @@ Events
       login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5888,9 +5888,9 @@ Events
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5910,9 +5910,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_success
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5932,9 +5932,9 @@ Events
    .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5962,9 +5962,9 @@ Events
       while :zeek:id:`login_success` heuristically determines success by watching
       session data.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -5992,9 +5992,9 @@ Events
       while :zeek:id:`login_success` heuristically determines failure by watching
       session data.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -6017,12 +6017,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying activity. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -6046,9 +6046,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line  login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -6110,9 +6110,9 @@ Events
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -6133,9 +6133,9 @@ Events
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -6204,10 +6204,10 @@ Events
 
    Generated when starting to parse an email MIME entity. MIME is a
    protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. Bro raises this event when it
+   corresponding metadata, for transmission. Zeek raises this event when it
    begins parsing a MIME entity extracted from an email protocol.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6218,7 +6218,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_begin_entity
    
-   .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME entities from HTTP sessions. For those,
       however, it raises :zeek:id:`http_begin_entity` instead.
 
 .. zeek:id:: mime_end_entity
@@ -6227,10 +6227,10 @@ Events
 
    Generated when finishing parsing an email MIME entity.  MIME is a
    protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. Bro raises this event when it
+   corresponding metadata, for transmission. Zeek raises this event when it
    finished parsing a MIME entity extracted from an email protocol.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6241,7 +6241,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_end_entity
    
-   .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME entities from HTTP sessions. For those,
       however, it raises :zeek:id:`http_end_entity` instead.
 
 .. zeek:id:: mime_one_header
@@ -6252,7 +6252,7 @@ Events
    entities.  MIME is a protocol-independent data format for encoding text and
    files, along with corresponding metadata, for transmission.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6266,7 +6266,7 @@ Events
       mime_end_entity mime_entity_data mime_event  mime_segment_data
       http_header  http_all_headers
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_header` instead.
 
 .. zeek:id:: mime_all_headers
@@ -6277,7 +6277,7 @@ Events
    headers at once.  MIME is a protocol-independent data format for encoding
    text and files, along with corresponding metadata, for transmission.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6293,7 +6293,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data
       http_header  http_all_headers
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_header` instead.
 
 .. zeek:id:: mime_segment_data
@@ -6302,15 +6302,15 @@ Events
 
    Generated for chunks of decoded MIME data from email MIME entities.  MIME
    is a protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. As Bro parses the data of an
+   corresponding metadata, for transmission. As Zeek parses the data of an
    entity, it raises a sequence of these events, each coming as soon as a new
    chunk of data is available. In contrast, there is also
    :zeek:id:`mime_entity_data`, which passes all of an entities data at once
    in a single block. While the latter is more convenient to handle,
-   ``mime_segment_data`` is more efficient as Bro does not need to buffer
+   ``mime_segment_data`` is more efficient as Zeek does not need to buffer
    the data. Thus, if possible, this event should be preferred.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6327,7 +6327,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
       mime_segment_length mime_segment_overlap_length
    
-   .. note:: Bro also extracts MIME data from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME data from HTTP sessions. For those,
       however, it raises :zeek:id:`http_entity_data` (sic!) instead.
 
 .. zeek:id:: mime_entity_data
@@ -6339,10 +6339,10 @@ Events
    and base64 data decoded. In contrast, there is also :zeek:id:`mime_segment_data`,
    which passes on a sequence of data chunks as they come in. While
    ``mime_entity_data`` is more convenient to handle, ``mime_segment_data`` is
-   more efficient as Bro does not need to buffer the data. Thus, if possible,
+   more efficient as Zeek does not need to buffer the data. Thus, if possible,
    the latter should be preferred.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6358,7 +6358,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity  mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 .. zeek:id:: mime_all_data
@@ -6371,7 +6371,7 @@ Events
    of the potentially significant buffering necessary, using this event can be
    expensive.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6387,7 +6387,7 @@ Events
    .. zeek:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 .. zeek:id:: mime_event
@@ -6396,7 +6396,7 @@ Events
 
    Generated for errors found when decoding email MIME entities.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6413,7 +6413,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data  mime_one_header mime_segment_data http_event
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_event` instead.
 
 .. zeek:id:: mime_content_hash
@@ -6421,10 +6421,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, content_len: :zeek:type:`count`, hash_value: :zeek:type:`string`)
 
    Generated for decoded MIME entities extracted from email messages, passing on
-   their MD5 checksums. Bro computes the MD5 over the complete decoded data of
+   their MD5 checksums. Zeek computes the MD5 over the complete decoded data of
    each MIME entity.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -6440,7 +6440,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 Bro::Modbus
@@ -7106,9 +7106,9 @@ Events
    
    .. zeek:see:: ncp_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: ncp_reply
@@ -7140,9 +7140,9 @@ Events
    
    .. zeek:see:: ncp_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::NetBIOS
@@ -7164,13 +7164,13 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, data_len: :zeek:type:`count`)
 
-   Generated for all NetBIOS SSN and DGM messages. Bro's NetBIOS analyzer
+   Generated for all NetBIOS SSN and DGM messages. Zeek's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7191,25 +7191,25 @@ Events
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_request
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *session request*. Bro's NetBIOS
+   Generated for NetBIOS messages of type *session request*. Zeek's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7224,25 +7224,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_accepted
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *positive session response*. Bro's
+   Generated for NetBIOS messages of type *positive session response*. Zeek's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7257,25 +7257,25 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_rejected
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *negative session response*. Bro's
+   Generated for NetBIOS messages of type *negative session response*. Zeek's
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7290,12 +7290,12 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_raw_message
@@ -7310,7 +7310,7 @@ Events
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7328,28 +7328,28 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event. In fact, it's probably an odd event
       to have to begin with.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_ret_arg_resp
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *retarget response*. Bro's NetBIOS
+   Generated for NetBIOS messages of type *retarget response*. Zeek's NetBIOS
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7364,27 +7364,27 @@ Events
       netbios_session_request decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: netbios_session_keepalive
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
 
-   Generated for NetBIOS messages of type *keep-alive*. Bro's NetBIOS analyzer
+   Generated for NetBIOS messages of type *keep-alive*. Zeek's NetBIOS analyzer
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
-   the packet format for NetBIOS over TCP/IP, which Bro parses.
+   the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
 
    :c: The connection, which may be TCP or UDP, depending on the type of the
@@ -7399,12 +7399,12 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Bro's
+      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Functions
@@ -7702,7 +7702,7 @@ Events
 
    :Type: :zeek:type:`event` (u: :zeek:type:`connection`, msg: :zeek:type:`ntp_msg`, excess: :zeek:type:`string`)
 
-   Generated for all NTP messages. Different from many other of Bro's events,
+   Generated for all NTP messages. Different from many other of Zeek's events,
    this one is generated for both client-side and server-side messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
@@ -7715,14 +7715,14 @@ Events
    :msg: The parsed NTP message.
    
 
-   :excess: The raw bytes of any optional parts of the NTP packet. Bro does not
+   :excess: The raw bytes of any optional parts of the NTP packet. Zeek does not
            further parse any optional fields.
    
    .. zeek:see:: ntp_session_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::PIA
@@ -7775,9 +7775,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_reply
@@ -7808,9 +7808,9 @@ Events
    
    .. todo:: This event is receiving odd parameters, should unify.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_data
@@ -7837,9 +7837,9 @@ Events
    .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_unexpected
@@ -7867,9 +7867,9 @@ Events
    
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_starttls
@@ -7890,9 +7890,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_request pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_login_success
@@ -7920,9 +7920,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_login_failure
@@ -7950,9 +7950,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::RADIUS
@@ -8473,9 +8473,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_getattr
@@ -8508,9 +8508,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_sattr
@@ -8543,9 +8543,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_lookup
@@ -8578,9 +8578,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_read
@@ -8613,9 +8613,9 @@ Events
       nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
       NFS3::return_data NFS3::return_data_first_only NFS3::return_data_max
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_readlink
@@ -8648,9 +8648,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_symlink rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_symlink
@@ -8683,9 +8683,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       nfs_proc_link rpc_call rpc_dialogue rpc_reply file_mode
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_link
@@ -8718,9 +8718,9 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       nfs_proc_symlink rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_write
@@ -8754,9 +8754,9 @@ Events
       rpc_dialogue rpc_reply NFS3::return_data NFS3::return_data_first_only
       NFS3::return_data_max
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_create
@@ -8789,9 +8789,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_mkdir
@@ -8824,9 +8824,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status
       rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_remove
@@ -8859,9 +8859,9 @@ Events
       nfs_proc_readlink  nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_rmdir
@@ -8894,9 +8894,9 @@ Events
       nfs_proc_readlink nfs_proc_remove  nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_rename
@@ -8929,9 +8929,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rename nfs_proc_write
       nfs_reply_status rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_readdir
@@ -8964,16 +8964,16 @@ Events
       nfs_proc_remove nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_proc_not_implemented
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`NFS3::info_t`, proc: :zeek:type:`NFS3::proc_t`)
 
-   Generated for NFSv3 request/reply dialogues of a type that Bro's NFSv3
+   Generated for NFSv3 request/reply dialogues of a type that Zeek's NFSv3
    analyzer does not implement.
    
    NFS is a service running on top of RPC. See `Wikipedia
@@ -8987,15 +8987,15 @@ Events
    :info: Reports the status of the dialogue, along with some meta information.
    
 
-   :proc: The procedure called that Bro does not implement.
+   :proc: The procedure called that Zeek does not implement.
    
    .. zeek:see:: nfs_proc_create nfs_proc_getattr nfs_proc_lookup nfs_proc_mkdir
       nfs_proc_null nfs_proc_read nfs_proc_readdir nfs_proc_readlink nfs_proc_remove
       nfs_proc_rmdir nfs_proc_write nfs_reply_status rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: nfs_reply_status
@@ -9016,9 +9016,9 @@ Events
       nfs_proc_readlink nfs_proc_remove nfs_proc_rmdir nfs_proc_write rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_null
@@ -9039,9 +9039,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_set
@@ -9070,9 +9070,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_unset
@@ -9101,9 +9101,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_getport
@@ -9130,9 +9130,9 @@ Events
       pm_attempt_unset pm_attempt_getport pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_dump
@@ -9157,9 +9157,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_request_callit
@@ -9187,9 +9187,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_null
@@ -9215,9 +9215,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_set
@@ -9246,9 +9246,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_unset
@@ -9277,9 +9277,9 @@ Events
       pm_attempt_dump pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_getport
@@ -9307,9 +9307,9 @@ Events
       pm_attempt_null pm_attempt_set pm_attempt_unset pm_attempt_dump
       pm_attempt_callit pm_bad_port rpc_call rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_dump
@@ -9335,9 +9335,9 @@ Events
       pm_attempt_getport pm_attempt_callit pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_attempt_callit
@@ -9366,9 +9366,9 @@ Events
       pm_attempt_getport pm_attempt_dump pm_bad_port rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pm_bad_port
@@ -9396,9 +9396,9 @@ Events
       pm_attempt_getport pm_attempt_dump pm_attempt_callit rpc_call
       rpc_dialogue rpc_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: rpc_dialogue
@@ -9442,9 +9442,9 @@ Events
    .. zeek:see:: rpc_call rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -9478,9 +9478,9 @@ Events
    .. zeek:see::  rpc_dialogue rpc_reply dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -9509,9 +9509,9 @@ Events
    .. zeek:see:: rpc_call rpc_dialogue  dce_rpc_bind dce_rpc_message dce_rpc_request
       dce_rpc_response rpc_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -9533,9 +9533,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_mnt
@@ -9563,9 +9563,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt
@@ -9589,9 +9589,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt_all
@@ -9615,16 +9615,16 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_not_implemented
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, proc: :zeek:type:`MOUNT3::proc_t`)
 
-   Generated for MOUNT3 request/reply dialogues of a type that Bro's MOUNTv3
+   Generated for MOUNT3 request/reply dialogues of a type that Zeek's MOUNTv3
    analyzer does not implement.
    
 
@@ -9634,14 +9634,14 @@ Events
    :info: Reports the status of the dialogue, along with some meta information.
    
 
-   :proc: The procedure called that Bro does not implement.
+   :proc: The procedure called that Zeek does not implement.
    
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_reply_status
@@ -9660,9 +9660,9 @@ Events
    .. zeek:see:: mount_proc_mnt mount_proc_umnt
       mount_proc_umnt_all mount_proc_not_implemented
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 Bro::SIP
@@ -11501,7 +11501,7 @@ Events
    messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
-   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Bro's
+   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
    ports 138/139 and :abbr:`SMB (Server Message Block)`-over-TCP on port 445.
@@ -11969,7 +11969,7 @@ Events
    version 2 messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
-   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Bro's
+   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
    ports 138/139 and :abbr:`SMB (Server Message Block)`-over-TCP on port 445.
@@ -12043,7 +12043,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
    
-   .. note:: Bro does not support the newer ETRN extension yet.
+   .. note:: Zeek does not support the newer ETRN extension yet.
 
 .. zeek:id:: smtp_reply
 
@@ -12083,7 +12083,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
    
-   .. note:: Bro doesn't support the newer ETRN extension yet.
+   .. note:: Zeek doesn't support the newer ETRN extension yet.
 
 .. zeek:id:: smtp_data
 
@@ -13076,7 +13076,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, client_random: :zeek:type:`string`, session_id: :zeek:type:`string`, ciphers: :zeek:type:`index_vec`, comp_methods: :zeek:type:`index_vec`)
 
    Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
-   start with an unencrypted handshake, and Bro extracts as much information out
+   start with an unencrypted handshake, and Zeek extracts as much information out
    of that as it can. This event provides access to the initial information
    sent by the client.
    
@@ -13126,7 +13126,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`count`, record_version: :zeek:type:`count`, possible_ts: :zeek:type:`time`, server_random: :zeek:type:`string`, session_id: :zeek:type:`string`, cipher: :zeek:type:`count`, comp_method: :zeek:type:`count`)
 
    Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
-   start with an unencrypted handshake, and Bro extracts as much information out
+   start with an unencrypted handshake, and Zeek extracts as much information out
    of that as it can. This event provides access to the initial information
    sent by the client.
    
@@ -13179,11 +13179,11 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, code: :zeek:type:`count`, val: :zeek:type:`string`)
 
    Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
-   sessions start with an unencrypted handshake, and Bro extracts as much
+   sessions start with an unencrypted handshake, and Zeek extracts as much
    information out of that as it can. This event provides access to any
    extensions either side sends as part of an extended *hello* message.
    
-   Note that Bro offers more specialized events for a few extensions.
+   Note that Zeek offers more specialized events for a few extensions.
    
 
    :c: The connection.
@@ -13583,7 +13583,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
-   an unencrypted handshake, and Bro extracts as much information out of that
+   an unencrypted handshake, and Zeek extracts as much information out of that
    as it can. This event signals the time when an SSL/TLS has finished the
    handshake and its endpoints consider it as fully established. Typically,
    everything from now on will be encrypted.
@@ -13602,7 +13602,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, level: :zeek:type:`count`, desc: :zeek:type:`count`)
 
    Generated for SSL/TLS alert records. SSL/TLS sessions start with an
-   unencrypted handshake, and Bro extracts as much information out of that as
+   unencrypted handshake, and Zeek extracts as much information out of that as
    it can. If during that handshake, an endpoint encounters a fatal error, it
    sends an *alert* record, that in turn triggers this event. After an *alert*,
    any endpoint may close the connection immediately.
@@ -13633,7 +13633,7 @@ Events
 
    Generated for SSL/TLS handshake messages that are a part of the
    stateless-server session resumption mechanism. SSL/TLS sessions start with
-   an unencrypted handshake, and Bro extracts as much information out of that
+   an unencrypted handshake, and Zeek extracts as much information out of that
    as it can. This event is raised when an SSL/TLS server passes a session
    ticket to the client that can later be used for resuming the session. The
    mechanism is described in :rfc:`4507`.
@@ -13692,7 +13692,7 @@ Events
    Generated for SSL/TLS messages that are sent before full session encryption
    starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
    here this event will be raised for early packets that are already using
-   pre-encryption.  # This event is also used by Bro internally to determine if
+   pre-encryption.  # This event is also used by Zeek internally to determine if
    the connection has been completely setup. This is necessary as TLS 1.3 does
    not have CCS anymore.
    
@@ -13892,7 +13892,7 @@ Events
 
    :msg: The message logged.
    
-   .. note:: Bro currently parses only UDP syslog traffic. Support for TCP
+   .. note:: Zeek currently parses only UDP syslog traffic. Support for TCP
       syslog will be added soon.
 
 Bro::TCP
@@ -13919,7 +13919,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when reassembly starts for a TCP connection. This event is raised
-   at the moment when Bro's TCP analyzer enables stream reassembly for a
+   at the moment when Zeek's TCP analyzer enables stream reassembly for a
    connection.
    
 
@@ -13978,8 +13978,8 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
-   Generated for a new active TCP connection if Bro did not see the initial
-   handshake. This event is raised when Bro has observed traffic from each
+   Generated for a new active TCP connection if Zeek did not see the initial
+   handshake. This event is raised when Zeek has observed traffic from each
    endpoint, but the activity did not begin with the usual connection
    establishment.
    
@@ -14000,7 +14000,7 @@ Events
 
    Generated when a previously inactive endpoint attempts to close a TCP
    connection via a normal FIN handshake or an abort RST sequence. When the
-   endpoint sent one of these packets, Bro waits
+   endpoint sent one of these packets, Zeek waits
    :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
    the other endpoint a chance to close the connection normally.
    
@@ -14037,7 +14037,7 @@ Events
 
    Generated when one endpoint of a TCP connection attempted to gracefully close
    the connection, but the other endpoint is in the TCP_INACTIVE state. This can
-   happen due to split routing, in which Bro only sees one side of a connection.
+   happen due to split routing, in which Zeek only sees one side of a connection.
    
 
    :c: The connection.
@@ -14071,7 +14071,7 @@ Events
    
       If the responder does not respond at all, :zeek:id:`connection_attempt` is
       raised instead. If the responder initially accepts the connection but
-      aborts it later, Bro first generates :zeek:id:`connection_established`
+      aborts it later, Zeek first generates :zeek:id:`connection_established`
       and then :zeek:id:`connection_reset`.
 
 .. zeek:id:: connection_reset
@@ -14097,7 +14097,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
-   Generated for each still-open TCP connection when Bro terminates.
+   Generated for each still-open TCP connection when Zeek terminates.
    
 
    :c: The connection.
@@ -14113,7 +14113,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, pkt: :zeek:type:`SYN_packet`)
 
-   Generated for a SYN packet. Bro raises this event for every SYN packet seen
+   Generated for a SYN packet. Zeek raises this event for every SYN packet seen
    by its TCP analyzer.
    
 
@@ -14277,14 +14277,34 @@ Events
       application-layer protocol analyzers internally. Subsequent invocations of
       this event for the same connection receive non-overlapping in-order chunks
       of its TCP payload stream. It is however undefined what size each chunk
-      has; while Bro passes the data on as soon as possible, specifics depend on
+      has; while Zeek passes the data on as soon as possible, specifics depend on
       network-level effects such as latency, acknowledgements, reordering, etc.
 
 .. zeek:id:: tcp_rexmit
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, len: :zeek:type:`count`, data_in_flight: :zeek:type:`count`, window: :zeek:type:`count`)
 
-   TODO.
+   Generated for each detected TCP segment retransmission.
+   
+
+   :c: The connection the packet is part of.
+   
+
+   :is_orig: True if the packet was sent by the connection's originator.
+   
+
+   :seq: The segment's relative TCP sequence number.
+   
+
+   :len: The length of the TCP segment, as specified in the packet header.
+   
+
+   :data_in_flight: The number of bytes corresponding to the difference between
+                   the last sequence number and last acknowledgement number
+                   we've seen for a given endpoint.
+   
+
+   :window: the TCP window size.
 
 .. zeek:id:: tcp_multiple_checksum_errors
 
@@ -14434,7 +14454,7 @@ Functions
                 responder (often the server).
               - ``CONTENTS_BOTH``: Record the data sent in both directions.
                 Results in the two directions being intermixed in the file,
-                in the order the data was seen by Bro.
+                in the order the data was seen by Zeek.
    
 
    :f: The file handle of the file to write the contents to.

@@ -39,7 +39,7 @@ Events
 :zeek:id:`dns_rejected`: :zeek:type:`event`      Generated for DNS replies that reject a query.
 :zeek:id:`dns_request`: :zeek:type:`event`       Generated for DNS requests.
 :zeek:id:`dns_unknown_reply`: :zeek:type:`event` Generated on DNS reply resource records when the type of record is not one
-                                                 that Bro knows how to parse and generate another more specific event.
+                                                 that Zeek knows how to parse and generate another more specific event.
 :zeek:id:`non_dns_request`: :zeek:type:`event`   msg: The raw DNS payload.
 ================================================ ================================================================================
 
@@ -56,7 +56,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -88,7 +88,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -120,7 +120,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -180,7 +180,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -252,7 +252,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -281,7 +281,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -310,7 +310,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -388,7 +388,7 @@ Events
    individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -420,7 +420,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -472,7 +472,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -504,7 +504,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -549,7 +549,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -578,7 +578,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -610,7 +610,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -640,7 +640,7 @@ Events
    all resource records have been passed on.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -674,7 +674,7 @@ Events
    Generated for all DNS messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -705,7 +705,7 @@ Events
    Generated for each entry in the Question section of a DNS reply.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -742,7 +742,7 @@ Events
    the reply; there's no stateful correlation with the query.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -777,7 +777,7 @@ Events
    is raised once for each.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. Bro analyzes both UDP and TCP DNS
+   information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
 
@@ -809,7 +809,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`)
 
    Generated on DNS reply resource records when the type of record is not one
-   that Bro knows how to parse and generate another more specific event.
+   that Zeek knows how to parse and generate another more specific event.
    
 
    :c: The connection, which may be UDP or TCP depending on the type of the
@@ -832,7 +832,7 @@ Events
 
    :msg: The raw DNS payload.
    
-   .. note:: This event is deprecated and superseded by Bro's dynamic protocol
+   .. note:: This event is deprecated and superseded by Zeek's dynamic protocol
       detection framework.
 
 

@@ -6,13 +6,13 @@ Package: base/bif
 
 :doc:`/scripts/base/bif/const.bif.zeek`
 
-   Declaration of various scripting-layer constants that the Bro core uses
+   Declaration of various scripting-layer constants that the Zeek core uses
    internally.  Documentation and default values for the scripting-layer
    variables themselves are found in :doc:`/scripts/base/init-bare.zeek`.
 
 :doc:`/scripts/base/bif/types.bif.zeek`
 
-   Declaration of various types that the Bro core uses internally.
+   Declaration of various types that the Zeek core uses internally.
 
 :doc:`/scripts/base/bif/bro.bif.zeek`
 
@@ -22,7 +22,7 @@ Package: base/bif
    filtering, interprocess communication and controlling protocol analyzer
    behavior.
    
-   You'll find most of Bro's built-in functions that aren't protocol-specific
+   You'll find most of Zeek's built-in functions that aren't protocol-specific
    in this file.
 
 :doc:`/scripts/base/bif/stats.bif.zeek`
@@ -57,7 +57,7 @@ Package: base/bif
 
 :doc:`/scripts/base/bif/event.bif.zeek`
 
-   The protocol-independent events that the C/C++ core of Bro can generate.
+   The protocol-independent events that the C/C++ core of Zeek can generate.
    
    This is mostly events not related to a specific transport- or
    application-layer protocol, but also includes a few that may be generated

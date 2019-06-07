@@ -50,9 +50,9 @@ Events
    .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_login_failure
@@ -80,9 +80,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_login_success
@@ -110,9 +110,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_reply
@@ -143,9 +143,9 @@ Events
    
    .. todo:: This event is receiving odd parameters, should unify.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_request
@@ -173,9 +173,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_starttls
@@ -196,9 +196,9 @@ Events
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_request pop3_unexpected
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: pop3_unexpected
@@ -226,9 +226,9 @@ Events
    
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

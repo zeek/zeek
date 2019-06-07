@@ -4,7 +4,7 @@ base/bif/event.bif.zeek
 =======================
 .. zeek:namespace:: GLOBAL
 
-The protocol-independent events that the C/C++ core of Bro can generate.
+The protocol-independent events that the C/C++ core of Zeek can generate.
 
 This is mostly events not related to a specific transport- or
 application-layer protocol, but also includes a few that may be generated
@@ -34,7 +34,7 @@ Events
                                                                             memory.
 :zeek:id:`connection_status_update`: :zeek:type:`event`                     Generated in regular intervals during the lifetime of a connection.
 :zeek:id:`connection_timeout`: :zeek:type:`event`                           Generated when a TCP connection timed out.
-:zeek:id:`content_gap`: :zeek:type:`event`                                  Generated when Bro detects a gap in a reassembled TCP payload stream.
+:zeek:id:`content_gap`: :zeek:type:`event`                                  Generated when Zeek detects a gap in a reassembled TCP payload stream.
 :zeek:id:`dns_mapping_altered`: :zeek:type:`event`                          Generated when an internal DNS lookup produced a different result than in
                                                                             the past.
 :zeek:id:`dns_mapping_lost_name`: :zeek:type:`event`                        Generated when an internal DNS lookup returned zero answers even though it
@@ -49,7 +49,7 @@ Events
 :zeek:id:`event_queue_flush_point`: :zeek:type:`event`                      Marks a point in the event stream at which the event queue started flushing.
 :zeek:id:`file_gap`: :zeek:type:`event`                                     Indicates that a chunk of the file is missing.
 :zeek:id:`file_new`: :zeek:type:`event`                                     Indicates that an analysis of a new file has begun.
-:zeek:id:`file_opened`: :zeek:type:`event`                                  Generated each time Bro's script interpreter opens a file.
+:zeek:id:`file_opened`: :zeek:type:`event`                                  Generated each time Zeek's script interpreter opens a file.
 :zeek:id:`file_over_new_connection`: :zeek:type:`event`                     Indicates that a file has been seen being transferred over a connection
                                                                             different from the original.
 :zeek:id:`file_reassembly_overflow`: :zeek:type:`event`                     Indicates that the file had an overflow of the reassembly buffer.
@@ -68,26 +68,26 @@ Events
                                                                             belongs.
 :zeek:id:`ipv6_ext_headers`: :zeek:type:`event`                             Generated for every IPv6 packet that contains extension headers.
 :zeek:id:`kazaa_signature_found`: :zeek:type:`event`                        Deprecated.
-:zeek:id:`load_sample`: :zeek:type:`event`                                  Generated regularly for the purpose of profiling Bro's processing.
+:zeek:id:`load_sample`: :zeek:type:`event`                                  Generated regularly for the purpose of profiling Zeek's processing.
 :zeek:id:`mobile_ipv6_message`: :zeek:type:`event`                          Generated for any packet using a Mobile IPv6 Mobility Header.
 :zeek:id:`napster_signature_found`: :zeek:type:`event`                      Deprecated.
 :zeek:id:`net_weird`: :zeek:type:`event`                                    Generated for unexpected activity that is not tied to a specific connection
                                                                             or pair of hosts.
 :zeek:id:`new_connection`: :zeek:type:`event`                               Generated for every new connection.
-:zeek:id:`new_event`: :zeek:type:`event`                                    A meta event generated for events that Bro raises.
-:zeek:id:`new_packet`: :zeek:type:`event`                                   Generated for all packets that make it into Bro's connection processing.
+:zeek:id:`new_event`: :zeek:type:`event`                                    A meta event generated for events that Zeek raises.
+:zeek:id:`new_packet`: :zeek:type:`event`                                   Generated for all packets that make it into Zeek's connection processing.
 :zeek:id:`packet_contents`: :zeek:type:`event`                              Generated for every packet that has a non-empty transport-layer payload.
 :zeek:id:`print_hook`: :zeek:type:`event`                                   Deprecated.
-:zeek:id:`profiling_update`: :zeek:type:`event`                             Generated each time Bro's internal profiling log is updated.
+:zeek:id:`profiling_update`: :zeek:type:`event`                             Generated each time Zeek's internal profiling log is updated.
 :zeek:id:`protocol_confirmation`: :zeek:type:`event`                        Generated when a protocol analyzer confirms that a connection is indeed
                                                                             using that protocol.
 :zeek:id:`protocol_violation`: :zeek:type:`event`                           Generated when a protocol analyzer determines that a connection it is parsing
                                                                             is not conforming to the protocol it expects.
-:zeek:id:`raw_packet`: :zeek:type:`event`                                   Generated for every packet Bro sees that have a valid link-layer header.
-:zeek:id:`reporter_error`: :zeek:type:`event` :zeek:attr:`&error_handler`   Raised for errors reported via Bro's reporter framework.
-:zeek:id:`reporter_info`: :zeek:type:`event` :zeek:attr:`&error_handler`    Raised for informational messages reported via Bro's reporter framework.
-:zeek:id:`reporter_warning`: :zeek:type:`event` :zeek:attr:`&error_handler` Raised for warnings reported via Bro's reporter framework.
-:zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                         Generated when Bro detects a TCP retransmission inconsistency.
+:zeek:id:`raw_packet`: :zeek:type:`event`                                   Generated for every packet Zeek sees that have a valid link-layer header.
+:zeek:id:`reporter_error`: :zeek:type:`event` :zeek:attr:`&error_handler`   Raised for errors reported via Zeek's reporter framework.
+:zeek:id:`reporter_info`: :zeek:type:`event` :zeek:attr:`&error_handler`    Raised for informational messages reported via Zeek's reporter framework.
+:zeek:id:`reporter_warning`: :zeek:type:`event` :zeek:attr:`&error_handler` Raised for warnings reported via Zeek's reporter framework.
+:zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                         Generated when Zeek detects a TCP retransmission inconsistency.
 :zeek:id:`root_backdoor_signature_found`: :zeek:type:`event`                Deprecated.
 :zeek:id:`scheduled_analyzer_applied`: :zeek:type:`event`                   Generated when a connection is seen that is marked as being expected.
 :zeek:id:`signature_match`: :zeek:type:`event`                              Generated when a signature matches.
@@ -113,7 +113,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, host: :zeek:type:`addr`, OS: :zeek:type:`OS_version`)
 
-   Generated when an operating system has been fingerprinted. Bro uses `p0f
+   Generated when an operating system has been fingerprinted. Zeek uses `p0f
    <http://lcamtuf.coredump.cx/p0f.shtml>`__ to fingerprint endpoints passively,
    and it raises this event for each system identified. The p0f fingerprints are
    defined by :zeek:id:`passive_fingerprint_file`.
@@ -163,7 +163,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`endpoint_stats`, rs: :zeek:type:`endpoint_stats`)
 
    Generated when a TCP connection terminated, passing on statistics about the
-   two endpoints. This event is always generated when Bro flushes the internal
+   two endpoints. This event is always generated when Zeek flushes the internal
    connection state, independent of how a connection terminates.
    
 
@@ -182,13 +182,13 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, c: :zeek:type:`connection`, addl: :zeek:type:`string`)
 
    Generated for unexpected activity related to a specific connection.  When
-   Bro's packet analysis encounters activity that does not conform to a
+   Zeek's packet analysis encounters activity that does not conform to a
    protocol's specification, it raises one of the ``*_weird`` events to report
    that. This event is raised if the activity is tied directly to a specific
    connection.
    
 
-   :name: A unique name for the specific type of "weird" situation. Bro's default
+   :name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
    
@@ -210,7 +210,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, tag: :zeek:type:`string`)
 
    Generated for a new connection received from the communication subsystem.
-   Remote peers can inject packets into Bro's packet loop, for example via
+   Remote peers can inject packets into Zeek's packet loop, for example via
    Broccoli.  The communication system
    raises this event with the first packet of a connection coming in this way.
    
@@ -245,7 +245,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
-   Generated when a connection 4-tuple is reused. This event is raised when Bro
+   Generated when a connection 4-tuple is reused. This event is raised when Zeek
    sees a new TCP session or UDP flow using a 4-tuple matching that of an
    earlier connection it still considers active.
    
@@ -264,7 +264,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a connection's internal state is about to be removed from
-   memory. Bro generates this event reliably once for every connection when it
+   memory. Zeek generates this event reliably once for every connection when it
    is about to delete the internal state. As such, the event is well-suited for
    script-level cleanup that needs to be performed for every connection.  This
    event is generated not only for TCP sessions but also for UDP and ICMP
@@ -332,10 +332,10 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, length: :zeek:type:`count`)
 
-   Generated when Bro detects a gap in a reassembled TCP payload stream. This
-   event is raised when Bro, while reassembling a payload stream, determines
+   Generated when Zeek detects a gap in a reassembled TCP payload stream. This
+   event is raised when Zeek, while reassembling a payload stream, determines
    that a chunk of payload is missing (e.g., because the responder has already
-   acknowledged it, even though Bro didn't see it).
+   acknowledged it, even though Zeek didn't see it).
    
 
    :c: The connection.
@@ -362,7 +362,7 @@ Events
    :Type: :zeek:type:`event` (dm: :zeek:type:`dns_mapping`, old_addrs: :zeek:type:`addr_set`, new_addrs: :zeek:type:`addr_set`)
 
    Generated when an internal DNS lookup produced a different result than in
-   the past.  Bro keeps an internal DNS cache for host names and IP addresses
+   the past.  Zeek keeps an internal DNS cache for host names and IP addresses
    it has already resolved. This event is generated when a subsequent lookup
    returns a different answer than we have stored in the cache.
    
@@ -385,7 +385,7 @@ Events
    :Type: :zeek:type:`event` (dm: :zeek:type:`dns_mapping`)
 
    Generated when an internal DNS lookup returned zero answers even though it
-   had succeeded in the past. Bro keeps an internal DNS cache for host names
+   had succeeded in the past. Zeek keeps an internal DNS cache for host names
    and IP addresses it has already resolved. This event is generated when
    on a subsequent lookup we receive an answer that is empty even
    though we have already stored a result in the cache.
@@ -401,7 +401,7 @@ Events
    :Type: :zeek:type:`event` (dm: :zeek:type:`dns_mapping`)
 
    Generated when an internal DNS lookup succeeded but an earlier attempt
-   did not. Bro keeps an internal DNS cache for host names and IP
+   did not. Zeek keeps an internal DNS cache for host names and IP
    addresses it has already resolved. This event is generated when a subsequent
    lookup produces an answer for a query that was marked as failed in the cache.
    
@@ -416,7 +416,7 @@ Events
    :Type: :zeek:type:`event` (dm: :zeek:type:`dns_mapping`)
 
    Generated when an internal DNS lookup got no answer even though it had
-   succeeded in the past. Bro keeps an internal DNS cache for host names and IP
+   succeeded in the past. Zeek keeps an internal DNS cache for host names and IP
    addresses it has already resolved. This event is generated when a
    subsequent lookup does not produce an answer even though we have
    already stored a result in the cache.
@@ -432,7 +432,7 @@ Events
    :Type: :zeek:type:`event` (dm: :zeek:type:`dns_mapping`)
 
    Generated when an internal DNS lookup produces the same result as last time.
-   Bro keeps an internal DNS cache for host names and IP addresses it has
+   Zeek keeps an internal DNS cache for host names and IP addresses it has
    already resolved. This event is generated when a subsequent lookup returns
    the same result as stored in the cache.
    
@@ -495,7 +495,7 @@ Events
 
    :Type: :zeek:type:`event` (f: :zeek:type:`file`)
 
-   Generated each time Bro's script interpreter opens a file. This event is
+   Generated each time Zeek's script interpreter opens a file. This event is
    triggered only for files opened via :zeek:id:`open`, and in particular not for
    normal log files as created by log writers.
    
@@ -600,12 +600,12 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, f: :zeek:type:`fa_file`, addl: :zeek:type:`string`)
 
    Generated for unexpected activity that is tied to a file.
-   When Bro's packet analysis encounters activity that
+   When Zeek's packet analysis encounters activity that
    does not conform to a protocol's specification, it raises one of the
    ``*_weird`` events to report that.
    
 
-   :name: A unique name for the specific type of "weird" situation. Bro's default
+   :name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
    
@@ -627,14 +627,14 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, src: :zeek:type:`addr`, dst: :zeek:type:`addr`)
 
    Generated for unexpected activity related to a pair of hosts, but independent
-   of a specific connection.  When Bro's packet analysis encounters activity
+   of a specific connection.  When Zeek's packet analysis encounters activity
    that does not conform to a protocol's specification, it raises one of
    the ``*_weird`` events to report that. This event is raised if the activity
    is related to a pair of hosts, yet not to a specific connection between
    them.
    
 
-   :name: A unique name for the specific type of "weird" situation. Bro's default
+   :name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
    
@@ -705,11 +705,11 @@ Events
 
    :Type: :zeek:type:`event` (samples: :zeek:type:`load_sample_info`, CPU: :zeek:type:`interval`, dmem: :zeek:type:`int`)
 
-   Generated regularly for the purpose of profiling Bro's processing. This event
+   Generated regularly for the purpose of profiling Zeek's processing. This event
    is raised for every :zeek:id:`load_sample_freq` packet. For these packets,
-   Bro records script-level functions executed during their processing as well
+   Zeek records script-level functions executed during their processing as well
    as further internal locations. By sampling the processing in this form, one
-   can understand where Bro spends its time.
+   can understand where Zeek spends its time.
    
 
    :samples: A set with functions and locations seen during the processing of
@@ -743,13 +743,13 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`)
 
    Generated for unexpected activity that is not tied to a specific connection
-   or pair of hosts. When Bro's packet analysis encounters activity that
+   or pair of hosts. When Zeek's packet analysis encounters activity that
    does not conform to a protocol's specification, it raises one of the
    ``*_weird`` events to report that. This event is raised if the activity is
    not tied directly to a specific connection or pair of hosts.
    
 
-   :name: A unique name for the specific type of "weird" situation. Bro's default
+   :name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
    
@@ -765,7 +765,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for every new connection. This event is raised with the first
-   packet of a previously unknown connection. Bro uses a flow-based definition
+   packet of a previously unknown connection. Zeek uses a flow-based definition
    of "connection" here that includes not only TCP sessions but also UDP and
    ICMP flows.
    
@@ -789,7 +789,7 @@ Events
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, params: :zeek:type:`call_argument_vector`)
 
-   A meta event generated for events that Bro raises. This will report all
+   A meta event generated for events that Zeek raises. This will report all
    events for which at least one handler is defined.
    
    Note that handling this meta event is expensive and should be limited to
@@ -805,7 +805,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`pkt_hdr`)
 
-   Generated for all packets that make it into Bro's connection processing. In
+   Generated for all packets that make it into Zeek's connection processing. In
    contrast to :zeek:id:`raw_packet` this filters out some more packets that don't
    pass certain sanity checks.
    
@@ -851,7 +851,7 @@ Events
 
    :Type: :zeek:type:`event` (f: :zeek:type:`file`, expensive: :zeek:type:`bool`)
 
-   Generated each time Bro's internal profiling log is updated. The file is
+   Generated each time Zeek's internal profiling log is updated. The file is
    defined by :zeek:id:`profiling_file`, and its update frequency by
    :zeek:id:`profiling_interval` and :zeek:id:`expensive_profiling_multiple`.
    
@@ -869,7 +869,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, atype: :zeek:type:`Analyzer::Tag`, aid: :zeek:type:`count`)
 
    Generated when a protocol analyzer confirms that a connection is indeed
-   using that protocol. Bro's dynamic protocol detection heuristically activates
+   using that protocol. Zeek's dynamic protocol detection heuristically activates
    analyzers as soon as it believes a connection *could* be using a particular
    protocol. It is then left to the corresponding analyzer to verify whether
    that is indeed the case; if so, this event will be generated.
@@ -893,7 +893,7 @@ Events
    
    .. note::
    
-      Bro's default scripts use this event to determine the ``service`` column
+      Zeek's default scripts use this event to determine the ``service`` column
       of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
       there (and thus in ``conn.log``).
 
@@ -902,7 +902,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, atype: :zeek:type:`Analyzer::Tag`, aid: :zeek:type:`count`, reason: :zeek:type:`string`)
 
    Generated when a protocol analyzer determines that a connection it is parsing
-   is not conforming to the protocol it expects. Bro's dynamic protocol
+   is not conforming to the protocol it expects. Zeek's dynamic protocol
    detection heuristically activates analyzers as soon as it believes a
    connection *could* be using a particular protocol. It is then left to the
    corresponding analyzer to verify whether that is indeed the case; if not,
@@ -930,7 +930,7 @@ Events
    
    .. note::
    
-      Bro's default scripts use this event to disable an analyzer via
+      Zeek's default scripts use this event to disable an analyzer via
       :zeek:id:`disable_analyzer` if it's parsing the wrong protocol. That's
       however a script-level decision and not done automatically by the event
       engine.
@@ -939,7 +939,7 @@ Events
 
    :Type: :zeek:type:`event` (p: :zeek:type:`raw_pkt_hdr`)
 
-   Generated for every packet Bro sees that have a valid link-layer header. This
+   Generated for every packet Zeek sees that have a valid link-layer header. This
    is a very very low-level and expensive event that should be avoided when at all
    possible. It's usually infeasible to handle when processing even medium volumes
    of traffic in real-time. That said, if you work from a trace and want to do some
@@ -955,7 +955,7 @@ Events
    :Type: :zeek:type:`event` (t: :zeek:type:`time`, msg: :zeek:type:`string`, location: :zeek:type:`string`)
    :Attributes: :zeek:attr:`&error_handler`
 
-   Raised for errors reported via Bro's reporter framework. Such messages may
+   Raised for errors reported via Zeek's reporter framework. Such messages may
    be generated internally by the event engine and also by other scripts calling
    :zeek:id:`Reporter::error`.
    
@@ -972,7 +972,7 @@ Events
    .. zeek:see:: reporter_info reporter_warning Reporter::info Reporter::warning
       Reporter::error
    
-   .. note:: Bro will not call reporter events recursively. If the handler of
+   .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
 
@@ -981,7 +981,7 @@ Events
    :Type: :zeek:type:`event` (t: :zeek:type:`time`, msg: :zeek:type:`string`, location: :zeek:type:`string`)
    :Attributes: :zeek:attr:`&error_handler`
 
-   Raised for informational messages reported via Bro's reporter framework. Such
+   Raised for informational messages reported via Zeek's reporter framework. Such
    messages may be generated internally by the event engine and also by other
    scripts calling :zeek:id:`Reporter::info`.
    
@@ -998,7 +998,7 @@ Events
    .. zeek:see:: reporter_warning reporter_error Reporter::info Reporter::warning
       Reporter::error
    
-   .. note:: Bro will not call reporter events recursively. If the handler of
+   .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
 
@@ -1007,7 +1007,7 @@ Events
    :Type: :zeek:type:`event` (t: :zeek:type:`time`, msg: :zeek:type:`string`, location: :zeek:type:`string`)
    :Attributes: :zeek:attr:`&error_handler`
 
-   Raised for warnings reported via Bro's reporter framework. Such messages may
+   Raised for warnings reported via Zeek's reporter framework. Such messages may
    be generated internally by the event engine and also by other scripts calling
    :zeek:id:`Reporter::warning`.
    
@@ -1024,7 +1024,7 @@ Events
    .. zeek:see:: reporter_info reporter_error Reporter::info Reporter::warning
       Reporter::error
    
-   .. note:: Bro will not call reporter events recursively. If the handler of
+   .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
 
@@ -1032,8 +1032,8 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, t1: :zeek:type:`string`, t2: :zeek:type:`string`, tcp_flags: :zeek:type:`string`)
 
-   Generated when Bro detects a TCP retransmission inconsistency. When
-   reassembling a TCP stream, Bro buffers all payload until it sees the
+   Generated when Zeek detects a TCP retransmission inconsistency. When
+   reassembling a TCP stream, Zeek buffers all payload until it sees the
    responder acking it. If during that time, the sender resends a chunk of
    payload but with different content than originally, this event will be
    raised. In addition, if :zeek:id:`tcp_max_old_segments` is larger than zero,
@@ -1068,7 +1068,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, a: :zeek:type:`Analyzer::Tag`)
 
    Generated when a connection is seen that is marked as being expected.
-   The function :zeek:id:`Analyzer::schedule_analyzer` tells Bro to expect a
+   The function :zeek:id:`Analyzer::schedule_analyzer` tells Zeek to expect a
    particular connection to come up, and which analyzer to associate with it.
    Once the first packet of such a connection is indeed seen, this event is
    raised.
@@ -1096,13 +1096,13 @@ Events
 
    :Type: :zeek:type:`event` (state: :zeek:type:`signature_state`, msg: :zeek:type:`string`, data: :zeek:type:`string`)
 
-   Generated when a signature matches. Bro's signature engine provides
+   Generated when a signature matches. Zeek's signature engine provides
    high-performance pattern matching separately from the normal script
    processing. If a signature with an ``event`` action matches, this event is
    raised.
    
    See the :doc:`user manual </frameworks/signatures>` for more information
-   about Bro's signature engine.
+   about Zeek's signature engine.
    
 
    :state: Context about the match, including which signatures triggered the
@@ -1113,7 +1113,7 @@ Events
    
 
    :data: The last chunk of input that triggered the match. Note that the
-         specifics here are not well-defined as Bro does not buffer any input.
+         specifics here are not well-defined as Zeek does not buffer any input.
          If a match is split across packet boundaries, only the last chunk
          triggering the match will be passed on to the event.
 
@@ -1150,7 +1150,7 @@ Events
    different analyzers. For example, the HTTP analyzer reports user-agent and
    server software by raising this event. Different from
    :zeek:id:`software_version_found`  and :zeek:id:`software_parse_error`, this
-   event is always raised, independent of whether Bro can parse the version
+   event is always raised, independent of whether Zeek can parse the version
    string.
    
 
@@ -1199,7 +1199,7 @@ Events
    *tunnel* field is NOT automatically/internally assigned to the new
    encapsulation value of *e* after this event is raised.  If the desired
    behavior is to track the latest tunnel encapsulation per-connection,
-   then a handler of this event should assign *e* to ``c$tunnel`` (which Bro's
+   then a handler of this event should assign *e* to ``c$tunnel`` (which Zeek's
    default scripts are doing).
    
 
@@ -1213,7 +1213,7 @@ Events
    :Type: :zeek:type:`event` (u: :zeek:type:`connection`)
 
    Generated when a UDP session for a supported protocol has finished. Some of
-   Bro's application-layer UDP analyzers flag the end of a session by raising
+   Zeek's application-layer UDP analyzers flag the end of a session by raising
    this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
    Teredo, and GTPv1 support this.
    

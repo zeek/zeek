@@ -24,7 +24,7 @@ Events
 
    :Type: :zeek:type:`event` (u: :zeek:type:`connection`, msg: :zeek:type:`ntp_msg`, excess: :zeek:type:`string`)
 
-   Generated for all NTP messages. Different from many other of Bro's events,
+   Generated for all NTP messages. Different from many other of Zeek's events,
    this one is generated for both client-side and server-side messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
@@ -37,14 +37,14 @@ Events
    :msg: The parsed NTP message.
    
 
-   :excess: The raw bytes of any optional parts of the NTP packet. Bro does not
+   :excess: The raw bytes of any optional parts of the NTP packet. Zeek does not
            further parse any optional fields.
    
    .. zeek:see:: ntp_session_timeout
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

@@ -15,7 +15,7 @@ Types
 #####
 ================================================ =====================================================================
 :zeek:type:`Broker::DataType`: :zeek:type:`enum` Enumerates the possible types that :zeek:see:`Broker::Data` may be in
-                                                 terms of Bro data types.
+                                                 terms of Zeek data types.
 ================================================ =====================================================================
 
 Functions
@@ -105,7 +105,7 @@ Types
       .. zeek:enum:: Broker::VECTOR Broker::DataType
 
    Enumerates the possible types that :zeek:see:`Broker::Data` may be in
-   terms of Bro data types.
+   terms of Zeek data types.
 
 Functions
 #########

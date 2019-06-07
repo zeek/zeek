@@ -37,9 +37,9 @@ Events
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_establish
@@ -54,9 +54,9 @@ Events
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_http_notify
@@ -71,9 +71,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_not_establish
@@ -88,9 +88,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_partial_binary_msg
@@ -105,9 +105,9 @@ Events
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish  gnutella_signature_found gnutella_text_msg
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: gnutella_text_msg
@@ -123,9 +123,9 @@ Events
       gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
    
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

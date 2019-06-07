@@ -37,7 +37,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, hlist: :zeek:type:`mime_header_list`)
 
    Generated for HTTP headers, passing on all headers of an HTTP message at
-   once. Bro supports persistent and pipelined HTTP sessions and raises
+   once. Zeek supports persistent and pipelined HTTP sessions and raises
    corresponding events as it parses client/server dialogues.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -68,7 +68,7 @@ Events
    Generated when starting to parse an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
    potentially more than once if the body contains further nested MIME
-   entities. Bro raises this event just before it starts parsing each entity's
+   entities. Zeek raises this event just before it starts parsing each entity's
    content.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -142,7 +142,7 @@ Events
    Generated when finishing parsing an HTTP body entity. This event is generated
    at least once for each non-empty (client or server) HTTP body; and
    potentially more than once if the body contains further nested MIME
-   entities. Bro raises this event at the point when it has finished parsing an
+   entities. Zeek raises this event at the point when it has finished parsing an
    entity's content.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -222,7 +222,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
-   Generated for HTTP headers. Bro supports persistent and pipelined HTTP
+   Generated for HTTP headers. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues.
    
@@ -252,7 +252,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, stat: :zeek:type:`http_message_stat`)
 
-   Generated once at the end of parsing an HTTP message. Bro supports persistent
+   Generated once at the end of parsing an HTTP message. Zeek supports persistent
    and pipelined HTTP sessions and raises corresponding events as it parses
    client/server dialogues. A "message" is one top-level HTTP entity, such as a
    complete request or reply. Each message can have further nested sub-entities
@@ -281,7 +281,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
-   Generated for HTTP replies. Bro supports persistent and pipelined HTTP
+   Generated for HTTP replies. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a reply's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
@@ -309,7 +309,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, unescaped_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 
-   Generated for HTTP requests. Bro supports persistent and pipelined HTTP
+   Generated for HTTP requests. Zeek supports persistent and pipelined HTTP
    sessions and raises corresponding events as it parses client/server
    dialogues. This event is generated as soon as a request's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.

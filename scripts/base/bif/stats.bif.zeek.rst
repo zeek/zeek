@@ -13,14 +13,14 @@ Functions
 #########
 ========================================================= =======================================================
 :zeek:id:`get_broker_stats`: :zeek:type:`function`        Returns statistics about Broker communication.
-:zeek:id:`get_conn_stats`: :zeek:type:`function`          Returns Bro traffic statistics.
+:zeek:id:`get_conn_stats`: :zeek:type:`function`          Returns Zeek traffic statistics.
 :zeek:id:`get_dns_stats`: :zeek:type:`function`           Returns statistics about DNS lookup activity.
 :zeek:id:`get_event_stats`: :zeek:type:`function`         Returns statistics about the event engine.
 :zeek:id:`get_file_analysis_stats`: :zeek:type:`function` Returns statistics about file analysis.
 :zeek:id:`get_gap_stats`: :zeek:type:`function`           Returns statistics about TCP gaps.
 :zeek:id:`get_matcher_stats`: :zeek:type:`function`       Returns statistics about the regular expression engine.
 :zeek:id:`get_net_stats`: :zeek:type:`function`           Returns packet capture statistics.
-:zeek:id:`get_proc_stats`: :zeek:type:`function`          Returns Bro process statistics.
+:zeek:id:`get_proc_stats`: :zeek:type:`function`          Returns Zeek process statistics.
 :zeek:id:`get_reassembler_stats`: :zeek:type:`function`   Returns statistics about reassembler usage.
 :zeek:id:`get_reporter_stats`: :zeek:type:`function`      Returns statistics about reporter messages and weirds.
 :zeek:id:`get_thread_stats`: :zeek:type:`function`        Returns statistics about thread usage.
@@ -59,7 +59,7 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`ConnStats`
 
-   Returns Bro traffic statistics.
+   Returns Zeek traffic statistics.
    
 
    :returns: A record with connection and packet statistics.
@@ -195,7 +195,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`NetStats`
 
    Returns packet capture statistics. Statistics include the number of
-   packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+   packets *(i)* received by Zeek, *(ii)* dropped, and *(iii)* seen on the
    link (not always available).
    
 
@@ -218,7 +218,7 @@ Functions
 
    :Type: :zeek:type:`function` () : :zeek:type:`ProcStats`
 
-   Returns Bro process statistics.
+   Returns Zeek process statistics.
    
 
    :returns: A record with process statistics.

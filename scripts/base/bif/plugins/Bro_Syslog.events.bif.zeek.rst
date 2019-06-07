@@ -41,7 +41,7 @@ Events
 
    :msg: The message logged.
    
-   .. note:: Bro currently parses only UDP syslog traffic. Support for TCP
+   .. note:: Zeek currently parses only UDP syslog traffic. Support for TCP
       syslog will be added soon.
 
 

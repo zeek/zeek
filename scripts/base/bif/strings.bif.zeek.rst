@@ -100,7 +100,7 @@ Functions
    
 
    :arg_edit_char: A string of exactly one character that represents the
-                  "backspace character". If it is longer than one character Bro
+                  "backspace character". If it is longer than one character Zeek
                   generates a run-time error and uses the first character in
                   the string.
    

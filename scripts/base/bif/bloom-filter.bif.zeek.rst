@@ -61,7 +61,7 @@ Functions
 
    :name: A name that uniquely identifies and seeds the Bloom filter. If empty,
          the filter will use :zeek:id:`global_hash_seed` if that's set, and
-         otherwise use a local seed tied to the current Bro process. Only
+         otherwise use a local seed tied to the current Zeek process. Only
          filters with the same seed can be merged with
          :zeek:id:`bloomfilter_merge`.
    
@@ -89,7 +89,7 @@ Functions
 
    :name: A name that uniquely identifies and seeds the Bloom filter. If empty,
          the filter will use :zeek:id:`global_hash_seed` if that's set, and
-         otherwise use a local seed tied to the current Bro process. Only
+         otherwise use a local seed tied to the current Zeek process. Only
          filters with the same seed can be merged with
          :zeek:id:`bloomfilter_merge`.
    
@@ -137,7 +137,7 @@ Functions
 
    :name: A name that uniquely identifies and seeds the Bloom filter. If empty,
          the filter will use :zeek:id:`global_hash_seed` if that's set, and
-         otherwise use a local seed tied to the current Bro process. Only
+         otherwise use a local seed tied to the current Zeek process. Only
          filters with the same seed can be merged with
          :zeek:id:`bloomfilter_merge`.
    
@@ -185,7 +185,7 @@ Functions
 
    Merges two Bloom filters.
    
-   .. note:: Currently Bloom filters created by different Bro instances cannot
+   .. note:: Currently Bloom filters created by different Zeek instances cannot
       be merged. In the future, this will be supported as long as both filters
       are created with the same name.
    

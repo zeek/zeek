@@ -100,7 +100,7 @@ Functions
                 responder (often the server).
               - ``CONTENTS_BOTH``: Record the data sent in both directions.
                 Results in the two directions being intermixed in the file,
-                in the order the data was seen by Bro.
+                in the order the data was seen by Zeek.
    
 
    :f: The file handle of the file to write the contents to.

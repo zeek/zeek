@@ -24,12 +24,12 @@ Events
                                                             the connection, but the other endpoint is in the TCP_INACTIVE state.
 :zeek:id:`connection_partial_close`: :zeek:type:`event`     Generated when a previously inactive endpoint attempts to close a TCP
                                                             connection via a normal FIN handshake or an abort RST sequence.
-:zeek:id:`connection_pending`: :zeek:type:`event`           Generated for each still-open TCP connection when Bro terminates.
+:zeek:id:`connection_pending`: :zeek:type:`event`           Generated for each still-open TCP connection when Zeek terminates.
 :zeek:id:`connection_rejected`: :zeek:type:`event`          Generated for a rejected TCP connection.
 :zeek:id:`connection_reset`: :zeek:type:`event`             Generated when an endpoint aborted a TCP connection.
 :zeek:id:`contents_file_write_failure`: :zeek:type:`event`  Generated when failing to write contents of a TCP stream to a file.
 :zeek:id:`new_connection_contents`: :zeek:type:`event`      Generated when reassembly starts for a TCP connection.
-:zeek:id:`partial_connection`: :zeek:type:`event`           Generated for a new active TCP connection if Bro did not see the initial
+:zeek:id:`partial_connection`: :zeek:type:`event`           Generated for a new active TCP connection if Zeek did not see the initial
                                                             handshake.
 :zeek:id:`tcp_contents`: :zeek:type:`event`                 Generated for each chunk of reassembled TCP payload.
 :zeek:id:`tcp_multiple_checksum_errors`: :zeek:type:`event` Generated if a TCP flow crosses a checksum-error threshold, per
@@ -42,7 +42,7 @@ Events
                                                             'W'/'w' history reporting.
 :zeek:id:`tcp_option`: :zeek:type:`event`                   Generated for each option found in a TCP header.
 :zeek:id:`tcp_packet`: :zeek:type:`event`                   Generated for every TCP packet.
-:zeek:id:`tcp_rexmit`: :zeek:type:`event`                   TODO.
+:zeek:id:`tcp_rexmit`: :zeek:type:`event`                   Generated for each detected TCP segment retransmission.
 =========================================================== =============================================================================
 
 
@@ -75,7 +75,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, pkt: :zeek:type:`SYN_packet`)
 
-   Generated for a SYN packet. Bro raises this event for every SYN packet seen
+   Generated for a SYN packet. Zeek raises this event for every SYN packet seen
    by its TCP analyzer.
    
 
@@ -185,7 +185,7 @@ Events
 
    Generated when one endpoint of a TCP connection attempted to gracefully close
    the connection, but the other endpoint is in the TCP_INACTIVE state. This can
-   happen due to split routing, in which Bro only sees one side of a connection.
+   happen due to split routing, in which Zeek only sees one side of a connection.
    
 
    :c: The connection.
@@ -203,7 +203,7 @@ Events
 
    Generated when a previously inactive endpoint attempts to close a TCP
    connection via a normal FIN handshake or an abort RST sequence. When the
-   endpoint sent one of these packets, Bro waits
+   endpoint sent one of these packets, Zeek waits
    :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
    the other endpoint a chance to close the connection normally.
    
@@ -221,7 +221,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
-   Generated for each still-open TCP connection when Bro terminates.
+   Generated for each still-open TCP connection when Zeek terminates.
    
 
    :c: The connection.
@@ -255,7 +255,7 @@ Events
    
       If the responder does not respond at all, :zeek:id:`connection_attempt` is
       raised instead. If the responder initially accepts the connection but
-      aborts it later, Bro first generates :zeek:id:`connection_established`
+      aborts it later, Zeek first generates :zeek:id:`connection_established`
       and then :zeek:id:`connection_reset`.
 
 .. zeek:id:: connection_reset
@@ -299,7 +299,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when reassembly starts for a TCP connection. This event is raised
-   at the moment when Bro's TCP analyzer enables stream reassembly for a
+   at the moment when Zeek's TCP analyzer enables stream reassembly for a
    connection.
    
 
@@ -316,8 +316,8 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
-   Generated for a new active TCP connection if Bro did not see the initial
-   handshake. This event is raised when Bro has observed traffic from each
+   Generated for a new active TCP connection if Zeek did not see the initial
+   handshake. This event is raised when Zeek has observed traffic from each
    endpoint, but the activity did not begin with the usual connection
    establishment.
    
@@ -368,7 +368,7 @@ Events
       application-layer protocol analyzers internally. Subsequent invocations of
       this event for the same connection receive non-overlapping in-order chunks
       of its TCP payload stream. It is however undefined what size each chunk
-      has; while Bro passes the data on as soon as possible, specifics depend on
+      has; while Zeek passes the data on as soon as possible, specifics depend on
       network-level effects such as latency, acknowledgements, reordering, etc.
 
 .. zeek:id:: tcp_multiple_checksum_errors
@@ -510,6 +510,26 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, len: :zeek:type:`count`, data_in_flight: :zeek:type:`count`, window: :zeek:type:`count`)
 
-   TODO.
+   Generated for each detected TCP segment retransmission.
+   
+
+   :c: The connection the packet is part of.
+   
+
+   :is_orig: True if the packet was sent by the connection's originator.
+   
+
+   :seq: The segment's relative TCP sequence number.
+   
+
+   :len: The length of the TCP segment, as specified in the packet header.
+   
+
+   :data_in_flight: The number of bytes corresponding to the difference between
+                   the last sequence number and last acknowledgement number
+                   we've seen for a given endpoint.
+   
+
+   :window: the TCP window size.
 
 

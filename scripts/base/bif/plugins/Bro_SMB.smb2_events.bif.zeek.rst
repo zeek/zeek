@@ -29,7 +29,7 @@ Events
    version 2 messages.
    
    See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
-   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Bro's
+   :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
    ports 138/139 and :abbr:`SMB (Server Message Block)`-over-TCP on port 445.

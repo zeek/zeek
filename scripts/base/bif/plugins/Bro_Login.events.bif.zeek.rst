@@ -81,9 +81,9 @@ Events
       while :zeek:id:`login_success` heuristically determines success by watching
       session data.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -111,9 +111,9 @@ Events
       while :zeek:id:`login_success` heuristically determines failure by watching
       session data.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -136,12 +136,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying activity. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -162,9 +162,9 @@ Events
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -185,9 +185,9 @@ Events
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -218,7 +218,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`, line: :zeek:type:`string`)
 
-   Generated when tracking of Telnet/Rlogin authentication failed. As Bro's
+   Generated when tracking of Telnet/Rlogin authentication failed. As Zeek's
    *login* analyzer uses a number of heuristics to extract authentication
    information, it may become confused. If it can no longer correctly track
    the authentication dialog, it raises this event.
@@ -241,9 +241,9 @@ Events
       login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -267,9 +267,9 @@ Events
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -289,9 +289,9 @@ Events
    .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -329,12 +329,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeeks's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -354,9 +354,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_output_line login_prompt login_success login_terminal    rsh_request
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -376,9 +376,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line  login_prompt login_success login_terminal rsh_reply
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -402,9 +402,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line  login_success login_terminal
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -442,12 +442,12 @@ Events
    
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
-      configuration has not yet been ported over from Bro 1.5 to Bro 2.x, and
+      configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -467,9 +467,9 @@ Events
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_success
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to add a
+      been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
 
@@ -502,9 +502,9 @@ Events
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: rsh_request
@@ -539,9 +539,9 @@ Events
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
    
-   .. todo:: Bro's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
-      been ported to Bro 2.x. To still enable this event, one needs to
+      been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
 

@@ -42,7 +42,7 @@ Events
    of the potentially significant buffering necessary, using this event can be
    expensive.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -58,7 +58,7 @@ Events
    .. zeek:see::  mime_all_headers mime_begin_entity mime_content_hash mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 .. zeek:id:: mime_all_headers
@@ -69,7 +69,7 @@ Events
    headers at once.  MIME is a protocol-independent data format for encoding
    text and files, along with corresponding metadata, for transmission.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -85,7 +85,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data
       http_header  http_all_headers
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_header` instead.
 
 .. zeek:id:: mime_begin_entity
@@ -94,10 +94,10 @@ Events
 
    Generated when starting to parse an email MIME entity. MIME is a
    protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. Bro raises this event when it
+   corresponding metadata, for transmission. Zeek raises this event when it
    begins parsing a MIME entity extracted from an email protocol.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -108,7 +108,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_begin_entity
    
-   .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME entities from HTTP sessions. For those,
       however, it raises :zeek:id:`http_begin_entity` instead.
 
 .. zeek:id:: mime_content_hash
@@ -116,10 +116,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, content_len: :zeek:type:`count`, hash_value: :zeek:type:`string`)
 
    Generated for decoded MIME entities extracted from email messages, passing on
-   their MD5 checksums. Bro computes the MD5 over the complete decoded data of
+   their MD5 checksums. Zeek computes the MD5 over the complete decoded data of
    each MIME entity.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -135,7 +135,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 .. zeek:id:: mime_end_entity
@@ -144,10 +144,10 @@ Events
 
    Generated when finishing parsing an email MIME entity.  MIME is a
    protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. Bro raises this event when it
+   corresponding metadata, for transmission. Zeek raises this event when it
    finished parsing a MIME entity extracted from an email protocol.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -158,7 +158,7 @@ Events
       mime_entity_data mime_event mime_one_header mime_segment_data smtp_data
       http_end_entity
    
-   .. note:: Bro also extracts MIME entities from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME entities from HTTP sessions. For those,
       however, it raises :zeek:id:`http_end_entity` instead.
 
 .. zeek:id:: mime_entity_data
@@ -170,10 +170,10 @@ Events
    and base64 data decoded. In contrast, there is also :zeek:id:`mime_segment_data`,
    which passes on a sequence of data chunks as they come in. While
    ``mime_entity_data`` is more convenient to handle, ``mime_segment_data`` is
-   more efficient as Bro does not need to buffer the data. Thus, if possible,
+   more efficient as Zeek does not need to buffer the data. Thus, if possible,
    the latter should be preferred.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -189,7 +189,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity  mime_event mime_one_header mime_segment_data
    
-   .. note:: While Bro also decodes MIME entities extracted from HTTP
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.
 
 .. zeek:id:: mime_event
@@ -198,7 +198,7 @@ Events
 
    Generated for errors found when decoding email MIME entities.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -215,7 +215,7 @@ Events
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
       mime_end_entity mime_entity_data  mime_one_header mime_segment_data http_event
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_event` instead.
 
 .. zeek:id:: mime_one_header
@@ -226,7 +226,7 @@ Events
    entities.  MIME is a protocol-independent data format for encoding text and
    files, along with corresponding metadata, for transmission.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -240,7 +240,7 @@ Events
       mime_end_entity mime_entity_data mime_event  mime_segment_data
       http_header  http_all_headers
    
-   .. note:: Bro also extracts MIME headers from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME headers from HTTP sessions. For those,
       however, it raises :zeek:id:`http_header` instead.
 
 .. zeek:id:: mime_segment_data
@@ -249,15 +249,15 @@ Events
 
    Generated for chunks of decoded MIME data from email MIME entities.  MIME
    is a protocol-independent data format for encoding text and files, along with
-   corresponding metadata, for transmission. As Bro parses the data of an
+   corresponding metadata, for transmission. As Zeek parses the data of an
    entity, it raises a sequence of these events, each coming as soon as a new
    chunk of data is available. In contrast, there is also
    :zeek:id:`mime_entity_data`, which passes all of an entities data at once
    in a single block. While the latter is more convenient to handle,
-   ``mime_segment_data`` is more efficient as Bro does not need to buffer
+   ``mime_segment_data`` is more efficient as Zeek does not need to buffer
    the data. Thus, if possible, this event should be preferred.
    
-   Bro's MIME analyzer for emails currently supports SMTP and POP3. See
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
    `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
@@ -274,7 +274,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header http_entity_data
       mime_segment_length mime_segment_overlap_length
    
-   .. note:: Bro also extracts MIME data from HTTP sessions. For those,
+   .. note:: Zeek also extracts MIME data from HTTP sessions. For those,
       however, it raises :zeek:id:`http_entity_data` (sic!) instead.
 
 

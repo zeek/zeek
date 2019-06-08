@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "StateAccess.h"
 #include "DebugLogger.h"
+#include "Notifier.h"
 
 notifier::Registry notifier::registry;
 

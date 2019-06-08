@@ -4,7 +4,7 @@
 #include <list>
 #include <map>
 
-#include "StateAccess.h"
+#include "Notifier.h"
 #include "Traverse.h"
 
 // Triggers are the heart of "when" statements: expressions that when

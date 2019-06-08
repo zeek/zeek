@@ -5,8 +5,8 @@
 // from notifier::Receiver and register the interesting objects with the
 // notification::Registry.
 
-#ifndef STATEACESSS_H
-#define STATEACESSS_H
+#ifndef NOTIFIER_H
+#define NOTIFIER_H
 
 #include <set>
 #include <unordered_map>

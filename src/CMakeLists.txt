@@ -302,7 +302,7 @@ set(bro_SRCS
     Scope.cc
     SerializationFormat.cc
     Sessions.cc
-    StateAccess.cc
+    Notifier.cc
     Stats.cc
     Stmt.cc
     Tag.cc

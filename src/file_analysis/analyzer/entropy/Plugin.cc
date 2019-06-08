@@ -5,7 +5,7 @@
 #include "Entropy.h"
 
 namespace plugin {
-namespace Bro_FileEntropy {
+namespace Zeek_FileEntropy {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::file_analysis::Component("ENTROPY", ::file_analysis::Entropy::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::FileEntropy";
+		config.name = "Zeek::FileEntropy";
 		config.description = "Entropy test file content";
 		return config;
 		}

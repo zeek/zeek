@@ -3,7 +3,7 @@ include(ZeekPlugin)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(AFTER  ${CMAKE_CURRENT_BINARY_DIR}/../dce-rpc)
 
-zeek_plugin_begin(Bro SMB)
+zeek_plugin_begin(Zeek SMB)
 zeek_plugin_cc(SMB.cc Plugin.cc)
 zeek_plugin_bif(
 	smb1_com_check_directory.bif

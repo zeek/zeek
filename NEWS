@@ -265,6 +265,9 @@ Changed Functionality
   were parsed separately as some TLS protocol versions specified a
   separate timestamp field as part of the full 32-byte random sequence.
 
+- The namespace used by all the builtin plugins that ship with Zeek have
+  changed to use "Zeek::" instead of "Bro::".
+
 Removed Functionality
 ---------------------
 

@@ -4331,7 +4331,7 @@ export {
 	type RDP::ClientChannelList: vector of ClientChannelDef;
 }
 
-@load base/bif/plugins/Bro_SNMP.types.bif
+@load base/bif/plugins/Zeek_SNMP.types.bif
 
 module SNMP;
 export {
@@ -4453,7 +4453,7 @@ export {
 	};
 }
 
-@load base/bif/plugins/Bro_KRB.types.bif
+@load base/bif/plugins/Zeek_KRB.types.bif
 
 module KRB;
 export {

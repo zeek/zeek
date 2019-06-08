@@ -3,7 +3,7 @@
 #include "RDP.h"
 
 namespace plugin {
-namespace Bro_RDP {
+namespace Zeek_RDP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -12,7 +12,7 @@ public:
                 AddComponent(new ::analyzer::Component("RDP", ::analyzer::rdp::RDP_Analyzer::InstantiateAnalyzer));
 
                 plugin::Configuration config;
-                config.name = "Bro::RDP";
+                config.name = "Zeek::RDP";
                 config.description = "RDP analyzer";
                 return config;
                 }

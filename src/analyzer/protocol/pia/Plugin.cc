@@ -6,7 +6,7 @@
 #include "PIA.h"
 
 namespace plugin {
-namespace Bro_PIA {
+namespace Zeek_PIA {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::PIA";
+		config.name = "Zeek::PIA";
 		config.description = "Analyzers implementing Dynamic Protocol";
 		return config;
 		}

@@ -99,7 +99,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 
 std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 	{
-	auto lock = plugin::Bro_RawReader::plugin.ForkMutex();
+	auto lock = plugin::Zeek_RawReader::plugin.ForkMutex();
 
 	try
 		{

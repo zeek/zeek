@@ -4,14 +4,14 @@
 #include "plugin/Plugin.h"
 
 namespace plugin {
-namespace Bro_MIME {
+namespace Zeek_MIME {
 
 class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure()
 		{
 		plugin::Configuration config;
-		config.name = "Bro::MIME";
+		config.name = "Zeek::MIME";
 		config.description = "MIME parsing";
 		return config;
 		}

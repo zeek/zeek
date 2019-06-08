@@ -1,4 +1,8 @@
 
+2.6-400 | 2019-06-07 20:06:33 -0700
+
+  * Adapt bro_plugin CMake macros to use zeek_plugin (Jon Siwek, Corelight)
+
 2.6-399 | 2019-06-07 14:02:18 -0700
 
   * Update SSL documentation. (Johanna Amann)

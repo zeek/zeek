@@ -1,9 +1,9 @@
 
-include(BroPlugin)
+include(ZeekPlugin)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-bro_plugin_begin(Bro Finger)
-bro_plugin_cc(Finger.cc Plugin.cc)
-bro_plugin_bif(events.bif)
-bro_plugin_end()
+zeek_plugin_begin(Bro Finger)
+zeek_plugin_cc(Finger.cc Plugin.cc)
+zeek_plugin_bif(events.bif)
+zeek_plugin_end()

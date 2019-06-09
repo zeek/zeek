@@ -35,81 +35,81 @@ refine flow NTP_Flow += {
         # This builds the standard msg record
         function BuildNTPStdMsg(nsm: NTP_std_msg): BroVal
         %{
-                RecordVal* rv = new RecordVal(BifType::Record::NTP::std);
+           RecordVal* rv = new RecordVal(BifType::Record::NTP::std);
 
-               	rv->Assign(0, val_mgr->GetCount(${nsm.stratum}));
-                rv->Assign(1, new Val(pow(2, ${nsm.poll}), TYPE_INTERVAL));
-                rv->Assign(2, new Val(pow(2, ${nsm.precision}), TYPE_INTERVAL));
-                rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
-                rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
+           rv->Assign(0, val_mgr->GetCount(${nsm.stratum}));
+           rv->Assign(1, new Val(pow(2, ${nsm.poll}), TYPE_INTERVAL));
+           rv->Assign(2, new Val(pow(2, ${nsm.precision}), TYPE_INTERVAL));
+           rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
+           rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 
-              	switch ( ${nsm.stratum} )
-              	{
-                 case 0:
-                    // unknown stratum => kiss code
-                    rv->Assign(5, bytestring_to_val(${nsm.reference_id}));
-                    break;
-                 case 1:
-                    // reference clock => ref clock string
-                    rv->Assign(6, bytestring_to_val(${nsm.reference_id}));
-                    break;
-                 default:
-                    // TODO: Check for v4/v6
-                    const uint8* d = ${nsm.reference_id}.data();
-                    rv->Assign(7, new AddrVal(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
-                    break;
-              	}
+           switch ( ${nsm.stratum} )
+           {
+              case 0:
+                 // unknown stratum => kiss code
+                 rv->Assign(5, bytestring_to_val(${nsm.reference_id}));
+                 break;
+              case 1:
+                 // reference clock => ref clock string
+                 rv->Assign(6, bytestring_to_val(${nsm.reference_id}));
+                 break;
+              default:
+                 // TODO: Check for v4/v6
+                 const uint8* d = ${nsm.reference_id}.data();
+                 rv->Assign(7, new AddrVal(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+                 break;
+           }
 
-                rv->Assign(9, proc_ntp_timestamp(${nsm.reference_ts}));
-                rv->Assign(10, proc_ntp_timestamp(${nsm.origin_ts}));
-                rv->Assign(11, proc_ntp_timestamp(${nsm.receive_ts}));
-                rv->Assign(12, proc_ntp_timestamp(${nsm.transmit_ts}));
+           rv->Assign(9, proc_ntp_timestamp(${nsm.reference_ts}));
+           rv->Assign(10, proc_ntp_timestamp(${nsm.origin_ts}));
+           rv->Assign(11, proc_ntp_timestamp(${nsm.receive_ts}));
+           rv->Assign(12, proc_ntp_timestamp(${nsm.transmit_ts}));
 
-		if (${nsm.mac_len}==20) {
-		    rv->Assign(13, val_mgr->GetCount(${nsm.mac.key_id}));
-		    rv->Assign(14, bytestring_to_val(${nsm.mac.digest}));
-		} else if (${nsm.mac_len}==24) {
-		    rv->Assign(13, val_mgr->GetCount(${nsm.mac_ext.key_id}));
-		    rv->Assign(14, bytestring_to_val(${nsm.mac_ext.digest}));
-		} 
-		// TODO: add extension fields
-                //rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.extensions}->size()));
+	   if (${nsm.mac_len}==20) {
+	      rv->Assign(13, val_mgr->GetCount(${nsm.mac.key_id}));
+	      rv->Assign(14, bytestring_to_val(${nsm.mac.digest}));
+	   } else if (${nsm.mac_len}==24) {
+	      rv->Assign(13, val_mgr->GetCount(${nsm.mac_ext.key_id}));
+	      rv->Assign(14, bytestring_to_val(${nsm.mac_ext.digest}));
+	   } 
+	   // TODO: add extension fields
+           //rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.extensions}->size()));
 
-        	return rv;
+           return rv;
         %}
 
         # This builds the control msg record
         function BuildNTPControlMsg(ncm: NTP_control_msg): BroVal
         %{
-                RecordVal* rv = new RecordVal(BifType::Record::NTP::control);
+           RecordVal* rv = new RecordVal(BifType::Record::NTP::control);
 
-                rv->Assign(0, val_mgr->GetCount(${ncm.OpCode}));
-                rv->Assign(1, val_mgr->GetBool(${ncm.R}));
-                rv->Assign(2, val_mgr->GetBool(${ncm.E}));
-                rv->Assign(3, val_mgr->GetBool(${ncm.M}));
-                rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
-                rv->Assign(5, val_mgr->GetCount(${ncm.status}));
-                rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
-                rv->Assign(7, val_mgr->GetCount(${ncm.offs}));
-                rv->Assign(8, val_mgr->GetCount(${ncm.c}));
-                rv->Assign(9, bytestring_to_val(${ncm.data}));
+           rv->Assign(0, val_mgr->GetCount(${ncm.OpCode}));
+           rv->Assign(1, val_mgr->GetBool(${ncm.R}));
+           rv->Assign(2, val_mgr->GetBool(${ncm.E}));
+           rv->Assign(3, val_mgr->GetBool(${ncm.M}));
+           rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
+           rv->Assign(5, val_mgr->GetCount(${ncm.status}));
+           rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
+           rv->Assign(7, val_mgr->GetCount(${ncm.offs}));
+           rv->Assign(8, val_mgr->GetCount(${ncm.c}));
+           rv->Assign(9, bytestring_to_val(${ncm.data}));
 
-                return rv;
+           return rv;
         %}
 
         # This builds the mode7 msg record
         function BuildNTPMode7Msg(m7: NTP_mode7_msg): BroVal
         %{
-                RecordVal* rv = new RecordVal(BifType::Record::NTP::mode7);
+           RecordVal* rv = new RecordVal(BifType::Record::NTP::mode7);
 
-                rv->Assign(0, val_mgr->GetCount(${m7.request_code}));
-                rv->Assign(1, val_mgr->GetBool(${m7.auth_bit}));
-                rv->Assign(2, val_mgr->GetCount(${m7.sequence}));
-                rv->Assign(3, val_mgr->GetCount(${m7.implementation}));
-                rv->Assign(4, val_mgr->GetCount(${m7.error_code}));
-                rv->Assign(5, bytestring_to_val(${m7.data}));
+           rv->Assign(0, val_mgr->GetCount(${m7.request_code}));
+           rv->Assign(1, val_mgr->GetBool(${m7.auth_bit}));
+           rv->Assign(2, val_mgr->GetCount(${m7.sequence}));
+           rv->Assign(3, val_mgr->GetCount(${m7.implementation}));
+           rv->Assign(4, val_mgr->GetCount(${m7.error_code}));
+           rv->Assign(5, bytestring_to_val(${m7.data}));
 
-                return rv;
+           return rv;
         %}
 
 

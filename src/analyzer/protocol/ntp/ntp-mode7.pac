@@ -14,17 +14,17 @@
 #   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 #   |  Err  | Number of data items  |  MBZ  |   Size of data item   |
 #   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#   |								     |
+#   |								    |
 #   |            Data (Minimum 0 octets, maximum 500 octets)        |
-#   |								     |
+#   |								    |
 #                            [...]
-#   |								     |
+#   |								    |
 #   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 #   |               Encryption Keyid (when A bit set)               |
 #   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#   |								     |
+#   |								    |
 #   |          Message Authentication Code (when A bit set)         |
-#   |								     |
+#   |								    |
 #   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 #
 # where the fields are (note that the client sends requests, the server
@@ -115,9 +115,9 @@ type NTP_mode7_msg = record {
     			false -> nil: empty;
   			};
 } &let {
-  auth_bit  : bool  = (second_byte & 0x80) > 0;
-  sequence  : uint8 = (second_byte & 0x7F);
-  error_code: uint8 = (err_and_data_len & 0xF000) >> 12;
+  auth_bit  : bool   = (second_byte & 0x80) > 0;
+  sequence  : uint8  = (second_byte & 0x7F);
+  error_code: uint8  = (err_and_data_len & 0xF000) >> 12;
   data_len  : uint16 = (err_and_data_len & 0x0FFF);
 } &byteorder=bigendian &exportsourcedata;
 

@@ -1,10 +1,9 @@
-
 # This is the common part in the header format. 
 # See RFC 5905 for details
 type NTP_PDU(is_orig: bool) = record {
 	# The first byte of the NTP header contains the leap indicator,
 	# the version and the mode
-	first_byte     : uint8;
+	first_byte     	: uint8;
   	# Modes 1-5 are standard NTP time sync
   	standard_modes  : case (mode>=1 && mode<=5) of {
   		true  	-> std		: NTP_std_msg;
@@ -18,9 +17,9 @@ type NTP_PDU(is_orig: bool) = record {
   		default -> unknown	: bytestring &restofdata;
   	};
 } &let {
-	leap:     uint8  = (first_byte & 0xc0)>>6;   	# First 2 bits of 8-bits value
-	version:  uint8  = (first_byte & 0x38)>>3; 	# Bits 3-5 of 8-bits value
-	mode:     uint8  = (first_byte & 0x07);  	# Bits 6-8 of 8-bits value
+	leap	:	uint8  = (first_byte & 0xc0)>>6;   	# First 2 bits of 8-bits value
+	version	:	uint8  = (first_byte & 0x38)>>3; 	# Bits 3-5 of 8-bits value
+	mode	:	uint8  = (first_byte & 0x07);  		# Bits 6-8 of 8-bits value
 } &byteorder=bigendian &exportsourcedata;
 
 # This is the most common type of message, corresponding to modes 1-5
@@ -40,13 +39,13 @@ type NTP_std_msg = record {
         receive_ts     : NTP_Time;
         transmit_ts    : NTP_Time;
         extensions     : case (has_exts) of {
-				true -> exts	: Extension_Field[] &until($input.length() > 24); 
+				true  -> exts	: Extension_Field[] &until($input.length() > 24); 
 				false -> nil 	: empty;
                          } &requires(has_exts);
         mac_fields     : case (mac_len) of {
-                                20  -> mac 	: NTP_MAC;
-                                24  -> mac_ext 	: NTP_MAC_ext;
-                                default -> nil2 : empty;
+                                20	-> mac		: NTP_MAC;
+                                24 	-> mac_ext 	: NTP_MAC_ext;
+                                default -> nil2 	: empty;
                          } &requires(mac_len);
 } &let {
         length          = sourcedata.length();
@@ -64,35 +63,35 @@ type NTP_control_msg = record {
         offs		: uint16;
         c	   	: uint16;
 	data		: bytestring &length=c;
-        mac_fields     : case (has_control_mac) of {
+        mac_fields	: case (has_control_mac) of {
                                 true  -> mac : NTP_CONTROL_MAC;
                                 false -> nil : empty;
                          } &requires(has_control_mac);
 } &let {
-        R:	bool   = (second_byte & 0x80) > 0;	# First bit of 8-bits value
-        E:	bool   = (second_byte & 0x40) > 0;	# Second bit of 8-bits value
-        M:     	bool   = (second_byte & 0x20) > 0;	# Third bit of 8-bits value
-        OpCode:	uint8  = (second_byte & 0x1F);		# Last 5 bits of 8-bits value
-        length         = sourcedata.length();
+        R	: bool   = (second_byte & 0x80) > 0;	# First bit of 8-bits value
+        E	: bool   = (second_byte & 0x40) > 0;	# Second bit of 8-bits value
+        M	: bool   = (second_byte & 0x20) > 0;	# Third bit of 8-bits value
+        OpCode	: uint8  = (second_byte & 0x1F);	# Last 5 bits of 8-bits value
+        length	= sourcedata.length();
         has_control_mac: bool   = (length - offsetof(mac_fields)) == 12;
 } &byteorder=bigendian &exportsourcedata;
 
 # As in RFC 5905
 type NTP_MAC = record {
-	key_id: uint32;
-	digest: bytestring &length=16;
+	key_id	: uint32;
+	digest	: bytestring &length=16;
 } &length=20;
 
 # As in RFC 5906, same as NTP_MAC but with a 160 bit digest
 type NTP_MAC_ext = record {
-	key_id: uint32;
-	digest: bytestring &length=20;
+	key_id	: uint32;
+	digest	: bytestring &length=20;
 } &length=24;
 
 # As in RFC 1119
 type NTP_CONTROL_MAC = record {
-        key_id: uint32;
-     	crypto_checksum: bytestring &length=8;
+        key_id		: uint32;
+     	crypto_checksum	: bytestring &length=8;
 } &length=12;
 
 # As defined in RFC 5906
@@ -115,11 +114,11 @@ type Extension_Field = record {
 };
 
 type NTP_Short_Time = record {
-  seconds:   int16;
-  fractions: int16;
+  seconds	: int16;
+  fractions	: int16;
 };
 
 type NTP_Time = record {
-  seconds:   uint32;
-  fractions: uint32;
+  seconds	: uint32;
+  fractions	: uint32;
 };

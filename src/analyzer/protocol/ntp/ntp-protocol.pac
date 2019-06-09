@@ -39,14 +39,18 @@ type NTP_std_msg = record {
         origin_ts      : NTP_Time;
         receive_ts     : NTP_Time;
         transmit_ts    : NTP_Time;
-        #extensions     : Extension_Field[] &until($input.length() == 20); #TODO: this need to be properly parsed 
+        extensions     : case (has_exts) of {
+				true -> exts	: Extension_Field[] &until($input.length() > 24); 
+				false -> nil 	: empty;
+                         } &requires(has_exts);
         mac_fields     : case (mac_len) of {
                                 20  -> mac 	: NTP_MAC;
                                 24  -> mac_ext 	: NTP_MAC_ext;
-                                false -> nil : empty;
+                                default -> nil2 : empty;
                          } &requires(mac_len);
 } &let {
         length          = sourcedata.length();
+	has_exts: bool	= (length - offsetof(extensions)) > 24;
 	mac_len: uint32	= (length - offsetof(mac_fields));
 } &byteorder=bigendian &exportsourcedata;
 
@@ -69,7 +73,7 @@ type NTP_control_msg = record {
         E:	bool   = (second_byte & 0x40) > 0;	# Second bit of 8-bits value
         M:     	bool   = (second_byte & 0x20) > 0;	# Third bit of 8-bits value
         OpCode:	uint8  = (second_byte & 0x1F);		# Last 5 bits of 8-bits value
-        length          = sourcedata.length();
+        length         = sourcedata.length();
         has_control_mac: bool   = (length - offsetof(mac_fields)) == 12;
 } &byteorder=bigendian &exportsourcedata;
 
@@ -91,10 +95,23 @@ type NTP_CONTROL_MAC = record {
      	crypto_checksum: bytestring &length=8;
 } &length=12;
 
+# As defined in RFC 5906
 type Extension_Field = record {
-  field_type: uint16;
-  ext_len   : uint16;
-  data      : bytestring &length=ext_len-4;
+  first_byte_ext: uint8;
+  field_type	: uint8;
+  len		: uint16;
+  association_id: uint16;
+  timestamp	: uint32;
+  filestamp	: uint32;
+  value_len	: uint32;
+  value		: bytestring &length=value_len;
+  sig_len	: uint32;
+  signature	: bytestring &length=sig_len;
+  pad		: padding to (len - offsetof(first_byte_ext));
+} &let {
+        R:	bool   = (first_byte_ext & 0x80) > 0;	# First bit of 8-bits value
+        E:	bool   = (first_byte_ext & 0x40) > 0;	# Second bit of 8-bits value
+        Code:	uint8  = (first_byte_ext & 0x3F);	# Last 6 bits of 8-bits value
 };
 
 type NTP_Short_Time = record {

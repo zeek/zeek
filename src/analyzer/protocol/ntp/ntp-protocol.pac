@@ -40,13 +40,14 @@ type NTP_std_msg = record {
         receive_ts     : NTP_Time;
         transmit_ts    : NTP_Time;
         #extensions     : Extension_Field[] &until($input.length() == 20); #TODO: this need to be properly parsed 
-        mac_fields     : case (has_mac) of {
-                                true  -> mac : NTP_MAC;
+        mac_fields     : case (mac_len) of {
+                                20  -> mac 	: NTP_MAC;
+                                24  -> mac_ext 	: NTP_MAC_ext;
                                 false -> nil : empty;
-                         } &requires(has_mac);
+                         } &requires(mac_len);
 } &let {
         length          = sourcedata.length();
-	has_mac: bool	= (length - offsetof(mac_fields)) == 20;
+	mac_len: uint32	= (length - offsetof(mac_fields));
 } &byteorder=bigendian &exportsourcedata;
 
 # This format is for mode==6, control msg
@@ -77,6 +78,12 @@ type NTP_MAC = record {
 	key_id: uint32;
 	digest: bytestring &length=16;
 } &length=20;
+
+# As in RFC 5906, same as NTP_MAC but with a 160 bit digest
+type NTP_MAC_ext = record {
+	key_id: uint32;
+	digest: bytestring &length=20;
+} &length=24;
 
 # As in RFC 1119
 type NTP_CONTROL_MAC = record {

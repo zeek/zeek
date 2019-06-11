@@ -90,9 +90,12 @@ refine flow NTP_Flow += {
            rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
            rv->Assign(5, val_mgr->GetCount(${ncm.status}));
            rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
-           rv->Assign(7, val_mgr->GetCount(${ncm.offs}));
-           rv->Assign(8, val_mgr->GetCount(${ncm.c}));
-           rv->Assign(9, bytestring_to_val(${ncm.data}));
+           rv->Assign(7, bytestring_to_val(${ncm.data}));
+
+           if (${ncm.has_control_mac}) {
+              rv->Assign(8, val_mgr->GetCount(${ncm.mac.key_id}));
+              rv->Assign(9, bytestring_to_val(${ncm.mac.crypto_checksum}));
+           }
 
            return rv;
         %}

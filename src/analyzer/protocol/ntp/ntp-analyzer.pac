@@ -71,10 +71,12 @@ refine flow NTP_Flow += {
 	   } else if (${nsm.mac_len}==24) {
 	      rv->Assign(13, val_mgr->GetCount(${nsm.mac_ext.key_id}));
 	      rv->Assign(14, bytestring_to_val(${nsm.mac_ext.digest}));
-	   } 
-	   // TODO: add extension fields
-           //rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.extensions}->size()));
+	   }
 
+	   if (${nsm.has_exts}) { 
+	      // TODO: add extension fields
+              rv->Assign(15, val_mgr->GetCount((uint32) ${nsm.exts}->size()));
+	   }
            return rv;
         %}
 
@@ -90,7 +92,9 @@ refine flow NTP_Flow += {
            rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
            rv->Assign(5, val_mgr->GetCount(${ncm.status}));
            rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
-           rv->Assign(7, bytestring_to_val(${ncm.data}));
+
+	   if (${ncm.c}>0)
+              rv->Assign(7, bytestring_to_val(${ncm.data}));
 
            if (${ncm.has_control_mac}) {
               rv->Assign(8, val_mgr->GetCount(${ncm.mac.key_id}));
@@ -110,7 +114,8 @@ refine flow NTP_Flow += {
            rv->Assign(2, val_mgr->GetCount(${m7.sequence}));
            rv->Assign(3, val_mgr->GetCount(${m7.implementation}));
            rv->Assign(4, val_mgr->GetCount(${m7.error_code}));
-           rv->Assign(5, bytestring_to_val(${m7.data}));
+	   if (${m7.data_len}>0)
+             rv->Assign(5, bytestring_to_val(${m7.data}));
 
            return rv;
         %}

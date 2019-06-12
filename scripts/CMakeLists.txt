@@ -26,6 +26,22 @@ if ( NOT BINARY_PACKAGING_MODE )
       endif ()
     endif ()
   ")
+
+  # If the user is installing into the default Zeek prefix and if the old Bro
+  # default prefix exists, then treat this install as an upgrade and install
+  # the new local.zeek as a symlink to the old local.bro.
+  set(_old_local_bro /usr/local/bro/share/bro/site/local.bro)
+  set(_bro_default_prefix /usr/local/bro)
+  set(_zeek_default_prefix /usr/local/zeek)
+
+  install(CODE "
+    if ( EXISTS \"${_bro_default_prefix}\" AND \"${ZEEK_ROOT_DIR}\" STREQUAL \"${_zeek_default_prefix}\" )
+        message(STATUS \"WARNING: installed ${_local_zeek_dst} as symlink to ${_old_local_bro}\")
+        execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink
+          \"${_old_local_bro}\" \"${_local_zeek_dst}\")
+    endif ()
+  ")
+
 endif ()
 
 # Install local script as a config file since it's meant to be modified directly.

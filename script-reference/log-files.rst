@@ -182,9 +182,9 @@ Bro Diagnostics
 | stats.log                  | Memory/event/packet/lag statistics    | :zeek:type:`Stats::Info`        |
 +----------------------------+---------------------------------------+---------------------------------+
 | stderr.log                 | Captures standard error when Bro is   | N/A                             |
-|                            | started from BroControl               |                                 |
+|                            | started from ZeekControl              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 | stdout.log                 | Captures standard output when Bro is  | N/A                             |
-|                            | started from BroControl               |                                 |
+|                            | started from ZeekControl              |                                 |
 +----------------------------+---------------------------------------+---------------------------------+
 

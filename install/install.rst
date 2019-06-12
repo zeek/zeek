@@ -6,7 +6,7 @@
 .. _Homebrew: http://brew.sh
 .. _downloads page: https://www.zeek.org/download/index.html
 
-.. _installing-bro:
+.. _installing-zeek:
 
 ==========
 Installing
@@ -28,8 +28,8 @@ before you begin:
     * OpenSSL libraries                 (http://www.openssl.org)
     * BIND8 library
     * Libz
-    * Bash (for BroControl)
-    * Python 2.6 or greater (for BroControl)
+    * Bash (for ZeekControl)
+    * Python 2.6 or greater (for ZeekControl)
 
 To build Bro from source, the following additional dependencies are required:
 
@@ -101,7 +101,7 @@ Bro can make use of some optional libraries and tools if they are found at
 build time:
 
     * libmaxminddb (for geolocating IP addresses)
-    * sendmail (enables Bro and BroControl to send mail)
+    * sendmail (enables Zeek and ZeekControl to send mail)
     * curl (used by a Bro script that implements active HTTP)
     * gperftools (tcmalloc is used to improve memory and CPU usage)
     * jemalloc (http://www.canonware.com/jemalloc/)
@@ -173,7 +173,7 @@ version of a dependency.  Assuming that you already installed all required
 dependencies, then you may need to use one of the ``--with-*`` options
 that can be given to the ``configure`` script to help it locate a dependency.
 
-The default installation path is ``/usr/local/bro``, which would typically
+The default installation path is ``/usr/local/zeek``, which would typically
 require root privileges when doing the ``make install``.  A different
 installation path can be chosen by specifying the ``configure`` script
 ``--prefix`` option.  Note that ``/usr`` and ``/opt/bro`` are the
@@ -190,7 +190,7 @@ will be automatically built and installed along with Bro. There are
 ``--disable-*`` options that can be given to the configure script to
 turn off unwanted auxiliary projects that would otherwise be installed
 automatically.  Finally, use ``make install-aux`` to install some of
-the other programs that are in the ``aux/bro-aux`` directory.
+the other programs that are in the ``aux/zeek-aux`` directory.
 
 Finally, if you want to build the Bro documentation (not required, because
 all of the documentation for the latest Bro release is available on the
@@ -214,13 +214,13 @@ Bourne-Shell Syntax:
 
 .. sourcecode:: console
 
-   export PATH=/usr/local/bro/bin:$PATH
+   export PATH=/usr/local/zeek/bin:$PATH
 
 C-Shell Syntax:
 
 .. sourcecode:: console
 
-   setenv PATH /usr/local/bro/bin:$PATH
+   setenv PATH /usr/local/zeek/bin:$PATH
 
 Or substitute ``/opt/bro/bin`` instead if you installed from a binary package.
 

@@ -1,4 +1,4 @@
-.. _BroControl documentation: https://github.com/zeek/broctl
+.. _ZeekControl documentation: https://github.com/zeek/zeekctl
 .. _FAQ: https://www.zeek.org/documentation/faq.html
 
 .. _quickstart:
@@ -9,62 +9,62 @@ Quick Start Guide
 
 Bro works on most modern, Unix-based systems and requires no custom
 hardware.  It can be downloaded in either pre-built binary package or
-source code forms.  See :ref:`installing-bro` for instructions on how to
+source code forms.  See :ref:`installing-zeek` for instructions on how to
 install Bro. 
 
 In the examples below, ``$PREFIX`` is used to reference the Bro
-installation root directory, which by default is ``/usr/local/bro`` if
+installation root directory, which by default is ``/usr/local/zeek`` if
 you install from source. 
 
-Managing Bro with BroControl
-============================
+Managing Bro with ZeekControl
+=============================
 
-BroControl is an interactive shell for easily operating/managing Bro
+ZeekControl is an interactive shell for easily operating/managing Bro
 installations on a single system or even across multiple systems in a
-traffic-monitoring cluster.  This section explains how to use BroControl
+traffic-monitoring cluster.  This section explains how to use ZeekControl
 to manage a stand-alone Bro installation.  For a complete reference on
-BroControl, see the `BroControl documentation`_.
+ZeekControl, see the `ZeekControl documentation`_.
 For instructions on how to configure a Bro cluster,
 see the :doc:`Cluster Configuration <../configuration/index>` documentation.
 
 A Minimal Starting Configuration
 --------------------------------
 
-These are the basic configuration changes to make for a minimal BroControl
+These are the basic configuration changes to make for a minimal ZeekControl
 installation that will manage a single Bro instance on the ``localhost``:
 
 1) In ``$PREFIX/etc/node.cfg``, set the right interface to monitor.
 2) In ``$PREFIX/etc/networks.cfg``, comment out the default settings and add
    the networks that Bro will consider local to the monitored environment.
-3) In ``$PREFIX/etc/broctl.cfg``, change the ``MailTo`` email address to a
+3) In ``$PREFIX/etc/zeekctl.cfg``, change the ``MailTo`` email address to a
    desired recipient and the ``LogRotationInterval`` to a desired log
    archival frequency.
 
-Now start the BroControl shell like:
+Now start the ZeekControl shell like:
 
 .. sourcecode:: console
 
-   broctl
+   zeekctl
 
 Since this is the first-time use of the shell, perform an initial installation
-of the BroControl configuration:
+of the ZeekControl configuration:
 
 .. sourcecode:: console
 
-   [BroControl] > install
+   [ZeekControl] > install
 
 Then start up a Bro instance:
 
 .. sourcecode:: console
 
-   [BroControl] > start
+   [ZeekControl] > start
 
 If there are errors while trying to start the Bro instance, you can
 can view the details with the ``diag`` command.  If started successfully,
 the Bro instance will begin analyzing traffic according to a default
 policy and output the results in ``$PREFIX/logs``.
 
-.. note:: The user starting BroControl needs permission to capture
+.. note:: The user starting ZeekControl needs permission to capture
    network traffic. If you are not root, you may need to grant further
    privileges to the account you're using; see the FAQ_.  Also, if it
    looks like Bro is not seeing any traffic, check out the FAQ entry on
@@ -74,7 +74,7 @@ You can leave it running for now, but to stop this Bro instance you would do:
 
 .. sourcecode:: console
 
-   [BroControl] > stop
+   [ZeekControl] > stop
 
 Browsing Log Files
 ------------------
@@ -117,11 +117,11 @@ Some logs are worth explicit mention:
         potentially interesting, odd, or bad. In Bro-speak, such
         activity is called a "notice".
 
-By default, ``BroControl`` regularly takes all the logs from
+By default, ``ZeekControl`` regularly takes all the logs from
 ``$PREFIX/logs/current`` and archives/compresses them to a directory
 named by date, e.g. ``$PREFIX/logs/2011-10-06``.  The frequency at
 which this is done can be configured via the ``LogRotationInterval``
-option in ``$PREFIX/etc/broctl.cfg``.
+option in ``$PREFIX/etc/zeekctl.cfg``.
 
 Deployment Customization
 ------------------------
@@ -161,13 +161,13 @@ Bro Scripts
 
 Bro ships with many pre-written scripts that are highly customizable
 to support traffic analysis for your specific environment.  By
-default, these will be installed into ``$PREFIX/share/bro`` and can be
+default, these will be installed into ``$PREFIX/share/zeek`` and can be
 identified by the use of a ``.zeek`` file name extension.  These files
 should **never** be edited directly as changes will be lost when
 upgrading to newer versions of Bro.  The exception to this rule is the
-directory ``$PREFIX/share/bro/site`` where local site-specific files
+directory ``$PREFIX/share/zeek/site`` where local site-specific files
 can be put without fear of being clobbered later. The other main
-script directories under ``$PREFIX/share/bro`` are ``base`` and
+script directories under ``$PREFIX/share/zeek`` are ``base`` and
 ``policy``.  By default, Bro automatically loads all scripts under
 ``base`` (unless the ``-b`` command line option is supplied), which
 deal either with collecting basic/useful state about network
@@ -177,7 +177,7 @@ functionality without any performance cost.  Scripts under the
 must explicitly choose if they want to load them.
 
 The main entry point for the default analysis configuration of a standalone
-Bro instance managed by BroControl is the ``$PREFIX/share/bro/site/local.zeek``
+Bro instance managed by ZeekControl is the ``$PREFIX/share/zeek/site/local.zeek``
 script.  We'll be adding to that in the following sections, but first
 we have to figure out what to add.
 
@@ -220,27 +220,27 @@ That's exactly what we want to do for the first notice.  Add to ``local.zeek``:
    inside a module do not have to be scoped if referring to them while still
    inside the module.
 
-Then go into the BroControl shell to check whether the configuration change
+Then go into the ZeekControl shell to check whether the configuration change
 is valid before installing it and then restarting the Bro instance.  The
 "deploy" command does all of this automatically:
 
 .. sourcecode:: console
 
-   [BroControl] > deploy
+   [ZeekControl] > deploy
    checking configurations ...
    installing ...
-   removing old policies in /usr/local/bro/spool/installed-scripts-do-not-touch/site ...
-   removing old policies in /usr/local/bro/spool/installed-scripts-do-not-touch/auto ...
+   removing old policies in /usr/local/zeek/spool/installed-scripts-do-not-touch/site ...
+   removing old policies in /usr/local/zeek/spool/installed-scripts-do-not-touch/auto ...
    creating policy directories ...
    installing site policies ...
    generating standalone-layout.zeek ...
    generating local-networks.zeek ...
-   generating broctl-config.zeek ...
-   generating broctl-config.sh ...
+   generating zeekctl-config.zeek ...
+   generating zeekctl-config.sh ...
    stopping ...
-   stopping bro ...
+   stopping zeek ...
    starting ...
-   starting bro ...
+   starting zeek ...
 
 Now that the SSL notice is ignored, let's look at how to send an email
 on the other notice.  The notice framework has a similar option called
@@ -260,7 +260,7 @@ In ``local.zeek``, let's define a new ``policy`` hook handler body:
 
 .. sourcecode:: console
 
-   $ bro -r tls/tls-expired-cert.trace conditional-notice.zeek
+   $ zeek -r tls/tls-expired-cert.trace conditional-notice.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -286,7 +286,7 @@ connection field is in the set of watched servers.
    in IPv4 dotted decimal representations.
 
 Remember, to finalize that configuration change perform the ``deploy``
-command inside the BroControl shell.
+command inside the ZeekControl shell.
 
 Next Steps
 ----------
@@ -296,11 +296,11 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 
 * We only looked at how to change options declared in the notice framework,
   there's many more options to look at in other script packages.
-* Continue reading with :ref:`Using Bro <using-bro>` chapter which goes
-  into more depth on working with Bro; then look at
+* Continue reading with :ref:`Using Zeek <using-zeek>` chapter which goes
+  into more depth on working with Zeek; then look at
   :ref:`writing-scripts` for learning how to start writing your own
   scripts.
-* Look at the scripts in ``$PREFIX/share/bro/policy`` for further ones
+* Look at the scripts in ``$PREFIX/share/zeek/policy`` for further ones
   you may want to load; you can browse their documentation at the
   :ref:`overview of script packages <script-packages>`.
 * Reading the code of scripts that ship with Bro is also a great way to gain
@@ -313,7 +313,7 @@ tweak the most basic options.  Here's some suggestions on what to explore next:
 Bro as a Command-Line Utility
 =============================
 
-If you prefer not to use BroControl (e.g. don't need its automation
+If you prefer not to use ZeekControl (e.g. don't need its automation
 and management features), here's how to directly control Bro for your
 analysis activities from the command line for both live traffic and
 offline working from traces.
@@ -325,7 +325,7 @@ Analyzing live traffic from an interface is simple:
 
 .. sourcecode:: console
 
-   bro -i en0 <list of scripts to load>
+   zeek -i en0 <list of scripts to load>
 
 ``en0`` can be replaced by the interface of your choice. A selection
 of common base scripts will be loaded by default.
@@ -356,7 +356,7 @@ and tell Bro to perform all the default analysis on the capture which primarily 
 
 .. sourcecode:: console
 
-   bro -r mypackets.trace
+   zeek -r mypackets.trace
 
 Bro will output log files into the working directory.
 
@@ -365,7 +365,7 @@ script that we include as a suggested configuration:
 
 .. sourcecode:: console
 
-  bro -r mypackets.trace local
+  zeek -r mypackets.trace local
 
 Telling Bro Which Scripts to Load
 ---------------------------------
@@ -374,7 +374,7 @@ A command-line invocation of Bro typically looks like:
 
 .. sourcecode:: console
 
-   bro <options> <scripts...>
+   zeek <options> <scripts...>
 
 Where the last arguments are the specific policy scripts that this Bro
 instance will load.  These arguments don't have to include the ``.zeek``
@@ -383,23 +383,23 @@ search path, then it requires no path qualification.  The following
 directories are included in the default search path for Bro scripts::
    
    ./
-   <prefix>/share/bro/
-   <prefix>/share/bro/policy/
-   <prefix>/share/bro/site/
+   <prefix>/share/zeek/
+   <prefix>/share/zeek/policy/
+   <prefix>/share/zeek/site/
 
 These prefix paths can be used to load scripts like this:
 
 .. sourcecode:: console
 
-   bro -r mypackets.trace frameworks/files/extract-all
+   zeek -r mypackets.trace frameworks/files/extract-all
 
 This will load the 
-``<prefix>/share/bro/policy/frameworks/files/extract-all.zeek`` script which will
+``<prefix>/share/zeek/policy/frameworks/files/extract-all.zeek`` script which will
 cause Bro to extract all of the files it discovers in the PCAP.
 
 .. note:: If one wants Bro to be able to load scripts that live outside the
    default directories in Bro's installation root, the full path to the file(s)
-   must be provided.  See the default search path by running ``bro --help``.
+   must be provided.  See the default search path by running ``zeek --help``.
 
 You might notice that a script you load from the command line uses the
 ``@load`` directive in the Bro language to declare dependence on other scripts.
@@ -420,7 +420,7 @@ also be loaded through scripts with @load):
 
 .. sourcecode:: console
 
-   bro -i en0 local
+   zeek -i en0 local
 
 This causes Bro to load a script that prints a warning about lacking the
 ``Site::local_nets`` variable being configured. You can supply this
@@ -429,7 +429,7 @@ in place of the example subnets):
 
 .. sourcecode:: console
 
-   bro -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
+   zeek -r mypackets.trace local "Site::local_nets += { 1.2.3.0/24, 5.6.7.0/24 }"
 
 When running with Broctl, this value is set by configuring the ``networks.cfg``
 file.
@@ -441,12 +441,12 @@ For developers that wish to run Bro directly from the ``build/``
 directory (i.e., without performing ``make install``), they will have
 to first adjust ``ZEEKPATH`` to look for scripts and
 additional files inside the build directory.  Sourcing either
-``build/bro-path-dev.sh`` or ``build/bro-path-dev.csh`` as appropriate
+``build/zeek-path-dev.sh`` or ``build/zeek-path-dev.csh`` as appropriate
 for the current shell accomplishes this and also augments your
 ``PATH`` so you can use the Bro binary directly::
 
     ./configure
     make
-    source build/bro-path-dev.sh
-    bro <options>
+    source build/zeek-path-dev.sh
+    zeek <options>
 

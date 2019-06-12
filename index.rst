@@ -15,7 +15,7 @@ Introduction
    quickstart/index.rst
    configuration/index.rst
 
-.. _using-bro:
+.. _using-zeek:
 
 Examples and Use Cases
 ======================

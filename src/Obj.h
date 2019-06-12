@@ -207,7 +207,7 @@ inline void Error(const BroObj* o, const char* msg)
 
 inline void Ref(BroObj* o)
 	{
-	if ( ++o->ref_cnt <= 1 )
+	if ( ++(o->ref_cnt) <= 1 )
 		bad_ref(0);
 	if ( o->ref_cnt == INT_MAX )
 		bad_ref(1);

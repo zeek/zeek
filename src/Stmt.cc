@@ -960,7 +960,7 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		if ( matching_id )
 			{
 			auto cv = cast_value_to_type(v, matching_id->Type());
-			f->SetElement(matching_id->Offset(), cv);
+			f->SetElement(matching_id, cv);
 			}
 
 		flow = FLOW_NEXT;
@@ -1477,10 +1477,10 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var->Offset(), current_tev->Value()->Ref());
+				f->SetElement(value_var, current_tev->Value()->Ref());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i]->Offset(), ind_lv->Index(i)->Ref());
+				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
 			Unref(ind_lv);
 
 			flow = FLOW_NEXT;
@@ -1508,7 +1508,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0]->Offset(),
+			f->SetElement((*loop_vars)[0],
 					val_mgr->GetCount(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1523,7 +1523,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			f->SetElement((*loop_vars)[0]->Offset(),
+			f->SetElement((*loop_vars)[0],
 					new StringVal(1, (const char*) sval->Bytes() + i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -2084,7 +2084,7 @@ Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 		}
 
-		f->SetElement(aggr->Offset(), v);
+		f->SetElement(aggr, v);
 		}
 
 	return 0;

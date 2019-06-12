@@ -12,6 +12,10 @@
 #include "Debug.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
+#include "Func.h" // function_ingredients
+
+#include <memory> // std::shared_ptr
+#include <utility> // std::move
 
 typedef enum {
 	EXPR_ANY = -1,
@@ -61,6 +65,8 @@ class NameExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
+
+struct function_ingredients;
 
 
 class Expr : public BroObj {
@@ -997,7 +1003,7 @@ public:
 
 protected:
 	friend class Expr;
-	CallExpr()	{ func = 0; args = 0; }
+	CallExpr() { func = 0; args = 0; }
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1005,6 +1011,32 @@ protected:
 
 	Expr* func;
 	ListExpr* args;
+};
+
+/*
+	Class to handle the creation of anonymous functions with closures.
+
+	Facts:
+		- LambdaExpr creates a new BroFunc on every call to Eval.
+		- LambdaExpr must be given all the information to create a BroFunc on
+		  construction except for the closure.
+		- The closure for created BroFuncs is the frame that the LambdaExpr is
+		  evaluated in.
+*/
+class LambdaExpr : public Expr {
+public:
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
+		   std::shared_ptr<id_list> outer_ids);
+
+	Val* Eval(Frame* f) const override;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+private:
+	std::unique_ptr<function_ingredients> ingredients;
+	std::shared_ptr<id_list> outer_ids;
 };
 
 class EventExpr : public Expr {

@@ -4,10 +4,13 @@
 #define func_h
 
 #include <utility>
+#include <memory> // std::shared_ptr, std::unique_ptr
 
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
+#include "Frame.h"
+// #include "Val.h"
 
 class Val;
 class ListExpr;
@@ -16,6 +19,8 @@ class Stmt;
 class Frame;
 class ID;
 class CallExpr;
+
+struct CloneState;
 
 class Func : public BroObj {
 public:
@@ -62,6 +67,7 @@ public:
 	// This (un-)serializes only a single body (as given in SerialInfo).
 	bool Serialize(SerialInfo* info) const;
 	static Func* Unserialize(UnserialInfo* info);
+	virtual Val* DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
@@ -95,8 +101,13 @@ public:
 	int IsPure() const override;
 	Val* Call(val_list* args, Frame* parent) const override;
 
+        void AddClosure(std::shared_ptr<id_list> ids, Frame* f);
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 			int priority) override;
+
+	void fsets();
+
+	Val* DoClone() override;
 
 	int FrameSize() const {	return frame_size; }
 
@@ -109,6 +120,23 @@ protected:
 	DECLARE_SERIAL(BroFunc);
 
 	int frame_size;
+
+private:
+	// Shifts the offsets of each id in "idl" by "shift".
+	static void ShiftOffsets(int shift, std::shared_ptr<id_list> idl);
+
+	// Makes a deep copy of the input frame and captures it.
+	void SetClosureFrame(Frame* f);
+
+	void SetOuterIDs(std::shared_ptr<id_list> ids)
+		{ outer_ids = std::move(ids); }
+
+        // List of the outer IDs used in the function. Shared becase other instances
+        // would like to use it as well.
+	std::shared_ptr<id_list> outer_ids = nullptr;
+	// The frame the Func was initialized in. This is not guaranteed to be
+	// initialized and should be handled with care.
+	Frame* closure = nullptr;
 };
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
@@ -145,6 +173,18 @@ struct CallInfo {
 	const Func* func;
 	const val_list* args;
 };
+
+// Struct that collects the arguments for a Func.
+// Used for BroFuncs with closures.
+struct function_ingredients
+	{
+		ID* id;
+		Stmt* body;
+		id_list* inits;
+		int frame_size;
+		int priority;
+		Scope* scope;
+	};
 
 extern vector<CallInfo> call_stack;
 

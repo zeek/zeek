@@ -32,6 +32,7 @@
 #define ICMP_PORT_MASK	0x30000
 
 class Val;
+class BroFunc;
 class Func;
 class BroFile;
 class RE_Matcher;

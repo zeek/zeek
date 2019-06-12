@@ -385,6 +385,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
+
 	for ( int i = 0; i < num_args; ++i )
 		{
 		TypeDecl* arg_i = args->FieldDecl(i);
@@ -421,6 +422,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 
 	const NameExpr* e = static_cast<const NameExpr*>(expr);
 
+	// TODO: Do we need to capture these as well?
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
 
@@ -431,17 +433,11 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(Stmt* body)
+// Gets a function's priority from its Scope's attributes. Errors if it sees any
+// problems.
+int get_func_priotity(attr_list* attrs)
 	{
-	int frame_size = current_scope()->Length();
-	id_list* inits = current_scope()->GetInits();
-
-	Scope* scope = pop_scope();
-	ID* id = scope->ScopeID();
-
 	int priority = 0;
-	auto attrs = scope->Attrs();
-
 	if ( attrs )
 		{
 		loop_over_list(*attrs, i)
@@ -473,27 +469,63 @@ void end_func(Stmt* body)
 			priority = v->InternalInt();
 			}
 		}
+		return priority;
+	}
 
-	if ( streq(id->Name(), "anonymous-function") )
+void end_func(Stmt* body)
+	{
+	std::unique_ptr<function_ingredients> ingredients =
+		gather_function_ingredients(body);
+	pop_scope();
+
+	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
-		OuterIDBindingFinder cb(scope);
-		body->Traverse(&cb);
+		OuterIDBindingFinder cb(ingredients->scope);
+		ingredients->body->Traverse(&cb);
 
 		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
 			cb.outer_id_references[i]->Error(
 						"referencing outer function IDs not supported");
 		}
 
-	if ( id->HasVal() )
-		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
+	if ( ingredients->id->HasVal() )
+		ingredients->id->ID_Val()->AsFunc()->AddBody(
+			ingredients->body,
+			ingredients->inits,
+			ingredients->frame_size,
+			ingredients->priority);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size, priority);
-		id->SetVal(new Val(f));
-		id->SetConst();
+		Func* f = new BroFunc(
+			ingredients->id,
+			ingredients->body,
+			ingredients->inits,
+			ingredients->frame_size,
+			ingredients->priority);
+		ingredients->id->SetVal(new Val(f));
+		ingredients->id->SetConst();
 		}
 
-	id->ID_Val()->AsFunc()->SetScope(scope);
+	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	}
+
+// Gathers all of the information from the current scope needed to build a
+// function and collects it into a function_ingredients struct.
+std::unique_ptr<function_ingredients> gather_function_ingredients(Stmt* body)
+	{
+	std::unique_ptr<function_ingredients> ingredients (new function_ingredients);
+	ingredients->frame_size = current_scope()->Length();
+	ingredients->inits = current_scope()->GetInits();
+
+	ingredients->scope = current_scope();
+	ingredients->id = ingredients->scope->ScopeID();
+
+	auto attrs = ingredients->scope->Attrs();
+
+	ingredients->priority = get_func_priotity(attrs);
+	ingredients->body = body;
+
+	return std::move(ingredients);
 	}
 
 Val* internal_val(const char* name)
@@ -506,6 +538,19 @@ Val* internal_val(const char* name)
 	Val* rval = id->ID_Val();
 	Unref(id);
 	return rval;
+	}
+
+std::shared_ptr<id_list> gather_outer_ids(Scope* scope, Stmt* body)
+	{
+	OuterIDBindingFinder cb(scope);
+	body->Traverse(&cb);
+
+	std::shared_ptr<id_list> idl (new id_list);
+
+	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
+		idl->append(cb.outer_id_references[i]->Id());
+
+	return std::move(idl);
 	}
 
 Val* internal_const_val(const char* name)

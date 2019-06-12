@@ -282,7 +282,7 @@ Val* NameExpr::Eval(Frame* f) const
 		v = id->ID_Val();
 
 	else if ( f )
-		v = f->NthElement(id->Offset());
+		v = f->GetElement(id);
 
 	else
 		// No frame - evaluating for Simplify() purposes
@@ -316,7 +316,7 @@ void NameExpr::Assign(Frame* f, Val* v, Opcode op)
 	if ( id->IsGlobal() )
 		id->SetVal(v, op);
 	else
-		f->SetElement(id->Offset(), v);
+		f->SetElement(id, v);
 	}
 
 int NameExpr::IsPure() const
@@ -4472,6 +4472,7 @@ FlattenExpr::FlattenExpr(Expr* arg_op)
 	SetType(tl);
 	}
 
+
 Val* FlattenExpr::Fold(Val* v) const
 	{
 	RecordVal* rv = v->AsRecordVal();
@@ -4989,6 +4990,52 @@ bool CallExpr::DoUnserialize(UnserialInfo* info)
 
 	args = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
 	return args != 0;
+	}
+
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
+		       std::shared_ptr<id_list> outer_ids)
+	{
+	this->ingredients = std::move(ingredients);
+	this->outer_ids = std::move(outer_ids);
+	SetType(this->ingredients->id->Type()->Ref());
+	}
+
+Val* LambdaExpr::Eval(Frame* f) const
+	{
+	BroFunc* lamb = new BroFunc(
+		ingredients->id,
+		ingredients->body,
+		ingredients->inits,
+		ingredients->frame_size,
+		ingredients->priority);
+
+	lamb->AddClosure(outer_ids, f);
+
+	ingredients->id->SetVal((new Val(lamb))->Ref());
+	ingredients->id->SetConst();
+	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+
+	return ingredients->id->ID_Val();
+	}
+
+void LambdaExpr::ExprDescribe(ODesc* d) const
+	{
+	  d->Add("Lambda Expression");
+	  d->Add("{");
+	  ingredients->body->Describe(d);
+	  d->Add("}");
+	}
+
+TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+        tc = ingredients->body->Traverse(cb);
+	HANDLE_TC_EXPR_POST(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
 	}
 
 EventExpr::EventExpr(const char* arg_name, ListExpr* arg_args)

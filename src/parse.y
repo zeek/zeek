@@ -272,7 +272,7 @@ bro:
 			else
 				stmts = $2;
 
-			// Any objects creates from hereon out should not
+			// Any objects creates from here on out should not
 			// have file positions associated with them.
 			set_location(no_location);
 			}
@@ -1218,16 +1218,42 @@ func_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_func func_body
-			{ $$ = new ConstExpr($2->ID_Val()); }
+		TOK_FUNCTION func_params
+			{
+			$<id>$ = current_scope()->GenerateTemporary("lambda-function");
+			begin_func($<id>$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $2);
+			}
+
+		'{'
+			{
+			saved_in_init.push_back(in_init);
+			in_init = 0;
+			}
+
+		stmt_list
+			{
+			in_init = saved_in_init.back();
+			saved_in_init.pop_back();
+			}
+
+		'}'
+			{
+			// Every time a new LambdaExpr is evaluated it must return a new instance
+			// of a BroFunc. Here, we collect the ingredients for a function and give
+			// it to our LambdaExpr.
+			std::unique_ptr<function_ingredients> ingredients =
+				gather_function_ingredients($6);
+			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $6);
+
+			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
+			}
 	;
 
 begin_func:
 		func_params
 			{
 			$$ = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func($$, current_module.c_str(),
-				   FUNC_FLAVOR_FUNCTION, 0, $1);
+			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $1);
 			}
 	;
 

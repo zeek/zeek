@@ -232,6 +232,15 @@ bool Func::DoUnserialize(UnserialInfo* info)
 	return true;
 	}
 
+Val* Func::DoClone()
+	{
+	// By default, ok just to return a reference. Func does not have any "state".
+	// That is different across instances.
+	Val* v = new Val(this);
+	Ref(v);
+	return v;
+	}
+
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
 	{
 	d->Add(Name());
@@ -369,6 +378,8 @@ BroFunc::~BroFunc()
 	{
 	for ( unsigned int i = 0; i < bodies.size(); ++i )
 		Unref(bodies[i].stmts);
+
+	Unref(this->closure);
 	}
 
 int BroFunc::IsPure() const
@@ -411,7 +422,13 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
 
+	// f will hold the closure & function's values
 	Frame* f = new Frame(frame_size, this, args);
+	if (this->closure)
+		{
+		assert(outer_ids);
+		f = new ClosureFrame(this->closure, f, this->outer_ids);
+		}
 
 	// Hand down any trigger.
 	if ( parent )
@@ -439,19 +456,18 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	for ( size_t i = 0; i < bodies.size(); ++i )
 		{
 		if ( sample_logger )
-			sample_logger->LocationSeen(
-				bodies[i].stmts->GetLocationInfo());
+			sample_logger->LocationSeen(bodies[i].stmts->GetLocationInfo());
 
 		Unref(result);
 
+		// Fill in the rest of the frame with the function's arguments.
 		loop_over_list(*args, j)
 			{
 			Val* arg = (*args)[j];
 
 			if ( f->NthElement(j) != arg )
 				{
-				// Either not yet set, or somebody reassigned
-				// the frame slot.
+				// Either not yet set, or somebody reassigned the frame slot.
 				Ref(arg);
 				f->SetElement(j, arg);
 				}
@@ -468,14 +484,18 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			{
 			// Already reported, but now determine whether to unwind further.
 			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
+				{
+				Unref(f);
+				Unref(result);
 				throw;
+				}
 
 			// Continue exec'ing remaining bodies of hooks/events.
 			continue;
 			}
 
 		if ( f->HasDelayed() )
-			{
+		        {
 			assert(! result);
 			assert(parent);
 			parent->SetDelayed();
@@ -517,7 +537,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
-		reporter->Warning("non-void function returns without a value: %s",
+		reporter->Warning("non-void function returning without a value: %s",
 				  Name());
 
 	if ( result && g_trace_state.DoTrace() )
@@ -529,6 +549,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		}
 
 	g_frame_stack.pop_back();
+
 	Unref(f);
 
 	return result;
@@ -559,6 +580,65 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 	sort(bodies.begin(), bodies.end());
 	}
 
+void BroFunc::AddClosure(std::shared_ptr<id_list> ids, Frame* f)
+	{
+	// Order matters here.
+	this->SetOuterIDs(ids);
+	this->SetClosureFrame(f);
+	}
+
+void BroFunc::SetClosureFrame(Frame* f)
+	{
+	if (this->closure)
+		reporter->InternalError
+			("Tried to override closure for BroFunc %s.", this->Name());
+
+	this->closure = f ? f->Clone() : nullptr;
+	}
+
+void BroFunc::ShiftOffsets(int shift, std::shared_ptr<id_list> idl)
+	{
+		id_list* tmp = idl.get();
+		if (! idl || shift == 0)
+			{
+			// Nothing to do here.
+			return;
+			}
+
+		loop_over_list(*tmp, i)
+			{
+			ID* id = (*tmp)[i];
+			id->SetOffset(id->Offset() + shift);
+			}
+	}
+
+Val* BroFunc::DoClone()
+	{
+	// A BroFunc could hold a closure. In this case a clone of it must copy this
+	// store a copy of this closure.
+	if ( ! this->closure )
+		{
+		return Func::DoClone();
+		}
+	else
+		{
+		BroFunc* other = new BroFunc();
+
+		other->bodies = this->bodies;
+		other->scope = this->scope;
+		other->kind = this->kind;
+		other->type = this->type;
+		other->name = this->name;
+		other->unique_id = this->unique_id;
+		other->unique_ids = this->unique_ids;
+		other->frame_size = this->frame_size;
+		other->closure = this->closure->Clone();
+		other->outer_ids = this->outer_ids;
+
+		return new Val(other);
+		}
+	}
+
 void BroFunc::Describe(ODesc* d) const
 	{
 	d->Add(Name());
@@ -578,7 +658,8 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 		return body;
 
 	StmtList* stmt_series = new StmtList;
-	stmt_series->Stmts().append(new InitStmt(inits));
+	InitStmt* first = new InitStmt(inits);
+	stmt_series->Stmts().append(first);
 	stmt_series->Stmts().append(body);
 
 	return stmt_series;

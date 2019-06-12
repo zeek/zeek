@@ -3112,7 +3112,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		else
 			{
 			int len = vect->Size();
-			VectorVal* result = nullptr;
+			VectorVal* result = new VectorVal(vect->Type()->AsVectorType());
 
 			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
@@ -3120,7 +3120,6 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 
 			if ( sub_length >= 0 )
 				{
-				result = new VectorVal(vect->Type()->AsVectorType());
 				result->Resize(sub_length);
 
 				for ( int idx = first; idx < last; idx++ )

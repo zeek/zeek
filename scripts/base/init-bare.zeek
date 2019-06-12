@@ -4938,32 +4938,41 @@ export {
 	## This record contains the standard fields used by the NTP protocol
 	## for standard syncronization operations. 
 	type NTP::std: record {
-        ## The stratum (primary server, secondary server, etc.)
+        ## This value mainly identifies the type of server (primary server, 
+	## secondary server, etc.). Possible values, as in :rfc:`5905`, are:
+	## 0 -> unspecified or invalid
+	## 1 -> primary server (e.g., equipped with a GPS receiver)
+	## 2-15 -> secondary server (via NTP)
+	## 16 -> unsynchronized
+	## 17-255 -> reserved
+	## For stratum=0, a kiss_code can be given for debugging and monitoring
         stratum:            count;
         ## The maximum interval between successive messages
         poll:               interval;
         ## The precision of the system clock
         precision:          interval;
-        ## Total round-trip delay to the reference clock
+        ## Root delay. The total round-trip delay to the reference clock
         root_delay:         interval;
-        ## Total dispersion to the reference clock
+        ## Root Dispersion. The total dispersion to the reference clock
         root_disp:          interval;
-        ## For stratum 0, 4 character string used for debugging
+        ## For stratum 0, four-character ASCII string used for debugging and monitoring.
+	## Values are defined in :rfc:`1345`.
         kiss_code:          string &optional;
-        ## For stratum 1, ID assigned to the reference clock by IANA
+        ## Reference ID. For stratum=1, this is the ID assigned to the reference clock by IANA.
+	## For example: GOES, GPS, GAL, etc. (see :rfc:`5905`)
         ref_id:             string &optional;
         ## Above stratum 1, when using IPv4, the IP address of the reference clock
         ref_addr:           addr &optional;
         ## Above stratum 1, when using IPv6, the first four bytes of the MD5 hash of the
-        ## IPv6 address of the reference clock
+        ## IPv6 address of the reference clock. Note: currently not implemented.
         ref_v6_hash_prefix: string &optional;
-        ## Time when the system clock was last set or correct
+        ## Reference timestamp. Time when the system clock was last set or correct
         ref_time:           time;
-        ## Time at the client when the request departed for the NTP server
+        ## Origin timestamp. Time at the client when the request departed for the NTP server
         org_time:           time;
-        ## Time at the server when the request arrived from the NTP client
+        ## Receive timestamp. Time at the server when the request arrived from the NTP client
         rec_time:           time;
-        ## Time at the server when the response departed for the NTP client
+        ## Transmit timestamp. Time at the server when the response departed for the NTP client
         xmt_time:           time;
         ## Key used to designate a secret MD5 key
         key_id:             count &optional;
@@ -5051,11 +5060,19 @@ export {
         };
 
         ## NTP message as defined in :rfc:`5905`.
-        ## Doesn't include fields for mode 7 (reserved for private use), e.g. monlist
+        ## Does include fields for mode 7, reserved for private use in :rfc:`5905`, but used
+	## in some implementation for commands such as "monlist". 
         type NTP::Message: record {
-        ## The NTP version number (1, 2, 3, 4)
+        ## The NTP version number (1, 2, 3, 4). 
         version:            count;
-        ## The NTP mode being used
+        ## The NTP mode being used. Possible values are:
+	## 1 - symmetric active 
+	## 2 - symmetric passive 
+	## 3 - client
+	## 4 - server 
+	## 5 - broadcast
+	## 6 - NTP control message
+	## 7 - reserved for private use
         mode:               count;
 	## If mode=1-5, the standard fields for syncronization operations are here.
 	## See :rfc:`5905`

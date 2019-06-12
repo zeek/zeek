@@ -168,5 +168,10 @@ event zeek_init()
 	v16 += 40;
 	test_case( "+= operator", all_set(v16 == vector( 10, 20, 30, 40 )) );
 
+	# Slicing tests.
+	local v17 = vector( 1, 2, 3, 4, 5 );
+	test_case( "slicing", all_set(v17[0:2] == vector( 1, 2 )) );
+	test_case( "slicing", all_set(v17[-3:-1] == vector( 3, 4 )) );
+	test_case( "slicing", all_set(v17[:2] == vector( 1, 2 )) );
+	test_case( "slicing", all_set(v17[2:] == vector( 3, 4, 5 )) );
 }
-

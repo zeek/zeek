@@ -2913,8 +2913,8 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 
 	if ( is_slice )
 		{
-		if ( ! IsString(op1->Type()->Tag()) )
-			ExprError("slice notation indexing only supported for strings currently");
+		if ( ! IsString(op1->Type()->Tag()) && ! IsVector(op1->Type()->Tag()) )
+			ExprError("slice notation indexing only supported for strings and vectors currently");
 		}
 
 	else if ( IsString(op1->Type()->Tag()) )
@@ -2937,8 +2937,7 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 
 	else if ( ! op1->Type()->YieldType() )
 		{
-		if ( IsString(op1->Type()->Tag()) &&
-		     match_type == MATCHES_INDEX_SCALAR )
+		if ( IsString(op1->Type()->Tag()) && match_type == MATCHES_INDEX_SCALAR )
 			SetType(base_type(TYPE_STRING));
 		else
 		// It's a set - so indexing it yields void.  We don't
@@ -3104,7 +3103,33 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		v = v1->AsVectorVal()->Lookup(v2);
+		{
+		VectorVal* vect = v1->AsVectorVal();
+		const ListVal* lv = v2->AsListVal();
+
+		if ( lv->Length() == 1 )
+			v = vect->Lookup(v2);
+		else
+			{
+			int len = vect->Size();
+			VectorVal* result = nullptr;
+
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			int sub_length = last - first;
+
+			if ( sub_length >= 0 )
+				{
+				result = new VectorVal(vect->Type()->AsVectorType());
+				result->Resize(sub_length);
+
+				for ( int idx = first; idx < last; idx++ )
+					result->Assign(idx - first, vect->Lookup(idx)->Ref());
+				}
+
+			return result;
+			}
+		}
 		break;
 
 	case TYPE_TABLE:

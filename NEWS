@@ -116,6 +116,13 @@ Changed Functionality
   installation, installing the newer Zeek version over it will retain that
   file and even symlink the new ``zeekctl.cfg`` to it.
 
+- The default install prefix is now ``/usr/local/zeek`` instead of
+  ``/usr/local/bro``.  If you have an existing installation that used
+  the previous default and are still using the new default when upgrading,
+  we'll crate ``/usr/local/zeek`` as a symlink to ``/usr/local/bro``.
+  Certain subdirectories will also get similar treatment: ``share/bro``,
+  ``include/bro``, and ``lib/bro``.
+
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
   installation, possibly with customizations made to it, the new

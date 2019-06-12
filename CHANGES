@@ -1,4 +1,10 @@
 
+2.6-404 | 2019-06-12 15:10:19 -0700
+
+  * Rename directories from bro to zeek (Daniel Thayer)
+
+    The new default installation prefix is /usr/local/zeek
+
 2.6-400 | 2019-06-07 20:06:33 -0700
 
   * Adapt bro_plugin CMake macros to use zeek_plugin (Jon Siwek, Corelight)

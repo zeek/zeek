@@ -1,9 +1,9 @@
 .. _script-packages:
 
-Bro Package Index
-=================
+Zeek Package Index
+==================
 
-Bro has the following script packages (e.g. collections of related scripts in
+Zeek has the following script packages (e.g. collections of related scripts in
 a common directory).  If the package directory contains a ``__load__.zeek``
 script, it supports being loaded in mass as a whole directory for convenience.
 

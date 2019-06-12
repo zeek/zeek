@@ -83,7 +83,7 @@ final code for our script.
 
 .. sourcecode:: console
 
-   $ bro -r http/bro.org.pcap mimestats.zeek
+   $ zeek -r http/zeek.org.pcap mimestats.zeek
    #separator \x09
    #set_separator    ,
    #empty_field      (empty)

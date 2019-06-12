@@ -1,13 +1,15 @@
 
 .. _bro-logging:
 
+.. _zeek-logging:
+
 =======
 Logging
 =======
 
-Once Bro has been deployed in an environment and monitoring live
+Once Zeek has been deployed in an environment and monitoring live
 traffic, it will, in its default configuration, begin to produce
-human-readable ASCII logs.  Each log file, produced by Bro's
+human-readable ASCII logs.  Each log file, produced by Zeek's
 :ref:`framework-logging`, is populated with organized, mostly
 connection-oriented data.  As the standard log files are simple ASCII
 data, working with the data contained in them can be done from a
@@ -20,11 +22,11 @@ of working with them.
 Working with Log Files
 ----------------------
 
-Generally, all of Bro's log files are produced by a corresponding
+Generally, all of Zeek's log files are produced by a corresponding
 script that defines their individual structure. However, as each log
 file flows through the Logging Framework, they share a set of
 structural similarities. Without breaking into the scripting aspect of
-Bro here, a bird's eye view of how the log files are produced
+Zeek here, a bird's eye view of how the log files are produced
 progresses as follows.  The script's author defines the kinds of data,
 such as the originating IP address or the duration of a connection,
 which will make up the fields (i.e., columns) of the log file.  The
@@ -71,18 +73,18 @@ significant points of interest as they detail not only the field names
 but the data types used. When navigating through the different log
 files with tools like ``sed``, ``awk``, or ``grep``, having the field
 definitions readily available saves the user some mental leg work. The
-field names are also a key resource for using the :ref:`bro-cut
-<bro-cut>` utility included with Bro, see below.
+field names are also a key resource for using the :ref:`zeek-cut
+<zeek-cut>` utility included with Zeek, see below.
 
 Next to the header follows the main content. In this example we see 7
 connections with their key properties, such as originator and
-responder IP addresses (note how Bro transparently handles both IPv4 and
+responder IP addresses (note how Zeek transparently handles both IPv4 and
 IPv6), transport-layer ports, application-layer services ( - the
-``service`` field is filled in as Bro determines a specific protocol to
+``service`` field is filled in as Zeek determines a specific protocol to
 be in use, independent of the connection's ports), payload size, and
 more. See :zeek:type:`Conn::Info` for a description of all fields.
 
-In addition to ``conn.log``, Bro generates many further logs by
+In addition to ``conn.log``, Zeek generates many further logs by
 default, including:
 
 ``dpd.log``
@@ -112,7 +114,7 @@ default, including:
     A record of SSL sessions, including certificates being used.
 
 ``weird.log``
-    A log of unexpected protocol-level activity. Whenever Bro's
+    A log of unexpected protocol-level activity. Whenever Zeek's
     protocol analysis encounters a situation it would not expect
     (e.g., an RFC violation) it logs it in this file. Note that in
     practice, real-world networks tend to exhibit a large number of
@@ -125,10 +127,12 @@ see :doc:`Log Files </script-reference/log-files>`.
 
 .. _bro-cut:
 
-Using ``bro-cut``
------------------
+.. _zeek-cut:
 
-The ``bro-cut`` utility can be used in place of other tools to build
+Using ``zeek-cut``
+------------------
+
+The ``zeek-cut`` utility can be used in place of other tools to build
 terminal commands that remain flexible and accurate independent of
 possible changes to the log file itself.  It accomplishes this by parsing
 the header in each file and allowing the user to refer to the specific
@@ -139,7 +143,7 @@ from a ``conn.log``:
 
 .. sourcecode:: console
 
-   $ cat conn.log | bro-cut id.orig_h id.orig_p id.resp_h duration
+   $ cat conn.log | zeek-cut id.orig_h id.orig_p id.resp_h duration
    141.142.220.202   5353    224.0.0.251     -
    fe80::217:f2ff:fed7:cf65  5353    ff02::fb        -
    141.142.220.50    5353    224.0.0.251     -
@@ -169,42 +173,42 @@ The corresponding ``awk`` command will look like this:
    141.142.220.118 58206 141.142.2.2 53 0.000339
    [...]
 
-While the output is similar, the advantages to using bro-cut over
-``awk`` lay in that, while ``awk`` is flexible and powerful, ``bro-cut``
-was specifically designed to work with Bro's log files.  Firstly, the
-``bro-cut`` output includes only the log file entries, while the
+While the output is similar, the advantages to using zeek-cut over
+``awk`` lay in that, while ``awk`` is flexible and powerful, ``zeek-cut``
+was specifically designed to work with Zeek's log files.  Firstly, the
+``zeek-cut`` output includes only the log file entries, while the
 ``awk`` solution needs to skip the header manually. Secondly, since
-``bro-cut`` uses the field descriptors to identify and extract data,
+``zeek-cut`` uses the field descriptors to identify and extract data,
 it allows for flexibility independent of the format and contents of
-the log file.  It's not uncommon for a Bro configuration to add extra
+the log file.  It's not uncommon for a Zeek configuration to add extra
 fields to various log files as required by the environment.  In this
 case, the fields in the ``awk`` command would have to be altered to
-compensate for the new position whereas the ``bro-cut`` output would
+compensate for the new position whereas the ``zeek-cut`` output would
 not change.
 
 .. note::
 
-    The sequence of field names given to ``bro-cut`` determines the
-    output order, which means you can also use ``bro-cut`` to reorder
+    The sequence of field names given to ``zeek-cut`` determines the
+    output order, which means you can also use ``zeek-cut`` to reorder
     fields. That can be helpful when piping into, e.g., ``sort``.
 
-As you may have noticed, the command for ``bro-cut`` uses the output
+As you may have noticed, the command for ``zeek-cut`` uses the output
 redirection through the ``cat`` command and ``|`` operator.  Whereas
 tools like ``awk`` allow you to indicate the log file as a command
-line option, bro-cut only takes input through redirection such as
+line option, zeek-cut only takes input through redirection such as
 ``|`` and ``<``.  There are a couple of ways to direct log file data
-into ``bro-cut``, each dependent upon the type of log file you're
+into ``zeek-cut``, each dependent upon the type of log file you're
 processing.  A caveat of its use, however, is that all of the
 header lines must be present.
 
 .. note::
 
-    ``bro-cut`` provides an option ``-c`` to include a corresponding
+    ``zeek-cut`` provides an option ``-c`` to include a corresponding
     format header into the output, which allows to chain multiple
-    ``bro-cut`` instances or perform further post-processing that
+    ``zeek-cut`` instances or perform further post-processing that
     evaluates the header information.
 
-In its default setup, Bro will rotate log files on an hourly basis,
+In its default setup, Zeek will rotate log files on an hourly basis,
 moving the current log file into a directory with format
 ``YYYY-MM-DD`` and gzip compressing the file with a file format that
 includes the log file type and time range of the file.  In the case of
@@ -215,7 +219,7 @@ tools to use the complementary ``z*`` versions of commands such as ``cat``
 Working with Timestamps
 -----------------------
 
-``bro-cut`` accepts the flag ``-d`` to convert the epoch time values
+``zeek-cut`` accepts the flag ``-d`` to convert the epoch time values
 in the log files to human-readable format.  The following command
 includes the human readable time stamp, the unique identifier, the
 HTTP ``Host``, and HTTP ``URI`` as extracted from the ``http.log``
@@ -223,7 +227,7 @@ file:
 
 .. sourcecode:: console
 
-   $ bro-cut -d ts uid host uri < http.log
+   $ zeek-cut -d ts uid host uri < http.log
    2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
    2011-03-18T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
    2011-03-18T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
@@ -237,7 +241,7 @@ UTC can be accomplished with the ``-u`` option:
 
 .. sourcecode:: console
 
-   $ bro-cut -u ts uid host uri < http.log
+   $ zeek-cut -u ts uid host uri < http.log
    2011-03-18T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
    2011-03-18T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
    2011-03-18T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
@@ -255,7 +259,7 @@ Endian" you could use a format string of: ``%d-%m-%YT%H:%M:%S%z``
 
 .. sourcecode:: console
 
-   $ bro-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
+   $ zeek-cut -D %d-%m-%YT%H:%M:%S%z ts uid host uri < http.log
    18-03-2011T19:06:08+0000  CUM0KZ3MLUfNB0cl11      bits.wikimedia.org      /skins-1.5/monobook/main.css
    18-03-2011T19:06:08+0000  CwjjYJ2WqgTbAqiHl6      upload.wikimedia.org    /wikipedia/commons/6/63/Wikipedia-logo.png
    18-03-2011T19:06:08+0000  C3eiCBGOLw3VtHfOj       upload.wikimedia.org    /wikipedia/commons/thumb/b/bb/Wikipedia_wordmark.svg/174px-Wikipedia_wordmark.svg.png
@@ -268,11 +272,11 @@ See ``man strfime`` for more options for the format string.
 Using UIDs
 ----------
 
-While Bro can do signature-based analysis, its primary focus is on
+While Zeek can do signature-based analysis, its primary focus is on
 behavioral detection which alters the practice of log review from
 "reactionary review" to a process a little more akin to a hunting
 trip.  A common progression of review includes correlating a session
-across multiple log files.  As a connection is processed by Bro, a
+across multiple log files.  As a connection is processed by Zeek, a
 unique identifier is assigned to each session.  This unique identifier
 is generally included in any log file entry associated with that
 connection and can be used to cross-reference different log files.
@@ -280,12 +284,12 @@ connection and can be used to cross-reference different log files.
 A simple example would be to cross-reference a UID seen in a
 ``conn.log`` file.  Here, we're looking for the connection with the
 largest number of bytes from the responder by redirecting the output
-for ``cat conn.log`` into bro-cut to extract the UID and the
+for ``cat conn.log`` into zeek-cut to extract the UID and the
 resp_bytes, then sorting that output by the resp_bytes field.
 
 .. sourcecode:: console
 
-   $ cat conn.log | bro-cut uid resp_bytes | sort -nrk2 | head -5
+   $ cat conn.log | zeek-cut uid resp_bytes | sort -nrk2 | head -5
    CwjjYJ2WqgTbAqiHl6        734
    CtxTCR2Yer0FR1tIBg        734
    Ck51lg1bScffFj34Ri        734
@@ -297,12 +301,12 @@ crossreference that with the UIDs in the ``http.log`` file.
 
 .. sourcecode:: console
 
-   $ cat http.log | bro-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11
+   $ cat http.log | zeek-cut uid id.resp_h method status_code host uri | grep UM0KZ3MLUfNB0cl11
    CUM0KZ3MLUfNB0cl11        208.80.152.118  GET     304     bits.wikimedia.org      /skins-1.5/monobook/main.css
 
 As you can see there are two HTTP ``GET`` requests within the
-session that Bro identified and logged.  Given that HTTP is a stream
+session that Zeek identified and logged.  Given that HTTP is a stream
 protocol, it can have multiple ``GET``/``POST``/etc requests in a
-stream and Bro is able to extract and track that information for you,
+stream and Zeek is able to extract and track that information for you,
 giving you an in-depth and structured view into HTTP traffic on your
 network.

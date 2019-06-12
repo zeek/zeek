@@ -6,79 +6,79 @@ Introduction
 Overview
 --------
 
-Bro is a passive, open-source network traffic analyzer. It is
+Zeek is a passive, open-source network traffic analyzer. It is
 primarily a security monitor that inspects all traffic on a link in
 depth for signs of suspicious activity. More generally, however,
-Bro supports a wide range of traffic analysis tasks even outside of
+Zeek supports a wide range of traffic analysis tasks even outside of
 the security domain, including performance measurements and helping
 with trouble-shooting.
 
-The most immediate benefit that a site gains from deploying Bro is an
+The most immediate benefit that a site gains from deploying Zeek is an
 extensive set of *log files* that record a network's activity in
 high-level terms. These logs include not only a comprehensive record
 of every connection seen on the wire, but also application-layer
 transcripts such as, e.g., all HTTP sessions with their requested
 URIs, key headers, MIME types, and server responses; DNS requests with
 replies; SSL certificates; key content of SMTP sessions; and much
-more. By default, Bro writes all this information into well-structured
+more. By default, Zeek writes all this information into well-structured
 tab-separated log files suitable for post-processing with external
 software. Users can however also chose from a set of alternative
 output formats and backends to interface directly with, e.g., external
 databases.
 
-In addition to the logs, Bro comes with built-in functionality for a
+In addition to the logs, Zeek comes with built-in functionality for a
 range of analysis and detection tasks, including extracting files from
 HTTP sessions, detecting malware by interfacing to external
 registries, reporting vulnerable versions of software seen on the
 network, identifying popular web applications, detecting SSH
 brute-forcing, validating SSL certificate chains, and much more.
 
-However, the key to understanding Bro lies in realizing that even
+However, the key to understanding Zeek lies in realizing that even
 though the system comes with such powerful functionality out of the
 box, fundamentally it represents a *platform* for traffic analyses
-that's fully customizable and extensible: Bro provides users with a
+that's fully customizable and extensible: Zeek provides users with a
 domain-specific, Turing-complete *scripting language* for expressing
-arbitrary analysis tasks. Conceptually, you can think of Bro as a
+arbitrary analysis tasks. Conceptually, you can think of Zeek as a
 "domain-specific Python" (or Perl): just like Python, the system comes
 with a large set of pre-built functionality (the "standard library"),
-yet you are not limited to what the system ships with but can put Bro
-to use in novel ways by writing your own code. Indeed, all of Bro's
+yet you are not limited to what the system ships with but can put Zeek
+to use in novel ways by writing your own code. Indeed, all of Zeek's
 default analyses, including all the logging, is the result of such
 scripts; there's no specific analysis hard-coded into the core of
 system.
 
-Bro runs on commodity hardware and hence provides a low-cost
+Zeek runs on commodity hardware and hence provides a low-cost
 alternative to expensive proprietary solutions. Despite the price tag,
-however, Bro actually goes far beyond the capabilities of other
+however, Zeek actually goes far beyond the capabilities of other
 network monitoring tools, which typically remain limited to a small
-set of hard-coded analysis tasks. We emphasize in particular that Bro
+set of hard-coded analysis tasks. We emphasize in particular that Zeek
 is *not* a classic signature-based intrusion detection system (IDS).
-While it supports such standard functionality as well, Bro's scripting
+While it supports such standard functionality as well, Zeek's scripting
 language indeed facilitates a much broader spectrum of very different
 approaches to finding malicious activity, including semantic misuse
 detection, anomaly detection, and behavioral analysis.
 
-A large variety of sites deploy Bro operationally for protecting their
+A large variety of sites deploy Zeek operationally for protecting their
 cyberinfrastructure, including many universities, research labs,
 supercomputing centers, open-science communities, and major
-corporations. Bro specifically targets high-speed, high-volume network
+corporations. Zeek specifically targets high-speed, high-volume network
 monitoring, and an increasing number of sites are now using the system
 to monitor their 10GE networks, with some already moving on to 100GE
-links. Bro accommodates such high-performance settings by supporting
-scalable load-balancing: large sites typically run "Bro Clusters" in
+links. Zeek accommodates such high-performance settings by supporting
+scalable load-balancing: large sites typically run "Zeek Clusters" in
 which a high-speed frontend load-balancer distributes the traffic
-across an appropriate number of backend PCs, all running dedicated Bro
+across an appropriate number of backend PCs, all running dedicated Zeek
 instances on their individual traffic slices. A central manager system
 coordinates the process, synchronizing state across the backends and
 providing the operators with a central management interface for
-configuration and access to aggregated logs. Bro's integrated
+configuration and access to aggregated logs. Zeek's integrated
 management framework, ZeekControl, supports such cluster setups
 out-of-the-box.
 
 Features
 --------
 
-Bro supports a wide range of analyses through its scripting language.
+Zeek supports a wide range of analyses through its scripting language.
 Yet even without further customization it comes with a powerful set of
 features.
 
@@ -117,7 +117,7 @@ features.
     * Comprehensive IPv6 support.
 
     * Tunnel detection and analysis (including Ayiya, Teredo, GTPv1).
-      Bro decapsulates the tunnels and then proceeds to analyze their
+      Zeek decapsulates the tunnels and then proceeds to analyze their
       content as if no tunnel was in place.
 
     * Extensive sanity checks during protocol analysis.
@@ -147,7 +147,7 @@ features.
     * Real-time integration of external input into analyses. Live
       database input in preparation.
 
-    * External C library for exchanging Bro events with external
+    * External C library for exchanging Zeek events with external
       programs. Comes with Perl, Python, and Ruby bindings.
 
     * Ability to trigger arbitrary external processes from within
@@ -160,12 +160,13 @@ History
 .. figure:: history.png
     :width: 600
     :align: center
-    :alt: Bro History Timeline
+    :alt: Zeek History Timeline
     :target: ../_images/history.png
 
-    Timeline of Bro's History (click to enlarge).
+    Timeline of Zeek's History (click to enlarge).
 
-Bro's history goes back much further than many people realize. `Vern
+Zeek's history goes back much further than many people realize
+(and it used to named "Bro", not "Zeek"). `Vern
 Paxson <http://www.icir.org/vern>`_ designed and implemented the
 initial version more than two decades ago.
 Vern began work on the code in 1995 as a researcher at the `Lawrence
@@ -180,32 +181,32 @@ supporting research and advanced development on Bro at the
 <http://www.icsi.berkeley.edu>`_, where Vern now leads the `Networking
 and Security group <http://www.icir.org>`_. Over the years, a growing
 team of ICSI researchers and students kept adding novel functionality
-to Bro, while LBNL continued its support with funding from the
+, while LBNL continued its support with funding from the
 `Department of Energy (DOE) <http://www.doe.gov>`_.
 
-Much of Bro's capabilities originate in academic research projects,
+Much of Zeek's capabilities originate in academic research projects,
 with results often published at top-tier conferences. However, the key
-to Bro's success was its ability to bridge the traditional gap between
+to Zeek's success was its ability to bridge the traditional gap between
 academia and operations from early on, which provided the research
 with crucial grounding to ensure that developed approaches stand up to
-the challenges of the real world. Yet, with Bro's operational user
+the challenges of the real world. Yet, with Zeek's operational user
 community growing over time, the research-centric development model
 eventually became a bottleneck to the system's evolution: research
 grants do not tend to support the more mundane parts of software
 development and maintenance, even though those prove crucial for the
-end-user experience. While Bro's capabilities always went beyond those
+end-user experience. While Zeek's capabilities always went beyond those
 of traditional systems, a successful deployment used to require
 significant technical expertise, typically with a large upfront
-investment in tackling Bro's steep learning curve.  In 2010, NSF set
+investment in tackling Zeek's steep learning curve.  In 2010, NSF set
 out to address this gap by awarding ICSI a grant dedicated solely to
-Bro development out of its SDCI program.
+Zeek development out of its SDCI program.
 With that support in place, the `National Center for
 Supercomputing Applications (NCSA) <http://www.ncsa.illinois.edu>`_
-joined the team as a core partner, and the Bro Project began to
+joined the team as a core partner, and the Project began to
 completely overhaul many of the user-visible parts of the system for
-the 2.0 release. Since that version came out, Bro has experienced an
+the 2.0 release. Since that version came out, Zeek has experienced an
 tremendous growth in new deployments across a diverse range of
-settings, and the Bro team is now working to build on this success by
+settings, and the Zeek team is now working to build on this success by
 further advancing the system's capabilities to address the challenges
 of future networks.
 
@@ -215,12 +216,12 @@ Architecture
 .. figure:: architecture.png
     :width: 400
     :align: center
-    :alt: Bro Architecture
+    :alt: Zeek Architecture
     :target: ../_images/architecture.png
 
-    Bro's internal architecture.
+    Zeek's internal architecture.
 
-Architecturally, Bro is layered into two major components. Its *event
+Architecturally, Zeek is layered into two major components. Its *event
 engine* (or *core*) reduces the incoming packet stream into a series
 of higher-level *events*. These events reflect network activity in
 policy-neutral terms, i.e., they describe *what* has been seen, but
@@ -231,15 +232,15 @@ being requested, and the HTTP version in use. The event however does
 not convey any further *interpretation*, e.g., of whether that URI
 corresponds to a known malware site.
 
-Such semantics are instead derived by Bro's second main component, the
+Such semantics are instead derived by Zeek's second main component, the
 *script interpreter*, which executes a set of *event handlers* written
-in Bro's custom scripting language. These scripts can express a site's
+in Zeek's custom scripting language. These scripts can express a site's
 security policy, i.e., what actions to take when the monitor detects
 different types of activity. More generally they can derive any
-desired properties and statistics from the input traffic. Bro's
+desired properties and statistics from the input traffic. Zeek's
 language comes with extensive domain-specific types and support
 functionality; and, crucially, allows scripts to maintain state
 over time, enabling them to track and correlate the evolution of what
-they observe across connection and host boundaries. Bro scripts can
+they observe across connection and host boundaries. Zeek scripts can
 generate real-time alerts and also execute arbitrary external programs
 on demand, e.g., to trigger an active response to an attack.

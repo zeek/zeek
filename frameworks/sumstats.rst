@@ -7,15 +7,15 @@ Summary Statistics
 
 .. rst-class:: opening
 
-    Measuring aspects of network traffic is an extremely common task in Bro.
-    Bro provides data structures which make this very easy as well in
+    Measuring aspects of network traffic is an extremely common task in Zeek.
+    Zeek provides data structures which make this very easy as well in
     simplistic cases such as size limited trace file processing. In
     real-world deployments though, there are difficulties that arise from
     clusterization (many processes sniffing traffic) and unbounded data sets
     (traffic never stops). The Summary Statistics (otherwise referred to as
     SumStats) framework aims to define a mechanism for consuming unbounded
     data sets and making them measurable in practice on large clustered and
-    non-clustered Bro deployments.
+    non-clustered Zeek deployments.
 
 Overview
 ========
@@ -57,9 +57,9 @@ Terminology
 Examples
 ========
 
-These examples may seem very simple to an experienced Bro script developer and
+These examples may seem very simple to an experienced Zeek script developer and
 they're intended to look that way. Keep in mind that these scripts will work
-on small single process Bro instances as well as large many-worker clusters.
+on small single process Zeek instances as well as large many-worker clusters.
 The complications from dealing with flow based load balancing can be ignored
 by developers writing scripts that use Sumstats due to its built-in cluster
 transparency.
@@ -76,12 +76,12 @@ inline documentation that does this with the Sumstats framework:
    :language: zeek
    :linenos:
 
-When run on a sample PCAP file from the Bro test suite, the following output
+When run on a sample PCAP file from the Zeek test suite, the following output
 is created:
 
 .. sourcecode:: console
 
-   $ bro -r workshop_2011_browse.trace sumstats-countconns.zeek
+   $ zeek -r workshop_2011_browse.trace sumstats-countconns.zeek
    Number of connections established: 6
 
 Toy scan detection
@@ -91,7 +91,7 @@ Taking the previous example even further, we can implement a simple detection
 to demonstrate the thresholding functionality.  This example is a toy to
 demonstrate how thresholding works in Sumstats and is not meant to be a
 real-world functional example, that is left to the
-:doc:`/scripts/policy/misc/scan.zeek` script that is included with Bro.
+:doc:`/scripts/policy/misc/scan.zeek` script that is included with Zeek.
 
 .. literalinclude:: sumstats-toy-scan.zeek
    :caption:
@@ -103,7 +103,7 @@ containing a host running nmap:
 
 .. sourcecode:: console
 
-   $ bro -r nmap-vsn.trace sumstats-toy-scan.zeek
+   $ zeek -r nmap-vsn.trace sumstats-toy-scan.zeek
    192.168.1.71 attempted 5 or more connections
 
 It seems the host running nmap was detected!

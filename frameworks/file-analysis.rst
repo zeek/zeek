@@ -7,7 +7,7 @@ File Analysis
 
 .. rst-class:: opening
 
-    In the past, writing Bro scripts with the intent of analyzing file
+    In the past, writing Zeek scripts with the intent of analyzing file
     content could be cumbersome because of the fact that the content
     would be presented in different ways, via events, at the
     script-layer depending on which network protocol was involved in the
@@ -19,7 +19,7 @@ File Analysis
     still available, but it no longer has to dictate how one organizes
     their scripting logic to handle it.  A goal of the FAF is to
     provide analysis specifically for files that is analogous to the
-    analysis Bro provides for network connections.
+    analysis Zeek provides for network connections.
 
 File Lifecycle Events
 =====================
@@ -41,7 +41,7 @@ Here's a simple example:
 
 .. sourcecode:: console
 
-   $ bro -r http/get.trace file_analysis_01.zeek
+   $ zeek -r http/get.trace file_analysis_01.zeek
    file_state_remove
    FakNcS1Jfe01uljb3
    CHhAvVGS1DHFjwGM9
@@ -64,7 +64,7 @@ Adding Analysis
 ===============
 
 There are builtin file analyzers which can be attached to files.  Once
-attached, they start receiving the contents of the file as Bro extracts
+attached, they start receiving the contents of the file as Zeek extracts
 it from an ongoing network connection.  What they do with the file
 contents is up to the particular file analyzer implementation, but
 they'll typically either report further information about the file via
@@ -88,7 +88,7 @@ calculate the MD5 of plain text files:
 
 .. sourcecode:: console
 
-   $ bro -r http/get.trace file_analysis_02.zeek
+   $ zeek -r http/get.trace file_analysis_02.zeek
    new file, FakNcS1Jfe01uljb3
    file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
 
@@ -119,7 +119,7 @@ Input Framework Integration
 ===========================
 
 The FAF comes with a simple way to integrate with the :doc:`Input
-Framework <input>`, so that Bro can analyze files from external sources
+Framework <input>`, so that Zeek can analyze files from external sources
 in the same way it analyzes files that it sees coming over traffic from
 a network interface it's monitoring.  It only requires a call to
 :zeek:see:`Input::add_analysis`:
@@ -138,7 +138,7 @@ Example output of the above script may be:
 .. sourcecode:: console
 
    $ echo "Hello world" > myfile
-   $ bro file_analysis_03.zeek
+   $ zeek file_analysis_03.zeek
    new file, FZedLu4Ajcvge02jA8
    file_hash, FZedLu4Ajcvge02jA8, md5, f0ef7081e1539ac00ef5b761b4fb01b3
    file_state_remove

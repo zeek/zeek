@@ -7,11 +7,11 @@ NetControl Framework
 
 .. rst-class:: opening
 
-  Bro can connect with network devices like, for example, switches
+  Zeek can connect with network devices like, for example, switches
   or soft- and hardware firewalls using the NetControl framework. The
   NetControl framework provides a flexible, unified interface for active
   response and hides the complexity of heterogeneous network equipment
-  behind a simple task-oriented API, which is easily usable via Bro
+  behind a simple task-oriented API, which is easily usable via Zeek
   scripts. This document gives an overview of how to use the NetControl
   framework in different scenarios; to get a better understanding of how
   it can be used in practice, it might be worthwhile to take a look at
@@ -30,7 +30,7 @@ NetControl Architecture
 
 The basic architecture of the NetControl framework is shown in the figure above.
 Conceptually, the NetControl framework sits between the user provided scripts
-(which use the Bro event engine) and the network device (which can either be a
+(which use the Zeek event engine) and the network device (which can either be a
 hardware or software device), that is used to implement the commands.
 
 The NetControl framework supports a number of high-level calls, like the
@@ -41,7 +41,7 @@ to communicate with a single hard- or software device. The NetControl framework
 tracks rules throughout their entire lifecycle and reports the status (like
 success, failure and timeouts) back to the user scripts.
 
-The backends are implemented as Bro scripts using a plugin based API; an example
+The backends are implemented as Zeek scripts using a plugin based API; an example
 for this is :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek`. This
 document will show how to write plugins in
 :ref:`framework-netcontrol-plugins`.
@@ -104,7 +104,7 @@ high-level functions.
 
     * - :zeek:see:`NetControl::shunt_flow`
       - Calling this function causes NetControl to stop forwarding a
-        uni-directional flow of packets to Bro. This allows Bro to conserve
+        uni-directional flow of packets to Zeek. This allows Zeek to conserve
         resources by shunting flows that have been identified as being benign.
 
     * - :zeek:see:`NetControl::redirect_flow`
@@ -112,7 +112,7 @@ high-level functions.
         flow to another port of the networking hardware.
 
     * - :zeek:see:`NetControl::quarantine_host`
-      - Calling this function allows Bro to quarantine a host by sending DNS
+      - Calling this function allows Zeek to quarantine a host by sending DNS
         traffic to a host with a special DNS server, which resolves all queries
         as pointing to itself. The quarantined host is only allowed between the
         special server, which will serve a warning message detailing the next
@@ -143,7 +143,7 @@ which contains information about all actions that are taken by NetControl:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.zeek
+   $ zeek -C -r tls/ecdhe.pcap netcontrol-1-drop-with-debug.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -203,7 +203,7 @@ following code automatically blocks a recognized SSH guesser:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.zeek
+   $ zeek -C -r ssh/sshguess.pcap netcontrol-2-ssh-guesser.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=1.0 hr, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -233,7 +233,7 @@ the :zeek:see:`Notice::ACTION_DROP` action of the notice framework:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.zeek
+   $ zeek -C -r ssh/sshguess.pcap netcontrol-3-ssh-guesser.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.56.1/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=ACTION_DROP: T, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -299,7 +299,7 @@ which specifies what kind of action is taken. The possible actions are to
 **drop** packets, to **modify** them, to **redirect** or to **whitelist** them.
 The *target* of a rule specifies if the rule is applied in the *forward path*,
 and affects packets as they are forwarded through the network, or if it affects
-the *monitor path* and only affects the packets that are sent to Bro, but not
+the *monitor path* and only affects the packets that are sent to Zeek, but not
 the packets that traverse the network. The *entity* specifies the address,
 connection, etc. that the rule applies to. In addition, each rule has a
 *timeout* (which can be left empty), a *priority* (with higher priority rules
@@ -326,7 +326,7 @@ drops all connections on the network:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-4-drop.zeek
+   $ zeek -C -r tls/ecdhe.pcap netcontrol-4-drop.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=<uninitialized>, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -348,7 +348,7 @@ drops all connections on the network:
 
 The last example shows that :zeek:see:`NetControl::add_rule` returns a string
 identifier that is unique for each rule (uniqueness is not preserved across
-restarts of Bro). This rule id can be used to later remove rules manually using
+restarts of Zeek). This rule id can be used to later remove rules manually using
 :zeek:see:`NetControl::remove_rule`.
 
 Similar to :zeek:see:`NetControl::add_rule`, all the high-level functions also
@@ -376,7 +376,7 @@ Hooks can use the ``break`` keyword to show that processing should be aborted;
 if any :zeek:see:`NetControl::rule_policy` hook uses ``break``, the rule will be
 discarded before further processing.
 
-Here is a simple example which tells Bro to discard all rules for connections
+Here is a simple example which tells Zeek to discard all rules for connections
 originating from the 192.168.* network:
 
 .. literalinclude:: netcontrol-5-hook.zeek
@@ -386,7 +386,7 @@ originating from the 192.168.* network:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-5-hook.zeek
+   $ zeek -C -r tls/ecdhe.pcap netcontrol-5-hook.zeek
    netcontrol debug (Debug-All): init
    Ignored connection from, 192.168.18.50
 
@@ -448,8 +448,8 @@ rules: :zeek:see:`NetControl::find_rules_addr` finds all rules that affect a
 certain IP address and :zeek:see:`NetControl::find_rules_subnet` finds all rules
 that affect a specified subnet.
 
-Consider, for example, the case where a Bro instance monitors the traffic at the
-border, before any firewall or switch rules were applied. In this case, Bro will
+Consider, for example, the case where a Zeek instance monitors the traffic at the
+border, before any firewall or switch rules were applied. In this case, Zeek will
 still be able to see connection attempts of already blocked IP addresses. In this
 case, :zeek:see:`NetControl::find_rules_addr` could be used to check if an
 address already was blocked in the past.
@@ -465,7 +465,7 @@ address is already blocked in the second connection.
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/google-duplicate.trace netcontrol-6-find.zeek
+   $ zeek -C -r tls/google-duplicate.trace netcontrol-6-find.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.4.149, orig_p=60623/tcp, resp_h=74.125.239.129, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
    Rule added
@@ -519,7 +519,7 @@ Using catch and release in your scripts is easy; just use
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-7-catch-release.zeek
+   $ zeek -C -r tls/ecdhe.pcap netcontrol-7-catch-release.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.18.50/32, mac=<uninitialized>], expire=10.0 mins, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -572,7 +572,7 @@ Using the existing plugins
 
 In the API part of the documentation, we exclusively used the debug plugin,
 which simply outputs its actions to the screen. In addition to this debugging
-plugin, Bro ships with a small number of plugins that can be used to interface
+plugin, Zeek ships with a small number of plugins that can be used to interface
 the NetControl framework with your networking hard- and software.
 
 The plugins that currently ship with NetControl are:
@@ -591,7 +591,7 @@ The plugins that currently ship with NetControl are:
 
     * - Broker plugin
       - This plugin provides a generic way to send NetControl commands using the
-        new Bro communication library (Broker). External programs can receive
+        new Zeek communication library (Broker). External programs can receive
         the rules and take action; we provide an example script that calls
         command-line programs triggered by NetControl. The source of this
         plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/broker.zeek`.
@@ -603,7 +603,7 @@ The plugins that currently ship with NetControl are:
         plugin is contained in :doc:`/scripts/base/frameworks/netcontrol/plugins/acld.zeek`.
 
     * - PacketFilter plugin
-      - This plugin uses the Bro process-level packet filter (see
+      - This plugin uses the Zeek process-level packet filter (see
         :zeek:see:`install_src_net_filter` and
         :zeek:see:`install_dst_net_filter`). Since the functionality of the
         PacketFilter is limited, this plugin is mostly for demonstration purposes. The source of this
@@ -634,7 +634,7 @@ The choice if a rule is accepted or rejected stays completely with each plugin.
 The debug plugin we used so far just accepts all rules. However, for other
 plugins you can specify what rules they will accept. Consider, for example, a
 network with two OpenFlow switches. The first switch forwards packets from the
-network to the external world, the second switch sits in front of your Bro
+network to the external world, the second switch sits in front of your Zeek
 cluster to provide packet shunting. In this case, you can add two OpenFlow
 backends to NetControl. When you create the instances using
 :zeek:see:`NetControl::create_openflow`, you set the `monitor` and `forward`
@@ -664,7 +664,7 @@ plugin. We manually block a few addresses in the
 
 .. sourcecode:: console
 
-   $ bro netcontrol-8-multiple.zeek
+   $ zeek netcontrol-8-multiple.zeek
    netcontrol debug (Debug-All): init
    netcontrol debug (Debug-All): add_rule: [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::ADDRESS, conn=<uninitialized>, flow=<uninitialized>, ip=192.168.17.2/32, mac=<uninitialized>], expire=1.0 min, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=3, cid=3, _plugin_ids={\x0a\x0a}, _active_plugin_ids={\x0a\x0a}, _no_expire_plugins={\x0a\x0a}, _added=F]
 
@@ -728,9 +728,9 @@ Interfacing with external hardware
 **********************************
 
 Now that we know which plugins exist, and how they can be added to NetControl,
-it is time to discuss how we can interface Bro with actual hardware. The typical
-way to accomplish this is to use the Bro communication library (Broker), which
-can be used to exchange Bro events with external programs and scripts. The
+it is time to discuss how we can interface Zeek with actual hardware. The typical
+way to accomplish this is to use the Zeek communication library (Broker), which
+can be used to exchange Zeek events with external programs and scripts. The
 NetControl plugins can use Broker to send events to external programs, which can
 then take action depending on these events.
 
@@ -756,11 +756,6 @@ call configureable command-line programs when used with the broker plugin.
 The repository also contains documentation on how to install these connectors.
 The `netcontrol` directory contains an API that allows you to write your own
 connectors to the broker plugin.
-
-.. note::
-
-    Note that the API of the Broker communication library is not finalized yet.
-    You might have to rewrite any scripts for use in future Bro versions.
 
 Writing plugins
 ---------------
@@ -792,7 +787,7 @@ to our very first example:
 
 .. sourcecode:: console
 
-   $ bro -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.zeek
+   $ zeek -C -r tls/ecdhe.pcap netcontrol-10-use-skeleton.zeek
    add, [ty=NetControl::DROP, target=NetControl::FORWARD, entity=[ty=NetControl::CONNECTION, conn=[orig_h=192.168.18.50, orig_p=56981/tcp, resp_h=74.125.239.97, resp_p=443/tcp], flow=<uninitialized>, ip=<uninitialized>, mac=<uninitialized>], expire=20.0 secs, priority=0, location=, out_port=<uninitialized>, mod=<uninitialized>, id=2, cid=2, _plugin_ids={
 
    }, _active_plugin_ids={

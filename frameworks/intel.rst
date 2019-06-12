@@ -9,7 +9,7 @@ Intro
 Intelligence data is critical to the process of monitoring for
 security purposes.  There is always data which will be discovered
 through the incident response process and data which is shared through
-private communities.  The goals of Bro's Intelligence Framework are to
+private communities.  The goals of Zeek's Intelligence Framework are to
 consume that data, make it available for matching, and provide
 infrastructure around improving performance, memory utilization, and
 generally making all of this easier.
@@ -80,7 +80,7 @@ to support additional metadata fields used by CIF::
 
 	@load policy/integration/collective-intel
 
-There is a simple mechanism to raise a Bro notice (of type Intel::Notice)
+There is a simple mechanism to raise a Zeek notice (of type Intel::Notice)
 for user-specified intelligence matches.  To use this feature, add the
 following line to local.zeek in order to support additional metadata fields
 (documented in the :zeek:see:`Intel::MetaData` record)::
@@ -107,16 +107,16 @@ needs to be informed that this data was discovered so that its presence
 will be checked within the loaded intelligence data.  This is
 accomplished through the :zeek:see:`Intel::seen` function, however
 typically users won't need to work with this function due to the
-scripts included with Bro that will call this function.
+scripts included with Zeek that will call this function.
 
-To load all of the scripts included with Bro for sending "seen" data to
+To load all of the scripts included with Zeek for sending "seen" data to
 the intelligence framework, just add this line to local.zeek::
 
 	@load policy/frameworks/intel/seen
 
 Alternatively, specific scripts in that directory can be loaded.
 Keep in mind that as more data is sent into the
-intelligence framework, the CPU load consumed by Bro will increase
+intelligence framework, the CPU load consumed by Zeek will increase
 depending on how many times the :zeek:see:`Intel::seen` function is
 being called which is heavily traffic dependent.
 

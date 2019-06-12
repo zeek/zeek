@@ -1,7 +1,7 @@
 Operators
 =========
 
-The Bro scripting language supports the following operators.  Note that
+The Zeek scripting language supports the following operators.  Note that
 each data type only supports a subset of these operators.  For more
 details, see the documentation about the `data types <types.html>`_.
 
@@ -192,7 +192,7 @@ Type casting
 
 The "as" operator performs type casting and the "is" operator checks if a
 type cast is supported or not.  For both operators, the first operand is a
-value and the second operand is the name of a Bro script type (either built-in
+value and the second operand is the name of a Zeek script type (either built-in
 or user-defined).
 
 +------------------------------+-------------+-------------------------------+
@@ -213,7 +213,7 @@ Only the following kinds of type casts are supported currently:
 
 - Broker values (i.e., :zeek:see:`Broker::Data` values returned from
   functions such as :zeek:id:`Broker::data`) can be casted to their
-  corresponding Bro script types.
+  corresponding Zeek script types.
 - A value of declared type "any" can be casted to its actual underlying type.
 - All values can be casted to their declared types (i.e., this is a no-op).
 

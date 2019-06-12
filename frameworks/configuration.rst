@@ -7,7 +7,7 @@ Configuration Framework
 
 .. rst-class:: opening
 
-Bro includes a "configuration framework" that allows
+Zeek includes a "configuration framework" that allows
 updating script options dynamically at runtime. This functionality
 consists of several components: an "option" declaration, the
 ability to specify input files to enable changing the value of options at
@@ -17,20 +17,20 @@ which contains information about every change to option values.
 Introduction
 ------------
 
-The configuration framework provides an alternative to using Bro
-script constants to store various Bro settings.
+The configuration framework provides an alternative to using Zeek
+script constants to store various Zeek settings.
 
 In general, traditional constants can be used when a value is not
 expected to change at runtime, but they cannot be used for values that
 need to be modified occasionally. While a "redef" allows a
-re-definition of an already defined constant in Bro, these
-redefinitions can only be performed when Bro first starts. Afterwards,
+re-definition of an already defined constant in Zeek, these
+redefinitions can only be performed when Zeek first starts. Afterwards,
 constants can no longer be modified.
 
 However, it is clearly desirable to be able to change at runtime many
-of the configuration options that Bro offers. Having to restart Bro
-can be time-consuming and causes Bro to lose all connection state and
-knowledge that it accumulated. Bro's configuration framework solves
+of the configuration options that Zeek offers. Having to restart Zeek
+can be time-consuming and causes Zeek to lose all connection state and
+knowledge that it accumulated. Zeek's configuration framework solves
 this problem by allowing changing configuration options at runtime.
 
 Declaring options
@@ -107,9 +107,9 @@ type :zeek:type:`interval`, the numeric value in the config file
 is interpreted as seconds and there cannot be any time units
 (such as sec, min, etc.).
 
-Internally, the configuration framework uses the Bro input framework
+Internally, the configuration framework uses the Zeek input framework
 with a type of input reader specifically for reading config files. Users
-familiar with the Bro input framework might be aware that the input framework
+familiar with the Zeek input framework might be aware that the input framework
 is usually very strict about the syntax of input files. This is not true
 for configuration files: the files need no header lines and either
 tabs or spaces are accepted as separators.

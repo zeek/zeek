@@ -5,13 +5,13 @@ Signature Framework
 
 .. rst-class:: opening
 
-    Bro relies primarily on its extensive scripting language for 
+    Zeek relies primarily on its extensive scripting language for 
     defining and analyzing detection policies. In addition, however,
-    Bro also provides an independent *signature language* for doing
+    Zeek also provides an independent *signature language* for doing
     low-level, Snort-style pattern matching. While signatures are
-    *not* Bro's preferred detection tool, they sometimes come in handy
+    *not* Zeek's preferred detection tool, they sometimes come in handy
     and are closer to what many people are familiar with from using
-    other NIDS. This page gives a brief overview on Bro's signatures
+    other NIDS. This page gives a brief overview on Zeek's signatures
     and covers some of their technical subtleties.
 
 Basics
@@ -27,8 +27,8 @@ Let's look at an example signature first::
     }
     
 
-This signature asks Bro to match the regular expression ``.*root`` on
-all TCP connections going to port 80. When the signature triggers, Bro
+This signature asks Zeek to match the regular expression ``.*root`` on
+all TCP connections going to port 80. When the signature triggers, Zeek
 will raise an event :zeek:id:`signature_match` of the form:
 
 .. sourcecode:: zeek
@@ -41,22 +41,22 @@ signature's event statement (``Found root!``), and data is the last
 piece of payload which triggered the pattern match.
 
 To turn such :zeek:id:`signature_match` events into actual alarms, you can
-load Bro's :doc:`/scripts/base/frameworks/signatures/main.zeek` script.
+load Zeek's :doc:`/scripts/base/frameworks/signatures/main.zeek` script.
 This script contains a default event handler that raises
 :zeek:enum:`Signatures::Sensitive_Signature` :doc:`Notices <notice>`
 (as well as others; see the beginning of the script).
 
-As signatures are independent of Bro's policy scripts, they are put into
+As signatures are independent of Zeek's policy scripts, they are put into
 their own file(s). There are three ways to specify which files contain
-signatures: By using the ``-s`` flag when you invoke Bro, or by
-extending the Bro variable :zeek:id:`signature_files` using the ``+=``
-operator, or by using the ``@load-sigs`` directive inside a Bro script.
+signatures: By using the ``-s`` flag when you invoke Zeek, or by
+extending the Zeek variable :zeek:id:`signature_files` using the ``+=``
+operator, or by using the ``@load-sigs`` directive inside a Zeek script.
 If a signature file is given without a full path, it is searched for
 along the normal ``ZEEKPATH``.  Additionally, the ``@load-sigs``
 directive can be used to load signature files in a path relative to the
-Bro script in which it's placed, e.g. ``@load-sigs ./mysigs.sig`` will
-expect that signature file in the same directory as the Bro script. The
-default extension of the file name is ``.sig``, and Bro appends that
+Zeek script in which it's placed, e.g. ``@load-sigs ./mysigs.sig`` will
+expect that signature file in the same directory as the Zeek script. The
+default extension of the file name is ``.sig``, and Zeek appends that
 automatically when necessary.
 
 Signature Language for Network Traffic
@@ -220,7 +220,7 @@ Context Conditions
 ~~~~~~~~~~~~~~~~~~
 
 Context conditions pass the match decision on to other components of
-Bro. They are only evaluated if all other conditions have already
+Zeek. They are only evaluated if all other conditions have already
 matched. The following context conditions are defined:
 
 ``eval <policy-function>``
@@ -273,7 +273,7 @@ two actions defined:
 
 ``enable <string>``
     Enables the protocol analyzer ``<string>`` for the matching
-    connection (``"http"``, ``"ftp"``, etc.). This is used by Bro's
+    connection (``"http"``, ``"ftp"``, etc.). This is used by Zeek's
     dynamic protocol detection to activate analyzers on the fly.
 
 Signature Language for File Content
@@ -283,7 +283,7 @@ The signature framework can also be used to identify MIME types of files
 irrespective of the network protocol/connection over which the file is
 transferred.  A special type of signature can be written for this
 purpose and will be used automatically by the :doc:`Files Framework
-<file-analysis>` or by Bro scripts that use the :zeek:see:`file_magic`
+<file-analysis>` or by Zeek scripts that use the :zeek:see:`file_magic`
 built-in function.
 
 Conditions
@@ -326,7 +326,7 @@ Things to keep in mind when writing signatures
   keep in mind here is that these conditions only perform any matching
   when the corresponding application analyzer is actually *active* for
   a connection. Note that by default, analyzers are not enabled if the
-  corresponding Bro script has not been loaded. A good way to
+  corresponding Zeek script has not been loaded. A good way to
   double-check whether an analyzer "sees" a connection is checking its
   log file for corresponding entries. If you cannot find the
   connection in the analyzer's log, very likely the signature engine
@@ -338,7 +338,7 @@ Things to keep in mind when writing signatures
 
 * For TCP connections, header conditions are only evaluated for the
   *first packet from each endpoint*. If a header condition does not
-  match the initial packets, the signature will not trigger. Bro
+  match the initial packets, the signature will not trigger. Zeek
   optimizes for the most common application here, which is header
   conditions selecting the connections to be examined more closely
   with payload statements.
@@ -346,16 +346,16 @@ Things to keep in mind when writing signatures
 * For UDP and ICMP flows, the payload matching is done on a per-packet
   basis; i.e., any content crossing packet boundaries will not be
   found. For TCP connections, the matching semantics depend on whether
-  Bro is *reassembling* the connection (i.e., putting all of a
-  connection's packets in sequence). By default, Bro is reassembling
+  Zeek is *reassembling* the connection (i.e., putting all of a
+  connection's packets in sequence). By default, Zeek is reassembling
   the first 1K of every TCP connection, which means that within this
   window, matches will be found without regards to packet order or
   boundaries (i.e., *stream-wise matching*).
 
-* For performance reasons, by default Bro *stops matching* on a
+* For performance reasons, by default Zeek *stops matching* on a
   connection after seeing 1K of payload; see the section on options
   below for how to change this behaviour. The default was chosen with
-  Bro's main user of signatures in mind: dynamic protocol detection
+  Zeek's main user of signatures in mind: dynamic protocol detection
   works well even when examining just connection heads.
 
 * Regular expressions are implicitly anchored, i.e., they work as if
@@ -365,17 +365,17 @@ Things to keep in mind when writing signatures
   each packet. To match at arbitrary positions, you can prefix the
   regular expression with ``.*``, as done in the examples above.
 
-* To match on non-ASCII characters, Bro's regular expressions support
+* To match on non-ASCII characters, Zeek's regular expressions support
   the ``\x<hex>`` operator. CRs/LFs are not treated specially by the
   signature engine and can be matched with ``\r`` and ``\n``,
-  respectively. Generally, Bro follows `flex's regular expression
+  respectively. Generally, Zeek follows `flex's regular expression
   syntax
   <http://westes.github.io/flex/manual/Patterns.html>`_.
   See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 
 * The data argument of the :zeek:id:`signature_match` handler might not carry
-  the full text matched by the regular expression. Bro performs the
+  the full text matched by the regular expression. Zeek performs the
   matching incrementally as packets come in; when the signature
   eventually fires, it can only pass on the most recent chunk of data.
 
@@ -383,40 +383,40 @@ Things to keep in mind when writing signatures
 Options
 =======
 
-The following options control details of Bro's matching process:
+The following options control details of Zeek's matching process:
 
 ``dpd_reassemble_first_packets: bool`` (default: ``T``)
-    If true, Bro reassembles the beginning of every TCP connection (of
+    If true, Zeek reassembles the beginning of every TCP connection (of
     up to ``dpd_buffer_size`` bytes, see below), to facilitate
     reliable matching across packet boundaries. If false, only
     connections are reassembled for which an application-layer
-    analyzer gets activated (e.g., by Bro's dynamic protocol
+    analyzer gets activated (e.g., by Zeek's dynamic protocol
     detection).
 
 ``dpd_match_only_beginning : bool`` (default: ``T``)
-    If true, Bro performs packet matching only within the initial
+    If true, Zeek performs packet matching only within the initial
     payload window of ``dpd_buffer_size``. If false, it keeps matching
     on subsequent payload as well.
 
 ``dpd_buffer_size: count`` (default: ``1024``)
     Defines the buffer size for the two preceding options. In
-    addition, this value determines the amount of bytes Bro buffers
+    addition, this value determines the amount of bytes Zeek buffers
     for each connection in order to activate application analyzers
     even after parts of the payload have already passed through. This
     is needed by the dynamic protocol detection capability to defer
     the decision which analyzers to use.
 
 
-So, how about using Snort signatures with Bro?
-==============================================
+So, how about using Snort signatures with Zeek?
+===============================================
 
-There was once a script, ``snort2bro``, that converted Snort
-signatures automatically into Bro's signature syntax. However, in our
-experience this didn't turn out to be a very useful thing to do
-because by simply using Snort signatures, one can't benefit from the
-additional capabilities that Bro provides; the approaches of the two
-systems are just too different. We therefore stopped maintaining the
-``snort2bro`` script, and there are now many newer Snort options which
-it doesn't support. The script is now no longer part of the Bro
+There was once a script, ``snort2bro``, that converted Snort signatures
+automatically into Zeek's (then called "Bro") signature syntax.
+However, in our experience this didn't turn out to be a very useful
+thing to do because by simply using Snort signatures, one can't benefit
+from the additional capabilities that Zeek provides; the approaches of
+the two systems are just too different. We therefore stopped maintaining
+the ``snort2bro`` script, and there are now many newer Snort options
+which it doesn't support. The script is now no longer part of the Zeek
 distribution.
 

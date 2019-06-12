@@ -1,7 +1,7 @@
 Directives
 ==========
 
-The Bro scripting language supports a number of directives that can
+The Zeek scripting language supports a number of directives that can
 affect which scripts will be loaded or which lines in a script will be
 executed.  Directives are evaluated before script execution begins.
 
@@ -39,12 +39,12 @@ executed.  Directives are evaluated before script execution begins.
 
 .. zeek:keyword:: @load
 
-    Loads the specified Bro script, specified as the relative pathname
-    of the file (relative to one of the directories in Bro's file search path).
-    If the Bro script filename ends with ".zeek", then you don't need to
+    Loads the specified Zeek script, specified as the relative pathname
+    of the file (relative to one of the directories in Zeek's file search path).
+    If the Zeek script filename ends with ".zeek", then you don't need to
     specify the file extension.  The filename cannot contain any whitespace.
 
-    In this example, Bro will try to load a script
+    In this example, Zeek will try to load a script
     "policy/misc/capture-loss.zeek" by looking in each directory in the file
     search path (the file search path can be changed by setting the ZEEKPATH
     environment variable)::
@@ -52,17 +52,17 @@ executed.  Directives are evaluated before script execution begins.
         @load policy/misc/capture-loss
 
     If you specify the name of a directory instead of a filename, then
-    Bro will try to load a file in that directory called "__load__.zeek"
+    Zeek will try to load a file in that directory called "__load__.zeek"
     (presumably that file will contain additional "@load" directives).
 
-    In this example, Bro will try to load a file "tuning/defaults/__load__.zeek"
+    In this example, Zeek will try to load a file "tuning/defaults/__load__.zeek"
     by looking in each directory in the file search path::
 
         @load tuning/defaults
 
     The purpose of this directive is to ensure that all script dependencies
-    are satisfied, and to avoid having to list every needed Bro script
-    on the command-line.  Bro keeps track of which scripts have been
+    are satisfied, and to avoid having to list every needed Zeek script
+    on the command-line.  Zeek keeps track of which scripts have been
     loaded, so it is not an error to load a script more than once (once
     a script has been loaded, any subsequent "@load" directives
     for that script are ignored).
@@ -71,16 +71,16 @@ executed.  Directives are evaluated before script execution begins.
 .. zeek:keyword:: @load-plugin
 
     Activate a dynamic plugin with the specified plugin name.  The specified
-    plugin must be located in Bro's plugin search path.  Example::
+    plugin must be located in Zeek's plugin search path.  Example::
 
         @load-plugin Demo::Rot13
 
-    By default, Bro will automatically activate all dynamic plugins found
+    By default, Zeek will automatically activate all dynamic plugins found
     in the plugin search path (the search path can be changed by setting
     the environment variable ZEEK_PLUGIN_PATH to a colon-separated list of
-    directories). However, in bare mode ("bro -b"), dynamic plugins can be
+    directories). However, in bare mode ("zeek -b"), dynamic plugins can be
     activated only by using "@load-plugin", or by specifying the full
-    plugin name on the Bro command-line (e.g., "bro Demo::Rot13"), or by
+    plugin name on the Zeek command-line (e.g., "zeek Demo::Rot13"), or by
     setting the environment variable ZEEK_PLUGIN_ACTIVATE to a
     comma-separated list of plugin names.
 
@@ -88,12 +88,12 @@ executed.  Directives are evaluated before script execution begins.
 .. zeek:keyword:: @load-sigs
 
     This works similarly to "@load", except that in this case the filename
-    represents a signature file (not a Bro script).  If the signature filename
+    represents a signature file (not a Zeek script).  If the signature filename
     ends with ".sig", then you don't need to specify the file extension
     in the "@load-sigs" directive.  The filename cannot contain any
     whitespace.
 
-    In this example, Bro will try to load a signature file
+    In this example, Zeek will try to load a signature file
     "base/protocols/ssl/dpd.sig"::
 
         @load-sigs base/protocols/ssl/dpd
@@ -104,13 +104,13 @@ executed.  Directives are evaluated before script execution begins.
 
 .. zeek:keyword:: @unload
 
-    This specifies a Bro script that we don't want to load (so a subsequent
+    This specifies a Zeek script that we don't want to load (so a subsequent
     attempt to load the specified script will be skipped).  However,
     if the specified script has already been loaded, then this directive
     has no affect.
 
     In the following example, if the "policy/misc/capture-loss.zeek" script
-    has not been loaded yet, then Bro will not load it::
+    has not been loaded yet, then Zeek will not load it::
 
         @unload policy/misc/capture-loss
 
@@ -130,20 +130,20 @@ executed.  Directives are evaluated before script execution begins.
 
         @prefixes += cluster-manager
 
-    The way this works is that after Bro parses all script files, then for each
-    loaded script Bro will take the absolute path of the script and then
-    it removes the portion of the directory path that is in Bro's file
+    The way this works is that after Zeek parses all script files, then for each
+    loaded script Zeek will take the absolute path of the script and then
+    it removes the portion of the directory path that is in Zeek's file
     search path.  Then it replaces each "/" character with a period "."
     and then prepends the prefix (specified in the "@prefixes" directive)
     followed by a period.  The resulting filename is searched for in each
-    directory in Bro's file search path.  If a matching file is found, then
+    directory in Zeek's file search path.  If a matching file is found, then
     the file is automatically loaded.
 
     For example, if a script called "local.zeek" has been loaded, and a prefix
-    of "test" was specified, then Bro will look for a file named
-    "test.local.zeek" in each directory of Bro's file search path.
+    of "test" was specified, then Zeek will look for a file named
+    "test.local.zeek" in each directory of Zeek's file search path.
 
-    An alternative way to specify prefixes is to use the "-p" Bro
+    An alternative way to specify prefixes is to use the "-p" Zeek
     command-line option.
 
 .. zeek:keyword:: @if

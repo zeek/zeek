@@ -7,8 +7,8 @@ Input Framework
 
 .. rst-class:: opening
 
-   Bro features a flexible input framework that allows users
-   to import data into Bro. Data is either read into Bro tables or
+   Zeek features a flexible input framework that allows users
+   to import data into Zeek. Data is either read into Zeek tables or
    converted to events which can then be handled by scripts.
    This document gives an overview of how to use the input framework
    with some examples. For more complex scenarios it is
@@ -19,13 +19,13 @@ Reading Data into Tables
 ========================
 
 Probably the most interesting use-case of the input framework is to
-read data into a Bro table.
+read data into a Zeek table.
 
 By default, the input framework reads the data in the same format
-as it is written by the logging framework in Bro - a tab-separated
+as it is written by the logging framework in Zeek - a tab-separated
 ASCII file.
 
-We will show the ways to read files into Bro with a simple example.
+We will show the ways to read files into Zeek with a simple example.
 For this example we assume that we want to import data from a blacklist
 that contains server IP addresses as well as the timestamp and the reason
 for the block.
@@ -40,7 +40,7 @@ tab-separated):
         192.168.27.2 1330235733 Botnet server
         192.168.250.3 1333145108 Virus detected
 
-To read a file into a Bro table, two record types have to be defined.
+To read a file into a Zeek table, two record types have to be defined.
 One contains the types and names of the columns that should constitute the
 table keys and the second contains the types and names of the columns that
 should constitute the table values.
@@ -88,15 +88,15 @@ read.
 
 Because some data files can - potentially - be rather big, the input framework
 works asynchronously. A new thread is created for each new input stream.
-This thread opens the input data file, converts the data into a Bro format and
-sends it back to the main Bro thread.
+This thread opens the input data file, converts the data into a Zeek format and
+sends it back to the main Zeek thread.
 
 Because of this, the data is not immediately accessible. Depending on the
 size of the data source it might take from a few milliseconds up to a few
 seconds until all data is present in the table. Please note that this means
-that when Bro is running without an input source or on very short captured
+that when Zeek is running without an input source or on very short captured
 files, it might terminate before the data is present in the table (because
-Bro already handled all packets before the import thread finished).
+Zeek already handled all packets before the import thread finished).
 
 Subsequent calls to an input source are queued until the previous action has
 been completed. Because of this, it is, for example, possible to call
@@ -116,7 +116,7 @@ data from the input file is available in the table.
 
 The table can be used while the data is still being read - it
 just might not contain all lines from the input file before the event has
-fired. After the table has been populated it can be used like any other Bro
+fired. After the table has been populated it can be used like any other Zeek
 table and blacklist entries can easily be tested:
 
 .. sourcecode:: zeek
@@ -152,7 +152,7 @@ Re-reading and streaming data
 -----------------------------
 
 For many data sources, like for many blacklists, the source data is continually
-changing. For these cases, the Bro input framework supports several ways to
+changing. For these cases, the Zeek input framework supports several ways to
 deal with changing data files.
 
 The first, very basic method is an explicit refresh of an input stream. When
@@ -182,15 +182,15 @@ would look like this:
                           $idx=Idx, $val=Val, $destination=blacklist,
                           $mode=Input::REREAD]);
 
-When using the reread mode (i.e., ``$mode=Input::REREAD``), Bro continually
+When using the reread mode (i.e., ``$mode=Input::REREAD``), Zeek continually
 checks if the input file has been changed. If the file has been changed, it
-is re-read and the data in the Bro table is updated to reflect the current
+is re-read and the data in the Zeek table is updated to reflect the current
 state.  Each time a change has been detected and all the new data has been
 read into the table, the ``end_of_data`` event is raised.
 
-When using the streaming mode (i.e., ``$mode=Input::STREAM``), Bro assumes
+When using the streaming mode (i.e., ``$mode=Input::STREAM``), Zeek assumes
 that the source data file is an append-only file to which new data is
-continually appended. Bro continually checks for new data at the end of
+continually appended. Zeek continually checks for new data at the end of
 the file and will add the new data to the table.  If newer lines in the
 file have the same index as previous lines, they will overwrite the
 values in the output table.  Because of the nature of streaming reads
@@ -208,7 +208,7 @@ For this reason, the input framework can raise an event each time when a data
 item is added to, removed from, or changed in a table.
 
 The event definition looks like this (note that you can change the name of
-this event in your own Bro script):
+this event in your own Zeek script):
 
 .. sourcecode:: zeek
 
@@ -320,8 +320,8 @@ Different readers
 
 The input framework supports different kinds of readers for different kinds
 of source data files. At the moment, the default reader reads ASCII files
-formatted in the Bro log file format (tab-separated values with a "#fields"
-header line).  Several other readers are included in Bro.
+formatted in the Zeek log file format (tab-separated values with a "#fields"
+header line).  Several other readers are included in Zeek.
 
 The raw reader reads a file that is
 split by a specified record separator (newline by default). The contents are
@@ -334,10 +334,10 @@ is the default type of reader for those streams).
 
 The benchmark reader is being used
 to optimize the speed of the input framework. It can generate arbitrary
-amounts of semi-random data in all Bro data types supported by the input
+amounts of semi-random data in all Zeek data types supported by the input
 framework.
 
-Currently, Bro supports the following readers in addition to the 
+Currently, Zeek supports the following readers in addition to the 
 aforementioned ones:
 
 .. toctree::
@@ -349,7 +349,7 @@ aforementioned ones:
 Reading Data to Events
 ======================
 
-The second supported mode of the input framework is reading data to Bro
+The second supported mode of the input framework is reading data to Zeek
 events instead of reading them to a table.
 
 Event streams work very similarly to table streams that were already

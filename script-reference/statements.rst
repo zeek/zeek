@@ -1,7 +1,7 @@
 Declarations and Statements
 ===========================
 
-The Bro scripting language supports the following declarations and
+The Zeek scripting language supports the following declarations and
 statements.
 
 
@@ -78,7 +78,7 @@ Declarations cannot occur within a function, hook, or event handler.
 
 Declarations must appear before any statements (except those statements
 that are in a function, hook, or event handler) in the concatenation of
-all loaded Bro scripts.
+all loaded Zeek scripts.
 
 .. zeek:keyword:: module
 
@@ -90,16 +90,16 @@ all loaded Bro scripts.
         module mymodule;
 
     If a global identifier is declared after a "module" declaration,
-    then its scope ends at the end of the current Bro script or at the
+    then its scope ends at the end of the current Zeek script or at the
     next "module" declaration, whichever comes first.  However, if a
     global identifier is declared after a "module" declaration, but inside
     an :zeek:keyword:`export` block, then its scope ends at the end of the
-    last loaded Bro script, but it must be referenced using the namespace
+    last loaded Zeek script, but it must be referenced using the namespace
     operator (``::``) in other modules.
 
-    There can be any number of "module" declarations in a Bro script.
+    There can be any number of "module" declarations in a Zeek script.
     The same "module" declaration can appear in any number of different
-    Bro scripts.
+    Zeek scripts.
 
 
 .. zeek:keyword:: export
@@ -151,7 +151,7 @@ all loaded Bro scripts.
     function body is provided) can use the "global" keyword.
 
     The scope of a global variable begins where the declaration is located,
-    and extends through all remaining Bro scripts that are loaded (however,
+    and extends through all remaining Zeek scripts that are loaded (however,
     see the :zeek:keyword:`module` keyword for an explanation of how modules
     change the visibility of global identifiers).
 
@@ -280,13 +280,13 @@ Statements
 
 Statements (except those contained within a function, hook, or event
 handler) can appear only after all global declarations in the concatenation
-of all loaded Bro scripts.
+of all loaded Zeek scripts.
 
-Each statement in a Bro script must be terminated with a semicolon (with a
+Each statement in a Zeek script must be terminated with a semicolon (with a
 few exceptions noted below).  An individual statement can span multiple
 lines.
 
-Here are the statements that the Bro scripting language supports.
+Here are the statements that the Zeek scripting language supports.
 
 .. zeek:keyword:: add
 
@@ -589,7 +589,7 @@ Here are the statements that the Bro scripting language supports.
     uses type-based versions of "case":
 
     - "case type t: ...": Take branch if the value of the switch expression
-      could be casted to type t (where "t" is the name of a Bro script type,
+      could be casted to type t (where "t" is the name of a Zeek script type,
       either built-in or user-defined).
 
     - "case type t as x: ...": Same as above, but the casted value is
@@ -656,11 +656,11 @@ Here are the statements that the Bro scripting language supports.
     call such as :zeek:id:`lookup_hostname` (in fact, this is the only place
     such a function can be called), but it can also contain an ordinary
     function call.  When an asynchronous function call is in the expression,
-    then Bro will continue processing statements in the script following
+    then Zeek will continue processing statements in the script following
     the "when" statement, and when the result of the function call is available
-    Bro will finish evaluating the expression in the "when" statement.
+    Zeek will finish evaluating the expression in the "when" statement.
     See the :zeek:keyword:`return` statement for an explanation of how to
-    create an asynchronous function in a Bro script.
+    create an asynchronous function in a Zeek script.
 
 .. zeek:keyword:: while
 
@@ -709,7 +709,7 @@ Here are the statements that the Bro scripting language supports.
             ++x;
         }
 
-    Note that there are other places in the Bro scripting language that use
+    Note that there are other places in the Zeek scripting language that use
     braces, but that do not indicate the presence of a compound
     statement (these are noted in the documentation).
 
@@ -717,7 +717,7 @@ Here are the statements that the Bro scripting language supports.
 
 **null statement**
     The null statement (executing it has no effect) consists of just a
-    semicolon.  This might be useful during testing or debugging a Bro script
+    semicolon.  This might be useful during testing or debugging a Zeek script
     in places where a statement is required, but it is probably not useful
     otherwise.
 

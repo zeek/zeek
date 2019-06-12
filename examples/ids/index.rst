@@ -1,19 +1,21 @@
 
 .. _bro-ids:
 
+.. _zeek-ids:
+
 ===
 IDS
 ===
 
 An Intrusion Detection System (IDS) allows you to detect suspicious
 activities happening on your network as a result of a past or active
-attack. Because of its programming capabilities, Bro can easily be
+attack. Because of its programming capabilities, Zeek can easily be
 configured to behave like traditional IDSs and detect common attacks
 with well known patterns, or you can create your own scripts to detect
 conditions specific to your particular case.
 
 In the following sections, we present a few examples of common uses of
-Bro as an IDS.
+Zeek as an IDS.
 
 -------------------------------------------------
 Detecting an FTP Brute-force Attack and Notifying
@@ -165,7 +167,7 @@ Below is the final code for our script.
 
 .. sourcecode:: console
 
-   $ bro -r ftp/bruteforce.pcap protocols/ftp/detect-bruteforcing.zeek
+   $ zeek -r ftp/bruteforce.pcap protocols/ftp/detect-bruteforcing.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -180,7 +182,7 @@ Below is the final code for our script.
 
 As a final note, the :doc:`detect-bruteforcing.zeek
 </scripts/policy/protocols/ftp/detect-bruteforcing.zeek>` script above is
-included with Bro out of the box.  Use this feature by loading this script
+included with Zeek out of the box.  Use this feature by loading this script
 during startup.
 
 -------------
@@ -196,7 +198,7 @@ Checking files against known malware hashes
 Files transmitted on your network could either be completely harmless or
 contain viruses and other threats. One possible action against this
 threat is to compute the hashes of the files and compare them against a
-list of known malware hashes. Bro simplifies this task by offering a
+list of known malware hashes. Zeek simplifies this task by offering a
 :doc:`detect-MHR.zeek </scripts/policy/frameworks/files/detect-MHR.zeek>`
 script that creates and compares hashes against the `Malware Hash
 Registry <https://www.team-cymru.org/Services/MHR/>`_ maintained by Team

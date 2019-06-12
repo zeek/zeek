@@ -1,7 +1,7 @@
 Attributes
 ==========
 
-The Bro scripting language supports the following attributes.
+The Zeek scripting language supports the following attributes.
 
 +------------------------------+-----------------------------------------------+
 | Name                         | Description                                   |
@@ -186,5 +186,5 @@ Here is a more detailed explanation of each attribute:
 .. zeek:attr:: &deprecated
 
     The associated identifier is marked as deprecated and will be
-    removed in a future version of Bro.  Look in the NEWS file for more
+    removed in a future version of Zeek.  Look in the NEWS file for more
     instructions to migrate code that uses deprecated functionality.

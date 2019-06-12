@@ -1,7 +1,7 @@
 Types
 =====
 
-The Bro scripting language supports the following built-in types:
+The Zeek scripting language supports the following built-in types:
 
 +-----------------------+--------------------+
 | Name                  | Description        |
@@ -158,12 +158,12 @@ Here is a more detailed description of each type:
     arbitrary binary data.
 
     String constants are created by enclosing text within a pair of double
-    quotes (").  A string constant cannot span multiple lines in a Bro script.
-    The backslash character (\\) introduces escape sequences. Bro recognizes
+    quotes (").  A string constant cannot span multiple lines in a Zeek script.
+    The backslash character (\\) introduces escape sequences. Zeek recognizes
     the following escape sequences: ``\\``, ``\n``, ``\t``, ``\v``, ``\b``,
     ``\r``, ``\f``, ``\a``, ``\ooo`` (where each 'o' is an octal digit),
-    ``\xhh`` (where each 'h' is a hexadecimal digit).  If Bro does not
-    recognize an escape sequence, Bro will ignore the backslash
+    ``\xhh`` (where each 'h' is a hexadecimal digit).  If Zeek does not
+    recognize an escape sequence, Zeek will ignore the backslash
     ("\\g" becomes "g").
 
     Strings support concatenation (``+``), and assignment (``=``, ``+=``).
@@ -707,7 +707,7 @@ Here is a more detailed description of each type:
 
 .. zeek:type:: function
 
-    Function types in Bro are declared using::
+    Function types in Zeek are declared using::
 
         function( argument*  ): type
 
@@ -917,7 +917,7 @@ Here is a more detailed description of each type:
 
 .. zeek:type:: file
 
-    Bro supports writing to files, but not reading from them (to read from
+    Zeek supports writing to files, but not reading from them (to read from
     files see the :doc:`/frameworks/input`).  Files
     can be opened using either the :zeek:id:`open` or :zeek:id:`open_for_append`
     built-in functions, and closed using the :zeek:id:`close` built-in
@@ -964,11 +964,11 @@ Here is a more detailed description of each type:
     The only operation allowed on a variable of type ``any`` is assignment.
 
     Note that users aren't expected to use this type.  It's provided mainly
-    for use by some built-in functions and scripts included with Bro.
+    for use by some built-in functions and scripts included with Zeek.
 
 .. zeek:type:: void
 
-    An internal Bro type (i.e., "void" is not a reserved keyword in the Bro
+    An internal Zeek type (i.e., "void" is not a reserved keyword in the Zeek
     scripting language) representing the absence of a return type for a
     function.
 

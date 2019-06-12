@@ -10,9 +10,9 @@ Prerequisites
 
 You need three things on the host system:
 
-1. The Bro source tree.
+1. The Zeek source tree.
 2. A cross-compilation toolchain, such as one built via crosstool-NG_.
-3. Pre-built Bro dependencies from the target system.  This usually
+3. Pre-built Zeek dependencies from the target system.  This usually
    includes libpcap, zlib, OpenSSL, and Python development headers
    and libraries.
 
@@ -21,18 +21,18 @@ Configuration and Compiling
 
 You first need to compile a few build tools native to the host system
 for use during the later cross-compile build.  In the root of your
-Bro source tree:
+Zeek source tree:
 
 .. sourcecode:: console
 
-   ./configure --builddir=../bro-buildtools
-   ( cd ../bro-buildtools && make binpac bifcl )
+   ./configure --builddir=../zeek-buildtools
+   ( cd ../zeek-buildtools && make binpac bifcl )
 
-Next configure Bro to use your cross-compilation toolchain:
+Next configure Zeek to use your cross-compilation toolchain:
 
 .. sourcecode:: console
 
-   ./configure --toolchain=/home/jon/x-tools/RaspberryPi-toolchain.cmake --with-binpac=$(pwd)/../bro-buildtools/aux/binpac/src/binpac --with-bifcl=$(pwd)/../bro-buildtools/src/bifcl
+   ./configure --toolchain=/home/jon/x-tools/RaspberryPi-toolchain.cmake --with-binpac=$(pwd)/../zeek-buildtools/aux/binpac/src/binpac --with-bifcl=$(pwd)/../zeek-buildtools/src/bifcl
 
 Here, the toolchain file a `CMake toolchain`_ file.  It might look
 something the following (using a Raspberry Pi as target system)::
@@ -41,7 +41,7 @@ something the following (using a Raspberry Pi as target system)::
   set(CMAKE_SYSTEM_NAME Linux)
 
   # The CMAKE_STAGING_PREFIX option may not work.
-  # Given that Bro is configured:
+  # Given that Zeek is configured:
   #
   #   `./configure --prefix=<dir>`
   #
@@ -59,7 +59,7 @@ something the following (using a Raspberry Pi as target system)::
 
   # The cross-compiler/linker will use these paths to locate dependencies.
   set(CMAKE_FIND_ROOT_PATH
-      /home/jon/x-tools/bro-rpi-deps
+      /home/jon/x-tools/zeek-rpi-deps
       ${toolchain}/arm-rpi-linux-gnueabihf/sysroot
   )
 
@@ -80,4 +80,4 @@ And if that works, install on your host system:
    make install
 
 From there, you can copy/move the files from the installation prefix
-on the host system to the target system and start running Bro as usual.
+on the host system to the target system and start running Zeek as usual.

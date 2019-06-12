@@ -5,13 +5,13 @@
 Monitoring HTTP Traffic
 =======================
 
-Bro can be used to log the entire HTTP traffic from your network to the
+Zeek can be used to log the entire HTTP traffic from your network to the
 http.log file.  This file can then be used for analysis and auditing
 purposes.
 
 In the sections below we briefly explain the structure of the http.log
 file, then we show you how to perform basic HTTP traffic monitoring and
-analysis tasks with Bro. Some of these ideas and techniques can later be
+analysis tasks with Zeek. Some of these ideas and techniques can later be
 applied to monitor different protocols in a similar way.
 
 ----------------------------
@@ -19,7 +19,7 @@ Introduction to the HTTP log
 ----------------------------
 
 The http.log file contains a summary of all HTTP requests and responses
-sent over a Bro-monitored network. Here are the first few columns of
+sent over a Zeek-monitored network. Here are the first few columns of
 ``http.log``::
 
     # ts          uid          orig_h        orig_p  resp_h         resp_p
@@ -33,10 +33,10 @@ given connection 4-tuple over its lifetime.
 
 The remaining columns detail the activity that's occurring.  For
 example, the columns on the line below (shortened for brevity) show a
-request to the root of Bro website::
+request to the root of Zeek website::
 
     # method   host         uri  referrer  user_agent
-    GET        bro.org  /    -         <...>Chrome/12.0.742.122<...>
+    GET        zeek.org  /    -         <...>Chrome/12.0.742.122<...>
 
 Network administrators and security engineers, for instance, can use the
 information in this log to understand the HTTP activity on the network
@@ -45,9 +45,9 @@ stress that there is no single right way to perform an analysis. It will
 depend on the expertise of the person performing the analysis and the 
 specific details of the task.
 
-For more information about how to handle the HTTP protocol in Bro,
+For more information about how to handle the HTTP protocol in Zeek,
 including a complete list of the fields available in http.log, go to
-Bro's :doc:`HTTP script reference
+Zeek's :doc:`HTTP script reference
 </scripts/base/protocols/http/main.zeek>`.
 
 ------------------------
@@ -74,14 +74,14 @@ In general, when a client starts talking with a proxy server, the
 traffic consists of two parts: (i) a GET request, and (ii) an HTTP/
 reply::
 
-    Request: GET http://www.bro.org/ HTTP/1.1
+    Request: GET http://www.zeek.org/ HTTP/1.1
     Reply:   HTTP/1.0 200 OK
 
 This will differ from traffic between a client and a normal Web server
 because GET requests should not include "http" on the string. So we can
 use this to identify a proxy server.
 
-We can write a basic script in Bro to handle the http_reply event and
+We can write a basic script in Zeek to handle the http_reply event and
 detect a reply for a ``GET http://`` request.
 
 .. literalinclude:: http_proxy_01.zeek
@@ -91,7 +91,7 @@ detect a reply for a ``GET http://`` request.
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_01.zeek
+   $ zeek -r http/proxy.pcap http_proxy_01.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 Basically, the script is checking for a "200 OK" status code on a reply
@@ -106,7 +106,7 @@ will extend our basic script to also consider the additional codes.
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_02.zeek
+   $ zeek -r http/proxy.pcap http_proxy_02.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 Next, we will make sure that the responding proxy is part of our local
@@ -119,7 +119,7 @@ network.
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_03.zeek
+   $ zeek -r http/proxy.pcap http_proxy_03.zeek
    A local server is acting as an open proxy: 192.168.56.101
 
 .. note::
@@ -142,7 +142,7 @@ Below is the complete script.
 
 .. sourcecode:: console
 
-   $ bro -r http/proxy.pcap http_proxy_04.zeek
+   $ zeek -r http/proxy.pcap http_proxy_04.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -169,9 +169,8 @@ Files are often transmitted on regular HTTP conversations between a
 client and a server. Most of the time these files are harmless, just
 images and some other multimedia content, but there are also types of
 files, specially executable files, that can damage your system. We can
-instruct Bro to create a copy of all files of certain types that it sees
-using the :ref:`File Analysis Framework <file-analysis-framework>`
-(introduced with Bro 2.2):
+instruct Zeek to create a copy of all files of certain types that it sees
+using the :ref:`File Analysis Framework <file-analysis-framework>`:
 
 .. literalinclude:: file_extraction.zeek
    :caption:
@@ -180,7 +179,7 @@ using the :ref:`File Analysis Framework <file-analysis-framework>`
 
 .. sourcecode:: console
 
-   $ bro -r bro.org.pcap file_extraction.zeek
+   $ zeek -r zeek.org.pcap file_extraction.zeek
    Extracting file HTTP-FiIpIB2hRQSDBOSJRg.html
    Extracting file HTTP-FMG4bMmVV64eOsCb.txt
    Extracting file HTTP-FnaT2a3UDd093opCB9.txt

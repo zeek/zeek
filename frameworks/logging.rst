@@ -7,7 +7,7 @@ Logging Framework
 
 .. rst-class:: opening
 
-   Bro comes with a flexible key-value based logging interface that
+   Zeek comes with a flexible key-value based logging interface that
    allows fine-grained control of what gets logged and how it is
    logged. This document describes how logging can be customized and
    extended.
@@ -15,7 +15,7 @@ Logging Framework
 Terminology
 ===========
 
-Bro's logging interface is built around three main abstractions:
+Zeek's logging interface is built around three main abstractions:
 
     Streams
         A log stream corresponds to a single log. It defines the set of
@@ -39,7 +39,7 @@ Bro's logging interface is built around three main abstractions:
         writers are available, like for binary output or direct logging
         into a database.
 
-There are several different ways to customize Bro's logging: you can create
+There are several different ways to customize Zeek's logging: you can create
 a new log stream, you can extend an existing log with new fields, you
 can apply filters to an existing log stream, or you can customize the output
 format by setting log writer options.  All of these approaches are
@@ -126,15 +126,15 @@ and we also store a copy of the data being logged into the
         Log::write(Foo::LOG, rec);
         }
 
-If you run Bro with this script, a new log file ``foo.log`` will be created.
+If you run Zeek with this script, a new log file ``foo.log`` will be created.
 Although we only specified four fields in the "Info" record above, the
 log output will actually contain seven fields because one of the fields
 (the one named "id") is itself a record type.  Since a :zeek:type:`conn_id`
 record has four fields, then each of these fields is a separate column in
 the log output.  Note that the way that such fields are named in the log
 output differs slightly from the way we would refer to the same field
-in a Bro script (each dollar sign is replaced with a period).  For example,
-to access the first field of a ``conn_id`` in a Bro script we would use
+in a Zeek script (each dollar sign is replaced with a period).  For example,
+to access the first field of a ``conn_id`` in a Zeek script we would use
 the notation ``id$orig_h``, but that field is named ``id.orig_h``
 in the log output.
 
@@ -191,7 +191,7 @@ at that time that sets our field correctly:
         }
 
 Now ``conn.log`` will show a new field ``is_private`` of type
-``bool``.  If you look at the Bro script which defines the connection
+``bool``.  If you look at the Zeek script which defines the connection
 log stream :doc:`/scripts/base/protocols/conn/main.zeek`, you will see
 that ``Log::write`` gets called in an event handler for the
 same event as used in this example to set the additional fields, but at a
@@ -200,7 +200,7 @@ written after we assign the ``is_private`` field).
 
 For extending logs this way, one needs a bit of knowledge about how
 the script that creates the log stream is organizing its state
-keeping. Most of the standard Bro scripts attach their log state to
+keeping. Most of the standard Zeek scripts attach their log state to
 the :zeek:type:`connection` record where it can then be accessed, just
 like ``c$conn`` above. For example, the HTTP analysis adds a field
 ``http`` of type :zeek:type:`HTTP::Info` to the :zeek:type:`connection`
@@ -236,12 +236,12 @@ need to modify the example module shown above to look something like this:
 
     event zeek_init() &priority=5
         {
-        # Specify the "log_foo" event here in order for Bro to raise it.
+        # Specify the "log_foo" event here in order for Zeek to raise it.
         Log::create_stream(Foo::LOG, [$columns=Info, $ev=log_foo,
                            $path="foo"]);
         }
 
-All of Bro's default log streams define such an event. For example, the
+All of Zeek's default log streams define such an event. For example, the
 connection log stream raises the event :zeek:id:`Conn::log_conn`. You
 could use that for example for flagging when a connection to a
 specific destination exceeds a certain duration:
@@ -262,9 +262,9 @@ specific destination exceeds a certain duration:
                     $id=rec$id]);
         }
 
-Often, these events can be an alternative to post-processing Bro logs
+Often, these events can be an alternative to post-processing Zeek logs
 externally with Perl scripts. Much of what such an external script
-would do later offline, one may instead do directly inside of Bro in
+would do later offline, one may instead do directly inside of Zeek in
 real-time.
 
 Disable a Stream
@@ -410,7 +410,7 @@ quickly.
 
 The ``myfunc`` function has one drawback: it can be used
 only with the :zeek:enum:`Conn::LOG` stream as the record type is hardcoded
-into its argument list. However, Bro allows to do a more generic
+into its argument list. However, Zeek allows to do a more generic
 variant:
 
 .. sourcecode:: zeek
@@ -491,7 +491,7 @@ By default, the ASCII writer outputs log files that begin with several
 lines of metadata, followed by the actual log output.  The metadata
 describes the format of the log file, the "path" of the log (i.e., the log
 filename without file extension), and also specifies the time that the log
-was created and the time when Bro finished writing to it.
+was created and the time when Zeek finished writing to it.
 The ASCII writer has a number of options for customizing the format of its
 output, see :doc:`/scripts/base/frameworks/logging/writers/ascii.zeek`.
 If you change the output format options, then be careful to check whether
@@ -523,12 +523,12 @@ format of the ``conn.log`` only:
 Other Writers
 -------------
 
-Bro supports the following additional built-in output formats:
+Zeek supports the following additional built-in output formats:
 
 .. toctree::
    :maxdepth: 1
 
    logging-input-sqlite
 
-Additional writers are available as external plugins through the `Bro
+Additional writers are available as external plugins through the `Zeek
 Package Manager <https://packages.zeek.org>`_.

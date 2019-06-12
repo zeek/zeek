@@ -6,8 +6,8 @@ Notice Framework
 
 .. rst-class:: opening
 
-    One of the easiest ways to customize Bro is writing a local notice
-    policy. Bro can detect a large number of potentially interesting
+    One of the easiest ways to customize Zeek is writing a local notice
+    policy. Zeek can detect a large number of potentially interesting
     situations, and the notice policy hook which of them the user wants to be
     acted upon in some manner. In particular, the notice policy can specify
     actions to be taken, such as sending an email or compiling regular
@@ -17,19 +17,19 @@ Notice Framework
 Overview
 --------
 
-Let's start with a little bit of background on Bro's philosophy on reporting
-things. Bro ships with a large number of policy scripts which perform a wide
+Let's start with a little bit of background on Zeek's philosophy on reporting
+things. Zeek ships with a large number of policy scripts which perform a wide
 variety of analyses. Most of these scripts monitor for activity which might be
 of interest for the user. However, none of these scripts determines the
 importance of what it finds itself. Instead, the scripts only flag situations
 as *potentially* interesting, leaving it to the local configuration to define
 which of them are in fact actionable. This decoupling of detection and
-reporting allows Bro to address the different needs that sites have.
+reporting allows Zeek to address the different needs that sites have.
 Definitions of what constitutes an attack or even a compromise differ quite a
 bit between environments, and activity deemed malicious at one site might be
 fully acceptable at another.
 
-Whenever one of Bro's analysis scripts sees something potentially
+Whenever one of Zeek's analysis scripts sees something potentially
 interesting it flags the situation by calling the :zeek:see:`NOTICE`
 function and giving it a single :zeek:see:`Notice::Info` record. A Notice
 has a :zeek:see:`Notice::Type`, which reflects the kind of activity that
@@ -85,7 +85,7 @@ is that they don't go through the event queue like events.  Users can
 alter notice processing by directly modifying fields in the
 :zeek:see:`Notice::Info` record given as the argument to the hook.
 
-Here's a simple example which tells Bro to send an email for all notices of
+Here's a simple example which tells Zeek to send an email for all notices of
 type :zeek:see:`SSH::Password_Guessing` if the guesser attempted to log in to
 the server at 192.168.56.103:
 
@@ -96,7 +96,7 @@ the server at 192.168.56.103:
 
 .. sourcecode:: console
 
-   $ bro -C -r ssh/sshguess.pcap notice_ssh_guesser.zeek
+   $ zeek -C -r ssh/sshguess.pcap notice_ssh_guesser.zeek
    $ cat notice.log
    #separator \x09
    #set_separator    ,
@@ -112,7 +112,7 @@ the server at 192.168.56.103:
 .. note::
 
    Keep in mind that the semantics of the :zeek:see:`SSH::Password_Guessing`
-   notice are such that it is only raised when Bro heuristically detects
+   notice are such that it is only raised when Zeek heuristically detects
    a failed login.
 
 Hooks can also have priorities applied to order their execution like events
@@ -254,7 +254,7 @@ fields used when raising notices are described in the following table:
         :zeek:see:`Notice::policy` so the value is not set permanently
         and unchangeably.
 
-When writing Bro scripts which raise notices, some thought should be given to
+When writing Zeek scripts which raise notices, some thought should be given to
 what the notice represents and what data should be provided to give a consumer
 of the notice the best information about the notice. If the notice is
 representative of many connections and is an attribute of a host (e.g. a
@@ -358,7 +358,7 @@ included below.
 Cluster Considerations
 ----------------------
 
-As a user/developer of Bro, the main cluster concern with the notice framework
+As a user/developer of Zeek, the main cluster concern with the notice framework
 is understanding what runs where. When a notice is generated on a worker, the
 worker checks to see if the notice should be suppressed based on information
 locally maintained in the worker process. If it's not being

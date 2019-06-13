@@ -3199,7 +3199,26 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		if ( ! v1->AsVectorVal()->Assign(v2, v, op) )
+		{
+		const ListVal *lv = v2->AsListVal();
+
+		if ( lv->Length() > 1 )
+			{
+			int len = v1->AsVectorVal()->Size();
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			int slice_length = last - first;
+
+			const VectorVal *v_vect = v->AsVectorVal();
+			if ( slice_length != v_vect->Size())
+				RuntimeError("vector being assigned to slice does not match size of slice");
+			else if ( slice_length >= 0 )
+				{
+				for ( int idx = first; idx < last; idx++ )
+					v1->AsVectorVal()->Assign(idx, v_vect->Lookup(idx - first)->Ref(), op);
+				}
+			}
+		else if ( !v1->AsVectorVal()->Assign(v2, v, op))
 			{
 			if ( v )
 				{
@@ -3216,6 +3235,7 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 				RuntimeErrorWithCallStack("assignment failed with null value");
 			}
 		break;
+		}
 
 	case TYPE_TABLE:
 		if ( ! v1->AsTableVal()->Assign(v2, v, op) )

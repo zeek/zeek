@@ -174,4 +174,5 @@ event zeek_init()
 	test_case( "slicing", all_set(v17[-3:-1] == vector( 3, 4 )) );
 	test_case( "slicing", all_set(v17[:2] == vector( 1, 2 )) );
 	test_case( "slicing", all_set(v17[2:] == vector( 3, 4, 5 )) );
+	test_case( "slicing", all_set(v17[:] == v17) );
 }

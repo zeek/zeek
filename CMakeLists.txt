@@ -100,6 +100,12 @@ if ( NOT BINARY_PACKAGING_MODE )
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
 endif ()
 
+if ( SANITIZERS )
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+    set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+endif()
+
 ########################################################################
 ## Dependency Configuration
 

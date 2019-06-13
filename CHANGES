@@ -1,4 +1,10 @@
 
+2.6-408 | 2019-06-13 11:19:50 -0700
+
+  * Fix potential null-dereference in current_time() (Tim Wojtulewicz, Corelight)
+
+  * Add --sanitizers configure script to enable Clang sanitizers (Tim Wojtulewicz, Corelight)
+
 2.6-404 | 2019-06-12 15:10:19 -0700
 
   * Rename directories from bro to zeek (Daniel Thayer)

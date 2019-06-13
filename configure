@@ -58,6 +58,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
+    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -144,6 +145,7 @@ append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry SANITIZERS           STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -215,6 +217,9 @@ while [ $# -ne 0 ]; do
         --enable-perftools-debug)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
+            ;;
+        --sanitizers=*)
+            append_cache_entry SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true

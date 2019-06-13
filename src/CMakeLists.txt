@@ -220,23 +220,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-set(bro_SRCS
-    ${CMAKE_CURRENT_BINARY_DIR}/version.c
-    ${BIF_SRCS}
-    ${BINPAC_AUXSRC}
-    ${BINPAC_OUTPUTS}
-    ${TRANSFORMED_BISON_OUTPUTS}
-    ${FLEX_RuleScanner_OUTPUTS}
-    ${FLEX_RuleScanner_INPUT}
-    ${BISON_RuleParser_INPUT}
-    ${FLEX_REScanner_OUTPUTS}
-    ${FLEX_REScanner_INPUT}
-    ${BISON_REParser_INPUT}
-    ${FLEX_Scanner_OUTPUTS}
-    ${FLEX_Scanner_INPUT}
-    ${BISON_Parser_INPUT}
-    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-    ${PLUGIN_INIT}
+set(MAIN_SRCS
     main.cc
     net_util.cc
     util.cc
@@ -332,8 +316,6 @@ set(bro_SRCS
     threading/formatters/Ascii.cc
     threading/formatters/JSON.cc
 
-    3rdparty/sqlite3.c
-
     plugin/Component.cc
     plugin/ComponentManager.h
     plugin/TaggedComponent.h
@@ -342,6 +324,31 @@ set(bro_SRCS
 
     nb_dns.c
     digest.h
+)
+
+set(THIRD_PARTY_SRCS
+    3rdparty/sqlite3.c
+)
+
+set(bro_SRCS
+    ${CMAKE_CURRENT_BINARY_DIR}/version.c
+    ${BIF_SRCS}
+    ${BINPAC_AUXSRC}
+    ${BINPAC_OUTPUTS}
+    ${TRANSFORMED_BISON_OUTPUTS}
+    ${FLEX_RuleScanner_OUTPUTS}
+    ${FLEX_RuleScanner_INPUT}
+    ${BISON_RuleParser_INPUT}
+    ${FLEX_REScanner_OUTPUTS}
+    ${FLEX_REScanner_INPUT}
+    ${BISON_REParser_INPUT}
+    ${FLEX_Scanner_OUTPUTS}
+    ${FLEX_Scanner_INPUT}
+    ${BISON_Parser_INPUT}
+    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+    ${PLUGIN_INIT}
+    ${THIRD_PARTY_SRCS}
+    ${MAIN_SRCS}
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
@@ -433,3 +440,15 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
         DESTINATION include/zeek/3rdparty
 )
+
+find_program(CLANG_TIDY NAMES clang-tidy)
+if (CLANG_TIDY)
+    set(TIDY_SRCS "")
+    FOREACH(f ${MAIN_SRCS})
+        list(APPEND TIDY_SRCS "src/${f}")
+    ENDFOREACH(f)
+    add_custom_target(clang-tidy
+                      COMMAND ${CLANG_TIDY} -p ${CMAKE_BINARY_DIR} ${TIDY_SRCS}
+                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+endif()

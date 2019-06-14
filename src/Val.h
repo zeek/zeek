@@ -1194,6 +1194,12 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
+	// Insert an element at a specific position into the underlying vector.
+	bool Insert(unsigned int index, Val* element);
+
+	// Removes an element or a range of elements from a specific position.
+	bool Remove(unsigned int start_index);
+
 protected:
 	friend class Val;
 	VectorVal()	{ }

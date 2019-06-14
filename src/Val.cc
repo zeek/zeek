@@ -3407,6 +3407,44 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	return true;
 	}
 
+bool VectorVal::Insert(unsigned int index, Val* element)
+	{
+	if ( element &&
+	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
+		{
+		Unref(element);
+		return false;
+		}
+
+	vector<Val*>::iterator it;
+	if ( index < val.vector_val->size() )
+		it = std::next(val.vector_val->begin(), index);
+	else
+		it = val.vector_val->end();
+
+	// Note: we do *not* Ref() the element, if any, at this point.
+	// AssignExpr::Eval() already does this; other callers must remember
+	// to do it similarly.
+	val.vector_val->insert(it, element);
+
+	Modified();
+	return true;
+	}
+
+bool VectorVal::Remove(unsigned int index)
+	{
+	if ( index >= val.vector_val->size() )
+		return false;
+
+	Val* val_at_index = (*val.vector_val)[index];
+	auto it = std::next(val.vector_val->begin(), index);
+	val.vector_val->erase(it);
+	Unref(val_at_index);
+
+	Modified();
+	return true;
+	}
+
 int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 	{
 	if ( val->Type()->Tag() != TYPE_VECTOR )

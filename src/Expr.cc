@@ -3201,24 +3201,26 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 	case TYPE_VECTOR:
 		{
 		const ListVal *lv = v2->AsListVal();
+		VectorVal* v1_vect = v1->AsVectorVal();
 
 		if ( lv->Length() > 1 )
 			{
-			int len = v1->AsVectorVal()->Size();
+			int len = v1_vect->Size();
 			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			int slice_length = last - first;
 
-			const VectorVal *v_vect = v->AsVectorVal();
-			if ( slice_length != v_vect->Size())
-				RuntimeError("vector being assigned to slice does not match size of slice");
-			else if ( slice_length >= 0 )
+			// Remove the elements from the vector within the slice
+			for ( int idx = first; idx < last; idx++ )
+				v1_vect->Remove(first);
+
+			// Insert the new elements starting at the first position
+			VectorVal* v_vect = v->AsVectorVal();
+			for ( int idx = 0; idx < v_vect->Size(); idx++, first++ )
 				{
-				for ( int idx = first; idx < last; idx++ )
-					v1->AsVectorVal()->Assign(idx, v_vect->Lookup(idx - first)->Ref(), op);
+				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
 				}
 			}
-		else if ( !v1->AsVectorVal()->Assign(v2, v, op))
+		else if ( !v1_vect->Assign(v2, v, op) )
 			{
 			if ( v )
 				{

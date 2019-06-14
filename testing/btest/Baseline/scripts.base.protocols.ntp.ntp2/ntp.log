@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntp
-#open	2019-06-06-14-36-21
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	OpCode	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	ReqCode	auth_bit	sequence	implementation	err
+#open	2019-06-14-10-32-47
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	op_code	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	req_code	auth_bit	sequence	implementation	err
 #types	time	string	addr	port	addr	port	count	count	count	interval	interval	interval	interval	string	string	addr	string	time	time	time	time	count	string	count	count	bool	bool	bool	count	count	count	count	string	count	bool	count	count	count
 1559246885.027478	CHhAvVGS1DHFjwGM9	192.168.43.118	123	80.211.52.109	123	4	3	2	64.000000	0.000000	0.046280	0.028229	-	-	85.199.214.99	-	1559246556.073681	1559246818.058351	1559246818.079217	1559246885.027449	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1559246885.088815	CHhAvVGS1DHFjwGM9	192.168.43.118	123	80.211.52.109	123	4	4	4	64.000000	0.000000	0.048843	0.075409	-	-	105.237.207.28	-	1559245852.721794	1559246885.027449	1559246885.069212	1559246885.069247	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
@@ -41,4 +41,4 @@
 1559246940.262220	C7fIlMZDuRiqjpYbb	192.168.43.118	58229	193.204.114.232	123	4	3	0	16.000000	0.015625	1.000000	1.000000	\x00\x00\x00\x00	-	-	-	0.000000	0.000000	0.000000	1101309131.444112	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1559246940.304152	C7fIlMZDuRiqjpYbb	192.168.43.118	58229	193.204.114.232	123	4	4	1	16.000000	0.000000	0.000000	0.000122	-	CTD\x00	-	-	1559246910.937978	1101309131.444112	1559246940.281161	1559246940.281191	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1559246940.486493	CykQaM33ztNt0csB9a	192.168.43.118	43046	193.204.114.232	123	2	7	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	-	-	-	-	0	-	-	-	-	42	F	-	3	0
-#close	2019-06-06-14-36-21
+#close	2019-06-14-10-32-47

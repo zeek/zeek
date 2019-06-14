@@ -3,16 +3,16 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntp
-#open	2019-06-06-14-36-41
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	OpCode	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	ReqCode	auth_bit	sequence	implementation	err
+#open	2019-06-14-10-32-50
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	op_code	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	req_code	auth_bit	sequence	implementation	err
 #types	time	string	addr	port	addr	port	count	count	count	interval	interval	interval	interval	string	string	addr	string	time	time	time	time	count	string	count	count	bool	bool	bool	count	count	count	count	string	count	bool	count	count	count
-1558603188.282844	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	1	F	F	F	1	0	0	0	(empty)	-	-	-	-	-
-1558603188.283617	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	2	0	19183	0	(empty)	-	-	-	-	-
-1558603188.286063	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	3	0	19184	0	(empty)	-	-	-	-	-
+1558603188.282844	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	1	F	F	F	1	0	0	-	-	-	-	-	-	-
+1558603188.283617	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	2	0	19183	-	-	-	-	-	-	-
+1558603188.286063	CHhAvVGS1DHFjwGM9	127.0.0.1	40769	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	3	0	19184	-	-	-	-	-	-	-
 1558603201.135003	ClEkJM2Vm5giqnMf4h	127.0.0.1	57531	127.0.0.1	123	2	7	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	-	-	-	-	0	-	-	-	-	1	F	-	3	0
 1558603206.793297	C4J4Th3PJpwUYZZ6gc	127.0.0.1	46918	127.0.0.1	123	2	7	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	-	-	-	-	0	-	-	-	-	42	F	-	3	0
-1558603213.886044	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	1	F	F	F	1	0	0	0	(empty)	-	-	-	-	-
-1558603213.886779	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	2	0	19183	0	(empty)	-	-	-	-	-
-1558603213.889030	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	3	0	19184	0	(empty)	-	-	-	-	-
+1558603213.886044	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	1	F	F	F	1	0	0	-	-	-	-	-	-	-
+1558603213.886779	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	2	0	19183	-	-	-	-	-	-	-
+1558603213.889030	CtPZjS20MLrsMUOJi2	127.0.0.1	56506	127.0.0.1	123	2	6	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	2	F	F	F	3	0	19184	-	-	-	-	-	-	-
 1558603219.996399	CUM0KZ3MLUfNB0cl11	127.0.0.1	55675	127.0.0.1	123	2	7	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	0	-	-	-	-	0	-	-	-	-	1	F	-	3	0
-#close	2019-06-06-14-36-41
+#close	2019-06-14-10-32-50

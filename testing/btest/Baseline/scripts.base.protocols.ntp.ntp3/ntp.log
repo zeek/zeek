@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntp
-#open	2019-06-06-14-36-29
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	OpCode	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	ReqCode	auth_bit	sequence	implementation	err
+#open	2019-06-14-10-32-49
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	op_code	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	req_code	auth_bit	sequence	implementation	err
 #types	time	string	addr	port	addr	port	count	count	count	interval	interval	interval	interval	string	string	addr	string	time	time	time	time	count	string	count	count	bool	bool	bool	count	count	count	count	string	count	bool	count	count	count
 1096255084.954975	ClEkJM2Vm5giqnMf4h	192.168.50.50	123	67.129.68.9	123	3	1	0	1024.000000	0.015625	0.000000	1.010010	\x00\x00\x00\x00	-	-	-	0.000000	0.000000	0.000000	1096255084.922896	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1096255084.955306	C4J4Th3PJpwUYZZ6gc	192.168.50.50	123	69.44.57.60	123	3	1	0	1024.000000	0.015625	0.000000	1.010010	\x00\x00\x00\x00	-	-	-	0.000000	0.000000	0.000000	1096255084.922896	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
@@ -36,4 +36,4 @@
 1096255085.522297	CwjjYJ2WqgTbAqiHl6	192.168.50.50	123	64.112.189.11	123	3	2	2	1024.000000	0.000015	0.081268	0.029877	-	-	128.10.252.6	-	1096254706.140290	1096255084.922896	1096255083.850451	1096255083.850465	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1096255085.562197	CmES5u32sYpV7JYN	192.168.50.50	123	216.27.185.42	123	3	2	2	1024.000000	0.000004	0.029846	0.045456	-	-	164.67.62.194	-	1096254209.896379	1096255084.922896	1096255083.849099	1096255083.849269	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1096255085.599961	CUM0KZ3MLUfNB0cl11	192.168.50.50	123	209.132.176.4	123	3	2	1	1024.000000	0.000015	0.000000	0.000504	-	CDMA	-	-	1096255068.944018	1096255084.922896	1096255083.827772	1096255083.828313	-	-	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
-#close	2019-06-06-14-36-29
+#close	2019-06-14-10-32-49

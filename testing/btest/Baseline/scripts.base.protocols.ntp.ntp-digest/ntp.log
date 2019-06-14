@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntp
-#open	2019-06-06-14-43-28
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	OpCode	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	ReqCode	auth_bit	sequence	implementation	err
+#open	2019-06-14-10-32-46
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	mode	stratum	poll	precision	root_delay	root_disp	kiss_code	ref_id	ref_addr	ref_v6_hash_prefix	ref_time	org_time	rec_time	xmt_time	key_id	digest	num_exts	op_code	resp_bit	err_bit	more_bit	sequence	status	association_id	ctrl_key_id	crypto_checksum	req_code	auth_bit	sequence	implementation	err
 #types	time	string	addr	port	addr	port	count	count	count	interval	interval	interval	interval	string	string	addr	string	time	time	time	time	count	string	count	count	bool	bool	bool	count	count	count	count	string	count	bool	count	count	count
 1495804929.483801	CHhAvVGS1DHFjwGM9	2003:51:6012:121::2	123	2003:51:6012:110::dcf7:123	123	4	3	2	64.000000	0.000000	0.002213	0.026230	-	-	182.165.128.219	-	1495804247.476651	0.000000	0.000000	1495804929.482904	1	\xac\x01{i\x91\\\xe5\xa7\xa9\xfbs\xac\x8b\xd1`;	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1495804987.484143	CHhAvVGS1DHFjwGM9	2003:51:6012:121::2	123	2003:51:6012:110::dcf7:123	123	4	3	2	64.000000	0.000000	0.002213	0.027100	-	-	182.165.128.219	-	1495804247.476651	0.000000	0.000000	1495804987.483591	1	3\x03\x03\xf0\xaa\x15`\xf5i\xd8=\xfa\x10S\x80\xd4	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
@@ -46,4 +46,4 @@
 1495806080.498110	CtPZjS20MLrsMUOJi2	2003:51:6012:121::2	123	2003:51:6012:110::dcf7:123	123	4	3	2	64.000000	0.000000	0.002213	0.043488	-	-	182.165.128.219	-	1495804247.476651	0.000000	0.000000	1495806080.498132	1	\xe0\xa3^\x9ck*qa\x85\x1aVA|bJA	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1495806100.498331	CtPZjS20MLrsMUOJi2	2003:51:6012:121::2	123	2003:51:6012:110::dcf7:123	123	4	3	2	64.000000	0.000000	0.002213	0.043793	-	-	182.165.128.219	-	1495804247.476651	0.000000	0.000000	1495806100.498395	1	;\x03\xae\x8a\xf1}ABj\x87\xa0\xf4\xa8C\xd7\x9f	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
 1495806130.498492	CtPZjS20MLrsMUOJi2	2003:51:6012:121::2	123	2003:51:6012:110::dcf7:123	123	4	3	2	64.000000	0.000000	0.002213	0.044235	-	-	182.165.128.219	-	1495804247.476651	0.000000	0.000000	1495806130.498813	1	\x1e\xa7\xc3\xd2\xe3\x0e\x08!\x8f\xe3Z$&B\x96\x13	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
-#close	2019-06-06-14-43-28
+#close	2019-06-14-10-32-46

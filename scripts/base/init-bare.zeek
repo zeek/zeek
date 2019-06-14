@@ -4995,7 +4995,7 @@ export {
 	## 6 set trap address/port command/response
 	## 7 trap response
 	## Other values are reserved.
-        OpCode     	: count;
+        op_code     	: count;
 	## The response bit. Set to zero for commands, one for responses.
         resp_bit        : bool;
         ## The error bit. Set to zero for normal response, one for error response.
@@ -5029,7 +5029,7 @@ export {
         ## An implementation-specific code which specifies the
 	## operation to be (which has been) performed and/or the
 	## format and semantics of the data included in the packet.
-        ReqCode		: count;
+        req_code		: count;
         ## The authenticated bit. If set, this packet is authenticated.
         auth_bit        : bool;
         ## For a multipacket response, contains the sequence

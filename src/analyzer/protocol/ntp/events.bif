@@ -6,7 +6,7 @@
 ##
 ## c: The connection record describing the corresponding UDP flow.
 ##
-## is_orig: 
+## is_orig: True if the message was sent by the originator.
 ##
 ## msg: The parsed NTP message.
 ##

@@ -456,6 +456,21 @@ event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_v
 	hook DNS::do_reply(c, msg, ans, txt_strings);
 	}
 
+event dns_SPF_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
+	{
+	local spf_strings: string = "";
+
+	for ( i in strs )
+		{
+		if ( i > 0 )
+			spf_strings += " ";
+
+		spf_strings += fmt("SPF %d %s", |strs[i]|, strs[i]);
+		}
+
+	hook DNS::do_reply(c, msg, ans, spf_strings);
+	}
+
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));

@@ -94,7 +94,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/known/certs"``
+   :Default: ``"zeek/known/certs"``
 
    The Broker topic name to use for :zeek:see:`Known::cert_store`.
 

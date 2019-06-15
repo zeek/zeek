@@ -99,7 +99,7 @@ Redefinable Options
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``"bro/known/services"``
+   :Default: ``"zeek/known/services"``
 
    The Broker topic name to use for :zeek:see:`Known::service_store`.
 

@@ -32,5 +32,5 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event Test::log_test(rec: Test::Info)
 	{
 	print "wrote log", rec;
-	Broker::publish("bro/logs/forward/test", Test::log_test, rec);
+	Broker::publish("zeek/logs/forward/test", Test::log_test, rec);
 	}

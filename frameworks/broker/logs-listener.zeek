@@ -4,7 +4,7 @@ redef exit_only_after_terminate = T;
 
 event zeek_init()
 	{
-	Broker::subscribe("bro/logs");
+	Broker::subscribe("zeek/logs");
 	Broker::listen("127.0.0.1");
 	}
 

@@ -3,7 +3,7 @@
 # chance of being off by one if someone changes it).
 #
 # @TEST-REQUIRES: which sqlite3
-# @TEST-REQUIRES: has-writer Bro::SQLiteWriter
+# @TEST-REQUIRES: has-writer Zeek::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: zeek -b %INPUT

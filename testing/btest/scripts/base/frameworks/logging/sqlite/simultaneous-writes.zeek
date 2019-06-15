@@ -1,7 +1,7 @@
 # Test simultaneous writes to the same database file.
 #
 # @TEST-REQUIRES: which sqlite3
-# @TEST-REQUIRES: has-writer Bro::SQLiteWriter
+# @TEST-REQUIRES: has-writer Zeek::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: zeek -b %INPUT

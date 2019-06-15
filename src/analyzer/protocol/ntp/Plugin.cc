@@ -6,7 +6,7 @@
 #include "NTP.h"
 
 namespace plugin {
-namespace Bro_NTP {
+namespace Zeek_NTP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("NTP", ::analyzer::ntp::NTP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::NTP";
+		config.name = "Zeek::NTP";
 		config.description = "NTP analyzer";
 		return config;
 		}

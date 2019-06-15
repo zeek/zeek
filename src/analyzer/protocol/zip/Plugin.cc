@@ -6,7 +6,7 @@
 #include "ZIP.h"
 
 namespace plugin {
-namespace Bro_ZIP {
+namespace Zeek_ZIP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("ZIP", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::ZIP";
+		config.name = "Zeek::ZIP";
 		config.description = "Generic ZIP support analyzer";
 		return config;
 		}

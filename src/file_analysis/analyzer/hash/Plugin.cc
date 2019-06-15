@@ -5,7 +5,7 @@
 #include "Hash.h"
 
 namespace plugin {
-namespace Bro_FileHash {
+namespace Zeek_FileHash {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::file_analysis::Component("SHA256", ::file_analysis::SHA256::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::FileHash";
+		config.name = "Zeek::FileHash";
 		config.description = "Hash file content";
 		return config;
 		}

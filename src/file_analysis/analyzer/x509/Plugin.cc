@@ -7,7 +7,7 @@
 #include "OCSP.h"
 
 namespace plugin {
-namespace Bro_X509 {
+namespace Zeek_X509 {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -18,7 +18,7 @@ public:
 		AddComponent(new ::file_analysis::Component("OCSP_REPLY", ::file_analysis::OCSP::InstantiateReply));
 
 		plugin::Configuration config;
-		config.name = "Bro::X509";
+		config.name = "Zeek::X509";
 		config.description = "X509 and OCSP analyzer";
 		return config;
 		}

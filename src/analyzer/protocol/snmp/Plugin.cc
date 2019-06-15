@@ -5,7 +5,7 @@
 #include "SNMP.h"
 
 namespace plugin {
-namespace Bro_SNMP {
+namespace Zeek_SNMP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::analyzer::Component("SNMP", ::analyzer::snmp::SNMP_Analyzer::InstantiateAnalyzer));
 
 		plugin::Configuration config;
-		config.name = "Bro::SNMP";
+		config.name = "Zeek::SNMP";
 		config.description = "SNMP analyzer";
 		return config;
 		}

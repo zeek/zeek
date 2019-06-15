@@ -6,7 +6,7 @@
 #include "SOCKS.h"
 
 namespace plugin {
-namespace Bro_SOCKS {
+namespace Zeek_SOCKS {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("SOCKS", ::analyzer::socks::SOCKS_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SOCKS";
+		config.name = "Zeek::SOCKS";
 		config.description = "SOCKS analyzer";
 		return config;
 		}

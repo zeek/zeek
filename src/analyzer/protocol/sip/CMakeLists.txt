@@ -3,7 +3,7 @@ include(ZeekPlugin)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-zeek_plugin_begin(Bro SIP)
+zeek_plugin_begin(Zeek SIP)
 zeek_plugin_cc(Plugin.cc)
 zeek_plugin_cc(SIP.cc)
 zeek_plugin_cc(SIP_TCP.cc)

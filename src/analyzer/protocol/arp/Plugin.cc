@@ -4,14 +4,14 @@
 #include "plugin/Plugin.h"
 
 namespace plugin {
-namespace Bro_ARP {
+namespace Zeek_ARP {
 
 class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure()
 		{
 		plugin::Configuration config;
-		config.name = "Bro::ARP";
+		config.name = "Zeek::ARP";
 		config.description = "ARP Parsing";
 		return config;
 		}

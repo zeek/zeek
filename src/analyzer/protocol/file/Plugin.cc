@@ -6,7 +6,7 @@
 #include "./File.h"
 
 namespace plugin {
-namespace Bro_File {
+namespace Zeek_File {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("IRC_Data", ::analyzer::file::IRC_Data::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::File";
+		config.name = "Zeek::File";
 		config.description = "Generic file analyzer";
 		return config;
 		}

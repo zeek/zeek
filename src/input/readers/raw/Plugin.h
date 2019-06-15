@@ -7,7 +7,7 @@
 #include "Raw.h"
 
 namespace plugin {
-namespace Bro_RawReader {
+namespace Zeek_RawReader {
 
 class Plugin : public plugin::Plugin {
 public:

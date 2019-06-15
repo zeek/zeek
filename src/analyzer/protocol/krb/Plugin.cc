@@ -5,7 +5,7 @@
 #include "KRB_TCP.h"
 
 namespace plugin {
-	namespace Bro_KRB {
+	namespace Zeek_KRB {
 		class Plugin : public plugin::Plugin {
 		public:
 			plugin::Configuration Configure()
@@ -13,7 +13,7 @@ namespace plugin {
 				AddComponent(new ::analyzer::Component("KRB", ::analyzer::krb::KRB_Analyzer::Instantiate));
 				AddComponent(new ::analyzer::Component("KRB_TCP", ::analyzer::krb_tcp::KRB_Analyzer::Instantiate));
 				plugin::Configuration config;
-				config.name = "Bro::KRB";
+				config.name = "Zeek::KRB";
 				config.description = "Kerberos analyzer";
 				return config;
 				}

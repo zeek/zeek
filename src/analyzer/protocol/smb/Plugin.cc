@@ -5,7 +5,7 @@
 #include "SMB.h"
 
 namespace plugin {
-namespace Bro_SMB {
+namespace Zeek_SMB {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_SMB", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::SMB";
+		config.name = "Zeek::SMB";
 		config.description = "SMB analyzer";
 		return config;
 		}

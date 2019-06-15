@@ -1,4 +1,10 @@
 
+2.6-412 | 2019-06-14 19:26:21 -0700
+
+  * GH-387: update Broker topic names to use "zeek/" prefix (Jon Siwek, Corelight)
+
+  * GH-323: change builtin plugin namespaces to Zeek (Jon Siwek, Corelight)
+
 2.6-408 | 2019-06-13 11:19:50 -0700
 
   * Fix potential null-dereference in current_time() (Tim Wojtulewicz, Corelight)

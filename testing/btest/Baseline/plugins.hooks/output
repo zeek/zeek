@@ -161,9 +161,9 @@
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::local_node_type, <null>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert)) -> <no result>
@@ -273,7 +273,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -450,7 +450,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -1047,9 +1047,9 @@
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::local_node_type, <null>, ())
-0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
-0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]))
-0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=bro<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F]))
+0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
+0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]))
+0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)}))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert))
@@ -1159,7 +1159,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1336,7 +1336,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1932,9 +1932,9 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::local_node_type()
-0.000000 | HookCallFunction Cluster::register_pool([topic=bro<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
-0.000000 | HookCallFunction Cluster::register_pool([topic=bro<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
-0.000000 | HookCallFunction Cluster::register_pool([topic=bro<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])
+0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
+0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
+0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Files::register_analyzer_add_callback(Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-ca-cert)
@@ -2044,7 +2044,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2221,7 +2221,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2651,7 +2651,7 @@
 0.000000 | HookLoadFile  base<...>/x509
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1559965406.801449, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1560564690.769635, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

@@ -29,8 +29,8 @@ event Broker::error(code: Broker::ErrorCode, msg: string)
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
-    
+    Broker::subscribe("zeek/event/my_topic");
+
     schedule 2secs { do_something() };
     schedule 4secs { do_terminate() };
     }

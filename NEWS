@@ -275,6 +275,39 @@ Changed Functionality
 - The namespace used by all the builtin plugins that ship with Zeek have
   changed to use "Zeek::" instead of "Bro::".
 
+- Any Broker topic names used in scripts shipped with Zeek that
+  previously were prefixed with "bro/" are now prefixed with "zeek/"
+  instead.
+
+  In the case where external applications were using a "bro/" topic
+  to send data into a Bro process, a Zeek process still subscribes
+  to those topics in addition to the equivalently named "zeek/" topic.
+
+  In the case where external applications were using a "bro/" topic
+  to subscribe to remote messages or query data stores, there's no
+  backwards compatibility and external applications must be changed
+  to use the new "zeek/" topic.  The thought is this change will have
+  low impact since most data published under "bro/" topic names is
+  intended for use only as a detail of implementing cluster-enabled
+  versions of various scripts.
+
+  A list of the most relevant/common topic names that could potentially
+  be used in external applications to consume/query remote data that
+  one may need to change:
+
+  - store names
+    - bro/known/services
+    - bro/known/hosts
+    - bro/known/certs
+
+  - cluster nodes
+    - bro/cluster/<node type>
+    - bro/cluster/node/<name>
+    - bro/cluster/nodeid/<id>
+
+  - logging
+    - bro/logs/<stream>
+
 Removed Functionality
 ---------------------
 

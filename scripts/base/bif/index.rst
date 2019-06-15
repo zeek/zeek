@@ -14,7 +14,7 @@ Package: base/bif
 
    Declaration of various types that the Zeek core uses internally.
 
-:doc:`/scripts/base/bif/bro.bif.zeek`
+:doc:`/scripts/base/bif/zeek.bif.zeek`
 
    A collection of built-in functions that implement a variety of things
    such as general programming algorithms, string processing, math functions,

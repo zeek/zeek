@@ -4,7 +4,7 @@
    base/init-bare.zeek </scripts/base/init-bare.zeek>
    base/bif/const.bif.zeek </scripts/base/bif/const.bif.zeek>
    base/bif/types.bif.zeek </scripts/base/bif/types.bif.zeek>
-   base/bif/bro.bif.zeek </scripts/base/bif/bro.bif.zeek>
+   base/bif/zeek.bif.zeek </scripts/base/bif/zeek.bif.zeek>
    base/bif/stats.bif.zeek </scripts/base/bif/stats.bif.zeek>
    base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>
    base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>

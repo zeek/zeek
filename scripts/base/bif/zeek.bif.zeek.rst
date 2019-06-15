@@ -1,7 +1,7 @@
 :tocdepth: 3
 
-base/bif/bro.bif.zeek
-=====================
+base/bif/zeek.bif.zeek
+======================
 .. zeek:namespace:: GLOBAL
 
 A collection of built-in functions that implement a variety of things

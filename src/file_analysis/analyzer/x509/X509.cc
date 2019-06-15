@@ -489,3 +489,32 @@ Val* X509Val::DoClone(CloneState* state)
 	return certificate;
 	}
 
+IMPLEMENT_OPAQUE_VALUE(X509Val)
+
+broker::data X509Val::DoSerialize() const
+	{
+        unsigned char *buf = NULL;
+        int length = i2d_X509(certificate, &buf);
+
+        if ( length < 0 )
+                return broker::none();
+
+	auto d = std::string(reinterpret_cast<const char*>(buf), length);
+        OPENSSL_free(buf);
+
+	return d;
+	}
+
+bool X509Val::DoUnserialize(const broker::data& data)
+	{
+	if ( caf::get_if<broker::none>(&data) )
+		return false;
+
+	auto s = caf::get_if<std::string>(&data);
+	if ( ! s )
+		return false;
+
+	auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
+        certificate = d2i_X509(NULL, &opensslbuf, s->size());
+	return (certificate != nullptr);
+	}

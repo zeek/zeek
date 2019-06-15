@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "broker/Data.h"
 #include "probabilistic/Topk.h"
 #include "CompHash.h"
 #include "Reporter.h"
@@ -405,4 +406,126 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 		}
 	}
 
-};
+IMPLEMENT_OPAQUE_VALUE(TopkVal)
+
+broker::data TopkVal::DoSerialize() const
+	{
+	broker::vector d = {size, numElements, pruned};
+
+	if ( type )
+		{
+		auto t = SerializeType(type);
+		if ( t == broker::none() )
+			return broker::none();
+
+		d.emplace_back(t);
+		}
+	else
+		d.emplace_back(broker::none());
+
+	uint64_t i = 0;
+	std::list<Bucket*>::const_iterator it = buckets.begin();
+	while ( it != buckets.end() )
+		{
+		Bucket* b = *it;
+		uint32_t elements_count = b->elements.size();
+
+		d.emplace_back(static_cast<uint64>(b->elements.size()));
+		d.emplace_back(b->count);
+
+		std::list<Element*>::const_iterator eit = b->elements.begin();
+		while ( eit != b->elements.end() )
+			{
+			Element* element = *eit;
+			d.emplace_back(element->epsilon);
+			auto v = bro_broker::val_to_data(element->value);
+			if ( ! v )
+				return broker::none();
+
+			d.emplace_back(*v);
+
+			eit++;
+			i++;
+			}
+
+		it++;
+		}
+
+	assert(i == numElements);
+	return d;
+	}
+
+
+bool TopkVal::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() >= 4) )
+		return false;
+
+	auto size_ = caf::get_if<uint64>(&(*v)[0]);
+	auto numElements_ = caf::get_if<uint64>(&(*v)[1]);
+	auto pruned_ = caf::get_if<bool>(&(*v)[2]);
+
+	if ( ! (size_ && numElements_ && pruned_) )
+		return false;
+
+	size = *size_;
+	numElements = *numElements_;
+	pruned = *pruned_;
+
+	auto no_type = caf::get_if<broker::none>(&(*v)[3]);
+	if ( ! no_type )
+		{
+		BroType* t = UnserializeType((*v)[3]);
+                if ( ! t )
+			return false;
+
+		Typify(t);
+		Unref(t);
+		}
+
+	uint64_t i = 0;
+	uint64_t idx = 4;
+
+	while ( i < numElements )
+		{
+		Bucket* b = new Bucket();
+		auto elements_count = caf::get_if<uint64>(&(*v)[idx++]);
+		auto count = caf::get_if<uint64>(&(*v)[idx++]);
+
+		if ( ! (elements_count && count) )
+			return false;
+
+		b->count = *count;
+		b->bucketPos = buckets.insert(buckets.end(), b);
+
+		for ( uint64_t j = 0; j < *elements_count; j++ )
+			{
+			Element* e = new Element();
+			auto epsilon = caf::get_if<uint64>(&(*v)[idx++]);
+			Val* val = bro_broker::data_to_val((*v)[idx++], type);
+
+			if ( ! (epsilon && val) )
+				return false;
+
+			e->epsilon = *epsilon;
+			e->value = val;
+			e->parent = b;
+
+			b->elements.insert(b->elements.end(), e);
+
+			HashKey* key = GetHash(e->value);
+			assert (elementDict->Lookup(key) == 0);
+
+			elementDict->Insert(key, e);
+			delete key;
+
+			i++;
+			}
+		}
+
+	assert(i == numElements);
+	return true;
+	}
+}

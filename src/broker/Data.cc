@@ -126,11 +126,6 @@ struct val_converter {
 
 			return rval->Ref();
 			}
-		case TYPE_OPAQUE:
-			{
-			// Fixme: Johanna
-			return nullptr;
-			}
 		default:
 			return nullptr;
 		}
@@ -430,6 +425,8 @@ struct val_converter {
 			auto rval = new PatternVal(re);
 			return rval;
 			}
+		else if ( type->Tag() == TYPE_OPAQUE )
+			return OpaqueVal::Unserialize(a);
 
 		return nullptr;
 		}
@@ -503,12 +500,6 @@ struct type_checker {
 				return false;
 
 			return true;
-			}
-		case TYPE_OPAQUE:
-			{
-			// TODO
-			// Fixme: johanna
-			return false;
 			}
 		default:
 			return false;
@@ -756,6 +747,11 @@ struct type_checker {
 
 			return true;
 			}
+		else if ( type->Tag() == TYPE_OPAQUE )
+			// Correct if successful. TODO: Should avoid do the
+			// full unserialization here, and just check the
+			// type.
+			return OpaqueVal::Unserialize(a);
 
 		return false;
 		}
@@ -970,10 +966,17 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
-	// Fixme: johanna
-	// case TYPE_OPAQUE:
-	//	{
-	//	}
+	case TYPE_OPAQUE:
+		{
+		auto c = v->AsOpaqueVal()->Serialize();
+		if ( ! c )
+			{
+			reporter->Error("unsupported opaque type for serialization");
+			break;
+			}
+
+		return {c};
+		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
 		                type_name(v->Type()->Tag()));
@@ -1107,6 +1110,115 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 Val* bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::DataVal)
+
+broker::data bro_broker::DataVal::DoSerialize() const
+	{
+	return data;
+	}
+
+bool bro_broker::DataVal::DoUnserialize(const broker::data& data_)
+	{
+	data = data_;
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::SetIterator)
+
+broker::data bro_broker::SetIterator::DoSerialize() const
+	{
+	return broker::vector{dat, *it};
+	}
+
+bool bro_broker::SetIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::set>(&(*v)[0]);
+
+	// We set the iterator by finding the element it used to point to.
+	// This is not perfect, as there's no guarantee that the restored
+	// container will list the elements in the same order. But it's as
+	// good as we can do, and it should generally work out.
+	if( x->find((*v)[1]) == x->end() )
+		return false;
+
+	dat = *x;
+	it = dat.find((*v)[1]);
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::TableIterator)
+
+broker::data bro_broker::TableIterator::DoSerialize() const
+	{
+	return broker::vector{dat, it->first};
+	}
+
+bool bro_broker::TableIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::table>(&(*v)[0]);
+
+	// We set the iterator by finding the element it used to point to.
+	// This is not perfect, as there's no guarantee that the restored
+	// container will list the elements in the same order. But it's as
+	// good as we can do, and it should generally work out.
+	if( x->find((*v)[1]) == x->end() )
+		return false;
+
+	dat = *x;
+	it = dat.find((*v)[1]);
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::VectorIterator)
+
+broker::data bro_broker::VectorIterator::DoSerialize() const
+	{
+	return broker::vector{dat, it - dat.begin()};
+	}
+
+bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::vector>(&(*v)[0]);
+	auto y = caf::get_if<broker::vector::difference_type>(&(*v)[1]);
+
+	dat = *x;
+	it = dat.begin() + *y;
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::RecordIterator)
+
+broker::data bro_broker::RecordIterator::DoSerialize() const
+	{
+	return broker::vector{dat, it - dat.begin()};
+	}
+
+bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::vector>(&(*v)[0]);
+	auto y = caf::get_if<broker::vector::difference_type>(&(*v)[1]);
+
+	dat = *x;
+	it = dat.begin() + *y;
+	return true;
 	}
 
 broker::data bro_broker::threading_field_to_data(const threading::Field* f)

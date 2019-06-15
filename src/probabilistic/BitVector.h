@@ -6,6 +6,8 @@
 #include <iterator>
 #include <vector>
 
+#include <broker/Data.h>
+
 namespace probabilistic {
 
 /**
@@ -280,6 +282,9 @@ public:
 	  * @return The hash.
 	  */
 	uint64_t Hash() const;
+
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<BitVector> Unserialize(const broker::data& data);
 
 private:
 	/**

@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <broker/Data.h>
+
 namespace probabilistic {
 
 class BitVector;
@@ -133,6 +135,9 @@ public:
 	  * @return The hash.
 	  */
 	uint64_t Hash() const;
+
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<CounterVector> Unserialize(const broker::data& data);
 
 protected:
 	friend CounterVector operator|(const CounterVector& x,

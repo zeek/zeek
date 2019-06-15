@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "Val.h"
+#include "OpaqueVal.h"
 #include "../File.h"
 #include "Analyzer.h"
 #include "X509Common.h"
@@ -44,6 +44,8 @@ public:
 	OCSP_RESPONSE *GetResp() const;
 protected:
 	OCSP_RESPVal();
+
+	DECLARE_OPAQUE_VALUE(OCSP_RESPVal)
 private:
 	OCSP_RESPONSE *ocsp_resp;
 };

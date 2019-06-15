@@ -4,12 +4,18 @@
 #define PROBABILISTIC_BLOOMFILTER_H
 
 #include <vector>
+
+#include <broker/Data.h>
+
 #include "BitVector.h"
 #include "Hasher.h"
 
 namespace probabilistic {
 
 class CounterVector;
+
+/** Types of derived BloomFilter classes. */
+enum BloomFilterType { Basic, Counting };
 
 /**
  * The abstract base class for Bloom filters.
@@ -71,6 +77,9 @@ public:
 	 */
 	virtual string InternalState() const = 0;
 
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<BloomFilter> Unserialize(const broker::data& data);
+
 protected:
 	/**
 	 * Default constructor.
@@ -83,6 +92,10 @@ protected:
 	 * @param hasher The hasher to use for this Bloom filter.
 	 */
 	explicit BloomFilter(const Hasher* hasher);
+
+	virtual broker::data DoSerialize() const = 0;
+	virtual bool DoUnserialize(const broker::data& data) = 0;
+	virtual BloomFilterType Type() const = 0;
 
 	const Hasher* hasher;
 };
@@ -144,6 +157,8 @@ public:
 	string InternalState() const override;
 
 protected:
+	friend class BloomFilter;
+
 	/**
 	 * Default constructor.
 	 */
@@ -152,6 +167,10 @@ protected:
 	// Overridden from BloomFilter.
 	void Add(const HashKey* key) override;
 	size_t Count(const HashKey* key) const override;
+	broker::data DoSerialize() const override;
+	bool DoUnserialize(const broker::data& data) override;
+	BloomFilterType Type() const override
+		{ return BloomFilterType::Basic; }
 
 private:
 	BitVector* bits;
@@ -187,6 +206,8 @@ public:
 	string InternalState() const override;
 
 protected:
+	friend class BloomFilter;
+
 	/**
 	 * Default constructor.
 	 */
@@ -195,6 +216,10 @@ protected:
 	// Overridden from BloomFilter.
 	void Add(const HashKey* key) override;
 	size_t Count(const HashKey* key) const override;
+	broker::data DoSerialize() const override;
+	bool DoUnserialize(const broker::data& data) override;
+	BloomFilterType Type() const override
+		{ return BloomFilterType::Counting; }
 
 private:
 	CounterVector* cells;

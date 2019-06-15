@@ -46,6 +46,47 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed)
 	seed = arg_seed;
 	}
 
+broker::expected<broker::data> Hasher::Serialize() const
+	{
+	return broker::vector{
+		static_cast<uint64>(Type()), static_cast<uint64>(k),
+		seed.h1, seed.h2 };
+	}
+
+std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 4) )
+		return nullptr;
+
+	auto type = caf::get_if<uint64>(&(*v)[0]);
+	auto k = caf::get_if<uint64>(&(*v)[1]);
+	auto h1 = caf::get_if<uint64>(&(*v)[2]);
+	auto h2 = caf::get_if<uint64>(&(*v)[3]);
+
+	if ( ! (type && k && h1 && h2) )
+		return nullptr;
+
+	std::unique_ptr<Hasher> hasher;
+
+	switch ( *type ) {
+	case Default:
+		hasher = std::unique_ptr<Hasher>(new DefaultHasher(*k, {*h1, *h2}));
+		break;
+
+	case Double:
+		hasher = std::unique_ptr<Hasher>(new DoubleHasher(*k, {*h1, *h2}));
+		break;
+	}
+
+	// Note that the derived classed don't hold any further state of
+	// their own. They reconstruct all their information from their
+	// constructors' arguments.
+
+	return std::move(hasher);
+	}
+
 UHF::UHF()
 	{
 	memset(&seed, 0, sizeof(seed));

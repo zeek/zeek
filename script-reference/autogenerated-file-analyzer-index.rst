@@ -27,8 +27,8 @@ File Analyzers
 
       .. zeek:enum:: Files::ANALYZER_X509 Files::Tag
 
-Bro::FileDataEvent
-------------------
+Zeek::FileDataEvent
+-------------------
 
 Delivers file content
 
@@ -37,8 +37,8 @@ Components
 
 :zeek:enum:`Files::ANALYZER_DATA_EVENT`
 
-Bro::FileEntropy
-----------------
+Zeek::FileEntropy
+-----------------
 
 Entropy test file content
 
@@ -64,8 +64,8 @@ Events
    :ent: The results of the entropy testing.
    
 
-Bro::FileExtract
-----------------
+Zeek::FileExtract
+-----------------
 
 Extract file content
 
@@ -111,8 +111,8 @@ Functions
 
    :zeek:see:`FileExtract::set_limit`.
 
-Bro::FileHash
--------------
+Zeek::FileHash
+--------------
 
 Hash file content
 
@@ -147,8 +147,8 @@ Events
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
       Files::ANALYZER_SHA1 Files::ANALYZER_SHA256
 
-Bro::PE
--------
+Zeek::PE
+--------
 
 Portable Executable analyzer
 
@@ -243,8 +243,8 @@ Events
    
    .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
 
-Bro::Unified2
--------------
+Zeek::Unified2
+--------------
 
 Analyze Unified2 alert files.
 
@@ -347,8 +347,8 @@ Events
    :pkt: TODO.
    
 
-Bro::X509
----------
+Zeek::X509
+----------
 
 X509 and OCSP analyzer
 

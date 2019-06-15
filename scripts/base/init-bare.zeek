@@ -1789,7 +1789,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 };
 
 # Prototypes of Zeek built-in functions.
-@load base/bif/bro.bif
+@load base/bif/zeek.bif
 @load base/bif/stats.bif
 @load base/bif/reporter.bif
 @load base/bif/strings.bif

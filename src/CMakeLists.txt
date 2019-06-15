@@ -103,7 +103,7 @@ set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-comp
 include(BifCl)
 
 set(BIF_SRCS
-    bro.bif
+    zeek.bif
     stats.bif
     event.bif
     const.bif

@@ -9,7 +9,7 @@
 scripts/base/init-bare.zeek
   build/scripts/base/bif/const.bif.zeek
   build/scripts/base/bif/types.bif.zeek
-  build/scripts/base/bif/bro.bif.zeek
+  build/scripts/base/bif/zeek.bif.zeek
   build/scripts/base/bif/stats.bif.zeek
   build/scripts/base/bif/reporter.bif.zeek
   build/scripts/base/bif/strings.bif.zeek

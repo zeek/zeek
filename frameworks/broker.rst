@@ -8,18 +8,18 @@ Broker-Enabled Communication/Cluster Framework
 
 .. rst-class:: opening
 
-    Bro now uses the `Broker Library
+    Zeek now uses the `Broker Library
     <../components/broker/README.html>`_ to exchange information with
-    other Bro processes.  Broker itself uses CAF_ (C++ Actor Framework)
+    other Zeek processes.  Broker itself uses CAF_ (C++ Actor Framework)
     internally for connecting nodes and exchanging arbitrary data over
     networks.  Broker then introduces, on top of CAF, a topic-based
     publish/subscribe communication pattern using a data model that is
-    compatible to Bro's.  Broker itself can be utilized outside the
-    context of Bro, with Bro itself making use of only a few predefined
-    Broker message formats that represent Bro events, log entries, etc.
+    compatible to Zeek's.  Broker itself can be utilized outside the
+    context of Zeek, with Zeek itself making use of only a few predefined
+    Broker message formats that represent Zeek events, log entries, etc.
 
-    In summary, the Bro's Broker framework provides basic facilities for
-    connecting broker-enabled peers (e.g. Bro instances) to each other
+    In summary, the Zeek's Broker framework provides basic facilities for
+    connecting broker-enabled peers (e.g. Zeek instances) to each other
     and exchanging messages (e.g. events and logs).
 
 Cluster Layout / API
@@ -51,7 +51,7 @@ Some general suggestions as to the purpose/utilization of each node type:
   sharing non-persistent state or as a "second pass" analysis for any
   work that you don't want interfering with the workers' capacity to
   keep up with capturing and parsing packets.  Note that the default scripts
-  that come with Bro don't utilize proxies themselves, so if you are coming
+  that come with Zeek don't utilize proxies themselves, so if you are coming
   from a previous ZeekControl deployment, you may want to try reducing down
   to a single proxy node.  If you come to have custom/community scripts
   that utilize proxies, that would be the time to start considering scaling
@@ -74,7 +74,7 @@ Data Management/Sharing Strategies
 ==================================
 
 There's maybe no single, best approach or pattern to use when you need a
-Bro script to store or share long-term state and data.  The two
+Zeek script to store or share long-term state and data.  The two
 approaches that were previously used were either using the ``&synchronized``
 attribute on tables/sets or by explicitly sending events to specific
 nodes on which you wanted data to be stored.  The former is no longer
@@ -95,7 +95,7 @@ a data store for your use-case:
 * If you need the full data set locally in order to achieve low-latency
   queries using data store "clones" can provide that.
 
-* If you need data that persists across restarts of Bro processes, then
+* If you need data that persists across restarts of Zeek processes, then
   data stores can also provide that.
 
 * If the data you want to store is complex (tables, sets, records) or
@@ -113,7 +113,7 @@ Data Partitioning
 
 New data partitioning strategies are available using the API in
 :doc:`/scripts/base/frameworks/cluster/pools.zeek`.  Using that API, developers
-of custom Bro scripts can define a custom pool of nodes that best fits the
+of custom Zeek scripts can define a custom pool of nodes that best fits the
 needs of their script.
 
 One example strategy is to use Highest Random Weight (HRW) hashing to
@@ -140,7 +140,7 @@ to override the default suggestions made by the original developer.
 Broker Framework Examples
 =========================
 
-The broker framework provides basic facilities for connecting Bro instances
+The broker framework provides basic facilities for connecting Zeek instances
 to each other and exchanging messages, like events or logs.
 
 See :doc:`/scripts/base/frameworks/broker/main.zeek` for an overview
@@ -158,7 +158,7 @@ Broker uses a publish/subscribe communication pattern where peers
 advertise interest in topic **prefixes** and only receive messages which
 match one of their prefix subscriptions.
 
-Broker itself supports arbitrary topic strings, however Bro generally
+Broker itself supports arbitrary topic strings, however Zeek generally
 follows certain conventions in choosing these topics to help avoid
 conflicts and generally make them easier to remember.
 
@@ -182,9 +182,9 @@ Alice would **not** receive the following message topics published by Bob:
 Note that the topics aren't required to form a slash-delimited hierarchy,
 the subscription matching is purely a byte-per-byte prefix comparison.
 
-However, Bro scripts generally will follow a topic naming hierarchy and
+However, Zeek scripts generally will follow a topic naming hierarchy and
 any given script will make the topic names it uses apparent via some
-redef'able constant in its export section.  Generally topics that Bro
+redef'able constant in its export section.  Generally topics that Zeek
 scripts use will be along the lines of "zeek/<namespace>/<specifics>"
 with "<namespace>" being the script's module name (in all-undercase).
 For example, you might expect an imaginary "Pretend" framework to
@@ -192,7 +192,7 @@ publish/subscribe using topic names like "zeek/pretend/my_cool_event".
 For scripts that use Broker as a means of cluster-aware analysis,
 it's usually sufficient for them to make use of the topics declared
 by the cluster framework.  For scripts that are meant to establish
-communication flows unrelated to Bro cluster, new topics are declared
+communication flows unrelated to Zeek cluster, new topics are declared
 (examples being the NetControl and Control frameworks).
 
 For cluster operation, see :doc:`/scripts/base/frameworks/cluster/main.zeek`
@@ -203,13 +203,13 @@ specific node within a class.
 
 The topic names that logs get published under are a bit nuanced.  In the
 default cluster configuration, they are round-robin published to
-explicit topic names that identify a single logger.  In standalone Bro
+explicit topic names that identify a single logger.  In standalone Zeek
 processes, logs get published to the topic indicated by
 :zeek:see:`Broker::default_log_topic_prefix`.
 
 For those writing their own scripts which need new topic names, a
 suggestion would be to avoid prefixing any new topics/prefixes with
-"zeek/" as any changes in scripts shipping with Bro will use that prefix
+"zeek/" as any changes in scripts shipping with Zeek will use that prefix
 and it's better to not risk unintended conflicts.  Again, it's
 often less confusing to just re-use existing topic names instead
 of introducing new topic names.  The typical use case is writing
@@ -220,14 +220,14 @@ cluster framework.
 Connecting to Peers
 -------------------
 
-Bro can accept incoming connections by calling :zeek:see:`Broker::listen`.
+Zeek can accept incoming connections by calling :zeek:see:`Broker::listen`.
 
 .. literalinclude:: broker/connecting-listener.zeek
    :caption: connecting-listener.zeek
    :language: zeek
    :linenos:
 
-Bro can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
+Zeek can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
 
 .. literalinclude:: broker/connecting-connector.zeek
    :caption: connecting-connector.zeek
@@ -287,7 +287,7 @@ Remote Logging
 
 To toggle remote logs, redef :zeek:see:`Log::enable_remote_logging`.
 Use the :zeek:see:`Broker::subscribe` function to advertise interest
-in logs written by peers.  The topic names that Bro uses are determined by
+in logs written by peers.  The topic names that Zeek uses are determined by
 :zeek:see:`Broker::log_topic`.
 
 .. literalinclude:: broker/logs-listener.zeek
@@ -336,14 +336,14 @@ time relative to the entry's last modification time.
    :language: zeek
    :linenos:
 
-Note that all data store queries must be made within Bro's asynchronous
+Note that all data store queries must be made within Zeek's asynchronous
 ``when`` statements and must specify a timeout block.
 
 Cluster Framework Examples
 ==========================
 
 This section contains a few brief examples of how various communication
-patterns one might use when developing Bro scripts that are to operate in
+patterns one might use when developing Zeek scripts that are to operate in
 the context of a cluster.
 
 A Reminder About Events and Module Namespaces
@@ -410,7 +410,7 @@ explicit module namespace scoping and you can't go wrong:
         schedule 10sec { MyModule::my_event() };
         }
 
-Note that other identifiers in Bro do not have this inconsistency
+Note that other identifiers in Zeek do not have this inconsistency
 related to module namespacing, it's just events that require
 explicitness.
 
@@ -545,11 +545,11 @@ to uniformly map an arbitrary key space across all available proxies.
                              worker_to_proxies, Cluster::node);
         }
 
-Tips for Porting Bro 2.5 and earlier to Bro 2.6 and later
-=========================================================
+Tips for Porting Bro 2.5 and earlier
+====================================
 
 Review and use the points below as a guide to port your own scripts
-to the latest version of Bro, which uses the new cluster and Broker
+to Bro 2.6 or later version of Zeek, which uses the new cluster and Broker
 communication framework.
 
 General Porting Tips
@@ -565,7 +565,7 @@ General Porting Tips
   consider using `Data Stores`_ instead.
 
 - Usages of the old communications system features are all deprecated,
-  however, they also do not work in the default Bro configuration unless
+  however, they also do not work in the default Zeek configuration unless
   you manually take action to set up the old communication system.
   To aid in porting, such usages will default to raising a fatal error
   unless you explicitly acknowledge that such usages of the old system

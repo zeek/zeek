@@ -18,6 +18,9 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
+- Added support for parsing and logging DNS SPF resource records.
+  A new ``dns_SPF_reply`` event is also available.
+
 - Zeek's Plugin framework now allows a patch version.  If a patch version is not
   provided, it will default to 0.  To specify this, modify the plugin
   Configuration class in your ``src/Plugin.cc`` and set

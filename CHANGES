@@ -1,4 +1,8 @@
 
+2.6-416 | 2019-06-14 20:57:57 -0700
+
+  * DNS: Add support for SPF response records (Vlad Grigorescu)
+
 2.6-413 | 2019-06-14 19:51:28 -0700
 
   * GH-406: rename bro.bif to zeek.bif (Jon Siwek, Corelight)

@@ -1,0 +1,6 @@
+module NTP;
+
+type NTP::StandardMessage: record;
+type NTP::ControlMessage: record;
+type NTP::Mode7Message: record;
+type NTP::Message: record;

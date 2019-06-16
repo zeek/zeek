@@ -1,4 +1,8 @@
 
+2.6-444 | 2019-06-15 19:09:03 -0700
+
+  * Add/rewrite NTP support (Vlad Grigorescu and Mauro Palumbo)
+
 2.6-416 | 2019-06-14 20:57:57 -0700
 
   * DNS: Add support for SPF response records (Vlad Grigorescu)

@@ -97,6 +97,14 @@ New Functionality
   is available in the events: ``ssl_extension_pre_shared_key_client_hello``
   and ``ssl_extension_pre_shared_key_server_hello``.
 
+- Added/re-wrote support for NTP.
+
+  - Parsing support for modes 1-7, with parsed structures available in
+    the ``ntp_message`` event.
+
+  - An ntp.log is produced by default, containing data extracted from
+    NTP messages with modes 1-5.
+
 Changed Functionality
 ---------------------
 

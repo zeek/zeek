@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-06-08-03-43-03
+#open	2019-06-15-20-54-48
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -99,6 +99,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NTLM.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NTLM.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_NTP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_POP3.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RADIUS.events.bif.zeek
@@ -107,7 +108,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_RFB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RPC.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SIP.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.smb1_com_close.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.smb1_com_create_directory.bif.zeek
@@ -143,6 +143,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek
@@ -325,6 +326,9 @@ scripts/base/init-default.zeek
       scripts/base/protocols/mysql/consts.zeek
   scripts/base/protocols/ntlm/__load__.zeek
     scripts/base/protocols/ntlm/main.zeek
+  scripts/base/protocols/ntp/__load__.zeek
+    scripts/base/protocols/ntp/main.zeek
+    scripts/base/protocols/ntp/consts.zeek
   scripts/base/protocols/pop3/__load__.zeek
   scripts/base/protocols/radius/__load__.zeek
     scripts/base/protocols/radius/main.zeek
@@ -370,4 +374,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2019-06-08-03-43-03
+#close	2019-06-15-20-54-48

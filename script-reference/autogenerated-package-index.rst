@@ -197,6 +197,9 @@
 
    Support for NT LAN Manager (NTLM) protocol analysis.
 
+:doc:`base/protocols/ntp </scripts/base/protocols/ntp/index>`
+
+
 :doc:`base/protocols/pop3 </scripts/base/protocols/pop3/index>`
 
    Support for POP3 (Post Office Protocol) protocol analysis.

@@ -235,6 +235,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_NTLM.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_NTP.types.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_NTP.events.bif.zeek`
 
 
@@ -257,9 +260,6 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SIP.events.bif.zeek`
-
-
-:doc:`/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek`
@@ -365,6 +365,9 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek`

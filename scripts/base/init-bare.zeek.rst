@@ -13,6 +13,7 @@ base/init-bare.zeek
 .. zeek:namespace:: NCP
 .. zeek:namespace:: NFS3
 .. zeek:namespace:: NTLM
+.. zeek:namespace:: NTP
 .. zeek:namespace:: PE
 .. zeek:namespace:: Pcap
 .. zeek:namespace:: RADIUS
@@ -32,7 +33,7 @@ base/init-bare.zeek
 .. zeek:namespace:: X509
 
 
-:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, NCP, NFS3, NTLM, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
+:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, NCP, NFS3, NTLM, NTP, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
 :Imports: :doc:`base/bif/const.bif.zeek </scripts/base/bif/const.bif.zeek>`, :doc:`base/bif/event.bif.zeek </scripts/base/bif/event.bif.zeek>`, :doc:`base/bif/option.bif.zeek </scripts/base/bif/option.bif.zeek>`, :doc:`base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>`, :doc:`base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>`, :doc:`base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>`, :doc:`base/bif/stats.bif.zeek </scripts/base/bif/stats.bif.zeek>`, :doc:`base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>`, :doc:`base/bif/types.bif.zeek </scripts/base/bif/types.bif.zeek>`, :doc:`base/bif/zeek.bif.zeek </scripts/base/bif/zeek.bif.zeek>`
 
 Summary
@@ -147,7 +148,6 @@ Redefinable Options
 :zeek:id:`mmdb_dir`: :zeek:type:`string` :zeek:attr:`&redef`                               The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 :zeek:id:`non_analyzed_lifetime`: :zeek:type:`interval` :zeek:attr:`&redef`                If a connection belongs to an application that we don't analyze,
                                                                                            time it out after this interval.
-:zeek:id:`ntp_session_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`                  Time to wait before timing out an NTP request.
 :zeek:id:`old_comm_usage_is_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                     Whether usage of the old communication system is considered an error or
                                                                                            not.
 :zeek:id:`packet_filter_default`: :zeek:type:`bool` :zeek:attr:`&redef`                    Default mode for Zeek's user-space dynamic packet filter.
@@ -429,6 +429,14 @@ Types
 :zeek:type:`NTLM::Negotiate`: :zeek:type:`record`                             
 :zeek:type:`NTLM::NegotiateFlags`: :zeek:type:`record`                        
 :zeek:type:`NTLM::Version`: :zeek:type:`record`                               
+:zeek:type:`NTP::ControlMessage`: :zeek:type:`record`                         NTP control message as defined in :rfc:`1119` for mode=6
+                                                                              This record contains the fields used by the NTP protocol
+                                                                              for control operations.
+:zeek:type:`NTP::Message`: :zeek:type:`record`                                NTP message as defined in :rfc:`5905`.
+:zeek:type:`NTP::Mode7Message`: :zeek:type:`record`                           NTP mode 7 message.
+:zeek:type:`NTP::StandardMessage`: :zeek:type:`record`                        NTP standard message as defined in :rfc:`5905` for modes 1-5
+                                                                              This record contains the standard fields used by the NTP protocol
+                                                                              for standard syncronization operations.
 :zeek:type:`NetStats`: :zeek:type:`record`                                    Packet capture statistics.
 :zeek:type:`OS_version`: :zeek:type:`record`                                  Passive fingerprinting match.
 :zeek:type:`OS_version_inference`: :zeek:type:`enum`                          Quality of passive fingerprinting matches.
@@ -641,7 +649,6 @@ Types
                                                                               file magic signatures.
 :zeek:type:`mime_matches`: :zeek:type:`vector`                                A vector of file magic signature matches, ordered by strength of
                                                                               the signature, strongest first.
-:zeek:type:`ntp_msg`: :zeek:type:`record`                                     An NTP message.
 :zeek:type:`packet`: :zeek:type:`record`                                      Deprecated.
 :zeek:type:`pcap_packet`: :zeek:type:`record`                                 Policy-level representation of a packet passed on by libpcap.
 :zeek:type:`pkt_hdr`: :zeek:type:`record`                                     A packet header, consisting of an IP header and transport-layer header.
@@ -1402,11 +1409,12 @@ Redefinable Options
          2152/udp,
          3544/udp,
          22/tcp,
-         514/udp,
          21/tcp,
+         514/udp,
          989/tcp,
          88/tcp,
          3128/tcp,
+         123/udp,
          1812/udp,
          992/tcp,
          2123/udp,
@@ -1465,14 +1473,6 @@ Redefinable Options
    time it out after this interval.  If 0 secs, then don't time it out (but
    :zeek:see:`tcp_inactivity_timeout`, :zeek:see:`udp_inactivity_timeout`, and
    :zeek:see:`icmp_inactivity_timeout` still apply).
-
-.. zeek:id:: ntp_session_timeout
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``5.0 mins``
-
-   Time to wait before timing out an NTP request.
 
 .. zeek:id:: old_comm_usage_is_ok
 
@@ -4464,6 +4464,219 @@ Types
          The current revision of NTLMSSP in use
 
 
+.. zeek:type:: NTP::ControlMessage
+
+   :Type: :zeek:type:`record`
+
+      op_code: :zeek:type:`count`
+         An integer specifying the command function. Values currently defined:
+         
+         * 1 read status command/response
+         * 2 read variables command/response
+         * 3 write variables command/response
+         * 4 read clock variables command/response
+         * 5 write clock variables command/response
+         * 6 set trap address/port command/response
+         * 7 trap response
+         
+         Other values are reserved.
+
+      resp_bit: :zeek:type:`bool`
+         The response bit. Set to zero for commands, one for responses.
+
+      err_bit: :zeek:type:`bool`
+         The error bit. Set to zero for normal response, one for error
+         response.
+
+      more_bit: :zeek:type:`bool`
+         The more bit. Set to zero for last fragment, one for all others.
+
+      sequence: :zeek:type:`count`
+         The sequence number of the command or response.
+
+      status: :zeek:type:`count`
+         The current status of the system, peer or clock.
+
+      association_id: :zeek:type:`count`
+         A 16-bit integer identifying a valid association.
+
+      data: :zeek:type:`string` :zeek:attr:`&optional`
+         Message data for the command or response + Authenticator (optional).
+
+      key_id: :zeek:type:`count` :zeek:attr:`&optional`
+         This is an integer identifying the cryptographic
+         key used to generate the message-authentication code.
+
+      crypto_checksum: :zeek:type:`string` :zeek:attr:`&optional`
+         This is a crypto-checksum computed by the encryption procedure.
+
+   NTP control message as defined in :rfc:`1119` for mode=6
+   This record contains the fields used by the NTP protocol
+   for control operations.
+
+.. zeek:type:: NTP::Message
+
+   :Type: :zeek:type:`record`
+
+      version: :zeek:type:`count`
+         The NTP version number (1, 2, 3, 4).
+
+      mode: :zeek:type:`count`
+         The NTP mode being used. Possible values are:
+         
+           * 1 - symmetric active
+           * 2 - symmetric passive
+           * 3 - client
+           * 4 - server
+           * 5 - broadcast
+           * 6 - NTP control message
+           * 7 - reserved for private use
+
+      std_msg: :zeek:type:`NTP::StandardMessage` :zeek:attr:`&optional`
+         If mode 1-5, the standard fields for syncronization operations are
+         here.  See :rfc:`5905`
+
+      control_msg: :zeek:type:`NTP::ControlMessage` :zeek:attr:`&optional`
+         If mode 6, the fields for control operations are here.
+         See :rfc:`1119`
+
+      mode7_msg: :zeek:type:`NTP::Mode7Message` :zeek:attr:`&optional`
+         If mode 7, the fields for extra operations are here.
+         Note that this is not defined in any RFC
+         and is implementation dependent. We used the official implementation
+         from the `NTP official project <www.ntp.org>`_.
+         A mode 7 packet is used exchanging data between an NTP server
+         and a client for purposes other than time synchronization, e.g.
+         monitoring, statistics gathering and configuration.
+
+   NTP message as defined in :rfc:`5905`.  Does include fields for mode 7,
+   reserved for private use in :rfc:`5905`, but used in some implementation
+   for commands such as "monlist".
+
+.. zeek:type:: NTP::Mode7Message
+
+   :Type: :zeek:type:`record`
+
+      req_code: :zeek:type:`count`
+         An implementation-specific code which specifies the
+         operation to be (which has been) performed and/or the
+         format and semantics of the data included in the packet.
+
+      auth_bit: :zeek:type:`bool`
+         The authenticated bit. If set, this packet is authenticated.
+
+      sequence: :zeek:type:`count`
+         For a multipacket response, contains the sequence
+         number of this packet.  0 is the first in the sequence,
+         127 (or less) is the last.  The More Bit must be set in
+         all packets but the last.
+
+      implementation: :zeek:type:`count`
+         The number of the implementation this request code
+         is defined by.  An implementation number of zero is used
+         for requst codes/data formats which all implementations
+         agree on.  Implementation number 255 is reserved (for
+         extensions, in case we run out).
+
+      err: :zeek:type:`count`
+         Must be 0 for a request.  For a response, holds an error
+         code relating to the request.  If nonzero, the operation
+         requested wasn't performed.
+         
+           * 0 - no error
+           * 1 - incompatible implementation number
+           * 2 - unimplemented request code
+           * 3 - format error (wrong data items, data size, packet size etc.)
+           * 4 - no data available (e.g. request for details on unknown peer)
+           * 5 - unknown
+           * 6 - unknown
+           * 7 - authentication failure (i.e. permission denied)
+
+      data: :zeek:type:`string` :zeek:attr:`&optional`
+         Rest of data
+
+   NTP mode 7 message. Note that this is not defined in any RFC and is
+   implementation dependent. We used the official implementation from the
+   `NTP official project <www.ntp.org>`_.  A mode 7 packet is used
+   exchanging data between an NTP server and a client for purposes other
+   than time synchronization, e.g.  monitoring, statistics gathering and
+   configuration.  For details see the documentation from the `NTP official
+   project <www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
+
+.. zeek:type:: NTP::StandardMessage
+
+   :Type: :zeek:type:`record`
+
+      stratum: :zeek:type:`count`
+         This value mainly identifies the type of server (primary server,
+         secondary server, etc.). Possible values, as in :rfc:`5905`, are:
+         
+           * 0 -> unspecified or invalid
+           * 1 -> primary server (e.g., equipped with a GPS receiver)
+           * 2-15 -> secondary server (via NTP)
+           * 16 -> unsynchronized
+           * 17-255 -> reserved
+         
+         For stratum 0, a *kiss_code* can be given for debugging and
+         monitoring.
+
+      poll: :zeek:type:`interval`
+         The maximum interval between successive messages.
+
+      precision: :zeek:type:`interval`
+         The precision of the system clock.
+
+      root_delay: :zeek:type:`interval`
+         Root delay. The total round-trip delay to the reference clock.
+
+      root_disp: :zeek:type:`interval`
+         Root Dispersion. The total dispersion to the reference clock.
+
+      kiss_code: :zeek:type:`string` :zeek:attr:`&optional`
+         For stratum 0, four-character ASCII string used for debugging and
+         monitoring. Values are defined in :rfc:`1345`.
+
+      ref_id: :zeek:type:`string` :zeek:attr:`&optional`
+         Reference ID. For stratum 1, this is the ID assigned to the
+         reference clock by IANA.
+         For example: GOES, GPS, GAL, etc. (see :rfc:`5905`)
+
+      ref_addr: :zeek:type:`addr` :zeek:attr:`&optional`
+         Above stratum 1, when using IPv4, the IP address of the reference
+         clock.  Note that the NTP protocol did not originally specify a
+         large enough field to represent IPv6 addresses, so they use
+         the first four bytes of the MD5 hash of the reference clock's
+         IPv6 address (i.e. an IPv4 address here is not necessarily IPv4).
+
+      ref_time: :zeek:type:`time`
+         Reference timestamp. Time when the system clock was last set or
+         correct.
+
+      org_time: :zeek:type:`time`
+         Origin timestamp. Time at the client when the request departed for
+         the NTP server.
+
+      rec_time: :zeek:type:`time`
+         Receive timestamp. Time at the server when the request arrived from
+         the NTP client.
+
+      xmt_time: :zeek:type:`time`
+         Transmit timestamp. Time at the server when the response departed
+
+      key_id: :zeek:type:`count` :zeek:attr:`&optional`
+         Key used to designate a secret MD5 key.
+
+      digest: :zeek:type:`string` :zeek:attr:`&optional`
+         MD5 hash computed over the key followed by the NTP packet header and
+         extension fields.
+
+      num_exts: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
+         Number of extension fields (which are not currently parsed).
+
+   NTP standard message as defined in :rfc:`5905` for modes 1-5
+   This record contains the standard fields used by the NTP protocol
+   for standard syncronization operations.
+
 .. zeek:type:: NetStats
 
    :Type: :zeek:type:`record`
@@ -6733,6 +6946,10 @@ Types
          (present if :doc:`/scripts/base/protocols/ntlm/main.zeek` is loaded)
 
 
+      ntp: :zeek:type:`NTP::Info` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
+
+
       radius: :zeek:type:`RADIUS::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/radius/main.zeek` is loaded)
 
@@ -8631,47 +8848,6 @@ Types
    the signature, strongest first.
    
    :zeek:see:`file_magic`
-
-.. zeek:type:: ntp_msg
-
-   :Type: :zeek:type:`record`
-
-      id: :zeek:type:`count`
-         Message ID.
-
-      code: :zeek:type:`count`
-         Message code.
-
-      stratum: :zeek:type:`count`
-         Stratum.
-
-      poll: :zeek:type:`count`
-         Poll.
-
-      precision: :zeek:type:`int`
-         Precision.
-
-      distance: :zeek:type:`interval`
-         Distance.
-
-      dispersion: :zeek:type:`interval`
-         Dispersion.
-
-      ref_t: :zeek:type:`time`
-         Reference time.
-
-      originate_t: :zeek:type:`time`
-         Originating time.
-
-      receive_t: :zeek:type:`time`
-         Receive time.
-
-      xmit_t: :zeek:type:`time`
-         Send time.
-
-   An NTP message.
-   
-   .. zeek:see:: ntp_message
 
 .. zeek:type:: packet
 

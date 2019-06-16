@@ -94,6 +94,7 @@
    base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek </scripts/base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek>
    base/bif/plugins/Zeek_NTLM.types.bif.zeek </scripts/base/bif/plugins/Zeek_NTLM.types.bif.zeek>
    base/bif/plugins/Zeek_NTLM.events.bif.zeek </scripts/base/bif/plugins/Zeek_NTLM.events.bif.zeek>
+   base/bif/plugins/Zeek_NTP.types.bif.zeek </scripts/base/bif/plugins/Zeek_NTP.types.bif.zeek>
    base/bif/plugins/Zeek_NTP.events.bif.zeek </scripts/base/bif/plugins/Zeek_NTP.events.bif.zeek>
    base/bif/plugins/Zeek_POP3.events.bif.zeek </scripts/base/bif/plugins/Zeek_POP3.events.bif.zeek>
    base/bif/plugins/Zeek_RADIUS.events.bif.zeek </scripts/base/bif/plugins/Zeek_RADIUS.events.bif.zeek>
@@ -102,7 +103,6 @@
    base/bif/plugins/Zeek_RFB.events.bif.zeek </scripts/base/bif/plugins/Zeek_RFB.events.bif.zeek>
    base/bif/plugins/Zeek_RPC.events.bif.zeek </scripts/base/bif/plugins/Zeek_RPC.events.bif.zeek>
    base/bif/plugins/Zeek_SIP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SIP.events.bif.zeek>
-   base/bif/plugins/Zeek_SNMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek>
    base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek </scripts/base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek>
    base/bif/plugins/Zeek_SMB.smb1_com_close.bif.zeek </scripts/base/bif/plugins/Zeek_SMB.smb1_com_close.bif.zeek>
    base/bif/plugins/Zeek_SMB.smb1_com_create_directory.bif.zeek </scripts/base/bif/plugins/Zeek_SMB.smb1_com_create_directory.bif.zeek>
@@ -138,6 +138,7 @@
    base/bif/plugins/Zeek_SMB.types.bif.zeek </scripts/base/bif/plugins/Zeek_SMB.types.bif.zeek>
    base/bif/plugins/Zeek_SMTP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SMTP.events.bif.zeek>
    base/bif/plugins/Zeek_SMTP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek>
+   base/bif/plugins/Zeek_SNMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek>
    base/bif/plugins/Zeek_SOCKS.events.bif.zeek </scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek>
    base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SSH.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek>
@@ -320,6 +321,9 @@
    base/protocols/mysql/consts.zeek </scripts/base/protocols/mysql/consts.zeek>
    base/protocols/ntlm/__load__.zeek </scripts/base/protocols/ntlm/__load__.zeek>
    base/protocols/ntlm/main.zeek </scripts/base/protocols/ntlm/main.zeek>
+   base/protocols/ntp/__load__.zeek </scripts/base/protocols/ntp/__load__.zeek>
+   base/protocols/ntp/main.zeek </scripts/base/protocols/ntp/main.zeek>
+   base/protocols/ntp/consts.zeek </scripts/base/protocols/ntp/consts.zeek>
    base/protocols/pop3/__load__.zeek </scripts/base/protocols/pop3/__load__.zeek>
    base/protocols/radius/__load__.zeek </scripts/base/protocols/radius/__load__.zeek>
    base/protocols/radius/main.zeek </scripts/base/protocols/radius/main.zeek>

@@ -26,7 +26,7 @@ void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
 	if ( ! (hmac_key_set && siphash_key_set) )
-		reporter->InternalError("Bro's hash functions aren't fully initialized");
+		reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)

@@ -72,7 +72,7 @@ void DebugLogger::ShowStreamsHelp()
 		fprintf(stderr,"  %s\n", streams[i].prefix);
 
 	fprintf(stderr, "\n");
-	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Bro-Netmap')\n");
+	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Zeek-Netmap')\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Pseudo streams\n");
 	fprintf(stderr, "  verbose  Increase verbosity.\n");

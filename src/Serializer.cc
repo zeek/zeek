@@ -887,7 +887,7 @@ bool FileSerializer::ReadHeader(UnserialInfo* info)
 
 	if ( magic != htonl(MAGIC) )
 		{
-		Error(fmt("%s is not a bro state file", file));
+		Error(fmt("%s is not a Zeek state file", file));
 		CloseFile();
 		return false;
 		}

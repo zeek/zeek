@@ -84,6 +84,9 @@ public:
 	 */
 	bool Merge(CardinalityCounter* c);
 
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<CardinalityCounter> Unserialize(const broker::data& data);
+
 protected:
 	/**
 	 * Return the number of buckets.

@@ -73,7 +73,11 @@ Val::~Val()
 Val* Val::Clone()
 	{
 	Val::CloneState state;
-	return Clone(&state);
+	auto v = Clone(&state);
+	if ( ! v )
+		reporter->RuntimeError(GetLocationInfo(), "cannot clone value");
+
+	return v;
 	}
 
 Val* Val::Clone(CloneState* state)
@@ -2773,20 +2777,6 @@ void VectorVal::ValDescribe(ODesc* d) const
 		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
 
 	d->Add("]");
-	}
-
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
-	{
-	}
-
-OpaqueVal::~OpaqueVal()
-	{
-	}
-
-Val* OpaqueVal::DoClone(CloneState* state)
-	{
-	reporter->InternalError("cloning opaque type without clone implementation");
-	return nullptr;
 	}
 
 Val* check_and_promote(Val* v, const BroType* t, int is_init)

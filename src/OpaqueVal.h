@@ -9,6 +9,145 @@
 #include "Val.h"
 #include "digest.h"
 
+class OpaqueVal;
+
+/**
+  * Singleton that registers all available all available types of opaque
+  * values. This faciliates their serialization into Broker values.
+  */
+class OpaqueMgr {
+public:
+	using Factory = OpaqueVal* ();
+
+	/**
+	 * Return's a unique ID for the type of an opaque value.
+
+	 * @param v opaque value to return type for; it's classmust have been
+	 * registered with the manager, otherwise this method will abort
+	 * execugtion.
+	 *
+	 * @return type ID, which can used with *Instantiate()* to create a
+	 * new
+	 * instnace of the same type.
+	 */
+	const std::string& TypeID(const OpaqueVal* v) const;
+
+	/**
+	 * Instantiates a new opaque value of a specific opaque type.
+	 *
+	 * @param id unique type ID for the class to instantiate; this will
+	 * normally have been returned earlier by *TypeID()*.
+	 *
+	 * @return A freshly instantiated value of the OpaqueVal-derived
+	 * classes that *id* specifies, with reference count at +1. If *id*
+	 * is unknown, this will return null.
+	 *
+	 */
+	OpaqueVal* Instantiate(const std::string& id) const;
+
+	/** Returns the global manager singleton object. */
+	static OpaqueMgr* mgr();
+
+	/**
+	 * Internal helper class to register an OpaqueVal-derived classes
+	 * with the manager.
+	 */
+	template<class T>
+	class Register {
+	public:
+		Register(const char* id)
+			{ OpaqueMgr::mgr()->_types.emplace(id, &T::OpaqueInstantiate); }
+	};
+
+private:
+	std::unordered_map<std::string, Factory*> _types;
+};
+
+/** Macro to insert into an OpaqueVal-derived class's declaration. */
+#define DECLARE_OPAQUE_VALUE(T)                            \
+    friend class OpaqueMgr::Register<T>;                   \
+    broker::data DoSerialize() const;                      \
+    bool DoUnserialize(const broker::data& data);          \
+    const char* OpaqueName() const override { return #T; } \
+    static OpaqueVal* OpaqueInstantiate() { return new T(); }
+
+#define __OPAQUE_MERGE(a, b) a ## b
+#define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
+
+/** Macro to insert into an OpaqueVal-derived class's implementation file. */
+#define IMPLEMENT_OPAQUE_VALUE(T) static OpaqueMgr::Register<T> __OPAQUE_ID(__LINE__)(#T);
+
+/**
+ * Base class for all opaque values. Opaque values are types that are managed
+ * completely internally, with no further script-level operators provided
+ * (other than bif functions). See OpaqueVal.h for derived classes.
+ */
+class OpaqueVal : public Val {
+public:
+	explicit OpaqueVal(OpaqueType* t);
+	~OpaqueVal() override;
+
+	/**
+	 * Serializes the value into a Broker representation.
+	 *
+	 * @return the broker representatio, or an error if serialization
+	 * isn't supported or failed.
+	 */
+	broker::expected<broker::data> Serialize() const;
+
+	/**
+	 * Reinstantiates a value from its serialized Broker representation.
+	 *
+	 * @param data Broker representation as returned by *Serialize()*.
+	 * @return unserialized instances with referecnce count at +1
+	 */
+	static OpaqueVal* Unserialize(const broker::data& data);
+
+protected:
+	friend class Val;
+	friend class OpaqueMgr;
+	OpaqueVal() { }
+
+	/**
+	 * Must be overriden to provide a serialized version of the derived
+	 * class' state. Returns 'broker::none()' if serialization fails, or
+	 * is not supported.
+	 */
+	virtual broker::data DoSerialize() const = 0;
+
+	/**
+	 * Must be overriden to recreate the the derived class' state from a
+	 * serialization. Returns true if successfull.
+	 */
+	virtual bool DoUnserialize(const broker::data& data) = 0;
+
+	/**
+	 * Internal helper for the serialization machinery. Automatically
+	 * overridden by the `DECLARE_OPAQUE_VALUE` macro.
+	 */
+	virtual const char* OpaqueName() const = 0;
+
+	/**
+	 * Provides an implementation of *Val::DoClone()* that leverages the
+	 * serialization methods to deep-copy an instance. Derived classes
+	 * may also override this with a more efficient custom clone
+	 * implementation of their own.
+	 */
+	Val* DoClone(CloneState* state) override;
+
+	/**
+	 * Helper function for derived class that need to record a type
+	 * during serialization. 
+	 */
+	static broker::data SerializeType(BroType* t);
+
+	/**
+	 * Helper function for derived class that need to restore a type
+	 * during unserialization. Returns the type at reference count +1.
+	 */
+	static BroType* UnserializeType(const broker::data& data);
+};
+
 namespace probabilistic {
 	class BloomFilter;
 	class CardinalityCounter;
@@ -22,7 +161,7 @@ public:
 	virtual StringVal* Get();
 
 protected:
-	HashVal() { };
+	HashVal()	{ valid = false; }
 	explicit HashVal(OpaqueType* t);
 
 	virtual bool DoInit();
@@ -54,6 +193,7 @@ protected:
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
 
+	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
 	EVP_MD_CTX* ctx;
 };
@@ -74,6 +214,7 @@ protected:
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
 
+	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
 	EVP_MD_CTX* ctx;
 };
@@ -94,6 +235,7 @@ protected:
 	bool DoFeed(const void* data, size_t size) override;
 	StringVal* DoGet() override;
 
+	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
 	EVP_MD_CTX* ctx;
 };
@@ -111,6 +253,7 @@ public:
 protected:
 	friend class Val;
 
+	DECLARE_OPAQUE_VALUE(EntropyVal)
 private:
 	RandTest state;
 };
@@ -139,6 +282,7 @@ protected:
 	BloomFilterVal();
 	explicit BloomFilterVal(OpaqueType* t);
 
+	DECLARE_OPAQUE_VALUE(BloomFilterVal)
 private:
 	// Disable.
 	BloomFilterVal(const BloomFilterVal&);
@@ -162,12 +306,12 @@ public:
 	BroType* Type() const;
 	bool Typify(BroType* type);
 
-
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
 protected:
 	CardinalityVal();
 
+	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
 	BroType* type;
 	CompositeHash* hash;

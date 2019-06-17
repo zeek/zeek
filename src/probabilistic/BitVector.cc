@@ -505,6 +505,47 @@ uint64 BitVector::Hash() const
 	return digest;
 	}
 
+broker::expected<broker::data> BitVector::Serialize() const
+	{
+	broker::vector v = {static_cast<uint64>(num_bits), static_cast<uint64>(bits.size())};
+	v.reserve(2 + bits.size());
+
+        for ( size_t i = 0; i < bits.size(); ++i )
+		v.emplace_back(static_cast<uint64>(bits[i]));
+
+        return {v};
+	}
+
+std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 2) )
+		return nullptr;
+
+	auto num_bits = caf::get_if<uint64>(&(*v)[0]);
+	auto size = caf::get_if<uint64>(&(*v)[1]);
+
+	if ( ! (num_bits && size) )
+		return nullptr;
+
+	if ( v->size() != 2 + *size )
+		return nullptr;
+
+	auto bv = std::unique_ptr<BitVector>(new BitVector());
+	bv->num_bits = *num_bits;
+
+        for ( size_t i = 0; i < *size; ++i )
+		{
+		auto x = caf::get_if<uint64>(&(*v)[2 + i]);
+		if ( ! x )
+			return nullptr;
+
+		bv->bits.push_back(*x);
+		}
+
+	return std::move(bv);
+	}
+
 BitVector::size_type BitVector::lowest_bit(block_type block)
 	{
 	block_type x = block - (block & (block - 1));

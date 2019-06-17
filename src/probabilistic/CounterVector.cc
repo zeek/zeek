@@ -2,6 +2,7 @@
 
 #include "CounterVector.h"
 
+#include <cassert>
 #include <limits>
 #include "BitVector.h"
 
@@ -156,4 +157,30 @@ uint64_t CounterVector::Hash() const
 	{
 	return bits->Hash();
 	}
+
+broker::expected<broker::data> CounterVector::Serialize() const
+	{
+	auto b = bits->Serialize();
+	if ( ! b )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	return broker::vector{static_cast<uint64>(width), std::move(*b)};
+	}
+
+std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 2) )
+		return nullptr;
+
+	auto width = caf::get_if<uint64>(&(*v)[0]);
+	auto bits = BitVector::Unserialize((*v)[1]);
+
+	auto cv = std::unique_ptr<CounterVector>(new CounterVector());
+	cv->width = *width;
+	cv->bits = bits.release();
+	return std::move(cv);
+	}
+
+
 

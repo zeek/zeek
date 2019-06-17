@@ -5,7 +5,7 @@
 #include "broker/data.bif.h"
 #include "Reporter.h"
 #include "Type.h"
-#include "Val.h"
+#include "OpaqueVal.h"
 #include "Trigger.h"
 
 #include <broker/broker.hh>
@@ -121,6 +121,8 @@ public:
 
 protected:
 	StoreHandleVal() = default;
+
+	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };
 
 // Helper function to construct a broker backend type from script land.

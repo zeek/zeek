@@ -41,6 +41,20 @@ function Broker::__data_type%(d: Broker::Data%): Broker::DataType
 	return bro_broker::get_data_type(d->AsRecordVal(), frame);
 	%}
 
+# For testing only.
+function Broker::__opaque_clone_through_serialization%(d: any%): any
+	%{
+	auto x = d->AsOpaqueVal()->Serialize();
+
+	if ( ! x )
+		{
+		builtin_error("cannot serialize object to clone");
+        	return val_mgr->GetFalse();
+		}
+	
+	return OpaqueVal::Unserialize(std::move(*x));
+	%}
+
 function Broker::__set_create%(%): Broker::Data
 	%{
 	return bro_broker::make_data_val(broker::set());

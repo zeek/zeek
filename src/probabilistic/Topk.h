@@ -131,6 +131,8 @@ public:
 	 */
 	Val* DoClone(CloneState* state) override;
 
+	DECLARE_OPAQUE_VALUE(TopkVal)
+
 protected:
 	/**
 	 * Construct an empty TopkVal. Only used for deserialization

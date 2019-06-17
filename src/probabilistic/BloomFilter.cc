@@ -28,6 +28,51 @@ BloomFilter::~BloomFilter()
 	delete hasher;
 	}
 
+broker::expected<broker::data> BloomFilter::Serialize() const
+	{
+	auto h = hasher->Serialize();
+	auto d = DoSerialize();
+
+	if ( (! h) || d == broker::none() )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	return broker::vector{static_cast<uint64>(Type()), std::move(*h), std::move(d)};
+	}
+
+std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 3) )
+		return nullptr;
+
+	auto type = caf::get_if<uint64>(&(*v)[0]);
+	if ( ! type )
+		return nullptr;
+
+	auto hasher_ = Hasher::Unserialize((*v)[1]);
+	if ( ! hasher_ )
+		return nullptr;
+
+	std::unique_ptr<BloomFilter> bf;
+
+	switch ( *type ) {
+	case Basic:
+		bf = std::unique_ptr<BloomFilter>(new BasicBloomFilter());
+		break;
+
+	case Counting:
+		bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter());
+		break;
+	}
+
+	if ( ! bf->DoUnserialize((*v)[2]) )
+		return nullptr;
+
+	bf->hasher = hasher_.release();
+	return std::move(bf);
+	}
+
 size_t BasicBloomFilter::M(double fp, size_t capacity)
 	{
 	double ln2 = std::log(2);
@@ -126,6 +171,25 @@ size_t BasicBloomFilter::Count(const HashKey* key) const
 	return 1;
 	}
 
+broker::data BasicBloomFilter::DoSerialize() const
+	{
+	auto b = bits->Serialize();
+	if ( ! b )
+		return broker::none();
+
+	return *b;
+	}
+
+bool BasicBloomFilter::DoUnserialize(const broker::data& data)
+	{
+	auto b = BitVector::Unserialize(data);
+	if ( ! b )
+		return false;
+
+	bits = b.release();
+	return true;
+	}
+
 CountingBloomFilter::CountingBloomFilter()
 	{
 	cells = 0;
@@ -216,4 +280,23 @@ size_t CountingBloomFilter::Count(const HashKey* key) const
 		}
 
 	return min;
+	}
+
+broker::data CountingBloomFilter::DoSerialize() const
+	{
+	auto c = cells->Serialize();
+	if ( ! c )
+		return broker::none();
+
+	return *c;
+	}
+
+bool CountingBloomFilter::DoUnserialize(const broker::data& data)
+	{
+	auto c = CounterVector::Unserialize(data);
+	if ( ! c )
+		return false;
+
+	cells = c.release();
+	return true;
 	}

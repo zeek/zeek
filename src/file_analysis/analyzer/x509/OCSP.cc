@@ -711,3 +711,31 @@ OCSP_RESPONSE* OCSP_RESPVal::GetResp() const
 	return ocsp_resp;
 	}
 
+IMPLEMENT_OPAQUE_VALUE(OCSP_RESPVal)
+
+broker::data OCSP_RESPVal::DoSerialize() const
+	{
+        unsigned char *buf = NULL;
+        int length = i2d_OCSP_RESPONSE(ocsp_resp, &buf);
+        if ( length < 0 )
+                return broker::none();
+
+	auto d = std::string(reinterpret_cast<const char*>(buf), length);
+        OPENSSL_free(buf);
+
+	return d;
+	}
+
+bool OCSP_RESPVal::DoUnserialize(const broker::data& data)
+	{
+	if ( caf::get_if<broker::none>(&data) )
+		return false;
+
+	auto s = caf::get_if<std::string>(&data);
+	if ( ! s )
+		return false;
+
+	auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
+        ocsp_resp = d2i_OCSP_RESPONSE(NULL, &opensslbuf, s->size());
+	return (ocsp_resp != nullptr);
+	}

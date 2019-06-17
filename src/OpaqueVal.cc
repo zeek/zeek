@@ -6,6 +6,147 @@
 #include "probabilistic/BloomFilter.h"
 #include "probabilistic/CardinalityCounter.h"
 
+// Helper to retrieve a broker value out of a broker::vector at a specified
+// index, and casted to the expected destination type.
+template<typename S, typename V, typename D>
+inline bool get_vector_idx(const V& v, unsigned int i, D* dst)
+	{
+	if ( i >= v.size() )
+		return false;
+
+	auto x = caf::get_if<S>(&v[i]);
+	if ( ! x )
+		return false;
+
+	*dst = static_cast<D>(*x);
+	return true;
+	}
+
+OpaqueMgr* OpaqueMgr::mgr()
+	{
+	static OpaqueMgr mgr;
+	return &mgr;
+	}
+
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
+	{
+	}
+
+OpaqueVal::~OpaqueVal()
+	{
+	}
+
+const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
+	{
+	auto x = _types.find(v->OpaqueName());
+
+	if ( x == _types.end() )
+		reporter->InternalError(fmt("OpaqueMgr::TypeID: opaque type %s not registered",
+					v->OpaqueName()));
+
+	return x->first;
+	}
+
+OpaqueVal* OpaqueMgr::Instantiate(const std::string& id) const
+	{
+	auto x = _types.find(id);
+	return x != _types.end() ? (*x->second)() : nullptr;
+	}
+
+broker::expected<broker::data> OpaqueVal::Serialize() const
+	{
+	auto type = OpaqueMgr::mgr()->TypeID(this);
+
+	auto d = DoSerialize();
+	if ( d == broker::none() )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	return {broker::vector{std::move(type), std::move(d)}};
+	}
+
+OpaqueVal* OpaqueVal::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 2) )
+		return nullptr;
+
+	auto type = caf::get_if<std::string>(&(*v)[0]);
+	if ( ! type )
+		return nullptr;
+
+	auto val = OpaqueMgr::mgr()->Instantiate(*type);
+	if ( ! val )
+		return nullptr;
+
+	if ( ! val->DoUnserialize((*v)[1]) )
+		{
+		Unref(val);
+		return nullptr;
+		}
+
+	return val;
+	}
+
+broker::data OpaqueVal::SerializeType(BroType* t)
+	{
+	if ( t->InternalType() == TYPE_INTERNAL_ERROR )
+		return broker::none();
+
+	if ( t->InternalType() == TYPE_INTERNAL_OTHER )
+		{
+		// Serialize by name.
+		assert(t->GetName().size());
+		return broker::vector{true, t->GetName()};
+		}
+
+	// A base type.
+	return broker::vector{false, static_cast<uint64>(t->Tag())};
+	}
+
+BroType* OpaqueVal::UnserializeType(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return nullptr;
+
+	auto by_name = caf::get_if<bool>(&(*v)[0]);
+	if ( ! by_name )
+		return nullptr;
+
+	if ( *by_name )
+		{
+		auto name = caf::get_if<std::string>(&(*v)[1]);
+		if ( ! name )
+			return nullptr;
+
+		ID* id = global_scope()->Lookup(name->c_str());
+                if ( ! id )
+			return nullptr;
+
+                BroType* t = id->AsType();
+                if ( ! t )
+			return nullptr;
+
+                return t->Ref();
+		}
+
+	auto tag = caf::get_if<uint64>(&(*v)[1]);
+	if ( ! tag )
+		return nullptr;
+
+	return base_type(static_cast<TypeTag>(*tag));
+	}
+
+Val* OpaqueVal::DoClone(CloneState* state)
+	{
+	auto d = OpaqueVal::Serialize();
+	if ( ! d )
+		return nullptr;
+
+	return OpaqueVal::Unserialize(std::move(*d));
+	}
+
 bool HashVal::IsValid() const
 	{
 	return valid;
@@ -145,6 +286,75 @@ StringVal* MD5Val::DoGet()
 	return new StringVal(md5_digest_print(digest));
 	}
 
+IMPLEMENT_OPAQUE_VALUE(MD5Val)
+
+broker::data MD5Val::DoSerialize() const
+	{
+	if ( ! IsValid() )
+		return broker::vector{false};
+
+	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	broker::vector d = {
+	    true,
+	    static_cast<uint64>(md->A),
+	    static_cast<uint64>(md->B),
+	    static_cast<uint64>(md->C),
+	    static_cast<uint64>(md->D),
+	    static_cast<uint64>(md->Nl),
+	    static_cast<uint64>(md->Nh),
+	    static_cast<uint64>(md->num)
+	};
+
+	for ( int i = 0; i < MD5_LBLOCK; ++i )
+		d.emplace_back(static_cast<uint64>(md->data[i]));
+
+	return d;
+	}
+
+bool MD5Val::DoUnserialize(const broker::data& data)
+	{
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
+
+	auto valid = caf::get_if<bool>(&(*d)[0]);
+	if ( ! valid )
+		return false;
+
+	if ( ! *valid )
+		{
+		assert(! IsValid()); // default set by ctor
+		return true;
+		}
+
+	Init();
+	MD5_CTX* md = (MD5_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->A) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->B) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->C) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->D) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 5, &md->Nl) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 6, &md->Nh) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 7, &md->num) )
+		return false;
+
+	for ( int i = 0; i < MD5_LBLOCK; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 8 + i, &md->data[i]) )
+			return false;
+		}
+
+	return true;
+	}
+
 SHA1Val::SHA1Val() : HashVal(sha1_type)
 	{
 	}
@@ -215,6 +425,78 @@ StringVal* SHA1Val::DoGet()
 	u_char digest[SHA_DIGEST_LENGTH];
 	hash_final(ctx, digest);
 	return new StringVal(sha1_digest_print(digest));
+	}
+
+IMPLEMENT_OPAQUE_VALUE(SHA1Val)
+
+broker::data SHA1Val::DoSerialize() const
+	{
+	if ( ! IsValid() )
+		return broker::vector{false};
+
+	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	broker::vector d = {
+	    true,
+	    static_cast<uint64>(md->h0),
+	    static_cast<uint64>(md->h1),
+	    static_cast<uint64>(md->h2),
+	    static_cast<uint64>(md->h3),
+	    static_cast<uint64>(md->h4),
+	    static_cast<uint64>(md->Nl),
+	    static_cast<uint64>(md->Nh),
+	    static_cast<uint64>(md->num)
+	};
+
+	for ( int i = 0; i < SHA_LBLOCK; ++i )
+		d.emplace_back(static_cast<uint64>(md->data[i]));
+
+	return d;
+	}
+
+bool SHA1Val::DoUnserialize(const broker::data& data)
+	{
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
+
+	auto valid = caf::get_if<bool>(&(*d)[0]);
+	if ( ! valid )
+		return false;
+
+	if ( ! *valid )
+		{
+		assert(! IsValid()); // default set by ctor
+		return true;
+		}
+
+	Init();
+	SHA_CTX* md = (SHA_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->h0) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->h1) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->h2) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->h3) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 5, &md->h4) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 6, &md->Nl) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 7, &md->Nh) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 8, &md->num) )
+		return false;
+
+	for ( int i = 0; i < SHA_LBLOCK; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 9 + i, &md->data[i]) )
+			return false;
+		}
+
+	return true;
 	}
 
 SHA256Val::SHA256Val() : HashVal(sha256_type)
@@ -289,6 +571,75 @@ StringVal* SHA256Val::DoGet()
 	return new StringVal(sha256_digest_print(digest));
 	}
 
+IMPLEMENT_OPAQUE_VALUE(SHA256Val)
+
+broker::data SHA256Val::DoSerialize() const
+	{
+	if ( ! IsValid() )
+		return broker::vector{false};
+
+	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	broker::vector d = {
+	    true,
+	    static_cast<uint64>(md->Nl),
+	    static_cast<uint64>(md->Nh),
+	    static_cast<uint64>(md->num),
+	    static_cast<uint64>(md->md_len)
+	};
+
+	for ( int i = 0; i < 8; ++i )
+		d.emplace_back(static_cast<uint64>(md->h[i]));
+
+	for ( int i = 0; i < SHA_LBLOCK; ++i )
+		d.emplace_back(static_cast<uint64>(md->data[i]));
+
+	return d;
+	}
+
+bool SHA256Val::DoUnserialize(const broker::data& data)
+	{
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
+
+	auto valid = caf::get_if<bool>(&(*d)[0]);
+	if ( ! valid )
+		return false;
+
+	if ( ! *valid )
+		{
+		assert(! IsValid()); // default set by ctor
+		return true;
+		}
+
+	Init();
+	SHA256_CTX* md = (SHA256_CTX*) EVP_MD_CTX_md_data(ctx);
+
+	if ( ! get_vector_idx<uint64_t>(*d, 1, &md->Nl) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 2, &md->Nh) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 3, &md->num) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 4, &md->md_len) )
+		return false;
+
+	for ( int i = 0; i < 8; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 5 + i, &md->h[i]) )
+			return false;
+		}
+
+	for ( int i = 0; i < SHA_LBLOCK; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 13 + i, &md->data[i]) )
+			return false;
+		}
+
+	return true;
+	}
+
 EntropyVal::EntropyVal() : OpaqueVal(entropy_type)
 	{
 	}
@@ -309,6 +660,89 @@ bool EntropyVal::Get(double *r_ent, double *r_chisq, double *r_mean,
                      double *r_montepicalc, double *r_scc)
 	{
 	state.end(r_ent, r_chisq, r_mean, r_montepicalc, r_scc);
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(EntropyVal)
+
+broker::data EntropyVal::DoSerialize() const
+	{
+	broker::vector d =
+		{
+		static_cast<uint64>(state.totalc),
+		static_cast<uint64>(state.mp),
+		static_cast<uint64>(state.sccfirst),
+		static_cast<uint64>(state.inmont),
+		static_cast<uint64>(state.mcount),
+		static_cast<uint64>(state.cexp),
+		static_cast<uint64>(state.montex),
+		static_cast<uint64>(state.montey),
+		static_cast<uint64>(state.montepi),
+		static_cast<uint64>(state.sccu0),
+		static_cast<uint64>(state.scclast),
+		static_cast<uint64>(state.scct1),
+		static_cast<uint64>(state.scct2),
+		static_cast<uint64>(state.scct3),
+		};
+
+	d.reserve(256 + 3 + RT_MONTEN + 11);
+
+	for ( int i = 0; i < 256; ++i )
+		d.emplace_back(static_cast<uint64>(state.ccount[i]));
+
+        for ( int i = 0; i < RT_MONTEN; ++i )
+		d.emplace_back(static_cast<uint64>(state.monte[i]));
+
+	return d;
+	}
+
+bool EntropyVal::DoUnserialize(const broker::data& data)
+	{
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
+
+	if ( ! get_vector_idx<uint64_t>(*d, 0, &state.totalc) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 1, &state.mp) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 2, &state.sccfirst) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 3, &state.inmont) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 4, &state.mcount) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 5, &state.cexp) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 6, &state.montex) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 7, &state.montey) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 8, &state.montepi) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 9, &state.sccu0) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 10, &state.scclast) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 11, &state.scct1) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 12, &state.scct2) )
+		return false;
+	if ( ! get_vector_idx<uint64_t>(*d, 13, &state.scct3) )
+		return false;
+
+	for ( int i = 0; i < 256; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 14 + i, &state.ccount[i]) )
+			return false;
+		}
+
+	for ( int i = 0; i < RT_MONTEN; ++i )
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, 14 + 256 + i, &state.monte[i]) )
+			return false;
+		}
+
 	return true;
 	}
 
@@ -442,6 +876,54 @@ BloomFilterVal::~BloomFilterVal()
 	delete bloom_filter;
 	}
 
+IMPLEMENT_OPAQUE_VALUE(BloomFilterVal)
+
+broker::data BloomFilterVal::DoSerialize() const
+	{
+	broker::vector d;
+
+	if ( type )
+		{
+		auto t = SerializeType(type);
+		if ( t == broker::none() )
+			return broker::none();
+
+		d.emplace_back(t);
+		}
+	else
+		d.emplace_back(broker::none());
+
+	auto bf = bloom_filter->Serialize();
+	if ( ! bf )
+		return broker::none();
+
+	d.emplace_back(*bf);
+	return d;
+	}
+
+bool BloomFilterVal::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
+	if ( ! no_type )
+		{
+		BroType* t = UnserializeType((*v)[0]);
+                if ( ! (t && Typify(t)) )
+			return false;
+		}
+
+	auto bf = probabilistic::BloomFilter::Unserialize((*v)[1]);
+	if ( ! bf )
+		return false;
+
+	bloom_filter = bf.release();
+	return true;
+	}
+
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
 	c = 0;
@@ -495,4 +977,52 @@ void CardinalityVal::Add(const Val* val)
 	HashKey* key = hash->ComputeHash(val, 1);
 	c->AddElement(key->Hash());
 	delete key;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(CardinalityVal)
+
+broker::data CardinalityVal::DoSerialize() const
+	{
+	broker::vector d;
+
+	if ( type )
+		{
+		auto t = SerializeType(type);
+		if ( t == broker::none() )
+			return broker::none();
+
+		d.emplace_back(t);
+		}
+	else
+		d.emplace_back(broker::none());
+
+	auto cs = c->Serialize();
+	if ( ! cs )
+		return broker::none();
+
+	d.emplace_back(*cs);
+	return d;
+	}
+
+bool CardinalityVal::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
+	if ( ! no_type )
+		{
+		BroType* t = UnserializeType((*v)[0]);
+                if ( ! (t && Typify(t)) )
+			return false;
+		}
+
+	auto cu = probabilistic::CardinalityCounter::Unserialize((*v)[1]);
+	if ( ! cu )
+		return false;
+
+	c = cu.release();
+	return true;
 	}

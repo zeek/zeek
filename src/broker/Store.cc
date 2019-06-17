@@ -49,6 +49,20 @@ void StoreHandleVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
+IMPLEMENT_OPAQUE_VALUE(StoreHandleVal)
+
+broker::data StoreHandleVal::DoSerialize() const
+	{
+	// Cannot serialize.
+	return broker::none();
+	}
+
+bool StoreHandleVal::DoUnserialize(const broker::data& data)
+	{
+	// Cannot unserialize.
+	return false;
+	}
+
 broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
 	switch ( type ) {

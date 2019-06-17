@@ -3,9 +3,14 @@
 #ifndef PROBABILISTIC_HASHER_H
 #define PROBABILISTIC_HASHER_H
 
+#include <broker/Data.h>
+
 #include "Hash.h"
 
 namespace probabilistic {
+
+/** Types of derived Hasher classes. */
+enum HasherType { Default, Double };
 
 /**
  * Abstract base class for hashers. A hasher creates a family of hash
@@ -98,6 +103,9 @@ public:
 	 */
 	seed_t Seed() const	{ return seed; }
 
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<Hasher> Unserialize(const broker::data& data);
+
 protected:
 	Hasher() { }
 
@@ -109,6 +117,8 @@ protected:
 	 * @param arg_seed The seed for the hasher.
 	 */
 	Hasher(size_t arg_k, seed_t arg_seed);
+
+	virtual HasherType Type() const = 0;
 
 private:
 	size_t k;
@@ -175,6 +185,9 @@ public:
 		return ! (x == y);
 		}
 
+	broker::expected<broker::data> Serialize() const;
+	static UHF Unserialize(const broker::data& data);
+
 private:
 	static size_t compute_seed(Hasher::seed_t seed);
 
@@ -205,6 +218,9 @@ public:
 private:
 	DefaultHasher() { }
 
+	HasherType Type() const override
+		{ return HasherType::Default; }
+
 	std::vector<UHF> hash_functions;
 };
 
@@ -230,6 +246,9 @@ public:
 
 private:
 	DoubleHasher() { }
+
+	HasherType Type() const override
+		{ return HasherType::Double; }
 
 	UHF h1;
 	UHF h2;

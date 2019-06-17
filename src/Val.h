@@ -8,6 +8,9 @@
 #include <vector>
 #include <list>
 #include <array>
+#include <unordered_map>
+
+#include <broker/broker.hh>
 
 #include "net_util.h"
 #include "Type.h"
@@ -50,6 +53,7 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class MutableVal;
+class OpaqueVal;
 
 class StateAccess;
 
@@ -304,6 +308,7 @@ public:
 	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
@@ -321,6 +326,7 @@ public:
 	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
 	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	bool IsMutableVal() const
 		{
@@ -1152,21 +1158,6 @@ protected:
 	Val* DoClone(CloneState* state) override;
 
 	VectorType* vector_type;
-};
-
-// Base class for values with types that are managed completely internally,
-// with no further script-level operators provided (other than bif
-// functions). See OpaqueVal.h for derived classes.
-class OpaqueVal : public Val {
-public:
-	explicit OpaqueVal(OpaqueType* t);
-	~OpaqueVal() override;
-
-protected:
-	friend class Val;
-	OpaqueVal() { }
-
-	Val* DoClone(CloneState* state) override;
 };
 
 // Checks the given value for consistency with the given type.  If an

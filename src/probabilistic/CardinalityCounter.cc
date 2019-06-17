@@ -196,6 +196,47 @@ uint64_t CardinalityCounter::GetM() const
 	return m;
 	}
 
+broker::expected<broker::data> CardinalityCounter::Serialize() const
+	{
+	broker::vector v = {m, V, alpha_m};
+	v.reserve(3 + m);
+
+        for ( size_t i = 0; i < m; ++i )
+		v.emplace_back(static_cast<uint64>(buckets[i]));
+
+        return {v};
+	}
+
+std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 3) )
+		return nullptr;
+
+	auto m = caf::get_if<uint64>(&(*v)[0]);
+	auto V = caf::get_if<uint64>(&(*v)[1]);
+	auto alpha_m = caf::get_if<double>(&(*v)[2]);
+
+	if ( ! (m && V && alpha_m) )
+		return nullptr;
+
+	if ( v->size() != 3 + *m )
+		return nullptr;
+
+	auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
+
+        for ( size_t i = 0; i < *m; ++i )
+		{
+		auto x = caf::get_if<uint64>(&(*v)[3 + i]);
+		if ( ! x )
+			return nullptr;
+
+		cc->buckets.push_back(*x);
+		}
+
+	return std::move(cc);
+	}
+
 /**
  * The following function is copied from libc/string/flsll.c from the FreeBSD source
  * tree. Original copyright message follows

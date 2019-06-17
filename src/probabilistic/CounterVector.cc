@@ -179,7 +179,7 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& da
 	auto cv = std::unique_ptr<CounterVector>(new CounterVector());
 	cv->width = *width;
 	cv->bits = bits.release();
-	return std::move(cv);
+	return cv;
 	}
 
 

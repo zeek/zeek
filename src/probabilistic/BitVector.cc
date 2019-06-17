@@ -543,7 +543,7 @@ std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
 		bv->bits.push_back(*x);
 		}
 
-	return std::move(bv);
+	return bv;
 	}
 
 BitVector::size_type BitVector::lowest_bit(block_type block)

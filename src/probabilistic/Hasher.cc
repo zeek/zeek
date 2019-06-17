@@ -84,7 +84,7 @@ std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
 	// their own. They reconstruct all their information from their
 	// constructors' arguments.
 
-	return std::move(hasher);
+	return hasher;
 	}
 
 UHF::UHF()

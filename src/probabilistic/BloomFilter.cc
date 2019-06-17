@@ -70,7 +70,7 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 		return nullptr;
 
 	bf->hasher = hasher_.release();
-	return std::move(bf);
+	return bf;
 	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)

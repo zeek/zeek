@@ -1183,7 +1183,8 @@ IMPLEMENT_OPAQUE_VALUE(bro_broker::VectorIterator)
 
 broker::data bro_broker::VectorIterator::DoSerialize() const
 	{
-	return broker::vector{dat, it - dat.begin()};
+	broker::integer difference = it - dat.begin();
+	return broker::vector{dat, difference};
 	}
 
 bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
@@ -1193,7 +1194,7 @@ bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
 		return false;
 
 	auto x = caf::get_if<broker::vector>(&(*v)[0]);
-	auto y = caf::get_if<broker::vector::difference_type>(&(*v)[1]);
+	auto y = caf::get_if<broker::integer>(&(*v)[1]);
 
 	dat = *x;
 	it = dat.begin() + *y;
@@ -1204,7 +1205,8 @@ IMPLEMENT_OPAQUE_VALUE(bro_broker::RecordIterator)
 
 broker::data bro_broker::RecordIterator::DoSerialize() const
 	{
-	return broker::vector{dat, it - dat.begin()};
+	broker::integer difference = it - dat.begin();
+	return broker::vector{dat, difference};
 	}
 
 bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
@@ -1214,7 +1216,7 @@ bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
 		return false;
 
 	auto x = caf::get_if<broker::vector>(&(*v)[0]);
-	auto y = caf::get_if<broker::vector::difference_type>(&(*v)[1]);
+	auto y = caf::get_if<broker::integer>(&(*v)[1]);
 
 	dat = *x;
 	it = dat.begin() + *y;

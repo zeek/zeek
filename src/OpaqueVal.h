@@ -21,14 +21,12 @@ public:
 
 	/**
 	 * Return's a unique ID for the type of an opaque value.
-
-	 * @param v opaque value to return type for; it's classmust have been
+	 * @param v opaque value to return type for; its class must have been
 	 * registered with the manager, otherwise this method will abort
-	 * execugtion.
+	 * execution.
 	 *
 	 * @return type ID, which can used with *Instantiate()* to create a
-	 * new
-	 * instnace of the same type.
+	 * new instance of the same type.
 	 */
 	const std::string& TypeID(const OpaqueVal* v) const;
 
@@ -66,8 +64,8 @@ private:
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                            \
     friend class OpaqueMgr::Register<T>;                   \
-    broker::data DoSerialize() const;                      \
-    bool DoUnserialize(const broker::data& data);          \
+    broker::data DoSerialize() const override;             \
+    bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
     static OpaqueVal* OpaqueInstantiate() { return new T(); }
 
@@ -90,7 +88,7 @@ public:
 	/**
 	 * Serializes the value into a Broker representation.
 	 *
-	 * @return the broker representatio, or an error if serialization
+	 * @return the broker representation, or an error if serialization
 	 * isn't supported or failed.
 	 */
 	broker::expected<broker::data> Serialize() const;
@@ -243,8 +241,6 @@ private:
 class EntropyVal : public OpaqueVal {
 public:
 	EntropyVal();
-
-	Val* DoClone(CloneState* state) override;
 
 	bool Feed(const void* data, size_t size);
 	bool Get(double *r_ent, double *r_chisq, double *r_mean,

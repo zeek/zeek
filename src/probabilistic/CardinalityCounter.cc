@@ -234,7 +234,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 		cc->buckets.push_back(*x);
 		}
 
-	return std::move(cc);
+	return cc;
 	}
 
 /**

@@ -41,8 +41,8 @@ const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	auto x = _types.find(v->OpaqueName());
 
 	if ( x == _types.end() )
-		reporter->InternalError(fmt("OpaqueMgr::TypeID: opaque type %s not registered",
-					v->OpaqueName()));
+		reporter->InternalError("OpaqueMgr::TypeID: opaque type %s not registered",
+					v->OpaqueName());
 
 	return x->first;
 	}
@@ -122,11 +122,11 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 
 		ID* id = global_scope()->Lookup(name->c_str());
                 if ( ! id )
-			return nullptr;
+					return nullptr;
 
                 BroType* t = id->AsType();
                 if ( ! t )
-			return nullptr;
+					return nullptr;
 
                 return t->Ref();
 		}
@@ -642,12 +642,6 @@ bool SHA256Val::DoUnserialize(const broker::data& data)
 
 EntropyVal::EntropyVal() : OpaqueVal(entropy_type)
 	{
-	}
-
-Val* EntropyVal::DoClone(CloneState* state)
-	{
-	// Fixme
-	return nullptr;
 	}
 
 bool EntropyVal::Feed(const void* data, size_t size)

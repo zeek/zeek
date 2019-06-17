@@ -1,4 +1,4 @@
-# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; zeek -b -X zeekygen.config %INPUT
+# @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek -b -X zeekygen.config %INPUT
 # @TEST-EXEC: btest-diff autogen-reST-func-params.rst
 
 @TEST-START-FILE zeekygen.config

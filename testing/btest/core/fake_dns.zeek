@@ -1,4 +1,4 @@
-# @TEST-EXEC: BRO_DNS_FAKE=1 zeek -b %INPUT >out
+# @TEST-EXEC: ZEEK_DNS_FAKE=1 zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;

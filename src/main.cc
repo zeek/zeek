@@ -126,7 +126,7 @@ OpaqueType* ocsp_resp_opaque_type = 0;
 int bro_argc;
 char** bro_argv;
 
-const char* bro_version()
+const char* zeek_version()
 	{
 #ifdef DEBUG
 	static char* debug_version = 0;
@@ -144,17 +144,14 @@ const char* bro_version()
 #endif
 	}
 
-const char* bro_dns_fake()
+bool bro_dns_fake()
 	{
-	if ( ! getenv("BRO_DNS_FAKE") )
-		return "off";
-	else
-		return "on";
+	return zeekenv("ZEEK_DNS_FAKE");
 	}
 
 void usage(int code = 1)
 	{
-	fprintf(stderr, "bro version %s\n", bro_version());
+	fprintf(stderr, "zeek version %s\n", zeek_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
@@ -198,16 +195,16 @@ void usage(int code = 1)
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
-	fprintf(stderr, "    $BROPATH                       | file search path (%s)\n", bro_path().c_str());
-	fprintf(stderr, "    $BRO_PLUGIN_PATH               | plugin search path (%s)\n", bro_plugin_path());
-	fprintf(stderr, "    $BRO_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", bro_plugin_activate());
-	fprintf(stderr, "    $BRO_PREFIXES                  | prefix list (%s)\n", bro_prefixes().c_str());
-	fprintf(stderr, "    $BRO_DNS_FAKE                  | disable DNS lookups (%s)\n", bro_dns_fake());
-	fprintf(stderr, "    $BRO_SEED_FILE                 | file to load seeds from (not set)\n");
-	fprintf(stderr, "    $BRO_LOG_SUFFIX                | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
-	fprintf(stderr, "    $BRO_PROFILER_FILE             | Output file for script execution statistics (not set)\n");
-	fprintf(stderr, "    $BRO_DISABLE_BROXYGEN          | Disable Zeekygen documentation support (%s)\n", getenv("BRO_DISABLE_BROXYGEN") ? "set" : "not set");
-	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", bro_path().c_str());
+	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
+	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
+	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", bro_prefixes().c_str());
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", bro_dns_fake() ? "on" : "off");
+	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
+	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
+	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
+	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", zeekenv("ZEEK_DNS_RESOLVER") ? zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
 
 	fprintf(stderr, "\n");
 
@@ -424,7 +421,8 @@ int main(int argc, char** argv)
 	name_list rule_files;
 	char* id_name = 0;
 	char* events_file = 0;
-	char* seed_load_file = getenv("BRO_SEED_FILE");
+
+	char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
 	char* seed_save_file = 0;
 	char* user_pcap_filter = 0;
 	char* debug_streams = 0;
@@ -484,7 +482,7 @@ int main(int argc, char** argv)
 
 	enum DNS_MgrMode dns_type = DNS_DEFAULT;
 
-	dns_type = getenv("BRO_DNS_FAKE") ? DNS_FAKE : DNS_DEFAULT;
+	dns_type = bro_dns_fake() ? DNS_FAKE : DNS_DEFAULT;
 
 	RETSIGTYPE (*oldhandler)(int);
 
@@ -492,7 +490,8 @@ int main(int argc, char** argv)
 
 	prefixes.append(strdup(""));	// "" = "no prefix"
 
-	char* p = getenv("BRO_PREFIXES");
+	char* p = zeekenv("ZEEK_PREFIXES");
+
 	if ( p )
 		add_to_name_list(p, ':', prefixes);
 
@@ -566,7 +565,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'v':
-			fprintf(stdout, "%s version %s\n", prog, bro_version());
+			fprintf(stdout, "%s version %s\n", prog, zeek_version());
 			exit(0);
 			break;
 
@@ -1061,7 +1060,7 @@ int main(int argc, char** argv)
 	// Drain the event queue here to support the protocols framework configuring DPM
 	mgr.Drain();
 
-	if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
+	if ( reporter->Errors() > 0 && ! zeekenv("ZEEK_ALLOW_INIT_ERRORS") )
 		reporter->FatalError("errors occurred while initializing");
 
 	broker_mgr->ZeekInitDone();

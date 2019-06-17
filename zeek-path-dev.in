@@ -7,7 +7,7 @@
 # the build directory, avoiding the need to install it.  This could be
 # done like:
 #
-#     BROPATH=`./zeek-path-dev` ./src/zeek
+#     ZEEKPATH=`./zeek-path-dev` ./src/zeek
 #
 
 echo .:${CMAKE_SOURCE_DIR}/scripts:${CMAKE_SOURCE_DIR}/scripts/policy:${CMAKE_SOURCE_DIR}/scripts/site:${CMAKE_BINARY_DIR}/scripts

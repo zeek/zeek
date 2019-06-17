@@ -1,9 +1,9 @@
 # @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin  -u . Demo Foo
 # @TEST-EXEC: cp -r %DIR/reader-plugin/* .
-# @TEST-EXEC: ./configure --bro-dist=${DIST} && make
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` zeek -NN Demo::Foo >>output
+# @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN Demo::Foo >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd` btest-bg-run zeek zeek %INPUT
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` btest-bg-run zeek zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff out

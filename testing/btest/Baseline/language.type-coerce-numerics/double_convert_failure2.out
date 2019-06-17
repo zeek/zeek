@@ -1,0 +1,1 @@
+error in ./double_convert_failure2.zeek, line 7 and double: type clash for field "cc" ((coerce [$cc=-5.0] to myrecord) and double)

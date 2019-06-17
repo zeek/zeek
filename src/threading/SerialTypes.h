@@ -126,6 +126,7 @@ struct Value {
 		vec_t vector_val;
 		addr_t addr_val;
 		subnet_t subnet_val;
+		const char* pattern_text_val;
 
 		struct {
 			char* data;

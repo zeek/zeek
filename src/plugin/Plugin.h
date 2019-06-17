@@ -69,7 +69,7 @@ extern const char* hook_name(HookType h);
 struct VersionNumber {
 	int major; //< Major version number.
 	int minor; //< Minor version number.
-	int patch; //< Patch version number (available since Bro 2.7).
+	int patch; //< Patch version number (available since Zeek 3.0).
 
 	/**
 	 *  Constructor.

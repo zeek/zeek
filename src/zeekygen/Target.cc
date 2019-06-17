@@ -471,7 +471,7 @@ void ScriptTarget::DoGenerate() const
 	if ( IsDir() )
 		{
 		// Target name is a dir, matching scripts are written within that dir
-		// with a dir tree that parallels the script's BROPATH location.
+		// with a dir tree that parallels the script's ZEEKPATH location.
 
 		set<string> targets;
 		vector<string> dir_contents = dir_contents_recursive(Name());

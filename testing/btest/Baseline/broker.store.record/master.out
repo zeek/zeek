@@ -2,7 +2,7 @@
 T
 T
 T
-[data=broker::data{[hi, hello, 37]}], [s1=hi, s2=hello, c=37]
+[data=broker::data{(hi, hello, 37)}], [s1=hi, s2=hello, c=37]
 
 [data=broker::data{hi}]
 [data=broker::data{hello}]
@@ -11,7 +11,7 @@ T
 T
 3
 [data=broker::data{goodbye}]
-[data=broker::data{[hi, goodbye, 37]}], [s1=hi, s2=goodbye, c=37]
+[data=broker::data{(hi, goodbye, 37)}], [s1=hi, s2=goodbye, c=37]
 
 | [data=broker::data{hi}]
 | [data=broker::data{goodbye}]

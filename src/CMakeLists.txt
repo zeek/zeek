@@ -103,7 +103,7 @@ set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-comp
 include(BifCl)
 
 set(BIF_SRCS
-    bro.bif
+    zeek.bif
     stats.bif
     event.bif
     const.bif
@@ -415,7 +415,7 @@ install(CODE "
 ")
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/bro
+        DESTINATION include/zeek
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.pac"
@@ -423,7 +423,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-        DESTINATION include/bro
+        DESTINATION include/zeek
         FILES_MATCHING
         PATTERN "*.bif.func_h"
         PATTERN "*.bif.netvar_h"
@@ -432,5 +432,5 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
-        DESTINATION include/bro/3rdparty
+        DESTINATION include/zeek/3rdparty
 )

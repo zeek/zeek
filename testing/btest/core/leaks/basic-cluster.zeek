@@ -7,9 +7,9 @@
 #
 # @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
-# @TEST-EXEC: btest-bg-run manager-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=manager-1 zeek -m %INPUT
-# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-1 zeek -m %INPUT
-# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local BROPATH=$BROPATH:.. CLUSTER_NODE=worker-2 zeek -m %INPUT
+# @TEST-EXEC: btest-bg-run manager-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -m %INPUT
+# @TEST-EXEC: btest-bg-run worker-1  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -m %INPUT
+# @TEST-EXEC: btest-bg-run worker-2  HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -m %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
 @TEST-START-FILE cluster-layout.zeek

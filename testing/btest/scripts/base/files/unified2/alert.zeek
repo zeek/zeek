@@ -61,7 +61,7 @@ config classification: default-login-attempt,Attempt to Login By a Default Usern
 
 redef exit_only_after_terminate = T;
 
-@load base/files/unified2
+@load policy/files/unified2
 
 redef Unified2::sid_msg = @DIR+"/sid_msg.map";
 redef Unified2::gen_msg = @DIR+"/gen_msg.map";

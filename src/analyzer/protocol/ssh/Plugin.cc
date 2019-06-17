@@ -4,7 +4,7 @@
 #include "SSH.h"
 
 namespace plugin {
-	namespace Bro_SSH {
+	namespace Zeek_SSH {
 
 		class Plugin : public plugin::Plugin {
 		public:
@@ -13,7 +13,7 @@ namespace plugin {
 				AddComponent(new ::analyzer::Component("SSH", ::analyzer::SSH::SSH_Analyzer::Instantiate));
 
 				plugin::Configuration config;
-				config.name = "Bro::SSH";
+				config.name = "Zeek::SSH";
 				config.description = "Secure Shell analyzer";
 				return config;
 				}

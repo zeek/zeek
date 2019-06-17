@@ -20,7 +20,7 @@
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
 ##    smtp_data smtp_reply
 ##
-## .. note:: Bro does not support the newer ETRN extension yet.
+## .. note:: Zeek does not support the newer ETRN extension yet.
 event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%);
 
 ## Generated for server-side SMTP commands.
@@ -51,7 +51,7 @@ event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%)
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
 ##    smtp_data  smtp_request
 ##
-## .. note:: Bro doesn't support the newer ETRN extension yet.
+## .. note:: Zeek doesn't support the newer ETRN extension yet.
 event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%);
 
 ## Generated for DATA transmitted on SMTP sessions. This event is raised for

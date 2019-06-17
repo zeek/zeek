@@ -1,10 +1,10 @@
 # @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: bash %INPUT
-# @TEST-EXEC: ./configure --bro-dist=${DIST} --install-root=`pwd`/test-install
+# @TEST-EXEC: ./configure --zeek-dist=${DIST} --install-root=`pwd`/test-install
 # @TEST-EXEC: make
 # @TEST-EXEC: make install
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install zeek -NN Demo::Foo >>output
-# @TEST-EXEC: BRO_PLUGIN_PATH=`pwd`/test-install zeek Demo/Foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek -NN Demo::Foo >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek Demo/Foo -r $TRACES/empty.trace >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 mkdir -p scripts/Demo/Foo/base/

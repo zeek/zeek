@@ -2110,7 +2110,6 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
 		attr_list* attr_copy = 0;
-
 		if ( attrs )
 			{
 			attr_copy = new attr_list(attrs->length());
@@ -2118,10 +2117,22 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				attr_copy->append((*attrs)[i]);
 			}
 
+		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
+
 		if ( op1->Type()->IsSet() )
 			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
 		else
 			op2 = new TableConstructorExpr(op2->AsListExpr(), attr_copy);
+
+		if ( ! empty_list_assignment && ! same_type(op1->Type(), op2->Type()) )
+			{
+			if ( op1->Type()->IsSet() )
+				ExprError("set type mismatch in assignment");
+			else
+				ExprError("table type mismatch in assignment");
+
+			return false;
+			}
 
 		return true;
 		}
@@ -2136,7 +2147,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 		if ( op2->Tag() == EXPR_LIST )
 			{
-			op2 = new VectorConstructorExpr(op2->AsListExpr());
+			op2 = new VectorConstructorExpr(op2->AsListExpr(), op1->Type());
 			return true;
 			}
 		}
@@ -3520,15 +3531,41 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
-				if ( sup_t_i->Tag() != TYPE_RECORD ||
-				     sub_t_i->Tag() != TYPE_RECORD ||
-				     ! record_promotion_compatible(sup_t_i->AsRecordType(),
-				                                   sub_t_i->AsRecordType()) )
+				auto is_arithmetic_promotable = [](BroType* sup, BroType* sub) -> bool
 					{
-					char buf[512];
-					safe_snprintf(buf, sizeof(buf),
+					auto sup_tag = sup->Tag();
+					auto sub_tag = sub->Tag();
+
+					if ( ! BothArithmetic(sup_tag, sub_tag) )
+						return false;
+
+					if ( sub_tag == TYPE_DOUBLE && IsIntegral(sup_tag) )
+						return false;
+
+					if ( sub_tag == TYPE_INT && sup_tag == TYPE_COUNT )
+						return false;
+
+					return true;
+					};
+
+				auto is_record_promotable = [](BroType* sup, BroType* sub) -> bool
+					{
+					if ( sup->Tag() != TYPE_RECORD )
+						return false;
+
+					if ( sub->Tag() != TYPE_RECORD )
+						return false;
+
+					return record_promotion_compatible(sup->AsRecordType(),
+					                                   sub->AsRecordType());
+					};
+
+				if ( ! is_arithmetic_promotable(sup_t_i, sub_t_i) &&
+				     ! is_record_promotable(sup_t_i, sub_t_i) )
+					{
+					string error_msg = fmt(
 						"type clash for field \"%s\"", sub_r->FieldName(i));
-					Error(buf, sub_t_i);
+					Error(error_msg.c_str(), sub_t_i);
 					SetError();
 					break;
 					}
@@ -3546,11 +3583,9 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 				{
 				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					char buf[512];
-					safe_snprintf(buf, sizeof(buf),
-					              "non-optional field \"%s\" missing",
-					              t_r->FieldName(i));
-					Error(buf);
+					string error_msg = fmt(
+						"non-optional field \"%s\" missing", t_r->FieldName(i));
+					Error(error_msg.c_str());
 					SetError();
 					break;
 					}
@@ -3636,6 +3671,20 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 					{
 					Unref(rhs);
 					rhs = new_val;
+					}
+				}
+			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
+			          ! same_type(rhs_type, field_type) )
+				{
+				if ( Val* new_val = check_and_promote(rhs, field_type, false, op->GetLocationInfo()) )
+					{
+					// Don't call unref here on rhs because check_and_promote already called it.
+					rhs = new_val;
+					}
+				else
+					{
+					Unref(val);
+					RuntimeError("Failed type conversion");
 					}
 				}
 

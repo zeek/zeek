@@ -35,7 +35,7 @@ event SumStats::finish_epoch(ss: SumStat)
 			{
 			local data = result_store[ss$name];
 			local now = network_time();
-			if ( bro_is_terminating() )
+			if ( zeek_is_terminating() )
 				{
 				for ( key, val in data )
 					ss$epoch_result(now, key, val);

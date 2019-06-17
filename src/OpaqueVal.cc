@@ -223,7 +223,7 @@ Val* MD5Val::DoClone(CloneState* state)
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return out;
+	return state->NewClone(this, out);
 	}
 
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
@@ -375,7 +375,7 @@ Val* SHA1Val::DoClone(CloneState* state)
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return out;
+	return state->NewClone(this, out);
 	}
 
 void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
@@ -519,7 +519,7 @@ Val* SHA256Val::DoClone(CloneState* state)
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return out;
+	return state->NewClone(this, out);
 	}
 
 void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
@@ -776,10 +776,10 @@ Val* BloomFilterVal::DoClone(CloneState* state)
 		{
 		auto bf = new BloomFilterVal(bloom_filter->Clone());
 		bf->Typify(type);
-		return bf;
+		return state->NewClone(this, bf);
 		}
 
-	return new BloomFilterVal();
+	return state->NewClone(this, new BloomFilterVal());
 	}
 
 bool BloomFilterVal::Typify(BroType* arg_type)
@@ -948,7 +948,8 @@ CardinalityVal::~CardinalityVal()
 
 Val* CardinalityVal::DoClone(CloneState* state)
 	{
-	return new CardinalityVal(new probabilistic::CardinalityCounter(*c));
+	return state->NewClone(this,
+			       new CardinalityVal(new probabilistic::CardinalityCounter(*c)));
 	}
 
 bool CardinalityVal::Typify(BroType* arg_type)

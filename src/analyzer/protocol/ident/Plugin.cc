@@ -6,7 +6,7 @@
 #include "Ident.h"
 
 namespace plugin {
-namespace Bro_Ident {
+namespace Zeek_Ident {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("Ident", ::analyzer::ident::Ident_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Ident";
+		config.name = "Zeek::Ident";
 		config.description = "Ident analyzer";
 		return config;
 		}

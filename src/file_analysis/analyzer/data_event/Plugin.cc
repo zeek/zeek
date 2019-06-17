@@ -5,7 +5,7 @@
 #include "DataEvent.h"
 
 namespace plugin {
-namespace Bro_FileDataEvent {
+namespace Zeek_FileDataEvent {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::file_analysis::Component("DATA_EVENT", ::file_analysis::DataEvent::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::FileDataEvent";
+		config.name = "Zeek::FileDataEvent";
 		config.description = "Delivers file content";
 		return config;
 		}

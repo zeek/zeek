@@ -6,7 +6,7 @@
 #include "Modbus.h"
 
 namespace plugin {
-namespace Bro_Modbus {
+namespace Zeek_Modbus {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("MODBUS", ::analyzer::modbus::ModbusTCP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Modbus";
+		config.name = "Zeek::Modbus";
 		config.description = "Modbus analyzer";
 		return config;
 		}

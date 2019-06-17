@@ -198,7 +198,7 @@ function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
 # 42 bit of the cookie set.
 function generate_cookie(cookie: count &default=0): count
 	{
-	local c = BRO_COOKIE_ID * COOKIE_BID_START;
+	local c = ZEEK_COOKIE_ID * COOKIE_BID_START;
 
 	if ( cookie >= COOKIE_UID_SIZE )
 		Reporter::warning(fmt("The given cookie uid '%d' is > 32bit and will be discarded", cookie));
@@ -211,7 +211,7 @@ function generate_cookie(cookie: count &default=0): count
 # local function to check if a given flow_mod cookie is forged from this framework.
 function is_valid_cookie(cookie: count): bool
 	{
-	if ( cookie / COOKIE_BID_START == BRO_COOKIE_ID )
+	if ( cookie / COOKIE_BID_START == ZEEK_COOKIE_ID )
 		return T;
 
 	Reporter::warning(fmt("The given Openflow cookie '%d' is not valid", cookie));
@@ -231,7 +231,7 @@ function get_cookie_gid(cookie: count): count
 	{
 	if( is_valid_cookie(cookie) )
 		return (
-			(cookie	- (COOKIE_BID_START * BRO_COOKIE_ID) -
+			(cookie	- (COOKIE_BID_START * ZEEK_COOKIE_ID) -
 			(cookie - ((cookie / COOKIE_GID_START) * COOKIE_GID_START))) /
 			COOKIE_GID_START
 		);

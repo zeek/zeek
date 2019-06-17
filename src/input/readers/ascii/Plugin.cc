@@ -5,7 +5,7 @@
 #include "Ascii.h"
 
 namespace plugin {
-namespace Bro_AsciiReader {
+namespace Zeek_AsciiReader {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::input::Component("Ascii", ::input::reader::Ascii::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::AsciiReader";
+		config.name = "Zeek::AsciiReader";
 		config.description = "ASCII input reader";
 		return config;
 		}

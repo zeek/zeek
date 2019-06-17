@@ -1,7 +1,7 @@
 # Test simultaneous writes to the same database file.
 #
 # @TEST-REQUIRES: which sqlite3
-# @TEST-REQUIRES: has-writer Bro::SQLiteWriter
+# @TEST-REQUIRES: has-writer Zeek::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: zeek -b %INPUT
@@ -73,7 +73,7 @@ event zeek_init()
 		$sn=10.0.0.1/24,
 		$a=1.2.3.4,
 		$d=3.14,
-		$t=network_time(),
+		$t=double_to_time(1559847346.10295),
 		$iv=100secs,
 		$s="hurz",
 		$sc=set(1,2,3,4),

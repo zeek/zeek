@@ -679,6 +679,9 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	{
+	if ( ! protocol_violation )
+		return;
+
 	StringVal* r;
 
 	if ( data && len )
@@ -691,9 +694,6 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		}
 	else
 		r = new StringVal(reason);
-
-	if ( ! protocol_violation )
-		return;
 
 	EnumVal* tval = tag.AsEnumVal();
 	Ref(tval);

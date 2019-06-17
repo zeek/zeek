@@ -6,7 +6,7 @@
 #include "DNP3.h"
 
 namespace plugin {
-namespace Bro_DNP3 {
+namespace Zeek_DNP3 {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("DNP3_UDP", ::analyzer::dnp3::DNP3_UDP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::DNP3";
+		config.name = "Zeek::DNP3";
 		config.description = "DNP3 UDP/TCP analyzers";
 		return config;
 		}

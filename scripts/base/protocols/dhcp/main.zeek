@@ -141,7 +141,7 @@ function join_data_expiration(t: table[count] of Info, idx: count): interval
 	# Also, if Zeek is shutting down.
 	if ( (now - info$last_message_ts) > 5sec ||
 	     (now - info$ts) > max_txid_watch_time ||
-	     bro_is_terminating() )
+	     zeek_is_terminating() )
 		{
 		Log::write(LOG, info);
 

@@ -7,7 +7,7 @@
 #include "SIP_TCP.h"
 
 namespace plugin {
-namespace Bro_SIP {
+namespace Zeek_SIP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -19,7 +19,7 @@ public:
 		// AddComponent(new ::analyzer::Component("SIP_TCP", ::analyzer::sip_tcp::SIP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SIP";
+		config.name = "Zeek::SIP";
 		config.description = "SIP analyzer UDP-only";
 		return config;
 		}

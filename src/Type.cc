@@ -1672,6 +1672,10 @@ int is_assignable(BroType* t)
 	return 0;
 	}
 
+#define CHECK_TYPE(t) \
+	if ( t1 == t || t2 == t ) \
+		return t;
+
 TypeTag max_type(TypeTag t1, TypeTag t2)
 	{
 	if ( t1 == TYPE_INTERVAL || t1 == TYPE_TIME )
@@ -1681,10 +1685,6 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 
 	if ( BothArithmetic(t1, t2) )
 		{
-#define CHECK_TYPE(t) \
-	if ( t1 == t || t2 == t ) \
-		return t;
-
 		CHECK_TYPE(TYPE_DOUBLE);
 		CHECK_TYPE(TYPE_INT);
 		CHECK_TYPE(TYPE_COUNT);

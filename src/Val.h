@@ -91,7 +91,7 @@ typedef union {
 
 class Val : public BroObj {
 public:
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(bool b, TypeTag t)
 		{
 		val.int_val = b;
@@ -101,7 +101,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
@@ -111,7 +111,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
@@ -121,7 +121,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int64 i, TypeTag t)
 		{
 		val.int_val = i;
@@ -131,7 +131,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint64 u, TypeTag t)
 		{
 		val.uint_val = u;
@@ -365,6 +365,8 @@ public:
 		}
 #endif
 
+	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
+
 protected:
 
 	friend class EnumType;
@@ -418,7 +420,16 @@ protected:
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
-	    std::unordered_map<const Val*, Val*> clones;
+		// Caches a cloned value for later reuse during the same
+		// cloning operation. For recursive types, call this *before*
+		// descending down.
+		Val* NewClone(Val *src, Val* dst)
+			{
+			clones.insert(std::make_pair(src, dst));
+			return dst;
+			}
+
+		std::unordered_map<Val*, Val*> clones;
 	};
 
 	Val* Clone(CloneState* state);
@@ -437,15 +448,15 @@ protected:
 class PortManager {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num) const;
 
 	// Returns a masked port number
-	BRO_DEPRECATED("use PortVal::Mask() instead")
+	ZEEK_DEPRECATED("use PortVal::Mask() instead")
 	uint32 Mask(uint32 port_num, TransportProto port_type) const;
 };
 
@@ -590,11 +601,11 @@ protected:
 class PortVal : public Val {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal(uint32 p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	explicit PortVal(uint32 p);
 
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
@@ -1012,7 +1023,7 @@ public:
 	~RecordVal() override;
 
 	Val* SizeVal() const override
-		{ return val_mgr->GetCount(record_type->NumFields()); }
+		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
 	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
 	Val* Lookup(int field) const;	// Does not Ref() value.
@@ -1076,7 +1087,7 @@ protected:
 class EnumVal : public Val {
 public:
 
-	BRO_DEPRECATED("use t->GetVal(i) instead")
+	ZEEK_DEPRECATED("use t->GetVal(i) instead")
 	EnumVal(int i, EnumType* t) : Val(t)
 		{
 		val.int_val = i;
@@ -1165,7 +1176,7 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init);
+extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
 // Given a pointer to where a Val's core (i.e., its BRO value) resides,
 // returns a corresponding newly-created or Ref()'d Val.  ptr must already

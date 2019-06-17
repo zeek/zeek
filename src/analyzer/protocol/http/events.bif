@@ -1,5 +1,5 @@
 
-## Generated for HTTP requests. Bro supports persistent and pipelined HTTP
+## Generated for HTTP requests. Zeek supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
 ## dialogues. This event is generated as soon as a request's initial line has
 ## been parsed, and before any :zeek:id:`http_header` events are raised.
@@ -22,7 +22,7 @@
 ##    truncate_http_URI http_connection_upgrade
 event http_request%(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string%);
 
-## Generated for HTTP replies. Bro supports persistent and pipelined HTTP
+## Generated for HTTP replies. Zeek supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
 ## dialogues. This event is generated as soon as a reply's initial line has
 ## been parsed, and before any :zeek:id:`http_header` events are raised.
@@ -43,7 +43,7 @@ event http_request%(c: connection, method: string, original_URI: string, unescap
 ##    http_stats http_connection_upgrade
 event http_reply%(c: connection, version: string, code: count, reason: string%);
 
-## Generated for HTTP headers. Bro supports persistent and pipelined HTTP
+## Generated for HTTP headers. Zeek supports persistent and pipelined HTTP
 ## sessions and raises corresponding events as it parses client/server
 ## dialogues.
 ##
@@ -67,7 +67,7 @@ event http_reply%(c: connection, version: string, code: count, reason: string%);
 event http_header%(c: connection, is_orig: bool, name: string, value: string%);
 
 ## Generated for HTTP headers, passing on all headers of an HTTP message at
-## once. Bro supports persistent and pipelined HTTP sessions and raises
+## once. Zeek supports persistent and pipelined HTTP sessions and raises
 ## corresponding events as it parses client/server dialogues.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -92,7 +92,7 @@ event http_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 ## Generated when starting to parse an HTTP body entity. This event is generated
 ## at least once for each non-empty (client or server) HTTP body; and
 ## potentially more than once if the body contains further nested MIME
-## entities. Bro raises this event just before it starts parsing each entity's
+## entities. Zeek raises this event just before it starts parsing each entity's
 ## content.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -111,7 +111,7 @@ event http_begin_entity%(c: connection, is_orig: bool%);
 ## Generated when finishing parsing an HTTP body entity. This event is generated
 ## at least once for each non-empty (client or server) HTTP body; and
 ## potentially more than once if the body contains further nested MIME
-## entities. Bro raises this event at the point when it has finished parsing an
+## entities. Zeek raises this event at the point when it has finished parsing an
 ## entity's content.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -181,7 +181,7 @@ event http_entity_data%(c: connection, is_orig: bool, length: count, data: strin
 ##    entities.
 event http_content_type%(c: connection, is_orig: bool, ty: string, subty: string%);
 
-## Generated once at the end of parsing an HTTP message. Bro supports persistent
+## Generated once at the end of parsing an HTTP message. Zeek supports persistent
 ## and pipelined HTTP sessions and raises corresponding events as it parses
 ## client/server dialogues. A "message" is one top-level HTTP entity, such as a
 ## complete request or reply. Each message can have further nested sub-entities

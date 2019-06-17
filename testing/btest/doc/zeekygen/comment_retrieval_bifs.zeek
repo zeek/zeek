@@ -1,4 +1,4 @@
-# @TEST-EXEC: unset BRO_DISABLE_BROXYGEN; zeek -b %INPUT >out
+# @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; unset BRO_DISABLE_BROXYGEN; zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 ##! This is a test script.

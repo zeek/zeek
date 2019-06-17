@@ -64,7 +64,7 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	  identifiers(), all_info(), last_identifier_seen(), incomplete_type(),
 	  enum_mappings(), config(arg_config), bro_mtime()
 	{
-	if ( getenv("BRO_DISABLE_BROXYGEN") )
+	if ( zeekenv("ZEEK_DISABLE_ZEEKYGEN") )
 		disabled = true;
 
 	// If running bro without the "-X" option, then we don't need bro_mtime.

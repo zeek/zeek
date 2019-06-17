@@ -18,6 +18,9 @@ New Functionality
   - dns_NSEC
   - dns_NSEC3
 
+- Added support for parsing and logging DNS SPF resource records.
+  A new ``dns_SPF_reply`` event is also available.
+
 - Zeek's Plugin framework now allows a patch version.  If a patch version is not
   provided, it will default to 0.  To specify this, modify the plugin
   Configuration class in your ``src/Plugin.cc`` and set
@@ -79,6 +82,29 @@ New Functionality
 - The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
   also allowed when specifying patterns used in signature files.
 
+- New RDP functionality.
+
+  - New events:
+    - rdp_client_network_data
+    - rdp_client_security_data
+    - rdp_native_encrypted_data
+
+  - Add a new "client_channels" field to rdp.log based on data parsed from
+    the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
+    available in the new ``rdp_client_network_data`` event.
+
+- Add parsing support for TLS 1.3 pre-shared key extension.  This info
+  is available in the events: ``ssl_extension_pre_shared_key_client_hello``
+  and ``ssl_extension_pre_shared_key_server_hello``.
+
+- Added/re-wrote support for NTP.
+
+  - Parsing support for modes 1-7, with parsed structures available in
+    the ``ntp_message`` event.
+
+  - An ntp.log is produced by default, containing data extracted from
+    NTP messages with modes 1-5.
+
 Changed Functionality
 ---------------------
 
@@ -100,6 +126,13 @@ Changed Functionality
   if you made customizations to the ``broctl.cfg`` file of a previous
   installation, installing the newer Zeek version over it will retain that
   file and even symlink the new ``zeekctl.cfg`` to it.
+
+- The default install prefix is now ``/usr/local/zeek`` instead of
+  ``/usr/local/bro``.  If you have an existing installation that used
+  the previous default and are still using the new default when upgrading,
+  we'll crate ``/usr/local/zeek`` as a symlink to ``/usr/local/bro``.
+  Certain subdirectories will also get similar treatment: ``share/bro``,
+  ``include/bro``, and ``lib/bro``.
 
 - ``$prefix/share/bro/site/local.bro`` has been renamed to
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
@@ -211,6 +244,80 @@ Changed Functionality
   which is now named ``--zeekygen``.  Besides that, the various documentation
   in scripts has also been updated to replace Sphinx cross-referencing roles
   and directives like ":bro:see:" with ":zeek:zee:".
+
+- The catch-and-release and unified2 scripts are no longer loaded by
+  default.  Because there was a performance impact simply from loading
+  them and it's unlikely a majority of user make use of their features,
+  they've been moved from the scripts/base/ directory into
+  scripts/policy/ and must be manually loaded to use their
+  functionality.  The "drop" action for the notice framework is likewise
+  moved since it was implemented via catch-and-release.  As a result,
+  the default notice.log no longer contains a "dropped" field.
+
+  If you previously used the catch-and-release functionality add this:
+
+      @load policy/frameworks/netcontrol/catch-and-release
+
+  If you previously used Notice::ACTION_DROP add:
+
+      @load policy/frameworks/notice/actions/drop
+
+  If you previously used the Unified2 file analysis support add:
+
+      @load policy/files/unified2
+
+- The default value of ``peer_description`` has changed from "bro"
+  to "zeek".  This won't effect most users, except for the fact that
+  this value may appear in several log files, so any external plugins
+  that have written unit tests that compare baselines of such log
+  files may need to be updated.
+
+- The "remote_ip" field of "addr" type was removed from radius.log and
+  replaced with a field named "tunnel_client" of "string" type.  The
+  reason for this is that the Tunnel-Client-Endpoint RADIUS attribute
+  this data is derived from may also be a FQDN, not just an IP address.
+
+- The ``ssl_server_hello`` event's ``server_random`` parameter has been
+  changed to always include the full 32-byte field from the
+  ServerHello.  Previously a 4-byte timestamp and 28-byte random data
+  were parsed separately as some TLS protocol versions specified a
+  separate timestamp field as part of the full 32-byte random sequence.
+
+- The namespace used by all the builtin plugins that ship with Zeek have
+  changed to use "Zeek::" instead of "Bro::".
+
+- Any Broker topic names used in scripts shipped with Zeek that
+  previously were prefixed with "bro/" are now prefixed with "zeek/"
+  instead.
+
+  In the case where external applications were using a "bro/" topic
+  to send data into a Bro process, a Zeek process still subscribes
+  to those topics in addition to the equivalently named "zeek/" topic.
+
+  In the case where external applications were using a "bro/" topic
+  to subscribe to remote messages or query data stores, there's no
+  backwards compatibility and external applications must be changed
+  to use the new "zeek/" topic.  The thought is this change will have
+  low impact since most data published under "bro/" topic names is
+  intended for use only as a detail of implementing cluster-enabled
+  versions of various scripts.
+
+  A list of the most relevant/common topic names that could potentially
+  be used in external applications to consume/query remote data that
+  one may need to change:
+
+  - store names
+    - bro/known/services
+    - bro/known/hosts
+    - bro/known/certs
+
+  - cluster nodes
+    - bro/cluster/<node type>
+    - bro/cluster/node/<name>
+    - bro/cluster/nodeid/<id>
+
+  - logging
+    - bro/logs/<stream>
 
 Removed Functionality
 ---------------------
@@ -335,6 +442,9 @@ Deprecated Functionality
   the deprecated versions will automatically alias to the new events
   such that existing code will not break, but will emit a deprecation
   warning.
+
+- The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
+  replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
 
 - The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
   were marked as deprecated. These functions were used with the old pre-2.0 logging

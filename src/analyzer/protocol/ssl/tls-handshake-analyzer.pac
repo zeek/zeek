@@ -138,6 +138,18 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_hello_retry_request_key_share(rec: HandshakeRecord, namedgroup: uint16) : bool
+		%{
+		if ( ! ssl_extension_key_share )
+			return true;
+
+		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		nglist->Assign(0u, val_mgr->GetCount(namedgroup));
+		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+		return true;
+		%}
+
 	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
 		%{
 		if ( ! ssl_extension_signature_algorithm )
@@ -459,6 +471,48 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_pre_shared_key_server_hello(rec: HandshakeRecord, identities: PSKIdentitiesList, binders: PSKBindersList) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_server_hello )
+			return true;
+
+		VectorVal* slist = new VectorVal(internal_type("psk_identity_vec")->AsVectorType());
+
+		if ( identities && identities->identities() )
+			{
+			for ( auto&& identity : *(identities->identities()) )
+				{
+				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
+				el->Assign(0, new StringVal(identity->identity().length(), (const char*) identity->identity().data()));
+				el->Assign(1, val_mgr->GetCount(identity->obfuscated_ticket_age()));
+				slist->Assign(slist->Size(), el);
+				}
+			}
+
+		VectorVal* blist = new VectorVal(internal_type("string_vec")->AsVectorType());
+		if ( binders && binders->binders() )
+			{
+			for ( auto&& binder : *(binders->binders()) )
+				blist->Assign(blist->Size(), new StringVal(binder->binder().length(), (const char*) binder->binder().data()));
+			}
+
+		BifEvent::generate_ssl_extension_pre_shared_key_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, slist, blist);
+
+		return true;
+		%}
+
+	function proc_pre_shared_key_client_hello(rec: HandshakeRecord, selected_identity: uint16) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_client_hello )
+			return true;
+
+		BifEvent::generate_ssl_extension_pre_shared_key_server_hello(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, selected_identity);
+
+		return true;
+		%}
+
 };
 
 refine typeattr ClientHello += &let {
@@ -469,7 +523,7 @@ refine typeattr ClientHello += &let {
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
+			0, random_bytes, session_id, cipher_suite, 0,
 			compression_method);
 };
 
@@ -506,6 +560,10 @@ refine typeattr EllipticCurves += &let {
 
 refine typeattr ServerHelloKeyShare += &let {
 	proc : bool = $context.connection.proc_server_key_share(rec, keyshare);
+};
+
+refine typeattr HelloRetryRequestKeyShare += &let {
+	proc : bool = $context.connection.proc_hello_retry_request_key_share(rec, namedgroup);
 };
 
 refine typeattr ClientHelloKeyShare += &let {
@@ -566,6 +624,14 @@ refine typeattr OneSupportedVersion += &let {
 
 refine typeattr PSKKeyExchangeModes += &let {
 	proc : bool = $context.connection.proc_psk_key_exchange_modes(rec, modes);
+};
+
+refine typeattr OfferedPsks += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_server_hello(rec, identities, binders);
+};
+
+refine typeattr SelectedPreSharedKeyIdentity += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_client_hello(rec, selected_identity);
 };
 
 refine typeattr Handshake += &let {

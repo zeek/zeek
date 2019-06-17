@@ -4,7 +4,7 @@
 #include "XMPP.h"
 
 namespace plugin {
-namespace Bro_XMPP {
+namespace Zeek_XMPP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -13,7 +13,7 @@ public:
 		AddComponent(new ::analyzer::Component("XMPP", ::analyzer::xmpp::XMPP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::XMPP";
+		config.name = "Zeek::XMPP";
 		config.description = "XMPP analyzer (StartTLS only)";
 		return config;
 		}

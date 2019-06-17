@@ -8,7 +8,7 @@
 module Broker;
 
 ## Enumerates the possible types that :zeek:see:`Broker::Data` may be in
-## terms of Bro data types.
+## terms of Zeek data types.
 enum DataType %{
 	NONE,
 	BOOL,

@@ -6,7 +6,7 @@
 #include "FTP.h"
 
 namespace plugin {
-namespace Bro_FTP {
+namespace Zeek_FTP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("FTP_ADAT", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::FTP";
+		config.name = "Zeek::FTP";
 		config.description = "FTP analyzer";
 		return config;
 		}

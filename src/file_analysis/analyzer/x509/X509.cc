@@ -481,7 +481,7 @@ Val* X509Val::DoClone(CloneState* state)
 	if ( certificate )
 		copy->certificate = X509_dup(certificate);
 
-	return copy;
+	return state->NewClone(this, copy);
 	}
 
 ::X509* X509Val::GetCertificate() const

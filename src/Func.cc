@@ -627,13 +627,13 @@ void builtin_error(const char* msg, BroObj* arg)
 		emit(last_call.call);
 	}
 
-#include "bro.bif.func_h"
+#include "zeek.bif.func_h"
 #include "stats.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
 #include "option.bif.func_h"
 
-#include "bro.bif.func_def"
+#include "zeek.bif.func_def"
 #include "stats.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
@@ -660,7 +660,7 @@ void init_builtin_funcs()
 
 	var_sizes = internal_type("var_sizes")->AsTableType();
 
-#include "bro.bif.func_init"
+#include "zeek.bif.func_init"
 #include "stats.bif.func_init"
 #include "reporter.bif.func_init"
 #include "strings.bif.func_init"

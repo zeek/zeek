@@ -17,31 +17,31 @@ export {
 
 	## The topic name used for exchanging messages that are relevant to
 	## logger nodes in a cluster.  Used with broker-enabled cluster communication.
-	const logger_topic = "bro/cluster/logger" &redef;
+	const logger_topic = "zeek/cluster/logger" &redef;
 
 	## The topic name used for exchanging messages that are relevant to
 	## manager nodes in a cluster.  Used with broker-enabled cluster communication.
-	const manager_topic = "bro/cluster/manager" &redef;
+	const manager_topic = "zeek/cluster/manager" &redef;
 
 	## The topic name used for exchanging messages that are relevant to
 	## proxy nodes in a cluster.  Used with broker-enabled cluster communication.
-	const proxy_topic = "bro/cluster/proxy" &redef;
+	const proxy_topic = "zeek/cluster/proxy" &redef;
 
 	## The topic name used for exchanging messages that are relevant to
 	## worker nodes in a cluster.  Used with broker-enabled cluster communication.
-	const worker_topic = "bro/cluster/worker" &redef;
+	const worker_topic = "zeek/cluster/worker" &redef;
 
 	## The topic name used for exchanging messages that are relevant to
 	## time machine nodes in a cluster.  Used with broker-enabled cluster communication.
-	const time_machine_topic = "bro/cluster/time_machine" &redef;
+	const time_machine_topic = "zeek/cluster/time_machine" &redef;
 
 	## The topic prefix used for exchanging messages that are relevant to
 	## a named node in a cluster.  Used with broker-enabled cluster communication.
-	const node_topic_prefix = "bro/cluster/node/" &redef;
+	const node_topic_prefix = "zeek/cluster/node/" &redef;
 
 	## The topic prefix used for exchanging messages that are relevant to
 	## a unique node in a cluster.  Used with broker-enabled cluster communication.
-	const nodeid_topic_prefix = "bro/cluster/nodeid/" &redef;
+	const nodeid_topic_prefix = "zeek/cluster/nodeid/" &redef;
 
 	## Name of the node on which master data stores will be created if no other
 	## has already been specified by the user in :zeek:see:`Cluster::stores`.
@@ -192,7 +192,7 @@ export {
 	global worker_count: count = 0;
 
 	## The cluster layout definition.  This should be placed into a filter
-	## named cluster-layout.zeek somewhere in the BROPATH.  It will be
+	## named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
 	## Note that ZeekControl handles all of this automatically.
 	## The table is typically indexed by node names/labels (e.g. "manager"
@@ -210,8 +210,8 @@ export {
 	const node = getenv("CLUSTER_NODE") &redef;
 
 	## Interval for retrying failed connections between cluster nodes.
-	## If set, the BRO_DEFAULT_CONNECT_RETRY (given in number of seconds)
-	## overrides this option.
+	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
+	## environment variable overrides this option.
 	const retry_interval = 1min &redef;
 
 	## When using broker-enabled cluster framework, nodes broadcast this event

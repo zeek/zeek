@@ -405,7 +405,7 @@ function email_headers(subject_desc: string, dest: string): string
 		"From: ", mail_from, "\n",
 		"Subject: ", mail_subject_prefix, " ", subject_desc, "\n",
 		"To: ", dest, "\n",
-		"User-Agent: Bro-IDS/", bro_version(), "\n");
+		"User-Agent: Bro-IDS/", zeek_version(), "\n");
 	if ( reply_to != "" )
 		header_text = string_cat(header_text, "Reply-To: ", reply_to, "\n");
 	return header_text;
@@ -552,7 +552,7 @@ function is_being_suppressed(n: Notice::Info): bool
 	}
 
 # Executes a script with all of the notice fields put into the
-# new process' environment as "BRO_ARG_<field>" variables.
+# new process' environment as "ZEEK_ARG_<field>" variables.
 function execute_with_notice(cmd: string, n: Notice::Info)
 	{
 	# TODO: fix system calls

@@ -5,7 +5,7 @@
 #include "PE.h"
 
 namespace plugin {
-namespace Bro_PE {
+namespace Zeek_PE {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::file_analysis::Component("PE", ::file_analysis::PE::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::PE";
+		config.name = "Zeek::PE";
 		config.description = "Portable Executable analyzer";
 		return config;
 		}

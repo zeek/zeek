@@ -89,8 +89,6 @@ Val* Val::Clone(CloneState* state)
 
 	auto c = DoClone(state);
 	assert(c);
-
-	state->clones.insert(std::make_pair(this, c));
 	return c;
 	}
 
@@ -351,6 +349,35 @@ void Val::ValDescribeReST(ODesc* d) const
 		ValDescribe(d);
 		d->Add("``");
 	}
+	}
+
+
+bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val)
+	{
+	if ( !to_type || !from_type )
+		return true;
+	else if ( same_type(to_type, from_type) )
+		return false;
+
+	if ( to_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+		return false;
+	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
+			return (val->InternalInt() < 0);
+		}
+	else if ( to_type->InternalType() == TYPE_INTERNAL_INT )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < static_cast<double>(INT64_MIN) ||
+			        val->InternalDouble() > static_cast<double>(INT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			return (val->InternalUnsigned() > INT64_MAX);
+		}
+
+	return false;
 	}
 
 MutableVal::~MutableVal()
@@ -831,8 +858,12 @@ unsigned int StringVal::MemoryAllocation() const
 
 Val* StringVal::DoClone(CloneState* state)
 	{
-	return new StringVal(new BroString((u_char*) val.string_val->Bytes(),
-	                                   val.string_val->Len(), 1));
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
+	return state->NewClone(this, new StringVal(
+	        new BroString((u_char*) val.string_val->Bytes(),
+	                      val.string_val->Len(), 1)));
 	}
 
 PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN))
@@ -885,10 +916,13 @@ unsigned int PatternVal::MemoryAllocation() const
 
 Val* PatternVal::DoClone(CloneState* state)
 	{
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
 	auto re = new RE_Matcher(val.re_val->PatternText(),
 	                         val.re_val->AnywherePatternText());
 	re->Compile();
-	return new PatternVal(re);
+	return state->NewClone(this, new PatternVal(re));
 	}
 
 ListVal::ListVal(TypeTag t)
@@ -977,6 +1011,7 @@ Val* ListVal::DoClone(CloneState* state)
 	{
 	auto lv = new ListVal(tag);
 	lv->vals.resize(vals.length());
+	state->NewClone(this, lv);
 
 	loop_over_list(vals, i)
 		lv->Append(vals[i]->Clone(state));
@@ -2137,6 +2172,7 @@ void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 Val* TableVal::DoClone(CloneState* state)
 	{
 	auto tv = new TableVal(table_type);
+	state->NewClone(this, tv);
 
 	const PDict(TableEntryVal)* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
@@ -2249,9 +2285,14 @@ vector<RecordVal*> RecordVal::parse_time_records;
 RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	{
 	origin = 0;
-	record_type = t;
-	int n = record_type->NumFields();
+	int n = t->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
+
+	if ( is_parsing )
+		{
+		parse_time_records.emplace_back(this);
+		Ref();
+		}
 
 	if ( ! init_fields )
 		return;
@@ -2260,10 +2301,10 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 	// by default).
 	for ( int i = 0; i < n; ++i )
 		{
-		Attributes* a = record_type->FieldDecl(i)->attrs;
+		Attributes* a = t->FieldDecl(i)->attrs;
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : 0;
 		Val* def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
-		BroType* type = record_type->FieldDecl(i)->type;
+		BroType* type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->Type()->Tag() == TYPE_RECORD &&
@@ -2294,12 +2335,6 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
 		vl->append(def ? def->Ref() : 0);
 
 		Unref(def);
-
-		if ( is_parsing )
-			{
-			parse_time_records.emplace_back(this);
-			Ref();
-			}
 		}
 	}
 
@@ -2340,7 +2375,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	return record_type->FieldDefault(field);
+	return Type()->AsRecordType()->FieldDefault(field);
 	}
 
 void RecordVal::ResizeParseTimeRecords()
@@ -2348,7 +2383,7 @@ void RecordVal::ResizeParseTimeRecords()
 	for ( auto& rv : parse_time_records )
 		{
 		auto vs = rv->val.val_list_val;
-		auto rt = rv->record_type;
+		auto rt = rv->Type()->AsRecordType();
 		auto current_length = vs->length();
 		auto required_length = rt->NumFields();
 
@@ -2368,7 +2403,7 @@ void RecordVal::ResizeParseTimeRecords()
 
 Val* RecordVal::Lookup(const char* field, bool with_default) const
 	{
-	int idx = record_type->FieldOffset(field);
+	int idx = Type()->AsRecordType()->FieldOffset(field);
 
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
@@ -2453,6 +2488,7 @@ void RecordVal::Describe(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
 	int n = vl->length();
+	auto record_type = Type()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
@@ -2488,7 +2524,8 @@ void RecordVal::Describe(ODesc* d) const
 void RecordVal::DescribeReST(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
-     	int n = vl->length();
+	int n = vl->length();
+	auto record_type = Type()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
@@ -2520,8 +2557,9 @@ Val* RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = new RecordVal(record_type, false);
+	auto rv = new RecordVal(Type()->AsRecordType(), false);
 	rv->origin = nullptr;
+	state->NewClone(this, rv);
 
 	loop_over_list(*val.val_list_val, i)
 		{
@@ -2750,6 +2788,7 @@ Val* VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = new VectorVal(vector_type);
 	vv->val.vector_val->reserve(val.vector_val->size());
+	state->NewClone(this, vv);
 
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		{
@@ -2779,7 +2818,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-Val* check_and_promote(Val* v, const BroType* t, int is_init)
+Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
 		return 0;
@@ -2803,7 +2842,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v);
+		t->Error("type clash", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -2812,9 +2851,9 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	     (! IsArithmetic(v_tag) || t_tag != TYPE_TIME || ! v->IsZero()) )
 		{
 		if ( t_tag == TYPE_LIST || v_tag == TYPE_LIST )
-			t->Error("list mixed with scalar", v);
+			t->Error("list mixed with scalar", v, 0, expr_location);
 		else
-			t->Error("arithmetic mixed with non-arithmetic", v);
+			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -2822,12 +2861,12 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	if ( v_tag == t_tag )
 		return v;
 
-	if ( t_tag != TYPE_TIME )
+	if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) )
 		{
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", v);
+			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
 			Unref(v);
 			return 0;
 			}
@@ -2844,7 +2883,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	Val* promoted_v;
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( t_tag == TYPE_INT )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_INT )
 			promoted_v = val_mgr->GetInt(v->CoerceToInt());
 		else if ( t_tag == TYPE_BOOL )
 			promoted_v = val_mgr->GetBool(v->CoerceToInt());
@@ -2858,7 +2903,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
 			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
 		else // port
 			{

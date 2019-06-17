@@ -6,7 +6,7 @@
 #include "analyzer/protocol/udp/UDP.h"
 
 namespace plugin {
-namespace Bro_UDP {
+namespace Zeek_UDP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("UDP", ::analyzer::udp::UDP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::UDP";
+		config.name = "Zeek::UDP";
 		config.description = "UDP Analyzer";
 		return config;
 		}

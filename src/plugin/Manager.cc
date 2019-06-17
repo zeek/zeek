@@ -174,12 +174,12 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
-	// Add the "scripts" and "bif" directories to BROPATH.
+	// Add the "scripts" and "bif" directories to ZEEKPATH.
 	std::string scripts = dir + "scripts";
 
 	if ( is_dir(scripts) )
 		{
-		DBG_LOG(DBG_PLUGINS, "  Adding %s to BROPATH", scripts.c_str());
+		DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", scripts.c_str());
 		add_to_bro_path(scripts);
 		}
 

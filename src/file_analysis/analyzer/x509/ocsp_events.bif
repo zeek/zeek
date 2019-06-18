@@ -52,9 +52,6 @@ event ocsp_response_status%(f: fa_file, status: string%);
 ##
 ## f: The file.
 ##
-## req_ref: An opaque pointer to the underlying OpenSSL data structure of the
-##          OCSP response.
-##
 ## status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
 ##
 ## version: Version of the OCSP response (typically - for version 1).
@@ -71,7 +68,7 @@ event ocsp_response_status%(f: fa_file, status: string%);
 ## .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
 ##              ocsp_response_certificate ocsp_extension
 ##              x509_ocsp_ext_signed_certificate_timestamp
-event ocsp_response_bytes%(f: fa_file, resp_ref: opaque of ocsp_resp, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector%);
+event ocsp_response_bytes%(f: fa_file, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector%);
 
 ## This event is raised for each SingleResponse contained in an OCSP response.
 ## See :rfc:`6960` for more details on OCSP.

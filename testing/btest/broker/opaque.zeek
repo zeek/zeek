@@ -75,9 +75,6 @@ event zeek_init()
 	print x509_parse(x509);
 	print x509_parse(x5092);
 
-	print "============ OCSP_RESPVal";
-	# TODO: Not sure how to test?
-
 	print "============ Entropy";
 	local handle = entropy_test_init();
 	entropy_test_add(handle, "dh3Hie02uh^s#Sdf9L3frd243h$d78r2G4cM6*Q05d(7rh46f!0|4-f");

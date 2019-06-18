@@ -175,9 +175,7 @@ bool file_analysis::OCSP::EndOfFile()
 			return false;
 			}
 
-		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
-		ParseResponse(resp_val);
-		Unref(resp_val);
+		ParseResponse(resp);
 		}
 
 	return true;
@@ -449,9 +447,8 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
+void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	{
-	OCSP_RESPONSE   *resp       = resp_val->GetResp();
 	//OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
 	OCSP_BASICRESP  *basic_resp = nullptr;
 	OCSP_RESPDATA   *resp_data  = nullptr;
@@ -506,7 +503,6 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 #endif
 
 	vl.append(GetFile()->GetVal()->Ref());
-	vl.append(resp_val->Ref());
 	vl.append(status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
@@ -690,52 +686,3 @@ void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 		ParseSignedCertificateTimestamps(ex);
 	}
 
-OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = arg_ocsp_resp;
-	}
-
-OCSP_RESPVal::OCSP_RESPVal() : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = nullptr;
-	}
-
-OCSP_RESPVal::~OCSP_RESPVal()
-	{
-	if (ocsp_resp)
-		OCSP_RESPONSE_free(ocsp_resp);
-	}
-
-OCSP_RESPONSE* OCSP_RESPVal::GetResp() const
-	{
-	return ocsp_resp;
-	}
-
-IMPLEMENT_OPAQUE_VALUE(OCSP_RESPVal)
-
-broker::data OCSP_RESPVal::DoSerialize() const
-	{
-        unsigned char *buf = NULL;
-        int length = i2d_OCSP_RESPONSE(ocsp_resp, &buf);
-        if ( length < 0 )
-                return broker::none();
-
-	auto d = std::string(reinterpret_cast<const char*>(buf), length);
-        OPENSSL_free(buf);
-
-	return d;
-	}
-
-bool OCSP_RESPVal::DoUnserialize(const broker::data& data)
-	{
-	if ( caf::get_if<broker::none>(&data) )
-		return false;
-
-	auto s = caf::get_if<std::string>(&data);
-	if ( ! s )
-		return false;
-
-	auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
-        ocsp_resp = d2i_OCSP_RESPONSE(NULL, &opensslbuf, s->size());
-	return (ocsp_resp != nullptr);
-	}

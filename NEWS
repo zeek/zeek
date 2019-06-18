@@ -319,6 +319,11 @@ Changed Functionality
   - logging
     - bro/logs/<stream>
 
+- The ``resp_ref`` argument was removed from the ``ocsp_response_bytes``
+  event. ``resp_ref`` was not used by anything in the codebase and could not be
+  passed to any other functions for further processing. The remainder of the
+	``ocsp_response_bytes`` is unchanged.
+
 Removed Functionality
 ---------------------
 

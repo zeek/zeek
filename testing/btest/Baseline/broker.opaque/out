@@ -20,7 +20,6 @@
 ============ X509
 [version=3, serial=040000000001154B5AC394, subject=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, issuer=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, cn=GlobalSign Root CA, not_valid_before=904651200.0, not_valid_after=1832673600.0, key_alg=rsaEncryption, sig_alg=sha1WithRSAEncryption, key_type=rsa, key_length=2048, exponent=65537, curve=<uninitialized>]
 [version=3, serial=040000000001154B5AC394, subject=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, issuer=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, cn=GlobalSign Root CA, not_valid_before=904651200.0, not_valid_after=1832673600.0, key_alg=rsaEncryption, sig_alg=sha1WithRSAEncryption, key_type=rsa, key_length=2048, exponent=65537, curve=<uninitialized>]
-============ OCSP_RESPVal
 ============ Entropy
 [entropy=4.715374, chi_square=591.981818, mean=75.472727, monte_carlo_pi=4.0, serial_correlation=-0.11027]
 [entropy=4.715374, chi_square=591.981818, mean=75.472727, monte_carlo_pi=4.0, serial_correlation=-0.11027]

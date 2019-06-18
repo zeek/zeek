@@ -201,10 +201,10 @@ broker::expected<broker::data> CardinalityCounter::Serialize() const
 	broker::vector v = {m, V, alpha_m};
 	v.reserve(3 + m);
 
-        for ( size_t i = 0; i < m; ++i )
+	for ( size_t i = 0; i < m; ++i )
 		v.emplace_back(static_cast<uint64>(buckets[i]));
 
-        return {v};
+	return {v};
 	}
 
 std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
@@ -219,19 +219,22 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 
 	if ( ! (m && V && alpha_m) )
 		return nullptr;
-
 	if ( v->size() != 3 + *m )
 		return nullptr;
 
 	auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
+	if ( *m != cc->m )
+		return nullptr;
+	if ( cc->buckets.size() != * m )
+		return nullptr;
 
-        for ( size_t i = 0; i < *m; ++i )
+	for ( size_t i = 0; i < *m; ++i )
 		{
 		auto x = caf::get_if<uint64>(&(*v)[3 + i]);
 		if ( ! x )
 			return nullptr;
 
-		cc->buckets.push_back(*x);
+		cc->buckets[i] = *x;
 		}
 
 	return cc;

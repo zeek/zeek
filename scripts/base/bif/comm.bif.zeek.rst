@@ -5,7 +5,7 @@ base/bif/comm.bif.zeek
 .. zeek:namespace:: Broker
 .. zeek:namespace:: GLOBAL
 
-Functions and events regarding Bro's broker communication mechanisms.
+Functions and events regarding broker communication mechanisms.
 
 :Namespaces: Broker, GLOBAL
 

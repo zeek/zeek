@@ -70,7 +70,7 @@ Package: base/bif
 
 :doc:`/scripts/base/bif/comm.bif.zeek`
 
-   Functions and events regarding Bro's broker communication mechanisms.
+   Functions and events regarding broker communication mechanisms.
 
 :doc:`/scripts/base/bif/messaging.bif.zeek`
 

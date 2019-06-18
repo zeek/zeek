@@ -98,9 +98,6 @@ name_list prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
-// Fixme: Johanna
-// FileSerializer* event_serializer = 0;
-// EventPlayer* event_player = 0;
 EventRegistry* event_registry = 0;
 ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
@@ -178,7 +175,6 @@ void usage(int code = 1)
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
-	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
@@ -348,8 +344,6 @@ void terminate_bro()
 
 	delete zeekygen_mgr;
 	delete timer_mgr;
-	// Fixme: johanna
-	// delete event_serializer;
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
@@ -420,7 +414,6 @@ int main(int argc, char** argv)
 	name_list read_files;
 	name_list rule_files;
 	char* id_name = 0;
-	char* events_file = 0;
 
 	char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
 	char* seed_save_file = 0;
@@ -457,7 +450,6 @@ int main(int argc, char** argv)
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"time",		no_argument,		0,	'Q'},
-		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
 		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
@@ -508,7 +500,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:R:r:s:T:t:U:w:x:X:CFNPQSWabdghv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -617,10 +609,6 @@ int main(int argc, char** argv)
 
 		case 'Q':
 			time_bro = 1;
-			break;
-
-		case 'R':
-			events_file = optarg;
 			break;
 
 		case 'S':
@@ -786,10 +774,6 @@ int main(int argc, char** argv)
 		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
 	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
-
-	// Fixme: Johanna
-	// if ( events_file )
-	//	event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
 

@@ -427,7 +427,16 @@ Removed Functionality
   and &rotate_size attributes, which were deprecated in Bro 2.6, was removed. The ``-g``
   command-line option (dump-config) which relied on this functionality was also removed.
 
+- Functionality for writing state updates for variables with the &synchronized attribute was
+  removed. This entails the ``-x`` command-line option (print-state) as well as the ``capture_state_updates``
+	function.
+
 - Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
+
+- Functionality for writing/reading binary event streams was removed. This functionality relied
+  on the old communication code anc was basically untested. The ``-R`` command-line option (replay)
+  as well as the ``capture_events`` function were removed.
+
 
 Deprecated Functionality
 ------------------------

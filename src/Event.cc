@@ -58,13 +58,6 @@ void Event::Dispatch(bool no_remote)
 	if ( src == SOURCE_BROKER )
 		no_remote = true;
 
-	/* Fixme: johanna
-	if ( event_serializer )
-		{
-		SerialInfo info(event_serializer);
-		event_serializer->Serialize(&info, handler->Name(), &args);
-		} */
-
 	if ( handler->ErrorHandler() )
 		reporter->BeginErrorHandler();
 

@@ -51,10 +51,10 @@ void StoreHandleVal::ValDescribe(ODesc* d) const
 
 IMPLEMENT_OPAQUE_VALUE(StoreHandleVal)
 
-broker::data StoreHandleVal::DoSerialize() const
+broker::expected<broker::data> StoreHandleVal::DoSerialize() const
 	{
 	// Cannot serialize.
-	return broker::none();
+	return broker::ec::invalid_data;
 	}
 
 bool StoreHandleVal::DoUnserialize(const broker::data& data)

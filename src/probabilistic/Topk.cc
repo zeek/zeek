@@ -408,7 +408,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 
 IMPLEMENT_OPAQUE_VALUE(TopkVal)
 
-broker::data TopkVal::DoSerialize() const
+broker::expected<broker::data> TopkVal::DoSerialize() const
 	{
 	broker::vector d = {size, numElements, pruned};
 
@@ -416,7 +416,7 @@ broker::data TopkVal::DoSerialize() const
 		{
 		auto t = SerializeType(type);
 		if ( t == broker::none() )
-			return broker::none();
+			return broker::ec::invalid_data;
 
 		d.emplace_back(t);
 		}
@@ -440,7 +440,7 @@ broker::data TopkVal::DoSerialize() const
 			d.emplace_back(element->epsilon);
 			auto v = bro_broker::val_to_data(element->value);
 			if ( ! v )
-				return broker::none();
+				return broker::ec::invalid_data;
 
 			d.emplace_back(*v);
 

@@ -64,7 +64,7 @@ private:
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                            \
     friend class OpaqueMgr::Register<T>;                   \
-    broker::data DoSerialize() const override;             \
+    broker::expected<broker::data> DoSerialize() const override;             \
     bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
     static OpaqueVal* OpaqueInstantiate() { return new T(); }
@@ -97,7 +97,7 @@ public:
 	 * Reinstantiates a value from its serialized Broker representation.
 	 *
 	 * @param data Broker representation as returned by *Serialize()*.
-	 * @return unserialized instances with referecnce count at +1
+	 * @return unserialized instances with reference count at +1
 	 */
 	static OpaqueVal* Unserialize(const broker::data& data);
 
@@ -107,15 +107,19 @@ protected:
 	OpaqueVal() { }
 
 	/**
-	 * Must be overriden to provide a serialized version of the derived
-	 * class' state. Returns 'broker::none()' if serialization fails, or
-	 * is not supported.
+	 * Must be overridden to provide a serialized version of the derived
+	 * class' state.
+	 *
+	 * @return the serialized data or an error if serialization
+	 * isn't supported or failed.
 	 */
-	virtual broker::data DoSerialize() const = 0;
+	virtual broker::expected<broker::data> DoSerialize() const = 0;
 
 	/**
-	 * Must be overriden to recreate the the derived class' state from a
-	 * serialization. Returns true if successfull.
+	 * Must be overridden to recreate the the derived class' state from a
+	 * serialization.
+	 *
+	 * @return true if successful.
 	 */
 	virtual bool DoUnserialize(const broker::data& data) = 0;
 

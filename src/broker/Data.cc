@@ -1114,7 +1114,7 @@ Val* bro_broker::DataVal::castTo(BroType* t)
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::DataVal)
 
-broker::data bro_broker::DataVal::DoSerialize() const
+broker::expected<broker::data> bro_broker::DataVal::DoSerialize() const
 	{
 	return data;
 	}
@@ -1127,7 +1127,7 @@ bool bro_broker::DataVal::DoUnserialize(const broker::data& data_)
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::SetIterator)
 
-broker::data bro_broker::SetIterator::DoSerialize() const
+broker::expected<broker::data> bro_broker::SetIterator::DoSerialize() const
 	{
 	return broker::vector{dat, *it};
 	}
@@ -1154,7 +1154,7 @@ bool bro_broker::SetIterator::DoUnserialize(const broker::data& data)
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::TableIterator)
 
-broker::data bro_broker::TableIterator::DoSerialize() const
+broker::expected<broker::data> bro_broker::TableIterator::DoSerialize() const
 	{
 	return broker::vector{dat, it->first};
 	}
@@ -1181,7 +1181,7 @@ bool bro_broker::TableIterator::DoUnserialize(const broker::data& data)
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::VectorIterator)
 
-broker::data bro_broker::VectorIterator::DoSerialize() const
+broker::expected<broker::data> bro_broker::VectorIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
 	return broker::vector{dat, difference};
@@ -1203,7 +1203,7 @@ bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::RecordIterator)
 
-broker::data bro_broker::RecordIterator::DoSerialize() const
+broker::expected<broker::data> bro_broker::RecordIterator::DoSerialize() const
 	{
 	broker::integer difference = it - dat.begin();
 	return broker::vector{dat, difference};

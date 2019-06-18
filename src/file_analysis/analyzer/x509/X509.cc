@@ -491,13 +491,13 @@ Val* X509Val::DoClone(CloneState* state)
 
 IMPLEMENT_OPAQUE_VALUE(X509Val)
 
-broker::data X509Val::DoSerialize() const
+broker::expected<broker::data> X509Val::DoSerialize() const
 	{
-        unsigned char *buf = NULL;
-        int length = i2d_X509(certificate, &buf);
+	unsigned char *buf = NULL;
+	int length = i2d_X509(certificate, &buf);
 
-        if ( length < 0 )
-                return broker::none();
+	if ( length < 0 )
+		return broker::ec::invalid_data;
 
 	auto d = std::string(reinterpret_cast<const char*>(buf), length);
         OPENSSL_free(buf);

@@ -58,10 +58,10 @@ broker::expected<broker::data> OpaqueVal::Serialize() const
 	auto type = OpaqueMgr::mgr()->TypeID(this);
 
 	auto d = DoSerialize();
-	if ( d == broker::none() )
-		return broker::ec::invalid_data; // Cannot serialize
+	if ( !d )
+		return d.error();
 
-	return {broker::vector{std::move(type), std::move(d)}};
+	return {broker::vector{std::move(type), std::move(*d)}};
 	}
 
 OpaqueVal* OpaqueVal::Unserialize(const broker::data& data)
@@ -288,7 +288,7 @@ StringVal* MD5Val::DoGet()
 
 IMPLEMENT_OPAQUE_VALUE(MD5Val)
 
-broker::data MD5Val::DoSerialize() const
+broker::expected<broker::data> MD5Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
 		return broker::vector{false};
@@ -429,7 +429,7 @@ StringVal* SHA1Val::DoGet()
 
 IMPLEMENT_OPAQUE_VALUE(SHA1Val)
 
-broker::data SHA1Val::DoSerialize() const
+broker::expected<broker::data> SHA1Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
 		return broker::vector{false};
@@ -573,7 +573,7 @@ StringVal* SHA256Val::DoGet()
 
 IMPLEMENT_OPAQUE_VALUE(SHA256Val)
 
-broker::data SHA256Val::DoSerialize() const
+broker::expected<broker::data> SHA256Val::DoSerialize() const
 	{
 	if ( ! IsValid() )
 		return broker::vector{false};
@@ -659,7 +659,7 @@ bool EntropyVal::Get(double *r_ent, double *r_chisq, double *r_mean,
 
 IMPLEMENT_OPAQUE_VALUE(EntropyVal)
 
-broker::data EntropyVal::DoSerialize() const
+broker::expected<broker::data> EntropyVal::DoSerialize() const
 	{
 	broker::vector d =
 		{
@@ -872,7 +872,7 @@ BloomFilterVal::~BloomFilterVal()
 
 IMPLEMENT_OPAQUE_VALUE(BloomFilterVal)
 
-broker::data BloomFilterVal::DoSerialize() const
+broker::expected<broker::data> BloomFilterVal::DoSerialize() const
 	{
 	broker::vector d;
 
@@ -880,7 +880,7 @@ broker::data BloomFilterVal::DoSerialize() const
 		{
 		auto t = SerializeType(type);
 		if ( t == broker::none() )
-			return broker::none();
+			return broker::ec::invalid_data;
 
 		d.emplace_back(t);
 		}
@@ -889,7 +889,7 @@ broker::data BloomFilterVal::DoSerialize() const
 
 	auto bf = bloom_filter->Serialize();
 	if ( ! bf )
-		return broker::none();
+		return broker::ec::invalid_data; // Cannot serialize;
 
 	d.emplace_back(*bf);
 	return d;
@@ -976,7 +976,7 @@ void CardinalityVal::Add(const Val* val)
 
 IMPLEMENT_OPAQUE_VALUE(CardinalityVal)
 
-broker::data CardinalityVal::DoSerialize() const
+broker::expected<broker::data> CardinalityVal::DoSerialize() const
 	{
 	broker::vector d;
 
@@ -984,7 +984,7 @@ broker::data CardinalityVal::DoSerialize() const
 		{
 		auto t = SerializeType(type);
 		if ( t == broker::none() )
-			return broker::none();
+			return broker::ec::invalid_data;
 
 		d.emplace_back(t);
 		}
@@ -993,7 +993,7 @@ broker::data CardinalityVal::DoSerialize() const
 
 	auto cs = c->Serialize();
 	if ( ! cs )
-		return broker::none();
+		return broker::ec::invalid_data;
 
 	d.emplace_back(*cs);
 	return d;

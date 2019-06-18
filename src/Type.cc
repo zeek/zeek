@@ -484,6 +484,19 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 		}
 	}
 
+SetType* SetType::ShallowClone()
+	{
+	// constructor only consumes indices when elements
+	// is set
+	if ( elements && indices )
+		{
+		elements->Ref();
+		indices->Ref();
+		}
+
+	return new SetType(indices, elements);
+	}
+
 SetType::~SetType()
 	{
 	Unref(elements);

@@ -381,6 +381,8 @@ public:
 	SetType(TypeList* ind, ListExpr* arg_elements);
 	~SetType() override;
 
+	SetType* ShallowClone() override;
+
 	ListExpr* SetElements() const	{ return elements; }
 
 protected:

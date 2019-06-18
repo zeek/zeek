@@ -10,8 +10,8 @@ set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FO
 set(bro_AUTO_BIFS     CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
 set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
 
-set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in base distribution of Bro" FORCE)
-set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in Bro plugins" FORCE)
+set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in base distribution of Zeek" FORCE)
+set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in Zeek plugins" FORCE)
 
 # If TRUE, use CMake's object libraries for sub-directories instead of
 # static libraries. This requires CMake >= 2.8.8.

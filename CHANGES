@@ -1,4 +1,8 @@
 
+2.6-446 | 2019-06-17 20:26:49 -0700
+
+  * Rename bro to zeek in error messages (Daniel Thayer)
+
 2.6-444 | 2019-06-15 19:09:03 -0700
 
   * Add/rewrite NTP support (Vlad Grigorescu and Mauro Palumbo)

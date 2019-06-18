@@ -35,7 +35,7 @@ void init_global_dbg_constants () {
 	"quit"
       };
 
-      info = new DebugCmdInfo (dcQuit, names, 1, false, "Exit Bro",
+      info = new DebugCmdInfo (dcQuit, names, 1, false, "Exit Zeek",
                                false);
       g_DebugCmdInfos.push_back(info);
    }

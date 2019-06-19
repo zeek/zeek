@@ -140,9 +140,6 @@ RecordType* backdoor_endp_stats;
 
 RecordType* software;
 RecordType* software_version;
-RecordType* OS_version;
-EnumType* OS_version_inference;
-TableVal* generate_OS_version_event;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -425,10 +422,6 @@ void init_net_var()
 
 	software = internal_type("software")->AsRecordType();
 	software_version = internal_type("software_version")->AsRecordType();
-	OS_version = internal_type("OS_version")->AsRecordType();
-	OS_version_inference = internal_type("OS_version_inference")->AsEnumType();
-	generate_OS_version_event =
-		opt_internal_table("generate_OS_version_event");
 
 	packet_type = internal_type("packet")->AsRecordType();
 

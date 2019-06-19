@@ -14,7 +14,6 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Reporter.h"
-#include "OSFinger.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -130,15 +129,6 @@ NetSessions::NetSessions()
 	dump_this_packet = 0;
 	num_packets_processed = 0;
 
-	if ( OS_version_found )
-		{
-		SYN_OS_Fingerprinter = new OSFingerprint(SYN_FINGERPRINT_MODE);
-		if ( SYN_OS_Fingerprinter->Error() )
-			exit(1);
-		}
-	else
-		SYN_OS_Fingerprinter = 0;
-
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
 				pkt_profile_freq, pkt_profile_file->AsFile());
@@ -155,7 +145,6 @@ NetSessions::~NetSessions()
 	{
 	delete ch;
 	delete packet_filter;
-	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
 	delete discarder;
@@ -985,24 +974,6 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 	f->AddFragment(t, ip, pkt);
 	return f;
-	}
-
-int NetSessions::Get_OS_From_SYN(struct os_type* retval,
-		  uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,
-		  uint8 ocnt, uint8* op, uint16 MSS, uint8 win_scale,
-		  uint32 tstamp, /* uint8 TOS, */ uint32 quirks,
-		  uint8 ECN) const
-	{
-	return SYN_OS_Fingerprinter ?
-		SYN_OS_Fingerprinter->FindMatch(retval, tot, DF_flag, TTL,
-				WSS, ocnt, op, MSS, win_scale, tstamp,
-				quirks, ECN) : 0;
-	}
-
-bool NetSessions::CompareWithPreviousOSMatch(const IPAddr& addr, int id) const
-	{
-	return SYN_OS_Fingerprinter ?
-		SYN_OS_Fingerprinter->CacheMatch(addr, id) : 0;
 	}
 
 Connection* NetSessions::FindConnection(Val* v)

@@ -143,9 +143,6 @@ extern RecordType* backdoor_endp_stats;
 
 extern RecordType* software;
 extern RecordType* software_version;
-extern RecordType* OS_version;
-extern EnumType* OS_version_inference;
-extern TableVal* generate_OS_version_event;
 
 extern double table_expire_interval;
 extern double table_expire_delay;

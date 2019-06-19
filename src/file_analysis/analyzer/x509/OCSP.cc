@@ -176,6 +176,7 @@ bool file_analysis::OCSP::EndOfFile()
 			}
 
 		ParseResponse(resp);
+		OCSP_RESPONSE_free(resp);
 		}
 
 	return true;

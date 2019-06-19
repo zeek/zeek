@@ -94,6 +94,12 @@ New Functionality
   is available in the events: ``ssl_extension_pre_shared_key_client_hello``
   and ``ssl_extension_pre_shared_key_server_hello``.
 
+- Add support for vector slicing operations.  For example::
+
+    local v = vector(1, 2, 3, 4, 5);
+    v[2:4] = vector(6, 7, 8);        # v is now [1, 2, 6, 7, 8, 5]
+    print v[:4];                     # prints [1, 2, 6, 7]
+
 Changed Functionality
 ---------------------
 

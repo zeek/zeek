@@ -3417,6 +3417,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 		}
 
 	vector<Val*>::iterator it;
+
 	if ( index < val.vector_val->size() )
 		it = std::next(val.vector_val->begin(), index);
 	else

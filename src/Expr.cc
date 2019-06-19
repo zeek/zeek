@@ -3200,27 +3200,26 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
 		{
-		const ListVal *lv = v2->AsListVal();
+		const ListVal* lv = v2->AsListVal();
 		VectorVal* v1_vect = v1->AsVectorVal();
 
 		if ( lv->Length() > 1 )
 			{
-			int len = v1_vect->Size();
+			auto len = v1_vect->Size();
 			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
 
 			// Remove the elements from the vector within the slice
-			for ( int idx = first; idx < last; idx++ )
+			for ( auto idx = first; idx < last; idx++ )
 				v1_vect->Remove(first);
 
 			// Insert the new elements starting at the first position
 			VectorVal* v_vect = v->AsVectorVal();
-			for ( int idx = 0; idx < v_vect->Size(); idx++, first++ )
-				{
+
+			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
 				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
-				}
 			}
-		else if ( !v1_vect->Assign(v2, v, op) )
+		else if ( ! v1_vect->Assign(v2, v, op) )
 			{
 			if ( v )
 				{

@@ -484,8 +484,10 @@ expr:
 			set_location(@1, @6);
 			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
 			Expr* high = $5 ? $5 : new SizeExpr($1);
+
 			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
-				reporter->FatalError("slice notation must have integral values as indexes");
+				reporter->Error("slice notation must have integral values as indexes");
+
 			ListExpr* le = new ListExpr(low);
 			le->Append(high);
 			$$ = new IndexExpr($1, le, true);

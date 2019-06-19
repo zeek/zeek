@@ -4304,6 +4304,11 @@ export {
 		persistent:     bool;
 	};
 
+        type RDP::ClientClusterData: record {
+                flags:                  int;
+                redir_session_id:       int;
+        };
+
 	## The list of channels requested by the client.
 	type RDP::ClientChannelList: vector of ClientChannelDef;
 }

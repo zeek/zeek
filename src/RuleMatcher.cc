@@ -25,6 +25,11 @@
 
 uint32 RuleHdrTest::idcounter = 0;
 
+static bool is_member_of(int_list l, int_list::value_type v)
+	{
+	return std::find(l.begin(), l.end(), v) != l.end();
+	}
+
 RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
 				Comp arg_comp, maskedvalue_list* arg_vals)
 	{
@@ -349,7 +354,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 			{
 			Rule::Pattern* p = r->patterns[j];
 			exprs[p->type].append(p->pattern);
-			ids[p->type].append(p->id);
+			ids[p->type].push_back(p->id);
 			}
 		}
 
@@ -374,7 +379,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 			loop_over_list(child_exprs[i], j)
 				{
 				exprs[i].append(child_exprs[i][j]);
-				ids[i].append(child_ids[i][j]);
+				ids[i].push_back(child_ids[i][j]);
 				}
 			}
 		}
@@ -406,7 +411,7 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 		if ( i < exprs.length() )
 			{
 			group_exprs.append(exprs[i]);
-			group_ids.append(ids[i]);
+			group_ids.push_back(ids[i]);
 			}
 
 		if ( group_exprs.length() > sig_max_group_size ||
@@ -920,7 +925,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			DBG_LOG(DBG_RULES, "On current node");
 
 			// Skip if rule already fired for this connection.
-			if ( state->matched_rules.is_member(r->Index()) )
+			if ( is_member_of(state->matched_rules, r->Index()) )
 				continue;
 
 			// Remember that all patterns have matched.
@@ -971,7 +976,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
 				 RuleEndpointState* state, bool eos)
 	{
-	if ( state->matched_rules.is_member(r->Index()) )
+	if ( is_member_of(state->matched_rules, r->Index()) )
 		return false;
 
 	DBG_LOG(DBG_RULES, "Checking rule %s purely", r->ID());
@@ -1014,7 +1019,7 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 
 		if ( ! pc->negate )
 			{
-			if ( ! pc_state->matched_rules.is_member(pc->rule->Index()) )
+			if ( ! is_member_of(pc_state->matched_rules, pc->rule->Index()) )
 				// Precond rule has not matched yet.
 				return false;
 			}
@@ -1024,7 +1029,7 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 			if ( ! eos )
 				return false;
 
-			if ( pc_state->matched_rules.is_member(pc->rule->Index()) )
+			if ( is_member_of(pc_state->matched_rules, pc->rule->Index()) )
 				return false;
 			}
 		}
@@ -1041,11 +1046,11 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 				const u_char* data, int len, bool eos)
 	{
 	if ( state->opposite &&
-	     state->opposite->matched_rules.is_member(r->Index()) )
+		 is_member_of(state->opposite->matched_rules, r->Index()) )
 		// We have already executed the actions.
 		return;
 
-	state->matched_rules.append(r->Index());
+	state->matched_rules.push_back(r->Index());
 
 	loop_over_list(r->actions, i)
 		r->actions[i]->DoAction(r, state, data, len);
@@ -1063,7 +1068,7 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 	{
 	// Nothing to do if it has already matched.
-	if ( state->matched_rules.is_member(rule->Index()) )
+	if ( is_member_of(state->matched_rules, rule->Index()) )
 		return;
 
 	loop_over_list(state->hdr_tests, i)
@@ -1135,10 +1140,10 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node)
 			RuleHdrTest::PatternSet* set = node->psets[i][j];
 
 			fprintf(stderr,
-				"[%d patterns in %s group %d from %d rules]\n",
+				"[%d patterns in %s group %d from %lu rules]\n",
 				set->patterns.length(),
 				Rule::TypeToString((Rule::PatternType) i), j,
-				set->ids.length());
+				set->ids.size());
 			}
 		}
 
@@ -1234,9 +1239,9 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 					 set->re->DFA()->NumStates(),
 					 Rule::TypeToString((Rule::PatternType)i), j));
 
-			loop_over_list(set->ids, k)
+			for ( auto id : set->ids )
 				{
-				Rule* r = Rule::rule_table[set->ids[k] - 1];
+				Rule* r = Rule::rule_table[id - 1];
 				f->Write(fmt("%s ", r->ID()));
 				}
 

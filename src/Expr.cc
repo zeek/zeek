@@ -32,7 +32,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce",
-		"sizeof", "flatten", "cast", "is"
+		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -2905,8 +2905,46 @@ bool AssignExpr::DoUnserialize(UnserialInfo* info)
 	return UNSERIALIZE(&is_init);
 	}
 
-IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
-: BinaryExpr(EXPR_INDEX, arg_op1, arg_op2)
+IndexSliceAssignExpr::IndexSliceAssignExpr(Expr* op1, Expr* op2, int is_init)
+	: AssignExpr(op1, op2, is_init)
+	{
+	}
+
+Val* IndexSliceAssignExpr::Eval(Frame* f) const
+	{
+	if ( is_init )
+		{
+		RuntimeError("illegal assignment in initialization");
+		return 0;
+		}
+
+	Val* v = op2->Eval(f);
+
+	if ( v )
+		{
+		op1->Assign(f, v);
+		Unref(v);
+		}
+
+	return 0;
+	}
+
+IMPLEMENT_SERIAL(IndexSliceAssignExpr, SER_INDEX_SLICE_ASSIGN_EXPR);
+
+bool IndexSliceAssignExpr::DoSerialize(SerialInfo* info) const
+	{
+	DO_SERIALIZE(SER_INDEX_SLICE_ASSIGN_EXPR, AssignExpr);
+	return true;
+	}
+
+bool IndexSliceAssignExpr::DoUnserialize(UnserialInfo* info)
+	{
+	DO_UNSERIALIZE(AssignExpr);
+	return true;
+	}
+
+IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool arg_is_slice)
+: BinaryExpr(EXPR_INDEX, arg_op1, arg_op2), is_slice(arg_is_slice)
 	{
 	if ( IsError() )
 		return;
@@ -3302,13 +3340,13 @@ IMPLEMENT_SERIAL(IndexExpr, SER_INDEX_EXPR);
 bool IndexExpr::DoSerialize(SerialInfo* info) const
 	{
 	DO_SERIALIZE(SER_INDEX_EXPR, BinaryExpr);
-	return true;
+	return SERIALIZE(is_slice);
 	}
 
 bool IndexExpr::DoUnserialize(UnserialInfo* info)
 	{
 	DO_UNSERIALIZE(BinaryExpr);
-	return true;
+	return UNSERIALIZE(&is_slice);
 	}
 
 FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
@@ -5747,6 +5785,8 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_LIST )
 		return new RecordAssignExpr(op1, op2, is_init);
+	else if ( op1->Tag() == EXPR_INDEX && op1->AsIndexExpr()->IsSlice() )
+		return new IndexSliceAssignExpr(op1, op2, is_init);
 	else
 		return new AssignExpr(op1, op2, is_init);
 	}

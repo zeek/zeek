@@ -54,7 +54,7 @@ type Data_Block = record {
 		0xc001  -> client_core:       Client_Core_Data;
 		0xc002  -> client_security:   Client_Security_Data;
 		0xc003  -> client_network:    Client_Network_Data;
-		#0xc004  -> client_cluster:    Client_Cluster_Data;
+		0xc004  -> client_cluster:    Client_Cluster_Data;
 		#0xc005  -> client_monitor:    Client_Monitor_Data;
 		#0xc006  -> client_msgchannel: Client_MsgChannel_Data;
 		#0xc008  -> client_monitor_ex: Client_MonitorExtended_Data;
@@ -228,6 +228,16 @@ type Client_Security_Data = record {
 type Client_Network_Data = record {
 	channel_count: uint32;
 	channel_def_array: Client_Channel_Def[channel_count];
+} &byteorder=littleendian;
+
+type Client_Cluster_Data = record {
+	flags: uint32;
+	redir_session_id: uint32;
+} &let {
+	REDIRECTION_SUPPORTED:				bool = redir_session_id & 0x00000001;
+	SERVER_SESSION_REDIRECTION_VERSION_MASK:	int = (redir_session_id & 0x0000003C);
+	REDIRECTED_SESSIONID_FIELD_VALID:		int = (redir_session_id & 0x00000002);
+	REDIRECTED_SMARTCARD:				bool = redir_session_id & 0x00000040;
 } &byteorder=littleendian;
 
 type Client_Channel_Def = record {

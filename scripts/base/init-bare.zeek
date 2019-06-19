@@ -4278,7 +4278,9 @@ export {
 	## Name and flags for a single channel requested by the client.
 	type RDP::ClientChannelDef: record {
 		## A unique name for the channel
-		name:           string;
+		name:           string;	
+		## Channel Def raw options as count
+		options:	int;
 		## Absence of this flag indicates that this channel is
 		## a placeholder and that the server MUST NOT set it up.
 		initialized:    bool;
@@ -4303,6 +4305,11 @@ export {
 		## Channel must be persistent across remote control transactions.
 		persistent:     bool;
 	};
+
+        type RDP::ClientClusterData: record {
+                flags:                  int;
+                redir_session_id:       int;
+        };
 
 	## The list of channels requested by the client.
 	type RDP::ClientChannelList: vector of ClientChannelDef;

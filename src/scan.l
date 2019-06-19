@@ -756,7 +756,7 @@ void do_atif(Expr* expr)
 
 	if ( ! val->AsBool() )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	}
@@ -769,7 +769,7 @@ void do_atifdef(const char* id)
 
 	if ( ! (i = lookup_ID(id, current_module.c_str())) )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 
@@ -784,7 +784,7 @@ void do_atifndef(const char *id)
 
 	if ( (i = lookup_ID(id, current_module.c_str())) )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 
@@ -796,17 +796,17 @@ void do_atelse()
 	if ( current_depth == 0 )
 		reporter->Error("@else without @if...");
 
-	if ( if_stack.length() && current_depth > if_stack.last() )
+	if ( ! if_stack.empty() && current_depth > if_stack.back() )
 		return;
 
 	if ( YY_START == INITIAL )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	else
 		{
-		if_stack.get();
+		if_stack.pop_back();
 		BEGIN(INITIAL);
 		}
 	}
@@ -816,10 +816,10 @@ void do_atendif()
 	if ( current_depth == 0 )
 		reporter->Error("unbalanced @if... @endif");
 
-	if ( current_depth == if_stack.last() )
+	if ( current_depth == if_stack.back() )
 		{
 		BEGIN(INITIAL);
-		if_stack.get();
+		if_stack.pop_back();
 		}
 
 	--current_depth;

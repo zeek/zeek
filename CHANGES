@@ -1,4 +1,14 @@
 
+2.6-454 | 2019-06-19 09:39:06 -0700
+
+  * GH-393: Add slice notation for vectors (Tim Wojtulewicz, Corelight & Jon Siwek, Corelight)
+
+    Example Syntax:
+
+    local v = vector(1, 2, 3, 4, 5);
+    v[2:4] = vector(6, 7, 8);        # v is now [1, 2, 6, 7, 8, 5]
+    print v[:4];                     # prints [1, 2, 6, 7]
+
 2.6-446 | 2019-06-17 20:26:49 -0700
 
   * Rename bro to zeek in error messages (Daniel Thayer)
@@ -49,6 +59,7 @@
     several newer packets (like the hello retry).
 
   * Parse TLS 1.3 pre-shared-key extension. (Johanna Amann)
+
 
     Adds new events:
 

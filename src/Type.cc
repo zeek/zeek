@@ -1350,10 +1350,12 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 	{
 	expr_list& el = index->Exprs();
 
-	if ( el.length() != 1 )
+	if ( el.length() != 1 && el.length() != 2)
 		return DOES_NOT_MATCH_INDEX;
 
-	if ( el[0]->Type()->Tag() == TYPE_VECTOR )
+	if ( el.length() == 2 )
+		return MATCHES_INDEX_VECTOR;
+	else if ( el[0]->Type()->Tag() == TYPE_VECTOR )
 		return (IsIntegral(el[0]->Type()->YieldType()->Tag()) ||
 			 IsBool(el[0]->Type()->YieldType()->Tag())) ?
 				MATCHES_INDEX_VECTOR : DOES_NOT_MATCH_INDEX;

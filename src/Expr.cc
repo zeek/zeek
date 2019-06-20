@@ -32,7 +32,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce",
-		"sizeof", "flatten", "cast", "is"
+		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -2445,16 +2445,40 @@ int AssignExpr::IsPure() const
 	return 0;
 	}
 
-IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
-: BinaryExpr(EXPR_INDEX, arg_op1, arg_op2)
+IndexSliceAssignExpr::IndexSliceAssignExpr(Expr* op1, Expr* op2, int is_init)
+	: AssignExpr(op1, op2, is_init)
+	{
+	}
+
+Val* IndexSliceAssignExpr::Eval(Frame* f) const
+	{
+	if ( is_init )
+		{
+		RuntimeError("illegal assignment in initialization");
+		return 0;
+		}
+
+	Val* v = op2->Eval(f);
+
+	if ( v )
+		{
+		op1->Assign(f, v);
+		Unref(v);
+		}
+
+	return 0;
+	}
+
+IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool arg_is_slice)
+: BinaryExpr(EXPR_INDEX, arg_op1, arg_op2), is_slice(arg_is_slice)
 	{
 	if ( IsError() )
 		return;
 
 	if ( is_slice )
 		{
-		if ( ! IsString(op1->Type()->Tag()) )
-			ExprError("slice notation indexing only supported for strings currently");
+		if ( ! IsString(op1->Type()->Tag()) && ! IsVector(op1->Type()->Tag()) )
+			ExprError("slice notation indexing only supported for strings and vectors currently");
 		}
 
 	else if ( IsString(op1->Type()->Tag()) )
@@ -2477,8 +2501,7 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool is_slice)
 
 	else if ( ! op1->Type()->YieldType() )
 		{
-		if ( IsString(op1->Type()->Tag()) &&
-		     match_type == MATCHES_INDEX_SCALAR )
+		if ( IsString(op1->Type()->Tag()) && match_type == MATCHES_INDEX_SCALAR )
 			SetType(base_type(TYPE_STRING));
 		else
 		// It's a set - so indexing it yields void.  We don't
@@ -2644,7 +2667,32 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		v = v1->AsVectorVal()->Lookup(v2);
+		{
+		VectorVal* vect = v1->AsVectorVal();
+		const ListVal* lv = v2->AsListVal();
+
+		if ( lv->Length() == 1 )
+			v = vect->Lookup(v2);
+		else
+			{
+			int len = vect->Size();
+			VectorVal* result = new VectorVal(vect->Type()->AsVectorType());
+
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			int sub_length = last - first;
+
+			if ( sub_length >= 0 )
+				{
+				result->Resize(sub_length);
+
+				for ( int idx = first; idx < last; idx++ )
+					result->Assign(idx - first, vect->Lookup(idx)->Ref());
+				}
+
+			return result;
+			}
+		}
 		break;
 
 	case TYPE_TABLE:
@@ -2715,7 +2763,27 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
-		if ( ! v1->AsVectorVal()->Assign(v2, v, op) )
+		{
+		const ListVal* lv = v2->AsListVal();
+		VectorVal* v1_vect = v1->AsVectorVal();
+
+		if ( lv->Length() > 1 )
+			{
+			auto len = v1_vect->Size();
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+
+			// Remove the elements from the vector within the slice
+			for ( auto idx = first; idx < last; idx++ )
+				v1_vect->Remove(first);
+
+			// Insert the new elements starting at the first position
+			VectorVal* v_vect = v->AsVectorVal();
+
+			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
+				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
+			}
+		else if ( ! v1_vect->Assign(v2, v, op) )
 			{
 			if ( v )
 				{
@@ -2732,6 +2800,7 @@ void IndexExpr::Assign(Frame* f, Val* v, Opcode op)
 				RuntimeErrorWithCallStack("assignment failed with null value");
 			}
 		break;
+		}
 
 	case TYPE_TABLE:
 		if ( ! v1->AsTableVal()->Assign(v2, v, op) )
@@ -4861,6 +4930,8 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init)
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_LIST )
 		return new RecordAssignExpr(op1, op2, is_init);
+	else if ( op1->Tag() == EXPR_INDEX && op1->AsIndexExpr()->IsSlice() )
+		return new IndexSliceAssignExpr(op1, op2, is_init);
 	else
 		return new AssignExpr(op1, op2, is_init);
 	}

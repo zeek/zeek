@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 103
+%expect 104
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -57,7 +57,7 @@
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function
+%type <expr> expr opt_expr init anonymous_function index_slice
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -464,6 +464,12 @@ expr:
 	|	expr '=' expr
 			{
 			set_location(@1, @3);
+
+			if ( $1->Tag() == EXPR_INDEX && $1->AsIndexExpr()->IsSlice() )
+				reporter->Error("index slice assignment may not be used"
+				                " in arbitrary expression contexts, only"
+				                " as a statement");
+
 			$$ = get_assign_expr($1, $3, in_init);
 			}
 
@@ -479,15 +485,7 @@ expr:
 			$$ = new IndexExpr($1, $3);
 			}
 
-	|	expr '[' opt_expr ':' opt_expr ']'
-			{
-			set_location(@1, @6);
-			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
-			Expr* high = $5 ? $5 : new SizeExpr($1);
-			ListExpr* le = new ListExpr(low);
-			le->Append(high);
-			$$ = new IndexExpr($1, le, true);
-			}
+	|	index_slice
 
 	|	expr '$' TOK_ID
 			{
@@ -1267,6 +1265,21 @@ init:
 	|	expr
 	;
 
+index_slice:
+		expr '[' opt_expr ':' opt_expr ']'
+			{
+			set_location(@1, @6);
+			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
+			Expr* high = $5 ? $5 : new SizeExpr($1);
+
+			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
+				reporter->Error("slice notation must have integral values as indexes");
+
+			ListExpr* le = new ListExpr(low);
+			le->Append(high);
+			$$ = new IndexExpr($1, le, true);
+			}
+
 opt_attr:
 		attr_list
 	|
@@ -1468,6 +1481,15 @@ stmt:
 			$$ = new WhenStmt($4, $6, $11, $8, true);
 			if ( $10 )
 			    brofiler.DecIgnoreDepth();
+			}
+
+	|	index_slice '=' expr ';' opt_no_test
+			{
+			set_location(@1, @4);
+			$$ = new ExprStmt(get_assign_expr($1, $3, in_init));
+
+			if ( ! $5 )
+				brofiler.AddStmt($$);
 			}
 
 	|	expr ';' opt_no_test

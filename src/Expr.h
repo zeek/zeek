@@ -49,7 +49,8 @@ typedef enum {
 	EXPR_FLATTEN,
 	EXPR_CAST,
 	EXPR_IS,
-#define NUM_EXPRS (int(EXPR_IS) + 1)
+	EXPR_INDEX_SLICE_ASSIGN,
+#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
 } BroExprTag;
 
 extern const char* expr_name(BroExprTag t);
@@ -58,6 +59,7 @@ class Stmt;
 class Frame;
 class ListExpr;
 class NameExpr;
+class IndexExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
@@ -185,6 +187,18 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
 		return (AssignExpr*) this;
+		}
+
+	const IndexExpr* AsIndexExpr() const
+		{
+		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+		return (const IndexExpr*) this;
+		}
+
+	IndexExpr* AsIndexExpr()
+		{
+		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+		return (IndexExpr*) this;
 		}
 
 	void Describe(ODesc* d) const override;
@@ -605,6 +619,16 @@ protected:
 	Val* val;	// optional
 };
 
+class IndexSliceAssignExpr : public AssignExpr {
+public:
+	IndexSliceAssignExpr(Expr* op1, Expr* op2, int is_init);
+	Val* Eval(Frame* f) const override;
+
+protected:
+	friend class Expr;
+	IndexSliceAssignExpr() {}
+};
+
 class IndexExpr : public BinaryExpr {
 public:
 	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
@@ -624,6 +648,8 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	bool IsSlice() const { return is_slice; }
+
 protected:
 	friend class Expr;
 	IndexExpr()	{ }
@@ -631,6 +657,8 @@ protected:
 	Val* Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
+
+	bool is_slice;
 };
 
 class FieldExpr : public UnaryExpr {

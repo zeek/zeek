@@ -49,7 +49,7 @@ event rdp_client_security_data%(c: connection, data: RDP::ClientSecurityData%);
 ## channels: The channels that were requested
 event rdp_client_network_data%(c: connection, channels: RDP::ClientChannelList%);
 
-## Generated for client clusgter data packets.
+## Generated for client cluster data packets.
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##

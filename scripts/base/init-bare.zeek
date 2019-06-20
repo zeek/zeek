@@ -4280,7 +4280,7 @@ export {
 		## A unique name for the channel
 		name:           string;	
 		## Channel Def raw options as count
-		options:	int;
+		options:	count;
 		## Absence of this flag indicates that this channel is
 		## a placeholder and that the server MUST NOT set it up.
 		initialized:    bool;
@@ -4307,8 +4307,8 @@ export {
 	};
 
         type RDP::ClientClusterData: record {
-                flags:                  int;
-                redir_session_id:       int;
+                flags:                  count;
+                redir_session_id:       count;
         };
 
 	## The list of channels requested by the client.

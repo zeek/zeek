@@ -86,7 +86,7 @@ public:
 			const;
 
 	// Assign to the given value, if appropriate.
-	virtual void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
+	virtual void Assign(Frame* f, Val* v);
 
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  The type should be Unref()'d when done
@@ -239,7 +239,7 @@ public:
 	ID* Id() const		{ return id; }
 
 	Val* Eval(Frame* f) const override;
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, Val* v) override;
 	Expr* MakeLvalue() override;
 	int IsPure() const override;
 
@@ -586,7 +586,7 @@ class RefExpr : public UnaryExpr {
 public:
 	explicit RefExpr(Expr* op);
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, Val* v) override;
 	Expr* MakeLvalue() override;
 
 protected:
@@ -639,7 +639,7 @@ public:
 	void Add(Frame* f) override;
 	void Delete(Frame* f) override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, Val* v) override;
 	Expr* MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -671,7 +671,7 @@ public:
 
 	int CanDel() const override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, Val* v) override;
 	void Delete(Frame* f) override;
 
 	Expr* MakeLvalue() override;
@@ -991,7 +991,7 @@ public:
 	BroType* InitType() const override;
 	Val* InitVal(const BroType* t, Val* aggr) const override;
 	Expr* MakeLvalue() override;
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, Val* v) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

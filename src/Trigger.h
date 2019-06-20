@@ -4,7 +4,7 @@
 #include <list>
 #include <map>
 
-#include "StateAccess.h"
+#include "Notifier.h"
 #include "Traverse.h"
 
 // Triggers are the heart of "when" statements: expressions that when
@@ -13,7 +13,7 @@
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger : public NotifierRegistry::Notifier, public BroObj {
+class Trigger : public BroObj, public notifier::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the
@@ -61,12 +61,10 @@ public:
 		{ d->Add("<trigger>"); }
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Access(ID* id, const StateAccess& sa) override
-		{ QueueTrigger(this); }
-	void Access(Val* val, const StateAccess& sa) override
+	void Modified(notifier::Modifiable* m) override
 		{ QueueTrigger(this); }
 
-	const char* Name() const override;
+	const char* Name() const;
 
 	static void QueueTrigger(Trigger* trigger);
 
@@ -104,8 +102,7 @@ private:
 	bool delayed; // true if a function call is currently being delayed
 	bool disabled;
 
-	val_list vals;
-	id_list ids;
+	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
 
 	typedef map<const CallExpr*, Val*> ValCache;
 	ValCache cache;

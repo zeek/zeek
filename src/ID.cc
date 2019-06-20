@@ -59,34 +59,14 @@ void ID::ClearVal()
 	val = 0;
 	}
 
-void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
+void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( op != OP_NONE )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		if ( props )
-			{
-			if ( v->IsMutableVal() )
-				v->AsMutableVal()->AddProperties(props);
-			}
-
-#ifndef DEBUG
-		if ( props )
-#else
-		if ( debug_logger.IsVerbose() || props )
-#endif
-			StateAccess::Log(new StateAccess(op, this, v, val));
-		}
-
 	if ( ! weak_ref )
 		Unref(val);
 
 	val = v;
 	weak_ref = arg_weak_ref;
+	Modified();
 
 #ifdef DEBUG
 	UpdateValID();
@@ -175,16 +155,6 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	MutableVal::Properties props = 0;
-
-	if ( val && val->IsMutableVal() )
-		{
-		if ( attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->AddProperties(props);
-		}
-
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
 		val->AsTableVal()->SetAttrs(attrs);
 
@@ -242,16 +212,6 @@ void ID::RemoveAttr(attr_tag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
-
-	if ( val && val->IsMutableVal() )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( a == ATTR_TRACKED )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->RemoveProperties(props);
-		}
 	}
 
 void ID::SetOption()

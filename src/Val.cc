@@ -380,128 +380,6 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 	return false;
 	}
 
-MutableVal::~MutableVal()
-	{
-	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
-		{
-		if ( global_scope() )
-			global_scope()->Remove((*i)->Name());
-		(*i)->ClearVal();	// just to make sure.
-		Unref((*i));
-		}
-
-	if ( id )
-		{
-		if ( global_scope() )
-			global_scope()->Remove(id->Name());
-		id->ClearVal(); // just to make sure.
-		Unref(id);
-		}
-	}
-
-bool MutableVal::AddProperties(Properties arg_props)
-	{
-	if ( (props | arg_props) == props )
-		// No change.
-		return false;
-
-	props |= arg_props;
-
-	if ( ! id )
-		Bind();
-
-	return true;
-	}
-
-
-bool MutableVal::RemoveProperties(Properties arg_props)
-	{
-	if ( (props & ~arg_props) == props )
-		// No change.
-		return false;
-
-	props &= ~arg_props;
-
-	return true;
-	}
-
-ID* MutableVal::Bind() const
-	{
-	static bool initialized = false;
-
-	assert(!id);
-
-	static unsigned int id_counter = 0;
-	static const int MAX_NAME_SIZE = 128;
-	static char name[MAX_NAME_SIZE];
-	static char* end_of_static_str = 0;
-
-	if ( ! initialized )
-		{
-		// Get local IP.
-		char host[MAXHOSTNAMELEN];
-		strcpy(host, "localhost");
-		gethostname(host, MAXHOSTNAMELEN);
-		host[MAXHOSTNAMELEN-1] = '\0';
-#if 0
-		// We ignore errors.
-		struct hostent* ent = gethostbyname(host);
-
-		uint32 ip;
-		if ( ent && ent->h_addr_list[0] )
-			ip = *(uint32*) ent->h_addr_list[0];
-		else
-			ip = htonl(0x7f000001);	// 127.0.0.1
-
-		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#",
-			      IPAddr(IPv4, &ip, IPAddr::Network)->AsString().c_str(),
-			      getpid());
-#else
-		safe_snprintf(name, MAX_NAME_SIZE, "#%s#%d#", host, getpid());
-#endif
-
-		end_of_static_str = name + strlen(name);
-
-		initialized = true;
-		}
-
-	safe_snprintf(end_of_static_str, MAX_NAME_SIZE - (end_of_static_str - name),
-		      "%u", ++id_counter);
-	name[MAX_NAME_SIZE-1] = '\0';
-
-//	DBG_LOG(DBG_STATE, "new unique ID %s", name);
-
-	id = new ID(name, SCOPE_GLOBAL, true);
-	id->SetType(const_cast<MutableVal*>(this)->Type()->Ref());
-
-	global_scope()->Insert(name, id);
-
-	id->SetVal(const_cast<MutableVal*>(this), OP_NONE, true);
-
-	return id;
-	}
-
-void MutableVal::TransferUniqueID(MutableVal* mv)
-	{
-	const char* new_name = mv->UniqueID()->Name();
-
-	if ( ! id )
-		Bind();
-
-	DBG_LOG(DBG_STATE, "transfering ID (new %s, old/alias %s)", new_name, id->Name());
-
-	// Keep old name as alias.
-	aliases.push_back(id);
-
-	id = new ID(new_name, SCOPE_GLOBAL, true);
-	id->SetType(const_cast<MutableVal*>(this)->Type()->Ref());
-	global_scope()->Insert(new_name, id);
-	id->SetVal(const_cast<MutableVal*>(this), OP_NONE, true);
-
-	Unref(mv->id);
-	mv->id = 0;
-	}
-
 IntervalVal::IntervalVal(double quantity, double units) :
 	Val(quantity * units, TYPE_INTERVAL)
 	{
@@ -1056,7 +934,7 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-TableVal::TableVal(TableType* t, Attributes* a) : MutableVal(t)
+TableVal::TableVal(TableType* t, Attributes* a) : Val(t)
 	{
 	Init(t);
 	SetAttrs(a);
@@ -1175,7 +1053,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-int TableVal::Assign(Val* index, Val* new_val, Opcode op)
+int TableVal::Assign(Val* index, Val* new_val)
 	{
 	HashKey* k = ComputeHash(index);
 	if ( ! k )
@@ -1185,10 +1063,10 @@ int TableVal::Assign(Val* index, Val* new_val, Opcode op)
 		return 0;
 		}
 
-	return Assign(index, k, new_val, op);
+	return Assign(index, k, new_val);
 	}
 
-int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
+int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
 	int is_set = table_type->IsSet();
 
@@ -1217,55 +1095,6 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 			subnets->Insert(index, new_entry_val);
 		}
 
-	if ( LoggingAccess() && op != OP_NONE )
-		{
-		Val* rec_index = 0;
-		if ( ! index )
-			index = rec_index = RecoverIndex(&k_copy);
-
-		if ( new_val )
-			{
-			// A table.
-			if ( new_val->IsMutableVal() )
-				new_val->AsMutableVal()->AddProperties(GetProperties());
-
-			bool unref_old_val = false;
-			Val* old_val = old_entry_val ?
-					old_entry_val->Value() : 0;
-			if ( op == OP_INCR && ! old_val )
-				// If it's an increment, somebody has already
-				// checked that the index is there.  If it's
-				// not, that can only be due to using the
-				// default.
-				{
-				old_val = Default(index);
-				unref_old_val = true;
-				}
-
-			assert(op != OP_INCR || old_val);
-
-			StateAccess::Log(
-				new StateAccess(
-					op == OP_INCR ?
-						OP_INCR_IDX : OP_ASSIGN_IDX,
-					this, index, new_val, old_val));
-
-			if ( unref_old_val )
-				Unref(old_val);
-			}
-
-		else
-			{
-			// A set.
-			StateAccess::Log(
-				new StateAccess(OP_ADD, this,
-						index, 0, 0));
-			}
-
-		if ( rec_index )
-			Unref(rec_index);
-		}
-
 	// Keep old expiration time if necessary.
 	if ( old_entry_val && attrs && attrs->FindAttr(ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
@@ -1276,6 +1105,7 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 		delete old_entry_val;
 		}
 
+	Modified();
 	return 1;
 	}
 
@@ -1318,15 +1148,13 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->Value(), k, 0,
-					propagate_ops ? OP_ASSIGN : OP_NONE) )
+			if ( ! t->Assign(v->Value(), k, 0) )
 				 return 0;
 			}
 		else
 			{
 			v->Ref();
-			if ( ! t->Assign(0, k, v->Value(),
-					propagate_ops ? OP_ASSIGN : OP_NONE) )
+			if ( ! t->Assign(0, k, v->Value()) )
 				 return 0;
 			}
 		}
@@ -1595,11 +1423,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		if ( v )
 			{
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
-					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && ExpirationEnabled() )
-						ReadOperation(index, v);
-					}
 
 			return v->Value() ? v->Value() : this;
 			}
@@ -1626,11 +1450,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 			if ( v )
 				{
 				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
-					{
 					v->SetExpireAccess(network_time);
-					if ( LoggingAccess() && ExpirationEnabled() )
-						ReadOperation(index, v);
-					}
 
 				return v->Value() ? v->Value() : this;
 				}
@@ -1684,11 +1504,7 @@ TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 		if ( entry )
 			{
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
-				{
 				entry->SetExpireAccess(network_time);
-				if ( LoggingAccess() && ExpirationEnabled() )
-					ReadOperation(s, entry);
-				}
 			}
 
 		Unref(s); // assign does not consume index
@@ -1718,8 +1534,6 @@ bool TableVal::UpdateTimestamp(Val* index)
 		return false;
 
 	v->SetExpireAccess(network_time);
-	if ( LoggingAccess() && attrs->FindAttr(ATTR_EXPIRE_READ) )
-		ReadOperation(index, v);
 
 	return true;
 	}
@@ -1738,25 +1552,10 @@ Val* TableVal::Delete(const Val* index)
 	if ( subnets && ! subnets->Remove(index) )
 		reporter->InternalWarning("index not in prefix table");
 
-	if ( LoggingAccess() )
-		{
-		if ( v )
-			{
-			// A set.
-			Val* has_old_val = val_mgr->GetInt(1);
-			StateAccess::Log(
-				new StateAccess(OP_DEL, this, index,
-						has_old_val));
-			Unref(has_old_val);
-			}
-		else
-			StateAccess::Log(
-				new StateAccess(OP_DEL, this, index, 0));
-		}
-
 	delete k;
 	delete v;
 
+	Modified();
 	return va;
 	}
 
@@ -1775,9 +1574,7 @@ Val* TableVal::Delete(const HashKey* k)
 
 	delete v;
 
-	if ( LoggingAccess() )
-		StateAccess::Log(new StateAccess(OP_DEL, this, k));
-
+	Modified();
 	return va;
 	}
 
@@ -1944,7 +1741,7 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 	return 1;
 	}
 
-int TableVal::CheckAndAssign(Val* index, Val* new_val, Opcode op)
+int TableVal::CheckAndAssign(Val* index, Val* new_val)
 	{
 	Val* v = 0;
 	if ( subnets )
@@ -1956,7 +1753,7 @@ int TableVal::CheckAndAssign(Val* index, Val* new_val, Opcode op)
 	if ( v )
 		index->Warn("multiple initializations for index");
 
-	return Assign(index, new_val, op);
+	return Assign(index, new_val);
 	}
 
 void TableVal::InitTimer(double delay)
@@ -1988,6 +1785,7 @@ void TableVal::DoExpire(double t)
 	HashKey* k = 0;
 	TableEntryVal* v = 0;
 	TableEntryVal* v_saved = 0;
+	bool modified = false;
 
 	for ( int i = 0; i < table_incremental_step &&
 			 (v = tbl->NextEntry(k, expire_cookie)); ++i )
@@ -2040,17 +1838,17 @@ void TableVal::DoExpire(double t)
 				Unref(index);
 				}
 
-			if ( LoggingAccess() )
-				StateAccess::Log(
-					new StateAccess(OP_EXPIRE, this, k));
-
 			tbl->RemoveEntry(k);
 			Unref(v->Value());
 			delete v;
+			modified = true;
 			}
 
 		delete k;
 		}
+
+	if ( modified )
+		Modified();
 
 	if ( ! v )
 		{
@@ -2149,26 +1947,6 @@ double TableVal::CallExpireFunc(Val* idx)
 	return secs;
 	}
 
-void TableVal::ReadOperation(Val* index, TableEntryVal* v)
-	{
-	double timeout = GetExpireTime();
-
-	if ( timeout < 0 )
-		// Skip in case of unset/invalid expiration value. If it's an
-		// error, it has been reported already.
-		return;
-
-	// In theory we need to only propagate one update per &read_expire
-	// interval to prevent peers from expiring intervals. To account for
-	// practical issues such as latency, we send one update every half
-	// &read_expire.
-	if ( network_time - v->LastReadUpdate() > timeout / 2 )
-		{
-		StateAccess::Log(new StateAccess(OP_READ_IDX, this, index));
-		v->SetLastReadUpdate(network_time);
-		}
-	}
-
 Val* TableVal::DoClone(CloneState* state)
 	{
 	auto tv = new TableVal(table_type);
@@ -2219,48 +1997,6 @@ Val* TableVal::DoClone(CloneState* state)
 	return tv;
 	}
 
-bool TableVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( Type()->IsSet() || ! RecursiveProps(arg_props) )
-		return true;
-
-	// For a large table, this could get expensive. So, let's hope
-	// that nobody creates such a table *before* making it persistent
-	// (for example by inserting it into another table).
-	TableEntryVal* v;
-	PDict(TableEntryVal)* tbl = val.table_val;
-	IterCookie* c = tbl->InitForIteration();
-	while ( (v = tbl->NextEntry(c)) )
-		if ( v->Value()->IsMutableVal() )
-			v->Value()->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
-bool TableVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( Type()->IsSet() || ! RecursiveProps(arg_props) )
-		return true;
-
-	// For a large table, this could get expensive.  So, let's hope
-	// that nobody creates such a table *before* making it persistent
-	// (for example by inserting it into another table).
-	TableEntryVal* v;
-	PDict(TableEntryVal)* tbl = val.table_val;
-	IterCookie* c = tbl->InitForIteration();
-	while ( (v = tbl->NextEntry(c)) )
-		if ( v->Value()->IsMutableVal() )
-			v->Value()->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
 unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
@@ -2282,7 +2018,7 @@ unsigned int TableVal::MemoryAllocation() const
 
 vector<RecordVal*> RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields) : MutableVal(t)
+RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
 	origin = 0;
 	int n = t->NumFields();
@@ -2343,24 +2079,11 @@ RecordVal::~RecordVal()
 	delete_vals(AsNonConstRecord());
 	}
 
-void RecordVal::Assign(int field, Val* new_val, Opcode op)
+void RecordVal::Assign(int field, Val* new_val)
 	{
 	Val* old_val = AsNonConstRecord()->replace(field, new_val);
-
-	if ( LoggingAccess() && op != OP_NONE )
-		{
-		if ( new_val && new_val->IsMutableVal() )
-			new_val->AsMutableVal()->AddProperties(GetProperties());
-
-		StringVal* index = new StringVal(Type()->AsRecordType()->FieldName(field));
-		StateAccess::Log(
-			new StateAccess(
-				op == OP_INCR ? OP_INCR_IDX : OP_ASSIGN_IDX,
-				this, index, new_val, old_val));
-		Unref(index); // The logging may keep a cached copy.
-		}
-
 	Unref(old_val);
+	Modified();
 	}
 
 Val* RecordVal::Lookup(int field) const
@@ -2570,41 +2293,6 @@ Val* RecordVal::DoClone(CloneState* state)
 	return rv;
 	}
 
-bool RecordVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	loop_over_list(*val.val_list_val, i)
-		{
-		Val* v = (*val.val_list_val)[i];
-		if ( v && v->IsMutableVal() )
-			v->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-		}
-	return true;
-	}
-
-
-bool RecordVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	loop_over_list(*val.val_list_val, i)
-		{
-		Val* v = (*val.val_list_val)[i];
-		if ( v && v->IsMutableVal() )
-			v->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-		}
-	return true;
-	}
-
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
@@ -2637,7 +2325,7 @@ Val* EnumVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-VectorVal::VectorVal(VectorType* t) : MutableVal(t)
+VectorVal::VectorVal(VectorType* t) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	val.vector_val = new vector<Val*>();
@@ -2653,7 +2341,7 @@ VectorVal::~VectorVal()
 	delete val.vector_val;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
+bool VectorVal::Assign(unsigned int index, Val* element)
 	{
 	if ( element &&
 	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
@@ -2669,19 +2357,6 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	else
 		val.vector_val->resize(index + 1);
 
-	if ( LoggingAccess() && op != OP_NONE )
-		{
-		if ( element->IsMutableVal() )
-			element->AsMutableVal()->AddProperties(GetProperties());
-
-		Val* ival = val_mgr->GetCount(index);
-
-		StateAccess::Log(new StateAccess(op == OP_INCR ?
-				OP_INCR_IDX : OP_ASSIGN_IDX,
-				this, ival, element, val_at_index));
-		Unref(ival);
-		}
-
 	Unref(val_at_index);
 
 	// Note: we do *not* Ref() the element, if any, at this point.
@@ -2689,6 +2364,7 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	// to do it similarly.
 	(*val.vector_val)[index] = element;
 
+	Modified();
 	return true;
 	}
 
@@ -2725,6 +2401,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 	// to do it similarly.
 	val.vector_val->insert(it, element);
 
+	Modified();
 	return true;
 	}
 
@@ -2738,6 +2415,7 @@ bool VectorVal::Remove(unsigned int index)
 	val.vector_val->erase(it);
 	Unref(val_at_index);
 
+	Modified();
 	return true;
 	}
 
@@ -2789,37 +2467,6 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 	 return Resize(new_num_elements);
 	 }
-
-bool VectorVal::AddProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::AddProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		if ( (*val.vector_val)[i]->IsMutableVal() )
-			(*val.vector_val)[i]->AsMutableVal()->AddProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
-bool VectorVal::RemoveProperties(Properties arg_props)
-	{
-	if ( ! MutableVal::RemoveProperties(arg_props) )
-		return false;
-
-	if ( ! RecursiveProps(arg_props) )
-		return true;
-
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		if ( (*val.vector_val)[i]->IsMutableVal() )
-			(*val.vector_val)[i]->AsMutableVal()->RemoveProperties(RecursiveProps(arg_props));
-
-	return true;
-	}
-
 
 Val* VectorVal::DoClone(CloneState* state)
 	{

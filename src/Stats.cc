@@ -255,7 +255,7 @@ void ProfileLogger::Log()
 		while ( (id = globals->NextEntry(c)) )
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.
-			if ( id->HasVal() && ! id->IsInternalGlobal() )
+			if ( id->HasVal() )
 				{
 				Val* v = id->ID_Val();
 

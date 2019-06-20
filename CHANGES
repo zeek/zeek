@@ -1,4 +1,8 @@
 
+2.6-477 | 2019-06-20 14:00:22 -0700
+
+  * Remove unused SerialInfo.h and SerialTypes.h headers (Jon Siwek, Corelight)
+
 2.6-476 | 2019-06-20 13:23:22 -0700
 
   * Remove opaque of ocsp_resp. (Johanna Amann, Corelight)

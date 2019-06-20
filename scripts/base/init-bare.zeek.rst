@@ -166,9 +166,6 @@ Redefinable Options
                                                                                            in addition to profiling statistics.
 :zeek:id:`sig_max_group_size`: :zeek:type:`count` :zeek:attr:`&redef`                      Maximum size of regular expression groups for signature matching.
 :zeek:id:`skip_http_data`: :zeek:type:`bool` :zeek:attr:`&redef`                           Skip HTTP data for performance considerations.
-:zeek:id:`ssl_ca_certificate`: :zeek:type:`string` :zeek:attr:`&redef`                     The CA certificate file to authorize remote Zeeks/Broccolis.
-:zeek:id:`ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`                         The passphrase for our private key.
-:zeek:id:`ssl_private_key`: :zeek:type:`string` :zeek:attr:`&redef`                        File containing our private key and our certificate.
 :zeek:id:`stp_delta`: :zeek:type:`interval` :zeek:attr:`&redef`                            Internal to the stepping stone detector.
 :zeek:id:`stp_idle_min`: :zeek:type:`interval` :zeek:attr:`&redef`                         Internal to the stepping stone detector.
 :zeek:id:`suppress_local_output`: :zeek:type:`bool` :zeek:attr:`&redef`                    Deprecated.
@@ -1622,37 +1619,6 @@ Redefinable Options
    portion will not go through TCP reassembly.
    
    .. zeek:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
-
-.. zeek:id:: ssl_ca_certificate
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"<undefined>"``
-
-   The CA certificate file to authorize remote Zeeks/Broccolis.
-   
-   .. zeek:see:: ssl_private_key ssl_passphrase
-
-.. zeek:id:: ssl_passphrase
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"<undefined>"``
-
-   The passphrase for our private key. Keeping this undefined
-   causes Zeek to prompt for the passphrase.
-   
-   .. zeek:see:: ssl_private_key ssl_ca_certificate
-
-.. zeek:id:: ssl_private_key
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"<undefined>"``
-
-   File containing our private key and our certificate.
-   
-   .. zeek:see:: ssl_ca_certificate ssl_passphrase
 
 .. zeek:id:: stp_delta
 

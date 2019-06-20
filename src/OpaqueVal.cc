@@ -1087,6 +1087,14 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 
 Val* ParaglobVal::DoClone(CloneState* state)
 	{
-	return new ParaglobVal
-		(build_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
+	try {
+		return new ParaglobVal
+			(build_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
+	} catch (const paraglob::underflow_error& e) {
+		reporter->Error("Paraglob underflow error while cloning -> %s", e.what());
+		return nullptr;
+	} catch (const paraglob::overflow_error& e) {
+		reporter->Error("Paraglob overflow error while cloning -> %s", e.what());
+		return nullptr;
+	}
 	}

@@ -418,6 +418,9 @@ Removed Functionality
     - ``log_encryption_key``
     - ``state_dir``
     - ``state_write_delay``
+    - ``ssl_ca_certificate``
+    - ``ssl_private_key``
+    - ``ssl_passphrase``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

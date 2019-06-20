@@ -1,4 +1,12 @@
 
+2.6-478 | 2019-06-20 14:19:11 -0700
+
+  * Remove old Broccoli SSL options (Jon Siwek, Corelight)
+
+    - ssl_ca_certificate
+    - ssl_private_key
+    - ssl_passphrase
+
 2.6-477 | 2019-06-20 14:00:22 -0700
 
   * Remove unused SerialInfo.h and SerialTypes.h headers (Jon Siwek, Corelight)

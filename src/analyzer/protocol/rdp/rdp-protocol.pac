@@ -235,8 +235,8 @@ type Client_Cluster_Data = record {
 	redir_session_id: uint32;
 } &let {
 	REDIRECTION_SUPPORTED:				bool = redir_session_id & 0x00000001;
-	SERVER_SESSION_REDIRECTION_VERSION_MASK:	int = (redir_session_id & 0x0000003C);
-	REDIRECTED_SESSIONID_FIELD_VALID:		int = (redir_session_id & 0x00000002);
+	SERVER_SESSION_REDIRECTION_VERSION_MASK:	uint8 = (redir_session_id & 0x0000003C);
+	REDIRECTED_SESSIONID_FIELD_VALID:		uint8 = (redir_session_id & 0x00000002);
 	REDIRECTED_SMARTCARD:				bool = redir_session_id & 0x00000040;
 } &byteorder=littleendian;
 

@@ -164,6 +164,10 @@ refine flow RDP_Flow += {
                 RecordVal* ccld = new RecordVal(BifType::Record::RDP::ClientClusterData);
 		ccld->Assign(0, val_mgr->GetCount(${ccluster.flags}));
 		ccld->Assign(1, val_mgr->GetCount(${ccluster.redir_session_id}));
+ 		ccld->Assign(2, val_mgr->GetBool(${ccluster.REDIRECTION_SUPPORTED}));
+ 		ccld->Assign(3, val_mgr->GetCount(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
+ 		ccld->Assign(4, val_mgr->GetCount(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
+ 		ccld->Assign(5, val_mgr->GetBool(${ccluster.REDIRECTED_SMARTCARD}));
 
                 BifEvent::generate_rdp_client_cluster_data(connection()->bro_analyzer(),
                                                             connection()->bro_analyzer()->Conn(),

@@ -4307,8 +4307,12 @@ export {
 	};
 
         type RDP::ClientClusterData: record {
-                flags:                  count;
-                redir_session_id:       count;
+                flags:                  		count;
+                redir_session_id:       		count;
+		redir_supported:			bool;
+		svr_session_redir_version_mask:		count;
+		redir_sessionid_field_valid:		count;
+		redir_smartcard:			bool;
         };
 
 	## The list of channels requested by the client.

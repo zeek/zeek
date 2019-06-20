@@ -1047,36 +1047,42 @@ bool ParaglobVal::operator==(const ParaglobVal& other) const
 	return *(this->internal_paraglob) == *(other.internal_paraglob);
 	}
 
-IMPLEMENT_SERIAL(ParaglobVal, SER_PARAGLOB_VAL)
+IMPLEMENT_OPAQUE_VALUE(ParaglobVal)
 
-bool ParaglobVal::DoSerialize(SerialInfo* info) const
+broker::expected<broker::data> ParaglobVal::DoSerialize() const
 	{
-	DO_SERIALIZE(SER_PARAGLOB_VAL, OpaqueVal)
-
+	broker::vector d;
 	std::unique_ptr<std::vector<uint8_t>> iv = this->internal_paraglob->serialize();
-
-	return SERIALIZE(iv.get());
+	for (uint8_t a : *(iv.get()))
+		d.emplace_back(static_cast<uint64_t>(a));
+	return {std::move(d)};
 	}
 
-bool ParaglobVal::DoUnserialize(UnserialInfo* info)
+bool ParaglobVal::DoUnserialize(const broker::data& data)
 	{
-	DO_UNSERIALIZE(OpaqueVal)
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
 
 	std::unique_ptr<std::vector<uint8_t>> iv (new std::vector<uint8_t>);
+	iv->resize(d->size());
 
-	bool success = UNSERIALIZE(iv.get());
+	for (std::vector<broker::data>::size_type i = 0; i < d->size(); ++i)
+		{
+		get_vector_idx<uint64_t>(*d, i, iv.get()->data() + i);
+		}
 
 	try {
 		this->internal_paraglob = build_unique<paraglob::Paraglob>(std::move(iv));
 	} catch (const paraglob::underflow_error& e) {
-		reporter->Error(e.what());
+		reporter->Error("Paraglob underflow error -> %s", e.what());
 		return false;
 	} catch (const paraglob::overflow_error& e) {
-		reporter->Error(e.what());
+		reporter->Error("Paraglob overflow error -> %s", e.what());
 		return false;
 	}
 
-	return success;
+	return true;
 	}
 
 Val* ParaglobVal::DoClone(CloneState* state)

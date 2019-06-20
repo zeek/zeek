@@ -3,12 +3,9 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
-<<<<<<< HEAD
 #include <typeinfo>
 #include <memory> // std::unique_ptr
 
-=======
->>>>>>> upstream/master
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
@@ -333,6 +330,8 @@ public:
 protected:
 	ParaglobVal() : OpaqueVal(paraglob_type) {}
 
+	DECLARE_OPAQUE_VALUE(ParaglobVal)
+
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 	// Small convenience function. Does what std::make_unique does in C++14. Wont
@@ -341,8 +340,6 @@ private:
 	std::unique_ptr<T> build_unique (Args&&... args) {
 		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 	}
-
-	DECLARE_SERIAL(ParaglobVal)
 };
 
 #endif

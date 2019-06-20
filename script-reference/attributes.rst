@@ -188,3 +188,9 @@ Here is a more detailed explanation of each attribute:
     The associated identifier is marked as deprecated and will be
     removed in a future version of Zeek.  Look in the NEWS file for more
     instructions to migrate code that uses deprecated functionality.
+    This attribute can be assigned an optional value to print whenever
+    the deprecation notice is printed in script output. The preferred
+    format of this warning message should include the version number
+    in which the identifier will be removed::
+
+        type warned: string &deprecated="This type is deprecated. Removed in x.y.z.";

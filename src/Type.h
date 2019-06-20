@@ -494,6 +494,14 @@ public:
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
+	bool IsFieldDeprecated(int field) const
+		{
+		const TypeDecl* decl = FieldDecl(field);
+		return decl && decl->FindAttr(ATTR_DEPRECATED) != 0;
+		}
+
+	string GetFieldDeprecationWarning(int field, bool has_check) const;
+
 protected:
 	RecordType() { types = 0; }
 
@@ -551,12 +559,12 @@ public:
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const string& module_name, const char* name, bool is_export, bool deprecated);
+	void AddName(const string& module_name, const char* name, bool is_export, Expr* deprecation = nullptr);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, bool deprecated);
+	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation = nullptr);
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const string& module_name, const char* name) const;
@@ -578,7 +586,7 @@ protected:
 
 	void CheckAndAddName(const string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
-	                     bool deprecated);
+	                     Expr* deprecation = nullptr);
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;

@@ -219,13 +219,33 @@ void ID::UpdateValAttrs()
 		}
 	}
 
-void ID::MakeDeprecated()
+void ID::MakeDeprecated(Expr* deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED)};
+	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
 	AddAttrs(new Attributes(attr, Type(), false));
+	}
+
+string ID::GetDeprecationWarning() const
+	{
+	string result;
+	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
+	if ( depr_attr )
+		{
+		ConstExpr* expr = static_cast<ConstExpr*>(depr_attr->AttrExpr());
+		if ( expr )
+			{
+			StringVal* text = expr->Value()->AsStringVal();
+			result = text->CheckString();
+			}
+		}
+
+	if ( result.empty() )
+		return fmt("deprecated (%s)", Name());
+	else
+		return fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
 void ID::AddAttrs(Attributes* a)

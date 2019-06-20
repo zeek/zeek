@@ -86,7 +86,9 @@ public:
 	bool IsDeprecated() const
 		{ return FindAttr(ATTR_DEPRECATED) != 0; }
 
-	void MakeDeprecated();
+	void MakeDeprecated(Expr* deprecation);
+
+	string GetDeprecationWarning() const;
 
 	void Error(const char* msg, const BroObj* o2 = 0);
 

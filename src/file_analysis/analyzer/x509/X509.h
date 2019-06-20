@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "Val.h"
+#include "OpaqueVal.h"
 #include "X509Common.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
@@ -151,10 +151,9 @@ protected:
 	 */
 	X509Val();
 
+	DECLARE_OPAQUE_VALUE(X509Val)
 private:
 	::X509* certificate; // the wrapped certificate
-
-	DECLARE_SERIAL(X509Val);
 };
 
 }

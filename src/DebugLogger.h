@@ -14,10 +14,9 @@
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
 enum DebugStream {
-	DBG_SERIAL,	// Serialization
+	DBG_SERIAL, // Serialization
 	DBG_RULES,	// Signature matching
 	DBG_STATE,	// StateAccess logging
-	DBG_CHUNKEDIO,	// ChunkedIO logging
 	DBG_STRING,	// String code
 	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
 	DBG_MAINLOOP,	// Main IOSource loop

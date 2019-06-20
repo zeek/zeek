@@ -1,6 +1,6 @@
 # @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: cp -r %DIR/file-plugin/* .
-# @TEST-EXEC: ./configure --bro-dist=${DIST} && make
+# @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN Demo::Foo >>output
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/retr.trace %INPUT >>output

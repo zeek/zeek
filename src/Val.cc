@@ -20,7 +20,6 @@
 #include "Scope.h"
 #include "NetVar.h"
 #include "Expr.h"
-#include "Serializer.h"
 #include "PrefixTable.h"
 #include "Conn.h"
 #include "Reporter.h"
@@ -74,7 +73,8 @@ Val::~Val()
 Val* Val::Clone()
 	{
 	Val::CloneState state;
-	return Clone(&state);
+	auto v = Clone(&state);
+	return v;
 	}
 
 Val* Val::Clone(CloneState* state)
@@ -85,9 +85,10 @@ Val* Val::Clone(CloneState* state)
 		return i->second->Ref();
 
 	auto c = DoClone(state);
-	assert(c);
 
-	state->clones.insert(std::make_pair(this, c));
+	if ( ! c )
+		reporter->RuntimeError(GetLocationInfo(), "cannot clone value");
+
 	return c;
 	}
 
@@ -131,222 +132,6 @@ Val* Val::DoClone(CloneState* state)
 	reporter->InternalError("cannot be reached");
 	return nullptr;
  	}
-
-bool Val::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Val* Val::Unserialize(UnserialInfo* info, TypeTag type, const BroType* exact_type)
-	{
-	Val* v = (Val*) SerialObj::Unserialize(info, SER_VAL);
-	if ( ! v )
-		return 0;
-
-	if ( type != TYPE_ANY && (v->Type()->Tag() != type
-		|| (exact_type && ! same_type(exact_type, v->Type()))) )
-		{
-		info->s->Error("type mismatch for value");
-		Unref(v);
-		return 0;
-		}
-
-	// For MutableVals, we may get a value which, by considering the
-	// globally unique ID, we already know. To keep references correct,
-	// we have to bind to the local version. (FIXME: This is not the
-	// nicest solution.  Ideally, DoUnserialize() should be able to pass
-	// us an alternative ptr to the correct object.)
-	if ( v->IsMutableVal() )
-		{
-		MutableVal* mv = v->AsMutableVal();
-		if ( mv->HasUniqueID() )
-			{
-			ID* current =
-				global_scope()->Lookup(mv->UniqueID()->Name());
-
-			if ( current && current != mv->UniqueID() )
-				{
-				DBG_LOG(DBG_STATE, "binding to already existing ID %s\n", current->Name());
-				assert(current->ID_Val());
-
-				// Need to unset the ID here.  Otherwise,
-				// when the SerializationCache destroys
-				// the value, the global name will disappear.
-				mv->SetID(0);
-				Unref(v);
-				return current->ID_Val()->Ref();
-				}
-			}
-		}
-
-	// An enum may be bound to a different internal number remotely than we
-	// do for the same identifier. Check if this is the case, and, if yes,
-	// rebind to our value.
-	if ( v->Type()->Tag() == TYPE_ENUM )
-		{
-		int rv = v->AsEnum();
-		EnumType* rt = v->Type()->AsEnumType();
-
-		const char* name = rt->Lookup(rv);
-		if ( name )
-			{
-			// See if we know the enum locally.
-			ID* local = global_scope()->Lookup(name);
-			if ( local && local->IsEnumConst() )
-				{
-				EnumType* lt = local->Type()->AsEnumType();
-				int lv = lt->Lookup(local->ModuleName(),
-							local->Name());
-
-				// Compare.
-				if ( rv != lv )
-					{
-					// Different, so let's bind the val
-					// to the local type.
-					v->val.int_val = lv;
-					Unref(rt);
-					v->type = lt;
-					::Ref(lt);
-					}
-				}
-			}
-
-		}
-		
-	return v;
-	}
-
-IMPLEMENT_SERIAL(Val, SER_VAL);
-
-bool Val::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_VAL, BroObj);
-
-	if ( ! type->Serialize(info) )
-		return false;
-
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_VOID:
-		info->s->Error("type is void");
-		return false;
-
-	case TYPE_INTERNAL_INT:
-		return SERIALIZE(val.int_val);
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return SERIALIZE(val.uint_val);
-
-	case TYPE_INTERNAL_DOUBLE:
-		return SERIALIZE(val.double_val);
-
-	case TYPE_INTERNAL_STRING:
-		return SERIALIZE_STR((const char*) val.string_val->Bytes(),
-				val.string_val->Len());
-
-	case TYPE_INTERNAL_ADDR:
-		return SERIALIZE(*val.addr_val);
-
-	case TYPE_INTERNAL_SUBNET:
-		return SERIALIZE(*val.subnet_val);
-
-	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this.
-		// Exception: Functions and files. There aren't any derived
-		// classes.
-		if ( type->Tag() == TYPE_FUNC )
-			if ( ! AsFunc()->Serialize(info) )
-				return false;
-
-		if ( type->Tag() == TYPE_FILE )
-			if ( ! AsFile()->Serialize(info) )
-				return false;
-		return true;
-
-	case TYPE_INTERNAL_ERROR:
-		info->s->Error("type is error");
-		return false;
-
-	default:
-		info->s->Error("type is out of range");
-		return false;
-	}
-
-	return false;
-	}
-
-bool Val::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	if ( type )
-		Unref(type);
-
-	if ( ! (type = BroType::Unserialize(info)) )
-		return false;
-
-	switch ( type->InternalType() ) {
-	case TYPE_INTERNAL_VOID:
-		info->s->Error("type is void");
-		return false;
-
-	case TYPE_INTERNAL_INT:
-		return UNSERIALIZE(&val.int_val);
-
-	case TYPE_INTERNAL_UNSIGNED:
-		return UNSERIALIZE(&val.uint_val);
-
-	case TYPE_INTERNAL_DOUBLE:
-		return UNSERIALIZE(&val.double_val);
-
-	case TYPE_INTERNAL_STRING:
-		const char* str;
-		int len;
-		if ( ! UNSERIALIZE_STR(&str, &len) )
-			return false;
-
-		val.string_val = new BroString((u_char*) str, len, 1);
-		delete [] str;
-		return true;
-
-	case TYPE_INTERNAL_ADDR:
-		{
-		val.addr_val = new IPAddr();
-		return UNSERIALIZE(val.addr_val);
-		}
-
-	case TYPE_INTERNAL_SUBNET:
-		{
-		val.subnet_val = new IPPrefix();
-		return UNSERIALIZE(val.subnet_val);
-		}
-
-	case TYPE_INTERNAL_OTHER:
-		// Derived classes are responsible for this.
-		// Exception: Functions and files. There aren't any derived
-		// classes.
-		if ( type->Tag() == TYPE_FUNC )
-			{
-			val.func_val = Func::Unserialize(info);
-			return val.func_val != 0;
-			}
-		else if ( type->Tag() == TYPE_FILE )
-			{
-			val.file_val = BroFile::Unserialize(info);
-			return val.file_val != 0;
-			}
-		return true;
-
-	case TYPE_INTERNAL_ERROR:
-		info->s->Error("type is error");
-		return false;
-
-	default:
-		info->s->Error("type out of range");
-		return false;
-	}
-
-	return false;
-	}
 
 int Val::IsZero() const
 	{
@@ -566,6 +351,35 @@ void Val::ValDescribeReST(ODesc* d) const
 	}
 	}
 
+
+bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val)
+	{
+	if ( !to_type || !from_type )
+		return true;
+	else if ( same_type(to_type, from_type) )
+		return false;
+
+	if ( to_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+		return false;
+	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
+			return (val->InternalInt() < 0);
+		}
+	else if ( to_type->InternalType() == TYPE_INTERNAL_INT )
+		{
+		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+			return (val->InternalDouble() < static_cast<double>(INT64_MIN) ||
+			        val->InternalDouble() > static_cast<double>(INT64_MAX));
+		else if ( from_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+			return (val->InternalUnsigned() > INT64_MAX);
+		}
+
+	return false;
+	}
+
 MutableVal::~MutableVal()
 	{
 	for ( list<ID*>::iterator i = aliases.begin(); i != aliases.end(); ++i )
@@ -688,61 +502,6 @@ void MutableVal::TransferUniqueID(MutableVal* mv)
 	mv->id = 0;
 	}
 
-IMPLEMENT_SERIAL(MutableVal, SER_MUTABLE_VAL);
-
-bool MutableVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_MUTABLE_VAL, Val);
-
-	if ( ! SERIALIZE(props) )
-		return false;
-
-	// Don't use ID::Serialize here, that would loop.  All we
-	// need is the name, anyway.
-	const char* name = id ? id->Name() : "";
-	if ( ! SERIALIZE(name) )
-		return false;
-
-	return true;
-	}
-
-bool MutableVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-
-	if ( ! UNSERIALIZE(&props) )
-		 return false;
-
-	id = 0;
-
-	const char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
-
-	if ( *name )
-		{
-		id = new ID(name, SCOPE_GLOBAL, true);
-		id->SetVal(this, OP_NONE, true);
-
-		ID* current = global_scope()->Lookup(name);
-		if ( ! current )
-			{
-			global_scope()->Insert(name, id);
-			DBG_LOG(DBG_STATE, "installed formerly unknown ID %s", id->Name());
-			}
-		else
-			{
-			DBG_LOG(DBG_STATE, "got already known ID %s", current->Name());
-			// This means that we already know the value and
-			// that in fact we should bind to the local value.
-			// Val::Unserialize() will take care of this.
-			}
-		}
-
-	delete [] name;
-	return true;
-	}
-
 IntervalVal::IntervalVal(double quantity, double units) :
 	Val(quantity * units, TYPE_INTERVAL)
 	{
@@ -783,20 +542,6 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	DO_UNIT(Seconds, "sec")
 	DO_UNIT(Milliseconds, "msec")
 	DO_UNIT(Microseconds, "usec")
-	}
-
-IMPLEMENT_SERIAL(IntervalVal, SER_INTERVAL_VAL);
-
-bool IntervalVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_INTERVAL_VAL, Val);
-	return true;
-	}
-
-bool IntervalVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
 	}
 
 PortVal* PortManager::Get(uint32 port_num) const
@@ -903,20 +648,6 @@ Val* PortVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-IMPLEMENT_SERIAL(PortVal, SER_PORT_VAL);
-
-bool PortVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_PORT_VAL, Val);
-	return true;
-	}
-
-bool PortVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
-	}
-
 AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	{
 	val.addr_val = new IPAddr(text);
@@ -965,20 +696,6 @@ Val* AddrVal::DoClone(CloneState* state)
 	{
 	// Immutable.
 	return Ref();
-	}
-
-IMPLEMENT_SERIAL(AddrVal, SER_ADDR_VAL);
-
-bool AddrVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ADDR_VAL, Val);
-	return true;
-	}
-
-bool AddrVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
 	}
 
 SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
@@ -1097,20 +814,6 @@ Val* SubNetVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-IMPLEMENT_SERIAL(SubNetVal, SER_SUBNET_VAL);
-
-bool SubNetVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SUBNET_VAL, Val);
-	return true;
-	}
-
-bool SubNetVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
-	}
-
 StringVal::StringVal(BroString* s) : Val(TYPE_STRING)
 	{
 	val.string_val = s;
@@ -1155,22 +858,12 @@ unsigned int StringVal::MemoryAllocation() const
 
 Val* StringVal::DoClone(CloneState* state)
 	{
-	return new StringVal(new BroString((u_char*) val.string_val->Bytes(),
-	                                   val.string_val->Len(), 1));
-	}
-
-IMPLEMENT_SERIAL(StringVal, SER_STRING_VAL);
-
-bool StringVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STRING_VAL, Val);
-	return true;
-	}
-
-bool StringVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
+	return state->NewClone(this, new StringVal(
+	        new BroString((u_char*) val.string_val->Bytes(),
+	                      val.string_val->Len(), 1)));
 	}
 
 PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN))
@@ -1223,26 +916,13 @@ unsigned int PatternVal::MemoryAllocation() const
 
 Val* PatternVal::DoClone(CloneState* state)
 	{
+	// We could likely treat this type as immutable and return a reference
+	// instead of creating a new copy, but we first need to be careful and
+	// audit whether anything internal actually does mutate it.
 	auto re = new RE_Matcher(val.re_val->PatternText(),
 	                         val.re_val->AnywherePatternText());
 	re->Compile();
-	return new PatternVal(re);
-	}
-
-IMPLEMENT_SERIAL(PatternVal, SER_PATTERN_VAL);
-
-bool PatternVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_PATTERN_VAL, Val);
-	return AsPattern()->Serialize(info);
-	}
-
-bool PatternVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-
-	val.re_val = RE_Matcher::Unserialize(info);
-	return val.re_val != 0;
+	return state->NewClone(this, new PatternVal(re));
 	}
 
 ListVal::ListVal(TypeTag t)
@@ -1331,57 +1011,12 @@ Val* ListVal::DoClone(CloneState* state)
 	{
 	auto lv = new ListVal(tag);
 	lv->vals.resize(vals.length());
+	state->NewClone(this, lv);
 
 	loop_over_list(vals, i)
 		lv->Append(vals[i]->Clone(state));
 
 	return lv;
-	}
-
-IMPLEMENT_SERIAL(ListVal, SER_LIST_VAL);
-
-bool ListVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_LIST_VAL, Val);
-
-	if ( ! (SERIALIZE(char(tag)) && SERIALIZE(vals.length())) )
-		return false;
-
-	loop_over_list(vals, i)
-		{
-		if ( ! vals[i]->Serialize(info) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool ListVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-
-	char t;
-	int len;
-
-	if ( ! (UNSERIALIZE(&t) && UNSERIALIZE(&len)) )
-		return false;
-
-	tag = TypeTag(t);
-
-	while ( len-- )
-		{
-		Val* v = Val::Unserialize(info, TYPE_ANY);
-		if ( ! v )
-			return false;
-
-		vals.append(v);
-		}
-
-	// Our dtor will do Unref(type) in addition to Val's dtor.
-	if ( type )
-		type->Ref();
-
-	return true;
 	}
 
 unsigned int ListVal::MemoryAllocation() const
@@ -1641,7 +1276,6 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val, Opcode op)
 		delete old_entry_val;
 		}
 
-	Modified();
 	return 1;
 	}
 
@@ -2123,7 +1757,6 @@ Val* TableVal::Delete(const Val* index)
 	delete k;
 	delete v;
 
-	Modified();
 	return va;
 	}
 
@@ -2145,7 +1778,6 @@ Val* TableVal::Delete(const HashKey* k)
 	if ( LoggingAccess() )
 		StateAccess::Log(new StateAccess(OP_DEL, this, k));
 
-	Modified();
 	return va;
 	}
 
@@ -2415,7 +2047,6 @@ void TableVal::DoExpire(double t)
 			tbl->RemoveEntry(k);
 			Unref(v->Value());
 			delete v;
-			Modified();
 			}
 
 		delete k;
@@ -2541,6 +2172,7 @@ void TableVal::ReadOperation(Val* index, TableEntryVal* v)
 Val* TableVal::DoClone(CloneState* state)
 	{
 	auto tv = new TableVal(table_type);
+	state->NewClone(this, tv);
 
 	const PDict(TableEntryVal)* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
@@ -2585,236 +2217,6 @@ Val* TableVal::DoClone(CloneState* state)
 		tv->def_val = def_val->Ref();
 
 	return tv;
-	}
-
-IMPLEMENT_SERIAL(TableVal, SER_TABLE_VAL);
-
-// This is getting rather complex due to the ability to suspend even within
-// deeply-nested values.
-bool TableVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE_WITH_SUSPEND(SER_TABLE_VAL, MutableVal);
-
-	// The current state of the serialization.
-	struct State {
-		IterCookie* c;
-		TableEntryVal* v;	// current value
-		bool did_index;	// already wrote the val's index
-	}* state = 0;
-
-	PDict(TableEntryVal)* tbl =
-		const_cast<TableVal*>(this)->AsNonConstTable();
-
-	if ( info->cont.NewInstance() )
-		{
-		// For simplicity, we disable suspension for the objects
-		// serialized here.  (In fact we know that *currently*
-		// they won't even try).
-		DisableSuspend suspend(info);
-
-		state = new State;
-		state->c = tbl->InitForIteration();
-		tbl->MakeRobustCookie(state->c);
-		state->v = 0;
-		state->did_index = false;
-		info->s->WriteOpenTag(table_type->IsSet() ? "set" : "table");
-
-		SERIALIZE_OPTIONAL(attrs);
-		SERIALIZE_OPTIONAL(expire_time);
-		SERIALIZE_OPTIONAL(expire_func);
-
-		// Make sure nobody kills us in between.
-		const_cast<TableVal*>(this)->Ref();
-		}
-
-	else if ( info->cont.ChildSuspended() )
-		state = (State*) info->cont.RestoreState();
-
-	else if ( info->cont.Resuming() )
-		{
-		info->cont.Resume();
-		state = (State*) info->cont.RestoreState();
-		}
-	else
-		reporter->InternalError("unknown continuation state");
-
-	HashKey* k = 0;
-	int count = 0;
-
-	assert((!info->cont.ChildSuspended()) || state->v);
-
-	while ( true )
-		{
-		if ( ! state->v )
-			{
-			state->v = tbl->NextEntry(k, state->c);
-			if ( ! state->c )
-				{
-				// No next one.
-				if ( ! SERIALIZE(false) )
-					{
-					delete k;
-					return false;
-					}
-
-				break;
-				}
-
-			// There's a value coming.
-			if ( ! SERIALIZE(true) )
-				{
-				delete k;
-				return false;
-				}
-
-			if ( state->v->Value() )
-				state->v->Ref();
-
-			state->did_index = false;
-			}
-
-		// Serialize index.
-		if ( k && ! state->did_index )
-			{
-			// Indices are rather small, so we disable suspension
-			// here again.
-			DisableSuspend suspend(info);
-			info->s->WriteOpenTag("key");
-			ListVal* index = table_hash->RecoverVals(k)->AsListVal();
-			delete k;
-
-			if ( ! index->Serialize(info) )
-				return false;
-
-			Unref(index);
-			info->s->WriteCloseTag("key");
-
-			state->did_index = true;
-
-			// Start serializing data.
-			if ( ! type->IsSet() )
-				info->s->WriteOpenTag("value");
-			}
-
-		if ( ! type->IsSet() )
-			{
-			info->cont.SaveState(state);
-			info->cont.SaveContext();
-			bool result = state->v->val->Serialize(info);
-			info->cont.RestoreContext();
-
-			if ( ! result )
-				return false;
-
-			if ( info->cont.ChildSuspended() )
-				return true;
-			}
-
-		double eat = state->v->ExpireAccessTime();
-
-		if ( ! (SERIALIZE(state->v->last_access_time) &&
-			SERIALIZE(eat)) )
-			return false;
-
-		info->s->WriteCloseTag("value");
-
-		if ( state->v->Value() )
-			state->v->Unref();
-		state->v = 0; // Next value.
-
-		// Suspend if we've done enough for now (which means we
-		// have serialized more than table_incremental_step entries
-		// in a row; if an entry has suspended itself in between,
-		// we start counting from 0).
-		if ( info->may_suspend && ++count > table_incremental_step)
-			{
-			info->cont.SaveState(state);
-			info->cont.Suspend();
-			reporter->Info("TableVals serialization suspended right in the middle.");
-			return true;
-			}
-		}
-
-	info->s->WriteCloseTag(table_type->IsSet() ? "set" : "table");
-	delete state;
-
-	Unref(const_cast<TableVal*>(this));
-	return true;
-	}
-
-bool TableVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(MutableVal);
-
-	Init((TableType*) type);
-
-	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(expire_time, Expr::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(expire_func, Expr::Unserialize(info));
-
-	while ( true )
-		{
-		// Anymore?
-		bool next;
-		if ( ! UNSERIALIZE(&next) )
-			return false;
-
-		if ( ! next )
-			break;
-
-		// Unserialize index.
-		ListVal* index =
-			(ListVal*) Val::Unserialize(info, table_type->Indices());
-		if ( ! index )
-			return false;
-
-		// Unserialize data.
-		Val* entry;
-		if ( ! table_type->IsSet() )
-			{
-			entry = Val::Unserialize(info, type->YieldType());
-			if ( ! entry )
-				return false;
-			}
-		else
-			entry = 0;
-
-		TableEntryVal* entry_val = new TableEntryVal(entry);
-
-		double eat;
-
-		if ( ! UNSERIALIZE(&entry_val->last_access_time) ||
-		     ! UNSERIALIZE(&eat) )
-			{
-			entry_val->Unref();
-			delete entry_val;
-			return false;
-			}
-
-		entry_val->SetExpireAccess(eat);
-
-		HashKey* key = ComputeHash(index);
-		TableEntryVal* old_entry_val =
-			AsNonConstTable()->Insert(key, entry_val);
-		assert(! old_entry_val);
-
-		delete key;
-
-		if ( subnets )
-			subnets->Insert(index, entry_val);
-
-		Unref(index);
-		}
-
-	// If necessary, activate the expire timer.
-	if ( attrs )
-		{
-		CheckExpireAttr(ATTR_EXPIRE_READ);
-		CheckExpireAttr(ATTR_EXPIRE_WRITE);
-		CheckExpireAttr(ATTR_EXPIRE_CREATE);
-		}
-
-	return true;
 	}
 
 bool TableVal::AddProperties(Properties arg_props)
@@ -2959,7 +2361,6 @@ void RecordVal::Assign(int field, Val* new_val, Opcode op)
 		}
 
 	Unref(old_val);
-	Modified();
 	}
 
 Val* RecordVal::Lookup(int field) const
@@ -3158,6 +2559,7 @@ Val* RecordVal::DoClone(CloneState* state)
 	// we don't touch it.
 	auto rv = new RecordVal(Type()->AsRecordType(), false);
 	rv->origin = nullptr;
+	state->NewClone(this, rv);
 
 	loop_over_list(*val.val_list_val, i)
 		{
@@ -3166,59 +2568,6 @@ Val* RecordVal::DoClone(CloneState* state)
 		}
 
 	return rv;
-	}
-
-IMPLEMENT_SERIAL(RecordVal, SER_RECORD_VAL);
-
-bool RecordVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RECORD_VAL, MutableVal);
-
-	// We could use the type name as a tag here.
-	info->s->WriteOpenTag("record");
-	auto record_type = Type()->AsRecordType();
-
-	// FIXME: What about origin?
-
-	if ( ! SERIALIZE(val.val_list_val->length()) )
-		return false;
-
-	loop_over_list(*val.val_list_val, i)
-		{
-		info->s->WriteOpenTag(record_type->FieldName(i));
-		Val* v = (*val.val_list_val)[i];
-		SERIALIZE_OPTIONAL(v);
-		info->s->WriteCloseTag(record_type->FieldName(i));
-		}
-
-	info->s->WriteCloseTag("record");
-
-	return true;
-	}
-
-bool RecordVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(MutableVal);
-
-	origin = 0;
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		{
-		val.val_list_val = new val_list;
-		return false;
-		}
-
-	val.val_list_val = new val_list(len);
-
-	for ( int i = 0; i < len; ++i )
-		{
-		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info));
-		AsNonConstRecord()->append(v);	// correct for v==0, too.
-		}
-
-	return true;
 	}
 
 bool RecordVal::AddProperties(Properties arg_props)
@@ -3288,20 +2637,6 @@ Val* EnumVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-IMPLEMENT_SERIAL(EnumVal, SER_ENUM_VAL);
-
-bool EnumVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ENUM_VAL, Val);
-	return true;
-	}
-
-bool EnumVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
-	}
-
 VectorVal::VectorVal(VectorType* t) : MutableVal(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
@@ -3354,7 +2689,6 @@ bool VectorVal::Assign(unsigned int index, Val* element, Opcode op)
 	// to do it similarly.
 	(*val.vector_val)[index] = element;
 
-	Modified();
 	return true;
 	}
 
@@ -3366,6 +2700,43 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	for ( unsigned int i = index; i < index + how_many; ++i )
 		if ( ! Assign(i, element->Ref() ) )
 			return false;
+
+	return true;
+	}
+
+bool VectorVal::Insert(unsigned int index, Val* element)
+	{
+	if ( element &&
+	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
+		{
+		Unref(element);
+		return false;
+		}
+
+	vector<Val*>::iterator it;
+
+	if ( index < val.vector_val->size() )
+		it = std::next(val.vector_val->begin(), index);
+	else
+		it = val.vector_val->end();
+
+	// Note: we do *not* Ref() the element, if any, at this point.
+	// AssignExpr::Eval() already does this; other callers must remember
+	// to do it similarly.
+	val.vector_val->insert(it, element);
+
+	return true;
+	}
+
+bool VectorVal::Remove(unsigned int index)
+	{
+	if ( index >= val.vector_val->size() )
+		return false;
+
+	Val* val_at_index = (*val.vector_val)[index];
+	auto it = std::next(val.vector_val->begin(), index);
+	val.vector_val->erase(it);
+	Unref(val_at_index);
 
 	return true;
 	}
@@ -3454,6 +2825,7 @@ Val* VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = new VectorVal(vector_type);
 	vv->val.vector_val->reserve(val.vector_val->size());
+	state->NewClone(this, vv);
 
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		{
@@ -3462,51 +2834,6 @@ Val* VectorVal::DoClone(CloneState* state)
 		}
 
 	return vv;
-	}
-
-IMPLEMENT_SERIAL(VectorVal, SER_VECTOR_VAL);
-
-bool VectorVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_VECTOR_VAL, MutableVal);
-
-	info->s->WriteOpenTag("vector");
-
-	if ( ! SERIALIZE(unsigned(val.vector_val->size())) )
-		return false;
-
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		{
-		info->s->WriteOpenTag("value");
-		Val* v = (*val.vector_val)[i];
-		SERIALIZE_OPTIONAL(v);
-		info->s->WriteCloseTag("value");
-		}
-
-	info->s->WriteCloseTag("vector");
-
-	return true;
-	}
-
-bool VectorVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(MutableVal);
-
-	val.vector_val = new vector<Val*>;
-	vector_type = type->Ref()->AsVectorType();
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	for ( int i = 0; i < len; ++i )
-		{
-		Val* v;
-		UNSERIALIZE_OPTIONAL(v, Val::Unserialize(info, TYPE_ANY)); // accept any type
-		Assign(i, v);
-		}
-
-	return true;
 	}
 
 void VectorVal::ValDescribe(ODesc* d) const
@@ -3528,35 +2855,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
-	{
-	}
-
-OpaqueVal::~OpaqueVal()
-	{
-	}
-
-Val* OpaqueVal::DoClone(CloneState* state)
-	{
-	reporter->InternalError("cloning opaque type without clone implementation");
-	return nullptr;
-	}
-
-IMPLEMENT_SERIAL(OpaqueVal, SER_OPAQUE_VAL);
-
-bool OpaqueVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_OPAQUE_VAL, Val);
-	return true;
-	}
-
-bool OpaqueVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Val);
-	return true;
-	}
-
-Val* check_and_promote(Val* v, const BroType* t, int is_init)
+Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
 		return 0;
@@ -3580,7 +2879,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v);
+		t->Error("type clash", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -3589,9 +2888,9 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	     (! IsArithmetic(v_tag) || t_tag != TYPE_TIME || ! v->IsZero()) )
 		{
 		if ( t_tag == TYPE_LIST || v_tag == TYPE_LIST )
-			t->Error("list mixed with scalar", v);
+			t->Error("list mixed with scalar", v, 0, expr_location);
 		else
-			t->Error("arithmetic mixed with non-arithmetic", v);
+			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}
@@ -3599,12 +2898,12 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	if ( v_tag == t_tag )
 		return v;
 
-	if ( t_tag != TYPE_TIME )
+	if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) )
 		{
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", v);
+			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
 			Unref(v);
 			return 0;
 			}
@@ -3621,7 +2920,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 	Val* promoted_v;
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( t_tag == TYPE_INT )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_INT )
 			promoted_v = val_mgr->GetInt(v->CoerceToInt());
 		else if ( t_tag == TYPE_BOOL )
 			promoted_v = val_mgr->GetBool(v->CoerceToInt());
@@ -3635,7 +2940,13 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init)
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v) )
+			{
+			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
+			Unref(v);
+			return 0;
+			}
+		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
 			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
 		else // port
 			{

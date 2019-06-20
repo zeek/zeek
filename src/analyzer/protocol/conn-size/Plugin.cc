@@ -6,7 +6,7 @@
 #include "ConnSize.h"
 
 namespace plugin {
-namespace Bro_ConnSize {
+namespace Zeek_ConnSize {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("ConnSize", ::analyzer::conn_size::ConnSize_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::ConnSize";
+		config.name = "Zeek::ConnSize";
 		config.description = "Connection size analyzer";
 		return config;
 		}

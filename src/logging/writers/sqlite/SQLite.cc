@@ -116,7 +116,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	{
 	if ( sqlite3_threadsafe() == 0 )
 		{
-		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
+		Error("SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of SQLite. Aborting");
 		return false;
 		}
 

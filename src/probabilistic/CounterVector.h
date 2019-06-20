@@ -3,7 +3,10 @@
 #ifndef PROBABILISTIC_COUNTERVECTOR_H
 #define PROBABILISTIC_COUNTERVECTOR_H
 
-#include "SerialObj.h"
+#include <cstddef>
+#include <cstdint>
+
+#include <broker/Data.h>
 
 namespace probabilistic {
 
@@ -12,10 +15,10 @@ class BitVector;
 /**
  * A vector of counters, each of which has a fixed number of bits.
  */
-class CounterVector : public SerialObj {
+class CounterVector {
 public:
 	typedef size_t size_type;
-	typedef uint64 count_type;
+	typedef uint64_t count_type;
 
 	/**
 	 * Constructs a counter vector having cells of a given width.
@@ -38,7 +41,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~CounterVector() override;
+	virtual ~CounterVector();
 
 	/**
 	 * Increments a given cell.
@@ -131,34 +134,16 @@ public:
 	  *
 	  * @return The hash.
 	  */
-	uint64 Hash() const;
+	uint64_t Hash() const;
 
-	/**
-	 * Serializes the bit vector.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserialize the counter vector.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized counter vector, or null if an error
-	 * occured.
-	 */
-	static CounterVector* Unserialize(UnserialInfo* info);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<CounterVector> Unserialize(const broker::data& data);
 
 protected:
 	friend CounterVector operator|(const CounterVector& x,
 				       const CounterVector& y);
 
 	CounterVector() { }
-
-	DECLARE_SERIAL(CounterVector);
 
 private:
 	CounterVector& operator=(const CounterVector&); // Disable.

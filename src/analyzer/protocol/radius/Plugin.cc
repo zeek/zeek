@@ -6,7 +6,7 @@
 #include "RADIUS.h"
 
 namespace plugin {
-namespace Bro_RADIUS {
+namespace Zeek_RADIUS {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("RADIUS", ::analyzer::RADIUS::RADIUS_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::RADIUS";
+		config.name = "Zeek::RADIUS";
 		config.description = "RADIUS analyzer";
 		return config;
 		}

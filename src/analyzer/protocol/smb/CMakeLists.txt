@@ -1,11 +1,11 @@
-include(BroPlugin)
+include(ZeekPlugin)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(AFTER  ${CMAKE_CURRENT_BINARY_DIR}/../dce-rpc)
 
-bro_plugin_begin(Bro SMB)
-bro_plugin_cc(SMB.cc Plugin.cc)
-bro_plugin_bif(
+zeek_plugin_begin(Zeek SMB)
+zeek_plugin_cc(SMB.cc Plugin.cc)
+zeek_plugin_bif(
 	smb1_com_check_directory.bif
 	smb1_com_close.bif
 	smb1_com_create_directory.bif
@@ -42,7 +42,7 @@ bro_plugin_bif(
 	consts.bif
 
 	types.bif)
-bro_plugin_pac(
+zeek_plugin_pac(
 	smb.pac
 	smb-common.pac
 	smb-strings.pac
@@ -87,4 +87,4 @@ bro_plugin_pac(
 	smb2-com-write.pac
 	smb2-com-transform-header.pac
 )
-bro_plugin_end()
+zeek_plugin_end()

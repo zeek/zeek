@@ -11,7 +11,6 @@
 #include "Dict.h"
 #include "Val.h"
 #include "Timer.h"
-#include "Serializer.h"
 #include "RuleMatcher.h"
 #include "IPAddr.h"
 #include "TunnelEncapsulation.h"
@@ -235,11 +234,6 @@ public:
 	// Returns true if connection has been received externally.
 	bool IsExternal() const	{ return conn_timer_mgr != 0; }
 
-	bool Serialize(SerialInfo* info) const;
-	static Connection* Unserialize(UnserialInfo* info);
-
-	DECLARE_SERIAL(Connection);
-
 	// Statistics.
 
 	// Just a lower bound.
@@ -384,8 +378,6 @@ protected:
 	ConnectionTimer()	{}
 
 	void Init(Connection* conn, timer_func timer, int do_expire);
-
-	DECLARE_SERIAL(ConnectionTimer);
 
 	Connection* conn;
 	timer_func timer;

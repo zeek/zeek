@@ -7,7 +7,7 @@
 #include "Unified2.h"
 
 namespace plugin {
-namespace Bro_Unified2 {
+namespace Zeek_Unified2 {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::file_analysis::Component("UNIFIED2", ::file_analysis::Unified2::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Unified2";
+		config.name = "Zeek::Unified2";
 		config.description = "Analyze Unified2 alert files.";
 		return config;
 		}

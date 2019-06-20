@@ -327,23 +327,24 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_PATTERN:
 		{
-		string cannidate = get_unescaped_string(s);
-		// A string is a cannidate pattern iff it begins and ends with
+		string candidate = get_unescaped_string(s);
+		// A string is a candidate pattern iff it begins and ends with
 		// a '/'. Rather or not the rest of the string is legal will
 		// be determined later when it is given to the RE engine.
-		if ( cannidate.size() >= 2 )
-		{
-			if ( cannidate.front() == cannidate.back() &&
-			cannidate.back() == '/' )
+		if ( candidate.size() >= 2 )
+			{
+			if ( candidate.front() == candidate.back() &&
+			     candidate.back() == '/' )
 				{
 				// Remove the '/'s
-				cannidate.erase(0, 1);
-				cannidate.erase(cannidate.size() - 1);
-				val->val.pattern_text_val = copy_string(cannidate.c_str());
+				candidate.erase(0, 1);
+				candidate.erase(candidate.size() - 1);
+				val->val.pattern_text_val = copy_string(candidate.c_str());
 				break;
+				}
 			}
-		}
-		GetThread()->Error(GetThread()->Fmt("String '%s' contained no parseable pattern.", cannidate.c_str()));
+
+		GetThread()->Error(GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
 		goto parse_error;
 		}
 

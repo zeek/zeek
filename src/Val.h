@@ -8,6 +8,9 @@
 #include <vector>
 #include <list>
 #include <array>
+#include <unordered_map>
+
+#include <broker/broker.hh>
 
 #include "net_util.h"
 #include "Type.h"
@@ -20,6 +23,7 @@
 #include "Scope.h"
 #include "StateAccess.h"
 #include "IPAddr.h"
+#include "DebugLogger.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -36,7 +40,6 @@ class Func;
 class BroFile;
 class RE_Matcher;
 class PrefixTable;
-class SerialInfo;
 
 class PortVal;
 class AddrVal;
@@ -50,6 +53,7 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class MutableVal;
+class OpaqueVal;
 
 class StateAccess;
 
@@ -87,7 +91,7 @@ typedef union {
 
 class Val : public BroObj {
 public:
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(bool b, TypeTag t)
 		{
 		val.int_val = b;
@@ -97,7 +101,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
@@ -107,7 +111,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
@@ -117,7 +121,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int64 i, TypeTag t)
 		{
 		val.int_val = i;
@@ -127,7 +131,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint64 u, TypeTag t)
 		{
 		val.uint_val = u;
@@ -304,6 +308,7 @@ public:
 	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
@@ -321,6 +326,7 @@ public:
 	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
 	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	bool IsMutableVal() const
 		{
@@ -344,14 +350,6 @@ public:
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
-	bool Serialize(SerialInfo* info) const;
-	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
-		{ return Unserialize(info, type, 0); }
-	static Val* Unserialize(UnserialInfo* info, const BroType* exact_type)
-		{ return Unserialize(info, exact_type->Tag(), exact_type); }
-
-	DECLARE_SERIAL(Val);
-
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
@@ -366,6 +364,8 @@ public:
 		bound_id = id ? copy_string(id->Name()) : 0;
 		}
 #endif
+
+	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
 
 protected:
 
@@ -418,13 +418,18 @@ protected:
 	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
 
-	// Just an internal helper.
-	static Val* Unserialize(UnserialInfo* info, TypeTag type,
-			const BroType* exact_type);
-
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
-	    std::unordered_map<const Val*, Val*> clones;
+		// Caches a cloned value for later reuse during the same
+		// cloning operation. For recursive types, call this *before*
+		// descending down.
+		Val* NewClone(Val *src, Val* dst)
+			{
+			clones.insert(std::make_pair(src, dst));
+			return dst;
+			}
+
+		std::unordered_map<Val*, Val*> clones;
 	};
 
 	Val* Clone(CloneState* state);
@@ -443,15 +448,15 @@ protected:
 class PortManager {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num) const;
 
 	// Returns a masked port number
-	BRO_DEPRECATED("use PortVal::Mask() instead")
+	ZEEK_DEPRECATED("use PortVal::Mask() instead")
 	uint32 Mask(uint32 port_num, TransportProto port_type) const;
 };
 
@@ -555,26 +560,16 @@ public:
 #endif
 		}
 
-	uint64 LastModified() const override	{ return last_modified; }
-
-	// Mark value as changed.
-	void Modified()
-		{
-		last_modified = IncreaseTimeCounter();
-		}
-
 protected:
 	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
+		{ props = 0; id = 0; }
+	MutableVal()	{ props = 0; id = 0; }
 	~MutableVal() override;
 
 	friend class ID;
 	friend class Val;
 
 	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
-
-	DECLARE_SERIAL(MutableVal);
 
 private:
 	ID* Bind() const;
@@ -600,19 +595,17 @@ protected:
 	IntervalVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(IntervalVal);
 };
 
 
 class PortVal : public Val {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal(uint32 p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	explicit PortVal(uint32 p);
 
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
@@ -648,8 +641,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(PortVal);
 };
 
 class AddrVal : public Val {
@@ -674,8 +665,6 @@ protected:
 	explicit AddrVal(BroType* t) : Val(t)	{ }
 
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(AddrVal);
 };
 
 class SubNetVal : public Val {
@@ -704,8 +693,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(SubNetVal);
 };
 
 class StringVal : public Val {
@@ -737,8 +724,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(StringVal);
 };
 
 class PatternVal : public Val {
@@ -758,8 +743,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(PatternVal);
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -804,8 +787,6 @@ protected:
 	ListVal()	{}
 
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(ListVal);
 
 	val_list vals;
 	TypeTag tag;
@@ -1025,8 +1006,6 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(TableVal);
-
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
@@ -1099,8 +1078,7 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(RecordVal);
-
+	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;
@@ -1109,7 +1087,7 @@ protected:
 class EnumVal : public Val {
 public:
 
-	BRO_DEPRECATED("use t->GetVal(i) instead")
+	ZEEK_DEPRECATED("use t->GetVal(i) instead")
 	EnumVal(int i, EnumType* t) : Val(t)
 		{
 		val.int_val = i;
@@ -1130,8 +1108,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(EnumVal);
 };
 
 
@@ -1183,6 +1159,12 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
+	// Insert an element at a specific position into the underlying vector.
+	bool Insert(unsigned int index, Val* element);
+
+	// Removes an element at a specific position.
+	bool Remove(unsigned int index);
+
 protected:
 	friend class Val;
 	VectorVal()	{ }
@@ -1192,26 +1174,7 @@ protected:
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(VectorVal);
-
 	VectorType* vector_type;
-};
-
-// Base class for values with types that are managed completely internally,
-// with no further script-level operators provided (other than bif
-// functions). See OpaqueVal.h for derived classes.
-class OpaqueVal : public Val {
-public:
-	explicit OpaqueVal(OpaqueType* t);
-	~OpaqueVal() override;
-
-protected:
-	friend class Val;
-	OpaqueVal() { }
-
-	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(OpaqueVal);
 };
 
 // Checks the given value for consistency with the given type.  If an
@@ -1219,7 +1182,7 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init);
+extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
 // Given a pointer to where a Val's core (i.e., its BRO value) resides,
 // returns a corresponding newly-created or Ref()'d Val.  ptr must already

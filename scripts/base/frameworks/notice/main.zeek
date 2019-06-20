@@ -405,7 +405,7 @@ function email_headers(subject_desc: string, dest: string): string
 		"From: ", mail_from, "\n",
 		"Subject: ", mail_subject_prefix, " ", subject_desc, "\n",
 		"To: ", dest, "\n",
-		"User-Agent: Bro-IDS/", bro_version(), "\n");
+		"User-Agent: Bro-IDS/", zeek_version(), "\n");
 	if ( reply_to != "" )
 		header_text = string_cat(header_text, "Reply-To: ", reply_to, "\n");
 	return header_text;

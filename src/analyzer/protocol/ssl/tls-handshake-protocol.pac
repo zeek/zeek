@@ -116,8 +116,7 @@ type ServerHelloChoice(rec: HandshakeRecord) = record {
 };
 
 type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
-	gmt_unix_time : uint32;
-	random_bytes : bytestring &length = 28;
+	random_bytes : bytestring &length = 32;
 	session_len : uint8;
 	session_id : uint8[session_len];
 	cipher_suite : uint16[1];
@@ -775,9 +774,11 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
 		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
-		EXT_KEY_SHARE -> key_share: KeyShare(rec)[] &until($element == 0 || $element != 0);
+		EXT_KEY_SHARE -> key_share: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
+		EXT_KEY_SHARE_OLD -> key_share_old: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
 		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
 		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
+		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -852,14 +853,62 @@ type ServerHelloKeyShare(rec: HandshakeRecord) = record {
 	keyshare : KeyShareEntry;
 };
 
+type HelloRetryRequestKeyShare(rec: HandshakeRecord) = record {
+	namedgroup : uint16;
+};
+
+type ServerHelloKeyShareChoice(rec: HandshakeRecord, ext: SSLExtension) = case (ext.data_len) of {
+	2 -> hrr : HelloRetryRequestKeyShare(rec);
+	default -> server : ServerHelloKeyShare(rec);
+};
+
 type ClientHelloKeyShare(rec: HandshakeRecord) = record {
 	length: uint16;
 	keyshares : KeyShareEntry[] &until($input.length() == 0);
+} &length=(length+2);
+
+type KeyShare(rec: HandshakeRecord, ext: SSLExtension) = case rec.msg_type of {
+	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
+	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShareChoice(rec, ext);
+	# in old traces, theoretically hello retry requests might show up as a separate type here.
+	# If this happens, just ignore the extension - we do not have any example traffic for this.
+	# And it will not happen in anything speaking TLS 1.3, or not completely ancient drafts of it.
+	default -> other : bytestring &restofdata &transient;
 };
 
-type KeyShare(rec: HandshakeRecord) = case rec.msg_type of {
-	CLIENT_HELLO -> client_hello_keyshare : ClientHelloKeyShare(rec);
-	SERVER_HELLO -> server_hello_keyshare : ServerHelloKeyShare(rec);
+type SelectedPreSharedKeyIdentity(rec: HandshakeRecord) = record {
+	selected_identity: uint16;
+};
+
+type PSKIdentity() = record {
+	length: uint16;
+	identity: bytestring &length=length;
+	obfuscated_ticket_age: uint32;
+};
+
+type PSKIdentitiesList() = record {
+	length: uint16;
+	identities: PSKIdentity[] &until($input.length() == 0);
+} &length=length+2;
+
+type PSKBinder() = record {
+	length: uint8;
+	binder: bytestring &length=length;
+};
+
+type PSKBindersList() = record {
+	length: uint16;
+	binders: PSKBinder[] &until($input.length() == 0);
+} &length=length+2;
+
+type OfferedPsks(rec: HandshakeRecord) = record {
+	identities: PSKIdentitiesList;
+	binders: PSKBindersList;
+};
+
+type PreSharedKey(rec: HandshakeRecord) = case rec.msg_type of {
+	CLIENT_HELLO -> offered_psks : OfferedPsks(rec);
+	SERVER_HELLO -> selected_identity : SelectedPreSharedKeyIdentity(rec);
 	# ... well, we don't parse hello retry requests yet, because I don't have an example of them on the wire.
 	default -> other : bytestring &restofdata &transient;
 };

@@ -3,9 +3,9 @@
 ##! and can only add/remove filters for addresses, this is quite
 ##! limited in scope at the moment. 
 
-module NetControl;
-
 @load ../plugin
+
+module NetControl;
 
 export {
 	## Instantiates the packetfilter plugin.

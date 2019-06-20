@@ -56,6 +56,7 @@
 @load base/protocols/modbus
 @load base/protocols/mysql
 @load base/protocols/ntlm
+@load base/protocols/ntp
 @load base/protocols/pop3
 @load base/protocols/radius
 @load base/protocols/rdp
@@ -74,7 +75,6 @@
 @load base/files/pe
 @load base/files/hash
 @load base/files/extract
-@load base/files/unified2
 @load base/files/x509
 
 @load base/misc/find-checksum-offloading

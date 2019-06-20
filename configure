@@ -31,9 +31,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (useful for cross-compiling)
 
   Installation Directories:
-    --prefix=PREFIX        installation directory [/usr/local/bro]
+    --prefix=PREFIX        installation directory [/usr/local/zeek]
     --scriptdir=PATH       root installation directory for Zeek scripts
-                           [PREFIX/share/bro]
+                           [PREFIX/share/zeek]
     --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
@@ -58,6 +58,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
+    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -127,12 +128,12 @@ remove_cache_entry () {
 
 # set defaults
 builddir=build
-prefix=/usr/local/bro
+prefix=/usr/local/zeek
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   $prefix
 append_cache_entry ZEEK_ROOT_DIR        PATH   $prefix
 append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/zeekctl
-append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
@@ -144,6 +145,7 @@ append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry SANITIZERS           STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -215,6 +217,9 @@ while [ $# -ne 0 ]; do
         --enable-perftools-debug)
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
+            ;;
+        --sanitizers=*)
+            append_cache_entry SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
@@ -321,7 +326,7 @@ while [ $# -ne 0 ]; do
 done
 
 if [ "$user_set_scriptdir" != "true" ]; then
-    append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+    append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 fi
 
 if [ "$user_set_conffilesdir" != "true" ]; then

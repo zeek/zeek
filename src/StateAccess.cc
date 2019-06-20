@@ -1,6 +1,5 @@
 #include "Val.h"
 #include "StateAccess.h"
-#include "Serializer.h"
 #include "Event.h"
 #include "NetVar.h"
 #include "DebugLogger.h"
@@ -72,7 +71,6 @@ StateAccess::StateAccess(Opcode arg_opcode,
 	}
 
 StateAccess::StateAccess(const StateAccess& sa)
-: SerialObj()
 	{
 	opcode = sa.opcode;
 	target_type = sa.target_type;
@@ -341,146 +339,6 @@ void StateAccess::Replay()
 ID* StateAccess::Target() const
 	{
 	return target_type == TYPE_ID ? target.id : target.val->UniqueID();
-	}
-
-bool StateAccess::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-StateAccess* StateAccess::Unserialize(UnserialInfo* info)
-	{
-	StateAccess* sa =
-		(StateAccess*) SerialObj::Unserialize(info, SER_STATE_ACCESS);
-	return sa;
-	}
-
-IMPLEMENT_SERIAL(StateAccess, SER_STATE_ACCESS);
-
-bool StateAccess::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STATE_ACCESS, SerialObj);
-
-	if ( ! SERIALIZE(char(opcode)) )
-		return false;
-
-	const ID* id =
-		target_type == TYPE_ID ? target.id : target.val->UniqueID();
-
-	if ( ! SERIALIZE(id->Name()) )
-		 return false;
-
-	if ( op1_type == TYPE_KEY )
-		{
-		Val* index =
-			id->ID_Val()->AsTableVal()->RecoverIndex(this->op1.key);
-
-		if ( ! index )
-			return false;
-		if ( ! index->Serialize(info) )
-			return false;
-
-		Unref(index);
-		}
-
-	else if ( ! op1.val->Serialize(info) )
-		return false;
-
-	// Don't send the "old" operand if we don't want consistency checks.
-	// Unfortunately, it depends on the opcode which operand that actually
-	// is.
-
-	const Val* null = 0;
-
-	switch ( opcode ) {
-	case OP_PRINT:
-	case OP_EXPIRE:
-	case OP_READ_IDX:
-		// No old.
-		SERIALIZE_OPTIONAL(null);
-		SERIALIZE_OPTIONAL(null);
-		break;
-
-	case OP_INCR:
-	case OP_INCR_IDX:
-		// Always need old.
-		SERIALIZE_OPTIONAL(op2);
-		SERIALIZE_OPTIONAL(op3);
-		break;
-
-	case OP_ASSIGN:
-	case OP_ADD:
-	case OP_DEL:
-		// Op2 is old.
-		SERIALIZE_OPTIONAL(null);
-		SERIALIZE_OPTIONAL(null);
-		break;
-
-	case OP_ASSIGN_IDX:
-		// Op3 is old.
-		SERIALIZE_OPTIONAL(op2);
-		SERIALIZE_OPTIONAL(null);
-		break;
-
-	default:
-		reporter->InternalError("StateAccess::DoSerialize: unknown opcode");
-	}
-
-	return true;
-	}
-
-bool StateAccess::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	char c;
-	if ( ! UNSERIALIZE(&c) )
-		return false;
-
-	opcode = Opcode(c);
-
-	const char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return false;
-
-	target_type = TYPE_ID;
-	target.id = global_scope()->Lookup(name);
-
-	if ( target.id )
-		// Otherwise, we'll delete it below.
-		delete [] name;
-
-	op1_type = TYPE_VAL;
-	op1.val = Val::Unserialize(info);
-	if ( ! op1.val )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(op2, Val::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(op3, Val::Unserialize(info));
-
-	if ( target.id )
-		Ref(target.id);
-	else
-		{
-		// This may happen as long as we haven't agreed on the
-		// unique name for an ID during initial synchronization, or if
-		// the local peer has already deleted the ID.
-		DBG_LOG(DBG_STATE, "state access referenced unknown id %s", name);
-
-		if ( info->install_uniques )
-			{
-			target.id = new ID(name, SCOPE_GLOBAL, true);
-			Ref(target.id);
-			global_scope()->Insert(name, target.id);
-#ifdef USE_PERFTOOLS_DEBUG
-			heap_checker->IgnoreObject(target.id);
-#endif
-			}
-
-		delete [] name;
-		}
-
-	return true;
 	}
 
 void StateAccess::Describe(ODesc* d) const

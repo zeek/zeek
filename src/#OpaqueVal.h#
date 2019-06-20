@@ -1,0 +1,213 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#ifndef OPAQUEVAL_H
+#define OPAQUEVAL_H
+
+#include <typeinfo>
+#include <memory> // std::unique_ptr
+
+#include "RandTest.h"
+#include "Val.h"
+#include "digest.h"
+#include "src/paraglob.h"
+
+namespace probabilistic {
+	class BloomFilter;
+	class CardinalityCounter;
+}
+
+class HashVal : public OpaqueVal {
+public:
+	virtual bool IsValid() const;
+	virtual bool Init();
+	virtual bool Feed(const void* data, size_t size);
+	virtual StringVal* Get();
+
+protected:
+	HashVal() { };
+	explicit HashVal(OpaqueType* t);
+
+	virtual bool DoInit();
+	virtual bool DoFeed(const void* data, size_t size);
+	virtual StringVal* DoGet();
+
+	DECLARE_SERIAL(HashVal);
+
+private:
+	// This flag exists because Get() can only be called once.
+	bool valid;
+};
+
+class MD5Val : public HashVal {
+public:
+	static void digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH]);
+
+	static void hmac(val_list& vlist,
+			 u_char key[MD5_DIGEST_LENGTH],
+			 u_char result[MD5_DIGEST_LENGTH]);
+
+	MD5Val();
+	~MD5Val();
+
+	Val* DoClone(CloneState* state) override;
+
+protected:
+	friend class Val;
+
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
+
+	DECLARE_SERIAL(MD5Val);
+
+private:
+	EVP_MD_CTX* ctx;
+};
+
+class SHA1Val : public HashVal {
+public:
+	static void digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH]);
+
+	SHA1Val();
+	~SHA1Val();
+
+	Val* DoClone(CloneState* state) override;
+
+protected:
+	friend class Val;
+
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
+
+	DECLARE_SERIAL(SHA1Val);
+
+private:
+	EVP_MD_CTX* ctx;
+};
+
+class SHA256Val : public HashVal {
+public:
+	static void digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH]);
+
+	SHA256Val();
+	~SHA256Val();
+
+	Val* DoClone(CloneState* state) override;
+
+protected:
+	friend class Val;
+
+	bool DoInit() override;
+	bool DoFeed(const void* data, size_t size) override;
+	StringVal* DoGet() override;
+
+	DECLARE_SERIAL(SHA256Val);
+
+private:
+	EVP_MD_CTX* ctx;
+};
+
+class EntropyVal : public OpaqueVal {
+public:
+	EntropyVal();
+
+	Val* DoClone(CloneState* state) override;
+
+	bool Feed(const void* data, size_t size);
+	bool Get(double *r_ent, double *r_chisq, double *r_mean,
+		 double *r_montepicalc, double *r_scc);
+
+protected:
+	friend class Val;
+
+	DECLARE_SERIAL(EntropyVal);
+
+private:
+	RandTest state;
+};
+
+class BloomFilterVal : public OpaqueVal {
+public:
+	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
+	~BloomFilterVal() override;
+
+	Val* DoClone(CloneState* state) override;
+
+	BroType* Type() const;
+	bool Typify(BroType* type);
+
+	void Add(const Val* val);
+	size_t Count(const Val* val) const;
+	void Clear();
+	bool Empty() const;
+	string InternalState() const;
+
+	static BloomFilterVal* Merge(const BloomFilterVal* x,
+				     const BloomFilterVal* y);
+
+protected:
+	friend class Val;
+	BloomFilterVal();
+	explicit BloomFilterVal(OpaqueType* t);
+
+	DECLARE_SERIAL(BloomFilterVal);
+
+private:
+	// Disable.
+	BloomFilterVal(const BloomFilterVal&);
+	BloomFilterVal& operator=(const BloomFilterVal&);
+
+	BroType* type;
+	CompositeHash* hash;
+	probabilistic::BloomFilter* bloom_filter;
+};
+
+
+class CardinalityVal: public OpaqueVal {
+public:
+	explicit CardinalityVal(probabilistic::CardinalityCounter*);
+	~CardinalityVal() override;
+
+	Val* DoClone(CloneState* state) override;
+
+	void Add(const Val* val);
+
+	BroType* Type() const;
+	bool Typify(BroType* type);
+
+
+	probabilistic::CardinalityCounter* Get()	{ return c; };
+
+protected:
+	CardinalityVal();
+
+private:
+	BroType* type;
+	CompositeHash* hash;
+	probabilistic::CardinalityCounter* c;
+
+	DECLARE_SERIAL(CardinalityVal);
+};
+
+class ParaglobVal : public OpaqueVal {
+public:
+	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
+	VectorVal* get(StringVal* &pattern);
+	Val* DoClone(CloneState* state) override;
+	bool operator==(const ParaglobVal& other) const;
+
+protected:
+	ParaglobVal() : OpaqueVal(paraglob_type) {}
+
+private:
+	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
+	// Small convenience function. Does what std::make_unique does in C++14. Wont
+	// work on arrays.
+	template <typename T, typename ... Args>
+	std::unique_ptr<T> build_unique (Args&&... args) {
+		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+	}
+
+	DECLARE_SERIAL(ParaglobVal)
+};

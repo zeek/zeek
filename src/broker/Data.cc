@@ -126,15 +126,6 @@ struct val_converter {
 
 			return rval->Ref();
 			}
-		case TYPE_OPAQUE:
-			{
-			SerializationFormat* form = new BinarySerializationFormat();
-			form->StartRead(a.data(), a.size());
-			CloneSerializer ss(form);
-			UnserialInfo uinfo(&ss);
-			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, type->Tag());
-			}
 		default:
 			return nullptr;
 		}
@@ -434,6 +425,8 @@ struct val_converter {
 			auto rval = new PatternVal(re);
 			return rval;
 			}
+		else if ( type->Tag() == TYPE_OPAQUE )
+			return OpaqueVal::Unserialize(a);
 
 		return nullptr;
 		}
@@ -507,16 +500,6 @@ struct type_checker {
 				return false;
 
 			return true;
-			}
-		case TYPE_OPAQUE:
-			{
-			// TODO
-			SerializationFormat* form = new BinarySerializationFormat();
-			form->StartRead(a.data(), a.size());
-			CloneSerializer ss(form);
-			UnserialInfo uinfo(&ss);
-			uinfo.cache = false;
-			return Val::Unserialize(&uinfo, type->Tag());
 			}
 		default:
 			return false;
@@ -764,6 +747,15 @@ struct type_checker {
 
 			return true;
 			}
+		else if ( type->Tag() == TYPE_OPAQUE )
+			{
+			// TODO: Could avoid doing the full unserialization here
+			// and just check if the type is a correct match.
+			auto ov = OpaqueVal::Unserialize(a);
+			auto rval = ov != nullptr;
+			Unref(ov);
+			return rval;
+			}
 
 		return false;
 		}
@@ -980,21 +972,14 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		}
 	case TYPE_OPAQUE:
 		{
-		SerializationFormat* form = new BinarySerializationFormat();
-		form->StartWrite();
-		CloneSerializer ss(form);
-		SerialInfo sinfo(&ss);
-		sinfo.cache = false;
-		sinfo.include_locations = false;
+		auto c = v->AsOpaqueVal()->Serialize();
+		if ( ! c )
+			{
+			reporter->Error("unsupported opaque type for serialization");
+			break;
+			}
 
-		if ( ! v->Serialize(&sinfo) )
-			return broker::ec::invalid_data;
-
-		char* data;
-		uint32 len = form->EndWrite(&data);
-		string rval(data, len);
-		free(data);
-		return {std::move(rval)};
+		return {c};
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
@@ -1131,39 +1116,114 @@ Val* bro_broker::DataVal::castTo(BroType* t)
 	return data_to_val(data, t);
 	}
 
-IMPLEMENT_SERIAL(bro_broker::DataVal, SER_COMM_DATA_VAL);
+IMPLEMENT_OPAQUE_VALUE(bro_broker::DataVal)
 
-bool bro_broker::DataVal::DoSerialize(SerialInfo* info) const
+broker::expected<broker::data> bro_broker::DataVal::DoSerialize() const
 	{
-	DO_SERIALIZE(SER_COMM_DATA_VAL, OpaqueVal);
+	return data;
+	}
 
-	std::string buffer;
-	caf::containerbuf<std::string> sb{buffer};
-	caf::stream_serializer<caf::containerbuf<std::string>&> serializer{sb};
-	serializer << data;
-
-	if ( ! SERIALIZE_STR(buffer.data(), buffer.size()) )
-		return false;
-
+bool bro_broker::DataVal::DoUnserialize(const broker::data& data_)
+	{
+	data = data_;
 	return true;
 	}
 
-bool bro_broker::DataVal::DoUnserialize(UnserialInfo* info)
+IMPLEMENT_OPAQUE_VALUE(bro_broker::SetIterator)
+
+broker::expected<broker::data> bro_broker::SetIterator::DoSerialize() const
 	{
-	DO_UNSERIALIZE(OpaqueVal);
+	return broker::vector{dat, *it};
+	}
 
-	const char* serial;
-	int len;
-
-	if ( ! UNSERIALIZE_STR(&serial, &len) )
+bool bro_broker::SetIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
 		return false;
 
-	caf::arraybuf<char> sb{const_cast<char*>(serial), // will not write
-	                       static_cast<size_t>(len)};
-	caf::stream_deserializer<caf::arraybuf<char>&> deserializer{sb};
-	deserializer >> data;
+	auto x = caf::get_if<broker::set>(&(*v)[0]);
 
-	delete [] serial;
+	// We set the iterator by finding the element it used to point to.
+	// This is not perfect, as there's no guarantee that the restored
+	// container will list the elements in the same order. But it's as
+	// good as we can do, and it should generally work out.
+	if( x->find((*v)[1]) == x->end() )
+		return false;
+
+	dat = *x;
+	it = dat.find((*v)[1]);
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::TableIterator)
+
+broker::expected<broker::data> bro_broker::TableIterator::DoSerialize() const
+	{
+	return broker::vector{dat, it->first};
+	}
+
+bool bro_broker::TableIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::table>(&(*v)[0]);
+
+	// We set the iterator by finding the element it used to point to.
+	// This is not perfect, as there's no guarantee that the restored
+	// container will list the elements in the same order. But it's as
+	// good as we can do, and it should generally work out.
+	if( x->find((*v)[1]) == x->end() )
+		return false;
+
+	dat = *x;
+	it = dat.find((*v)[1]);
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::VectorIterator)
+
+broker::expected<broker::data> bro_broker::VectorIterator::DoSerialize() const
+	{
+	broker::integer difference = it - dat.begin();
+	return broker::vector{dat, difference};
+	}
+
+bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::vector>(&(*v)[0]);
+	auto y = caf::get_if<broker::integer>(&(*v)[1]);
+
+	dat = *x;
+	it = dat.begin() + *y;
+	return true;
+	}
+
+IMPLEMENT_OPAQUE_VALUE(bro_broker::RecordIterator)
+
+broker::expected<broker::data> bro_broker::RecordIterator::DoSerialize() const
+	{
+	broker::integer difference = it - dat.begin();
+	return broker::vector{dat, difference};
+	}
+
+bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() == 2) )
+		return false;
+
+	auto x = caf::get_if<broker::vector>(&(*v)[0]);
+	auto y = caf::get_if<broker::integer>(&(*v)[1]);
+
+	dat = *x;
+	it = dat.begin() + *y;
 	return true;
 	}
 

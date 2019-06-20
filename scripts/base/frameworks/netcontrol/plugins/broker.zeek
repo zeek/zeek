@@ -2,11 +2,11 @@
 ##! used in NetControl on to Broker to allow for easy handling, e.g., of
 ##! command-line scripts.
 
-module NetControl;
-
 @load ../main
 @load ../plugin
 @load base/frameworks/broker
+
+module NetControl;
 
 export {
 	## This record specifies the configuration that is passed to :zeek:see:`NetControl::create_broker`.

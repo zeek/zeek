@@ -6,7 +6,7 @@
 #include "SMTP.h"
 
 namespace plugin {
-namespace Bro_SMTP {
+namespace Zeek_SMTP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("SMTP", ::analyzer::smtp::SMTP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SMTP";
+		config.name = "Zeek::SMTP";
 		config.description = "SMTP analyzer";
 		return config;
 		}

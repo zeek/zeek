@@ -6,16 +6,16 @@
 #include <iterator>
 #include <vector>
 
-#include "SerialObj.h"
+#include <broker/Data.h>
 
 namespace probabilistic {
 
 /**
  * A vector of bits.
  */
-class BitVector : public SerialObj {
+class BitVector {
 public:
-	typedef uint64 block_type;
+	typedef uint64_t block_type;
 	typedef size_t size_type;
 	typedef bool const_reference;
 
@@ -281,28 +281,10 @@ public:
 	  *
 	  * @return The hash.
 	  */
-	uint64 Hash() const;
+	uint64_t Hash() const;
 
-	/**
-	 * Serializes the bit vector.
-	 *
-	 * @param info The serializaton informationt to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserialize the bit vector.
-	 *
-	 * @param info The serializaton informationt to use.
-	 *
-	 * @return The unserialized bit vector, or null if an error occured.
-	 */
-	static BitVector* Unserialize(UnserialInfo* info);
-
-protected:
-	DECLARE_SERIAL(BitVector);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<BitVector> Unserialize(const broker::data& data);
 
 private:
 	/**

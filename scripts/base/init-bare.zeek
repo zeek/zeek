@@ -777,7 +777,7 @@ type IPAddrAnonymizationClass: enum {
 
 ## Deprecated.
 ##
-## .. zeek:see:: rotate_file rotate_file_by_name rotate_interval
+## .. zeek:see:: rotate_file rotate_file_by_name
 type rotate_info: record {
 	old_name: string;	##< Original filename.
 	new_name: string;	##< File name after rotation.
@@ -1112,9 +1112,6 @@ const table_expire_delay = 0.01 secs &redef;
 
 ## Time to wait before timing out a DNS request.
 const dns_session_timeout = 10 sec &redef;
-
-## Time to wait before timing out an NTP request.
-const ntp_session_timeout = 300 sec &redef;
 
 ## Time to wait before timing out an RPC request.
 const rpc_timeout = 24 sec &redef;
@@ -1789,7 +1786,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 };
 
 # Prototypes of Zeek built-in functions.
-@load base/bif/bro.bif
+@load base/bif/zeek.bif
 @load base/bif/stats.bif
 @load base/bif/reporter.bif
 @load base/bif/strings.bif
@@ -2528,26 +2525,6 @@ export {
 		is_server:                  bool;
 	};
 }
-
-module GLOBAL;
-
-## An NTP message.
-##
-## .. zeek:see:: ntp_message
-type ntp_msg: record {
-	id: count;	##< Message ID.
-	code: count;	##< Message code.
-	stratum: count;	##< Stratum.
-	poll: count;	##< Poll.
-	precision: int;	##< Precision.
-	distance: interval;	##< Distance.
-	dispersion: interval;	##< Dispersion.
-	ref_t: time;	##< Reference time.
-	originate_t: time;	##< Originating time.
-	receive_t: time;	##< Receive time.
-	xmit_t: time;	##< Send time.
-};
-
 
 module NTLM;
 
@@ -4140,6 +4117,10 @@ export {
 		SignatureAlgorithm: count; ##< Signature algorithm number
 	};
 
+	type PSKIdentity: record {
+		identity: string; ##< PSK identity
+		obfuscated_ticket_age: count;
+	};
 
 ## Number of non-DTLS frames that can occur in a DTLS connection before
 ## parsing of the connection is suspended.
@@ -4160,6 +4141,8 @@ module GLOBAL;
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type signature_and_hashalgorithm_vec: vector of SSL::SignatureAndHashAlgorithm;
+
+type psk_identity_vec: vector of SSL::PSKIdentity;
 
 module X509;
 export {
@@ -4275,9 +4258,57 @@ export {
 		ec_flags:               RDP::EarlyCapabilityFlags &optional;
 		dig_product_id:         string &optional;
 	};
+
+	## The TS_UD_CS_SEC data block contains security-related information used
+	## to advertise client cryptographic support.
+	type RDP::ClientSecurityData: record {
+		## Cryptographic encryption methods supported by the client and used in
+		## conjunction with Standard RDP Security.  Known flags:
+		##
+		## - 0x00000001: support for 40-bit session encryption keys
+		## - 0x00000002: support for 128-bit session encryption keys
+		## - 0x00000008: support for 56-bit session encryption keys
+		## - 0x00000010: support for FIPS compliant encryption and MAC methods
+		encryption_methods:	count;
+		## Only used in French locale and designates the encryption method.  If
+		## non-zero, then encryption_methods should be set to 0.
+		ext_encryption_methods:	count;
+	};
+
+	## Name and flags for a single channel requested by the client.
+	type RDP::ClientChannelDef: record {
+		## A unique name for the channel
+		name:           string;
+		## Absence of this flag indicates that this channel is
+		## a placeholder and that the server MUST NOT set it up.
+		initialized:    bool;
+		## Unused, must be ignored by the server.
+		encrypt_rdp:    bool;
+		## Unused, must be ignored by the server.
+		encrypt_sc:     bool;
+		## Unused, must be ignored by the server.
+		encrypt_cs:     bool;
+		## Channel data must be sent with high MCS priority.
+		pri_high:       bool;
+		## Channel data must be sent with medium MCS priority.
+		pri_med:        bool;
+		## Channel data must be sent with low MCS priority.
+		pri_low:        bool;
+		## Virtual channel data must be compressed if RDP data is being compressed.
+		compress_rdp:   bool;
+		## Virtual channel data must be compressed.
+		compress:       bool;
+		## Ignored by the server.
+		show_protocol:  bool;
+		## Channel must be persistent across remote control transactions.
+		persistent:     bool;
+	};
+
+	## The list of channels requested by the client.
+	type RDP::ClientChannelList: vector of ClientChannelDef;
 }
 
-@load base/bif/plugins/Bro_SNMP.types.bif
+@load base/bif/plugins/Zeek_SNMP.types.bif
 
 module SNMP;
 export {
@@ -4399,7 +4430,7 @@ export {
 	};
 }
 
-@load base/bif/plugins/Bro_KRB.types.bif
+@load base/bif/plugins/Zeek_KRB.types.bif
 
 module KRB;
 export {
@@ -4711,7 +4742,7 @@ const packet_filter_default = F &redef;
 const sig_max_group_size = 50 &redef;
 
 ## Description transmitted to remote communication peers for identification.
-const peer_description = "bro" &redef;
+const peer_description = "zeek" &redef;
 
 ## The number of IO chunks allowed to be buffered between the child
 ## and parent process of remote communication before Zeek starts dropping
@@ -4919,6 +4950,180 @@ module NCP;
 export {
 	## The maximum number of bytes to allocate when parsing NCP frames.
 	const max_frame_size = 65536 &redef;
+}
+
+module NTP;
+export {
+	## NTP standard message as defined in :rfc:`5905` for modes 1-5
+	## This record contains the standard fields used by the NTP protocol
+	## for standard syncronization operations.
+	type NTP::StandardMessage: record {
+		## This value mainly identifies the type of server (primary server,
+		## secondary server, etc.). Possible values, as in :rfc:`5905`, are:
+		##
+		##   * 0 -> unspecified or invalid
+		##   * 1 -> primary server (e.g., equipped with a GPS receiver)
+		##   * 2-15 -> secondary server (via NTP)
+		##   * 16 -> unsynchronized
+		##   * 17-255 -> reserved
+		##
+		## For stratum 0, a *kiss_code* can be given for debugging and
+		## monitoring.
+		stratum:            count;
+		## The maximum interval between successive messages.
+		poll:               interval;
+		## The precision of the system clock.
+		precision:          interval;
+		## Root delay. The total round-trip delay to the reference clock.
+		root_delay:         interval;
+		## Root Dispersion. The total dispersion to the reference clock.
+		root_disp:          interval;
+		## For stratum 0, four-character ASCII string used for debugging and
+		## monitoring. Values are defined in :rfc:`1345`.
+		kiss_code:          string &optional;
+		## Reference ID. For stratum 1, this is the ID assigned to the
+		## reference clock by IANA.
+		## For example: GOES, GPS, GAL, etc. (see :rfc:`5905`)
+		ref_id:             string &optional;
+		## Above stratum 1, when using IPv4, the IP address of the reference
+		## clock.  Note that the NTP protocol did not originally specify a
+		## large enough field to represent IPv6 addresses, so they use
+		## the first four bytes of the MD5 hash of the reference clock's
+		## IPv6 address (i.e. an IPv4 address here is not necessarily IPv4).
+		ref_addr:           addr &optional;
+		## Reference timestamp. Time when the system clock was last set or
+		## correct.
+		ref_time:           time;
+		## Origin timestamp. Time at the client when the request departed for
+		## the NTP server.
+		org_time:           time;
+		## Receive timestamp. Time at the server when the request arrived from
+		## the NTP client.
+		rec_time:           time;
+		## Transmit timestamp. Time at the server when the response departed
+		# for the NTP client.
+		xmt_time:           time;
+		## Key used to designate a secret MD5 key.
+		key_id:             count &optional;
+		## MD5 hash computed over the key followed by the NTP packet header and
+		## extension fields.
+		digest:             string &optional;
+		## Number of extension fields (which are not currently parsed).
+		num_exts:           count &default=0;
+	};
+
+	## NTP control message as defined in :rfc:`1119` for mode=6
+	## This record contains the fields used by the NTP protocol
+	## for control operations.
+	type NTP::ControlMessage: record {
+		## An integer specifying the command function. Values currently defined:
+		##
+		## * 1 read status command/response
+		## * 2 read variables command/response
+		## * 3 write variables command/response
+		## * 4 read clock variables command/response
+		## * 5 write clock variables command/response
+		## * 6 set trap address/port command/response
+		## * 7 trap response
+		##
+		## Other values are reserved.
+		op_code:            count;
+		## The response bit. Set to zero for commands, one for responses.
+		resp_bit:           bool;
+		## The error bit. Set to zero for normal response, one for error
+		## response.
+		err_bit:            bool;
+		## The more bit. Set to zero for last fragment, one for all others.
+		more_bit:           bool;
+		## The sequence number of the command or response.
+		sequence:           count;
+		## The current status of the system, peer or clock.
+		#TODO: this can be further parsed internally
+		status:             count;
+		## A 16-bit integer identifying a valid association.
+		association_id:     count;
+		## Message data for the command or response + Authenticator (optional).
+		data:               string &optional;
+		## This is an integer identifying the cryptographic
+		## key used to generate the message-authentication code.
+		key_id:             count &optional;
+		## This is a crypto-checksum computed by the encryption procedure.
+		crypto_checksum:    string &optional;
+	};
+
+	## NTP mode 7 message. Note that this is not defined in any RFC and is
+	## implementation dependent. We used the official implementation from the
+	## `NTP official project <www.ntp.org>`_.  A mode 7 packet is used
+	## exchanging data between an NTP server and a client for purposes other
+	## than time synchronization, e.g.  monitoring, statistics gathering and
+	## configuration.  For details see the documentation from the `NTP official
+	## project <www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
+	type NTP::Mode7Message: record {
+		## An implementation-specific code which specifies the
+		## operation to be (which has been) performed and/or the
+		## format and semantics of the data included in the packet.
+		req_code:       count;
+		## The authenticated bit. If set, this packet is authenticated.
+		auth_bit:       bool;
+		## For a multipacket response, contains the sequence
+		## number of this packet.  0 is the first in the sequence,
+		## 127 (or less) is the last.  The More Bit must be set in
+		## all packets but the last.
+		sequence:       count;
+		## The number of the implementation this request code
+		## is defined by.  An implementation number of zero is used
+		## for requst codes/data formats which all implementations
+		## agree on.  Implementation number 255 is reserved (for
+		## extensions, in case we run out).
+		implementation: count;
+		## Must be 0 for a request.  For a response, holds an error
+		## code relating to the request.  If nonzero, the operation
+		## requested wasn't performed.
+		##
+		##   * 0 - no error
+		##   * 1 - incompatible implementation number
+		##   * 2 - unimplemented request code
+		##   * 3 - format error (wrong data items, data size, packet size etc.)
+		##   * 4 - no data available (e.g. request for details on unknown peer)
+		##   * 5 - unknown
+		##   * 6 - unknown
+		##   * 7 - authentication failure (i.e. permission denied)
+		err:            count;
+		## Rest of data
+		data:           string &optional;
+	};
+
+	## NTP message as defined in :rfc:`5905`.  Does include fields for mode 7,
+	## reserved for private use in :rfc:`5905`, but used in some implementation
+	## for commands such as "monlist".
+	type NTP::Message: record {
+		## The NTP version number (1, 2, 3, 4).
+		version:        count;
+		## The NTP mode being used. Possible values are:
+		##
+		##   * 1 - symmetric active
+		##   * 2 - symmetric passive
+		##   * 3 - client
+		##   * 4 - server
+		##   * 5 - broadcast
+		##   * 6 - NTP control message
+		##   * 7 - reserved for private use
+		mode:           count;
+		## If mode 1-5, the standard fields for syncronization operations are
+		## here.  See :rfc:`5905`
+		std_msg:        NTP::StandardMessage &optional;
+		## If mode 6, the fields for control operations are here.
+		## See :rfc:`1119`
+		control_msg:    NTP::ControlMessage &optional;
+		## If mode 7, the fields for extra operations are here.
+		## Note that this is not defined in any RFC
+		## and is implementation dependent. We used the official implementation
+		## from the `NTP official project <www.ntp.org>`_.
+		## A mode 7 packet is used exchanging data between an NTP server
+		## and a client for purposes other than time synchronization, e.g.
+		## monitoring, statistics gathering and configuration.
+		mode7_msg: NTP::Mode7Message &optional;
+	};
 }
 
 module Cluster;

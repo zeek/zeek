@@ -5,7 +5,7 @@
 #include "Finger.h"
 
 namespace plugin {
-namespace Bro_Finger {
+namespace Zeek_Finger {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::analyzer::Component("Finger", ::analyzer::finger::Finger_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Finger";
+		config.name = "Zeek::Finger";
 		config.description = "Finger analyzer";
 		return config;
 		}

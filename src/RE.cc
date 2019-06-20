@@ -9,7 +9,7 @@
 #include "DFA.h"
 #include "CCL.h"
 #include "EquivClass.h"
-#include "Serializer.h"
+#include "Reporter.h"
 
 CCL* curr_ccl = 0;
 
@@ -468,57 +468,6 @@ int RE_Matcher::Compile(int lazy)
 	{
 	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
 	}
-
-bool RE_Matcher::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-RE_Matcher* RE_Matcher::Unserialize(UnserialInfo* info)
-	{
-	return (RE_Matcher*) SerialObj::Unserialize(info, SER_RE_MATCHER);
-	}
-
-IMPLEMENT_SERIAL(RE_Matcher, SER_RE_MATCHER);
-
-bool RE_Matcher::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RE_MATCHER, SerialObj);
-	return SERIALIZE(re_anywhere->PatternText())
-			&& SERIALIZE(re_exact->PatternText());
-	}
-
-bool RE_Matcher::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	re_anywhere = new Specific_RE_Matcher(MATCH_ANYWHERE);
-	re_exact = new Specific_RE_Matcher(MATCH_EXACTLY);
-
-	const char* pat;
-	if ( ! UNSERIALIZE_STR(&pat, 0) )
-		return false;
-
-	re_anywhere->SetPat(pat);
-	if ( ! re_anywhere->Compile() )
-		{
-		info->s->Error(fmt("Can't compile regexp '%s'", pat));
-		return false;
-		}
-
-	if ( ! UNSERIALIZE_STR(&pat, 0) )
-		return false;
-
-	re_exact->SetPat(pat);
-	if ( ! re_exact->Compile() )
-		{
-		info->s->Error(fmt("Can't compile regexp '%s'", pat));
-		return false;
-		}
-
-	return true;
-	}
-
 
 static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 				const char* merge_op)

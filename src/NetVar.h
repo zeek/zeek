@@ -80,7 +80,6 @@ extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
 
 extern double dns_session_timeout;
-extern double ntp_session_timeout;
 extern double rpc_timeout;
 
 extern ListVal* skip_authentication;
@@ -105,8 +104,6 @@ extern RecordType* pm_mapping;
 extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
-
-extern RecordType* ntp_msg;
 
 extern RecordType* geo_location;
 

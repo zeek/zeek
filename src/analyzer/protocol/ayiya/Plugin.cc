@@ -6,7 +6,7 @@
 #include "AYIYA.h"
 
 namespace plugin {
-namespace Bro_AYIYA {
+namespace Zeek_AYIYA {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("AYIYA", ::analyzer::ayiya::AYIYA_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::AYIYA";
+		config.name = "Zeek::AYIYA";
 		config.description = "AYIYA Analyzer";
 		return config;
 		}

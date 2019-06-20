@@ -441,20 +441,6 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		}
 	}
 
-IMPLEMENT_SERIAL(TCP_Reassembler, SER_TCP_REASSEMBLER);
-
-bool TCP_Reassembler::DoSerialize(SerialInfo* info) const
-	{
-	reporter->InternalError("TCP_Reassembler::DoSerialize not implemented");
-	return false; // Cannot be reached.
-	}
-
-bool TCP_Reassembler::DoUnserialize(UnserialInfo* info)
-	{
-	reporter->InternalError("TCP_Reassembler::DoUnserialize not implemented");
-	return false; // Cannot be reached.
-	}
-
 void TCP_Reassembler::Deliver(uint64 seq, int len, const u_char* data)
 	{
 	if ( type == Direct )

@@ -6,7 +6,7 @@
 #include "DNS.h"
 
 namespace plugin {
-namespace Bro_DNS {
+namespace Zeek_DNS {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_DNS", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::DNS";
+		config.name = "Zeek::DNS";
 		config.description = "DNS analyzer";
 		return config;
 		}

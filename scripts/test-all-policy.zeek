@@ -31,12 +31,16 @@
 @load frameworks/intel/seen/ssl.zeek
 @load frameworks/intel/seen/where-locations.zeek
 @load frameworks/intel/seen/x509.zeek
+@load frameworks/netcontrol/catch-and-release.zeek
 @load frameworks/files/detect-MHR.zeek
 @load frameworks/files/entropy-test-all-files.zeek
 #@load frameworks/files/extract-all-files.zeek
 @load frameworks/files/hash-all-files.zeek
 @load frameworks/notice/__load__.zeek
+@load frameworks/notice/actions/drop.zeek
 @load frameworks/notice/extend-email/hostnames.zeek
+@load files/unified2/__load__.zeek
+@load files/unified2/main.zeek
 @load files/x509/log-ocsp.zeek
 @load frameworks/packet-filter/shunt.zeek
 @load frameworks/software/version-changes.zeek

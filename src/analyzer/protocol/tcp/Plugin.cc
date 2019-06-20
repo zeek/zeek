@@ -6,7 +6,7 @@
 #include "TCP.h"
 
 namespace plugin {
-namespace Bro_TCP {
+namespace Zeek_TCP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -18,7 +18,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::TCP";
+		config.name = "Zeek::TCP";
 		config.description = "TCP analyzer";
 		return config;
 		}

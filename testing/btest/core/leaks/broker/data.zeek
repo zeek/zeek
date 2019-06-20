@@ -258,4 +258,13 @@ print Broker::record_size(cr);
 print Broker::record_assign(cr, 1, ("goodbye"));
 print Broker::record_size(cr);
 print Broker::record_lookup(cr, 1);
+
+print "***************************";
+
+### Test an opaque value
+
+local k1: opaque of topk = topk_init(4);
+topk_add(k1, "a");
+print Broker::data(k1) is opaque of topk;
+Broker::data(k1) as opaque of topk;
 }

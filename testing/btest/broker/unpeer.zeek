@@ -36,8 +36,8 @@ event unpeer(endpoint: Broker::EndpointInfo)
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
-    Broker::auto_publish("bro/event/my_topic", print_something);
+    Broker::subscribe("zeek/event/my_topic");
+    Broker::auto_publish("zeek/event/my_topic", print_something);
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 
@@ -67,7 +67,7 @@ event print_something(i: int)
 
 event zeek_init()
     {
-    Broker::subscribe("bro/event/my_topic");
+    Broker::subscribe("zeek/event/my_topic");
     Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
     schedule 10secs { do_terminate() };
     }

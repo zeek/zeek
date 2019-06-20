@@ -721,7 +721,7 @@ static char* get_prompt(bool reset_counter = false)
 	if ( reset_counter )
 		counter = 0;
 
-	safe_snprintf(prompt, sizeof(prompt), "(Bro [%d]) ", counter++);
+	safe_snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
 
 	return prompt;
 	}

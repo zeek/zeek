@@ -1,6 +1,6 @@
          0.000000 zeek_init
-         0.000000 NetControl::init
          0.000000 filter_change_tracking
+         0.000000 NetControl::init
 1254722767.492060 ChecksumOffloading::check
 1254722767.492060 filter_change_tracking
 1254722767.492060 new_connection
@@ -107,7 +107,6 @@
 1437831776.764391 connection_state_remove
 1437831776.764391 filter_change_tracking
 1437831776.764391 new_connection
-1437831777.107399 partial_connection
 1437831787.856895 new_connection
 1437831787.861602 connection_established
 1437831787.867142 smtp_reply
@@ -153,9 +152,7 @@
 1437831787.905375 smtp_request
 1437831787.914113 smtp_reply
 1437831798.533593 new_connection
-1437831798.533765 partial_connection
 1437831799.262632 new_connection
-1437831799.410135 partial_connection
 1437831799.461152 new_connection
 1437831799.610433 connection_established
 1437831799.611764 ssl_extension_server_name
@@ -216,15 +213,10 @@
 1437831800.045701 ssl_established
 1437831800.217854 net_done
 1437831800.217854 filter_change_tracking
-1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
-1437831800.217854 connection_pending
 1437831800.217854 connection_state_remove
 1437831800.217854 zeek_done
 1437831800.217854 ChecksumOffloading::check

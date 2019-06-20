@@ -22,7 +22,7 @@ print Version::parse("1.12-beta-drunk");
 print Version::parse("JustARandomString");
 
 # check that current running version of Zeek parses without error
-Version::parse(bro_version());
+Version::parse(zeek_version());
 
 @TEST-START-NEXT
 

@@ -3,68 +3,68 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-46
+#open	2019-06-07-02-20-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334074939.467194	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
-#close	2016-07-13-16-12-47
+1334074939.467194	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	zeek
+#close	2019-06-07-02-20-07
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-49
+#open	2019-06-07-02-20-08
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332785125.596793	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-49
+1332785125.596793	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-08
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-49
+#open	2019-06-07-02-20-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332782508.592037	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-49
+1332782508.592037	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-50
+#open	2019-06-07-02-20-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-50
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-50
+#open	2019-06-07-02-20-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-50
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-50
+#open	2019-06-07-02-20-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-50
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-09
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-50
+#open	2019-06-07-02-20-09
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
-#close	2016-07-13-16-12-50
+1334075027.053380	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	zeek
+#close	2019-06-07-02-20-09

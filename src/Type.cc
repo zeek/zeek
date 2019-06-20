@@ -6,7 +6,6 @@
 #include "Attr.h"
 #include "Expr.h"
 #include "Scope.h"
-#include "Serializer.h"
 #include "Reporter.h"
 #include "zeekygen/Manager.h"
 #include "zeekygen/utils.h"
@@ -122,27 +121,30 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 
 	}
 
-BroType* BroType::Clone() const
+BroType* BroType::ShallowClone()
 	{
-	SerializationFormat* form = new BinarySerializationFormat();
-	form->StartWrite();
-	CloneSerializer ss(form);
-	SerialInfo sinfo(&ss);
-	sinfo.cache = false;
+	switch ( tag ) {
+		case TYPE_VOID:
+		case TYPE_BOOL:
+		case TYPE_INT:
+		case TYPE_COUNT:
+		case TYPE_COUNTER:
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+		case TYPE_STRING:
+		case TYPE_PATTERN:
+		case TYPE_TIMER:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+		case TYPE_ANY:
+			return new BroType(tag, base_type);
 
-	this->Serialize(&sinfo);
-	char* data;
-	uint32 len = form->EndWrite(&data);
-	form->StartRead(data, len);
-
-	UnserialInfo uinfo(&ss);
-	uinfo.cache = false;
-
-	BroType* rval = this->Unserialize(&uinfo, false);
-	assert(rval != this);
-
-	free(data);
-	return rval;
+		default:
+			reporter->InternalError("cloning illegal base BroType");
+	}
+	return nullptr;
 	}
 
 int BroType::MatchesIndex(ListExpr*& index) const
@@ -201,124 +203,6 @@ void BroType::SetError()
 unsigned int BroType::MemoryAllocation() const
 	{
 	return padded_sizeof(*this);
-	}
-
-bool BroType::Serialize(SerialInfo* info) const
-	{
-	// We always send full types (see below).
-	if ( ! SERIALIZE(true) )
-		return false;
-
-	bool ret = SerialObj::Serialize(info);
-	return ret;
-	}
-
-BroType* BroType::Unserialize(UnserialInfo* info, bool use_existing)
-	{
-	// To avoid external Broccoli clients needing to always send full type
-	// objects, we allow them to give us only the name of a type. To
-	// differentiate between the two cases, we exchange a flag first.
-	bool full_type = true;;
-	if ( ! UNSERIALIZE(&full_type) )
-		return 0;
-
-	if ( ! full_type )
-		{
-		const char* name;
-		if ( ! UNSERIALIZE_STR(&name, 0) )
-			return 0;
-
-		ID* id = global_scope()->Lookup(name);
-		if ( ! id )
-			{
-			info->s->Error(fmt("unknown type %s", name));
-			return 0;
-			}
-
-		BroType* t = id->AsType();
-		if ( ! t )
-			{
-			info->s->Error(fmt("%s is not a type", name));
-			return 0;
-			}
-
-		return t->Ref();
-		}
-
-	BroType* t = (BroType*) SerialObj::Unserialize(info, SER_BRO_TYPE);
-
-	if ( ! t || ! use_existing )
-		return t;
-
-	if ( ! t->name.empty() )
-		{
-		// Avoid creating a new type if it's known by name.
-		// Also avoids loss of base type name alias (from condition below).
-		ID* id = global_scope()->Lookup(t->name.c_str());
-		BroType* t2 = id ? id->AsType() : 0;
-
-		if ( t2 )
-			{
-			Unref(t);
-			return t2->Ref();
-			}
-		}
-
-	if ( t->base_type )
-		{
-		BroType* t2 = ::base_type(TypeTag(t->tag));
-		Unref(t);
-		assert(t2);
-		return t2;
-		}
-
-	assert(t);
-	return t;
-	}
-
-IMPLEMENT_SERIAL(BroType, SER_BRO_TYPE)
-
-bool BroType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BRO_TYPE, BroObj);
-
-	info->s->WriteOpenTag("Type");
-
-	if ( ! (SERIALIZE(char(tag)) && SERIALIZE(char(internal_tag))) )
-		return false;
-
-	if ( ! (SERIALIZE(is_network_order) && SERIALIZE(base_type)) )
-		return false;
-
-	SERIALIZE_STR(name.c_str(), name.size());
-
-	info->s->WriteCloseTag("Type");
-
-	return true;
-	}
-
-bool BroType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	char c1, c2;
-	if ( ! (UNSERIALIZE(&c1) && UNSERIALIZE(&c2) ) )
-		return 0;
-
-	tag = (TypeTag) c1;
-	internal_tag = (InternalTypeTag) c2;
-
-	if ( ! (UNSERIALIZE(&is_network_order) && UNSERIALIZE(&base_type)) )
-		return 0;
-
-	const char* n;
-	if ( ! UNSERIALIZE_STR(&n, 0) )
-		return false;
-
-	name = n;
-	delete [] n;
-
-	return true;
 	}
 
 TypeList::~TypeList()
@@ -381,47 +265,6 @@ void TypeList::Describe(ODesc* d) const
 			types[i]->Describe(d);
 			}
 		}
-	}
-
-IMPLEMENT_SERIAL(TypeList, SER_TYPE_LIST);
-
-bool TypeList::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_TYPE_LIST, BroType);
-
-	SERIALIZE_OPTIONAL(pure_type);
-
-	if ( ! SERIALIZE(types.length()) )
-		return false;
-
-	loop_over_list(types, j)
-		{
-		if ( ! types[j]->Serialize(info) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool TypeList::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	UNSERIALIZE_OPTIONAL(pure_type, BroType::Unserialize(info));
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		BroType* t = BroType::Unserialize(info);
-		if ( ! t )
-			return false;
-
-		types.append(t);
-		}
-	return true;
 	}
 
 IndexType::~IndexType()
@@ -530,25 +373,6 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
-IMPLEMENT_SERIAL(IndexType, SER_INDEX_TYPE);
-
-bool IndexType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_INDEX_TYPE, BroType);
-
-	SERIALIZE_OPTIONAL(yield_type);
-	return indices->Serialize(info);
-	}
-
-bool IndexType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	UNSERIALIZE_OPTIONAL(yield_type, BroType::Unserialize(info));
-	indices = (TypeList*) BroType::Unserialize(info);
-	return indices != 0;
-	}
-
 TableType::TableType(TypeList* ind, BroType* yield)
 : IndexType(TYPE_TABLE, ind, yield)
 	{
@@ -575,6 +399,16 @@ TableType::TableType(TypeList* ind, BroType* yield)
 			break;
 			}
 		}
+	}
+
+TableType* TableType::ShallowClone()
+	{
+	if ( indices )
+		indices->Ref();
+	if ( yield_type )
+		yield_type->Ref();
+
+	return new TableType(indices, yield_type);
 	}
 
 bool TableType::IsUnspecifiedTable() const
@@ -650,41 +484,22 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 		}
 	}
 
-IMPLEMENT_SERIAL(TableType, SER_TABLE_TYPE);
-
-bool TableType::DoSerialize(SerialInfo* info) const
+SetType* SetType::ShallowClone()
 	{
-	DO_SERIALIZE(SER_TABLE_TYPE, IndexType);
-	return true;
-	}
+	// constructor only consumes indices when elements
+	// is set
+	if ( elements && indices )
+		{
+		elements->Ref();
+		indices->Ref();
+		}
 
-bool TableType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(IndexType);
-	return true;
+	return new SetType(indices, elements);
 	}
 
 SetType::~SetType()
 	{
 	Unref(elements);
-	}
-
-IMPLEMENT_SERIAL(SetType, SER_SET_TYPE);
-
-bool SetType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SET_TYPE, TableType);
-
-	SERIALIZE_OPTIONAL(elements);
-	return true;
-	}
-
-bool SetType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(TableType);
-
-	UNSERIALIZE_OPTIONAL(elements, (ListExpr*) Expr::Unserialize(info, EXPR_LIST));
-	return true;
 	}
 
 FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
@@ -714,6 +529,16 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 
 		arg_types->Append(args->FieldType(i)->Ref());
 		}
+	}
+
+FuncType* FuncType::ShallowClone()
+	{
+	auto f = new FuncType();
+	f->args = args->Ref()->AsRecordType();
+	f->arg_types = arg_types->Ref()->AsTypeList();
+	f->yield = yield->Ref();
+	f->flavor = flavor;
+	return f;
 	}
 
 string FuncType::FlavorString() const
@@ -822,80 +647,6 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-IMPLEMENT_SERIAL(FuncType, SER_FUNC_TYPE);
-
-bool FuncType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FUNC_TYPE, BroType);
-
-	assert(args);
-	assert(arg_types);
-
-	SERIALIZE_OPTIONAL(yield);
-
-	int ser_flavor = 0;
-
-	switch ( flavor ) {
-
-	case FUNC_FLAVOR_FUNCTION:
-		ser_flavor = 0;
-		break;
-
-	case FUNC_FLAVOR_EVENT:
-		ser_flavor = 1;
-		break;
-
-	case FUNC_FLAVOR_HOOK:
-		ser_flavor = 2;
-		break;
-
-	default:
-		reporter->InternalError("Invalid function flavor serialization");
-		break;
-	}
-
-	return args->Serialize(info) &&
-		arg_types->Serialize(info) &&
-		SERIALIZE(ser_flavor);
-	}
-
-bool FuncType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	UNSERIALIZE_OPTIONAL(yield, BroType::Unserialize(info));
-
-	args = (RecordType*) BroType::Unserialize(info);
-	if ( ! args )
-		return false;
-
-	arg_types = (TypeList*) BroType::Unserialize(info);
-	if ( ! arg_types )
-		return false;
-
-	int ser_flavor = 0;
-
-	if ( ! UNSERIALIZE(&ser_flavor) )
-		return false;
-
-	switch ( ser_flavor ) {
-	case 0:
-		flavor = FUNC_FLAVOR_FUNCTION;
-		break;
-	case 1:
-		flavor = FUNC_FLAVOR_EVENT;
-		break;
-	case 2:
-		flavor = FUNC_FLAVOR_HOOK;
-		break;
-	default:
-		reporter->InternalError("Invalid function flavor unserialization");
-		break;
-	}
-
-	return true;
-	}
-
 TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
 	{
 	type = t;
@@ -919,35 +670,6 @@ TypeDecl::~TypeDecl()
 	Unref(type);
 	Unref(attrs);
 	delete [] id;
-	}
-
-bool TypeDecl::Serialize(SerialInfo* info) const
-	{
-	assert(type);
-	assert(id);
-
-	SERIALIZE_OPTIONAL(attrs);
-
-	if ( ! (type->Serialize(info) && SERIALIZE(id)) )
-		return false;
-
-	return true;
-	}
-
-TypeDecl* TypeDecl::Unserialize(UnserialInfo* info)
-	{
-	TypeDecl* t = new TypeDecl(0, 0, 0);
-
-	UNSERIALIZE_OPTIONAL_STATIC(t->attrs, Attributes::Unserialize(info), t);
-	t->type = BroType::Unserialize(info);
-
-	if ( ! (t->type && UNSERIALIZE_STR(&t->id, 0)) )
-		{
-		delete t;
-		return 0;
-		}
-
-	return t;
 	}
 
 void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
@@ -975,6 +697,16 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	{
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
+	}
+
+// in this case the clone is actually not so shallow, since
+// it gets modified by everyone.
+RecordType* RecordType::ShallowClone()
+	{
+	auto pass = new type_decl_list();
+	loop_over_list(*types, i)
+		pass->append(new TypeDecl(*(*types)[i]));
+	return new RecordType(pass);
 	}
 
 RecordType::~RecordType()
@@ -1253,67 +985,6 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		d->PopIndentNoNL();
 	}
 
-IMPLEMENT_SERIAL(RecordType, SER_RECORD_TYPE)
-
-bool RecordType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RECORD_TYPE, BroType);
-
-	if ( ! SERIALIZE(num_fields) )
-		return false;
-
-	if ( types )
-		{
-		if ( ! (SERIALIZE(true) && SERIALIZE(types->length())) )
-			return false;
-
-		loop_over_list(*types, i)
-			{
-			if ( ! (*types)[i]->Serialize(info) )
-				return false;
-			}
-		}
-
-	else if ( ! SERIALIZE(false) )
-		return false;
-
-	return true;
-	}
-
-bool RecordType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	if ( ! UNSERIALIZE(&num_fields) )
-		return false;
-
-	bool has_it;
-	if ( ! UNSERIALIZE(&has_it) )
-		return false;
-
-	if ( has_it )
-		{
-		int len;
-		if ( ! UNSERIALIZE(&len) )
-			return false;
-
-		types = new type_decl_list(len);
-
-		while ( len-- )
-			{
-			TypeDecl* t = TypeDecl::Unserialize(info);
-			if ( ! t )
-				return false;
-
-			types->append(t);
-			}
-		}
-	else
-		types = 0;
-
-	return true;
-	}
-
 SubNetType::SubNetType() : BroType(TYPE_SUBNET)
 	{
 	}
@@ -1324,20 +995,6 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add("subnet");
 	else
 		d->Add(int(Tag()));
-	}
-
-IMPLEMENT_SERIAL(SubNetType, SER_SUBNET_TYPE);
-
-bool SubNetType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SUBNET_TYPE, BroType);
-	return true;
-	}
-
-bool SubNetType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-	return true;
 	}
 
 FileType::FileType(BroType* yield_type)
@@ -1370,24 +1027,6 @@ void FileType::Describe(ODesc* d) const
 		}
 	}
 
-IMPLEMENT_SERIAL(FileType, SER_FILE_TYPE);
-
-bool FileType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FILE_TYPE, BroType);
-
-	assert(yield);
-	return yield->Serialize(info);
-	}
-
-bool FileType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	yield = BroType::Unserialize(info);
-	return yield != 0;
-	}
-
 OpaqueType::OpaqueType(const string& arg_name) : BroType(TYPE_OPAQUE)
 	{
 	name = arg_name;
@@ -1408,28 +1047,6 @@ void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
 	d->Add(fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
 	}
 
-IMPLEMENT_SERIAL(OpaqueType, SER_OPAQUE_TYPE);
-
-bool OpaqueType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_OPAQUE_TYPE, BroType);
-	return SERIALIZE_STR(name.c_str(), name.size());
-	}
-
-bool OpaqueType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	const char* n;
-	if ( ! UNSERIALIZE_STR(&n, 0) )
-		return false;
-
-	name = n;
-	delete [] n;
-
-	return true;
-	}
-
 EnumType::EnumType(const string& name)
 	: BroType(TYPE_ENUM)
 	{
@@ -1437,16 +1054,24 @@ EnumType::EnumType(const string& name)
 	SetName(name);
 	}
 
-EnumType::EnumType(EnumType* e)
+EnumType::EnumType(const EnumType* e)
 	: BroType(TYPE_ENUM)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
 
-	for ( NameMap::iterator it = e->names.begin(); it != e->names.end(); ++it )
+	for ( auto it = e->names.begin(); it != e->names.end(); ++it )
 		names[it->first] = it->second;
 
 	vals = e->vals;
+	}
+
+EnumType* EnumType::ShallowClone()
+	{
+	if ( counter == 0 )
+		return new EnumType(GetName());
+
+	return new EnumType(this);
 	}
 
 EnumType::~EnumType()
@@ -1672,62 +1297,14 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-IMPLEMENT_SERIAL(EnumType, SER_ENUM_TYPE);
-
-bool EnumType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ENUM_TYPE, BroType);
-
-	if ( ! (SERIALIZE(counter) && SERIALIZE((unsigned int) names.size()) &&
-		// Dummy boolean for backwards compatibility.
-		SERIALIZE(false)) )
-		return false;
-
-	for ( NameMap::const_iterator iter = names.begin();
-	      iter != names.end(); ++iter )
-		{
-		if ( ! SERIALIZE(iter->first) || ! SERIALIZE(iter->second) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool EnumType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-
-	unsigned int len;
-	bool dummy;
-	if ( ! UNSERIALIZE(&counter) ||
-	     ! UNSERIALIZE(&len) ||
-	     // Dummy boolean for backwards compatibility.
-	     ! UNSERIALIZE(&dummy) )
-		return false;
-
-	while ( len-- )
-		{
-		const char* name;
-		bro_int_t val;
-		if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE(&val)) )
-			return false;
-
-		names[name] = val;
-		delete [] name; // names[name] converts to std::string
-		// note: the 'vals' map gets populated lazily, which works fine and
-		// also happens to avoid a leak due to circular reference between the
-		// types and vals (there's a special case for unserializing a known
-		// type that will unserialze and then immediately want to unref the
-		// type if we already have it, except that won't delete it as intended
-		// if we've already created circular references to it here).
-		}
-
-	return true;
-	}
-
 VectorType::VectorType(BroType* element_type)
     : BroType(TYPE_VECTOR), yield_type(element_type)
 	{
+	}
+
+VectorType* VectorType::ShallowClone()
+	{
+	return new VectorType(yield_type);
 	}
 
 VectorType::~VectorType()
@@ -1773,10 +1350,12 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 	{
 	expr_list& el = index->Exprs();
 
-	if ( el.length() != 1 )
+	if ( el.length() != 1 && el.length() != 2)
 		return DOES_NOT_MATCH_INDEX;
 
-	if ( el[0]->Type()->Tag() == TYPE_VECTOR )
+	if ( el.length() == 2 )
+		return MATCHES_INDEX_VECTOR;
+	else if ( el[0]->Type()->Tag() == TYPE_VECTOR )
 		return (IsIntegral(el[0]->Type()->YieldType()->Tag()) ||
 			 IsBool(el[0]->Type()->YieldType()->Tag())) ?
 				MATCHES_INDEX_VECTOR : DOES_NOT_MATCH_INDEX;
@@ -1789,21 +1368,6 @@ int VectorType::MatchesIndex(ListExpr*& index) const
 bool VectorType::IsUnspecifiedVector() const
 	{
 	return yield_type->Tag() == TYPE_VOID;
-	}
-
-IMPLEMENT_SERIAL(VectorType, SER_VECTOR_TYPE);
-
-bool VectorType::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_VECTOR_TYPE, BroType);
-	return yield_type->Serialize(info);
-	}
-
-bool VectorType::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroType);
-	yield_type = BroType::Unserialize(info);
-	return yield_type != 0;
 	}
 
 void VectorType::Describe(ODesc* d) const
@@ -2123,6 +1687,10 @@ int is_assignable(BroType* t)
 	return 0;
 	}
 
+#define CHECK_TYPE(t) \
+	if ( t1 == t || t2 == t ) \
+		return t;
+
 TypeTag max_type(TypeTag t1, TypeTag t2)
 	{
 	if ( t1 == TYPE_INTERVAL || t1 == TYPE_TIME )
@@ -2132,10 +1700,6 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 
 	if ( BothArithmetic(t1, t2) )
 		{
-#define CHECK_TYPE(t) \
-	if ( t1 == t || t2 == t ) \
-		return t;
-
 		CHECK_TYPE(TYPE_DOUBLE);
 		CHECK_TYPE(TYPE_INT);
 		CHECK_TYPE(TYPE_COUNT);

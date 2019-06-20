@@ -1,5 +1,5 @@
 ## Generated for an SSL/TLS client's initial *hello* message.  SSL/TLS sessions
-## start with an unencrypted handshake, and Bro extracts as much information out
+## start with an unencrypted handshake, and Zeek extracts as much information out
 ## of that as it can. This event provides access to the initial information
 ## sent by the client.
 ##
@@ -38,7 +38,7 @@
 event ssl_client_hello%(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec%);
 
 ## Generated for an SSL/TLS server's initial *hello* message. SSL/TLS sessions
-## start with an unencrypted handshake, and Bro extracts as much information out
+## start with an unencrypted handshake, and Zeek extracts as much information out
 ## of that as it can. This event provides access to the initial information
 ## sent by the client.
 ##
@@ -56,13 +56,15 @@ event ssl_client_hello%(c: connection, version: count, record_version: count, po
 ##
 ## possible_ts: The current time as sent by the server. Note that SSL/TLS does
 ##              not require clocks to be set correctly, so treat with care. This value
-##              is not sent in TLSv1.3.
+##              is meaningless in SSLv2 and TLSv1.3.
 ##
 ## session_id: The session ID as sent back by the server (if any). This value is not
 ##             sent in TLSv1.3.
 ##
 ## server_random: The random value sent by the server. For version 2 connections,
-##		  the connection-id is returned.
+##		  the connection-id is returned. Note - the full 32 bytes are included in
+##		  server_random. This means that the 4 bytes present in possible_ts are repeated;
+##		  if you do not want this behavior ignore the first 4 bytes.
 ##
 ## cipher: The cipher chosen by the server.  The values are standardized as part
 ##         of the SSL/TLS protocol. The :zeek:id:`SSL::cipher_desc` table maps
@@ -80,11 +82,11 @@ event ssl_client_hello%(c: connection, version: count, record_version: count, po
 event ssl_server_hello%(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count%);
 
 ## Generated for SSL/TLS extensions seen in an initial handshake.  SSL/TLS
-## sessions start with an unencrypted handshake, and Bro extracts as much
+## sessions start with an unencrypted handshake, and Zeek extracts as much
 ## information out of that as it can. This event provides access to any
 ## extensions either side sends as part of an extended *hello* message.
 ##
-## Note that Bro offers more specialized events for a few extensions.
+## Note that Zeek offers more specialized events for a few extensions.
 ##
 ## c: The connection.
 ##
@@ -101,6 +103,7 @@ event ssl_server_hello%(c: connection, version: count, record_version: count, po
 ##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_server_name ssl_extension_signature_algorithm ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 
 ## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
@@ -120,6 +123,7 @@ event ssl_extension%(c: connection, is_orig: bool, code: count, val: string%);
 ##    ssl_extension_key_share ssl_rsa_client_pms ssl_server_signature
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index_vec%);
 
 ## Generated for an SSL/TLS Supported Point Formats extension. This TLS extension
@@ -141,6 +145,7 @@ event ssl_extension_elliptic_curves%(c: connection, is_orig: bool, curves: index
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_formats: index_vec%);
 
 ## Generated for an Signature Algorithms extension. This TLS extension
@@ -161,6 +166,7 @@ event ssl_extension_ec_point_formats%(c: connection, is_orig: bool, point_format
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature_algorithms: signature_and_hashalgorithm_vec%);
 
 ## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
@@ -169,7 +175,7 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##
 ## c: The connection.
 ##
-## is_orig: True if event is raised for originator side of the connection.
+## is_orig: True if event is raised for the originator side of the connection.
 ##
 ## curves: List of supported/chosen named groups.
 ##
@@ -180,7 +186,48 @@ event ssl_extension_signature_algorithm%(c: connection, is_orig: bool, signature
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
 ##    ssl_rsa_client_pms ssl_server_signature
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_key_share%(c: connection, is_orig: bool, curves: index_vec%);
+
+## Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
+##
+## The extension lists the identities the client is willing to negotiate with the server;
+## they can either be pre-shared or be based on previous handshakes.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for the originator side of the connection
+##
+## identities: A list of the identities the client is willing to negotiate with the server.
+##
+## binders: A series of HMAC values; for computation, see the TLS 1.3 RFC.
+##
+## .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_server_hello
+event ssl_extension_pre_shared_key_client_hello%(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec%);
+
+## Generated for the pre-shared key extension as it is sent in the TLS 1.3 server hello.
+##
+## c: The connection.
+##
+## is_orig: True if event is raised for the originator side of the connection
+##
+## selected_identity: The identity the server chose as a 0-based index into the identities
+##                    the client sent.
+##
+## .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
+##    ssl_session_ticket_handshake ssl_extension
+##    ssl_extension_elliptic_curves ssl_extension_application_layer_protocol_negotiation
+##    ssl_extension_server_name
+##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
+##    ssl_dh_client_params ssl_ecdh_server_params ssl_ecdh_client_params
+##    ssl_rsa_client_pms ssl_server_signature ssl_extension_pre_shared_key_client_hello
+event ssl_extension_pre_shared_key_server_hello%(c: connection, is_orig: bool, selected_identity: count%);
 
 ## Generated if a server uses an ECDH-anon or ECDHE cipher suite using a named curve
 ## This event contains the named curve name and the server ECDH parameters contained
@@ -295,6 +342,7 @@ event ssl_rsa_client_pms%(c: connection, pms: string%);
 ##    ssl_extension_server_name ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_orig: bool, protocols: string_vec%);
 
 ## Generated for an SSL/TLS Server Name extension. This SSL/TLS extension is
@@ -316,6 +364,7 @@ event ssl_extension_application_layer_protocol_negotiation%(c: connection, is_or
 ##    ssl_extension_key_share
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec%);
 
 ## Generated for the signed_certificate_timestamp TLS extension as defined in
@@ -346,6 +395,7 @@ event ssl_extension_server_name%(c: connection, is_orig: bool, names: string_vec
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_supported_versions
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    x509_ocsp_ext_signed_certificate_timestamp sct_verify
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
@@ -365,6 +415,7 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_orig: bool, 
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_psk_key_exchange_modes ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
@@ -382,10 +433,11 @@ event ssl_extension_supported_versions%(c: connection, is_orig: bool, versions: 
 ##    ssl_extension_application_layer_protocol_negotiation
 ##    ssl_extension_key_share ssl_extension_server_name
 ##    ssl_extension_supported_versions ssl_extension_signed_certificate_timestamp
+##    ssl_extension_pre_shared_key_server_hello ssl_extension_pre_shared_key_client_hello
 event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes: index_vec%);
 
 ## Generated at the end of an SSL/TLS handshake. SSL/TLS sessions start with
-## an unencrypted handshake, and Bro extracts as much information out of that
+## an unencrypted handshake, and Zeek extracts as much information out of that
 ## as it can. This event signals the time when an SSL/TLS has finished the
 ## handshake and its endpoints consider it as fully established. Typically,
 ## everything from now on will be encrypted.
@@ -400,7 +452,7 @@ event ssl_extension_psk_key_exchange_modes%(c: connection, is_orig: bool, modes:
 event ssl_established%(c: connection%);
 
 ## Generated for SSL/TLS alert records. SSL/TLS sessions start with an
-## unencrypted handshake, and Bro extracts as much information out of that as
+## unencrypted handshake, and Zeek extracts as much information out of that as
 ## it can. If during that handshake, an endpoint encounters a fatal error, it
 ## sends an *alert* record, that in turn triggers this event. After an *alert*,
 ## any endpoint may close the connection immediately.
@@ -424,7 +476,7 @@ event ssl_alert%(c: connection, is_orig: bool, level: count, desc: count%);
 
 ## Generated for SSL/TLS handshake messages that are a part of the
 ## stateless-server session resumption mechanism. SSL/TLS sessions start with
-## an unencrypted handshake, and Bro extracts as much information out of that
+## an unencrypted handshake, and Zeek extracts as much information out of that
 ## as it can. This event is raised when an SSL/TLS server passes a session
 ## ticket to the client that can later be used for resuming the session. The
 ## mechanism is described in :rfc:`4507`.
@@ -468,7 +520,7 @@ event ssl_heartbeat%(c: connection, is_orig: bool, length: count, heartbeat_type
 ## Generated for SSL/TLS messages that are sent before full session encryption
 ## starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
 ## here this event will be raised for early packets that are already using
-## pre-encryption.  # This event is also used by Bro internally to determine if
+## pre-encryption.  # This event is also used by Zeek internally to determine if
 ## the connection has been completely setup. This is necessary as TLS 1.3 does
 ## not have CCS anymore.
 ##

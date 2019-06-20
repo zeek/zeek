@@ -106,6 +106,20 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
 sourcedir="$( cd "$( dirname "$0" )" && pwd )"
 
+if [ ! -e "$sourcedir/cmake/COPYING" ] && [ -d "$sourcedir/.git" ]; then
+    echo "\
+You seem to be missing the content of the cmake directory.
+
+This typically means that you performed a non-recursive git clone of
+Zeek. To check out the required subdirectories, please execute
+
+ git submodule update --recursive --init
+
+in $sourcedir.
+" >&2;
+    exit 1;
+fi
+
 # Function to append a CMake cache entry definition to the
 # CMakeCacheEntries variable.
 #   $1 is the cache entry variable name

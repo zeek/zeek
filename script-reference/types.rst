@@ -587,12 +587,23 @@ Here is a more detailed description of each type:
 
         global v2 = MyVec([$b=1], [$b=2], [$b=3]);
 
-    Accessing vector elements is provided by enclosing index values within
+    Access individual vector elements by enclosing index values within
     square brackets (``[]``), for example:
 
     .. sourcecode:: zeek
 
         print v[2];
+
+    Access a slice of vector elements by enclosing a range of indices,
+    delimited by a colon, within square brackets (``[x:y]``).  For example,
+    this will print a vector containing the first and second elements:
+
+    .. sourcecode:: zeek
+
+        print v[0:2];
+
+    The slicing notation is the same as what is permitted by the
+    :zeek:see:`string` substring extraction operations.
 
     An element can be added to a vector by assigning the value (a value
     that already exists at that index will be overwritten):
@@ -600,6 +611,15 @@ Here is a more detailed description of each type:
     .. sourcecode:: zeek
 
         v[3] = "four";
+
+    A range of elements can be *replaced* by assigning to a vector slice:
+
+    .. sourcecode:: zeek
+
+        # Note that the number of elements in the slice being replaced
+        # may differ from the number of elements being inserted.  This
+        # causes the vector to grow or shrink accordingly.
+        v[0:2] = vector("five", "six", "seven");
 
     The size of a vector (this is one greater than the highest index value, and
     is normally equal to the number of elements in the vector) can be obtained

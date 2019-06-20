@@ -2,7 +2,7 @@
 
 #include "net_util.h"
 #include "SerializationFormat.h"
-#include "Serializer.h"
+#include "DebugLogger.h"
 #include "Reporter.h"
 
 const float SerializationFormat::GROWTH_FACTOR = 2.5;

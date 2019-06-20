@@ -62,9 +62,6 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	bool Serialize(SerialInfo* info) const;
-	static Reassembler* Unserialize(UnserialInfo* info);
-
 	// Sum over all data buffered in some reassembler.
 	static uint64 TotalMemoryAllocation()	{ return total_size; }
 
@@ -75,8 +72,6 @@ public:
 
 protected:
 	Reassembler()	{ }
-
-	DECLARE_ABSTRACT_SERIAL(Reassembler);
 
 	friend class DataBlock;
 

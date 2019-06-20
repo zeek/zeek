@@ -4,7 +4,6 @@
 
 #include "Attr.h"
 #include "Expr.h"
-#include "Serializer.h"
 #include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)
@@ -504,73 +503,6 @@ bool Attributes::operator==(const Attributes& other) const
 
 		if ( ! (*a == *o) )
 			return false;
-		}
-
-	return true;
-	}
-
-bool Attributes::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Attributes* Attributes::Unserialize(UnserialInfo* info)
-	{
-	return (Attributes*) SerialObj::Unserialize(info, SER_ATTRIBUTES);
-	}
-
-IMPLEMENT_SERIAL(Attributes, SER_ATTRIBUTES);
-
-bool Attributes::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ATTRIBUTES, BroObj);
-
-	info->s->WriteOpenTag("Attributes");
-	assert(type);
-	if ( ! (type->Serialize(info) && SERIALIZE(attrs->length())) )
-		return false;
-
-	loop_over_list((*attrs), i)
-		{
-		Attr* a = (*attrs)[i];
-
-		Expr* e = a->AttrExpr();
-		SERIALIZE_OPTIONAL(e);
-
-		if ( ! SERIALIZE(char(a->Tag())) )
-			return false;
-		}
-
-	info->s->WriteCloseTag("Attributes");
-	return true;
-	}
-
-bool Attributes::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	type = BroType::Unserialize(info);
-	if ( ! type )
-		return false;
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	attrs = new attr_list(len);
-	while ( len-- )
-		{
-		Expr* e;
-		UNSERIALIZE_OPTIONAL(e, Expr::Unserialize(info))
-
-		char tag;
-		if ( ! UNSERIALIZE(&tag) )
-			{
-			delete e;
-			return false;
-			}
-
-		attrs->append(new Attr((attr_tag)tag, e));
 		}
 
 	return true;

@@ -38,7 +38,6 @@ extern "C" {
 #include "DFA.h"
 #include "RuleMatcher.h"
 #include "Anon.h"
-#include "Serializer.h"
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
@@ -99,9 +98,6 @@ name_list prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
-FileSerializer* event_serializer = 0;
-FileSerializer* state_serializer = 0;
-EventPlayer* event_player = 0;
 EventRegistry* event_registry = 0;
 ProfileLogger* profiling_logger = 0;
 ProfileLogger* segment_logger = 0;
@@ -168,7 +164,6 @@ void usage(int code = 1)
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>     | write to given tcpdump file\n");
-	fprintf(stderr, "    -x|--print-state <file.bst>    | print contents of state file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
@@ -180,7 +175,6 @@ void usage(int code = 1)
 	fprintf(stderr, "    -N|--print-plugins             | print available plugins and exit (-NN for verbose)\n");
 	fprintf(stderr, "    -P|--prime-dns                 | prime DNS\n");
 	fprintf(stderr, "    -Q|--time                      | print execution time summary to stderr\n");
-	fprintf(stderr, "    -R|--replay <events.bst>       | replay events\n");
 	fprintf(stderr, "    -S|--debug-rules               | enable rule debugging\n");
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
@@ -350,8 +344,6 @@ void terminate_bro()
 
 	delete zeekygen_mgr;
 	delete timer_mgr;
-	delete event_serializer;
-	delete state_serializer;
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
@@ -421,9 +413,7 @@ int main(int argc, char** argv)
 	name_list interfaces;
 	name_list read_files;
 	name_list rule_files;
-	char* bst_file = 0;
 	char* id_name = 0;
-	char* events_file = 0;
 
 	char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
 	char* seed_save_file = 0;
@@ -453,7 +443,6 @@ int main(int argc, char** argv)
 		{"tracefile",		required_argument,	0,	't'},
 		{"writefile",		required_argument,	0,	'w'},
 		{"version",		no_argument,		0,	'v'},
-		{"print-state",		required_argument,	0,	'x'},
 		{"no-checksums",	no_argument,		0,	'C'},
 		{"force-dns",		no_argument,		0,	'F'},
 		{"load-seeds",		required_argument,	0,	'G'},
@@ -461,7 +450,6 @@ int main(int argc, char** argv)
 		{"print-plugins",	no_argument,		0,	'N'},
 		{"prime-dns",		no_argument,		0,	'P'},
 		{"time",		no_argument,		0,	'Q'},
-		{"replay",		required_argument,	0,	'R'},
 		{"debug-rules",		no_argument,		0,	'S'},
 		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
@@ -512,7 +500,7 @@ int main(int argc, char** argv)
 	opterr = 0;
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:R:r:s:T:t:U:w:x:X:CFNPQSWabdghv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
 		     sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -577,10 +565,6 @@ int main(int argc, char** argv)
 			writefile = optarg;
 			break;
 
-		case 'x':
-			bst_file = optarg;
-			break;
-
 		case 'B':
 			debug_streams = optarg;
 			break;
@@ -625,10 +609,6 @@ int main(int argc, char** argv)
 
 		case 'Q':
 			time_bro = 1;
-			break;
-
-		case 'R':
-			events_file = optarg;
 			break;
 
 		case 'S':
@@ -743,7 +723,7 @@ int main(int argc, char** argv)
 	if ( optind == argc &&
 	     read_files.length() == 0 &&
 	     interfaces.length() == 0 &&
-	     ! (id_name || bst_file) && ! command_line_policy && ! print_plugins )
+	     ! id_name && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
 
 	// Process remaining arguments. X=Y arguments indicate script
@@ -794,9 +774,6 @@ int main(int argc, char** argv)
 		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
 	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
-
-	if ( events_file )
-		event_player = new EventPlayer(events_file);
 
 	init_event_handlers();
 
@@ -966,19 +943,6 @@ int main(int argc, char** argv)
 
 		mgr.Drain();
 		delete dns_mgr;
-		exit(0);
-		}
-
-	// Just read state file from disk.
-	if ( bst_file )
-		{
-		FileSerializer s;
-		UnserialInfo info(&s);
-		info.print = stdout;
-		info.install_uniques = true;
-		if ( ! s.Read(&info, bst_file) )
-			reporter->Error("Failed to read events from %s\n", bst_file);
-
 		exit(0);
 		}
 

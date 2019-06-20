@@ -50,8 +50,6 @@ public:
 protected:
 	FileReassembler();
 
-	DECLARE_SERIAL(FileReassembler);
-
 	void Undelivered(uint64 up_to_seq) override;
 	void BlockInserted(DataBlock* b) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;

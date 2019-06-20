@@ -92,16 +92,11 @@ public:
 
 	attr_list* Attrs()	{ return attrs; }
 
-	bool Serialize(SerialInfo* info) const;
-	static Attributes* Unserialize(UnserialInfo* info);
-
 	bool operator==(const Attributes& other) const;
 
 protected:
 	Attributes() : type(), attrs(), in_record()	{ }
 	void CheckAttr(Attr* attr);
-
-	DECLARE_SERIAL(Attributes);
 
 	BroType* type;
 	attr_list* attrs;

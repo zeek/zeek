@@ -8,6 +8,9 @@
 #include <vector>
 #include <list>
 #include <array>
+#include <unordered_map>
+
+#include <broker/broker.hh>
 
 #include "net_util.h"
 #include "Type.h"
@@ -20,6 +23,7 @@
 #include "Scope.h"
 #include "StateAccess.h"
 #include "IPAddr.h"
+#include "DebugLogger.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -36,7 +40,6 @@ class Func;
 class BroFile;
 class RE_Matcher;
 class PrefixTable;
-class SerialInfo;
 
 class PortVal;
 class AddrVal;
@@ -50,6 +53,7 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class MutableVal;
+class OpaqueVal;
 
 class StateAccess;
 
@@ -304,6 +308,7 @@ public:
 	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
@@ -321,6 +326,7 @@ public:
 	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
 	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	bool IsMutableVal() const
 		{
@@ -343,14 +349,6 @@ public:
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
-
-	bool Serialize(SerialInfo* info) const;
-	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
-		{ return Unserialize(info, type, 0); }
-	static Val* Unserialize(UnserialInfo* info, const BroType* exact_type)
-		{ return Unserialize(info, exact_type->Tag(), exact_type); }
-
-	DECLARE_SERIAL(Val);
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -419,10 +417,6 @@ protected:
 
 	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
-
-	// Just an internal helper.
-	static Val* Unserialize(UnserialInfo* info, TypeTag type,
-			const BroType* exact_type);
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -566,26 +560,16 @@ public:
 #endif
 		}
 
-	uint64 LastModified() const override	{ return last_modified; }
-
-	// Mark value as changed.
-	void Modified()
-		{
-		last_modified = IncreaseTimeCounter();
-		}
-
 protected:
 	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
+		{ props = 0; id = 0; }
+	MutableVal()	{ props = 0; id = 0; }
 	~MutableVal() override;
 
 	friend class ID;
 	friend class Val;
 
 	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
-
-	DECLARE_SERIAL(MutableVal);
 
 private:
 	ID* Bind() const;
@@ -611,8 +595,6 @@ protected:
 	IntervalVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(IntervalVal);
 };
 
 
@@ -659,8 +641,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(PortVal);
 };
 
 class AddrVal : public Val {
@@ -685,8 +665,6 @@ protected:
 	explicit AddrVal(BroType* t) : Val(t)	{ }
 
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(AddrVal);
 };
 
 class SubNetVal : public Val {
@@ -715,8 +693,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(SubNetVal);
 };
 
 class StringVal : public Val {
@@ -748,8 +724,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(StringVal);
 };
 
 class PatternVal : public Val {
@@ -769,8 +743,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(PatternVal);
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -815,8 +787,6 @@ protected:
 	ListVal()	{}
 
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(ListVal);
 
 	val_list vals;
 	TypeTag tag;
@@ -1036,8 +1006,6 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(TableVal);
-
 	TableType* table_type;
 	CompositeHash* table_hash;
 	Attributes* attrs;
@@ -1110,8 +1078,7 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(RecordVal);
-
+	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;
@@ -1141,8 +1108,6 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(EnumVal);
 };
 
 
@@ -1209,26 +1174,7 @@ protected:
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 
-	DECLARE_SERIAL(VectorVal);
-
 	VectorType* vector_type;
-};
-
-// Base class for values with types that are managed completely internally,
-// with no further script-level operators provided (other than bif
-// functions). See OpaqueVal.h for derived classes.
-class OpaqueVal : public Val {
-public:
-	explicit OpaqueVal(OpaqueType* t);
-	~OpaqueVal() override;
-
-protected:
-	friend class Val;
-	OpaqueVal() { }
-
-	Val* DoClone(CloneState* state) override;
-
-	DECLARE_SERIAL(OpaqueVal);
 };
 
 // Checks the given value for consistency with the given type.  If an

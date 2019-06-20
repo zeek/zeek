@@ -2,8 +2,6 @@
 #include "Packet.h"
 #include "Sessions.h"
 #include "iosource/Manager.h"
-#include "SerialInfo.h"
-#include "Serializer.h"
 
 extern "C" {
 #ifdef HAVE_NET_ETHERNET_H
@@ -673,66 +671,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add(ip.DstAddr());
 	}
 
-bool Packet::Serialize(SerialInfo* info) const
-	{
-	return SERIALIZE(uint32(ts.tv_sec)) &&
-		SERIALIZE(uint32(ts.tv_usec)) &&
-		SERIALIZE(uint32(len)) &&
-		SERIALIZE(link_type) &&
-		info->s->Write(tag.c_str(), tag.length(), "tag") &&
-		info->s->Write((const char*)data, cap_len, "data");
-	}
-
-#ifdef DEBUG
-static iosource::PktDumper* dump = 0;
-#endif
-
-Packet* Packet::Unserialize(UnserialInfo* info)
-	{
-	pkt_timeval ts;
-	uint32 len, link_type;
-
-	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&
-		UNSERIALIZE((uint32 *)&ts.tv_usec) &&
-		UNSERIALIZE(&len) &&
-		UNSERIALIZE(&link_type)) )
-		return 0;
-
-	char* tag;
-	if ( ! info->s->Read((char**) &tag, 0, "tag") )
-		return 0;
-
-	const u_char* pkt;
-	int caplen;
-	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
-		{
-		delete [] tag;
-		return 0;
-		}
-
-	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
-			       std::string(tag));
-	delete [] tag;
-
-	// For the global timer manager, we take the global network_time as the
-	// packet's timestamp for feeding it into our packet loop.
-	if ( p->tag == "" )
-		p->time = timer_mgr->Time();
-	else
-		p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
-
-#ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_TM) )
-		{
-		if ( ! dump )
-			dump = iosource_mgr->OpenPktDumper("tm.pcap", true);
-
-		if ( dump )
-			{
-			dump->Dump(p);
-			}
-		}
-#endif
-
-	return p;
-	}

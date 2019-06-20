@@ -7,12 +7,8 @@
 
 #include "input.h"
 #include "Desc.h"
-#include "SerialObj.h"
 
-class Serializer;
-class SerialInfo;
-
-class Location : SerialObj {
+class Location {
 public:
 	Location(const char* fname, int line_f, int line_l, int col_f, int col_l)
 		{
@@ -36,16 +32,13 @@ public:
 		text = 0;
 		}
 
-	~Location() override
+	virtual ~Location()
 		{
 		if ( delete_data )
 			delete [] filename;
 		}
 
 	void Describe(ODesc* d) const;
-
-	bool Serialize(SerialInfo* info) const;
-	static Location* Unserialize(UnserialInfo* info);
 
 	bool operator==(const Location& l) const;
 	bool operator!=(const Location& l) const
@@ -59,8 +52,6 @@ public:
 	// Timestamp and text for compatibility with Bison's default yyltype.
 	int timestamp;
 	char* text;
-protected:
-	DECLARE_SERIAL(Location);
 };
 
 #define YYLTYPE yyltype
@@ -86,7 +77,7 @@ inline void set_location(const Location start, const Location end)
 	end_location = end;
 	}
 
-class BroObj : public SerialObj {
+class BroObj {
 public:
 	BroObj()
 		{
@@ -112,7 +103,7 @@ public:
 			SetLocationInfo(&start_location, &end_location);
 		}
 
-	~BroObj() override;
+	virtual ~BroObj();
 
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
@@ -168,10 +159,6 @@ public:
 	bool in_ser_cache;
 
 protected:
-	friend class SerializationCache;
-
-	DECLARE_ABSTRACT_SERIAL(BroObj);
-
 	Location* location;	// all that matters in real estate
 
 private:

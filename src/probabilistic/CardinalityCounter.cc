@@ -6,7 +6,6 @@
 
 #include "CardinalityCounter.h"
 #include "Reporter.h"
-#include "Serializer.h"
 
 using namespace probabilistic;
 
@@ -197,49 +196,48 @@ uint64_t CardinalityCounter::GetM() const
 	return m;
 	}
 
-bool CardinalityCounter::Serialize(SerialInfo* info) const
+broker::expected<broker::data> CardinalityCounter::Serialize() const
 	{
-	bool valid = true;
+	broker::vector v = {m, V, alpha_m};
+	v.reserve(3 + m);
 
-	valid &= SERIALIZE(m);
-	valid &= SERIALIZE(V);
-	valid &= SERIALIZE(alpha_m);
+	for ( size_t i = 0; i < m; ++i )
+		v.emplace_back(static_cast<uint64>(buckets[i]));
 
-	for ( unsigned int i = 0; i < m; i++ )
-		valid &= SERIALIZE((char)buckets[i]);
-
-	return valid;
+	return {std::move(v)};
 	}
 
-CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
+std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
 	{
-	uint64_t m;
-	uint64_t V;
-	double alpha_m;
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 3) )
+		return nullptr;
 
-	bool valid = true;
-	valid &= UNSERIALIZE(&m);
-	valid &= UNSERIALIZE(&V);
-	valid &= UNSERIALIZE(&alpha_m);
+	auto m = caf::get_if<uint64>(&(*v)[0]);
+	auto V = caf::get_if<uint64>(&(*v)[1]);
+	auto alpha_m = caf::get_if<double>(&(*v)[2]);
 
-	CardinalityCounter* c = new CardinalityCounter(m, V, alpha_m);
+	if ( ! (m && V && alpha_m) )
+		return nullptr;
+	if ( v->size() != 3 + *m )
+		return nullptr;
 
-	vector<uint8_t>& buckets = c->buckets;
+	auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
+	if ( *m != cc->m )
+		return nullptr;
+	if ( cc->buckets.size() != * m )
+		return nullptr;
 
-	for ( unsigned int i = 0; i < m; i++ )
+	for ( size_t i = 0; i < *m; ++i )
 		{
-		char c;
-		valid &= UNSERIALIZE(&c);
-		buckets[i] = (uint8_t)c;
+		auto x = caf::get_if<uint64>(&(*v)[3 + i]);
+		if ( ! x )
+			return nullptr;
+
+		cc->buckets[i] = *x;
 		}
 
-	if ( ! valid )
-		{
-		delete c;
-		c = 0;
-		}
-
-	return c;
+	return cc;
 	}
 
 /**

@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 #include "Obj.h"
-#include "Serializer.h"
 #include "Func.h"
 #include "File.h"
 #include "plugin/Manager.h"
@@ -13,47 +12,6 @@
 Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
-
-bool Location::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Location* Location::Unserialize(UnserialInfo* info)
-	{
-	return (Location*) SerialObj::Unserialize(info, SER_LOCATION);
-	}
-
-IMPLEMENT_SERIAL(Location, SER_LOCATION);
-
-bool Location::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_LOCATION, SerialObj);
-	info->s->WriteOpenTag("Location");
-
-	if ( ! (SERIALIZE(filename) &&
-	        SERIALIZE(first_line) &&
-	        SERIALIZE(last_line) &&
-	        SERIALIZE(first_column) &&
-	        SERIALIZE(last_column)) )
-		return false;
-
-	info->s->WriteCloseTag("Location");
-	return true;
-	}
-
-bool Location::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	delete_data = true;
-
-	return UNSERIALIZE_STR(&filename, 0)
-		&& UNSERIALIZE(&first_line)
-		&& UNSERIALIZE(&last_line)
-		&& UNSERIALIZE(&first_column)
-		&& UNSERIALIZE(&last_column);
-	}
 
 void Location::Describe(ODesc* d) const
 	{
@@ -228,29 +186,6 @@ void BroObj::PinPoint(ODesc* d, const BroObj* obj2, int pinpoint_only) const
 		}
 
 	d->Add(")");
-	}
-
-bool BroObj::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BRO_OBJ, SerialObj);
-
-	info->s->WriteOpenTag("Object");
-
-	Location* loc = info->include_locations ? location : 0;
-	SERIALIZE_OPTIONAL(loc);
-	info->s->WriteCloseTag("Object");
-
-	return true;
-	}
-
-bool BroObj::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	delete location;
-
-	UNSERIALIZE_OPTIONAL(location, Location::Unserialize(info));
-	return true;
 	}
 
 void print(const BroObj* obj)

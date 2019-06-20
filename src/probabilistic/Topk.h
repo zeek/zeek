@@ -131,6 +131,8 @@ public:
 	 */
 	Val* DoClone(CloneState* state) override;
 
+	DECLARE_OPAQUE_VALUE(TopkVal)
+
 protected:
 	/**
 	 * Construct an empty TopkVal. Only used for deserialization
@@ -170,8 +172,6 @@ private:
 	uint64 size; // how many elements are we tracking?
 	uint64 numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?
-
-	DECLARE_SERIAL(TopkVal);
 };
 
 };

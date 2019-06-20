@@ -18,6 +18,7 @@
 #include "logging/Manager.h"
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
+#include "SerializationFormat.h"
 
 using namespace std;
 

@@ -3,13 +3,10 @@
 #ifndef serialinfo_h
 #define serialinfo_h
 
-#include "ChunkedIO.h"
-
 class SerialInfo {
 public:
 	SerialInfo(Serializer* arg_s)
 		{
-		chunk = 0;
 		s = arg_s;
 		may_suspend = clear_containers = false;
 		cache = globals_as_names = true;
@@ -21,7 +18,6 @@ public:
 
 	SerialInfo(const SerialInfo& info)
 		{
-		chunk = info.chunk;
 		s = info.s;
 		may_suspend = info.may_suspend;
 		cache = info.cache;
@@ -49,8 +45,6 @@ public:
 	// If true, we support keeping objs in cache permanently.
 	bool new_cache_strategy;
 
-	ChunkedIO::Chunk* chunk; // chunk written right before the serialization
-
 	// Attributes set during serialization.
 	SerialType type;	// type of currently serialized object
 
@@ -65,7 +59,6 @@ public:
 		s = arg_s;
 		cache = true;
 		type = SER_NONE;
-		chunk = 0;
 		install_globals = install_conns = true;
 		install_uniques = false;
 		ignore_callbacks = false;
@@ -80,7 +73,6 @@ public:
 		s = info.s;
 		cache = info.cache;
 		type = info.type;
-		chunk = info.chunk;
 		install_globals = info.install_globals;
 		install_uniques = info.install_uniques;
 		install_conns = info.install_conns;
@@ -95,8 +87,6 @@ public:
 	Serializer* s;	// serializer to use
 	bool cache;	// if true,  object caching is ok
 	FILE* print;	// print read objects to given file (human-readable)
-
-	ChunkedIO::Chunk* chunk; // chunk to parse (rather than reading one)
 
 	bool install_globals;	// if true, install unknown globals
 				// in global scope

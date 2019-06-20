@@ -11,9 +11,6 @@
 
 class Func;
 class FuncType;
-class Serializer;
-class SerialInfo;
-class UnserialInfo;
 
 class EventHandler {
 public:
@@ -55,11 +52,6 @@ public:
 	// particular, this will then still pass the event on to plugins.
 	void SetGenerateAlways()	{ generate_always = true; }
 	bool GenerateAlways()	{ return generate_always; }
-
-	// We don't serialize the handler(s) itself here, but
-	// just the reference to it.
-	bool Serialize(SerialInfo* info) const;
-	static EventHandler* Unserialize(UnserialInfo* info);
 
 private:
 	void NewEvent(val_list* vl);	// Raise new_event() meta event.

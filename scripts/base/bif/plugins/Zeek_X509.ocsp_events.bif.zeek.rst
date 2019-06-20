@@ -95,7 +95,7 @@ Events
 
 .. zeek:id:: ocsp_response_bytes
 
-   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, resp_ref: :zeek:type:`opaque` of ocsp_resp, status: :zeek:type:`string`, version: :zeek:type:`count`, responderId: :zeek:type:`string`, producedAt: :zeek:type:`time`, signatureAlgorithm: :zeek:type:`string`, certs: :zeek:type:`x509_opaque_vector`)
+   :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, status: :zeek:type:`string`, version: :zeek:type:`count`, responderId: :zeek:type:`string`, producedAt: :zeek:type:`time`, signatureAlgorithm: :zeek:type:`string`, certs: :zeek:type:`x509_opaque_vector`)
 
    This event is raised when encountering an OCSP response that contains response information.
    An OCSP reply can be encountered, for example, in an HTTP connection or
@@ -103,10 +103,6 @@ Events
    
 
    :f: The file.
-   
-
-   :req_ref: An opaque pointer to the underlying OpenSSL data structure of the
-            OCSP response.
    
 
    :status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).

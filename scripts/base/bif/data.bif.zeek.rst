@@ -20,50 +20,51 @@ Types
 
 Functions
 #########
-================================================================= =
-:zeek:id:`Broker::__data`: :zeek:type:`function`                  
-:zeek:id:`Broker::__data_type`: :zeek:type:`function`             
-:zeek:id:`Broker::__record_assign`: :zeek:type:`function`         
-:zeek:id:`Broker::__record_create`: :zeek:type:`function`         
-:zeek:id:`Broker::__record_iterator`: :zeek:type:`function`       
-:zeek:id:`Broker::__record_iterator_last`: :zeek:type:`function`  
-:zeek:id:`Broker::__record_iterator_next`: :zeek:type:`function`  
-:zeek:id:`Broker::__record_iterator_value`: :zeek:type:`function` 
-:zeek:id:`Broker::__record_lookup`: :zeek:type:`function`         
-:zeek:id:`Broker::__record_size`: :zeek:type:`function`           
-:zeek:id:`Broker::__set_clear`: :zeek:type:`function`             
-:zeek:id:`Broker::__set_contains`: :zeek:type:`function`          
-:zeek:id:`Broker::__set_create`: :zeek:type:`function`            
-:zeek:id:`Broker::__set_insert`: :zeek:type:`function`            
-:zeek:id:`Broker::__set_iterator`: :zeek:type:`function`          
-:zeek:id:`Broker::__set_iterator_last`: :zeek:type:`function`     
-:zeek:id:`Broker::__set_iterator_next`: :zeek:type:`function`     
-:zeek:id:`Broker::__set_iterator_value`: :zeek:type:`function`    
-:zeek:id:`Broker::__set_remove`: :zeek:type:`function`            
-:zeek:id:`Broker::__set_size`: :zeek:type:`function`              
-:zeek:id:`Broker::__table_clear`: :zeek:type:`function`           
-:zeek:id:`Broker::__table_contains`: :zeek:type:`function`        
-:zeek:id:`Broker::__table_create`: :zeek:type:`function`          
-:zeek:id:`Broker::__table_insert`: :zeek:type:`function`          
-:zeek:id:`Broker::__table_iterator`: :zeek:type:`function`        
-:zeek:id:`Broker::__table_iterator_last`: :zeek:type:`function`   
-:zeek:id:`Broker::__table_iterator_next`: :zeek:type:`function`   
-:zeek:id:`Broker::__table_iterator_value`: :zeek:type:`function`  
-:zeek:id:`Broker::__table_lookup`: :zeek:type:`function`          
-:zeek:id:`Broker::__table_remove`: :zeek:type:`function`          
-:zeek:id:`Broker::__table_size`: :zeek:type:`function`            
-:zeek:id:`Broker::__vector_clear`: :zeek:type:`function`          
-:zeek:id:`Broker::__vector_create`: :zeek:type:`function`         
-:zeek:id:`Broker::__vector_insert`: :zeek:type:`function`         
-:zeek:id:`Broker::__vector_iterator`: :zeek:type:`function`       
-:zeek:id:`Broker::__vector_iterator_last`: :zeek:type:`function`  
-:zeek:id:`Broker::__vector_iterator_next`: :zeek:type:`function`  
-:zeek:id:`Broker::__vector_iterator_value`: :zeek:type:`function` 
-:zeek:id:`Broker::__vector_lookup`: :zeek:type:`function`         
-:zeek:id:`Broker::__vector_remove`: :zeek:type:`function`         
-:zeek:id:`Broker::__vector_replace`: :zeek:type:`function`        
-:zeek:id:`Broker::__vector_size`: :zeek:type:`function`           
-================================================================= =
+============================================================================== =
+:zeek:id:`Broker::__data`: :zeek:type:`function`                               
+:zeek:id:`Broker::__data_type`: :zeek:type:`function`                          
+:zeek:id:`Broker::__opaque_clone_through_serialization`: :zeek:type:`function` 
+:zeek:id:`Broker::__record_assign`: :zeek:type:`function`                      
+:zeek:id:`Broker::__record_create`: :zeek:type:`function`                      
+:zeek:id:`Broker::__record_iterator`: :zeek:type:`function`                    
+:zeek:id:`Broker::__record_iterator_last`: :zeek:type:`function`               
+:zeek:id:`Broker::__record_iterator_next`: :zeek:type:`function`               
+:zeek:id:`Broker::__record_iterator_value`: :zeek:type:`function`              
+:zeek:id:`Broker::__record_lookup`: :zeek:type:`function`                      
+:zeek:id:`Broker::__record_size`: :zeek:type:`function`                        
+:zeek:id:`Broker::__set_clear`: :zeek:type:`function`                          
+:zeek:id:`Broker::__set_contains`: :zeek:type:`function`                       
+:zeek:id:`Broker::__set_create`: :zeek:type:`function`                         
+:zeek:id:`Broker::__set_insert`: :zeek:type:`function`                         
+:zeek:id:`Broker::__set_iterator`: :zeek:type:`function`                       
+:zeek:id:`Broker::__set_iterator_last`: :zeek:type:`function`                  
+:zeek:id:`Broker::__set_iterator_next`: :zeek:type:`function`                  
+:zeek:id:`Broker::__set_iterator_value`: :zeek:type:`function`                 
+:zeek:id:`Broker::__set_remove`: :zeek:type:`function`                         
+:zeek:id:`Broker::__set_size`: :zeek:type:`function`                           
+:zeek:id:`Broker::__table_clear`: :zeek:type:`function`                        
+:zeek:id:`Broker::__table_contains`: :zeek:type:`function`                     
+:zeek:id:`Broker::__table_create`: :zeek:type:`function`                       
+:zeek:id:`Broker::__table_insert`: :zeek:type:`function`                       
+:zeek:id:`Broker::__table_iterator`: :zeek:type:`function`                     
+:zeek:id:`Broker::__table_iterator_last`: :zeek:type:`function`                
+:zeek:id:`Broker::__table_iterator_next`: :zeek:type:`function`                
+:zeek:id:`Broker::__table_iterator_value`: :zeek:type:`function`               
+:zeek:id:`Broker::__table_lookup`: :zeek:type:`function`                       
+:zeek:id:`Broker::__table_remove`: :zeek:type:`function`                       
+:zeek:id:`Broker::__table_size`: :zeek:type:`function`                         
+:zeek:id:`Broker::__vector_clear`: :zeek:type:`function`                       
+:zeek:id:`Broker::__vector_create`: :zeek:type:`function`                      
+:zeek:id:`Broker::__vector_insert`: :zeek:type:`function`                      
+:zeek:id:`Broker::__vector_iterator`: :zeek:type:`function`                    
+:zeek:id:`Broker::__vector_iterator_last`: :zeek:type:`function`               
+:zeek:id:`Broker::__vector_iterator_next`: :zeek:type:`function`               
+:zeek:id:`Broker::__vector_iterator_value`: :zeek:type:`function`              
+:zeek:id:`Broker::__vector_lookup`: :zeek:type:`function`                      
+:zeek:id:`Broker::__vector_remove`: :zeek:type:`function`                      
+:zeek:id:`Broker::__vector_replace`: :zeek:type:`function`                     
+:zeek:id:`Broker::__vector_size`: :zeek:type:`function`                        
+============================================================================== =
 
 
 Detailed Interface
@@ -117,6 +118,11 @@ Functions
 .. zeek:id:: Broker::__data_type
 
    :Type: :zeek:type:`function` (d: :zeek:type:`Broker::Data`) : :zeek:type:`Broker::DataType`
+
+
+.. zeek:id:: Broker::__opaque_clone_through_serialization
+
+   :Type: :zeek:type:`function` (d: :zeek:type:`any`) : :zeek:type:`any`
 
 
 .. zeek:id:: Broker::__record_assign

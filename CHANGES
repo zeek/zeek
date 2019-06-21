@@ -1,9 +1,30 @@
 
-2.6-487 | 2019-06-20 20:38:26 -0700
+2.6-500 | 2019-06-20 20:54:15 -0700
 
   * Add new RDP event: rdp_client_cluster_data (Jeff Atkinson)
 
   * Added "options" field to RDP::ClientChannelDef (Jeff Atkinson)
+
+2.6-494 | 2019-06-20 20:24:38 -0700
+
+  * Renaming src/StateAccess.{h,cc} to src/Notifier.{h,cc}.
+
+    The old names did not reflect the content of the files anymore. (Robin Sommer, Corelight)
+
+  * Remove MutableVal, StateAccess classes, enum Opcode. (Robin Sommer, Corelight)
+
+  * Redo API for notifiers.
+
+    There's now an notifier::Modifiable interface class that class
+    supposed to signal modifications are to be derived from. This takes
+    the place of the former MutableValue class and also unifies how Val
+    and IDs signal modifications. (Robin Sommer, Corelight)
+
+  * Redo NotfifierRegistry to no longer rely on StateAccess.
+
+    We simplify the API to a simple Modified() operation. (Robin Sommer, Corelight)
+
+  * Add new test for when-statement watching global variables. (Robin Sommer, Corelight)
 
 2.6-482 | 2019-06-20 19:57:20 -0700
 

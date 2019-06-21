@@ -5,7 +5,7 @@
 
 #include "Type.h"
 #include "Attr.h"
-#include "StateAccess.h"
+#include "Notifier.h"
 #include "TraverseTypes.h"
 #include <string>
 
@@ -15,7 +15,7 @@ class Func;
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
 
-class ID : public BroObj {
+class ID : public BroObj, public notifier::Modifiable {
 public:
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
 	~ID() override;
@@ -46,7 +46,7 @@ public:
 	// reference to the Val, the Val will be destroyed (naturally,
 	// you have to take care that it will not be accessed via
 	// the ID afterwards).
-	void SetVal(Val* v, Opcode op = OP_ASSIGN, bool weak_ref = false);
+	void SetVal(Val* v, bool weak_ref = false);
 
 	void SetVal(Val* v, init_class c);
 	void SetVal(Expr* ev, init_class c);
@@ -69,10 +69,6 @@ public:
 	int Offset() const		{ return offset; }
 
 	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
-
-	// Returns true if ID is one of those internal globally unique IDs
-	// to which MutableVals are bound (there name start with a '#').
-	bool IsInternalGlobal() const	{ return name && name[0] == '#'; }
 
 	void SetAttrs(Attributes* attr);
 	void AddAttrs(Attributes* attr);

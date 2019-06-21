@@ -695,10 +695,6 @@ bool is_atomic_type(const BroType* t);
 // True if the given type tag corresponds to a function type.
 #define IsFunc(t)	(t == TYPE_FUNC)
 
-// True if the given type tag corresponds to mutable type.
-#define IsMutable(t)	\
-	(t == TYPE_RECORD || t == TYPE_TABLE || t == TYPE_VECTOR)
-
 // True if the given type type is a vector.
 #define IsVector(t)	(t == TYPE_VECTOR)
 

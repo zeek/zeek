@@ -2181,7 +2181,7 @@ Val* TableVal::DoClone(CloneState* state)
 	TableEntryVal* val;
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
-		TableEntryVal* nval = val->Clone();
+		TableEntryVal* nval = val->Clone(state);
 		tv->AsNonConstTable()->Insert(key, nval);
 
 		if ( subnets )

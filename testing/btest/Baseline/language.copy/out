@@ -1,2 +1,5 @@
 direct assignment (PASS)
 using copy (PASS)
+F, T
+F, T
+[a=42], [a=42], [a=42], [a=42]

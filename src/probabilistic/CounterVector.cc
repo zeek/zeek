@@ -5,6 +5,9 @@
 #include <cassert>
 #include <limits>
 #include "BitVector.h"
+#include "util.h"
+
+#include <broker/error.hh>
 
 using namespace probabilistic;
 

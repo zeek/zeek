@@ -3,7 +3,10 @@
 #ifndef PROBABILISTIC_HASHER_H
 #define PROBABILISTIC_HASHER_H
 
-#include <broker/Data.h>
+#include <broker/data.hh>
+#include <broker/expected.hh>
+
+#include <memory>
 
 #include "Hash.h"
 

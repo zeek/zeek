@@ -165,10 +165,6 @@ StringVal* log_rotate_base_time;
 StringVal* peer_description;
 bro_uint_t chunked_io_buffer_soft_cap;
 
-StringVal* ssl_ca_certificate;
-StringVal* ssl_private_key;
-StringVal* ssl_passphrase;
-
 Val* profiling_file;
 double profiling_interval;
 int expensive_profiling_multiple;
@@ -243,10 +239,6 @@ void init_general_global_var()
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
 	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
-
-	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
-	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
-	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 

@@ -3,14 +3,10 @@
 #ifndef val_h
 #define val_h
 
-// BRO values.
-
 #include <vector>
 #include <list>
 #include <array>
 #include <unordered_map>
-
-#include <broker/broker.hh>
 
 #include "net_util.h"
 #include "Type.h"
@@ -358,6 +354,7 @@ protected:
 	friend class RecordVal;
 	friend class VectorVal;
 	friend class ValManager;
+	friend class TableEntryVal;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
@@ -725,9 +722,9 @@ public:
 			int(network_time - bro_start_network_time);
 		}
 
-	TableEntryVal* Clone()
+	TableEntryVal* Clone(Val::CloneState* state)
 		{
-		auto rval = new TableEntryVal(val ? val->Clone() : nullptr);
+		auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
 		rval->last_access_time = last_access_time;
 		rval->expire_access_time = expire_access_time;
 		return rval;

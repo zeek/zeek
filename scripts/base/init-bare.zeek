@@ -4710,22 +4710,6 @@ const report_gaps_for_partial = F &redef;
 ## controlled for reproducing results.
 const exit_only_after_terminate = F &redef;
 
-## The CA certificate file to authorize remote Zeeks/Broccolis.
-##
-## .. zeek:see:: ssl_private_key ssl_passphrase
-const ssl_ca_certificate = "<undefined>" &redef;
-
-## File containing our private key and our certificate.
-##
-## .. zeek:see:: ssl_ca_certificate ssl_passphrase
-const ssl_private_key = "<undefined>" &redef;
-
-## The passphrase for our private key. Keeping this undefined
-## causes Zeek to prompt for the passphrase.
-##
-## .. zeek:see:: ssl_private_key ssl_ca_certificate
-const ssl_passphrase = "<undefined>" &redef;
-
 ## Default mode for Zeek's user-space dynamic packet filter. If true, packets
 ## that aren't explicitly allowed through, are dropped from any further
 ## processing.

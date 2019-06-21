@@ -25,7 +25,6 @@
 #include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
-#include "Serializer.h"
 #include "Event.h"
 #include "Reporter.h"
 
@@ -518,11 +517,6 @@ double BroFile::Size()
 	return s.st_size;
 	}
 
-bool BroFile::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
 BroFile* BroFile::GetFile(const char* name)
 	{
 	for ( BroFile* f = head; f; f = f->next )
@@ -534,135 +528,3 @@ BroFile* BroFile::GetFile(const char* name)
 	return new BroFile(name, "w", 0);
 	}
 
-BroFile* BroFile::Unserialize(UnserialInfo* info)
-	{
-	BroFile* file = (BroFile*) SerialObj::Unserialize(info, SER_BRO_FILE);
-
-	if ( ! file )
-		return 0;
-
-	if ( file->is_open )
-		return file;
-
-	// If there is already an object for this file, return it.
-	if ( file->name )
-		{
-		for ( BroFile* f = head; f; f = f->next )
-			{
-			if ( f->name && streq(file->name, f->name) )
-				{
-				Unref(file);
-				Ref(f);
-				return f;
-				}
-			}
-		}
-
-	// Otherwise, open, but don't clobber.
-	if ( ! file->Open(0, "a") )
-		{
-		info->s->Error(fmt("cannot open %s: %s",
-					file->name, strerror(errno)));
-		return 0;
-		}
-
-	// Here comes a hack.  This method will return a pointer to a newly
-	// instantiated file object.  As soon as this pointer is Unref'ed, the
-	// file will be closed.  That means that when we unserialize the same
-	// file next time, we will re-open it and thereby delete the first one,
-	// i.e., we will be keeping to delete what we've written just before.
-	//
-	// To avoid this loop, we do an extra Ref here, i.e., this file will
-	// *never* be closed anymore (as long the file cache does not overflow).
-	Ref(file);
-
-	file->SetBuf(file->buffered);
-
-	return file;
-	}
-
-IMPLEMENT_SERIAL(BroFile, SER_BRO_FILE);
-
-bool BroFile::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BRO_FILE, BroObj);
-
-	const char* s = name;
-
-	if ( ! okay_to_manage )
-		{
-		// We can handle stdin/stdout/stderr but no others.
-		if ( f == stdin )
-			s = "/dev/stdin";
-		else if ( f == stdout )
-			s = "/dev/stdout";
-		else if ( f == stderr )
-			s = "/dev/stderr";
-		else
-			{
-			// We don't manage the file, and therefore don't
-			// really know how to pass it on to the other side.
-			// However, in order to not abort communication
-			// when this happens, we still send the name if we
-			// have one; or if we don't, we create a special
-			// "dont-have-a-file" file to be created on the
-			// receiver side.
-			if ( ! s )
-				s = "unmanaged-bro-output-file.log";
-			}
-		}
-
-	if ( ! (SERIALIZE(s) && SERIALIZE(buffered)) )
-		return false;
-
-	SERIALIZE_OPTIONAL_STR(access);
-
-	if ( ! t->Serialize(info) )
-		return false;
-
-	SERIALIZE_OPTIONAL(attrs);
-	return true;
-	}
-
-bool BroFile::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	if ( ! (UNSERIALIZE_STR(&name, 0) && UNSERIALIZE(&buffered)) )
-		return false;
-
-	UNSERIALIZE_OPTIONAL_STR(access);
-
-	t = BroType::Unserialize(info);
-	if ( ! t )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-
-	// Parse attributes.
-	SetAttrs(attrs);
-	// SetAttrs() has ref'ed attrs again.
-	Unref(attrs);
-
-	// Bind stdin/stdout/stderr.
-	FILE* file = 0;
-	is_open = false;
-	f = 0;
-
-	if ( streq(name, "/dev/stdin") )
-		file = stdin;
-	else if ( streq(name, "/dev/stdout") )
-		file = stdout;
-	else if ( streq(name, "/dev/stderr") )
-		file = stderr;
-
-	if ( file )
-		{
-		delete [] name;
-		name = 0;
-		f = file;
-		is_open = true;
-		}
-
-	return true;
-	}

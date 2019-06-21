@@ -6,7 +6,7 @@
 #include "Syslog.h"
 
 namespace plugin {
-namespace Bro_Syslog {
+namespace Zeek_Syslog {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("Syslog", ::analyzer::syslog::Syslog_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Syslog";
+		config.name = "Zeek::Syslog";
 		config.description = "Syslog analyzer UDP-only";
 		return config;
 		}

@@ -1,6 +1,6 @@
 
 ## Generated when reassembly starts for a TCP connection. This event is raised
-## at the moment when Bro's TCP analyzer enables stream reassembly for a
+## at the moment when Zeek's TCP analyzer enables stream reassembly for a
 ## connection.
 ##
 ## c: The connection.
@@ -47,8 +47,8 @@ event connection_attempt%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_established%(c: connection%);
 
-## Generated for a new active TCP connection if Bro did not see the initial
-## handshake. This event is raised when Bro has observed traffic from each
+## Generated for a new active TCP connection if Zeek did not see the initial
+## handshake. This event is raised when Zeek has observed traffic from each
 ## endpoint, but the activity did not begin with the usual connection
 ## establishment.
 ##
@@ -65,7 +65,7 @@ event partial_connection%(c: connection%);
 
 ## Generated when a previously inactive endpoint attempts to close a TCP
 ## connection via a normal FIN handshake or an abort RST sequence. When the
-## endpoint sent one of these packets, Bro waits
+## endpoint sent one of these packets, Zeek waits
 ## :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
 ## the other endpoint a chance to close the connection normally.
 ##
@@ -94,7 +94,7 @@ event connection_finished%(c: connection%);
 
 ## Generated when one endpoint of a TCP connection attempted to gracefully close
 ## the connection, but the other endpoint is in the TCP_INACTIVE state. This can
-## happen due to split routing, in which Bro only sees one side of a connection.
+## happen due to split routing, in which Zeek only sees one side of a connection.
 ##
 ## c: The connection.
 ##
@@ -123,7 +123,7 @@ event connection_half_finished%(c: connection%);
 ##
 ##    If the responder does not respond at all, :zeek:id:`connection_attempt` is
 ##    raised instead. If the responder initially accepts the connection but
-##    aborts it later, Bro first generates :zeek:id:`connection_established`
+##    aborts it later, Zeek first generates :zeek:id:`connection_established`
 ##    and then :zeek:id:`connection_reset`.
 event connection_rejected%(c: connection%);
 
@@ -142,7 +142,7 @@ event connection_rejected%(c: connection%);
 ##    partial_connection
 event connection_reset%(c: connection%);
 
-## Generated for each still-open TCP connection when Bro terminates.
+## Generated for each still-open TCP connection when Zeek terminates.
 ##
 ## c: The connection.
 ##
@@ -154,7 +154,7 @@ event connection_reset%(c: connection%);
 ##    new_connection new_connection_contents partial_connection zeek_done
 event connection_pending%(c: connection%);
 
-## Generated for a SYN packet. Bro raises this event for every SYN packet seen
+## Generated for a SYN packet. Zeek raises this event for every SYN packet seen
 ## by its TCP analyzer.
 ##
 ## c: The connection.
@@ -283,11 +283,25 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ##    application-layer protocol analyzers internally. Subsequent invocations of
 ##    this event for the same connection receive non-overlapping in-order chunks
 ##    of its TCP payload stream. It is however undefined what size each chunk
-##    has; while Bro passes the data on as soon as possible, specifics depend on
+##    has; while Zeek passes the data on as soon as possible, specifics depend on
 ##    network-level effects such as latency, acknowledgements, reordering, etc.
 event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
 
-## TODO.
+## Generated for each detected TCP segment retransmission.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## seq: The segment's relative TCP sequence number.
+##
+## len: The length of the TCP segment, as specified in the packet header.
+##
+## data_in_flight: The number of bytes corresponding to the difference between
+##                 the last sequence number and last acknowledgement number
+##                 we've seen for a given endpoint.
+##
+## window: the TCP window size.
 event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
 
 ## Generated if a TCP flow crosses a checksum-error threshold, per

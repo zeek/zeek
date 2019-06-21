@@ -6,7 +6,7 @@
 #include "GTPv1.h"
 
 namespace plugin {
-namespace Bro_GTPv1 {
+namespace Zeek_GTPv1 {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("GTPv1", ::analyzer::gtpv1::GTPv1_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::GTPv1";
+		config.name = "Zeek::GTPv1";
 		config.description = "GTPv1 analyzer";
 		return config;
 		}

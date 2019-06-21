@@ -2,7 +2,7 @@
 # @TEST-GROUP: leaks
 # @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b %INPUT
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
 type MyEnum: enum { ENUMME };
@@ -125,9 +125,15 @@ function compare_otr(a: TestRecord, b: TestRecord): bool
 	return T;
 	}
 
+global did_it = F;
 
-event zeek_init()
+event new_connection(c: connection)
 	{
+	if ( did_it )
+		return;
+
+	did_it = T;
+
 	local i1 = -42;
 	local i2 = copy(i1);
 	check(i1, i2, i1 == i2, T);

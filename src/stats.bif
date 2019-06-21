@@ -20,7 +20,7 @@ RecordType* ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
-## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## packets *(i)* received by Zeek, *(ii)* dropped, and *(iii)* seen on the
 ## link (not always available).
 ##
 ## Returns: A record of packet statistics.
@@ -70,7 +70,7 @@ function get_net_stats%(%): NetStats
 	return r;
 	%}
 
-## Returns Bro traffic statistics.
+## Returns Zeek traffic statistics.
 ##
 ## Returns: A record with connection and packet statistics.
 ##
@@ -121,7 +121,7 @@ function get_conn_stats%(%): ConnStats
 	return r;
 	%}
 
-## Returns Bro process statistics.
+## Returns Zeek process statistics.
 ##
 ## Returns: A record with process statistics.
 ##

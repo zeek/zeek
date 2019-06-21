@@ -31,7 +31,7 @@ function get_identifier_comments%(name: string%): string
 	%}
 
 ## Retrieve the Zeekygen-style summary comments (``##!``) associated with
-## a Bro script.
+## a Zeek script.
 ##
 ## name: the name of a Zeek script.  It must be a relative path to where
 ##       it is located within a particular component of ZEEKPATH and use
@@ -50,7 +50,7 @@ function get_script_comments%(name: string%): string
 	return comments_to_val(d->GetComments());
 	%}
 
-## Retrieve the contents of a Bro script package's README file.
+## Retrieve the contents of a Zeek script package's README file.
 ##
 ## name: the name of a Zeek script package.  It must be a relative path
 ##       to where it is located within a particular component of ZEEKPATH.

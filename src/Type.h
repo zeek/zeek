@@ -72,7 +72,6 @@ class SubNetType;
 class FuncType;
 class ListExpr;
 class EnumType;
-class Serializer;
 class VectorType;
 class TypeType;
 class OpaqueType;
@@ -87,7 +86,15 @@ public:
 	explicit BroType(TypeTag tag, bool base_type = false);
 	~BroType() override { }
 
-	BroType* Clone() const;
+	// Performs a shallow clone operation of the Bro type.
+	// This especially means that especially for tables the types
+	// are not recursively cloned; altering one type will in this case
+	// alter one of them.
+	// The main use for this is alias tracking.
+	// Clone operations will mostly be implemented in the derived classes;
+	// in addition cloning will be limited to classes that can be reached by
+	// the script-level.
+	virtual BroType* ShallowClone();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -108,7 +115,7 @@ public:
 	// this type is a table[string] of port, then returns the "port"
 	// type.  Returns nil if this is not an index type.
 	virtual BroType* YieldType();
-	const BroType* YieldType() const
+	virtual const BroType* YieldType() const
 		{ return ((BroType*) this)->YieldType(); }
 
 	// Returns true if this type is a record and contains the
@@ -256,9 +263,6 @@ public:
 
 	virtual unsigned MemoryAllocation() const;
 
-	bool Serialize(SerialInfo* info) const;
-	static BroType* Unserialize(UnserialInfo* info, bool use_existing = true);
-
 	void SetName(const string& arg_name) { name = arg_name; }
 	string GetName() const { return name; }
 
@@ -274,8 +278,6 @@ protected:
 	BroType()	{ }
 
 	void SetError();
-
-	DECLARE_SERIAL(BroType)
 
 private:
 	TypeTag tag;
@@ -325,8 +327,6 @@ public:
 		}
 
 protected:
-	DECLARE_SERIAL(TypeList)
-
 	BroType* pure_type;
 	type_list types;
 };
@@ -338,7 +338,7 @@ public:
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -356,8 +356,6 @@ protected:
 		}
 	~IndexType() override;
 
-	DECLARE_SERIAL(IndexType)
-
 	TypeList* indices;
 	BroType* yield_type;
 };
@@ -365,6 +363,8 @@ protected:
 class TableType : public IndexType {
 public:
 	TableType(TypeList* ind, BroType* yield);
+
+	TableType* ShallowClone() override;
 
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
@@ -374,8 +374,6 @@ protected:
 	TableType()	{}
 
 	TypeList* ExpandRecordIndex(RecordType* rt) const;
-
-	DECLARE_SERIAL(TableType)
 };
 
 class SetType : public TableType {
@@ -383,25 +381,26 @@ public:
 	SetType(TypeList* ind, ListExpr* arg_elements);
 	~SetType() override;
 
+	SetType* ShallowClone() override;
+
 	ListExpr* SetElements() const	{ return elements; }
 
 protected:
 	SetType()	{}
 
 	ListExpr* elements;
-
-	DECLARE_SERIAL(SetType)
 };
 
 class FuncType : public BroType {
 public:
 	FuncType(RecordType* args, BroType* yield, function_flavor f);
+	FuncType* ShallowClone() override;
 
 	~FuncType() override;
 
 	RecordType* Args() const	{ return args; }
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
 	string FlavorString() const;
@@ -419,9 +418,7 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-	FuncType()	{ args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
-	DECLARE_SERIAL(FuncType)
-
+	FuncType() : BroType(TYPE_FUNC) { args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
 	RecordType* args;
 	TypeList* arg_types;
 	BroType* yield;
@@ -431,6 +428,7 @@ protected:
 class TypeType : public BroType {
 public:
 	explicit TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	TypeType* ShallowClone() override { return new TypeType(type); }
 	~TypeType() override { Unref(type); }
 
 	BroType* Type()	{ return type; }
@@ -450,9 +448,6 @@ public:
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->FindAttr(a) : 0; }
 
-	bool Serialize(SerialInfo* info) const;
-	static TypeDecl* Unserialize(UnserialInfo* info);
-
 	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	BroType* type;
@@ -466,6 +461,7 @@ typedef PList(TypeDecl) type_decl_list;
 class RecordType : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
+	RecordType* ShallowClone() override;
 
 	~RecordType() override;
 
@@ -501,8 +497,6 @@ public:
 protected:
 	RecordType() { types = 0; }
 
-	DECLARE_SERIAL(RecordType)
-
 	int num_fields;
 	type_decl_list* types;
 };
@@ -511,13 +505,12 @@ class SubNetType : public BroType {
 public:
 	SubNetType();
 	void Describe(ODesc* d) const override;
-protected:
-	DECLARE_SERIAL(SubNetType)
 };
 
 class FileType : public BroType {
 public:
 	explicit FileType(BroType* yield_type);
+	FileType* ShallowClone() override { return new FileType(yield->Ref()); }
 	~FileType() override;
 
 	BroType* YieldType() override;
@@ -527,14 +520,13 @@ public:
 protected:
 	FileType()	{ yield = 0; }
 
-	DECLARE_SERIAL(FileType)
-
 	BroType* yield;
 };
 
 class OpaqueType : public BroType {
 public:
 	explicit OpaqueType(const string& name);
+	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
 	~OpaqueType() override { };
 
 	const string& Name() const { return name; }
@@ -545,8 +537,6 @@ public:
 protected:
 	OpaqueType() { }
 
-	DECLARE_SERIAL(OpaqueType)
-
 	string name;
 };
 
@@ -554,8 +544,9 @@ class EnumType : public BroType {
 public:
 	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
 
-	explicit EnumType(EnumType* e);
+	explicit EnumType(const EnumType* e);
 	explicit EnumType(const string& arg_name);
+	EnumType* ShallowClone() override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
@@ -582,8 +573,6 @@ public:
 protected:
 	EnumType() { counter = 0; }
 
-	DECLARE_SERIAL(EnumType)
-
 	void AddNameInternal(const string& module_name,
 			const char* name, bro_int_t val, bool is_export);
 
@@ -609,9 +598,10 @@ protected:
 class VectorType : public BroType {
 public:
 	explicit VectorType(BroType* t);
+	VectorType* ShallowClone() override;
 	~VectorType() override;
 	BroType* YieldType() override;
-	const BroType* YieldType() const;
+	const BroType* YieldType() const override;
 
 	int MatchesIndex(ListExpr*& index) const override;
 
@@ -624,8 +614,6 @@ public:
 
 protected:
 	VectorType()	{ yield_type = 0; }
-
-	DECLARE_SERIAL(VectorType)
 
 	BroType* yield_type;
 };
@@ -706,10 +694,6 @@ bool is_atomic_type(const BroType* t);
 
 // True if the given type tag corresponds to a function type.
 #define IsFunc(t)	(t == TYPE_FUNC)
-
-// True if the given type tag corresponds to mutable type.
-#define IsMutable(t)	\
-	(t == TYPE_RECORD || t == TYPE_TABLE || t == TYPE_VECTOR)
 
 // True if the given type type is a vector.
 #define IsVector(t)	(t == TYPE_VECTOR)

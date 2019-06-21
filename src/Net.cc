@@ -27,7 +27,6 @@
 #include "Reporter.h"
 #include "Net.h"
 #include "Anon.h"
-#include "Serializer.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"

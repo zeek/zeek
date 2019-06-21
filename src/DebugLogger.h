@@ -14,12 +14,10 @@
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
 enum DebugStream {
-	DBG_SERIAL,	// Serialization
+	DBG_SERIAL, // Serialization
 	DBG_RULES,	// Signature matching
-	DBG_STATE,	// StateAccess logging
-	DBG_CHUNKEDIO,	// ChunkedIO logging
 	DBG_STRING,	// String code
-	DBG_NOTIFIERS,	// Notifiers (see StateAccess.h)
+	DBG_NOTIFIERS,	// Notifiers
 	DBG_MAINLOOP,	// Main IOSource loop
 	DBG_ANALYZER,	// Analyzer framework
 	DBG_TM,		// Time-machine packet input via Brocolli

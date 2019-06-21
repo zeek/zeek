@@ -171,23 +171,3 @@ void EventHandler::NewEvent(val_list* vl)
 	mgr.Dispatch(ev);
 	}
 
-bool EventHandler::Serialize(SerialInfo* info) const
-	{
-	return SERIALIZE(name);
-	}
-
-EventHandler* EventHandler::Unserialize(UnserialInfo* info)
-	{
-	char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return 0;
-
-	EventHandler* h = event_registry->Lookup(name);
-	if ( ! h )
-		{
-		h = new EventHandler(name);
-		event_registry->Register(h);
-		}
-
-	return h;
-	}

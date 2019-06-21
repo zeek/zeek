@@ -1,6 +1,6 @@
 #
 # @TEST-REQUIRES: which sqlite3
-# @TEST-REQUIRES: has-writer Bro::SQLiteWriter
+# @TEST-REQUIRES: has-writer Zeek::SQLiteWriter
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: cat ssh.sql | sqlite3 ssh.sqlite

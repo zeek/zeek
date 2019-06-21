@@ -64,9 +64,6 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 
-	// This (un-)serializes only a single body (as given in SerialInfo).
-	bool Serialize(SerialInfo* info) const;
-	static Func* Unserialize(UnserialInfo* info);
 	virtual Val* DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
@@ -80,8 +77,6 @@ protected:
 
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
-
-	DECLARE_ABSTRACT_SERIAL(Func);
 
 	vector<Body> bodies;
 	Scope* scope;
@@ -116,8 +111,6 @@ public:
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);
-
-	DECLARE_SERIAL(BroFunc);
 
 	int frame_size;
 
@@ -154,8 +147,6 @@ public:
 
 protected:
 	BuiltinFunc()	{ func = 0; is_pure = 0; }
-
-	DECLARE_SERIAL(BuiltinFunc);
 
 	built_in_func func;
 	int is_pure;

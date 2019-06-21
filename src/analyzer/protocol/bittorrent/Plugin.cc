@@ -7,7 +7,7 @@
 #include "BitTorrentTracker.h"
 
 namespace plugin {
-namespace Bro_BitTorrent {
+namespace Zeek_BitTorrent {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -17,7 +17,7 @@ public:
 		AddComponent(new ::analyzer::Component("BitTorrentTracker", ::analyzer::bittorrent::BitTorrentTracker_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::BitTorrent";
+		config.name = "Zeek::BitTorrent";
 		config.description = "BitTorrent Analyzer";
 		return config;
 		}

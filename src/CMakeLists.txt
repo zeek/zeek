@@ -10,8 +10,8 @@ set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FO
 set(bro_AUTO_BIFS     CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
 set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
 
-set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in base distribution of Bro" FORCE)
-set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Bro script stubs for BIFs in Bro plugins" FORCE)
+set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in base distribution of Zeek" FORCE)
+set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in Zeek plugins" FORCE)
 
 # If TRUE, use CMake's object libraries for sub-directories instead of
 # static libraries. This requires CMake >= 2.8.8.
@@ -103,7 +103,7 @@ set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-comp
 include(BifCl)
 
 set(BIF_SRCS
-    bro.bif
+    zeek.bif
     stats.bif
     event.bif
     const.bif
@@ -247,7 +247,6 @@ set(bro_SRCS
     Brofiler.cc
     BroString.cc
     CCL.cc
-    ChunkedIO.cc
     CompHash.cc
     Conn.cc
     ConvertUTF.c
@@ -302,10 +301,8 @@ set(bro_SRCS
     SmithWaterman.cc
     Scope.cc
     SerializationFormat.cc
-    SerialObj.cc
-    Serializer.cc
     Sessions.cc
-    StateAccess.cc
+    Notifier.cc
     Stats.cc
     Stmt.cc
     Tag.cc
@@ -418,7 +415,7 @@ install(CODE "
 ")
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/bro
+        DESTINATION include/zeek
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.pac"
@@ -426,7 +423,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-        DESTINATION include/bro
+        DESTINATION include/zeek
         FILES_MATCHING
         PATTERN "*.bif.func_h"
         PATTERN "*.bif.netvar_h"
@@ -435,5 +432,5 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
-        DESTINATION include/bro/3rdparty
+        DESTINATION include/zeek/3rdparty
 )

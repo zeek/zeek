@@ -6,7 +6,7 @@
 #include "HTTP.h"
 
 namespace plugin {
-namespace Bro_HTTP {
+namespace Zeek_HTTP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("HTTP", ::analyzer::http::HTTP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::HTTP";
+		config.name = "Zeek::HTTP";
 		config.description = "HTTP analyzer";
 		return config;
 		}

@@ -83,7 +83,7 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	// a PATH component that starts with a tilde (such as "~/bin").  A simple
 	// workaround is to just run bro with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
-		reporter->InternalError("Zeekygen can't get mtime of bro binary %s (try again by specifying the absolute or relative path to Bro): %s",
+		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
 		                        path_to_bro.c_str(), strerror(errno));
 
 	bro_mtime = s.st_mtime;

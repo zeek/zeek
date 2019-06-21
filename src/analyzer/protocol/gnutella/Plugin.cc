@@ -6,7 +6,7 @@
 #include "Gnutella.h"
 
 namespace plugin {
-namespace Bro_Gnutella {
+namespace Zeek_Gnutella {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("Gnutella", ::analyzer::gnutella::Gnutella_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Gnutella";
+		config.name = "Zeek::Gnutella";
 		config.description = "Gnutella analyzer";
 		return config;
 		}

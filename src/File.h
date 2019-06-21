@@ -66,9 +66,6 @@ public:
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }
 
-	bool Serialize(SerialInfo* info) const;
-	static BroFile* Unserialize(UnserialInfo* info);
-
 protected:
 	BroFile()	{ Init(); }
 	void Init();
@@ -99,8 +96,6 @@ protected:
 
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
-
-	DECLARE_SERIAL(BroFile);
 
 	FILE* f;
 	BroType* t;

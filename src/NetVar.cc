@@ -77,7 +77,6 @@ bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
 
 double dns_session_timeout;
-double ntp_session_timeout;
 double rpc_timeout;
 
 ListVal* skip_authentication;
@@ -102,8 +101,6 @@ RecordType* pm_mapping;
 TableType* pm_mappings;
 RecordType* pm_port_request;
 RecordType* pm_callit_request;
-
-RecordType* ntp_msg;
 
 RecordType* geo_location;
 
@@ -167,10 +164,6 @@ StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
 bro_uint_t chunked_io_buffer_soft_cap;
-
-StringVal* ssl_ca_certificate;
-StringVal* ssl_private_key;
-StringVal* ssl_passphrase;
 
 Val* profiling_file;
 double profiling_interval;
@@ -246,10 +239,6 @@ void init_general_global_var()
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
 	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
-
-	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
-	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
-	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
@@ -360,7 +349,6 @@ void init_net_var()
 		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
-	ntp_session_timeout = opt_internal_double("ntp_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
 
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
@@ -389,8 +377,6 @@ void init_net_var()
 	pm_mappings = internal_type("pm_mappings")->AsTableType();
 	pm_port_request = internal_type("pm_port_request")->AsRecordType();
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
-
-	ntp_msg = internal_type("ntp_msg")->AsRecordType();
 
 	geo_location = internal_type("geo_location")->AsRecordType();
 

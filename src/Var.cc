@@ -6,7 +6,6 @@
 #include "Func.h"
 #include "Stmt.h"
 #include "Scope.h"
-#include "Serializer.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
 
@@ -274,7 +273,7 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 		tnew = t;
 	else
 		// Clone the type to preserve type name aliasing.
-		tnew = t->Clone();
+		tnew = t->ShallowClone();
 
 	BroType::AddAlias(new_type_name, tnew);
 

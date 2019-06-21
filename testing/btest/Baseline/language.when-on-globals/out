@@ -1,0 +1,4 @@
+"j" in x3[20]$x, expected timeout
+15 in x2, T
+x1 != 42, T
+x2[10], T

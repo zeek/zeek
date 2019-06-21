@@ -6,7 +6,7 @@
 #include "ICMP.h"
 
 namespace plugin {
-namespace Bro_ICMP {
+namespace Zeek_ICMP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("ICMP", ::analyzer::icmp::ICMP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::ICMP";
+		config.name = "Zeek::ICMP";
 		config.description = "ICMP analyzer";
 		return config;
 		}

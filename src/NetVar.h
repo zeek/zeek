@@ -80,7 +80,6 @@ extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
 
 extern double dns_session_timeout;
-extern double ntp_session_timeout;
 extern double rpc_timeout;
 
 extern ListVal* skip_authentication;
@@ -105,8 +104,6 @@ extern RecordType* pm_mapping;
 extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
-
-extern RecordType* ntp_msg;
 
 extern RecordType* geo_location;
 
@@ -170,10 +167,6 @@ extern StringVal* log_rotate_base_time;
 
 extern StringVal* peer_description;
 extern bro_uint_t chunked_io_buffer_soft_cap;
-
-extern StringVal* ssl_ca_certificate;
-extern StringVal* ssl_private_key;
-extern StringVal* ssl_passphrase;
 
 extern Val* profiling_file;
 extern double profiling_interval;

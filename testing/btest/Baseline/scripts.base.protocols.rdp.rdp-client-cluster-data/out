@@ -1,0 +1,12 @@
+RDP Client Cluster Data
+Flags: 0000000d
+RedirSessionId: 00000000
+Redirection Supported: 00000000
+ServerSessionRedirectionVersionMask: 00000000
+RedirectionSessionIDFieldValid: 00000000
+RedirectedSmartCard: 00000000
+RDP Client Channel List Options
+80800000
+c0000000
+c0800000
+c0a00000

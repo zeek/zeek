@@ -6,7 +6,7 @@
 #include "Dumper.h"
 
 namespace plugin {
-namespace Bro_Pcap {
+namespace Zeek_Pcap {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::iosource::PktDumperComponent("PcapWriter", "pcap", ::iosource::pcap::PcapDumper::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Pcap";
+		config.name = "Zeek::Pcap";
 		config.description = "Packet acquisition via libpcap";
 		return config;
 		}

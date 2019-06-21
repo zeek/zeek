@@ -24,9 +24,10 @@ export {
 		## and the network access server is not required to honor 
 		## the address.
 		framed_addr  : addr     &log &optional;
-		## Remote IP address, if present.  This is collected
-		## from the Tunnel-Client-Endpoint attribute.
-		remote_ip    : addr     &log &optional;
+		## Address (IPv4, IPv6, or FQDN) of the initiator end of the tunnel,
+		## if present.  This is collected from the Tunnel-Client-Endpoint
+		## attribute.
+		tunnel_client: string   &log &optional;
 		## Connect info, if present.
 		connect_info : string   &log &optional;
 		## Reply message from the server challenge. This is 
@@ -85,8 +86,8 @@ event radius_message(c: connection, result: RADIUS::Message) &priority=5
 					c$radius$mac = normalize_mac(result$attributes[31][0]);
 
 				# Tunnel-Client-EndPoint (useful for VPNs)
-				if ( ! c$radius?$remote_ip && 66 in result$attributes )
-					c$radius$remote_ip = to_addr(result$attributes[66][0]);
+				if ( ! c$radius?$tunnel_client && 66 in result$attributes )
+					c$radius$tunnel_client = result$attributes[66][0];
 
 				# Connect-Info
 				if ( ! c$radius?$connect_info && 77 in result$attributes )

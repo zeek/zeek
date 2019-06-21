@@ -3,101 +3,101 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-42
+#open	2019-06-07-02-20-03
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332784981.078396	-	-	-	-	-	bad_IP_checksum	-	F	bro
-#close	2016-07-13-16-12-42
+1332784981.078396	-	-	-	-	-	bad_IP_checksum	-	F	zeek
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-42
+#open	2019-06-07-02-20-03
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332784885.686428	CHhAvVGS1DHFjwGM9	127.0.0.1	30000	127.0.0.1	80	bad_TCP_checksum	-	F	bro
-#close	2016-07-13-16-12-42
+1332784885.686428	CHhAvVGS1DHFjwGM9	127.0.0.1	30000	127.0.0.1	80	bad_TCP_checksum	-	F	zeek
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-43
+#open	2019-06-07-02-20-04
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332784933.501023	CHhAvVGS1DHFjwGM9	127.0.0.1	30000	127.0.0.1	13000	bad_UDP_checksum	-	F	bro
-#close	2016-07-13-16-12-43
+1332784933.501023	CHhAvVGS1DHFjwGM9	127.0.0.1	30000	127.0.0.1	13000	bad_UDP_checksum	-	F	zeek
+#close	2019-06-07-02-20-04
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-43
+#open	2019-06-07-02-20-04
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075363.536871	CHhAvVGS1DHFjwGM9	192.168.1.100	8	192.168.1.101	0	bad_ICMP_checksum	-	F	bro
-#close	2016-07-13-16-12-43
+1334075363.536871	CHhAvVGS1DHFjwGM9	192.168.1.100	8	192.168.1.101	0	bad_ICMP_checksum	-	F	zeek
+#close	2019-06-07-02-20-04
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-44
+#open	2019-06-07-02-20-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332785210.013051	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
-1332785210.013051	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	80	bad_TCP_checksum	-	F	bro
-#close	2016-07-13-16-12-44
+1332785210.013051	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	zeek
+1332785210.013051	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	80	bad_TCP_checksum	-	F	zeek
+#close	2019-06-07-02-20-05
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-44
+#open	2019-06-07-02-20-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332782580.798420	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	bro
-1332782580.798420	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	13000	bad_UDP_checksum	-	F	bro
-#close	2016-07-13-16-12-44
+1332782580.798420	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::2	0	routing0_hdr	-	F	zeek
+1332782580.798420	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:78:1:32::2	13000	bad_UDP_checksum	-	F	zeek
+#close	2019-06-07-02-20-05
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-45
+#open	2019-06-07-02-20-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334075111.800086	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	bro
-1334075111.800086	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:78:1:32::1	129	bad_ICMP_checksum	-	F	bro
-#close	2016-07-13-16-12-45
+1334075111.800086	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:78:1:32::1	0	routing0_hdr	-	F	zeek
+1334075111.800086	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:78:1:32::1	129	bad_ICMP_checksum	-	F	zeek
+#close	2019-06-07-02-20-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-45
+#open	2019-06-07-02-20-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332785250.469132	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	80	bad_TCP_checksum	-	F	bro
-#close	2016-07-13-16-12-45
+1332785250.469132	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	80	bad_TCP_checksum	-	F	zeek
+#close	2019-06-07-02-20-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-46
+#open	2019-06-07-02-20-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1332781342.923813	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	13000	bad_UDP_checksum	-	F	bro
-#close	2016-07-13-16-12-46
+1332781342.923813	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	30000	2001:4f8:4:7:2e0:81ff:fe52:9a6b	13000	bad_UDP_checksum	-	F	zeek
+#close	2019-06-07-02-20-07
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2016-07-13-16-12-46
+#open	2019-06-07-02-20-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334074939.467194	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	bro
-#close	2016-07-13-16-12-47
+1334074939.467194	CHhAvVGS1DHFjwGM9	2001:4f8:4:7:2e0:81ff:fe52:ffff	128	2001:4f8:4:7:2e0:81ff:fe52:9a6b	129	bad_ICMP_checksum	-	F	zeek
+#close	2019-06-07-02-20-07

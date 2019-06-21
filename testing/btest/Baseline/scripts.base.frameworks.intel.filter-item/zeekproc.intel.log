@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2019-03-24-20-29-18
+#open	2019-06-07-02-27-51
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
-1553459358.205227	-	-	-	-	-	1.2.3.42	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
-#close	2019-03-24-20-29-18
+1559874471.197669	-	-	-	-	-	1.2.3.42	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
+#close	2019-06-07-02-27-51

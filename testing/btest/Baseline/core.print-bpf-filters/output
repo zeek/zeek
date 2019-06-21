@@ -3,28 +3,28 @@
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2019-03-12-03-25-12
+#open	2019-06-07-02-20-03
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1552361112.763592	bro	ip or not ip	T	T
-#close	2019-03-12-03-25-12
+1559874003.309984	zeek	ip or not ip	T	T
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2019-03-12-03-25-13
+#open	2019-06-07-02-20-03
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1552361113.442916	bro	port 42	T	T
-#close	2019-03-12-03-25-13
+1559874003.872388	zeek	port 42	T	T
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	packet_filter
-#open	2019-03-12-03-25-14
+#open	2019-06-07-02-20-04
 #fields	ts	node	filter	init	success
 #types	time	string	string	bool	bool
-1552361114.111534	bro	(vlan) and (ip or not ip)	T	T
-#close	2019-03-12-03-25-14
+1559874004.312190	zeek	(vlan) and (ip or not ip)	T	T
+#close	2019-06-07-02-20-04

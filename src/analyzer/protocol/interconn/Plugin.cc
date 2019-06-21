@@ -6,7 +6,7 @@
 #include "InterConn.h"
 
 namespace plugin {
-namespace Bro_InterConn {
+namespace Zeek_InterConn {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("InterConn", ::analyzer::interconn::InterConn_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::InterConn";
+		config.name = "Zeek::InterConn";
 		config.description = "InterConn analyzer deprecated";
 		return config;
 		}

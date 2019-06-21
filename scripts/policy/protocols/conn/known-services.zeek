@@ -48,7 +48,7 @@ export {
 	global service_store: Cluster::StoreInfo;
 
 	## The Broker topic name to use for :zeek:see:`Known::service_store`.
-	const service_store_name = "bro/known/services" &redef;
+	const service_store_name = "zeek/known/services" &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::service_store`.
 	## This also changes the interval at which services get logged.

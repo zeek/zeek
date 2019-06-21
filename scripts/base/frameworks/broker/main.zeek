@@ -113,7 +113,7 @@ export {
 
 	## The default topic prefix where logs will be published.  The log's stream
 	## id is appended when writing to a particular stream.
-	const default_log_topic_prefix = "bro/logs/" &redef;
+	const default_log_topic_prefix = "zeek/logs/" &redef;
 
 	## The default implementation for :zeek:see:`Broker::log_topic`.
 	function default_log_topic(id: Log::ID, path: string): string

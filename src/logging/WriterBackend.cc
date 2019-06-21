@@ -4,7 +4,6 @@
 
 #include "util.h"
 #include "threading/SerialTypes.h"
-#include "SerializationFormat.h"
 
 #include "Manager.h"
 #include "WriterBackend.h"
@@ -69,58 +68,6 @@ public:
 // Backend methods.
 
 using namespace logging;
-
-bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
-	{
-	int size;
-
-	string tmp_path;
-
-	if ( ! (fmt->Read(&tmp_path, "path") &&
-		fmt->Read(&rotation_base, "rotation_base") &&
-		fmt->Read(&rotation_interval, "rotation_interval") &&
-		fmt->Read(&network_time, "network_time") &&
-		fmt->Read(&size, "config_size")) )
-		return false;
-
-	path = copy_string(tmp_path.c_str());
-
-	config.clear();
-
-	while ( size-- )
-		{
-		string value;
-		string key;
-
-		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&key, "config-key")) )
-			return false;
-
-		config.insert(std::make_pair(copy_string(value.c_str()), copy_string(key.c_str())));
-		}
-
-	return true;
-	}
-
-
-bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
-	{
-	int size = config.size();
-
-	if ( ! (fmt->Write(path, "path") &&
-		fmt->Write(rotation_base, "rotation_base") &&
-		fmt->Write(rotation_interval, "rotation_interval") &&
-		fmt->Write(network_time, "network_time") &&
-		fmt->Write(size, "config_size")) )
-		return false;
-
-	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
-		{
-		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
-			return false;
-		}
-
-	return true;
-	}
 
 broker::data WriterBackend::WriterInfo::ToBroker() const
 	{

@@ -54,3 +54,30 @@ encrypted, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p
 encrypted, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F, TLSv10, 23
 encrypted, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp], T, TLSv10, 23
 encrypted, [orig_h=192.150.187.20, orig_p=36782/tcp, resp_h=138.68.41.77, resp_p=443/tcp], F, TLSv10, 23
+key_share, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], T
+x25519
+client, TLSv10, TLSv12
+key_share, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], F
+x25519
+server, TLSv12, TLSv12
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], F, TLSv12, 23
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], F, TLSv12, 23
+established, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp]
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], T, TLSv12, 23
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], F, TLSv12, 23
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], T, TLSv12, 23
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], F, TLSv12, 23
+encrypted, [orig_h=192.168.178.80, orig_p=54220/tcp, resp_h=174.138.9.219, resp_p=443/tcp], T, TLSv12, 23
+key_share, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], T
+secp224r1
+client, TLSv10, TLSv12
+key_share, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], F
+secp256r1
+server, TLSv12, TLSv12
+established, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp]
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], T, TLSv12, 22
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], F, TLSv12, 22
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], F, TLSv12, 23
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], T, TLSv12, 23
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], F, TLSv12, 23
+encrypted, [orig_h=10.192.48.168, orig_p=63564/tcp, resp_h=64.233.185.139, resp_p=443/tcp], T, TLSv12, 23

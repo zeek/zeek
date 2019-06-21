@@ -28,8 +28,6 @@ X509* helper_sk_X509_value(const STACK_OF(X509)* certs, int i)
 
 using namespace file_analysis;
 
-IMPLEMENT_SERIAL(OCSP_RESPVal, SER_OCSP_RESP_VAL);
-
 #define OCSP_STRING_BUF_SIZE 2048
 
 static Val* get_ocsp_type(RecordVal* args, const char* name)
@@ -177,9 +175,8 @@ bool file_analysis::OCSP::EndOfFile()
 			return false;
 			}
 
-		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
-		ParseResponse(resp_val);
-		Unref(resp_val);
+		ParseResponse(resp);
+		OCSP_RESPONSE_free(resp);
 		}
 
 	return true;
@@ -451,9 +448,8 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
+void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	{
-	OCSP_RESPONSE   *resp       = resp_val->GetResp();
 	//OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
 	OCSP_BASICRESP  *basic_resp = nullptr;
 	OCSP_RESPDATA   *resp_data  = nullptr;
@@ -508,7 +504,6 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val)
 #endif
 
 	vl.append(GetFile()->GetVal()->Ref());
-	vl.append(resp_val->Ref());
 	vl.append(status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
@@ -692,52 +687,3 @@ void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 		ParseSignedCertificateTimestamps(ex);
 	}
 
-OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = arg_ocsp_resp;
-	}
-
-OCSP_RESPVal::OCSP_RESPVal() : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = nullptr;
-	}
-
-OCSP_RESPVal::~OCSP_RESPVal()
-	{
-	if (ocsp_resp)
-		OCSP_RESPONSE_free(ocsp_resp);
-	}
-
-OCSP_RESPONSE* OCSP_RESPVal::GetResp() const
-	{
-	return ocsp_resp;
-	}
-
-bool OCSP_RESPVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_OCSP_RESP_VAL, OpaqueVal);
-	unsigned char *buf = nullptr;
-	int length = i2d_OCSP_RESPONSE(ocsp_resp, &buf);
-	if ( length < 0 )
-		return false;
-	bool res = SERIALIZE_STR(reinterpret_cast<const char*>(buf), length);
-	OPENSSL_free(buf);
-	return res;
-	}
-
-bool OCSP_RESPVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal)
-
-	int length;
-	unsigned char *ocsp_resp_buf, *opensslbuf;
-
-	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&ocsp_resp_buf), &length) )
-		return false;
-	opensslbuf = ocsp_resp_buf; // OpenSSL likes to shift pointers around. really.
-	ocsp_resp = d2i_OCSP_RESPONSE(nullptr, const_cast<const unsigned char**>(&opensslbuf), length);
-	delete [] ocsp_resp_buf;
-	if ( ! ocsp_resp )
-		return false;
-	return true;
-	}

@@ -281,6 +281,10 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			status = ParseRR_TXT(msg, data, len, rdlength, msg_start);
 			break;
 
+		case TYPE_SPF:
+			status = ParseRR_SPF(msg, data, len, rdlength, msg_start);
+			break;
+
 		case TYPE_CAA:
 			status = ParseRR_CAA(msg, data, len, rdlength, msg_start);
 			break;
@@ -1310,6 +1314,36 @@ int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 
 	if ( dns_TXT_reply )
 		analyzer->ConnectionEventFast(dns_TXT_reply, {
+			analyzer->BuildConnVal(),
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			char_strings,
+		});
+	else
+		Unref(char_strings);
+
+	return rdlength == 0;
+	}
+
+int DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start)
+	{
+	if ( ! dns_SPF_reply || msg->skip_event )
+		{
+		data += rdlength;
+		len -= rdlength;
+		return 1;
+		}
+
+	VectorVal* char_strings = new VectorVal(string_vec);
+	StringVal* char_string;
+
+	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
+		char_strings->Assign(char_strings->Size(), char_string);
+
+	if ( dns_SPF_reply )
+		analyzer->ConnectionEventFast(dns_SPF_reply, {
 			analyzer->BuildConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),

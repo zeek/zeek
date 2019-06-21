@@ -5,10 +5,12 @@
 #include "broker/data.bif.h"
 #include "Reporter.h"
 #include "Type.h"
-#include "Val.h"
+#include "OpaqueVal.h"
 #include "Trigger.h"
 
-#include <broker/broker.hh>
+#include <broker/store.hh>
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
 
 namespace bro_broker {
 
@@ -116,13 +118,13 @@ public:
 
 	void ValDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(StoreHandleVal);
-
 	broker::store store;
 	broker::store::proxy proxy;
 
 protected:
 	StoreHandleVal() = default;
+
+	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };
 
 // Helper function to construct a broker backend type from script land.

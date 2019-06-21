@@ -13,7 +13,7 @@ help: Get help with debugger commands
 cmd: dcQuit
 names: quit
 resume: false
-help: Exit Bro
+help: Exit Zeek
 
 cmd: dcNext
 names: next

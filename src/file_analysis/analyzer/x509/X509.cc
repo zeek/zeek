@@ -10,6 +10,8 @@
 
 #include "file_analysis/Manager.h"
 
+#include <broker/error.hh>
+
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
@@ -17,8 +19,6 @@
 #include <openssl/err.h>
 
 using namespace file_analysis;
-
-IMPLEMENT_SERIAL(X509Val, SER_X509_VAL);
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
 	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
@@ -491,39 +491,29 @@ Val* X509Val::DoClone(CloneState* state)
 	return certificate;
 	}
 
-bool X509Val::DoSerialize(SerialInfo* info) const
+IMPLEMENT_OPAQUE_VALUE(X509Val)
+
+broker::expected<broker::data> X509Val::DoSerialize() const
 	{
-	DO_SERIALIZE(SER_X509_VAL, OpaqueVal);
-
 	unsigned char *buf = NULL;
-
 	int length = i2d_X509(certificate, &buf);
 
 	if ( length < 0 )
-		return false;
+		return broker::ec::invalid_data;
 
-	bool res = SERIALIZE_STR(reinterpret_cast<const char*>(buf), length);
-
+	auto d = std::string(reinterpret_cast<const char*>(buf), length);
 	OPENSSL_free(buf);
-	return res;
+
+	return {std::move(d)};
 	}
 
-bool X509Val::DoUnserialize(UnserialInfo* info)
+bool X509Val::DoUnserialize(const broker::data& data)
 	{
-	DO_UNSERIALIZE(OpaqueVal)
-
-	int length;
-	unsigned char *certbuf, *opensslbuf;
-
-	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&certbuf), &length) )
+	auto s = caf::get_if<std::string>(&data);
+	if ( ! s )
 		return false;
 
-	opensslbuf = certbuf; // OpenSSL likes to shift pointers around. really.
-	certificate = d2i_X509(NULL, const_cast<const unsigned char**>(&opensslbuf), length);
-	delete[] certbuf;
-
-	if ( !certificate )
-		return false;
-
-	return true;
+	auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
+	certificate = d2i_X509(NULL, &opensslbuf, s->size());
+	return (certificate != nullptr);
 	}

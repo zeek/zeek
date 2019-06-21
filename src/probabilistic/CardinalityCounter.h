@@ -4,7 +4,11 @@
 #define PROBABILISTIC_CARDINALITYCOUNTER_H
 
 #include <stdint.h>
-#include <OpaqueVal.h>
+#include <memory>
+#include <vector>
+
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 namespace probabilistic {
 
@@ -84,24 +88,8 @@ public:
 	 */
 	bool Merge(CardinalityCounter* c);
 
-	/**
-	 * Serializes the cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes a cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized cardinality counter, or null if an error
-	 * 	   occured.
-	 */
-	static CardinalityCounter* Unserialize(UnserialInfo* info);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<CardinalityCounter> Unserialize(const broker::data& data);
 
 protected:
 	/**

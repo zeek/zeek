@@ -9,7 +9,6 @@
 #include "Func.h"
 #include "Scope.h"
 #include "File.h"
-#include "Serializer.h"
 #include "Scope.h"
 #include "Traverse.h"
 #include "zeekygen/Manager.h"
@@ -60,34 +59,14 @@ void ID::ClearVal()
 	val = 0;
 	}
 
-void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
+void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( op != OP_NONE )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		if ( props )
-			{
-			if ( v->IsMutableVal() )
-				v->AsMutableVal()->AddProperties(props);
-			}
-
-#ifndef DEBUG
-		if ( props )
-#else
-		if ( debug_logger.IsVerbose() || props )
-#endif
-			StateAccess::Log(new StateAccess(op, this, v, val));
-		}
-
 	if ( ! weak_ref )
 		Unref(val);
 
 	val = v;
 	weak_ref = arg_weak_ref;
+	Modified();
 
 #ifdef DEBUG
 	UpdateValID();
@@ -176,16 +155,6 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	MutableVal::Properties props = 0;
-
-	if ( val && val->IsMutableVal() )
-		{
-		if ( attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->AddProperties(props);
-		}
-
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
 		val->AsTableVal()->SetAttrs(attrs);
 
@@ -243,16 +212,6 @@ void ID::RemoveAttr(attr_tag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
-
-	if ( val && val->IsMutableVal() )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( a == ATTR_TRACKED )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->RemoveProperties(props);
-		}
 	}
 
 void ID::SetOption()
@@ -281,11 +240,6 @@ void ID::EvalFunc(Expr* ef, Expr* ev)
 
 	SetVal(ce->Eval(0));
 	Unref(ce);
-	}
-
-bool ID::Serialize(SerialInfo* info) const
-	{
-	return (ID*) SerialObj::Serialize(info);
 	}
 
 #if 0
@@ -319,205 +273,6 @@ void ID::CopyFrom(const ID* id)
 	UpdateValID();
 #endif
 #endif
-
-ID* ID::Unserialize(UnserialInfo* info)
-	{
-	ID* id = (ID*) SerialObj::Unserialize(info, SER_ID);
-	if ( ! id )
-		return 0;
-
-	if ( ! id->IsGlobal() )
-		return id;
-
-	// Globals.
-	ID* current = global_scope()->Lookup(id->name);
-
-	if ( ! current )
-		{
-		if ( ! info->install_globals )
-			{
-			info->s->Error("undefined");
-			Unref(id);
-			return 0;
-			}
-
-		Ref(id);
-		global_scope()->Insert(id->Name(), id);
-#ifdef USE_PERFTOOLS_DEBUG
-		heap_checker->IgnoreObject(id);
-#endif
-		}
-
-	else
-		{
-		switch ( info->id_policy ) {
-
-		case UnserialInfo::Keep:
-			Unref(id);
-			Ref(current);
-			id = current;
-			break;
-
-		case UnserialInfo::Replace:
-			Unref(current);
-			Ref(id);
-			global_scope()->Insert(id->Name(), id);
-			break;
-
-		case UnserialInfo::CopyNewToCurrent:
-			if ( ! same_type(current->type, id->type) )
-				{
-				info->s->Error("type mismatch");
-				Unref(id);
-				return 0;
-				}
-
-			if ( ! current->weak_ref )
-				Unref(current->val);
-
-			current->val = id->val;
-			current->weak_ref = id->weak_ref;
-			if ( current->val && ! current->weak_ref )
-				Ref(current->val);
-
-#ifdef DEBUG
-			current->UpdateValID();
-#endif
-
-			Unref(id);
-			Ref(current);
-			id = current;
-
-		break;
-
-		case UnserialInfo::CopyCurrentToNew:
-			if ( ! same_type(current->type, id->type) )
-				{
-				info->s->Error("type mismatch");
-				return 0;
-				}
-			if ( ! id->weak_ref )
-				Unref(id->val);
-			id->val = current->val;
-			id->weak_ref = current->weak_ref;
-			if ( id->val && ! id->weak_ref )
-				Ref(id->val);
-
-#ifdef DEBUG
-			id->UpdateValID();
-#endif
-
-			Unref(current);
-			Ref(id);
-			global_scope()->Insert(id->Name(), id);
-			break;
-
-		case UnserialInfo::InstantiateNew:
-			// Do nothing.
-			break;
-
-		default:
-			reporter->InternalError("unknown type for UnserialInfo::id_policy");
-		}
-		}
-
-	return id;
-
-	}
-
-IMPLEMENT_SERIAL(ID, SER_ID);
-
-bool ID::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE_WITH_SUSPEND(SER_ID, BroObj);
-
-	if ( info->cont.NewInstance() )
-		{
-		DisableSuspend suspend(info);
-
-		info->s->WriteOpenTag("ID");
-
-		if ( ! (SERIALIZE(name) &&
-			SERIALIZE(char(scope)) &&
-			SERIALIZE(is_export) &&
-			SERIALIZE(is_const) &&
-			SERIALIZE(is_enum_const) &&
-			SERIALIZE(is_type) &&
-			SERIALIZE(offset) &&
-			SERIALIZE(infer_return_type) &&
-			SERIALIZE(weak_ref) &&
-			type->Serialize(info)) )
-			return false;
-
-		SERIALIZE_OPTIONAL(attrs);
-		}
-
-	SERIALIZE_OPTIONAL(val);
-
-	return true;
-	}
-
-bool ID::DoUnserialize(UnserialInfo* info)
-	{
-	bool installed_tmp = false;
-
-	DO_UNSERIALIZE(BroObj);
-
-	char id_scope;
-
-	if ( ! (UNSERIALIZE_STR(&name, 0) &&
-		UNSERIALIZE(&id_scope) &&
-		UNSERIALIZE(&is_export) &&
-		UNSERIALIZE(&is_const) &&
-		UNSERIALIZE(&is_enum_const) &&
-		UNSERIALIZE(&is_type) &&
-		UNSERIALIZE(&offset) &&
-		UNSERIALIZE(&infer_return_type) &&
-		UNSERIALIZE(&weak_ref)
-	       ) )
-		return false;
-
-	scope = IDScope(id_scope);
-
-	info->s->SetErrorDescr(fmt("unserializing ID %s", name));
-
-	type = BroType::Unserialize(info);
-	if ( ! type )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-
-	// If it's a global function not currently known,
-	// we temporarily install it in global scope.
-	// This is necessary for recursive functions.
-	if ( IsGlobal() && Type()->Tag() == TYPE_FUNC )
-		{
-		ID* current = global_scope()->Lookup(name);
-		if ( ! current )
-			{
-			installed_tmp = true;
-			global_scope()->Insert(Name(), this);
-			}
-		}
-
-	UNSERIALIZE_OPTIONAL(val, Val::Unserialize(info));
-#ifdef DEBUG
-	UpdateValID();
-#endif
-
-	if ( weak_ref )
-		{
-		// At this point at least the serialization cache will hold a
-		// reference so this will not delete the val.
-		assert(val->RefCnt() > 1);
-		Unref(val);
-		}
-
-	if ( installed_tmp && ! global_scope()->Remove(name) )
-		reporter->InternalWarning("missing tmp ID in %s unserialization", name);
-
-	return true;
-	}
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const
 	{

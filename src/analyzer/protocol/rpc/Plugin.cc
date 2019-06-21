@@ -9,7 +9,7 @@
 #include "Portmap.h"
 
 namespace plugin {
-namespace Bro_RPC {
+namespace Zeek_RPC {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -22,7 +22,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_NFS", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::RPC";
+		config.name = "Zeek::RPC";
 		config.description = "Analyzers for RPC-based protocols";
 		return config;
 		}

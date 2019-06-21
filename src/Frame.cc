@@ -41,11 +41,13 @@ Frame::Frame(const Frame* other)
 	this->break_on_return = false;
 	this->delayed = false;
 
-	// We need to Ref this because the
-	// destructor will Unref.
 	if ( other->trigger )
 		Ref(other->trigger);
 
+	for (int i = 0; i < size; i++)
+	  if (frame[i])
+	    Ref(frame[i]);
+	
 	this->trigger = other->trigger;
 	this->call = other->call;
 	}

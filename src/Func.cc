@@ -317,7 +317,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
 
-	// f will hold the closure & function's values
 	Frame* f = new Frame(frame_size, this, args);
 	if (this->closure)
 		{

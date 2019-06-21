@@ -1,4 +1,8 @@
 
+2.6-503 | 2019-06-21 11:17:58 -0700
+
+  * GH-417: Remove old, unmaintained p0f support. (Johanna Amann, Corelight)
+
 2.6-500 | 2019-06-20 20:54:15 -0700
 
   * Add new RDP event: rdp_client_cluster_data (Jeff Atkinson)

@@ -17,7 +17,6 @@
 
 class EncapsulationStack;
 class Connection;
-class OSFingerprint;
 class ConnCompressor;
 struct ConnID;
 
@@ -76,14 +75,6 @@ public:
 	// some missing fragments.
 	FragReassembler* NextFragment(double t, const IP_Hdr* ip,
 				const u_char* pkt);
-
-	int Get_OS_From_SYN(struct os_type* retval,
-			uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,
-			uint8 ocnt, uint8* op, uint16 MSS, uint8 win_scale,
-			uint32 tstamp, /* uint8 TOS, */ uint32 quirks,
-			uint8 ECN) const;
-
-	bool CompareWithPreviousOSMatch(const IPAddr& addr, int id) const;
 
 	// Looks up the connection referred to by the given Val,
 	// which should be a conn_id record.  Returns nil if there's
@@ -240,7 +231,6 @@ protected:
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	Discarder* discarder;
 	PacketFilter* packet_filter;
-	OSFingerprint* SYN_OS_Fingerprinter;
 	int build_backdoor_analyzer;
 	int dump_this_packet;	// if true, current packet should be recorded
 	uint64 num_packets_processed;

@@ -153,7 +153,6 @@ Redefinable Options
 :zeek:id:`packet_filter_default`: :zeek:type:`bool` :zeek:attr:`&redef`                    Default mode for Zeek's user-space dynamic packet filter.
 :zeek:id:`partial_connection_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                    If true, instantiate connection state when a partial connection
                                                                                            (one missing its initial establishment negotiation) is seen.
-:zeek:id:`passive_fingerprint_file`: :zeek:type:`string` :zeek:attr:`&redef`               ``p0f`` fingerprint file to use.
 :zeek:id:`peer_description`: :zeek:type:`string` :zeek:attr:`&redef`                       Description transmitted to remote communication peers for identification.
 :zeek:id:`pkt_profile_freq`: :zeek:type:`double` :zeek:attr:`&redef`                       Frequency associated with packet profiling.
 :zeek:id:`pkt_profile_mode`: :zeek:type:`pkt_profile_modes` :zeek:attr:`&redef`            Output mode for packet profiling information.
@@ -323,7 +322,6 @@ State Variables
 :zeek:id:`dns_skip_auth`: :zeek:type:`set` :zeek:attr:`&redef`                                                              For DNS servers in these sets, omit processing the AUTH records they include
                                                                                                                             in their replies.
 :zeek:id:`done_with_network`: :zeek:type:`bool`                                                                             
-:zeek:id:`generate_OS_version_event`: :zeek:type:`set` :zeek:attr:`&redef`                                                  Defines for which subnets we should do passive fingerprinting.
 :zeek:id:`http_entity_data_delivery_size`: :zeek:type:`count` :zeek:attr:`&redef`                                           Maximum number of HTTP entity data delivered to events.
 :zeek:id:`interfaces`: :zeek:type:`string` :zeek:attr:`&add_func` = :zeek:see:`add_interface` :zeek:attr:`&redef`           Network interfaces to listen on.
 :zeek:id:`irc_servers`: :zeek:type:`set` :zeek:attr:`&redef`                                                                Deprecated.
@@ -435,8 +433,6 @@ Types
                                                                               This record contains the standard fields used by the NTP protocol
                                                                               for standard syncronization operations.
 :zeek:type:`NetStats`: :zeek:type:`record`                                    Packet capture statistics.
-:zeek:type:`OS_version`: :zeek:type:`record`                                  Passive fingerprinting match.
-:zeek:type:`OS_version_inference`: :zeek:type:`enum`                          Quality of passive fingerprinting matches.
 :zeek:type:`PE::DOSHeader`: :zeek:type:`record`                               
 :zeek:type:`PE::FileHeader`: :zeek:type:`record`                              
 :zeek:type:`PE::OptionalHeader`: :zeek:type:`record`                          
@@ -1511,14 +1507,6 @@ Redefinable Options
 
    If true, instantiate connection state when a partial connection
    (one missing its initial establishment negotiation) is seen.
-
-.. zeek:id:: passive_fingerprint_file
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"base/misc/p0f.fp"``
-
-   ``p0f`` fingerprint file to use. Will be searched relative to ``ZEEKPATH``.
 
 .. zeek:id:: peer_description
 
@@ -2635,16 +2623,6 @@ State Variables
    :Type: :zeek:type:`bool`
    :Default: ``F``
 
-
-.. zeek:id:: generate_OS_version_event
-
-   :Type: :zeek:type:`set` [:zeek:type:`subnet`]
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``{}``
-
-   Defines for which subnets we should do passive fingerprinting.
-   
-   .. zeek:see:: OS_version_found
 
 .. zeek:id:: http_entity_data_delivery_size
 
@@ -4669,46 +4647,6 @@ Types
    Packet capture statistics.  All counts are cumulative.
    
    .. zeek:see:: get_net_stats
-
-.. zeek:type:: OS_version
-
-   :Type: :zeek:type:`record`
-
-      genre: :zeek:type:`string`
-         Linux, Windows, AIX, ...
-
-      detail: :zeek:type:`string`
-         Kernel version or such.
-
-      dist: :zeek:type:`count`
-         How far is the host away from the sensor (TTL)?.
-
-      match_type: :zeek:type:`OS_version_inference`
-         Quality of the match.
-
-   Passive fingerprinting match.
-   
-   .. zeek:see:: OS_version_found
-
-.. zeek:type:: OS_version_inference
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: direct_inference OS_version_inference
-
-         TODO.
-
-      .. zeek:enum:: generic_inference OS_version_inference
-
-         TODO.
-
-      .. zeek:enum:: fuzzy_inference OS_version_inference
-
-         TODO.
-
-   Quality of passive fingerprinting matches.
-   
-   .. zeek:see:: OS_version
 
 .. zeek:type:: PE::DOSHeader
 

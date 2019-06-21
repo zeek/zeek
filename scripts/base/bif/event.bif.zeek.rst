@@ -18,7 +18,6 @@ Summary
 Events
 ######
 =========================================================================== =============================================================================
-:zeek:id:`OS_version_found`: :zeek:type:`event`                             Generated when an operating system has been fingerprinted.
 :zeek:id:`anonymization_mapping`: :zeek:type:`event`                        Deprecated.
 :zeek:id:`bro_done`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for :zeek:see:`zeek_done`.
 :zeek:id:`bro_init`: :zeek:type:`event` :zeek:attr:`&deprecated`            Deprecated synonym for :zeek:see:`zeek_init`.
@@ -109,28 +108,6 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. zeek:id:: OS_version_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, host: :zeek:type:`addr`, OS: :zeek:type:`OS_version`)
-
-   Generated when an operating system has been fingerprinted. Zeek uses `p0f
-   <http://lcamtuf.coredump.cx/p0f.shtml>`__ to fingerprint endpoints passively,
-   and it raises this event for each system identified. The p0f fingerprints are
-   defined by :zeek:id:`passive_fingerprint_file`.
-   
-
-   :c: The connection.
-   
-
-   :host: The host running the reported OS.
-   
-
-   :OS: The OS version string.
-   
-   .. zeek:see:: passive_fingerprint_file software_parse_error
-      software_version_found software_unparsed_version_found
-      generate_OS_version_event
-
 .. zeek:id:: anonymization_mapping
 
    :Type: :zeek:type:`event` (orig: :zeek:type:`addr`, mapped: :zeek:type:`addr`)
@@ -1139,7 +1116,6 @@ Events
           the protocol.
    
    .. zeek:see:: software_version_found software_unparsed_version_found
-      OS_version_found
 
 .. zeek:id:: software_unparsed_version_found
 
@@ -1162,7 +1138,7 @@ Events
 
    :str: The software identification string as extracted from the protocol.
    
-   .. zeek:see:: software_parse_error software_version_found OS_version_found
+   .. zeek:see:: software_parse_error software_version_found
 
 .. zeek:id:: software_version_found
 
@@ -1187,7 +1163,7 @@ Events
    :descr: The raw (unparsed) software identification string as extracted from
           the protocol.
    
-   .. zeek:see:: software_parse_error software_unparsed_version_found OS_version_found
+   .. zeek:see:: software_parse_error software_unparsed_version_found
 
 .. zeek:id:: tunnel_changed
 

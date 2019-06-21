@@ -421,7 +421,6 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 
 	const NameExpr* e = static_cast<const NameExpr*>(expr);
 
-	// TODO: Do we need to capture these as well?
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
 

@@ -1,9 +1,9 @@
-expect: 3
-3
-expect: 5
-5
-expect: 5
-5
+expect: 4
+4
+expect: 8
+8
+expect: 8
+8
 expect: T
 T
 expect: T

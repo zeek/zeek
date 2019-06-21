@@ -126,7 +126,8 @@ void Frame::Clear()
 Frame* Frame::Clone()
 	{
 	Frame* f = new Frame(size, function, func_args);
-
+	f->Clear();
+	
 	for ( int i = 0; i < size; ++i )
 		f->frame[i] = frame[i] ? frame[i]->Clone() : 0;
 
@@ -137,6 +138,19 @@ Frame* Frame::Clone()
 
 	return f;
 	}
+
+Frame* Frame::SelectiveClone(id_list* selection)
+        {
+	Frame* other = new Frame(size, function, func_args);
+
+	loop_over_list(*selection, i)
+	  {
+	  ID* current = (*selection)[i];
+	  other->frame[current->Offset()] = this->frame[current->Offset()];
+	  }
+
+        return other;
+        }
 
 void Frame::SetTrigger(Trigger* arg_trigger)
 	{
@@ -211,6 +225,30 @@ Frame* ClosureFrame::Clone()
 	return cf;
 	}
 
+Frame* ClosureFrame::SelectiveClone(id_list* choose)
+        {
+	id_list us;
+	// and
+	id_list them;
+	
+	loop_over_list(*choose, i)
+	  {
+	    ID* we = (*choose)[i];
+	    if (closure_contains(we))
+	      us.append(we);
+	    else
+	      them.append(we);
+	  }
+	
+	Frame* me = this->closure->SelectiveClone(&us);
+	// and
+	Frame* you  = this->body->SelectiveClone(&them);
+
+	ClosureFrame* who = new ClosureFrame(me, you, nullptr);
+	who->closure_elements = this->closure_elements;
+
+	return who;
+	}
 
 // Each ClosureFrame knows all of the outer IDs that are used inside of it. This is known at
 // parse time. These leverage that. If frame_1 encloses frame_2 then the location of a lookup
@@ -225,13 +263,10 @@ Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id)
 	{
 	const ClosureFrame* conductor = dynamic_cast<const ClosureFrame*>(start);
 
-	auto closure_contains = [] (const ClosureFrame* cf, const ID* i)
-				{ return cf->closure_elements.find(i->Name()) != cf->closure_elements.end(); };
-
 	if ( ! conductor )
 		return start->NthElement(id->Offset());
 
-	if (closure_contains(conductor, id))
+	if (conductor->closure_contains(id))
 		return ClosureFrame::GatherFromClosure(conductor->closure, id);
 
 	return conductor->NthElement(id->Offset());
@@ -241,13 +276,12 @@ void ClosureFrame::SetInClosure(Frame* start, const ID* id, Val* val)
         {
 	ClosureFrame* conductor = dynamic_cast<ClosureFrame*>(start);
 
-	auto closure_contains = [] (const ClosureFrame* cf, const ID* i)
-				{ return cf->closure_elements.find(i->Name()) != cf->closure_elements.end(); };
-
 	if ( ! conductor )
 	  start->SetElement(id->Offset(), val);
-	else if (closure_contains(conductor, id))
+
+	else if (conductor->closure_contains(id))
 	  ClosureFrame::SetInClosure(conductor->closure, id, val);
+
 	else
 	  conductor->Frame::SetElement(id->Offset(), val);
 	}

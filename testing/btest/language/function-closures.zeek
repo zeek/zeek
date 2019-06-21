@@ -1,24 +1,26 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
+global numberone : count = 1;
+
 function make_count_upper (start : count) : function(step : count) : count
 	{
 	return function(step : count) : count
-		{ return (start += step); };
+		{ return (start += (step + numberone)); };
         }
 
 event zeek_init()
 	{
 	# basic
 	local one = make_count_upper(1);
-	print "expect: 3";
+	print "expect: 4";
 	print one(2);
 
 	# multiple instances
 	local two = make_count_upper(one(1));
-	print "expect: 5";
+	print "expect: 8";
 	print two(1);
-	print "expect: 5";
+	print "expect: 8";
 	print one(1);
 
 	# deep copies
@@ -26,7 +28,7 @@ event zeek_init()
 	print "expect: T";
 	print c(1) == one(1);
 	print "expect: T";
-	print c(1) == two(2);
+	print c(1) == two(3);
 	
 	# a little more complicated ...
 	local cat_dog = 100;

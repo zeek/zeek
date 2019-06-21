@@ -57,7 +57,7 @@ public:
 	// Deep-copies values.
 	virtual Frame* Clone();
 	// Only deep-copies values corresponding to requested IDs.
-	Frame* SelectiveClone(id_list* selection);
+	virtual Frame* SelectiveClone(id_list* selection);
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
@@ -112,6 +112,7 @@ public:
 	Val* GetElement(ID* id) const override;
 	void SetElement(const ID* id, Val* v) override;
 	Frame* Clone() override;
+        Frame* SelectiveClone(id_list* selection) override;
 
 private:
 	Frame* closure;
@@ -122,6 +123,9 @@ private:
         static Val* GatherFromClosure(const Frame* start, const ID* id);
         // Moves through the closure frames and associates val with id.
         static void SetInClosure(Frame* start, const ID* id, Val* val);
+
+        bool closure_contains(const ID* i) const
+            { return this->closure_elements.find(i->Name()) != this->closure_elements.end(); }
 
         // Hashes c style strings. The strings need to be null-terminated.
 	struct const_char_hasher {

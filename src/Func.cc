@@ -488,23 +488,7 @@ void BroFunc::SetClosureFrame(Frame* f)
 		reporter->InternalError
 			("Tried to override closure for BroFunc %s.", this->Name());
 
-	this->closure = f ? f->Clone() : nullptr;
-	}
-
-void BroFunc::ShiftOffsets(int shift, std::shared_ptr<id_list> idl)
-	{
-		id_list* tmp = idl.get();
-		if (! idl || shift == 0)
-			{
-			// Nothing to do here.
-			return;
-			}
-
-		loop_over_list(*tmp, i)
-			{
-			ID* id = (*tmp)[i];
-			id->SetOffset(id->Offset() + shift);
-			}
+	this->closure = f ? f->SelectiveClone(this->outer_ids.get()) : nullptr;
 	}
 
 Val* BroFunc::DoClone()

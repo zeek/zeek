@@ -13,6 +13,7 @@ Events
 ######
 ============================================================= ============================================================
 :zeek:id:`rdp_begin_encryption`: :zeek:type:`event`           Generated when an RDP session becomes encrypted.
+:zeek:id:`rdp_client_cluster_data`: :zeek:type:`event`        Generated for client cluster data packets.
 :zeek:id:`rdp_client_core_data`: :zeek:type:`event`           Generated for MCS client requests.
 :zeek:id:`rdp_client_network_data`: :zeek:type:`event`        Generated for Client Network Data (TS_UD_CS_NET) packets
 :zeek:id:`rdp_client_security_data`: :zeek:type:`event`       Generated for client security data packets.
@@ -41,6 +42,18 @@ Events
    
 
    :security_protocol: The security protocol being used for the session.
+
+.. zeek:id:: rdp_client_cluster_data
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientClusterData`)
+
+   Generated for client cluster data packets.
+   
+
+   :c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_client_core_data
 

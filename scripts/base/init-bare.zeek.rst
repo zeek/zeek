@@ -448,6 +448,9 @@ Types
 :zeek:type:`RADIUS::Message`: :zeek:type:`record`                             
 :zeek:type:`RDP::ClientChannelDef`: :zeek:type:`record`                       Name and flags for a single channel requested by the client.
 :zeek:type:`RDP::ClientChannelList`: :zeek:type:`vector`                      The list of channels requested by the client.
+:zeek:type:`RDP::ClientClusterData`: :zeek:type:`record`                      The TS_UD_CS_CLUSTER data block is sent by the client to the server
+                                                                              either to advertise that it can support the Server Redirection PDUs
+                                                                              or to request a connection to a given session identifier.
 :zeek:type:`RDP::ClientCoreData`: :zeek:type:`record`                         
 :zeek:type:`RDP::ClientSecurityData`: :zeek:type:`record`                     The TS_UD_CS_SEC data block contains security-related information used
                                                                               to advertise client cryptographic support.
@@ -5006,6 +5009,9 @@ Types
       name: :zeek:type:`string`
          A unique name for the channel
 
+      options: :zeek:type:`count`
+         Channel Def raw options as count
+
       initialized: :zeek:type:`bool`
          Absence of this flag indicates that this channel is
          a placeholder and that the server MUST NOT set it up.
@@ -5047,6 +5053,38 @@ Types
    :Type: :zeek:type:`vector` of :zeek:type:`RDP::ClientChannelDef`
 
    The list of channels requested by the client.
+
+.. zeek:type:: RDP::ClientClusterData
+
+   :Type: :zeek:type:`record`
+
+      flags: :zeek:type:`count`
+         Cluster information flags.
+
+      redir_session_id: :zeek:type:`count`
+         If the *redir_sessionid_field_valid* flag is set, this field
+         contains a valid session identifier to which the client requests
+         to connect.
+
+      redir_supported: :zeek:type:`bool`
+         The client can receive server session redirection packets.
+         If this flag is set, the *svr_session_redir_version_mask*
+         field MUST contain the server session redirection version that
+         the client supports.
+
+      svr_session_redir_version_mask: :zeek:type:`count`
+         The server session redirection version that the client supports.
+
+      redir_sessionid_field_valid: :zeek:type:`bool`
+         Whether the *redir_session_id* field identifies a session on
+         the server to associate with the connection.
+
+      redir_smartcard: :zeek:type:`bool`
+         The client logged on with a smart card.
+
+   The TS_UD_CS_CLUSTER data block is sent by the client to the server
+   either to advertise that it can support the Server Redirection PDUs
+   or to request a connection to a given session identifier.
 
 .. zeek:type:: RDP::ClientCoreData
 

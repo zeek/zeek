@@ -2884,9 +2884,8 @@ FieldExpr::FieldExpr(Expr* arg_op, const char* arg_field_name)
 			SetType(rt->FieldType(field)->Ref());
 			td = rt->FieldDecl(field);
 
-			if ( td->FindAttr(ATTR_DEPRECATED) )
-				reporter->Warning("deprecated (%s$%s)", rt->GetName().c_str(),
-				                  field_name);
+			if ( rt->IsFieldDeprecated(field) )
+				reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, false).c_str());
 			}
 		}
 	}
@@ -2975,9 +2974,8 @@ HasFieldExpr::HasFieldExpr(Expr* arg_op, const char* arg_field_name)
 
 		if ( field < 0 )
 			ExprError("no such field in record");
-		else if ( rt->FieldDecl(field)->FindAttr(ATTR_DEPRECATED) )
-			reporter->Warning("deprecated (%s?$%s)", rt->GetName().c_str(),
-			                  field_name);
+		else if ( rt->IsFieldDeprecated(field) )
+			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -3659,13 +3657,8 @@ RecordCoerceExpr::RecordCoerceExpr(Expr* op, RecordType* r)
 					break;
 					}
 				}
-			else
-				{
-				if ( t_r->FieldDecl(i)->FindAttr(ATTR_DEPRECATED) )
-					reporter->Warning("deprecated (%s$%s)",
-					                  t_r->GetName().c_str(),
-					                  t_r->FieldName(i));
-				}
+			else if ( t_r->IsFieldDeprecated(i) )
+				reporter->Warning("%s", t_r->GetFieldDeprecationWarning(i, false).c_str());
 			}
 		}
 	}

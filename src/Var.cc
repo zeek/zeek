@@ -312,16 +312,21 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		}
 	}
 
-static bool has_attr(const attr_list* al, attr_tag tag)
+static Attr* find_attr(const attr_list* al, attr_tag tag)
 	{
 	if ( ! al )
-		return false;
+		return nullptr;
 
 	for ( int i = 0; i < al->length(); ++i )
 		if ( (*al)[i]->Tag() == tag )
-			return true;
+			return (*al)[i];
 
-	return false;
+	return nullptr;
+	}
+
+static bool has_attr(const attr_list* al, attr_tag tag)
+	{
+	return find_attr(al, tag) != nullptr;
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
@@ -399,8 +404,8 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		arg_id->SetType(arg_i->type->Ref());
 		}
 
-	if ( has_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated();
+	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
+		id->MakeDeprecated(depr_attr->AttrExpr());
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {

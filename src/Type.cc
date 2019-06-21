@@ -985,6 +985,33 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 		d->PopIndentNoNL();
 	}
 
+string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
+	{
+	const TypeDecl* decl = FieldDecl(field);
+	if ( decl)
+		{
+		string result;
+		if ( const Attr* deprecation = decl->FindAttr(ATTR_DEPRECATED) )
+			{
+			ConstExpr* expr = static_cast<ConstExpr*>(deprecation->AttrExpr());
+			if ( expr )
+				{
+				StringVal* text = expr->Value()->AsStringVal();
+				result = text->CheckString();
+				}
+			}
+
+		if ( result.empty() )
+			return fmt("deprecated (%s%s$%s)", GetName().c_str(), has_check ? "?" : "",
+				FieldName(field));
+		else
+			return fmt("deprecated (%s%s$%s): %s", GetName().c_str(), has_check ? "?" : "",
+				FieldName(field), result.c_str());
+		}
+
+	return "";
+	}
+
 SubNetType::SubNetType() : BroType(TYPE_SUBNET)
 	{
 	}
@@ -1083,7 +1110,7 @@ EnumType::~EnumType()
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
-void EnumType::AddName(const string& module_name, const char* name, bool is_export, bool deprecated)
+void EnumType::AddName(const string& module_name, const char* name, bool is_export, Expr* deprecation)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
@@ -1092,11 +1119,11 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 		SetError();
 		return;
 		}
-	CheckAndAddName(module_name, name, counter, is_export, deprecated);
+	CheckAndAddName(module_name, name, counter, is_export, deprecation);
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, bool deprecated)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1106,11 +1133,11 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 		return;
 		}
 	counter = -1;
-	CheckAndAddName(module_name, name, val, is_export, deprecated);
+	CheckAndAddName(module_name, name, val, is_export, deprecation);
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export, bool deprecated)
+                               bro_int_t val, bool is_export, Expr* deprecation)
 	{
 	if ( Lookup(val) )
 		{
@@ -1127,8 +1154,8 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id->SetType(this->Ref());
 		id->SetEnumConst();
 
-		if ( deprecated )
-			id->MakeDeprecated();
+		if ( deprecation )
+			id->MakeDeprecated(deprecation);
 
 		zeekygen_mgr->Identifier(id);
 		}

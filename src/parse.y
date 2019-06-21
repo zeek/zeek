@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 104
+%expect 105
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -50,14 +50,14 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block opt_deprecated TOK_PATTERN_END
+%type <b> opt_no_test opt_no_test_block TOK_PATTERN_END
 %type <str> TOK_ID TOK_PATTERN_TEXT
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_func case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function index_slice
+%type <expr> expr opt_expr init anonymous_function index_slice opt_deprecated
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -700,7 +700,7 @@ expr:
 					$$ = new NameExpr(id);
 
 				if ( id->IsDeprecated() )
-					reporter->Warning("deprecated (%s)", id->Name());
+					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 				}
 			}
 
@@ -1002,7 +1002,7 @@ type:
 				Ref($$);
 
 				if ( $1->IsDeprecated() )
-					reporter->Warning("deprecated (%s)", $1->Name());
+					reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
 				}
 			}
 	;
@@ -1353,6 +1353,19 @@ attr:
 			{ $$ = new Attr(ATTR_ERROR_HANDLER); }
 	|	TOK_ATTR_DEPRECATED
 			{ $$ = new Attr(ATTR_DEPRECATED); }
+	|	TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
+			{
+			if ( IsString($3->Type()->Tag()) )
+				$$ = new Attr(ATTR_DEPRECATED, new ConstExpr($3));
+			else
+				{
+				ODesc d;
+				$3->Describe(&d);
+				reporter->Error("'&deprecated=%s' must use a string literal",
+				                d.Description());
+				$$ = new Attr(ATTR_DEPRECATED);
+				}
+			}
 	;
 
 stmt:
@@ -1561,7 +1574,7 @@ event:
 					YYERROR;
 					}
 				if ( id->IsDeprecated() )
-					reporter->Warning("deprecated (%s)", id->Name());
+					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 				}
 
 			$$ = new EventExpr($1, $3);
@@ -1767,7 +1780,7 @@ global_or_event_id:
 
 					if ( t->Tag() != TYPE_FUNC ||
 					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
-						reporter->Warning("deprecated (%s)", $$->Name());
+						reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
 					}
 
 				delete [] $1;
@@ -1813,9 +1826,23 @@ opt_no_test_block:
 
 opt_deprecated:
 		TOK_ATTR_DEPRECATED
-			{ $$ = true; }
+			{ $$ = new ConstExpr(new StringVal("")); }
 	|
-			{ $$ = false; }
+		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
+			{
+			if ( IsString($3->Type()->Tag()) )
+				$$ = new ConstExpr($3);
+			else
+				{
+				ODesc d;
+				$3->Describe(&d);
+				reporter->Error("'&deprecated=%s' must use a string literal",
+				                d.Description());
+				$$ = new ConstExpr(new StringVal(""));
+				}
+			}
+	|
+			{ $$ = nullptr; }
 
 %%
 

@@ -1844,9 +1844,6 @@ function add_signature_file(sold: string, snew: string): string
 ## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
-## ``p0f`` fingerprint file to use. Will be searched relative to ``ZEEKPATH``.
-const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
-
 ## Definition of "secondary filters". A secondary filter is a BPF filter given
 ## as index in this table. For each such filter, the corresponding event is
 ## raised for all matching packets.
@@ -3990,30 +3987,6 @@ type software: record {
 	name: string;
 	version: software_version;
 };
-
-## Quality of passive fingerprinting matches.
-##
-## .. zeek:see:: OS_version
-type OS_version_inference: enum {
-	direct_inference,	##< TODO.
-	generic_inference,	##< TODO.
-	fuzzy_inference,	##< TODO.
-};
-
-## Passive fingerprinting match.
-##
-## .. zeek:see:: OS_version_found
-type OS_version: record {
-	genre: string;	##< Linux, Windows, AIX, ...
-	detail: string;	##< Kernel version or such.
-	dist: count;	##< How far is the host away from the sensor (TTL)?.
-	match_type: OS_version_inference;	##< Quality of the match.
-};
-
-## Defines for which subnets we should do passive fingerprinting.
-##
-## .. zeek:see:: OS_version_found
-global generate_OS_version_event: set[subnet] &redef;
 
 # Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line

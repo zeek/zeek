@@ -284,7 +284,6 @@ set(bro_SRCS
     NetVar.cc
     Obj.cc
     OpaqueVal.cc
-    OSFinger.cc
     PacketFilter.cc
     Pipe.cc
     PolicyFile.cc

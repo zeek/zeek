@@ -4279,6 +4279,8 @@ export {
 	type RDP::ClientChannelDef: record {
 		## A unique name for the channel
 		name:           string;
+		## Channel Def raw options as count
+		options:	count;
 		## Absence of this flag indicates that this channel is
 		## a placeholder and that the server MUST NOT set it up.
 		initialized:    bool;
@@ -4302,6 +4304,30 @@ export {
 		show_protocol:  bool;
 		## Channel must be persistent across remote control transactions.
 		persistent:     bool;
+	};
+
+	## The TS_UD_CS_CLUSTER data block is sent by the client to the server
+	## either to advertise that it can support the Server Redirection PDUs
+	## or to request a connection to a given session identifier.
+	type RDP::ClientClusterData: record {
+		## Cluster information flags.
+		flags:                          count;
+		## If the *redir_sessionid_field_valid* flag is set, this field
+		## contains a valid session identifier to which the client requests
+		## to connect.
+		redir_session_id:               count;
+		## The client can receive server session redirection packets.
+		## If this flag is set, the *svr_session_redir_version_mask*
+		## field MUST contain the server session redirection version that
+		## the client supports.
+		redir_supported:                bool;
+		## The server session redirection version that the client supports.
+		svr_session_redir_version_mask: count;
+		## Whether the *redir_session_id* field identifies a session on
+		## the server to associate with the connection.
+		redir_sessionid_field_valid:    bool;
+		## The client logged on with a smart card.
+		redir_smartcard:                bool;
 	};
 
 	## The list of channels requested by the client.

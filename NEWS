@@ -87,6 +87,7 @@ New Functionality
   - New events:
     - rdp_client_network_data
     - rdp_client_security_data
+    - rdp_client_cluster_data
     - rdp_native_encrypted_data
 
   - Add a new "client_channels" field to rdp.log based on data parsed from

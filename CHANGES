@@ -1,4 +1,10 @@
 
+2.6-487 | 2019-06-20 20:38:26 -0700
+
+  * Add new RDP event: rdp_client_cluster_data (Jeff Atkinson)
+
+  * Added "options" field to RDP::ClientChannelDef (Jeff Atkinson)
+
 2.6-482 | 2019-06-20 19:57:20 -0700
 
   * Make configure complain if submodules are not checked out. (Johanna Amann, Corelight)

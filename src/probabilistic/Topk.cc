@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <broker/error.hh>
+
 #include "broker/Data.h"
 #include "probabilistic/Topk.h"
 #include "CompHash.h"

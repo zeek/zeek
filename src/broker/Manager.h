@@ -1,7 +1,17 @@
 #ifndef BRO_COMM_MANAGER_H
 #define BRO_COMM_MANAGER_H
 
-#include <broker/broker.hh>
+#include <broker/topic.hh>
+#include <broker/data.hh>
+#include <broker/store.hh>
+#include <broker/status.hh>
+#include <broker/error.hh>
+#include <broker/endpoint.hh>
+#include <broker/endpoint_info.hh>
+#include <broker/peer_info.hh>
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
+#include <broker/detail/hash.hh>
 #include <broker/zeek.hh>
 #include <memory>
 #include <string>

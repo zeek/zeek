@@ -5,7 +5,8 @@
 
 #include <vector>
 
-#include <broker/Data.h>
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 #include "BitVector.h"
 #include "Hasher.h"

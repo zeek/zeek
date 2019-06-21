@@ -8,8 +8,6 @@
 #include <array>
 #include <unordered_map>
 
-#include <broker/broker.hh>
-
 #include "net_util.h"
 #include "Type.h"
 #include "Dict.h"

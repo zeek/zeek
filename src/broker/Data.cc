@@ -1,6 +1,9 @@
 #include "Data.h"
 #include "File.h"
 #include "broker/data.bif.h"
+
+#include <broker/error.hh>
+
 #include <caf/stream_serializer.hpp>
 #include <caf/stream_deserializer.hpp>
 #include <caf/streambuf.hpp>

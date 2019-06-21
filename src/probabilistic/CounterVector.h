@@ -6,7 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <broker/Data.h>
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 namespace probabilistic {
 

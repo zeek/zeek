@@ -6,6 +6,8 @@
 #include "probabilistic/BloomFilter.h"
 #include "probabilistic/CardinalityCounter.h"
 
+#include <broker/error.hh>
+
 // Helper to retrieve a broker value out of a broker::vector at a specified
 // index, and casted to the expected destination type.
 template<typename S, typename V, typename D>

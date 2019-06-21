@@ -3,6 +3,9 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+#include <broker/data.hh>
+#include <broker/expected.hh>
+
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"

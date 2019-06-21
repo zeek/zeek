@@ -8,7 +8,9 @@
 #include "OpaqueVal.h"
 #include "Trigger.h"
 
-#include <broker/broker.hh>
+#include <broker/store.hh>
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
 
 namespace bro_broker {
 

@@ -23,12 +23,12 @@ event new_connection (c : connection)
   # p_eq and p1 should be the same paraglobs
   print paraglob_equals(p_eq, p1);
 
-  print paraglob_get(p1, "dog");
+  print paraglob_match(p1, "dog");
 
 
-  print paraglob_get(p2, "once");
-  print paraglob_get(p3, "www.strange-malware-domain.gov");
+  print paraglob_match(p2, "once");
+  print paraglob_match(p3, "www.strange-malware-domain.gov");
 
   local large_glob: opaque of paraglob = paraglob_init(v3);
-  print paraglob_get(large_glob, "www.strange-malware-domain.gov");
+  print paraglob_match(large_glob, "www.strange-malware-domain.gov");
 }

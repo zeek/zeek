@@ -19,7 +19,7 @@ global ping: event(msg: opaque of paraglob, c: count);
 event zeek_init()
     {
     print "Starting send.";
-    print paraglob_get(p, "hello");
+    print paraglob_match(p, "hello");
     Broker::subscribe("bro/event/my_topic");
     Broker::peer("127.0.0.1", 9999/tcp);
     print "is_remote should be F, and is", is_remote_event();
@@ -93,7 +93,7 @@ event ping(msg: opaque of paraglob, n: count)
       return;
       }
     print fmt("receiver got ping number: %s", n);
-    print paraglob_get(msg, "hello");
+    print paraglob_match(msg, "hello");
 
     local e = Broker::make_event(pong, msg, n);
     Broker::publish("bro/event/my_topic", e);

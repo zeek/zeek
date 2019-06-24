@@ -795,7 +795,7 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ##
 ## Returns: A new, compiled, paraglob with the patterns in *v*
 ##
-## .. zeek:see::paraglob_get paraglob_equals paraglob_add
+## .. zeek:see::paraglob_match paraglob_equals paraglob_add
 function paraglob_init%(v: any%) : opaque of paraglob
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
@@ -827,18 +827,18 @@ function paraglob_init%(v: any%) : opaque of paraglob
 		}
 	%}
 
-## Gets all the strings inside the handle associated with an input pattern.
+## Gets all the patterns inside the handle associated with an input string.
 ##
 ## handle: A compiled paraglob.
 ##
-## pattern: A glob style pattern.
+## match: string to match against the paraglob.
 ##
-## Returns: A vector of strings matching the input pattern
+## Returns: A vector of strings matching the input string.
 ##
 ## ## .. zeek:see::paraglob_add paraglob_equals paraglob_init
-function paraglob_get%(handle: opaque of paraglob, pat: string%): string_vec
+function paraglob_match%(handle: opaque of paraglob, match: string%): string_vec
 	%{
-	return static_cast<ParaglobVal*>(handle)->Get(pat);
+	return static_cast<ParaglobVal*>(handle)->Get(match);
 	%}
 
 ## Compares two paraglobs for equality.
@@ -849,7 +849,7 @@ function paraglob_get%(handle: opaque of paraglob, pat: string%): string_vec
 ##
 ## Returns: True if both paraglobs contain the same patterns, false otherwise.
 ##
-## ## .. zeek:see::paraglob_add paraglob_get paraglob_init
+## ## .. zeek:see::paraglob_add paraglob_match paraglob_init
 function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%) : bool
 	%{
 	return val_mgr->GetBool(

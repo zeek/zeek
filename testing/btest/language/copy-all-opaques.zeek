@@ -88,6 +88,6 @@ event zeek_init()
 	local p2 = copy(p);
 	print paraglob_equals(p, p2);
 	# A get operation shouldn't change the paraglob
-	paraglob_get(p, "whitehouse.gov");
+	paraglob_match(p, "whitehouse.gov");
 	print paraglob_equals(p, p2);
 	}

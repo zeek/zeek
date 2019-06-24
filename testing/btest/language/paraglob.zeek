@@ -20,13 +20,12 @@ event zeek_init ()
 	print paraglob_equals(p_eq, p1);
 	print paraglob_equals(p1, p2);
 
-	print paraglob_get(p1, "dog");
+	print paraglob_match(p1, "dog");
 
-
-	print paraglob_get(p2, "once");
-	print paraglob_get(p2, "nothing");
-	print paraglob_get(p3, "www.strange-malware-domain.gov");
-	print paraglob_get(p4, "zero\0zero");
+	print paraglob_match(p2, "once");
+	print paraglob_match(p2, "nothing");
+	print paraglob_match(p3, "www.strange-malware-domain.gov");
+	print paraglob_match(p4, "zero\0zero");
 
 	# This looks like a lot, but really should complete quickly.
 	# Paraglob should stop addition of duplicate patterns.
@@ -37,5 +36,5 @@ event zeek_init ()
 	}
 
 	local large_glob: opaque of paraglob = paraglob_init(v3);
-	print paraglob_get(large_glob, "www.strange-malware-domain.gov");
+	print paraglob_match(large_glob, "www.strange-malware-domain.gov");
 }

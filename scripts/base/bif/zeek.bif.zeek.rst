@@ -145,6 +145,9 @@ Functions
 :zeek:id:`open_for_append`: :zeek:type:`function`                              Opens a file for writing or appending.
 :zeek:id:`order`: :zeek:type:`function`                                        Returns the order of the elements in a vector according to some
                                                                                comparison function.
+:zeek:id:`paraglob_equals`: :zeek:type:`function`                              Compares two paraglobs for equality.
+:zeek:id:`paraglob_get`: :zeek:type:`function`                                 Gets all the strings inside the handle associated with an input pattern.
+:zeek:id:`paraglob_init`: :zeek:type:`function`                                Initializes and returns a new paraglob.
 :zeek:id:`piped_exec`: :zeek:type:`function`                                   Opens a program with ``popen`` and writes a given string to the returned
                                                                                stream to send it to the opened process's stdin.
 :zeek:id:`port_to_count`: :zeek:type:`function`                                Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -2002,6 +2005,54 @@ Functions
             is the vector returned by ``order``):  v[o[0]], v[o[1]], etc.
    
    .. zeek:see:: sort
+
+.. zeek:id:: paraglob_equals
+
+   :Type: :zeek:type:`function` (p_one: :zeek:type:`opaque` of paraglob, p_two: :zeek:type:`opaque` of paraglob) : :zeek:type:`bool`
+
+   Compares two paraglobs for equality.
+   
+
+   :p_one: A compiled paraglob.
+   
+
+   :p_two: A compiled paraglob.
+   
+
+   :returns: True if both paraglobs contain the same patterns, false otherwise.
+   
+   ## .. zeek:see::paraglob_add paraglob_get paraglob_init
+
+.. zeek:id:: paraglob_get
+
+   :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of paraglob, pat: :zeek:type:`string`) : :zeek:type:`string_vec`
+
+   Gets all the strings inside the handle associated with an input pattern.
+   
+
+   :handle: A compiled paraglob.
+   
+
+   :pattern: A glob style pattern.
+   
+
+   :returns: A vector of strings matching the input pattern
+   
+   ## .. zeek:see::paraglob_add paraglob_equals paraglob_init
+
+.. zeek:id:: paraglob_init
+
+   :Type: :zeek:type:`function` (v: :zeek:type:`any`) : :zeek:type:`opaque` of paraglob
+
+   Initializes and returns a new paraglob.
+   
+
+   :v: Vector of patterns to initialize the paraglob with.
+   
+
+   :returns: A new, compiled, paraglob with the patterns in *v*
+   
+   .. zeek:see::paraglob_get paraglob_equals paraglob_add
 
 .. zeek:id:: piped_exec
 

@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
+#include <memory> // std::unique_ptr
 
 #include "zeek-config.h"
 #include "siphash24.h"

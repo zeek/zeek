@@ -3,13 +3,8 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
-
-
-#include <memory> // std::unique_ptr
-
 #include <broker/data.hh>
 #include <broker/expected.hh>
-
 
 #include "RandTest.h"
 #include "Val.h"

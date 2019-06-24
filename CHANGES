@@ -1,4 +1,8 @@
 
+2.6-519 | 2019-06-24 15:25:08 -0700
+
+  * GH-435: fix null pointer deref in RPC analyzer. (Jon Siwek, Corelight)
+
 2.6-517 | 2019-06-24 15:20:39 -0700
 
   * Add paraglob, a fairly quick data structure for matching a string against a large list of patterns.

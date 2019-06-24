@@ -555,4 +555,13 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
  */
 char* zeekenv(const char* name);
 
+/**
+ * Small convenience function. Does what std::make_unique does in C++14. Will not
+ * work on arrays.
+ */
+template <typename T, typename ... Args>
+std::unique_ptr<T> build_unique (Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 #endif

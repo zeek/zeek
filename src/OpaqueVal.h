@@ -3,12 +3,18 @@
 #ifndef OPAQUEVAL_H
 #define OPAQUEVAL_H
 
+
+
+#include <memory> // std::unique_ptr
+
 #include <broker/data.hh>
 #include <broker/expected.hh>
+
 
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
+#include "src/paraglob.h"
 
 class OpaqueVal;
 
@@ -317,6 +323,22 @@ private:
 	BroType* type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
+};
+
+class ParaglobVal : public OpaqueVal {
+public:
+	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
+	VectorVal* Get(StringVal* &pattern);
+	Val* DoClone(CloneState* state) override;
+	bool operator==(const ParaglobVal& other) const;
+
+protected:
+	ParaglobVal() : OpaqueVal(paraglob_type) {}
+
+	DECLARE_OPAQUE_VALUE(ParaglobVal)
+
+private:
+	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
 
 #endif

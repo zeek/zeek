@@ -1024,3 +1024,88 @@ bool CardinalityVal::DoUnserialize(const broker::data& data)
 	c = cu.release();
 	return true;
 	}
+
+ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p)
+: OpaqueVal(paraglob_type)
+	{
+	this->internal_paraglob = std::move(p);
+	}
+
+VectorVal* ParaglobVal::Get(StringVal* &pattern)
+	{
+	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
+	std::string string_pattern (reinterpret_cast<const char*>(pattern->Bytes()), pattern->Len());
+
+	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
+	for (unsigned int i = 0; i < matches.size(); i++)
+		rval->Assign(i, new StringVal(matches.at(i)));
+
+	return rval;
+	}
+
+bool ParaglobVal::operator==(const ParaglobVal& other) const
+	{
+	return *(this->internal_paraglob) == *(other.internal_paraglob);
+	}
+
+IMPLEMENT_OPAQUE_VALUE(ParaglobVal)
+
+broker::expected<broker::data> ParaglobVal::DoSerialize() const
+	{
+	broker::vector d;
+	std::unique_ptr<std::vector<uint8_t>> iv = this->internal_paraglob->serialize();
+	for (uint8_t a : *(iv.get()))
+		d.emplace_back(static_cast<uint64_t>(a));
+	return {std::move(d)};
+	}
+
+bool ParaglobVal::DoUnserialize(const broker::data& data)
+	{
+	auto d = caf::get_if<broker::vector>(&data);
+	if ( ! d )
+		return false;
+
+	std::unique_ptr<std::vector<uint8_t>> iv (new std::vector<uint8_t>);
+	iv->resize(d->size());
+
+	for (std::vector<broker::data>::size_type i = 0; i < d->size(); ++i)
+		{
+		if ( ! get_vector_idx<uint64_t>(*d, i, iv.get()->data() + i) )
+			return false;
+		}
+
+	try
+		{
+		this->internal_paraglob = build_unique<paraglob::Paraglob>(std::move(iv));
+		}
+	catch (const paraglob::underflow_error& e)
+		{
+		reporter->Error("Paraglob underflow error -> %s", e.what());
+		return false;
+		}
+	catch (const paraglob::overflow_error& e)
+		{
+		reporter->Error("Paraglob overflow error -> %s", e.what());
+		return false;
+		}
+
+	return true;
+	}
+
+Val* ParaglobVal::DoClone(CloneState* state)
+	{
+	try {
+		return new ParaglobVal
+			(build_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
+		}
+	catch (const paraglob::underflow_error& e)
+		{
+		reporter->Error("Paraglob underflow error while cloning -> %s", e.what());
+		return nullptr;
+		}
+	catch (const paraglob::overflow_error& e)
+		{
+		reporter->Error("Paraglob overflow error while cloning -> %s", e.what());
+		return nullptr;
+		}
+	}

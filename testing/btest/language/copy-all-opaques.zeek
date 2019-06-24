@@ -82,4 +82,12 @@ event zeek_init()
 	local handle2 = copy(handle);
 	print entropy_test_finish(handle);
 	print entropy_test_finish(handle2);
+
+	print "============ Paraglob";
+	local p = paraglob_init(vector("https://*.google.com/*", "*malware*", "*.gov*"));
+	local p2 = copy(p);
+	print paraglob_equals(p, p2);
+	# A get operation shouldn't change the paraglob
+	paraglob_get(p, "whitehouse.gov");
+	print paraglob_equals(p, p2);
 	}

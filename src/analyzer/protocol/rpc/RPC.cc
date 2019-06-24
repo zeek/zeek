@@ -286,7 +286,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 	else
 		Weird("bad_RPC");
 
-	if ( n > 0 )
+	if ( n > 0 && buf )
 		{
 		// If it's just padded with zeroes, don't complain.
 		for ( ; n > 0; --n, ++buf )
@@ -317,7 +317,7 @@ void RPC_Interpreter::Timeout()
 
 		if ( c->IsValidCall() )
 			{
-			const u_char* buf;
+			const u_char* buf = nullptr;
 			int n = 0;
 
 			if ( ! RPC_BuildReply(c, BifEnum::RPC_TIMEOUT, buf, n, network_time, network_time, 0) )

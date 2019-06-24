@@ -4,7 +4,11 @@
 #define PROBABILISTIC_CARDINALITYCOUNTER_H
 
 #include <stdint.h>
-#include <OpaqueVal.h>
+#include <memory>
+#include <vector>
+
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 namespace probabilistic {
 

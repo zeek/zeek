@@ -1,4 +1,57 @@
 
+2.6-503 | 2019-06-21 11:17:58 -0700
+
+  * GH-417: Remove old, unmaintained p0f support. (Johanna Amann, Corelight)
+
+2.6-500 | 2019-06-20 20:54:15 -0700
+
+  * Add new RDP event: rdp_client_cluster_data (Jeff Atkinson)
+
+  * Added "options" field to RDP::ClientChannelDef (Jeff Atkinson)
+
+2.6-494 | 2019-06-20 20:24:38 -0700
+
+  * Renaming src/StateAccess.{h,cc} to src/Notifier.{h,cc}.
+
+    The old names did not reflect the content of the files anymore. (Robin Sommer, Corelight)
+
+  * Remove MutableVal, StateAccess classes, enum Opcode. (Robin Sommer, Corelight)
+
+  * Redo API for notifiers.
+
+    There's now an notifier::Modifiable interface class that class
+    supposed to signal modifications are to be derived from. This takes
+    the place of the former MutableValue class and also unifies how Val
+    and IDs signal modifications. (Robin Sommer, Corelight)
+
+  * Redo NotfifierRegistry to no longer rely on StateAccess.
+
+    We simplify the API to a simple Modified() operation. (Robin Sommer, Corelight)
+
+  * Add new test for when-statement watching global variables. (Robin Sommer, Corelight)
+
+2.6-482 | 2019-06-20 19:57:20 -0700
+
+  * Make configure complain if submodules are not checked out. (Johanna Amann, Corelight)
+
+  * Improve C++ header includes to improve build time (Jon Siwek, Corelight)
+
+2.6-479 | 2019-06-20 18:31:58 -0700
+
+  * Fix TableVal::DoClone to use CloneState cache (Jon Siwek, Corelight)
+
+2.6-478 | 2019-06-20 14:19:11 -0700
+
+  * Remove old Broccoli SSL options (Jon Siwek, Corelight)
+
+    - ssl_ca_certificate
+    - ssl_private_key
+    - ssl_passphrase
+
+2.6-477 | 2019-06-20 14:00:22 -0700
+
+  * Remove unused SerialInfo.h and SerialTypes.h headers (Jon Siwek, Corelight)
+
 2.6-476 | 2019-06-20 13:23:22 -0700
 
   * Remove opaque of ocsp_resp. (Johanna Amann, Corelight)

@@ -1,7 +1,9 @@
 #ifndef BRO_COMM_DATA_H
 #define BRO_COMM_DATA_H
 
-#include <broker/broker.hh>
+#include <broker/data.hh>
+#include <broker/expected.hh>
+
 #include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"

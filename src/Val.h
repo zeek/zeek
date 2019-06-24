@@ -3,14 +3,10 @@
 #ifndef val_h
 #define val_h
 
-// BRO values.
-
 #include <vector>
 #include <list>
 #include <array>
 #include <unordered_map>
-
-#include <broker/broker.hh>
 
 #include "net_util.h"
 #include "Type.h"
@@ -21,7 +17,7 @@
 #include "Timer.h"
 #include "ID.h"
 #include "Scope.h"
-#include "StateAccess.h"
+#include "Notifier.h"
 #include "IPAddr.h"
 #include "DebugLogger.h"
 
@@ -52,7 +48,6 @@ class RecordVal;
 class ListVal;
 class StringVal;
 class EnumVal;
-class MutableVal;
 class OpaqueVal;
 
 class StateAccess;
@@ -328,27 +323,12 @@ public:
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
-	bool IsMutableVal() const
-		{
-		return IsMutable(type->Tag());
-		}
-
-	const MutableVal* AsMutableVal() const
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
-
-	MutableVal* AsMutableVal()
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
-
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
+
+	// To be overridden by mutable derived class to enable change
+	// notification.
+	virtual notifier::Modifiable* Modifiable()	{ return 0; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -374,6 +354,7 @@ protected:
 	friend class RecordVal;
 	friend class VectorVal;
 	friend class ValManager;
+	friend class TableEntryVal;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
@@ -516,69 +497,6 @@ private:
 };
 
 extern ValManager* val_mgr;
-
-class MutableVal : public Val {
-public:
-	// Each MutableVal gets a globally unique ID that can be used to
-	// reference it no matter if it's directly bound to any user-visible
-	// ID. This ID is inserted into the global namespace.
-	ID* UniqueID() const	{ return id ? id : Bind(); }
-
-	// Returns true if we've already generated a unique ID.
-	bool HasUniqueID() const	{ return id; }
-
-	// Transfers the unique ID of the given value to this value. We keep our
-	// old ID as an alias.
-	void TransferUniqueID(MutableVal* mv);
-
-	// MutableVals can have properties (let's refrain from calling them
-	// attributes!).  Most properties are recursive.  If a derived object
-	// can contain MutableVals itself, the object has to override
-	// {Add,Remove}Properties(). RecursiveProp(state) masks out all non-
-	// recursive properties. If this is non-null, an overriden method must
-	// call itself with RecursiveProp(state) as argument for all contained
-	// values.  (In any case, don't forget to call the parent's method.)
-	typedef char Properties;
-
-	// Tracked by NotifierRegistry, not recursive.
-	static const int TRACKED = 0x04;
-
-	int RecursiveProps(int prop) const	{ return prop & ~TRACKED; }
-
-	Properties GetProperties() const	{ return props; }
-	virtual bool AddProperties(Properties state);
-	virtual bool RemoveProperties(Properties state);
-
-	// Whether StateAccess:LogAccess needs to be called.
-	bool LoggingAccess() const
-		{
-#ifndef DEBUG
-		return props & TRACKED;
-#else
-		return debug_logger.IsVerbose() ||
-			(props & TRACKED);
-#endif
-		}
-
-protected:
-	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; }
-	MutableVal()	{ props = 0; id = 0; }
-	~MutableVal() override;
-
-	friend class ID;
-	friend class Val;
-
-	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
-
-private:
-	ID* Bind() const;
-
-	mutable ID* id;
-	list<ID*> aliases;
-	Properties props;
-	uint64 last_modified;
-};
 
 #define Microseconds 1e-6
 #define Milliseconds 1e-3
@@ -800,16 +718,15 @@ public:
 		{
 		val = v;
 		last_access_time = network_time;
-		expire_access_time = last_read_update =
+		expire_access_time =
 			int(network_time - bro_start_network_time);
 		}
 
-	TableEntryVal* Clone()
+	TableEntryVal* Clone(Val::CloneState* state)
 		{
-		auto rval = new TableEntryVal(val ? val->Clone() : nullptr);
+		auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
 		rval->last_access_time = last_access_time;
 		rval->expire_access_time = expire_access_time;
-		rval->last_read_update = last_read_update;
 		return rval;
 		}
 
@@ -825,24 +742,16 @@ public:
 	void SetExpireAccess(double time)
 		{ expire_access_time = int(time - bro_start_network_time); }
 
-	// Returns/sets time of when we propagated the last OP_READ_IDX
-	// for this item.
-	double LastReadUpdate() const
-		{ return bro_start_network_time + last_read_update; }
-	void SetLastReadUpdate(double time)
-		{ last_read_update = int(time - bro_start_network_time); }
-
 protected:
 	friend class TableVal;
 
 	Val* val;
 	double last_access_time;
 
-	// The next two entries store seconds since Bro's start.  We use
-	// ints here to save a few bytes, as we do not need a high resolution
-	// for these anyway.
+	// The next entry stores seconds since Bro's start.  We use ints here
+	// to save a few bytes, as we do not need a high resolution for these
+	// anyway.
 	int expire_access_time;
-	int last_read_update;
 };
 
 class TableValTimer : public Timer {
@@ -859,7 +768,7 @@ protected:
 };
 
 class CompositeHash;
-class TableVal : public MutableVal {
+class TableVal : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal() override;
@@ -869,8 +778,8 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
-	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
+	int Assign(Val* index, Val* new_val);
+	int Assign(Val* index, HashKey* k, Val* new_val);
 
 	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
 
@@ -972,19 +881,17 @@ public:
 	HashKey* ComputeHash(const Val* index) const
 		{ return table_hash->ComputeHash(index, 1); }
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 protected:
 	friend class Val;
-	friend class StateAccess;
 	TableVal()	{}
 
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
-	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
+	int CheckAndAssign(Val* index, Val* new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
@@ -1001,9 +908,6 @@ protected:
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
 
-	// Propagates a read operation if necessary.
-	void ReadOperation(Val* index, TableEntryVal *v);
-
 	Val* DoClone(CloneState* state) override;
 
 	TableType* table_type;
@@ -1017,7 +921,7 @@ protected:
 	Val* def_val;
 };
 
-class RecordVal : public MutableVal {
+class RecordVal : public Val, public notifier::Modifiable {
 public:
 	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
@@ -1025,7 +929,7 @@ public:
 	Val* SizeVal() const override
 		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
-	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
+	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
@@ -1064,6 +968,8 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
@@ -1072,9 +978,6 @@ public:
 protected:
 	friend class Val;
 	RecordVal()	{}
-
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
 
 	Val* DoClone(CloneState* state) override;
 
@@ -1111,7 +1014,7 @@ protected:
 };
 
 
-class VectorVal : public MutableVal {
+class VectorVal : public Val, public notifier::Modifiable {
 public:
 	explicit VectorVal(VectorType* t);
 	~VectorVal() override;
@@ -1125,11 +1028,11 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
-	bool Assign(unsigned int index, Val* element, Opcode op = OP_ASSIGN);
-	bool Assign(Val* index, Val* element, Opcode op = OP_ASSIGN)
+	bool Assign(unsigned int index, Val* element);
+	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element, op);
+				element);
 		}
 
 	// Assigns the value to how_many locations starting at index.
@@ -1159,6 +1062,8 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 	// Insert an element at a specific position into the underlying vector.
 	bool Insert(unsigned int index, Val* element);
 
@@ -1169,8 +1074,6 @@ protected:
 	friend class Val;
 	VectorVal()	{ }
 
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 

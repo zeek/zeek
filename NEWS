@@ -87,6 +87,7 @@ New Functionality
   - New events:
     - rdp_client_network_data
     - rdp_client_security_data
+    - rdp_client_cluster_data
     - rdp_native_encrypted_data
 
   - Add a new "client_channels" field to rdp.log based on data parsed from
@@ -418,6 +419,9 @@ Removed Functionality
     - ``log_encryption_key``
     - ``state_dir``
     - ``state_write_delay``
+    - ``ssl_ca_certificate``
+    - ``ssl_private_key``
+    - ``ssl_passphrase``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:
@@ -449,6 +453,12 @@ Removed Functionality
   removed. This functionality relied on the old communication code
   anc was basically untested. The ``-R`` command-line option (replay)
   as well as the ``capture_events`` function were removed.
+
+- Removed p0f (passive OS fingerprinting) support. The version of
+  p0f shipped with zeek was ancient, probably did not give
+  any reliable support anymore and did not offer a clear
+  upgrade path. The ``OS_version_found`` event as well as the
+  ``generate_OS_version_event`` configuration option were removed.
 
 Deprecated Functionality
 ------------------------

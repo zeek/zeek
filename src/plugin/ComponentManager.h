@@ -244,7 +244,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true,
-	                       false);
+	                       nullptr);
 	}
 
 } // namespace plugin

@@ -284,7 +284,6 @@ set(bro_SRCS
     NetVar.cc
     Obj.cc
     OpaqueVal.cc
-    OSFinger.cc
     PacketFilter.cc
     Pipe.cc
     PolicyFile.cc
@@ -302,7 +301,7 @@ set(bro_SRCS
     Scope.cc
     SerializationFormat.cc
     Sessions.cc
-    StateAccess.cc
+    Notifier.cc
     Stats.cc
     Stmt.cc
     Tag.cc

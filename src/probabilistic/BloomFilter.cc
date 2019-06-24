@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 
+#include <broker/error.hh>
+
 #include "BloomFilter.h"
 
 #include "CounterVector.h"

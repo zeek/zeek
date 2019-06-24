@@ -140,9 +140,6 @@ RecordType* backdoor_endp_stats;
 
 RecordType* software;
 RecordType* software_version;
-RecordType* OS_version;
-EnumType* OS_version_inference;
-TableVal* generate_OS_version_event;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -164,10 +161,6 @@ StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
 bro_uint_t chunked_io_buffer_soft_cap;
-
-StringVal* ssl_ca_certificate;
-StringVal* ssl_private_key;
-StringVal* ssl_passphrase;
 
 Val* profiling_file;
 double profiling_interval;
@@ -243,10 +236,6 @@ void init_general_global_var()
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
 	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
-
-	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
-	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
-	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
@@ -425,10 +414,6 @@ void init_net_var()
 
 	software = internal_type("software")->AsRecordType();
 	software_version = internal_type("software_version")->AsRecordType();
-	OS_version = internal_type("OS_version")->AsRecordType();
-	OS_version_inference = internal_type("OS_version_inference")->AsEnumType();
-	generate_OS_version_event =
-		opt_internal_table("generate_OS_version_event");
 
 	packet_type = internal_type("packet")->AsRecordType();
 

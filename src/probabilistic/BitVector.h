@@ -6,7 +6,8 @@
 #include <iterator>
 #include <vector>
 
-#include <broker/Data.h>
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 namespace probabilistic {
 

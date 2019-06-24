@@ -1844,9 +1844,6 @@ function add_signature_file(sold: string, snew: string): string
 ## since that can search paths relative to the current script.
 global signature_files = "" &add_func = add_signature_file;
 
-## ``p0f`` fingerprint file to use. Will be searched relative to ``ZEEKPATH``.
-const passive_fingerprint_file = "base/misc/p0f.fp" &redef;
-
 ## Definition of "secondary filters". A secondary filter is a BPF filter given
 ## as index in this table. For each such filter, the corresponding event is
 ## raised for all matching packets.
@@ -3991,30 +3988,6 @@ type software: record {
 	version: software_version;
 };
 
-## Quality of passive fingerprinting matches.
-##
-## .. zeek:see:: OS_version
-type OS_version_inference: enum {
-	direct_inference,	##< TODO.
-	generic_inference,	##< TODO.
-	fuzzy_inference,	##< TODO.
-};
-
-## Passive fingerprinting match.
-##
-## .. zeek:see:: OS_version_found
-type OS_version: record {
-	genre: string;	##< Linux, Windows, AIX, ...
-	detail: string;	##< Kernel version or such.
-	dist: count;	##< How far is the host away from the sensor (TTL)?.
-	match_type: OS_version_inference;	##< Quality of the match.
-};
-
-## Defines for which subnets we should do passive fingerprinting.
-##
-## .. zeek:see:: OS_version_found
-global generate_OS_version_event: set[subnet] &redef;
-
 # Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line
 # number>``), which were seen during the sample.
@@ -4279,6 +4252,8 @@ export {
 	type RDP::ClientChannelDef: record {
 		## A unique name for the channel
 		name:           string;
+		## Channel Def raw options as count
+		options:	count;
 		## Absence of this flag indicates that this channel is
 		## a placeholder and that the server MUST NOT set it up.
 		initialized:    bool;
@@ -4302,6 +4277,30 @@ export {
 		show_protocol:  bool;
 		## Channel must be persistent across remote control transactions.
 		persistent:     bool;
+	};
+
+	## The TS_UD_CS_CLUSTER data block is sent by the client to the server
+	## either to advertise that it can support the Server Redirection PDUs
+	## or to request a connection to a given session identifier.
+	type RDP::ClientClusterData: record {
+		## Cluster information flags.
+		flags:                          count;
+		## If the *redir_sessionid_field_valid* flag is set, this field
+		## contains a valid session identifier to which the client requests
+		## to connect.
+		redir_session_id:               count;
+		## The client can receive server session redirection packets.
+		## If this flag is set, the *svr_session_redir_version_mask*
+		## field MUST contain the server session redirection version that
+		## the client supports.
+		redir_supported:                bool;
+		## The server session redirection version that the client supports.
+		svr_session_redir_version_mask: count;
+		## Whether the *redir_session_id* field identifies a session on
+		## the server to associate with the connection.
+		redir_sessionid_field_valid:    bool;
+		## The client logged on with a smart card.
+		redir_smartcard:                bool;
 	};
 
 	## The list of channels requested by the client.
@@ -4709,22 +4708,6 @@ const report_gaps_for_partial = F &redef;
 ## This is mainly for testing purposes when termination behaviour needs to be
 ## controlled for reproducing results.
 const exit_only_after_terminate = F &redef;
-
-## The CA certificate file to authorize remote Zeeks/Broccolis.
-##
-## .. zeek:see:: ssl_private_key ssl_passphrase
-const ssl_ca_certificate = "<undefined>" &redef;
-
-## File containing our private key and our certificate.
-##
-## .. zeek:see:: ssl_ca_certificate ssl_passphrase
-const ssl_private_key = "<undefined>" &redef;
-
-## The passphrase for our private key. Keeping this undefined
-## causes Zeek to prompt for the passphrase.
-##
-## .. zeek:see:: ssl_private_key ssl_ca_certificate
-const ssl_passphrase = "<undefined>" &redef;
 
 ## Default mode for Zeek's user-space dynamic packet filter. If true, packets
 ## that aren't explicitly allowed through, are dropped from any further

@@ -39,6 +39,12 @@ public:
 	~IdentifierInfo() override;
 
 	/**
+	 * Returns the initial value of the identifier.
+	 */
+	Val* InitialVal() const
+		{ return initial_val; }
+
+	/**
 	 * Add a comment associated with the identifier.  If the identifier is a
 	 * record type and it's in the middle of parsing fields, the comment is
 	 * associated with the last field that was parsed.
@@ -59,9 +65,12 @@ public:
 	/**
 	 * Register a redefinition of the identifier.
 	 * @param from_script The script in which the redef occurred.
+	 * @param ic The initialization class used (e.g. =, +=, -=)
+	 * @param init_expr The initialization expression used.
 	 * @param comments Comments associated with the redef statement.
 	 */
-	void AddRedef(const std::string& from_script,
+	void AddRedef(const std::string& from_script, init_class ic,
+	              Expr* init_expr,
 	              const std::vector<std::string>& comments);
 
 	/**
@@ -117,8 +126,19 @@ public:
 	 */
 	struct Redefinition {
 		std::string from_script; /**< Name of script doing the redef. */
-		std::string new_val_desc; /**< Description of new value bound to ID. */
+		init_class ic;
+		Expr* init_expr;
 		std::vector<std::string> comments; /**< Zeekygen comments on redef. */
+
+		Redefinition(std::string arg_script, init_class arg_ic,
+	                 Expr* arg_expr,
+		             std::vector<std::string> arg_comments);
+
+		Redefinition(const Redefinition& other);
+
+		Redefinition& operator=(const Redefinition& other);
+
+		~Redefinition();
 	};
 
 	/**
@@ -128,6 +148,13 @@ public:
 	 * @return A list of redefs that occurred in \a from_script.
 	 */
 	std::list<Redefinition> GetRedefs(const std::string& from_script) const;
+
+	/**
+	 * Get a list of information about redefinitions of the identifier.
+	 * @return A list of redefs that occurred for the identifier.
+	 */
+	const std::list<Redefinition*>& GetRedefs() const
+		{ return redefs; }
 
 private:
 
@@ -152,7 +179,7 @@ private:
 
 	std::vector<std::string> comments;
 	ID* id;
-	std::string initial_val_desc;
+	Val* initial_val;
 	redef_list redefs;
 	record_field_map fields;
 	RecordField* last_field_seen;

@@ -1,4 +1,16 @@
 
+2.6-523 | 2019-06-25 10:38:24 -0700
+
+  * GH-427: improve default ID values shown by Zeekygen
+
+    The default value of an ID is now truly the one used to initialize it,
+    unaltered by any subsequent redefs.
+
+    Redefs are now shown separately, along with the expression that
+    modifies the ID's value. (Jon Siwek, Corelight)
+
+  * Unbreak build on Linux (Johanna Amann, Corelight)
+
 2.6-519 | 2019-06-24 15:25:08 -0700
 
   * GH-435: fix null pointer deref in RPC analyzer. (Jon Siwek, Corelight)

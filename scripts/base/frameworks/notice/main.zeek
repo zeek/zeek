@@ -254,7 +254,7 @@ export {
 	global log_mailing_postprocessor: function(info: Log::RotationInfo): bool;
 
 	## This is the event that is called as the entry point to the
-	## notice framework by the global :zeek:id:`NOTICE` function.  By the
+	## notice framework by the global :zeek:id:`NOTICE` function. By the
 	## time this event is generated, default values have already been
 	## filled out in the :zeek:type:`Notice::Info` record and the notice
 	## policy has also been applied.
@@ -272,6 +272,18 @@ export {
 	##
 	## identifier: The identifier string of the notice that should be suppressed.
 	global begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
+
+	## This is an internal event that is used to broadcast the begin_suppression
+	## event over a cluster.
+	##
+	## ts: time indicating then when the notice to be suppressed occured.
+	##
+	## suppress_for: length of time that this notice should be suppressed.
+	##
+	## note: The :zeek:type:`Notice::Type` of the notice.
+	##
+	## identifier: The identifier string of the notice that should be suppressed.
+	global manager_begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
 
 	## A function to determine if an event is supposed to be suppressed.
 	##
@@ -314,17 +326,8 @@ export {
 	## rec: The record containing notice data before it is logged.
 	global log_notice: event(rec: Info);
 
-	## This is an internal wrapper for the global :zeek:id:`NOTICE`
-	## function; disregard.
-	##
-	## n: The record of notice data.
-	global internal_NOTICE: function(n: Notice::Info);
-
-	## This is the event used to transport notices on the cluster.
-	##
-	## n: The notice information to be sent to the cluster manager for
-	##    further processing.
-	global cluster_notice: event(n: Notice::Info);
+	## This is an internal function to populate policy records.
+	global apply_policy: function(n: Notice::Info);
 }
 
 module GLOBAL;
@@ -334,17 +337,11 @@ function NOTICE(n: Notice::Info)
 	if ( Notice::is_being_suppressed(n) )
 		return;
 
-	@if ( Cluster::is_enabled() )
-		if ( Cluster::local_node_type() == Cluster::MANAGER )
-			Notice::internal_NOTICE(n);
-		else
-			{
-			n$peer_name = n$peer_descr = Cluster::node;
-			Broker::publish(Cluster::manager_topic, Notice::cluster_notice, n);
-			}
-	@else
-		Notice::internal_NOTICE(n);
-	@endif
+	# Fill out fields that might be empty and do the policy processing.
+	Notice::apply_policy(n);
+
+	# Generate the notice event with the notice.
+	hook Notice::notice(n);
 	}
 
 module Notice;
@@ -519,9 +516,12 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 	if ( n?$identifier &&
 	     [n$note, n$identifier] !in suppressing &&
 	     n$suppress_for != 0secs )
-	    {
+		{
 		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
-	    }
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+		event Notice::manager_begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
+@endif
+		}
 	}
 
 event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
@@ -531,14 +531,26 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
 	suppressing[note, identifier] = suppress_until;
 	}
 
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 event zeek_init()
 	{
-	if ( ! Cluster::is_enabled() )
-		return;
-
 	Broker::auto_publish(Cluster::worker_topic, Notice::begin_suppression);
 	Broker::auto_publish(Cluster::proxy_topic, Notice::begin_suppression);
 	}
+
+event Notice::manager_begin_suppression(ts: time, suppress_for: interval, note: Type,
+								identifier: string)
+	{
+	event Notice::begin_suppression(ts, suppress_for, note, identifier);
+	}
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+event zeek_init()
+	{
+	Broker::auto_publish(Cluster::manager_topic, Notice::manager_begin_suppression);
+	}
+@endif
 
 function is_being_suppressed(n: Notice::Info): bool
 	{
@@ -605,6 +617,14 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$ts )
 		n$ts = network_time();
 
+@if ( Cluster::is_enabled() )
+	if ( ! n?$peer_name )
+		n$peer_name = Cluster::node;
+
+	if ( ! n?$peer_descr )
+		n$peer_descr = Cluster::node;
+@endif
+
 	if ( n?$f )
 		populate_file_info(n$f, n);
 
@@ -652,28 +672,4 @@ function apply_policy(n: Notice::Info)
 	# suppression interval given yet, the default is applied.
 	if ( ! n?$suppress_for )
 		n$suppress_for = default_suppression_interval;
-
-	# Delete the connection and file records if they're there so we
-	# aren't sending that to remote machines.  It can cause problems
-	# due to the size of those records.
-	if ( n?$conn )
-		delete n$conn;
-	if ( n?$iconn )
-		delete n$iconn;
-	if ( n?$f )
-		delete n$f;
-	}
-
-function internal_NOTICE(n: Notice::Info)
-	{
-	# Fill out fields that might be empty and do the policy processing.
-	apply_policy(n);
-
-	# Generate the notice event with the notice.
-	hook Notice::notice(n);
-	}
-
-event Notice::cluster_notice(n: Notice::Info)
-	{
-	NOTICE(n);
 	}

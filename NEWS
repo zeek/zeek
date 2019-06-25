@@ -338,6 +338,11 @@ Changed Functionality
   passed to any other functions for further processing. The remainder of the
   ``ocsp_response_bytes`` is unchanged.
 
+- For performance reasons, procesing on notices is now always performed on
+  the node on which the notice is raised. This is in difference to earlier
+  versions of Zeek, in which notices always were first sent to the manager
+  and processed there.
+
 Removed Functionality
 ---------------------
 

@@ -1,4 +1,8 @@
 
+2.6-526 | 2019-06-25 12:45:31 -0700
+
+  * Make a paraglob unit test parallelizable (Jon Siwek, Corelight)
+
 2.6-523 | 2019-06-25 10:38:24 -0700
 
   * GH-427: improve default ID values shown by Zeekygen

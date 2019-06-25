@@ -927,20 +927,13 @@ Redefinable Options
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
-   :Default:
+   :Default: ``{}``
+   :Redefinition: from :doc:`/scripts/base/protocols/smb/consts.zeek`
 
-   ::
+      ``=``::
 
-      {
-         "srvsvc",
-         "winreg",
-         "netdfs",
-         "MsFteWds",
-         "samr",
-         "spoolss",
-         "wkssvc",
-         "lsarpc"
-      }
+         spoolss, winreg, samr, srvsvc, netdfs, lsarpc, wkssvc, MsFteWds
+
 
    A set of file names used as named pipes over SMB. This
    only comes into play as a heuristic to identify named
@@ -1078,11 +1071,12 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         4789/udp
-      }
+         {
+            4789/udp
+         }
+
 
    The set of UDP ports used for VXLAN traffic.  Traffic using this
    UDP destination port will attempt to be decapsulated.  Note that if
@@ -1245,7 +1239,13 @@ Redefinable Options
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``20``
+   :Default: ``0``
+   :Redefinition: from :doc:`/scripts/policy/misc/profiling.zeek`
+
+      ``=``::
+
+         20
+
 
    Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
    profiling is done (0 disables).
@@ -1256,7 +1256,13 @@ Redefinable Options
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``5.0 mins``
+   :Default: ``0 secs``
+   :Redefinition: from :doc:`/scripts/policy/tuning/defaults/packet-fragments.zeek`
+
+      ``=``::
+
+         5.0 mins
+
 
    How long to hold onto fragments for possible reassembly.  A value of 0.0
    means "forever", which resists evasion, but can lead to state accrual.
@@ -1353,70 +1359,145 @@ Redefinable Options
 
    :Type: :zeek:type:`set` [:zeek:type:`port`]
    :Attributes: :zeek:attr:`&redef`
-   :Default:
+   :Default: ``{}``
+   :Redefinition: from :doc:`/scripts/base/frameworks/tunnels/main.zeek`
 
-   ::
+      ``+=``::
 
-      {
-         443/tcp,
-         995/tcp,
-         6668/tcp,
-         5222/tcp,
-         631/tcp,
-         8000/tcp,
-         161/udp,
-         4789/udp,
-         6666/tcp,
-         502/tcp,
-         1080/tcp,
-         443/udp,
-         162/udp,
-         993/tcp,
-         139/tcp,
-         5072/udp,
-         2811/tcp,
-         81/tcp,
-         6667/tcp,
-         990/tcp,
-         563/tcp,
-         20000/tcp,
-         5223/tcp,
-         143/tcp,
-         137/udp,
-         636/tcp,
-         587/tcp,
-         25/tcp,
-         135/tcp,
-         20000/udp,
-         53/udp,
-         5355/udp,
-         585/tcp,
-         80/tcp,
-         88/udp,
-         3389/tcp,
-         6669/tcp,
-         5269/tcp,
-         8080/tcp,
-         614/tcp,
-         53/tcp,
-         67/udp,
-         445/tcp,
-         8888/tcp,
-         2152/udp,
-         3544/udp,
-         22/tcp,
-         21/tcp,
-         514/udp,
-         989/tcp,
-         88/tcp,
-         3128/tcp,
-         123/udp,
-         1812/udp,
-         992/tcp,
-         2123/udp,
-         5353/udp,
-         5060/udp
-      }
+         Tunnel::ayiya_ports, Tunnel::teredo_ports, Tunnel::gtpv1_ports, Tunnel::vxlan_ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/dce-rpc/main.zeek`
+
+      ``+=``::
+
+         DCE_RPC::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/dhcp/main.zeek`
+
+      ``+=``::
+
+         67/udp
+
+   :Redefinition: from :doc:`/scripts/base/protocols/dnp3/main.zeek`
+
+      ``+=``::
+
+         DNP3::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/dns/main.zeek`
+
+      ``+=``::
+
+         DNS::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/ftp/main.zeek`
+
+      ``+=``::
+
+         FTP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/ssl/main.zeek`
+
+      ``+=``::
+
+         SSL::ssl_ports, SSL::dtls_ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/http/main.zeek`
+
+      ``+=``::
+
+         HTTP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/imap/main.zeek`
+
+      ``+=``::
+
+         IMAP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/irc/main.zeek`
+
+      ``+=``::
+
+         IRC::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/krb/main.zeek`
+
+      ``+=``::
+
+         KRB::tcp_ports, KRB::udp_ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/modbus/main.zeek`
+
+      ``+=``::
+
+         Modbus::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/ntp/main.zeek`
+
+      ``+=``::
+
+         NTP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/radius/main.zeek`
+
+      ``+=``::
+
+         RADIUS::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/rdp/main.zeek`
+
+      ``+=``::
+
+         RDP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/sip/main.zeek`
+
+      ``+=``::
+
+         SIP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/snmp/main.zeek`
+
+      ``+=``::
+
+         SNMP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/smb/main.zeek`
+
+      ``+=``::
+
+         SMB::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/smtp/main.zeek`
+
+      ``+=``::
+
+         SMTP::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/socks/main.zeek`
+
+      ``+=``::
+
+         SOCKS::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/ssh/main.zeek`
+
+      ``+=``::
+
+         SSH::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/syslog/main.zeek`
+
+      ``+=``::
+
+         Syslog::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/xmpp/main.zeek`
+
+      ``+=``::
+
+         XMPP::ports
+
 
    Ports which the core considers being likely used by servers. For ports in
    this set, it may heuristically decide to flip the direction of the
@@ -1540,7 +1621,13 @@ Redefinable Options
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``15.0 secs``
+   :Default: ``0 secs``
+   :Redefinition: from :doc:`/scripts/policy/misc/profiling.zeek`
+
+      ``=``::
+
+         15.0 secs
+
 
    Update interval for profiling (0 disables).  The easiest way to activate
    profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
@@ -2300,19 +2387,20 @@ Constants
    :Type: :zeek:type:`table` [:zeek:type:`rpc_status`] of :zeek:type:`string`
    :Default:
 
-   ::
+      ::
 
-      {
-         [RPC_PROG_MISMATCH] = "mismatch",
-         [RPC_UNKNOWN_ERROR] = "unknown",
-         [RPC_TIMEOUT] = "timeout",
-         [RPC_GARBAGE_ARGS] = "garbage args",
-         [RPC_PROG_UNAVAIL] = "prog unavail",
-         [RPC_AUTH_ERROR] = "auth error",
-         [RPC_SYSTEM_ERR] = "system err",
-         [RPC_SUCCESS] = "ok",
-         [RPC_PROC_UNAVAIL] = "proc unavail"
-      }
+         {
+            [RPC_PROG_MISMATCH] = "mismatch",
+            [RPC_UNKNOWN_ERROR] = "unknown",
+            [RPC_TIMEOUT] = "timeout",
+            [RPC_GARBAGE_ARGS] = "garbage args",
+            [RPC_PROG_UNAVAIL] = "prog unavail",
+            [RPC_AUTH_ERROR] = "auth error",
+            [RPC_SYSTEM_ERR] = "system err",
+            [RPC_SUCCESS] = "ok",
+            [RPC_PROC_UNAVAIL] = "proc unavail"
+         }
+
 
    Mapping of numerical RPC status codes to readable messages.
    
@@ -2591,7 +2679,13 @@ State Variables
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
+   :Default: ``T``
+   :Redefinition: from :doc:`/scripts/policy/protocols/dns/auth-addl.zeek`
+
+      ``=``::
+
+         F
+
 
    If true, all DNS ADDL records are skipped.
    
@@ -2601,7 +2695,13 @@ State Variables
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
+   :Default: ``T``
+   :Redefinition: from :doc:`/scripts/policy/protocols/dns/auth-addl.zeek`
+
+      ``=``::
+
+         F
+
 
    If true, all DNS AUTH records are skipped.
    
@@ -2742,9 +2842,16 @@ State Variables
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      file "prof.log" of string
+         file "prof.log" of string
+
+   :Redefinition: from :doc:`/scripts/policy/misc/profiling.zeek`
+
+      ``=``::
+
+         open_log_file(prof)
+
 
    Write profiling info into this file in regular intervals. The easiest way to
    activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.

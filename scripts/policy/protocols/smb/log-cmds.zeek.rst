@@ -35,11 +35,12 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "MORE_PROCESSING_REQUIRED"
-      }
+         {
+            "MORE_PROCESSING_REQUIRED"
+         }
+
 
    The server response statuses which are *not* logged.
 

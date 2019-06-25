@@ -35,9 +35,10 @@ Constants
    :Type: :zeek:type:`pattern`
    :Default:
 
-   ::
+      ::
 
-      /^?((\/|[A-Za-z]:[\\\/]).*)$?/
+         /^?((\/|[A-Za-z]:[\\\/]).*)$?/
+
 
 
 Functions

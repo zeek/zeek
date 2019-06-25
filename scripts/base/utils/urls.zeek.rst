@@ -40,9 +40,10 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?(^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*))$?/
+         /^?(^([a-zA-Z\-]{3,5})(:\/\/[^\/?#"'\r\n><]*)([^?#"'\r\n><]*)([^[:blank:]\r\n"'><]*|\??[^"'\r\n><]*))$?/
+
 
    A regular expression for matching and extracting URLs.
 

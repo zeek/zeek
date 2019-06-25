@@ -27,17 +27,18 @@ Redefinable Options
    :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         [2] = "symmetric passive",
-         [6] = "broadcast client",
-         [4] = "server",
-         [1] = "symmetric active",
-         [7] = "reserved",
-         [5] = "broadcast server",
-         [3] = "client"
-      }
+         {
+            [2] = "symmetric passive",
+            [6] = "broadcast client",
+            [4] = "server",
+            [1] = "symmetric active",
+            [7] = "reserved",
+            [5] = "broadcast server",
+            [3] = "client"
+         }
+
 
    The descriptions of the NTP mode value, as described
    in :rfc:`5905`, Figure 1

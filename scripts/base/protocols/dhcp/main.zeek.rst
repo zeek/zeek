@@ -77,36 +77,37 @@ State Variables
    :Type: :zeek:type:`DHCP::Info`
    :Default:
 
-   ::
+      ::
 
-      {
-         ts=<uninitialized>
-         uids={
+         {
+            ts=<uninitialized>
+            uids={
 
+            }
+            client_addr=<uninitialized>
+            server_addr=<uninitialized>
+            client_port=<uninitialized>
+            server_port=<uninitialized>
+            mac=<uninitialized>
+            host_name=<uninitialized>
+            client_fqdn=<uninitialized>
+            domain=<uninitialized>
+            requested_addr=<uninitialized>
+            assigned_addr=<uninitialized>
+            lease_time=<uninitialized>
+            client_message=<uninitialized>
+            server_message=<uninitialized>
+            msg_types=[]
+            duration=0 secs
+            last_message_ts=<uninitialized>
+            msg_orig=<uninitialized>
+            client_software=<uninitialized>
+            server_software=<uninitialized>
+            circuit_id=<uninitialized>
+            agent_remote_id=<uninitialized>
+            subscriber_id=<uninitialized>
          }
-         client_addr=<uninitialized>
-         server_addr=<uninitialized>
-         client_port=<uninitialized>
-         server_port=<uninitialized>
-         mac=<uninitialized>
-         host_name=<uninitialized>
-         client_fqdn=<uninitialized>
-         domain=<uninitialized>
-         requested_addr=<uninitialized>
-         assigned_addr=<uninitialized>
-         lease_time=<uninitialized>
-         client_message=<uninitialized>
-         server_message=<uninitialized>
-         msg_types=[]
-         duration=0 secs
-         last_message_ts=<uninitialized>
-         msg_orig=<uninitialized>
-         client_software=<uninitialized>
-         server_software=<uninitialized>
-         circuit_id=<uninitialized>
-         agent_remote_id=<uninitialized>
-         subscriber_id=<uninitialized>
-      }
+
 
    This is a global variable that is only to be used in the
    :zeek:see:`DHCP::aggregate_msgs` event. It can be used to avoid

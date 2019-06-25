@@ -71,14 +71,15 @@ State Variables
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         Analyzer::ANALYZER_BACKDOOR,
-         Analyzer::ANALYZER_INTERCONN,
-         Analyzer::ANALYZER_TCPSTATS,
-         Analyzer::ANALYZER_STEPPINGSTONE
-      }
+         {
+            Analyzer::ANALYZER_BACKDOOR,
+            Analyzer::ANALYZER_INTERCONN,
+            Analyzer::ANALYZER_TCPSTATS,
+            Analyzer::ANALYZER_STEPPINGSTONE
+         }
+
 
    A set of analyzers to disable by default at startup. The default set
    contains legacy analyzers that are no longer supported.

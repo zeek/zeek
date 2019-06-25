@@ -36,11 +36,12 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "RO"
-      }
+         {
+            "RO"
+         }
+
 
    The set of countries for which you'd like to generate notices upon
    successful login.

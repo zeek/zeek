@@ -59,14 +59,15 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "ftpuser",
-         "ftp",
-         "guest",
-         "anonymous"
-      }
+         {
+            "ftpuser",
+            "ftp",
+            "guest",
+            "anonymous"
+         }
+
 
    User IDs that can be considered "anonymous".
 
@@ -76,20 +77,21 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "RETR",
-         "EPSV",
-         "EPRT",
-         "DELE",
-         "PORT",
-         "PASV",
-         "STOR",
-         "APPE",
-         "STOU",
-         "ACCT"
-      }
+         {
+            "RETR",
+            "EPSV",
+            "EPRT",
+            "DELE",
+            "PORT",
+            "PASV",
+            "STOR",
+            "APPE",
+            "STOU",
+            "ACCT"
+         }
+
 
    List of commands that should have their command/response pairs logged.
 

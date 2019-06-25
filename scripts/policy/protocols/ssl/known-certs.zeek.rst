@@ -83,7 +83,13 @@ Runtime Options
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``ALL_HOSTS``
+   :Default: ``LOCAL_HOSTS``
+   :Redefinition: from :doc:`/scripts/policy/tuning/track-all-assets.zeek`
+
+      ``=``::
+
+         ALL_HOSTS
+
 
    The certificates whose existence should be logged and tracked.
    Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
@@ -116,19 +122,20 @@ State Variables
    :Type: :zeek:type:`Cluster::StoreInfo`
    :Default:
 
-   ::
+      ::
 
-      {
-         name=<uninitialized>
-         store=<uninitialized>
-         master_node=""
-         master=F
-         backend=Broker::MEMORY
-         options=[sqlite=[path=""], rocksdb=[path=""]]
-         clone_resync_interval=10.0 secs
-         clone_stale_interval=5.0 mins
-         clone_mutation_buffer_interval=2.0 mins
-      }
+         {
+            name=<uninitialized>
+            store=<uninitialized>
+            master_node=""
+            master=F
+            backend=Broker::MEMORY
+            options=[sqlite=[path=""], rocksdb=[path=""]]
+            clone_resync_interval=10.0 secs
+            clone_stale_interval=5.0 mins
+            clone_mutation_buffer_interval=2.0 mins
+         }
+
 
    Holds the set of all known certificates.  Keys in the store are of
    type :zeek:type:`Known::AddrCertHashPair` and their associated value is

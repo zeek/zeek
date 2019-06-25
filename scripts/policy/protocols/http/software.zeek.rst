@@ -34,9 +34,10 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?(NO_DEFAULT)$?/
+         /^?(NO_DEFAULT)$?/
+
 
    The pattern of HTTP User-Agents which you would like to ignore.
 

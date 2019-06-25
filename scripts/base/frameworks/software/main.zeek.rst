@@ -73,7 +73,13 @@ Runtime Options
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``ALL_HOSTS``
+   :Default: ``LOCAL_HOSTS``
+   :Redefinition: from :doc:`/scripts/policy/tuning/track-all-assets.zeek`
+
+      ``=``::
+
+         ALL_HOSTS
+
 
    Hosts whose software should be detected and tracked.
    Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
@@ -86,11 +92,12 @@ State Variables
    :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
    :Default:
 
-   ::
+      ::
 
-      {
-         ["Flash Player"] = "Flash"
-      }
+         {
+            ["Flash Player"] = "Flash"
+         }
+
 
    Sometimes software will expose itself on the network with 
    slight naming variations.  This table provides a mechanism 

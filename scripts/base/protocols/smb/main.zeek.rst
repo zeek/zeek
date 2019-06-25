@@ -54,15 +54,16 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         SMB::FILE_OPEN,
-         SMB::PRINT_CLOSE,
-         SMB::FILE_DELETE,
-         SMB::FILE_RENAME,
-         SMB::PRINT_OPEN
-      }
+         {
+            SMB::FILE_OPEN,
+            SMB::PRINT_CLOSE,
+            SMB::FILE_DELETE,
+            SMB::FILE_RENAME,
+            SMB::PRINT_OPEN
+         }
+
 
    The file actions which are logged.
 

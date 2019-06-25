@@ -45,27 +45,28 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         ["winreg"] = {
-            "BaseRegOpenKey",
-            "BaseRegEnumKey",
-            "OpenClassesRoot",
-            "BaseRegCloseKey",
-            "OpenLocalMachine",
-            "BaseRegQueryValue",
-            "BaseRegDeleteKeyEx",
-            "BaseRegGetVersion"
-         },
-         ["spoolss"] = {
-            "RpcSplOpenPrinter",
-            "RpcClosePrinter"
-         },
-         ["wkssvc"] = {
-            "NetrWkstaGetInfo"
+         {
+            ["winreg"] = {
+               "BaseRegOpenKey",
+               "BaseRegEnumKey",
+               "OpenClassesRoot",
+               "BaseRegCloseKey",
+               "OpenLocalMachine",
+               "BaseRegQueryValue",
+               "BaseRegDeleteKeyEx",
+               "BaseRegGetVersion"
+            },
+            ["spoolss"] = {
+               "RpcSplOpenPrinter",
+               "RpcClosePrinter"
+            },
+            ["wkssvc"] = {
+               "NetrWkstaGetInfo"
+            }
          }
-      }
+
 
    These are DCE-RPC operations that are ignored, typically due to
    the operations being noisy and low value on most networks.

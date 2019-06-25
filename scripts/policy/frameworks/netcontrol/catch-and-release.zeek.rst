@@ -90,9 +90,10 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      [10.0 mins, 1.0 hr, 1.0 day, 7.0 days]
+         [10.0 mins, 1.0 hr, 1.0 day, 7.0 days]
+
 
    Time intervals for which subsequent drops of the same IP take
    effect.

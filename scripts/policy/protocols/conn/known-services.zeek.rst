@@ -79,7 +79,13 @@ Runtime Options
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``ALL_HOSTS``
+   :Default: ``LOCAL_HOSTS``
+   :Redefinition: from :doc:`/scripts/policy/tuning/track-all-assets.zeek`
+
+      ``=``::
+
+         ALL_HOSTS
+
 
    The hosts whose services should be tracked and logged.
    See :zeek:type:`Host` for possible choices.
@@ -121,19 +127,20 @@ State Variables
    :Type: :zeek:type:`Cluster::StoreInfo`
    :Default:
 
-   ::
+      ::
 
-      {
-         name=<uninitialized>
-         store=<uninitialized>
-         master_node=""
-         master=F
-         backend=Broker::MEMORY
-         options=[sqlite=[path=""], rocksdb=[path=""]]
-         clone_resync_interval=10.0 secs
-         clone_stale_interval=5.0 mins
-         clone_mutation_buffer_interval=2.0 mins
-      }
+         {
+            name=<uninitialized>
+            store=<uninitialized>
+            master_node=""
+            master=F
+            backend=Broker::MEMORY
+            options=[sqlite=[path=""], rocksdb=[path=""]]
+            clone_resync_interval=10.0 secs
+            clone_stale_interval=5.0 mins
+            clone_mutation_buffer_interval=2.0 mins
+         }
+
 
    Holds the set of all known services.  Keys in the store are
    :zeek:type:`Known::AddrPortPair` and their associated value is

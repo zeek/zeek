@@ -61,9 +61,10 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?((^?((^?((^?((^?((^?(^iPlanet Messenger)$?)|(^?(^Sun Java\(tm\) System Messenger Express)$?))$?)|(^?(\(IMP\))$?))$?)|(^?(^SquirrelMail)$?))$?)|(^?(^NeoMail)$?))$?)|(^?(ZimbraWebClient)$?))$?/
+         /^?((^?((^?((^?((^?((^?(^iPlanet Messenger)$?)|(^?(^Sun Java\(tm\) System Messenger Express)$?))$?)|(^?(\(IMP\))$?))$?)|(^?(^SquirrelMail)$?))$?)|(^?(^NeoMail)$?))$?)|(^?(ZimbraWebClient)$?))$?/
+
 
    A regular expression to match USER-AGENT-like headers to find if a 
    message was sent with a webmail interface.

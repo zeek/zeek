@@ -31,9 +31,10 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?(.*)$?/
+         /^?(.*)$?/
+
 
    Only include events matching the given pattern into output. By default, the
    pattern matches all events.

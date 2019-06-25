@@ -153,7 +153,13 @@ Redefinable Options
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``T``
+   :Default: ``F``
+   :Redefinition: from :doc:`/scripts/policy/tuning/json-logs.zeek`
+
+      ``=``::
+
+         T
+
 
    If true, the default will be to write logs in a JSON format.
    

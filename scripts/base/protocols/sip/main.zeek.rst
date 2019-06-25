@@ -52,18 +52,19 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "NOTIFY",
-         "ACK",
-         "SUBSCRIBE",
-         "CANCEL",
-         "OPTIONS",
-         "REGISTER",
-         "INVITE",
-         "BYE"
-      }
+         {
+            "NOTIFY",
+            "ACK",
+            "SUBSCRIBE",
+            "CANCEL",
+            "OPTIONS",
+            "REGISTER",
+            "INVITE",
+            "BYE"
+         }
+
 
    A list of SIP methods. Other methods will generate a weird. Note
    that the SIP analyzer will only accept methods consisting solely

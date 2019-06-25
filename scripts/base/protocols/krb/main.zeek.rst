@@ -50,12 +50,13 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
-         "NEEDED_PREAUTH"
-      }
+         {
+            "Need to use PA-ENC-TIMESTAMP/PA-PK-AS-REQ",
+            "NEEDED_PREAUTH"
+         }
+
 
    The server response error texts which are *not* logged.
 

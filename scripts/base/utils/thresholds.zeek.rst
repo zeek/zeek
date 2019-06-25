@@ -50,9 +50,10 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      [30, 100, 1000, 10000, 100000, 1000000, 10000000]
+         [30, 100, 1000, 10000, 100000, 1000000, 10000000]
+
 
    The thresholds you would like to use as defaults with the 
    :zeek:id:`default_check_threshold` function.

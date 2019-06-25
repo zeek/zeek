@@ -34,9 +34,10 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?(spamhaus\.org\/)$?)|(^?(sophos\.com\/security\/)$?))$?)|(^?(spamcop\.net\/bl)$?))$?)|(^?(cbl\.abuseat\.org\/)$?))$?)|(^?(sorbs\.net\/)$?))$?)|(^?(bsn\.borderware\.com\/)$?))$?)|(^?(mail-abuse\.com\/)$?))$?)|(^?(b\.barracudacentral\.com\/)$?))$?)|(^?(psbl\.surriel\.com\/)$?))$?)|(^?(antispam\.imp\.ch\/)$?))$?)|(^?(dyndns\.com\/.*spam)$?))$?)|(^?(rbl\.knology\.net\/)$?))$?)|(^?(intercept\.datapacket\.net\/)$?))$?)|(^?(uceprotect\.net\/)$?))$?)|(^?(hostkarma\.junkemailfilter\.com\/)$?))$?/
+         /^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?((^?(spamhaus\.org\/)$?)|(^?(sophos\.com\/security\/)$?))$?)|(^?(spamcop\.net\/bl)$?))$?)|(^?(cbl\.abuseat\.org\/)$?))$?)|(^?(sorbs\.net\/)$?))$?)|(^?(bsn\.borderware\.com\/)$?))$?)|(^?(mail-abuse\.com\/)$?))$?)|(^?(b\.barracudacentral\.com\/)$?))$?)|(^?(psbl\.surriel\.com\/)$?))$?)|(^?(antispam\.imp\.ch\/)$?))$?)|(^?(dyndns\.com\/.*spam)$?))$?)|(^?(rbl\.knology\.net\/)$?))$?)|(^?(intercept\.datapacket\.net\/)$?))$?)|(^?(uceprotect\.net\/)$?))$?)|(^?(hostkarma\.junkemailfilter\.com\/)$?))$?/
+
 
 
 

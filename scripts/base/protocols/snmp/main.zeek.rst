@@ -48,13 +48,14 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&optional`
    :Default:
 
-   ::
+      ::
 
-      {
-         [1] = "2c",
-         [0] = "1",
-         [3] = "3"
-      }
+         {
+            [1] = "2c",
+            [0] = "1",
+            [3] = "3"
+         }
+
 
    Maps an SNMP version integer to a human readable string.
 

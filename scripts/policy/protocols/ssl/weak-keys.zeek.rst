@@ -84,9 +84,10 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /^?((_EXPORT_)|(_RC4_))$?/
+         /^?((_EXPORT_)|(_RC4_))$?/
+
 
    Warn if a server negotiates an unsafe cipher suite. By default, we only warn when
    encountering old export cipher suites, or RC4 (see RFC7465).

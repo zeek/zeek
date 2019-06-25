@@ -10113,20 +10113,13 @@ Options/Constants
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
-   :Default:
+   :Default: ``{}``
+   :Redefinition: from :doc:`/scripts/base/protocols/smb/consts.zeek`
 
-   ::
+      ``=``::
 
-      {
-         "srvsvc",
-         "winreg",
-         "netdfs",
-         "MsFteWds",
-         "samr",
-         "spoolss",
-         "wkssvc",
-         "lsarpc"
-      }
+         spoolss, winreg, samr, srvsvc, netdfs, lsarpc, wkssvc, MsFteWds
+
 
    A set of file names used as named pipes over SMB. This
    only comes into play as a heuristic to identify named

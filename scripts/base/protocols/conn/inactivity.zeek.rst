@@ -30,12 +30,13 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         [Analyzer::ANALYZER_FTP] = 1.0 hr,
-         [Analyzer::ANALYZER_SSH] = 1.0 hr
-      }
+         {
+            [Analyzer::ANALYZER_FTP] = 1.0 hr,
+            [Analyzer::ANALYZER_SSH] = 1.0 hr
+         }
+
 
    Define inactivity timeouts by the service detected being used over
    the connection.
@@ -46,14 +47,15 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         [22/tcp] = 1.0 hr,
-         [513/tcp] = 1.0 hr,
-         [21/tcp] = 1.0 hr,
-         [23/tcp] = 1.0 hr
-      }
+         {
+            [22/tcp] = 1.0 hr,
+            [513/tcp] = 1.0 hr,
+            [21/tcp] = 1.0 hr,
+            [23/tcp] = 1.0 hr
+         }
+
 
    Define inactivity timeouts based on common protocol ports.
 

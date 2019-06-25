@@ -52,22 +52,23 @@ State Variables
    :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
-   ::
+      ::
 
-      {
-         spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
-         nodes={
+         {
+            spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
+            nodes={
 
+            }
+            node_list=[]
+            hrw_pool=[sites={
+
+            }]
+            rr_key_seq={
+
+            }
+            alive_count=0
          }
-         node_list=[]
-         hrw_pool=[sites={
 
-         }]
-         rr_key_seq={
-
-         }
-         alive_count=0
-      }
 
    A pool containing all the logger nodes of a cluster.
    The pool's node membership/availability is automatically
@@ -79,14 +80,15 @@ State Variables
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         topic="zeek/cluster/pool/logger"
-         node_type=Cluster::LOGGER
-         max_nodes=<uninitialized>
-         exclusive=F
-      }
+         {
+            topic="zeek/cluster/pool/logger"
+            node_type=Cluster::LOGGER
+            max_nodes=<uninitialized>
+            exclusive=F
+         }
+
 
    The specification for :zeek:see:`Cluster::logger_pool`.
 
@@ -95,22 +97,23 @@ State Variables
    :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
-   ::
+      ::
 
-      {
-         spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
-         nodes={
+         {
+            spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
+            nodes={
 
+            }
+            node_list=[]
+            hrw_pool=[sites={
+
+            }]
+            rr_key_seq={
+
+            }
+            alive_count=0
          }
-         node_list=[]
-         hrw_pool=[sites={
 
-         }]
-         rr_key_seq={
-
-         }
-         alive_count=0
-      }
 
    A pool containing all the proxy nodes of a cluster.
    The pool's node membership/availability is automatically
@@ -122,14 +125,15 @@ State Variables
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         topic="zeek/cluster/pool/proxy"
-         node_type=Cluster::PROXY
-         max_nodes=<uninitialized>
-         exclusive=F
-      }
+         {
+            topic="zeek/cluster/pool/proxy"
+            node_type=Cluster::PROXY
+            max_nodes=<uninitialized>
+            exclusive=F
+         }
+
 
    The specification for :zeek:see:`Cluster::proxy_pool`.
 
@@ -138,22 +142,23 @@ State Variables
    :Type: :zeek:type:`Cluster::Pool`
    :Default:
 
-   ::
+      ::
 
-      {
-         spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
-         nodes={
+         {
+            spec=[topic="", node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]
+            nodes={
 
+            }
+            node_list=[]
+            hrw_pool=[sites={
+
+            }]
+            rr_key_seq={
+
+            }
+            alive_count=0
          }
-         node_list=[]
-         hrw_pool=[sites={
 
-         }]
-         rr_key_seq={
-
-         }
-         alive_count=0
-      }
 
    A pool containing all the worker nodes of a cluster.
    The pool's node membership/availability is automatically
@@ -165,14 +170,15 @@ State Variables
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         topic="zeek/cluster/pool/worker"
-         node_type=Cluster::WORKER
-         max_nodes=<uninitialized>
-         exclusive=F
-      }
+         {
+            topic="zeek/cluster/pool/worker"
+            node_type=Cluster::WORKER
+            max_nodes=<uninitialized>
+            exclusive=F
+         }
+
 
    The specification for :zeek:see:`Cluster::worker_pool`.
 

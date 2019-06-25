@@ -80,15 +80,16 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "shutdown",
-         "id_value",
-         "net_stats",
-         "peer_status",
-         "configuration_update"
-      }
+         {
+            "shutdown",
+            "id_value",
+            "net_stats",
+            "peer_status",
+            "configuration_update"
+         }
+
 
    The commands that can currently be given on the command line for
    remote control.

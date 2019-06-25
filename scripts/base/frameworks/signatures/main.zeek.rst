@@ -65,9 +65,22 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      /(^?(^?(^webapp-)$?)$?)|(^?((^?(^?(traceroute-detector.*)$?)$?)|(^?(^?(NO_DEFAULT_MATCHES)$?)$?))$?)/
+         /^?(NO_DEFAULT_MATCHES)$?/
+
+   :Redefinition: from :doc:`/scripts/policy/misc/detect-traceroute/main.zeek`
+
+      ``+=``::
+
+         /^?(traceroute-detector.*)$?/
+
+   :Redefinition: from :doc:`/scripts/policy/protocols/http/detect-webapps.zeek`
+
+      ``+=``::
+
+         /^?(^webapp-)$?/
+
 
    Signature IDs that should always be ignored.
 
@@ -88,11 +101,12 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``Signatures::SIG_ALARM`` :zeek:attr:`&optional`
    :Default:
 
-   ::
+      ::
 
-      {
-         ["unspecified"] = Signatures::SIG_IGNORE
-      }
+         {
+            ["unspecified"] = Signatures::SIG_IGNORE
+         }
+
 
    Actions for a signature.  
 
@@ -102,18 +116,19 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         500,
-         1000,
-         1000000,
-         5,
-         100,
-         50,
-         10000,
-         10
-      }
+         {
+            500,
+            1000,
+            1000000,
+            5,
+            100,
+            50,
+            10000,
+            10
+         }
+
 
    Generate a notice if a :zeek:enum:`Signatures::SIG_COUNT_PER_RESP`
    signature is triggered as often as given by one of these thresholds.
@@ -124,16 +139,17 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         500,
-         1000,
-         5,
-         100,
-         50,
-         10
-      }
+         {
+            500,
+            1000,
+            5,
+            100,
+            50,
+            10
+         }
+
 
    Generate a notice if, for a pair [orig, signature], the number of
    different responders has reached one of the thresholds.
@@ -144,16 +160,17 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         500,
-         1000,
-         5,
-         100,
-         50,
-         10
-      }
+         {
+            500,
+            1000,
+            5,
+            100,
+            50,
+            10
+         }
+
 
    Generate a notice if, for a pair [orig, resp], the number of
    different signature matches has reached one of the thresholds.

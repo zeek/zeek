@@ -60,12 +60,13 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "zlib",
-         "zlib@openssh.com"
-      }
+         {
+            "zlib",
+            "zlib@openssh.com"
+         }
+
 
    The set of compression algorithms. We can't accurately determine
    authentication success or failure when compression is enabled.

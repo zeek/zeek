@@ -75,7 +75,13 @@ Redefinable Options
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``10.0 mins``
+   :Default: ``-1.0 min``
+   :Redefinition: from :doc:`/scripts/policy/frameworks/intel/do_expire.zeek`
+
+      ``=``::
+
+         10.0 mins
+
 
    The expiration timeout for intelligence items. Once an item expires, the
    :zeek:id:`Intel::item_expired` hook is called. Reinsertion of an item 

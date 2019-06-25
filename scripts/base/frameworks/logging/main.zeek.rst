@@ -159,27 +159,19 @@ Redefinable Options
 
    :Type: :zeek:type:`table` [:zeek:type:`Log::Writer`] of :zeek:type:`function` (info: :zeek:type:`Log::RotationInfo`) : :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
-   :Default:
+   :Default: ``{}``
+   :Redefinition: from :doc:`/scripts/base/frameworks/logging/writers/ascii.zeek`
 
-   ::
+      ``+=``::
 
-      {
-         [Log::WRITER_NONE] = LogNone::default_rotation_postprocessor_func
-         { 
-         return (T);
-         },
-         [Log::WRITER_ASCII] = LogAscii::default_rotation_postprocessor_func
-         { 
-         LogAscii::gz = LogAscii::info$fname[-3, (coerce flattenLogAscii::info$fname to int)] == ".gz" ? ".gz" : "";
-         LogAscii::bls = getenv("ZEEK_LOG_SUFFIX");
-         if ("" == LogAscii::bls) 
-            LogAscii::bls = "log";
+         Log::WRITER_ASCII = LogAscii::default_rotation_postprocessor_func
 
-         LogAscii::dst = fmt("%s.%s.%s%s", LogAscii::info$path, strftime(Log::default_rotation_date_format, LogAscii::info$open), LogAscii::bls, LogAscii::gz);
-         system(fmt("/bin/mv %s %s", LogAscii::info$fname, LogAscii::dst));
-         return (Log::run_rotation_postprocessor_cmd(LogAscii::info, LogAscii::dst));
-         }
-      }
+   :Redefinition: from :doc:`/scripts/base/frameworks/logging/writers/none.zeek`
+
+      ``+=``::
+
+         Log::WRITER_NONE = LogNone::default_rotation_postprocessor_func
+
 
    Specifies the default postprocessor function per writer type.
    Entries in this table are initialized by each writer type.
@@ -263,31 +255,32 @@ Constants
    :Type: :zeek:type:`Log::Filter`
    :Default:
 
-   ::
+      ::
 
-      {
-         name="<not found>"
-         writer=Log::WRITER_ASCII
-         pred=<uninitialized>
-         path=<uninitialized>
-         path_func=<uninitialized>
-         include=<uninitialized>
-         exclude=<uninitialized>
-         log_local=T
-         log_remote=T
-         field_name_map={
+         {
+            name="<not found>"
+            writer=Log::WRITER_ASCII
+            pred=<uninitialized>
+            path=<uninitialized>
+            path_func=<uninitialized>
+            include=<uninitialized>
+            exclude=<uninitialized>
+            log_local=T
+            log_remote=T
+            field_name_map={
 
+            }
+            scope_sep="."
+            ext_prefix="_"
+            ext_func=anonymous-function
+            ;
+            interv=0 secs
+            postprocessor=<uninitialized>
+            config={
+
+            }
          }
-         scope_sep="."
-         ext_prefix="_"
-         ext_func=anonymous-function
-         ;
-         interv=0 secs
-         postprocessor=<uninitialized>
-         config={
 
-         }
-      }
 
    Sentinel value for indicating that a filter was not found when looked up.
 

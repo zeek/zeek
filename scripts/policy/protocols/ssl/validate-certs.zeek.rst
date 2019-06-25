@@ -74,7 +74,13 @@ State Variables
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``T``
+   :Default: ``F``
+   :Redefinition: from :doc:`/scripts/policy/protocols/ssl/validate-sct.zeek`
+
+      ``=``::
+
+         T
+
 
    Store the valid chain in c$ssl$valid_chain if validation succeeds.
    This has a potentially high memory impact, depending on the local environment

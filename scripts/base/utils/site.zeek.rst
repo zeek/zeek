@@ -106,17 +106,18 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         192.168.0.0/16,
-         127.0.0.0/8,
-         ::1/128,
-         172.16.0.0/12,
-         10.0.0.0/8,
-         fe80::/10,
-         100.64.0.0/10
-      }
+         {
+            192.168.0.0/16,
+            127.0.0.0/8,
+            ::1/128,
+            172.16.0.0/12,
+            10.0.0.0/8,
+            fe80::/10,
+            100.64.0.0/10
+         }
+
 
    Address space that is considered private and unrouted.
    By default it has RFC defined non-routable IPv4 address space.

@@ -40,14 +40,19 @@ Runtime Options
 
    :Type: :zeek:type:`set` [:zeek:type:`Analyzer::Tag`]
    :Attributes: :zeek:attr:`&redef`
-   :Default:
+   :Default: ``{}``
+   :Redefinition: from :doc:`/scripts/base/protocols/dce-rpc/main.zeek`
 
-   ::
+      ``+=``::
 
-      {
-         Analyzer::ANALYZER_DCE_RPC,
+         Analyzer::ANALYZER_DCE_RPC
+
+   :Redefinition: from :doc:`/scripts/base/protocols/ntlm/main.zeek`
+
+      ``+=``::
+
          Analyzer::ANALYZER_NTLM
-      }
+
 
    Analyzers which you don't want to throw 
 

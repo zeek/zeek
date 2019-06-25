@@ -66,30 +66,31 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "MKCOL",
-         "MOVE",
-         "LOCK",
-         "SUBSCRIBE",
-         "REPORT",
-         "PROPPATCH",
-         "UNLOCK",
-         "OPTIONS",
-         "CONNECT",
-         "DELETE",
-         "TRACE",
-         "SEARCH",
-         "HEAD",
-         "COPY",
-         "BMOVE",
-         "GET",
-         "PUT",
-         "POST",
-         "PROPFIND",
-         "POLL"
-      }
+         {
+            "MKCOL",
+            "MOVE",
+            "LOCK",
+            "SUBSCRIBE",
+            "REPORT",
+            "PROPPATCH",
+            "UNLOCK",
+            "OPTIONS",
+            "CONNECT",
+            "DELETE",
+            "TRACE",
+            "SEARCH",
+            "HEAD",
+            "COPY",
+            "BMOVE",
+            "GET",
+            "PUT",
+            "POST",
+            "PROPFIND",
+            "POLL"
+         }
+
 
    A list of HTTP methods. Other methods will generate a weird. Note
    that the HTTP analyzer will only accept methods consisting solely
@@ -101,17 +102,18 @@ Runtime Options
    :Attributes: :zeek:attr:`&redef`
    :Default:
 
-   ::
+      ::
 
-      {
-         "X-FORWARDED-FOR",
-         "CLIENT-IP",
-         "XROXY-CONNECTION",
-         "X-FORWARDED-FROM",
-         "FORWARDED",
-         "PROXY-CONNECTION",
-         "VIA"
-      }
+         {
+            "X-FORWARDED-FOR",
+            "CLIENT-IP",
+            "XROXY-CONNECTION",
+            "X-FORWARDED-FROM",
+            "FORWARDED",
+            "PROXY-CONNECTION",
+            "VIA"
+         }
+
 
    A list of HTTP headers typically used to indicate proxied requests.
 

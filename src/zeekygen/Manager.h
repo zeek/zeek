@@ -136,8 +136,11 @@ public:
 	 * Register a redefinition of a particular identifier.
 	 * @param id The identifier being redef'd.
 	 * @param path Absolute path to a Bro script doing the redef.
+	 * @param ic The initialization class that was used (e.g. =, +=, -=).
+	 * @param init_expr The intiialization expression that was used.
 	 */
-	void Redef(const ID* id, const std::string& path);
+	void Redef(const ID* id, const std::string& path,
+			   init_class ic = INIT_NONE, Expr* init_expr = nullptr);
 
 	/**
 	 * Register Zeekygen script summary content.

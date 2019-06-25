@@ -632,6 +632,7 @@ public:
 	// char* ExpandedString(int format = BroString::EXPANDED_STRING)
 	// 	{ return AsString()->ExpandedString(format); }
 
+	std::string ToStdString() const;
 	StringVal* ToUpper();
 
 	unsigned int MemoryAllocation() const override;

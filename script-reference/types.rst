@@ -969,8 +969,9 @@ Here is a more detailed description of each type:
       An opqaue type for creating and using paraglob data structures inside of
       Zeek. A paraglob is a data structure for fast string matching against a
       large set of glob style patterns. It can be loaded with a vector of
-      patterns, and then queried with input strings. For a query it returns all
-      of the patterns that it contains matching that input string.
+      patterns, and then queried with input strings. Note that these patterns are
+      just strings, and not the pattern type built in to Zeek. For a query it 
+      returns all of the patterns that it contains matching that input string.
 
       Paraglobs offer significant performance advantages over making a pass over
       a vector of patterns and checking each one. Note though that initializing a

@@ -118,6 +118,7 @@ OpaqueType* topk_type = 0;
 OpaqueType* bloomfilter_type = 0;
 OpaqueType* x509_opaque_type = 0;
 OpaqueType* ocsp_resp_opaque_type = 0;
+OpaqueType* paraglob_type = 0;
 
 // Keep copy of command line
 int bro_argc;
@@ -786,6 +787,7 @@ int main(int argc, char** argv)
 	bloomfilter_type = new OpaqueType("bloomfilter");
 	x509_opaque_type = new OpaqueType("x509");
 	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
+	paraglob_type = new OpaqueType("paraglob");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

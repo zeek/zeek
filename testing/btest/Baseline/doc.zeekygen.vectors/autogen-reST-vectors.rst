@@ -3,9 +3,10 @@
    :Type: :zeek:type:`vector` of :zeek:type:`string`
    :Default:
 
-   ::
+      ::
 
-      []
+         []
+
 
    Yield type is documented/cross-referenced for primitize types.
 
@@ -14,9 +15,10 @@
    :Type: :zeek:type:`vector` of :zeek:type:`TestRecord`
    :Default:
 
-   ::
+      ::
 
-      []
+         []
+
 
    Yield type is documented/cross-referenced for composite types.
 
@@ -25,9 +27,10 @@
    :Type: :zeek:type:`vector` of :zeek:type:`vector` of :zeek:type:`TestRecord`
    :Default:
 
-   ::
+      ::
 
-      []
+         []
+
 
    Just showing an even fancier yield type.
 

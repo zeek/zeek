@@ -5,28 +5,26 @@
 
 #include "Desc.h"
 #include "Val.h"
+#include "Expr.h"
 
 using namespace std;
 using namespace zeekygen;
 
 IdentifierInfo::IdentifierInfo(ID* arg_id, ScriptInfo* script)
 	: Info(),
-	  comments(), id(arg_id), initial_val_desc(), redefs(), fields(),
+	  comments(), id(arg_id), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script)
 	{
 	Ref(id);
 
-	if ( id->ID_Val() )
-		{
-		ODesc d;
-		id->ID_Val()->Describe(&d);
-		initial_val_desc = d.Description();
-		}
+	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
+		initial_val = id->ID_Val()->Clone();
 	}
 
 IdentifierInfo::~IdentifierInfo()
 	{
 	Unref(id);
+	Unref(initial_val);
 
 	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
 	      ++it )
@@ -37,20 +35,10 @@ IdentifierInfo::~IdentifierInfo()
 		delete it->second;
 	}
 
-void IdentifierInfo::AddRedef(const string& script,
-                                  const vector<string>& comments)
+void IdentifierInfo::AddRedef(const string& script, init_class ic,
+                              Expr* init_expr, const vector<string>& comments)
 	{
-	Redefinition* redef = new Redefinition();
-	redef->from_script = script;
-
-	if ( id->ID_Val() )
-		{
-		ODesc d;
-		id->ID_Val()->Describe(&d);
-		redef->new_val_desc = d.Description();
-		}
-
-	redef->comments = comments;
+	Redefinition* redef = new Redefinition(script, ic, init_expr, comments);
 	redefs.push_back(redef);
 	}
 
@@ -145,4 +133,49 @@ time_t IdentifierInfo::DoGetModificationTime() const
 	// Could probably get away with just checking the set of scripts that
 	// contributed to the ID declaration/redefinitions, but this is easier...
 	return declaring_script->GetModificationTime();
+	}
+
+IdentifierInfo::Redefinition::Redefinition(
+                       std::string arg_script,
+                       init_class arg_ic,
+                       Expr* arg_expr,
+                       std::vector<std::string> arg_comments)
+			: from_script(std::move(arg_script)),
+			  ic(arg_ic),
+			  init_expr(arg_expr ? arg_expr->Ref() : nullptr),
+			  comments(std::move(arg_comments))
+	{
+	}
+
+IdentifierInfo::Redefinition::Redefinition(const IdentifierInfo::Redefinition& other)
+	{
+	from_script = other.from_script;
+	ic = other.ic;
+	init_expr = other.init_expr;
+	comments = other.comments;
+
+	if ( init_expr )
+		init_expr->Ref();
+	}
+
+IdentifierInfo::Redefinition&
+IdentifierInfo::Redefinition::operator=(const IdentifierInfo::Redefinition& other)
+	{
+	if ( &other == this )
+		return *this;
+
+	from_script = other.from_script;
+	ic = other.ic;
+	init_expr = other.init_expr;
+	comments = other.comments;
+
+	if ( init_expr )
+		init_expr->Ref();
+
+	return *this;
+	}
+
+IdentifierInfo::Redefinition::~Redefinition()
+	{
+	Unref(init_expr);
 	}

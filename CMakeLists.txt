@@ -359,6 +359,10 @@ include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
 include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
 include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
 
+add_subdirectory(aux/paraglob)
+set(zeekdeps ${zeekdeps} paraglob)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob)
+
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(man)

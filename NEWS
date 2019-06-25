@@ -112,6 +112,13 @@ New Functionality
     v[2:4] = vector(6, 7, 8);        # v is now [1, 2, 6, 7, 8, 5]
     print v[:4];                     # prints [1, 2, 6, 7]
 
+- Add support for paraglob, a fairly quick data structure for matching a string
+  against a large list of patterns. For example::
+
+	local v1 = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+	local p1 = paraglob_init(v1);
+	print paraglob_match(p1, "dog");
+
 Changed Functionality
 ---------------------
 

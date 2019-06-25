@@ -463,20 +463,26 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		}
 
 	if ( val && type &&
-		type->Tag() != TYPE_FUNC &&
-		type->InternalType() != TYPE_INTERNAL_VOID &&
-		// Values within Version module are likely to include a
-		// constantly-changing version number and be a frequent
-		// source of error/desynchronization, so don't include them.
-		ModuleName() != "Version" )
+	     type->Tag() != TYPE_FUNC &&
+	     type->InternalType() != TYPE_INTERNAL_VOID &&
+	     // Values within Version module are likely to include a
+	     // constantly-changing version number and be a frequent
+	     // source of error/desynchronization, so don't include them.
+		 ModuleName() != "Version" )
 		{
 		d->Add(":Default:");
+		auto ii = zeekygen_mgr->GetIdentifierInfo(Name());
+		auto redefs = ii->GetRedefs();
+		auto iv = val;
+
+		if ( ! redefs.empty() && ii->InitialVal() )
+			iv = ii->InitialVal();
 
 		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
 			{
 			switch ( type->Tag() ) {
 			case TYPE_TABLE:
-				if ( val->AsTable()->Length() == 0 )
+				if ( iv->AsTable()->Length() == 0 )
 					{
 					d->Add(" ``{}``");
 					d->NL();
@@ -486,11 +492,12 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 
 			default:
 				d->NL();
-				d->NL();
+				d->PushIndent();
 				d->Add("::");
 				d->NL();
 				d->PushIndent();
-				val->DescribeReST(d);
+				iv->DescribeReST(d);
+				d->PopIndent();
 				d->PopIndent();
 			}
 			}
@@ -498,8 +505,44 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		else
 			{
 			d->SP();
-			val->DescribeReST(d);
+			iv->DescribeReST(d);
 			d->NL();
+			}
+
+		for ( auto& ir : redefs )
+			{
+			if ( ! ir->init_expr )
+				continue;
+
+			if ( ir->ic == INIT_NONE )
+				continue;
+
+			std::string redef_str;
+			ODesc expr_desc;
+			ir->init_expr->Describe(&expr_desc);
+			redef_str = expr_desc.Description();
+			redef_str = strreplace(redef_str, "\n", " ");
+
+			d->Add(":Redefinition: ");
+			d->Add(fmt("from :doc:`/scripts/%s`", ir->from_script.data()));
+			d->NL();
+			d->PushIndent();
+
+			if ( ir->ic == INIT_FULL )
+				d->Add("``=``");
+			else if ( ir->ic == INIT_EXTRA )
+				d->Add("``+=``");
+			else if ( ir->ic == INIT_REMOVE )
+				d->Add("``-=``");
+			else
+				assert(false);
+
+			d->Add("::");
+			d->NL();
+			d->PushIndent();
+			d->Add(redef_str.data());
+			d->PopIndent();
+			d->PopIndent();
 			}
 		}
 	}

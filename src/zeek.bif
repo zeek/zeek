@@ -789,6 +789,74 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 	return static_cast<HashVal*>(handle)->Get();
 	%}
 
+## Initializes and returns a new paraglob.
+##
+## v: Vector of patterns to initialize the paraglob with.
+##
+## Returns: A new, compiled, paraglob with the patterns in *v*
+##
+## .. zeek:see::paraglob_match paraglob_equals paraglob_add
+function paraglob_init%(v: any%) : opaque of paraglob
+	%{
+	if ( v->Type()->Tag() != TYPE_VECTOR ||
+	     v->Type()->YieldType()->Tag() != TYPE_STRING )
+		{
+		// reporter->Error will throw an exception.
+		reporter->Error("paraglob requires a vector of strings for initialization.");
+		return nullptr;
+		}
+
+	std::vector<std::string> patterns;
+	VectorVal* vv = v->AsVectorVal();
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		{
+		const BroString* s = vv->Lookup(i)->AsString();
+		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
+		}
+
+	try
+		{
+		std::unique_ptr<paraglob::Paraglob> p (new paraglob::Paraglob(patterns));
+		return new ParaglobVal(std::move(p));
+		}
+	// Thrown if paraglob fails to add a pattern.
+	catch (const paraglob::add_error& e)
+		{
+		reporter->Error("Paraglob failed to add pattern: %s", e.what());
+		return nullptr;
+		}
+	%}
+
+## Gets all the patterns inside the handle associated with an input string.
+##
+## handle: A compiled paraglob.
+##
+## match: string to match against the paraglob.
+##
+## Returns: A vector of strings matching the input string.
+##
+## ## .. zeek:see::paraglob_add paraglob_equals paraglob_init
+function paraglob_match%(handle: opaque of paraglob, match: string%): string_vec
+	%{
+	return static_cast<ParaglobVal*>(handle)->Get(match);
+	%}
+
+## Compares two paraglobs for equality.
+##
+## p_one: A compiled paraglob.
+##
+## p_two: A compiled paraglob.
+##
+## Returns: True if both paraglobs contain the same patterns, false otherwise.
+##
+## ## .. zeek:see::paraglob_add paraglob_match paraglob_init
+function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%) : bool
+	%{
+	return val_mgr->GetBool(
+		*(static_cast<ParaglobVal*>(p_one)) ==  *(static_cast<ParaglobVal*>(p_two))
+	);
+	%}
+
 ## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.
 ## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
 ##
@@ -3077,7 +3145,7 @@ function strptime%(fmt: string, d: string%) : time
 	const time_t timeval = time_t();
 	struct tm t;
 
-	if ( ! localtime_r(&timeval, &t) || 
+	if ( ! localtime_r(&timeval, &t) ||
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());

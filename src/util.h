@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
+#include <memory> // std::unique_ptr
 
 #include "zeek-config.h"
 #include "siphash24.h"
@@ -554,5 +555,14 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
  * legacy environment variable names that map to the latest \a name.
  */
 char* zeekenv(const char* name);
+
+/**
+ * Small convenience function. Does what std::make_unique does in C++14. Will not
+ * work on arrays.
+ */
+template <typename T, typename ... Args>
+std::unique_ptr<T> build_unique (Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 #endif

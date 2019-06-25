@@ -352,7 +352,8 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	        field->id, id->Name(), script.c_str());
 	}
 
-void Manager::Redef(const ID* id, const string& path)
+void Manager::Redef(const ID* id, const string& path,
+                    init_class ic, Expr* init_expr)
 	{
 	if ( disabled )
 		return;
@@ -380,7 +381,7 @@ void Manager::Redef(const ID* id, const string& path)
 		return;
 		}
 
-	id_info->AddRedef(from_script, comment_buffer);
+	id_info->AddRedef(from_script, ic, init_expr, comment_buffer);
 	script_info->AddRedef(id_info);
 	comment_buffer.clear();
 	last_identifier_seen = id_info;

@@ -983,7 +983,7 @@ Here is a more detailed description of each type:
 
         local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
         local p : opaque of paraglob = paraglob_init(v);
-        print paraglob_get(p1, "dog");
+        print paraglob_match(p1, "dog");
         # out: [*, *og, d?g, d[!wl]g]
 
       For more documentation on paraglob see :doc:`/components/index`.

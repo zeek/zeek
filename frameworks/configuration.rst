@@ -46,7 +46,7 @@ The "option" keyword allows variables to be declared as configuration options.
         option my_networks: set[subnet] = {};
         option enable_feature = F;
         option hostname = "testsystem";
-        option timeout = 1min;
+        option timeout_after = 1min;
         option my_ports: vector of port = {};
     }
 
@@ -99,7 +99,7 @@ the cluster).  Here is an example configuration file::
     TestModule::my_networks 10.0.12.0/24,192.168.17.0/24
     TestModule::enable_feature  T
     TestModule::hostname  host-1
-    TestModule::timeout 50.5
+    TestModule::timeout_after 50.5
     TestModule::my_ports 80/tcp,53/udp
 
 Note that as seen in the above example, for options of

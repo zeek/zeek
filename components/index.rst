@@ -26,3 +26,6 @@ respective GitHub repositories or documentation:
 * `Package Manager <https://github.com/zeek/package-manager>`__
   - A package manager for Zeek
   - `(Docs) <https://docs.zeek.org/projects/package-manager>`__
+* `Paraglob <https://github.com/zeek/paraglob>`__
+  - A pattern matching data structure for Zeek.
+  - `(Docs) <https://github.com/zeek/paraglob/blob/master/README.md>`__

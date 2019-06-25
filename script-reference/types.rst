@@ -967,6 +967,7 @@ Here is a more detailed description of each type:
     .. sourcecode:: zeek
 
         local handle = md5_hash_init();
+        # Explicitly -> local handle : opaque of md5 = ...
         md5_hash_update(handle, "test");
         md5_hash_update(handle, "testing");
         print md5_hash_finish(handle);
@@ -977,6 +978,41 @@ Here is a more detailed description of each type:
     necessary to have a handle as a way of identifying it and
     distinguishing it from other such resources.
 
+    The scripting layer implementations of these types are found primarily in
+    :doc:`/scripts/base/bif/bro.bif.zeek` and a more granular look at them
+    can be found in ``src/OpaqueVal.h/cc`` inside the Zeek repo. Opaque types
+    are a good way to integrate functionality into Zeek without needing to
+    add an entire new type to the scripting language.
+
+    .. zeek:type:: paraglob
+
+      An opqaue type for creating and using paraglob data structures inside of
+      Zeek. A paraglob is a data structure for fast string matching against a
+      large set of glob style patterns. It can be loaded with a vector of
+      patterns, and then queried with input strings. Note that these patterns are
+      just strings, and not the pattern type built in to Zeek. For a query it 
+      returns all of the patterns that it contains matching that input string.
+
+      Paraglobs offer significant performance advantages over making a pass over
+      a vector of patterns and checking each one. Note though that initializing a
+      paraglob can take some time for very large pattern sets (1,000,000+
+      patterns) and care should be taken to only initialize one with a large
+      pattern set when there is time for the paraglob to compile. Subsequent get
+      operations run very quickly though, even for very large pattern sets.
+
+      .. sourcecode:: zeek
+
+        local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+        local p : opaque of paraglob = paraglob_init(v);
+        print paraglob_match(p1, "dog");
+        # out: [*, *og, d?g, d[!wl]g]
+
+      For more documentation on paraglob see :doc:`/components/index`.
+
+    .. zeek:see:: md5_hash_init sha1_hash_init sha256_hash_init
+                  hll_cardinality_add bloomfilter_basic_init
+
+
 .. zeek:type:: any
 
     Used to bypass strong typing.  For example, a function can take an
@@ -984,11 +1020,12 @@ Here is a more detailed description of each type:
     The only operation allowed on a variable of type ``any`` is assignment.
 
     Note that users aren't expected to use this type.  It's provided mainly
-    for use by some built-in functions and scripts included with Zeek.
+    for use by some built-in functions and scripts included with Zeek. For
+    example, passing a vector into a ``.bif`` function is best accomplished by
+    taking :zeek:type:`any` as an argument and casting it to a vector.
 
 .. zeek:type:: void
 
     An internal Zeek type (i.e., "void" is not a reserved keyword in the Zeek
     scripting language) representing the absence of a return type for a
     function.
-

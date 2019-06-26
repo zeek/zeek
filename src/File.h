@@ -8,6 +8,9 @@
 #include "Obj.h"
 #include "Attr.h"
 
+#include <list>
+#include <utility>
+
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
@@ -54,8 +57,8 @@ public:
 	// Returns the current size of the file, after fresh stat'ing.
 	double Size();
 
-	// Close all files which are managed by us.
-	static void CloseCachedFiles();
+	// Close all files which are currently open.
+	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
 	static BroFile* GetFile(const char* name);
@@ -75,24 +78,14 @@ protected:
 	 * If file is not given and mode is, the filename will be opened with that
 	 * access mode.
 	 */
-	bool Open(FILE* f = 0, const char* mode = 0);
+	bool Open(FILE* f = nullptr, const char* mode = 0);
 
-	BroFile* Prev()	{ return prev; }
-	BroFile* Next()	{ return next; }
-	void SetPrev(BroFile* f)	{ prev = f; }
-	void SetNext(BroFile* f)	{ next = f; }
-
-	void Suspend();
-	void PurgeCache();
 	void Unlink();
-	void InsertAtBeginning();
-	void MoveToBeginning();
 
 	// Returns nil if the file is not active, was in error, etc.
 	// (Protected because we do not want anyone to write directly
 	// to the file.)
 	FILE* File();
-	FILE* BringIntoCache();
 
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
@@ -101,12 +94,7 @@ protected:
 	BroType* t;
 	char* name;
 	char* access;
-	int is_in_cache;	// whether it's currently in the open-file cache
 	int is_open;	// whether the file is open in a general sense
-	int okay_to_manage;	// we're allowed to cache/uncache
-	long position;	// only valid if ! is_in_cache
-	BroFile* next;	// doubly-linked list of cached files
-	BroFile* prev;
 	Attributes* attrs;
 	bool buffered;
 	double open_time;
@@ -114,6 +102,9 @@ protected:
 	bool raw_output;
 
 	static const int MIN_BUFFER_SIZE = 1024;
+
+private:
+	static std::list<std::pair<std::string, BroFile*>> open_files;
 };
 
 #endif

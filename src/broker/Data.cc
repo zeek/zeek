@@ -100,10 +100,7 @@ struct val_converter {
 			auto file = BroFile::GetFile(a.data());
 
 			if ( file )
-				{
-				Ref(file);
 				return new Val(file);
-				}
 
 			return nullptr;
 			}

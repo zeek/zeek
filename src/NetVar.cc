@@ -155,7 +155,6 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
-int max_files_in_cache;
 RecordType* rotate_info;
 StringVal* log_rotate_base_time;
 
@@ -229,7 +228,6 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	max_files_in_cache = opt_internal_int("max_files_in_cache");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 

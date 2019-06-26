@@ -4622,11 +4622,6 @@ module GLOBAL;
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
-## The maximum number of open files to keep cached at a given time.
-## If set to zero, this is automatically determined by inspecting
-## the current/maximum limit on open files for the process.
-const max_files_in_cache = 0 &redef;
-
 ## Deprecated.
 const log_rotate_base_time = "0:00" &redef;
 

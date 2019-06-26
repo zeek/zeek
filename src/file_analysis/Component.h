@@ -9,7 +9,7 @@
 
 #include "Val.h"
 
-#include "../bro-config.h"
+#include "../zeek-config.h"
 #include "../util.h"
 
 namespace file_analysis {

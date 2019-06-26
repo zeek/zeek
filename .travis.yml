@@ -16,10 +16,10 @@ branches:
 notifications:
   email:
     recipients:
-    - bro-commits-internal@bro.org
+    - zeek-commits-internal@zeek.org
 
-# Build Bro and run tests in the following Linux distros (specifying "travis"
-# builds bro in Travis without using docker).
+# Build Zeek and run tests in the following Linux distros (specifying "travis"
+# builds Zeek in Travis without using docker).
 env:
   - distro: centos_7
   - distro: debian_9

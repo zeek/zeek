@@ -12,12 +12,12 @@
 ##
 ## arg: The argument to the command.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+## .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
 ##    pop3_unexpected
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_request%(c: connection, is_orig: bool,
 			command: string, arg: string%);
@@ -37,14 +37,14 @@ event pop3_request%(c: connection, is_orig: bool,
 ##
 ## msg: The textual description the server sent along with *cmd*.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
+## .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
 ##    pop3_unexpected
 ##
 ## .. todo:: This event is receiving odd parameters, should unify.
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 
@@ -62,12 +62,12 @@ event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 ##
 ## data: The data sent.
 ##
-## .. bro:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
+## .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
 ##    pop3_unexpected
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_data%(c: connection, is_orig: bool, data: string%);
 
@@ -86,11 +86,11 @@ event pop3_data%(c: connection, is_orig: bool, data: string%);
 ##
 ## detail: The input that triggered the event.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
+## .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_unexpected%(c: connection, is_orig: bool,
 			msg: string, detail: string%);
@@ -105,12 +105,12 @@ event pop3_unexpected%(c: connection, is_orig: bool,
 ##
 ## c: The connection.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
+## .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
 ##    pop3_request pop3_unexpected
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_starttls%(c: connection%);
 
@@ -128,12 +128,12 @@ event pop3_starttls%(c: connection%);
 ##
 ## password: The password used for authentication.
 ##
-## .. bro:see:: pop3_data pop3_login_failure pop3_reply pop3_request
+## .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
 ##    pop3_unexpected
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_login_success%(c: connection, is_orig: bool,
 				user: string, password: string%);
@@ -152,12 +152,12 @@ event pop3_login_success%(c: connection, is_orig: bool,
 ##
 ## password: The password attempted for authentication.
 ##
-## .. bro:see:: pop3_data pop3_login_success pop3_reply pop3_request
+## .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
 ##    pop3_unexpected
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event pop3_login_failure%(c: connection, is_orig: bool,
 				user: string, password: string%);

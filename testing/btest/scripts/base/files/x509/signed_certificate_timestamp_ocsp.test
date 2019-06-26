@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/signed_certificate_timestamp.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
-event bro_init()
+event zeek_init()
 	{
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");
 	}

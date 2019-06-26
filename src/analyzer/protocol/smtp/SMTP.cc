@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 
@@ -220,11 +220,11 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 			if ( smtp_data && ! skip_data )
 				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				vl->append(new StringVal(data_len, line));
-				ConnectionEvent(smtp_data, vl);
+				ConnectionEventFast(smtp_data, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(data_len, line),
+				});
 				}
 			}
 
@@ -350,15 +350,14 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 						break;
 				}
 
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				vl->append(val_mgr->GetCount(reply_code));
-				vl->append(new StringVal(cmd));
-				vl->append(new StringVal(end_of_line - line, line));
-				vl->append(val_mgr->GetBool((pending_reply > 0)));
-
-				ConnectionEvent(smtp_reply, vl);
+				ConnectionEventFast(smtp_reply, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					val_mgr->GetCount(reply_code),
+					new StringVal(cmd),
+					new StringVal(end_of_line - line, line),
+					val_mgr->GetBool((pending_reply > 0)),
+				});
 				}
 			}
 
@@ -411,10 +410,8 @@ void SMTP_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(smtp_starttls, vl);
+	if ( smtp_starttls )
+		ConnectionEventFast(smtp_starttls, {BuildConnVal()});
 	}
 
 
@@ -856,14 +853,14 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 				int arg_len, const char* arg)
 	{
 	ProtocolConfirmation();
-	val_list* vl = new val_list;
 
-	vl->append(BuildConnVal());
-	vl->append(val_mgr->GetBool(orig_is_sender));
-	vl->append((new StringVal(cmd_len, cmd))->ToUpper());
-	vl->append(new StringVal(arg_len, arg));
-
-	ConnectionEvent(smtp_request, vl);
+	if ( smtp_request )
+		ConnectionEventFast(smtp_request, {
+			BuildConnVal(),
+			val_mgr->GetBool(orig_is_sender),
+			(new StringVal(cmd_len, cmd))->ToUpper(),
+			new StringVal(arg_len, arg),
+		});
 	}
 
 void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
@@ -874,17 +871,16 @@ void SMTP_Analyzer::Unexpected(const int is_sender, const char* msg,
 
 	if ( smtp_unexpected )
 		{
-		val_list* vl = new val_list;
 		int is_orig = is_sender;
 		if ( ! orig_is_sender )
 			is_orig = ! is_orig;
 
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(new StringVal(msg));
-		vl->append(new StringVal(detail_len, detail));
-
-		ConnectionEvent(smtp_unexpected, vl);
+		ConnectionEventFast(smtp_unexpected, {
+			BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			new StringVal(msg),
+			new StringVal(detail_len, detail),
+		});
 		}
 	}
 

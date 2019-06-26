@@ -1,0 +1,6 @@
+signature match, Found .*XXXX, XXXX
+signature match, Found .*YYYY, YYYY
+signature match, Found XXXX, XXXX
+signature match, Found YYYY, YYYY
+signature match, Found ^XXXX, XXXX
+signature match, Found ^YYYY, YYYY

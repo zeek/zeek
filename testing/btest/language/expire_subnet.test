@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/var-services-std-ports.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 redef table_expire_interval = 1sec;
@@ -55,7 +55,7 @@ function execute_test()
 
 ### Events ###
 
-event bro_init()
+event zeek_init()
 	{
 	step = 0;
 

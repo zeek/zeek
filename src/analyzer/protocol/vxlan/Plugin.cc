@@ -5,7 +5,7 @@
 #include "VXLAN.h"
 
 namespace plugin {
-namespace Bro_VXLAN {
+namespace Zeek_VXLAN {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -14,7 +14,7 @@ public:
 		AddComponent(new ::analyzer::Component("VXLAN", ::analyzer::vxlan::VXLAN_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::VXLAN";
+		config.name = "Zeek::VXLAN";
 		config.description = "VXLAN analyzer";
 		return config;
 		}

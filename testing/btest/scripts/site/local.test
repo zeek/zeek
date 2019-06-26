@@ -1,3 +1,3 @@
-# @TEST-EXEC: bro %INPUT
+# @TEST-EXEC: zeek %INPUT
 
 @load local

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Net.h"
 #include "Var.h"
@@ -33,20 +33,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 	if ( check_ip )
 		{
-		val_list* args = new val_list;
-		args->append(ip->BuildPktHdrVal());
+		val_list args{ip->BuildPktHdrVal()};
 
 		try
 			{
-			discard_packet = check_ip->Call(args)->AsBool();
+			discard_packet = check_ip->Call(&args)->AsBool();
 			}
 
 		catch ( InterpreterException& e )
 			{
 			discard_packet = false;
 			}
-
-		delete args;
 
 		if ( discard_packet )
 			return discard_packet;
@@ -88,21 +85,20 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct tcphdr* tp = (const struct tcphdr*) data;
 			int th_len = tp->th_off * 4;
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
-			args->append(BuildData(data, th_len, len, caplen));
+			val_list args{
+				ip->BuildPktHdrVal(),
+				BuildData(data, th_len, len, caplen),
+			};
 
 			try
 				{
-				discard_packet = check_tcp->Call(args)->AsBool();
+				discard_packet = check_tcp->Call(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 
@@ -113,21 +109,20 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct udphdr* up = (const struct udphdr*) data;
 			int uh_len = sizeof (struct udphdr);
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
-			args->append(BuildData(data, uh_len, len, caplen));
+			val_list args{
+				ip->BuildPktHdrVal(),
+				BuildData(data, uh_len, len, caplen),
+			};
 
 			try
 				{
-				discard_packet = check_udp->Call(args)->AsBool();
+				discard_packet = check_udp->Call(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 
@@ -137,20 +132,17 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			{
 			const struct icmp* ih = (const struct icmp*) data;
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
+			val_list args{ip->BuildPktHdrVal()};
 
 			try
 				{
-				discard_packet = check_icmp->Call(args)->AsBool();
+				discard_packet = check_icmp->Call(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 

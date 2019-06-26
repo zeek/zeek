@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Expr.h"
 #include "Event.h"
@@ -14,7 +14,6 @@
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
-#include "RemoteSerializer.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -118,47 +117,6 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-bool Stmt::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Stmt* Stmt::Unserialize(UnserialInfo* info, BroStmtTag want)
-	{
-	Stmt* stmt = (Stmt*) SerialObj::Unserialize(info, SER_STMT);
-
-	if ( want != STMT_ANY && stmt->tag != want )
-		{
-		info->s->Error("wrong stmt type");
-		Unref(stmt);
-		return 0;
-		}
-
-	return stmt;
-	}
-
-bool Stmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STMT, BroObj);
-
-	return SERIALIZE(char(tag)) && SERIALIZE(last_access)
-			&& SERIALIZE(access_count);
-	}
-
-bool Stmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	char c;
-	if ( ! UNSERIALIZE(&c) )
-		return 0;
-
-	tag = BroStmtTag(c);
-
-	return UNSERIALIZE(&last_access) && UNSERIALIZE(&access_count);
-	}
-
-
 ExprListStmt::ExprListStmt(BroStmtTag t, ListExpr* arg_l)
 : Stmt(t)
 	{
@@ -206,19 +164,6 @@ void ExprListStmt::Describe(ODesc* d) const
 void ExprListStmt::PrintVals(ODesc* d, val_list* vals, int offset) const
 	{
 	describe_vals(vals, d, offset);
-	}
-
-bool ExprListStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EXPR_LIST_STMT, Stmt);
-	return l->Serialize(info);
-	}
-
-bool ExprListStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	l = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
-	return l != 0;
 	}
 
 TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
@@ -292,34 +237,18 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 
 		if ( print_hook )
 			{
-			val_list* vl = new val_list(2);
 			::Ref(f);
-			vl->append(new Val(f));
-			vl->append(new StringVal(d.Len(), d.Description()));
 
 			// Note, this doesn't do remote printing.
-			mgr.Dispatch(new Event(print_hook, vl), true);
+			mgr.Dispatch(
+			    new Event(
+			        print_hook,
+			        {new Val(f), new StringVal(d.Len(), d.Description())}),
+			    true);
 			}
-
-		if ( remote_serializer )
-			remote_serializer->SendPrintHookEvent(f, d.Description(), d.Len());
 		}
 
 	return 0;
-	}
-
-IMPLEMENT_SERIAL(PrintStmt, SER_PRINT_STMT);
-
-bool PrintStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_PRINT_STMT, ExprListStmt);
-	return true;
-	}
-
-bool PrintStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprListStmt);
-	return true;
 	}
 
 ExprStmt::ExprStmt(Expr* arg_e) : Stmt(STMT_EXPR)
@@ -407,22 +336,6 @@ TraversalCode ExprStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(ExprStmt, SER_EXPR_STMT);
-
-bool ExprStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EXPR_STMT, Stmt);
-	SERIALIZE_OPTIONAL(e);
-	return true;
-	}
-
-bool ExprStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	UNSERIALIZE_OPTIONAL(e, Expr::Unserialize(info));
-	return true;
-	}
-
 IfStmt::IfStmt(Expr* test, Stmt* arg_s1, Stmt* arg_s2) : ExprStmt(STMT_IF, test)
 	{
 	s1 = arg_s1;
@@ -508,25 +421,6 @@ TraversalCode IfStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(IfStmt, SER_IF_STMT);
-
-bool IfStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_IF_STMT, ExprStmt);
-	return s1->Serialize(info) && s2->Serialize(info);
-	}
-
-bool IfStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	s1 = Stmt::Unserialize(info);
-	if ( ! s1 )
-		return false;
-
-	s2 = Stmt::Unserialize(info);
-	return s2 != 0;
 	}
 
 static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
@@ -656,67 +550,6 @@ TraversalCode Case::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_PRE(tc);
 
 	return TC_CONTINUE;
-	}
-
-bool Case::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Case* Case::Unserialize(UnserialInfo* info)
-	{
-	return (Case*) SerialObj::Unserialize(info, SER_CASE);
-	}
-
-IMPLEMENT_SERIAL(Case, SER_CASE);
-
-bool Case::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CASE, BroObj);
-
-	if ( ! expr_cases->Serialize(info) )
-		return false;
-
-	id_list empty;
-	id_list* types = (type_cases ? type_cases : &empty);
-
-	if ( ! SERIALIZE(types->length()) )
-		return false;
-
-	loop_over_list((*types), i)
-		{
-		if ( ! (*types)[i]->Serialize(info) )
-			return false;
-		}
-
-	return this->s->Serialize(info);
-	}
-
-bool Case::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	expr_cases = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
-	if ( ! expr_cases )
-		return false;
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	type_cases = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-
-		type_cases->append(id);
-		}
-
-	this->s = Stmt::Unserialize(info);
-	return this->s != 0;
 	}
 
 static void int_del_func(void* v)
@@ -1031,66 +864,6 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(SwitchStmt, SER_SWITCH_STMT);
-
-bool SwitchStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SWITCH_STMT, ExprStmt);
-
-	if ( ! SERIALIZE(cases->length()) )
-		return false;
-
-	loop_over_list((*cases), i)
-		if ( ! (*cases)[i]->Serialize(info) )
-			return false;
-
-	if ( ! SERIALIZE(default_case_idx) )
-		return false;
-
-	return true;
-	}
-
-bool SwitchStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	Init();
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		Case* c = Case::Unserialize(info);
-		if ( ! c )
-			return false;
-
-		cases->append(c);
-		}
-
-	if ( ! UNSERIALIZE(&default_case_idx) )
-		return false;
-
-	loop_over_list(*cases, i)
-		{
-		const ListExpr* le = (*cases)[i]->ExprCases();
-
-		if ( ! le )
-			continue;
-
-		const expr_list& exprs = le->Exprs();
-
-		loop_over_list(exprs, j)
-			{
-			if ( ! AddCaseLabelValueMapping(exprs[j]->ExprVal(), i) )
-				return false;
-			}
-		}
-
-	return true;
-	}
-
 AddStmt::AddStmt(Expr* arg_e) : ExprStmt(STMT_ADD, arg_e)
 	{
 	if ( ! e->CanAdd() )
@@ -1122,20 +895,6 @@ TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(AddStmt, SER_ADD_STMT);
-
-bool AddStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ADD_STMT, ExprStmt);
-	return true;
-	}
-
-bool AddStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
 	}
 
 DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
@@ -1173,20 +932,6 @@ TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(DelStmt, SER_DEL_STMT);
-
-bool DelStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_DEL_STMT, ExprStmt);
-	return true;
-	}
-
-bool DelStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
-	}
-
 EventStmt::EventStmt(EventExpr* arg_e) : ExprStmt(STMT_EVENT, arg_e)
 	{
 	event_expr = arg_e;
@@ -1198,7 +943,10 @@ Val* EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	val_list* args = eval_list(f, event_expr->Args());
 
 	if ( args )
-		mgr.QueueEvent(event_expr->Handler(), args);
+		{
+		mgr.QueueEvent(event_expr->Handler(), std::move(*args));
+		delete args;
+		}
 
 	flow = FLOW_NEXT;
 
@@ -1216,22 +964,6 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(EventStmt, SER_EVENT_STMT);
-
-bool EventStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EVENT_STMT, ExprStmt);
-	return event_expr->Serialize(info);
-	}
-
-bool EventStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	event_expr = (EventExpr*) Expr::Unserialize(info, EXPR_EVENT);
-	return event_expr != 0;
 	}
 
 WhileStmt::WhileStmt(Expr* arg_loop_condition, Stmt* arg_body)
@@ -1317,30 +1049,6 @@ Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;
 
 	return rval;
-	}
-
-IMPLEMENT_SERIAL(WhileStmt, SER_WHILE_STMT);
-
-bool WhileStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_WHILE_STMT, Stmt);
-
-	if ( ! loop_condition->Serialize(info) )
-		return false;
-
-	return body->Serialize(info);
-	}
-
-bool WhileStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	loop_condition = Expr::Unserialize(info);
-
-	if ( ! loop_condition )
-		return false;
-
-	body = Stmt::Unserialize(info);
-	return body != 0;
 	}
 
 ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
@@ -1607,47 +1315,6 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(ForStmt, SER_FOR_STMT);
-
-bool ForStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FOR_STMT, ExprStmt);
-
-	if ( ! SERIALIZE(loop_vars->length()) )
-		return false;
-
-	loop_over_list((*loop_vars), i)
-		{
-		if ( ! (*loop_vars)[i]->Serialize(info) )
-			return false;
-		}
-
-	return body->Serialize(info);
-	}
-
-bool ForStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	loop_vars = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-
-		loop_vars->append(id);
-		}
-
-	body = Stmt::Unserialize(info);
-	return body != 0;
-	}
-
 Val* NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
@@ -1673,20 +1340,6 @@ TraversalCode NextStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(NextStmt, SER_NEXT_STMT);
-
-bool NextStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_NEXT_STMT, Stmt);
-	return true;
-	}
-
-bool NextStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
 	}
 
 Val* BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
@@ -1716,20 +1369,6 @@ TraversalCode BreakStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(BreakStmt, SER_BREAK_STMT);
-
-bool BreakStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BREAK_STMT, Stmt);
-	return true;
-	}
-
-bool BreakStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
-	}
-
 Val* FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
@@ -1755,20 +1394,6 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(FallthroughStmt, SER_FALLTHROUGH_STMT);
-
-bool FallthroughStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FALLTHROUGH_STMT, Stmt);
-	return true;
-	}
-
-bool FallthroughStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
 	}
 
 ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
@@ -1836,20 +1461,6 @@ void ReturnStmt::Describe(ODesc* d) const
 		}
 
 	DescribeDone(d);
-	}
-
-IMPLEMENT_SERIAL(ReturnStmt, SER_RETURN_STMT);
-
-bool ReturnStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RETURN_STMT, ExprStmt);
-	return true;
-	}
-
-bool ReturnStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
 	}
 
 StmtList::StmtList() : Stmt(STMT_LIST)
@@ -1941,43 +1552,6 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(StmtList, SER_STMT_LIST);
-
-bool StmtList::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STMT_LIST, Stmt);
-
-	if ( ! SERIALIZE(stmts.length()) )
-		return false;
-
-	loop_over_list(stmts, i)
-		if ( ! stmts[i]->Serialize(info) )
-			return false;
-
-	return true;
-	}
-
-bool StmtList::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		Stmt* stmt = Stmt::Unserialize(info);
-		if ( ! stmt )
-			return false;
-
-		stmts.append(stmt);
-		}
-
-	return true;
-	}
-
-
 Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
@@ -2034,20 +1608,6 @@ void EventBodyList::Describe(ODesc* d) const
 
 	else
 		StmtList::Describe(d);
-	}
-
-IMPLEMENT_SERIAL(EventBodyList, SER_EVENT_BODY_LIST);
-
-bool EventBodyList::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EVENT_BODY_LIST, StmtList);
-	return SERIALIZE(topmost);
-	}
-
-bool EventBodyList::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(StmtList);
-	return UNSERIALIZE(&topmost);
 	}
 
 InitStmt::~InitStmt()
@@ -2123,45 +1683,6 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(InitStmt, SER_INIT_STMT);
-
-bool InitStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_INIT_STMT, Stmt);
-
-	if ( ! SERIALIZE(inits->length()) )
-		return false;
-
-	loop_over_list((*inits), i)
-		{
-		if ( ! (*inits)[i]->Serialize(info) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool InitStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	inits = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-		inits->append(id);
-		}
-	return true;
-	}
-
-
 Val* NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
@@ -2189,20 +1710,6 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(NullStmt, SER_NULL_STMT);
-
-bool NullStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_NULL_STMT, Stmt);
-	return true;
-	}
-
-bool NullStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
 	}
 
 WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
@@ -2320,35 +1827,3 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(WhenStmt, SER_WHEN_STMT);
-
-bool WhenStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_WHEN_STMT, Stmt);
-
-	if ( cond->Serialize(info) && s1->Serialize(info) )
-		return false;
-
-	SERIALIZE_OPTIONAL(s2);
-	SERIALIZE_OPTIONAL(timeout);
-
-	return true;
-	}
-
-bool WhenStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	cond = Expr::Unserialize(info);
-	if ( ! cond )
-		return false;
-
-	s1 = Stmt::Unserialize(info);
-	if ( ! s1 )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(s2, Stmt::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(timeout, Expr::Unserialize(info));
-
-	return true;
-	}

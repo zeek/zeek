@@ -11,14 +11,13 @@ DebugLogger debug_logger;
 
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
-	{ "serial", 0, false }, { "rules", 0, false }, { "comm", 0, false },
-	{ "state", 0, false }, { "chunkedio", 0, false },
-	{ "compressor", 0, false }, {"string", 0, false },
+	{ "serial", 0, false }, { "rules", 0, false },
+	{ "string", 0, false },
 	{ "notifiers", 0, false },  { "main-loop", 0, false },
 	{ "dpd", 0, false }, { "tm", 0, false },
 	{ "logging", 0, false }, {"input", 0, false },
 	{ "threading", 0, false }, { "file_analysis", 0, false },
-	{ "plugins", 0, false }, { "broxygen", 0, false },
+	{ "plugins", 0, false }, { "zeekygen", 0, false },
 	{ "pktio", 0, false }, { "broker", 0, false },
 	{ "scripts", 0, false}
 };
@@ -72,7 +71,7 @@ void DebugLogger::ShowStreamsHelp()
 		fprintf(stderr,"  %s\n", streams[i].prefix);
 
 	fprintf(stderr, "\n");
-	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Bro-Netmap')\n");
+	fprintf(stderr, "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B plugin-Zeek-Netmap')\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Pseudo streams\n");
 	fprintf(stderr, "  verbose  Increase verbosity.\n");

@@ -76,7 +76,7 @@ public:
 	/**
 	 * Activates a plugin that SearchDynamicPlugins() has previously discovered.
 	 * Activating a plugin involves loading its dynamic module, making its
-	 * bifs available, and adding its script paths to BROPATH.
+	 * bifs available, and adding its script paths to ZEEKPATH.
 	 *
 	 * @param name The name of the plugin, as found previously by
 	 * SearchPlugin().
@@ -92,7 +92,7 @@ public:
 	 *
 	 * @param all If true, activates all plugins that are found. If false,
 	 * activates only those that should always be activated unconditionally,
-	 * as specified via the BRO_PLUGIN_ACTIVATE enviroment variable. In other
+	 * as specified via the ZEEK_PLUGIN_ACTIVATE enviroment variable. In other
 	 * words, it's \c true in standard mode and \c false in bare mode.
 	 *
 	 * @return True if all plugins have been loaded successfully. If one

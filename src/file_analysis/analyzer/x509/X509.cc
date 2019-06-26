@@ -10,6 +10,8 @@
 
 #include "file_analysis/Manager.h"
 
+#include <broker/error.hh>
+
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/asn1.h>
@@ -17,8 +19,6 @@
 #include <openssl/err.h>
 
 using namespace file_analysis;
-
-IMPLEMENT_SERIAL(X509Val, SER_X509_VAL);
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
 	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
@@ -57,11 +57,11 @@ bool file_analysis::X509::EndOfFile()
 	RecordVal* cert_record = ParseCertificate(cert_val, GetFile());
 
 	// and send the record on to scriptland
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(cert_val->Ref());
-	vl->append(cert_record->Ref()); // we Ref it here, because we want to keep a copy around for now...
-	mgr.QueueEvent(x509_certificate, vl);
+	mgr.QueueEvent(x509_certificate, {
+		GetFile()->GetVal()->Ref(),
+		cert_val->Ref(),
+		cert_record->Ref(), // we Ref it here, because we want to keep a copy around for now...
+	});
 
 	// after parsing the certificate - parse the extensions...
 
@@ -221,17 +221,20 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 
 	if ( constr )
 		{
-		RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
-		pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
+		if ( x509_ext_basic_constraints )
+			{
+			RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
+			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
 
-		if ( constr->pathlen )
-			pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+			if ( constr->pathlen )
+				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
-		val_list* vl = new val_list();
-		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(pBasicConstraint);
+			mgr.QueueEventFast(x509_ext_basic_constraints, {
+				GetFile()->GetVal()->Ref(),
+				pBasicConstraint,
+			});
+			}
 
-		mgr.QueueEvent(x509_ext_basic_constraints, vl);
 		BASIC_CONSTRAINTS_free(constr);
 		}
 
@@ -367,10 +370,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		sanExt->Assign(4, val_mgr->GetBool(otherfields));
 
-		val_list* vl = new val_list();
-		vl->append(GetFile()->GetVal()->Ref());
-		vl->append(sanExt);
-		mgr.QueueEvent(x509_ext_subject_alternative_name, vl);
+		mgr.QueueEvent(x509_ext_subject_alternative_name, {
+			GetFile()->GetVal()->Ref(),
+			sanExt,
+		});
 	GENERAL_NAMES_free(altname);
 	}
 
@@ -474,44 +477,43 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
+Val* X509Val::DoClone(CloneState* state)
+	{
+	auto copy = new X509Val();
+	if ( certificate )
+		copy->certificate = X509_dup(certificate);
+
+	return state->NewClone(this, copy);
+	}
+
 ::X509* X509Val::GetCertificate() const
 	{
 	return certificate;
 	}
 
-bool X509Val::DoSerialize(SerialInfo* info) const
+IMPLEMENT_OPAQUE_VALUE(X509Val)
+
+broker::expected<broker::data> X509Val::DoSerialize() const
 	{
-	DO_SERIALIZE(SER_X509_VAL, OpaqueVal);
-
 	unsigned char *buf = NULL;
-
 	int length = i2d_X509(certificate, &buf);
 
 	if ( length < 0 )
-		return false;
+		return broker::ec::invalid_data;
 
-	bool res = SERIALIZE_STR(reinterpret_cast<const char*>(buf), length);
-
+	auto d = std::string(reinterpret_cast<const char*>(buf), length);
 	OPENSSL_free(buf);
-	return res;
+
+	return {std::move(d)};
 	}
 
-bool X509Val::DoUnserialize(UnserialInfo* info)
+bool X509Val::DoUnserialize(const broker::data& data)
 	{
-	DO_UNSERIALIZE(OpaqueVal)
-
-	int length;
-	unsigned char *certbuf, *opensslbuf;
-
-	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&certbuf), &length) )
+	auto s = caf::get_if<std::string>(&data);
+	if ( ! s )
 		return false;
 
-	opensslbuf = certbuf; // OpenSSL likes to shift pointers around. really.
-	certificate = d2i_X509(NULL, const_cast<const unsigned char**>(&opensslbuf), length);
-	delete[] certbuf;
-
-	if ( !certificate )
-		return false;
-
-	return true;
+	auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
+	certificate = d2i_X509(NULL, &opensslbuf, s->size());
+	return (certificate != nullptr);
 	}

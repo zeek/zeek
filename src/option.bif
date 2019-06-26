@@ -15,10 +15,12 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			val_list vl(2);
+			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
+			val_list vl(2 + add_loc);
 			vl.append(name->Ref());
 			vl.append(val);
-			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
+
+			if ( add_loc )
 				vl.append(location->Ref());
 
 			val = handler_function->Call(&vl); // consumed by next call.
@@ -48,10 +50,10 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 ##
 ## Returns: true on success, false when an error occurred.
 ##
-## .. bro:see:: Option::set_change_handler Config::set_value
+## .. zeek:see:: Option::set_change_handler Config::set_value
 ##
-## .. note:: :bro:id:`Option::set` only works on one node and does not distribute
-##           new values across a cluster. The higher-level :bro:id:`Config::set_value`
+## .. note:: :zeek:id:`Option::set` only works on one node and does not distribute
+##           new values across a cluster. The higher-level :zeek:id:`Config::set_value`
 ##           supports clusterization and should typically be used instead of this
 ##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
@@ -105,7 +107,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	%}
 
 ## Set a change handler for an option. The change handler will be
-## called anytime :bro:id:`Option::set` is called for the option.
+## called anytime :zeek:id:`Option::set` is called for the option.
 ##
 ## ID: The ID of the option for which change notifications are desired.
 ##
@@ -127,7 +129,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 ##
 ## Returns: true when the change handler was set, false when an error occurred.
 ##
-## .. bro:see:: Option::set
+## .. zeek:see:: Option::set
 function Option::set_change_handler%(ID: string, on_change: any, priority: int &default=0%): bool
 	%{
 	auto i = global_scope()->Lookup(ID->CheckString());

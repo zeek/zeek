@@ -2,12 +2,12 @@
 #
 # @TEST-GROUP: leaks
 #
-# @TEST-REQUIRES: bro  --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run bro bro -m -b ../exectest.bro
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b ../exectest.zeek
 # @TEST-EXEC: btest-bg-wait 60
 
-@TEST-START-FILE exectest.bro
+@TEST-START-FILE exectest.zeek
 
 @load base/utils/exec
 redef exit_only_after_terminate = T;
@@ -31,7 +31,7 @@ function test_cmd(label: string, cmd: Exec::Command)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_cmd("test1", [$cmd="bash ../somescript.sh",
 	                   $read_files=set("out1", "out2")]);

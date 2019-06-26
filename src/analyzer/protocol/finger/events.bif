@@ -11,11 +11,11 @@
 ##
 ## hostname: The request's host name.
 ##
-## .. bro:see:: finger_reply
+## .. zeek:see:: finger_reply
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event finger_request%(c: connection, full: bool, username: string, hostname: string%);
 
@@ -28,11 +28,11 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 ##
 ## reply_line: The reply as returned by the server
 ##
-## .. bro:see:: finger_request
+## .. zeek:see:: finger_request
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event finger_reply%(c: connection, reply_line: string%);
 

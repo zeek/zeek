@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/ayiya3.trace
+# @TEST-EXEC: zeek -r $TRACES/tunnels/ayiya3.trace
 # @TEST-EXEC: btest-diff tunnel.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log

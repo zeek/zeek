@@ -15,19 +15,13 @@ typedef enum {
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
 	ATTR_REDEF,
-	ATTR_ROTATE_INTERVAL,
-	ATTR_ROTATE_SIZE,
 	ATTR_ADD_FUNC,
 	ATTR_DEL_FUNC,
 	ATTR_EXPIRE_FUNC,
 	ATTR_EXPIRE_READ,
 	ATTR_EXPIRE_WRITE,
 	ATTR_EXPIRE_CREATE,
-	ATTR_PERSISTENT,
-	ATTR_SYNCHRONIZED,
-	ATTR_ENCRYPT,
 	ATTR_RAW_OUTPUT,
-	ATTR_MERGEABLE,
 	ATTR_PRIORITY,
 	ATTR_GROUP,
 	ATTR_LOG,
@@ -98,16 +92,11 @@ public:
 
 	attr_list* Attrs()	{ return attrs; }
 
-	bool Serialize(SerialInfo* info) const;
-	static Attributes* Unserialize(UnserialInfo* info);
-
 	bool operator==(const Attributes& other) const;
 
 protected:
 	Attributes() : type(), attrs(), in_record()	{ }
 	void CheckAttr(Attr* attr);
-
-	DECLARE_SERIAL(Attributes);
 
 	BroType* type;
 	attr_list* attrs;

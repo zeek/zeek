@@ -1,10 +1,10 @@
-# @TEST-EXEC: bro -b -r $TRACES/mount/mount_base.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/mount/mount_base.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 global mount_ports: set[port] = { 635/tcp, 635/udp, 20048/tcp, 20048/udp } &redef;
 redef ignore_checksums = T;
 
-event bro_init()
+event zeek_init()
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MOUNT, mount_ports);
 	Analyzer::enable_analyzer(Analyzer::ANALYZER_MOUNT);

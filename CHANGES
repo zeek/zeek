@@ -1,4 +1,711 @@
 
+2.6-526 | 2019-06-25 12:45:31 -0700
+
+  * Make a paraglob unit test parallelizable (Jon Siwek, Corelight)
+
+2.6-523 | 2019-06-25 10:38:24 -0700
+
+  * GH-427: improve default ID values shown by Zeekygen
+
+    The default value of an ID is now truly the one used to initialize it,
+    unaltered by any subsequent redefs.
+
+    Redefs are now shown separately, along with the expression that
+    modifies the ID's value. (Jon Siwek, Corelight)
+
+  * Unbreak build on Linux (Johanna Amann, Corelight)
+
+2.6-519 | 2019-06-24 15:25:08 -0700
+
+  * GH-435: fix null pointer deref in RPC analyzer. (Jon Siwek, Corelight)
+
+2.6-517 | 2019-06-24 15:20:39 -0700
+
+  * Add paraglob, a fairly quick data structure for matching a string against a large list of patterns.
+	 (Zeke Medley, Corelight)
+
+  * GH-171: support warning messages alongside deprecated attributes (Tim Wojtulewicz, Corelight)
+
+2.6-503 | 2019-06-21 11:17:58 -0700
+
+  * GH-417: Remove old, unmaintained p0f support. (Johanna Amann, Corelight)
+
+2.6-500 | 2019-06-20 20:54:15 -0700
+
+  * Add new RDP event: rdp_client_cluster_data (Jeff Atkinson)
+
+  * Added "options" field to RDP::ClientChannelDef (Jeff Atkinson)
+
+2.6-494 | 2019-06-20 20:24:38 -0700
+
+  * Renaming src/StateAccess.{h,cc} to src/Notifier.{h,cc}.
+
+    The old names did not reflect the content of the files anymore. (Robin Sommer, Corelight)
+
+  * Remove MutableVal, StateAccess classes, enum Opcode. (Robin Sommer, Corelight)
+
+  * Redo API for notifiers.
+
+    There's now an notifier::Modifiable interface class that class
+    supposed to signal modifications are to be derived from. This takes
+    the place of the former MutableValue class and also unifies how Val
+    and IDs signal modifications. (Robin Sommer, Corelight)
+
+  * Redo NotfifierRegistry to no longer rely on StateAccess.
+
+    We simplify the API to a simple Modified() operation. (Robin Sommer, Corelight)
+
+  * Add new test for when-statement watching global variables. (Robin Sommer, Corelight)
+
+2.6-482 | 2019-06-20 19:57:20 -0700
+
+  * Make configure complain if submodules are not checked out. (Johanna Amann, Corelight)
+
+  * Improve C++ header includes to improve build time (Jon Siwek, Corelight)
+
+2.6-479 | 2019-06-20 18:31:58 -0700
+
+  * Fix TableVal::DoClone to use CloneState cache (Jon Siwek, Corelight)
+
+2.6-478 | 2019-06-20 14:19:11 -0700
+
+  * Remove old Broccoli SSL options (Jon Siwek, Corelight)
+
+    - ssl_ca_certificate
+    - ssl_private_key
+    - ssl_passphrase
+
+2.6-477 | 2019-06-20 14:00:22 -0700
+
+  * Remove unused SerialInfo.h and SerialTypes.h headers (Jon Siwek, Corelight)
+
+2.6-476 | 2019-06-20 13:23:22 -0700
+
+  * Remove opaque of ocsp_resp. (Johanna Amann, Corelight)
+
+    Only used in one event, without any way to use the opaque for anything
+    else. At this point this just seems like a complication that has no
+    reason to be there.
+
+  * Remove remnants of event serializer. (Johanna Amann, Corelight)
+
+  * Reimplement serialization infrastructure for OpaqueVals.
+    (Robin Sommer, Corelight & Johanna Amann, Corelight)
+
+    We need this to sender through Broker, and we also leverage it for
+    cloning opaques. The serialization methods now produce Broker data
+    instances directly, and no longer go through the binary formatter.
+
+    Summary of the new API for types derived from OpaqueVal:
+
+        - Add DECLARE_OPAQUE_VALUE(<class>) to the class declaration
+        - Add IMPLEMENT_OPAQUE_VALUE(<class>) to the class' implementation file
+        - Implement these two methods (which are declated by the 1st macro):
+            - broker::data DoSerialize() const
+            - bool DoUnserialize(const broker::data& data)
+
+    This machinery should work correctly from dynamic plugins as well.
+
+    OpaqueVal provides a default implementation of DoClone() as well that
+    goes through serialization. Derived classes can provide a more
+    efficient version if they want.
+
+    The declaration of the "OpaqueVal" class has moved into the header
+    file "OpaqueVal.h", along with the new serialization infrastructure.
+    This is breaking existing code that relies on the location, but
+    because the API is changing anyways that seems fine.
+
+  * Implement a Shallow Clone operation for types. (Johanna Amann, Corelight)
+
+    This is needed to track name changes for the documentation.
+
+  * Remove old serialization infrastrucutre. (Johanna Amann, Corelight)
+
+2.6-454 | 2019-06-19 09:39:06 -0700
+
+  * GH-393: Add slice notation for vectors (Tim Wojtulewicz, Corelight & Jon Siwek, Corelight)
+
+    Example Syntax:
+
+    local v = vector(1, 2, 3, 4, 5);
+    v[2:4] = vector(6, 7, 8);        # v is now [1, 2, 6, 7, 8, 5]
+    print v[:4];                     # prints [1, 2, 6, 7]
+
+2.6-446 | 2019-06-17 20:26:49 -0700
+
+  * Rename bro to zeek in error messages (Daniel Thayer)
+
+2.6-444 | 2019-06-15 19:09:03 -0700
+
+  * Add/rewrite NTP support (Vlad Grigorescu and Mauro Palumbo)
+
+2.6-416 | 2019-06-14 20:57:57 -0700
+
+  * DNS: Add support for SPF response records (Vlad Grigorescu)
+
+2.6-413 | 2019-06-14 19:51:28 -0700
+
+  * GH-406: rename bro.bif to zeek.bif (Jon Siwek, Corelight)
+
+2.6-412 | 2019-06-14 19:26:21 -0700
+
+  * GH-387: update Broker topic names to use "zeek/" prefix (Jon Siwek, Corelight)
+
+  * GH-323: change builtin plugin namespaces to Zeek (Jon Siwek, Corelight)
+
+2.6-408 | 2019-06-13 11:19:50 -0700
+
+  * Fix potential null-dereference in current_time() (Tim Wojtulewicz, Corelight)
+
+  * Add --sanitizers configure script to enable Clang sanitizers (Tim Wojtulewicz, Corelight)
+
+2.6-404 | 2019-06-12 15:10:19 -0700
+
+  * Rename directories from bro to zeek (Daniel Thayer)
+
+    The new default installation prefix is /usr/local/zeek
+
+2.6-400 | 2019-06-07 20:06:33 -0700
+
+  * Adapt bro_plugin CMake macros to use zeek_plugin (Jon Siwek, Corelight)
+
+2.6-399 | 2019-06-07 14:02:18 -0700
+
+  * Update SSL documentation. (Johanna Amann)
+
+  * Support the newer TLS 1.3 key_share extension. (Johanna Amann)
+
+  * Include all data of the server-hello random (Johanna Amann)
+
+    Before we cut the first 4 bytes, which makes it impossible to recognize
+    several newer packets (like the hello retry).
+
+  * Parse TLS 1.3 pre-shared-key extension. (Johanna Amann)
+
+
+    Adds new events:
+
+    - ssl_extension_pre_shared_key_client_hello
+    - ssl_extension_pre_shared_key_server_hello
+
+2.6-391 | 2019-06-07 17:29:28 +1000
+
+  * GH-209: replace "remote_ip" field of radius.log with "tunnel_client".
+    Also changes type from addr to string. (Jon Siwek, Corelight)
+
+2.6-389 | 2019-06-06 20:02:19 -0700
+
+  * Update plugin unit tests to use --zeek-dist (Jon Siwek, Corelight)
+
+2.6-388 | 2019-06-06 19:48:55 -0700
+
+  * Change default value of peer_description "zeek" (Jon Siwek, Corelight)
+
+2.6-387 | 2019-06-06 18:51:09 -0700
+
+  * Rename Bro to Zeek in Zeekygen-generated documentation (Jon Siwek, Corelight)
+
+2.6-386 | 2019-06-06 17:17:55 -0700
+
+  * Add new RDP event: rdp_native_encrytped_data (Anthony Kasza, Corelight)
+
+2.6-384 | 2019-06-06 16:49:14 -0700
+
+  * Add new RDP event: rdp_client_security_data (Jeff Atkinson)
+
+2.6-379 | 2019-06-06 11:56:58 -0700
+
+  * Improve sqlite logging unit tests (Jon Siwek, Corelight)
+
+2.6-378 | 2019-06-05 16:23:04 -0700
+
+  * Rename BRO_DEPRECATED macro to ZEEK_DEPRECATED (Jon Siwek, Corelight)
+
+2.6-377 | 2019-06-05 16:15:58 -0700
+
+  * Deprecate functions with "bro" in them. (Jon Siwek, Corelight)
+
+    * "bro_is_terminating" is now "zeek_is_terminating"
+
+    * "bro_version" is now "zeek_version"
+
+    The old functions still exist for now, but are deprecated.
+
+2.6-376 | 2019-06-05 13:29:57 -0700
+
+  * GH-379: move catch-and-release and unified2 scripts to policy/ (Jon Siwek, Corelight)
+
+    These are no longer loaded by default due to the performance impact they
+    cause simply by being loaded (they have event handlers for commonly
+    generated events) and they aren't generally useful enough to justify it.
+
+2.6-375 | 2019-06-04 19:28:06 -0700
+
+  * Simplify threading::Value destructor (Jon Siwek, Corelight)
+
+  * Add pattern support to input framework. (Zeke Medley, Corelight)
+
+2.6-369 | 2019-06-04 17:53:10 -0700
+
+  * GH-155: Improve coercion of expression lists to vector types (Tim Wojtulewicz, Corelight)
+
+  * GH-159: Allow coercion of numeric record field values to other types (Tim Wojtulewicz, Corelight)
+
+  * Allow passing a location to BroObj::Warning and BroObj::Error. (Tim Wojtulewicz, Corelight)
+
+    This allows callers (such as check_and_promote) to pass an expression
+    location to be logged if the location doesn't exist in the value being
+    promoted.
+
+  * Add CLion directories to gitignore (Tim Wojtulewicz, Corelight)
+
+  * Move #define outside of max_type for clarity (Tim Wojtulewicz, Corelight)
+
+2.6-361 | 2019-06-04 10:30:21 -0700
+
+  * GH-293: Protect copy() against reference cycles. (Robin Sommer, Corelight)
+
+    Reference cycles shouldn't occur but there's nothing really preventing
+    people from creating them, so may just as well be safe and deal with
+    them when cloning values.
+
+2.6-359 | 2019-05-31 13:37:17 -0700
+
+  * Remove old documentation reference to rotate_interval (Jon Siwek, Corelight)
+
+2.6-357 | 2019-05-30 10:57:54 -0700
+
+  * Tweak to ASCII reader warning suppression (Christian Kreibich, Corelight)
+
+    Warnings in the ASCII reader so far remained suppressed even
+    when an input file changed. It's helpful to learn about problems
+    in the data when putting in place new data files, so this change
+    maintains the existing warning suppression while processing a file,
+    but re-enables warnings after updates to a file.
+
+2.6-354 | 2019-05-29 09:46:19 -0700
+
+  * Add weird: "RDP_channels_requested_exceeds_max" (Vlad Grigorescu)
+
+2.6-352 | 2019-05-28 17:57:36 -0700
+
+  * Reduce data copying in Broker message processing (Jon Siwek, Corelight)
+
+  * Improve Broker I/O loop integration: less mutex locking (Jon Siwek, Corelight)
+
+    Checking a subscriber for available messages required locking a mutex,
+    but we should never actually need to do that in the main-loop to check
+    for Broker readiness since we can rely on file descriptor polling.
+
+  * Improve processing of broker data store responses (Jon Siwek, Corelight)
+
+    Now retrieves and processes all N available responses at once instead
+    of one-by-one-until-empty.
+
+2.6-345 | 2019-05-28 11:32:16 -0700
+
+  * RDP: Add parsing and logging of channels requested by the client. (Vlad Grigorescu)
+
+    Can determine capabilities requested by the client, as well as attacks such
+    as CVE-2019-0708.
+
+2.6-342 | 2019-05-28 10:48:37 -0700
+
+  * GH-168: Improve type-checking for table/set list assignment. (Zeke Medley and Jon Siwek, Corelight)
+
+2.6-340 | 2019-05-24 18:02:43 -0700
+
+  * Add support for parsing additional DHCP options (Jay Wren)
+
+    The following optional fields were added to the DHCP::Options record:
+
+      - time_offset  (Option 2)
+      - time_servers (Option 4)
+      - name_servers (Option 5)
+      - ntp_servers  (Option 42)
+
+2.6-338 | 2019-05-24 17:06:08 -0700
+
+  * Add input file name to additional ASCII reader warning messages (Christian Kreibich, Corelight)
+
+2.6-336 | 2019-05-24 10:23:20 -0700
+
+  * GH-378: check validity of missing 'val' field in Input::add_table (Jon Siwek, Corelight)
+
+2.6-335 | 2019-05-24 08:58:59 -0700
+
+  * Fix memory leak when no protocol_violation event handler exists (Jon Siwek, Corelight)
+
+2.6-334 | 2019-05-23 20:40:03 -0700
+
+  * Add an internal getenv wrapper function: zeekenv (Jon Siwek, Corelight)
+
+    It maps newer environment variable names starting with ZEEK to the
+    legacy names starting with BRO.
+
+  * Rename all BRO-prefixed environment variables (Daniel Thayer)
+
+    For backward compatibility when reading values, we first check
+    the ZEEK-prefixed value, and if not set, then check the corresponding
+    BRO-prefixed value.
+
+2.6-331 | 2019-05-23 18:03:42 -0700
+
+  * Update broker unit test output. (Jon Siwek, Corelight)
+
+    Due to string representation of Broker vectors changing (they now
+    use parentheses instead of square brackets).
+
+2.6-330 | 2019-05-23 13:04:26 -0700
+
+  * GH-173: Support ranges of values for value_list elements in the signature parser
+    (Tim Wojtulewicz, Corelight)
+
+  * GH-173: Modify the signature parser so ID components can't start with numbers
+    (Tim Wojtulewicz, Corelight)
+
+2.6-327 | 2019-05-23 11:56:11 -0700
+
+  * Remove redundant RecordVal::record_type member (Jon Siwek, Corelight)
+
+2.6-326 | 2019-05-23 10:49:38 -0700
+
+  * Fix parse-time RecordVal tracking containing duplicates (Jon Siwek, Corelight)
+
+2.6-325 | 2019-05-22 23:56:23 -0700
+
+  * Add leak-checks for new copy operations (Johanna Amann, Corelight)
+
+  * Finish implementation of new copy method. (Johanna Amann, Corelight)
+
+    All types (besides EntropyVal) now support a native copy operation,
+    which uses primitives of the underlying datatypes to perform a quick
+    copy, without serialization.
+
+    EntropyVal is the one exception - since that type is rather complex
+    (many members) and will probably not be copied a lot, if at all, it
+    makes sense to just use the serialization function.
+
+    This will have to be slightly re-written in the near-term-future to use
+    the new serialization function for that opaque type.
+
+    This change also introduces a new x509_from_der bif, which allows to
+    parse a der into an opaque of x509.
+
+    This change removes the d2i_X509_ wrapper function; this was a remnant
+    when d2i_X509 took non-const arguments. We directly use d2i_X509 at
+    several places assuming const-ness, so there does not seem to ba a
+    reason to keep the wrapper.
+
+    This change also exposed a problem in the File cache - cases in which an
+    object was brought back into the cache, and writing occurred in the
+    file_open event were never correctly handeled as far as I can tell.
+
+  * Reimplement copy(). (Robin Sommer, Corelight)
+
+    The old implementation used the serialization framework, which is
+    going away. This is a new standalone implementation that should also
+    be quite a bit faster.
+
+2.6-318 | 2019-05-21 09:17:53 -0700
+
+  * Remove state_dir and state_write_delay options (Jon Siwek, Corelight)
+
+  * Remove a reference to &synchronized from docs (Jon Siwek, Corelight)
+
+2.6-316 | 2019-05-20 20:56:46 -0700
+
+  * Additional Bro to Zeek renaming (Daniel Thayer)
+
+  * Added a new unit test for legacy Bro Plugins (Daniel Thayer)
+
+  * Added a symlink bro-path-dev.in for use by legacy Bro packages (Daniel Thayer)
+
+2.6-314 | 2019-05-20 16:20:33 -0700
+
+  * Remove deprecated attributes. (Johanna Amann, Corelight)
+    To be more exact: &encrypt, &mergeable, &rotate_interval, &rotate_size
+
+    Also removes no longer used redef-able constants:
+    log_rotate_interval, log_max_size, log_encryption_key
+
+2.6-311 | 2019-05-20 09:07:58 -0700
+
+  * Add missing &optional attr to KRB record fields; also add existence
+    checks to scripts (Jon Siwek, Corelight).
+
+2.6-308 | 2019-05-17 14:13:46 -0700
+
+  * Always emit scripting errors to stderr during zeek_init (Jon Siwek, Corelight)
+
+2.6-307 | 2019-05-16 13:37:24 -0700
+
+  * More bro-to-zeek renaming in scripts and other files (Daniel Thayer)
+
+  * More bro-to-zeek renaming in the unit tests (Daniel Thayer)
+
+2.6-303 | 2019-05-15 15:03:11 -0700
+
+  * Changes needed due to bro-to-zeek renaming in broker (Daniel Thayer)
+
+2.6-301 | 2019-05-15 10:05:53 -0700
+
+  * Fix potential race in openflow broker plugin (Jon Siwek, Corelight)
+
+2.6-300 | 2019-05-15 09:00:57 -0700
+
+  * Fixes to DNS lookup, including ref-counting bugs, preventing starvation
+    of the DNS_Mgr in the I/O loop, dead code removal, and a fix that
+    prevents the timeout of already resolved DNS lookups (Jon Siwek, Corelight)
+
+2.6-292 | 2019-05-14 19:01:05 -0700
+
+  * Fix maybe-uninitialized compiler warning (Jon Siwek, Corelight)
+
+2.6-290 | 2019-05-14 18:35:25 -0700
+
+  * Update btest.cfg path to use zeek-aux (Jon Siwek, Corelight)
+
+2.6-288 | 2019-05-14 17:47:55 -0700
+
+  * Update CMake to use aux/zeekctl and aux/zeek-aux submodules (Jon Siwek, Corelight)
+
+2.6-287 | 2019-05-14 17:40:40 -0700
+
+  * Rename broctl submodule to zeekctl (Jon Siwek, Corelight)
+
+2.6-286 | 2019-05-14 13:19:12 -0700
+
+  * Undo an unintentional change to btest.cfg from a recent commit (Daniel Thayer)
+
+  * Fix zeek-wrapper and improve error messages (Daniel Thayer)
+
+    The script was not passing command-line arguments to the new program.
+
+  * Update for renaming BroControl to ZeekControl. (Robin Sommer, Corelight)
+
+  * GH-239: Rename bro to zeek, bro-config to zeek-config, and bro-path-dev to zeek-path-dev.
+    (Robin Sommer, Corelight)
+
+    This also installs symlinks from "zeek" and "bro-config" to a wrapper
+    script that prints a deprecation warning.
+
+2.6-279 | 2019-05-13 20:02:59 -0700
+
+  * GH-365: improve un-indexable type error message (Jon Siwek, Corelight)
+
+2.6-277 | 2019-05-08 12:42:18 -0700
+
+  * Allow tuning Broker log batching via scripts (Jon Siwek, Corelight)
+
+    Via redefining "Broker::log_batch_size" or "Broker::log_batch_interval"
+
+2.6-276 | 2019-05-08 09:03:27 -0700
+
+  * Force the Broker IOSource to idle periodically, preventing packet
+	  IOSource starvation. (Jon Siwek, Corelight).
+
+2.6-274 | 2019-05-08 08:58:25 -0700
+
+  * GH-353: Add `/<re>/i` case-insensitive signature syntax (Jon Siwek, Corelight)
+
+2.6-272 | 2019-05-06 18:43:13 -0700
+
+  * Remove support for using && and || with patterns. (Johanna Amann, Corelight)
+
+    This was never documented and previously deprecated.
+
+  * Remove RemoteSerializer and related code/types. (Johanna Amann, Corelight)
+
+    Also removes broccoli from the source tree.
+
+  * Remove PersistenceSerializer. (Johanna Amann, Corelight)
+
+  * Remove &synchronized and &persistent attributes. (Johanna Amann, Corelight)
+
+2.6-264 | 2019-05-03 11:16:38 -0700
+
+  * Fix sporadic openflow/broker test failure (Jon Siwek, Corelight)
+
+2.6-263 | 2019-05-02 22:49:40 -0700
+
+  * Install local.zeek as symlink to pre-existing local.bro (Jon Siwek, Corelight)
+
+    This a convenience for those that are upgrading.  If we didn't do
+    this, then deployments can silently break until the user intervenes
+    since BroControl now prefers to load the initially-vanilla local.zeek
+    instead of the formerly-customized local.bro.
+
+2.6-262 | 2019-05-02 21:39:01 -0700
+
+  * Rename Zeexygen to Zeekygen (Jon Siwek, Corelight)
+
+2.6-261 | 2019-05-02 20:49:23 -0700
+
+  * Remove previously deprecated policy/protocols/smb/__load__ (Jon Siwek, Corelight)
+
+2.6-260 | 2019-05-02 19:16:48 -0700
+
+  * GH-243: Remove deprecated functions/events from 2.6 and earlier (Johanna Amann, Corelight)
+
+2.6-258 | 2019-05-02 12:26:54 -0700
+
+  * GH-340: Improve IPv4/IPv6 regexes, extraction, and validity functions.
+
+    is_valid_ip() is not a BIF, the IP regular expressions are improved and
+    extract_ip_addresses should give better results due to this.
+    (Jon Siwek, Corelight)
+
+2.6-255 | 2019-05-01 08:38:49 -0700
+
+  * Add methods to queue events without handler existence check
+
+    Added ConnectionEventFast() and QueueEventFast() methods to avoid
+    redundant event handler existence checks.
+
+    It's common practice for caller to already check for event handler
+    existence before doing all the work of constructing the arguments, so
+    it's desirable to not have to check for existence again.
+
+    E.g. going through ConnectionEvent() means 3 existence checks:
+    one you do yourself before calling it, one in ConnectionEvent(), and then
+    another in QueueEvent().
+
+    The existence check itself can be more than a few operations sometimes
+    as it needs to check a few flags that determine if it's enabled, has
+    a local body, or has any remote receivers in the old comm. system or
+    has been flagged as something to publish in the new comm. system. (Jon Siwek, Corelight)
+
+  * Cleanup/improve PList usage and Event API
+
+    Majority of PLists are now created as automatic/stack objects,
+    rather than on heap and initialized either with the known-capacity
+    reserved upfront or directly from an initializer_list (so there's no
+    wasted slack in the memory that gets allocated for lists containing
+    a fixed/known number of elements).
+
+    Added versions of the ConnectionEvent/QueueEvent methods that take
+    a val_list by value.
+
+    Added a move ctor/assign-operator to Plists to allow passing them
+    around without having to copy the underlying array of pointers. (Jon Siwek, Corelight)
+
+2.6-250 | 2019-04-29 18:09:29 -0700
+
+  * Remove 'dns_resolver' option, replace w/ ZEEK_DNS_RESOLVER env. var. (Jon Siwek, Corelight)
+
+2.6-249 | 2019-04-26 19:26:44 -0700
+
+  * Fix parsing of hybrid IPv6-IPv4 addr literals with no zero compression (Jon Siwek, Corelight)
+
+2.6-246 | 2019-04-25 10:22:11 -0700
+
+  * Add Zeexygen cross-reference links for some events (Jon Siwek, Corelight)
+
+2.6-245 | 2019-04-23 18:42:02 -0700
+
+  * Expose TCP analyzer utility functions to derived classes (Vern Paxson, Corelight)
+
+2.6-243 | 2019-04-22 19:42:52 -0700
+
+  * GH-234: rename Broxygen to Zeexygen along with roles/directives (Jon Siwek, Corelight)
+
+    * All "Broxygen" usages have been replaced in
+      code, documentation, filenames, etc.
+
+    * Sphinx roles/directives like ":bro:see" are now ":zeek:see"
+
+    * The "--broxygen" command-line option is now "--zeexygen"
+
+2.6-242 | 2019-04-22 22:43:09 +0200
+
+  * update SSL consts from TLS 1.3 (Johanna Amann)
+
+2.6-241 | 2019-04-22 12:38:06 -0700
+
+  * Add 'g' character to conn.log history field to flag content gaps (Vern Paxson, Corelight)
+
+    There's also a small change to TCP state machine that distrusts ACKs
+    appearing at the end of connections (in FIN or RST) such that they won't
+    count towards revealing a true content gap.
+
+2.6-237 | 2019-04-19 12:00:37 -0700
+
+  * GH-236: Add zeek_script_loaded event, deprecate bro_script_loaded (Jon Siwek, Corelight)
+
+    Existing handlers for bro_script_loaded automatically alias to the new
+    zeek_script_loaded event, but emit a deprecation warning.
+
+2.6-236 | 2019-04-19 11:16:35 -0700
+
+  * Add zeek_init/zeek_done events and deprecate bro_init/bro_done (Seth Hall, Corelight)
+
+    Any existing handlers for bro_init and bro_done will automatically alias
+    to the new zeek_init and zeek_done events such that code will not break,
+    but will emit a deprecation warning.
+
+2.6-232 | 2019-04-18 09:34:13 +0200
+
+  * Prevent topk_merge from crashing when second argument is empty set (Jeff Barber)
+
+2.6-230 | 2019-04-17 16:44:16 -0700
+
+  * Fix unit test failures on case-insensitive file systems (Jon Siwek, Corelight)
+
+2.6-227 | 2019-04-16 17:44:31 -0700
+
+  * GH-237: add `@load foo.bro` -> foo.zeek fallback (Jon Siwek, Corelight)
+
+    When failing to locate a script with explicit .bro suffix, check for
+    whether one with a .zeek suffix exists and use it instead.
+
+2.6-225 | 2019-04-16 16:07:49 -0700
+
+  * Use .zeek file suffix in unit tests (Jon Siwek, Corelight)
+
+2.6-223 | 2019-04-16 11:56:00 -0700
+
+  * Update tests and baselines due to renaming all scripts (Daniel Thayer)
+
+  * Rename all scripts to have ".zeek" file extension (Daniel Thayer)
+
+  * Add test cases to verify new file extension is recognized (Daniel Thayer)
+
+  * Fix the core/load-duplicates.bro test (Daniel Thayer)
+
+  * Update script search logic for new .zeek file extension (Daniel Thayer)
+
+    When searching for script files, look for both the new and old file
+    extensions.  If a file with ".zeek" can't be found, then search for
+    a file with ".bro" as a fallback.
+
+  * Remove unnecessary ".bro" from @load directives (Daniel Thayer)
+
+2.6-212 | 2019-04-12 10:12:31 -0700
+
+  * smb2_write_response event added (Mauro Palumbo)
+
+2.6-210 | 2019-04-10 09:54:27 -0700
+
+  * Add options to tune BinPAC flowbuffer policy (Jon Siwek, Corelight)
+
+2.6-208 | 2019-04-10 11:36:17 +0000
+
+  * Improve PE file analysis (Jon Siwek, Corelight)
+
+  * Set PE analyzer CMake dependencies correctly (Jon Siwek, Corelight)
+
+2.6-205 | 2019-04-05 17:06:26 -0700
+
+  * Add script to update external test repo commit pointers (Jon Siwek, Corelight)
+
+2.6-203 | 2019-04-04 16:35:52 -0700
+
+  * Update DTLS error handling (Johanna Amann, Corelight)
+
+    - Adds tuning options: SSL::dtls_max_version_errors and
+      SSL::dtls_max_reported_version_errors
+
 2.6-200 | 2019-04-03 09:44:53 -0700
 
   * Fix reporter net_weird API usage for unknown_mobility_type

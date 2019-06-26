@@ -10,6 +10,6 @@
 ##
 ## file_id: The file identifier being closed.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_close_request%(c: connection, hdr: SMB1::Header, file_id: count%);
 

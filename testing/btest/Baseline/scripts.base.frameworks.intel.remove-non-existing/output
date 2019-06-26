@@ -6,6 +6,6 @@
 #open	2019-03-24-20-20-10
 #fields	ts	level	message	location
 #types	time	enum	string	string
-0.000000	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	/home/jgras/devel/zeek/scripts/base/frameworks/intel/./main.bro, lines 563-564
+0.000000	Reporter::INFO	Tried to remove non-existing item '192.168.1.1' (Intel::ADDR).	/home/jgras/devel/zeek/scripts/base/frameworks/intel/./main.zeek, lines 563-564
 0.000000	Reporter::INFO	received termination signal	(empty)
 #close	2019-03-24-20-20-10

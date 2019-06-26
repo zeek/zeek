@@ -8,7 +8,7 @@
 ##
 ## hdr: The parsed transformed header message, which is starting with \xfdSMB and different from SMB1 and SMB2 headers.
 ##
-## .. bro:see:: smb2_message
+## .. zeek:see:: smb2_message
 event smb2_transform_header%(c: connection, hdr: SMB2::Transform_header%);
 
 type SMB2::Transform_header: record;

@@ -4,7 +4,6 @@
 
 #include "NetVar.h"
 #include "File.h"
-#include "OSFinger.h"
 #include "Event.h"
 
 #include "analyzer/protocol/pia/PIA.h"
@@ -115,201 +114,6 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 	return v;
 	}
 
-static RecordVal* build_os_val(int is_orig, const IP_Hdr* ip,
-                               const struct tcphdr* tcp, uint32 tcp_hdr_len)
-	{
-	if ( ! is_orig )
-		// Later we might use SYN-ACK fingerprinting here.
-		return 0;
-
-	// Passive OS fingerprinting wants to know a lot about IP and TCP
-	// options: how many options there are, and in which order.
-	int winscale = 0;
-	int MSS = 0;
-	int optcount = 0;
-	uint32 quirks = 0;
-	uint32 tstamp = 0;
-	uint8 op[MAXOPT];
-
-	if ( ip->HdrLen() > 20 )
-		quirks |= QUIRK_IPOPT;
-
-	if ( ip->ID() == 0 )
-		quirks |= QUIRK_ZEROID;
-
-	if ( tcp->th_seq == 0 )
-		quirks |= QUIRK_SEQ0;
-
-	if ( tcp->th_seq == tcp->th_ack )
-		quirks |= QUIRK_SEQEQ;
-
-	if ( tcp->th_flags & ~(TH_SYN|TH_ACK|TH_RST|TH_ECE|TH_CWR) )
-		quirks |= QUIRK_FLAGS;
-
-	if ( ip->TotalLen() - ip->HdrLen() - tcp_hdr_len > 0 )
-		quirks |= QUIRK_DATA;	// SYN with data
-
-	if ( tcp->th_ack )
-		quirks |= QUIRK_ACK;
-	if ( tcp->th_urp )
-		quirks |= QUIRK_URG;
-	if ( tcp->th_x2 )
-		quirks |= QUIRK_X2;
-
-	// Parse TCP options.
-	u_char* options = (u_char*) tcp + sizeof(struct tcphdr);
-	u_char* opt_end = (u_char*) tcp + tcp_hdr_len;
-
-	while ( options < opt_end )
-		{
-		unsigned int opt = options[0];
-
-		if ( opt == TCPOPT_EOL )
-			{
-			op[optcount++] = TCPOPT_EOL;
-			if ( ++options < opt_end )
-				quirks |= QUIRK_PAST;
-
-			// All done - could flag if more junk left over ....
-			break;
-			}
-
-		if ( opt == TCPOPT_NOP )
-			{
-			op[optcount++] = TCPOPT_NOP;
-			++options;
-			continue;
-			}
-
-		if ( options + 1 >= opt_end )
-			{
-			// We've run off the end, no room for the length.
-			quirks |= QUIRK_BROKEN;
-			break;
-			}
-
-		unsigned int opt_len = options[1];
-
-		if ( options + opt_len > opt_end )
-			{
-			// No room for rest of the options.
-			quirks |= QUIRK_BROKEN;
-			break;
-			}
-
-		if ( opt_len == 0 )
-			// Trashed length field.
-			break;
-
-		switch ( opt ) {
-		case TCPOPT_SACK_PERMITTED:
-			// SACKOK LEN
-			op[optcount] = TCPOPT_SACK_PERMITTED;
-			break;
-
-		case TCPOPT_MAXSEG:
-			// MSS LEN D0 D1
-			if ( opt_len < 4 )
-				break;	// bad length
-
-			op[optcount] = TCPOPT_MAXSEG;
-			MSS = (options[2] << 8) | options[3];
-			break;
-
-		case TCPOPT_WINDOW:
-			// WSCALE LEN D0
-			if ( opt_len < 3 )
-				break;	// bad length
-
-			op[optcount] = TCPOPT_WINDOW;
-			winscale = options[2];
-			break;
-
-		case TCPOPT_TIMESTAMP:
-			// TSTAMP LEN T0 T1 T2 T3 A0 A1 A2 A3
-			if ( opt_len < 10 )
-				break;	// bad length
-
-			op[optcount] = TCPOPT_TIMESTAMP;
-
-			tstamp = ntohl(extract_uint32(options + 2));
-
-			if ( extract_uint32(options + 6) )
-				quirks |= QUIRK_T2;
-			break;
-
-		default:	// just skip over
-			op[optcount]=opt;
-			break;
-		}
-
-		if ( optcount < MAXOPT - 1 )
-			++optcount;
-		else
-			quirks |= QUIRK_BROKEN;
-
-		options += opt_len;
-		}
-
-	struct os_type os_from_print;
-	int id = sessions->Get_OS_From_SYN(&os_from_print,
-			uint16(ip->TotalLen()),
-			uint8(ip->DF()), uint8(ip->TTL()),
-			uint16(ntohs(tcp->th_win)),
-			uint8(optcount), op,
-			uint16(MSS), uint8(winscale),
-			tstamp, quirks,
-			uint8(tcp->th_flags & (TH_ECE|TH_CWR)));
-
-	if ( sessions->CompareWithPreviousOSMatch(ip->SrcAddr(), id) )
-		{
-		RecordVal* os = new RecordVal(OS_version);
-
-		os->Assign(0, new StringVal(os_from_print.os));
-
-		if ( os_from_print.desc )
-			os->Assign(1, new StringVal(os_from_print.desc));
-		else
-			os->Assign(1, val_mgr->GetEmptyString());
-
-		os->Assign(2, val_mgr->GetCount(os_from_print.dist));
-		os->Assign(3, OS_version_inference->GetVal(os_from_print.match));
-
-		return os;
-		}
-
-	return 0;
-	}
-
-
-static void passive_fingerprint(TCP_Analyzer* tcp, bool is_orig,
-                                const IP_Hdr* ip, const struct tcphdr* tp,
-                                uint32 tcp_hdr_len)
-	{
-	// is_orig will be removed once we can do SYN-ACK fingerprinting
-	if ( OS_version_found && is_orig )
-		{
-		const IPAddr& orig_addr = tcp->Conn()->OrigAddr();
-		AddrVal* src_addr_val = new AddrVal(orig_addr);
-
-		if ( generate_OS_version_event->Size() == 0 ||
-		     generate_OS_version_event->Lookup(src_addr_val) )
-			{
-			RecordVal* OS_val = build_os_val(is_orig, ip, tp, tcp_hdr_len);
-
-			if ( OS_val )
-				{ // found new OS version
-				val_list* vl = new val_list;
-				vl->append(tcp->BuildConnVal());
-				vl->append(src_addr_val->Ref());
-				vl->append(OS_val);
-				tcp->ConnectionEvent(OS_version_found, vl);
-				}
-			}
-
-		Unref(src_addr_val);
-		}
-	}
 
 TCP_Analyzer::TCP_Analyzer(Connection* conn)
 : TransportLayerAnalyzer("TCP", conn)
@@ -965,20 +769,17 @@ void TCP_Analyzer::GeneratePacketEvent(
 					const u_char* data, int len, int caplen,
 					int is_orig, TCP_Flags flags)
 	{
-	val_list* vl = new val_list();
-
-	vl->append(BuildConnVal());
-	vl->append(val_mgr->GetBool(is_orig));
-	vl->append(new StringVal(flags.AsString()));
-	vl->append(val_mgr->GetCount(rel_seq));
-	vl->append(val_mgr->GetCount(flags.ACK() ? rel_ack : 0));
-	vl->append(val_mgr->GetCount(len));
-
-	// We need the min() here because Ethernet padding can lead to
-	// caplen > len.
-	vl->append(new StringVal(min(caplen, len), (const char*) data));
-
-	ConnectionEvent(tcp_packet, vl);
+	ConnectionEventFast(tcp_packet, {
+		BuildConnVal(),
+		val_mgr->GetBool(is_orig),
+		new StringVal(flags.AsString()),
+		val_mgr->GetCount(rel_seq),
+		val_mgr->GetCount(flags.ACK() ? rel_ack : 0),
+		val_mgr->GetCount(len),
+		// We need the min() here because Ethernet padding can lead to
+		// caplen > len.
+		new StringVal(min(caplen, len), (const char*) data),
+	});
 	}
 
 int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
@@ -1019,9 +820,9 @@ void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
 		}
 	}
 
-static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
-			       uint32 cur_base, uint32 last, uint32 wraps,
-			       bool* underflow = 0)
+uint64 TCP_Analyzer::get_relative_seq(const TCP_Endpoint* endpoint,
+                                      uint32 cur_base, uint32 last,
+                                      uint32 wraps, bool* underflow)
 	{
 	int32 delta = seq_delta(cur_base, last);
 
@@ -1052,7 +853,7 @@ static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
 	return endpoint->ToRelativeSeqSpace(cur_base, wraps);
 	}
 
-static int get_segment_len(int payload_len, TCP_Flags flags)
+int TCP_Analyzer::get_segment_len(int payload_len, TCP_Flags flags)
 	{
 	int seg_len = payload_len;
 
@@ -1283,13 +1084,11 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( connection_SYN_packet )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(SYN_vals->Ref());
-			ConnectionEvent(connection_SYN_packet, vl);
+			ConnectionEventFast(connection_SYN_packet, {
+				BuildConnVal(),
+				SYN_vals->Ref(),
+			});
 			}
-
-		passive_fingerprint(this, is_orig, ip, tp, tcp_hdr_len);
 
 		Unref(SYN_vals);
 		}
@@ -1350,11 +1149,9 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				Weird("TCP_ack_underflow_or_misorder");
 				}
 			else if ( ! flags.RST() )
-				// Don't trust ack's in RSt packets.
+				// Don't trust ack's in RST packets.
 				update_ack_seq(peer, ack_seq);
 			}
-
-		peer->AckReceived(rel_ack);
 		}
 
 	int32 delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
@@ -1364,6 +1161,15 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int gen_event;
 	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event);
+
+	if ( flags.ACK() )
+		// We wait on doing this until we've updated the state
+		// machine so that if the ack reveals a content gap,
+		// we can tell whether it came at the very end of the
+		// connection (in a FIN or RST).  Those gaps aren't
+		// reliable - especially those for RSTs - and we refrain
+		// from flagging them in the connection history.
+		peer->AckReceived(rel_ack);
 
 	if ( tcp_packet )
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,
@@ -1503,14 +1309,12 @@ int TCP_Analyzer::TCPOptionEvent(unsigned int opt,
 	{
 	if ( tcp_option )
 		{
-		val_list* vl = new val_list();
-
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(val_mgr->GetCount(opt));
-		vl->append(val_mgr->GetCount(optlen));
-
-		analyzer->ConnectionEvent(tcp_option, vl);
+		analyzer->ConnectionEventFast(tcp_option, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			val_mgr->GetCount(opt),
+			val_mgr->GetCount(optlen),
+		});
 		}
 
 	return 0;
@@ -1826,10 +1630,10 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
 	if ( connection_EOF )
 		{
-		val_list* vl = new val_list();
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(endp->IsOrig()));
-		ConnectionEvent(connection_EOF, vl);
+		ConnectionEventFast(connection_EOF, {
+			BuildConnVal(),
+			val_mgr->GetBool(endp->IsOrig()),
+		});
 		}
 
 	const analyzer_list& children(GetChildren());
@@ -2108,15 +1912,14 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64 seq, int len, int caplen,
 
 		if ( tcp_rexmit )
 			{
-			val_list* vl = new val_list();
-			vl->append(endp->TCP()->BuildConnVal());
-			vl->append(val_mgr->GetBool(endp->IsOrig()));
-			vl->append(val_mgr->GetCount(seq));
-			vl->append(val_mgr->GetCount(len));
-			vl->append(val_mgr->GetCount(data_in_flight));
-			vl->append(val_mgr->GetCount(endp->peer->window));
-
-			endp->TCP()->ConnectionEvent(tcp_rexmit, vl);
+			endp->TCP()->ConnectionEventFast(tcp_rexmit, {
+				endp->TCP()->BuildConnVal(),
+				val_mgr->GetBool(endp->IsOrig()),
+				val_mgr->GetCount(seq),
+				val_mgr->GetCount(len),
+				val_mgr->GetCount(data_in_flight),
+				val_mgr->GetCount(endp->peer->window),
+			});
 			}
 		}
 	else
@@ -2164,11 +1967,12 @@ void TCPStats_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(orig_stats->BuildStats());
-	vl->append(resp_stats->BuildStats());
-	ConnectionEvent(conn_stats, vl);
+	if ( conn_stats )
+		ConnectionEventFast(conn_stats, {
+			BuildConnVal(),
+			orig_stats->BuildStats(),
+			resp_stats->BuildStats(),
+		});
 	}
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)

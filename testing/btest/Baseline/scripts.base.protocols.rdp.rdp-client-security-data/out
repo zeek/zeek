@@ -1,0 +1,5 @@
+rdp_client_security_data, [encryption_methods=27, ext_encryption_methods=0]
+    40-bit flag, T
+   128-bit flag, T
+    56-bit flag, T
+      fips flag, T

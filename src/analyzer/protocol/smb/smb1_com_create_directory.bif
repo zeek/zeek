@@ -11,7 +11,7 @@
 ##
 ## directory_name: The name of the directory to create.
 ##
-## .. bro:see:: smb1_message smb1_create_directory_response smb1_transaction2_request
+## .. zeek:see:: smb1_message smb1_create_directory_response smb1_transaction2_request
 event smb1_create_directory_request%(c: connection, hdr: SMB1::Header, directory_name: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -25,5 +25,5 @@ event smb1_create_directory_request%(c: connection, hdr: SMB1::Header, directory
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
-## .. bro:see:: smb1_message smb1_create_directory_request smb1_transaction2_request
+## .. zeek:see:: smb1_message smb1_create_directory_request smb1_transaction2_request
 event smb1_create_directory_response%(c: connection, hdr: SMB1::Header%);

@@ -1,8 +1,18 @@
 #ifndef BRO_COMM_MANAGER_H
 #define BRO_COMM_MANAGER_H
 
-#include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/topic.hh>
+#include <broker/data.hh>
+#include <broker/store.hh>
+#include <broker/status.hh>
+#include <broker/error.hh>
+#include <broker/endpoint.hh>
+#include <broker/endpoint_info.hh>
+#include <broker/peer_info.hh>
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
+#include <broker/detail/hash.hh>
+#include <broker/zeek.hh>
 #include <memory>
 #include <string>
 #include <map>
@@ -13,6 +23,7 @@
 #include "Reporter.h"
 #include "iosource/IOSource.h"
 #include "Val.h"
+#include "logging/WriterBackend.h"
 
 namespace bro_broker {
 
@@ -66,8 +77,8 @@ public:
 	 */
 	void InitPostScript();
 
-	void BroInitDone()
-		{ after_bro_init = true; }
+	void ZeekInitDone()
+		{ after_zeek_init = true; }
 
 	/**
 	 * Shuts Broker down at termination.
@@ -101,7 +112,7 @@ public:
 	 * @param addr an address to connect to, e.g. "localhost" or "127.0.0.1".
 	 * @param port the TCP port on which the remote side is listening.
 	 * @param retry If non-zero, the time after which to retry if
-	 * connection cannot be established, or breaks.  BRO_DEFAULT_CONNECT_RETRY
+	 * connection cannot be established, or breaks.  ZEEK_DEFAULT_CONNECT_RETRY
 	 * environment variable overrides this value.
 	 */
 	void Peer(const std::string& addr, uint16_t port, double retry = 10.0);
@@ -323,10 +334,10 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
-	void ProcessEvent(const broker::topic& topic, broker::bro::Event ev);
-	bool ProcessLogCreate(broker::bro::LogCreate lc);
-	bool ProcessLogWrite(broker::bro::LogWrite lw);
-	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
+	bool ProcessLogCreate(broker::zeek::LogCreate lc);
+	bool ProcessLogWrite(broker::zeek::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
@@ -352,7 +363,7 @@ private:
 		double last_flush;
 		size_t message_count;
 
-		size_t Flush(broker::endpoint& endpoint);
+		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
 	};
 
 	// Data stores
@@ -380,9 +391,12 @@ private:
 
 	uint16_t bound_port;
 	bool reading_pcaps;
-	bool after_bro_init;
+	bool after_zeek_init;
 	int peer_count;
+	int times_processed_without_idle;
 
+	size_t log_batch_size;
+	double log_batch_interval;
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;
 	EnumType* log_id_type;

@@ -31,15 +31,15 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (useful for cross-compiling)
 
   Installation Directories:
-    --prefix=PREFIX        installation directory [/usr/local/bro]
-    --scriptdir=PATH       root installation directory for Bro scripts
-                           [PREFIX/share/bro]
-    --localstatedir=PATH   when using BroControl, path to store log files
+    --prefix=PREFIX        installation directory [/usr/local/zeek]
+    --scriptdir=PATH       root installation directory for Zeek scripts
+                           [PREFIX/share/zeek]
+    --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using BroControl, path to store run-time data
+    --spooldir=PATH        when using ZeekControl, path to store run-time data
                            [PREFIX/spool]
-    --logdir=PATH          when using BroControl, path to store log file
+    --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
 
@@ -51,14 +51,14 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (automatically on when perftools is present on Linux)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
-    --enable-broccoli      build or install the Broccoli library (deprecated)
-    --enable-static-broker build broker statically (ignored if --with-broker is specified)
+    --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
-    --disable-broctl       don't install Broctl
+    --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-perftools    don't try to build with Google Perftools
-    --disable-python       don't try to build python bindings for broker
+    --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
+    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -66,13 +66,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-pcap=PATH       path to libpcap install root
     --with-binpac=PATH     path to BinPAC executable
                            (useful for cross-compiling)
-    --with-bifcl=PATH      path to Bro BIF compiler executable
+    --with-bifcl=PATH      path to Zeek BIF compiler executable
                            (useful for cross-compiling)
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
     --with-broker=PATH     path to Broker install root
-                           (Bro uses an embedded version by default)
+                           (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
 
@@ -106,6 +106,18 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
 sourcedir="$( cd "$( dirname "$0" )" && pwd )"
 
+if [ ! -e "$sourcedir/cmake/COPYING" ] && [ -d "$sourcedir/.git" ]; then
+    echo "\
+You seem to be missing the content of the cmake directory.
+
+This typically means that you performed a non-recursive git clone of
+Zeek. To check out the required subdirectories, please execute:
+
+  ( cd $sourcedir && git submodule update --recursive --init )
+" >&2;
+    exit 1;
+fi
+
 # Function to append a CMake cache entry definition to the
 # CMakeCacheEntries variable.
 #   $1 is the cache entry variable name
@@ -128,24 +140,24 @@ remove_cache_entry () {
 
 # set defaults
 builddir=build
-prefix=/usr/local/bro
+prefix=/usr/local/zeek
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   $prefix
-append_cache_entry BRO_ROOT_DIR         PATH   $prefix
-append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
-append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
-append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
+append_cache_entry ZEEK_ROOT_DIR        PATH   $prefix
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/zeekctl
+append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
+append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
 append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
-append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
-append_cache_entry INSTALL_BROCTL       BOOL   true
+append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
 append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry SANITIZERS           STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -181,25 +193,25 @@ while [ $# -ne 0 ]; do
         --prefix=*)
             prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
-            append_cache_entry BRO_ROOT_DIR         PATH   $optarg
-            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+            append_cache_entry ZEEK_ROOT_DIR        PATH   $optarg
+            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/zeekctl
             ;;
         --scriptdir=*)
-            append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
+            append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $optarg
             user_set_scriptdir="true"
             ;;
         --conf-files-dir=*)
-            append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
+            append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $optarg
             user_set_conffilesdir="true"
             ;;
         --localstatedir=*)
-            append_cache_entry BRO_LOCAL_STATE_DIR  PATH   $optarg
+            append_cache_entry ZEEK_LOCAL_STATE_DIR PATH   $optarg
             ;;
         --spooldir=*)
-            append_cache_entry BRO_SPOOL_DIR  PATH   $optarg
+            append_cache_entry ZEEK_SPOOL_DIR       PATH   $optarg
             ;;
         --logdir=*)
-            append_cache_entry BRO_LOG_DIR  PATH   $optarg
+            append_cache_entry ZEEK_LOG_DIR         PATH   $optarg
             ;;
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE         BOOL   true
@@ -218,12 +230,11 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
+        --sanitizers=*)
+            append_cache_entry SANITIZERS    STRING    $optarg
+            ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
-            ;;
-        --enable-broccoli)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-            append_cache_entry INSTALL_BROCCOLI     BOOL   yes
             ;;
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER    BOOL    true
@@ -231,8 +242,8 @@ while [ $# -ne 0 ]; do
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
             ;;
-        --disable-broctl)
-            append_cache_entry INSTALL_BROCTL       BOOL   false
+        --disable-zeekctl)
+            append_cache_entry INSTALL_ZEEKCTL       BOOL   false
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
@@ -327,11 +338,11 @@ while [ $# -ne 0 ]; do
 done
 
 if [ "$user_set_scriptdir" != "true" ]; then
-    append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+    append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 fi
 
 if [ "$user_set_conffilesdir" != "true" ]; then
-    append_cache_entry BRO_ETC_INSTALL_DIR PATH $prefix/etc
+    append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $prefix/etc
 fi
 
 if [ -d $builddir ]; then

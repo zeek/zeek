@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <ctype.h>
 
@@ -58,16 +58,10 @@ void Gnutella_Analyzer::Done()
 
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-
 		if ( Established() && gnutella_establish )
-			ConnectionEvent(gnutella_establish, vl);
+			ConnectionEventFast(gnutella_establish, {BuildConnVal()});
 		else if ( ! Established () && gnutella_not_establish )
-			ConnectionEvent(gnutella_not_establish, vl);
-		else
-			delete_vals(vl);
+			ConnectionEventFast(gnutella_not_establish, {BuildConnVal()});
 		}
 
 	if ( gnutella_partial_binary_msg )
@@ -78,14 +72,12 @@ void Gnutella_Analyzer::Done()
 			{
 			if ( ! p->msg_sent && p->msg_pos )
 				{
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(new StringVal(p->msg));
-				vl->append(val_mgr->GetBool((i == 0)));
-				vl->append(val_mgr->GetCount(p->msg_pos));
-
-				ConnectionEvent(gnutella_partial_binary_msg, vl);
+				ConnectionEventFast(gnutella_partial_binary_msg, {
+					BuildConnVal(),
+					new StringVal(p->msg),
+					val_mgr->GetBool((i == 0)),
+					val_mgr->GetCount(p->msg_pos),
+				});
 				}
 
 			else if ( ! p->msg_sent && p->payload_left )
@@ -129,10 +121,7 @@ int Gnutella_Analyzer::IsHTTP(string header)
 
 	if ( gnutella_http_notify )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-		ConnectionEvent(gnutella_http_notify, vl);
+		ConnectionEventFast(gnutella_http_notify, {BuildConnVal()});
 		}
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
@@ -192,13 +181,11 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 			{
 			if ( gnutella_text_msg )
 				{
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(val_mgr->GetBool(orig));
-				vl->append(new StringVal(ms->headers.data()));
-
-				ConnectionEvent(gnutella_text_msg, vl);
+				ConnectionEventFast(gnutella_text_msg, {
+					BuildConnVal(),
+					val_mgr->GetBool(orig),
+					new StringVal(ms->headers.data()),
+				});
 				}
 
 			ms->headers = "";
@@ -206,12 +193,9 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 
 			if ( Established () && gnutella_establish )
 				{
-				val_list* vl = new val_list;
-
 				sent_establish = 1;
-				vl->append(BuildConnVal());
 
-				ConnectionEvent(gnutella_establish, vl);
+				ConnectionEventFast(gnutella_establish, {BuildConnVal()});
 				}
 			}
 		}
@@ -237,21 +221,18 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 
 	if ( gnutella_binary_msg )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(val_mgr->GetCount(p->msg_type));
-		vl->append(val_mgr->GetCount(p->msg_ttl));
-		vl->append(val_mgr->GetCount(p->msg_hops));
-		vl->append(val_mgr->GetCount(p->msg_len));
-		vl->append(new StringVal(p->payload));
-		vl->append(val_mgr->GetCount(p->payload_len));
-		vl->append(val_mgr->GetBool(
-		    (p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))));
-		vl->append(val_mgr->GetBool((p->payload_left == 0)));
-
-		ConnectionEvent(gnutella_binary_msg, vl);
+		ConnectionEventFast(gnutella_binary_msg, {
+			BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			val_mgr->GetCount(p->msg_type),
+			val_mgr->GetCount(p->msg_ttl),
+			val_mgr->GetCount(p->msg_hops),
+			val_mgr->GetCount(p->msg_len),
+			new StringVal(p->payload),
+			val_mgr->GetCount(p->payload_len),
+			val_mgr->GetBool((p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+			val_mgr->GetBool((p->payload_left == 0)),
+		});
 		}
 	}
 

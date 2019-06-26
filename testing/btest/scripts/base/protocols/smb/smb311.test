@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -C -r $TRACES/smb/smb311.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/smb/smb311.pcap %INPUT
 # @TEST-EXEC: test ! -f dpd.log
 # @TEST-EXEC: test ! -f weird.log
 # @TEST-EXEC: btest-diff .stdout

@@ -1,7 +1,8 @@
 refine flow RFB_Flow += {
 	function proc_rfb_message(msg: RFB_PDU): bool
 		%{
-		BifEvent::generate_rfb_event(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
+		if ( rfb_event )
+			BifEvent::generate_rfb_event(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
 		return true;
 		%}
 
@@ -9,50 +10,59 @@ refine flow RFB_Flow += {
 		%{
 		if (client)
 			{
-			BifEvent::generate_rfb_client_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
+			if ( rfb_client_version )
+				BifEvent::generate_rfb_client_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
 
 			connection()->bro_analyzer()->ProtocolConfirmation();
 			}
 			else
 			{
-			BifEvent::generate_rfb_server_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
+			if ( rfb_server_version )
+				BifEvent::generate_rfb_server_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
 			}
 		return true;
 		%}
 
 	function proc_rfb_share_flag(shared: bool) : bool
 		%{
-		BifEvent::generate_rfb_share_flag(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), shared);
+		if ( rfb_share_flag )
+			BifEvent::generate_rfb_share_flag(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), shared);
 		return true;
 		%}
 
 	function proc_security_types(msg: RFBSecurityType) : bool
 		%{
-		BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
+		if ( rfb_authentication_type )
+			BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
 		return true;
 		%}
 
 	function proc_security_types37(msg: RFBAuthTypeSelected) : bool
 		%{
-		BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
+		if ( rfb_authentication_type )
+			BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
 		return true;
 		%}
 
 	function proc_handle_server_params(msg:RFBServerInit) : bool
 		%{
-		auto vec_ptr = ${msg.name};
-		auto name_ptr = &((*vec_ptr)[0]);
-		BifEvent::generate_rfb_server_parameters(
-		    connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-		    new StringVal(${msg.name}->size(), (const char*)name_ptr),
-		    ${msg.width},
-		    ${msg.height});
+		if ( rfb_server_parameters )
+			{
+			auto vec_ptr = ${msg.name};
+			auto name_ptr = &((*vec_ptr)[0]);
+			BifEvent::generate_rfb_server_parameters(
+			    connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			    new StringVal(${msg.name}->size(), (const char*)name_ptr),
+			    ${msg.width},
+			    ${msg.height});
+			}
 		return true;
 		%}
 
 	function proc_handle_security_result(result : uint32) : bool
 		%{
-		BifEvent::generate_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
+		if ( rfb_auth_result )
+			BifEvent::generate_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
 		return true;
 		%}
 };

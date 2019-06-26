@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -646,11 +646,11 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 
 	if ( http_message_done )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(BuildMessageStat(interrupted, detail));
-		GetAnalyzer()->ConnectionEvent(http_message_done, vl);
+		GetAnalyzer()->ConnectionEventFast(http_message_done, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			BuildMessageStat(interrupted, detail),
+		});
 		}
 
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
@@ -679,10 +679,10 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 
 	if ( http_begin_entity )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		analyzer->ConnectionEvent(http_begin_entity, vl);
+		analyzer->ConnectionEventFast(http_begin_entity, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+		});
 		}
 	}
 
@@ -696,10 +696,10 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 
 	if ( http_end_entity )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		analyzer->ConnectionEvent(http_end_entity, vl);
+		analyzer->ConnectionEventFast(http_end_entity, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+		});
 		}
 
 	current_entity = (HTTP_Entity*) entity->Parent();
@@ -737,11 +737,11 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	{
 	if ( http_all_headers )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(BuildHeaderTable(hlist));
-		analyzer->ConnectionEvent(http_all_headers, vl);
+		analyzer->ConnectionEventFast(http_all_headers, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			BuildHeaderTable(hlist),
+		});
 		}
 
 	if ( http_content_type )
@@ -751,12 +751,12 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		ty->Ref();
 		subty->Ref();
 
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(ty);
-		vl->append(subty);
-		analyzer->ConnectionEvent(http_content_type, vl);
+		analyzer->ConnectionEventFast(http_content_type, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			ty,
+			subty,
+		});
 		}
 	}
 
@@ -1182,12 +1182,8 @@ void HTTP_Analyzer::GenStats()
 		r->Assign(2, new Val(request_version, TYPE_DOUBLE));
 		r->Assign(3, new Val(reply_version, TYPE_DOUBLE));
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(r);
-
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
-		ConnectionEvent(http_stats, vl);
+		ConnectionEventFast(http_stats, {BuildConnVal(), r});
 		}
 	}
 
@@ -1384,13 +1380,12 @@ void HTTP_Analyzer::HTTP_Event(const char* category, StringVal* detail)
 	{
 	if ( http_event )
 		{
-		val_list* vl = new val_list();
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(category));
-		vl->append(detail);
-
 		// DEBUG_MSG("%.6f http_event\n", network_time);
-		ConnectionEvent(http_event, vl);
+		ConnectionEventFast(http_event, {
+			BuildConnVal(),
+			new StringVal(category),
+			detail,
+		});
 		}
 	else
 		delete detail;
@@ -1426,17 +1421,16 @@ void HTTP_Analyzer::HTTP_Request()
 
 	if ( http_request )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-
 		Ref(request_method);
-		vl->append(request_method);
-		vl->append(TruncateURI(request_URI->AsStringVal()));
-		vl->append(TruncateURI(unescaped_URI->AsStringVal()));
 
-		vl->append(new StringVal(fmt("%.1f", request_version)));
 		// DEBUG_MSG("%.6f http_request\n", network_time);
-		ConnectionEvent(http_request, vl);
+		ConnectionEventFast(http_request, {
+			BuildConnVal(),
+			request_method,
+			TruncateURI(request_URI->AsStringVal()),
+			TruncateURI(unescaped_URI->AsStringVal()),
+			new StringVal(fmt("%.1f", request_version)),
+		});
 		}
 	}
 
@@ -1444,15 +1438,14 @@ void HTTP_Analyzer::HTTP_Reply()
 	{
 	if ( http_reply )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(fmt("%.1f", reply_version)));
-		vl->append(val_mgr->GetCount(reply_code));
-		if ( reply_reason_phrase )
-			vl->append(reply_reason_phrase->Ref());
-		else
-			vl->append(new StringVal("<empty>"));
-		ConnectionEvent(http_reply, vl);
+		ConnectionEventFast(http_reply, {
+			BuildConnVal(),
+			new StringVal(fmt("%.1f", reply_version)),
+			val_mgr->GetCount(reply_code),
+			reply_reason_phrase ?
+				reply_reason_phrase->Ref() :
+				new StringVal("<empty>"),
+		});
 		}
 	else
 		{
@@ -1524,10 +1517,10 @@ void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
 
 		if ( http_connection_upgrade )
 			{
-			val_list* vl = new val_list();
-			vl->append(BuildConnVal());
-			vl->append(new StringVal(upgrade_protocol));
-			ConnectionEvent(http_connection_upgrade, vl);
+			ConnectionEventFast(http_connection_upgrade, {
+				BuildConnVal(),
+				new StringVal(upgrade_protocol),
+			});
 			}
 		}
 
@@ -1697,14 +1690,15 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 		Conn()->Match(rule, (const u_char*) hd_value.data, hd_value.length,
 				is_orig, false, true, false);
 
-		val_list* vl = new val_list();
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(mime::new_string_val(h->get_name())->ToUpper());
-		vl->append(mime::new_string_val(h->get_value()));
 		if ( DEBUG_http )
 			DEBUG_MSG("%.6f http_header\n", network_time);
-		ConnectionEvent(http_header, vl);
+
+		ConnectionEventFast(http_header, {
+			BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			mime::new_string_val(h->get_name())->ToUpper(),
+			mime::new_string_val(h->get_value()),
+		});
 		}
 	}
 
@@ -1833,12 +1827,12 @@ void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
 	{
 	if ( http_entity_data )
 		{
-		val_list* vl = new val_list();
-		vl->append(BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		vl->append(val_mgr->GetCount(entity_data->Len()));
-		vl->append(new StringVal(entity_data));
-		ConnectionEvent(http_entity_data, vl);
+		ConnectionEventFast(http_entity_data, {
+			BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+			val_mgr->GetCount(entity_data->Len()),
+			new StringVal(entity_data),
+		});
 		}
 	else
 		delete entity_data;

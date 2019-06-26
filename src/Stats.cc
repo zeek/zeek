@@ -255,7 +255,7 @@ void ProfileLogger::Log()
 		while ( (id = globals->NextEntry(c)) )
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.
-			if ( id->HasVal() && ! id->IsInternalGlobal() )
+			if ( id->HasVal() )
 				{
 				Val* v = id->ID_Val();
 
@@ -310,11 +310,11 @@ void ProfileLogger::Log()
 	// (and for consistency we dispatch it *now*)
 	if ( profiling_update )
 		{
-		val_list* vl = new val_list;
 		Ref(file);
-		vl->append(new Val(file));
-		vl->append(val_mgr->GetBool(expensive));
-		mgr.Dispatch(new Event(profiling_update, vl));
+		mgr.Dispatch(new Event(profiling_update, {
+			new Val(file),
+			val_mgr->GetBool(expensive),
+		}));
 		}
 	}
 
@@ -369,12 +369,12 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 					const Location* /* loc */,
 					double dtime, int dmem)
 	{
-	val_list* vl = new val_list(2);
-	vl->append(load_samples->Ref());
-	vl->append(new IntervalVal(dtime, Seconds));
-	vl->append(val_mgr->GetInt(dmem));
-
-	mgr.QueueEvent(load_sample, vl);
+	if ( load_sample )
+		mgr.QueueEventFast(load_sample, {
+			load_samples->Ref(),
+			new IntervalVal(dtime, Seconds),
+			val_mgr->GetInt(dmem)
+		});
 	}
 
 void SegmentProfiler::Init()

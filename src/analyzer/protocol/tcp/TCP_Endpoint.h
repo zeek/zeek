@@ -175,6 +175,9 @@ public:
 	// Called to inform endpoint that it has offered a zero window.
 	void ZeroWindow();
 
+	// Called to inform endpoint that a gap occurred.
+	void Gap(uint64 seq, uint64 len);
+
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
 	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
@@ -240,6 +243,7 @@ protected:
 	uint32 chk_cnt, chk_thresh;
 	uint32 rxmt_cnt, rxmt_thresh;
 	uint32 win0_cnt, win0_thresh;
+	uint32 gap_cnt, gap_thresh;
 };
 
 #define ENDIAN_UNKNOWN 0

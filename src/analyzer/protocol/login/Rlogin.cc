@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "Event.h"
@@ -244,11 +244,9 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	{
 	if ( login_terminal )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(s));
-
-		ConnectionEvent(login_terminal, vl);
+		ConnectionEventFast(login_terminal, {
+			BuildConnVal(),
+			new StringVal(s),
+		});
 		}
 	}

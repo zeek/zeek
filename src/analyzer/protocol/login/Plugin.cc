@@ -9,7 +9,7 @@
 #include "Rlogin.h"
 
 namespace plugin {
-namespace Bro_Login {
+namespace Zeek_Login {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -24,7 +24,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_Rlogin", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::Login";
+		config.name = "Zeek::Login";
 		config.description = "Telnet/Rsh/Rlogin analyzers";
 		return config;
 		}

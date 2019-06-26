@@ -1,0 +1,13 @@
+# @TEST-EXEC: zeek -C -r $TRACES/smb/smb2readwrite.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/smb
+
+# A test for write response.
+event smb2_write_response(c: connection, hdr: SMB2::Header, length: count)
+	{
+	print fmt("smb2_write_response %s -> %s:%d, length: %d", c$id$orig_h, c$id$resp_h, c$id$resp_p, length);
+	print (hdr);
+	}
+
+

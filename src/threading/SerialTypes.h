@@ -13,7 +13,6 @@
 using namespace std;
 
 class SerializationFormat;
-class RemoteSerializer;
 
 namespace threading {
 
@@ -78,8 +77,6 @@ struct Field {
 	string TypeName() const;
 
 private:
-	friend class ::RemoteSerializer;
-
 	// Force usage of constructor above.
 	Field()	{}
 };
@@ -129,6 +126,7 @@ struct Value {
 		vec_t vector_val;
 		addr_t addr_val;
 		subnet_t subnet_val;
+		const char* pattern_text_val;
 
 		struct {
 			char* data;

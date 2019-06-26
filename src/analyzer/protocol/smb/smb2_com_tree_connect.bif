@@ -10,7 +10,7 @@
 ##
 ## path: Path of the requested tree.
 ##
-## .. bro:see:: smb2_message smb2_tree_connect_response
+## .. zeek:see:: smb2_message smb2_tree_connect_response
 event smb2_tree_connect_request%(c: connection, hdr: SMB2::Header, path: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -25,7 +25,7 @@ event smb2_tree_connect_request%(c: connection, hdr: SMB2::Header, path: string%
 ##
 ## response: A record with more information related to the response.
 ##
-## .. bro:see:: smb2_message smb2_tree_connect_request
+## .. zeek:see:: smb2_message smb2_tree_connect_request
 event smb2_tree_connect_response%(c: connection, hdr: SMB2::Header, response: SMB2::TreeConnectResponse%);
 
 type SMB2::TreeConnectResponse: record;

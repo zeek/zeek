@@ -233,6 +233,13 @@ public:
 		this->weird_sampling_duration = weird_sampling_duration;
 		}
 
+	/**
+	 * Called after zeek_init() and toggles whether messages may stop being
+	 * emitted to stderr.
+	 */
+	void ZeekInitDone()
+		{ after_zeek_init = true; }
+
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
@@ -248,12 +255,16 @@ private:
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
 
+	bool EmitToStderr(bool flag)
+		{ return flag || ! after_zeek_init; }
+
 	int errors;
 	bool via_events;
 	int in_error_handler;
 	bool info_to_stderr;
 	bool warnings_to_stderr;
 	bool errors_to_stderr;
+	bool after_zeek_init;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
 

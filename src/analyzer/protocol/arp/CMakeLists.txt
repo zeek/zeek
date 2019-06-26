@@ -4,12 +4,12 @@
 # it's also parsing a protocol just like them. The current structure
 # is merely a left-over from when this code was written.
 
-include(BroPlugin)
+include(ZeekPlugin)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-bro_plugin_begin(Bro ARP)
-bro_plugin_cc(ARP.cc Plugin.cc)
-bro_plugin_bif(events.bif)
-bro_plugin_end()
+zeek_plugin_begin(Zeek ARP)
+zeek_plugin_cc(ARP.cc Plugin.cc)
+zeek_plugin_bif(events.bif)
+zeek_plugin_end()
 

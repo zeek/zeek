@@ -13,20 +13,6 @@
 // This is the indexed map of X509 certificate stores.
 static map<Val*, X509_STORE*> x509_stores;
 
-// ### NOTE: while d2i_X509 does not take a const u_char** pointer,
-// here we assume d2i_X509 does not write to <data>, so it is safe to
-// convert data to a non-const pointer.  Could some X509 guru verify
-// this?
-
-X509* d2i_X509_(X509** px, const u_char** in, int len)
-	{
-#ifdef OPENSSL_D2I_X509_USES_CONST_CHAR
-	  return d2i_X509(px, in, len);
-#else
-	  return d2i_X509(px, (u_char**)in, len);
-#endif
-	}
-
 // construct an error record
 RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = 0)
 	{
@@ -56,7 +42,7 @@ X509_STORE* x509_get_root_store(TableVal* root_certs)
 		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
 		assert(sv);
 		const uint8* data = sv->Bytes();
-		X509* x = d2i_X509_(NULL, &data, sv->Len());
+		X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
 			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
@@ -192,7 +178,7 @@ const EVP_MD* hash_to_evp(int hash)
 ##
 ## Returns: A X509::Certificate structure.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_verify
 ##              x509_get_certificate_string
 function x509_parse%(cert: opaque of x509%): X509::Certificate
@@ -202,6 +188,19 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 
 	return file_analysis::X509::ParseCertificate(h);
 	%}
+
+## Constructs an opaque of X509 from a der-formatted string.
+##
+## Note: this function is mostly meant for testing purposes
+##
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
+##              x509_ext_subject_alternative_name x509_verify
+##              x509_get_certificate_string x509_parse
+function x509_from_der%(der: string%): opaque of x509
+    %{
+    const u_char* data = der->Bytes();
+    return new file_analysis::X509Val(d2i_X509(nullptr, &data, der->Len()));
+    %}
 
 ## Returns the string form of a certificate.
 ##
@@ -213,7 +212,7 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 ##
 ## Returns: X509 certificate as a string.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse x509_verify
 function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F%): string
 	%{
@@ -249,7 +248,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ## Returns: A record of type X509::Result containing the result code of the
 ##          verify operation.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
 ##              x509_get_certificate_string x509_verify
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
@@ -536,7 +535,7 @@ x509_ocsp_cleanup:
 ##          verify operation. In case of success also returns the full
 ##          certificate chain.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse
 ##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
@@ -646,7 +645,7 @@ x509_verify_chainerror:
 ##
 ## Returns: T if the validation could be performed succesfully, F otherwhise.
 ##
-## .. bro:see:: ssl_extension_signed_certificate_timestamp
+## .. zeek:see:: ssl_extension_signed_certificate_timestamp
 ##              x509_ocsp_ext_signed_certificate_timestamp
 ##              x509_verify
 function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signature: string, timestamp: count, hash_algorithm: count, issuer_key_hash: string &default=""%): bool
@@ -876,7 +875,7 @@ StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int ha
 ##
 ## Returns: The hash as a string.
 ##
-## .. bro:see:: x509_issuer_name_hash x509_spki_hash
+## .. zeek:see:: x509_issuer_name_hash x509_spki_hash
 ##              x509_verify sct_verify
 function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
@@ -894,7 +893,7 @@ function x509_subject_name_hash%(cert: opaque of x509, hash_alg: count%): string
 ##
 ## Returns: The hash as a string.
 ##
-## .. bro:see:: x509_subject_name_hash x509_spki_hash
+## .. zeek:see:: x509_subject_name_hash x509_spki_hash
 ##              x509_verify sct_verify
 function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{
@@ -912,7 +911,7 @@ function x509_issuer_name_hash%(cert: opaque of x509, hash_alg: count%): string
 ##
 ## Returns: The hash as a string.
 ##
-## .. bro:see:: x509_subject_name_hash x509_issuer_name_hash
+## .. zeek:see:: x509_subject_name_hash x509_issuer_name_hash
 ##              x509_verify sct_verify
 function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 	%{

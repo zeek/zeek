@@ -7,7 +7,7 @@
 ##
 ## c: The SMTP connection.
 ##
-## .. bro:see:: skip_http_entity_data
+## .. zeek:see:: skip_http_entity_data
 function skip_smtp_data%(c: connection%): any
 	%{
 	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event x509_extension(f: fa_file, ext: X509::Extension)

@@ -22,13 +22,13 @@ import os, sys
 
 scriptdir = sys.argv[1]
 
-# Return a list of all bro script files.
+# Return a list of all zeek script files.
 def find_scripts():
     scripts = []
 
     for r, d, f in os.walk(scriptdir):
         for fname in f:
-            if fname.endswith(".bro"):
+            if fname.endswith(".zeek") or fname.endswith(".bro"):
                 scripts.append(os.path.join(r, fname))
 
     return scripts

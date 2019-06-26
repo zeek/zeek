@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <arpa/inet.h>
 
@@ -14,7 +14,6 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Reporter.h"
-#include "OSFinger.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -130,15 +129,6 @@ NetSessions::NetSessions()
 	dump_this_packet = 0;
 	num_packets_processed = 0;
 
-	if ( OS_version_found )
-		{
-		SYN_OS_Fingerprinter = new OSFingerprint(SYN_FINGERPRINT_MODE);
-		if ( SYN_OS_Fingerprinter->Error() )
-			exit(1);
-		}
-	else
-		SYN_OS_Fingerprinter = 0;
-
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
 				pkt_profile_freq, pkt_profile_file->AsFile());
@@ -155,7 +145,6 @@ NetSessions::~NetSessions()
 	{
 	delete ch;
 	delete packet_filter;
-	delete SYN_OS_Fingerprinter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
 	delete discarder;
@@ -171,11 +160,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		{
-		val_list* vl = new val_list();
-		vl->append(pkt->BuildPktHdrVal());
-		mgr.QueueEvent(raw_packet, vl);
-		}
+		mgr.QueueEventFast(raw_packet, {pkt->BuildPktHdrVal()});
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -415,11 +400,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = 1;
 		if ( esp_packet )
-			{
-			val_list* vl = new val_list();
-			vl->append(ip_hdr->BuildPktHdrVal());
-			mgr.QueueEvent(esp_packet, vl);
-			}
+			mgr.QueueEventFast(esp_packet, {ip_hdr->BuildPktHdrVal()});
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -439,11 +420,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			{
-			val_list* vl = new val_list();
-			vl->append(ip_hdr->BuildPktHdrVal());
-			mgr.QueueEvent(mobile_ipv6_message, vl);
-			}
+			mgr.QueueEvent(mobile_ipv6_message, {ip_hdr->BuildPktHdrVal()});
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);
@@ -999,24 +976,6 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	return f;
 	}
 
-int NetSessions::Get_OS_From_SYN(struct os_type* retval,
-		  uint16 tot, uint8 DF_flag, uint8 TTL, uint16 WSS,
-		  uint8 ocnt, uint8* op, uint16 MSS, uint8 win_scale,
-		  uint32 tstamp, /* uint8 TOS, */ uint32 quirks,
-		  uint8 ECN) const
-	{
-	return SYN_OS_Fingerprinter ?
-		SYN_OS_Fingerprinter->FindMatch(retval, tot, DF_flag, TTL,
-				WSS, ocnt, op, MSS, win_scale, tstamp,
-				quirks, ECN) : 0;
-	}
-
-bool NetSessions::CompareWithPreviousOSMatch(const IPAddr& addr, int id) const
-	{
-	return SYN_OS_Fingerprinter ?
-		SYN_OS_Fingerprinter->CacheMatch(addr, id) : 0;
-	}
-
 Connection* NetSessions::FindConnection(Val* v)
 	{
 	BroType* vt = v->Type();
@@ -1113,9 +1072,6 @@ void NetSessions::Remove(Connection* c)
 			tcp_stats.StateLeft(to->state, tr->state);
 			}
 
-		if ( c->IsPersistent() )
-			persistence_serializer->Unregister(c);
-
 		c->Done();
 
 		if ( connection_state_remove )
@@ -1206,8 +1162,6 @@ void NetSessions::Insert(Connection* c)
 		// Some clean-ups similar to those in Remove() (but invisible
 		// to the script layer).
 		old->CancelTimers();
-		if ( old->IsPersistent() )
-			persistence_serializer->Unregister(old);
 		delete old->Key();
 		old->ClearKey();
 		Unref(old);
@@ -1327,12 +1281,12 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		{
 		conn->Event(new_connection, 0);
 
-		if ( external )
+		if ( external && connection_external )
 			{
-			val_list* vl = new val_list(2);
-			vl->append(conn->BuildConnVal());
-			vl->append(new StringVal(conn->GetTimerMgr()->GetTag().c_str()));
-			conn->ConnectionEvent(connection_external, 0, vl);
+			conn->ConnectionEventFast(connection_external, 0, {
+				conn->BuildConnVal(),
+				new StringVal(conn->GetTimerMgr()->GetTag().c_str()),
+			});
 			}
 		}
 

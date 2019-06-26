@@ -6,7 +6,6 @@
 #include <string>
 
 #include <string>
-#include "SerialObj.h"
 #include "PriorityQueue.h"
 
 extern "C" {
@@ -25,8 +24,6 @@ enum TimerType {
 	TIMER_FILE_ANALYSIS_INACTIVITY,
 	TIMER_FLOW_WEIRD_EXPIRE,
 	TIMER_FRAG,
-	TIMER_INCREMENTAL_SEND,
-	TIMER_INCREMENTAL_WRITE,
 	TIMER_INTERCONN,
 	TIMER_IP_TUNNEL_INACTIVITY,
 	TIMER_NB_EXPIRE,
@@ -51,10 +48,9 @@ const int NUM_TIMER_TYPES = int(TIMER_TIMERMGR_EXPIRE) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 
-class Serializer;
 class ODesc;
 
-class Timer : public SerialObj, public PQ_Element {
+class Timer : public PQ_Element {
 public:
 	Timer(double t, TimerType arg_type) : PQ_Element(t)
 		{ type = (char) arg_type; }
@@ -69,13 +65,8 @@ public:
 
 	void Describe(ODesc* d) const;
 
-	bool Serialize(SerialInfo* info) const;
-	static Timer* Unserialize(UnserialInfo* info);
-
 protected:
 	Timer()	{}
-
-	DECLARE_ABSTRACT_SERIAL(Timer);
 
 	unsigned int type:8;
 };

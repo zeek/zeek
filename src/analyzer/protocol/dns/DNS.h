@@ -63,6 +63,8 @@ typedef enum {
 	TYPE_DNSKEY = 48,	///< DNS Key record (RFC 4034)
 	TYPE_DS = 43,		///< Delegation signer (RFC 4034)
 	TYPE_NSEC3 = 50,
+	// Obsoleted
+	TYPE_SPF = 99,          ///< Alternative: storing SPF data in TXT records, using the same format (RFC 4408). Support for it was discontinued in RFC 7208
 	// The following are only valid in queries.
 	TYPE_AXFR = 252,
 	TYPE_ALL = 255,
@@ -182,7 +184,7 @@ public:
 	Val* BuildHdrVal();
 	Val* BuildAnswerVal();
 	Val* BuildEDNS_Val();
-	Val* BuildTSIG_Val();
+	Val* BuildTSIG_Val(struct TSIG_DATA*);
 	Val* BuildRRSIG_Val(struct RRSIG_DATA*);
 	Val* BuildDNSKEY_Val(struct DNSKEY_DATA*);
 	Val* BuildNSEC3_Val(struct NSEC3_DATA*);
@@ -214,10 +216,6 @@ public:
 				///< identical answer, there may be problems
 	// uint32* addr;	///< cache value to pass back results
 				///< for forward lookups
-
-	// More values for spesific DNS types.
-	//struct EDNS_ADDITIONAL* edns;
-	struct TSIG_DATA* tsig;
 };
 
 
@@ -284,6 +282,9 @@ protected:
 	int ParseRR_HINFO(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength);
 	int ParseRR_TXT(DNS_MsgInfo* msg,
+				const u_char*& data, int& len, int rdlength,
+				const u_char* msg_start);
+	int ParseRR_SPF(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength,
 				const u_char* msg_start);
 	int ParseRR_CAA(DNS_MsgInfo* msg,

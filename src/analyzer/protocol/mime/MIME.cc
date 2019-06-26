@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "MIME.h"
@@ -1358,11 +1358,11 @@ void MIME_Mail::Done()
 		hash_final(md5_hash, digest);
 		md5_hash = nullptr;
 
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(content_hash_length));
-		vl->append(new StringVal(new BroString(1, digest, 16)));
-		analyzer->ConnectionEvent(mime_content_hash, vl);
+		analyzer->ConnectionEventFast(mime_content_hash, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(content_hash_length),
+			new StringVal(new BroString(1, digest, 16)),
+		});
 		}
 
 	MIME_Message::Done();
@@ -1386,11 +1386,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
-		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		analyzer->ConnectionEvent(mime_begin_entity, vl);
-		}
+		analyzer->ConnectionEventFast(mime_begin_entity, {analyzer->BuildConnVal()});
 
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
@@ -1402,12 +1398,11 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		{
 		BroString* s = concatenate(entity_content);
 
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(s->Len()));
-		vl->append(new StringVal(s));
-
-		analyzer->ConnectionEvent(mime_entity_data, vl);
+		analyzer->ConnectionEventFast(mime_entity_data, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(s->Len()),
+			new StringVal(s),
+		});
 
 		if ( ! mime_all_data )
 			delete_strings(entity_content);
@@ -1416,11 +1411,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	if ( mime_end_entity )
-		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		analyzer->ConnectionEvent(mime_end_entity, vl);
-		}
+		analyzer->ConnectionEventFast(mime_end_entity, {analyzer->BuildConnVal()});
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
@@ -1430,10 +1421,10 @@ void MIME_Mail::SubmitHeader(MIME_Header* h)
 	{
 	if ( mime_one_header )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(BuildHeaderVal(h));
-		analyzer->ConnectionEvent(mime_one_header, vl);
+		analyzer->ConnectionEventFast(mime_one_header, {
+			analyzer->BuildConnVal(),
+			BuildHeaderVal(h),
+		});
 		}
 	}
 
@@ -1441,10 +1432,10 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	{
 	if ( mime_all_headers )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(BuildHeaderTable(hlist));
-		analyzer->ConnectionEvent(mime_all_headers, vl);
+		analyzer->ConnectionEventFast(mime_all_headers, {
+			analyzer->BuildConnVal(),
+			BuildHeaderTable(hlist),
+		});
 		}
 	}
 
@@ -1478,11 +1469,11 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		const char* data = (char*) data_buffer->Bytes() + data_start;
 		int data_len = (buf + len) - data;
 
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(data_len));
-		vl->append(new StringVal(data_len, data));
-		analyzer->ConnectionEvent(mime_segment_data, vl);
+		analyzer->ConnectionEventFast(mime_segment_data, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(data_len),
+			new StringVal(data_len, data),
+		});
 		}
 
 	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
@@ -1525,12 +1516,11 @@ void MIME_Mail::SubmitAllData()
 		BroString* s = concatenate(all_content);
 		delete_strings(all_content);
 
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(s->Len()));
-		vl->append(new StringVal(s));
-
-		analyzer->ConnectionEvent(mime_all_data, vl);
+		analyzer->ConnectionEventFast(mime_all_data, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(s->Len()),
+			new StringVal(s),
+		});
 		}
 	}
 
@@ -1555,10 +1545,10 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 
 	if ( mime_event )
 		{
-		val_list* vl = new val_list();
-		vl->append(analyzer->BuildConnVal());
-		vl->append(new StringVal(category));
-		vl->append(new StringVal(detail));
-		analyzer->ConnectionEvent(mime_event, vl);
+		analyzer->ConnectionEventFast(mime_event, {
+			analyzer->BuildConnVal(),
+			new StringVal(category),
+			new StringVal(detail),
+		});
 		}
 	}

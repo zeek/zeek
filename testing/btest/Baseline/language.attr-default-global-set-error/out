@@ -1,2 +1,2 @@
-error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.bro, line 4: arithmetic mixed with non-arithmetic (set[string] and 0)
-error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.bro, line 4: &default value has inconsistent type (0 and set[string])
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 4: arithmetic mixed with non-arithmetic (set[string] and 0)
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.attr-default-global-set-error/attr-default-global-set-error.zeek, line 4: &default value has inconsistent type (0 and set[string])

@@ -3,78 +3,78 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-27
+#open	2019-06-07-02-20-03
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334160095.895421	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2017-10-19-17-18-28
+1334160095.895421	-	-	-	-	-	truncated_IP	-	F	zeek
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-29
+#open	2019-06-07-02-20-03
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334156241.519125	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2017-10-19-17-18-30
+1334156241.519125	-	-	-	-	-	truncated_IP	-	F	zeek
+#close	2019-06-07-02-20-03
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-32
+#open	2019-06-07-02-20-04
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1334094648.590126	-	-	-	-	-	truncated_IP	-	F	bro
-#close	2017-10-19-17-18-32
+1334094648.590126	-	-	-	-	-	truncated_IP	-	F	zeek
+#close	2019-06-07-02-20-04
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-36
+#open	2019-06-07-02-20-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1338328954.078361	-	-	-	-	-	internally_truncated_header	-	F	bro
-#close	2017-10-19-17-18-36
+1338328954.078361	-	-	-	-	-	internally_truncated_header	-	F	zeek
+#close	2019-06-07-02-20-05
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-37
+#open	2019-06-07-02-20-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-0.000000	-	-	-	-	-	truncated_link_header	-	F	bro
-#close	2017-10-19-17-18-38
+0.000000	-	-	-	-	-	truncated_link_header	-	F	zeek
+#close	2019-06-07-02-20-05
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-39
+#open	2019-06-07-02-20-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	invalid_IP_header_size	-	F	bro
-#close	2017-10-19-17-18-40
+1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	invalid_IP_header_size	-	F	zeek
+#close	2019-06-07-02-20-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-41
+#open	2019-06-07-02-20-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	internally_truncated_header	-	F	bro
-#close	2017-10-19-17-18-42
+1508360735.834163	-	163.253.48.183	0	192.150.187.43	0	internally_truncated_header	-	F	zeek
+#close	2019-06-07-02-20-06
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2017-10-19-17-18-43
+#open	2019-06-07-02-20-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1500557630.000000	-	0.255.0.255	0	15.254.2.1	0	invalid_IP_header_size_in_tunnel	-	F	bro
-#close	2017-10-19-17-18-44
+1500557630.000000	-	0.255.0.255	0	15.254.2.1	0	invalid_IP_header_size_in_tunnel	-	F	zeek
+#close	2019-06-07-02-20-07

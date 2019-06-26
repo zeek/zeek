@@ -1,6 +1,6 @@
 // Debugging support for Bro policy files.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -348,7 +348,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( ! sscanf(line_string.c_str(), "%d", &plr.line) )
 				plr.type = plrUnknown;
 
-			string path(find_file(filename, bro_path(), "bro"));
+			string path(find_script_file(filename, bro_path()));
 
 			if ( path.empty() )
 				{
@@ -721,7 +721,7 @@ static char* get_prompt(bool reset_counter = false)
 	if ( reset_counter )
 		counter = 0;
 
-	safe_snprintf(prompt, sizeof(prompt), "(Bro [%d]) ", counter++);
+	safe_snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
 
 	return prompt;
 	}

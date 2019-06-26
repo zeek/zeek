@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -27,7 +27,6 @@
 #include "Reporter.h"
 #include "Net.h"
 #include "Anon.h"
-#include "Serializer.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
@@ -49,8 +48,6 @@ int reading_live = 0;
 int reading_traces = 0;
 int have_pending_timers = 0;
 double pseudo_realtime = 0.0;
-bool using_communication = false;
-
 double network_time = 0.0;	// time according to last packet timestamp
 				// (or current time)
 double processing_start_time = 0.0;	// time started working on current pkt
@@ -188,7 +185,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 	else
 		// have_pending_timers = 1, possibly.  We don't set
 		// that here, though, because at this point we don't know
-		// whether the user's bro_init() event will indeed set
+		// whether the user's zeek_init() event will indeed set
 		// a timer.
 		reading_traces = reading_live = 0;
 
@@ -309,7 +306,7 @@ void net_run()
 			}
 #endif
 		current_iosrc = src;
-		auto communication_enabled = using_communication || broker_mgr->Active();
+		auto communication_enabled = broker_mgr->Active();
 
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
@@ -371,11 +368,6 @@ void net_run()
 			// We received a signal while processing the
 			// current packet and its related events.
 			termination_signal();
-
-#ifdef DEBUG_COMMUNICATION
-		if ( signal_val == SIGPROF && remote_serializer )
-			remote_serializer->DumpDebugData();
-#endif
 
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for

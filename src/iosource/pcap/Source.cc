@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Source.h"
 #include "iosource/Packet.h"

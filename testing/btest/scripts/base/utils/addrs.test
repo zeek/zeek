@@ -1,27 +1,58 @@
-# @TEST-EXEC: bro -b %INPUT > output
+# @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 @load base/utils/addrs
 
-event bro_init()
+event zeek_init()
 	{
+	print "============ test ipv4 regex (good strings)";
 	local ip = "0.0.0.0";
-
-	print "============ test ipv4 regex";
 	print ip == ipv4_addr_regex;
 	print is_valid_ip(ip);
+
 	ip = "1.1.1.1";
 	print ip == ipv4_addr_regex;
 	print is_valid_ip(ip);
+
+	ip = "9.9.9.9";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	ip = "99.99.99.99";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	ip = "09.99.99.99";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	ip = "009.99.99.99";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
 	ip = "255.255.255.255";
 	print ip == ipv4_addr_regex;
 	print is_valid_ip(ip);
+
+	print "============ bad ipv4 decimals";
 	ip = "255.255.255.256";
-	print ip == ipv4_addr_regex; # the regex doesn't check for 0-255
-	print is_valid_ip(ip);       # but is_valid_ip() will
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	ip = "255.255.255.295";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	ip = "255.255.255.300";
+	print ip == ipv4_addr_regex;
+	print is_valid_ip(ip);
+
+	print "============ too many ipv4 decimals";
 	ip = "255.255.255.255.255";
 	print ip == ipv4_addr_regex;
 	print is_valid_ip(ip);
+
+	print "============ typical looking ipv4";
 	ip = "192.168.1.100";
 	print ip == ipv4_addr_regex;
 	print is_valid_ip(ip);
@@ -97,8 +128,16 @@ event bro_init()
 	ip = "2001:db8:0:0:0:FFFF:192.168.0.256";
 	print is_valid_ip(ip);
 
+	# These have too many hextets ("::" must expand to at least one hextet)
+	print is_valid_ip("6:1:2::3:4:5:6:7");
+	print is_valid_ip("6:1:2::3:4:5:6:7:8");
+
 	print "============ test extract_ip_addresses()";
 	print extract_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
 	print extract_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");
 
+	# This will use the leading 6 from "IPv6" (maybe that's not intended
+	# by a person trying to parse such a string, but that's just what's going
+	# to happen; it's on them to deal).
+	print extract_ip_addresses("IPv6:1:2::3:4:5:6:7");
 	}

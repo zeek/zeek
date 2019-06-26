@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/ipv6-fragmented-dns.trace %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/ipv6-fragmented-dns.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff dns.log
 

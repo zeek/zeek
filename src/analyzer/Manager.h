@@ -78,10 +78,10 @@ public:
 
 	/**
 	 * Dumps out the state of all registered analyzers to the \c analyzer
-	 * debug stream. Should be called only after any \c bro_init events
+	 * debug stream. Should be called only after any \c zeek_init events
 	 * have executed to ensure that any of their changes are applied.
 	 */
-	void DumpDebug(); // Called after bro_init() events.
+	void DumpDebug(); // Called after zeek_init() events.
 
 	/**
 	 * Enables an analyzer type. Only enabled analyzers will be

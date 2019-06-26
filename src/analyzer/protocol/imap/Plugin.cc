@@ -3,7 +3,7 @@
 #include "IMAP.h"
 
 namespace plugin {
-namespace Bro_IMAP {
+namespace Zeek_IMAP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -12,7 +12,7 @@ public:
 		AddComponent(new ::analyzer::Component("IMAP", ::analyzer::imap::IMAP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::IMAP";
+		config.name = "Zeek::IMAP";
 		config.description = "IMAP analyzer (StartTLS only)";
 		return config;
 		}

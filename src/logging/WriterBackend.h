@@ -9,8 +9,6 @@
 
 #include "Component.h"
 
-class RemoteSerializer;
-
 namespace broker { class data; }
 
 namespace logging  {
@@ -114,8 +112,6 @@ public:
 
 		// Note, these need to be adapted when changing the struct's
 		// fields. They serialize/deserialize the struct.
-		bool Read(SerializationFormat* fmt);
-		bool Write(SerializationFormat* fmt) const;
 		broker::data ToBroker() const;
 		bool FromBroker(broker::data d);
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp_control_prime.pcap -r $TRACES/tunnels/gtp/gtp_create_pdp_ctx.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gtp/gtp_control_prime.pcap -r $TRACES/tunnels/gtp/gtp_create_pdp_ctx.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event gtpv1_message(c: connection, hdr: gtpv1_hdr)

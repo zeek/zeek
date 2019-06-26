@@ -1,13 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Var.h"
 #include "Func.h"
 #include "Stmt.h"
 #include "Scope.h"
-#include "Serializer.h"
-#include "RemoteSerializer.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
 
@@ -140,26 +138,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		default:
 			break;
 		}
-		}
-
-	if ( id->FindAttr(ATTR_PERSISTENT) || id->FindAttr(ATTR_SYNCHRONIZED) )
-		{
-		if ( dt == VAR_CONST )
-			{
-			id->Error("&persistent/synchronized with constant");
-			return;
-			}
-		else if ( dt == VAR_OPTION )
-			{
-			id->Error("&persistent/synchronized with option");
-			return;
-			}
-
-		if ( ! id->IsGlobal() )
-			{
-			id->Error("&persistant/synchronized with non-global");
-			return;
-			}
 		}
 
 	if ( do_init )
@@ -295,7 +273,7 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 		tnew = t;
 	else
 		// Clone the type to preserve type name aliasing.
-		tnew = t->Clone();
+		tnew = t->ShallowClone();
 
 	BroType::AddAlias(new_type_name, tnew);
 
@@ -325,8 +303,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 
 		if ( ! recv_i->attrs )
 			{
-			attr_list* a = new attr_list();
-			a->append(def);
+			attr_list* a = new attr_list{def};
 			recv_i->attrs = new Attributes(a, recv_i->type, true);
 			}
 
@@ -335,16 +312,21 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		}
 	}
 
-static bool has_attr(const attr_list* al, attr_tag tag)
+static Attr* find_attr(const attr_list* al, attr_tag tag)
 	{
 	if ( ! al )
-		return false;
+		return nullptr;
 
 	for ( int i = 0; i < al->length(); ++i )
 		if ( (*al)[i]->Tag() == tag )
-			return true;
+			return (*al)[i];
 
-	return false;
+	return nullptr;
+	}
+
+static bool has_attr(const attr_list* al, attr_tag tag)
+	{
+	return find_attr(al, tag) != nullptr;
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
@@ -421,8 +403,8 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		arg_id->SetType(arg_i->type->Ref());
 		}
 
-	if ( has_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated();
+	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
+		id->MakeDeprecated(depr_attr->AttrExpr());
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {

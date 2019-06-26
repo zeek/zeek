@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -101,6 +101,79 @@ refine flow RDP_Flow += {
 		return true;
 		%}
 
+	function proc_rdp_client_security_data(csec: Client_Security_Data): bool
+		%{
+		if ( ! rdp_client_security_data )
+			return false;
+
+		RecordVal* csd = new RecordVal(BifType::Record::RDP::ClientSecurityData);
+		csd->Assign(0, val_mgr->GetCount(${csec.encryption_methods}));
+		csd->Assign(1, val_mgr->GetCount(${csec.ext_encryption_methods}));
+
+		BifEvent::generate_rdp_client_security_data(connection()->bro_analyzer(),
+		                                            connection()->bro_analyzer()->Conn(),
+		                                            csd);
+		return true;
+		%}
+
+	function proc_rdp_client_network_data(cnetwork: Client_Network_Data): bool
+		%{
+		if ( ! rdp_client_network_data )
+			return false;
+
+		if ( ${cnetwork.channel_def_array}->size() )
+			{
+			VectorVal* channels = new VectorVal(BifType::Vector::RDP::ClientChannelList);
+
+			for ( uint i = 0; i < ${cnetwork.channel_def_array}->size(); ++i )
+				{
+				RecordVal* channel_def = new RecordVal(BifType::Record::RDP::ClientChannelDef);
+
+				channel_def->Assign(0, bytestring_to_val(${cnetwork.channel_def_array[i].name}));
+				channel_def->Assign(1, val_mgr->GetCount(${cnetwork.channel_def_array[i].options}));
+
+				channel_def->Assign(2, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED}));
+				channel_def->Assign(3, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP}));
+				channel_def->Assign(4, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_SC}));
+				channel_def->Assign(5, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_CS}));
+				channel_def->Assign(6, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_HIGH}));
+				channel_def->Assign(7, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_MED}));
+				channel_def->Assign(8, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_LOW}));
+				channel_def->Assign(9, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS_RDP}));
+				channel_def->Assign(10, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS}));
+				channel_def->Assign(11, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_SHOW_PROTOCOL}));
+				channel_def->Assign(12, val_mgr->GetBool(${cnetwork.channel_def_array[i].REMOTE_CONTROL_PERSISTENT}));
+
+				channels->Assign(channels->Size(), channel_def);
+				}
+
+			BifEvent::generate_rdp_client_network_data(connection()->bro_analyzer(),
+			                                           connection()->bro_analyzer()->Conn(),
+			                                           channels);
+			}
+
+		return true;
+		%}
+
+	function proc_rdp_client_cluster_data(ccluster: Client_Cluster_Data): bool
+		%{
+		if ( ! rdp_client_cluster_data )
+			return false;
+
+		RecordVal* ccld = new RecordVal(BifType::Record::RDP::ClientClusterData);
+		ccld->Assign(0, val_mgr->GetCount(${ccluster.flags}));
+		ccld->Assign(1, val_mgr->GetCount(${ccluster.redir_session_id}));
+		ccld->Assign(2, val_mgr->GetBool(${ccluster.REDIRECTION_SUPPORTED}));
+		ccld->Assign(3, val_mgr->GetCount(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
+		ccld->Assign(4, val_mgr->GetBool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
+		ccld->Assign(5, val_mgr->GetBool(${ccluster.REDIRECTED_SMARTCARD}));
+
+		BifEvent::generate_rdp_client_cluster_data(connection()->bro_analyzer(),
+		                                           connection()->bro_analyzer()->Conn(),
+		                                           ccld);
+		return true;
+		%}
+
 	function proc_rdp_server_security(ssd: Server_Security_Data): bool
 		%{
 		connection()->bro_analyzer()->ProtocolConfirmation();
@@ -165,6 +238,18 @@ refine typeattr Client_Core_Data += &let {
 	proc: bool = $context.flow.proc_rdp_client_core_data(this);
 };
 
+refine typeattr Client_Security_Data += &let {
+        proc: bool = $context.flow.proc_rdp_client_security_data(this);
+};
+
+refine typeattr Client_Network_Data += &let {
+	proc: bool = $context.flow.proc_rdp_client_network_data(this);
+};
+
+refine typeattr Client_Cluster_Data += &let {
+        proc: bool = $context.flow.proc_rdp_client_cluster_data(this);
+};
+
 refine typeattr GCC_Server_Create_Response += &let {
 	proc: bool = $context.flow.proc_rdp_gcc_server_create_response(this);
 };
@@ -180,3 +265,4 @@ refine typeattr Server_Certificate += &let {
 refine typeattr X509_Cert_Data += &let {
 	proc: bool = $context.flow.proc_x509_cert_data(this);
 };
+

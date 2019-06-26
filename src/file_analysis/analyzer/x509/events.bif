@@ -11,7 +11,7 @@
 ##
 ## cert: The parsed certificate information.
 ##
-## .. bro:see:: x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_extension x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse x509_verify
 ##              x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 event x509_certificate%(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate%);
@@ -25,7 +25,7 @@ event x509_certificate%(f: fa_file, cert_ref: opaque of x509, cert: X509::Certif
 ##
 ## ext: The parsed extension.
 ##
-## .. bro:see:: x509_certificate x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_ext_basic_constraints
 ##              x509_ext_subject_alternative_name x509_parse x509_verify
 ##              x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 event x509_extension%(f: fa_file, ext: X509::Extension%);
@@ -37,7 +37,7 @@ event x509_extension%(f: fa_file, ext: X509::Extension%);
 ##
 ## ext: The parsed basic constraints extension.
 ##
-## .. bro:see:: x509_certificate x509_extension
+## .. zeek:see:: x509_certificate x509_extension
 ##              x509_ext_subject_alternative_name x509_parse x509_verify
 ##              x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
 event x509_ext_basic_constraints%(f: fa_file, ext: X509::BasicConstraints%);
@@ -51,7 +51,7 @@ event x509_ext_basic_constraints%(f: fa_file, ext: X509::BasicConstraints%);
 ##
 ## ext: The parsed subject alternative name extension.
 ##
-## .. bro:see:: x509_certificate x509_extension x509_ext_basic_constraints
+## .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
 ##              x509_parse x509_verify x509_ocsp_ext_signed_certificate_timestamp
 ##              x509_get_certificate_string
 event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternativeName%);
@@ -76,7 +76,7 @@ event x509_ext_subject_alternative_name%(f: fa_file, ext: X509::SubjectAlternati
 ##
 ## signature: signature part of the digitally_signed struct
 ##
-## .. bro:see:: ssl_extension_signed_certificate_timestamp x509_extension x509_ext_basic_constraints
+## .. zeek:see:: ssl_extension_signed_certificate_timestamp x509_extension x509_ext_basic_constraints
 ##              x509_parse x509_verify x509_ext_subject_alternative_name
 ##              x509_get_certificate_string ssl_extension_signed_certificate_timestamp
 ##              sct_verify ocsp_request ocsp_request_certificate ocsp_response_status

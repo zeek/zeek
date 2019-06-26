@@ -72,6 +72,9 @@ refine connection Handshake_Conn += {
 
 	function proc_ec_point_formats(rec: HandshakeRecord, point_format_list: uint8[]) : bool
 		%{
+		if ( ! ssl_extension_ec_point_formats )
+			return true;
+
 		VectorVal* points = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		if ( point_format_list )
@@ -88,6 +91,9 @@ refine connection Handshake_Conn += {
 
 	function proc_elliptic_curves(rec: HandshakeRecord, list: uint16[]) : bool
 		%{
+		if ( ! ssl_extension_elliptic_curves )
+			return true;
+
 		VectorVal* curves = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		if ( list )
@@ -104,6 +110,9 @@ refine connection Handshake_Conn += {
 
 	function proc_client_key_share(rec: HandshakeRecord, keyshare: KeyShareEntry[]) : bool
 		%{
+		if ( ! ssl_extension_key_share )
+			return true;
+
 		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		if ( keyshare )
@@ -113,11 +122,15 @@ refine connection Handshake_Conn += {
 			}
 
 		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+
 		return true;
 		%}
 
 	function proc_server_key_share(rec: HandshakeRecord, keyshare: KeyShareEntry) : bool
 		%{
+		if ( ! ssl_extension_key_share )
+			return true;
+
 		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		nglist->Assign(0u, val_mgr->GetCount(keyshare->namedgroup()));
@@ -125,8 +138,23 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_hello_retry_request_key_share(rec: HandshakeRecord, namedgroup: uint16) : bool
+		%{
+		if ( ! ssl_extension_key_share )
+			return true;
+
+		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
+
+		nglist->Assign(0u, val_mgr->GetCount(namedgroup));
+		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
+		return true;
+		%}
+
 	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
 		%{
+		if ( ! ssl_extension_signature_algorithm )
+			return true;
+
 		VectorVal* slist = new VectorVal(internal_type("signature_and_hashalgorithm_vec")->AsVectorType());
 
 		if ( supported_signature_algorithms )
@@ -147,6 +175,9 @@ refine connection Handshake_Conn += {
 
 	function proc_apnl(rec: HandshakeRecord, protocols: ProtocolName[]) : bool
 		%{
+		if ( ! ssl_extension_application_layer_protocol_negotiation )
+			return true;
+
 		VectorVal* plist = new VectorVal(internal_type("string_vec")->AsVectorType());
 
 		if ( protocols )
@@ -183,14 +214,20 @@ refine connection Handshake_Conn += {
 				}
 			}
 
-		BifEvent::generate_ssl_extension_server_name(bro_analyzer(), bro_analyzer()->Conn(),
-		   ${rec.is_orig}, servers);
+		if ( ssl_extension_server_name )
+			BifEvent::generate_ssl_extension_server_name(bro_analyzer(), bro_analyzer()->Conn(),
+		   	   ${rec.is_orig}, servers);
+		else
+			Unref(servers);
 
 		return true;
 		%}
 
 	function proc_supported_versions(rec: HandshakeRecord, versions_list: uint16[]) : bool
 		%{
+		if ( ! ssl_extension_supported_versions )
+			return true;
+
 		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		if ( versions_list )
@@ -207,6 +244,9 @@ refine connection Handshake_Conn += {
 
 	function proc_one_supported_version(rec: HandshakeRecord, version: uint16) : bool
 		%{
+		if ( ! ssl_extension_supported_versions )
+			return true;
+
 		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
 		versions->Assign(0u, val_mgr->GetCount(version));
 
@@ -218,6 +258,9 @@ refine connection Handshake_Conn += {
 
 	function proc_psk_key_exchange_modes(rec: HandshakeRecord, mode_list: uint8[]) : bool
 		%{
+		if ( ! ssl_extension_psk_key_exchange_modes )
+			return true;
+
 		VectorVal* modes = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 		if ( mode_list )
@@ -272,10 +315,11 @@ refine connection Handshake_Conn += {
 			                 response.length(), bro_analyzer()->GetAnalyzerTag(),
 			                 bro_analyzer()->Conn(), false, file_id, "application/ocsp-response");
 
-			BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
-							    bro_analyzer()->Conn(), ${rec.is_orig},
-							    new StringVal(response.length(),
-							    (const char*) response.data()));
+			if ( ssl_stapled_ocsp )
+				BifEvent::generate_ssl_stapled_ocsp(bro_analyzer(),
+				        bro_analyzer()->Conn(),
+				        ${rec.is_orig},
+				        new StringVal(response.length(), (const char*) response.data()));
 
 			file_mgr->EndOfFile(file_id);
 			}
@@ -288,26 +332,28 @@ refine connection Handshake_Conn += {
 		if ( ${kex.curve_type} != NAMED_CURVE )
 			return true;
 
-		BifEvent::generate_ssl_server_curve(bro_analyzer(),
-			bro_analyzer()->Conn(), ${kex.params.curve});
-		BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
-			bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
+		if ( ssl_ecdh_server_params )
+			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+				bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
 
-		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-		if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
+		if ( ssl_server_signature )
 			{
-			ha->Assign(0, val_mgr->GetCount(${kex.signed_params.algorithm.HashAlgorithm}));
-			ha->Assign(1, val_mgr->GetCount(${kex.signed_params.algorithm.SignatureAlgorithm}));
-			}
+			RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+			if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
+				{
+				ha->Assign(0, val_mgr->GetCount(${kex.signed_params.algorithm.HashAlgorithm}));
+				ha->Assign(1, val_mgr->GetCount(${kex.signed_params.algorithm.SignatureAlgorithm}));
+				}
 			else
-			{
-			// set to impossible value
-			ha->Assign(0, val_mgr->GetCount(256));
-			ha->Assign(1, val_mgr->GetCount(256));
-			}
+				{
+				// set to impossible value
+				ha->Assign(0, val_mgr->GetCount(256));
+				ha->Assign(1, val_mgr->GetCount(256));
+				}
 
-		BifEvent::generate_ssl_server_signature(bro_analyzer(),
-			bro_analyzer()->Conn(), ha, new StringVal(${kex.signed_params.signature}.length(), (const char*)(${kex.signed_params.signature}).data()));
+			BifEvent::generate_ssl_server_signature(bro_analyzer(),
+				bro_analyzer()->Conn(), ha, new StringVal(${kex.signed_params.signature}.length(), (const char*)(${kex.signed_params.signature}).data()));
+			}
 
 		return true;
 		%}
@@ -317,34 +363,42 @@ refine connection Handshake_Conn += {
 		if ( ${kex.curve_type} != NAMED_CURVE )
 			return true;
 
-		BifEvent::generate_ssl_server_curve(bro_analyzer(),
-			bro_analyzer()->Conn(), ${kex.params.curve});
-		BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
-			bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
+		if ( ssl_ecdh_server_params )
+			BifEvent::generate_ssl_ecdh_server_params(bro_analyzer(),
+				bro_analyzer()->Conn(), ${kex.params.curve}, new StringVal(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
 
 		return true;
 		%}
 
 	function proc_rsa_client_key_exchange(rec: HandshakeRecord, rsa_pms: bytestring) : bool
 		%{
-		BifEvent::generate_ssl_rsa_client_pms(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(rsa_pms.length(), (const char*)rsa_pms.data()));
+		if ( ssl_rsa_client_pms )
+			BifEvent::generate_ssl_rsa_client_pms(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(rsa_pms.length(), (const char*)rsa_pms.data()));
+
 		return true;
 		%}
 
 	function proc_dh_client_key_exchange(rec: HandshakeRecord, Yc: bytestring) : bool
 		%{
-		BifEvent::generate_ssl_dh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(Yc.length(), (const char*)Yc.data()));
+		if ( ssl_dh_client_params )
+			BifEvent::generate_ssl_dh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(Yc.length(), (const char*)Yc.data()));
+
 		return true;
 		%}
 
 	function proc_ecdh_client_key_exchange(rec: HandshakeRecord, point: bytestring) : bool
 		%{
-		BifEvent::generate_ssl_ecdh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(point.length(), (const char*)point.data()));
+		if ( ssl_ecdh_client_params )
+			BifEvent::generate_ssl_ecdh_client_params(bro_analyzer(), bro_analyzer()->Conn(), new StringVal(point.length(), (const char*)point.data()));
+
 		return true;
 		%}
 
 	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
 		%{
+		if ( ! ssl_extension_signed_certificate_timestamp )
+			return true;
+
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
 		ha->Assign(0, val_mgr->GetCount(digitally_signed_algorithms->HashAlgorithm()));
 		ha->Assign(1, val_mgr->GetCount(digitally_signed_algorithms->SignatureAlgorithm()));
@@ -363,50 +417,98 @@ refine connection Handshake_Conn += {
 
 	function proc_dhe_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring, signed_params: ServerKeyExchangeSignature) : bool
 		%{
-		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
-			bro_analyzer()->Conn(),
-		  new StringVal(p.length(), (const char*) p.data()),
-		  new StringVal(g.length(), (const char*) g.data()),
-		  new StringVal(Ys.length(), (const char*) Ys.data())
-		  );
+		if ( ssl_ecdh_server_params )
+			BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
+			  bro_analyzer()->Conn(),
+			  new StringVal(p.length(), (const char*) p.data()),
+			  new StringVal(g.length(), (const char*) g.data()),
+			  new StringVal(Ys.length(), (const char*) Ys.data())
+			  );
 
-		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-		if ( ${signed_params.uses_signature_and_hashalgorithm} )
+		if ( ssl_server_signature )
 			{
-			ha->Assign(0, val_mgr->GetCount(${signed_params.algorithm.HashAlgorithm}));
-			ha->Assign(1, val_mgr->GetCount(${signed_params.algorithm.SignatureAlgorithm}));
-			}
-			else
-			{
-			// set to impossible value
-			ha->Assign(0, val_mgr->GetCount(256));
-			ha->Assign(1, val_mgr->GetCount(256));
-			}
+			RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+			if ( ${signed_params.uses_signature_and_hashalgorithm} )
+				{
+				ha->Assign(0, val_mgr->GetCount(${signed_params.algorithm.HashAlgorithm}));
+				ha->Assign(1, val_mgr->GetCount(${signed_params.algorithm.SignatureAlgorithm}));
+				}
+				else
+				{
+				// set to impossible value
+				ha->Assign(0, val_mgr->GetCount(256));
+				ha->Assign(1, val_mgr->GetCount(256));
+				}
 
-		BifEvent::generate_ssl_server_signature(bro_analyzer(),
-			bro_analyzer()->Conn(), ha,
-		  new StringVal(${signed_params.signature}.length(), (const char*)(${signed_params.signature}).data())
-		  );
+			BifEvent::generate_ssl_server_signature(bro_analyzer(),
+			  bro_analyzer()->Conn(), ha,
+			  new StringVal(${signed_params.signature}.length(), (const char*)(${signed_params.signature}).data())
+			  );
+			}
 
 		return true;
 		%}
 
 	function proc_dh_anon_server_key_exchange(rec: HandshakeRecord, p: bytestring, g: bytestring, Ys: bytestring) : bool
 		%{
-		BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
-			bro_analyzer()->Conn(),
-		  new StringVal(p.length(), (const char*) p.data()),
-		  new StringVal(g.length(), (const char*) g.data()),
-		  new StringVal(Ys.length(), (const char*) Ys.data())
-		  );
+		if ( ssl_dh_server_params )
+			BifEvent::generate_ssl_dh_server_params(bro_analyzer(),
+			  bro_analyzer()->Conn(),
+			  new StringVal(p.length(), (const char*) p.data()),
+			  new StringVal(g.length(), (const char*) g.data()),
+			  new StringVal(Ys.length(), (const char*) Ys.data())
+			  );
 
 		return true;
 		%}
 
 	function proc_handshake(is_orig: bool, msg_type: uint8, length: uint24) : bool
 		%{
-		BifEvent::generate_ssl_handshake_message(bro_analyzer(),
-			bro_analyzer()->Conn(), is_orig, msg_type, to_int()(length));
+		if ( ssl_handshake_message )
+			BifEvent::generate_ssl_handshake_message(bro_analyzer(),
+				bro_analyzer()->Conn(), is_orig, msg_type, to_int()(length));
+
+		return true;
+		%}
+
+	function proc_pre_shared_key_server_hello(rec: HandshakeRecord, identities: PSKIdentitiesList, binders: PSKBindersList) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_server_hello )
+			return true;
+
+		VectorVal* slist = new VectorVal(internal_type("psk_identity_vec")->AsVectorType());
+
+		if ( identities && identities->identities() )
+			{
+			for ( auto&& identity : *(identities->identities()) )
+				{
+				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
+				el->Assign(0, new StringVal(identity->identity().length(), (const char*) identity->identity().data()));
+				el->Assign(1, val_mgr->GetCount(identity->obfuscated_ticket_age()));
+				slist->Assign(slist->Size(), el);
+				}
+			}
+
+		VectorVal* blist = new VectorVal(internal_type("string_vec")->AsVectorType());
+		if ( binders && binders->binders() )
+			{
+			for ( auto&& binder : *(binders->binders()) )
+				blist->Assign(blist->Size(), new StringVal(binder->binder().length(), (const char*) binder->binder().data()));
+			}
+
+		BifEvent::generate_ssl_extension_pre_shared_key_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			${rec.is_orig}, slist, blist);
+
+		return true;
+		%}
+
+	function proc_pre_shared_key_client_hello(rec: HandshakeRecord, selected_identity: uint16) : bool
+		%{
+		if ( ! ssl_extension_pre_shared_key_client_hello )
+			return true;
+
+		BifEvent::generate_ssl_extension_pre_shared_key_server_hello(bro_analyzer(),
+			bro_analyzer()->Conn(), ${rec.is_orig}, selected_identity);
 
 		return true;
 		%}
@@ -421,7 +523,7 @@ refine typeattr ClientHello += &let {
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			gmt_unix_time, random_bytes, session_id, cipher_suite, 0,
+			0, random_bytes, session_id, cipher_suite, 0,
 			compression_method);
 };
 
@@ -458,6 +560,10 @@ refine typeattr EllipticCurves += &let {
 
 refine typeattr ServerHelloKeyShare += &let {
 	proc : bool = $context.connection.proc_server_key_share(rec, keyshare);
+};
+
+refine typeattr HelloRetryRequestKeyShare += &let {
+	proc : bool = $context.connection.proc_hello_retry_request_key_share(rec, namedgroup);
 };
 
 refine typeattr ClientHelloKeyShare += &let {
@@ -518,6 +624,14 @@ refine typeattr OneSupportedVersion += &let {
 
 refine typeattr PSKKeyExchangeModes += &let {
 	proc : bool = $context.connection.proc_psk_key_exchange_modes(rec, modes);
+};
+
+refine typeattr OfferedPsks += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_server_hello(rec, identities, binders);
+};
+
+refine typeattr SelectedPreSharedKeyIdentity += &let {
+	proc : bool = $context.connection.proc_pre_shared_key_client_hello(rec, selected_identity);
 };
 
 refine typeattr Handshake += &let {

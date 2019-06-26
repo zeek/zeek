@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/smb/smb3.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/smb/smb3.pcap %INPUT
 # @TEST-EXEC: btest-diff smb_mapping.log
 # @TEST-EXEC: test ! -f dpd.log
 # @TEST-EXEC: test ! -f weird.log

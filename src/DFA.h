@@ -111,9 +111,6 @@ private:
 	PDict(CacheEntry) states;
 };
 
-declare(PList,DFA_State);
-typedef PList(DFA_State) DFA_state_list;
-
 class DFA_Machine : public BroObj {
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);

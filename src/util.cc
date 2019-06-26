@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -20,6 +20,7 @@
 #endif
 
 #include <string>
+#include <array>
 #include <vector>
 #include <algorithm>
 #include <ctype.h>
@@ -52,11 +53,13 @@
 #include "iosource/Manager.h"
 
 /**
- * Return IP address without enclosing brackets and any leading 0x.
+ * Return IP address without enclosing brackets and any leading 0x.  Also
+ * trims leading/trailing whitespace.
  */
 std::string extract_ip(const std::string& i)
 	{
-	std::string s(skip_whitespace(i.c_str()));
+	std::string s(strstrip(i));
+
 	if ( s.size() > 0 && s[0] == '[' )
 		s.erase(0, 1);
 
@@ -955,10 +958,10 @@ const std::string& bro_path()
 	{
 	if ( bro_path_value.empty() )
 		{
-		const char* path = getenv("BROPATH");
+		const char* path = zeekenv("ZEEKPATH");
 
 		if ( ! path )
-			path = DEFAULT_BROPATH;
+			path = DEFAULT_ZEEKPATH;
 
 		bro_path_value = path;
 		}
@@ -976,7 +979,7 @@ extern void add_to_bro_path(const string& dir)
 
 const char* bro_plugin_path()
 	{
-	const char* path = getenv("BRO_PLUGIN_PATH");
+	const char* path = zeekenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
 		path = BRO_PLUGIN_INSTALL_PATH;
@@ -986,7 +989,7 @@ const char* bro_plugin_path()
 
 const char* bro_plugin_activate()
 	{
-	const char* names = getenv("BRO_PLUGIN_ACTIVATE");
+	const char* names = zeekenv("ZEEK_PLUGIN_ACTIVATE");
 
 	if ( ! names )
 		names = "";
@@ -1007,7 +1010,20 @@ string bro_prefixes()
 	return rval;
 	}
 
-const char* PACKAGE_LOADER = "__load__.bro";
+const array<string, 2> script_extensions = {".zeek", ".bro"};
+
+bool is_package_loader(const string& path)
+	{
+	string filename(std::move(SafeBasename(path).result));
+
+	for ( const string& ext : script_extensions )
+		{
+		if ( filename == "__load__" + ext )
+			return true;
+		}
+
+	return false;
+	}
 
 FILE* open_file(const string& path, const string& mode)
 	{
@@ -1034,13 +1050,22 @@ static bool can_read(const string& path)
 FILE* open_package(string& path, const string& mode)
 	{
 	string arg_path = path;
-	path.append("/").append(PACKAGE_LOADER);
+	path.append("/__load__");
 
-	if ( can_read(path) )
-		return open_file(path, mode);
+	for ( const string& ext : script_extensions )
+		{
+		string p = path + ext;
+		if ( can_read(p) )
+			{
+			path.append(ext);
+			return open_file(path, mode);
+			}
+		}
 
+	path.append(script_extensions[0]);
+	string package_loader = "__load__" + script_extensions[0];
 	reporter->Error("Failed to open package '%s': missing '%s' file",
-	                arg_path.c_str(), PACKAGE_LOADER);
+	                arg_path.c_str(), package_loader.c_str());
 	return 0;
 	}
 
@@ -1123,7 +1148,7 @@ string flatten_script_name(const string& name, const string& prefix)
 	if ( ! rval.empty() )
 		rval.append(".");
 
-	if ( SafeBasename(name).result == PACKAGE_LOADER )
+	if ( is_package_loader(name) )
 		rval.append(SafeDirname(name).result);
 	else
 		rval.append(name);
@@ -1221,7 +1246,7 @@ string without_bropath_component(const string& path)
 	}
 
 static string find_file_in_path(const string& filename, const string& path,
-                                const string& opt_ext = "")
+                                const vector<string>& opt_ext)
 	{
 	if ( filename.empty() )
 		return string();
@@ -1239,10 +1264,13 @@ static string find_file_in_path(const string& filename, const string& path,
 
 	if ( ! opt_ext.empty() )
 		{
-		string with_ext = abs_path + '.' + opt_ext;
+		for ( const string& ext : opt_ext )
+			{
+			string with_ext = abs_path + ext;
 
-		if ( can_read(with_ext) )
-			return with_ext;
+			if ( can_read(with_ext) )
+				return with_ext;
+			}
 		}
 
 	if ( can_read(abs_path) )
@@ -1257,12 +1285,50 @@ string find_file(const string& filename, const string& path_set,
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
+	vector<string> ext;
+	if ( ! opt_ext.empty() )
+		ext.push_back(opt_ext);
+
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
-		string f = find_file_in_path(filename, paths[n], opt_ext);
+		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
 			return f;
+		}
+
+	return string();
+	}
+
+static bool ends_with(const std::string& s, const std::string& ending)
+	{
+	if ( ending.size() > s.size() )
+		return false;
+
+	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
+	}
+
+string find_script_file(const string& filename, const string& path_set)
+	{
+	vector<string> paths;
+	tokenize_string(path_set, ":", &paths);
+
+	vector<string> ext(script_extensions.begin(), script_extensions.end());
+
+	for ( size_t n = 0; n < paths.size(); ++n )
+		{
+		string f = find_file_in_path(filename, paths[n], ext);
+
+		if ( ! f.empty() )
+			return f;
+		}
+
+	if ( ends_with(filename, ".bro") )
+		{
+		// We were looking for a file explicitly ending in .bro and didn't
+		// find it, so fall back to one ending in .zeek, if it exists.
+		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
+		return find_script_file(fallback, path_set);
 		}
 
 	return string();
@@ -1322,7 +1388,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 const char* log_file_name(const char* tag)
 	{
-	const char* env = getenv("BRO_LOG_SUFFIX");
+	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
 	return fmt("%s.%s", tag, (env ? env : "log"));
 	}
 
@@ -1441,13 +1507,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	if ( ! pseudo_realtime || real || pkt_srcs.empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = pkt_srcs.front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
@@ -1776,4 +1840,35 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen)
 	auto res = strerror_r(bro_errno, buf, buflen);
 	// GNU vs. XSI flavors make it harder to use strerror_r.
 	strerror_r_helper(res, buf, buflen);
+	}
+
+char* zeekenv(const char* name)
+	{
+	static std::map<const char*, const char*, CompareString> legacy_vars = {
+		{ "ZEEKPATH", "BROPATH" },
+		{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
+		{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
+		{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
+		{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
+		{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
+		{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
+		{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
+		{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
+		{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
+		{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
+		{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
+		{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
+	};
+
+	auto rval = getenv(name);
+
+	if ( rval )
+		return rval;
+
+	auto it = legacy_vars.find(name);
+
+	if ( it == legacy_vars.end() )
+		return rval;
+
+	return getenv(it->second);
 	}

@@ -29,7 +29,7 @@
 #include "Traverse.h"
 
 #include "analyzer/Analyzer.h"
-#include "broxygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 #include "plugin/Manager.h"
 
@@ -75,6 +75,17 @@ static string find_relative_file(const string& filename, const string& ext)
 		return find_file(filename, SafeDirname(::filename).result, ext);
 	else
 		return find_file(filename, bro_path(), ext);
+	}
+
+static string find_relative_script_file(const string& filename)
+	{
+	if ( filename.empty() )
+		return string();
+
+	if ( filename[0] == '.' )
+		return find_script_file(filename, SafeDirname(::filename).result);
+	else
+		return find_script_file(filename, bro_path());
 	}
 
 static ino_t get_inode_num(FILE* f, const string& path)
@@ -141,7 +152,7 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
-IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
+IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\n]+
 PREFIX	[^ \t\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
@@ -151,19 +162,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	broxygen_mgr->SummaryComment(::filename, yytext + 3);
+	zeekygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
 	string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
-	broxygen_mgr->PostComment(yytext + 3, hint);
+	zeekygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
 	if ( yytext[2] != '#' )
-		broxygen_mgr->PreComment(yytext + 2);
+		zeekygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -289,37 +300,6 @@ when	return TOK_WHEN;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 
-&encrypt {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ENCRYPT;
-	}
-
-&mergeable {
-	deprecated_attr(yytext);
-	return TOK_ATTR_MERGEABLE;
-	}
-
-&persistent {
-	deprecated_attr(yytext);
-	return TOK_ATTR_PERSISTENT;
-	}
-
-&rotate_interval {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_INTERVAL;
-	}
-
-&rotate_size {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_SIZE;
-	}
-
-&synchronized  {
-	++old_comm_usage_count;
-	deprecated_attr(yytext);
-	return TOK_ATTR_SYNCHRONIZED;
-	}
-
 @deprecated.* {
 	auto num_files = file_stack.length();
 	auto comment = skip_whitespace(yytext + 11);
@@ -363,14 +343,14 @@ when	return TOK_WHEN;
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
 	string loader = ::filename;  // load_files may change ::filename, save copy
-	string loading = find_relative_file(new_file, "bro");
+	string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
-	broxygen_mgr->ScriptDependency(loader, loading);
+	zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path = find_relative_file(file, "sig");
+	string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
@@ -430,7 +410,7 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path = find_relative_file(file, "bro");
+	string path = find_relative_script_file(file);
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
@@ -624,7 +604,7 @@ static bool already_scanned(const string& path)
 
 static int load_files(const char* orig_file)
 	{
-	string file_path = find_relative_file(orig_file, "bro");
+	string file_path = find_relative_script_file(orig_file);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
@@ -709,7 +689,7 @@ static int load_files(const char* orig_file)
 	else
 		file_stack.append(new FileInfo);
 
-	broxygen_mgr->Script(file_path);
+	zeekygen_mgr->Script(file_path);
 
 	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
 
@@ -912,7 +892,7 @@ int yywrap()
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is init-bare.bro, and after it it's safe to initialize
+		// we parse is init-bare.zeek, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -947,10 +927,10 @@ int yywrap()
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a
-	// prefixed and flattened version of the loaded file in BROPATH. The
-	// flattening involves taking the path in BROPATH in which the
+	// prefixed and flattened version of the loaded file in ZEEKPATH. The
+	// flattening involves taking the path in ZEEKPATH in which the
 	// scanned file lives and replacing '/' path separators with a '.' If
-	// the scanned file is "__load__.bro", that part of the flattened
+	// the scanned file is "__load__.zeek", that part of the flattened
 	// file name is discarded. If the prefix is non-empty, it gets placed
 	// in front of the flattened path, separated with another '.'
 	std::list<ScannedFile>::iterator it;
@@ -970,7 +950,7 @@ int yywrap()
 
 			string canon = without_bropath_component(it->name);
 			string flat = flatten_script_name(canon, prefixes[i]);
-			string path = find_relative_file(flat, "bro");
+			string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
 				{

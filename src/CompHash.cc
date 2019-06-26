@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "CompHash.h"
 #include "Val.h"
@@ -677,7 +677,7 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 
 	loop_over_list(*tl, i)
 		{
-		Val* v;
+		Val* v = nullptr;
 		kp = RecoverOneVal(k, kp, k_end, (*tl)[i], v, false);
 		ASSERT(v);
 		l->Append(v);

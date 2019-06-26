@@ -2,9 +2,9 @@
 Test Suite for Large Trace Files
 ================================
 
-This test-suite runs more complex Bro configurations on larger trace
+This test-suite runs more complex Zeek configurations on larger trace
 files, and compares the results to a pre-established baseline. Due to
-their size, both traces and baseline are not part of the main Bro
+their size, both traces and baseline are not part of the main Zeek
 repository but kept externally. In addition to the publically provided
 files, one can also add a local set to the test-suite for running on
 private traces.
@@ -60,7 +60,7 @@ To update a test's baseline, first run ``btest`` in update mode:
 
 .. console:
 
-    > cd bro-testing
+    > cd zeek-testing
     > btest -u tests/test-you-want-to-update
 
 Then use ``git`` to commit the changes and push the changes upstream

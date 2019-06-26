@@ -10,7 +10,7 @@
 #include "Var.h"
 #include "Val.h"
 #include "Reporter.h"
-#include "broxygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 namespace plugin {
 
@@ -134,7 +134,7 @@ ComponentManager<T, C>::ComponentManager(const string& arg_module, const string&
 	tag_enum_type = new EnumType(module + "::" + local_id);
 	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id, tag_enum_type, 0);
-	broxygen_mgr->Identifier(id);
+	zeekygen_mgr->Identifier(id);
 	}
 
 template <class T, class C>
@@ -244,7 +244,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true,
-	                       false);
+	                       nullptr);
 	}
 
 } // namespace plugin

@@ -68,7 +68,7 @@ public:
 	 */
 	IPAddr(const std::string& s)
 		{
-		Init(s);
+		Init(s.data());
 		}
 
 	/**
@@ -366,6 +366,29 @@ public:
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
+	/**
+	 * Converts an IPv4 or IPv6 string into a network address structure
+	 * (IPv6 or v4-to-v6-mapping in network bytes order).
+	 *
+	 * @param s the IPv4 or IPv6 string to convert (ASCII, NUL-terminated).
+	 *
+	 * @param result buffer that the caller supplies to store the result.
+	 *
+	 * @return whether the conversion was successful.
+	 */
+	static bool ConvertString(const char* s, in6_addr* result);
+
+	/**
+	 * @param s the IPv4 or IPv6 string to convert (ASCII, NUL-terminated).
+	 *
+	 * @return whether the string is a valid IP address
+	 */
+	static bool IsValid(const char* s)
+		{
+		in6_addr tmp;
+		return ConvertString(s, &tmp);
+		}
+
 private:
 	friend class IPPrefix;
 
@@ -373,9 +396,9 @@ private:
 	 * Initializes an address instance from a string representation.
 	 *
 	 * @param s String containing an IP address as either a dotted IPv4
-	 * address or a hex IPv6 address.
+	 * address or a hex IPv6 address (ASCII, NUL-terminated).
 	 */
-	void Init(const std::string& s);
+	void Init(const char* s);
 
 	in6_addr in6; // IPv6 or v4-to-v6-mapped address
 

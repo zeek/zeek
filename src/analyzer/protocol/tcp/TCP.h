@@ -174,6 +174,13 @@ protected:
 				const u_char* option, TCP_Analyzer* analyzer,
 				  bool is_orig, void* cookie);
 
+	// A couple utility functions that may also be useful to derived analyzers.
+	static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
+	                               uint32 cur_base, uint32 last,
+	                               uint32 wraps, bool* underflow = 0);
+
+	static int get_segment_len(int payload_len, TCP_Flags flags);
+
 private:
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;

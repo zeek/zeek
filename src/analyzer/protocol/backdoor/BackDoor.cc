@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "BackDoor.h"
 #include "Event.h"
@@ -246,13 +246,15 @@ void BackDoorEndpoint::RloginSignatureFound(int len)
 
 	rlogin_checking_done = 1;
 
-	val_list* vl = new val_list;
-	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(val_mgr->GetBool(endp->IsOrig()));
-	vl->append(val_mgr->GetCount(rlogin_num_null));
-	vl->append(val_mgr->GetCount(len));
+	if ( ! rlogin_signature_found )
+		return;
 
-	endp->TCP()->ConnectionEvent(rlogin_signature_found, vl);
+	endp->TCP()->ConnectionEventFast(rlogin_signature_found, {
+		endp->TCP()->BuildConnVal(),
+		val_mgr->GetBool(endp->IsOrig()),
+		val_mgr->GetCount(rlogin_num_null),
+		val_mgr->GetCount(len),
+	});
 	}
 
 void BackDoorEndpoint::CheckForTelnet(uint64 /* seq */, int len, const u_char* data)
@@ -338,12 +340,14 @@ void BackDoorEndpoint::CheckForTelnet(uint64 /* seq */, int len, const u_char* d
 
 void BackDoorEndpoint::TelnetSignatureFound(int len)
 	{
-	val_list* vl = new val_list;
-	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(val_mgr->GetBool(endp->IsOrig()));
-	vl->append(val_mgr->GetCount(len));
+	if ( ! telnet_signature_found )
+		return;
 
-	endp->TCP()->ConnectionEvent(telnet_signature_found, vl);
+	endp->TCP()->ConnectionEventFast(telnet_signature_found, {
+		endp->TCP()->BuildConnVal(),
+		val_mgr->GetBool(endp->IsOrig()),
+		val_mgr->GetCount(len),
+	});
 	}
 
 void BackDoorEndpoint::CheckForSSH(uint64 seq, int len, const u_char* data)
@@ -643,13 +647,15 @@ void BackDoorEndpoint::CheckForHTTPProxy(uint64 /* seq */, int len,
 
 void BackDoorEndpoint::SignatureFound(EventHandlerPtr e, int do_orig)
 	{
-	val_list* vl = new val_list;
-	vl->append(endp->TCP()->BuildConnVal());
+	if ( ! e )
+		return;
 
 	if ( do_orig )
-		vl->append(val_mgr->GetBool(endp->IsOrig()));
+		endp->TCP()->ConnectionEventFast(e,
+		    {endp->TCP()->BuildConnVal(), val_mgr->GetBool(endp->IsOrig())});
 
-	endp->TCP()->ConnectionEvent(e, vl);
+	else
+		endp->TCP()->ConnectionEventFast(e, {endp->TCP()->BuildConnVal()});
 	}
 
 
@@ -776,20 +782,22 @@ void BackDoor_Analyzer::StatTimer(double t, int is_expire)
 
 void BackDoor_Analyzer::StatEvent()
 	{
-	val_list* vl = new val_list;
-	vl->append(TCP()->BuildConnVal());
-	vl->append(orig_endp->BuildStats());
-	vl->append(resp_endp->BuildStats());
+	if ( ! backdoor_stats )
+		return;
 
-	TCP()->ConnectionEvent(backdoor_stats, vl);
+	TCP()->ConnectionEventFast(backdoor_stats, {
+		TCP()->BuildConnVal(),
+		orig_endp->BuildStats(),
+		resp_endp->BuildStats(),
+	});
 	}
 
 void BackDoor_Analyzer::RemoveEvent()
 	{
-	val_list* vl = new val_list;
-	vl->append(TCP()->BuildConnVal());
+	if ( ! backdoor_remove_conn )
+		return;
 
-	TCP()->ConnectionEvent(backdoor_remove_conn, vl);
+	TCP()->ConnectionEventFast(backdoor_remove_conn, {TCP()->BuildConnVal()});
 	}
 
 BackDoorTimer::BackDoorTimer(double t, BackDoor_Analyzer* a)

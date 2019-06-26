@@ -1,4 +1,4 @@
-##! Declaration of various types that the Bro core uses internally.
+##! Declaration of various types that the Zeek core uses internally.
 
 enum rpc_status %{
 	RPC_SUCCESS,
@@ -141,7 +141,7 @@ enum createmode_t %{
 %}
 
 # Declare record types that we want to access from the event engine. These are
-# defined in init-bare.bro.
+# defined in init-bare.zeek.
 type info_t: record;
 type fattr_t: record;
 type sattr_t: record;

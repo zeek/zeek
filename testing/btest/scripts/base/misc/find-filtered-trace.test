@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/http/bro.org-filtered.pcap >out1 2>&1
-# @TEST-EXEC: bro -r $TRACES/http/bro.org-filtered.pcap "FilteredTraceDetection::enable=F" >out2 2>&1
+# @TEST-EXEC: zeek -r $TRACES/http/bro.org-filtered.pcap >out1 2>&1
+# @TEST-EXEC: zeek -r $TRACES/http/bro.org-filtered.pcap "FilteredTraceDetection::enable=F" >out2 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out1
 # @TEST-EXEC: btest-diff out2

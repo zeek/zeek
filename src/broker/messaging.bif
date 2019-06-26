@@ -74,7 +74,7 @@ module Broker;
 type Broker::Event: record;
 
 ## Create a data structure that may be used to send a remote event via
-## :bro:see:`Broker::publish`.
+## :zeek:see:`Broker::publish`.
 ##
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.
@@ -93,7 +93,7 @@ function Broker::make_event%(...%): Broker::Event
 ## topic: a topic associated with the event message.
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
@@ -172,7 +172,7 @@ type Cluster::Pool: record;
 ##      script like "Intel::cluster_rr_key".
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
@@ -183,9 +183,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
 
-	val_list vl(2);
-	vl.append(pool->Ref());
-	vl.append(key->Ref());
+	val_list vl{pool->Ref(), key->Ref()};
 	auto topic = topic_func->Call(&vl);
 
 	if ( ! topic->AsString()->Len() )
@@ -215,7 +213,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ##      distribute keys among available nodes.
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
@@ -226,9 +224,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
 
-	val_list vl(2);
-	vl.append(pool->Ref());
-	vl.append(key->Ref());
+	val_list vl{pool->Ref(), key->Ref()};
 	auto topic = topic_func->Call(&vl);
 
 	if ( ! topic->AsString()->Len() )

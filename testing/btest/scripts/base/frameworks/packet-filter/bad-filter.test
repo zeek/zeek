@@ -1,2 +1,2 @@
-# @TEST-EXEC-FAIL: bro -r $TRACES/web.trace -f "bad filter"
+# @TEST-EXEC-FAIL: zeek -r $TRACES/web.trace -f "bad filter"
 # @TEST-EXEC: test -s .stderr

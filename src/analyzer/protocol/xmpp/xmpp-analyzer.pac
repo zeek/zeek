@@ -32,7 +32,8 @@ refine connection XMPP_Conn += {
 		if ( !is_orig && ( token == "proceed" || token_no_ns == "proceed" ) && client_starttls )
 			{
 			bro_analyzer()->StartTLS();
-			BifEvent::generate_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
+			if ( xmpp_starttls )
+				BifEvent::generate_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		else if ( !is_orig && token == "proceed" )
 			reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");

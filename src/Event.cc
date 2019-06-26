@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Event.h"
 #include "Func.h"
@@ -13,28 +13,27 @@ EventMgr mgr;
 uint64 num_events_queued = 0;
 uint64 num_events_dispatched = 0;
 
+Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
+		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
+		BroObj* arg_obj)
+	: handler(arg_handler),
+	  args(std::move(arg_args)),
+	  src(arg_src),
+	  aid(arg_aid),
+	  mgr(arg_mgr ? arg_mgr : timer_mgr),
+	  obj(arg_obj),
+	  next_event(nullptr)
+	{
+	if ( obj )
+		Ref(obj);
+	}
+
 Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
 		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
 		BroObj* arg_obj)
+	: Event(arg_handler, std::move(*arg_args), arg_src, arg_aid, arg_mgr, arg_obj)
 	{
-	handler = arg_handler;
-	args = arg_args;
-	src = arg_src;
-	mgr = arg_mgr ? arg_mgr : timer_mgr; // default is global
-	aid = arg_aid;
-	obj = arg_obj;
-
-	if ( obj )
-		Ref(obj);
-
-	next_event = 0;
-	}
-
-Event::~Event()
-	{
-	// We don't Unref() the individual arguments by using delete_vals()
-	// here, because Func::Call already did that.
-	delete args;
+	delete arg_args;
 	}
 
 void Event::Describe(ODesc* d) const
@@ -49,7 +48,7 @@ void Event::Describe(ODesc* d) const
 
 	if ( ! d->IsBinary() )
 		d->Add("(");
-	describe_vals(args, d);
+	describe_vals(&args, d);
 	if ( ! d->IsBinary() )
 		d->Add("(");
 	}
@@ -59,18 +58,12 @@ void Event::Dispatch(bool no_remote)
 	if ( src == SOURCE_BROKER )
 		no_remote = true;
 
-	if ( event_serializer )
-		{
-		SerialInfo info(event_serializer);
-		event_serializer->Serialize(&info, handler->Name(), args);
-		}
-
 	if ( handler->ErrorHandler() )
 		reporter->BeginErrorHandler();
 
 	try
 		{
-		handler->Call(args, no_remote);
+		handler->Call(&args, no_remote);
 		}
 
 	catch ( InterpreterException& e )
@@ -129,7 +122,7 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		QueueEvent(event_queue_flush_point, new val_list());
+		QueueEventFast(event_queue_flush_point, val_list{});
 
 	SegmentProfiler(segment_logger, "draining-events");
 
@@ -189,22 +182,4 @@ void EventMgr::Describe(ODesc* d) const
 		e->Describe(d);
 		d->NL();
 		}
-	}
-
-RecordVal* EventMgr::GetLocalPeerVal()
-	{
-	if ( ! src_val )
-		{
-		src_val = new RecordVal(peer);
-		src_val->Assign(0, val_mgr->GetCount(0));
-		src_val->Assign(1, new AddrVal("127.0.0.1"));
-		src_val->Assign(2, val_mgr->GetPort(0));
-		src_val->Assign(3, val_mgr->GetTrue());
-
-		Ref(peer_description);
-		src_val->Assign(4, peer_description);
-		src_val->Assign(5, 0);	// class (optional).
-		}
-
-	return src_val;
 	}

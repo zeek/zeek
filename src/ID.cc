@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "ID.h"
 #include "Expr.h"
@@ -9,12 +9,9 @@
 #include "Func.h"
 #include "Scope.h"
 #include "File.h"
-#include "Serializer.h"
-#include "RemoteSerializer.h"
-#include "PersistenceSerializer.h"
 #include "Scope.h"
 #include "Traverse.h"
-#include "broxygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -62,50 +59,14 @@ void ID::ClearVal()
 	val = 0;
 	}
 
-void ID::SetVal(Val* v, Opcode op, bool arg_weak_ref)
+void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( op != OP_NONE )
-		{
-		if ( type && val && type->Tag() == TYPE_TABLE &&
-		     val->AsTableVal()->FindAttr(ATTR_MERGEABLE) &&
-		     v->AsTableVal()->FindAttr(ATTR_MERGEABLE) )
-			{
-			StateAccess::Log(new StateAccess(OP_ASSIGN, this,
-								v, val));
-			v->AsTableVal()->AddTo(val->AsTableVal(), 0, false);
-			return;
-			}
-
-		MutableVal::Properties props = 0;
-
-		if ( attrs && attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs && attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
-
-		if ( attrs && attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		if ( props )
-			{
-			if ( v->IsMutableVal() )
-				v->AsMutableVal()->AddProperties(props);
-			}
-
-#ifndef DEBUG
-		if ( props )
-#else
-		if ( debug_logger.IsVerbose() || props )
-#endif
-			StateAccess::Log(new StateAccess(op, this, v, val));
-		}
-
 	if ( ! weak_ref )
 		Unref(val);
 
 	val = v;
 	weak_ref = arg_weak_ref;
+	Modified();
 
 #ifdef DEBUG
 	UpdateValID();
@@ -194,31 +155,6 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	MutableVal::Properties props = 0;
-
-	if ( val && val->IsMutableVal() )
-		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			props |= MutableVal::PERSISTENT;
-
-		if ( attrs->FindAttr(ATTR_TRACKED) )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->AddProperties(props);
-		}
-
-	if ( ! IsInternalGlobal() )
-		{
-		if ( attrs->FindAttr(ATTR_SYNCHRONIZED) )
-			remote_serializer->Register(this);
-
-		if ( attrs->FindAttr(ATTR_PERSISTENT) )
-			persistence_serializer->Register(this);
-		}
-
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
 		val->AsTableVal()->SetAttrs(attrs);
 
@@ -253,14 +189,33 @@ void ID::UpdateValAttrs()
 		}
 	}
 
-void ID::MakeDeprecated()
+void ID::MakeDeprecated(Expr* deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list;
-	attr->append(new Attr(ATTR_DEPRECATED));
+	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
 	AddAttrs(new Attributes(attr, Type(), false));
+	}
+
+string ID::GetDeprecationWarning() const
+	{
+	string result;
+	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
+	if ( depr_attr )
+		{
+		ConstExpr* expr = static_cast<ConstExpr*>(depr_attr->AttrExpr());
+		if ( expr )
+			{
+			StringVal* text = expr->Value()->AsStringVal();
+			result = text->CheckString();
+			}
+		}
+
+	if ( result.empty() )
+		return fmt("deprecated (%s)", Name());
+	else
+		return fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
 void ID::AddAttrs(Attributes* a)
@@ -277,22 +232,6 @@ void ID::RemoveAttr(attr_tag a)
 	{
 	if ( attrs )
 		attrs->RemoveAttr(a);
-
-	if ( val && val->IsMutableVal() )
-		{
-		MutableVal::Properties props = 0;
-
-		if ( a == ATTR_SYNCHRONIZED )
-			props |= MutableVal::SYNCHRONIZED;
-
-		if ( a == ATTR_PERSISTENT )
-			props |= MutableVal::PERSISTENT;
-
-		if ( a == ATTR_TRACKED )
-			props |= MutableVal::TRACKED;
-
-		val->AsMutableVal()->RemoveProperties(props);
-		}
 	}
 
 void ID::SetOption()
@@ -305,8 +244,7 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		attr_list* attr = new attr_list;
-		attr->append(new Attr(ATTR_REDEF));
+		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
 		AddAttrs(new Attributes(attr, Type(), false));
 		}
 	}
@@ -324,11 +262,6 @@ void ID::EvalFunc(Expr* ef, Expr* ev)
 	Unref(ce);
 	}
 
-bool ID::Serialize(SerialInfo* info) const
-	{
-	return (ID*) SerialObj::Serialize(info);
-	}
-
 #if 0
 void ID::CopyFrom(const ID* id)
 	{
@@ -338,9 +271,6 @@ void ID::CopyFrom(const ID* id)
 	is_type = id->is_type;
 	offset = id->offset ;
 	infer_return_type = id->infer_return_type;
-
-	if ( FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Unregister(this);
 
 	if ( id->type )
 		Ref(id->type);
@@ -362,222 +292,7 @@ void ID::CopyFrom(const ID* id)
 #ifdef DEBUG
 	UpdateValID();
 #endif
-
-	if ( FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Unregister(this);
-	}
 #endif
-
-ID* ID::Unserialize(UnserialInfo* info)
-	{
-	ID* id = (ID*) SerialObj::Unserialize(info, SER_ID);
-	if ( ! id )
-		return 0;
-
-	if ( ! id->IsGlobal() )
-		return id;
-
-	// Globals.
-	ID* current = global_scope()->Lookup(id->name);
-
-	if ( ! current )
-		{
-		if ( ! info->install_globals )
-			{
-			info->s->Error("undefined");
-			Unref(id);
-			return 0;
-			}
-
-		Ref(id);
-		global_scope()->Insert(id->Name(), id);
-#ifdef USE_PERFTOOLS_DEBUG
-		heap_checker->IgnoreObject(id);
-#endif
-		}
-
-	else
-		{
-		if ( info->id_policy != UnserialInfo::InstantiateNew )
-			{
-			persistence_serializer->Unregister(current);
-			remote_serializer->Unregister(current);
-			}
-
-		switch ( info->id_policy ) {
-
-		case UnserialInfo::Keep:
-			Unref(id);
-			Ref(current);
-			id = current;
-			break;
-
-		case UnserialInfo::Replace:
-			Unref(current);
-			Ref(id);
-			global_scope()->Insert(id->Name(), id);
-			break;
-
-		case UnserialInfo::CopyNewToCurrent:
-			if ( ! same_type(current->type, id->type) )
-				{
-				info->s->Error("type mismatch");
-				Unref(id);
-				return 0;
-				}
-
-			if ( ! current->weak_ref )
-				Unref(current->val);
-
-			current->val = id->val;
-			current->weak_ref = id->weak_ref;
-			if ( current->val && ! current->weak_ref )
-				Ref(current->val);
-
-#ifdef DEBUG
-			current->UpdateValID();
-#endif
-
-			Unref(id);
-			Ref(current);
-			id = current;
-
-		break;
-
-		case UnserialInfo::CopyCurrentToNew:
-			if ( ! same_type(current->type, id->type) )
-				{
-				info->s->Error("type mismatch");
-				return 0;
-				}
-			if ( ! id->weak_ref )
-				Unref(id->val);
-			id->val = current->val;
-			id->weak_ref = current->weak_ref;
-			if ( id->val && ! id->weak_ref )
-				Ref(id->val);
-
-#ifdef DEBUG
-			id->UpdateValID();
-#endif
-
-			Unref(current);
-			Ref(id);
-			global_scope()->Insert(id->Name(), id);
-			break;
-
-		case UnserialInfo::InstantiateNew:
-			// Do nothing.
-			break;
-
-		default:
-			reporter->InternalError("unknown type for UnserialInfo::id_policy");
-		}
-		}
-
-	if ( id->FindAttr(ATTR_PERSISTENT) )
-		persistence_serializer->Register(id);
-
-	if ( id->FindAttr(ATTR_SYNCHRONIZED) )
-		remote_serializer->Register(id);
-
-	return id;
-
-	}
-
-IMPLEMENT_SERIAL(ID, SER_ID);
-
-bool ID::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE_WITH_SUSPEND(SER_ID, BroObj);
-
-	if ( info->cont.NewInstance() )
-		{
-		DisableSuspend suspend(info);
-
-		info->s->WriteOpenTag("ID");
-
-		if ( ! (SERIALIZE(name) &&
-			SERIALIZE(char(scope)) &&
-			SERIALIZE(is_export) &&
-			SERIALIZE(is_const) &&
-			SERIALIZE(is_enum_const) &&
-			SERIALIZE(is_type) &&
-			SERIALIZE(offset) &&
-			SERIALIZE(infer_return_type) &&
-			SERIALIZE(weak_ref) &&
-			type->Serialize(info)) )
-			return false;
-
-		SERIALIZE_OPTIONAL(attrs);
-		}
-
-	SERIALIZE_OPTIONAL(val);
-
-	return true;
-	}
-
-bool ID::DoUnserialize(UnserialInfo* info)
-	{
-	bool installed_tmp = false;
-
-	DO_UNSERIALIZE(BroObj);
-
-	char id_scope;
-
-	if ( ! (UNSERIALIZE_STR(&name, 0) &&
-		UNSERIALIZE(&id_scope) &&
-		UNSERIALIZE(&is_export) &&
-		UNSERIALIZE(&is_const) &&
-		UNSERIALIZE(&is_enum_const) &&
-		UNSERIALIZE(&is_type) &&
-		UNSERIALIZE(&offset) &&
-		UNSERIALIZE(&infer_return_type) &&
-		UNSERIALIZE(&weak_ref)
-	       ) )
-		return false;
-
-	scope = IDScope(id_scope);
-
-	info->s->SetErrorDescr(fmt("unserializing ID %s", name));
-
-	type = BroType::Unserialize(info);
-	if ( ! type )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(attrs, Attributes::Unserialize(info));
-
-	// If it's a global function not currently known,
-	// we temporarily install it in global scope.
-	// This is necessary for recursive functions.
-	if ( IsGlobal() && Type()->Tag() == TYPE_FUNC )
-		{
-		ID* current = global_scope()->Lookup(name);
-		if ( ! current )
-			{
-			installed_tmp = true;
-			global_scope()->Insert(Name(), this);
-			}
-		}
-
-	UNSERIALIZE_OPTIONAL(val, Val::Unserialize(info));
-#ifdef DEBUG
-	UpdateValID();
-#endif
-
-	if ( weak_ref )
-		{
-		// At this point at least the serialization cache will hold a
-		// reference so this will not delete the val.
-		assert(val->RefCnt() > 1);
-		Unref(val);
-		}
-
-	if ( installed_tmp && ! global_scope()->Remove(name) )
-		reporter->InternalWarning("missing tmp ID in %s unserialization", name);
-
-	return true;
-	}
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const
 	{
@@ -651,9 +366,9 @@ void ID::DescribeExtended(ODesc* d) const
 void ID::DescribeReSTShort(ODesc* d) const
 	{
 	if ( is_type )
-		d->Add(":bro:type:`");
+		d->Add(":zeek:type:`");
 	else
-		d->Add(":bro:id:`");
+		d->Add(":zeek:id:`");
 
 	d->Add(name);
 	d->Add("`");
@@ -661,7 +376,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 	if ( type )
 		{
 		d->Add(": ");
-		d->Add(":bro:type:`");
+		d->Add(":zeek:type:`");
 
 		if ( ! is_type && ! type->GetName().empty() )
 			d->Add(type->GetName().c_str());
@@ -682,7 +397,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 				if ( is_type )
 					d->Add(type_name(t));
 				else
-					d->Add(broxygen_mgr->GetEnumTypeName(Name()).c_str());
+					d->Add(zeekygen_mgr->GetEnumTypeName(Name()).c_str());
 				break;
 
 			default:
@@ -706,18 +421,18 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 	if ( roles_only )
 		{
 		if ( is_type )
-			d->Add(":bro:type:`");
+			d->Add(":zeek:type:`");
 		else
-			d->Add(":bro:id:`");
+			d->Add(":zeek:id:`");
 		d->Add(name);
 		d->Add("`");
 		}
 	else
 		{
 		if ( is_type )
-			d->Add(".. bro:type:: ");
+			d->Add(".. zeek:type:: ");
 		else
-			d->Add(".. bro:id:: ");
+			d->Add(".. zeek:id:: ");
 		d->Add(name);
 		}
 
@@ -730,7 +445,7 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 
 		if ( ! is_type && ! type->GetName().empty() )
 			{
-			d->Add(":bro:type:`");
+			d->Add(":zeek:type:`");
 			d->Add(type->GetName());
 			d->Add("`");
 			}
@@ -748,20 +463,26 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		}
 
 	if ( val && type &&
-		type->Tag() != TYPE_FUNC &&
-		type->InternalType() != TYPE_INTERNAL_VOID &&
-		// Values within Version module are likely to include a
-		// constantly-changing version number and be a frequent
-		// source of error/desynchronization, so don't include them.
-		ModuleName() != "Version" )
+	     type->Tag() != TYPE_FUNC &&
+	     type->InternalType() != TYPE_INTERNAL_VOID &&
+	     // Values within Version module are likely to include a
+	     // constantly-changing version number and be a frequent
+	     // source of error/desynchronization, so don't include them.
+		 ModuleName() != "Version" )
 		{
 		d->Add(":Default:");
+		auto ii = zeekygen_mgr->GetIdentifierInfo(Name());
+		auto redefs = ii->GetRedefs();
+		auto iv = val;
+
+		if ( ! redefs.empty() && ii->InitialVal() )
+			iv = ii->InitialVal();
 
 		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
 			{
 			switch ( type->Tag() ) {
 			case TYPE_TABLE:
-				if ( val->AsTable()->Length() == 0 )
+				if ( iv->AsTable()->Length() == 0 )
 					{
 					d->Add(" ``{}``");
 					d->NL();
@@ -771,11 +492,12 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 
 			default:
 				d->NL();
-				d->NL();
+				d->PushIndent();
 				d->Add("::");
 				d->NL();
 				d->PushIndent();
-				val->DescribeReST(d);
+				iv->DescribeReST(d);
+				d->PopIndent();
 				d->PopIndent();
 			}
 			}
@@ -783,8 +505,44 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		else
 			{
 			d->SP();
-			val->DescribeReST(d);
+			iv->DescribeReST(d);
 			d->NL();
+			}
+
+		for ( auto& ir : redefs )
+			{
+			if ( ! ir->init_expr )
+				continue;
+
+			if ( ir->ic == INIT_NONE )
+				continue;
+
+			std::string redef_str;
+			ODesc expr_desc;
+			ir->init_expr->Describe(&expr_desc);
+			redef_str = expr_desc.Description();
+			redef_str = strreplace(redef_str, "\n", " ");
+
+			d->Add(":Redefinition: ");
+			d->Add(fmt("from :doc:`/scripts/%s`", ir->from_script.data()));
+			d->NL();
+			d->PushIndent();
+
+			if ( ir->ic == INIT_FULL )
+				d->Add("``=``");
+			else if ( ir->ic == INIT_EXTRA )
+				d->Add("``+=``");
+			else if ( ir->ic == INIT_REMOVE )
+				d->Add("``-=``");
+			else
+				assert(false);
+
+			d->Add("::");
+			d->NL();
+			d->PushIndent();
+			d->Add(redef_str.data());
+			d->PopIndent();
+			d->PopIndent();
 			}
 		}
 	}

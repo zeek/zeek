@@ -4,12 +4,9 @@
 [submodule "aux/binpac"]
 	path = aux/binpac
 	url = https://github.com/zeek/binpac
-[submodule "aux/broccoli"]
-	path = aux/broccoli
-	url = https://github.com/zeek/broccoli
-[submodule "aux/broctl"]
-	path = aux/broctl
-	url = https://github.com/zeek/broctl
+[submodule "aux/zeekctl"]
+	path = aux/zeekctl
+	url = https://github.com/zeek/zeekctl
 [submodule "aux/btest"]
 	path = aux/btest
 	url = https://github.com/zeek/btest
@@ -31,3 +28,6 @@
 [submodule "doc"]
 	path = doc
 	url = https://github.com/zeek/zeek-docs
+[submodule "aux/paraglob"]
+	path = aux/paraglob
+	url = https://github.com/zeek/paraglob

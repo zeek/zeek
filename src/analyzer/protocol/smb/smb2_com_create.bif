@@ -10,7 +10,7 @@
 ##
 ## request: A record with more information related to the request.
 ##
-## .. bro:see:: smb2_message smb2_create_response
+## .. zeek:see:: smb2_message smb2_create_response
 event smb2_create_request%(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -25,7 +25,7 @@ event smb2_create_request%(c: connection, hdr: SMB2::Header, request: SMB2::Crea
 ##
 ## response: A record with more information related to the response.
 ##
-## .. bro:see:: smb2_message smb2_create_request
+## .. zeek:see:: smb2_message smb2_create_request
 event smb2_create_response%(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse%);
 
 #### Types

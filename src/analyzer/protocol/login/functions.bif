@@ -21,7 +21,7 @@
 ##                does not correctly know the state of the connection, and/or
 ##                the username associated with it.
 ##
-## .. bro:see:: set_login_state
+## .. zeek:see:: set_login_state
 function get_login_state%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
@@ -40,12 +40,12 @@ function get_login_state%(cid: conn_id%): count
 ## cid: The connection ID.
 ##
 ## new_state: The new state of the login analyzer. See
-##            :bro:id:`get_login_state` for possible values.
+##            :zeek:id:`get_login_state` for possible values.
 ##
 ## Returns: Returns false if *cid* is not an active connection
 ##          or is not tagged as a login analyzer, and true otherwise.
 ##
-## .. bro:see:: get_login_state
+## .. zeek:see:: get_login_state
 function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);

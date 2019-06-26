@@ -7,7 +7,6 @@
 
 #include "BroString.h"
 #include "EventHandler.h"
-#include "RemoteSerializer.h"
 #include "Val.h"
 
 #include "Component.h"

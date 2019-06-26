@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "InterConn.h"
 #include "Event.h"
@@ -241,20 +241,18 @@ void InterConn_Analyzer::StatTimer(double t, int is_expire)
 
 void InterConn_Analyzer::StatEvent()
 	{
-	val_list* vl = new val_list;
-	vl->append(Conn()->BuildConnVal());
-	vl->append(orig_endp->BuildStats());
-	vl->append(resp_endp->BuildStats());
-
-	Conn()->ConnectionEvent(interconn_stats, this, vl);
+	if ( interconn_stats )
+		Conn()->ConnectionEventFast(interconn_stats, this, {
+			Conn()->BuildConnVal(),
+			orig_endp->BuildStats(),
+			resp_endp->BuildStats(),
+		});
 	}
 
 void InterConn_Analyzer::RemoveEvent()
 	{
-	val_list* vl = new val_list;
-	vl->append(Conn()->BuildConnVal());
-
-	Conn()->ConnectionEvent(interconn_remove_conn, this, vl);
+	if ( interconn_remove_conn )
+		Conn()->ConnectionEventFast(interconn_remove_conn, this, {Conn()->BuildConnVal()});
 	}
 
 InterConnTimer::InterConnTimer(double t, InterConn_Analyzer* a)

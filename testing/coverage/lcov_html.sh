@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# On a Bro build configured with --enable-coverage, this script
-# produces a code coverage report in HTML format after Bro has been invoked. The
+# On a Zeek build configured with --enable-coverage, this script
+# produces a code coverage report in HTML format after Zeek has been invoked. The
 # intended application of this script is after the btest testsuite has run.
 
 # This depends on lcov to run.

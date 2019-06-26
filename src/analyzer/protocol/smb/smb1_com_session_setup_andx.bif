@@ -9,7 +9,7 @@
 ##
 ## request: The parsed request data of the SMB message. See init-bare for more details.
 ##
-## .. bro:see:: smb1_message smb1_session_setup_andx_response
+## .. zeek:see:: smb1_message smb1_session_setup_andx_response
 event smb1_session_setup_andx_request%(c: connection, hdr: SMB1::Header, request: SMB1::SessionSetupAndXRequest%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -23,7 +23,7 @@ event smb1_session_setup_andx_request%(c: connection, hdr: SMB1::Header, request
 ##
 ## response: The parsed response data of the SMB message. See init-bare for more details.
 ##
-## .. bro:see:: smb1_message smb1_session_setup_andx_request
+## .. zeek:see:: smb1_message smb1_session_setup_andx_request
 event smb1_session_setup_andx_response%(c: connection, hdr: SMB1::Header, response: SMB1::SessionSetupAndXResponse%);
 
 #### Types

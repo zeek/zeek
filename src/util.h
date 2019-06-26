@@ -4,12 +4,12 @@
 #define util_h
 
 #ifdef __GNUC__
-    #define BRO_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
+    #define ZEEK_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
 #elif defined(_MSC_VER)
-    #define BRO_DEPRECATED(msg) __declspec(deprecated(msg)) func
+    #define ZEEK_DEPRECATED(msg) __declspec(deprecated(msg)) func
 #else
-	#pragma message("Warning: BRO_DEPRECATED macro not implemented")
-	#define BRO_DEPRECATED(msg)
+	#pragma message("Warning: ZEEK_DEPRECATED macro not implemented")
+	#define ZEEK_DEPRECATED(msg)
 #endif
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
@@ -26,14 +26,16 @@
 #include <stdint.h>
 
 #include <string>
+#include <array>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <libgen.h>
+#include <memory> // std::unique_ptr
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "siphash24.h"
 
 #ifdef DEBUG
@@ -248,15 +250,15 @@ static const SourceID SOURCE_BROKER = 0xffffffff;
 extern void pinpoint();
 extern int int_list_cmp(const void* v1, const void* v2);
 
-// Contains the name of the script file that gets read
-// when a package is loaded (i.e., "__load__.bro).
-extern const char* PACKAGE_LOADER;
-
 extern const std::string& bro_path();
 extern const char* bro_magic_path();
 extern const char* bro_plugin_path();
 extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
+
+extern const std::array<std::string, 2> script_extensions;
+
+bool is_package_loader(const std::string& path);
 
 extern void add_to_bro_path(const std::string& dir);
 
@@ -308,7 +310,7 @@ std::string implode_string_vector(const std::vector<std::string>& v,
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
- * @param file A path to a Bro script.  If it is a __load__.bro, that part
+ * @param file A path to a Bro script.  If it is a __load__.zeek, that part
  *             is discarded when constructing the flattened the name.
  * @param prefix A string to prepend to the flattened script name.
  * @return The flattened script name.
@@ -325,9 +327,9 @@ std::string flatten_script_name(const std::string& name,
 std::string normalize_path(const std::string& path);
 
 /**
- * Strip the BROPATH component from a path.
- * @param path A file/directory path that may be within a BROPATH component.
- * @return *path* minus the common BROPATH component (if any) removed.
+ * Strip the ZEEKPATH component from a path.
+ * @param path A file/directory path that may be within a ZEEKPATH component.
+ * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
 std::string without_bropath_component(const std::string& path);
 
@@ -340,6 +342,14 @@ std::string without_bropath_component(const std::string& path);
  */
 std::string find_file(const std::string& filename, const std::string& path_set,
                       const std::string& opt_ext = "");
+
+/**
+ * Locate a script file within a given search path.
+ * @param filename Name of a file to find.
+ * @param path_set Colon-delimited set of paths to search for the file.
+ * @return Path to the found file, or an empty string if not found.
+ */
+std::string find_script_file(const std::string& filename, const std::string& path_set);
 
 // Wrapper around fopen(3).  Emits an error when failing to open.
 FILE* open_file(const std::string& path, const std::string& mode = "r");
@@ -539,5 +549,20 @@ std::string canonify_name(const std::string& name);
  * XSI-compliant and the GNU-specific version of strerror_r().
  */
 void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
+
+/**
+ * A wrapper function for getenv().  Helps check for existence of
+ * legacy environment variable names that map to the latest \a name.
+ */
+char* zeekenv(const char* name);
+
+/**
+ * Small convenience function. Does what std::make_unique does in C++14. Will not
+ * work on arrays.
+ */
+template <typename T, typename ... Args>
+std::unique_ptr<T> build_unique (Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 #endif

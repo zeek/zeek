@@ -6,7 +6,7 @@
 #include "IRC.h"
 
 namespace plugin {
-namespace Bro_IRC {
+namespace Zeek_IRC {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("IRC", ::analyzer::irc::IRC_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::IRC";
+		config.name = "Zeek::IRC";
 		config.description = "IRC analyzer";
 		return config;
 		}

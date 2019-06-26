@@ -3,7 +3,7 @@
 #ifndef FILE_ANALYZER_TAG_H
 #define FILE_ANALYZER_TAG_H
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "util.h"
 #include "../Tag.h"
 #include "plugin/TaggedComponent.h"

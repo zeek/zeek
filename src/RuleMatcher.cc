@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <functional>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "analyzer/Analyzer.h"
 #include "RuleMatcher.h"
@@ -235,7 +235,7 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 	for ( int i = 0; i < files.length(); ++i )
 		{
-		rules_in = open_file(find_file(files[i], bro_path(), "sig"));
+		rules_in = open_file(find_file(files[i], bro_path(), ".sig"));
 
 		if ( ! rules_in )
 			{

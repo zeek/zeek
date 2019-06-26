@@ -1,6 +1,6 @@
 # Test a more complicated radius session with multiple attempts
 
-# @TEST-EXEC: bro -b -C -r $TRACES/radius/radius_localhost.pcapng %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/radius/radius_localhost.pcapng %INPUT
 # @TEST-EXEC: btest-diff radius.log
 
 @load base/protocols/radius

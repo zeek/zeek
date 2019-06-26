@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# On a Bro build configured with --enable-coverage, this script
-# produces a code coverage report after Bro has been invoked. The
+# On a Zeek build configured with --enable-coverage, this script
+# produces a code coverage report after Zeek has been invoked. The
 # intended application of this script is after the btest testsuite has
 # run. This combination (btests first, coverage computation afterward)
 # happens automatically when running "make" in the testing directory.
@@ -12,7 +12,7 @@
 #	1. Run test suite
 # 	2. Check for .gcda files existing.
 #	3a. Run gcov (-p to preserve path)
-#       3b. Prune .gcov files for objects outside of the Bro tree
+#       3b. Prune .gcov files for objects outside of the Zeek tree
 #	4a. Analyze .gcov files generated and create summary file
 #	4b. Send .gcov files to appropriate path
 #
@@ -52,7 +52,7 @@ function check_file_coverage {
 
 function check_group_coverage {
 	DATA="$1"	# FILE CONTAINING COVERAGE DATA
-	SRC_FOLDER="$2" # WHERE BRO WAS COMPILED
+	SRC_FOLDER="$2" # WHERE ZEEK WAS COMPILED
 	OUTPUT="$3"
 
 	# Prints all the relevant directories
@@ -117,9 +117,9 @@ else
 	exit 1
 fi
 
-# 3b. Prune gcov files that fall outside of the Bro tree:
+# 3b. Prune gcov files that fall outside of the Zeek tree:
 # Look for files containing gcov's slash substitution character "#"
-# and remove any that don't contain the Bro path root.
+# and remove any that don't contain the Zeek path root.
 echo -n "Pruning out-of-tree coverage files... "
 PREFIX=$(echo "$BASE" | sed 's|/|#|g')
 for i in "$TMP"/*#*.gcov; do

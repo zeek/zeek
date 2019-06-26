@@ -10,6 +10,6 @@
 ##
 ## is_orig: Indicates which host sent the logoff message.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_logoff_andx%(c: connection, is_orig: bool%);
 

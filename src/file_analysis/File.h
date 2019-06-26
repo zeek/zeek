@@ -172,6 +172,12 @@ public:
 	 */
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param vl list of argument values to pass to event call.
+	 */
+	void FileEvent(EventHandlerPtr h, val_list vl);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.

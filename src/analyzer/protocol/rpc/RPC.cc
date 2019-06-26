@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NetVar.h"
 #include "XDR.h"
@@ -286,7 +286,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 	else
 		Weird("bad_RPC");
 
-	if ( n > 0 )
+	if ( n > 0 && buf )
 		{
 		// If it's just padded with zeroes, don't complain.
 		for ( ; n > 0; --n, ++buf )
@@ -317,7 +317,7 @@ void RPC_Interpreter::Timeout()
 
 		if ( c->IsValidCall() )
 			{
-			const u_char* buf;
+			const u_char* buf = nullptr;
 			int n = 0;
 
 			if ( ! RPC_BuildReply(c, BifEnum::RPC_TIMEOUT, buf, n, network_time, network_time, 0) )
@@ -330,16 +330,16 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 	{
 	if ( rpc_dialogue )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(c->Program()));
-		vl->append(val_mgr->GetCount(c->Version()));
-		vl->append(val_mgr->GetCount(c->Proc()));
-		vl->append(BifType::Enum::rpc_status->GetVal(status));
-		vl->append(new Val(c->StartTime(), TYPE_TIME));
-		vl->append(val_mgr->GetCount(c->CallLen()));
-		vl->append(val_mgr->GetCount(reply_len));
-		analyzer->ConnectionEvent(rpc_dialogue, vl);
+		analyzer->ConnectionEventFast(rpc_dialogue, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(c->Program()),
+			val_mgr->GetCount(c->Version()),
+			val_mgr->GetCount(c->Proc()),
+			BifType::Enum::rpc_status->GetVal(status),
+			new Val(c->StartTime(), TYPE_TIME),
+			val_mgr->GetCount(c->CallLen()),
+			val_mgr->GetCount(reply_len),
+		});
 		}
 	}
 
@@ -347,14 +347,14 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	{
 	if ( rpc_call )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(c->XID()));
-		vl->append(val_mgr->GetCount(c->Program()));
-		vl->append(val_mgr->GetCount(c->Version()));
-		vl->append(val_mgr->GetCount(c->Proc()));
-		vl->append(val_mgr->GetCount(c->CallLen()));
-		analyzer->ConnectionEvent(rpc_call, vl);
+		analyzer->ConnectionEventFast(rpc_call, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(c->XID()),
+			val_mgr->GetCount(c->Program()),
+			val_mgr->GetCount(c->Version()),
+			val_mgr->GetCount(c->Proc()),
+			val_mgr->GetCount(c->CallLen()),
+		});
 		}
 	}
 
@@ -362,12 +362,12 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 	{
 	if ( rpc_reply )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(val_mgr->GetCount(xid));
-		vl->append(BifType::Enum::rpc_status->GetVal(status));
-		vl->append(val_mgr->GetCount(reply_len));
-		analyzer->ConnectionEvent(rpc_reply, vl);
+		analyzer->ConnectionEventFast(rpc_reply, {
+			analyzer->BuildConnVal(),
+			val_mgr->GetCount(xid),
+			BifType::Enum::rpc_status->GetVal(status),
+			val_mgr->GetCount(reply_len),
+		});
 		}
 	}
 

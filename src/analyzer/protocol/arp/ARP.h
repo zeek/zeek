@@ -3,7 +3,7 @@
 #ifndef ANALYZER_PROTOCOL_ARP_ARP_H
 #define ANALYZER_PROTOCOL_ARP_ARP_H
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -1,11 +1,11 @@
 
 ## Generated when reassembly starts for a TCP connection. This event is raised
-## at the moment when Bro's TCP analyzer enables stream reassembly for a
+## at the moment when Zeek's TCP analyzer enables stream reassembly for a
 ## connection.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -15,13 +15,13 @@ event new_connection_contents%(c: connection%);
 
 ## Generated for an unsuccessful connection attempt. This event is raised when
 ## an originator unsuccessfully attempted to establish a connection.
-## "Unsuccessful" is defined as at least :bro:id:`tcp_attempt_delay` seconds
+## "Unsuccessful" is defined as at least :zeek:id:`tcp_attempt_delay` seconds
 ## having elapsed since the originator first sent a connection establishment
 ## packet to the destination without seeing a reply.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_established
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_established
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -31,15 +31,15 @@ event connection_attempt%(c: connection%);
 
 ## Generated when seeing a SYN-ACK packet from the responder in a TCP
 ## handshake.  An associated SYN packet was not seen from the originator
-## side if its state is not set to :bro:see:`TCP_ESTABLISHED`.
+## side if its state is not set to :zeek:see:`TCP_ESTABLISHED`.
 ## The final ACK of the handshake in response to SYN-ACK may
 ## or may not occur later, one way to tell is to check the *history* field of
-## :bro:type:`connection` to see if the originator sent an ACK, indicated by
+## :zeek:type:`connection` to see if the originator sent an ACK, indicated by
 ## 'A' in the history string.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -47,14 +47,14 @@ event connection_attempt%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_established%(c: connection%);
 
-## Generated for a new active TCP connection if Bro did not see the initial
-## handshake. This event is raised when Bro has observed traffic from each
+## Generated for a new active TCP connection if Zeek did not see the initial
+## handshake. This event is raised when Zeek has observed traffic from each
 ## endpoint, but the activity did not begin with the usual connection
 ## establishment.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
@@ -65,13 +65,13 @@ event partial_connection%(c: connection%);
 
 ## Generated when a previously inactive endpoint attempts to close a TCP
 ## connection via a normal FIN handshake or an abort RST sequence. When the
-## endpoint sent one of these packets, Bro waits
-## :bro:id:`tcp_partial_close_delay` prior to generating the event, to give
+## endpoint sent one of these packets, Zeek waits
+## :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
 ## the other endpoint a chance to close the connection normally.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -84,7 +84,7 @@ event connection_partial_close%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -94,11 +94,11 @@ event connection_finished%(c: connection%);
 
 ## Generated when one endpoint of a TCP connection attempted to gracefully close
 ## the connection, but the other endpoint is in the TCP_INACTIVE state. This can
-## happen due to split routing, in which Bro only sees one side of a connection.
+## happen due to split routing, in which Zeek only sees one side of a connection.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK  connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -112,7 +112,7 @@ event connection_half_finished%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
@@ -121,10 +121,10 @@ event connection_half_finished%(c: connection%);
 ##
 ## .. note::
 ##
-##    If the responder does not respond at all, :bro:id:`connection_attempt` is
+##    If the responder does not respond at all, :zeek:id:`connection_attempt` is
 ##    raised instead. If the responder initially accepts the connection but
-##    aborts it later, Bro first generates :bro:id:`connection_established`
-##    and then :bro:id:`connection_reset`.
+##    aborts it later, Zeek first generates :zeek:id:`connection_established`
+##    and then :zeek:id:`connection_reset`.
 event connection_rejected%(c: connection%);
 
 ## Generated when an endpoint aborted a TCP connection. The event is raised
@@ -133,7 +133,7 @@ event connection_rejected%(c: connection%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected  connection_reused
@@ -142,26 +142,26 @@ event connection_rejected%(c: connection%);
 ##    partial_connection
 event connection_reset%(c: connection%);
 
-## Generated for each still-open TCP connection when Bro terminates.
+## Generated for each still-open TCP connection when Zeek terminates.
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
-##    new_connection new_connection_contents partial_connection bro_done
+##    new_connection new_connection_contents partial_connection zeek_done
 event connection_pending%(c: connection%);
 
-## Generated for a SYN packet. Bro raises this event for every SYN packet seen
+## Generated for a SYN packet. Zeek raises this event for every SYN packet seen
 ## by its TCP analyzer.
 ##
 ## c: The connection.
 ##
 ## pkt: Information extracted from the SYN packet.
 ##
-## .. bro:see:: connection_EOF  connection_attempt connection_established
+## .. zeek:see:: connection_EOF  connection_attempt connection_established
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -182,7 +182,7 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ##
 ## c: The connection.
 ##
-## .. bro:see:: connection_EOF connection_SYN_packet connection_attempt
+## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
 ##    connection_established connection_external connection_finished
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -202,7 +202,7 @@ event connection_first_ACK%(c: connection%);
 ##
 ## is_orig: True if the event is raised for the originator side.
 ##
-## .. bro:see::  connection_SYN_packet connection_attempt connection_established
+## .. zeek:see::  connection_SYN_packet connection_attempt connection_established
 ##    connection_external connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
@@ -213,7 +213,7 @@ event connection_EOF%(c: connection, is_orig: bool%);
 ## Generated for every TCP packet. This is a very low-level and expensive event
 ## that should be avoided when at all possible. It's usually infeasible to
 ## handle when processing even medium volumes of traffic in real-time.  It's
-## slightly better than :bro:id:`new_packet` because it affects only TCP, but
+## slightly better than :zeek:id:`new_packet` because it affects only TCP, but
 ## not much. That said, if you work from a trace and want to do some
 ## packet-level analysis, it may come in handy.
 ##
@@ -235,7 +235,7 @@ event connection_EOF%(c: connection, is_orig: bool%);
 ## payload: The raw TCP payload. Note that this may be shorter than *len* if
 ##          the packet was not fully captured.
 ##
-## .. bro:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
+## .. zeek:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
 event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: count, len: count, payload: string%);
 
 ## Generated for each option found in a TCP header. Like many of the ``tcp_*``
@@ -250,16 +250,16 @@ event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: 
 ##
 ## optlen: The length of the options value.
 ##
-## .. bro:see:: tcp_packet tcp_contents tcp_rexmit
+## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
 ##
 ## .. note:: There is currently no way to get the actual option value, if any.
 event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 
 ## Generated for each chunk of reassembled TCP payload. When content delivery is
-## enabled for a TCP connection (via :bro:id:`tcp_content_delivery_ports_orig`,
-## :bro:id:`tcp_content_delivery_ports_resp`,
-## :bro:id:`tcp_content_deliver_all_orig`,
-## :bro:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
+## enabled for a TCP connection (via :zeek:id:`tcp_content_delivery_ports_orig`,
+## :zeek:id:`tcp_content_delivery_ports_resp`,
+## :zeek:id:`tcp_content_deliver_all_orig`,
+## :zeek:id:`tcp_content_deliver_all_resp`), this event is raised for each chunk
 ## of in-order payload reconstructed from the packet stream. Note that this
 ## event is potentially expensive if many connections carry significant amounts
 ## of data as then all that data needs to be passed on to the scripting layer.
@@ -273,7 +273,7 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ##
 ## contents: The raw payload, which will be non-empty.
 ##
-## .. bro:see:: tcp_packet tcp_option tcp_rexmit
+## .. zeek:see:: tcp_packet tcp_option tcp_rexmit
 ##    tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
 ##    tcp_content_deliver_all_resp tcp_content_deliver_all_orig
 ##
@@ -283,11 +283,25 @@ event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
 ##    application-layer protocol analyzers internally. Subsequent invocations of
 ##    this event for the same connection receive non-overlapping in-order chunks
 ##    of its TCP payload stream. It is however undefined what size each chunk
-##    has; while Bro passes the data on as soon as possible, specifics depend on
+##    has; while Zeek passes the data on as soon as possible, specifics depend on
 ##    network-level effects such as latency, acknowledgements, reordering, etc.
 event tcp_contents%(c: connection, is_orig: bool, seq: count, contents: string%);
 
-## TODO.
+## Generated for each detected TCP segment retransmission.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## seq: The segment's relative TCP sequence number.
+##
+## len: The length of the TCP segment, as specified in the packet header.
+##
+## data_in_flight: The number of bytes corresponding to the difference between
+##                 the last sequence number and last acknowledgement number
+##                 we've seen for a given endpoint.
+##
+## window: the TCP window size.
 event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_flight: count, window: count%);
 
 ## Generated if a TCP flow crosses a checksum-error threshold, per
@@ -299,8 +313,8 @@ event tcp_rexmit%(c: connection, is_orig: bool, seq: count, len: count, data_in_
 ##
 ## threshold: the threshold that was crossed
 ##
-## .. bro:see::  udp_multiple_checksum_errors
-##    tcp_multiple_zero_windows tcp_multiple_retransmissions
+## .. zeek:see::  udp_multiple_checksum_errors
+##    tcp_multiple_zero_windows tcp_multiple_retransmissions tcp_multiple_gap
 event tcp_multiple_checksum_errors%(c: connection, is_orig: bool, threshold: count%);
 
 ## Generated if a TCP flow crosses a zero-window threshold, per
@@ -312,7 +326,7 @@ event tcp_multiple_checksum_errors%(c: connection, is_orig: bool, threshold: cou
 ##
 ## threshold: the threshold that was crossed
 ##
-## .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions
+## .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions tcp_multiple_gap
 event tcp_multiple_zero_windows%(c: connection, is_orig: bool, threshold: count%);
 
 ## Generated if a TCP flow crosses a retransmission threshold, per
@@ -324,8 +338,20 @@ event tcp_multiple_zero_windows%(c: connection, is_orig: bool, threshold: count%
 ##
 ## threshold: the threshold that was crossed
 ##
-## .. bro:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows
+## .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_gap
 event tcp_multiple_retransmissions%(c: connection, is_orig: bool, threshold: count%);
+
+## Generated if a TCP flow crosses a gap threshold, per 'G'/'g' history
+## reporting.
+##
+## c: The connection record for the TCP connection.
+##
+## is_orig: True if the event is raised for the originator side.
+##
+## threshold: the threshold that was crossed
+##
+## .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_retransmissions
+event tcp_multiple_gap%(c: connection, is_orig: bool, threshold: count%);
 
 ## Generated when failing to write contents of a TCP stream to a file.
 ##
@@ -335,5 +361,5 @@ event tcp_multiple_retransmissions%(c: connection, is_orig: bool, threshold: cou
 ##
 ## msg: A reason or description for the failure.
 ##
-## .. bro:see:: set_contents_file get_contents_file
+## .. zeek:see:: set_contents_file get_contents_file
 event contents_file_write_failure%(c: connection, is_orig: bool, msg: string%);

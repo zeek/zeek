@@ -3,11 +3,10 @@
 #ifndef val_h
 #define val_h
 
-// BRO values.
-
 #include <vector>
 #include <list>
 #include <array>
+#include <unordered_map>
 
 #include "net_util.h"
 #include "Type.h"
@@ -18,8 +17,9 @@
 #include "Timer.h"
 #include "ID.h"
 #include "Scope.h"
-#include "StateAccess.h"
+#include "Notifier.h"
 #include "IPAddr.h"
+#include "DebugLogger.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -36,7 +36,6 @@ class Func;
 class BroFile;
 class RE_Matcher;
 class PrefixTable;
-class SerialInfo;
 
 class PortVal;
 class AddrVal;
@@ -49,7 +48,7 @@ class RecordVal;
 class ListVal;
 class StringVal;
 class EnumVal;
-class MutableVal;
+class OpaqueVal;
 
 class StateAccess;
 
@@ -87,7 +86,7 @@ typedef union {
 
 class Val : public BroObj {
 public:
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(bool b, TypeTag t)
 		{
 		val.int_val = b;
@@ -97,7 +96,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int32 i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
@@ -107,7 +106,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint32 u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
@@ -117,7 +116,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(int64 i, TypeTag t)
 		{
 		val.int_val = i;
@@ -127,7 +126,7 @@ public:
 #endif
 		}
 
-	BRO_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
+	ZEEK_DEPRECATED("use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
 	Val(uint64 u, TypeTag t)
 		{
 		val.uint_val = u;
@@ -172,7 +171,7 @@ public:
 	~Val() override;
 
 	Val* Ref()			{ ::Ref(this); return this; }
-	virtual Val* Clone() const;
+	Val* Clone();
 
 	int IsZero() const;
 	int IsOne() const;
@@ -304,6 +303,7 @@ public:
 	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
 	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
@@ -321,36 +321,14 @@ public:
 	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
 	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
 	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
-
-	bool IsMutableVal() const
-		{
-		return IsMutable(type->Tag());
-		}
-
-	const MutableVal* AsMutableVal() const
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
-
-	MutableVal* AsMutableVal()
-		{
-		if ( ! IsMutableVal() )
-			BadTag("Val::AsMutableVal", type_name(type->Tag()));
-		return (MutableVal*) this;
-		}
+	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
 
-	bool Serialize(SerialInfo* info) const;
-	static Val* Unserialize(UnserialInfo* info, TypeTag type = TYPE_ANY)
-		{ return Unserialize(info, type, 0); }
-	static Val* Unserialize(UnserialInfo* info, const BroType* exact_type)
-		{ return Unserialize(info, exact_type->Tag(), exact_type); }
-
-	DECLARE_SERIAL(Val);
+	// To be overridden by mutable derived class to enable change
+	// notification.
+	virtual notifier::Modifiable* Modifiable()	{ return 0; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -367,10 +345,16 @@ public:
 		}
 #endif
 
+	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
+
 protected:
 
 	friend class EnumType;
+	friend class ListVal;
+	friend class RecordVal;
+	friend class VectorVal;
 	friend class ValManager;
+	friend class TableEntryVal;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
@@ -415,9 +399,22 @@ protected:
 	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
 
-	// Just an internal helper.
-	static Val* Unserialize(UnserialInfo* info, TypeTag type,
-			const BroType* exact_type);
+	// For internal use by the Val::Clone() methods.
+	struct CloneState {
+		// Caches a cloned value for later reuse during the same
+		// cloning operation. For recursive types, call this *before*
+		// descending down.
+		Val* NewClone(Val *src, Val* dst)
+			{
+			clones.insert(std::make_pair(src, dst));
+			return dst;
+			}
+
+		std::unordered_map<Val*, Val*> clones;
+	};
+
+	Val* Clone(CloneState* state);
+	virtual Val* DoClone(CloneState* state);
 
 	BroValUnion val;
 	BroType* type;
@@ -432,15 +429,15 @@ protected:
 class PortManager {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal* Get(uint32 port_num) const;
 
 	// Returns a masked port number
-	BRO_DEPRECATED("use PortVal::Mask() instead")
+	ZEEK_DEPRECATED("use PortVal::Mask() instead")
 	uint32 Mask(uint32 port_num, TransportProto port_type) const;
 };
 
@@ -501,82 +498,6 @@ private:
 
 extern ValManager* val_mgr;
 
-class MutableVal : public Val {
-public:
-	// Each MutableVal gets a globally unique ID that can be used to
-	// reference it no matter if it's directly bound to any user-visible
-	// ID. This ID is inserted into the global namespace.
-	ID* UniqueID() const	{ return id ? id : Bind(); }
-
-	// Returns true if we've already generated a unique ID.
-	bool HasUniqueID() const	{ return id; }
-
-	// Transfers the unique ID of the given value to this value. We keep our
-	// old ID as an alias.
-	void TransferUniqueID(MutableVal* mv);
-
-	// MutableVals can have properties (let's refrain from calling them
-	// attributes!).  Most properties are recursive.  If a derived object
-	// can contain MutableVals itself, the object has to override
-	// {Add,Remove}Properties(). RecursiveProp(state) masks out all non-
-	// recursive properties. If this is non-null, an overriden method must
-	// call itself with RecursiveProp(state) as argument for all contained
-	// values.  (In any case, don't forget to call the parent's method.)
-	typedef char Properties;
-
-	static const int PERSISTENT = 0x01;
-	static const int SYNCHRONIZED = 0x02;
-
-	// Tracked by NotifierRegistry, not recursive.
-	static const int TRACKED = 0x04;
-
-	int RecursiveProps(int prop) const	{ return prop & ~TRACKED; }
-
-	Properties GetProperties() const	{ return props; }
-	virtual bool AddProperties(Properties state);
-	virtual bool RemoveProperties(Properties state);
-
-	// Whether StateAccess:LogAccess needs to be called.
-	bool LoggingAccess() const
-		{
-#ifndef DEBUG
-		return props & (SYNCHRONIZED|PERSISTENT|TRACKED);
-#else
-		return debug_logger.IsVerbose() ||
-			(props & (SYNCHRONIZED|PERSISTENT|TRACKED));
-#endif
-		}
-
-	uint64 LastModified() const override	{ return last_modified; }
-
-	// Mark value as changed.
-	void Modified()
-		{
-		last_modified = IncreaseTimeCounter();
-		}
-
-protected:
-	explicit MutableVal(BroType* t) : Val(t)
-		{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	MutableVal()	{ props = 0; id = 0; last_modified = SerialObj::ALWAYS; }
-	~MutableVal() override;
-
-	friend class ID;
-	friend class Val;
-
-	void SetID(ID* arg_id)	{ Unref(id); id = arg_id; }
-
-	DECLARE_SERIAL(MutableVal);
-
-private:
-	ID* Bind() const;
-
-	mutable ID* id;
-	list<ID*> aliases;
-	Properties props;
-	uint64 last_modified;
-};
-
 #define Microseconds 1e-6
 #define Milliseconds 1e-3
 #define Seconds 1.0
@@ -592,19 +513,17 @@ protected:
 	IntervalVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(IntervalVal);
 };
 
 
 class PortVal : public Val {
 public:
 	// Port number given in host order.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	PortVal(uint32 p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	BRO_DEPRECATED("use val_mgr->GetPort() instead")
+	ZEEK_DEPRECATED("use val_mgr->GetPort() instead")
 	explicit PortVal(uint32 p);
 
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
@@ -639,8 +558,7 @@ protected:
 	PortVal(uint32 p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(PortVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 class AddrVal : public Val {
@@ -664,7 +582,7 @@ protected:
 	explicit AddrVal(TypeTag t) : Val(t)	{ }
 	explicit AddrVal(BroType* t) : Val(t)	{ }
 
-	DECLARE_SERIAL(AddrVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 class SubNetVal : public Val {
@@ -692,8 +610,7 @@ protected:
 	SubNetVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(SubNetVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 class StringVal : public Val {
@@ -724,8 +641,7 @@ protected:
 	StringVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(StringVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 class PatternVal : public Val {
@@ -744,8 +660,7 @@ protected:
 	PatternVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(PatternVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -789,7 +704,7 @@ protected:
 	friend class Val;
 	ListVal()	{}
 
-	DECLARE_SERIAL(ListVal);
+	Val* DoClone(CloneState* state) override;
 
 	val_list vals;
 	TypeTag tag;
@@ -803,9 +718,18 @@ public:
 		{
 		val = v;
 		last_access_time = network_time;
-		expire_access_time = last_read_update =
+		expire_access_time =
 			int(network_time - bro_start_network_time);
 		}
+
+	TableEntryVal* Clone(Val::CloneState* state)
+		{
+		auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
+		rval->last_access_time = last_access_time;
+		rval->expire_access_time = expire_access_time;
+		return rval;
+		}
+
 	~TableEntryVal()	{ }
 
 	Val* Value()	{ return val; }
@@ -818,24 +742,16 @@ public:
 	void SetExpireAccess(double time)
 		{ expire_access_time = int(time - bro_start_network_time); }
 
-	// Returns/sets time of when we propagated the last OP_READ_IDX
-	// for this item.
-	double LastReadUpdate() const
-		{ return bro_start_network_time + last_read_update; }
-	void SetLastReadUpdate(double time)
-		{ last_read_update = int(time - bro_start_network_time); }
-
 protected:
 	friend class TableVal;
 
 	Val* val;
 	double last_access_time;
 
-	// The next two entries store seconds since Bro's start.  We use
-	// ints here to save a few bytes, as we do not need a high resolution
-	// for these anyway.
+	// The next entry stores seconds since Bro's start.  We use ints here
+	// to save a few bytes, as we do not need a high resolution for these
+	// anyway.
 	int expire_access_time;
-	int last_read_update;
 };
 
 class TableValTimer : public Timer {
@@ -852,7 +768,7 @@ protected:
 };
 
 class CompositeHash;
-class TableVal : public MutableVal {
+class TableVal : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(TableType* t, Attributes* attrs = 0);
 	~TableVal() override;
@@ -862,8 +778,8 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
-	int Assign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-	int Assign(Val* index, HashKey* k, Val* new_val, Opcode op = OP_ASSIGN);
+	int Assign(Val* index, Val* new_val);
+	int Assign(Val* index, HashKey* k, Val* new_val);
 
 	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
 
@@ -965,19 +881,17 @@ public:
 	HashKey* ComputeHash(const Val* index) const
 		{ return table_hash->ComputeHash(index, 1); }
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 protected:
 	friend class Val;
-	friend class StateAccess;
 	TableVal()	{}
 
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
-	int CheckAndAssign(Val* index, Val* new_val, Opcode op = OP_ASSIGN);
-
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
+	int CheckAndAssign(Val* index, Val* new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);
@@ -994,10 +908,7 @@ protected:
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
 
-	// Propagates a read operation if necessary.
-	void ReadOperation(Val* index, TableEntryVal *v);
-
-	DECLARE_SERIAL(TableVal);
+	Val* DoClone(CloneState* state) override;
 
 	TableType* table_type;
 	CompositeHash* table_hash;
@@ -1010,15 +921,15 @@ protected:
 	Val* def_val;
 };
 
-class RecordVal : public MutableVal {
+class RecordVal : public Val, public notifier::Modifiable {
 public:
-	explicit RecordVal(RecordType* t);
+	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
 
 	Val* SizeVal() const override
-		{ return val_mgr->GetCount(record_type->NumFields()); }
+		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
-	void Assign(int field, Val* new_val, Opcode op = OP_ASSIGN);
+	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
 
@@ -1057,6 +968,8 @@ public:
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
@@ -1066,10 +979,7 @@ protected:
 	friend class Val;
 	RecordVal()	{}
 
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
-
-	DECLARE_SERIAL(RecordVal);
+	Val* DoClone(CloneState* state) override;
 
 	RecordType* record_type;
 	BroObj* origin;
@@ -1080,7 +990,7 @@ protected:
 class EnumVal : public Val {
 public:
 
-	BRO_DEPRECATED("use t->GetVal(i) instead")
+	ZEEK_DEPRECATED("use t->GetVal(i) instead")
 	EnumVal(int i, EnumType* t) : Val(t)
 		{
 		val.int_val = i;
@@ -1100,12 +1010,11 @@ protected:
 	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(EnumVal);
+	Val* DoClone(CloneState* state) override;
 };
 
 
-class VectorVal : public MutableVal {
+class VectorVal : public Val, public notifier::Modifiable {
 public:
 	explicit VectorVal(VectorType* t);
 	~VectorVal() override;
@@ -1119,11 +1028,11 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
-	bool Assign(unsigned int index, Val* element, Opcode op = OP_ASSIGN);
-	bool Assign(Val* index, Val* element, Opcode op = OP_ASSIGN)
+	bool Assign(unsigned int index, Val* element);
+	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element, op);
+				element);
 		}
 
 	// Assigns the value to how_many locations starting at index.
@@ -1153,32 +1062,22 @@ public:
 	// Won't shrink size.
 	unsigned int ResizeAtLeast(unsigned int new_num_elements);
 
+	notifier::Modifiable* Modifiable() override	{ return this; }
+
+	// Insert an element at a specific position into the underlying vector.
+	bool Insert(unsigned int index, Val* element);
+
+	// Removes an element at a specific position.
+	bool Remove(unsigned int index);
+
 protected:
 	friend class Val;
 	VectorVal()	{ }
 
-	bool AddProperties(Properties arg_state) override;
-	bool RemoveProperties(Properties arg_state) override;
 	void ValDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(VectorVal);
+	Val* DoClone(CloneState* state) override;
 
 	VectorType* vector_type;
-};
-
-// Base class for values with types that are managed completely internally,
-// with no further script-level operators provided (other than bif
-// functions). See OpaqueVal.h for derived classes.
-class OpaqueVal : public Val {
-public:
-	explicit OpaqueVal(OpaqueType* t);
-	~OpaqueVal() override;
-
-protected:
-	friend class Val;
-	OpaqueVal() { }
-
-	DECLARE_SERIAL(OpaqueVal);
 };
 
 // Checks the given value for consistency with the given type.  If an
@@ -1186,7 +1085,7 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init);
+extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
 // Given a pointer to where a Val's core (i.e., its BRO value) resides,
 // returns a corresponding newly-created or Ref()'d Val.  ptr must already

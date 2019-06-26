@@ -12,7 +12,7 @@
 ## 
 ## data: The data for the server to echo.
 ##
-## .. bro:see:: smb1_message smb1_echo_response
+## .. zeek:see:: smb1_message smb1_echo_response
 event smb1_echo_request%(c: connection, echo_count: count, data: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -28,5 +28,5 @@ event smb1_echo_request%(c: connection, echo_count: count, data: string%);
 ## 
 ## data: The data echoed back from the client.
 ##
-## .. bro:see:: smb1_message smb1_echo_request
+## .. zeek:see:: smb1_message smb1_echo_request
 event smb1_echo_response%(c: connection, seq_num: count, data: string%);

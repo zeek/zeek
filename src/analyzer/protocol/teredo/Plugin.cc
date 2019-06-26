@@ -6,7 +6,7 @@
 #include "Teredo.h"
 
 namespace plugin {
-namespace Bro_Teredo {
+namespace Zeek_Teredo {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("Teredo", ::analyzer::teredo::Teredo_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Teredo";
+		config.name = "Zeek::Teredo";
 		config.description = "Teredo analyzer";
 		return config;
 		}

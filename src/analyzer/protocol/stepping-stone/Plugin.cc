@@ -6,7 +6,7 @@
 #include "SteppingStone.h"
 
 namespace plugin {
-namespace Bro_SteppingStone {
+namespace Zeek_SteppingStone {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("SteppingStone", ::analyzer::stepping_stone::SteppingStone_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SteppingStone";
+		config.name = "Zeek::SteppingStone";
 		config.description = "Stepping stone analyzer";
 		return config;
 		}

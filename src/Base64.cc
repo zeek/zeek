@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "Base64.h"
 #include <math.h>
 

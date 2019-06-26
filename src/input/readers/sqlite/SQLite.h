@@ -3,7 +3,7 @@
 #ifndef INPUT_READERS_SQLITE_H
 #define INPUT_READERS_SQLITE_H
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <iostream>
 #include <vector>

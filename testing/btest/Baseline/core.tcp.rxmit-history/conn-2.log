@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2018-01-12-21-43-35
+#open	2019-04-17-20-42-44
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1300475167.096535	CHhAvVGS1DHFjwGM9	141.142.220.202	5353	224.0.0.251	5353	udp	dns	-	-	-	S0	-	-	0	D	1	73	0	0	-
@@ -40,4 +40,4 @@
 1300475168.859163	Ck51lg1bScffFj34Ri	141.142.220.118	49998	208.80.152.3	80	tcp	http	0.215893	1130	734	S1	-	-	0	ShADad	6	1450	4	950	-
 1300475168.892936	CtxTCR2Yer0FR1tIBg	141.142.220.118	50000	208.80.152.3	80	tcp	http	0.229603	1148	734	S1	-	-	0	ShADad	6	1468	4	950	-
 1300475168.895267	CLNN1k2QMum1aexUK7	141.142.220.118	50001	208.80.152.3	80	tcp	http	0.227284	1178	734	S1	-	-	0	ShADad	6	1498	4	950	-
-#close	2018-01-12-21-43-35
+#close	2019-04-17-20-42-44

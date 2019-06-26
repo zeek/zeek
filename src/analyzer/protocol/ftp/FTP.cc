@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 
@@ -73,8 +73,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		// Could emit "ftp empty request/reply" weird, but maybe not worth it.
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
+	val_list vl;
 
 	EventHandlerPtr f;
 	if ( orig )
@@ -95,8 +94,11 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		else
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
 
-		vl->append(cmd_str);
-		vl->append(new StringVal(end_of_line - line, line));
+		vl = val_list{
+			BuildConnVal(),
+			cmd_str,
+			new StringVal(end_of_line - line, line),
+		};
 
 		f = ftp_request;
 		ProtocolConfirmation();
@@ -171,14 +173,17 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		vl->append(val_mgr->GetCount(reply_code));
-		vl->append(new StringVal(end_of_line - line, line));
-		vl->append(val_mgr->GetBool(cont_resp));
+		vl = val_list{
+			BuildConnVal(),
+			val_mgr->GetCount(reply_code),
+			new StringVal(end_of_line - line, line),
+			val_mgr->GetBool(cont_resp),
+		};
 
 		f = ftp_reply;
 		}
 
-	ConnectionEvent(f, vl);
+	ConnectionEvent(f, std::move(vl));
 
 	ForwardStream(length, data, orig);
 	}

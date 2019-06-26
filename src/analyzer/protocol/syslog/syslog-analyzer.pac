@@ -11,6 +11,9 @@ flow Syslog_Flow
 
 	function process_syslog_message(m: Syslog_Message): bool
 		%{
+		if ( ! syslog_message )
+			return true;
+
 		if ( ${m.has_pri} )
 			BifEvent::generate_syslog_message(
 			    connection()->bro_analyzer(),

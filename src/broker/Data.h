@@ -1,8 +1,10 @@
 #ifndef BRO_COMM_DATA_H
 #define BRO_COMM_DATA_H
 
-#include <broker/broker.hh>
-#include "Val.h"
+#include <broker/data.hh>
+#include <broker/expected.hh>
+
+#include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
@@ -120,13 +122,13 @@ public:
 		return script_data_type;
 		}
 
-	DECLARE_SERIAL(DataVal);
-
 	broker::data data;
 
 protected:
 	DataVal()
 		{}
+
+	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
 
 	static BroType* script_data_type;
 };
@@ -242,6 +244,10 @@ public:
 
 	broker::set dat;
 	broker::set::iterator it;
+
+protected:
+	SetIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::SetIterator)
 };
 
 class TableIterator : public OpaqueVal {
@@ -255,6 +261,10 @@ public:
 
 	broker::table dat;
 	broker::table::iterator it;
+
+protected:
+	TableIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::TableIterator)
 };
 
 class VectorIterator : public OpaqueVal {
@@ -268,6 +278,10 @@ public:
 
 	broker::vector dat;
 	broker::vector::iterator it;
+
+protected:
+	VectorIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::VectorIterator)
 };
 
 class RecordIterator : public OpaqueVal {
@@ -281,6 +295,10 @@ public:
 
 	broker::vector dat;
 	broker::vector::iterator it;
+
+protected:
+	RecordIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::RecordIterator)
 };
 
 } // namespace bro_broker

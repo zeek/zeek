@@ -6,7 +6,7 @@
 #include "BackDoor.h"
 
 namespace plugin {
-namespace Bro_BackDoor {
+namespace Zeek_BackDoor {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		AddComponent(new ::analyzer::Component("BackDoor", ::analyzer::backdoor::BackDoor_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::BackDoor";
+		config.name = "Zeek::BackDoor";
 		config.description = "Backdoor Analyzer deprecated";
 		return config;
 		}

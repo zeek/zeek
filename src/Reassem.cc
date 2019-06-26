@@ -3,10 +3,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Reassem.h"
-#include "Serializer.h"
 
 static const bool DEBUG_reassem = false;
 
@@ -357,37 +356,3 @@ uint64 Reassembler::MemoryAllocation(ReassemblerType rtype)
 	return Reassembler::sizes[rtype];
 	}
 
-bool Reassembler::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Reassembler* Reassembler::Unserialize(UnserialInfo* info)
-	{
-	return (Reassembler*) SerialObj::Unserialize(info, SER_REASSEMBLER);
-	}
-
-bool Reassembler::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_REASSEMBLER, BroObj);
-
-	// I'm not sure if it makes sense to actually save the buffered data.
-	// For now, we just remember the seq numbers so that we don't get
-	// complaints about missing content.
-	return SERIALIZE(trim_seq) && SERIALIZE(int(0));
-	}
-
-bool Reassembler::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	blocks = last_block = 0;
-
-	int dummy; // For backwards compatibility.
-	if ( ! UNSERIALIZE(&trim_seq) || ! UNSERIALIZE(&dummy) )
-		return false;
-
-	last_reassem_seq = trim_seq;
-
-	return  true;
-	}

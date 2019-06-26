@@ -6,7 +6,7 @@
 #include "NetbiosSSN.h"
 
 namespace plugin {
-namespace Bro_NetBIOS {
+namespace Zeek_NetBIOS {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_NetbiosSSN", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::NetBIOS";
+		config.name = "Zeek::NetBIOS";
 		config.description = "NetBIOS analyzer support";
 		return config;
 		}

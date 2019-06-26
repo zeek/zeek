@@ -11,9 +11,6 @@
 
 class Func;
 class FuncType;
-class Serializer;
-class SerialInfo;
-class UnserialInfo;
 
 class EventHandler {
 public:
@@ -25,9 +22,6 @@ public:
 	FuncType* FType(bool check_export = true);
 
 	void SetLocalHandler(Func* f);
-
-	void AddRemoteHandler(SourceID peer);
-	void RemoveRemoteHandler(SourceID peer);
 
 	void AutoPublish(std::string topic)
 		{
@@ -59,11 +53,6 @@ public:
 	void SetGenerateAlways()	{ generate_always = true; }
 	bool GenerateAlways()	{ return generate_always; }
 
-	// We don't serialize the handler(s) itself here, but
-	// just the reference to it.
-	bool Serialize(SerialInfo* info) const;
-	static EventHandler* Unserialize(UnserialInfo* info);
-
 private:
 	void NewEvent(val_list* vl);	// Raise new_event() meta event.
 
@@ -74,10 +63,6 @@ private:
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.
 	bool generate_always;
-
-	declare(List, SourceID);
-	typedef List(SourceID) receiver_list;
-	receiver_list receivers;
 
 	std::unordered_set<std::string> auto_publish;
 };

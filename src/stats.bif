@@ -20,12 +20,12 @@ RecordType* ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
-## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## packets *(i)* received by Zeek, *(ii)* dropped, and *(iii)* seen on the
 ## link (not always available).
 ##
 ## Returns: A record of packet statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -70,11 +70,11 @@ function get_net_stats%(%): NetStats
 	return r;
 	%}
 
-## Returns Bro traffic statistics.
+## Returns Zeek traffic statistics.
 ##
 ## Returns: A record with connection and packet statistics.
 ##
-## .. bro:see:: get_dns_stats
+## .. zeek:see:: get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -121,11 +121,11 @@ function get_conn_stats%(%): ConnStats
 	return r;
 	%}
 
-## Returns Bro process statistics.
+## Returns Zeek process statistics.
 ##
 ## Returns: A record with process statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -182,7 +182,7 @@ function get_proc_stats%(%): ProcStats
 ##
 ## Returns: A record with event engine statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -209,7 +209,7 @@ function get_event_stats%(%): EventStats
 ##
 ## Returns: A record with reassembler statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -238,7 +238,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##
 ## Returns: A record with DNS lookup statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -272,7 +272,7 @@ function get_dns_stats%(%): DNSStats
 ##
 ## Returns: A record with timer usage statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -300,7 +300,7 @@ function get_timer_stats%(%): TimerStats
 ##
 ## Returns: A record with file analysis statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_gap_stats
@@ -328,7 +328,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##
 ## Returns: A record with thread usage statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -354,7 +354,7 @@ function get_thread_stats%(%): ThreadStats
 ##
 ## Returns: A record with TCP gap statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -386,7 +386,7 @@ function get_gap_stats%(%): GapStats
 ##
 ## Returns: A record with matcher statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -423,7 +423,7 @@ function get_matcher_stats%(%): MatcherStats
 ##
 ## Returns: A record with Broker statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -459,7 +459,7 @@ function get_broker_stats%(%): BrokerStats
 ##
 ## Returns: A record with reporter statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats

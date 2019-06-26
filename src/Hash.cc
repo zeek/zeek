@@ -15,7 +15,7 @@
 // for the adversary to construct conflicts, though I do not know if
 // HMAC/MD5 is provably universal.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Hash.h"
 #include "Reporter.h"
@@ -26,7 +26,7 @@ void init_hash_function()
 	{
 	// Make sure we have already called init_random_seed().
 	if ( ! (hmac_key_set && siphash_key_set) )
-		reporter->InternalError("Bro's hash functions aren't fully initialized");
+		reporter->InternalError("Zeek's hash functions aren't fully initialized");
 	}
 
 HashKey::HashKey(bro_int_t i)

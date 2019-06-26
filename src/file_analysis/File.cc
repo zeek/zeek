@@ -154,11 +154,11 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 	{
 	if ( conn && FileEventAvailable(file_over_new_connection) )
 		{
-		val_list* vl = new val_list();
-		vl->append(val->Ref());
-		vl->append(conn->BuildConnVal());
-		vl->append(val_mgr->GetBool(is_orig));
-		FileEvent(file_over_new_connection, vl);
+		FileEvent(file_over_new_connection, {
+			val->Ref(),
+			conn->BuildConnVal(),
+			val_mgr->GetBool(is_orig),
+		});
 		}
 	}
 
@@ -303,13 +303,11 @@ bool File::SetMime(const string& mime_type)
 	if ( ! FileEventAvailable(file_sniff) )
 		return false;
 
-	val_list* vl = new val_list();
-	vl->append(val->Ref());
 	RecordVal* meta = new RecordVal(fa_metadata_type);
-	vl->append(meta);
 	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
 	meta->Assign(meta_inferred_idx, val_mgr->GetBool(0));
-	FileEvent(file_sniff, vl);
+
+	FileEvent(file_sniff, {val->Ref(), meta});
 	return true;
 	}
 
@@ -338,10 +336,7 @@ void File::InferMetadata()
 	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	val_list* vl = new val_list();
-	vl->append(val->Ref());
 	RecordVal* meta = new RecordVal(fa_metadata_type);
-	vl->append(meta);
 
 	if ( ! matches.empty() )
 		{
@@ -351,7 +346,7 @@ void File::InferMetadata()
 		             file_analysis::GenMIMEMatchesVal(matches));
 		}
 
-	FileEvent(file_sniff, vl);
+	FileEvent(file_sniff, {val->Ref(), meta});
 	return;
 	}
 
@@ -463,11 +458,11 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 
 			if ( FileEventAvailable(file_reassembly_overflow) )
 				{
-				val_list* vl = new val_list();
-				vl->append(val->Ref());
-				vl->append(val_mgr->GetCount(current_offset));
-				vl->append(val_mgr->GetCount(gap_bytes));
-				FileEvent(file_reassembly_overflow, vl);
+				FileEvent(file_reassembly_overflow, {
+					val->Ref(),
+					val_mgr->GetCount(current_offset),
+					val_mgr->GetCount(gap_bytes),
+				});
 				}
 			}
 
@@ -608,11 +603,11 @@ void File::Gap(uint64 offset, uint64 len)
 
 	if ( FileEventAvailable(file_gap) )
 		{
-		val_list* vl = new val_list();
-		vl->append(val->Ref());
-		vl->append(val_mgr->GetCount(offset));
-		vl->append(val_mgr->GetCount(len));
-		FileEvent(file_gap, vl);
+		FileEvent(file_gap, {
+			val->Ref(),
+			val_mgr->GetCount(offset),
+			val_mgr->GetCount(len),
+		});
 		}
 
 	analyzers.DrainModifications();
@@ -631,14 +626,18 @@ void File::FileEvent(EventHandlerPtr h)
 	if ( ! FileEventAvailable(h) )
 		return;
 
-	val_list* vl = new val_list();
-	vl->append(val->Ref());
-	FileEvent(h, vl);
+	FileEvent(h, {val->Ref()});
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
-	mgr.QueueEvent(h, vl);
+	FileEvent(h, std::move(*vl));
+	delete vl;
+	}
+
+void File::FileEvent(EventHandlerPtr h, val_list vl)
+	{
+	mgr.QueueEventFast(h, std::move(vl));
 
 	if ( h == file_new || h == file_over_new_connection ||
 	     h == file_sniff ||

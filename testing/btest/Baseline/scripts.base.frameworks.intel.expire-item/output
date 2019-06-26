@@ -3,15 +3,15 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2018-04-27-23-53-04
+#open	2019-06-07-02-20-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
-1524873184.861542	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
-1524873187.913197	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1	-	-	-
-1524873190.976201	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-1524873194.052686	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-1524873197.128942	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	bro	Intel::ADDR	source1,source2	-	-	-
-#close	2018-04-27-23-53-20
+1559874005.130930	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
+1559874008.152069	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
+1559874011.172813	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
+1559874014.190374	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
+1559874017.207215	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
+#close	2019-06-07-02-20-20
 -- Run 1 --
 Trigger: 1.2.3.4
 Seen: 1.2.3.4

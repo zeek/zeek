@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <algorithm>
 #include <ctype.h>
@@ -288,7 +288,7 @@ void BroString::ToUpper()
 
 BroString* BroString::GetSubstring(int start, int len) const
 	{
-	// This code used to live in bro.bif's sub_bytes() routine.
+	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )
 		return 0;
 

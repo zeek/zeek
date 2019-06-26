@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/false-teredo.pcap base/frameworks/dpd base/protocols/tunnels protocols/conn/known-services Tunnel::delay_teredo_confirmation=T "Site::local_nets+={192.168.1.0/24}"
+# @TEST-EXEC: zeek -r $TRACES/tunnels/false-teredo.pcap base/frameworks/dpd base/protocols/tunnels protocols/conn/known-services Tunnel::delay_teredo_confirmation=T "Site::local_nets+={192.168.1.0/24}"
 # @TEST-EXEC: test ! -e known_services.log
 
 # The first case using Tunnel::delay_teredo_confirmation=T doesn't produce

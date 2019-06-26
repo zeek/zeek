@@ -2,7 +2,6 @@
 #include "EventHandler.h"
 #include "Func.h"
 #include "Scope.h"
-#include "RemoteSerializer.h"
 #include "NetVar.h"
 
 #include "broker/Manager.h"
@@ -28,7 +27,6 @@ EventHandler::~EventHandler()
 EventHandler::operator bool() const
 	{
 	return enabled && ((local && local->HasBodies())
-			   || receivers.length()
 			   || generate_always
 			   || ! auto_publish.empty());
 	}
@@ -73,12 +71,6 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 	if ( ! no_remote )
 		{
-		loop_over_list(receivers, i)
-			{
-			SerialInfo info(remote_serializer);
-			remote_serializer->SendCall(&info, receivers[i], name, vl);
-			}
-
 		if ( ! auto_publish.empty() )
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
@@ -172,41 +164,10 @@ void EventHandler::NewEvent(val_list* vl)
 		vargs->Assign(i, rec);
 		}
 
-	val_list* mvl = new val_list(2);
-	mvl->append(new StringVal(name));
-	mvl->append(vargs);
-
-	Event* ev = new Event(new_event, mvl);
+	Event* ev = new Event(new_event, {
+		new StringVal(name),
+		vargs,
+	});
 	mgr.Dispatch(ev);
 	}
 
-void EventHandler::AddRemoteHandler(SourceID peer)
-	{
-	receivers.append(peer);
-	}
-
-void EventHandler::RemoveRemoteHandler(SourceID peer)
-	{
-	receivers.remove(peer);
-	}
-
-bool EventHandler::Serialize(SerialInfo* info) const
-	{
-	return SERIALIZE(name);
-	}
-
-EventHandler* EventHandler::Unserialize(UnserialInfo* info)
-	{
-	char* name;
-	if ( ! UNSERIALIZE_STR(&name, 0) )
-		return 0;
-
-	EventHandler* h = event_registry->Lookup(name);
-	if ( ! h )
-		{
-		h = new EventHandler(name);
-		event_registry->Register(h);
-		}
-
-	return h;
-	}

@@ -1,9 +1,9 @@
 # @TEST-PORT: BROKER_PORT
-# @TEST-REQUIRES: bro --help 2>&1 | grep -q mem-leaks
+# @TEST-REQUIRES: zeek --help 2>&1 | grep -q mem-leaks
 # @TEST-GROUP: leaks
 
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "bro -m -b ../recv.bro >recv.out"
-# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "bro -m -b ../send.bro >send.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "zeek -m -b ../recv.zeek >recv.out"
+# @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "zeek -m -b ../send.zeek >send.out"
 
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
@@ -11,7 +11,7 @@
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff send/test.log
 
-@TEST-START-FILE common.bro
+@TEST-START-FILE common.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -27,7 +27,7 @@ export {
 	};
 }
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Test::LOG, [$columns=Test::Info]);
 	}
@@ -39,13 +39,13 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-END-FILE
 
-@TEST-START-FILE recv.bro
+@TEST-START-FILE recv.zeek
 
-@load ./common.bro
+@load ./common
 
-event bro_init()
+event zeek_init()
 	{
-	Broker::subscribe("bro/");
+	Broker::subscribe("zeek/");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}
 
@@ -56,11 +56,11 @@ event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 
 @TEST-END-FILE
 
-@TEST-START-FILE send.bro
+@TEST-START-FILE send.zeek
 
-@load ./common.bro
+@load ./common
 
-event bro_init()
+event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}

@@ -7,7 +7,7 @@
 #include "DTLS.h"
 
 namespace plugin {
-namespace Bro_SSL {
+namespace Zeek_SSL {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -17,7 +17,7 @@ public:
 		AddComponent(new ::analyzer::Component("DTLS", ::analyzer::dtls::DTLS_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SSL";
+		config.name = "Zeek::SSL";
 		config.description = "SSL/TLS and DTLS analyzers";
 		return config;
 		}

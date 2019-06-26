@@ -6,7 +6,7 @@
 #include "NCP.h"
 
 namespace plugin {
-namespace Bro_NCP {
+namespace Zeek_NCP {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -16,7 +16,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_NCP", 0));
 
 		plugin::Configuration config;
-		config.name = "Bro::NCP";
+		config.name = "Zeek::NCP";
 		config.description = "NCP analyzer";
 		return config;
 		}

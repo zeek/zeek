@@ -1,22 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Attr.h"
 #include "Expr.h"
-#include "Serializer.h"
 #include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
 		"&optional", "&default", "&redef",
-		"&rotate_interval", "&rotate_size",
 		"&add_func", "&delete_func", "&expire_func",
 		"&read_expire", "&write_expire", "&create_expire",
-		"&persistent", "&synchronized",
-		"&encrypt",
-		"&raw_output", "&mergeable", "&priority",
+		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
 		"(&tracked)", "&deprecated",
 	};
@@ -51,7 +47,7 @@ void Attr::Describe(ODesc* d) const
 
 void Attr::DescribeReST(ODesc* d) const
 	{
-	d->Add(":bro:attr:`");
+	d->Add(":zeek:attr:`");
 	AddTag(d);
 	d->Add("`");
 
@@ -64,14 +60,14 @@ void Attr::DescribeReST(ODesc* d) const
 
 		if ( expr->Tag() == EXPR_NAME )
 			{
-			d->Add(":bro:see:`");
+			d->Add(":zeek:see:`");
 			expr->Describe(d);
 			d->Add("`");
 			}
 
 		else if ( expr->Type()->Tag() == TYPE_FUNC )
 			{
-			d->Add(":bro:type:`");
+			d->Add(":zeek:type:`");
 			d->Add(expr->Type()->AsFuncType()->FlavorString());
 			d->Add("`");
 			}
@@ -141,7 +137,7 @@ Attributes::~Attributes()
 void Attributes::AddAttr(Attr* attr)
 	{
 	if ( ! attrs )
-		attrs = new attr_list;
+		attrs = new attr_list(1);
 
 	if ( ! attr->RedundantAttrOkay() )
 		// We overwrite old attributes by deleting them first.
@@ -358,21 +354,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_ROTATE_INTERVAL:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&rotate_interval only applicable to files");
-		break;
-
-	case ATTR_ROTATE_SIZE:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&rotate_size only applicable to files");
-		break;
-
-	case ATTR_ENCRYPT:
-		if ( type->Tag() != TYPE_FILE )
-			Error("&encrypt only applicable to files");
-		break;
-
 	case ATTR_EXPIRE_READ:
 	case ATTR_EXPIRE_WRITE:
 	case ATTR_EXPIRE_CREATE:
@@ -438,8 +419,6 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
-	case ATTR_PERSISTENT:
-	case ATTR_SYNCHRONIZED:
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;
@@ -447,11 +426,6 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_RAW_OUTPUT:
 		if ( type->Tag() != TYPE_FILE )
 			Error("&raw_output only applicable to files");
-		break;
-
-	case ATTR_MERGEABLE:
-		if ( type->Tag() != TYPE_TABLE )
-			Error("&mergeable only applicable to tables/sets");
 		break;
 
 	case ATTR_PRIORITY:
@@ -529,74 +503,6 @@ bool Attributes::operator==(const Attributes& other) const
 
 		if ( ! (*a == *o) )
 			return false;
-		}
-
-	return true;
-	}
-
-bool Attributes::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Attributes* Attributes::Unserialize(UnserialInfo* info)
-	{
-	return (Attributes*) SerialObj::Unserialize(info, SER_ATTRIBUTES);
-	}
-
-IMPLEMENT_SERIAL(Attributes, SER_ATTRIBUTES);
-
-bool Attributes::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ATTRIBUTES, BroObj);
-
-	info->s->WriteOpenTag("Attributes");
-	assert(type);
-	if ( ! (type->Serialize(info) && SERIALIZE(attrs->length())) )
-		return false;
-
-	loop_over_list((*attrs), i)
-		{
-		Attr* a = (*attrs)[i];
-
-		// Broccoli doesn't support expressions.
-		Expr* e = (! info->broccoli_peer) ? a->AttrExpr() : 0;
-		SERIALIZE_OPTIONAL(e);
-
-		if ( ! SERIALIZE(char(a->Tag())) )
-			return false;
-		}
-
-	info->s->WriteCloseTag("Attributes");
-	return true;
-	}
-
-bool Attributes::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	type = BroType::Unserialize(info);
-	if ( ! type )
-		return false;
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	attrs = new attr_list(len);
-	while ( len-- )
-		{
-		Expr* e;
-		UNSERIALIZE_OPTIONAL(e, Expr::Unserialize(info))
-
-		char tag;
-		if ( ! UNSERIALIZE(&tag) )
-			{
-			delete e;
-			return false;
-			}
-
-		attrs->append(new Attr((attr_tag)tag, e));
 		}
 
 	return true;

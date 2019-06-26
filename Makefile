@@ -55,9 +55,9 @@ test:
 	-@( cd testing && make )
 
 test-aux:
-	-test -d aux/broctl && ( cd aux/broctl && make test-all )
+	-test -d aux/zeekctl && ( cd aux/zeekctl && make test-all )
 	-test -d aux/btest  && ( cd aux/btest && make test )
-	-test -d aux/bro-aux && ( cd aux/bro-aux && make test )
+	-test -d aux/zeek-aux && ( cd aux/zeek-aux && make test )
 	-test -d aux/plugins && ( cd aux/plugins && make test-all )
 
 test-all: test test-aux

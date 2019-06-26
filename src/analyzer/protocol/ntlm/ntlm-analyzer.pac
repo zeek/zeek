@@ -94,6 +94,9 @@ refine connection NTLM_Conn += {
 
 	function proc_ntlm_negotiate(val: NTLM_Negotiate): bool
 		%{
+		if ( ! ntlm_negotiate )
+			return true;
+
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
@@ -115,6 +118,9 @@ refine connection NTLM_Conn += {
 
 	function proc_ntlm_challenge(val: NTLM_Challenge): bool
 		%{
+		if ( ! ntlm_challenge )
+			return true;
+
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
@@ -136,6 +142,9 @@ refine connection NTLM_Conn += {
 
 	function proc_ntlm_authenticate(val: NTLM_Authenticate): bool
 		%{
+		if ( ! ntlm_authenticate )
+			return true;
+
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 

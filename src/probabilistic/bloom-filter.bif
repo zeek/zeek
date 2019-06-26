@@ -22,14 +22,14 @@ module GLOBAL;
 ##           rate of *fp*.
 ##
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
-##       the filter will use :bro:id:`global_hash_seed` if that's set, and
-##       otherwise use a local seed tied to the current Bro process. Only
+##       the filter will use :zeek:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Zeek process. Only
 ##       filters with the same seed can be merged with
-##       :bro:id:`bloomfilter_merge`.
+##       :zeek:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init2 bloomfilter_counting_init bloomfilter_add
+## .. zeek:see:: bloomfilter_basic_init2 bloomfilter_counting_init bloomfilter_add
 ##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name: string &default=""%): opaque of bloomfilter
@@ -50,7 +50,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
-## alternative to :bro:id:`bloomfilter_basic_init` where the user has full
+## alternative to :zeek:id:`bloomfilter_basic_init` where the user has full
 ## control over the number of hash functions and cells in the underlying bit
 ## vector.
 ##
@@ -59,14 +59,14 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 ## cells: The number of cells of the underlying bit vector.
 ##
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
-##       the filter will use :bro:id:`global_hash_seed` if that's set, and
-##       otherwise use a local seed tied to the current Bro process. Only
+##       the filter will use :zeek:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Zeek process. Only
 ##       filters with the same seed can be merged with
-##       :bro:id:`bloomfilter_merge`.
+##       :zeek:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_counting_init  bloomfilter_add
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_counting_init  bloomfilter_add
 ##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_basic_init2%(k: count, cells: count,
                                   name: string &default=""%): opaque of bloomfilter
@@ -103,14 +103,14 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 ##      counter vector becomes a cell of size *w* bits.
 ##
 ## name: A name that uniquely identifies and seeds the Bloom filter. If empty,
-##       the filter will use :bro:id:`global_hash_seed` if that's set, and
-##       otherwise use a local seed tied to the current Bro process. Only
+##       the filter will use :zeek:id:`global_hash_seed` if that's set, and
+##       otherwise use a local seed tied to the current Zeek process. Only
 ##       filters with the same seed can be merged with
-##       :bro:id:`bloomfilter_merge`.
+##       :zeek:id:`bloomfilter_merge`.
 ##
 ## Returns: A Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2 bloomfilter_add
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2 bloomfilter_add
 ##    bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 function bloomfilter_counting_init%(k: count, cells: count, max: count,
 				    name: string &default=""%): opaque of bloomfilter
@@ -139,7 +139,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 ##
 ## x: The element to add.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2 
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2 
 ##    bloomfilter_counting_init bloomfilter_lookup bloomfilter_clear 
 ##    bloomfilter_merge
 function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
@@ -166,7 +166,7 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ##
 ## Returns: the counter associated with *x* in *bf*.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2
 ##    bloomfilter_counting_init bloomfilter_add bloomfilter_clear
 ##    bloomfilter_merge
 function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
@@ -191,7 +191,7 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 ##
 ## bf: The Bloom filter handle.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2
 ##    bloomfilter_counting_init bloomfilter_add bloomfilter_lookup
 ##    bloomfilter_merge
 function bloomfilter_clear%(bf: opaque of bloomfilter%): any
@@ -206,7 +206,7 @@ function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 
 ## Merges two Bloom filters.
 ##
-## .. note:: Currently Bloom filters created by different Bro instances cannot
+## .. note:: Currently Bloom filters created by different Zeek instances cannot
 ##    be merged. In the future, this will be supported as long as both filters
 ##    are created with the same name.
 ##
@@ -216,7 +216,7 @@ function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 ##
 ## Returns: The union of *bf1* and *bf2*.
 ##
-## .. bro:see:: bloomfilter_basic_init bloomfilter_basic_init2
+## .. zeek:see:: bloomfilter_basic_init bloomfilter_basic_init2
 ##    bloomfilter_counting_init bloomfilter_add bloomfilter_lookup
 ##    bloomfilter_clear
 function bloomfilter_merge%(bf1: opaque of bloomfilter,

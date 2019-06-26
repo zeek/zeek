@@ -1,7 +1,7 @@
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -833,10 +833,8 @@ void POP3_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(pop3_starttls, vl);
+	if ( pop3_starttls )
+		ConnectionEventFast(pop3_starttls, {BuildConnVal()});
 	}
 
 void POP3_Analyzer::AuthSuccessfull()
@@ -926,14 +924,14 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	if ( ! event )
 		return;
 
-	val_list* vl = new val_list;
+	val_list vl(2 + (bool)arg1 + (bool)arg2);
 
-	vl->append(BuildConnVal());
-	vl->append(val_mgr->GetBool(is_orig));
+	vl.append(BuildConnVal());
+	vl.append(val_mgr->GetBool(is_orig));
 	if ( arg1 )
-		vl->append(new StringVal(arg1));
+		vl.append(new StringVal(arg1));
 	if ( arg2 )
-		vl->append(new StringVal(arg2));
+		vl.append(new StringVal(arg2));
 
-	ConnectionEvent(event, vl);
+	ConnectionEventFast(event, std::move(vl));
 	}

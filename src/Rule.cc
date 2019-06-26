@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Rule.h"
 #include "RuleMatcher.h"

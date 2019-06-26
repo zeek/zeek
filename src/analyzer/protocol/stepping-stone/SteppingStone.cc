@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 
@@ -139,25 +139,23 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 	if ( ! f )
 		return;
 
-	val_list* vl = new val_list;
-
-	vl->append(val_mgr->GetInt(id1));
-
 	if ( id2 >= 0 )
-		vl->append(val_mgr->GetInt(id2));
+		endp->TCP()->ConnectionEventFast(f, {val_mgr->GetInt(id1), val_mgr->GetInt(id2)});
+	else
+		endp->TCP()->ConnectionEventFast(f, {val_mgr->GetInt(id1)});
 
-	endp->TCP()->ConnectionEvent(f, vl);
 	}
 
 void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
 	{
-	val_list* vl = new val_list;
+	if ( ! stp_create_endp )
+		return;
 
-	vl->append(endp->TCP()->BuildConnVal());
-	vl->append(val_mgr->GetInt(stp_id));
-	vl->append(val_mgr->GetBool(is_orig));
-
-	endp->TCP()->ConnectionEvent(stp_create_endp, vl);
+	endp->TCP()->ConnectionEventFast(stp_create_endp, {
+		endp->TCP()->BuildConnVal(),
+		val_mgr->GetInt(stp_id),
+		val_mgr->GetBool(is_orig),
+	});
 	}
 
 SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)

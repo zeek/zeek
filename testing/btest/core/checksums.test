@@ -1,41 +1,41 @@
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-bad-chksum.pcap
 # @TEST-EXEC: mv weird.log bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-udp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-udp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-icmp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-icmp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-tcp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-tcp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-udp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-udp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-icmp6-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-icmp6-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-tcp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-tcp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-udp-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-udp-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-icmp6-bad-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-icmp6-bad-chksum.pcap
 # @TEST-EXEC: cat weird.log >> bad.out
 
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-tcp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-tcp-good-chksum.pcap
 # @TEST-EXEC: mv weird.log good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-udp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-udp-good-chksum.pcap
 # @TEST-EXEC: test ! -e weird.log
-# @TEST-EXEC: bro -r $TRACES/chksums/ip4-icmp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip4-icmp-good-chksum.pcap
 # @TEST-EXEC: test ! -e weird.log
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-tcp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-tcp-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-udp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-udp-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-route0-icmp6-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-route0-icmp6-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-tcp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-tcp-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-udp-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-udp-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
-# @TEST-EXEC: bro -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap
+# @TEST-EXEC: zeek -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap
 # @TEST-EXEC: cat weird.log >> good.out
 
 # @TEST-EXEC: btest-diff bad.out

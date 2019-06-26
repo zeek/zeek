@@ -3,7 +3,7 @@
 #ifndef ip_h
 #define ip_h
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "net_util.h"
 #include "IPAddr.h"
 #include "Reporter.h"

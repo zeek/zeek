@@ -1,7 +1,7 @@
 // Support routines to help deal with Bro debugging commands and
 // implementation of most commands.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <sys/types.h>
 

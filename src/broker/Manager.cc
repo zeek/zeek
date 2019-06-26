@@ -1,6 +1,6 @@
 
 #include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/zeek.hh>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
@@ -18,18 +18,11 @@
 #include "logging/Manager.h"
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
+#include "SerializationFormat.h"
 
 using namespace std;
 
 namespace bro_broker {
-
-// Max number of log messages buffered per stream before we send them out as
-// a batch.
-static const int LOG_BATCH_SIZE = 400;
-
-// Max secs to buffer log messages before sending the current set out as a
-// batch.
-static const double LOG_BUFFER_INTERVAL = 1.0;
 
 static inline Val* get_option(const char* option)
 	{
@@ -91,17 +84,17 @@ struct scoped_reporter_location {
 };
 
 #ifdef DEBUG
-static std::string RenderMessage(std::string topic, broker::data x)
+static std::string RenderMessage(std::string topic, const broker::data& x)
 	{
 	return fmt("%s -> %s", broker::to_string(x).c_str(), topic.c_str());
 	}
 
-static std::string RenderEvent(std::string topic, std::string name, broker::data args)
+static std::string RenderEvent(std::string topic, std::string name, const broker::data& args)
 	{
 	return fmt("%s(%s) -> %s", name.c_str(), broker::to_string(args).c_str(), topic.c_str());
 	}
 
-static std::string RenderMessage(broker::store::response x)
+static std::string RenderMessage(const broker::store::response& x)
 	{
 	return fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
 	}
@@ -138,8 +131,11 @@ Manager::Manager(bool arg_reading_pcaps)
 	{
 	bound_port = 0;
 	reading_pcaps = arg_reading_pcaps;
-	after_bro_init = false;
+	after_zeek_init = false;
 	peer_count = 0;
+	times_processed_without_idle = 0;
+	log_batch_size = 0;
+	log_batch_interval = 0;
 	log_topic_func = nullptr;
 	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
@@ -156,6 +152,8 @@ void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");
 
+	log_batch_size = get_option("Broker::log_batch_size")->AsCount();
+	log_batch_interval = get_option("Broker::log_batch_interval")->AsInterval();
 	default_log_topic_prefix =
 	    get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
@@ -180,7 +178,7 @@ void Manager::InitPostScript()
 
 	BrokerConfig config{std::move(options)};
 
-	auto max_threads_env = getenv("BRO_BROKER_MAX_THREADS");
+	auto max_threads_env = zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
 		config.set("scheduler.max-threads", atoi(max_threads_env));
@@ -306,7 +304,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	DBG_LOG(DBG_BROKER, "Starting to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	auto e = getenv("BRO_DEFAULT_CONNECT_RETRY");
+	auto e = zeekenv("ZEEK_DEFAULT_CONNECT_RETRY");
 
 	if ( e )
 		retry = atoi(e);
@@ -360,8 +358,8 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s",
 		RenderEvent(topic, name, args).c_str());
-	broker::bro::Event ev(std::move(name), std::move(args));
-	bstate->endpoint.publish(move(topic), std::move(ev));
+	broker::zeek::Event ev(std::move(name), std::move(args));
+	bstate->endpoint.publish(move(topic), ev.move_data());
 	++statistics.num_events_outgoing;
 	return true;
 	}
@@ -421,10 +419,10 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 		return false;
 		}
 
-	broker::bro::IdentifierUpdate msg(move(id), move(*data));
+	broker::zeek::IdentifierUpdate msg(move(id), move(*data));
 	DBG_LOG(DBG_BROKER, "Publishing id-update: %s",
-	        RenderMessage(topic, msg).c_str());
-	bstate->endpoint.publish(move(topic), move(msg));
+	        RenderMessage(topic, msg.as_data()).c_str());
+	bstate->endpoint.publish(move(topic), msg.move_data());
 	++statistics.num_ids_outgoing;
 	return true;
 	}
@@ -472,16 +470,16 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	std::string topic = default_log_topic_prefix + stream_id;
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
+	broker::zeek::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info), move(fields_data));
 
-	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg).c_str());
+	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg.as_data()).c_str());
 
 	if ( peer.node != NoPeer.node )
 		// Direct message.
-		bstate->endpoint.publish(peer, move(topic), move(msg));
+		bstate->endpoint.publish(peer, move(topic), msg.move_data());
 	else
 		// Broadcast.
-		bstate->endpoint.publish(move(topic), move(msg));
+		bstate->endpoint.publish(move(topic), msg.move_data());
 
 	return true;
 	}
@@ -540,9 +538,11 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	val_list vl(2);
-	vl.append(stream->Ref());
-	vl.append(new StringVal(path));
+	val_list vl{
+		stream->Ref(),
+		new StringVal(path),
+	};
+
 	Val* v = log_topic_func->Call(&vl);
 
 	if ( ! v )
@@ -558,10 +558,10 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::bro::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
+	broker::zeek::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
 	                          move(serial_data));
 
-	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg).c_str());
+	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
 	if ( log_buffers.size() <= (unsigned int)stream_id_num )
 		log_buffers.resize(stream_id_num + 1);
@@ -569,16 +569,16 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	auto& lb = log_buffers[stream_id_num];
 	++lb.message_count;
 	auto& pending_batch = lb.msgs[topic];
-	pending_batch.emplace_back(std::move(msg));
+	pending_batch.emplace_back(msg.move_data());
 
-	if ( lb.message_count >= LOG_BATCH_SIZE ||
-	     (network_time - lb.last_flush >= LOG_BUFFER_INTERVAL) )
-		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint);
+	if ( lb.message_count >= log_batch_size ||
+	     (network_time - lb.last_flush >= log_batch_interval ) )
+		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint, log_batch_size);
 
 	return true;
 	}
 
-size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
+size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_size)
 	{
 	if ( endpoint.is_shutdown() )
 		return 0;
@@ -592,10 +592,10 @@ size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint)
 		auto& topic = kv.first;
 		auto& pending_batch = kv.second;
 		broker::vector batch;
-		batch.reserve(LOG_BATCH_SIZE + 1);
+		batch.reserve(log_batch_size + 1);
 		pending_batch.swap(batch);
-		broker::bro::Batch msg(std::move(batch));
-		endpoint.publish(topic, move(msg));
+		broker::zeek::Batch msg(std::move(batch));
+		endpoint.publish(topic, msg.move_data());
 		}
 
 	auto rval = message_count;
@@ -610,7 +610,7 @@ size_t Manager::FlushLogBuffers()
 	auto rval = 0u;
 
 	for ( auto& lb : log_buffers )
-		rval += lb.Flush(bstate->endpoint);
+		rval += lb.Flush(bstate->endpoint, log_batch_interval);
 
 	return rval;
 	}
@@ -772,7 +772,16 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 bool Manager::Subscribe(const string& topic_prefix)
 	{
 	DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.add_topic(topic_prefix, ! after_bro_init);
+	bstate->subscriber.add_topic(topic_prefix, ! after_zeek_init);
+
+	// For backward compatibility, we also may receive messages on
+	// "bro/" topic prefixes in addition to "zeek/".
+	if ( strncmp(topic_prefix.data(), "zeek/", 5) == 0 )
+		{
+		std::string alt_topic = "bro/" + topic_prefix.substr(5);
+		bstate->subscriber.add_topic(std::move(alt_topic), ! after_zeek_init);
+		}
+
 	return true;
 	}
 
@@ -799,22 +808,15 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 			}
 
 	DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-	bstate->subscriber.remove_topic(topic_prefix, ! after_bro_init);
+	bstate->subscriber.remove_topic(topic_prefix, ! after_zeek_init);
 	return true;
 	}
 
 void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                            iosource::FD_Set* except)
 	{
-	if ( bstate->status_subscriber.available() || bstate->subscriber.available() )
-                SetIdle(false);
-
 	read->Insert(bstate->subscriber.fd());
 	read->Insert(bstate->status_subscriber.fd());
-	write->Insert(bstate->subscriber.fd());
-	write->Insert(bstate->status_subscriber.fd());
-	except->Insert(bstate->subscriber.fd());
-	except->Insert(bstate->status_subscriber.fd());
 
 	for ( auto& x : data_stores )
 		read->Insert(x.second->proxy.mailbox().descriptor());
@@ -822,48 +824,39 @@ void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
 
 double Manager::NextTimestamp(double* local_network_time)
 	{
-	if ( ! IsIdle() )
-		return timer_mgr->Time();
-
-	if ( bstate->status_subscriber.available() || bstate->subscriber.available() )
-		return timer_mgr->Time();
-
-	for ( auto& s : data_stores )
-		{
-		if ( ! s.second->proxy.mailbox().empty() )
-			return timer_mgr->Time();
-		}
-
-	return -1;
+	// We're only asked for a timestamp if either (1) a FD was ready
+	// or (2) we're not idle (and we go idle if when Process is no-op),
+	// so there's no case where returning -1 to signify a skip will help.
+	return timer_mgr->Time();
 	}
 
 void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	{
-	switch ( broker::bro::Message::type(msg) ) {
-	case broker::bro::Message::Type::Invalid:
+	switch ( broker::zeek::Message::type(msg) ) {
+	case broker::zeek::Message::Type::Invalid:
 		reporter->Warning("received invalid broker message: %s",
 						  broker::to_string(msg).data());
 		break;
 
-	case broker::bro::Message::Type::Event:
+	case broker::zeek::Message::Type::Event:
 		ProcessEvent(topic, std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::LogCreate:
+	case broker::zeek::Message::Type::LogCreate:
 		ProcessLogCreate(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::LogWrite:
+	case broker::zeek::Message::Type::LogWrite:
 		ProcessLogWrite(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::IdentifierUpdate:
+	case broker::zeek::Message::Type::IdentifierUpdate:
 		ProcessIdentifierUpdate(std::move(msg));
 		break;
 
-	case broker::bro::Message::Type::Batch:
+	case broker::zeek::Message::Type::Batch:
 		{
-		broker::bro::Batch batch(std::move(msg));
+		broker::zeek::Batch batch(std::move(msg));
 
 		if ( ! batch.valid() )
 			{
@@ -934,24 +927,53 @@ void Manager::Process()
 
 	for ( auto& s : data_stores )
 		{
-		while ( ! s.second->proxy.mailbox().empty() )
+		auto num_available = s.second->proxy.mailbox().size();
+
+		if ( num_available > 0 )
 			{
 			had_input = true;
-			auto response = s.second->proxy.receive();
-			ProcessStoreResponse(s.second, move(response));
+			auto responses = s.second->proxy.receive(num_available);
+
+			for ( auto& r : responses )
+				ProcessStoreResponse(s.second, move(r));
 			}
 		}
 
-	SetIdle(! had_input);
+	if ( had_input )
+		{
+		++times_processed_without_idle;
+
+		// The max number of Process calls allowed to happen in a row without
+		// idling is chosen a bit arbitrarily, except 12 is around half of the
+		// SELECT_FREQUENCY (25).
+		//
+		// But probably the general idea should be for it to have some relation
+		// to the SELECT_FREQUENCY: less than it so other busy IOSources can
+		// fit several Process loops in before the next poll event (e.g. the
+		// select() call ), but still large enough such that we don't have to
+		// wait long before the next poll ourselves after being forced to idle.
+		if ( times_processed_without_idle > 12 )
+			{
+			times_processed_without_idle = 0;
+			SetIdle(true);
+			}
+		else
+			SetIdle(false);
+		}
+	else
+		{
+		times_processed_without_idle = 0;
+		SetIdle(true);
+		}
 	}
 
 
-void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
+void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	{
 	if ( ! ev.valid() )
 		{
 		reporter->Warning("received invalid broker Event: %s",
-		                  broker::to_string(ev).data());
+		                  broker::to_string(ev.as_data()).data());
 		return;
 		}
 
@@ -993,7 +1015,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		return;
 		}
 
-	auto vl = new val_list;
+	val_list vl(args.size());
 
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
@@ -1002,7 +1024,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl->append(val);
+			vl.append(val);
 		else
 			{
 			reporter->Warning("failed to convert remote event '%s' arg #%d,"
@@ -1013,15 +1035,18 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::bro::Event ev)
 			}
 		}
 
-	if ( static_cast<size_t>(vl->length()) == args.size() )
-		mgr.QueueEvent(handler, vl, SOURCE_BROKER);
+	if ( static_cast<size_t>(vl.length()) == args.size() )
+		mgr.QueueEventFast(handler, std::move(vl), SOURCE_BROKER);
 	else
-		delete_vals(vl);
+		{
+		loop_over_list(vl, i)
+			Unref(vl[i]);
+		}
 	}
 
-bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
+bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	{
-	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc).c_str());
+	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc.as_data()).c_str());
 	if ( ! lc.valid() )
 		{
 		reporter->Warning("received invalid broker LogCreate: %s",
@@ -1089,9 +1114,9 @@ bool bro_broker::Manager::ProcessLogCreate(broker::bro::LogCreate lc)
 	return true;
 	}
 
-bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
+bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 	{
-	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw).c_str());
+	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw.as_data()).c_str());
 
 	if ( ! lw.valid() )
 		{
@@ -1176,9 +1201,9 @@ bool bro_broker::Manager::ProcessLogWrite(broker::bro::LogWrite lw)
 	return true;
 	}
 
-bool Manager::ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu)
+bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	{
-	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu).c_str());
+	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu.as_data()).c_str());
 
 	if ( ! iu.valid() )
 		{
@@ -1242,6 +1267,9 @@ void Manager::ProcessStatus(broker::status stat)
 		break;
 	}
 
+	if ( ! event )
+		return;
+
 	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
 	auto endpoint_info = new RecordVal(ei);
 
@@ -1270,11 +1298,7 @@ void Manager::ProcessStatus(broker::status stat)
 	auto str = stat.message();
 	auto msg = new StringVal(str ? *str : "");
 
-	auto vl = new val_list;
-	vl->append(endpoint_info);
-	vl->append(msg);
-
-	mgr.QueueEvent(event, vl);
+	mgr.QueueEventFast(event, {endpoint_info, msg});
 	}
 
 void Manager::ProcessError(broker::error err)
@@ -1351,10 +1375,10 @@ void Manager::ProcessError(broker::error err)
 		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
-	auto vl = new val_list;
-	vl->append(BifType::Enum::Broker::ErrorCode->GetVal(ec));
-	vl->append(new StringVal(msg));
-	mgr.QueueEvent(Broker::error, vl);
+	mgr.QueueEventFast(Broker::error, {
+		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		new StringVal(msg),
+	});
 	}
 
 void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response response)

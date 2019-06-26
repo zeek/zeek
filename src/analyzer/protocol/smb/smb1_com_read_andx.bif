@@ -15,7 +15,7 @@
 ##
 ## length: The number of bytes being requested.
 ##
-## .. bro:see:: smb1_message smb1_read_andx_response
+## .. zeek:see:: smb1_message smb1_read_andx_response
 event smb1_read_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -29,6 +29,6 @@ event smb1_read_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, 
 ##
 ## data_len: The length of data from the requested file.
 ##
-## .. bro:see:: smb1_message smb1_read_andx_request
+## .. zeek:see:: smb1_message smb1_read_andx_request
 event smb1_read_andx_response%(c: connection, hdr: SMB1::Header, data_len: count%);
 

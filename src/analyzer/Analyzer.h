@@ -542,6 +542,18 @@ public:
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
 
 	/**
+	 * Convenience function that forwards directly to
+	 * Connection::ConnectionEvent().
+	 */
+	void ConnectionEvent(EventHandlerPtr f, val_list vl);
+
+	/**
+	 * Convenience function that forwards directly to
+	 * Connection::ConnectionEventFast().
+	 */
+	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+
+	/**
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Weird().
 	 */

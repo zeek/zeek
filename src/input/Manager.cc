@@ -224,7 +224,7 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 	return backend;
 	}
 
-// Create a new input reader object to be used at whomevers leisure lateron.
+// Create a new input reader object to be used at whomevers leisure later on.
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
 	RecordType* rtype = description->Type()->AsRecordType();
@@ -232,7 +232,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		|| same_type(rtype, BifType::Record::Input::EventDescription, 0)
 		|| same_type(rtype, BifType::Record::Input::AnalysisDescription, 0) ) )
 		{
-		reporter->Error("Streamdescription argument not of right type for new input stream");
+		reporter->Error("Stream description argument not of right type for new input stream");
 		return false;
 		}
 
@@ -547,6 +547,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	Val *want_record = fval->Lookup("want_record", true);
 
+	if ( val )
 		{
 		const BroType* table_yield = dst->Type()->AsTableType()->YieldType();
 		const BroType* compare_type = val;
@@ -562,6 +563,17 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			table_yield->Describe(&desc2);
 			reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
+			return false;
+			}
+		}
+	else
+		{
+		if ( ! dst->Type()->IsSet() )
+			{
+			reporter->Error("Input stream %s: 'destination' field is a table,"
+			                " but 'val' field is not provided"
+			                " (did you mean to use a set instead of a table?)",
+			                stream_name.c_str());
 			return false;
 			}
 		}
@@ -812,6 +824,7 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 	case TYPE_INTERVAL:
 	case TYPE_ENUM:
 	case TYPE_STRING:
+	case TYPE_PATTERN:
 		return true;
 
 	case TYPE_RECORD:
@@ -1865,11 +1878,12 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	bool convert_error = false;
 
-	val_list* vl = new val_list;
+	val_list vl(num_vals);
+
 	for ( int j = 0; j < num_vals; j++)
 		{
 		Val* v = ValueToVal(i, vals[j], convert_error);
-		vl->append(v);
+		vl.append(v);
 		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
 			{
 			convert_error = true;
@@ -1881,18 +1895,20 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	if ( convert_error )
 		{
-		delete_vals(vl);
+		loop_over_list(vl, i)
+			Unref(vl[i]);
+
 		return false;
 		}
 	else
-		mgr.QueueEvent(handler, vl, SOURCE_LOCAL);
+		mgr.QueueEvent(handler, std::move(vl), SOURCE_LOCAL);
 
 	return true;
 }
 
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	{
-	val_list* vl = new val_list;
+	val_list vl(numvals);
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
@@ -1902,16 +1918,16 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl->append( va_arg(lP, Val*) );
+		vl.append( va_arg(lP, Val*) );
 
 	va_end(lP);
 
-	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 	{
-	val_list* vl = new val_list;
+	val_list vl(events.size());
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
@@ -1919,11 +1935,9 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		{
-		vl->append( *i );
-		}
+		vl.append( *i );
 
-	mgr.QueueEvent(ev, vl, SOURCE_LOCAL);
+	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.
@@ -2061,6 +2075,12 @@ int Manager::GetValueLength(const Value* val) const
 		}
 		break;
 
+	case TYPE_PATTERN:
+		{
+		length += strlen(val->val.pattern_text_val) + 1;
+		break;
+		}
+
 	case TYPE_TABLE:
 		{
 		for ( int i = 0; i < val->val.set_val.size; i++ )
@@ -2177,6 +2197,14 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		       (const char*) &(val->val.subnet_val.length), lengthlength);
 		length += lengthlength;
 
+		return length;
+		}
+
+	case TYPE_PATTERN:
+		{
+		// include null-terminator
+		int length = strlen(val->val.pattern_text_val) + 1;
+		memcpy(data + startpos, val->val.pattern_text_val, length);
 		return length;
 		}
 
@@ -2337,6 +2365,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return subnetval;
 		}
 
+	case TYPE_PATTERN:
+		{
+		RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
+		re->Compile();
+		return new PatternVal(re);
+		}
+
 	case TYPE_TABLE:
 		{
 		// all entries have to have the same type...
@@ -2477,6 +2512,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
 		delete addr;
 		return subnetval;
+		}
+
+	case TYPE_PATTERN:
+		{
+		RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
+		re->Compile();
+		return new PatternVal(re);
 		}
 
 	case TYPE_TABLE:

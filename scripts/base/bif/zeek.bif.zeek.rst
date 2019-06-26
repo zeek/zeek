@@ -208,6 +208,7 @@ Functions
 :zeek:id:`to_count`: :zeek:type:`function`                                                                                    Converts a :zeek:type:`string` to a :zeek:type:`count`.
 :zeek:id:`to_double`: :zeek:type:`function`                                                                                   Converts a :zeek:type:`string` to a :zeek:type:`double`.
 :zeek:id:`to_int`: :zeek:type:`function`                                                                                      Converts a :zeek:type:`string` to an :zeek:type:`int`.
+:zeek:id:`to_json`: :zeek:type:`function`                                                                                     A function to convert arbitrary Zeek data into a JSON string.
 :zeek:id:`to_port`: :zeek:type:`function`                                                                                     Converts a :zeek:type:`string` to a :zeek:type:`port`.
 :zeek:id:`to_subnet`: :zeek:type:`function`                                                                                   Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
 :zeek:id:`type_name`: :zeek:type:`function`                                                                                   Returns the type name of an arbitrary Zeek variable.
@@ -2878,6 +2879,22 @@ Functions
    :returns: The :zeek:type:`string` *str* as :zeek:type:`int`.
    
    .. zeek:see:: to_addr to_port to_subnet
+
+.. zeek:id:: to_json
+
+   :Type: :zeek:type:`function` (val: :zeek:type:`any`, only_loggable: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`, field_escape_pattern: :zeek:type:`pattern` :zeek:attr:`&default` = ``/^?(^_)$?/`` :zeek:attr:`&optional`) : :zeek:type:`string`
+
+   A function to convert arbitrary Zeek data into a JSON string.
+   
+
+   :v: The value to convert to JSON.  Typically a record.
+   
+
+   :only_loggable: If the v value is a record this will only cause
+                  fields with the &log attribute to be included in the JSON.
+   
+
+   :returns: a JSON formatted string.
 
 .. zeek:id:: to_port
 

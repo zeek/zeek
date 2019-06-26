@@ -347,6 +347,8 @@ public:
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
 
+	TableVal* GetRecordFields();
+
 protected:
 
 	friend class EnumType;

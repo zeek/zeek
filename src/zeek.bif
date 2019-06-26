@@ -1981,68 +1981,7 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
-	TableVal* fields = new TableVal(record_field_table);
-
-	auto t = rec->Type();
-
-	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
-		{
-		reporter->Error("non-record value/type passed to record_fields");
-		return fields;
-		}
-
-	RecordType* rt = nullptr;
-	RecordVal* rv = nullptr;
-
-	if ( t->Tag() == TYPE_RECORD )
-		{
-		rt = t->AsRecordType();
-		rv = rec->AsRecordVal();
-		}
-	else
-		{
-		t = t->AsTypeType()->Type();
-
-		if ( t->Tag() != TYPE_RECORD )
-			{
-			reporter->Error("non-record value/type passed to record_fields");
-			return fields;
-			}
-
-		rt = t->AsRecordType();
-		}
-
-	for ( int i = 0; i < rt->NumFields(); ++i )
-		{
-		BroType* ft = rt->FieldType(i);
-		TypeDecl* fd = rt->FieldDecl(i);
-		Val* fv = nullptr;
-
-		if ( rv )
-			fv = rv->Lookup(i);
-
-		if ( fv )
-			Ref(fv);
-
-		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
-
-		RecordVal* nr = new RecordVal(record_field);
-
-		if ( ft->Tag() == TYPE_RECORD )
-			nr->Assign(0, new StringVal("record " + ft->GetName()));
-		else
-			nr->Assign(0, new StringVal(type_name(ft->Tag())));
-
-		nr->Assign(1, val_mgr->GetBool(logged));
-		nr->Assign(2, fv);
-		nr->Assign(3, rt->FieldDefault(i));
-
-		Val* field_name = new StringVal(rt->FieldName(i));
-		fields->Assign(field_name, nr);
-		Unref(field_name);
-		}
-
-	return fields;
+	return rec->GetRecordFields();
 	%}
 
 ## Enables detailed collection of profiling statistics. Statistics include

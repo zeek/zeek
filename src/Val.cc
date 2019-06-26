@@ -380,6 +380,73 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 	return false;
 	}
 
+TableVal* Val::GetRecordFields()
+	{
+	TableVal* fields = new TableVal(internal_type("record_field_table")->AsTableType());
+
+	auto t = Type();
+
+	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
+		{
+		reporter->Error("non-record value/type passed to record_fields");
+		return fields;
+		}
+
+	RecordType* rt = nullptr;
+	RecordVal* rv = nullptr;
+
+	if ( t->Tag() == TYPE_RECORD )
+		{
+		rt = t->AsRecordType();
+		rv = AsRecordVal();
+		}
+	else
+		{
+		t = t->AsTypeType()->Type();
+
+		if ( t->Tag() != TYPE_RECORD )
+			{
+			reporter->Error("non-record value/type passed to record_fields");
+			return fields;
+			}
+
+		rt = t->AsRecordType();
+		}
+
+	for ( int i = 0; i < rt->NumFields(); ++i )
+		{
+		BroType* ft = rt->FieldType(i);
+		TypeDecl* fd = rt->FieldDecl(i);
+		Val* fv = nullptr;
+
+		if ( rv )
+			fv = rv->Lookup(i);
+
+		if ( fv )
+			::Ref(fv);
+
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+
+		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+
+		if ( ft->Tag() == TYPE_RECORD )
+			nr->Assign(0, new StringVal("record " + ft->GetName()));
+		else
+			nr->Assign(0, new StringVal(type_name(ft->Tag())));
+
+		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(2, fv);
+		nr->Assign(3, rt->FieldDefault(i));
+
+		Val* field_name = new StringVal(rt->FieldName(i));
+		fields->Assign(field_name, nr);
+		Unref(field_name);
+		}
+
+	return fields;
+
+	}
+
 IntervalVal::IntervalVal(double quantity, double units) :
 	Val(quantity * units, TYPE_INTERVAL)
 	{

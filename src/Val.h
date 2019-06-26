@@ -639,6 +639,8 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
+	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
+
 protected:
 	friend class Val;
 	StringVal()	{}

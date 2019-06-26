@@ -6,7 +6,7 @@ event zeek_init ()
 	local v1 = vector("*", "d?g", "*og", "d?", "d[!wl]g");
 	local v2 = vector("once", "!o*", "once");
 	local v3 = vector("https://*.google.com/*", "*malware*", "*.gov*");
-	local v4 = vector("z*ro");
+	local v4 = vector("z*ro", "zero\0zero");
 
 	local p1 = paraglob_init(v1);
 	local p2: opaque of paraglob = paraglob_init(v2);

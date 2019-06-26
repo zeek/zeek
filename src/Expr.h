@@ -943,7 +943,7 @@ public:
 
 protected:
 	friend class Expr;
-	CallExpr() { func = 0; args = 0; }
+        CallExpr()	{ func = 0; args = 0; }
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -951,16 +951,16 @@ protected:
 	ListExpr* args;
 };
 
-/*
-	Class to handle the creation of anonymous functions with closures.
 
-	Facts:
-		- LambdaExpr creates a new BroFunc on every call to Eval.
-		- LambdaExpr must be given all the information to create a BroFunc on
-		  construction except for the closure.
-		- The closure for created BroFuncs is the frame that the LambdaExpr is
-		  evaluated in.
-*/
+// Class to handle the creation of anonymous functions with closures.
+
+// Facts:
+//     - LambdaExpr creates a new BroFunc on every call to Eval.
+//     - LambdaExpr must be given all the information to create a BroFunc on
+// 	 construction except for the closure.
+//     - The closure for created BroFuncs is the frame that the LambdaExpr is
+// 	 evaluated in.
+
 class LambdaExpr : public Expr {
 public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,

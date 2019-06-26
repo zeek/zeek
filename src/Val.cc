@@ -105,8 +105,7 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			// Immutable.
-			return this->AsFunc()->DoClone();
+		        return new Val(this->AsFunc()->DoClone());
 
 		if ( type->Tag() == TYPE_FILE )
 			{

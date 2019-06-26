@@ -8,6 +8,7 @@
 #include "Trigger.h"
 
 #include <string>
+#include <algorithm> // std::any_of
 
 vector<Frame*> g_frame_stack;
 
@@ -26,36 +27,44 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	call = 0;
 	delayed = false;
 
+        is_view = false;
+
 	Clear();
 	}
 
-Frame::Frame(const Frame* other)
+Frame::Frame(const Frame* other, bool view)
 	{
-	this->size = other->size;
-	this->frame = other->frame;
-	this->function = other->function;
-	this->func_args = other->func_args;
+	is_view = view;
 
-	this->next_stmt = 0;
-	this->break_before_next_stmt = false;
-	this->break_on_return = false;
-	this->delayed = false;
+	if ( is_view )
+	  {
+	  size = other->size;
+	  frame = other->frame;
 
-	if ( other->trigger )
-		Ref(other->trigger);
+	  function = other->function;
+	  func_args = other->func_args;
 
-	for (int i = 0; i < size; i++)
-	  if (frame[i])
-	    Ref(frame[i]);
-	
-	this->trigger = other->trigger;
-	this->call = other->call;
+	  next_stmt = 0;
+	  break_before_next_stmt = false;
+
+	  break_on_return = false;
+	  delayed = false;
+
+	  trigger = other->trigger;
+	  call = other->call;
+	  }
+	else
+	  reporter->InternalError("TODO: make Frame copy constructor.");
 	}
 
 Frame::~Frame()
 	{
-	Unref(trigger);
-	Release();
+	// Deleting a Frame that is a view is a no-op.
+	if ( ! is_view )
+	  {
+	  Unref(trigger);
+	  Release();
+	  }
 	}
 
 void Frame::SetElement(int n, Val* v)
@@ -93,7 +102,7 @@ void Frame::Release()
 	for ( int i = 0; i < size; ++i )
 		Unref(frame[i]);
 
-	delete [] frame;
+        delete [] frame;
 	}
 
 void Frame::Describe(ODesc* d) const
@@ -171,15 +180,13 @@ void Frame::ClearTrigger()
 	}
 
 ClosureFrame::ClosureFrame(Frame* closure, Frame* not_closure,
-	std::shared_ptr<id_list> outer_ids) : Frame(not_closure)
+			   std::shared_ptr<id_list> outer_ids) : Frame(not_closure, true)
 	{
 	assert(closure);
 
 	this->closure = closure;
-	Ref(this->closure);
-	this->body = not_closure;
-	Ref(this->body);
-
+	body = not_closure;
+	
 	// To clone a ClosureFrame we null outer_ids and then copy
 	// the set over directly, hence the check.
 	if (outer_ids)
@@ -190,20 +197,22 @@ ClosureFrame::ClosureFrame(Frame* closure, Frame* not_closure,
 			{
 			ID* id = (*tmp)[i];
 			if (id)
-				this->closure_elements.insert(id->Name());
+			  closure_elements.push_back(id->Name());
 			}
 		}
 	}
 
 ClosureFrame::~ClosureFrame()
 	{
-	Unref(this->closure);
-	Unref(this->body);
+	// No need to Unref the closure. BroFunc handles this.
+	// Unref body though. When the ClosureFrame is done, so is
+	// the frame that is is wrapped around.
+	Unref(body);
 	}
 
 Val* ClosureFrame::GetElement(ID* id) const
 	{
-	if (this->closure_elements.find(id->Name()) != this->closure_elements.end())
+	  if ( ClosureContains(id) )
 		return ClosureFrame::GatherFromClosure(this, id);
 
 	return this->NthElement(id->Offset());
@@ -211,7 +220,7 @@ Val* ClosureFrame::GetElement(ID* id) const
 
 void ClosureFrame::SetElement(const ID* id, Val* v)
 	{
-	if (this->closure_elements.find(id->Name()) != this->closure_elements.end())
+	if ( ClosureContains(id) )
 	  ClosureFrame::SetInClosure(this, id, v);
 	else
 	  this->Frame::SetElement(id->Offset(), v);
@@ -219,11 +228,11 @@ void ClosureFrame::SetElement(const ID* id, Val* v)
 
 Frame* ClosureFrame::Clone()
 	{
-	Frame* new_closure = this->closure->Clone();
-	Frame* new_regular = this->body->Clone();
+	Frame* new_closure = closure->Clone();
+	Frame* new_regular = body->Clone();
 
 	ClosureFrame* cf = new ClosureFrame(new_closure, new_regular, nullptr);
-	cf->closure_elements = this->closure_elements;
+	cf->closure_elements = closure_elements;
 	return cf;
 	}
 
@@ -236,7 +245,7 @@ Frame* ClosureFrame::SelectiveClone(id_list* choose)
 	loop_over_list(*choose, i)
 	  {
 	    ID* we = (*choose)[i];
-	    if (closure_contains(we))
+	    if ( ClosureContains(we) )
 	      us.append(we);
 	    else
 	      them.append(we);
@@ -247,7 +256,7 @@ Frame* ClosureFrame::SelectiveClone(id_list* choose)
 	Frame* you  = this->body->SelectiveClone(&them);
 
 	ClosureFrame* who = new ClosureFrame(me, you, nullptr);
-	who->closure_elements = this->closure_elements;
+	who->closure_elements = closure_elements;
 
 	return who;
 	}
@@ -268,7 +277,7 @@ Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id)
 	if ( ! conductor )
 		return start->NthElement(id->Offset());
 
-	if (conductor->closure_contains(id))
+	if (conductor->ClosureContains(id))
 		return ClosureFrame::GatherFromClosure(conductor->closure, id);
 
 	return conductor->NthElement(id->Offset());
@@ -281,9 +290,16 @@ void ClosureFrame::SetInClosure(Frame* start, const ID* id, Val* val)
 	if ( ! conductor )
 	  start->SetElement(id->Offset(), val);
 
-	else if (conductor->closure_contains(id))
+	else if (conductor->ClosureContains(id))
 	  ClosureFrame::SetInClosure(conductor->closure, id, val);
 
 	else
 	  conductor->Frame::SetElement(id->Offset(), val);
 	}
+
+bool ClosureFrame::ClosureContains(const ID* i) const
+  {
+    const char* target = i->Name();
+    return std::any_of(closure_elements.begin(), closure_elements.end(),
+		      [target](const char* in) { return strcmp(target, in) == 0; });
+  }

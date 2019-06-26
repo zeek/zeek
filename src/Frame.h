@@ -4,8 +4,7 @@
 #define frame_h
 
 #include <vector>
-#include <unordered_set>
-#include <memory>
+#include <memory> // std::shared_ptr
 
 #include "Val.h"
 
@@ -20,7 +19,7 @@ class Frame : public BroObj {
 public:
 	Frame(int size, const BroFunc* func, const val_list *fn_args);
         // The constructed frame becomes a view of the input frame. No copying is done.
-        Frame(const Frame* other);
+  Frame(const Frame* other, bool is_view = false);
 	~Frame() override;
 
 	Val* NthElement(int n) const { return frame[n]; }
@@ -88,22 +87,27 @@ protected:
 	Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
+
+        // For ClosureFrames, we don't want a Frame as much as we want a frame that
+        // is a view to another underlying one. Rather or not a Frame is a view
+        // impacts how the Frame handles deleting itself.
+        bool is_view;
 };
 
-/*
-Class that allows for lookups in both a closure frame and a regular frame
-according to a list of IDs passed into the constructor.
 
-Facts:
-	- A ClosureFrame is created from two frames: a closure and a regular frame.
-	- ALL operations except GetElement operations operate on the regular frame.
-	- A ClosureFrame requires a list of outside ID's captured by the closure.
-	- Get operations on those IDs will be performed on the closure frame.
+// Class that allows for lookups in both a closure frame and a regular frame
+// according to a list of outer IDs passed into the constructor.
 
-ClosureFrame allows functions that generate functions to be passed between
-different sized frames and still properly capture their closures. It also allows for
-cleaner handling of closures.
-*/
+// Facts:
+// 	- A ClosureFrame is created from two frames: a closure and a regular frame.
+// 	- ALL operations except Get/SetElement operations operate on the regular frame.
+// 	- A ClosureFrame requires a list of outside ID's captured by the closure.
+// 	- Get/Set operations on those IDs will be performed on the closure frame.
+
+// ClosureFrame allows functions that generate functions to be passed between
+// different sized frames and still properly capture their closures. It also allows for
+// cleaner handling of closures.
+
 class ClosureFrame : public Frame {
 public:
 	ClosureFrame(Frame* closure, Frame* body,
@@ -118,35 +122,16 @@ private:
 	Frame* closure;
 	Frame* body;
 
-	// Searches this frame and all sub-frame's closures for a value corresponding
-	// to the id.
+	// Searches the start frame and all sub-frame's closures for a value corresponding
+	// to the id. Returns it when its found. Will fail with little grace if the value
+        // does not actually exist in any of the sub-frames.
         static Val* GatherFromClosure(const Frame* start, const ID* id);
         // Moves through the closure frames and associates val with id.
         static void SetInClosure(Frame* start, const ID* id, Val* val);
 
-        bool closure_contains(const ID* i) const
-            { return this->closure_elements.find(i->Name()) != this->closure_elements.end(); }
+        bool ClosureContains(const ID* i) const;
 
-        // Hashes c style strings. The strings need to be null-terminated.
-	struct const_char_hasher {
-		size_t operator()(const char* in) const
-			{
-			// http://www.cse.yorku.ca/~oz/hash.html
-			size_t h = 5381;
-			int c;
-
-			while ((c = *in++))
-				h = ((h << 5) + h) + c;
-
-			return h;
-			}
-	};
-
-	// NOTE: In a perfect world this would be best done with a trie or bloom
-	// filter. We only need to check if things are NOT in the closure.
-        // In reality though the size of a closure is small enough that operatons are
-        // fairly quick anyway.
-	std::unordered_set<const char*, const_char_hasher> closure_elements;
+        std::vector<const char*> closure_elements;
 };
 
 extern vector<Frame*> g_frame_stack;

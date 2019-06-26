@@ -127,13 +127,11 @@ void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
 	}
 
 
-Val* Func::DoClone()
+Func* Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any "state".
 	// That is different across instances.
-	Val* v = new Val(this);
-	Ref(v);
-	return v;
+	return this;
 	}
 
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
@@ -196,6 +194,21 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 
 	cb->current_scope = old_scope;
 	HANDLE_TC_STMT_POST(tc);
+	}
+
+void Func::CopyStateInto(Func* other) const
+        {
+	std::for_each(bodies.begin(), bodies.end(), [](const Body& b) { Ref(b.stmts); });
+	other->bodies = bodies;
+
+	other->scope = scope;
+	other->kind = kind;
+
+	Ref(type);
+	other->type = type;
+
+	other->name = name;
+	other->unique_id = unique_id;
 	}
 
 std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
@@ -271,19 +284,15 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 
 BroFunc::~BroFunc()
 	{
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
-		Unref(bodies[i].stmts);
+	std::for_each(bodies.begin(), bodies.end(), [](Body& b) { Unref(b.stmts); });
 
-	Unref(this->closure);
+	Unref(closure);
 	}
 
 int BroFunc::IsPure() const
 	{
-	for ( unsigned int i = 0; i < bodies.size(); ++i )
-		if ( ! bodies[i].stmts->IsPure() )
-			return 0;
-
-	return 1;
+	return std::all_of(bodies.begin(), bodies.end(),
+			   [](const Body& b) { return b.stmts->IsPure(); });
 	}
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
@@ -318,7 +327,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		}
 
 	Frame* f = new Frame(frame_size, this, args);
-	if (this->closure)
+	if ( closure )
 		{
 		assert(outer_ids);
 		f = new ClosureFrame(this->closure, f, this->outer_ids);
@@ -483,16 +492,16 @@ void BroFunc::AddClosure(std::shared_ptr<id_list> ids, Frame* f)
 
 void BroFunc::SetClosureFrame(Frame* f)
 	{
-	if (this->closure)
-		reporter->InternalError
-			("Tried to override closure for BroFunc %s.", this->Name());
+	if ( closure )
+	  reporter->InternalError
+	    ("Tried to override closure for BroFunc %s.", this->Name());
 
-	this->closure = f ? f->SelectiveClone(this->outer_ids.get()) : nullptr;
+	closure = f ? f->SelectiveClone( outer_ids.get() ) : nullptr;
 	}
 
-Val* BroFunc::DoClone()
+Func* BroFunc::DoClone()
 	{
-	// A BroFunc could hold a closure. In this case a clone of it must copy this
+	// A BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
 	if ( ! this->closure )
 		{
@@ -502,18 +511,17 @@ Val* BroFunc::DoClone()
 		{
 		BroFunc* other = new BroFunc();
 
-		other->bodies = this->bodies;
-		other->scope = this->scope;
-		other->kind = this->kind;
-		other->type = this->type;
-		other->name = this->name;
-		other->unique_id = this->unique_id;
-		other->unique_ids = this->unique_ids;
-		other->frame_size = this->frame_size;
-		other->closure = this->closure->Clone();
-		other->outer_ids = this->outer_ids;
+		CopyStateInto(other);
 
-		return new Val(other);
+		other->frame_size = frame_size;
+
+		if (closure)
+		  {
+		  other->closure = closure->Clone();
+		  other->outer_ids = outer_ids;
+		  }
+
+		return other;
 		}
 	}
 
@@ -536,8 +544,7 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 		return body;
 
 	StmtList* stmt_series = new StmtList;
-	InitStmt* first = new InitStmt(inits);
-	stmt_series->Stmts().append(first);
+	stmt_series->Stmts().append(new InitStmt(inits));
 	stmt_series->Stmts().append(body);
 
 	return stmt_series;

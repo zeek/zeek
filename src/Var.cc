@@ -477,8 +477,8 @@ int get_func_priotity(attr_list* attrs)
 
 void end_func(Stmt* body)
 	{
-	std::unique_ptr<function_ingredients> ingredients =
-		gather_function_ingredients(body);
+	std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(body);
+	
 	pop_scope();
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
@@ -505,6 +505,7 @@ void end_func(Stmt* body)
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
+		
 		ingredients->id->SetVal(new Val(f));
 		ingredients->id->SetConst();
 		}
@@ -516,7 +517,8 @@ void end_func(Stmt* body)
 // function and collects it into a function_ingredients struct.
 std::unique_ptr<function_ingredients> gather_function_ingredients(Stmt* body)
 	{
-	std::unique_ptr<function_ingredients> ingredients (new function_ingredients);
+	std::unique_ptr<function_ingredients> ingredients = build_unique<function_ingredients>();
+
 	ingredients->frame_size = current_scope()->Length();
 	ingredients->inits = current_scope()->GetInits();
 

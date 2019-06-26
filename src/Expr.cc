@@ -4339,11 +4339,7 @@ Val* LambdaExpr::Eval(Frame* f) const
 
 	lamb->AddClosure(outer_ids, f);
 
-	ingredients->id->SetVal((new Val(lamb))->Ref());
-	ingredients->id->SetConst();
-	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
-
-	return ingredients->id->ID_Val();
+	return (new Val(lamb));
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const

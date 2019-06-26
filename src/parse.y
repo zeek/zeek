@@ -1216,12 +1216,8 @@ func_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION func_params
-			{
-			$<id>$ = current_scope()->GenerateTemporary("lambda-function");
-			begin_func($<id>$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $2);
-			}
-
+		TOK_FUNCTION begin_func
+		
 		'{'
 			{
 			saved_in_init.push_back(in_init);
@@ -1229,6 +1225,7 @@ anonymous_function:
 			}
 
 		stmt_list
+
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
@@ -1239,9 +1236,9 @@ anonymous_function:
 			// Every time a new LambdaExpr is evaluated it must return a new instance
 			// of a BroFunc. Here, we collect the ingredients for a function and give
 			// it to our LambdaExpr.
-			std::unique_ptr<function_ingredients> ingredients =
-				gather_function_ingredients($6);
-			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $6);
+			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients($5);
+			
+			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}

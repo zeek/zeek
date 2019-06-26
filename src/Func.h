@@ -20,7 +20,7 @@ class Frame;
 class ID;
 class CallExpr;
 
-struct CloneState;
+// struct CloneState;
 
 class Func : public BroObj {
 public:
@@ -64,7 +64,7 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 
-	virtual Val* DoClone();
+	virtual Func* DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
@@ -74,6 +74,8 @@ public:
 
 protected:
 	Func();
+        // Copies this functions state into other.
+        void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
@@ -100,9 +102,7 @@ public:
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 			int priority) override;
 
-	void fsets();
-
-	Val* DoClone() override;
+	Func* DoClone() override;
 
 	int FrameSize() const {	return frame_size; }
 
@@ -115,9 +115,6 @@ protected:
 	int frame_size;
 
 private:
-	// Shifts the offsets of each id in "idl" by "shift".
-	static void ShiftOffsets(int shift, std::shared_ptr<id_list> idl);
-
 	// Makes a deep copy of the input frame and captures it.
 	void SetClosureFrame(Frame* f);
 
@@ -129,6 +126,7 @@ private:
 	std::shared_ptr<id_list> outer_ids = nullptr;
 	// The frame the Func was initialized in. This is not guaranteed to be
 	// initialized and should be handled with care.
+        // A BroFunc Unrefs its closure on deletion.
 	Frame* closure = nullptr;
 };
 

@@ -34,7 +34,7 @@ event zeek_init()
 	local cat_dog = 100;
 	local add_n_and_m = function(n: count) : function(m : count) : function(o : count) : count
 		{
-		cat_dog += 1; # segfault here.
+		cat_dog += 1;
 		return function(m : count) : function(o : count) : count
 			{ return function(o : count) : count
 				{ return  n + m + o + cat_dog; }; };
@@ -76,6 +76,7 @@ event zeek_init()
 	print "expect: 225";
 	print twotwofive(15);
 
+	local hamster : count = 3;
 	const modes: table[count] of string = {
 	    [1] = "symmetric active",
 	    [2] = "symmetric passive",
@@ -84,9 +85,9 @@ event zeek_init()
     	    [5] = "broadcast server",
     	    [6] = "broadcast client",
     	    [7] = "reserved",
-    	    } &default=function(i: count):string { return fmt("unknown-%d", i); } &redef;
-
-	
+    	    } &default=function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster); } &redef;
+        # TODO: update parsing - will break.
+	# print modes[11];
 
 	}
 

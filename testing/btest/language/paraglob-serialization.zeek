@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
 # @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
 #
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
@@ -21,7 +21,7 @@ event zeek_init()
     print "Starting send.";
     print paraglob_match(p, "hello");
     Broker::subscribe("bro/event/my_topic");
-    Broker::peer("127.0.0.1", 9999/tcp);
+    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     print "is_remote should be F, and is", is_remote_event();
     }
 
@@ -70,7 +70,7 @@ global pong: event(msg: opaque of paraglob, c: count);
 event zeek_init()
         {
         Broker::subscribe("bro/event/my_topic");
-        Broker::listen("127.0.0.1", 9999/tcp);
+        Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
         }
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

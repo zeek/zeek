@@ -821,7 +821,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/input.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/intel) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/irc) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/json.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/krb) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/logging.bif.zeek) -> -1
@@ -1712,7 +1711,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/intel)
 0.000000   MetaHookPre   LoadFile(0, base<...>/irc)
-0.000000   MetaHookPre   LoadFile(0, base<...>/json.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/krb)
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging)
 0.000000   MetaHookPre   LoadFile(0, base<...>/logging.bif.zeek)
@@ -2611,7 +2609,6 @@
 0.000000 | HookLoadFile  base<...>/input.bif.zeek
 0.000000 | HookLoadFile  base<...>/intel
 0.000000 | HookLoadFile  base<...>/irc
-0.000000 | HookLoadFile  base<...>/json.zeek
 0.000000 | HookLoadFile  base<...>/krb
 0.000000 | HookLoadFile  base<...>/logging
 0.000000 | HookLoadFile  base<...>/logging.bif.zeek

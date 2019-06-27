@@ -1,4 +1,21 @@
 
+2.6-531 | 2019-06-27 12:09:08 -0700
+
+  * GH-375: Remove the BroFile cache (Johanna Amann, Corelight)
+
+2.6-529 | 2019-06-27 10:12:34 -0700
+
+  * Fix creating a StringVal from std::string. (Johanna Amann, Corelight)
+
+    Currently, creating a StringVal from a std::string did not work with
+    data that contains \0 characters. This easy fix changes this - and
+    should also lead to a small speed increase for code using this
+    constructor.
+
+    This obviously means that more data might copied now in some cases that
+    were previously cut off at the first 0-byte. Our test-suite did not
+    reveal any such cases.
+
 2.6-526 | 2019-06-25 12:45:31 -0700
 
   * Make a paraglob unit test parallelizable (Jon Siwek, Corelight)

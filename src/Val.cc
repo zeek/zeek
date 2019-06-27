@@ -708,7 +708,7 @@ StringVal::StringVal(const char* s) : Val(TYPE_STRING)
 
 StringVal::StringVal(const string& s) : Val(TYPE_STRING)
 	{
-	val.string_val = new BroString(s.c_str());
+	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
 	}
 
 StringVal* StringVal::ToUpper()

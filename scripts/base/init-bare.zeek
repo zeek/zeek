@@ -3930,26 +3930,6 @@ type signature_state: record {
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
 };
 
-# Deprecated.
-#
-# .. todo:: This type is no longer used. Remove any reference of this from the
-#    core.
-type software_version: record {
-	major: int;
-	minor: int;
-	minor2: int;
-	addl: string;
-};
-
-# Deprecated.
-#
-# .. todo:: This type is no longer used. Remove any reference of this from the
-#    core.
-type software: record {
-	name: string;
-	version: software_version;
-};
-
 # Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
 # set of names (event names, source file names, and perhaps ``<source file, line
 # number>``), which were seen during the sample.

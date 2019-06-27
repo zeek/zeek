@@ -406,6 +406,9 @@ Removed Functionality
     - ``remote_log``
     - ``finished_send_state``
     - ``remote_pong``
+    - ``software_version_found``
+    - ``software_unparsed_version_found``
+    - ``software_parse_error``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:
@@ -413,6 +416,8 @@ Removed Functionality
     - ``peer_id``
     - ``event_peer``
     - ``packet``
+    - ``software``
+    - ``software_version``
 
 - The following configuration options were deprecated in version 2.6 or below and are
   removed from this release:

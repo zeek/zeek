@@ -530,59 +530,6 @@ event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
 ##       triggering the match will be passed on to the event.
 event signature_match%(state: signature_state, msg: string, data: string%);
 
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system. This is a protocol-independent event that is fed by
-## different analyzers. For example, the HTTP analyzer reports user-agent and
-## server software by raising this event, assuming it can parse it (if not,
-## :zeek:id:`software_parse_error` will be generated instead).
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## s: A description of the software found.
-##
-## descr: The raw (unparsed) software identification string as extracted from
-##        the protocol.
-##
-## .. zeek:see:: software_parse_error software_unparsed_version_found
-event software_version_found%(c: connection, host: addr,
-			      s: software, descr: string%);
-
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system but cannot parse it. This is a protocol-independent event
-## that is fed by different analyzers. For example, the HTTP analyzer reports
-## user-agent and server software by raising this event if it cannot parse them
-## directly (if it can :zeek:id:`software_version_found` will be generated
-## instead).
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## descr: The raw (unparsed) software identification string as extracted from
-##        the protocol.
-##
-## .. zeek:see:: software_version_found software_unparsed_version_found
-event software_parse_error%(c: connection, host: addr, descr: string%);
-
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system. This is a protocol-independent event that is fed by
-## different analyzers. For example, the HTTP analyzer reports user-agent and
-## server software by raising this event. Different from
-## :zeek:id:`software_version_found`  and :zeek:id:`software_parse_error`, this
-## event is always raised, independent of whether Zeek can parse the version
-## string.
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## str: The software identification string as extracted from the protocol.
-##
-## .. zeek:see:: software_parse_error software_version_found
-event software_unparsed_version_found%(c: connection, host: addr, str: string%);
-
 ## Generated each time Zeek's internal profiling log is updated. The file is
 ## defined by :zeek:id:`profiling_file`, and its update frequency by
 ## :zeek:id:`profiling_interval` and :zeek:id:`expensive_profiling_multiple`.

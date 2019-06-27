@@ -141,9 +141,6 @@ extern double backdoor_stat_backoff;
 
 extern RecordType* backdoor_endp_stats;
 
-extern RecordType* software;
-extern RecordType* software_version;
-
 extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;

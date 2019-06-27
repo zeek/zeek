@@ -379,6 +379,8 @@ Removed Functionality
     - ``send_state``
     - ``checkpoint_state``
     - ``rescan_state``
+    - ``log_file_name``
+    - ``open_log_file``
 
 - The following events were deprecated in version 2.6 or below and are completely
   removed from this release:

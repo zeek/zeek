@@ -1775,29 +1775,8 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/bif/strings.bif
 @load base/bif/option.bif
 
-## Deprecated. This is superseded by the new logging framework.
-global log_file_name: function(tag: string): string &redef;
-
-## Deprecated. This is superseded by the new logging framework.
-global open_log_file: function(tag: string): file &redef;
-
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }
-
-function log_file_name(tag: string): string
-	{
-	local suffix = getenv("ZEEK_LOG_SUFFIX");
-
-	if ( suffix == "" )
-		suffix = "log";
-
-	return fmt("%s.%s", tag, suffix);
-	}
-
-function open_log_file(tag: string): file
-	{
-	return open(log_file_name(tag));
-	}
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string

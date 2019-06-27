@@ -32,7 +32,7 @@ event connection_established(c: connection)
     first = 0;
 }
 
-global f = open_log_file("logger-test");
+global f = open("logger-test.log");
 
 event reporter_info(t: time, msg: string, location: string)
 	{

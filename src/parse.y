@@ -649,6 +649,7 @@ expr:
 
 	|	anonymous_function
 
+
 	|	TOK_SCHEDULE expr '{' event '}'
 			{
 			set_location(@1, @5);
@@ -1321,7 +1322,7 @@ attr_list:
 
 attr:
 		TOK_ATTR_DEFAULT '=' expr
-			{ $$ = new Attr(ATTR_DEFAULT, $3); }
+		        { $$ = new Attr(ATTR_DEFAULT, $3); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF

@@ -553,7 +553,7 @@ std::shared_ptr<id_list> gather_outer_ids(Scope* scope, Stmt* body)
 	std::shared_ptr<id_list> idl (new id_list);
 
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-		idl->append(cb.outer_id_references[i]->Id());
+	        idl->append(cb.outer_id_references[i]->Id());
 
 	return std::move(idl);
 	}

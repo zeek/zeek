@@ -328,10 +328,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	Frame* f = new Frame(frame_size, this, args);
 	if ( closure )
-		{
-		assert(outer_ids);
 		f = new ClosureFrame(this->closure, f, this->outer_ids);
-		}
 
 	// Hand down any trigger.
 	if ( parent )
@@ -485,7 +482,6 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 
 void BroFunc::AddClosure(std::shared_ptr<id_list> ids, Frame* f)
 	{
-	// Order matters here.
 	this->SetOuterIDs(ids);
 	this->SetClosureFrame(f);
 	}
@@ -515,11 +511,8 @@ Func* BroFunc::DoClone()
 
 		other->frame_size = frame_size;
 
-		if (closure)
-		  {
-		  other->closure = closure->Clone();
-		  other->outer_ids = outer_ids;
-		  }
+		other->closure = closure->Clone();
+		other->outer_ids = outer_ids;
 
 		return other;
 		}

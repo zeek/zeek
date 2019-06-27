@@ -2641,7 +2641,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			}
 		}
 	else
-		result = Fold(v1, v2);
+	  result = Fold(v1, v2);
 
 	Unref(v1);
 	Unref(v2);
@@ -2696,7 +2696,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->Lookup(v2);
+	  v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
 		break;
 
 	case TYPE_STRING:
@@ -3180,6 +3180,8 @@ Val* TableConstructorExpr::Eval(Frame* f) const
 
 	loop_over_list(exprs, i)
 		exprs[i]->EvalIntoAggregate(type, aggr, f);
+
+	aggr->AsTableVal()->InitDefaultFunc(f);
 
 	return aggr;
 	}
@@ -4325,6 +4327,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 	{
 	this->ingredients = std::move(ingredients);
 	this->outer_ids = std::move(outer_ids);
+
 	SetType(this->ingredients->id->Type()->Ref());
 	}
 

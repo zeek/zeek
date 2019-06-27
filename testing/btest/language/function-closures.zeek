@@ -35,18 +35,19 @@ event zeek_init()
 	local add_n_and_m = function(n: count) : function(m : count) : function(o : count) : count
 		{
 		cat_dog += 1;
+		local can_we_make_variables_inside = 11;
 		return function(m : count) : function(o : count) : count
 			{ return function(o : count) : count
-				{ return  n + m + o + cat_dog; }; };
+				{ return  n + m + o + cat_dog + can_we_make_variables_inside; }; };
 		};
 
 	local add_m = add_n_and_m(2);
 	local adder = add_m(2);
 	
-	print "expect: 107";	
+	print "expect: 118";	
 	print adder(2);
 
-	print "expect: 107";
+	print "expect: 118";
 	# deep copies
 	local ac = copy(adder);
 	print ac(2);
@@ -77,17 +78,57 @@ event zeek_init()
 	print twotwofive(15);
 
 	local hamster : count = 3;
-	const modes: table[count] of string = {
+	
+	print "";
+	print "tables:";
+	print "";
+	# tables!
+	local modes: table[count] of string = {
 	    [1] = "symmetric active",
 	    [2] = "symmetric passive",
 	    [3] = "client",
-    	    [4] = "server",
-    	    [5] = "broadcast server",
-    	    [6] = "broadcast client",
-    	    [7] = "reserved",
-    	    } &default=function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster); } &redef;
-        # TODO: update parsing - will break.
-	# print modes[11];
+            } &default = function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster += 1); } &redef;
 
-	}
+	hamster += hamster;
+	
+	print "expect: unknown-11. outside-4";
+	print modes[11];
+	local dogs = copy(modes);
+	print "expect: unknown-11. outside-5";
+	print modes[11];
+
+	print "expect: client";
+	print modes[3];
+	
+	print "expect: client";
+	print dogs[3];
+	print "expect: unknown-22. outside-5";
+	print dogs[33];	
+
+	print "";
+
+	local hamster_also = 3;
+
+	local modes_also = table(
+            [1] = "symmetric active",
+            [2] = "symmetric passive",
+            [3] = "client"
+	)&default = function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster_also += 1); } &redef;
+
+        print "expect: unknown-11. outside-4";
+        print modes_also[11];
+        local dogs_also = copy(modes_also);
+        print "expect: unknown-11. outside-5";
+        print modes_also[11];
+
+        print "expect: client";
+        print modes_also[3];
+
+        print "expect: client";
+        print dogs_also[3];
+        print "expect: unknown-22. outside-5";
+        print dogs_also[33];
+
+	
+	} # event zeek_init
 

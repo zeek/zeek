@@ -36,25 +36,29 @@ Frame::Frame(const Frame* other, bool view)
 	{
 	is_view = view;
 
+	size = other->size;
+	trigger = other->trigger;
+	call = other->call;
+
+	function = other->function;
+	func_args = other->func_args;
+
+	next_stmt = 0;
+	break_before_next_stmt = false;
+        break_on_return = false;
+	delayed = false;
+ 
 	if ( is_view )
 	  {
-	  size = other->size;
 	  frame = other->frame;
-
-	  function = other->function;
-	  func_args = other->func_args;
-
-	  next_stmt = 0;
-	  break_before_next_stmt = false;
-
-	  break_on_return = false;
-	  delayed = false;
-
-	  trigger = other->trigger;
-	  call = other->call;
 	  }
 	else
-	  reporter->InternalError("TODO: make Frame copy constructor.");
+	  {
+	  if (trigger)
+	    Ref(trigger);
+	  for ( int i = 0; i < size; ++i )
+	    frame[i] = other->frame[i] ? other->frame[i]->Clone() : 0;
+	  }
 	}
 
 Frame::~Frame()
@@ -183,6 +187,7 @@ ClosureFrame::ClosureFrame(Frame* closure, Frame* not_closure,
 			   std::shared_ptr<id_list> outer_ids) : Frame(not_closure, true)
 	{
 	assert(closure);
+	assert(outer_ids);
 
 	this->closure = closure;
 	body = not_closure;
@@ -212,8 +217,8 @@ ClosureFrame::~ClosureFrame()
 
 Val* ClosureFrame::GetElement(ID* id) const
 	{
-	  if ( ClosureContains(id) )
-		return ClosureFrame::GatherFromClosure(this, id);
+	if ( ClosureContains(id) )
+	      return ClosureFrame::GatherFromClosure(this, id);
 
 	return this->NthElement(id->Offset());
 	}

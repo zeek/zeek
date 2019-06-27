@@ -660,7 +660,7 @@ protected:
 	friend class Expr;
 	IndexExpr()	{ }
 
-	Val* Fold(Val* v1, Val* v2) const override;
+        Val* Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 

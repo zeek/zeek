@@ -8,10 +8,10 @@ expect: T
 T
 expect: T
 T
-expect: 107
-107
-expect: 107
-107
+expect: 118
+118
+expect: 118
+118
 expect: 100
 100
 expect: 160
@@ -20,3 +20,27 @@ expect: 225
 225
 expect: 225
 225
+
+tables:
+
+expect: unknown-11. outside-4
+unknown-11. outside-4
+expect: unknown-11. outside-5
+unknown-11. outside-5
+expect: client
+client
+expect: client
+client
+expect: unknown-22. outside-5
+unknown-33. outside-5
+
+expect: unknown-11. outside-4
+unknown-11. outside-4
+expect: unknown-11. outside-5
+unknown-11. outside-5
+expect: client
+client
+expect: client
+client
+expect: unknown-22. outside-5
+unknown-33. outside-5

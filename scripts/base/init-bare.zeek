@@ -775,8 +775,6 @@ type IPAddrAnonymizationClass: enum {
 	OTHER_ADDR,
 };
 
-## Deprecated.
-##
 ## .. zeek:see:: rotate_file rotate_file_by_name
 type rotate_info: record {
 	old_name: string;	##< Original filename.
@@ -4622,7 +4620,7 @@ module GLOBAL;
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
-## Deprecated.
+## Base time of log rotations in 24-hour time format (``%H:%M``), e.g. "12:00".
 const log_rotate_base_time = "0:00" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to

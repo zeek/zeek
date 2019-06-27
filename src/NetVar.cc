@@ -145,8 +145,6 @@ double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
 
-RecordType* packet_type;
-
 double connection_status_update_interval;
 
 int orig_addr_anonymization, resp_addr_anonymization;
@@ -412,8 +410,6 @@ void init_net_var()
 
 	software = internal_type("software")->AsRecordType();
 	software_version = internal_type("software_version")->AsRecordType();
-
-	packet_type = internal_type("packet")->AsRecordType();
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");

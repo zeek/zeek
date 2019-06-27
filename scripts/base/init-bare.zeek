@@ -644,17 +644,6 @@ type ReporterStats: record {
 	weirds_by_type:	table[string] of count;
 };
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type packet: record {
-	conn: connection;
-	is_orig: bool;
-	seq: count;	##< seq=k => it is the kth *packet* of the connection
-	timestamp: time;
-};
-
 ## Table type used to map variable names to their memory allocation.
 ##
 ## .. zeek:see:: global_sizes

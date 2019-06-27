@@ -148,8 +148,6 @@ extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;
 
-extern RecordType* packet_type;
-
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
 extern TableVal* preserve_orig_addr;

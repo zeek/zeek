@@ -410,6 +410,7 @@ Removed Functionality
 
     - ``peer_id``
     - ``event_peer``
+    - ``packet``
 
 - The following configuration options were deprecated in version 2.6 or below and are
   removed from this release:

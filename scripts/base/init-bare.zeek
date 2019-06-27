@@ -755,8 +755,6 @@ global restrict_filters: table[string] of string &redef;
 ## :zeek:see:`Pcap::precompile_pcap_filter` and :zeek:see:`Pcap::precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
-## Deprecated.
-##
 ## .. zeek:see:: anonymize_addr
 type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
@@ -766,8 +764,6 @@ type IPAddrAnonymization: enum {
 	PREFIX_PRESERVING_MD5,
 };
 
-## Deprecated.
-##
 ## .. zeek:see:: anonymize_addr
 type IPAddrAnonymizationClass: enum {
 	ORIG_ADDR,

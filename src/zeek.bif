@@ -5017,7 +5017,8 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 
 # ===========================================================================
 #
-#                            Deprecated Functions
+#                            Anonymization Functions
+#                            (Not Fully Functional)
 #
 # ===========================================================================
 

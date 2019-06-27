@@ -864,7 +864,7 @@ event kazaa_signature_found%(c: connection%);
 ## Deprecated. Will be removed.
 event gaobot_signature_found%(c: connection%);
 
-## Deprecated. Will be removed.
+## Shows an IP address anonymization mapping.
 event anonymization_mapping%(orig: addr, mapped: addr%);
 
 ## Deprecated. Will be removed.

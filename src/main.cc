@@ -372,7 +372,7 @@ void termination_signal()
 
 	// Close files after net_delete(), because net_delete()
 	// might write to connection content files.
-	BroFile::CloseCachedFiles();
+	BroFile::CloseOpenFiles();
 
 	delete rule_matcher;
 
@@ -1126,7 +1126,7 @@ int main(int argc, char** argv)
 
 		// Close files after net_delete(), because net_delete()
 		// might write to connection content files.
-		BroFile::CloseCachedFiles();
+		BroFile::CloseOpenFiles();
 		}
 	else
 		{

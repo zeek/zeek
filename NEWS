@@ -467,6 +467,13 @@ Removed Functionality
   upgrade path. The ``OS_version_found`` event as well as the
   ``generate_OS_version_event`` configuration option were removed.
 
+- Removed the ``max_files_in_cache`` option and the associated
+  "file caching" feature it's associated with. That feature allowed
+  one to open many scripting-layer ``file`` objects and potentially
+  bypass the operating system's resource limits for open files.
+  This is typically not necessary and it's a problem that is more
+  appropriately addressed at the system configuration level.
+
 Deprecated Functionality
 ------------------------
 

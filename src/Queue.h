@@ -240,10 +240,4 @@ protected:
 template<typename T>
 using PQueue = Queue<T*>;
 
-// Macro to visit each queue element in turn.
-#define loop_over_queue(queue, iterator) \
-	int iterator; \
-	for ( iterator = (queue).front(); iterator != (queue).back(); \
-		(queue).incr(iterator) )
-
 #endif /* queue_h */

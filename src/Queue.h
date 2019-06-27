@@ -152,7 +152,6 @@ public:
 	// helper functions for iterating over queue
 	int front() const	{ return head; }
 	int back() const	{ return tail; }
-	void incr(int& index)	{ index < max_entries ? ++index : index = 0; }
 
 
 	void push_front(T a)	// add in front of queue
@@ -256,11 +255,5 @@ protected:
 
 template<typename T>
 using PQueue = Queue<T*>;
-
-// Macro to visit each queue element in turn.
-#define loop_over_queue(queue, iterator) \
-	int iterator; \
-	for ( iterator = (queue).front(); iterator != (queue).back(); \
-		(queue).incr(iterator) )
 
 #endif /* queue_h */

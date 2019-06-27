@@ -5,5 +5,5 @@ F
 [once]
 []
 [*.gov*, *malware*]
-[z*ro]
+[z*ro, zero\x00zero]
 [*.gov*, *malware*]

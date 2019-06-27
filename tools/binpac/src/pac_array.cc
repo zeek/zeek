@@ -292,7 +292,7 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 		out_cc->println("}");
 		out_cc->dec_indent();
 
-		string array_size;
+		int element_size;
 
 		if ( elemtype_->StaticSize(env) == -1 )
 			{
@@ -307,7 +307,7 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 			// buffer.
 			out_cc->println("// Check array element quantity: %s",
 			                data_id_str_.c_str());
-			array_size = strfmt("(%s)", env->RValue(arraylength_var()));
+			element_size = 1;
 			}
 		else
 			{
@@ -315,21 +315,34 @@ void ArrayType::GenArrayLength(Output *out_cc, Env *env, const DataPtr& data)
 			out_cc->println("// Check bounds for static-size array: %s",
 			                data_id_str_.c_str());
 			elemtype_->SetBoundaryChecked();
-			array_size = strfmt("((%d) * (%s))",
-			                    elemtype_->StaticSize(env),
-			                    env->RValue(arraylength_var()));
+			element_size = elemtype_->StaticSize(env);
+
+			if ( element_size == 0 )
+				{
+				// If we know we have an array of empty elements, probably
+				// better to structure the parser as just a single empty
+				// field to avoid DoS vulnerability of allocating
+				// arbitrary number of empty records (i.e. cheap for them,
+				// but costly for us unless we have special optimization
+				// for this scenario to forgo the usual allocation).
+				throw Exception(this, "using an array of known-to-be-empty elements is possibly a bad idea");
+				}
 			}
 
 		const char* array_ptr_expr = data.ptr_expr();
+		string max_elements_available = strfmt("((%s - %s) / %d)",
+		                                       env->RValue(end_of_data),
+		                                       array_ptr_expr,
+		                                       element_size);
 
-		out_cc->println("if ( %s + %s > %s || %s + %s < %s )",
-		                array_ptr_expr, array_size.c_str(), env->RValue(end_of_data),
-		                array_ptr_expr, array_size.c_str(), array_ptr_expr);
+		out_cc->println("if ( %s > %s )",
+		                env->RValue(arraylength_var()),
+		                max_elements_available.c_str());
 		out_cc->inc_indent();
 		out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",",
 		                data_id_str_.c_str());
 		out_cc->println("  %s, (%s) - (%s));",
-		                array_size.c_str(),
+		                env->RValue(arraylength_var()),
 		                env->RValue(end_of_data),
 		                array_ptr_expr);
 		out_cc->dec_indent();

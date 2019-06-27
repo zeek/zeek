@@ -4723,10 +4723,6 @@ const time_machine_profiling = F &redef;
 ## If true, warns about unused event handlers at startup.
 const check_for_unused_event_handlers = F &redef;
 
-# If true, dumps all invoked event handlers at startup.
-# todo::Still used?
-# const dump_used_event_handlers = F &redef;
-
 ## Deprecated.
 const suppress_local_output = F &redef;
 

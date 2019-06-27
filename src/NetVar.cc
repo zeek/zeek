@@ -184,7 +184,6 @@ int dpd_ignore_ports;
 TableVal* likely_server_ports;
 
 int check_for_unused_event_handlers;
-int dump_used_event_handlers;
 
 int suppress_local_output;
 
@@ -236,8 +235,6 @@ void init_general_global_var()
 
 	check_for_unused_event_handlers =
 		opt_internal_int("check_for_unused_event_handlers");
-	dump_used_event_handlers =
-		opt_internal_int("dump_used_event_handlers");
 
 	suppress_local_output = opt_internal_int("suppress_local_output");
 

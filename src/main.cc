@@ -993,18 +993,6 @@ int main(int argc, char** argv)
 
 	delete dead_handlers;
 
-	EventRegistry::string_list* alive_handlers =
-		event_registry->UsedHandlers();
-
-	if ( alive_handlers->length() > 0 && dump_used_event_handlers )
-		{
-		reporter->Info("invoked event handlers:");
-		for ( int i = 0; i < alive_handlers->length(); ++i )
-			reporter->Info("%s", (*alive_handlers)[i]);
-		}
-
-	delete alive_handlers;
-
 	if ( stmts )
 		{
 		stmt_flow_type flow;

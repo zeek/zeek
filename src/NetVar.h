@@ -186,7 +186,6 @@ extern int dpd_ignore_ports;
 extern TableVal* likely_server_ports;
 
 extern int check_for_unused_event_handlers;
-extern int dump_used_event_handlers;
 
 extern int suppress_local_output;
 

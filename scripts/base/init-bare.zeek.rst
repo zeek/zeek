@@ -142,7 +142,6 @@ Redefinable Options
 :zeek:id:`interconn_stat_period`: :zeek:type:`interval` :zeek:attr:`&redef`                Deprecated.
 :zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef`                       Ports which the core considers being likely used by servers.
 :zeek:id:`log_rotate_base_time`: :zeek:type:`string` :zeek:attr:`&redef`                   Deprecated.
-:zeek:id:`max_files_in_cache`: :zeek:type:`count` :zeek:attr:`&redef`                      The maximum number of open files to keep cached at a given time.
 :zeek:id:`max_timer_expires`: :zeek:type:`count` :zeek:attr:`&redef`                       The maximum number of timers to expire after processing each new
                                                                                            packet.
 :zeek:id:`mmdb_dir`: :zeek:type:`string` :zeek:attr:`&redef`                               The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
@@ -1510,16 +1509,6 @@ Redefinable Options
    :Default: ``"0:00"``
 
    Deprecated.
-
-.. zeek:id:: max_files_in_cache
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``0``
-
-   The maximum number of open files to keep cached at a given time.
-   If set to zero, this is automatically determined by inspecting
-   the current/maximum limit on open files for the process.
 
 .. zeek:id:: max_timer_expires
 

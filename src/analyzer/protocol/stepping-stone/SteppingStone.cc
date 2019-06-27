@@ -108,9 +108,8 @@ int SteppingStoneEndpoint::DataSent(double t, uint64 seq, int len, int caplen,
 	stp_last_time = stp_resume_time = t;
 
 	Event(stp_resume_endp, stp_id);
-	loop_over_queue(stp_manager->OrderedEndpoints(), i)
+	for ( auto ep : stp_manager->OrderedEndpoints() )
 		{
-		SteppingStoneEndpoint* ep = stp_manager->OrderedEndpoints()[i];
 		if ( ep->endp->TCP() != endp->TCP() )
 			{
 			Ref(ep);

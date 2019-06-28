@@ -3855,12 +3855,6 @@ type PE::SectionHeader: record {
 }
 module GLOBAL;
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-global irc_servers : set[addr] &redef;
-
 ## Internal to the stepping stone detector.
 const stp_delta: interval &redef;
 

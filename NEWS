@@ -440,6 +440,7 @@ Removed Functionality
     - ``ssl_private_key``
     - ``ssl_passphrase``
     - ``suppress_local_output``
+    - ``irc_servers``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

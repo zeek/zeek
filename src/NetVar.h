@@ -176,7 +176,6 @@ extern int sig_max_group_size;
 
 extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
-extern TableVal* irc_servers;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;

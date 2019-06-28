@@ -174,7 +174,6 @@ int sig_max_group_size;
 
 TableType* irc_join_list;
 RecordType* irc_join_info;
-TableVal* irc_servers;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
@@ -429,7 +428,6 @@ void init_net_var()
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();
-	irc_servers = internal_val("irc_servers")->AsTableVal();
 
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");

@@ -411,6 +411,8 @@ Removed Functionality
     - ``software_unparsed_version_found``
     - ``software_parse_error``
     - ``print_hook``
+    - ``interconn_stats``
+    - ``interconn_remove_conn``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:
@@ -441,6 +443,13 @@ Removed Functionality
     - ``ssl_passphrase``
     - ``suppress_local_output``
     - ``irc_servers``
+    - ``interconn_min_interarrival``
+    - ``interconn_max_interarrival``
+    - ``interconn_max_keystroke_pkt_size``
+    - ``interconn_default_pkt_size``
+    - ``interconn_stat_period``
+    - ``interconn_stat_backoff``
+    - ``interconn_endp_stats``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:
@@ -485,6 +494,8 @@ Removed Functionality
   bypass the operating system's resource limits for open files.
   This is typically not necessary and it's a problem that is more
   appropriately addressed at the system configuration level.
+
+- Removed the InterConn analyzer.
 
 Deprecated Functionality
 ------------------------

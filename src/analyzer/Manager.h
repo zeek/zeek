@@ -357,7 +357,6 @@ private:
 
 	Tag analyzer_backdoor;
 	Tag analyzer_connsize;
-	Tag analyzer_interconn;
 	Tag analyzer_stepping;
 	Tag analyzer_tcpstats;
 

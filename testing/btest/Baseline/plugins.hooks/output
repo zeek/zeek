@@ -1,5 +1,4 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_BACKDOOR)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_INTERCONN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_STEPPINGSTONE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_AYIYA, 5072/udp)) -> <no result>
@@ -66,7 +65,6 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_BACKDOOR)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_INTERCONN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_STEPPINGSTONE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_AYIYA, 5072/udp)) -> <no result>
@@ -278,7 +276,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -459,7 +457,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -605,7 +603,6 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_IMAP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_IRC.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_Ident.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_InterConn.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_KRB.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_KRB.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/Zeek_Login.events.bif.zeek) -> -1
@@ -896,7 +893,6 @@
 0.000000   MetaHookPost  QueueEvent(filter_change_tracking()) -> false
 0.000000   MetaHookPost  QueueEvent(zeek_init()) -> false
 0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_BACKDOOR))
-0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_INTERCONN))
 0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_STEPPINGSTONE))
 0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_AYIYA, 5072/udp))
@@ -963,7 +959,6 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5222/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_XMPP, 5269/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_BACKDOOR))
-0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_INTERCONN))
 0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_STEPPINGSTONE))
 0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (Analyzer::ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_AYIYA, 5072/udp))
@@ -1175,7 +1170,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1356,7 +1351,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1502,7 +1497,6 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_IMAP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_IRC.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_Ident.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_InterConn.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_KRB.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/Zeek_Login.events.bif.zeek)
@@ -1793,7 +1787,6 @@
 0.000000   MetaHookPre   QueueEvent(filter_change_tracking())
 0.000000   MetaHookPre   QueueEvent(zeek_init())
 0.000000 | HookCallFunction Analyzer::__disable_analyzer(Analyzer::ANALYZER_BACKDOOR)
-0.000000 | HookCallFunction Analyzer::__disable_analyzer(Analyzer::ANALYZER_INTERCONN)
 0.000000 | HookCallFunction Analyzer::__disable_analyzer(Analyzer::ANALYZER_STEPPINGSTONE)
 0.000000 | HookCallFunction Analyzer::__disable_analyzer(Analyzer::ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_AYIYA, 5072/udp)
@@ -1860,7 +1853,6 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_XMPP, 5222/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_XMPP, 5269/tcp)
 0.000000 | HookCallFunction Analyzer::disable_analyzer(Analyzer::ANALYZER_BACKDOOR)
-0.000000 | HookCallFunction Analyzer::disable_analyzer(Analyzer::ANALYZER_INTERCONN)
 0.000000 | HookCallFunction Analyzer::disable_analyzer(Analyzer::ANALYZER_STEPPINGSTONE)
 0.000000 | HookCallFunction Analyzer::disable_analyzer(Analyzer::ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_AYIYA, 5072/udp)
@@ -2071,7 +2063,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2252,7 +2244,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2398,7 +2390,6 @@
 0.000000 | HookLoadFile  .<...>/Zeek_IMAP.events.bif.zeek
 0.000000 | HookLoadFile  .<...>/Zeek_IRC.events.bif.zeek
 0.000000 | HookLoadFile  .<...>/Zeek_Ident.events.bif.zeek
-0.000000 | HookLoadFile  .<...>/Zeek_InterConn.events.bif.zeek
 0.000000 | HookLoadFile  .<...>/Zeek_KRB.events.bif.zeek
 0.000000 | HookLoadFile  .<...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFile  .<...>/Zeek_Login.events.bif.zeek
@@ -2684,7 +2675,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1560631035.263667, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1561683801.242144, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

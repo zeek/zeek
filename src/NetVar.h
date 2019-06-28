@@ -128,14 +128,6 @@ extern double stp_delta;
 extern double stp_idle_min;
 extern TableVal* stp_skip_src;
 
-extern double interconn_min_interarrival;
-extern double interconn_max_interarrival;
-extern int interconn_max_keystroke_pkt_size;
-extern int interconn_default_pkt_size;
-extern double interconn_stat_period;
-extern double interconn_stat_backoff;
-extern RecordType* interconn_endp_stats;
-
 extern double backdoor_stat_period;
 extern double backdoor_stat_backoff;
 

@@ -125,14 +125,6 @@ double stp_delta;
 double stp_idle_min;
 TableVal* stp_skip_src;
 
-double interconn_min_interarrival;
-double interconn_max_interarrival;
-int interconn_max_keystroke_pkt_size;
-int interconn_default_pkt_size;
-double interconn_stat_period;
-double interconn_stat_backoff;
-RecordType* interconn_endp_stats;
-
 double backdoor_stat_period;
 double backdoor_stat_backoff;
 
@@ -388,14 +380,6 @@ void init_net_var()
 	stp_delta = opt_internal_double("stp_delta");
 	stp_idle_min = opt_internal_double("stp_idle_min");
 	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
-
-	interconn_min_interarrival = opt_internal_double("interconn_min_interarrival");
-	interconn_max_interarrival = opt_internal_double("interconn_max_interarrival");
-	interconn_max_keystroke_pkt_size = opt_internal_int("interconn_max_keystroke_pkt_size");
-	interconn_default_pkt_size = opt_internal_int("interconn_default_pkt_size");
-	interconn_stat_period = opt_internal_double("interconn_stat_period");
-	interconn_stat_backoff = opt_internal_double("interconn_stat_backoff");
-	interconn_endp_stats = internal_type("interconn_endp_stats")->AsRecordType();
 
 	backdoor_stat_period = opt_internal_double("backdoor_stat_period");
 	backdoor_stat_backoff = opt_internal_double("backdoor_stat_backoff");

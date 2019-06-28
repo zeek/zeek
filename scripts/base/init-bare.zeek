@@ -3865,38 +3865,6 @@ const stp_idle_min: interval &redef;
 global stp_skip_src: set[addr] &redef;
 
 ## Deprecated.
-const interconn_min_interarrival: interval &redef;
-
-## Deprecated.
-const interconn_max_interarrival: interval &redef;
-
-## Deprecated.
-const interconn_max_keystroke_pkt_size: count &redef;
-
-## Deprecated.
-const interconn_default_pkt_size: count &redef;
-
-## Deprecated.
-const interconn_stat_period: interval &redef;
-
-## Deprecated.
-const interconn_stat_backoff: double &redef;
-
-## Deprecated.
-type interconn_endp_stats: record {
-	num_pkts: count;
-	num_keystrokes_two_in_row: count;
-	num_normal_interarrivals: count;
-	num_8k0_pkts: count;
-	num_8k4_pkts: count;
-	is_partial: bool;
-	num_bytes: count;
-	num_7bit_ascii: count;
-	num_lines: count;
-	num_normal_lines: count;
-};
-
-## Deprecated.
 const backdoor_stat_period: interval &redef;
 
 ## Deprecated.

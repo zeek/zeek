@@ -85,7 +85,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_ICMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Ident.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_InterConn.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_IRC.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Login.events.bif.zeek

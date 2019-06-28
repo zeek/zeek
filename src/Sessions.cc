@@ -22,8 +22,6 @@
 #include "analyzer/protocol/stepping-stone/events.bif.h"
 #include "analyzer/protocol/backdoor/BackDoor.h"
 #include "analyzer/protocol/backdoor/events.bif.h"
-#include "analyzer/protocol/interconn/InterConn.h"
-#include "analyzer/protocol/interconn/events.bif.h"
 #include "analyzer/protocol/arp/ARP.h"
 #include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"

@@ -63,14 +63,15 @@ Redefinitions
 
 Events
 ######
-======================================================== =================================================================
-:zeek:id:`Notice::begin_suppression`: :zeek:type:`event` This event is generated when a notice begins to be suppressed.
-:zeek:id:`Notice::cluster_notice`: :zeek:type:`event`    This is the event used to transport notices on the cluster.
-:zeek:id:`Notice::log_notice`: :zeek:type:`event`        This event can be handled to access the :zeek:type:`Notice::Info`
-                                                         record as it is sent on to the logging framework.
-:zeek:id:`Notice::suppressed`: :zeek:type:`event`        This event is generated on each occurrence of an event being
-                                                         suppressed.
-======================================================== =================================================================
+================================================================ =========================================================================
+:zeek:id:`Notice::begin_suppression`: :zeek:type:`event`         This event is generated when a notice begins to be suppressed.
+:zeek:id:`Notice::log_notice`: :zeek:type:`event`                This event can be handled to access the :zeek:type:`Notice::Info`
+                                                                 record as it is sent on to the logging framework.
+:zeek:id:`Notice::manager_begin_suppression`: :zeek:type:`event` This is an internal event that is used to broadcast the begin_suppression
+                                                                 event over a cluster.
+:zeek:id:`Notice::suppressed`: :zeek:type:`event`                This event is generated on each occurrence of an event being
+                                                                 suppressed.
+================================================================ =========================================================================
 
 Hooks
 #####
@@ -84,12 +85,11 @@ Functions
 #########
 =================================================================== ==========================================================================
 :zeek:id:`NOTICE`: :zeek:type:`function`                            
+:zeek:id:`Notice::apply_policy`: :zeek:type:`function`              This is an internal function to populate policy records.
 :zeek:id:`Notice::create_file_info`: :zeek:type:`function`          Creates a record containing a subset of a full :zeek:see:`fa_file` record.
 :zeek:id:`Notice::email_headers`: :zeek:type:`function`             Constructs mail headers to which an email body can be appended for
                                                                     sending with sendmail.
 :zeek:id:`Notice::email_notice_to`: :zeek:type:`function`           Call this function to send a notice in an email.
-:zeek:id:`Notice::internal_NOTICE`: :zeek:type:`function`           This is an internal wrapper for the global :zeek:id:`NOTICE`
-                                                                    function; disregard.
 :zeek:id:`Notice::is_being_suppressed`: :zeek:type:`function`       A function to determine if an event is supposed to be suppressed.
 :zeek:id:`Notice::log_mailing_postprocessor`: :zeek:type:`function` A log postprocessing function that implements emailing the contents
                                                                     of a log upon rotation to any configured :zeek:id:`Notice::mail_dest`.
@@ -897,16 +897,6 @@ Events
 
    :identifier: The identifier string of the notice that should be suppressed.
 
-.. zeek:id:: Notice::cluster_notice
-
-   :Type: :zeek:type:`event` (n: :zeek:type:`Notice::Info`)
-
-   This is the event used to transport notices on the cluster.
-   
-
-   :n: The notice information to be sent to the cluster manager for
-      further processing.
-
 .. zeek:id:: Notice::log_notice
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Notice::Info`)
@@ -916,6 +906,25 @@ Events
    
 
    :rec: The record containing notice data before it is logged.
+
+.. zeek:id:: Notice::manager_begin_suppression
+
+   :Type: :zeek:type:`event` (ts: :zeek:type:`time`, suppress_for: :zeek:type:`interval`, note: :zeek:type:`Notice::Type`, identifier: :zeek:type:`string`)
+
+   This is an internal event that is used to broadcast the begin_suppression
+   event over a cluster.
+   
+
+   :ts: time indicating then when the notice to be suppressed occured.
+   
+
+   :suppress_for: length of time that this notice should be suppressed.
+   
+
+   :note: The :zeek:type:`Notice::Type` of the notice.
+   
+
+   :identifier: The identifier string of the notice that should be suppressed.
 
 .. zeek:id:: Notice::suppressed
 
@@ -935,7 +944,7 @@ Hooks
    :Type: :zeek:type:`hook` (n: :zeek:type:`Notice::Info`) : :zeek:type:`bool`
 
    This is the event that is called as the entry point to the
-   notice framework by the global :zeek:id:`NOTICE` function.  By the
+   notice framework by the global :zeek:id:`NOTICE` function. By the
    time this event is generated, default values have already been
    filled out in the :zeek:type:`Notice::Info` record and the notice
    policy has also been applied.
@@ -955,6 +964,12 @@ Functions
 
    :Type: :zeek:type:`function` (n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
 
+
+.. zeek:id:: Notice::apply_policy
+
+   :Type: :zeek:type:`function` (n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
+
+   This is an internal function to populate policy records.
 
 .. zeek:id:: Notice::create_file_info
 
@@ -1002,16 +1017,6 @@ Functions
 
    :extend: Whether to extend the email using the
            ``email_body_sections`` field of *n*.
-
-.. zeek:id:: Notice::internal_NOTICE
-
-   :Type: :zeek:type:`function` (n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
-
-   This is an internal wrapper for the global :zeek:id:`NOTICE`
-   function; disregard.
-   
-
-   :n: The record of notice data.
 
 .. zeek:id:: Notice::is_being_suppressed
 

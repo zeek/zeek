@@ -428,6 +428,8 @@ Removed Functionality
     - ``http_proxy_signature_found``
     - ``backdoor_stats``
     - ``backdoor_remove_conn``
+    - ``dns_full_request``
+    - ``non_dns_request``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:

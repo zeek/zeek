@@ -1,4 +1,8 @@
 
+2.6-536 | 2019-06-28 12:10:55 -0700
+
+  * Add Windows Minidump file signature (Alexander Bolshakov)
+
 2.6-534 | 2019-06-28 11:48:41 -0700
 
   * Change notices to be processed on worker. (Johanna Amann, Corelight)

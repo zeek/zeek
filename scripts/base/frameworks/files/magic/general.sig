@@ -414,3 +414,9 @@ signature file-vim-tmp {
 	file-mime "application/x-vim-tmp", 100
 	file-magic /^b0VIM/
 }
+
+# Windows Minidump
+signature file-windows-minidump {
+    file-mime "application/x-windows-minidump", 50
+    file-magic /^MDMP/
+}

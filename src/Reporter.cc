@@ -491,7 +491,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		val_list vl(vl_size);
 
 		if ( time )
-			vl.append(new Val((bro_start_network_time != 0.0) ? network_time : 0, TYPE_TIME));
+			vl.append(new Val(network_time ? network_time : current_time(), TYPE_TIME));
 
 		vl.append(new StringVal(buffer));
 

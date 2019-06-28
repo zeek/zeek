@@ -1,4 +1,22 @@
 
+2.6-536 | 2019-06-28 12:10:55 -0700
+
+  * Add Windows Minidump file signature (Alexander Bolshakov)
+
+2.6-534 | 2019-06-28 11:48:41 -0700
+
+  * Change notices to be processed on worker. (Johanna Amann, Corelight)
+
+    In the past they were processed on the manager - which requires big
+    records to be sent around.
+
+    This has a potential of incompatibilities if someone relied on global
+    state for notice processing.
+
+    Also may prevent notice de-duplication due to expected race
+    condition of suppression messages taking time to proaogate out
+    to all cluster nodes.
+
 2.6-531 | 2019-06-27 12:09:08 -0700
 
   * GH-375: Remove the BroFile cache (Johanna Amann, Corelight)

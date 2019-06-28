@@ -338,6 +338,15 @@ Changed Functionality
   passed to any other functions for further processing. The remainder of the
   ``ocsp_response_bytes`` is unchanged.
 
+- For performance reasons, processing of notices is now always
+  performed by the node on which the notice is raised rather than
+  the centralized Manager node.  This has potential incompatibilities
+  for those that relied on global state for notice policy processing.
+  It also introduces an expected race condition that may cause multiple
+  notices of the same kind that are generated within a short timespan
+  of each other on separate cluster nodes to all be logged rather
+  than suppressed and de-duplicated into a single notice.
+
 Removed Functionality
 ---------------------
 

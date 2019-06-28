@@ -33,9 +33,15 @@ event delayed_notice()
 		NOTICE([$note=Test_Notice, $msg="test notice!"]);
 	}
 
+event terminate_me()
+	{
+	terminate();
+	}
+
 event ready()
 	{
 	schedule 1secs { delayed_notice() };
+	schedule 2secs { terminate_me() };
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -50,7 +56,7 @@ event Cluster::node_up(name: string, id: string)
 		Broker::publish(Cluster::worker_topic, ready);
 	}
 
-event Notice::log_notice(rec: Notice::Info)
+event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}

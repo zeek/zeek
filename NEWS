@@ -413,6 +413,21 @@ Removed Functionality
     - ``print_hook``
     - ``interconn_stats``
     - ``interconn_remove_conn``
+    - ``root_backdoor_signature_found``
+    - ``napster_signature_found``
+    - ``kazaa_signature_found``
+    - ``gaobot_signature_found``
+    - ``ftp_signature_found``
+    - ``gnutella_signature_found``
+    - ``http_signature_found``
+    - ``irc_signature_found``
+    - ``telnet_signature_found``
+    - ``ssh_signature_found``
+    - ``rlogin_signature_found``
+    - ``smtp_signature_found``
+    - ``http_proxy_signature_found``
+    - ``backdoor_stats``
+    - ``backdoor_remove_conn``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:
@@ -450,6 +465,9 @@ Removed Functionality
     - ``interconn_stat_period``
     - ``interconn_stat_backoff``
     - ``interconn_endp_stats``
+    - ``backdoor_stat_period``
+    - ``backdoor_stat_backoff``
+    - ``backdoor_endp_stats``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:
@@ -496,6 +514,8 @@ Removed Functionality
   appropriately addressed at the system configuration level.
 
 - Removed the InterConn analyzer.
+
+- Removed the BackDoor analyzer.
 
 Deprecated Functionality
 ------------------------

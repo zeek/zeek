@@ -5,7 +5,6 @@
 #include "Hash.h"
 #include "Val.h"
 
-#include "protocol/backdoor/BackDoor.h"
 #include "protocol/conn-size/ConnSize.h"
 #include "protocol/icmp/ICMP.h"
 #include "protocol/pia/PIA.h"
@@ -86,7 +85,6 @@ Manager::~Manager()
 void Manager::InitPreScript()
 	{
 	// Cache these tags.
-	analyzer_backdoor = GetComponentTag("BACKDOOR");
 	analyzer_connsize = GetComponentTag("CONNSIZE");
 	analyzer_stepping = GetComponentTag("STEPPINGSTONE");
 	analyzer_tcpstats = GetComponentTag("TCPSTATS");
@@ -458,11 +456,6 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( reass )
 			tcp->EnableReassembly();
-
-		if ( IsEnabled(analyzer_backdoor) )
-			// Add a BackDoor analyzer if requested.  This analyzer
-			// can handle both reassembled and non-reassembled input.
-			tcp->AddChildAnalyzer(new backdoor::BackDoor_Analyzer(conn), false);
 
 		if ( IsEnabled(analyzer_stepping) )
 			{

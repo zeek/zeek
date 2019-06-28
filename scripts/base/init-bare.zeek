@@ -3864,24 +3864,6 @@ const stp_idle_min: interval &redef;
 ## Internal to the stepping stone detector.
 global stp_skip_src: set[addr] &redef;
 
-## Deprecated.
-const backdoor_stat_period: interval &redef;
-
-## Deprecated.
-const backdoor_stat_backoff: double &redef;
-
-## Deprecated.
-type backdoor_endp_stats: record {
-	is_partial: bool;
-	num_pkts: count;
-	num_8k0_pkts: count;
-	num_8k4_pkts: count;
-	num_lines: count;
-	num_normal_lines: count;
-	num_bytes: count;
-	num_7bit_ascii: count;
-};
-
 ## Description of a signature match.
 ##
 ## .. zeek:see:: signature_match

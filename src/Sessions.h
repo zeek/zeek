@@ -231,7 +231,6 @@ protected:
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	Discarder* discarder;
 	PacketFilter* packet_filter;
-	int build_backdoor_analyzer;
 	int dump_this_packet;	// if true, current packet should be recorded
 	uint64 num_packets_processed;
 	PacketProfiler* pkt_profiler;

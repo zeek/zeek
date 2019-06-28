@@ -125,11 +125,6 @@ double stp_delta;
 double stp_idle_min;
 TableVal* stp_skip_src;
 
-double backdoor_stat_period;
-double backdoor_stat_backoff;
-
-RecordType* backdoor_endp_stats;
-
 double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
@@ -380,10 +375,6 @@ void init_net_var()
 	stp_delta = opt_internal_double("stp_delta");
 	stp_idle_min = opt_internal_double("stp_idle_min");
 	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
-
-	backdoor_stat_period = opt_internal_double("backdoor_stat_period");
-	backdoor_stat_backoff = opt_internal_double("backdoor_stat_backoff");
-	backdoor_endp_stats = internal_type("backdoor_endp_stats")->AsRecordType();
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");

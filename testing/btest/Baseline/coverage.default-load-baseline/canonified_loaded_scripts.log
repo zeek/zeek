@@ -62,7 +62,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/top-k.bif.zeek
   build/scripts/base/bif/plugins/__load__.zeek
     build/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_BackDoor.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_BitTorrent.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ConnSize.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ConnSize.functions.bif.zeek

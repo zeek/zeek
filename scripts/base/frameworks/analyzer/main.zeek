@@ -125,7 +125,6 @@ export {
 	## contains legacy analyzers that are no longer supported.
 	global disabled_analyzers: set[Analyzer::Tag] = {
 		ANALYZER_STEPPINGSTONE,
-		ANALYZER_BACKDOOR,
 		ANALYZER_TCPSTATS,
 	} &redef;
 }

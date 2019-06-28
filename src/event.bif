@@ -799,17 +799,5 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ## params: The event's parameters.
 event new_event%(name: string, params: call_argument_vector%);
 
-## Deprecated. Will be removed.
-event root_backdoor_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event napster_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event kazaa_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event gaobot_signature_found%(c: connection%);
-
 ## Shows an IP address anonymization mapping.
 event anonymization_mapping%(orig: addr, mapped: addr%);

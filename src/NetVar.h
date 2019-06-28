@@ -128,11 +128,6 @@ extern double stp_delta;
 extern double stp_idle_min;
 extern TableVal* stp_skip_src;
 
-extern double backdoor_stat_period;
-extern double backdoor_stat_backoff;
-
-extern RecordType* backdoor_endp_stats;
-
 extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;

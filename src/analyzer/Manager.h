@@ -355,7 +355,6 @@ private:
 	analyzer_map_by_port analyzers_by_port_tcp;
 	analyzer_map_by_port analyzers_by_port_udp;
 
-	Tag analyzer_backdoor;
 	Tag analyzer_connsize;
 	Tag analyzer_stepping;
 	Tag analyzer_tcpstats;

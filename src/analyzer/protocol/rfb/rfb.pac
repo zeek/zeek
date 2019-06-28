@@ -24,7 +24,7 @@ connection RFB_Conn(bro_analyzer: BroAnalyzer) {
 
 # Now we define the flow:
 flow RFB_Flow(is_orig: bool) {
-	datagram = RFB_PDU(is_orig) withcontext(connection, this);
+	flowunit = RFB_PDU(is_orig) withcontext(connection, this);
 };
 
 %include rfb-analyzer.pac

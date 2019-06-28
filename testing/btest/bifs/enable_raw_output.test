@@ -4,7 +4,6 @@
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: tr '\000' 'X' <myfile >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: cmp myfile hookfile
 
 event zeek_init()
     {
@@ -13,11 +12,4 @@ event zeek_init()
     enable_raw_output(myfile);
     print myfile, "hello\x00world", "hi";
     close(myfile);
-    }
-
-event print_hook(f: file, s: string)
-    {
-    local hookfile = open("hookfile");
-    write_file(hookfile, s);
-    close(hookfile);
     }

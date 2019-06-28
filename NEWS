@@ -381,6 +381,7 @@ Removed Functionality
     - ``rescan_state``
     - ``log_file_name``
     - ``open_log_file``
+    - ``disable_print_hook``
 
 - The following events were deprecated in version 2.6 or below and are completely
   removed from this release:
@@ -409,6 +410,7 @@ Removed Functionality
     - ``software_version_found``
     - ``software_unparsed_version_found``
     - ``software_parse_error``
+    - ``print_hook``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:
@@ -437,6 +439,7 @@ Removed Functionality
     - ``ssl_ca_certificate``
     - ``ssl_private_key``
     - ``ssl_passphrase``
+    - ``suppress_local_output``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

@@ -813,6 +813,3 @@ event gaobot_signature_found%(c: connection%);
 
 ## Shows an IP address anonymization mapping.
 event anonymization_mapping%(orig: addr, mapped: addr%);
-
-## Deprecated. Will be removed.
-event print_hook%(f:file, s: string%);

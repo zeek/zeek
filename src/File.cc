@@ -168,7 +168,6 @@ void BroFile::Init()
 	is_open = 0;
 	attrs = 0;
 	buffered = true;
-	print_hook = true;
 	raw_output = false;
 	t = 0;
 

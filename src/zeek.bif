@@ -4723,28 +4723,10 @@ function file_size%(f: string%) : double
 	return new Val(double(s.st_size), TYPE_DOUBLE);
 	%}
 
-## Disables sending :zeek:id:`print_hook` events to remote peers for a given
-## file. In a
-## distributed setup, communicating Zeek instances generate the event
-## :zeek:id:`print_hook` for each print statement and send it to the remote
-## side. When disabled for a particular file, these events will not be
-## propagated to other peers.
-##
-## f: The file to disable :zeek:id:`print_hook` events for.
-##
-## .. zeek:see:: enable_raw_output
-function disable_print_hook%(f: file%): any
-	%{
-	f->DisablePrintHook();
-	return 0;
-	%}
-
 ## Prevents escaping of non-ASCII characters when writing to a file.
 ## This function is equivalent to :zeek:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
-##
-## .. zeek:see:: disable_print_hook
 function enable_raw_output%(f: file%): any
 	%{
 	f->EnableRawOutput();

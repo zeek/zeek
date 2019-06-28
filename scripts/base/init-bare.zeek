@@ -4723,9 +4723,6 @@ const time_machine_profiling = F &redef;
 ## If true, warns about unused event handlers at startup.
 const check_for_unused_event_handlers = F &redef;
 
-## Deprecated.
-const suppress_local_output = F &redef;
-
 ## Holds the filename of the trace file given with ``-w`` (empty if none).
 ##
 ## .. zeek:see:: record_all_packets

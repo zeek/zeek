@@ -63,9 +63,6 @@ public:
 	// Get the file with the given name, opening it if it doesn't yet exist.
 	static BroFile* GetFile(const char* name);
 
-	void DisablePrintHook() 	{ print_hook = false; }
-	bool IsPrintHookEnabled() const	{ return print_hook; }
-
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }
 
@@ -98,7 +95,6 @@ protected:
 	Attributes* attrs;
 	bool buffered;
 	double open_time;
-	bool print_hook;
 	bool raw_output;
 
 	static const int MIN_BUFFER_SIZE = 1024;

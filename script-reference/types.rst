@@ -979,7 +979,7 @@ Here is a more detailed description of each type:
     distinguishing it from other such resources.
 
     The scripting layer implementations of these types are found primarily in
-    :doc:`/scripts/base/bif/bro.bif.zeek` and a more granular look at them
+    :doc:`/scripts/base/bif/zeek.bif.zeek` and a more granular look at them
     can be found in ``src/OpaqueVal.h/cc`` inside the Zeek repo. Opaque types
     are a good way to integrate functionality into Zeek without needing to
     add an entire new type to the scripting language.

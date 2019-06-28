@@ -1810,7 +1810,7 @@ extern const char* zeek_version();
 ## :zeek:see:`zeek_version` instead.
 ##
 ## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
-function bro_version%(%): string &deprecated
+function bro_version%(%): string &deprecated="Remove in v3.1: use zeek_version"
 	%{
 	return new StringVal(zeek_version());
 	%}
@@ -2137,7 +2137,7 @@ function dump_rule_stats%(f: file%): bool
 ## Returns: True if Zeek is in the process of shutting down.
 ##
 ## .. zeek:see:: terminate
-function bro_is_terminating%(%): bool &deprecated
+function bro_is_terminating%(%): bool &deprecated="Remove in v3.1: use zeek_is_terminating"
 	%{
 	return val_mgr->GetBool(terminating);
 	%}

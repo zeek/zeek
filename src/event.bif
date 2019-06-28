@@ -49,7 +49,7 @@
 event zeek_init%(%);
 
 ## Deprecated synonym for :zeek:see:`zeek_init`.
-event bro_init%(%) &deprecated;
+event bro_init%(%) &deprecated="Remove in v3.1: use zeek_init";
 
 ## Generated at Zeek termination time. The event engine generates this event when
 ## Zeek is about to terminate, either due to having exhausted reading its input
@@ -65,7 +65,7 @@ event bro_init%(%) &deprecated;
 event zeek_done%(%);
 
 ## Deprecated synonym for :zeek:see:`zeek_done`.
-event bro_done%(%) &deprecated;
+event bro_done%(%) &deprecated="Remove in v3.1: use zeek_done";
 
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Zeek uses a flow-based definition
@@ -608,7 +608,7 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 event zeek_script_loaded%(path: string, level: count%);
 
 ## Deprecated synonym for :zeek:see:`zeek_script_loaded`.
-event bro_script_loaded%(path: string, level: count%) &deprecated;
+event bro_script_loaded%(path: string, level: count%) &deprecated="Remove in v3.1: use zeek_script_loaded";
 
 ## Generated each time Zeek's script interpreter opens a file. This event is
 ## triggered only for files opened via :zeek:id:`open`, and in particular not for

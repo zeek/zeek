@@ -74,8 +74,6 @@ State Variables
       ::
 
          {
-            Analyzer::ANALYZER_BACKDOOR,
-            Analyzer::ANALYZER_INTERCONN,
             Analyzer::ANALYZER_TCPSTATS,
             Analyzer::ANALYZER_STEPPINGSTONE
          }

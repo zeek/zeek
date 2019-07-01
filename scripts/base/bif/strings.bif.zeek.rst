@@ -13,53 +13,53 @@ Summary
 ~~~~~~~
 Functions
 #########
-=========================================================================== ============================================================================
-:zeek:id:`clean`: :zeek:type:`function`                                     Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`edit`: :zeek:type:`function`                                      Returns an edited version of a string that applies a special
-                                                                            "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
-:zeek:id:`escape_string`: :zeek:type:`function`                             Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`find_all`: :zeek:type:`function`                                  Finds all occurrences of a pattern in a string.
-:zeek:id:`find_last`: :zeek:type:`function`                                 Finds the last occurrence of a pattern in a string.
-:zeek:id:`gsub`: :zeek:type:`function`                                      Substitutes a given replacement string for all occurrences of a pattern
-                                                                            in a given string.
-:zeek:id:`hexdump`: :zeek:type:`function`                                   Returns a hex dump for given input data.
-:zeek:id:`is_ascii`: :zeek:type:`function`                                  Determines whether a given string contains only ASCII characters.
-:zeek:id:`join_string_vec`: :zeek:type:`function`                           Joins all values in the given vector of strings with a separator placed
-                                                                            between each element.
-:zeek:id:`levenshtein_distance`: :zeek:type:`function`                      Calculates the Levenshtein distance between the two strings.
-:zeek:id:`lstrip`: :zeek:type:`function`                                    Removes all combinations of characters in the *chars* argument
-                                                                            starting at the beginning of the string until first mismatch.
-:zeek:id:`reverse`: :zeek:type:`function`                                   Returns a reversed copy of the string
-:zeek:id:`rstrip`: :zeek:type:`function`                                    Removes all combinations of characters in the *chars* argument
-                                                                            starting at the end of the string until first mismatch.
-:zeek:id:`safe_shell_quote`: :zeek:type:`function`                          Takes a string and escapes characters that would allow execution of
-                                                                            commands at the shell level.
-:zeek:id:`split_string`: :zeek:type:`function`                              Splits a string into an array of strings according to a pattern.
-:zeek:id:`split_string1`: :zeek:type:`function`                             Splits a string *once* into a two-element array of strings according to a
-                                                                            pattern.
-:zeek:id:`split_string_all`: :zeek:type:`function`                          Splits a string into an array of strings according to a pattern.
-:zeek:id:`split_string_n`: :zeek:type:`function`                            Splits a string a given number of times into an array of strings according
-                                                                            to a pattern.
-:zeek:id:`str_shell_escape`: :zeek:type:`function` :zeek:attr:`&deprecated` Takes a string and escapes characters that would allow execution of
-                                                                            commands at the shell level.
-:zeek:id:`str_smith_waterman`: :zeek:type:`function`                        Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
-:zeek:id:`str_split`: :zeek:type:`function`                                 Splits a string into substrings with the help of an index vector of cutting
-                                                                            points.
-:zeek:id:`strcmp`: :zeek:type:`function`                                    Lexicographically compares two strings.
-:zeek:id:`string_cat`: :zeek:type:`function`                                Concatenates all arguments into a single string.
-:zeek:id:`string_fill`: :zeek:type:`function`                               Generates a string of a given size and fills it with repetitions of a source
-                                                                            string.
-:zeek:id:`string_to_ascii_hex`: :zeek:type:`function`                       Returns an ASCII hexadecimal representation of a string.
-:zeek:id:`strip`: :zeek:type:`function`                                     Strips whitespace at both ends of a string.
-:zeek:id:`strstr`: :zeek:type:`function`                                    Locates the first occurrence of one string in another.
-:zeek:id:`sub`: :zeek:type:`function`                                       Substitutes a given replacement string for the first occurrence of a pattern
-                                                                            in a given string.
-:zeek:id:`sub_bytes`: :zeek:type:`function`                                 Get a substring from a string, given a starting position and length.
-:zeek:id:`subst_string`: :zeek:type:`function`                              Substitutes each (non-overlapping) appearance of a string in another.
-:zeek:id:`to_lower`: :zeek:type:`function`                                  Replaces all uppercase letters in a string with their lowercase counterpart.
-:zeek:id:`to_string_literal`: :zeek:type:`function`                         Replaces non-printable characters in a string with escaped sequences.
-:zeek:id:`to_upper`: :zeek:type:`function`                                  Replaces all lowercase letters in a string with their uppercase counterpart.
-=========================================================================== ============================================================================
+======================================================================================================================== ============================================================================
+:zeek:id:`clean`: :zeek:type:`function`                                                                                  Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`edit`: :zeek:type:`function`                                                                                   Returns an edited version of a string that applies a special
+                                                                                                                         "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
+:zeek:id:`escape_string`: :zeek:type:`function`                                                                          Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`find_all`: :zeek:type:`function`                                                                               Finds all occurrences of a pattern in a string.
+:zeek:id:`find_last`: :zeek:type:`function`                                                                              Finds the last occurrence of a pattern in a string.
+:zeek:id:`gsub`: :zeek:type:`function`                                                                                   Substitutes a given replacement string for all occurrences of a pattern
+                                                                                                                         in a given string.
+:zeek:id:`hexdump`: :zeek:type:`function`                                                                                Returns a hex dump for given input data.
+:zeek:id:`is_ascii`: :zeek:type:`function`                                                                               Determines whether a given string contains only ASCII characters.
+:zeek:id:`join_string_vec`: :zeek:type:`function`                                                                        Joins all values in the given vector of strings with a separator placed
+                                                                                                                         between each element.
+:zeek:id:`levenshtein_distance`: :zeek:type:`function`                                                                   Calculates the Levenshtein distance between the two strings.
+:zeek:id:`lstrip`: :zeek:type:`function`                                                                                 Removes all combinations of characters in the *chars* argument
+                                                                                                                         starting at the beginning of the string until first mismatch.
+:zeek:id:`reverse`: :zeek:type:`function`                                                                                Returns a reversed copy of the string
+:zeek:id:`rstrip`: :zeek:type:`function`                                                                                 Removes all combinations of characters in the *chars* argument
+                                                                                                                         starting at the end of the string until first mismatch.
+:zeek:id:`safe_shell_quote`: :zeek:type:`function`                                                                       Takes a string and escapes characters that would allow execution of
+                                                                                                                         commands at the shell level.
+:zeek:id:`split_string`: :zeek:type:`function`                                                                           Splits a string into an array of strings according to a pattern.
+:zeek:id:`split_string1`: :zeek:type:`function`                                                                          Splits a string *once* into a two-element array of strings according to a
+                                                                                                                         pattern.
+:zeek:id:`split_string_all`: :zeek:type:`function`                                                                       Splits a string into an array of strings according to a pattern.
+:zeek:id:`split_string_n`: :zeek:type:`function`                                                                         Splits a string a given number of times into an array of strings according
+                                                                                                                         to a pattern.
+:zeek:id:`str_shell_escape`: :zeek:type:`function` :zeek:attr:`&deprecated` = ``"Remove in v3.1: use safe_shell_quote"`` Takes a string and escapes characters that would allow execution of
+                                                                                                                         commands at the shell level.
+:zeek:id:`str_smith_waterman`: :zeek:type:`function`                                                                     Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
+:zeek:id:`str_split`: :zeek:type:`function`                                                                              Splits a string into substrings with the help of an index vector of cutting
+                                                                                                                         points.
+:zeek:id:`strcmp`: :zeek:type:`function`                                                                                 Lexicographically compares two strings.
+:zeek:id:`string_cat`: :zeek:type:`function`                                                                             Concatenates all arguments into a single string.
+:zeek:id:`string_fill`: :zeek:type:`function`                                                                            Generates a string of a given size and fills it with repetitions of a source
+                                                                                                                         string.
+:zeek:id:`string_to_ascii_hex`: :zeek:type:`function`                                                                    Returns an ASCII hexadecimal representation of a string.
+:zeek:id:`strip`: :zeek:type:`function`                                                                                  Strips whitespace at both ends of a string.
+:zeek:id:`strstr`: :zeek:type:`function`                                                                                 Locates the first occurrence of one string in another.
+:zeek:id:`sub`: :zeek:type:`function`                                                                                    Substitutes a given replacement string for the first occurrence of a pattern
+                                                                                                                         in a given string.
+:zeek:id:`sub_bytes`: :zeek:type:`function`                                                                              Get a substring from a string, given a starting position and length.
+:zeek:id:`subst_string`: :zeek:type:`function`                                                                           Substitutes each (non-overlapping) appearance of a string in another.
+:zeek:id:`to_lower`: :zeek:type:`function`                                                                               Replaces all uppercase letters in a string with their lowercase counterpart.
+:zeek:id:`to_string_literal`: :zeek:type:`function`                                                                      Replaces non-printable characters in a string with escaped sequences.
+:zeek:id:`to_upper`: :zeek:type:`function`                                                                               Replaces all lowercase letters in a string with their uppercase counterpart.
+======================================================================================================================== ============================================================================
 
 
 Detailed Interface
@@ -434,7 +434,7 @@ Functions
 .. zeek:id:: str_shell_escape
 
    :Type: :zeek:type:`function` (source: :zeek:type:`string`) : :zeek:type:`string`
-   :Attributes: :zeek:attr:`&deprecated`
+   :Attributes: :zeek:attr:`&deprecated` = ``"Remove in v3.1: use safe_shell_quote"``
 
    Takes a string and escapes characters that would allow execution of
    commands at the shell level. Must be used before including strings in

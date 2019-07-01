@@ -105,8 +105,6 @@ Redefinable Options
 :zeek:id:`Tunnel::validate_vxlan_checksums`: :zeek:type:`bool` :zeek:attr:`&redef`         Whether to validate the checksum supplied in the outer UDP header
                                                                                            of a VXLAN encapsulation.
 :zeek:id:`Tunnel::vxlan_ports`: :zeek:type:`set` :zeek:attr:`&redef`                       The set of UDP ports used for VXLAN traffic.
-:zeek:id:`backdoor_stat_backoff`: :zeek:type:`double` :zeek:attr:`&redef`                  Deprecated.
-:zeek:id:`backdoor_stat_period`: :zeek:type:`interval` :zeek:attr:`&redef`                 Deprecated.
 :zeek:id:`bits_per_uid`: :zeek:type:`count` :zeek:attr:`&redef`                            Number of bits in UIDs that are generated to identify connections and
                                                                                            files.
 :zeek:id:`check_for_unused_event_handlers`: :zeek:type:`bool` :zeek:attr:`&redef`          If true, warns about unused event handlers at startup.
@@ -134,14 +132,8 @@ Redefinable Options
 :zeek:id:`icmp_inactivity_timeout`: :zeek:type:`interval` :zeek:attr:`&redef`              If an ICMP flow is inactive, time it out after this interval.
 :zeek:id:`ignore_checksums`: :zeek:type:`bool` :zeek:attr:`&redef`                         If true, don't verify checksums.
 :zeek:id:`ignore_keep_alive_rexmit`: :zeek:type:`bool` :zeek:attr:`&redef`                 Ignore certain TCP retransmissions for :zeek:see:`conn_stats`.
-:zeek:id:`interconn_default_pkt_size`: :zeek:type:`count` :zeek:attr:`&redef`              Deprecated.
-:zeek:id:`interconn_max_interarrival`: :zeek:type:`interval` :zeek:attr:`&redef`           Deprecated.
-:zeek:id:`interconn_max_keystroke_pkt_size`: :zeek:type:`count` :zeek:attr:`&redef`        Deprecated.
-:zeek:id:`interconn_min_interarrival`: :zeek:type:`interval` :zeek:attr:`&redef`           Deprecated.
-:zeek:id:`interconn_stat_backoff`: :zeek:type:`double` :zeek:attr:`&redef`                 Deprecated.
-:zeek:id:`interconn_stat_period`: :zeek:type:`interval` :zeek:attr:`&redef`                Deprecated.
 :zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef`                       Ports which the core considers being likely used by servers.
-:zeek:id:`log_rotate_base_time`: :zeek:type:`string` :zeek:attr:`&redef`                   Deprecated.
+:zeek:id:`log_rotate_base_time`: :zeek:type:`string` :zeek:attr:`&redef`                   Base time of log rotations in 24-hour time format (``%H:%M``), e.g.
 :zeek:id:`max_timer_expires`: :zeek:type:`count` :zeek:attr:`&redef`                       The maximum number of timers to expire after processing each new
                                                                                            packet.
 :zeek:id:`mmdb_dir`: :zeek:type:`string` :zeek:attr:`&redef`                               The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
@@ -166,7 +158,6 @@ Redefinable Options
 :zeek:id:`skip_http_data`: :zeek:type:`bool` :zeek:attr:`&redef`                           Skip HTTP data for performance considerations.
 :zeek:id:`stp_delta`: :zeek:type:`interval` :zeek:attr:`&redef`                            Internal to the stepping stone detector.
 :zeek:id:`stp_idle_min`: :zeek:type:`interval` :zeek:attr:`&redef`                         Internal to the stepping stone detector.
-:zeek:id:`suppress_local_output`: :zeek:type:`bool` :zeek:attr:`&redef`                    Deprecated.
 :zeek:id:`table_expire_delay`: :zeek:type:`interval` :zeek:attr:`&redef`                   When expiring table entries, wait this amount of time before checking the
                                                                                            next chunk of entries.
 :zeek:id:`table_expire_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                Check for expired table entries after this amount of time.
@@ -323,7 +314,6 @@ State Variables
 :zeek:id:`done_with_network`: :zeek:type:`bool`                                                                             
 :zeek:id:`http_entity_data_delivery_size`: :zeek:type:`count` :zeek:attr:`&redef`                                           Maximum number of HTTP entity data delivered to events.
 :zeek:id:`interfaces`: :zeek:type:`string` :zeek:attr:`&add_func` = :zeek:see:`add_interface` :zeek:attr:`&redef`           Network interfaces to listen on.
-:zeek:id:`irc_servers`: :zeek:type:`set` :zeek:attr:`&redef`                                                                Deprecated.
 :zeek:id:`load_sample_freq`: :zeek:type:`count` :zeek:attr:`&redef`                                                         Rate at which to generate :zeek:see:`load_sample` events.
 :zeek:id:`login_failure_msgs`: :zeek:type:`set` :zeek:attr:`&redef`                                                         TODO.
 :zeek:id:`login_non_failure_msgs`: :zeek:type:`set` :zeek:attr:`&redef`                                                     TODO.
@@ -364,8 +354,8 @@ Types
 :zeek:type:`EventStats`: :zeek:type:`record`                                  
 :zeek:type:`FileAnalysisStats`: :zeek:type:`record`                           Statistics of file analysis.
 :zeek:type:`GapStats`: :zeek:type:`record`                                    Statistics about number of gaps in TCP connections.
-:zeek:type:`IPAddrAnonymization`: :zeek:type:`enum`                           Deprecated.
-:zeek:type:`IPAddrAnonymizationClass`: :zeek:type:`enum`                      Deprecated.
+:zeek:type:`IPAddrAnonymization`: :zeek:type:`enum`                           ..
+:zeek:type:`IPAddrAnonymizationClass`: :zeek:type:`enum`                      ..
 :zeek:type:`JSON::TimestampFormat`: :zeek:type:`enum`                         
 :zeek:type:`KRB::AP_Options`: :zeek:type:`record`                             AP Options.
 :zeek:type:`KRB::Error_Msg`: :zeek:type:`record`                              The data from the ERROR_MSG message.
@@ -535,7 +525,6 @@ Types
 :zeek:type:`addr_vec`: :zeek:type:`vector`                                    A vector of addresses.
 :zeek:type:`any_vec`: :zeek:type:`vector`                                     A vector of any, used by some builtin functions to store a list of varying
                                                                               types.
-:zeek:type:`backdoor_endp_stats`: :zeek:type:`record`                         Deprecated.
 :zeek:type:`bittorrent_benc_dir`: :zeek:type:`table`                          A table of BitTorrent "benc" values.
 :zeek:type:`bittorrent_benc_value`: :zeek:type:`record`                       BitTorrent "benc" value.
 :zeek:type:`bittorrent_peer`: :zeek:type:`record`                             A BitTorrent peer.
@@ -611,7 +600,6 @@ Types
 :zeek:type:`id_table`: :zeek:type:`table`                                     Table type used to map script-level identifiers to meta-information
                                                                               describing them.
 :zeek:type:`index_vec`: :zeek:type:`vector`                                   A vector of counts, used by some builtin functions to store a list of indices.
-:zeek:type:`interconn_endp_stats`: :zeek:type:`record`                        Deprecated.
 :zeek:type:`ip4_hdr`: :zeek:type:`record`                                     Values extracted from an IPv4 header.
 :zeek:type:`ip6_ah`: :zeek:type:`record`                                      Values extracted from an IPv6 Authentication extension header.
 :zeek:type:`ip6_dstopts`: :zeek:type:`record`                                 Values extracted from an IPv6 Destination options extension header.
@@ -644,7 +632,6 @@ Types
                                                                               file magic signatures.
 :zeek:type:`mime_matches`: :zeek:type:`vector`                                A vector of file magic signature matches, ordered by strength of
                                                                               the signature, strongest first.
-:zeek:type:`packet`: :zeek:type:`record`                                      Deprecated.
 :zeek:type:`pcap_packet`: :zeek:type:`record`                                 Policy-level representation of a packet passed on by libpcap.
 :zeek:type:`pkt_hdr`: :zeek:type:`record`                                     A packet header, consisting of an IP header and transport-layer header.
 :zeek:type:`pkt_profile_modes`: :zeek:type:`enum`                             Output modes for packet profiling information.
@@ -658,12 +645,10 @@ Types
 :zeek:type:`record_field`: :zeek:type:`record`                                Meta-information about a record field.
 :zeek:type:`record_field_table`: :zeek:type:`table`                           Table type used to map record field declarations to meta-information
                                                                               describing them.
-:zeek:type:`rotate_info`: :zeek:type:`record`                                 Deprecated.
+:zeek:type:`rotate_info`: :zeek:type:`record`                                 ..
 :zeek:type:`script_id`: :zeek:type:`record`                                   Meta-information about a script-level identifier.
 :zeek:type:`signature_and_hashalgorithm_vec`: :zeek:type:`vector`             A vector of Signature and Hash Algorithms.
 :zeek:type:`signature_state`: :zeek:type:`record`                             Description of a signature match.
-:zeek:type:`software`: :zeek:type:`record`                                    
-:zeek:type:`software_version`: :zeek:type:`record`                            
 :zeek:type:`string_array`: :zeek:type:`table`                                 An ordered array of strings.
 :zeek:type:`string_set`: :zeek:type:`set`                                     A set of strings.
 :zeek:type:`string_vec`: :zeek:type:`vector`                                  A vector of strings.
@@ -687,22 +672,20 @@ Types
 
 Functions
 #########
-=================================================================== =========================================================
-:zeek:id:`add_interface`: :zeek:type:`function`                     Internal function.
-:zeek:id:`add_signature_file`: :zeek:type:`function`                Internal function.
-:zeek:id:`discarder_check_icmp`: :zeek:type:`function`              Function for skipping packets based on their ICMP header.
-:zeek:id:`discarder_check_ip`: :zeek:type:`function`                Function for skipping packets based on their IP header.
-:zeek:id:`discarder_check_tcp`: :zeek:type:`function`               Function for skipping packets based on their TCP header.
-:zeek:id:`discarder_check_udp`: :zeek:type:`function`               Function for skipping packets based on their UDP header.
-:zeek:id:`log_file_name`: :zeek:type:`function` :zeek:attr:`&redef` Deprecated.
-:zeek:id:`max_count`: :zeek:type:`function`                         Returns maximum of two ``count`` values.
-:zeek:id:`max_double`: :zeek:type:`function`                        Returns maximum of two ``double`` values.
-:zeek:id:`max_interval`: :zeek:type:`function`                      Returns maximum of two ``interval`` values.
-:zeek:id:`min_count`: :zeek:type:`function`                         Returns minimum of two ``count`` values.
-:zeek:id:`min_double`: :zeek:type:`function`                        Returns minimum of two ``double`` values.
-:zeek:id:`min_interval`: :zeek:type:`function`                      Returns minimum of two ``interval`` values.
-:zeek:id:`open_log_file`: :zeek:type:`function` :zeek:attr:`&redef` Deprecated.
-=================================================================== =========================================================
+====================================================== =========================================================
+:zeek:id:`add_interface`: :zeek:type:`function`        Internal function.
+:zeek:id:`add_signature_file`: :zeek:type:`function`   Internal function.
+:zeek:id:`discarder_check_icmp`: :zeek:type:`function` Function for skipping packets based on their ICMP header.
+:zeek:id:`discarder_check_ip`: :zeek:type:`function`   Function for skipping packets based on their IP header.
+:zeek:id:`discarder_check_tcp`: :zeek:type:`function`  Function for skipping packets based on their TCP header.
+:zeek:id:`discarder_check_udp`: :zeek:type:`function`  Function for skipping packets based on their UDP header.
+:zeek:id:`max_count`: :zeek:type:`function`            Returns maximum of two ``count`` values.
+:zeek:id:`max_double`: :zeek:type:`function`           Returns maximum of two ``double`` values.
+:zeek:id:`max_interval`: :zeek:type:`function`         Returns maximum of two ``interval`` values.
+:zeek:id:`min_count`: :zeek:type:`function`            Returns minimum of two ``count`` values.
+:zeek:id:`min_double`: :zeek:type:`function`           Returns minimum of two ``double`` values.
+:zeek:id:`min_interval`: :zeek:type:`function`         Returns minimum of two ``interval`` values.
+====================================================== =========================================================
 
 
 Detailed Interface
@@ -1082,20 +1065,6 @@ Redefinable Options
    if you customize this, you may still want to manually ensure that
    :zeek:see:`likely_server_ports` also gets populated accordingly.
 
-.. zeek:id:: backdoor_stat_backoff
-
-   :Type: :zeek:type:`double`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: backdoor_stat_period
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
 .. zeek:id:: bits_per_uid
 
    :Type: :zeek:type:`count`
@@ -1312,48 +1281,6 @@ Redefinable Options
    
    .. zeek:see:: conn_stats
 
-.. zeek:id:: interconn_default_pkt_size
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: interconn_max_interarrival
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: interconn_max_keystroke_pkt_size
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: interconn_min_interarrival
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: interconn_stat_backoff
-
-   :Type: :zeek:type:`double`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
-.. zeek:id:: interconn_stat_period
-
-   :Type: :zeek:type:`interval`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated.
-
 .. zeek:id:: likely_server_ports
 
    :Type: :zeek:type:`set` [:zeek:type:`port`]
@@ -1508,7 +1435,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"0:00"``
 
-   Deprecated.
+   Base time of log rotations in 24-hour time format (``%H:%M``), e.g. "12:00".
 
 .. zeek:id:: max_timer_expires
 
@@ -1700,14 +1627,6 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
 
    Internal to the stepping stone detector.
-
-.. zeek:id:: suppress_local_output
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   Deprecated.
 
 .. zeek:id:: table_expire_delay
 
@@ -2732,17 +2651,6 @@ State Variables
    Network interfaces to listen on. Use ``redef interfaces += "eth0"`` to
    extend.
 
-.. zeek:id:: irc_servers
-
-   :Type: :zeek:type:`set` [:zeek:type:`addr`]
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``{}``
-
-   Deprecated.
-   
-   .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-      else.
-
 .. zeek:id:: load_sample_freq
 
    :Type: :zeek:type:`count`
@@ -2839,7 +2747,7 @@ State Variables
 
       ``=``::
 
-         open_log_file(prof)
+         open(fmt(prof.%s, Profiling::log_suffix()))
 
 
    Write profiling info into this file in regular intervals. The easiest way to
@@ -3324,8 +3232,6 @@ Types
 
       .. zeek:enum:: PREFIX_PRESERVING_MD5 IPAddrAnonymization
 
-   Deprecated.
-   
    .. zeek:see:: anonymize_addr
 
 .. zeek:type:: IPAddrAnonymizationClass
@@ -3338,8 +3244,6 @@ Types
 
       .. zeek:enum:: OTHER_ADDR IPAddrAnonymizationClass
 
-   Deprecated.
-   
    .. zeek:see:: anonymize_addr
 
 .. zeek:type:: JSON::TimestampFormat
@@ -6708,28 +6612,6 @@ Types
       via ``bifcl``. We should extend ``bifcl`` to understand composite types
       directly and then remove this alias.
 
-.. zeek:type:: backdoor_endp_stats
-
-   :Type: :zeek:type:`record`
-
-      is_partial: :zeek:type:`bool`
-
-      num_pkts: :zeek:type:`count`
-
-      num_8k0_pkts: :zeek:type:`count`
-
-      num_8k4_pkts: :zeek:type:`count`
-
-      num_lines: :zeek:type:`count`
-
-      num_normal_lines: :zeek:type:`count`
-
-      num_bytes: :zeek:type:`count`
-
-      num_7bit_ascii: :zeek:type:`count`
-
-   Deprecated.
-
 .. zeek:type:: bittorrent_benc_dir
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`bittorrent_benc_value`
@@ -8271,32 +8153,6 @@ Types
       via ``bifcl``. We should extend ``bifcl`` to understand composite types
       directly and then remove this alias.
 
-.. zeek:type:: interconn_endp_stats
-
-   :Type: :zeek:type:`record`
-
-      num_pkts: :zeek:type:`count`
-
-      num_keystrokes_two_in_row: :zeek:type:`count`
-
-      num_normal_interarrivals: :zeek:type:`count`
-
-      num_8k0_pkts: :zeek:type:`count`
-
-      num_8k4_pkts: :zeek:type:`count`
-
-      is_partial: :zeek:type:`bool`
-
-      num_bytes: :zeek:type:`count`
-
-      num_7bit_ascii: :zeek:type:`count`
-
-      num_lines: :zeek:type:`count`
-
-      num_normal_lines: :zeek:type:`count`
-
-   Deprecated.
-
 .. zeek:type:: ip4_hdr
 
    :Type: :zeek:type:`record`
@@ -8887,24 +8743,6 @@ Types
    
    :zeek:see:`file_magic`
 
-.. zeek:type:: packet
-
-   :Type: :zeek:type:`record`
-
-      conn: :zeek:type:`connection`
-
-      is_orig: :zeek:type:`bool`
-
-      seq: :zeek:type:`count`
-         seq=k => it is the kth *packet* of the connection
-
-      timestamp: :zeek:type:`time`
-
-   Deprecated.
-   
-   .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-      else.
-
 .. zeek:type:: pcap_packet
 
    :Type: :zeek:type:`record`
@@ -9124,8 +8962,6 @@ Types
       close: :zeek:type:`time`
          Time when closed.
 
-   Deprecated.
-   
    .. zeek:see:: rotate_file rotate_file_by_name
 
 .. zeek:type:: script_id
@@ -9186,28 +9022,6 @@ Types
    Description of a signature match.
    
    .. zeek:see:: signature_match
-
-.. zeek:type:: software
-
-   :Type: :zeek:type:`record`
-
-      name: :zeek:type:`string`
-
-      version: :zeek:type:`software_version`
-
-
-.. zeek:type:: software_version
-
-   :Type: :zeek:type:`record`
-
-      major: :zeek:type:`int`
-
-      minor: :zeek:type:`int`
-
-      minor2: :zeek:type:`int`
-
-      addl: :zeek:type:`string`
-
 
 .. zeek:type:: string_array
 
@@ -9594,13 +9408,6 @@ Functions
    .. note:: This is very low-level functionality and potentially expensive.
       Avoid using it.
 
-.. zeek:id:: log_file_name
-
-   :Type: :zeek:type:`function` (tag: :zeek:type:`string`) : :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated. This is superseded by the new logging framework.
-
 .. zeek:id:: max_count
 
    :Type: :zeek:type:`function` (a: :zeek:type:`count`, b: :zeek:type:`count`) : :zeek:type:`count`
@@ -9684,12 +9491,5 @@ Functions
    
 
    :returns: The minimum of *a* and *b*.
-
-.. zeek:id:: open_log_file
-
-   :Type: :zeek:type:`function` (tag: :zeek:type:`string`) : :zeek:type:`file`
-   :Attributes: :zeek:attr:`&redef`
-
-   Deprecated. This is superseded by the new logging framework.
 
 

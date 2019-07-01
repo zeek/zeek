@@ -35,7 +35,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -52,7 +52,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -69,7 +69,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -86,7 +86,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -103,7 +103,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_not_establish  gnutella_signature_found gnutella_text_msg
+      gnutella_not_establish  gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -120,7 +120,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
+      gnutella_not_establish gnutella_partial_binary_msg
    
    
    .. todo:: Zeek's current default configuration does not activate the protocol

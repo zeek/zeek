@@ -52,6 +52,7 @@ Redefinable Options
                                                                                      in "relaxed" mode.
 :zeek:id:`Broker::relaxed_sleep`: :zeek:type:`interval` :zeek:attr:`&redef`          Interval of time for under-utilized Broker/CAF threads to sleep
                                                                                      when in "relaxed" mode.
+:zeek:id:`Broker::scheduler_policy`: :zeek:type:`string` :zeek:attr:`&redef`         The CAF scheduling policy to use.
 :zeek:id:`Broker::ssl_cafile`: :zeek:type:`string` :zeek:attr:`&redef`               Path to a file containing concatenated trusted certificates 
                                                                                      in PEM format.
 :zeek:id:`Broker::ssl_capath`: :zeek:type:`string` :zeek:attr:`&redef`               Path to an OpenSSL-style directory of trusted certificates.
@@ -129,7 +130,7 @@ Redefinable Options
    :Default: ``4``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
-   in "aggressive" mode.
+   in "aggressive" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::aggressive_polls
 
@@ -138,7 +139,7 @@ Redefinable Options
    :Default: ``5``
 
    Number of work-stealing polling attempts for Broker/CAF threads
-   in "aggressive" mode.
+   in "aggressive" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::congestion_queue_size
 
@@ -254,7 +255,7 @@ Redefinable Options
    :Default: ``2``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
-   in "moderate" mode.
+   in "moderate" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::moderate_polls
 
@@ -263,7 +264,7 @@ Redefinable Options
    :Default: ``5``
 
    Number of work-stealing polling attempts for Broker/CAF threads
-   in "moderate" mode.
+   in "moderate" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::moderate_sleep
 
@@ -272,7 +273,7 @@ Redefinable Options
    :Default: ``16.0 msecs``
 
    Interval of time for under-utilized Broker/CAF threads to sleep
-   when in "moderate" mode.
+   when in "moderate" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::relaxed_interval
 
@@ -281,7 +282,7 @@ Redefinable Options
    :Default: ``1``
 
    Frequency of work-stealing polling attempts for Broker/CAF threads
-   in "relaxed" mode.
+   in "relaxed" mode.  Only used for the "stealing" scheduler policy.
 
 .. zeek:id:: Broker::relaxed_sleep
 
@@ -290,7 +291,23 @@ Redefinable Options
    :Default: ``64.0 msecs``
 
    Interval of time for under-utilized Broker/CAF threads to sleep
-   when in "relaxed" mode.
+   when in "relaxed" mode.  Only used for the "stealing" scheduler policy.
+
+.. zeek:id:: Broker::scheduler_policy
+
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``"sharing"``
+
+   The CAF scheduling policy to use.  Available options are "sharing" and
+   "stealing".  The "sharing" policy uses a single, global work queue along
+   with mutex and condition variable used for accessing it, which may be
+   better for cases that don't require much concurrency or need lower power
+   consumption.  The "stealing" policy uses multiple work queues protected
+   by spinlocks, which may be better for use-cases that have more
+   concurrency needs.  E.g. may be worth testing the "stealing" policy
+   along with dedicating more threads if a lot of data store processing is
+   required.
 
 .. zeek:id:: Broker::ssl_cafile
 

@@ -33,8 +33,8 @@ Runtime Options
       ::
 
          {
-            [Analyzer::ANALYZER_FTP] = 1.0 hr,
-            [Analyzer::ANALYZER_SSH] = 1.0 hr
+            [Analyzer::ANALYZER_SSH] = 1.0 hr,
+            [Analyzer::ANALYZER_FTP] = 1.0 hr
          }
 
 

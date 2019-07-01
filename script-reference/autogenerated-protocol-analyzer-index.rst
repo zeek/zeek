@@ -7,8 +7,6 @@ Protocol Analyzers
 
       .. zeek:enum:: Analyzer::ANALYZER_AYIYA Analyzer::Tag
 
-      .. zeek:enum:: Analyzer::ANALYZER_BACKDOOR Analyzer::Tag
-
       .. zeek:enum:: Analyzer::ANALYZER_BITTORRENT Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_BITTORRENTTRACKER Analyzer::Tag
@@ -50,8 +48,6 @@ Protocol Analyzers
       .. zeek:enum:: Analyzer::ANALYZER_IDENT Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_IMAP Analyzer::Tag
-
-      .. zeek:enum:: Analyzer::ANALYZER_INTERCONN Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_IRC Analyzer::Tag
 
@@ -259,85 +255,6 @@ Components
 ++++++++++
 
 :zeek:enum:`Analyzer::ANALYZER_AYIYA`
-
-Zeek::BackDoor
---------------
-
-Backdoor Analyzer deprecated
-
-Components
-++++++++++
-
-:zeek:enum:`Analyzer::ANALYZER_BACKDOOR`
-
-Events
-++++++
-
-.. zeek:id:: backdoor_stats
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`backdoor_endp_stats`, rs: :zeek:type:`backdoor_endp_stats`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: backdoor_remove_conn
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: ftp_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: gnutella_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: http_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: irc_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: telnet_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, len: :zeek:type:`count`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: ssh_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: rlogin_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, num_null: :zeek:type:`count`, len: :zeek:type:`count`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: smtp_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: http_proxy_signature_found
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
 
 Zeek::BitTorrent
 ----------------
@@ -1788,9 +1705,9 @@ Events
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-      dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+      dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid  dns_query_reply dns_rejected
-      dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
+      dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_request
@@ -1823,9 +1740,9 @@ Events
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-      dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+      dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_rejected dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_rejected
@@ -1860,9 +1777,9 @@ Events
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-      dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+      dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_query_reply
@@ -1894,9 +1811,9 @@ Events
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
       dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-      dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+      dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_rejected
-      dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_request dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_A_reply
@@ -1925,10 +1842,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
       dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_AAAA_reply
@@ -1957,10 +1874,10 @@ Events
    
    .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-      non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_A6_reply
@@ -1989,10 +1906,10 @@ Events
    
    .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-      non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_NS_reply
@@ -2021,10 +1938,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_CNAME_reply
@@ -2053,10 +1970,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-      non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_PTR_reply
@@ -2085,10 +2002,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_SOA_reply
@@ -2117,10 +2034,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_WKS_reply
@@ -2146,10 +2063,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end dns_full_request
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_HINFO_reply
@@ -2175,10 +2092,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-      non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_MX_reply
@@ -2210,10 +2127,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_TXT_reply
@@ -2242,10 +2159,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
+      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_SPF_reply
@@ -2274,10 +2191,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
+      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_CAA_reply
@@ -2347,10 +2264,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_unknown_reply
@@ -2397,10 +2314,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+      dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-      non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+      dns_max_queries dns_session_timeout dns_skip_addl
       dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_TSIG_addl
@@ -2426,10 +2343,10 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply  dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+      dns_SRV_reply  dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 
 .. zeek:id:: dns_RRSIG
@@ -2556,30 +2473,11 @@ Events
    
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_full_request
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-      dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+      dns_rejected dns_request dns_max_queries dns_session_timeout
       dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-
-.. zeek:id:: dns_full_request
-
-   :Type: :zeek:type:`event` ()
-
-   Deprecated. Will be removed.
-   
-   .. todo:: Unclear what this event is for; it's never raised. We should just
-      remove it.
-
-.. zeek:id:: non_dns_request
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`string`)
-
-
-   :msg: The raw DNS payload.
-   
-   .. note:: This event is deprecated and superseded by Zeek's dynamic protocol
-      detection framework.
 
 Zeek::File
 ----------
@@ -2870,7 +2768,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_not_establish gnutella_partial_binary_msg gnutella_signature_found
+      gnutella_not_establish gnutella_partial_binary_msg
    
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -2888,7 +2786,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -2905,7 +2803,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_not_establish  gnutella_signature_found gnutella_text_msg
+      gnutella_not_establish  gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -2922,7 +2820,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -2939,7 +2837,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -2956,7 +2854,7 @@ Events
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
-      gnutella_partial_binary_msg gnutella_signature_found gnutella_text_msg
+      gnutella_partial_binary_msg gnutella_text_msg
    
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
@@ -4062,31 +3960,6 @@ Events
    
 
    :c: The connection.
-
-Zeek::InterConn
----------------
-
-InterConn analyzer deprecated
-
-Components
-++++++++++
-
-:zeek:enum:`Analyzer::ANALYZER_INTERCONN`
-
-Events
-++++++
-
-.. zeek:id:: interconn_stats
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, os: :zeek:type:`interconn_endp_stats`, rs: :zeek:type:`interconn_endp_stats`)
-
-   Deprecated. Will be removed.
-
-.. zeek:id:: interconn_remove_conn
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-
-   Deprecated. Will be removed.
 
 Zeek::IRC
 ---------

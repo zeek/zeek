@@ -16,9 +16,6 @@ Package: base/bif/plugins
 :doc:`/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek`
 
 
-:doc:`/scripts/base/bif/plugins/Zeek_BackDoor.events.bif.zeek`
-
-
 :doc:`/scripts/base/bif/plugins/Zeek_BitTorrent.events.bif.zeek`
 
 
@@ -83,9 +80,6 @@ Package: base/bif/plugins
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek`
-
-
-:doc:`/scripts/base/bif/plugins/Zeek_InterConn.events.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_IRC.events.bif.zeek`

@@ -57,7 +57,6 @@
    base/bif/top-k.bif.zeek </scripts/base/bif/top-k.bif.zeek>
    base/bif/plugins/__load__.zeek </scripts/base/bif/plugins/__load__.zeek>
    base/bif/plugins/Zeek_ARP.events.bif.zeek </scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek>
-   base/bif/plugins/Zeek_BackDoor.events.bif.zeek </scripts/base/bif/plugins/Zeek_BackDoor.events.bif.zeek>
    base/bif/plugins/Zeek_BitTorrent.events.bif.zeek </scripts/base/bif/plugins/Zeek_BitTorrent.events.bif.zeek>
    base/bif/plugins/Zeek_ConnSize.events.bif.zeek </scripts/base/bif/plugins/Zeek_ConnSize.events.bif.zeek>
    base/bif/plugins/Zeek_ConnSize.functions.bif.zeek </scripts/base/bif/plugins/Zeek_ConnSize.functions.bif.zeek>
@@ -80,7 +79,6 @@
    base/bif/plugins/Zeek_ICMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_ICMP.events.bif.zeek>
    base/bif/plugins/Zeek_Ident.events.bif.zeek </scripts/base/bif/plugins/Zeek_Ident.events.bif.zeek>
    base/bif/plugins/Zeek_IMAP.events.bif.zeek </scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek>
-   base/bif/plugins/Zeek_InterConn.events.bif.zeek </scripts/base/bif/plugins/Zeek_InterConn.events.bif.zeek>
    base/bif/plugins/Zeek_IRC.events.bif.zeek </scripts/base/bif/plugins/Zeek_IRC.events.bif.zeek>
    base/bif/plugins/Zeek_KRB.events.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek>
    base/bif/plugins/Zeek_Login.events.bif.zeek </scripts/base/bif/plugins/Zeek_Login.events.bif.zeek>

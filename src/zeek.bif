@@ -1810,7 +1810,7 @@ extern const char* zeek_version();
 ## :zeek:see:`zeek_version` instead.
 ##
 ## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
-function bro_version%(%): string &deprecated
+function bro_version%(%): string &deprecated="Remove in v3.1: use zeek_version"
 	%{
 	return new StringVal(zeek_version());
 	%}
@@ -2137,7 +2137,7 @@ function dump_rule_stats%(f: file%): bool
 ## Returns: True if Zeek is in the process of shutting down.
 ##
 ## .. zeek:see:: terminate
-function bro_is_terminating%(%): bool &deprecated
+function bro_is_terminating%(%): bool &deprecated="Remove in v3.1: use zeek_is_terminating"
 	%{
 	return val_mgr->GetBool(terminating);
 	%}
@@ -4621,7 +4621,7 @@ function get_file_name%(f: file%): string
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. zeek:see:: rotate_file_by_name calc_next_rotate
-function rotate_file%(f: file%): rotate_info &deprecated
+function rotate_file%(f: file%): rotate_info
 	%{
 	RecordVal* info = f->Rotate();
 	if ( info )
@@ -4645,7 +4645,7 @@ function rotate_file%(f: file%): rotate_info &deprecated
 ##          after the rotation, and the time when *f* was opened/closed.
 ##
 ## .. zeek:see:: rotate_file calc_next_rotate
-function rotate_file_by_name%(f: string%): rotate_info &deprecated
+function rotate_file_by_name%(f: string%): rotate_info
 	%{
 	RecordVal* info = new RecordVal(rotate_info);
 
@@ -4699,7 +4699,7 @@ function rotate_file_by_name%(f: string%): rotate_info &deprecated
 ## Returns: The duration until the next file rotation time.
 ##
 ## .. zeek:see:: rotate_file rotate_file_by_name
-function calc_next_rotate%(i: interval%) : interval &deprecated
+function calc_next_rotate%(i: interval%) : interval
 	%{
 	const char* base_time = log_rotate_base_time ?
 		log_rotate_base_time->AsString()->CheckString() : 0;
@@ -4723,28 +4723,10 @@ function file_size%(f: string%) : double
 	return new Val(double(s.st_size), TYPE_DOUBLE);
 	%}
 
-## Disables sending :zeek:id:`print_hook` events to remote peers for a given
-## file. In a
-## distributed setup, communicating Zeek instances generate the event
-## :zeek:id:`print_hook` for each print statement and send it to the remote
-## side. When disabled for a particular file, these events will not be
-## propagated to other peers.
-##
-## f: The file to disable :zeek:id:`print_hook` events for.
-##
-## .. zeek:see:: enable_raw_output
-function disable_print_hook%(f: file%): any
-	%{
-	f->DisablePrintHook();
-	return 0;
-	%}
-
 ## Prevents escaping of non-ASCII characters when writing to a file.
 ## This function is equivalent to :zeek:attr:`&raw_output`.
 ##
 ## f: The file to disable raw output for.
-##
-## .. zeek:see:: disable_print_hook
 function enable_raw_output%(f: file%): any
 	%{
 	f->EnableRawOutput();
@@ -5017,7 +4999,8 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 
 # ===========================================================================
 #
-#                            Deprecated Functions
+#                            Anonymization Functions
+#                            (Not Fully Functional)
 #
 # ===========================================================================
 

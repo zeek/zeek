@@ -1,4 +1,85 @@
 
+2.6-558 | 2019-07-01 01:27:50 -0700
+
+  * GH-443: fix uses of timestamp 0 in cluster diagnostic logs
+
+    For broker.log and cluster.log: there was a race condition.  A worker's
+    first IOSource that it processes is potentially Broker if there were
+    no packets available yet and thread scheduling happens to work out
+    such that network connections (inside CAF threads) become established
+    before we enter the main I/O loop.  Such peering establishments would
+    generate logs with timestamp 0 as there was not yet any code path
+    taken that would update network_time.
+
+    For reporter.log: any non-worker (packet-processing) node would just
+    unnecessarily use a timestamp of 0 for their reporter messages. (Jon Siwek, Corelight)
+
+2.6-556 | 2019-07-01 00:56:13 -0700
+
+  * Improve deprecation warning messages (Jon Siwek, Corelight)
+
+  * Remove deprecated DNS events
+
+    - dns_full_request
+    - non_dns_request (Jon Siwek, Corelight)
+
+  * Remove BackDoor analyzer (Jon Siwek, Corelight)
+
+  * Remove InterConn analyzer (Jon Siwek, Corelight)
+
+  * Remove deprecated/unused irc_servers option (Jon Siwek, Corelight)
+
+  * Remove deprecated print_hook event (Jon Siwek, Corelight)
+
+  * Remove dead code: dump_used_event_handlers (Jon Siwek, Corelight)
+
+  * Remove unused software_version_found events
+
+    - software_version_found
+    - software_unparsed_version_found
+    - software_parse_error (Jon Siwek, Corelight)
+
+  * Remove deprecated open_log_file and log_file_name functions (Jon Siwek, Corelight)
+
+  * Remove deprecated/unused "packet" type (Jon Siwek, Corelight)
+
+  * Un-deprecate anonymizer BIFs (Jon Siwek, Corelight)
+
+  * Un-deprecate file rotation functions
+
+    - rotate_file
+    - rotate_file_by_name
+    - calc_next_rotate
+
+    These still have use-cases even though no longer used for our logging
+    functionality.  E.g. rotate_file_by_name may be used to rotate
+    pcap dump files.
+
+    Also the log_rotate_base_time option was marked deprecated, but still
+    used in the new logging framework. (Jon Siwek, Corelight)
+
+  * Switch default CAF scheduler policy to work sharing
+
+    It may generally be better for our default use-case, as workers may
+    save a few percent cpu utilization as this policy does not have to
+    use any polling like the stealing policy does.
+
+    This also helps avoid a potential issue with the implementation of
+    spinlocks used in the work-stealing policy in current CAF versions,
+    where there's some conditions where lock contention causes a thread
+    to spin for long periods without relinquishing the cpu to others. (Jon Siwek, Corelight)
+
+  * Update sqlite to 3.28.0.  (Johanna Amann, Corelight)
+
+  * GH-320: Improve RFB (VNC) protocol parsing
+
+    Parsing now stops for both client and server if either encounters
+    any parsing error or invalid state.
+
+    After a complete handshake, server messages are no longer parsed.
+    Support for that is incomplete and not sure it's that useful anyway
+    since it mostly contains pixel data. (Jon Siwek, Corelight)
+
 2.6-536 | 2019-06-28 12:10:55 -0700
 
   * Add Windows Minidump file signature (Alexander Bolshakov)

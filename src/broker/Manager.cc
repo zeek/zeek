@@ -178,6 +178,15 @@ void Manager::InitPostScript()
 
 	BrokerConfig config{std::move(options)};
 
+	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
+
+	if ( streq(scheduler_policy, "sharing") )
+		config.set("scheduler.policy", caf::atom("sharing"));
+	else if ( streq(scheduler_policy, "stealing") )
+		config.set("scheduler.policy", caf::atom("stealing"));
+	else
+		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
+
 	auto max_threads_env = zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )
@@ -941,6 +950,12 @@ void Manager::Process()
 
 	if ( had_input )
 		{
+		if ( network_time == 0 )
+			// If we're getting Broker messages, but still haven't initialized
+			// network_time, may as well do so now because otherwise the
+			// broker/cluster logs will end up using timestamp 0.
+			net_update_time(current_time());
+
 		++times_processed_without_idle;
 
 		// The max number of Process calls allowed to happen in a row without

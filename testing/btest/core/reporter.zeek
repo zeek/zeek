@@ -1,7 +1,7 @@
 #
-# @TEST-EXEC: zeek %INPUT >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff logger-test.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff logger-test.log
 
 event zeek_init()
 {
@@ -32,7 +32,7 @@ event connection_established(c: connection)
     first = 0;
 }
 
-global f = open_log_file("logger-test");
+global f = open("logger-test.log");
 
 event reporter_info(t: time, msg: string, location: string)
 	{

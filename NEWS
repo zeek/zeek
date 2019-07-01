@@ -388,6 +388,9 @@ Removed Functionality
     - ``send_state``
     - ``checkpoint_state``
     - ``rescan_state``
+    - ``log_file_name``
+    - ``open_log_file``
+    - ``disable_print_hook``
 
 - The following events were deprecated in version 2.6 or below and are completely
   removed from this release:
@@ -413,12 +416,38 @@ Removed Functionality
     - ``remote_log``
     - ``finished_send_state``
     - ``remote_pong``
+    - ``software_version_found``
+    - ``software_unparsed_version_found``
+    - ``software_parse_error``
+    - ``print_hook``
+    - ``interconn_stats``
+    - ``interconn_remove_conn``
+    - ``root_backdoor_signature_found``
+    - ``napster_signature_found``
+    - ``kazaa_signature_found``
+    - ``gaobot_signature_found``
+    - ``ftp_signature_found``
+    - ``gnutella_signature_found``
+    - ``http_signature_found``
+    - ``irc_signature_found``
+    - ``telnet_signature_found``
+    - ``ssh_signature_found``
+    - ``rlogin_signature_found``
+    - ``smtp_signature_found``
+    - ``http_proxy_signature_found``
+    - ``backdoor_stats``
+    - ``backdoor_remove_conn``
+    - ``dns_full_request``
+    - ``non_dns_request``
 
 - The following types/records were deprecated in version 2.6 or below and are
   removed from this release:
 
     - ``peer_id``
     - ``event_peer``
+    - ``packet``
+    - ``software``
+    - ``software_version``
 
 - The following configuration options were deprecated in version 2.6 or below and are
   removed from this release:
@@ -438,6 +467,18 @@ Removed Functionality
     - ``ssl_ca_certificate``
     - ``ssl_private_key``
     - ``ssl_passphrase``
+    - ``suppress_local_output``
+    - ``irc_servers``
+    - ``interconn_min_interarrival``
+    - ``interconn_max_interarrival``
+    - ``interconn_max_keystroke_pkt_size``
+    - ``interconn_default_pkt_size``
+    - ``interconn_stat_period``
+    - ``interconn_stat_backoff``
+    - ``interconn_endp_stats``
+    - ``backdoor_stat_period``
+    - ``backdoor_stat_backoff``
+    - ``backdoor_endp_stats``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:
@@ -483,6 +524,10 @@ Removed Functionality
   This is typically not necessary and it's a problem that is more
   appropriately addressed at the system configuration level.
 
+- Removed the InterConn analyzer.
+
+- Removed the BackDoor analyzer.
+
 Deprecated Functionality
 ------------------------
 
@@ -499,11 +544,6 @@ Deprecated Functionality
 
 - The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
   replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
-
-- The ``rotate_file``, ``rotate_file_by_name`` and ``calc_next_rotate`` functions
-  were marked as deprecated. These functions were used with the old pre-2.0 logging
-  framework and are no longer used. They also were marked as deprecated in their
-  documentation, however the functions themselves did not carry the deprecation marker.
 
 Bro 2.6
 =======

@@ -160,18 +160,6 @@ public:
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
 
-	// Tries really hard to extract a program name and a version.
-	Val* BuildVersionVal(const char* s, int len);
-
-	// Raises a software_version_found event based on the
-	// given string (returns false if it's not parseable).
-	int VersionFoundEvent(const IPAddr& addr, const char* s, int len,
-				analyzer::Analyzer* analyzer = 0);
-
-	// Raises a software_unparsed_version_found event.
-	int UnparsedVersionFoundEvent(const IPAddr& addr,
-			const char* full_descr, int len, analyzer::Analyzer* analyzer);
-
 	// If a handler exists for 'f', an event will be generated.  If 'name' is
 	// given that event's first argument will be it, and it's second will be
 	// the connection value.  If 'name' is null, then the event's first

@@ -20,10 +20,6 @@
 
 #include "analyzer/protocol/stepping-stone/SteppingStone.h"
 #include "analyzer/protocol/stepping-stone/events.bif.h"
-#include "analyzer/protocol/backdoor/BackDoor.h"
-#include "analyzer/protocol/backdoor/events.bif.h"
-#include "analyzer/protocol/interconn/InterConn.h"
-#include "analyzer/protocol/interconn/events.bif.h"
 #include "analyzer/protocol/arp/ARP.h"
 #include "analyzer/protocol/arp/events.bif.h"
 #include "Discard.h"
@@ -118,13 +114,6 @@ NetSessions::NetSessions()
 		}
 
 	packet_filter = 0;
-
-	build_backdoor_analyzer =
-		backdoor_stats || rlogin_signature_found ||
-		telnet_signature_found || ssh_signature_found ||
-		root_backdoor_signature_found || ftp_signature_found ||
-		napster_signature_found || kazaa_signature_found ||
-		http_signature_found || http_proxy_signature_found;
 
 	dump_this_packet = 0;
 	num_packets_processed = 0;

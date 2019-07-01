@@ -1034,7 +1034,7 @@ function safe_shell_quote%(source: string%): string
 ## Returns: A shell-escaped version of *source*.
 ##
 ## .. zeek:see:: system safe_shell_quote
-function str_shell_escape%(source: string%): string &deprecated
+function str_shell_escape%(source: string%): string &deprecated="Remove in v3.1: use safe_shell_quote"
 	%{
 	unsigned j = 0;
 	const u_char* src = source->Bytes();

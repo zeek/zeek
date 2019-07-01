@@ -203,49 +203,25 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 		++offset;
 		}
 
-	bool ph = print_hook && f->IsPrintHookEnabled();
-
 	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 
-	if ( ! (suppress_local_output && ph) )
-		{
-		if ( f->IsRawOutput() )
-			{
-			ODesc d(DESC_READABLE);
-			d.SetFlush(0);
-			d.SetStyle(style);
-
-			PrintVals(&d, vals, offset);
-			f->Write(d.Description(), d.Len());
-			}
-		else
-			{
-			ODesc d(DESC_READABLE, f);
-			d.SetFlush(0);
-			d.SetStyle(style);
-
-			PrintVals(&d, vals, offset);
-			f->Write("\n", 1);
-			}
-		}
-
-	if ( ph )
+	if ( f->IsRawOutput() )
 		{
 		ODesc d(DESC_READABLE);
+		d.SetFlush(0);
 		d.SetStyle(style);
+
 		PrintVals(&d, vals, offset);
+		f->Write(d.Description(), d.Len());
+		}
+	else
+		{
+		ODesc d(DESC_READABLE, f);
+		d.SetFlush(0);
+		d.SetStyle(style);
 
-		if ( print_hook )
-			{
-			::Ref(f);
-
-			// Note, this doesn't do remote printing.
-			mgr.Dispatch(
-			    new Event(
-			        print_hook,
-			        {new Val(f), new StringVal(d.Len(), d.Description())}),
-			    true);
-			}
+		PrintVals(&d, vals, offset);
+		f->Write("\n", 1);
 		}
 
 	return 0;

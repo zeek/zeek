@@ -128,27 +128,9 @@ extern double stp_delta;
 extern double stp_idle_min;
 extern TableVal* stp_skip_src;
 
-extern double interconn_min_interarrival;
-extern double interconn_max_interarrival;
-extern int interconn_max_keystroke_pkt_size;
-extern int interconn_default_pkt_size;
-extern double interconn_stat_period;
-extern double interconn_stat_backoff;
-extern RecordType* interconn_endp_stats;
-
-extern double backdoor_stat_period;
-extern double backdoor_stat_backoff;
-
-extern RecordType* backdoor_endp_stats;
-
-extern RecordType* software;
-extern RecordType* software_version;
-
 extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;
-
-extern RecordType* packet_type;
 
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
@@ -181,7 +163,6 @@ extern int sig_max_group_size;
 
 extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
-extern TableVal* irc_servers;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
@@ -191,7 +172,6 @@ extern int dpd_ignore_ports;
 extern TableVal* likely_server_ports;
 
 extern int check_for_unused_event_handlers;
-extern int dump_used_event_handlers;
 
 extern int suppress_local_output;
 

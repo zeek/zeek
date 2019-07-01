@@ -13,7 +13,7 @@ export {
 	} &log;
 }
 
-const foo_log = open_log_file("Foo") &redef;
+const foo_log = open("Foo.log") &redef;
 
 event zeek_init()
 {

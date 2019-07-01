@@ -124,9 +124,7 @@ export {
 	## A set of analyzers to disable by default at startup. The default set
 	## contains legacy analyzers that are no longer supported.
 	global disabled_analyzers: set[Analyzer::Tag] = {
-		ANALYZER_INTERCONN,
 		ANALYZER_STEPPINGSTONE,
-		ANALYZER_BACKDOOR,
 		ANALYZER_TCPSTATS,
 	} &redef;
 }

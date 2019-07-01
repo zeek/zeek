@@ -125,27 +125,9 @@ double stp_delta;
 double stp_idle_min;
 TableVal* stp_skip_src;
 
-double interconn_min_interarrival;
-double interconn_max_interarrival;
-int interconn_max_keystroke_pkt_size;
-int interconn_default_pkt_size;
-double interconn_stat_period;
-double interconn_stat_backoff;
-RecordType* interconn_endp_stats;
-
-double backdoor_stat_period;
-double backdoor_stat_backoff;
-
-RecordType* backdoor_endp_stats;
-
-RecordType* software;
-RecordType* software_version;
-
 double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
-
-RecordType* packet_type;
 
 double connection_status_update_interval;
 
@@ -179,7 +161,6 @@ int sig_max_group_size;
 
 TableType* irc_join_list;
 RecordType* irc_join_info;
-TableVal* irc_servers;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
@@ -189,7 +170,6 @@ int dpd_ignore_ports;
 TableVal* likely_server_ports;
 
 int check_for_unused_event_handlers;
-int dump_used_event_handlers;
 
 int suppress_local_output;
 
@@ -241,8 +221,6 @@ void init_general_global_var()
 
 	check_for_unused_event_handlers =
 		opt_internal_int("check_for_unused_event_handlers");
-	dump_used_event_handlers =
-		opt_internal_int("dump_used_event_handlers");
 
 	suppress_local_output = opt_internal_int("suppress_local_output");
 
@@ -398,23 +376,6 @@ void init_net_var()
 	stp_idle_min = opt_internal_double("stp_idle_min");
 	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
 
-	interconn_min_interarrival = opt_internal_double("interconn_min_interarrival");
-	interconn_max_interarrival = opt_internal_double("interconn_max_interarrival");
-	interconn_max_keystroke_pkt_size = opt_internal_int("interconn_max_keystroke_pkt_size");
-	interconn_default_pkt_size = opt_internal_int("interconn_default_pkt_size");
-	interconn_stat_period = opt_internal_double("interconn_stat_period");
-	interconn_stat_backoff = opt_internal_double("interconn_stat_backoff");
-	interconn_endp_stats = internal_type("interconn_endp_stats")->AsRecordType();
-
-	backdoor_stat_period = opt_internal_double("backdoor_stat_period");
-	backdoor_stat_backoff = opt_internal_double("backdoor_stat_backoff");
-	backdoor_endp_stats = internal_type("backdoor_endp_stats")->AsRecordType();
-
-	software = internal_type("software")->AsRecordType();
-	software_version = internal_type("software_version")->AsRecordType();
-
-	packet_type = internal_type("packet")->AsRecordType();
-
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
 	other_addr_anonymization = opt_internal_int("other_addr_anonymization");
@@ -442,7 +403,6 @@ void init_net_var()
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();
-	irc_servers = internal_val("irc_servers")->AsTableVal();
 
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");

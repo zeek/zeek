@@ -73,32 +73,43 @@ export {
 	## ZEEK_BROKER_MAX_THREADS environment variable overrides this setting.
 	const max_threads = 1 &redef;
 
+	## The CAF scheduling policy to use.  Available options are "sharing" and
+	## "stealing".  The "sharing" policy uses a single, global work queue along
+	## with mutex and condition variable used for accessing it, which may be
+	## better for cases that don't require much concurrency or need lower power
+	## consumption.  The "stealing" policy uses multiple work queues protected
+	## by spinlocks, which may be better for use-cases that have more
+	## concurrency needs.  E.g. may be worth testing the "stealing" policy
+	## along with dedicating more threads if a lot of data store processing is
+	## required.
+	const scheduler_policy = "sharing" &redef;
+
 	## Interval of time for under-utilized Broker/CAF threads to sleep
-	## when in "moderate" mode.
+	## when in "moderate" mode.  Only used for the "stealing" scheduler policy.
 	const moderate_sleep = 16 msec &redef;
 
 	## Interval of time for under-utilized Broker/CAF threads to sleep
-	## when in "relaxed" mode.
+	## when in "relaxed" mode.  Only used for the "stealing" scheduler policy.
 	const relaxed_sleep = 64 msec &redef;
 
 	## Number of work-stealing polling attempts for Broker/CAF threads
-	## in "aggressive" mode.
+	## in "aggressive" mode.  Only used for the "stealing" scheduler policy.
 	const aggressive_polls = 5 &redef;
 
 	## Number of work-stealing polling attempts for Broker/CAF threads
-	## in "moderate" mode.
+	## in "moderate" mode.  Only used for the "stealing" scheduler policy.
 	const moderate_polls = 5 &redef;
 
 	## Frequency of work-stealing polling attempts for Broker/CAF threads
-	## in "aggressive" mode.
+	## in "aggressive" mode.  Only used for the "stealing" scheduler policy.
 	const aggressive_interval = 4 &redef;
 
 	## Frequency of work-stealing polling attempts for Broker/CAF threads
-	## in "moderate" mode.
+	## in "moderate" mode.  Only used for the "stealing" scheduler policy.
 	const moderate_interval = 2 &redef;
 
 	## Frequency of work-stealing polling attempts for Broker/CAF threads
-	## in "relaxed" mode.
+	## in "relaxed" mode.  Only used for the "stealing" scheduler policy.
 	const relaxed_interval = 1 &redef;
 
 	## Forward all received messages to subscribing peers.

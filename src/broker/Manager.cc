@@ -178,6 +178,15 @@ void Manager::InitPostScript()
 
 	BrokerConfig config{std::move(options)};
 
+	auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
+
+	if ( streq(scheduler_policy, "sharing") )
+		config.set("scheduler.policy", caf::atom("sharing"));
+	else if ( streq(scheduler_policy, "stealing") )
+		config.set("scheduler.policy", caf::atom("stealing"));
+	else
+		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
+
 	auto max_threads_env = zeekenv("ZEEK_BROKER_MAX_THREADS");
 
 	if ( max_threads_env )

@@ -118,7 +118,7 @@ void FlowBuffer::ExpandBuffer(int length)
 
 	if ( length > policy.max_capacity )
 		{
-		std::string reason = strfmt("expand past max capacity %d/%zu",
+		std::string reason = strfmt("expand past max capacity %d/%d",
 		                            length, policy.max_capacity);
 		throw ExceptionFlowBufferAlloc(reason.c_str());
 		}

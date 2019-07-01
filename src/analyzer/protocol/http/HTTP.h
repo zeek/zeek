@@ -220,7 +220,6 @@ protected:
 
 	const BroString* UnansweredRequestMethod();
 
-	void ParseVersion(data_chunk_t ver, const IPAddr& host, bool user_agent);
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 

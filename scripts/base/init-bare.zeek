@@ -644,17 +644,6 @@ type ReporterStats: record {
 	weirds_by_type:	table[string] of count;
 };
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-type packet: record {
-	conn: connection;
-	is_orig: bool;
-	seq: count;	##< seq=k => it is the kth *packet* of the connection
-	timestamp: time;
-};
-
 ## Table type used to map variable names to their memory allocation.
 ##
 ## .. zeek:see:: global_sizes
@@ -755,8 +744,6 @@ global restrict_filters: table[string] of string &redef;
 ## :zeek:see:`Pcap::precompile_pcap_filter` and :zeek:see:`Pcap::precompile_pcap_filter`.
 type PcapFilterID: enum { None };
 
-## Deprecated.
-##
 ## .. zeek:see:: anonymize_addr
 type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
@@ -766,8 +753,6 @@ type IPAddrAnonymization: enum {
 	PREFIX_PRESERVING_MD5,
 };
 
-## Deprecated.
-##
 ## .. zeek:see:: anonymize_addr
 type IPAddrAnonymizationClass: enum {
 	ORIG_ADDR,
@@ -775,8 +760,6 @@ type IPAddrAnonymizationClass: enum {
 	OTHER_ADDR,
 };
 
-## Deprecated.
-##
 ## .. zeek:see:: rotate_file rotate_file_by_name
 type rotate_info: record {
 	old_name: string;	##< Original filename.
@@ -1792,29 +1775,8 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/bif/strings.bif
 @load base/bif/option.bif
 
-## Deprecated. This is superseded by the new logging framework.
-global log_file_name: function(tag: string): string &redef;
-
-## Deprecated. This is superseded by the new logging framework.
-global open_log_file: function(tag: string): file &redef;
-
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }
-
-function log_file_name(tag: string): string
-	{
-	local suffix = getenv("ZEEK_LOG_SUFFIX");
-
-	if ( suffix == "" )
-		suffix = "log";
-
-	return fmt("%s.%s", tag, suffix);
-	}
-
-function open_log_file(tag: string): file
-	{
-	return open(log_file_name(tag));
-	}
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -3893,12 +3855,6 @@ type PE::SectionHeader: record {
 }
 module GLOBAL;
 
-## Deprecated.
-##
-## .. todo:: Remove. It's still declared internally but doesn't seem  used anywhere
-##    else.
-global irc_servers : set[addr] &redef;
-
 ## Internal to the stepping stone detector.
 const stp_delta: interval &redef;
 
@@ -3908,56 +3864,6 @@ const stp_idle_min: interval &redef;
 ## Internal to the stepping stone detector.
 global stp_skip_src: set[addr] &redef;
 
-## Deprecated.
-const interconn_min_interarrival: interval &redef;
-
-## Deprecated.
-const interconn_max_interarrival: interval &redef;
-
-## Deprecated.
-const interconn_max_keystroke_pkt_size: count &redef;
-
-## Deprecated.
-const interconn_default_pkt_size: count &redef;
-
-## Deprecated.
-const interconn_stat_period: interval &redef;
-
-## Deprecated.
-const interconn_stat_backoff: double &redef;
-
-## Deprecated.
-type interconn_endp_stats: record {
-	num_pkts: count;
-	num_keystrokes_two_in_row: count;
-	num_normal_interarrivals: count;
-	num_8k0_pkts: count;
-	num_8k4_pkts: count;
-	is_partial: bool;
-	num_bytes: count;
-	num_7bit_ascii: count;
-	num_lines: count;
-	num_normal_lines: count;
-};
-
-## Deprecated.
-const backdoor_stat_period: interval &redef;
-
-## Deprecated.
-const backdoor_stat_backoff: double &redef;
-
-## Deprecated.
-type backdoor_endp_stats: record {
-	is_partial: bool;
-	num_pkts: count;
-	num_8k0_pkts: count;
-	num_8k4_pkts: count;
-	num_lines: count;
-	num_normal_lines: count;
-	num_bytes: count;
-	num_7bit_ascii: count;
-};
-
 ## Description of a signature match.
 ##
 ## .. zeek:see:: signature_match
@@ -3966,26 +3872,6 @@ type signature_state: record {
 	conn:         connection;	##< Matching connection.
 	is_orig:      bool;	##< True if matching endpoint is originator.
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
-};
-
-# Deprecated.
-#
-# .. todo:: This type is no longer used. Remove any reference of this from the
-#    core.
-type software_version: record {
-	major: int;
-	minor: int;
-	minor2: int;
-	addl: string;
-};
-
-# Deprecated.
-#
-# .. todo:: This type is no longer used. Remove any reference of this from the
-#    core.
-type software: record {
-	name: string;
-	version: software_version;
 };
 
 # Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
@@ -4622,7 +4508,7 @@ module GLOBAL;
 ## BPF filter the user has set via the -f command line options. Empty if none.
 const cmd_line_bpf_filter = "" &redef;
 
-## Deprecated.
+## Base time of log rotations in 24-hour time format (``%H:%M``), e.g. "12:00".
 const log_rotate_base_time = "0:00" &redef;
 
 ## Write profiling info into this file in regular intervals. The easiest way to
@@ -4780,13 +4666,6 @@ const time_machine_profiling = F &redef;
 
 ## If true, warns about unused event handlers at startup.
 const check_for_unused_event_handlers = F &redef;
-
-# If true, dumps all invoked event handlers at startup.
-# todo::Still used?
-# const dump_used_event_handlers = F &redef;
-
-## Deprecated.
-const suppress_local_output = F &redef;
 
 ## Holds the filename of the trace file given with ``-w`` (empty if none).
 ##

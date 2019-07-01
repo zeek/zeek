@@ -49,7 +49,7 @@
 event zeek_init%(%);
 
 ## Deprecated synonym for :zeek:see:`zeek_init`.
-event bro_init%(%) &deprecated;
+event bro_init%(%) &deprecated="Remove in v3.1: use zeek_init";
 
 ## Generated at Zeek termination time. The event engine generates this event when
 ## Zeek is about to terminate, either due to having exhausted reading its input
@@ -65,7 +65,7 @@ event bro_init%(%) &deprecated;
 event zeek_done%(%);
 
 ## Deprecated synonym for :zeek:see:`zeek_done`.
-event bro_done%(%) &deprecated;
+event bro_done%(%) &deprecated="Remove in v3.1: use zeek_done";
 
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Zeek uses a flow-based definition
@@ -530,59 +530,6 @@ event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
 ##       triggering the match will be passed on to the event.
 event signature_match%(state: signature_state, msg: string, data: string%);
 
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system. This is a protocol-independent event that is fed by
-## different analyzers. For example, the HTTP analyzer reports user-agent and
-## server software by raising this event, assuming it can parse it (if not,
-## :zeek:id:`software_parse_error` will be generated instead).
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## s: A description of the software found.
-##
-## descr: The raw (unparsed) software identification string as extracted from
-##        the protocol.
-##
-## .. zeek:see:: software_parse_error software_unparsed_version_found
-event software_version_found%(c: connection, host: addr,
-			      s: software, descr: string%);
-
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system but cannot parse it. This is a protocol-independent event
-## that is fed by different analyzers. For example, the HTTP analyzer reports
-## user-agent and server software by raising this event if it cannot parse them
-## directly (if it can :zeek:id:`software_version_found` will be generated
-## instead).
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## descr: The raw (unparsed) software identification string as extracted from
-##        the protocol.
-##
-## .. zeek:see:: software_version_found software_unparsed_version_found
-event software_parse_error%(c: connection, host: addr, descr: string%);
-
-## Generated when a protocol analyzer finds an identification of a software
-## used on a system. This is a protocol-independent event that is fed by
-## different analyzers. For example, the HTTP analyzer reports user-agent and
-## server software by raising this event. Different from
-## :zeek:id:`software_version_found`  and :zeek:id:`software_parse_error`, this
-## event is always raised, independent of whether Zeek can parse the version
-## string.
-##
-## c: The connection.
-##
-## host: The host running the reported software.
-##
-## str: The software identification string as extracted from the protocol.
-##
-## .. zeek:see:: software_parse_error software_version_found
-event software_unparsed_version_found%(c: connection, host: addr, str: string%);
-
 ## Generated each time Zeek's internal profiling log is updated. The file is
 ## defined by :zeek:id:`profiling_file`, and its update frequency by
 ## :zeek:id:`profiling_interval` and :zeek:id:`expensive_profiling_multiple`.
@@ -661,7 +608,7 @@ event reporter_error%(t: time, msg: string, location: string%) &error_handler;
 event zeek_script_loaded%(path: string, level: count%);
 
 ## Deprecated synonym for :zeek:see:`zeek_script_loaded`.
-event bro_script_loaded%(path: string, level: count%) &deprecated;
+event bro_script_loaded%(path: string, level: count%) &deprecated="Remove in v3.1: use zeek_script_loaded";
 
 ## Generated each time Zeek's script interpreter opens a file. This event is
 ## triggered only for files opened via :zeek:id:`open`, and in particular not for
@@ -852,20 +799,5 @@ event dns_mapping_altered%(dm: dns_mapping, old_addrs: addr_set, new_addrs: addr
 ## params: The event's parameters.
 event new_event%(name: string, params: call_argument_vector%);
 
-## Deprecated. Will be removed.
-event root_backdoor_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event napster_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event kazaa_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
-event gaobot_signature_found%(c: connection%);
-
-## Deprecated. Will be removed.
+## Shows an IP address anonymization mapping.
 event anonymization_mapping%(orig: addr, mapped: addr%);
-
-## Deprecated. Will be removed.
-event print_hook%(f:file, s: string%);

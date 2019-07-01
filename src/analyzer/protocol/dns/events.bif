@@ -16,9 +16,9 @@
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid  dns_query_reply dns_rejected
-##    dns_request non_dns_request  dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 
@@ -43,9 +43,9 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_rejected dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
@@ -72,9 +72,9 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count%);
 
@@ -98,9 +98,9 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-##    dns_full_request dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
+##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_rejected
-##    dns_request non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_request dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 			qtype: count, qclass: count%);
@@ -123,10 +123,10 @@ event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply
 ##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
@@ -148,10 +148,10 @@ event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
@@ -173,10 +173,10 @@ event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 
@@ -198,10 +198,10 @@ event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
@@ -223,10 +223,10 @@ event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%)
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
@@ -248,10 +248,10 @@ event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: strin
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%);
 
@@ -273,10 +273,10 @@ event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SRV_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%);
 
@@ -296,10 +296,10 @@ event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end dns_full_request
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 
@@ -319,10 +319,10 @@ event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 
@@ -346,10 +346,10 @@ event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, preference: count%);
 
@@ -371,10 +371,10 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
+##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec%);
 
@@ -396,10 +396,10 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end dns_full_request
+##    dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_SPF_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec%);
 
@@ -450,10 +450,10 @@ event dns_CAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, flags: count,
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count%);
 
@@ -488,10 +488,10 @@ event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
-##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request dns_mapping_altered
+##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
 ##    dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid dns_message dns_query_reply dns_rejected dns_request
-##    non_dns_request dns_max_queries dns_session_timeout dns_skip_addl
+##    dns_max_queries dns_session_timeout dns_skip_addl
 ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 
@@ -511,10 +511,10 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply  dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_full_request
+##    dns_SRV_reply  dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_TSIG_addl%(c: connection, msg: dns_msg, ans: dns_tsig_additional%);
 
@@ -600,21 +600,9 @@ event dns_DS%(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr%);
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_full_request
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply
 ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
 ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-##    dns_rejected dns_request non_dns_request dns_max_queries dns_session_timeout
+##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_end%(c: connection, msg: dns_msg%);
-
-## Deprecated. Will be removed.
-##
-## .. todo:: Unclear what this event is for; it's never raised. We should just
-##    remove it.
-event dns_full_request%(%);
-
-## msg: The raw DNS payload.
-##
-## .. note:: This event is deprecated and superseded by Zeek's dynamic protocol
-##    detection framework.
-event non_dns_request%(c: connection, msg: string%);

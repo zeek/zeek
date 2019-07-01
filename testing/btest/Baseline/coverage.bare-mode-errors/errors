@@ -1,4 +1,0 @@
-warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
-warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
-warning in /Users/johanna/bro/master/scripts/policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)
-warning in /Users/johanna/bro/master/testing/btest/../../scripts//policy/misc/trim-trace-file.zeek, line 25: deprecated (rotate_file_by_name)

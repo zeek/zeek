@@ -1758,21 +1758,7 @@ void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64 seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-
-	if ( orig )
-		{
-		if ( ! interp->ParseMessage(data, len, 1) && non_dns_request )
-			{
-			if ( non_dns_request )
-				ConnectionEventFast(non_dns_request, {
-					BuildConnVal(),
-					new StringVal(len, (const char*) data),
-				});
-			}
-		}
-
-	else
-		interp->ParseMessage(data, len, 0);
+	interp->ParseMessage(data, len, orig);
 	}
 
 

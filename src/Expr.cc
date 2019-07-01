@@ -4333,7 +4333,6 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 
 Val* LambdaExpr::Eval(Frame* f) const
 	{
-	reporter->Warning("eval lambda");
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,

@@ -18,8 +18,9 @@ class Val;
 class Frame : public BroObj {
 public:
 	Frame(int size, const BroFunc* func, const val_list *fn_args);
-        // The constructed frame becomes a view of the input frame. No copying is done.
-  Frame(const Frame* other, bool is_view = false);
+        // Constructs a copy or view of other. If a view is constructed the
+        // destructor will not change other's state on deletion.
+        Frame(const Frame* other, bool is_view = false);
 	~Frame() override;
 
 	Val* NthElement(int n) const { return frame[n]; }
@@ -95,19 +96,11 @@ protected:
 };
 
 
-// Class that allows for lookups in both a closure frame and a regular frame
-// according to a list of outer IDs passed into the constructor.
-
-// Facts:
-// 	- A ClosureFrame is created from two frames: a closure and a regular frame.
-// 	- ALL operations except Get/SetElement operations operate on the regular frame.
-// 	- A ClosureFrame requires a list of outside ID's captured by the closure.
-// 	- Get/Set operations on those IDs will be performed on the closure frame.
-
-// ClosureFrame allows functions that generate functions to be passed between
-// different sized frames and still properly capture their closures. It also allows for
-// cleaner handling of closures.
-
+/**
+ * Class that allows for actions in both a regular frame and a closure frame
+ * according to a list of outer IDs captured in the closure passed into the
+ * constructor. 
+ */
 class ClosureFrame : public Frame {
 public:
 	ClosureFrame(Frame* closure, Frame* body,
@@ -122,14 +115,12 @@ private:
 	Frame* closure;
 	Frame* body;
 
-	// Searches the start frame and all sub-frame's closures for a value corresponding
-	// to the id. Returns it when its found. Will fail with little grace if the value
-        // does not actually exist in any of the sub-frames.
+        // Both of these assume that it has already been verified that id is
+        // in the start frame.
         static Val* GatherFromClosure(const Frame* start, const ID* id);
-        // Moves through the closure frames and associates val with id.
         static void SetInClosure(Frame* start, const ID* id, Val* val);
 
-        bool ClosureContains(const ID* i) const;
+        bool CaptureContains(const ID* i) const;
 
         std::vector<const char*> closure_elements;
 };

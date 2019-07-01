@@ -26,8 +26,7 @@ extern void add_type(ID* id, BroType* t, attr_list* attr);
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		       int is_redef, FuncType* t, attr_list* attrs = nullptr);
 extern void end_func(Stmt* body);
-extern std::unique_ptr<function_ingredients>
-	gather_function_ingredients(Stmt* body);
+extern std::unique_ptr<function_ingredients> gather_function_ingredients(Stmt* body);
 extern std::shared_ptr<id_list> gather_outer_ids(Scope* scope, Stmt* body);
 
 extern Val* internal_val(const char* name);

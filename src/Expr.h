@@ -43,6 +43,7 @@ typedef enum {
 	EXPR_IN,
 	EXPR_LIST,
 	EXPR_CALL,
+	EXPR_LAMBDA,
 	EXPR_EVENT,
 	EXPR_SCHEDULE,
 	EXPR_ARITH_COERCE,
@@ -952,15 +953,11 @@ protected:
 };
 
 
-// Class to handle the creation of anonymous functions with closures.
-
-// Facts:
-//     - LambdaExpr creates a new BroFunc on every call to Eval.
-//     - LambdaExpr must be given all the information to create a BroFunc on
-// 	 construction except for the closure.
-//     - The closure for created BroFuncs is the frame that the LambdaExpr is
-// 	 evaluated in.
-
+/**
+ * Class that represents an anonymous function expression in Zeek.
+ * On evaluation, captures the frame that it is evaluated in. This becomes
+ * the closure for the instance of the function that it creates.
+ */
 class LambdaExpr : public Expr {
 public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,

@@ -30,7 +30,7 @@ const char* expr_name(BroExprTag t)
 		"=", "~", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
-		"()", "event", "schedule",
+		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]="
 	};
@@ -4323,7 +4323,7 @@ void CallExpr::ExprDescribe(ODesc* d) const
 	}
 
 LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
-		       std::shared_ptr<id_list> outer_ids)
+		       std::shared_ptr<id_list> outer_ids) : Expr(EXPR_LAMBDA)
 	{
 	this->ingredients = std::move(ingredients);
 	this->outer_ids = std::move(outer_ids);
@@ -4333,6 +4333,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 
 Val* LambdaExpr::Eval(Frame* f) const
 	{
+	reporter->Warning("eval lambda");
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,
@@ -4347,10 +4348,8 @@ Val* LambdaExpr::Eval(Frame* f) const
 
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
-	  d->Add("Lambda Expression");
-	  d->Add("{");
-	  ingredients->body->Describe(d);
-	  d->Add("}");
+	d->Add(expr_name(Tag()));
+	ingredients->body->Describe(d);
 	}
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const

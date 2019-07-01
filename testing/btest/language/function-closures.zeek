@@ -102,7 +102,7 @@ event zeek_init()
 	
 	print "expect: client";
 	print dogs[3];
-	print "expect: unknown-22. outside-5";
+	print "expect: unknown-33. outside-5";
 	print dogs[33];	
 
 	print "";
@@ -126,7 +126,7 @@ event zeek_init()
 
         print "expect: client";
         print dogs_also[3];
-        print "expect: unknown-22. outside-5";
+        print "expect: unknown-33. outside-5";
         print dogs_also[33];
 
 	

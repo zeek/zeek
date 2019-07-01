@@ -530,7 +530,7 @@ std::unique_ptr<function_ingredients> gather_function_ingredients(Stmt* body)
 	ingredients->priority = get_func_priotity(attrs);
 	ingredients->body = body;
 
-	return std::move(ingredients);
+	return ingredients;
 	}
 
 Val* internal_val(const char* name)
@@ -555,7 +555,7 @@ std::shared_ptr<id_list> gather_outer_ids(Scope* scope, Stmt* body)
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
 	        idl->append(cb.outer_id_references[i]->Id());
 
-	return std::move(idl);
+	return idl;
 	}
 
 Val* internal_const_val(const char* name)

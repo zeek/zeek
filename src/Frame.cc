@@ -217,7 +217,7 @@ ClosureFrame::~ClosureFrame()
 
 Val* ClosureFrame::GetElement(ID* id) const
 	{
-	if ( ClosureContains(id) )
+	if ( CaptureContains(id) )
 	      return ClosureFrame::GatherFromClosure(this, id);
 
 	return this->NthElement(id->Offset());
@@ -225,7 +225,7 @@ Val* ClosureFrame::GetElement(ID* id) const
 
 void ClosureFrame::SetElement(const ID* id, Val* v)
 	{
-	if ( ClosureContains(id) )
+	if ( CaptureContains(id) )
 	  ClosureFrame::SetInClosure(this, id, v);
 	else
 	  this->Frame::SetElement(id->Offset(), v);
@@ -250,7 +250,7 @@ Frame* ClosureFrame::SelectiveClone(id_list* choose)
 	loop_over_list(*choose, i)
 	  {
 	    ID* we = (*choose)[i];
-	    if ( ClosureContains(we) )
+	    if ( CaptureContains(we) )
 	      us.append(we);
 	    else
 	      them.append(we);
@@ -282,7 +282,7 @@ Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id)
 	if ( ! conductor )
 		return start->NthElement(id->Offset());
 
-	if (conductor->ClosureContains(id))
+	if (conductor->CaptureContains(id))
 		return ClosureFrame::GatherFromClosure(conductor->closure, id);
 
 	return conductor->NthElement(id->Offset());
@@ -295,14 +295,14 @@ void ClosureFrame::SetInClosure(Frame* start, const ID* id, Val* val)
 	if ( ! conductor )
 	  start->SetElement(id->Offset(), val);
 
-	else if (conductor->ClosureContains(id))
+	else if (conductor->CaptureContains(id))
 	  ClosureFrame::SetInClosure(conductor->closure, id, val);
 
 	else
 	  conductor->Frame::SetElement(id->Offset(), val);
 	}
 
-bool ClosureFrame::ClosureContains(const ID* i) const
+bool ClosureFrame::CaptureContains(const ID* i) const
   {
     const char* target = i->Name();
     return std::any_of(closure_elements.begin(), closure_elements.end(),

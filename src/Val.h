@@ -20,6 +20,7 @@
 #include "Notifier.h"
 #include "IPAddr.h"
 #include "DebugLogger.h"
+#include "RE.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -34,7 +35,6 @@
 class Val;
 class Func;
 class BroFile;
-class RE_Matcher;
 class PrefixTable;
 
 class PortVal;
@@ -349,6 +349,8 @@ public:
 
 	TableVal* GetRecordFields();
 
+	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"));
+
 protected:
 
 	friend class EnumType;
@@ -532,6 +534,7 @@ public:
 
 	// Returns the port number in host order (not including the mask).
 	uint32 Port() const;
+	string Protocol() const;
 
 	// Tests for protocol types.
 	int IsTCP() const;

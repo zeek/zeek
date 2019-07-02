@@ -5039,3 +5039,16 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 			(enum ip_addr_anonymization_class_t) anon_class));
 		}
 	%}
+
+## A function to convert arbitrary Zeek data into a JSON string.
+##
+## v: The value to convert to JSON.  Typically a record.
+##
+## only_loggable: If the v value is a record this will only cause
+##                fields with the &log attribute to be included in the JSON.
+##
+## returns: a JSON formatted string.
+function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
+	%{
+	return val->ToJSON(only_loggable, field_escape_pattern);
+	%}

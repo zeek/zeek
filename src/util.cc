@@ -1872,3 +1872,90 @@ char* zeekenv(const char* name)
 
 	return getenv(it->second);
 	}
+
+static string json_escape_byte(char c)
+	{
+	char hex[2] = {'0', '0'};
+	bytetohex(c, hex);
+
+	string result = "\\x";
+	result.append(hex, 2);
+	
+	return result;
+	}
+
+string json_escape_utf8(const string& val)
+	{
+	string result;
+	result.reserve(val.length());
+	
+	size_t char_start = 0;
+	size_t idx;
+	for ( idx = 0; idx < val.length(); )
+		{
+		// Normal ASCII characters plus a few of the control characters can be inserted directly. The rest of
+		// the control characters should be escaped as regular bytes.
+		if ( ( val[idx] >= 32 && val[idx] <= 127 ) ||
+			 val[idx] == '\b' || val[idx] == '\f' || val[idx] == '\n' || val[idx] == '\r' || val[idx] == '\t' )
+			{
+			result.push_back(val[idx]);
+			++idx;
+			continue;
+			}
+		else if ( val[idx] >= 0 && val[idx] < 32 )
+			{
+			result.append(json_escape_byte(val[idx]));
+			++idx;
+			continue;
+			}
+
+		// The next bit is based on the table at https://en.wikipedia.org/wiki/UTF-8#Description.
+		// If next character is 11110xxx, this is a 4-byte UTF-8
+		int char_size = 0;
+		if ( (val[idx] & 0xF8) == 0xF0 ) char_size = 4;
+		
+		// If next character is 1110xxxx, this is a 3-byte UTF-8
+		else if ( (val[idx] & 0xF0) == 0xE0 ) char_size = 3;
+		
+		// If next character is 110xxxxx, this is a 2-byte UTF-8
+		else if ( (val[idx] & 0xE0) == 0xC0 ) char_size = 2;
+		
+		// This byte isn't a continuation byte, insert it as a byte and continue.
+		if ( char_size == 0)
+			{
+			result.append(json_escape_byte(val[idx]));
+			++idx;
+			continue;
+			}
+		
+		// If we don't have enough bytes to get to the end of character, give up and insert all of the rest
+		// of them as escaped values.
+		if ( char_size > (val.length() - idx) )
+			break;
+		
+		// Loop through the rest of the supposed character and see if this is a valid character.
+		size_t c_idx = idx + 1;
+		for ( ; c_idx < idx + char_size; c_idx++ )
+			if ( (val[c_idx] & 0xC0) != 0x80 ) break;
+		
+		// if we didn't make it to the end of the character without finding an error, insert just this
+		// character and skip ahead. Otherwise insert all of the bytes for this character into the result.
+		if ( c_idx != idx + char_size )
+			{
+			result.append(json_escape_byte(val[idx]));
+			++idx;
+			continue;
+			}
+		else
+			{
+			for ( size_t step = 0; step < char_size; step++, idx++ )
+				result.push_back(val[idx]);
+			}
+		}
+	
+	if ( idx != val.length() )
+		for ( ; idx < val.length(); ++idx )
+			result.append(json_escape_byte(val[idx]));
+	
+	return result;
+	}

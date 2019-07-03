@@ -37,8 +37,7 @@ public:
 	void PrintDebug();
 
 private:
-	declare(PDict, EventHandler);
-	typedef PDict(EventHandler) handler_map;
+	typedef PDict<EventHandler> handler_map;
 	handler_map handlers;
 };
 

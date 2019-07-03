@@ -33,8 +33,6 @@ struct Element {
 	~Element();
 };
 
-declare(PDict, Element);
-
 class TopkVal : public OpaqueVal {
 
 public:
@@ -168,7 +166,7 @@ private:
 	BroType* type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
-	PDict(Element)* elementDict;
+	PDict<Element>* elementDict;
 	uint64 size; // how many elements are we tracking?
 	uint64 numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?

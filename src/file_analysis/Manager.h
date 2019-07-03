@@ -26,9 +26,6 @@
 
 namespace file_analysis {
 
-declare(PDict,bool);
-declare(PDict,File);
-
 /**
  * Main entry point for interacting with file analysis.
  */
@@ -339,8 +336,8 @@ public:
 protected:
 	friend class FileTimer;
 
-	typedef PDict(bool) IDSet;
-	typedef PDict(File) IDMap;
+	typedef PDict<bool> IDSet;
+	typedef PDict<File> IDMap;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -410,8 +407,8 @@ private:
 
 	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
-	PDict(File) id_map;  /**< Map file ID to file_analysis::File records. */
-	PDict(bool) ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	PDict<File> id_map;  /**< Map file ID to file_analysis::File records. */
+	PDict<bool> ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */

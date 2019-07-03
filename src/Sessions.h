@@ -20,9 +20,6 @@ class Connection;
 class ConnCompressor;
 struct ConnID;
 
-declare(PDict,Connection);
-declare(PDict,FragReassembler);
-
 class Discarder;
 class PacketFilter;
 
@@ -216,10 +213,10 @@ protected:
 			      const Packet *pkt, const EncapsulationStack* encap);
 
 	CompositeHash* ch;
-	PDict(Connection) tcp_conns;
-	PDict(Connection) udp_conns;
-	PDict(Connection) icmp_conns;
-	PDict(FragReassembler) fragments;
+	PDict<Connection> tcp_conns;
+	PDict<Connection> udp_conns;
+	PDict<Connection> icmp_conns;
+	PDict<FragReassembler> fragments;
 
 	typedef pair<IPAddr, IPAddr> IPPair;
 	typedef pair<EncapsulatingConn, double> TunnelActivity;

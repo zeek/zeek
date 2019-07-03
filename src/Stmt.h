@@ -17,8 +17,6 @@
 class StmtList;
 class ForStmt;
 
-declare(PDict, int);
-
 class Stmt : public BroObj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
@@ -237,7 +235,7 @@ protected:
 	case_list* cases;
 	int default_case_idx;
 	CompositeHash* comp_hash;
-	PDict(int) case_label_value_map;
+	PDict<int> case_label_value_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 

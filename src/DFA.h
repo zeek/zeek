@@ -105,10 +105,8 @@ private:
 	int hits;	// Statistics
 	int misses;
 
-	declare(PDict,CacheEntry);
-
 	// Hash indexed by NFA states (MD5s of them, actually).
-	PDict(CacheEntry) states;
+	PDict<CacheEntry> states;
 };
 
 class DFA_Machine : public BroObj {

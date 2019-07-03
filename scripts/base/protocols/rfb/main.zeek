@@ -106,11 +106,6 @@ function set_session(c: connection)
 		}
 	}
 
-event rfb_event(c: connection) &priority=5
-	{
-	set_session(c);
-	}
-
 event rfb_client_version(c: connection, major_version: string, minor_version: string) &priority=5
 	{
 	set_session(c);

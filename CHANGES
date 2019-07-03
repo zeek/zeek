@@ -1,4 +1,8 @@
 
+2.6-565 | 2019-07-03 09:32:34 -0700
+
+  * GH-446: Deprecate rfb_event. (Johanna Amann, Corelight)
+
 2.6-563 | 2019-07-03 01:57:40 -0700
 
   * Fix CIF integration and add logging options to intel.log and added comments to code (sfinlon)

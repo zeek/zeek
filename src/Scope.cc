@@ -19,7 +19,7 @@ Scope::Scope(ID* id, attr_list* al)
 	attrs = al;
 	return_type = 0;
 
-	local = new PDict(ID)(ORDERED);
+	local = new PDict<ID>(ORDERED);
 	inits = new id_list;
 
 	if ( id )
@@ -108,7 +108,7 @@ void Scope::Describe(ODesc* d) const
 
 TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	{
-	PDict(ID)* ids = GetIDs();
+	PDict<ID>* ids = GetIDs();
 	IterCookie* iter = ids->InitForIteration();
 
 	HashKey* key;

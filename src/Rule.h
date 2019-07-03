@@ -15,9 +15,7 @@ class RuleHdrTest;
 class Rule;
 
 typedef PList<Rule> rule_list;
-
-declare(PDict, Rule);
-typedef PDict(Rule) rule_dict;
+typedef PDict<Rule> rule_dict;
 
 class Rule {
 public:

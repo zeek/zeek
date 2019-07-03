@@ -14,7 +14,6 @@
 namespace file_analysis {
 
 class File;
-declare(PDict,Analyzer);
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -139,7 +138,7 @@ private:
 
 	File* file;                                  /**< File which owns the set */
 	CompositeHash* analyzer_hash;                /**< AnalyzerArgs hashes. */
-	PDict(file_analysis::Analyzer) analyzer_map; /**< Indexed by AnalyzerArgs. */
+	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.

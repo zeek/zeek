@@ -956,7 +956,7 @@ void TableVal::Init(TableType* t)
 		subnets = 0;
 
 	table_hash = new CompositeHash(table_type->Indices());
-	val.table_val = new PDict(TableEntryVal);
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
@@ -979,7 +979,7 @@ void TableVal::RemoveAll()
 	{
 	// Here we take the brute force approach.
 	delete AsTable();
-	val.table_val = new PDict(TableEntryVal);
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
@@ -992,7 +992,7 @@ int TableVal::RecursiveSize() const
 			!= TYPE_TABLE )
 		return n;
 
-	PDict(TableEntryVal)* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;
@@ -1130,7 +1130,7 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 		return 0;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -1178,7 +1178,7 @@ int TableVal::RemoveFrom(Val* val) const
 		return 0;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -1200,14 +1200,14 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 	{
 	TableVal* result = new TableVal(table_type);
 
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
-	PDict(TableEntryVal)* t2 = result->AsNonConstTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
+	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.
 	if ( t1->Length() > t0->Length() )
 		{ // Swap.
-		const PDict(TableEntryVal)* tmp = t1;
+		const PDict<TableEntryVal>* tmp = t1;
 		t1 = t0;
 		t0 = tmp;
 		}
@@ -1229,8 +1229,8 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 
 bool TableVal::EqualTo(const TableVal* tv) const
 	{
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
 
 	if ( t0->Length() != t1->Length() )
 		return false;
@@ -1256,8 +1256,8 @@ bool TableVal::EqualTo(const TableVal* tv) const
 
 bool TableVal::IsSubsetOf(const TableVal* tv) const
 	{
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
 
 	if ( t0->Length() > t1->Length() )
 		return false;
@@ -1437,7 +1437,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		return def;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 
 	if ( tbl->Length() > 0 )
 		{
@@ -1582,7 +1582,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	{
 	ListVal* l = new ListVal(t);
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -1623,7 +1623,7 @@ ListVal* TableVal::ConvertToPureList() const
 
 void TableVal::Describe(ODesc* d) const
 	{
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	int n = tbl->Length();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -1767,7 +1767,7 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict(TableEntryVal)* tbl = AsNonConstTable();
+	PDict<TableEntryVal>* tbl = AsNonConstTable();
 
 	double timeout = GetExpireTime();
 
@@ -1952,7 +1952,7 @@ Val* TableVal::DoClone(CloneState* state)
 	auto tv = new TableVal(table_type);
 	state->NewClone(this, tv);
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
 	HashKey* key;
@@ -2001,7 +2001,7 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	PDict(TableEntryVal)* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;

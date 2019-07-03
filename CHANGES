@@ -1,4 +1,8 @@
 
+2.6-563 | 2019-07-03 01:57:40 -0700
+
+  * Fix CIF integration and add logging options to intel.log and added comments to code (sfinlon)
+
 2.6-558 | 2019-07-01 01:27:50 -0700
 
   * GH-443: fix uses of timestamp 0 in cluster diagnostic logs

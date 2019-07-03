@@ -17,7 +17,7 @@ class ListVal;
 
 class Scope : public BroObj {
 public:
-	explicit Scope(ID* id, attr_list* al);
+	explicit Scope(ID* id, attr_list* al, int overload_idx = -1);
 	~Scope() override;
 
 	ID* Lookup(const std::string& name) const
@@ -43,6 +43,7 @@ public:
 		}
 
 	ID* ScopeID() const		{ return scope_id; }
+	int OverloadIndex() const	{ return overload_idx; }
 	attr_list* Attrs() const	{ return attrs; }
 	BroType* ReturnType() const	{ return return_type; }
 
@@ -64,6 +65,7 @@ public:
 
 protected:
 	ID* scope_id;
+	int overload_idx;
 	attr_list* attrs;
 	BroType* return_type;
 	std::map<std::string, ID*> local;
@@ -81,7 +83,7 @@ extern ID* lookup_ID(const char* name, const char* module,
 extern ID* install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 
-extern void push_scope(ID* id, attr_list* attrs);
+extern void push_scope(ID* id, attr_list* attrs, int overload_idx = -1);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off; it's not deleted.

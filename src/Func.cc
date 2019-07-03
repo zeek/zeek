@@ -105,27 +105,87 @@ std::string render_call_stack()
 	return rval;
 	}
 
-Func::Func() : scope(0), type(0)
+FuncOverload::FuncOverload()
+: func(), type()
 	{
-	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
 	}
 
-Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), type(0)
+FuncOverload::FuncOverload(Func* arg_func, FuncType* arg_type)
+: func(arg_func), type(arg_type)
 	{
-	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
+	::Ref(type);
 	}
 
-Func::~Func()
+FuncOverload::~FuncOverload()
 	{
 	Unref(type);
 	}
 
-void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
-		   size_t /* new_frame_size */, int /* priority */)
+const char* FuncOverload::Name() const
 	{
-	Internal("Func::AddBody called");
+	return func->Name();
+	}
+
+function_flavor FuncOverload::Flavor() const
+	{
+	return func->Flavor();
+	}
+
+Func::Func(Kind arg_kind, std::string arg_name)
+: kind(arg_kind), name(std::move(arg_name)), unique_id(unique_ids.size())
+	{
+	unique_ids.emplace_back(this);
+	}
+
+Func::~Func()
+	{
+	for ( auto& o : overloads )
+		delete o;
+	}
+
+Val* Func::Call(val_list* args, Frame* parent) const
+	{
+	if ( overloads.size() == 1 )
+		// Note: va_args BIFs would be one case that relies on taking this
+		// shortcut not just as a performance optimization.  Should be safe
+		// because we can't overload such va_args functions.
+		return overloads[0]->Call(args, parent);
+
+	for ( auto i = 0u; i < overloads.size(); ++i )
+		{
+		auto& o = overloads[i];
+		// TODO: each overload value is storing the full FuncType (which
+		// has all the overload types), which is probably excessive and/or
+		// can be simplified.
+		auto otype = o->GetType()->GetOverload(i);
+		auto oargs = otype->arg_types->Types();
+
+		if ( oargs->length() != args->length() )
+			continue;
+
+		auto args_match = true;
+
+		for ( auto i = 0; i < oargs->length(); ++i )
+			{
+			if ( ! same_type((*oargs)[i], (*args)[i]->Type()) )
+				{
+				args_match = false;
+				break;
+				}
+			}
+
+		if ( args_match )
+			return o->Call(args, parent);
+		}
+
+	reporter->PushLocation(GetLocationInfo());
+	reporter->FatalError("Invalid function call for %s: no matching overload", Name());
+	return nullptr;
+	}
+
+void Func::AddOverload(FuncOverload* fo)
+	{
+	overloads.emplace_back(fo);
 	}
 
 Func* Func::DoClone()
@@ -135,8 +195,37 @@ Func* Func::DoClone()
 	return this;
 	}
 
+Scope* Func::GetScope() const
+	{
+	assert(overloads.size() == 1);
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetScope();
+	}
+
+const vector<FuncBody>& Func::GetBodies() const
+	{
+	assert(overloads.size() == 1);
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies();
+	}
+
+bool Func::HasBodies() const
+	{
+	assert(overloads.size() == 1);
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies().size();
+	}
+
+void Func::Describe(ODesc* d) const
+	{
+	// TODO: print all overloads ?
+	assert(overloads.size() == 1);
+	overloads[0]->Describe(d);
+	}
+
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
 	{
+	// TODO: print all overloads ?
 	d->Add(Name());
 
 	RecordType* func_args = FType()->Args();
@@ -171,22 +260,23 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 
 TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
+	// TODO: traverse all overloads
 	// FIXME: Make a fake scope for builtins?
 	Scope* old_scope = cb->current_scope;
-	cb->current_scope = scope;
+	cb->current_scope = GetScope();
 
 	TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);
 
 	// FIXME: Traverse arguments to builtin functions, too.
-	if ( kind == BRO_FUNC && scope )
+	if ( kind == BRO_FUNC && GetScope() )
 		{
-		tc = scope->Traverse(cb);
+		tc = GetScope()->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 
-		for ( unsigned int i = 0; i < bodies.size(); ++i )
+		for ( unsigned int i = 0; i < GetBodies().size(); ++i )
 			{
-			tc = bodies[i].stmts->Traverse(cb);
+			tc = GetBodies()[i].stmts->Traverse(cb);
 			HANDLE_TC_STMT_PRE(tc);
 			}
 		}
@@ -212,7 +302,8 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
+// Helper function for handling result of plugin hook.
+static std::pair<bool, Val*> HandlePluginResult(const FuncOverload* func, std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor)
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
@@ -230,30 +321,30 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
 		if( plugin_result.second )
-			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+			reporter->InternalError("plugin returned non-void result for event %s", func->Name());
 
 		break;
 
 	case FUNC_FLAVOR_HOOK:
 		if ( plugin_result.second->Type()->Tag() != TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+			reporter->InternalError("plugin returned non-bool for hook %s", func->Name());
 
 		break;
 
 	case FUNC_FLAVOR_FUNCTION:
 		{
-		BroType* yt = FType()->YieldType();
+		BroType* yt = func->GetType()->YieldType();
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
 			if( plugin_result.second )
-				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+				reporter->InternalError("plugin returned non-void result for void method %s", func->Name());
 			}
 
 		else if ( plugin_result.second && plugin_result.second->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
 			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-						plugin_result.second->Type()->Tag(), yt->Tag(), this->Name());
+						plugin_result.second->Type()->Tag(), yt->Tag(), func->Name());
 			}
 
 		break;
@@ -266,16 +357,17 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	return plugin_result;
 	}
 
-BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		 size_t arg_frame_size, int priority) : Func(BRO_FUNC)
+BroFunc::BroFunc(Func* f, BroType* arg_type, Stmt* arg_body,
+                 id_list* aggr_inits, int arg_frame_size, int priority,
+                 Scope* arg_scope)
+: FuncOverload(f, arg_type->AsFuncType())
 	{
-	name = arg_id->Name();
-	type = arg_id->Type()->Ref();
+	scope = arg_scope;
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
 		{
-		Body b;
+		FuncBody b;
 		b.stmts = AddInits(arg_body, aggr_inits);
 		b.priority = priority;
 		bodies.push_back(b);
@@ -300,14 +392,15 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, location);
+
+	SegmentProfiler(segment_logger, func->GetLocationInfo());
 
 	if ( sample_logger )
-		sample_logger->FunctionSeen(this);
+		sample_logger->FunctionSeen(func);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(GetFunc(), parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+	plugin_result = HandlePluginResult(this, plugin_result, args, Flavor());
 
 	if( plugin_result.first )
 		{
@@ -344,10 +437,10 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		GetFunc()->DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
-			FType()->FlavorString().c_str(), d.Description());
+			type->FlavorString().c_str(), d.Description());
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
@@ -434,7 +527,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
+	else if ( type->YieldType() && type->YieldType()->Tag() != TYPE_VOID &&
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
@@ -456,15 +549,15 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	return result;
 	}
 
-void BroFunc::AddBody(Stmt* new_body, id_list* new_inits,
-		      size_t new_frame_size, int priority)
+void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
+                      int priority, Scope* scope)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
 	new_body = AddInits(new_body, new_inits);
 
-	if ( Flavor() == FUNC_FLAVOR_FUNCTION )
+	if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
@@ -473,7 +566,7 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits,
 		bodies.clear();
 		}
 
-	Body b;
+	FuncBody b;
 	b.stmts = new_body;
 	b.priority = priority;
 
@@ -566,25 +659,30 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 			int arg_is_pure)
-: Func(BUILTIN_FUNC)
+: FuncOverload()
 	{
-	func = arg_func;
-	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
+	internal_func = arg_func;
 	is_pure = arg_is_pure;
 
-	ID* id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	auto name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
+
+	ID* id = lookup_ID(name.data(), GLOBAL_MODULE_NAME, false);
+
 	if ( ! id )
-		reporter->InternalError("built-in function %s missing", Name());
+		reporter->InternalError("built-in function %s missing", name.data());
+
+	// TODO: support overloads
 	if ( id->HasVal() )
-		reporter->InternalError("built-in function %s multiply defined", Name());
+		reporter->InternalError("built-in function %s multiply defined", name.data());
 
-	type = id->Type()->Ref();
-	id->SetVal(new Val(this));
+	auto f = new Func(Func::BUILTIN_FUNC, std::move(name));
+	func = f;
+	type = id->Type()->Ref()->AsFuncType();
+
+	f->AddOverload(this);
+
+	id->SetVal(new Val(f));
 	Unref(id);
-	}
-
-BuiltinFunc::~BuiltinFunc()
-	{
 	}
 
 int BuiltinFunc::IsPure() const
@@ -600,11 +698,11 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	SegmentProfiler(segment_logger, Name());
 
 	if ( sample_logger )
-		sample_logger->FunctionSeen(this);
+		sample_logger->FunctionSeen(func);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(GetFunc(), parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+	plugin_result = HandlePluginResult(this, plugin_result, args, FUNC_FLAVOR_FUNCTION);
 
 	if ( plugin_result.first )
 		{
@@ -615,14 +713,14 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		GetFunc()->DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	Val* result = func(parent, args);
+	Val* result = internal_func(parent, args);
 	call_stack.pop_back();
 
 	for ( const auto& arg : *args )
@@ -761,7 +859,7 @@ void init_builtin_funcs_subdirs()
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != BifFunc::bro_fmt )
+	if ( f->InternalFunc() != BifFunc::bro_fmt )
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();

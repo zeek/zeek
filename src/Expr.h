@@ -941,7 +941,6 @@ public:
 
 protected:
 	friend class Expr;
-	CallExpr()	{ func = 0; args = 0; }
 
 	void ExprDescribe(ODesc* d) const override;
 

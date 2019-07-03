@@ -1,4 +1,8 @@
 
+2.6-566 | 2019-07-03 11:08:24 -0700
+
+  * Improve Zeekygen output for long attribute expressions (Jon Siwek, Corelight)
+
 2.6-565 | 2019-07-03 09:32:34 -0700
 
   * GH-446: Deprecate rfb_event. (Johanna Amann, Corelight)

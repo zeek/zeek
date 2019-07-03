@@ -412,7 +412,7 @@ void ID::DescribeReSTShort(ODesc* d) const
 	if ( attrs )
 		{
 		d->SP();
-		attrs->DescribeReST(d);
+		attrs->DescribeReST(d, true);
 		}
 	}
 

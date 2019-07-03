@@ -45,8 +45,33 @@ void Attr::Describe(ODesc* d) const
 		}
 	}
 
-void Attr::DescribeReST(ODesc* d) const
+void Attr::DescribeReST(ODesc* d, bool shorten) const
 	{
+	auto add_long_expr_string = [](ODesc* d, const std::string& s, bool shorten)
+		{
+		constexpr auto max_expr_chars = 32;
+		constexpr auto shortened_expr = "*...*";
+
+		if ( s.size() > max_expr_chars )
+			{
+			if ( shorten )
+				d->Add(shortened_expr);
+			else
+				{
+				// Long inline-literals likely won't wrap well in HTML render
+				d->Add("*");
+				d->Add(s);
+				d->Add("*");
+				}
+			}
+		else
+			{
+			d->Add("``");
+			d->Add(s);
+			d->Add("``");
+			}
+		};
+
 	d->Add(":zeek:attr:`");
 	AddTag(d);
 	d->Add("`");
@@ -56,7 +81,6 @@ void Attr::DescribeReST(ODesc* d) const
 		d->SP();
 		d->Add("=");
 		d->SP();
-
 
 		if ( expr->Tag() == EXPR_NAME )
 			{
@@ -74,14 +98,15 @@ void Attr::DescribeReST(ODesc* d) const
 
 		else if ( expr->Tag() == EXPR_CONST )
 			{
-			d->Add("``");
-			expr->Describe(d);
-			d->Add("``");
+			ODesc dd;
+			dd.SetQuotes(1);
+			expr->Describe(&dd);
+			string s = dd.Description();
+			add_long_expr_string(d, s, shorten);
 			}
 
 		else
 			{
-			d->Add("``");
 			Val* v = expr->Eval(0);
 			ODesc dd;
 			v->Describe(&dd);
@@ -92,8 +117,7 @@ void Attr::DescribeReST(ODesc* d) const
 				if ( s[i] == '\n' )
 					s[i] = ' ';
 
-			d->Add(s);
-			d->Add("``");
+			add_long_expr_string(d, s, shorten);
 			}
 		}
 	}
@@ -211,14 +235,14 @@ void Attributes::Describe(ODesc* d) const
 		}
 	}
 
-void Attributes::DescribeReST(ODesc* d) const
+void Attributes::DescribeReST(ODesc* d, bool shorten) const
 	{
 	loop_over_list(*attrs, i)
 		{
 		if ( i > 0 )
 			d->Add(" ");
 
-		(*attrs)[i]->DescribeReST(d);
+		(*attrs)[i]->DescribeReST(d, shorten);
 		}
 	}
 

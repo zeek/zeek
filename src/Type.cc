@@ -504,39 +504,146 @@ SetType::~SetType()
 FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
 : BroType(TYPE_FUNC)
 	{
-	args = arg_args;
 	yield = arg_yield;
 	flavor = arg_flavor;
+	AddOverload(arg_args);
+	}
 
-	arg_types = new TypeList();
+int FuncType::AddOverload(RecordType* args)
+	{
+	auto o = new FuncTypeOverload();
+	o->func_type = this;
+	o->args = args;
+	o->arg_types = new TypeList();
 
 	bool has_default_arg = false;
+	auto added = true;
 
 	for ( int i = 0; i < args->NumFields(); ++i )
 		{
 		const TypeDecl* td = args->FieldDecl(i);
 
-		if ( td->attrs && td->attrs->FindAttr(ATTR_DEFAULT) )
+		if ( td->FindAttr(ATTR_DEFAULT) )
 			has_default_arg = true;
 
 		else if ( has_default_arg )
 			{
-			const char* err_str = fmt("required parameter '%s' must precede "
+			std::string err_str = fmt("required parameter '%s' must precede "
 			                          "default parameters", td->id);
-			args->Error(err_str);
+			args->Error(err_str.data());
+			added = false;
 			}
 
-		arg_types->Append(args->FieldType(i)->Ref());
+		o->arg_types->Append(args->FieldType(i)->Ref());
 		}
+
+	// Check that adding this overload doesn't create ambiguity with others
+	for ( auto& o : overloads )
+		{
+		// We need to find at least one differing parameter, and if we
+		// don't have a differing parameter before we run into a &default,
+		// then it's ambiguous.
+
+		auto have_unique_param = false;
+		RecordType* more_args;
+		RecordType* less_args;
+
+		if ( o->args->NumFields() > args->NumFields() )
+			{
+			more_args = o->args;
+			less_args = args;
+			}
+		else
+			{
+			more_args = args;
+			less_args = o->args;
+			}
+
+		for ( auto i = 0; i < more_args->NumFields(); ++i )
+			{
+			if ( more_args->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
+				break;
+
+			if ( i == less_args->NumFields() )
+				{
+				have_unique_param = true;
+				break;
+				}
+
+			if ( less_args->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
+				break;
+
+			if ( ! same_type(less_args->FieldType(i),
+			                 more_args->FieldType(i), false, false) )
+				{
+				have_unique_param = true;
+				break;
+				}
+			}
+
+		if ( ! have_unique_param )
+			{
+			args->Error("function parameters would create ambiguous overload",
+			            o->args);
+			added = false;
+			}
+		}
+
+	auto rval = -1;
+
+	if ( added )
+		{
+		rval = overloads.size();
+		overloads.emplace_back(o);
+		}
+	else
+		{
+		Unref(o->args);
+		Unref(o->arg_types);
+		delete o;
+		}
+
+	return rval;
+	}
+
+int FuncType::GetOverloadIndex(RecordType* matching_args)
+	{
+	for ( auto i = 0u; i < overloads.size(); ++i )
+		if ( same_type(overloads[i]->args, matching_args, false, false) )
+			return i;
+
+	return -1;
+	}
+
+FuncTypeOverload* FuncType::GetOverload(RecordType* matching_args)
+	{
+	auto idx = GetOverloadIndex(matching_args);
+	return GetOverload(idx);
+	}
+
+FuncTypeOverload* FuncType::GetOverload(int idx)
+	{
+	if ( idx < 0 )
+		return nullptr;
+
+	return overloads[idx];
 	}
 
 FuncType* FuncType::ShallowClone()
 	{
 	auto f = new FuncType();
-	f->args = args->Ref()->AsRecordType();
-	f->arg_types = arg_types->Ref()->AsTypeList();
 	f->yield = yield->Ref();
 	f->flavor = flavor;
+
+	for ( auto& o : overloads )
+		{
+		auto co = new FuncTypeOverload();
+		co->func_type = f;
+		co->args = o->args->Ref()->AsRecordType();
+		co->arg_types = o->arg_types->Ref()->AsTypeList();
+		f->overloads.emplace_back(co);
+		}
+
 	return f;
 	}
 
@@ -561,8 +668,13 @@ string FuncType::FlavorString() const
 
 FuncType::~FuncType()
 	{
-	Unref(args);
-	Unref(arg_types);
+	for ( auto& o : overloads )
+		{
+		Unref(o->args);
+		Unref(o->arg_types);
+		delete o;
+		}
+
 	Unref(yield);
 	}
 
@@ -578,12 +690,50 @@ const BroType* FuncType::YieldType() const
 
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
-	return check_and_promote_args(index, args) ?
-			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+	if ( overloads.size() == 1 )
+		return check_and_promote_args(index, overloads[0]->args) ?
+		           MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+
+	for ( auto& o : overloads )
+		{
+		expr_list& el = index->Exprs();
+
+		if ( el.length() > o->args->NumFields() )
+			continue;
+
+		auto match = true;
+
+		for ( auto i = 0; i < o->args->NumFields(); ++i )
+			{
+			if ( i == el.length() )
+				{
+				// This overload can now only match if this param has &default
+				// (implies any subsequent params also have a &default)
+				match = o->args->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
+				break;
+				}
+
+			if ( ! same_type(el[i]->Type(), o->args->FieldType(i)) )
+				{
+				match = false;
+				break;
+				}
+			}
+
+		if ( match )
+			return check_and_promote_args(index, o->args) ?
+			           MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
+		}
+
+	return DOES_NOT_MATCH_INDEX;
 	}
 
 int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
+	// TODO: implement for overloads
+	assert(overloads.size() == 1);
+	auto arg_types = overloads[0]->arg_types;
+
 	const type_list* my_args = arg_types->Types();
 
 	if ( my_args->length() != args->length() )
@@ -606,8 +756,26 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	return success;
 	}
 
+RecordType* FuncType::Args() const
+	{
+	// TODO: audit usages
+	assert(overloads.size() == 1);
+	return overloads[0]->args;
+	}
+
+TypeList* FuncType::ArgTypes() const
+	{
+	// TODO: audit usages
+	assert(overloads.size() == 1);
+	return overloads[0]->arg_types;
+	}
+
 void FuncType::Describe(ODesc* d) const
 	{
+	// TODO: implement for overloads
+	assert(overloads.size() == 1);
+	auto args = overloads[0]->args;
+
 	if ( d->IsReadable() )
 		{
 		d->Add(FlavorString());
@@ -634,6 +802,10 @@ void FuncType::Describe(ODesc* d) const
 
 void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 	{
+	// TODO: implement for overloads
+	assert(overloads.size() == 1);
+	auto args = overloads[0]->args;
+
 	d->Add(":zeek:type:`");
 	d->Add(FlavorString());
 	d->Add("`");

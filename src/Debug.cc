@@ -137,7 +137,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 			{
 			const BroFunc* f = g_frame_stack.back()->GetFunction();
 			if ( f )
-				loc = *f->GetLocationInfo();
+				loc = *f->GetFunc()->GetLocationInfo();
 			}
 		}
 
@@ -213,7 +213,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		}
 
 	const Func* func = id->ID_Val()->AsFunc();
-	const vector<Func::Body>& bodies = func->GetBodies();
+	const vector<FuncBody>& bodies = func->GetBodies();
 
 	if ( bodies.size() == 0 )
 		{
@@ -728,7 +728,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 	const BroFunc* func = frame ? frame->GetFunction() : 0;
 
 	if ( func )
-		func->DescribeDebug(&d, frame->GetFuncArgs());
+		func->GetFunc()->DescribeDebug(&d, frame->GetFuncArgs());
 	else
 		d.Add("<unknown function>", 0);
 
@@ -766,7 +766,7 @@ int dbg_handle_debug_input()
 	Frame* curr_frame = g_frame_stack.back();
 	const BroFunc* func = curr_frame->GetFunction();
 	if ( func )
-		current_module = extract_module_name(func->Name());
+		current_module = extract_module_name(func->GetFunc()->Name());
 	else
 		current_module = GLOBAL_MODULE_NAME;
 

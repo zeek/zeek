@@ -195,8 +195,7 @@ protected:
 	Stmt* s;
 };
 
-declare(PList,Case);
-typedef PList(Case) case_list;
+typedef PList<Case> case_list;
 
 class SwitchStmt : public ExprStmt {
 public:

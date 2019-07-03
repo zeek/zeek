@@ -10,9 +10,6 @@ class Dictionary;
 class DictEntry;
 class IterCookie;
 
-declare(PList,DictEntry);
-declare(PList,IterCookie);
-
 // Type indicating whether the dictionary should keep track of the order
 // of insertions.
 typedef enum { ORDERED, UNORDERED } dict_order;
@@ -132,7 +129,7 @@ private:
 	void* Insert(DictEntry* entry, int copy_key);
 
 	void* DoRemove(DictEntry* entry, hash_t h,
-			PList(DictEntry)* chain, int chain_offset);
+			PList<DictEntry>* chain, int chain_offset);
 
 	int NextPrime(int n) const;
 	int IsPrime(int n) const;
@@ -162,7 +159,7 @@ private:
 	// When we're resizing, we'll have tbl (old) and tbl2 (new)
 	// tbl_next_ind keeps track of how much we've moved to tbl2
 	// (it's the next index we're going to move).
-	PList(DictEntry)** tbl;
+	PList<DictEntry>** tbl;
 	int num_buckets;
 	int num_entries;
 	int max_num_entries;
@@ -171,7 +168,7 @@ private:
 	int thresh_entries;
 
 	// Resizing table (replicates tbl above).
-	PList(DictEntry)** tbl2;
+	PList<DictEntry>** tbl2;
 	int num_buckets2;
 	int num_entries2;
 	int max_num_entries2;
@@ -180,10 +177,10 @@ private:
 
 	hash_t tbl_next_ind;
 
-	PList(DictEntry)* order;
+	PList<DictEntry>* order;
 	dict_delete_func delete_func;
 
-	PList(IterCookie) cookies;
+	PList<IterCookie> cookies;
 };
 
 

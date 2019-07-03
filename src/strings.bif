@@ -351,6 +351,91 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	return a;
 	}
 
+Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
+	{
+	const u_char* s = str_val->Bytes();
+	int offset = 0;
+	int n = str_val->Len();
+
+	// cut_points is a set of pairs of indices in str that should
+	// be removed/replaced.  A pair <x,y> means "delete starting
+	// at offset x, up to but not including offset y".
+	List<ptr_compat_int> cut_points;	// where RE matches pieces of str
+
+	int size = 0;	// size of result
+
+	while ( n > 0 )
+		{
+		// Find next match offset.
+		int end_of_match;
+		while ( n > 0 &&
+			(end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
+			{
+			// This character is going to be copied to the result.
+			++size;
+
+			// Move on to next character.
+			++offset;
+			--n;
+			}
+
+		if ( n <= 0 )
+			break;
+
+		// s[offset .. offset+end_of_match-1] matches re.
+		cut_points.append(offset);
+		cut_points.append(offset + end_of_match);
+
+		offset += end_of_match;
+		n -= end_of_match;
+
+		if ( ! do_all )
+			{
+			// We've now done the first substitution - finished.
+			// Include the remainder of the string in the result.
+			size += n;
+			break;
+			}
+		}
+
+	// size now reflects amount of space copied.  Factor in amount
+	// of space for replacement text.
+	int num_cut_points = cut_points.length() / 2;
+	size += num_cut_points * repl->Len();
+
+	// And a final NUL for good health.
+	++size;
+
+	byte_vec result = new u_char[size];
+	byte_vec r = result;
+
+	// Copy it all over.
+	int start_offset = 0;
+	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
+		{
+		int num_to_copy = cut_points[i] - start_offset;
+		memcpy(r, s + start_offset, num_to_copy);
+
+		r += num_to_copy;
+		start_offset = cut_points[i+1];
+
+		// Now add in replacement text.
+		memcpy(r, repl->Bytes(), repl->Len());
+		r += repl->Len();
+		}
+
+	// Copy final trailing characters.
+	int num_to_copy = str_val->Len() - start_offset;
+	memcpy(r, s + start_offset, num_to_copy);
+	r += num_to_copy;
+
+	// Final NUL.  No need to increment r, since the length
+	// computed from it in the next statement does not include
+	// the NUL.
+	r[0] = '\0';
+
+	return new StringVal(new BroString(1, result, r - result));
+	}
 %%}
 
 ## Splits a string into an array of strings according to a pattern.

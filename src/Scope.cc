@@ -7,8 +7,7 @@
 #include "Scope.h"
 #include "Reporter.h"
 
-declare(PList,Scope);
-typedef PList(Scope) scope_list;
+typedef PList<Scope> scope_list;
 
 static scope_list scopes;
 static Scope* top_scope;

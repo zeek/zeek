@@ -2952,7 +2952,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v, 0, expr_location);
+		t->Error("value type clash", v, 0, expr_location);
 		Unref(v);
 		return 0;
 		}

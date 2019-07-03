@@ -14,7 +14,6 @@ class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
 declare(PQueue,SteppingStoneEndpoint);
-declare(PDict,SteppingStoneEndpoint);
 
 class SteppingStoneEndpoint : public BroObj {
 public:
@@ -41,8 +40,8 @@ protected:
 	// no LOOP in Bro language.
 	int stp_id;
 	HashKey* stp_key;
-	PDict(SteppingStoneEndpoint) stp_inbound_endps;
-	PDict(SteppingStoneEndpoint) stp_outbound_endps;
+	PDict<SteppingStoneEndpoint> stp_inbound_endps;
+	PDict<SteppingStoneEndpoint> stp_outbound_endps;
 };
 
 class SteppingStone_Analyzer : public tcp::TCP_ApplicationAnalyzer {

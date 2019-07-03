@@ -27,7 +27,7 @@ using namespace std;
 bool g_policy_debug = false;
 DebuggerState g_debugger_state;
 TraceState g_trace_state;
-PDict(Filemap) g_dbgfilemaps;
+PDict<Filemap> g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next

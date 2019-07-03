@@ -31,7 +31,6 @@ struct ParseLocationRec {
 class StmtLocMapping;
 declare(PQueue,StmtLocMapping);
 typedef PQueue(StmtLocMapping) Filemap; // mapping for a single file
-declare(PDict,Filemap);
 
 class DbgBreakpoint;
 class DbgWatch;
@@ -178,7 +177,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame);
 
 extern Frame* g_dbg_locals;	// variables created within debugger context
 
-extern PDict(Filemap) g_dbgfilemaps; // filename => filemap
+extern PDict<Filemap> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));

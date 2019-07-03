@@ -1147,7 +1147,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
-		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
+		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
 
 		if ( ! loop_vals->Length() )
 			return 0;

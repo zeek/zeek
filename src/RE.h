@@ -22,9 +22,6 @@ class Specific_RE_Matcher;
 class RE_Matcher;
 class DFA_State;
 
-declare(PDict,char);
-declare(PDict,CCL);
-
 extern int case_insensitive;
 extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
@@ -122,8 +119,8 @@ protected:
 	int multiline;
 	char* pattern_text;
 
-	PDict(char) defs;
-	PDict(CCL) ccl_dict;
+	PDict<char> defs;
+	PDict<CCL> ccl_dict;
 	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;

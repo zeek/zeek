@@ -134,6 +134,10 @@ Types
          If the $f field is provided this field will be automatically
          filled out.
 
+      cif: :zeek:type:`Intel::CIF` :zeek:attr:`&log` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
+
+
    Record used for the logging framework representing a positive
    hit within the intelligence framework.
 
@@ -192,20 +196,35 @@ Types
 
          A boolean value to indicate whether the item should be removed.
 
-      cif_impact: :zeek:type:`string` :zeek:attr:`&optional`
+      cif_tags: :zeek:type:`string` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
 
-         Maps to the Impact field in the Collective Intelligence Framework.
-
-      cif_severity: :zeek:type:`string` :zeek:attr:`&optional`
-         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
-
-         Maps to the Severity field in the Collective Intelligence Framework.
+         Maps to the 'tags' fields in CIF
 
       cif_confidence: :zeek:type:`double` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
 
-         Maps to the Confidence field in the Collective Intelligence Framework.
+         Maps to the 'confidence' field in CIF
+
+      cif_source: :zeek:type:`string` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
+
+         Maps to the 'source' field in CIF
+
+      cif_description: :zeek:type:`string` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
+
+         Maps to the 'description' field in CIF
+
+      cif_firstseen: :zeek:type:`string` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
+
+         Maps to the 'firstseen' field in CIF
+
+      cif_lastseen: :zeek:type:`string` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/integration/collective-intel/main.zeek` is loaded)
+
+         Maps to the 'lastseen' field in CIF
 
    Data about an :zeek:type:`Intel::Item`.
 

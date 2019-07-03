@@ -1,4 +1,8 @@
 
+2.6-569 | 2019-07-03 13:03:22 -0700
+
+  * Improve stability of a unit test (Jon Siwek, Corelight)
+
 2.6-568 | 2019-07-03 11:50:56 -0700
 
   * Add clang-tidy rule to CMake including a base configuration (Tim Wojtulewicz, Corelight)

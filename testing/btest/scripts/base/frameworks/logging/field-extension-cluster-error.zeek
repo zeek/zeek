@@ -56,7 +56,7 @@ event slow_death()
 	schedule 2sec { die() };
 	}
 
-event kill_worker()
+event ready()
 	{
 	Reporter::info("qux");
 	Broker::publish("death", slow_death);
@@ -69,20 +69,30 @@ event zeek_init()
 		Broker::subscribe("death");
 		suspend_processing();
 		}
+
+	if ( Cluster::node == "manager-1" )
+		{
+		Broker::subscribe("ready");
+		}
+	}
+
+global conn_count = 0;
+
+event new_connection(c: connection)
+	{
+	++conn_count;
+
+	if ( conn_count == 30 )
+		{
+		Reporter::info("qux");
+		Broker::publish("ready", ready);
+		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	if ( Cluster::node == "manager-1" )
-		{
-		schedule 2sec { kill_worker() };
-		}
-
 	if ( Cluster::node == "worker-1" )
-		{
 		continue_processing();
-		Reporter::info("qux");
-		}
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

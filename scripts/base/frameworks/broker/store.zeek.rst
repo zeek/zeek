@@ -302,7 +302,7 @@ Functions
 
 .. zeek:id:: Broker::create_master
 
-   :Type: :zeek:type:`function` (name: :zeek:type:`string`, b: :zeek:type:`Broker::BackendType` :zeek:attr:`&default` = ``Broker::MEMORY`` :zeek:attr:`&optional`, options: :zeek:type:`Broker::BackendOptions` :zeek:attr:`&default` = ``[sqlite=[path=], rocksdb=[path=]]`` :zeek:attr:`&optional`) : :zeek:type:`opaque` of Broker::Store
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`, b: :zeek:type:`Broker::BackendType` :zeek:attr:`&default` = ``Broker::MEMORY`` :zeek:attr:`&optional`, options: :zeek:type:`Broker::BackendOptions` :zeek:attr:`&default` = *[sqlite=[path=], rocksdb=[path=]]* :zeek:attr:`&optional`) : :zeek:type:`opaque` of Broker::Store
 
    Create a master data store which contains key-value pairs.
    

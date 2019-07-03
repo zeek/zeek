@@ -64,7 +64,7 @@ Functions
 
 .. zeek:id:: Broker::__create_master
 
-   :Type: :zeek:type:`function` (id: :zeek:type:`string`, b: :zeek:type:`Broker::BackendType`, options: :zeek:type:`Broker::BackendOptions` :zeek:attr:`&default` = ``[sqlite=[path=], rocksdb=[path=]]`` :zeek:attr:`&optional`) : :zeek:type:`opaque` of Broker::Store
+   :Type: :zeek:type:`function` (id: :zeek:type:`string`, b: :zeek:type:`Broker::BackendType`, options: :zeek:type:`Broker::BackendOptions` :zeek:attr:`&default` = *[sqlite=[path=], rocksdb=[path=]]* :zeek:attr:`&optional`) : :zeek:type:`opaque` of Broker::Store
 
 
 .. zeek:id:: Broker::__decrement

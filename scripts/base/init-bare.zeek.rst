@@ -2844,7 +2844,7 @@ Types
 
    :Type: :zeek:type:`record`
 
-      spec: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&default` = ``[topic=, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]`` :zeek:attr:`&optional`
+      spec: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&default` = *[topic=, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]* :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/cluster/pools.zeek` is loaded)
 
          The specification of the pool that was used when registering it.

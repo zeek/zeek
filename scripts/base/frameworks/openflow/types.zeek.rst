@@ -220,7 +220,7 @@ Types
       flags: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional` :zeek:attr:`&log`
          Bitmap of the OFPFF_* flags
 
-      actions: :zeek:type:`OpenFlow::ofp_flow_action` :zeek:attr:`&default` = ``[out_ports=[], vlan_vid=<uninitialized>, vlan_pcp=<uninitialized>, vlan_strip=F, dl_src=<uninitialized>, dl_dst=<uninitialized>, nw_tos=<uninitialized>, nw_src=<uninitialized>, nw_dst=<uninitialized>, tp_src=<uninitialized>, tp_dst=<uninitialized>]`` :zeek:attr:`&optional` :zeek:attr:`&log`
+      actions: :zeek:type:`OpenFlow::ofp_flow_action` :zeek:attr:`&default` = *[out_ports=[], vlan_vid=<uninitialized>, vlan_pcp=<uninitialized>, vlan_strip=F, dl_src=<uninitialized>, dl_dst=<uninitialized>, nw_tos=<uninitialized>, nw_src=<uninitialized>, nw_dst=<uninitialized>, tp_src=<uninitialized>, tp_dst=<uninitialized>]* :zeek:attr:`&optional` :zeek:attr:`&log`
          Actions to take on match
    :Attributes: :zeek:attr:`&log`
 

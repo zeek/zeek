@@ -334,7 +334,7 @@ Functions
 #########
 .. zeek:id:: Files::add_analyzer
 
-   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = ``[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600]`` :zeek:attr:`&optional`) : :zeek:type:`bool`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = *[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600]* :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Adds an analyzer to the analysis of a given file.
    
@@ -513,7 +513,7 @@ Functions
 
 .. zeek:id:: Files::remove_analyzer
 
-   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = ``[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600]`` :zeek:attr:`&optional`) : :zeek:type:`bool`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = *[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600]* :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Removes an analyzer from the analysis of a given file.
    

@@ -14,9 +14,10 @@ static scope_list scopes;
 static Scope* top_scope;
 
 
-Scope::Scope(ID* id, attr_list* al)
+Scope::Scope(ID* id, attr_list* al, int arg_overload_idx)
 	{
 	scope_id = id;
+	overload_idx = arg_overload_idx;
 	attrs = al;
 	return_type = 0;
 
@@ -198,9 +199,9 @@ void push_existing_scope(Scope* scope)
 	scopes.append(scope);
 	}
 
-void push_scope(ID* id, attr_list* attrs)
+void push_scope(ID* id, attr_list* attrs, int overload_idx)
 	{
-	top_scope = new Scope(id, attrs);
+	top_scope = new Scope(id, attrs, overload_idx);
 	scopes.append(top_scope);
 	}
 

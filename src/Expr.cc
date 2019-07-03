@@ -4231,8 +4231,18 @@ int CallExpr::IsPure() const
 	// called here happens to be recursive (either directly
 	// or indirectly).
 	int pure = 0;
+
 	if ( f->GetKind() == Func::BUILTIN_FUNC )
-		pure = f->IsPure() && args->IsPure();
+		{
+		auto& os = f->GetOverloads();
+
+		if ( os.size() == 1 )
+			{
+			auto o = dynamic_cast<BroFunc*>(os[0]);
+			pure = o->IsPure() && args->IsPure();
+			}
+		}
+
 	Unref(func_val);
 
 	return pure;
@@ -4275,6 +4285,7 @@ Val* CallExpr::Eval(Frame* f) const
 		if ( f )
 			f->SetCall(this);
 
+		// TODO: statically cache overload index when directly using name
 		ret = func->Call(v, f);
 
 		if ( f )
@@ -5006,7 +5017,7 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 			return 1;
 			}
 
-		t->Error("type clash", e);
+		t->Error("expression type clash", e);
 		return 0;
 		}
 

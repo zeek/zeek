@@ -391,6 +391,12 @@ protected:
 	ListExpr* elements;
 };
 
+struct FuncTypeOverload {
+	FuncType* func_type;
+	RecordType* args;
+	TypeList* arg_types;
+};
+
 class FuncType : public BroType {
 public:
 	FuncType(RecordType* args, BroType* yield, function_flavor f);
@@ -398,31 +404,45 @@ public:
 
 	~FuncType() override;
 
-	RecordType* Args() const	{ return args; }
+	int AddOverload(RecordType* args);
+
+	int GetOverloadIndex(RecordType* matching_args);
+	FuncTypeOverload* GetOverload(RecordType* matching_args);
+	FuncTypeOverload* GetOverload(int idx);
+
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
-	function_flavor Flavor() const { return flavor; }
-	string FlavorString() const;
-
 	// Used to convert a function type to an event or hook type.
 	void ClearYieldType(function_flavor arg_flav)
 		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
+	function_flavor Flavor() const { return flavor; }
+	string FlavorString() const;
+
+	// TODO: audit usages
 	int MatchesIndex(ListExpr*& index) const override;
+
+	// TODO: audit usages
 	int CheckArgs(const type_list* args, bool is_init = false) const;
 
-	TypeList* ArgTypes() const	{ return arg_types; }
+	// TODO: audit usages
+	RecordType* Args() const;
 
+	// TODO: audit usages
+	TypeList* ArgTypes() const;
+
+	// TODO: fix implementation
 	void Describe(ODesc* d) const override;
+	// TODO: fix implementation
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-	FuncType() : BroType(TYPE_FUNC) { args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
-	RecordType* args;
-	TypeList* arg_types;
+	FuncType() : BroType(TYPE_FUNC) { yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
+
 	BroType* yield;
 	function_flavor flavor;
+	std::vector<FuncTypeOverload*> overloads;
 };
 
 class TypeType : public BroType {

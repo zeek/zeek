@@ -126,8 +126,7 @@ public:
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
 // top of the stack.
-declare(PList,FileInfo);
-static PList(FileInfo) file_stack;
+static PList<FileInfo> file_stack;
 
 #define RET_CONST(v) \
 	{ \

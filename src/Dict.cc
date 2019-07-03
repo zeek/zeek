@@ -50,9 +50,9 @@ public:
 		}
 
 	int bucket, offset;
-	PList(DictEntry)** ttbl;
+	PList<DictEntry>** ttbl;
 	const int* num_buckets_p;
-	PList(DictEntry) inserted;	// inserted while iterating
+	PList<DictEntry> inserted;	// inserted while iterating
 };
 
 Dictionary::Dictionary(dict_order ordering, int initial_size)
@@ -61,7 +61,7 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	tbl2 = 0;
 
 	if ( ordering == ORDERED )
-		order = new PList(DictEntry);
+		order = new PList<DictEntry>;
 	else
 		order = 0;
 
@@ -99,7 +99,7 @@ void Dictionary::DeInit()
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{
-			PList(DictEntry)* chain = tbl[i];
+			PList<DictEntry>* chain = tbl[i];
 			loop_over_list(*chain, j)
 				{
 				DictEntry* e = (*chain)[j];
@@ -119,7 +119,7 @@ void Dictionary::DeInit()
 	for ( int i = 0; i < num_buckets2; ++i )
 		if ( tbl2[i] )
 			{
-			PList(DictEntry)* chain = tbl2[i];
+			PList<DictEntry>* chain = tbl2[i];
 			loop_over_list(*chain, j)
 				{
 				DictEntry* e = (*chain)[j];
@@ -141,7 +141,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 		return 0;
 
 	hash_t h;
-	PList(DictEntry)* chain;
+	PList<DictEntry>* chain;
 
 	// Figure out which hash table to look in.
 	h = hash % num_buckets;
@@ -199,7 +199,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 		return 0;
 
 	hash_t h;
-	PList(DictEntry)* chain;
+	PList<DictEntry>* chain;
 	int* num_entries_ptr;
 
 	// Figure out which hash table to look in
@@ -240,7 +240,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 	}
 
 void* Dictionary::DoRemove(DictEntry* entry, hash_t h,
-				PList(DictEntry)* chain, int chain_offset)
+				PList<DictEntry>* chain, int chain_offset)
 	{
 	void* entry_value = entry->value;
 
@@ -301,7 +301,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 	{
 	if ( ! tbl && ! tbl2 )
 		{
-		const_cast<PList(IterCookie)*>(&cookies)->remove(cookie);
+		const_cast<PList<IterCookie>*>(&cookies)->remove(cookie);
 		delete cookie;
 		cookie = 0;
 		return 0;
@@ -326,7 +326,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 
 	int b = cookie->bucket;
 	int o = cookie->offset;
-	PList(DictEntry)** ttbl;
+	PList<DictEntry>** ttbl;
 	const int* num_buckets_p;
 
 	if ( ! cookie->ttbl )
@@ -368,7 +368,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 
 		// FIXME: I don't like removing the const here. But is there
 		// a better way?
-		const_cast<PList(IterCookie)*>(&cookies)->remove(cookie);
+		const_cast<PList<IterCookie>*>(&cookies)->remove(cookie);
 		delete cookie;
 		cookie = 0;
 		return 0;
@@ -387,7 +387,7 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 void Dictionary::Init(int size)
 	{
 	num_buckets = NextPrime(size);
-	tbl = new PList(DictEntry)*[num_buckets];
+	tbl = new PList<DictEntry>*[num_buckets];
 
 	for ( int i = 0; i < num_buckets; ++i )
 		tbl[i] = 0;
@@ -399,7 +399,7 @@ void Dictionary::Init(int size)
 void Dictionary::Init2(int size)
 	{
 	num_buckets2 = NextPrime(size);
-	tbl2 = new PList(DictEntry)*[num_buckets2];
+	tbl2 = new PList<DictEntry>*[num_buckets2];
 
 	for ( int i = 0; i < num_buckets2; ++i )
 		tbl2[i] = 0;
@@ -413,7 +413,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 	if ( ! tbl )
 		Init(DEFAULT_DICT_SIZE);
 
-	PList(DictEntry)** ttbl;
+	PList<DictEntry>** ttbl;
 	int* num_entries_ptr;
 	int* max_num_entries_ptr;
 	hash_t h = new_entry->hash % num_buckets;
@@ -438,7 +438,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 		max_num_entries_ptr = &max_num_entries2;
 		}
 
-	PList(DictEntry)* chain = ttbl[h];
+	PList<DictEntry>* chain = ttbl[h];
 
 	int n = new_entry->len;
 
@@ -460,7 +460,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 		}
 	else
 		// Create new chain.
-		chain = ttbl[h] = new PList(DictEntry);
+		chain = ttbl[h] = new PList<DictEntry>;
 
 	// If we got this far, then we couldn't use an existing copy
 	// of the key, so make a new one if necessary.
@@ -545,7 +545,7 @@ void Dictionary::MoveChains()
 
 	do
 		{
-		PList(DictEntry)* chain = tbl[tbl_next_ind++];
+		PList<DictEntry>* chain = tbl[tbl_next_ind++];
 
 		if ( ! chain )
 			continue;
@@ -605,13 +605,13 @@ unsigned int Dictionary::MemoryAllocation() const
 	for ( int i = 0; i < num_buckets; ++i )
 		if ( tbl[i] )
 			{
-			PList(DictEntry)* chain = tbl[i];
+			PList<DictEntry>* chain = tbl[i];
 			loop_over_list(*chain, j)
 				size += padded_sizeof(DictEntry) + pad_size((*chain)[j]->len);
 			size += chain->MemoryAllocation();
 			}
 
-	size += pad_size(num_buckets * sizeof(PList(DictEntry)*));
+	size += pad_size(num_buckets * sizeof(PList<DictEntry>*));
 
 	if ( order )
 		size += order->MemoryAllocation();
@@ -621,13 +621,13 @@ unsigned int Dictionary::MemoryAllocation() const
 		for ( int i = 0; i < num_buckets2; ++i )
 			if ( tbl2[i] )
 				{
-				PList(DictEntry)* chain = tbl2[i];
+				PList<DictEntry>* chain = tbl2[i];
 				loop_over_list(*chain, j)
 					size += padded_sizeof(DictEntry) + pad_size((*chain)[j]->len);
 				size += chain->MemoryAllocation();
 				}
 
-		size += pad_size(num_buckets2 * sizeof(PList(DictEntry)*));
+		size += pad_size(num_buckets2 * sizeof(PList<DictEntry>*));
 		}
 
 	return size;

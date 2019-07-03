@@ -56,13 +56,9 @@ struct MaskedValue {
 	uint32 mask;
 };
 
-declare(PList, MaskedValue);
-typedef PList(MaskedValue) maskedvalue_list;
-
-typedef PList(char) string_list;
-
-declare(PList, BroString);
-typedef PList(BroString) bstr_list;
+typedef PList<MaskedValue> maskedvalue_list;
+typedef PList<char> string_list;
+typedef PList<BroString> bstr_list;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
@@ -119,8 +115,7 @@ private:
 		int_list ids;	// (only needed for debugging)
 	};
 
-	declare(PList, PatternSet);
-	typedef PList(PatternSet) pattern_set_list;
+	typedef PList<PatternSet> pattern_set_list;
 	pattern_set_list psets[Rule::TYPES];
 
 	// List of rules belonging to this node.
@@ -136,8 +131,7 @@ private:
 	int level;	// level within the tree
 };
 
-declare(PList, RuleHdrTest);
-typedef PList(RuleHdrTest) rule_hdr_test_list;
+typedef PList<RuleHdrTest> rule_hdr_test_list;
 
 // RuleEndpointState keeps the per-stream matching state of one
 // connection endpoint.
@@ -172,8 +166,7 @@ private:
 		Rule::PatternType type;
 	};
 
-	declare(PList, Matcher);
-	typedef PList(Matcher) matcher_list;
+	typedef PList<Matcher> matcher_list;
 
 	bool is_orig;
 	analyzer::Analyzer* analyzer;
@@ -212,8 +205,7 @@ private:
 		RE_Match_State* state;
 	};
 
-	declare(PList, Matcher);
-	typedef PList(Matcher) matcher_list;
+	typedef PList<Matcher> matcher_list;
 
 	matcher_list matchers;
 };

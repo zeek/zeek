@@ -24,7 +24,6 @@ class DFA_State;
 
 declare(PDict,char);
 declare(PDict,CCL);
-declare(PList,CCL);
 
 extern int case_insensitive;
 extern CCL* curr_ccl;
@@ -125,7 +124,7 @@ protected:
 
 	PDict(char) defs;
 	PDict(CCL) ccl_dict;
-	PList(CCL) ccl_list;
+	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;
 	DFA_Machine* dfa;

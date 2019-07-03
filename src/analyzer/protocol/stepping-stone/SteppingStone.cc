@@ -77,12 +77,11 @@ int SteppingStoneEndpoint::DataSent(double t, uint64 seq, int len, int caplen,
 
 	while ( stp_manager->OrderedEndpoints().length() > 0 )
 		{
-		int f = stp_manager->OrderedEndpoints().front();
+	    auto e = stp_manager->OrderedEndpoints().front();
 
-		if ( stp_manager->OrderedEndpoints()[f]->stp_resume_time < tmin )
+		if ( e->stp_resume_time < tmin )
 			{
-			SteppingStoneEndpoint* e =
-				stp_manager->OrderedEndpoints().pop_front();
+			stp_manager->OrderedEndpoints().pop_front();
 			e->Done();
 			Unref(e);
 			}

@@ -13,8 +13,6 @@ namespace analyzer { namespace stepping_stone {
 class SteppingStoneEndpoint;
 class SteppingStoneManager;
 
-declare(PQueue,SteppingStoneEndpoint);
-
 class SteppingStoneEndpoint : public BroObj {
 public:
 	SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStoneManager* m);
@@ -75,14 +73,14 @@ class SteppingStoneManager {
 public:
 	SteppingStoneManager()		{ endp_cnt = 0; }
 
-	PQueue(SteppingStoneEndpoint)& OrderedEndpoints()
+	PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
 		{ return ordered_endps; }
 
 	// Use postfix ++, since the first ID needs to be even.
 	int NextID()			{ return endp_cnt++; }
 
 protected:
-	PQueue(SteppingStoneEndpoint) ordered_endps;
+	PQueue<SteppingStoneEndpoint> ordered_endps;
 	int endp_cnt;
 };
 

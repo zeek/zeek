@@ -12,9 +12,6 @@ using namespace std;
 #include "Queue.h"
 #include "DebugCmdConstants.h"
 
-class DebugCmdInfo;
-declare(PQueue,DebugCmdInfo);
-
 class DebugCmdInfo {
 public:
 	DebugCmdInfo(const DebugCmdInfo& info);
@@ -47,7 +44,7 @@ protected:
 	bool repeatable;
 };
 
-extern PQueue(DebugCmdInfo) g_DebugCmdInfos;
+extern PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 void init_global_dbg_constants ();
 

@@ -29,8 +29,7 @@ struct ParseLocationRec {
 #include "DbgBreakpoint.h"
 
 class StmtLocMapping;
-declare(PQueue,StmtLocMapping);
-typedef PQueue(StmtLocMapping) Filemap; // mapping for a single file
+typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
 class DbgBreakpoint;
 class DbgWatch;

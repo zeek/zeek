@@ -11,15 +11,15 @@ Summary
 ~~~~~~~
 Events
 ######
-====================================================== ==========================================================
-:zeek:id:`rfb_auth_result`: :zeek:type:`event`         Generated for RFB event authentication result message
-:zeek:id:`rfb_authentication_type`: :zeek:type:`event` Generated for RFB event authentication mechanism selection
-:zeek:id:`rfb_client_version`: :zeek:type:`event`      Generated for RFB event client banner message
-:zeek:id:`rfb_event`: :zeek:type:`event`               Generated for RFB event
-:zeek:id:`rfb_server_parameters`: :zeek:type:`event`   Generated for RFB event server parameter message
-:zeek:id:`rfb_server_version`: :zeek:type:`event`      Generated for RFB event server banner message
-:zeek:id:`rfb_share_flag`: :zeek:type:`event`          Generated for RFB event share flag messages
-====================================================== ==========================================================
+============================================================================================================================================================================================== ==========================================================
+:zeek:id:`rfb_auth_result`: :zeek:type:`event`                                                                                                                                                 Generated for RFB event authentication result message
+:zeek:id:`rfb_authentication_type`: :zeek:type:`event`                                                                                                                                         Generated for RFB event authentication mechanism selection
+:zeek:id:`rfb_client_version`: :zeek:type:`event`                                                                                                                                              Generated for RFB event client banner message
+:zeek:id:`rfb_event`: :zeek:type:`event` :zeek:attr:`&deprecated` = ``"Remove in v3.1: This event never served a real purpose and will be removed. Please use the other rfb events instead."`` Generated for RFB event
+:zeek:id:`rfb_server_parameters`: :zeek:type:`event`                                                                                                                                           Generated for RFB event server parameter message
+:zeek:id:`rfb_server_version`: :zeek:type:`event`                                                                                                                                              Generated for RFB event server banner message
+:zeek:id:`rfb_share_flag`: :zeek:type:`event`                                                                                                                                                  Generated for RFB event share flag messages
+============================================================================================================================================================================================== ==========================================================
 
 
 Detailed Interface
@@ -65,6 +65,7 @@ Events
 .. zeek:id:: rfb_event
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+   :Attributes: :zeek:attr:`&deprecated` = ``"Remove in v3.1: This event never served a real purpose and will be removed. Please use the other rfb events instead."``
 
    Generated for RFB event
    

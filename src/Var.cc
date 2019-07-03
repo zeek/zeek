@@ -216,7 +216,9 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, 0, 0, 0, 0);
+		auto f = new Func(Func::BRO_FUNC, id->Name());
+		auto o = new BroFunc(f, t, 0, 0, 0, 0, 0);
+		f->AddOverload(o);
 		id->SetVal(new Val(f));
 		}
 	}
@@ -344,23 +346,45 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		t->ClearYieldType(flavor);
 		}
 
+	auto overload_idx = -1;
+
 	if ( id->Type() )
 		{
-		if ( ! same_type(id->Type(), t) )
-			id->Type()->Error("incompatible types", t);
+		auto existing_type = id->Type()->AsFuncType();
 
-		// If a previous declaration of the function had &default params,
-		// automatically transfer any that are missing (convenience so that
-		// implementations don't need to specify the &default expression again).
-		transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
+		if ( ! same_type(existing_type->YieldType(), t->YieldType()) )
+			id->Type()->Error("incompatible function return types", t);
+		else
+			{
+			overload_idx = existing_type->GetOverloadIndex(t->Args());
+			auto o = existing_type->GetOverload(overload_idx);
+
+			if ( o )
+				{
+				// If a previous declaration of the function had &default
+				// params, automatically transfer any that are missing
+				// (convenience so that implementations don't need to specify
+				// the &default expression again).
+				transfer_arg_defaults(o->args, t->Args());
+				}
+			else
+				overload_idx = existing_type->AddOverload(t->Args());
+			}
 		}
 
-	else if ( is_redef )
-		id->Error("redef of not-previously-declared value");
+	else
+		{
+		if ( is_redef )
+			id->Error("redef of not-previously-declared value");
+
+		id->SetType(t);
+		overload_idx = 0;
+		}
 
 	if ( id->HasVal() )
 		{
-		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
+		auto existing_func_val = id->ID_Val()->AsFunc();
+		function_flavor id_flavor = existing_func_val->Flavor();
 
 		if ( id_flavor != flavor )
 			id->Error("inconsistent function flavor", t);
@@ -376,7 +400,14 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 		case FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
-				id->Error("already defined");
+				{
+				auto& os = existing_func_val->GetOverloads();
+
+				if ( overload_idx >= 0 &&
+				     static_cast<int>(os.size()) > overload_idx &&
+				     os[overload_idx] )
+					id->Error("already defined");
+				}
 			break;
 
 		default:
@@ -384,10 +415,8 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			break;
 		}
 		}
-	else
-		id->SetType(t);
 
-	push_scope(id, attrs);
+	push_scope(id, attrs, overload_idx);
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
@@ -481,11 +510,27 @@ void end_func(Stmt* body)
 		}
 
 	if ( ingredients->id->HasVal() )
+		{
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
+
+		auto overload_idx = scope->OverloadIndex();
+		auto f = id->ID_Val()->AsFunc();
+		auto& os = f->GetOverloads();
+
+		if ( overload_idx >= static_cast<int>(os.size()) )
+			os.resize(overload_idx + 1);
+
+		FuncOverload*& o = os[overload_idx];
+
+		if ( ! o )
+			o = new BroFunc(f, id->Type(), body, inits, frame_size, priority, scope);
+		else
+			dynamic_cast<BroFunc*>(o)->AddBody(body, inits, frame_size, priority, scope);
+		}
 	else
 		{
 		Func* f = new BroFunc(

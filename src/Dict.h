@@ -183,46 +183,41 @@ private:
 	PList<IterCookie> cookies;
 };
 
-
-#define PDict(type) type ## PDict
-#define PDictdeclare(type)	\
-class PDict(type) : public Dictionary {	\
-public:	\
-	explicit PDict(type)(dict_order ordering = UNORDERED,	\
-			int initial_size = 0) :	\
-		Dictionary(ordering, initial_size) {}	\
-	type* Lookup(const char* key) const	\
-		{	\
-		HashKey h(key);	\
-		return (type*) Dictionary::Lookup(&h);	\
-		}	\
-	type* Lookup(const HashKey* key) const	\
-		{ return (type*) Dictionary::Lookup(key); }	\
-	type* Insert(const char* key, type* val)	\
-		{	\
-		HashKey h(key);	\
-		return (type*) Dictionary::Insert(&h, (void*) val);	\
-		}	\
-	type* Insert(HashKey* key, type* val)	\
-		{ return (type*) Dictionary::Insert(key, (void*) val); }\
-	type* NthEntry(int n) const	\
-		{ return (type*) Dictionary::NthEntry(n); }	\
-	type* NthEntry(int n, const char*& key) const	\
-		{	\
-		int key_len;	\
-		return (type*) Dictionary::NthEntry(n, (const void*&) key,\
-							key_len);	\
-		}	\
-	type* NextEntry(IterCookie*& cookie) const	\
-		{	\
-		HashKey* h; \
-		return (type*) Dictionary::NextEntry(h, cookie, 0);	\
-		} \
-	type* NextEntry(HashKey*& h, IterCookie*& cookie) const	\
-		{ return (type*) Dictionary::NextEntry(h, cookie, 1); } \
-	type* RemoveEntry(const HashKey* key)	\
-		{ return (type*) Remove(key->Key(), key->Size(),	\
-					key->Hash()); } \
-}
+template<typename T>
+class PDict : public Dictionary {
+public:
+	explicit PDict(dict_order ordering = UNORDERED, int initial_size = 0) :
+		Dictionary(ordering, initial_size) {}
+	T* Lookup(const char* key) const
+		{
+		HashKey h(key);
+		return (T*) Dictionary::Lookup(&h);
+		}
+	T* Lookup(const HashKey* key) const
+		{ return (T*) Dictionary::Lookup(key); }
+	T* Insert(const char* key, T* val)
+		{
+		HashKey h(key);
+		return (T*) Dictionary::Insert(&h, (void*) val);
+		}
+	T* Insert(HashKey* key, T* val)
+		{ return (T*) Dictionary::Insert(key, (void*) val); }
+	T* NthEntry(int n) const
+		{ return (T*) Dictionary::NthEntry(n); }
+	T* NthEntry(int n, const char*& key) const
+		{
+		int key_len;
+		return (T*) Dictionary::NthEntry(n, (const void*&) key, key_len);
+		}
+	T* NextEntry(IterCookie*& cookie) const
+		{
+		HashKey* h;
+		return (T*) Dictionary::NextEntry(h, cookie, 0);
+		}
+	T* NextEntry(HashKey*& h, IterCookie*& cookie) const
+		{ return (T*) Dictionary::NextEntry(h, cookie, 1); }
+	T* RemoveEntry(const HashKey* key)
+		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
+};
 
 #endif

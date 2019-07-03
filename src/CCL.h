@@ -5,8 +5,7 @@
 
 #include "List.h"
 
-declare(List,ptr_compat_int);
-typedef List(ptr_compat_int) int_list;
+typedef List<ptr_compat_int> int_list;
 
 class CCL {
 public:

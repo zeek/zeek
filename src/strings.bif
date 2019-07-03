@@ -360,7 +360,7 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 	// cut_points is a set of pairs of indices in str that should
 	// be removed/replaced.  A pair <x,y> means "delete starting
 	// at offset x, up to but not including offset y".
-	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
+	List<ptr_compat_int> cut_points;	// where RE matches pieces of str
 
 	int size = 0;	// size of result
 

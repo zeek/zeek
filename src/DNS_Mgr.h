@@ -23,8 +23,7 @@ class EventHandler;
 class RecordType;
 class DNS_Mgr_Request;
 
-declare(PList,DNS_Mgr_Request);
-typedef PList(DNS_Mgr_Request) DNS_mgr_request_list;
+typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
 
 struct nb_dns_info;
 struct nb_dns_result;

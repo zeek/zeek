@@ -391,10 +391,18 @@ protected:
 	ListExpr* elements;
 };
 
-struct FuncTypeOverload {
-	FuncType* func_type;
+struct FuncDecl {
 	RecordType* args;
 	TypeList* arg_types;
+};
+
+class FuncImpl;
+
+struct FuncOverload {
+	int index;
+	FuncType* type;
+	FuncDecl* decl;
+	FuncImpl* impl;
 };
 
 class FuncType : public BroType {
@@ -407,8 +415,11 @@ public:
 	int AddOverload(RecordType* args);
 
 	int GetOverloadIndex(RecordType* matching_args);
-	FuncTypeOverload* GetOverload(RecordType* matching_args);
-	FuncTypeOverload* GetOverload(int idx);
+	FuncOverload* GetOverload(RecordType* matching_args);
+	FuncOverload* GetOverload(int idx);
+
+	const std::vector<FuncOverload*>& Overloads() const
+		{ return overloads; }
 
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
@@ -442,7 +453,7 @@ protected:
 
 	BroType* yield;
 	function_flavor flavor;
-	std::vector<FuncTypeOverload*> overloads;
+	std::vector<FuncOverload*> overloads;
 };
 
 class TypeType : public BroType {

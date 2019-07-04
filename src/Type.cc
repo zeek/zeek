@@ -6,6 +6,7 @@
 #include "Attr.h"
 #include "Expr.h"
 #include "Scope.h"
+#include "Func.h"
 #include "Reporter.h"
 #include "zeekygen/Manager.h"
 #include "zeekygen/utils.h"
@@ -512,10 +513,9 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 
 int FuncType::AddOverload(RecordType* args)
 	{
-	auto o = new FuncTypeOverload();
-	o->func_type = this;
-	o->args = args;
-	o->arg_types = new TypeList();
+	auto odecl = new FuncDecl();
+	odecl->args = args;
+	odecl->arg_types = new TypeList();
 
 	bool has_default_arg = false;
 	auto added = true;
@@ -535,7 +535,7 @@ int FuncType::AddOverload(RecordType* args)
 			added = false;
 			}
 
-		o->arg_types->Append(args->FieldType(i)->Ref());
+		odecl->arg_types->Append(args->FieldType(i)->Ref());
 		}
 
 	// Check that adding this overload doesn't create ambiguity with others
@@ -549,15 +549,15 @@ int FuncType::AddOverload(RecordType* args)
 		RecordType* more_args;
 		RecordType* less_args;
 
-		if ( o->args->NumFields() > args->NumFields() )
+		if ( o->decl->args->NumFields() > args->NumFields() )
 			{
-			more_args = o->args;
+			more_args = o->decl->args;
 			less_args = args;
 			}
 		else
 			{
 			more_args = args;
-			less_args = o->args;
+			less_args = o->decl->args;
 			}
 
 		for ( auto i = 0; i < more_args->NumFields(); ++i )
@@ -585,7 +585,7 @@ int FuncType::AddOverload(RecordType* args)
 		if ( ! have_unique_param )
 			{
 			args->Error("function parameters would create ambiguous overload",
-			            o->args);
+			            o->decl->args);
 			added = false;
 			}
 		}
@@ -595,13 +595,18 @@ int FuncType::AddOverload(RecordType* args)
 	if ( added )
 		{
 		rval = overloads.size();
+		auto o = new FuncOverload();
+		o->index = rval;
+		o->type = this;
+		o->decl = odecl;
+		o->impl = nullptr;
 		overloads.emplace_back(o);
 		}
 	else
 		{
-		Unref(o->args);
-		Unref(o->arg_types);
-		delete o;
+		Unref(odecl->args);
+		Unref(odecl->arg_types);
+		delete odecl;
 		}
 
 	return rval;
@@ -610,19 +615,19 @@ int FuncType::AddOverload(RecordType* args)
 int FuncType::GetOverloadIndex(RecordType* matching_args)
 	{
 	for ( auto i = 0u; i < overloads.size(); ++i )
-		if ( same_type(overloads[i]->args, matching_args, false, false) )
+		if ( same_type(overloads[i]->decl->args, matching_args, false, false) )
 			return i;
 
 	return -1;
 	}
 
-FuncTypeOverload* FuncType::GetOverload(RecordType* matching_args)
+FuncOverload* FuncType::GetOverload(RecordType* matching_args)
 	{
 	auto idx = GetOverloadIndex(matching_args);
 	return GetOverload(idx);
 	}
 
-FuncTypeOverload* FuncType::GetOverload(int idx)
+FuncOverload* FuncType::GetOverload(int idx)
 	{
 	if ( idx < 0 )
 		return nullptr;
@@ -638,10 +643,16 @@ FuncType* FuncType::ShallowClone()
 
 	for ( auto& o : overloads )
 		{
-		auto co = new FuncTypeOverload();
-		co->func_type = f;
-		co->args = o->args->Ref()->AsRecordType();
-		co->arg_types = o->arg_types->Ref()->AsTypeList();
+		auto co = new FuncOverload();
+		auto codecl = new FuncDecl();
+		co->index = o->index;
+		co->type = f;
+		co->decl->args = o->decl->args->Ref()->AsRecordType();
+		co->decl->arg_types = o->decl->arg_types->Ref()->AsTypeList();
+
+		co->impl = o->impl;
+		::Ref(co->impl);
+
 		f->overloads.emplace_back(co);
 		}
 
@@ -671,8 +682,10 @@ FuncType::~FuncType()
 	{
 	for ( auto& o : overloads )
 		{
-		Unref(o->args);
-		Unref(o->arg_types);
+		Unref(o->decl->args);
+		Unref(o->decl->arg_types);
+		delete o->decl;
+		Unref(o->impl);
 		delete o;
 		}
 
@@ -692,29 +705,29 @@ const BroType* FuncType::YieldType() const
 int FuncType::MatchesIndex(ListExpr*& index) const
 	{
 	if ( overloads.size() == 1 )
-		return check_and_promote_args(index, overloads[0]->args) ?
+		return check_and_promote_args(index, overloads[0]->decl->args) ?
 		           MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 
 	for ( auto& o : overloads )
 		{
 		expr_list& el = index->Exprs();
 
-		if ( el.length() > o->args->NumFields() )
+		if ( el.length() > o->decl->args->NumFields() )
 			continue;
 
 		auto match = true;
 
-		for ( auto i = 0; i < o->args->NumFields(); ++i )
+		for ( auto i = 0; i < o->decl->args->NumFields(); ++i )
 			{
 			if ( i == el.length() )
 				{
 				// This overload can now only match if this param has &default
 				// (implies any subsequent params also have a &default)
-				match = o->args->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
+				match = o->decl->args->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
 				break;
 				}
 
-			if ( ! same_type(el[i]->Type(), o->args->FieldType(i)) )
+			if ( ! same_type(el[i]->Type(), o->decl->args->FieldType(i)) )
 				{
 				match = false;
 				break;
@@ -722,7 +735,7 @@ int FuncType::MatchesIndex(ListExpr*& index) const
 			}
 
 		if ( match )
-			return check_and_promote_args(index, o->args) ?
+			return check_and_promote_args(index, o->decl->args) ?
 			           MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 		}
 
@@ -733,7 +746,7 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
 	// TODO: implement for overloads
 	assert(overloads.size() == 1);
-	auto arg_types = overloads[0]->arg_types;
+	auto arg_types = overloads[0]->decl->arg_types;
 
 	const type_list* my_args = arg_types->Types();
 
@@ -751,21 +764,21 @@ RecordType* FuncType::Args() const
 	{
 	// TODO: audit usages
 	assert(overloads.size() == 1);
-	return overloads[0]->args;
+	return overloads[0]->decl->args;
 	}
 
 TypeList* FuncType::ArgTypes() const
 	{
 	// TODO: audit usages
 	assert(overloads.size() == 1);
-	return overloads[0]->arg_types;
+	return overloads[0]->decl->arg_types;
 	}
 
 void FuncType::Describe(ODesc* d) const
 	{
 	// TODO: implement for overloads
 	assert(overloads.size() == 1);
-	auto args = overloads[0]->args;
+	auto args = overloads[0]->decl->args;
 
 	if ( d->IsReadable() )
 		{
@@ -795,7 +808,7 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	// TODO: implement for overloads
 	assert(overloads.size() == 1);
-	auto args = overloads[0]->args;
+	auto args = overloads[0]->decl->args;
 
 	d->Add(":zeek:type:`");
 	d->Add(FlavorString());

@@ -4199,9 +4199,15 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 		     (func_val = func->Eval(0)) )
 			{
 			::Func* f = func_val->AsFunc();
-			if ( f->GetKind() == Func::BUILTIN_FUNC &&
-			     ! check_built_in_call((BuiltinFunc*) f, this) )
-				SetError();
+			auto& os = f->FType()->Overloads();
+
+			if ( os.size() == 1 )
+				{
+				auto o = dynamic_cast<BuiltinFunc*>(os[0]->impl);
+
+				if ( o && ! check_built_in_call(o, this) )
+					SetError();
+				}
 			}
 		}
 	}
@@ -4232,15 +4238,19 @@ int CallExpr::IsPure() const
 	// or indirectly).
 	int pure = 0;
 
-	if ( f->GetKind() == Func::BUILTIN_FUNC )
-		{
-		auto& os = f->GetOverloads();
+	auto& os = f->FType()->Overloads();
 
-		if ( os.size() == 1 )
-			{
-			auto o = dynamic_cast<BroFunc*>(os[0]);
+	if ( os.size() == 1 )
+		{
+		auto o = os[0]->impl;
+		auto bif = dynamic_cast<BuiltinFunc*>(o);
+
+		if ( bif )
 			pure = o->IsPure() && args->IsPure();
-			}
+		}
+	else
+		{
+		// TODO: can probably use statically cached overload index
 		}
 
 	Unref(func_val);

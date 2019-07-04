@@ -21,6 +21,7 @@ class Frame;
 class ID;
 class CallExpr;
 class Func;
+class FuncOverload;
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
 
@@ -31,18 +32,19 @@ struct FuncBody {
 		{ return priority > other.priority; } // reverse sort
 };
 
-class FuncOverload {
+class FuncImpl : public BroObj {
 public:
 
-	FuncOverload();
+	FuncImpl(ID* id);
+	FuncImpl(const char* name);
 
-	FuncOverload(Func* func, FuncType* type);
-
-	virtual ~FuncOverload();
+	virtual ~FuncImpl();
 
 	virtual int IsPure() const = 0;
 
 	virtual Val* Call(val_list* args, Frame* parent = 0) const = 0;
+
+	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 	virtual void Describe(ODesc* d) const = 0;
 
@@ -62,51 +64,40 @@ protected:
 	FuncType* type;
 };
 
-// TODO: can maybe restructure Overloads to inherit from this again?
 class Func : public BroObj {
 public:
 
-	enum Kind { BRO_FUNC, BUILTIN_FUNC };
-
-	explicit Func(Kind arg_kind, std::string arg_name);
+	explicit Func(ID* id);
 
 	~Func() override;
 
 	const char* Name() const
 		{ return name.c_str(); }
 
-	Kind GetKind() const
-		{ return kind; }
+	FuncType* FType() const
+		{ return type; }
 
-	const std::vector<FuncOverload*>& GetOverloads() const
-		{ return overloads; }
+	function_flavor Flavor() const
+		{ return type->Flavor(); }
 
-	std::vector<FuncOverload*>& GetOverloads()
-		{ return overloads; }
+	const std::vector<FuncOverload*>& Overloads() const
+		{ return type->Overloads(); }
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(Stmt* new_body, id_list* new_inits,
 			     size_t new_frame_size, int priority = 0);
 	Val* Call(val_list* args, Frame* parent = 0) const;
 
-	// TODO: get rid of this ? mark deprecated
-	function_flavor Flavor() const
-		{
-		// TODO: really we should be storing the full FuncType here, so can
-		// grab flavor from that ?
-		assert(overloads.size() >= 1);
-		return overloads[0]->GetType()->Flavor();
-		}
-
-	// TODO: get rid of this ? marke deprecated
+	// TODO: get rid of this ?
 	const std::vector<FuncBody>& GetBodies() const;
 
-	// TODO: get rid of this ? mark deprecated
+	// TODO: get rid of this ?
 	bool HasBodies() const;
 
-	// TODO: mark deprecated
+	// TODO: get rid of this ?
 	Scope* GetScope() const;
 
+<<<<<<< HEAD
 	// TODO: get rid of this ? mark deprecated
 	FuncType* FType() const
 		{
@@ -122,6 +113,8 @@ public:
 	static Func* GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
+=======
+>>>>>>> WIP: re-organize function overload structures
 	// TODO: could we change hashing to use the function name ?
 	uint32 GetUniqueFuncID() const
 		{ return unique_id; }
@@ -141,24 +134,23 @@ public:
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
-	void AddOverload(FuncOverload* fo);
-
 protected:
 
-	Kind kind;
+	FuncType* type;
 	string name;
 	uint32_t unique_id;
 	static vector<Func*> unique_ids;
 	uint32 unique_id;
 	std::vector<FuncOverload*> overloads;
+
 	static std::vector<Func*> unique_ids;
 };
 
-class BroFunc : public FuncOverload {
+class BroFunc : public FuncImpl {
 public:
 
-	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority);
 	BroFunc(Func* f, BroType* type, Stmt* body, id_list* inits, int frame_size,
+	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size,
 	        int priority, Scope* scope);
 	~BroFunc() override;
 
@@ -195,6 +187,8 @@ public:
 		{ outer_ids = std::move(ids); }
 
 	Val* Call(val_list* args, Frame* parent = 0) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -238,13 +232,15 @@ private:
 	static Stmt* AddInits(Stmt* body, id_list* inits);
 };
 
-class BuiltinFunc : public FuncOverload {
+class BuiltinFunc : public FuncImpl {
 public:
 	BuiltinFunc(built_in_func func, const char* name, int is_pure);
 
 	int IsPure() const override;
 
 	Val* Call(val_list* args, Frame* parent = 0) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -265,7 +261,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo {
 	const CallExpr* call;
-	const FuncOverload* func;
+	const FuncImpl* func;
 	const val_list* args;
 };
 

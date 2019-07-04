@@ -32,6 +32,7 @@
 #include <broker/error.hh>
 
 #include "Base64.h"
+#include "Type.h"
 #include "Stmt.h"
 #include "Scope.h"
 #include "Net.h"
@@ -105,60 +106,86 @@ std::string render_call_stack()
 	return rval;
 	}
 
-FuncOverload::FuncOverload()
-: func(), type()
+FuncImpl::FuncImpl(ID* id)
 	{
-	}
+	func = id->ID_Val()->AsFunc();
+	type = id->Type()->AsFuncType();
 
-FuncOverload::FuncOverload(Func* arg_func, FuncType* arg_type)
-: func(arg_func), type(arg_type)
-	{
+	::Ref(func);
 	::Ref(type);
 	}
 
-FuncOverload::~FuncOverload()
+FuncImpl::FuncImpl(const char* arg_name)
 	{
+	auto name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
+
+	ID* id = lookup_ID(name.data(), GLOBAL_MODULE_NAME, false);
+
+	if ( ! id )
+		reporter->InternalError("built-in function %s missing", name.data());
+
+	// TODO: support overloads
+	if ( id->HasVal() )
+		reporter->InternalError("built-in function %s multiply defined", name.data());
+
+	func = new Func(id);
+	type = id->Type()->AsFuncType();
+	::Ref(type);
+
+	// TODO: can assume order of impl follows same order as decls ?
+	auto& os = type->Overloads();
+	assert( ! os[0]->impl );
+	os[0]->impl = this;
+
+	id->SetVal(new Val(func));
+	Unref(id);
+	}
+
+FuncImpl::~FuncImpl()
+	{
+	Unref(func);
 	Unref(type);
 	}
 
-const char* FuncOverload::Name() const
+const char* FuncImpl::Name() const
 	{
 	return func->Name();
 	}
 
-function_flavor FuncOverload::Flavor() const
+function_flavor FuncImpl::Flavor() const
 	{
 	return func->Flavor();
 	}
 
-Func::Func(Kind arg_kind, std::string arg_name)
-: kind(arg_kind), name(std::move(arg_name)), unique_id(unique_ids.size())
+Func::Func(ID* id)
 	{
+	type = id->Type()->AsFuncType();
+	name = id->Name();
+	unique_id = unique_ids.size();
 	unique_ids.emplace_back(this);
+
+	::Ref(type);
 	}
 
 Func::~Func()
 	{
-	for ( auto& o : overloads )
-		delete o;
+	Unref(type);
 	}
 
 Val* Func::Call(val_list* args, Frame* parent) const
 	{
+	auto& overloads = type->Overloads();
+
 	if ( overloads.size() == 1 )
 		// Note: va_args BIFs would be one case that relies on taking this
 		// shortcut not just as a performance optimization.  Should be safe
 		// because we can't overload such va_args functions.
-		return overloads[0]->Call(args, parent);
+		return overloads[0]->impl->Call(args, parent);
 
 	for ( auto i = 0u; i < overloads.size(); ++i )
 		{
 		auto& o = overloads[i];
-		// TODO: each overload value is storing the full FuncType (which
-		// has all the overload types), which is probably excessive and/or
-		// can be simplified.
-		auto otype = o->GetType()->GetOverload(i);
-		auto oargs = otype->arg_types->Types();
+		auto oargs = o->decl->arg_types->Types();
 
 		if ( oargs->length() != args->length() )
 			continue;
@@ -175,7 +202,7 @@ Val* Func::Call(val_list* args, Frame* parent) const
 			}
 
 		if ( args_match )
-			return o->Call(args, parent);
+			return o->impl->Call(args, parent);
 		}
 
 	reporter->PushLocation(GetLocationInfo());
@@ -198,30 +225,36 @@ Func* Func::DoClone()
 
 Scope* Func::GetScope() const
 	{
+	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]));
-	return dynamic_cast<const BroFunc*>(overloads[0])->GetScope();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
+	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetScope();
 	}
 
 const vector<FuncBody>& Func::GetBodies() const
 	{
+	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]));
-	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
+	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetBodies();
 	}
 
 bool Func::HasBodies() const
 	{
+	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]));
-	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies().size();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
+	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetBodies().size();
 	}
 
 void Func::Describe(ODesc* d) const
 	{
 	// TODO: print all overloads ?
+	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	overloads[0]->Describe(d);
+
+	if ( overloads[0]->impl )
+		overloads[0]->impl->Describe(d);
 	}
 
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
@@ -259,30 +292,28 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 		}
 	}
 
-TraversalCode Func::Traverse(TraversalCallback* cb) const
-	{
-	// TODO: traverse all overloads
-	// FIXME: Make a fake scope for builtins?
-	Scope* old_scope = cb->current_scope;
-	cb->current_scope = GetScope();
 
-	TraversalCode tc = cb->PreFunction(this);
+TraversalCode BroFunc::Traverse(TraversalCallback* cb) const
+	{
+	Scope* old_scope = cb->current_scope;
+	cb->current_scope = scope;
+
+	TraversalCode tc = cb->PreFunction(func);
 	HANDLE_TC_STMT_PRE(tc);
 
-	// FIXME: Traverse arguments to builtin functions, too.
-	if ( kind == BRO_FUNC && GetScope() )
+	if ( scope )
 		{
-		tc = GetScope()->Traverse(cb);
+		tc = scope->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 
-		for ( unsigned int i = 0; i < GetBodies().size(); ++i )
+		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
-			tc = GetBodies()[i].stmts->Traverse(cb);
+			tc = bodies[i].stmts->Traverse(cb);
 			HANDLE_TC_STMT_PRE(tc);
 			}
 		}
 
-	tc = cb->PostFunction(this);
+	tc = cb->PostFunction(func);
 
 	cb->current_scope = old_scope;
 	HANDLE_TC_STMT_POST(tc);
@@ -302,9 +333,37 @@ void Func::CopyStateInto(Func* other) const
 	other->name = name;
 	other->unique_id = unique_id;
 	}
+TraversalCode BuiltinFunc::Traverse(TraversalCallback* cb) const
+	{
+	Scope* old_scope = cb->current_scope;
+	cb->current_scope = nullptr;
+
+	TraversalCode tc = cb->PreFunction(func);
+	HANDLE_TC_STMT_PRE(tc);
+	tc = cb->PostFunction(func);
+
+	cb->current_scope = old_scope;
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+TraversalCode Func::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc;
+
+	for ( auto& o : type->Overloads() )
+		{
+		if ( ! o->impl )
+			continue;
+
+		tc = o->impl->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
+
+	HANDLE_TC_STMT_POST(tc);
+	}
 
 // Helper function for handling result of plugin hook.
-static std::pair<bool, Val*> HandlePluginResult(const FuncOverload* func, std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor)
+static std::pair<bool, Val*> HandlePluginResult(const FuncImpl* func, std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor)
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
@@ -358,10 +417,10 @@ static std::pair<bool, Val*> HandlePluginResult(const FuncOverload* func, std::p
 	return plugin_result;
 	}
 
-BroFunc::BroFunc(Func* f, BroType* arg_type, Stmt* arg_body,
+BroFunc::BroFunc(ID* id, Stmt* arg_body,
                  id_list* aggr_inits, int arg_frame_size, int priority,
                  Scope* arg_scope)
-: FuncOverload(f, arg_type->AsFuncType())
+: FuncImpl(id)
 	{
 	scope = arg_scope;
 	frame_size = arg_frame_size;
@@ -685,30 +744,10 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 			int arg_is_pure)
-: FuncOverload()
+: FuncImpl(arg_name)
 	{
 	internal_func = arg_func;
 	is_pure = arg_is_pure;
-
-	auto name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
-
-	ID* id = lookup_ID(name.data(), GLOBAL_MODULE_NAME, false);
-
-	if ( ! id )
-		reporter->InternalError("built-in function %s missing", name.data());
-
-	// TODO: support overloads
-	if ( id->HasVal() )
-		reporter->InternalError("built-in function %s multiply defined", name.data());
-
-	auto f = new Func(Func::BUILTIN_FUNC, std::move(name));
-	func = f;
-	type = id->Type()->Ref()->AsFuncType();
-
-	f->AddOverload(this);
-
-	id->SetVal(new Val(f));
-	Unref(id);
 	}
 
 int BuiltinFunc::IsPure() const

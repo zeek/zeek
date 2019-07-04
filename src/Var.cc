@@ -216,10 +216,14 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		auto f = new Func(Func::BRO_FUNC, id->Name());
-		auto o = new BroFunc(f, t, 0, 0, 0, 0, 0);
-		f->AddOverload(o);
+		auto f = new Func(id);
 		id->SetVal(new Val(f));
+
+		// TODO: probably need to adapt to support overloads
+		auto o = new BroFunc(id, 0, 0, 0, 0, 0);
+		auto& os = t->AsFuncType()->Overloads();
+		assert( ! os[0]->impl );
+		os[0]->impl = o;
 		}
 	}
 
@@ -365,7 +369,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				// params, automatically transfer any that are missing
 				// (convenience so that implementations don't need to specify
 				// the &default expression again).
-				transfer_arg_defaults(o->args, t->Args());
+				transfer_arg_defaults(o->decl->args, t->Args());
 				}
 			else
 				overload_idx = existing_type->AddOverload(t->Args());
@@ -401,11 +405,11 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		case FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
 				{
-				auto& os = existing_func_val->GetOverloads();
+				auto& os = existing_func_val->FType()->Overloads();
 
 				if ( overload_idx >= 0 &&
 				     static_cast<int>(os.size()) > overload_idx &&
-				     os[overload_idx] )
+				     os[overload_idx]->impl )
 					id->Error("already defined");
 				}
 			break;
@@ -520,17 +524,18 @@ void end_func(Stmt* body)
 		auto overload_idx = scope->OverloadIndex();
 		auto f = id->ID_Val()->AsFunc();
 		auto& os = f->GetOverloads();
-
-		if ( overload_idx >= static_cast<int>(os.size()) )
-			os.resize(overload_idx + 1);
-
-		FuncOverload*& o = os[overload_idx];
-
-		if ( ! o )
-			o = new BroFunc(f, id->Type(), body, inits, frame_size, priority, scope);
-		else
-			dynamic_cast<BroFunc*>(o)->AddBody(body, inits, frame_size, priority, scope);
 		}
+
+	auto overload_idx = scope->OverloadIndex();
+	auto ftype = id->Type()->AsFuncType();
+	auto& os = ftype->Overloads();
+
+	// TODO: probably want a real API for adding an impl to the overload list
+	assert(overload_idx < static_cast<int>(os.size()));
+	FuncImpl*& o = os[overload_idx]->impl;
+
+	if ( o )
+		dynamic_cast<BroFunc*>(o)->AddBody(body, inits, frame_size, priority, scope);
 	else
 		{
 		Func* f = new BroFunc(

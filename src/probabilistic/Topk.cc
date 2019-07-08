@@ -492,25 +492,25 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 	while ( i < numElements )
 		{
-		Bucket* b = new Bucket();
 		auto elements_count = caf::get_if<uint64>(&(*v)[idx++]);
 		auto count = caf::get_if<uint64>(&(*v)[idx++]);
 
 		if ( ! (elements_count && count) )
 			return false;
 
+		Bucket* b = new Bucket();
 		b->count = *count;
 		b->bucketPos = buckets.insert(buckets.end(), b);
 
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
-			Element* e = new Element();
 			auto epsilon = caf::get_if<uint64>(&(*v)[idx++]);
 			Val* val = bro_broker::data_to_val((*v)[idx++], type);
 
 			if ( ! (epsilon && val) )
 				return false;
 
+			Element* e = new Element();
 			e->epsilon = *epsilon;
 			e->value = val;
 			e->parent = b;

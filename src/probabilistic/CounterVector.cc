@@ -179,6 +179,9 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& da
 	auto width = caf::get_if<uint64>(&(*v)[0]);
 	auto bits = BitVector::Unserialize((*v)[1]);
 
+	if ( ! (width && bits) )
+		return nullptr;
+
 	auto cv = std::unique_ptr<CounterVector>(new CounterVector());
 	cv->width = *width;
 	cv->bits = bits.release();

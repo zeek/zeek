@@ -981,7 +981,6 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;

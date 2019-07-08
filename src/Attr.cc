@@ -130,11 +130,12 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
+Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record, bool is_global)
 	{
 	attrs = new attr_list(a->length());
 	type = t->Ref();
 	in_record = arg_in_record;
+	global_var = is_global;
 
 	SetLocationInfo(&start_location, &end_location);
 
@@ -250,8 +251,12 @@ void Attributes::CheckAttr(Attr* a)
 	{
 	switch ( a->Tag() ) {
 	case ATTR_DEPRECATED:
-	case ATTR_OPTIONAL:
 	case ATTR_REDEF:
+		break;
+
+	case ATTR_OPTIONAL:
+		if ( global_var )
+			Error("&optional is not valid for global variables");
 		break;
 
 	case ATTR_ADD_FUNC:
@@ -283,6 +288,15 @@ void Attributes::CheckAttr(Attr* a)
 
 	case ATTR_DEFAULT:
 		{
+		// &default is allowed for global tables, since it's used in initialization
+		// of table fields. it's not allowed otherwise.
+		//
+		if ( global_var && ! type->IsSet() && type->Tag() != TYPE_TABLE )
+			{
+			Error("&default is not valid for global variables");
+			break;
+			}
+
 		BroType* atype = a->AttrExpr()->Type();
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
@@ -408,11 +422,12 @@ void Attributes::CheckAttr(Attr* a)
 			}
 		}
 
-#if 0
 		//### not easy to test this w/o knowing the ID.
-		if ( ! IsGlobal() )
+#if 0
+		if ( ! global_var )
 			Error("expiration not supported for local variables");
 #endif
+
 		break;
 
 	case ATTR_EXPIRE_FUNC:

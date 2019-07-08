@@ -181,7 +181,7 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true);
+					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true, IsGlobal());
 
 				fd->attrs->AddAttr(new Attr(ATTR_LOG));
 				}
@@ -195,7 +195,7 @@ void ID::MakeDeprecated(Expr* deprecation)
 		return;
 
 	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
-	AddAttrs(new Attributes(attr, Type(), false));
+	AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
 	}
 
 string ID::GetDeprecationWarning() const
@@ -245,7 +245,7 @@ void ID::SetOption()
 	if ( ! IsRedefinable() )
 		{
 		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(new Attributes(attr, Type(), false));
+		AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
 		}
 	}
 

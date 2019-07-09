@@ -31,7 +31,7 @@
 	Zeek keeps extensive application-layer state about the network it monitors and provides a high-level archive of a network's activity.
 
 ## Getting Started
-The best place to find information about getting started with Zeek is our [website](https://www.zeek.org/documentation/index.html). You can find downloads for stable relases, tutorials on getting Zeek set up, and many other useful resources there. You can also find release notes for the current version in [NEWS](https://github.com/zeek/zeek/blob/master/NEWS), and [CHANGES](https://github.com/zeek/zeek/blob/master/CHANGES) has the complete history of changes
+The best place to find information about getting started with Zeek is our [website](https://www.zeek.org/documentation/index.html). You can find downloads for stable relases, tutorials on getting Zeek set up, and many other useful resources there. You can also find release notes for the current version and a complete history of changes in [NEWS](https://github.com/zeek/zeek/blob/master/NEWS), and [CHANGES](https://github.com/zeek/zeek/blob/master/CHANGES) respectvely.
 
 To work on the development branch of Zeek, clone the master git repository. 
 
@@ -43,11 +43,9 @@ Then, with its [dependencies](https://docs.zeek.org/en/stable/install/install.ht
 
 
 ## Development
-Zeek was originally developed by Vern Paxson. Robin Sommer now leads the project, jointly with a core team of researchers and developers at the [International Computer Science Institute](http://www.icsi.berkeley.edu) in Berkeley, CA; and the [National Center for Supercomputing Applications](http://www.ncsa.illinois.edu) in Urbana-Champaign, IL.
-
 Zeek is developed on GitHub and we welcome contributions. Working on an open-source project like Zeek can be an incredibly rewarding experience. We actively collect feature requests and issues on GitHub [here](https://github.com/zeek/zeek/issues). If you're looking for a good first issue you might find [these](https://github.com/zeek/zeek/issues?q=is%3Aissue+is%3Aopen+label%3A%22Difficulty%3A+Easy%22) useful.
 
-More information on Zeek's development can be found [here](https://www.zeek.org/development/index.html), and information about its community and mailing lists (which are fairly active) can be found [here](https://www.zeek.org/community/index.html).  
+More information on Zeek's development can be found [here](https://www.zeek.org/development/index.html), and information about its community and mailing lists (which are fairly active) can be found [here](https://www.zeek.org/community/index.html).
 
 ## License
 Zeek comes with a BSD license, allowing for free use with virtually no restrictions. You can read it [here](https://github.com/zeek/zeek/blob/master/COPYING).

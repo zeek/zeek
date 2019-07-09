@@ -225,7 +225,7 @@ public:
 	int MemoryAllocation() const
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
 
-	void insert(T a)	// add at head of list
+	void insert(const T& a)	// add at head of list
 		{
 		if ( num_entries == max_entries )
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
@@ -238,7 +238,7 @@ public:
 		}
 
 	// Assumes that the list is sorted and inserts at correct position.
-	void sortedinsert(T a, list_cmp_func cmp_func)
+	void sortedinsert(const T& a, list_cmp_func cmp_func)
 		{
 		// We optimize for the case that the new element is
 		// larger than most of the current entries.
@@ -262,7 +262,12 @@ public:
 			}
 		}
 
-	void append(T a)	// add to end of list
+	void push_back(const T& a)	{ append(a); }
+	void push_front(const T& a)	{ insert(a); }
+	T pop_front() { return get() ;}
+	T pop_back() { return remove_nth(num_entries-1); }
+
+	void append(const T& a)	// add to end of list
 		{
 		if ( num_entries == max_entries )
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
@@ -270,7 +275,7 @@ public:
 		entries[num_entries++] = a;
 		}
 
-	T remove(T a)	// delete entry from list
+	T remove(const T& a)	// delete entry from list
 		{
 		int i;
 		for ( i = 0; i < num_entries && a != entries[i]; ++i )
@@ -306,14 +311,14 @@ public:
 		{ return entries[num_entries-1]; }
 
 	// Return 0 if ent is not in the list, ent otherwise.
-	bool is_member(T a) const
+	bool is_member(const T& a) const
 		{
 		int pos = member_pos(a);
 		return pos != -1;
 		}
 
 	// Returns -1 if ent is not in the list, otherwise its position.
-	int member_pos(T e) const
+	int member_pos(const T& e) const
 		{
 		int i;
 		for ( i = 0; i < length() && e != entries[i]; ++i )
@@ -344,6 +349,9 @@ public:
 
 		return old_ent;
 		}
+
+	// Type traits needed for some of the std algorithms to work
+	using value_type = T;
 
 	// Iterator support
 	using iterator = ListIterator<T>;

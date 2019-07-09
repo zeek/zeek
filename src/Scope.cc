@@ -172,7 +172,7 @@ ID* install_ID(const char* name, const char* module_name,
 	if ( is_export || ! module_name ||
 	     (is_global &&
 	      normalized_module_name(module_name) == GLOBAL_MODULE_NAME) )
-		scope = SCOPE_GLOBAL;
+		    scope = SCOPE_GLOBAL;
 	else if ( is_global )
 		scope = SCOPE_MODULE;
 	else
@@ -189,7 +189,7 @@ ID* install_ID(const char* name, const char* module_name,
 		id->SetOffset(top_scope->Length());
 		top_scope->Insert(full_name, id);
 		}
-
+		
 	return id;
 	}
 

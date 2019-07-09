@@ -104,28 +104,6 @@ struct val_converter {
 
 			return nullptr;
 			}
-		case TYPE_FUNC:
-			{
-			auto id = global_scope()->Lookup(a.data());
-
-			if ( ! id )
-				return nullptr;
-
-			auto rval = id->ID_Val();
-
-			if ( ! rval )
-				return nullptr;
-
-			auto t = rval->Type();
-
-			if ( ! t )
-				return nullptr;
-
-			if ( t->Tag() != TYPE_FUNC )
-				return nullptr;
-
-			return rval->Ref();
-			}
 		default:
 			return nullptr;
 		}
@@ -364,6 +342,55 @@ struct val_converter {
 
 			return rval;
 			}
+		else if (type->Tag() == TYPE_FUNC)
+			{
+			#define GET_OR_RETURN(type, name, index)							\
+				if (auto __##name##__ = broker::get_if<type>(a[index]))			\
+					name = *__##name##__;										\
+				else															\
+					return nullptr;												\
+
+			if (a.size() > 2)
+				return nullptr;
+			
+			std::string name;
+			GET_OR_RETURN(std::string, name, 0);
+
+			auto id = global_scope()->Lookup(name.c_str());
+
+			if ( ! id )
+				return nullptr;
+
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return nullptr;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return nullptr;
+
+
+			if ( t->Tag() != TYPE_FUNC )
+				return nullptr;
+
+			if (a.size() == 2) // We have a closure.
+				{
+				broker::vector frame;
+				GET_OR_RETURN(broker::vector, frame, 1);
+
+				bool status = false;
+				if ( BroFunc* b = dynamic_cast<BroFunc*>(rval->AsFunc()))
+					{
+					status = b->UpdateClosure(frame);
+					}
+				if ( ! status ) return nullptr;
+				}
+
+			return rval->Ref();
+			#undef GET_OR_RETURN
+			}
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
@@ -479,28 +506,6 @@ struct type_checker {
 			return true;
 		case TYPE_FILE:
 			return true;
-		case TYPE_FUNC:
-			{
-			auto id = global_scope()->Lookup(a.data());
-
-			if ( ! id )
-				return false;
-
-			auto rval = id->ID_Val();
-
-			if ( ! rval )
-				return false;
-
-			auto t = rval->Type();
-
-			if ( ! t )
-				return false;
-
-			if ( t->Tag() != TYPE_FUNC )
-				return false;
-
-			return true;
-			}
 		default:
 			return false;
 		}
@@ -698,6 +703,40 @@ struct type_checker {
 
 			return true;
 			}
+		else if ( type->Tag() == TYPE_FUNC )
+			{
+			#define GET_OR_RETURN(type, name, index)							\
+				if (auto __##name##__ = broker::get_if<type>(a[index]))			\
+					name = *__##name##__;										\
+				else															\
+					return false;												\
+
+			if (a.size() > 2)
+				return false;
+			
+			std::string name;
+			GET_OR_RETURN(std::string, name, 0);
+
+			auto id = global_scope()->Lookup(name.c_str());
+
+			if ( ! id )
+				return false;
+
+			auto rval = id->ID_Val();
+
+			if ( ! rval )
+				return false;
+
+			auto t = rval->Type();
+
+			if ( ! t )
+				return false;
+
+			if ( t->Tag() != TYPE_FUNC )
+				return false;
+
+			return true;
+			}
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
@@ -818,13 +857,13 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {v->AsDouble()};
 	case TYPE_TIME:
 		{
-	  auto secs = broker::fractional_seconds{v->AsTime()};
-	  auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
+		auto secs = broker::fractional_seconds{v->AsTime()};
+		auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
 		return {broker::timestamp{since_epoch}};
 		}
 	case TYPE_INTERVAL:
 		{
-	  auto secs = broker::fractional_seconds{v->AsInterval()};
+		auto secs = broker::fractional_seconds{v->AsInterval()};
 		return {std::chrono::duration_cast<broker::timespan>(secs)};
 		}
 	case TYPE_ENUM:
@@ -841,7 +880,31 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 	case TYPE_FILE:
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
-		return {string(v->AsFunc()->Name())};
+	        {
+			Func* f = v->AsFunc();
+			std::string name(f->Name());
+			broker::vector rval;
+			rval.push_back(name);
+
+			auto starts_with = [](const std::string& s ,const std::string& in) -> bool 
+				{ return (0 == s.find(in)); };
+
+			if ( starts_with(name, "anonymous-function") )
+				{
+				// Only BroFuncs have closures.
+				if (BroFunc* b = dynamic_cast<BroFunc*>(f))
+					{
+					auto bc = dynamic_cast<BroFunc*>(f)->SerializeClosure();
+					if ( ! bc )
+						return broker::ec::invalid_data;
+					rval.emplace_back(std::move(*bc));
+					}
+				else
+					return broker::ec::invalid_data;
+				}
+
+			return {std::move(rval)};
+			}
 	case TYPE_TABLE:
 		{
 		auto is_set = v->Type()->IsSet();
@@ -994,6 +1057,8 @@ RecordVal* bro_broker::make_data_val(Val* v)
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
+
+	if  ( ! data ) reporter->Warning("Didn't get a value from val_to_data");
 
 	if ( data )
 		rval->Assign(0, new DataVal(move(*data)));

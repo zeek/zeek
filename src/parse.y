@@ -1234,11 +1234,8 @@ anonymous_function:
 
 		'}'
 			{
-			// Every time a new LambdaExpr is evaluated it must return a new instance
-			// of a BroFunc. Here, we collect the ingredients for a function and give
-			// it to our LambdaExpr.
+			// Gather the ingredients for a BroFunc from the current scope
 			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients($5);
-			
 			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));

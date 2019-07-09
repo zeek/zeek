@@ -1,0 +1,12 @@
+peer added
+begin: 100 | base_step: 50
+sender got pong: function 2
+begin: 100 | base_step: 1
+begin: 100 | base_step: 1 | step: 76
+177
+begin: 100 | base_step: 50
+sender got pong: function 1
+inside: 2 | outside: 11 | global: 10
+78
+begin: 100 | base_step: 50
+peer lost

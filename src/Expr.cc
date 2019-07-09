@@ -4322,17 +4322,48 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ing,
 		       std::shared_ptr<id_list> outer_ids) : Expr(EXPR_LAMBDA)
 	{
-	this->ingredients = std::move(ingredients);
+	ingredients = std::move(ing);
 	this->outer_ids = std::move(outer_ids);
 
-	SetType(this->ingredients->id->Type()->Ref());
+	SetType(ingredients->id->Type()->Ref());
+
+	// Install a dummy version of the function globally for use only
+	// when broker provides a closure.
+	BroFunc* dummy_func = new BroFunc(
+		ingredients->id,
+		ingredients->body,
+		ingredients->inits,
+		ingredients->frame_size,
+		ingredients->priority);
+
+	dummy_func->SetOuterIDs(this->outer_ids);
+
+	// Get the body's "string" representation.
+	ODesc d;
+	dummy_func->Describe(&d);
+	const char* desc = d.Description();
+
+	// Install that in the global_scope
+	ID* id = install_ID(desc, current_module.c_str(), true, false);
+
+	// Update lamb's name
+	dummy_func->SetName(desc);
+
+	// When the id goes away it will unref v.
+	Val* v = new Val(dummy_func);
+
+	// id will unref v when its done.
+	id->SetVal(v);
+	id->SetType(ingredients->id->Type()->Ref());
+	id->SetConst();
 	}
 
 Val* LambdaExpr::Eval(Frame* f) const
 	{
+
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,
@@ -4342,7 +4373,15 @@ Val* LambdaExpr::Eval(Frame* f) const
 
 	lamb->AddClosure(outer_ids, f);
 
-	return (new Val(lamb));
+	ODesc d;
+	lamb->Describe(&d);
+	const char* desc = d.Description();
+
+	// Set name to corresponding dummy func.
+	// Allows for lookups by the receiver.
+	lamb->SetName(desc);
+	
+	return new Val(lamb);
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const

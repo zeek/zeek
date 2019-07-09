@@ -28,6 +28,7 @@
 #include <signal.h>
 
 #include <algorithm>
+#include <broker/error.hh>
 
 #include "Base64.h"
 #include "Stmt.h"
@@ -266,8 +267,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size, int priority)
-: Func(BRO_FUNC)
+		int arg_frame_size, int priority) : Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
 	type = arg_id->Type()->Ref();
@@ -285,14 +285,13 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 BroFunc::~BroFunc()
 	{
 	std::for_each(bodies.begin(), bodies.end(), [](Body& b) { Unref(b.stmts); });
-
 	Unref(closure);
 	}
 
 int BroFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
-			   [](const Body& b) { return b.stmts->IsPure(); });
+		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
@@ -328,7 +327,9 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	Frame* f = new Frame(frame_size, this, args);
 	if ( closure )
+		{
 		f = new ClosureFrame(this->closure, f, this->outer_ids);
+		}
 
 	// Hand down any trigger.
 	if ( parent )
@@ -495,6 +496,22 @@ void BroFunc::SetClosureFrame(Frame* f)
 	closure = f ? f->SelectiveClone( outer_ids.get() ) : nullptr;
 	}
 
+bool BroFunc::UpdateClosure(const broker::vector& data)
+	{
+	auto result = Frame::Unserialize(data);
+	if ( ! result.first ) return false;
+
+	Frame* new_closure = result.second;
+
+	if (new_closure)
+		new_closure->function = this;
+
+	if (closure) Unref(closure);
+	closure = new_closure;
+
+	return true;
+	}
+
 Func* BroFunc::DoClone()
 	{
 	// A BroFunc could hold a closure. In this case a clone of it must
@@ -516,6 +533,21 @@ Func* BroFunc::DoClone()
 
 		return other;
 		}
+	}
+
+broker::expected<broker::data> BroFunc::SerializeClosure() const
+	{
+	if (! closure) 
+		{
+		return broker::vector({"Frame"});
+		}
+
+	closure->SetOuterIDs(outer_ids);
+
+	auto e = closure->Serialize();
+
+	if ( !e ) return broker::ec::invalid_data;
+	return *e;
 	}
 
 void BroFunc::Describe(ODesc* d) const

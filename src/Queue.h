@@ -154,7 +154,7 @@ public:
 	int back() const	{ return tail; }
 
 
-	void push_front(T a)	// add in front of queue
+	void push_front(const T& a)	// add in front of queue
 		{
 		if ( num_entries == max_entries )
 			{
@@ -172,7 +172,7 @@ public:
 			}
 		}
 
-	void push_back(T a)	// add at end of queue
+	void push_back(const T& a)	// add at end of queue
 		{
 		if ( num_entries == max_entries )
 			{
@@ -222,6 +222,10 @@ public:
 
 	// return nth *PHYSICAL* entry of queue (do not remove)
 	T operator[](int i) const	{ return entries[i]; }
+
+	// Type traits needed for some of the std algorithms to work
+	using value_type = T;
+
 	// Iterator support
 	using iterator = QueueIterator<T>;
 	using const_iterator = QueueIterator<const T>;

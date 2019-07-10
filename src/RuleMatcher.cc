@@ -83,21 +83,20 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 	comp = h.comp;
 
 	vals = new maskedvalue_list;
-	loop_over_list(*h.vals, i)
-		vals->append(new MaskedValue(*(*h.vals)[i]));
+	for ( const auto& val : *h.vals )
+		vals->append(new MaskedValue(*val));
 
 	prefix_vals = h.prefix_vals;
 
 	for ( int j = 0; j < Rule::TYPES; ++j )
 		{
-		loop_over_list(h.psets[j], k)
+		for ( PatternSet* orig_set : h.psets[j] )
 			{
-			PatternSet* orig_set = h.psets[j][k];
 			PatternSet* copied_set = new PatternSet;
 			copied_set->re = 0;
 			copied_set->ids = orig_set->ids;
-			loop_over_list(orig_set->patterns, l)
-				copied_set->patterns.append(copy_string(orig_set->patterns[l]));
+			for ( const auto& pattern : orig_set->patterns )
+				copied_set->patterns.append(copy_string(pattern));
 			delete copied_set;
 			// TODO: Why do we create copied_set only to then
 			// never use it?
@@ -115,14 +114,14 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 
 RuleHdrTest::~RuleHdrTest()
 	{
-	loop_over_list(*vals, i)
-		delete (*vals)[i];
+	for ( auto val : *vals )
+		delete val;
 	delete vals;
 
 	for ( int i = 0; i < Rule::TYPES; ++i )
 		{
-		loop_over_list(psets[i], j)
-			delete psets[i][j]->re;
+		for ( auto pset : psets[i] )
+			delete pset->re;
 		}
 
 	delete ruleset;
@@ -154,12 +153,12 @@ void RuleHdrTest::PrintDebug()
 	fprintf(stderr, "	RuleHdrTest %s[%d:%d] %s",
 			str_prot[prot], offset, size, str_comp[comp]);
 
-	loop_over_list(*vals, i)
+	for ( const auto& val : *vals )
 		fprintf(stderr, " 0x%08x/0x%08x",
-				(*vals)[i]->val, (*vals)[i]->mask);
+				val->val, val->mask);
 
-	for ( size_t i = 0; i < prefix_vals.size(); ++i )
-		fprintf(stderr, " %s", prefix_vals[i].AsString().c_str());
+	for ( const auto& prefix : prefix_vals )
+		fprintf(stderr, " %s", prefix.AsString().c_str());
 
 	fprintf(stderr, "\n");
 	}
@@ -181,22 +180,22 @@ RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_
 
 RuleEndpointState::~RuleEndpointState()
 	{
-	loop_over_list(matchers, i)
+	for ( auto matcher : matchers )
 		{
-		delete matchers[i]->state;
-		delete matchers[i];
+		delete matcher->state;
+		delete matcher;
 		}
 
-	loop_over_list(matched_text, j)
-		delete matched_text[j];
+	for ( auto text : matched_text )
+		delete text;
 	}
 
 RuleFileMagicState::~RuleFileMagicState()
 	{
-	loop_over_list(matchers, i)
+	for ( auto matcher : matchers )
 		{
-		delete matchers[i]->state;
-		delete matchers[i];
+		delete matcher->state;
+		delete matcher;
 		}
 	}
 
@@ -214,8 +213,8 @@ RuleMatcher::~RuleMatcher()
 #endif
 	Delete(root);
 
-	loop_over_list(rules, i)
-		delete rules[i];
+	for ( auto rule : rules )
+		delete rule;
 	}
 
 void RuleMatcher::Delete(RuleHdrTest* node)
@@ -280,13 +279,13 @@ void RuleMatcher::AddRule(Rule* rule)
 
 void RuleMatcher::BuildRulesTree()
 	{
-	loop_over_list(rules, r)
+	for ( const auto& rule : rules )
 		{
-		if ( ! rules[r]->Active() )
+		if ( ! rule->Active() )
 			continue;
 
-		rules[r]->SortHdrTests();
-		InsertRuleIntoTree(rules[r], 0, root, 0);
+		rule->SortHdrTests();
+		InsertRuleIntoTree(rule, 0, root, 0);
 		}
 	}
 
@@ -294,10 +293,8 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
 					RuleHdrTest* dest, int level)
 	{
 	// Initiliaze the preconditions
-	loop_over_list(r->preconds, i)
+	for ( const auto& pc : r->preconds )
 		{
-		Rule::Precond* pc = r->preconds[i];
-
 		Rule* pc_rule = rules_by_id.Lookup(pc->id);
 		if ( ! pc_rule )
 			{
@@ -350,9 +347,8 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 	// For each type, get all patterns on this node.
 	for ( Rule* r = hdr_test->pattern_rules; r; r = r->next )
 		{
-		loop_over_list(r->patterns, j)
+		for ( const auto& p : r->patterns )
 			{
-			Rule::Pattern* p = r->patterns[j];
 			exprs[p->type].append(p->pattern);
 			ids[p->type].push_back(p->id);
 			}
@@ -457,9 +453,10 @@ static inline uint32 getval(const u_char* data, int size)
 template <typename FuncT>
 static inline bool match_or(const maskedvalue_list& mvals, uint32 v, FuncT comp)
 	{
-	loop_over_list(mvals, i)
+	// TODO: this could be a find_if
+	for ( const auto& val : mvals )
 		{
-		if ( comp(v & mvals[i]->mask, mvals[i]->val) )
+		if ( comp(v & val->mask, val->val) )
 			return true;
 		}
 	return false;
@@ -485,9 +482,10 @@ template <typename FuncT>
 static inline bool match_not_and(const maskedvalue_list& mvals, uint32 v,
                                  FuncT comp)
 	{
-	loop_over_list(mvals, i)
+	// TODO: this could be a find_if
+	for ( const auto& val : mvals )
 		{
-		if ( comp(v & mvals[i]->mask, mvals[i]->val) )
+		if ( comp(v & val->mask, val->val) )
 			return false;
 		}
 	return true;
@@ -582,9 +580,8 @@ RuleFileMagicState* RuleMatcher::InitFileMagic() const
 	{
 	RuleFileMagicState* state = new RuleFileMagicState();
 
-	loop_over_list(root->psets[Rule::FILE_MAGIC], i)
+	for ( const auto& set : root->psets[Rule::FILE_MAGIC] )
 		{
-		RuleHdrTest::PatternSet* set = root->psets[Rule::FILE_MAGIC][i];
 		assert(set->re);
 		RuleFileMagicState::Matcher* m = new RuleFileMagicState::Matcher;
 		m->state = new RE_Match_State(set->re);
@@ -602,13 +599,13 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	DBG_LOG(DBG_RULES, "Checking rule: %s", r->id);
 
 	// Check whether all patterns of the rule have matched.
-	loop_over_list(r->patterns, j)
+	for ( const auto& pattern : r->patterns )
 		{
-		if ( ams.find(r->patterns[j]->id) == ams.end() )
+		if ( ams.find(pattern->id) == ams.end() )
 			return false;
 
 		// See if depth is satisfied.
-		if ( matchpos > r->patterns[j]->offset + r->patterns[j]->depth )
+		if ( matchpos > pattern->offset + pattern->depth )
 			return false;
 
 		// FIXME: How to check for offset ??? ###
@@ -645,10 +642,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 
 	bool newmatch = false;
 
-	loop_over_list(state->matchers, x)
+	for ( const auto& m : state->matchers )
 		{
-		RuleFileMagicState::Matcher* m = state->matchers[x];
-
 		if ( m->state->Match(data, len, true, false, true) )
 			newmatch = true;
 		}
@@ -660,9 +655,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 
 	AcceptingMatchSet accepted_matches;
 
-	loop_over_list(state->matchers, y)
+	for ( const auto& m : state->matchers )
 		{
-		RuleFileMagicState::Matcher* m = state->matchers[y];
 		const AcceptingMatchSet& ams = m->state->AcceptedMatches();
 		accepted_matches.insert(ams.begin(), ams.end());
 		}
@@ -687,10 +681,10 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
 		{
 		Rule* r = *it;
 
-		loop_over_list(r->actions, rai)
+		for ( const auto& action : r->actions )
 			{
 			const RuleActionMIME* ram =
-			       dynamic_cast<const RuleActionMIME*>(r->actions[rai]);
+				dynamic_cast<const RuleActionMIME*>(action);
 
 			if ( ! ram )
 				continue;
@@ -739,11 +733,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 			{
 			for ( int i = 0; i < Rule::TYPES; ++i )
 				{
-				loop_over_list(hdr_test->psets[i], j)
+				for ( const auto& set : hdr_test->psets[i] )
 					{
-					RuleHdrTest::PatternSet* set =
-						hdr_test->psets[i][j];
-
 					assert(set->re);
 
 					RuleEndpointState::Matcher* m =
@@ -860,9 +851,8 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 		}
 
 	// Feed data into all relevant matchers.
-	loop_over_list(state->matchers, x)
+	for ( const auto& m : state->matchers )
 		{
-		RuleEndpointState::Matcher* m = state->matchers[x];
 		if ( m->type == type &&
 		     m->state->Match((const u_char*) data, data_len,
 					bol, eol, clear) )
@@ -877,9 +867,8 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 	AcceptingMatchSet accepted_matches;
 
-	loop_over_list(state->matchers, y )
+	for ( const auto& m : state->matchers )
 		{
-		RuleEndpointState::Matcher* m = state->matchers[y];
 		const AcceptingMatchSet& ams = m->state->AcceptedMatches();
 		accepted_matches.insert(ams.begin(), ams.end());
 		}
@@ -912,10 +901,8 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 
 		DBG_LOG(DBG_RULES, "Accepted rule: %s", r->id);
 
-		loop_over_list(state->hdr_tests, k)
+		for ( const auto& h : state->hdr_tests )
 			{
-			RuleHdrTest* h = state->hdr_tests[k];
-
 			DBG_LOG(DBG_RULES, "Checking for accepted rule on HdrTest %d", h->id);
 
 			// Skip if rule does not belong to this node.
@@ -965,9 +952,8 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 	{
-	loop_over_list(state->hdr_tests, i)
+	for ( const auto& hdr_test : state->hdr_tests )
 		{
-		RuleHdrTest* hdr_test = state->hdr_tests[i];
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
 			ExecRulePurely(r, 0, state, eos);
 		}
@@ -1002,10 +988,8 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 	DBG_LOG(DBG_RULES, "Evaluating conditions for rule %s", r->ID());
 
 	// Check for other rules which have to match first.
-	loop_over_list(r->preconds, i)
+	for ( const auto& pc : r->preconds )
 		{
-		Rule::Precond* pc = r->preconds[i];
-
 		RuleEndpointState* pc_state = state;
 
 		if ( pc->opposite_dir )
@@ -1034,8 +1018,8 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 			}
 		}
 
-	loop_over_list(r->conditions, l)
-		if ( ! r->conditions[l]->DoMatch(r, state, data, len) )
+	for ( const auto& cond : r->conditions )
+		if ( ! cond->DoMatch(r, state, data, len) )
 			return false;
 
 	DBG_LOG(DBG_RULES, "Conditions met: MATCH! %s", r->ID());
@@ -1052,13 +1036,12 @@ void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
 
 	state->matched_rules.push_back(r->Index());
 
-	loop_over_list(r->actions, i)
-		r->actions[i]->DoAction(r, state, data, len);
+	for ( const auto& action : r->actions )
+		action->DoAction(r, state, data, len);
 
 	// This rule may trigger some other rules; check them.
-	loop_over_list(r->dependents, j)
+	for ( const auto& dep : r->dependents )
 		{
-		Rule* dep = (r->dependents)[j];
 		ExecRule(dep, state, eos);
 		if ( state->opposite )
 			ExecRule(dep, state->opposite, eos);
@@ -1071,10 +1054,8 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 	if ( is_member_of(state->matched_rules, rule->Index()) )
 		return;
 
-	loop_over_list(state->hdr_tests, i)
+	for ( const auto& h : state->hdr_tests )
 		{
-		RuleHdrTest* h = state->hdr_tests[i];
-
 		// Is it on this HdrTest at all?
 		if ( ! h->ruleset->Contains(rule->Index()) )
 			continue;
@@ -1104,20 +1085,20 @@ void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 
 	state->payload_size = -1;
 
-	loop_over_list(state->matchers, j)
-		state->matchers[j]->state->Clear();
+	for ( const auto& matcher : state->matchers )
+		matcher->state->Clear();
 	}
 
 void RuleMatcher::ClearFileMagicState(RuleFileMagicState* state) const
 	{
-	loop_over_list(state->matchers, j)
-		state->matchers[j]->state->Clear();
+	for ( const auto& matcher : state->matchers )
+		matcher->state->Clear();
 	}
 
 void RuleMatcher::PrintDebug()
 	{
-	loop_over_list(rules, i)
-		rules[i]->PrintDebug();
+	for ( const auto& rule : rules )
+		rule->PrintDebug();
 
 	fprintf(stderr, "\n---------------\n");
 
@@ -1187,9 +1168,8 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test)
 
 	for ( int i = 0; i < Rule::TYPES; ++i )
 		{
-		loop_over_list(hdr_test->psets[i], j)
+		for ( const auto& set : hdr_test->psets[i] )
 			{
-			RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
 			assert(set->re);
 
 			++stats->matchers;
@@ -1239,7 +1219,7 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 					 set->re->DFA()->NumStates(),
 					 Rule::TypeToString((Rule::PatternType)i), j));
 
-			for ( auto id : set->ids )
+			for ( const auto& id : set->ids )
 				{
 				Rule* r = Rule::rule_table[id - 1];
 				f->Write(fmt("%s ", r->ID()));
@@ -1350,8 +1330,8 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 		{
 		ListVal* lv = v->AsTableVal()->ConvertToPureList();
 		val_list* vals = lv->Vals();
-		loop_over_list(*vals, i )
-			if ( ! val_to_maskedval((*vals)[i], append_to, prefix_vector) )
+		for ( const auto& val : *vals )
+			if ( ! val_to_maskedval(val, append_to, prefix_vector) )
 				{
 				Unref(lv);
 				return;

@@ -481,8 +481,8 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 		{
 		// This may actually happen if there is no local handler
 		// and a previously existing remote handler went away.
-		loop_over_list(vl, i)
-			Unref(vl[i]);
+		for ( const auto& v : vl)
+			Unref(v);
 
 		return;
 		}
@@ -540,11 +540,10 @@ void Connection::CancelTimers()
 	// traversing. Thus, we first make a copy of the list which we then
 	// iterate through.
 	timer_list tmp(timers.length());
-	loop_over_list(timers, j)
-		tmp.append(timers[j]);
+	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
 
-	loop_over_list(tmp, i)
-		GetTimerMgr()->Cancel(tmp[i]);
+	for ( const auto& timer : tmp )
+		GetTimerMgr()->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();

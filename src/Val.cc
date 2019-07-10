@@ -811,8 +811,8 @@ ListVal::ListVal(TypeTag t)
 
 ListVal::~ListVal()
 	{
-	loop_over_list(vals, i)
-		Unref(vals[i]);
+	for ( const auto& val : vals )
+		Unref(val);
 	Unref(type);
 	}
 
@@ -822,9 +822,9 @@ RE_Matcher* ListVal::BuildRE() const
 		Internal("non-string list in ListVal::IncludedInString");
 
 	RE_Matcher* re = new RE_Matcher();
-	loop_over_list(vals, i)
+	for ( const auto& val : vals )
 		{
-		const char* vs = (const char*) (vals[i]->AsString()->Bytes());
+		const char* vs = (const char*) (val->AsString()->Bytes());
 		re->AddPat(vs);
 		}
 
@@ -853,8 +853,8 @@ TableVal* ListVal::ConvertToSet() const
 	SetType* s = new SetType(set_index, 0);
 	TableVal* t = new TableVal(s);
 
-	loop_over_list(vals, i)
-		t->Assign(vals[i], 0);
+	for ( const auto& val : vals )
+		t->Assign(val, 0);
 
 	Unref(s);
 	return t;
@@ -891,8 +891,8 @@ Val* ListVal::DoClone(CloneState* state)
 	lv->vals.resize(vals.length());
 	state->NewClone(this, lv);
 
-	loop_over_list(vals, i)
-		lv->Append(vals[i]->Clone(state));
+	for ( const auto& val : vals )
+		lv->Append(val->Clone(state));
 
 	return lv;
 	}
@@ -900,8 +900,8 @@ Val* ListVal::DoClone(CloneState* state)
 unsigned int ListVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	loop_over_list(vals, i)
-		size += vals[i]->MemoryAllocation();
+	for ( const auto& val : vals )
+		size += val->MemoryAllocation();
 
 	return size + padded_sizeof(*this) + vals.MemoryAllocation() - padded_sizeof(vals)
 		+ type->MemoryAllocation();
@@ -1380,8 +1380,8 @@ Val* TableVal::Default(Val* index)
 		{
 		const val_list* vl0 = index->AsListVal()->Vals();
 		vl = val_list(vl0->length());
-		loop_over_list(*vl0, i)
-			vl.append((*vl0)[i]->Ref());
+		for ( const auto& v : *vl0 )
+			vl.append(v->Ref());
 		}
 	else
 		{
@@ -2284,9 +2284,9 @@ Val* RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	loop_over_list(*val.val_list_val, i)
+	for ( const auto& vlv : *val.val_list_val )
 		{
-		Val* v = (*val.val_list_val)[i] ? (*val.val_list_val)[i]->Clone(state) : nullptr;
+		Val* v = vlv ? vlv->Clone(state) : nullptr;
   		rv->val.val_list_val->append(v);
 		}
 
@@ -2296,12 +2296,10 @@ Val* RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-
 	const val_list* vl = AsRecord();
 
-	loop_over_list(*vl, i)
+	for ( const auto& v : *vl )
 		{
-		Val* v = (*vl)[i];
 		if ( v )
 		    size += v->MemoryAllocation();
 		}
@@ -2679,8 +2677,8 @@ void delete_vals(val_list* vals)
 	{
 	if ( vals )
 		{
-		loop_over_list(*vals, i)
-			Unref((*vals)[i]);
+		for ( const auto& val : *vals )
+			Unref(val);
 		delete vals;
 		}
 	}

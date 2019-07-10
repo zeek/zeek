@@ -1001,11 +1001,12 @@ string bro_prefixes()
 	{
 	string rval;
 
-	loop_over_list(prefixes, j)
-		if ( j == 0 )
-			rval.append(prefixes[j]);
-		else
-			rval.append(":").append(prefixes[j]);
+	for ( const auto& prefix : prefixes )
+		{
+		if ( ! rval.empty() )
+			rval.append(":");
+		rval.append(prefix);
+		}
 
 	return rval;
 	}

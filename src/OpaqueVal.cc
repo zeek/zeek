@@ -233,9 +233,8 @@ void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_MD5);
 
-	loop_over_list(vlist, i)
+	for ( const auto& v : vlist )
 		{
-		Val* v = vlist[i];
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
@@ -385,9 +384,8 @@ void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_SHA1);
 
-	loop_over_list(vlist, i)
+	for ( const auto& v : vlist )
 		{
-		Val* v = vlist[i];
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();
@@ -529,9 +527,8 @@ void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
 	{
 	EVP_MD_CTX* h = hash_init(Hash_SHA256);
 
-	loop_over_list(vlist, i)
+	for ( const auto& v : vlist )
 		{
-		Val* v = vlist[i];
 		if ( v->Type()->Tag() == TYPE_STRING )
 			{
 			const BroString* str = v->AsString();

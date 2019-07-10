@@ -448,10 +448,8 @@ void end_func(Stmt* body)
 
 	if ( attrs )
 		{
-		loop_over_list(*attrs, i)
+		for ( const auto& a : *attrs )
 			{
-			Attr* a = (*attrs)[i];
-
 			if ( a->Tag() == ATTR_DEPRECATED )
 				continue;
 

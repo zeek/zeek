@@ -207,16 +207,16 @@ unsigned int BroType::MemoryAllocation() const
 
 TypeList::~TypeList()
 	{
-	loop_over_list(types, i)
-		Unref(types[i]);
+	for ( const auto& type : types )
+		Unref(type);
 
 	Unref(pure_type);
 	}
 
 int TypeList::AllMatch(const BroType* t, int is_init) const
 	{
-	loop_over_list(types, i)
-		if ( ! same_type(types[i], t, is_init) )
+	for ( const auto& type : types )
+		if ( ! same_type(type, t, is_init) )
 			return 0;
 	return 1;
 	}
@@ -381,9 +381,8 @@ TableType::TableType(TypeList* ind, BroType* yield)
 
 	type_list* tl = indices->Types();
 
-	loop_over_list(*tl, i)
+	for ( const auto& tli : *tl )
 		{
-		BroType* tli = (*tl)[i];
 		InternalTypeTag t = tli->InternalType();
 
 		if ( t == TYPE_INTERNAL_ERROR )
@@ -710,8 +709,8 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 RecordType* RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
-	loop_over_list(*types, i)
-		pass->append(new TypeDecl(*(*types)[i]));
+	for ( const auto& type : *types )
+		pass->append(new TypeDecl(*type));
 	return new RecordType(pass);
 	}
 
@@ -719,8 +718,8 @@ RecordType::~RecordType()
 	{
 	if ( types )
 		{
-		loop_over_list(*types, i)
-			delete (*types)[i];
+		for ( auto type : *types )
+			delete type;
 
 		delete types;
 		}
@@ -829,17 +828,15 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 
 	if ( attr )
 		{
-		loop_over_list(*attr, j)
+		for ( const auto& at : *attr )
 			{
-			if ( (*attr)[j]->Tag() == ATTR_LOG )
+			if ( at->Tag() == ATTR_LOG )
 				log = true;
 			}
 		}
 
-	loop_over_list(*others, i)
+	for ( const auto& td : *others )
 		{
-		TypeDecl* td = (*others)[i];
-
 		if ( ! td->FindAttr(ATTR_DEFAULT) &&
 		     ! td->FindAttr(ATTR_OPTIONAL) )
 			return "extension field must be &optional or have &default";
@@ -889,11 +886,11 @@ void RecordType::DescribeFields(ODesc* d) const
 			{
 			d->AddCount(0);
 			d->AddCount(types->length());
-			loop_over_list(*types, i)
+			for ( const auto& type : *types )
 				{
-				(*types)[i]->type->Describe(d);
+				type->type->Describe(d);
 				d->SP();
-				d->Add((*types)[i]->id);
+				d->Add(type->id);
 				d->SP();
 				}
 			}

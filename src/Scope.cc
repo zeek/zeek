@@ -47,8 +47,8 @@ Scope::~Scope()
 
 	if ( attrs )
 		{
-		loop_over_list(*attrs, i)
-			Unref((*attrs)[i]);
+		for ( const auto& attr : *attrs )
+			Unref(attr);
 
 		delete attrs;
 		}

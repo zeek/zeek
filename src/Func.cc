@@ -73,11 +73,11 @@ std::string render_call_stack()
 
 		if ( ci.args )
 			{
-			loop_over_list(*ci.args, i)
+			for ( const auto& arg : *ci.args )
 				{
 				ODesc d;
 				d.SetShort();
-				(*ci.args)[i]->Describe(&d);
+				arg->Describe(&d);
 
 				if ( ! arg_desc.empty() )
 					arg_desc += ", ";
@@ -237,8 +237,8 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 		}
 	}
 
-	loop_over_list(*args, i)
-		Unref((*args)[i]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	return plugin_result;
 	}
@@ -300,8 +300,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		loop_over_list(*args, i)
-			Unref((*args)[i]);
+		for ( const auto& arg : *args )
+			Unref(arg);
 
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
@@ -331,11 +331,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	stmt_flow_type flow = FLOW_NEXT;
 	Val* result = 0;
 
-	for ( size_t i = 0; i < bodies.size(); ++i )
+	for ( const auto& body : bodies )
 		{
 		if ( sample_logger )
 			sample_logger->LocationSeen(
-				bodies[i].stmts->GetLocationInfo());
+				body.stmts->GetLocationInfo());
 
 		Unref(result);
 
@@ -356,7 +356,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		try
 			{
-			result = bodies[i].stmts->Exec(f, flow);
+			result = body.stmts->Exec(f, flow);
 			}
 
 		catch ( InterpreterException& e )
@@ -397,8 +397,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	// We have an extra Ref for each argument (so that they don't get
 	// deleted between bodies), release that.
-	loop_over_list(*args, k)
-		Unref((*args)[k]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
@@ -441,8 +441,8 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
-		for ( unsigned int i = 0; i < bodies.size(); ++i )
-			Unref(bodies[i].stmts);
+		for ( const auto& body : bodies )
+			Unref(body.stmts);
 		bodies.clear();
 		}
 
@@ -540,8 +540,8 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	Val* result = func(parent, args);
 	call_stack.pop_back();
 
-	loop_over_list(*args, i)
-		Unref((*args)[i]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	// Don't Unref() args, that's the caller's responsibility.
 	if ( result && g_trace_state.DoTrace() )

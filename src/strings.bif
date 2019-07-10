@@ -61,15 +61,15 @@ function levenshtein_distance%(s1: string, s2: string%): count
 function string_cat%(...%): string
 	%{
 	int n = 0;
-	loop_over_list(@ARG@, i)
-		n += @ARG@[i]->AsString()->Len();
+	for ( const auto& a : @ARG@ )
+		n += a->AsString()->Len();
 
 	u_char* b = new u_char[n+1];
 	BroString* s = new BroString(1, b, n);
 
-	loop_over_list(@ARG@, j)
+	for ( const auto& a : @ARG@ )
 		{
-		const BroString* s = @ARG@[j]->AsString();
+		const BroString* s = a->AsString();
 		memcpy(b, s->Bytes(), s->Len());
 		b += s->Len();
 		}

@@ -728,11 +728,11 @@ void Analyzer::CancelTimers()
 	// traversing.  Thus, we first make a copy of the list which we then
 	// iterate through.
 	timer_list tmp(timers.length());
-	loop_over_list(timers, j)
-		tmp.append(timers[j]);
+	std::copy(timers.begin(), timers.end(), back_inserter(tmp));
 
-	loop_over_list(tmp, i)
-		Conn()->GetTimerMgr()->Cancel(tmp[i]);
+	// TODO: could be a for_each
+	for ( auto timer : tmp )
+		Conn()->GetTimerMgr()->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();

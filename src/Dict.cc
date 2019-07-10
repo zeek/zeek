@@ -100,9 +100,8 @@ void Dictionary::DeInit()
 		if ( tbl[i] )
 			{
 			PList<DictEntry>* chain = tbl[i];
-			loop_over_list(*chain, j)
+			for ( const auto& e : *chain )
 				{
-				DictEntry* e = (*chain)[j];
 				if ( delete_func )
 					delete_func(e->value);
 				delete e;
@@ -120,9 +119,8 @@ void Dictionary::DeInit()
 		if ( tbl2[i] )
 			{
 			PList<DictEntry>* chain = tbl2[i];
-			loop_over_list(*chain, j)
+			for ( const auto& e : *chain )
 				{
-				DictEntry* e = (*chain)[j];
 				if ( delete_func )
 					delete_func(e->value);
 				delete e;
@@ -249,10 +247,8 @@ void* Dictionary::DoRemove(DictEntry* entry, hash_t h,
 		order->remove(entry);
 
 	// Adjust existing cookies.
-	loop_over_list(cookies, i)
+	for ( const auto& c : cookies )
 		{
-		IterCookie* c = cookies[i];
-
 		// Is the affected bucket the current one?
 		if ( (unsigned int) c->bucket == h )
 			{
@@ -482,9 +478,8 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 
 	// For ongoing iterations: If we already passed the bucket where this
 	// entry was put, add it to the cookie's list of inserted entries.
-	loop_over_list(cookies, i)
+	for ( const auto& c : cookies )
 		{
-		IterCookie* c = cookies[i];
 		if ( h < (unsigned int) c->bucket )
 			c->inserted.append(new_entry);
 		}
@@ -606,8 +601,8 @@ unsigned int Dictionary::MemoryAllocation() const
 		if ( tbl[i] )
 			{
 			PList<DictEntry>* chain = tbl[i];
-			loop_over_list(*chain, j)
-				size += padded_sizeof(DictEntry) + pad_size((*chain)[j]->len);
+			for ( const auto& c : *chain )
+				size += padded_sizeof(DictEntry) + pad_size(c->len);
 			size += chain->MemoryAllocation();
 			}
 
@@ -622,8 +617,8 @@ unsigned int Dictionary::MemoryAllocation() const
 			if ( tbl2[i] )
 				{
 				PList<DictEntry>* chain = tbl2[i];
-				loop_over_list(*chain, j)
-					size += padded_sizeof(DictEntry) + pad_size((*chain)[j]->len);
+				for ( const auto& c : *chain )
+					size += padded_sizeof(DictEntry) + pad_size(c->len);
 				size += chain->MemoryAllocation();
 				}
 

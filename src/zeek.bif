@@ -1566,8 +1566,8 @@ function cat%(...%): string
 	ODesc d;
 	d.SetStyle(RAW_STYLE);
 
-	loop_over_list(@ARG@, i)
-		@ARG@[i]->Describe(&d);
+	for ( const auto& a : @ARG@ )
+		a->Describe(&d);
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);

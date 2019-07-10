@@ -85,10 +85,7 @@ Val* Val::Clone(CloneState* state)
 		return i->second->Ref();
 
 	auto c = DoClone(state);
-
-	if ( ! c )
-		reporter->RuntimeError(GetLocationInfo(), "cannot clone value");
-
+	assert(c);
 	return c;
 	}
 

@@ -1,4 +1,14 @@
 
+2.6-575 | 2019-07-09 18:28:03 -0700
+
+  * Avoid a null dereference (Coverity-1402816) (Tim Wojtulewicz, Corelight)
+
+  * Avoid resource leaks (Coverity-1402818, Coverity-1402812) (Tim Wojtulewicz, Corelight)
+
+  * Avoid null dereference in broker (Coverity-1402824, Coverity-1402814) (Tim Wojtulewicz, Corelight)
+
+  * Improve stability of a unit test (Jon Siwek, Corelight)
+
 2.6-569 | 2019-07-03 13:03:22 -0700
 
   * Improve stability of a unit test (Jon Siwek, Corelight)

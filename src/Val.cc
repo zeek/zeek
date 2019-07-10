@@ -2020,7 +2020,7 @@ vector<RecordVal*> RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
-	origin = 0;
+	origin = nullptr;
 	int n = t->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
 

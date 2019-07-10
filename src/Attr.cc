@@ -142,16 +142,16 @@ Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record)
 	// rather than just taking over 'a' for ourselves, so that
 	// the necessary checking gets done.
 
-	loop_over_list(*a, i)
-		AddAttr((*a)[i]);
+	for ( const auto& attr : *a )
+		AddAttr(attr);
 
 	delete a;
 	}
 
 Attributes::~Attributes()
 	{
-	loop_over_list(*attrs, i)
-		Unref((*attrs)[i]);
+	for ( const auto& attr : *attrs )
+		Unref(attr);
 
 	delete attrs;
 
@@ -188,8 +188,8 @@ void Attributes::AddAttr(Attr* attr)
 void Attributes::AddAttrs(Attributes* a)
 	{
 	attr_list* as = a->Attrs();
-	loop_over_list(*as, i)
-		AddAttr((*as)[i]);
+	for ( const auto& attr : *as )
+		AddAttr(attr);
 
 	Unref(a);
 	}
@@ -199,9 +199,8 @@ Attr* Attributes::FindAttr(attr_tag t) const
 	if ( ! attrs )
 		return 0;
 
-	loop_over_list(*attrs, i)
+	for ( const auto& a : *attrs )
 		{
-		Attr* a = (*attrs)[i];
 		if ( a->Tag() == t )
 			return a;
 		}
@@ -391,9 +390,8 @@ void Attributes::CheckAttr(Attr* a)
 		int num_expires = 0;
 		if ( attrs )
 			{
-			loop_over_list(*attrs, i)
+			for ( const auto& a : *attrs )
 				{
-				Attr* a = (*attrs)[i];
 				if ( a->Tag() == ATTR_EXPIRE_READ ||
 				     a->Tag() == ATTR_EXPIRE_WRITE ||
 				     a->Tag() == ATTR_EXPIRE_CREATE )
@@ -505,9 +503,8 @@ bool Attributes::operator==(const Attributes& other) const
 	if ( ! other.attrs )
 		return false;
 
-	loop_over_list(*attrs, i)
+	for ( const auto& a : *attrs )
 		{
-		Attr* a = (*attrs)[i];
 		Attr* o = other.FindAttr(a->Tag());
 
 		if ( ! o )
@@ -517,9 +514,8 @@ bool Attributes::operator==(const Attributes& other) const
 			return false;
 		}
 
-	loop_over_list(*other.attrs, j)
+	for ( const auto& o : *other.attrs )
 		{
-		Attr* o = (*other.attrs)[j];
 		Attr* a = FindAttr(o->Tag());
 
 		if ( ! a )

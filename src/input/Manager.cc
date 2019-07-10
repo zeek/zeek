@@ -1893,8 +1893,8 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	if ( convert_error )
 		{
-		loop_over_list(vl, i)
-			Unref(vl[i]);
+		for ( const auto& v : vl )
+			Unref(v);
 
 		return false;
 		}

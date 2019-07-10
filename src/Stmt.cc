@@ -123,9 +123,9 @@ ExprListStmt::ExprListStmt(BroStmtTag t, ListExpr* arg_l)
 	l = arg_l;
 
 	const expr_list& e = l->Exprs();
-	loop_over_list(e, i)
+	for ( const auto& expr : e )
 		{
-		const BroType* t = e[i]->Type();
+		const BroType* t = expr->Type();
 		if ( ! t || t->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
@@ -172,9 +172,9 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_PRE(tc);
 
 	const expr_list& e = l->Exprs();
-	loop_over_list(e, i)
+	for ( const auto& expr : e )
 		{
-		tc = e[i]->Traverse(cb);
+		tc = expr->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -430,8 +430,8 @@ Case::~Case()
 	Unref(expr_cases);
 	Unref(s);
 
-	loop_over_list((*type_cases), i)
-		Unref((*type_cases)[i]);
+	for ( const auto& id : *type_cases )
+		Unref(id);
 
 	delete type_cases;
 	}
@@ -631,9 +631,9 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 			{
 			have_types = true;
 
-			loop_over_list((*tl), j)
+			for ( const auto& t : *tl )
 				{
-				BroType* ct = (*tl)[j]->Type();
+				BroType* ct = t->Type();
 
 	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
 					{
@@ -641,7 +641,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 					continue;
 					}
 
-				if ( ! AddCaseLabelTypeMapping((*tl)[j], i) )
+				if ( ! AddCaseLabelTypeMapping(t, i) )
 					{
 					c->Error("duplicate case label");
 					continue;
@@ -665,8 +665,8 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 SwitchStmt::~SwitchStmt()
 	{
-	loop_over_list(*cases, i)
-		Unref((*cases)[i]);
+	for ( const auto& c : *cases )
+		Unref(c);
 
 	delete cases;
 	delete comp_hash;
@@ -793,9 +793,8 @@ int SwitchStmt::IsPure() const
 	if ( ! e->IsPure() )
 		return 0;
 
-	loop_over_list(*cases, i)
+	for ( const auto& c : *cases )
 		{
-		Case* c = (*cases)[i];
 		if ( ! c->ExprCases()->IsPure() || ! c->Body()->IsPure() )
 			return 0;
 		}
@@ -812,8 +811,8 @@ void SwitchStmt::Describe(ODesc* d) const
 
 	d->PushIndent();
 	d->AddCount(cases->length());
-	loop_over_list(*cases, i)
-		(*cases)[i]->Describe(d);
+	for ( const auto& c : *cases )
+		c->Describe(d);
 	d->PopIndent();
 
 	if ( ! d->IsBinary() )
@@ -830,9 +829,9 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	tc = e->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*cases, i)
+	for ( const auto& c : *cases )
 		{
-		tc = (*cases)[i]->Traverse(cb);
+		tc = c->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1132,8 +1131,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr, ID* val_var)
 
 ForStmt::~ForStmt()
 	{
-	loop_over_list(*loop_vars, i)
-		Unref((*loop_vars)[i]);
+	for ( const auto& var : *loop_vars )
+		Unref(var);
 	delete loop_vars;
 
 	Unref(value_var);
@@ -1275,9 +1274,9 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*loop_vars, i)
+	for ( const auto& var : *loop_vars )
 		{
-		tc = (*loop_vars)[i]->Traverse(cb);
+		tc = var->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1445,8 +1444,8 @@ StmtList::StmtList() : Stmt(STMT_LIST)
 
 StmtList::~StmtList()
 	{
-	loop_over_list(stmts, i)
-		Unref(stmts[i]);
+	for ( const auto& stmt : stmts )
+		Unref(stmt);
 	}
 
 Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1454,17 +1453,17 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		f->SetNextStmt(stmts[i]);
+		f->SetNextStmt(stmt);
 
-		if ( ! pre_execute_stmt(stmts[i], f) )
+		if ( ! pre_execute_stmt(stmt, f) )
 			{ // ### Abort or something
 			}
 
-		Val* result = stmts[i]->Exec(f, flow);
+		Val* result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmts[i], f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result, &flow) )
 			{ // ### Abort or something
 			}
 
@@ -1477,8 +1476,8 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 
 int StmtList::IsPure() const
 	{
-	loop_over_list(stmts, i)
-		if ( ! stmts[i]->IsPure() )
+	for ( const auto& stmt : stmts )
+		if ( ! stmt->IsPure() )
 			return 0;
 	return 1;
 	}
@@ -1502,9 +1501,9 @@ void StmtList::Describe(ODesc* d) const
 			d->NL();
 			}
 
-		loop_over_list(stmts, i)
+		for ( const auto& stmt : stmts )
 			{
-			stmts[i]->Describe(d);
+			stmt->Describe(d);
 			d->NL();
 			}
 
@@ -1518,9 +1517,9 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		tc = stmts[i]->Traverse(cb);
+		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1533,21 +1532,21 @@ Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		f->SetNextStmt(stmts[i]);
+		f->SetNextStmt(stmt);
 
 		// Ignore the return value, since there shouldn't be
 		// any; and ignore the flow, since we still execute
 		// all of the event bodies even if one of them does
 		// a FLOW_RETURN.
-		if ( ! pre_execute_stmt(stmts[i], f) )
+		if ( ! pre_execute_stmt(stmt, f) )
 			{ // ### Abort or something
 			}
 
-		Val* result = stmts[i]->Exec(f, flow);
+		Val* result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmts[i], f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result, &flow) )
 			{ // ### Abort or something
 			}
 		}
@@ -1563,16 +1562,16 @@ void EventBodyList::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() && stmts.length() > 0 )
 		{
-		loop_over_list(stmts, i)
+		for ( const auto& stmt : stmts )
 			{
 			if ( ! d->IsBinary() )
 				{
 				d->Add("{");
 				d->PushIndent();
-				stmts[i]->AccessStats(d);
+				stmt->AccessStats(d);
 				}
 
-			stmts[i]->Describe(d);
+			stmt->Describe(d);
 
 			if ( ! d->IsBinary() )
 				{
@@ -1588,8 +1587,8 @@ void EventBodyList::Describe(ODesc* d) const
 
 InitStmt::~InitStmt()
 	{
-	loop_over_list(*inits, i)
-		Unref((*inits)[i]);
+	for ( const auto& init : *inits )
+		Unref(init);
 
 	delete inits;
 	}
@@ -1599,9 +1598,8 @@ Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(*inits, i)
+	for ( const auto& aggr : *inits )
 		{
-		ID* aggr = (*inits)[i];
 		BroType* t = aggr->Type();
 
 		Val* v = 0;
@@ -1649,9 +1647,9 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*inits, i)
+	for ( const auto& init : *inits )
 		{
-		tc = (*inits)[i]->Traverse(cb);
+		tc = init->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

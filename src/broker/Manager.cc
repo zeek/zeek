@@ -1054,8 +1054,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		mgr.QueueEventFast(handler, std::move(vl), SOURCE_BROKER);
 	else
 		{
-		loop_over_list(vl, i)
-			Unref(vl[i]);
+		for ( const auto& v : vl )
+			Unref(v);
 		}
 	}
 

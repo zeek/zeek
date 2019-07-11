@@ -91,10 +91,57 @@ type DNP3_Application_Response_Header = record {
 type Request_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
+		# binary output command g12
+		0x0c01 -> g12v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x0c02 -> g12v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		0x0c03 -> bocmd_PM: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
-		0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# time data interval data object g50
+		0x3201 -> g50v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		#0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 						# &check( object_header.qualifier_field == 0x0f && object_header.number_of_item == 0x01);
-		default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3202 -> g50v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3203 -> g50v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# Time and Date Common Time-of-Occurrence g51
+		0x3301 -> g51v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3302 -> g51v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# time delay g52
+		0x3401 -> g52v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3402 -> g52v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# file control g70
+		0x4601 -> g70v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4602 -> g70v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4603 -> g70v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4604 -> g70v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4605 -> g70v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4606 -> g70v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4607 -> g70v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# internal indication g80
+		0x5001 -> g80v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# authentication challenge g120
+		0x7801 -> g120v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7802 -> g120v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7803 -> g120v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7804 -> g120v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7805 -> g120v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7806 -> g120v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7807 -> g120v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7808 -> g120v8_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7809 -> g120v9_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780A -> g120v10_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780B -> g120v11_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780C -> g120v12_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780D -> g120v13_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780E -> g120v14_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x780F -> g120v15_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+
+		# default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		default -> objects: empty;
 	};
 	# dump_data is always empty; I intend to use it for checking some conditions;
 	# However, in the current binpac implementation, &check is not implemented

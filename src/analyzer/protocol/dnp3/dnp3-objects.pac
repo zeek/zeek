@@ -215,10 +215,10 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x2804 -> aos_dp: empty;
 
 	# analog ouput g41
-		0x2901 -> ao_32: AnaOut32;
-		0x2902 -> ao_16: AnaOut16;
-		0x2903 -> ao_sp: AnaOutSP;
-		0x2904 -> ao_dp: AnaOutDP;
+		0x2901 -> ao_32: empty;
+		0x2902 -> ao_16: empty;
+		0x2903 -> ao_sp: empty;
+		0x2904 -> ao_dp: empty;
 
 	# analog output event g42
 		0x2a00 -> aoe_default: empty;
@@ -258,7 +258,6 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 	# class objects g60
 		0x3C01 -> class0data: empty; # &check(qualifier_field == 0x06);
-		#0x3C02 -> class1data: uint8; # &check(qualifier_field == 0x06);
 		0x3C02 -> class1data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
 		0x3C03 -> class2data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
 		0x3C04 -> class3data: empty; # &check(qualifier_field == 0x06 || qualifier_field == 0x07 || qualifier_field == 0x08);
@@ -266,11 +265,9 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x4601 -> file_control_id: File_Control_ID;
 		0x4602 -> file_control_auth: File_Control_Auth_Wrap(function_code);
 		0x4603 -> file_control_cmd: File_Control_Cmd; # &check( file_control_cmd.op_mode == 0 || file_control_cmd.op_mode == 1 || file_control_cmd.op_mode == 2 || file_control_cmd.op_mode == 3 );
-		#0x4604 -> file_control_cmd_status: File_Control_Cmd_Status_Wrap(function_code, prefix.prefix_value);  # example shown in P66
 		0x4604 -> file_control_cmd_status: File_Control_Cmd_Status(prefix.prefix_value);  # example shown in P66
 		0x4605 -> file_trans: File_Transport(prefix.prefix_value);
 		0x4606 -> file_trans_status: File_Transport_Status(prefix.prefix_value);
-		#0x4607 -> file_desc: File_Desc_Wrap(function_code);
 		0x4607 -> file_desc: File_Desc;
 
 	# internal indication g80
@@ -318,13 +315,20 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 
 	# authentication challenge g120
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
-		0x7802 -> reply: AuthRely(prefix.prefix_value);
+		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint8;
+		0x7804 -> seesionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
-
+		0x7808 -> user_cert: UserCert(prefix.prefix_value);
+		0x7809 -> mac: MAC(prefix.prefix_value);
+		0x780A -> user_status_change: UserStatusChange(prefix.prefix_value);
+		0x780B -> update_key_req: UpdateKeyReq(prefix.prefix_value);
+		0x780C -> update_key_rep: UpdateKeyRep(prefix.prefix_value);
+		0x780D -> update_key: UpdateKey(prefix.prefix_value);
+		0x780E -> update_key_sig: UpdateKeySig(prefix.prefix_value);
+		0x780F -> update_key_con: UpdateKeyCon(prefix.prefix_value);
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
 };
@@ -468,10 +472,10 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x1f02 -> f_ai_16_wflag: FrozenAnalogInput16wFlag;
 		0x1f03 -> f_ai_32_wtime: FrozenAnalogInput32wTime;
 		0x1f04 -> f_ai_16_wtime: FrozenAnalogInput16wTime;
-		0x1f05 -> f_ai_32_woflag: AnalogInput32woFlag;
-		0x1f06 -> f_ai_16_woflag: AnalogInput16woFlag;
-		0x1f07 -> f_ai_sp_wflag: AnalogInputSPwFlag;
-		0x1f08 -> f_ai_dp_wflag: AnalogInputDPwFlag;
+		0x1f05 -> f_ai_32_woflag: FrozenAnalogInput32woFlag;
+		0x1f06 -> f_ai_16_woflag: FrozenAnalogInput16woFlag;
+		0x1f07 -> f_ai_sp_wflag: FrozenAnalogInputSPwFlag;
+		0x1f08 -> f_ai_dp_wflag: FrozenAnalogInputDPwFlag;
 
 	# analog input event g32
 		0x2001 -> ai32wotime: AnalogInput32woTime;
@@ -592,12 +596,20 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 
 	# authentication challenge g120
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
-		0x7802 -> reply: AuthRely(prefix.prefix_value);
+		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint8;
+		0x7804 -> seesionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
+		0x7808 -> user_cert: UserCert(prefix.prefix_value);
+		0x7809 -> mac: MAC(prefix.prefix_value);
+		0x780A -> user_status_change: UserStatusChange(prefix.prefix_value);
+		0x780B -> update_key_req: UpdateKeyReq(prefix.prefix_value);
+		0x780C -> update_key_rep: UpdateKeyRep(prefix.prefix_value);
+		0x780D -> update_key: UpdateKey(prefix.prefix_value);
+		0x780E -> update_key_sig: UpdateKeySig(prefix.prefix_value);
+		0x780F -> update_key_con: UpdateKeyCon(prefix.prefix_value);
 
 		#default -> unkonwndata: Debug_Byte; # &check( T );
 		default -> unmatched: Default_Wrap(object_type_field);
@@ -1381,41 +1393,115 @@ type BCD_Large = record {
 
 # g120v1
 type AuthChallenge(prefix: uint16) = record {
-	csqUsr: uint32;
-	hal: uint8;
+	cha_seq_num: uint32;
+	user_num: uint16;
+	mac_alg: uint8;
 	reason: uint8;
-	chan_data: bytestring &length = (prefix - 10);
+	chan_data: bytestring &length = (prefix - 8);
 } &byteorder = littleendian;
 
 # g120v2
-type AuthRely(prefix: uint16) = record {
-	csqUsr: uint32;
-	chan_data: bytestring &length = (prefix - 4);
+type AuthReply(prefix: uint16) = record {
+	cha_seq_num: uint32;
+	user_num : uint16;
+	mac: bytestring &length = (prefix - 6);
 } &byteorder = littleendian;
 
 # g120v3
 type AuthAggrRequest(prefix: uint16) = record {
-	csqUsr: uint32;
-	chan_data: bytestring &length = (prefix - 4);
+	cha_seq_num: uint32;
+	user_num: uint16;
 } &byteorder = littleendian;
 
 # g120v5
 type AuthSessionKeyStatus(prefix: uint16) = record {
-	csqUsr: uint32;
+	cha_seq_num: uint32;
+	user_num: uint16;
 	key_alg: uint8;
 	key_status: uint8;
-	chan_data: bytestring &length = (prefix - 10);
+	mac_alg: uint8;
+	cha_data_len : uint16;
+	chan_data: bytestring &length = cha_data_len;
+	mac: bytestring &length = (prefix - 11 - cha_data_len);
 } &byteorder = littleendian;
 
 # g120v6
 type AuthSessionKeyChange(prefix: uint16) = record {
-	csqUsr: uint32;
-	key_wrap_data: bytestring &length = (prefix - 5);
+	key_change_num: uint32;
+	user_num: uint16;
+	key_wrap_data: bytestring &length = (prefix - 6);
 } &byteorder = littleendian;
 
 # g120v7
 type AuthError(prefix: uint16) = record {
-	csqUsr: uint32;
+	cha_seq_num: uint32;
+	user_num: uint16;
+	id: uint16;
 	error_code: uint8;
-	key_wrap_data: bytestring &length = (prefix - 6);
+	time_error: bytestring &length = 6;
+	error_text: bytestring &length = (prefix - 15);
 } &byteorder = littleendian;
+
+# g120v8
+type UserCert(prefix: uint16) = record {
+	method: uint8;
+	cert_type: uint8;
+	cert_text: bytestring &length = (prefix - 2);
+} &byteorder = littleendian;
+
+# g120v9
+type MAC(prefix: uint16) = record {
+	mac_text: bytestring &length = prefix;
+} &byteorder = littleendian;
+
+# g120v10
+type UserStatusChange(prefix: uint16) = record {
+	method: uint8;
+	operation: uint8;
+	seq_num: uint32;
+	user_role: uint16;
+	user_role_exp: uint16;
+	user_name_len: uint16;
+	user_pubkey_len: uint16;
+	cert_data_len: uint16;
+	user_name: bytestring &length = user_name_len;
+	user_pubkey: bytestring &length = user_pubkey_len;
+	cert_data: bytestring &length = cert_data_len;
+} &byteorder = littleendian;
+
+# g120v11
+type UpdateKeyReq(prefix: uint16) = record {
+	method: uint8;
+	user_name_len: uint16;
+	master_cha_data_len: uint16;
+	user_name: bytestring &length = user_name_len;
+	master_cha_data: bytestring &length = master_cha_data_len;
+} &byteorder = littleendian;
+
+# g120v12
+type UpdateKeyRep(prefix: uint16) = record {
+	seq_num: uint32;
+	user_num: uint16;
+	user_name_len: uint16;
+	outstation_cha_data_len: uint16;
+	outstation_cha_data: bytestring &length = outstation_cha_data_len;
+} &byteorder = littleendian;
+
+# g120v13
+type UpdateKey(prefix: uint16) = record {
+	seq_num: uint32;
+	user_num: uint16;
+	update_key_len: uint16;
+	update_key_data: bytestring &length = update_key_len;
+} &byteorder = littleendian;
+
+# g120v14
+type UpdateKeySig(prefix: uint16) = record {
+	digital_sig: bytestring &length = prefix;
+} &byteorder = littleendian;
+
+# g120v15
+type UpdateKeyCon(prefix: uint16) = record {
+	mac: bytestring &length = prefix;
+} &byteorder = littleendian;
+

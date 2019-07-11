@@ -479,6 +479,7 @@ Removed Functionality
     - ``backdoor_stat_period``
     - ``backdoor_stat_backoff``
     - ``backdoor_endp_stats``
+    - ``chunked_io_buffer_soft_cap``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

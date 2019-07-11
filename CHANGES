@@ -1,4 +1,8 @@
 
+2.6-576 | 2019-07-10 18:38:54 -0700
+
+  * Remove unused option: chunked_io_buffer_soft_cap (Jon Siwek, Corelight)
+
 2.6-575 | 2019-07-09 18:28:03 -0700
 
   * Avoid a null dereference (Coverity-1402816) (Tim Wojtulewicz, Corelight)

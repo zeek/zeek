@@ -1747,7 +1747,20 @@ Val* TableVal::Default(Val* index)
 
 	if ( def_val->Type()->Tag() != TYPE_FUNC ||
 	     same_type(def_val->Type(), Type()->YieldType()) )
-		return def_attr->AttrExpr()->IsConst() ? def_val->Ref() : def_val->Clone();
+		{
+		if ( def_attr->AttrExpr()->IsConst() )
+			return def_val->Ref();
+
+		try
+			{
+			return def_val->Clone();
+			}
+		catch ( InterpreterException& e )
+			{ /* Already reported. */ }
+
+		Error("&default value for table is not clone-able");
+		return 0;
+		}
 
 	const Func* f = def_val->AsFunc();
 	val_list vl;

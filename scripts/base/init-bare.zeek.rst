@@ -108,9 +108,6 @@ Redefinable Options
 :zeek:id:`bits_per_uid`: :zeek:type:`count` :zeek:attr:`&redef`                            Number of bits in UIDs that are generated to identify connections and
                                                                                            files.
 :zeek:id:`check_for_unused_event_handlers`: :zeek:type:`bool` :zeek:attr:`&redef`          If true, warns about unused event handlers at startup.
-:zeek:id:`chunked_io_buffer_soft_cap`: :zeek:type:`count` :zeek:attr:`&redef`              The number of IO chunks allowed to be buffered between the child
-                                                                                           and parent process of remote communication before Zeek starts dropping
-                                                                                           connections to remote peers in an attempt to catch up.
 :zeek:id:`cmd_line_bpf_filter`: :zeek:type:`string` :zeek:attr:`&redef`                    BPF filter the user has set via the -f command line options.
 :zeek:id:`detect_filtered_trace`: :zeek:type:`bool` :zeek:attr:`&redef`                    Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
                                                                                            and not report missing segments for such connections.
@@ -1082,16 +1079,6 @@ Redefinable Options
    :Default: ``F``
 
    If true, warns about unused event handlers at startup.
-
-.. zeek:id:: chunked_io_buffer_soft_cap
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``800000``
-
-   The number of IO chunks allowed to be buffered between the child
-   and parent process of remote communication before Zeek starts dropping
-   connections to remote peers in an attempt to catch up.
 
 .. zeek:id:: cmd_line_bpf_filter
 

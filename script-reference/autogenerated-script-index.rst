@@ -244,7 +244,6 @@
    base/frameworks/openflow/main.zeek </scripts/base/frameworks/openflow/main.zeek>
    base/frameworks/openflow/plugins/__load__.zeek </scripts/base/frameworks/openflow/plugins/__load__.zeek>
    base/frameworks/openflow/plugins/ryu.zeek </scripts/base/frameworks/openflow/plugins/ryu.zeek>
-   base/utils/json.zeek </scripts/base/utils/json.zeek>
    base/frameworks/openflow/plugins/log.zeek </scripts/base/frameworks/openflow/plugins/log.zeek>
    base/frameworks/openflow/plugins/broker.zeek </scripts/base/frameworks/openflow/plugins/broker.zeek>
    base/frameworks/openflow/non-cluster.zeek </scripts/base/frameworks/openflow/non-cluster.zeek>

@@ -1842,24 +1842,24 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen)
 	strerror_r_helper(res, buf, buflen);
 	}
 
+static const std::map<const char*, const char*, CompareString> legacy_vars = {
+	{ "ZEEKPATH", "BROPATH" },
+	{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
+	{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
+	{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
+	{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
+	{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
+	{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
+	{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
+	{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
+	{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
+	{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
+	{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
+	{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
+};
+
 char* zeekenv(const char* name)
 	{
-	static std::map<const char*, const char*, CompareString> legacy_vars = {
-		{ "ZEEKPATH", "BROPATH" },
-		{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
-		{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
-		{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
-		{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
-		{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
-		{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
-		{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
-		{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
-		{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
-		{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
-		{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
-		{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
-	};
-
 	auto rval = getenv(name);
 
 	if ( rval )

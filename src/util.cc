@@ -1911,7 +1911,7 @@ string json_escape_utf8(const string& val)
 
 		// The next bit is based on the table at https://en.wikipedia.org/wiki/UTF-8#Description.
 		// If next character is 11110xxx, this is a 4-byte UTF-8
-		int char_size = 0;
+		unsigned int char_size = 0;
 		if ( (val[idx] & 0xF8) == 0xF0 ) char_size = 4;
 		
 		// If next character is 1110xxxx, this is a 3-byte UTF-8

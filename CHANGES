@@ -1,4 +1,8 @@
 
+2.6-587 | 2019-07-11 12:13:48 -0700
+
+  * Fix a sign-compare compiler warning (Jon Siwek, Corelight)
+
 2.6-586 | 2019-07-11 11:15:40 -0700
 
   * Convert all JSON output to use an external library for better consistency (Tim Wojtulewicz, Corelight)

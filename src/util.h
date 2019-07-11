@@ -565,4 +565,12 @@ std::unique_ptr<T> build_unique (Args&&... args) {
 	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+/**
+ * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
+ * by the JSON writer and BIF methods.
+ * @param val the input string to be escaped
+ * @return the escaped string
+ */
+std::string json_escape_utf8(const std::string& val);
+
 #endif

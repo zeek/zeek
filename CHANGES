@@ -1,4 +1,11 @@
 
+2.6-586 | 2019-07-11 11:15:40 -0700
+
+  * Convert all JSON output to use an external library for better consistency (Tim Wojtulewicz, Corelight)
+
+    See NEWS for more details; this makes to_json a bif and causes slight changes in its
+    output, as well as the output of the JSON logger.
+
 2.6-576 | 2019-07-10 18:38:54 -0700
 
   * Remove unused option: chunked_io_buffer_soft_cap (Jon Siwek, Corelight)

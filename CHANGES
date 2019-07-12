@@ -1,4 +1,8 @@
 
+2.6-597 | 2019-07-12 15:01:56 -0700
+
+  * Fix a couple of resource leaks from JSON changes (Tim Wojtulewicz, Corelight)
+
 2.6-595 | 2019-07-12 13:34:08 -0700
 
   * GH-157: Mark some attributes as not allowed for global variables (Tim Wojtulewicz, Corelight)

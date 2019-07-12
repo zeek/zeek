@@ -599,7 +599,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				string key_string;
 				if ( re->MatchAnywhere(key_val->AsString()) != 0 )
 					{
-					key_val = key_val->Substitute(re, new StringVal(""), 0)->AsStringVal();
+					StringVal blank("");
+					key_val = key_val->Substitute(re, &blank, 0)->AsStringVal();
 					key_string = key_val->ToStdString();
 					delete key_val;
 					}
@@ -613,6 +614,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				}
 
 			delete fields;
+			delete field_indexes;
 			break;
 			}
 

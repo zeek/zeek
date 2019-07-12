@@ -27,12 +27,9 @@ class QueueIterator
 	T* const entries;
 	int offset;
 	int num_entries;
-	T endptr; // let this get set to some random value on purpose. It's only used
-			  // for the operator[] and operator* cases where you pass something
-			  // off the end of the collection, which is undefined behavior anyways.
 public:
 	QueueIterator(T* entries, int offset, int num_entries) :
-		entries(entries), offset(offset), num_entries(num_entries), endptr() {}
+		entries(entries), offset(offset), num_entries(num_entries) {}
 	bool operator==(const QueueIterator& rhs) { return entries == rhs.entries && offset == rhs.offset; }
 	bool operator!=(const QueueIterator& rhs) { return entries != rhs.entries || offset != rhs.offset; }
 	QueueIterator & operator++() { offset++; return *this; }
@@ -48,17 +45,11 @@ public:
 	bool operator>=(QueueIterator const&sibling) const { return offset >= sibling.offset; }
 	T& operator[](int index)
 		{
-		if (index < num_entries)
-			return entries[index];
-		else
-			return endptr;
+		return entries[index];
 		}
 	T& operator*()
 		{
-		if ( offset < num_entries )
-			return entries[offset];
-		else
-			return endptr;
+		return entries[offset];
 		}
 	};
 
@@ -70,7 +61,7 @@ namespace std {
 		using difference_type = std::ptrdiff_t;
 		using size_type = std::size_t;
 		using value_type = T;
-		using pointer = T;
+		using pointer = T*;
 		using reference = T&;
 		using iterator_category = std::random_access_iterator_tag;
 	};
@@ -150,9 +141,10 @@ public:
 	void clear()		{ head = tail = num_entries = 0; }
 
 	// helper functions for iterating over queue
-	int front() const	{ return head; }
-	int back() const	{ return tail; }
-
+	T& front()	{ return entries[head]; }
+	T& back()	{ return entries[tail]; }
+	const T& front() const	{ return entries[head]; }
+	const T& back() const	{ return entries[tail]; }
 
 	void push_front(const T& a)	// add in front of queue
 		{
@@ -190,38 +182,26 @@ public:
 			}
 		}
 
-	T pop_front()		// return and remove the front of queue
+	void pop_front()
 		{
-		if ( ! num_entries )
-			return 0;
-
 		--num_entries;
 		if ( head < max_entries )
-			return entries[head++];
+			head++;
 		else
-			{
 			head = 0;
-			return entries[max_entries];
-			}
 		}
 
-	T pop_back()		// return and remove the end of queue
+	void pop_back()
 		{
-		if ( ! num_entries )
-			return 0;
-
 		--num_entries;
 		if ( tail )
-			return entries[--tail];
+			--tail;
 		else
-			{
 			tail = max_entries;
-			return entries[tail];
-			}
 		}
 
 	// return nth *PHYSICAL* entry of queue (do not remove)
-	T operator[](int i) const	{ return entries[i]; }
+	T& operator[](int i) const	{ return entries[i]; }
 
 	// Type traits needed for some of the std algorithms to work
 	using value_type = T;

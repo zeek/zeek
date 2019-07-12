@@ -260,7 +260,7 @@ public:
 	void push_back(const T& a)	{ append(a); }
 	void push_front(const T& a)	{ insert(a); }
 	void pop_front()	{ remove_nth(0); }
-	void pop_back()	{ remove_nth(entries-1); }
+	void pop_back()	{ remove_nth(num_entries-1); }
 
 	void append(const T& a)	// add to end of list
 		{

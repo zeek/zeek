@@ -80,7 +80,7 @@ namespace std {
 		using difference_type = std::ptrdiff_t;
 		using size_type = std::size_t;
 		using value_type = T;
-		using pointer = T;
+		using pointer = T*;
 		using reference = T&;
 		using iterator_category = std::random_access_iterator_tag;
 	};
@@ -181,14 +181,9 @@ public:
 		}
 
 	// Return nth ent of list (do not remove).
-	T operator[](int i) const
+	T& operator[](int i) const
 		{
-#ifdef SAFE_LISTS
-		if ( i < 0 || i > num_entries-1 )
-			return 0;
-		else
-#endif
-			return entries[i];
+		return entries[i];
 		}
 
 	void clear()		// remove all entries
@@ -264,8 +259,8 @@ public:
 
 	void push_back(const T& a)	{ append(a); }
 	void push_front(const T& a)	{ insert(a); }
-	T pop_front() { return get() ;}
-	T pop_back() { return remove_nth(num_entries-1); }
+	void pop_front()	{ remove_nth(0); }
+	void pop_back()	{ remove_nth(entries-1); }
 
 	void append(const T& a)	// add to end of list
 		{
@@ -295,7 +290,6 @@ public:
 		for ( ; n < num_entries; ++n )
 			entries[n] = entries[n+1];
 
-		entries[n] = nullptr;	// for debugging
 		return old_ent;
 		}
 
@@ -307,7 +301,7 @@ public:
 		return entries[--num_entries];
 		}
 
-	T last()		// return at end of list
+	T& last()		// return at end of list
 		{ return entries[num_entries-1]; }
 
 	// Return 0 if ent is not in the list, ent otherwise.
@@ -327,7 +321,7 @@ public:
 		return (i == length()) ? -1 : i;
 		}
 
-	T replace(int ent_index, T new_ent)	// replace entry #i with a new value
+	T replace(int ent_index, const T& new_ent)	// replace entry #i with a new value
 		{
 		if ( ent_index < 0 )
 			return 0;

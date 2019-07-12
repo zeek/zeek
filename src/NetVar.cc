@@ -141,7 +141,6 @@ RecordType* rotate_info;
 StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
-bro_uint_t chunked_io_buffer_soft_cap;
 
 Val* profiling_file;
 double profiling_interval;
@@ -213,7 +212,6 @@ void init_general_global_var()
 
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
-	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 

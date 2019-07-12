@@ -1265,6 +1265,9 @@ bool bro_broker::VectorIterator::DoUnserialize(const broker::data& data)
 	auto x = caf::get_if<broker::vector>(&(*v)[0]);
 	auto y = caf::get_if<broker::integer>(&(*v)[1]);
 
+	if ( ! (x && y) )
+		return false;
+
 	dat = *x;
 	it = dat.begin() + *y;
 	return true;
@@ -1286,6 +1289,9 @@ bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
 
 	auto x = caf::get_if<broker::vector>(&(*v)[0]);
 	auto y = caf::get_if<broker::integer>(&(*v)[1]);
+
+	if ( ! (x && y) )
+		return false;
 
 	dat = *x;
 	it = dat.begin() + *y;

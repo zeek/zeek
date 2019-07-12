@@ -347,6 +347,16 @@ Changed Functionality
   of each other on separate cluster nodes to all be logged rather
   than suppressed and de-duplicated into a single notice.
 
+
+- to_json is now a bif, no longer a script. Loading base/utils/json.zeek is no
+  longer necessary and has been deprecated. to_json should yield much better, always
+  valid json. There are some small differences in output; unnecessary spaces are removed
+  and port values are rendered differently, now including the port and the protocol.
+
+- The output of the JSON logger now uses an external library to generate json. There
+  are small changes to the output; most visibly double numbers are now rounded slightly
+  differently. The way in which port values are rendered does _not_ change for JSON logs.
+
 Removed Functionality
 ---------------------
 
@@ -479,6 +489,7 @@ Removed Functionality
     - ``backdoor_stat_period``
     - ``backdoor_stat_backoff``
     - ``backdoor_endp_stats``
+    - ``chunked_io_buffer_soft_cap``
 
 - The following constants were used as part of deprecated functionality in version 2.6
   or below and are removed from this release:

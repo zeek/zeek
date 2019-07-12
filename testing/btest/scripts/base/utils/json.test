@@ -72,6 +72,9 @@ event zeek_init()
 	local e: color = Red;
 	print to_json(e);
 
+	local p: pattern = /^abcd/;
+	print to_json(p);
+
 	# #########################
 	# Test the container types:
 

@@ -113,6 +113,17 @@ public:
 	static string Render(double d);
 
 	/**
+	 * Convert a transport protocol into a string.
+	 *
+	 * This is a helper function that formatter implementations may use.
+	 *
+	 * @param proto The transport protocol.
+	 *
+	 * @return An ASCII representation of the protocol.
+	 */
+	static string Render(TransportProto proto);
+
+	/**
 	 * Convert a string into a TransportProto. The string must be one of
 	 * \c tcp, \c udp, \c icmp, or \c unknown.
 	 *

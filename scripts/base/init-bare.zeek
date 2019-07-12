@@ -4608,11 +4608,6 @@ const sig_max_group_size = 50 &redef;
 ## Description transmitted to remote communication peers for identification.
 const peer_description = "zeek" &redef;
 
-## The number of IO chunks allowed to be buffered between the child
-## and parent process of remote communication before Zeek starts dropping
-## connections to remote peers in an attempt to catch up.
-const chunked_io_buffer_soft_cap = 800000 &redef;
-
 ## Reassemble the beginning of all TCP connections before doing
 ## signature matching. Enabling this provides more accurate matching at the
 ## expense of CPU cycles.

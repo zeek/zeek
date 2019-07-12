@@ -1,4 +1,64 @@
 
+2.6-591 | 2019-07-11 13:29:28 -0700
+
+  * Fix potential thread safety issue with zeekenv util function
+
+    Observed segfault accessing the local static std::map of zeekenv() from
+    a logging thread, but only in non-debug builds using Apple/Clang
+    compiler, not in a debug build or GCC.  Don't quite get this behavior
+    since static local variable initialization is supposed to be thread-safe
+    since C++11, but moving to a global static works and is "more efficient"
+    anyway since there's no longer any run-time overhead. (Jon Siwek, Corelight)
+
+2.6-589 | 2019-07-11 13:14:52 -0700
+
+  * GH-421: fix bugs/regressions in DNP3 analyzer (Hui Lin)
+
+2.6-587 | 2019-07-11 12:13:48 -0700
+
+  * Fix a sign-compare compiler warning (Jon Siwek, Corelight)
+
+2.6-586 | 2019-07-11 11:15:40 -0700
+
+  * Convert all JSON output to use an external library for better consistency (Tim Wojtulewicz, Corelight)
+
+    See NEWS for more details; this makes to_json a bif and causes slight changes in its
+    output, as well as the output of the JSON logger.
+
+2.6-576 | 2019-07-10 18:38:54 -0700
+
+  * Remove unused option: chunked_io_buffer_soft_cap (Jon Siwek, Corelight)
+
+2.6-575 | 2019-07-09 18:28:03 -0700
+
+  * Avoid a null dereference (Coverity-1402816) (Tim Wojtulewicz, Corelight)
+
+  * Avoid resource leaks (Coverity-1402818, Coverity-1402812) (Tim Wojtulewicz, Corelight)
+
+  * Avoid null dereference in broker (Coverity-1402824, Coverity-1402814) (Tim Wojtulewicz, Corelight)
+
+  * Improve stability of a unit test (Jon Siwek, Corelight)
+
+2.6-569 | 2019-07-03 13:03:22 -0700
+
+  * Improve stability of a unit test (Jon Siwek, Corelight)
+
+2.6-568 | 2019-07-03 11:50:56 -0700
+
+  * Add clang-tidy rule to CMake including a base configuration (Tim Wojtulewicz, Corelight)
+
+2.6-566 | 2019-07-03 11:08:24 -0700
+
+  * Improve Zeekygen output for long attribute expressions (Jon Siwek, Corelight)
+
+2.6-565 | 2019-07-03 09:32:34 -0700
+
+  * GH-446: Deprecate rfb_event. (Johanna Amann, Corelight)
+
+2.6-563 | 2019-07-03 01:57:40 -0700
+
+  * Fix CIF integration and add logging options to intel.log and added comments to code (sfinlon)
+
 2.6-558 | 2019-07-01 01:27:50 -0700
 
   * GH-443: fix uses of timestamp 0 in cluster diagnostic logs

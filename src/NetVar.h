@@ -144,7 +144,6 @@ extern RecordType* rotate_info;
 extern StringVal* log_rotate_base_time;
 
 extern StringVal* peer_description;
-extern bro_uint_t chunked_io_buffer_soft_cap;
 
 extern Val* profiling_file;
 extern double profiling_interval;

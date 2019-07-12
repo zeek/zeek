@@ -1,4 +1,12 @@
 
+2.6-595 | 2019-07-12 13:34:08 -0700
+
+  * GH-157: Mark some attributes as not allowed for global variables (Tim Wojtulewicz, Corelight)
+
+    This disallows &default for global values that are not tables, and &optional for all globals.
+
+  * Fix uncaught exceptions from Val cloning failures (Jon Siwek, Corelight)
+
 2.6-591 | 2019-07-11 13:29:28 -0700
 
   * Fix potential thread safety issue with zeekenv util function

@@ -25,7 +25,7 @@
 
 uint32 RuleHdrTest::idcounter = 0;
 
-static bool is_member_of(int_list l, int_list::value_type v)
+static bool is_member_of(const int_list& l, int_list::value_type v)
 	{
 	return std::find(l.begin(), l.end(), v) != l.end();
 	}
@@ -1121,7 +1121,7 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node)
 			RuleHdrTest::PatternSet* set = node->psets[i][j];
 
 			fprintf(stderr,
-				"[%d patterns in %s group %d from %lu rules]\n",
+				"[%d patterns in %s group %d from %zu rules]\n",
 				set->patterns.length(),
 				Rule::TypeToString((Rule::PatternType) i), j,
 				set->ids.size());

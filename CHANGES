@@ -1,4 +1,8 @@
 
+2.6-598 | 2019-07-12 18:20:12 -0700
+
+  * Fix canonification of timestamps with a decisecond multiple (Jon Siwek, Corelight)
+
 2.6-597 | 2019-07-12 15:01:56 -0700
 
   * Fix a couple of resource leaks from JSON changes (Tim Wojtulewicz, Corelight)

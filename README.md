@@ -85,7 +85,7 @@ If you're interested in getting involved, we actively collect feature requests
 and issues on GitHub [here](https://github.com/zeek/zeek/issues) and you might 
 find [these](https://github.com/zeek/zeek/issues?q=is%3Aissue+is%3Aopen+label%3A%22Difficulty%3A+Easy%22)
 to be a good place to get started. For learning more about the Zeek scripting 
-language, try.zeek.org is a great place to get started.
+language, [try.zeek.org](http://try.zeek.org) is a great resource.
 
 
 More information on Zeek's development can be found 

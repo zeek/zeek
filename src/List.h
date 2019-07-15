@@ -262,6 +262,9 @@ public:
 	void pop_front()	{ remove_nth(0); }
 	void pop_back()	{ remove_nth(num_entries-1); }
 
+	T& front()	 { return entries[0]; }
+	T& back()	 { return entries[num_entries-1]; }
+
 	void append(const T& a)	// add to end of list
 		{
 		if ( num_entries == max_entries )
@@ -281,8 +284,7 @@ public:
 
 	T remove_nth(int n)	// delete nth entry from list
 		{
-		if ( n < 0 || n >= num_entries )
-			return 0;
+		assert(n >=0 && n < num_entries);
 
 		T old_ent = entries[n];
 		--num_entries;
@@ -293,16 +295,15 @@ public:
 		return old_ent;
 		}
 
+	ZEEK_DEPRECATED("Remove in v3.1: Use back()/pop_back() instead")
 	T get()		// return and remove ent at end of list
 		{
-		if ( num_entries == 0 )
-			return 0;
-
+		assert(num_entries > 0);
 		return entries[--num_entries];
 		}
 
-	T& last()		// return at end of list
-		{ return entries[num_entries-1]; }
+	ZEEK_DEPRECATED("Remove in v3.1: Use back() instead")
+	T& last()	{ return back(); }
 
 	// Return 0 if ent is not in the list, ent otherwise.
 	bool is_member(const T& a) const

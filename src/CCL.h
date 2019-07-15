@@ -26,7 +26,7 @@ public:
 				{ delete syms; syms = new_syms; }
 
 	unsigned int MemoryAllocation() const
-		{ return padded_sizeof(*this) + padded_sizeof(*syms); }
+		{ return padded_sizeof(*this) + padded_sizeof(*syms) + pad_size(syms->size() * sizeof(int_list::value_type)); }
 
 protected:
 	int_list* syms;

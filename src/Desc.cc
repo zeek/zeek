@@ -258,7 +258,8 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 
 	for ( size_t i = 0; i < n; ++i )
 		{
-		if ( ! isprint(bytes[i]) || bytes[i] == '\\' )
+		//if ( ! isprint(bytes[i]) || bytes[i] == '\\' )
+		if ( bytes[i] == '\\' )
 			return escape_pos(bytes + i, 1);
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);

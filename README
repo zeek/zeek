@@ -1,1 +1,89 @@
-README.md
+=================================
+The Zeek Network Security Monitor
+=================================
+
+Zeek is a powerful framework for network analysis and security
+monitoring.
+
+Key Features
+============
+
+*   **Adaptable & Flexible**
+    Zeek's domain specific scripting language enables site-specific
+    monitoring policies and means that it is not restricted to any 
+    particular detection approach.
+
+*   **In-depth Analysis**
+    Zeek ships with analyzers for many protocols, enabling
+    high-level semantic analysis at the application layer.
+
+*   **Efficient**
+    Zeek targets high-performance networks and is used operationally
+    at a variety of large sites.
+
+*   **Highly Stateful**
+    Zeek keeps extensive application-layer state about the network
+    it monitors and provides a high-level archive of a network's 
+    activity.
+    
+Getting Started
+===============
+
+The best place to find information about getting started with Zeek
+is our website [1]. You can find downloads for stable releases, 
+tutorials on getting Zeek set up, and many other useful resources 
+there. You can also find release notes for the current version and a
+complete history of changes in NEWS, and CHANGES respectively.
+
+To work on the development branch of Zeek, clone the master git 
+repository.
+
+> git clone --recursive https://github.com/zeek/zeek
+
+With its dependencies [2] installed, build and install.
+
+> ./configure && make && sudo make install
+
+Write your first Zeek script.
+
+```
+# hello.zeek
+
+event zeek_init
+  {
+  print "Hello World!";
+  }
+```
+
+And run it.
+
+> zeek hello.zeek
+
+Development
+===========
+
+Zeek is developed on GitHub by its community. Today, as a result of 
+countless contributions, it is is used operationally around the world
+by major companies and educational and scientific institutions alike
+for securing their cyber infrastructure. We welcome contributions. 
+Working on an open source project like Zeek can be an incredibly 
+rewarding experience and, packet by packet, makes the internet a 
+little safer.
+
+If you're interested in getting involved, we actively collect feature
+requests and issues on GitHub. For learning more about the Zeek
+scripting language, https://try.zeek.org is a great resource.
+
+More information on Zeek's development can be found here [3], and 
+information about its community and mailing lists (which are fairly 
+active) can be found here [4].
+
+
+
+
+[1] https://www.zeek.org
+[2] https://docs.zeek.org/en/stable/install/install.html
+[3] https://www.zeek.org/development/index.html
+[4] https://www.zeek.org/community/index.html
+
+

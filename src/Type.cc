@@ -650,7 +650,7 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
 	{
 	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record, false) : 0;
 	id = i;
 	}
 
@@ -841,7 +841,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = new Attributes(new attr_list, td->type, true);
+				td->attrs = new Attributes(new attr_list, td->type, true, false);
 
 			td->attrs->AddAttr(new Attr(ATTR_LOG));
 			}

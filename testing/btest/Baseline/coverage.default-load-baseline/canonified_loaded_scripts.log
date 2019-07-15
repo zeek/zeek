@@ -249,7 +249,6 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/openflow/main.zeek
     scripts/base/frameworks/openflow/plugins/__load__.zeek
       scripts/base/frameworks/openflow/plugins/ryu.zeek
-        scripts/base/utils/json.zeek
       scripts/base/frameworks/openflow/plugins/log.zeek
       scripts/base/frameworks/openflow/plugins/broker.zeek
     scripts/base/frameworks/openflow/non-cluster.zeek

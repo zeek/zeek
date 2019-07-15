@@ -3133,7 +3133,7 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 			}
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	const expr_list& cle = constructor_list->Exprs();
@@ -3240,7 +3240,7 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = constructor_list->Exprs();

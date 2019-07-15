@@ -20,6 +20,7 @@
 #include "Notifier.h"
 #include "IPAddr.h"
 #include "DebugLogger.h"
+#include "RE.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -34,7 +35,6 @@
 class Val;
 class Func;
 class BroFile;
-class RE_Matcher;
 class PrefixTable;
 
 class PortVal;
@@ -347,6 +347,10 @@ public:
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
 
+	TableVal* GetRecordFields();
+
+	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"));
+
 protected:
 
 	friend class EnumType;
@@ -530,6 +534,7 @@ public:
 
 	// Returns the port number in host order (not including the mask).
 	uint32 Port() const;
+	string Protocol() const;
 
 	// Tests for protocol types.
 	int IsTCP() const;
@@ -632,9 +637,12 @@ public:
 	// char* ExpandedString(int format = BroString::EXPANDED_STRING)
 	// 	{ return AsString()->ExpandedString(format); }
 
+	std::string ToStdString() const;
 	StringVal* ToUpper();
 
 	unsigned int MemoryAllocation() const override;
+
+	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
 
 protected:
 	friend class Val;
@@ -981,7 +989,6 @@ protected:
 
 	Val* DoClone(CloneState* state) override;
 
-	RecordType* record_type;
 	BroObj* origin;
 
 	static vector<RecordVal*> parse_time_records;

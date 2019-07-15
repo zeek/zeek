@@ -27,6 +27,16 @@
 
 #include "broker/Data.h"
 
+#include "3rdparty/json.hpp"
+#include "3rdparty/fifo_map.hpp"
+
+// Define a class for use with the json library that orders the keys in the same order that
+// they were inserted. By default, the json library orders them alphabetically and we don't
+// want it like that.
+template<class K, class V, class compare, class A>
+using json_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
+using ZeekJson = nlohmann::basic_json<json_fifo_map>;
+
 Val::Val(Func* f)
 	{
 	val.func_val = f;
@@ -380,6 +390,276 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 	return false;
 	}
 
+TableVal* Val::GetRecordFields()
+	{
+	TableVal* fields = new TableVal(internal_type("record_field_table")->AsTableType());
+
+	auto t = Type();
+
+	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
+		{
+		reporter->Error("non-record value/type passed to record_fields");
+		return fields;
+		}
+
+	RecordType* rt = nullptr;
+	RecordVal* rv = nullptr;
+
+	if ( t->Tag() == TYPE_RECORD )
+		{
+		rt = t->AsRecordType();
+		rv = AsRecordVal();
+		}
+	else
+		{
+		t = t->AsTypeType()->Type();
+
+		if ( t->Tag() != TYPE_RECORD )
+			{
+			reporter->Error("non-record value/type passed to record_fields");
+			return fields;
+			}
+
+		rt = t->AsRecordType();
+		}
+
+	for ( int i = 0; i < rt->NumFields(); ++i )
+		{
+		BroType* ft = rt->FieldType(i);
+		TypeDecl* fd = rt->FieldDecl(i);
+		Val* fv = nullptr;
+
+		if ( rv )
+			fv = rv->Lookup(i);
+
+		if ( fv )
+			::Ref(fv);
+
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+
+		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+
+		if ( ft->Tag() == TYPE_RECORD )
+			nr->Assign(0, new StringVal("record " + ft->GetName()));
+		else
+			nr->Assign(0, new StringVal(type_name(ft->Tag())));
+
+		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(2, fv);
+		nr->Assign(3, rt->FieldDefault(i));
+
+		Val* field_name = new StringVal(rt->FieldName(i));
+		fields->Assign(field_name, nr);
+		Unref(field_name);
+		}
+
+	return fields;
+	}
+
+// This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
+static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"))
+	{
+	ZeekJson j;
+	BroType* type = val->Type();
+	switch ( type->Tag() )
+		{
+		case TYPE_BOOL:
+			j = val->AsBool();
+			break;
+
+		case TYPE_INT:
+			j = val->AsInt();
+			break;
+
+		case TYPE_COUNT:
+			j = val->AsCount();
+			break;
+
+		case TYPE_COUNTER:
+			j = val->AsCounter();
+			break;
+
+		case TYPE_TIME:
+			j = val->AsTime();
+			break;
+
+		case TYPE_DOUBLE:
+			j = val->AsDouble();
+			break;
+
+		case TYPE_PORT:
+			{
+			auto* pval = val->AsPortVal();
+			j["port"] = pval->Port();
+			j["proto"] = pval->Protocol();
+			break;
+			}
+
+		case TYPE_PATTERN:
+		case TYPE_INTERVAL:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+			{
+			ODesc d;
+			d.SetStyle(RAW_STYLE);
+			val->Describe(&d);
+
+			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
+			j = string((char*)bs->Bytes(), bs->Len());
+
+			delete bs;
+			break;
+			}
+
+		case TYPE_FILE:
+		case TYPE_FUNC:
+		case TYPE_ENUM:
+		case TYPE_STRING:
+			{
+			ODesc d;
+			d.SetStyle(RAW_STYLE);
+			val->Describe(&d);
+
+			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
+			j = json_escape_utf8(string((char*)bs->Bytes(), bs->Len()));
+
+			delete bs;
+			break;
+			}
+
+		case TYPE_TABLE:
+			{
+			auto* table = val->AsTable();
+			auto* tval = val->AsTableVal();
+
+			if ( tval->Type()->IsSet() )
+				j = ZeekJson::array();
+			else
+				j = ZeekJson::object();
+
+			HashKey* k;
+			auto c = table->InitForIteration();
+			while ( table->NextEntry(k, c) )
+				{
+				auto lv = tval->RecoverIndex(k);
+				delete k;
+
+				if ( tval->Type()->IsSet() )
+					{
+					auto* value = lv->Index(0)->Ref();
+					j.push_back(BuildJSON(value, only_loggable, re));
+					Unref(value);
+					}
+				else
+					{
+					ZeekJson key_json;
+					Val* entry_value;
+					if ( lv->Length() == 1 )
+						{
+						Val* entry_key = lv->Index(0)->Ref();
+						entry_value = tval->Lookup(entry_key, true);
+						key_json = BuildJSON(entry_key, only_loggable, re);
+						Unref(entry_key);
+						}
+					else
+						{
+						entry_value = tval->Lookup(lv, true);
+						key_json = BuildJSON(lv, only_loggable, re);
+						}
+
+					string key_string;
+					if ( key_json.is_string() )
+						key_string = key_json;
+					else
+						key_string = key_json.dump();
+
+					j[key_string] = BuildJSON(entry_value, only_loggable, re);
+					}
+
+				Unref(lv);
+				}
+
+			break;
+			}
+
+		case TYPE_RECORD:
+			{
+			j = ZeekJson::object();
+			auto* rval = val->AsRecordVal();
+			TableVal* fields = rval->GetRecordFields();
+			auto* field_indexes = fields->ConvertToPureList();
+			int num_indexes = field_indexes->Length();
+
+			for ( int i = 0; i < num_indexes; ++i )
+				{
+				Val* key = field_indexes->Index(i);
+				auto* key_field = fields->Lookup(key)->AsRecordVal();
+
+				auto* key_val = key->AsStringVal();
+				string key_string;
+				if ( re->MatchAnywhere(key_val->AsString()) != 0 )
+					{
+					StringVal blank("");
+					key_val = key_val->Substitute(re, &blank, 0)->AsStringVal();
+					key_string = key_val->ToStdString();
+					delete key_val;
+					}
+				else
+					key_string = key_val->ToStdString();
+
+				Val* value = key_field->Lookup("value", true);
+
+				if ( value && ( ! only_loggable || key_field->Lookup("log")->AsBool() ) )
+					j[key_string] = BuildJSON(value, only_loggable, re);
+				}
+
+			delete fields;
+			delete field_indexes;
+			break;
+			}
+
+		case TYPE_LIST:
+			{
+			j = ZeekJson::array();
+			auto* lval = val->AsListVal();
+			size_t size = lval->Length();
+			for (size_t i = 0; i < size; i++)
+				j.push_back(BuildJSON(lval->Index(i), only_loggable, re));
+
+			break;
+			}
+
+		case TYPE_VECTOR:
+			{
+			j = ZeekJson::array();
+			auto* vval = val->AsVectorVal();
+			size_t size = vval->SizeVal()->AsCount();
+			for (size_t i = 0; i < size; i++)
+				j.push_back(BuildJSON(vval->Lookup(i), only_loggable, re));
+
+			break;
+			}
+
+		case TYPE_OPAQUE:
+			{
+			j = ZeekJson::object();
+			auto* oval = val->AsOpaqueVal();
+			j["opaque_type"] = OpaqueMgr::mgr()->TypeID(oval);
+			break;
+			}
+
+		default: break;
+		}
+
+	return j;
+	}
+
+StringVal* Val::ToJSON(bool only_loggable, RE_Matcher* re)
+	{
+	ZeekJson j = BuildJSON(this, only_loggable, re);
+	return new StringVal(j.dump());
+	}
+
 IntervalVal::IntervalVal(double quantity, double units) :
 	Val(quantity * units, TYPE_INTERVAL)
 	{
@@ -491,6 +771,18 @@ uint32 PortVal::Port() const
 	return p & ~PORT_SPACE_MASK;
 	}
 
+string PortVal::Protocol() const
+	{
+	if ( IsUDP() )
+		return "udp";
+	else if ( IsTCP() )
+		return "tcp";
+	else if ( IsICMP() )
+		return "icmp";
+	else
+		return "unknown";
+	}
+
 int PortVal::IsTCP() const
 	{
 	return (val.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
@@ -510,14 +802,8 @@ void PortVal::ValDescribe(ODesc* d) const
 	{
 	uint32 p = static_cast<uint32>(val.uint_val);
 	d->Add(p & ~PORT_SPACE_MASK);
-	if ( IsUDP() )
-		d->Add("/udp");
-	else if ( IsTCP() )
-		d->Add("/tcp");
-	else if ( IsICMP() )
-		d->Add("/icmp");
-	else
-		d->Add("/unknown");
+	d->Add("/");
+	d->Add(Protocol());
 	}
 
 Val* PortVal::DoClone(CloneState* state)
@@ -713,6 +999,12 @@ StringVal::StringVal(const string& s) : Val(TYPE_STRING)
 	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
 	}
 
+string StringVal::ToStdString() const
+	{
+	auto* bs = AsString();
+	return string((char*)bs->Bytes(), bs->Len());
+	}
+
 StringVal* StringVal::ToUpper()
 	{
 	val.string_val->ToUpper();
@@ -732,6 +1024,92 @@ void StringVal::ValDescribe(ODesc* d) const
 unsigned int StringVal::MemoryAllocation() const
 	{
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
+	}
+
+Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+	{
+	const u_char* s = Bytes();
+	int offset = 0;
+	int n = Len();
+
+	// cut_points is a set of pairs of indices in str that should
+	// be removed/replaced.  A pair <x,y> means "delete starting
+	// at offset x, up to but not including offset y".
+	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
+
+	int size = 0;	// size of result
+
+	while ( n > 0 )
+		{
+		// Find next match offset.
+		int end_of_match;
+		while ( n > 0 &&
+		        (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
+			{
+			// This character is going to be copied to the result.
+			++size;
+
+			// Move on to next character.
+			++offset;
+			--n;
+			}
+
+		if ( n <= 0 )
+			break;
+
+		// s[offset .. offset+end_of_match-1] matches re.
+		cut_points.append(offset);
+		cut_points.append(offset + end_of_match);
+
+		offset += end_of_match;
+		n -= end_of_match;
+
+		if ( ! do_all )
+			{
+			// We've now done the first substitution - finished.
+			// Include the remainder of the string in the result.
+			size += n;
+			break;
+			}
+		}
+
+	// size now reflects amount of space copied.  Factor in amount
+	// of space for replacement text.
+	int num_cut_points = cut_points.length() / 2;
+	size += num_cut_points * repl->Len();
+
+	// And a final NUL for good health.
+	++size;
+
+	byte_vec result = new u_char[size];
+	byte_vec r = result;
+
+	// Copy it all over.
+	int start_offset = 0;
+	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
+		{
+		int num_to_copy = cut_points[i] - start_offset;
+		memcpy(r, s + start_offset, num_to_copy);
+
+		r += num_to_copy;
+		start_offset = cut_points[i+1];
+
+		// Now add in replacement text.
+		memcpy(r, repl->Bytes(), repl->Len());
+		r += repl->Len();
+		}
+
+	// Copy final trailing characters.
+	int num_to_copy = Len() - start_offset;
+	memcpy(r, s + start_offset, num_to_copy);
+	r += num_to_copy;
+
+	// Final NUL.  No need to increment r, since the length
+	// computed from it in the next statement does not include
+	// the NUL.
+	r[0] = '\0';
+
+	return new StringVal(new BroString(1, result, r - result));
 	}
 
 Val* StringVal::DoClone(CloneState* state)
@@ -1371,7 +1749,20 @@ Val* TableVal::Default(Val* index)
 
 	if ( def_val->Type()->Tag() != TYPE_FUNC ||
 	     same_type(def_val->Type(), Type()->YieldType()) )
-		return def_attr->AttrExpr()->IsConst() ? def_val->Ref() : def_val->Clone();
+		{
+		if ( def_attr->AttrExpr()->IsConst() )
+			return def_val->Ref();
+
+		try
+			{
+			return def_val->Clone();
+			}
+		catch ( InterpreterException& e )
+			{ /* Already reported. */ }
+
+		Error("&default value for table is not clone-able");
+		return 0;
+		}
 
 	const Func* f = def_val->AsFunc();
 	val_list vl;
@@ -2020,7 +2411,7 @@ vector<RecordVal*> RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
-	origin = 0;
+	origin = nullptr;
 	int n = t->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
 

@@ -3,7 +3,6 @@
 @load base/frameworks/openflow
 @load base/utils/active-http
 @load base/utils/exec
-@load base/utils/json
 
 module OpenFlow;
 

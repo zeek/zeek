@@ -26,7 +26,7 @@ Key Features
   approach.
 
 * __In-depth Analysis__
-	Zeek comes with analyzers for many protocols, enabling high-level semantic 
+	Zeek ships with analyzers for many protocols, enabling high-level semantic 
   analysis at the application layer.
 	
 * __Efficient__
@@ -74,7 +74,7 @@ And run it.
 Development
 -----------
 
-Zeek is developed on GitHub by its community. Today, as a result countless 
+Zeek is developed on GitHub by its community. Today, as a of result countless 
 contributions, it is is used operationally around the world by major companies 
 and educational and scientific institutions alike for securing their cyber 
 infrastructure. We welcome contributions. Working on an open source project 

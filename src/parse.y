@@ -479,6 +479,12 @@ expr:
 			$$ = add_and_assign_local($2, $4, val_mgr->GetBool(1));
 			}
 
+	|	TOK_LOCAL '[' local_id_list ']' '=' '[' expr_list ']'
+			{
+			set_location(@2, @8);
+			$$ = add_and_assign_locals($3, $7);
+			}
+
 	|	expr '[' expr_list ']'
 			{
 			set_location(@1, @4);
@@ -1692,11 +1698,17 @@ for_head:
 	;
 
 local_id_list:
-		local_id_list ',' local_id
-			{ $1->append($3); }
-	|	local_id
+			local_id_list ',' local_id opt_type
+			{
+			if ($4)
+				add_local($3, $4, INIT_NONE, 0, 0, VAR_REGULAR);
+			$1->append($3);
+			}
+	|	local_id opt_type
 			{
 			$$ = new id_list;
+			if ($2)
+				add_local($1, $2, INIT_NONE, 0, 0, VAR_REGULAR);
 			$$->append($1);
 			}
 	;

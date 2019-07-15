@@ -261,6 +261,50 @@ extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 	return new AssignExpr(new NameExpr(id), init, 0, val);
 	}
 
+extern Expr* add_and_assign_locals(id_list* ids, expr_list* inits)
+	{
+	if (ids->length() != inits->length())
+		{
+		std::string error(
+			"Invalid assignment. Expected " +
+			std::to_string(ids->length()) 	+
+			" values got "					+
+			std::to_string(inits->length())
+			);
+		(*ids)[ids->length() - 1]->Error(error.c_str());
+		}
+
+	ListExpr* rval = new ListExpr();
+	int min = std::min(ids->length(), inits->length());
+
+	for ( int i = 0; i < min; ++i )
+		{
+		ID* id = (*ids)[i];
+		Expr* init = (*inits)[i];
+		if (id->Type())
+			{
+			Ref(id);
+			rval->Append(new AssignExpr(new NameExpr(id), init, 0, val_mgr->GetBool(1)));
+			}
+		else 
+			rval->Append(add_and_assign_local(id, init, val_mgr->GetBool(1)));
+		}
+	
+	return rval;
+	}
+
+extern Expr* add_and_assign_locals(id_list* ids, Expr* inits, Val* val)
+	{
+	if (inits->Type()->Tag() == TYPE_LIST)
+		{
+		ListExpr* in = inits->AsListExpr();
+		return add_and_assign_locals(ids, &in->Exprs());
+		}
+	std::string error("Invalid type for assignment unpacking ");
+	error += std::string(type_name(inits->Type()->Tag()));
+	inits->Error(error.c_str());
+	}
+
 void add_type(ID* id, BroType* t, attr_list* attr)
 	{
 	string new_type_name = id->Name();

@@ -3,9 +3,12 @@
 #ifndef var_h
 #define var_h
 
+#include <memory> // std::unique_ptr
+
 #include "ID.h"
 #include "Expr.h"
 #include "Type.h"
+#include "Func.h" // function_ingredients
 
 class Func;
 class EventHandlerPtr;
@@ -17,6 +20,8 @@ extern void add_global(ID* id, BroType* t, init_class c, Expr* init,
 extern Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 			attr_list* attr, decl_type dt);
 extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val = 0);
+extern Expr* add_and_assign_locals(id_list* ids, expr_list* init);
+extern Expr* add_and_assign_locals(id_list* ids, Expr* inits, Val* val = 0);
 
 extern void add_type(ID* id, BroType* t, attr_list* attr);
 

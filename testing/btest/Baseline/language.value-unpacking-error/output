@@ -1,0 +1,2 @@
+error in /home/zekemedley/Desktop/corelight/value_unpacking/zeek/testing/btest/.tmp/language.value-unpacking-error/value-unpacking-error.zeek, line 6: assignment of non-arithmetic value to arithmetic (count/string) (y = cat)
+error in /home/zekemedley/Desktop/corelight/value_unpacking/zeek/testing/btest/.tmp/language.value-unpacking-error/value-unpacking-error.zeek, line 9: Invalid assignment. Expected 5 values got 4 (e)

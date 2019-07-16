@@ -22,8 +22,7 @@ public:
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
 	typedef const char constchar;	// PList doesn't like "const char"
-	declare(PList, constchar);
-	typedef PList(constchar) string_list;
+	typedef PList<constchar> string_list;
 	string_list* Match(RE_Matcher* pattern);
 
 	// Marks a handler as handling errors. Error handler will not be called
@@ -38,8 +37,7 @@ public:
 	void PrintDebug();
 
 private:
-	declare(PDict, EventHandler);
-	typedef PDict(EventHandler) handler_map;
+	typedef PDict<EventHandler> handler_map;
 	handler_map handlers;
 };
 

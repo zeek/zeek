@@ -56,7 +56,6 @@ class StateAccess;
 class VectorVal;
 
 class TableEntryVal;
-declare(PDict,TableEntryVal);
 
 typedef union {
 	// Used for bool, int, enum.
@@ -78,7 +77,7 @@ typedef union {
 	Func* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
-	PDict(TableEntryVal)* table_val;
+	PDict<TableEntryVal>* table_val;
 	val_list* val_list_val;
 
 	vector<Val*>* vector_val;
@@ -229,7 +228,7 @@ public:
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	CONST_ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsTable)
+	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
 	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
@@ -401,7 +400,7 @@ protected:
 #endif
 		}
 
-	ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsNonConstTable)
+	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.

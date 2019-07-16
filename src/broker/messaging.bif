@@ -28,7 +28,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
-		const PDict(TableEntryVal)* tbl = val->AsTable();
+		const PDict<TableEntryVal>* tbl = val->AsTable();
 
 		if ( tbl->Length() == 0 )
 			return rval;

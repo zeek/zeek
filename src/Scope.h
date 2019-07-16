@@ -15,8 +15,6 @@ class ID;
 class BroType;
 class ListVal;
 
-declare(PDict,ID);
-
 class Scope : public BroObj {
 public:
 	explicit Scope(ID* id, attr_list* al);
@@ -35,11 +33,11 @@ public:
 	BroType* ReturnType() const	{ return return_type; }
 
 	int Length() const		{ return local->Length(); }
-	PDict(ID)* Vars() const		{ return local; }
+	PDict<ID>* Vars() const		{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 
-	PDict(ID)* GetIDs() const	{ return local; }
+	PDict<ID>* GetIDs() const	{ return local; }
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
@@ -56,7 +54,7 @@ protected:
 	ID* scope_id;
 	attr_list* attrs;
 	BroType* return_type;
-	PDict(ID)* local;
+	PDict<ID>* local;
 	id_list* inits;
 };
 

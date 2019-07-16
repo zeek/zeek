@@ -14,11 +14,8 @@ class RuleHdrTest;
 
 class Rule;
 
-declare(PList, Rule);
-typedef PList(Rule) rule_list;
-
-declare(PDict, Rule);
-typedef PDict(Rule) rule_dict;
+typedef PList<Rule> rule_list;
+typedef PDict<Rule> rule_dict;
 
 class Rule {
 public:
@@ -61,14 +58,9 @@ private:
 
 	void SortHdrTests();
 
-	declare(PList, RuleAction);
-	typedef PList(RuleAction) rule_action_list;
-
-	declare(PList, RuleCondition);
-	typedef PList(RuleCondition) rule_condition_list;
-
-	declare(PList, RuleHdrTest);
-	typedef PList(RuleHdrTest) rule_hdr_test_list;
+	typedef PList<RuleAction> rule_action_list;
+	typedef PList<RuleCondition> rule_condition_list;
+	typedef PList<RuleHdrTest> rule_hdr_test_list;
 
 	rule_hdr_test_list hdr_tests;
 	rule_condition_list conditions;
@@ -82,8 +74,7 @@ private:
 		bool negate;	// negate test
 	};
 
-	declare(PList, Precond);
-	typedef PList(Precond) precond_list;
+	typedef PList<Precond> precond_list;
 
 	precond_list preconds;
 	rule_list dependents;	// rules w/ us as a precondition
@@ -101,8 +92,7 @@ private:
 		uint32 depth;
 	};
 
-	declare(PList, Pattern);
-	typedef PList(Pattern) pattern_list;
+	typedef PList<Pattern> pattern_list;
 	pattern_list patterns;
 
 	Rule* next;	// Linkage within RuleHdrTest tree:

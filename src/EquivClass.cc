@@ -52,11 +52,10 @@ void EquivClass::ConvertCCL(CCL* ccl)
 	int_list* c_syms = ccl->Syms();
 	int_list* new_syms = new int_list;
 
-	for ( int i = 0; i < c_syms->length(); ++i )
+	for ( auto sym : *c_syms )
 		{
-		int sym = (*c_syms)[i];
 		if ( IsRep(sym) )
-			new_syms->append(SymEquivClass(sym));
+			new_syms->push_back(SymEquivClass(sym));
 		}
 
 	ccl->ReplaceSyms(new_syms);
@@ -95,18 +94,18 @@ void EquivClass::CCL_Use(CCL* ccl)
 		}
 
 	int_list* csyms = ccl->Syms();
-	for ( int i = 0; i < csyms->length(); /* no increment */ )
+	for ( size_t i = 0; i < csyms->size(); /* no increment */ )
 		{
 		int sym = (*csyms)[i];
 
 		int old_ec = bck[sym];
 		int new_ec = sym;
 
-		int j = i + 1;
+		size_t j = i + 1;
 
 		for ( int k = fwd[sym]; k && k < size; k = fwd[k] )
 			{ // look for the symbol in the character class
-			for ( ; j < csyms->length(); ++j )
+			for ( ; j < csyms->size(); ++j )
 				{
 				if ( (*csyms)[j] > k )
 					// Since the character class is sorted,
@@ -131,7 +130,7 @@ void EquivClass::CCL_Use(CCL* ccl)
 					}
 				}
 
-			if ( j < csyms->length() && (*csyms)[j] == k )
+			if ( j < csyms->size() && (*csyms)[j] == k )
 				// We broke out of the above loop by finding
 				// an old companion - go to the next symbol.
 				continue;
@@ -154,7 +153,7 @@ void EquivClass::CCL_Use(CCL* ccl)
 		fwd[new_ec] = ec_nil;
 
 		// Find next ccl member to process.
-		for ( ++i; i < csyms->length() && ccl_flags[i]; ++i )
+		for ( ++i; i < csyms->size() && ccl_flags[i]; ++i )
 			// Reset "doesn't need processing" flag.
 			ccl_flags[i] = 0;
 		}

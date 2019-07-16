@@ -2113,8 +2113,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		if ( attrs )
 			{
 			attr_copy = new attr_list(attrs->length());
-			loop_over_list(*attrs, i)
-				attr_copy->append((*attrs)[i]);
+			std::copy(attrs->begin(), attrs->end(), std::back_inserter(*attr_copy));
 			}
 
 		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
@@ -2194,8 +2193,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 					{
 					attr_list* a = sce->Attrs()->Attrs();
 					attrs = new attr_list(a->length());
-					loop_over_list(*a, i)
-						attrs->append((*a)[i]);
+					std::copy(a->begin(), a->end(), std::back_inserter(*attrs));
 					}
 
 				int errors_before = reporter->Errors();
@@ -3029,10 +3027,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	const expr_list& exprs = constructor_list->Exprs();
 	type_decl_list* record_types = new type_decl_list(exprs.length());
 
-	loop_over_list(exprs, i)
+	for ( const auto& e : exprs )
 		{
-		Expr* e = exprs[i];
-
 		if ( e->Tag() != EXPR_FIELD_ASSIGN )
 			{
 			Error("bad type in record constructor", e);
@@ -3133,18 +3129,18 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 			}
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	const expr_list& cle = constructor_list->Exprs();
 
 	// check and promote all index expressions in ctor list
-	loop_over_list(cle, i)
+	for ( const auto& expr : cle )
 		{
-		if ( cle[i]->Tag() != EXPR_ASSIGN )
+		if ( expr->Tag() != EXPR_ASSIGN )
 			continue;
 
-		Expr* idx_expr = cle[i]->AsAssignExpr()->Op1();
+		Expr* idx_expr = expr->AsAssignExpr()->Op1();
 
 		if ( idx_expr->Tag() != EXPR_LIST )
 			continue;
@@ -3178,8 +3174,8 @@ Val* TableConstructorExpr::Eval(Frame* f) const
 	Val* aggr = new TableVal(Type()->AsTableType(), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
-	loop_over_list(exprs, i)
-		exprs[i]->EvalIntoAggregate(type, aggr, f);
+	for ( const auto& expr : exprs )
+		expr->EvalIntoAggregate(type, aggr, f);
 
 	aggr->AsTableVal()->InitDefaultFunc(f);
 
@@ -3195,8 +3191,8 @@ Val* TableConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
-	loop_over_list(exprs, i)
-		exprs[i]->EvalIntoAggregate(t, tval, 0);
+	for ( const auto& expr : exprs )
+		expr->EvalIntoAggregate(t, tval, 0);
 
 	return tval;
 	}
@@ -3242,7 +3238,7 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = constructor_list->Exprs();
@@ -3284,9 +3280,9 @@ Val* SetConstructorExpr::Eval(Frame* f) const
 	TableVal* aggr = new TableVal(type->AsTableType(), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
-	loop_over_list(exprs, i)
+	for ( const auto& expr : exprs )
 		{
-		Val* element = exprs[i]->Eval(f);
+		Val* element = expr->Eval(f);
 		aggr->Assign(element, 0);
 		Unref(element);
 		}
@@ -3304,9 +3300,8 @@ Val* SetConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 	TableVal* tval = aggr ? aggr->AsTableVal() : new TableVal(tt, attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
-	loop_over_list(exprs, i)
+	for ( const auto& e : exprs )
 		{
-		Expr* e = exprs[i];
 		Val* element = check_and_promote(e->Eval(0), index_type, 1);
 
 		if ( ! element || ! tval->Assign(element, 0) )
@@ -4500,8 +4495,8 @@ ListExpr::ListExpr(Expr* e) : Expr(EXPR_LIST)
 
 ListExpr::~ListExpr()
 	{
-	loop_over_list(exprs, i)
-		Unref(exprs[i]);
+	for ( const auto& expr: exprs )
+		Unref(expr);
 	}
 
 void ListExpr::Append(Expr* e)
@@ -4512,8 +4507,8 @@ void ListExpr::Append(Expr* e)
 
 int ListExpr::IsPure() const
 	{
-	loop_over_list(exprs, i)
-		if ( ! exprs[i]->IsPure() )
+	for ( const auto& expr : exprs )
+		if ( ! expr->IsPure() )
 			return 0;
 
 	return 1;
@@ -4521,8 +4516,8 @@ int ListExpr::IsPure() const
 
 int ListExpr::AllConst() const
 	{
-	loop_over_list(exprs, i)
-		if ( ! exprs[i]->IsConst() )
+	for ( const auto& expr : exprs )
+		if ( ! expr->IsConst() )
 			return 0;
 
 	return 1;
@@ -4532,9 +4527,9 @@ Val* ListExpr::Eval(Frame* f) const
 	{
 	ListVal* v = new ListVal(TYPE_ANY);
 
-	loop_over_list(exprs, i)
+	for ( const auto& expr : exprs )
 		{
-		Val* ev = exprs[i]->Eval(f);
+		Val* ev = expr->Eval(f);
 		if ( ! ev )
 			{
 			RuntimeError("uninitialized list value");
@@ -4559,12 +4554,12 @@ BroType* ListExpr::InitType() const
 	if ( exprs[0]->IsRecordElement(0) )
 		{
 		type_decl_list* types = new type_decl_list(exprs.length());
-		loop_over_list(exprs, i)
+		for ( const auto& expr : exprs )
 			{
 			TypeDecl* td = new TypeDecl(0, 0);
-			if ( ! exprs[i]->IsRecordElement(td) )
+			if ( ! expr->IsRecordElement(td) )
 				{
-				exprs[i]->Error("record element expected");
+				expr->Error("record element expected");
 				delete td;
 				delete types;
 				return 0;
@@ -4580,9 +4575,8 @@ BroType* ListExpr::InitType() const
 	else
 		{
 		TypeList* tl = new TypeList();
-		loop_over_list(exprs, i)
+		for ( const auto& e : exprs )
 			{
-			Expr* e = exprs[i];
 			BroType* ti = e->Type();
 
 			// Collapse any embedded sets or lists.
@@ -4716,10 +4710,8 @@ Val* ListExpr::InitVal(const BroType* t, Val* aggr) const
 	// know how to add themselves to a table or record.  Another
 	// possibility is an expression that evaluates itself to a
 	// table, which we can then add to the aggregate.
-	loop_over_list(exprs, i)
+	for ( const auto& e : exprs )
 		{
-		Expr* e = exprs[i];
-
 		if ( e->Tag() == EXPR_ASSIGN || e->Tag() == EXPR_FIELD_ASSIGN )
 			{
 			if ( ! e->InitVal(t, aggr) )
@@ -4757,17 +4749,17 @@ Val* ListExpr::AddSetInit(const BroType* t, Val* aggr) const
 	const TableType* tt = tv->Type()->AsTableType();
 	const TypeList* it = tt->Indices();
 
-	loop_over_list(exprs, i)
+	for ( const auto& expr : exprs )
 		{
 		Val* element;
 
-		if ( exprs[i]->Type()->IsSet() )
+		if ( expr->Type()->IsSet() )
 			// A set to flatten.
-			element = exprs[i]->Eval(0);
-		else if ( exprs[i]->Type()->Tag() == TYPE_LIST )
-			element = exprs[i]->InitVal(it, 0);
+			element = expr->Eval(0);
+		else if ( expr->Type()->Tag() == TYPE_LIST )
+			element = expr->InitVal(it, 0);
 		else
-			element = exprs[i]->InitVal((*it->Types())[0], 0);
+			element = expr->InitVal((*it->Types())[0], 0);
 
 		if ( ! element )
 			return 0;
@@ -4786,7 +4778,7 @@ Val* ListExpr::AddSetInit(const BroType* t, Val* aggr) const
 			continue;
 			}
 
-		if ( exprs[i]->Type()->Tag() == TYPE_LIST )
+		if ( expr->Type()->Tag() == TYPE_LIST )
 			element = check_and_promote(element, it, 1);
 		else
 			element = check_and_promote(element, (*it->Types())[0], 1);
@@ -4822,8 +4814,8 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 Expr* ListExpr::MakeLvalue()
 	{
-	loop_over_list(exprs, i)
-		if ( exprs[i]->Tag() != EXPR_NAME )
+	for ( const auto & expr : exprs )
+		if ( expr->Tag() != EXPR_NAME )
 			ExprError("can only assign to list of identifiers");
 
 	return new RefExpr(this);
@@ -4847,9 +4839,9 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 
-	loop_over_list(exprs, i)
+	for ( const auto& expr : exprs )
 		{
-		tc = exprs[i]->Traverse(cb);
+		tc = expr->Traverse(cb);
 		HANDLE_TC_EXPR_PRE(tc);
 		}
 
@@ -4868,11 +4860,11 @@ RecordAssignExpr::RecordAssignExpr(Expr* record, Expr* init_list, int is_init)
 	// 2) a string indicating the field name, then (as the next element)
 	//    the value to use for that field.
 
-	for ( int i = 0; i < inits.length(); ++i )
+	for ( const auto& init : inits )
 		{
-		if ( inits[i]->Type()->Tag() == TYPE_RECORD )
+		if ( init->Type()->Tag() == TYPE_RECORD )
 			{
-			RecordType* t = inits[i]->Type()->AsRecordType();
+			RecordType* t = init->Type()->AsRecordType();
 
 			for ( int j = 0; j < t->NumFields(); ++j )
 				{
@@ -4883,15 +4875,15 @@ RecordAssignExpr::RecordAssignExpr(Expr* record, Expr* init_list, int is_init)
 				     same_type(lhs->FieldType(field), t->FieldType(j)) )
 					{
 					FieldExpr* fe_lhs = new FieldExpr(record, field_name);
-					FieldExpr* fe_rhs = new FieldExpr(inits[i], field_name);
+					FieldExpr* fe_rhs = new FieldExpr(init, field_name);
 					Append(get_assign_expr(fe_lhs->Ref(), fe_rhs->Ref(), is_init));
 					}
 				}
 			}
 
-		else if ( inits[i]->Tag() == EXPR_FIELD_ASSIGN )
+		else if ( init->Tag() == EXPR_FIELD_ASSIGN )
 			{
-			FieldAssignExpr* rf = (FieldAssignExpr*) inits[i];
+			FieldAssignExpr* rf = (FieldAssignExpr*) init;
 			rf->Ref();
 
 			const char* field_name = ""; // rf->FieldName();
@@ -5155,8 +5147,8 @@ int check_and_promote_args(ListExpr*& args, RecordType* types)
 			def_elements.insert(def_attr->AttrExpr());
 			}
 
-		loop_over_list(def_elements, i)
-			el.append(def_elements[i]->Ref());
+		for ( const auto& elem : def_elements )
+			el.append(elem->Ref());
 		}
 
 	TypeList* tl = new TypeList();
@@ -5198,18 +5190,22 @@ val_list* eval_list(Frame* f, const ListExpr* l)
 	const expr_list& e = l->Exprs();
 	val_list* v = new val_list(e.length());
 
-	loop_over_list(e, i)
+	bool success = true;
+	for ( const auto& expr : e )
 		{
-		Val* ev = e[i]->Eval(f);
+		Val* ev = expr->Eval(f);
 		if ( ! ev )
+			{
+			success = false;
 			break;
+			}
 		v->append(ev);
 		}
 
-	if ( i < e.length() )
+	if ( ! success )
 		{ // Failure.
-		loop_over_list(*v, j)
-			Unref((*v)[j]);
+		for ( const auto& val : *v )
+			Unref(val);
 		delete v;
 		return 0;
 		}

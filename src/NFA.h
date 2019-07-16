@@ -9,8 +9,7 @@
 class NFA_State;
 class EquivClass;
 
-declare(PList,NFA_State);
-typedef PList(NFA_State) NFA_state_list;
+typedef PList<NFA_State> NFA_state_list;
 
 #define NO_ACCEPT 0
 

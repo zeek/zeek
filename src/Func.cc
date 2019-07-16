@@ -74,11 +74,11 @@ std::string render_call_stack()
 
 		if ( ci.args )
 			{
-			loop_over_list(*ci.args, i)
+			for ( const auto& arg : *ci.args )
 				{
 				ODesc d;
 				d.SetShort();
-				(*ci.args)[i]->Describe(&d);
+				arg->Describe(&d);
 
 				if ( ! arg_desc.empty() )
 					arg_desc += ", ";
@@ -130,8 +130,8 @@ void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
 
 Func* Func::DoClone()
 	{
-	// By default, ok just to return a reference. Func does not have any "state".
-	// That is different across instances.
+	// By default, ok just to return a reference. Func does not have any state
+	// that is different across instances.
 	return this;
 	}
 
@@ -198,10 +198,10 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	}
 
 void Func::CopyStateInto(Func* other) const
-        {
+	{
 	std::for_each(bodies.begin(), bodies.end(), [](const Body& b) { Ref(b.stmts); });
-	other->bodies = bodies;
 
+	other->bodies = bodies;
 	other->scope = scope;
 	other->kind = kind;
 
@@ -260,8 +260,8 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 		}
 	}
 
-	loop_over_list(*args, i)
-		Unref((*args)[i]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	return plugin_result;
 	}
@@ -284,7 +284,8 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 
 BroFunc::~BroFunc()
 	{
-	std::for_each(bodies.begin(), bodies.end(), [](Body& b) { Unref(b.stmts); });
+	std::for_each(bodies.begin(), bodies.end(), 
+		[](Body& b) { Unref(b.stmts); });
 	Unref(closure);
 	}
 
@@ -319,8 +320,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		loop_over_list(*args, i)
-			Unref((*args)[i]);
+		for ( const auto& arg : *args )
+			Unref(arg);
 
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
@@ -354,10 +355,11 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	stmt_flow_type flow = FLOW_NEXT;
 	Val* result = 0;
 
-	for ( size_t i = 0; i < bodies.size(); ++i )
+	for ( const auto& body : bodies )
 		{
 		if ( sample_logger )
-			sample_logger->LocationSeen(bodies[i].stmts->GetLocationInfo());
+			sample_logger->LocationSeen(
+				body.stmts->GetLocationInfo());
 
 		Unref(result);
 
@@ -378,7 +380,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		try
 			{
-			result = bodies[i].stmts->Exec(f, flow);
+			result = body.stmts->Exec(f, flow);
 			}
 
 		catch ( InterpreterException& e )
@@ -396,7 +398,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			}
 
 		if ( f->HasDelayed() )
-		        {
+			{
 			assert(! result);
 			assert(parent);
 			parent->SetDelayed();
@@ -423,8 +425,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	// We have an extra Ref for each argument (so that they don't get
 	// deleted between bodies), release that.
-	loop_over_list(*args, k)
-		Unref((*args)[k]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
@@ -468,8 +470,8 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
-		for ( unsigned int i = 0; i < bodies.size(); ++i )
-			Unref(bodies[i].stmts);
+		for ( const auto& body : bodies )
+			Unref(body.stmts);
 		bodies.clear();
 		}
 
@@ -516,23 +518,16 @@ Func* BroFunc::DoClone()
 	{
 	// A BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	if ( ! this->closure )
-		{
-		return Func::DoClone();
-		}
-	else
-		{
-		BroFunc* other = new BroFunc();
+	BroFunc* other = new BroFunc();
 
-		CopyStateInto(other);
+	CopyStateInto(other);
 
-		other->frame_size = frame_size;
+	other->frame_size = frame_size;
 
-		other->closure = closure->Clone();
-		other->outer_ids = outer_ids;
+	other->closure = closure ? closure->Clone() : nullptr;
+	other->outer_ids = outer_ids;
 
-		return other;
-		}
+	return other;
 	}
 
 broker::expected<broker::data> BroFunc::SerializeClosure() const
@@ -636,8 +631,8 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 	Val* result = func(parent, args);
 	call_stack.pop_back();
 
-	loop_over_list(*args, i)
-		Unref((*args)[i]);
+	for ( const auto& arg : *args )
+		Unref(arg);
 
 	// Don't Unref() args, that's the caller's responsibility.
 	if ( result && g_trace_state.DoTrace() )

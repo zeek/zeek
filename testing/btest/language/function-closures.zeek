@@ -9,6 +9,31 @@ function make_count_upper (start : count) : function(step : count) : count
 		{ return (start += (step + numberone)); };
         }
 
+function dog_maker(name: string, weight: count) : function (action: string)
+	{
+	local eat = function (lbs: count) { print fmt("eat i weigh %s", lbs); };
+	local bark = function (who: string) { print fmt("bark i am %s", who); };
+
+	local dog = function (action: string)
+		{
+		switch action
+			{
+			case "bark":
+				bark(name);
+				break;
+			case "eat":
+				++weight;
+				eat(weight);
+				break;
+			default:
+				print "I have a new name";
+				name = action;
+				break;
+			}
+		};
+	return dog;
+	}
+
 event zeek_init()
 	{
 	# basic
@@ -129,6 +154,19 @@ event zeek_init()
         print "expect: unknown-33. outside-5";
         print dogs_also[33];
 
+	print "";
+	print "classes!";
+	print "";
+
+	local dog = dog_maker("thunder", 12);
+	dog("bark");
+	dog("eat");
+	dog("eat");
+
+	local other_dog = copy(dog);
+	other_dog("twig");
+	other_dog("bark");
 	
-	} # event zeek_init
+	dog("bark");
+	} # zeek_init
 

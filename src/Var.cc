@@ -108,7 +108,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t, false));
+		id->AddAttrs(new Attributes(attr, t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -286,7 +286,7 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, tnew, false));
+		id->SetAttrs(new Attributes(attr, tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -304,7 +304,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		if ( ! recv_i->attrs )
 			{
 			attr_list* a = new attr_list{def};
-			recv_i->attrs = new Attributes(a, recv_i->type, true);
+			recv_i->attrs = new Attributes(a, recv_i->type, true, false);
 			}
 
 		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
@@ -443,10 +443,8 @@ int get_func_priotity(attr_list* attrs)
 	int priority = 0;
 	if ( attrs )
 		{
-		loop_over_list(*attrs, i)
+		for ( const auto& a : *attrs )
 			{
-			Attr* a = (*attrs)[i];
-
 			if ( a->Tag() == ATTR_DEPRECATED )
 				continue;
 

@@ -149,7 +149,7 @@ int Specific_RE_Matcher::Compile(int lazy)
 
 int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
-	if ( set.length() != idx.length() )
+	if ( (size_t)set.length() != idx.size() )
 		reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;

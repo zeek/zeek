@@ -164,11 +164,8 @@ static type_decl_list* copy_type_decl_list(type_decl_list* tdl)
 
 	type_decl_list* rval = new type_decl_list();
 
-	loop_over_list(*tdl, i)
-		{
-		TypeDecl* td = (*tdl)[i];
+	for ( const auto& td : *tdl )
 		rval->append(new TypeDecl(*td));
-		}
 
 	return rval;
 	}
@@ -180,9 +177,8 @@ static attr_list* copy_attr_list(attr_list* al)
 
 	attr_list* rval = new attr_list();
 
-	loop_over_list(*al, i)
+	for ( const auto& a : *al )
 		{
-		Attr* a = (*al)[i];
 		::Ref(a);
 		rval->append(a);
 		}

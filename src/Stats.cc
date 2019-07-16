@@ -239,7 +239,7 @@ void ProfileLogger::Log()
 
 	// Script-level state.
 	unsigned int size, mem = 0;
-	PDict(ID)* globals = global_scope()->Vars();
+	PDict<ID>* globals = global_scope()->Vars();
 
 	if ( expensive )
 		{

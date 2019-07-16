@@ -116,7 +116,7 @@ void Frame::Release()
 	for ( int i = 0; i < size; ++i )
 		Unref(frame[i]);
 
-        delete [] frame;
+	delete [] frame;
 	}
 
 void Frame::Describe(ODesc* d) const
@@ -159,6 +159,7 @@ Frame* Frame::Clone()
 	if ( trigger )
 		Ref(trigger);
 	f->trigger = trigger;
+
 	f->call = call;
 
 	return f;
@@ -171,7 +172,8 @@ Frame* Frame::SelectiveClone(id_list* selection)
 	loop_over_list(*selection, i)
 	  {
 	  ID* current = (*selection)[i];
-	  other->frame[current->Offset()] = this->frame[current->Offset()];
+	  Val* v = this->frame[current->Offset()];
+	  other->frame[current->Offset()] = v ? v->Clone() : 0;
 	  }
 
 	return other;
@@ -362,10 +364,10 @@ ClosureFrame::~ClosureFrame()
 Val* ClosureFrame::GetElement(const ID* id) const
 	{
 	if ( CaptureContains(id) )
-	  {
-	  int my_offset = offset_map.at(std::string(id->Name()));
-	  return ClosureFrame::GatherFromClosure(this, id, my_offset);
-	  }
+		{
+		int my_offset = offset_map.at(std::string(id->Name()));
+		return ClosureFrame::GatherFromClosure(this, id, my_offset);
+		}
 	return this->NthElement(id->Offset());
 	}
 
@@ -396,18 +398,17 @@ Frame* ClosureFrame::SelectiveClone(id_list* choose)
 	// and
 	id_list them;
 	
-	loop_over_list(*choose, i)
+	for (const auto& we : *choose)
 	  {
-	    ID* we = (*choose)[i];
 	    if ( CaptureContains(we) )
 	      us.append(we);
 	    else
 	      them.append(we);
 	  }
-	
+
 	Frame* me = this->closure->SelectiveClone(&us);
 	// and
-	Frame* you  = this->body->SelectiveClone(&them);
+	Frame* you = this->body->SelectiveClone(&them);
 
 	ClosureFrame* who = new ClosureFrame(me, you, nullptr);
 	who->offset_map = offset_map;

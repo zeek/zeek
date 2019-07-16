@@ -1088,6 +1088,9 @@ EnumType::EnumType(const EnumType* e)
 		names[it->first] = it->second;
 
 	vals = e->vals;
+
+	for ( auto& kv : vals )
+		::Ref(kv.second);
 	}
 
 EnumType* EnumType::ShallowClone()

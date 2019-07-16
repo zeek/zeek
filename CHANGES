@@ -1,4 +1,11 @@
 
+2.6-616 | 2019-07-16 15:21:37 +0000
+
+  * Fix referecne counting bug in EnumType copy constructor. (Jon
+    Siwek, Corelight)
+
+  * Remove unused BroObj::in_ser_cache member. (Jon Siwek, Corelight)
+
 2.6-612 | 2019-07-15 19:46:04 -0700
 
   * Fix a potential usage of List::remove_nth(-1) (Jon Siwek, Corelight)

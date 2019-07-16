@@ -273,13 +273,18 @@ public:
 		entries[num_entries++] = a;
 		}
 
-	T remove(const T& a)	// delete entry from list
+	bool remove(const T& a)	// delete entry from list
 		{
-		int i;
-		for ( i = 0; i < num_entries && a != entries[i]; ++i )
-			;
+		for ( int i = 0; i < num_entries; ++i )
+			{
+			if ( a == entries[i] )
+				{
+				remove_nth(i);
+				return true;
+				}
+			}
 
-		return remove_nth(i);
+		return false;
 		}
 
 	T remove_nth(int n)	// delete nth entry from list

@@ -675,10 +675,10 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 	const char* kp = (const char*) k->Key();
 	const char* const k_end = kp + k->Size();
 
-	loop_over_list(*tl, i)
+	for ( const auto& type : *tl )
 		{
 		Val* v = nullptr;
-		kp = RecoverOneVal(k, kp, k_end, (*tl)[i], v, false);
+		kp = RecoverOneVal(k, kp, k_end, type, v, false);
 		ASSERT(v);
 		l->Append(v);
 		}

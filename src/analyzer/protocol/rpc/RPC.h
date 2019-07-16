@@ -99,8 +99,6 @@ protected:
 	Val* v;		// single (perhaps compound) value corresponding to call
 };
 
-declare(PDict,RPC_CallInfo);
-
 class RPC_Interpreter {
 public:
 	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
@@ -125,7 +123,7 @@ protected:
 
 	void Weird(const char* name, const char* addl = "");
 
-	PDict(RPC_CallInfo) calls;
+	PDict<RPC_CallInfo> calls;
 	analyzer::Analyzer* analyzer;
 };
 

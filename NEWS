@@ -357,6 +357,27 @@ Changed Functionality
   are small changes to the output; most visibly double numbers are now rounded slightly
   differently. The way in which port values are rendered does _not_ change for JSON logs.
 
+- The C++-layer List, Queue, and Dict types have changed from using macros to
+  templates as well as some other API changes.
+
+  - Range-based for-loops are now supported
+
+  - The loop_over_queue macro is now removed
+
+  - PList is now a template instead of a macro, so any "PList(T)" usages in
+    external code should now use "PList<T>"
+
+  - PDict is now a template instead of a macro, so any "PDict(T)" usages in
+    external code should now use "PDict<T>"
+
+  - Generally some methods used to assume containers were only using integer
+    or pointer types, so semantics may now be slightly different to
+    either avoid copying or unsafely returning arbitrary T types by value.
+    E.g. List::remove_nth and List::get can no longer return a "null" value
+    when the provided index is out of range, so they assert instead, and
+    Queue::pop methods do not return a value at all (one must check for
+    a non-empty container before removing an element).
+
 Removed Functionality
 ---------------------
 

@@ -13,25 +13,25 @@ Rule::~Rule()
 	{
 	delete [] id;
 
-	loop_over_list(patterns, i)
+	for ( const auto& p : patterns )
 		{
-		delete [] patterns[i]->pattern;
-		delete patterns[i];
+		delete [] p->pattern;
+		delete p;
 		}
 
-	loop_over_list(hdr_tests, j)
-		delete hdr_tests[j];
+	for ( const auto& test : hdr_tests )
+		delete test;
 
-	loop_over_list(conditions, k)
-		delete conditions[k];
+	for ( const auto& cond : conditions )
+		delete cond;
 
-	loop_over_list(actions, l)
-		delete actions[l];
+	for ( const auto& action : actions )
+		delete action;
 
-	loop_over_list(preconds, m)
+	for ( const auto& prec : preconds )
 		{
-		delete [] preconds[m]->id;
-		delete preconds[m];
+		delete [] prec->id;
+		delete prec;
 		}
 	}
 
@@ -49,21 +49,20 @@ void Rule::PrintDebug()
 	{
 	fprintf(stderr, "Rule %s (%d) %s\n", id, idx, active ? "[active]" : "[disabled]");
 
-	loop_over_list(patterns, i)
+	for ( const auto& p : patterns )
 		{
 		fprintf(stderr, "	%-8s |%s| (%d) \n",
-			TypeToString(patterns[i]->type), patterns[i]->pattern,
-			patterns[i]->id);
+			TypeToString(p->type), p->pattern, p->id);
 		}
 
-	loop_over_list(hdr_tests, j)
-		hdr_tests[j]->PrintDebug();
+	for ( const auto& h : hdr_tests )
+		h->PrintDebug();
 
-	loop_over_list(conditions, k)
-		conditions[k]->PrintDebug();
+	for ( const auto& c : conditions )
+		c->PrintDebug();
 
-	loop_over_list(actions, l)
-		actions[l]->PrintDebug();
+	for ( const auto& a : actions )
+		a->PrintDebug();
 
 	fputs("\n", stderr);
 	}

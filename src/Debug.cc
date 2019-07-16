@@ -27,7 +27,7 @@ using namespace std;
 bool g_policy_debug = false;
 DebuggerState g_debugger_state;
 TraceState g_trace_state;
-PDict(Filemap) g_dbgfilemaps;
+PDict<Filemap> g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next
@@ -378,10 +378,9 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			}
 
 		StmtLocMapping* hit = 0;
-		loop_over_queue(*map, i)
+		for ( const auto entry : *map )
 			{
-			StmtLocMapping* entry = (*map)[i];
-			plr.filename = (*map)[i]->Loc().filename;
+			plr.filename = entry->Loc().filename;
 
 			if ( entry->Loc().first_line > plr.line )
 				break;
@@ -389,7 +388,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			if ( plr.line >= entry->Loc().first_line &&
 			     plr.line <= entry->Loc().last_line )
 				{
-				hit = (*map)[i];
+				hit = entry;
 				break;
 				}
 			}

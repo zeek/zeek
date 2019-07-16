@@ -108,11 +108,11 @@ DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 
 void DFA_State::AppendIfNew(int sym, int_list* sym_list)
 	{
-	for ( int i = 0; i < sym_list->length(); ++i )
-		if ( (*sym_list)[i] == sym )
+	for ( auto value : *sym_list )
+		if ( value == sym )
 			return;
 
-	sym_list->append(sym);
+	sym_list->push_back(sym);
 	}
 
 NFA_state_list* DFA_State::SymFollowSet(int ec_sym, const EquivClass* ec)
@@ -132,8 +132,8 @@ NFA_state_list* DFA_State::SymFollowSet(int ec_sym, const EquivClass* ec)
 
 			if ( ccl->IsNegated() )
 				{
-				int j;
-				for ( j = 0; j < syms->length(); ++j )
+				size_t j;
+				for ( j = 0; j < syms->size(); ++j )
 					{
 					// Loop through (sorted) negated
 					// character class, which has
@@ -143,25 +143,25 @@ NFA_state_list* DFA_State::SymFollowSet(int ec_sym, const EquivClass* ec)
 						break;
 					}
 
-				if ( j >= syms->length() || (*syms)[j] > ec_sym )
+				if ( j >= syms->size() || (*syms)[j] > ec_sym )
 					// Didn't find ec_sym in ccl.
 					n->AddXtionsTo(ns);
 
 				continue;
 				}
 
-			for ( int j = 0; j < syms->length(); ++j )
+			for ( auto sym : *syms )
 				{
-				if ( (*syms)[j] > ec_sym )
+				if ( sym > ec_sym )
 					break;
 
-				if ( (*syms)[j] == ec_sym )
+				if ( sym == ec_sym )
 					{
 					n->AddXtionsTo(ns);
 					break;
 					}
 				}
-			}
+ 			}
 
 		else if ( n->TransSym() == SYM_EPSILON )
 			{ // do nothing

@@ -1035,7 +1035,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	// cut_points is a set of pairs of indices in str that should
 	// be removed/replaced.  A pair <x,y> means "delete starting
 	// at offset x, up to but not including offset y".
-	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
+	vector<std::pair<int, int>> cut_points;
 
 	int size = 0;	// size of result
 
@@ -1058,8 +1058,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 			break;
 
 		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.append(offset);
-		cut_points.append(offset + end_of_match);
+		cut_points.push_back({offset, offset + end_of_match});
 
 		offset += end_of_match;
 		n -= end_of_match;
@@ -1075,8 +1074,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 
 	// size now reflects amount of space copied.  Factor in amount
 	// of space for replacement text.
-	int num_cut_points = cut_points.length() / 2;
-	size += num_cut_points * repl->Len();
+	size += cut_points.size() * repl->Len();
 
 	// And a final NUL for good health.
 	++size;
@@ -1086,13 +1084,13 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 
 	// Copy it all over.
 	int start_offset = 0;
-	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
+	for ( const auto& point : cut_points )
 		{
-		int num_to_copy = cut_points[i] - start_offset;
+		int num_to_copy = point.first - start_offset;
 		memcpy(r, s + start_offset, num_to_copy);
 
 		r += num_to_copy;
-		start_offset = cut_points[i+1];
+		start_offset = point.second;
 
 		// Now add in replacement text.
 		memcpy(r, repl->Bytes(), repl->Len());
@@ -1189,8 +1187,8 @@ ListVal::ListVal(TypeTag t)
 
 ListVal::~ListVal()
 	{
-	loop_over_list(vals, i)
-		Unref(vals[i]);
+	for ( const auto& val : vals )
+		Unref(val);
 	Unref(type);
 	}
 
@@ -1200,9 +1198,9 @@ RE_Matcher* ListVal::BuildRE() const
 		Internal("non-string list in ListVal::IncludedInString");
 
 	RE_Matcher* re = new RE_Matcher();
-	loop_over_list(vals, i)
+	for ( const auto& val : vals )
 		{
-		const char* vs = (const char*) (vals[i]->AsString()->Bytes());
+		const char* vs = (const char*) (val->AsString()->Bytes());
 		re->AddPat(vs);
 		}
 
@@ -1231,8 +1229,8 @@ TableVal* ListVal::ConvertToSet() const
 	SetType* s = new SetType(set_index, 0);
 	TableVal* t = new TableVal(s);
 
-	loop_over_list(vals, i)
-		t->Assign(vals[i], 0);
+	for ( const auto& val : vals )
+		t->Assign(val, 0);
 
 	Unref(s);
 	return t;
@@ -1269,8 +1267,8 @@ Val* ListVal::DoClone(CloneState* state)
 	lv->vals.resize(vals.length());
 	state->NewClone(this, lv);
 
-	loop_over_list(vals, i)
-		lv->Append(vals[i]->Clone(state));
+	for ( const auto& val : vals )
+		lv->Append(val->Clone(state));
 
 	return lv;
 	}
@@ -1278,8 +1276,8 @@ Val* ListVal::DoClone(CloneState* state)
 unsigned int ListVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	loop_over_list(vals, i)
-		size += vals[i]->MemoryAllocation();
+	for ( const auto& val : vals )
+		size += val->MemoryAllocation();
 
 	return size + padded_sizeof(*this) + vals.MemoryAllocation() - padded_sizeof(vals)
 		+ type->MemoryAllocation();
@@ -1334,7 +1332,7 @@ void TableVal::Init(TableType* t)
 		subnets = 0;
 
 	table_hash = new CompositeHash(table_type->Indices());
-	val.table_val = new PDict(TableEntryVal);
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
@@ -1357,7 +1355,7 @@ void TableVal::RemoveAll()
 	{
 	// Here we take the brute force approach.
 	delete AsTable();
-	val.table_val = new PDict(TableEntryVal);
+	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 
@@ -1370,7 +1368,7 @@ int TableVal::RecursiveSize() const
 			!= TYPE_TABLE )
 		return n;
 
-	PDict(TableEntryVal)* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;
@@ -1508,7 +1506,7 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 		return 0;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -1556,7 +1554,7 @@ int TableVal::RemoveFrom(Val* val) const
 		return 0;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -1578,14 +1576,14 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 	{
 	TableVal* result = new TableVal(table_type);
 
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
-	PDict(TableEntryVal)* t2 = result->AsNonConstTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
+	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.
 	if ( t1->Length() > t0->Length() )
 		{ // Swap.
-		const PDict(TableEntryVal)* tmp = t1;
+		const PDict<TableEntryVal>* tmp = t1;
 		t1 = t0;
 		t0 = tmp;
 		}
@@ -1607,8 +1605,8 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 
 bool TableVal::EqualTo(const TableVal* tv) const
 	{
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
 
 	if ( t0->Length() != t1->Length() )
 		return false;
@@ -1634,8 +1632,8 @@ bool TableVal::EqualTo(const TableVal* tv) const
 
 bool TableVal::IsSubsetOf(const TableVal* tv) const
 	{
-	const PDict(TableEntryVal)* t0 = AsTable();
-	const PDict(TableEntryVal)* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t0 = AsTable();
+	const PDict<TableEntryVal>* t1 = tv->AsTable();
 
 	if ( t0->Length() > t1->Length() )
 		return false;
@@ -1771,8 +1769,8 @@ Val* TableVal::Default(Val* index)
 		{
 		const val_list* vl0 = index->AsListVal()->Vals();
 		vl = val_list(vl0->length());
-		loop_over_list(*vl0, i)
-			vl.append((*vl0)[i]->Ref());
+		for ( const auto& v : *vl0 )
+			vl.append(v->Ref());
 		}
 	else
 		{
@@ -1828,7 +1826,7 @@ Val* TableVal::Lookup(Val* index, bool use_default_val)
 		return def;
 		}
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 
 	if ( tbl->Length() > 0 )
 		{
@@ -1973,7 +1971,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	{
 	ListVal* l = new ListVal(t);
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
 
 	HashKey* k;
@@ -2014,7 +2012,7 @@ ListVal* TableVal::ConvertToPureList() const
 
 void TableVal::Describe(ODesc* d) const
 	{
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	int n = tbl->Length();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -2158,7 +2156,7 @@ void TableVal::DoExpire(double t)
 	if ( ! type )
 		return; // FIX ME ###
 
-	PDict(TableEntryVal)* tbl = AsNonConstTable();
+	PDict<TableEntryVal>* tbl = AsNonConstTable();
 
 	double timeout = GetExpireTime();
 
@@ -2343,7 +2341,7 @@ Val* TableVal::DoClone(CloneState* state)
 	auto tv = new TableVal(table_type);
 	state->NewClone(this, tv);
 
-	const PDict(TableEntryVal)* tbl = AsTable();
+	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* cookie = tbl->InitForIteration();
 
 	HashKey* key;
@@ -2392,7 +2390,7 @@ unsigned int TableVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
 
-	PDict(TableEntryVal)* v = val.table_val;
+	PDict<TableEntryVal>* v = val.table_val;
 	IterCookie* c = v->InitForIteration();
 
 	TableEntryVal* tv;
@@ -2675,9 +2673,9 @@ Val* RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	loop_over_list(*val.val_list_val, i)
+	for ( const auto& vlv : *val.val_list_val )
 		{
-		Val* v = (*val.val_list_val)[i] ? (*val.val_list_val)[i]->Clone(state) : nullptr;
+		Val* v = vlv ? vlv->Clone(state) : nullptr;
   		rv->val.val_list_val->append(v);
 		}
 
@@ -2687,12 +2685,10 @@ Val* RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-
 	const val_list* vl = AsRecord();
 
-	loop_over_list(*vl, i)
+	for ( const auto& v : *vl )
 		{
-		Val* v = (*vl)[i];
 		if ( v )
 		    size += v->MemoryAllocation();
 		}
@@ -3070,8 +3066,8 @@ void delete_vals(val_list* vals)
 	{
 	if ( vals )
 		{
-		loop_over_list(*vals, i)
-			Unref((*vals)[i]);
+		for ( const auto& val : *vals )
+			Unref(val);
 		delete vals;
 		}
 	}

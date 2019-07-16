@@ -86,8 +86,8 @@ public:
 			QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
 		else
 			{
-			loop_over_list(vl, i)
-				Unref(vl[i]);
+			for ( const auto& v : vl )
+				Unref(v);
 			}
 		}
 

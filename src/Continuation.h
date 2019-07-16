@@ -50,8 +50,7 @@ private:
 	int current_level;
 	int suspend_level;
 
-	declare(PList, void);
-	typedef PList(void) voidp_list;
+	typedef PList<void> voidp_list;
 
 	voidp_list states;
 };

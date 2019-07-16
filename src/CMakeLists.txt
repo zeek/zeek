@@ -261,7 +261,6 @@ set(MAIN_SRCS
     IntSet.cc
     IP.cc
     IPAddr.cc
-    List.cc
     Reporter.cc
     NFA.cc
     Net.cc
@@ -273,7 +272,6 @@ set(MAIN_SRCS
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
-    Queue.cc
     RandTest.cc
     RE.cc
     Reassem.cc

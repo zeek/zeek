@@ -126,8 +126,7 @@ public:
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
 // top of the stack.
-declare(PList,FileInfo);
-static PList(FileInfo) file_stack;
+static PList<FileInfo> file_stack;
 
 #define RET_CONST(v) \
 	{ \
@@ -757,7 +756,7 @@ void do_atif(Expr* expr)
 
 	if ( ! val->AsBool() )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	}
@@ -770,7 +769,7 @@ void do_atifdef(const char* id)
 
 	if ( ! (i = lookup_ID(id, current_module.c_str())) )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 
@@ -785,7 +784,7 @@ void do_atifndef(const char *id)
 
 	if ( (i = lookup_ID(id, current_module.c_str())) )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 
@@ -797,17 +796,17 @@ void do_atelse()
 	if ( current_depth == 0 )
 		reporter->Error("@else without @if...");
 
-	if ( if_stack.length() && current_depth > if_stack.last() )
+	if ( ! if_stack.empty() && current_depth > if_stack.back() )
 		return;
 
 	if ( YY_START == INITIAL )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	else
 		{
-		if_stack.get();
+		if_stack.pop_back();
 		BEGIN(INITIAL);
 		}
 	}
@@ -817,10 +816,10 @@ void do_atendif()
 	if ( current_depth == 0 )
 		reporter->Error("unbalanced @if... @endif");
 
-	if ( current_depth == if_stack.last() )
+	if ( current_depth == if_stack.back() )
 		{
 		BEGIN(INITIAL);
-		if_stack.get();
+		if_stack.pop_back();
 		}
 
 	--current_depth;
@@ -901,7 +900,8 @@ int yywrap()
 
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
-	delete file_stack.remove_nth(file_stack.length() - 1);
+	if ( file_stack.length() > 0 )
+		delete file_stack.remove_nth(file_stack.length() - 1);
 
 	if ( YY_CURRENT_BUFFER )
 		// There's more on the stack to scan.

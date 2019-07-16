@@ -1,4 +1,9 @@
 
+2.6-624 | 2019-07-16 16:07:59 +0000
+
+  * Redo README. We now have separate plain text and Markdown versions.
+    (Zeke Medley, Corelight)
+
 2.6-616 | 2019-07-16 15:21:37 +0000
 
   * Fix referecne counting bug in EnumType copy constructor. (Jon

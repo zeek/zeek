@@ -900,7 +900,8 @@ int yywrap()
 
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
-	delete file_stack.remove_nth(file_stack.length() - 1);
+	if ( file_stack.length() > 0 )
+		delete file_stack.remove_nth(file_stack.length() - 1);
 
 	if ( YY_CURRENT_BUFFER )
 		// There's more on the stack to scan.

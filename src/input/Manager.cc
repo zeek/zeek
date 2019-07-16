@@ -52,8 +52,6 @@ static void input_hash_delete_func(void* val)
 	delete h;
 	}
 
-declare(PDict, InputHash);
-
 /**
  * Base stuff that every stream can do.
  */
@@ -109,8 +107,8 @@ public:
 	RecordType* rtype;
 	RecordType* itype;
 
-	PDict(InputHash)* currDict;
-	PDict(InputHash)* lastDict;
+	PDict<InputHash>* currDict;
+	PDict<InputHash>* lastDict;
 
 	Func* pred;
 
@@ -703,9 +701,9 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->itype = idx->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
-	stream->currDict = new PDict(InputHash);
+	stream->currDict = new PDict<InputHash>;
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
-	stream->lastDict = new PDict(InputHash);
+	stream->lastDict = new PDict<InputHash>;
 	stream->lastDict->SetDeleteFunc(input_hash_delete_func);
 	stream->want_record = ( want_record->InternalInt() == 1 );
 
@@ -1425,7 +1423,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	delete(stream->lastDict);
 
 	stream->lastDict = stream->currDict;
-	stream->currDict = new PDict(InputHash);
+	stream->currDict = new PDict<InputHash>;
 	stream->currDict->SetDeleteFunc(input_hash_delete_func);
 
 #ifdef DEBUG
@@ -1895,8 +1893,8 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	if ( convert_error )
 		{
-		loop_over_list(vl, i)
-			Unref(vl[i]);
+		for ( const auto& v : vl )
+			Unref(v);
 
 		return false;
 		}

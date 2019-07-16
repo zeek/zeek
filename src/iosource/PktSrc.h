@@ -10,8 +10,6 @@
 #include "Dict.h"
 #include "Packet.h"
 
-declare(PDict,BPF_Program);
-
 namespace iosource {
 
 /**

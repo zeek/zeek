@@ -51,7 +51,7 @@ void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
 		}
 
 	Scope* global = global_scope();
-	PDict(ID)* syms = global->Vars();
+	PDict<ID>* syms = global->Vars();
 
 	ID* nextid;
 	IterCookie* cookie = syms->InitForIteration();
@@ -114,7 +114,7 @@ void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
 // DebugCmdInfo implementation
 //
 
-PQueue(DebugCmdInfo) g_DebugCmdInfos;
+PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
 : cmd(info.cmd), helpstring(0)

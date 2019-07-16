@@ -7,8 +7,7 @@
 #include "Scope.h"
 #include "Reporter.h"
 
-declare(PList,Scope);
-typedef PList(Scope) scope_list;
+typedef PList<Scope> scope_list;
 
 static scope_list scopes;
 static Scope* top_scope;
@@ -20,7 +19,7 @@ Scope::Scope(ID* id, attr_list* al)
 	attrs = al;
 	return_type = 0;
 
-	local = new PDict(ID)(ORDERED);
+	local = new PDict<ID>(ORDERED);
 	inits = new id_list;
 
 	if ( id )
@@ -48,8 +47,8 @@ Scope::~Scope()
 
 	if ( attrs )
 		{
-		loop_over_list(*attrs, i)
-			Unref((*attrs)[i]);
+		for ( const auto& attr : *attrs )
+			Unref(attr);
 
 		delete attrs;
 		}
@@ -109,7 +108,7 @@ void Scope::Describe(ODesc* d) const
 
 TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	{
-	PDict(ID)* ids = GetIDs();
+	PDict<ID>* ids = GetIDs();
 	IterCookie* iter = ids->InitForIteration();
 
 	HashKey* key;

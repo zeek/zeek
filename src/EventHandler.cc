@@ -117,8 +117,8 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 		Unref(local->Call(vl));
 	else
 		{
-		loop_over_list(*vl, i)
-			Unref((*vl)[i]);
+		for ( auto v : *vl )
+			Unref(v);
 		}
 	}
 

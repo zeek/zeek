@@ -502,10 +502,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			vl.append(conn->BuildConnVal());
 
 		if ( addl )
-			{
-			loop_over_list(*addl, i)
-				vl.append((*addl)[i]);
-			}
+			std::copy(addl->begin(), addl->end(), std::back_inserter(vl));
 
 		if ( conn )
 			conn->ConnectionEventFast(event, 0, std::move(vl));
@@ -516,8 +513,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		if ( addl )
 			{
-			loop_over_list(*addl, i)
-				Unref((*addl)[i]);
+			for ( const auto& av : *addl )
+				Unref(av);
 			}
 		}
 

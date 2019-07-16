@@ -395,7 +395,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 				const string_list& exprs, const int_list& ids)
 	{
-	assert(exprs.length() == ids.length());
+	assert(static_cast<size_t>(exprs.length()) == ids.size());
 
 	// We build groups of at most sig_max_group_size regexps.
 

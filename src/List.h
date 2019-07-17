@@ -30,65 +30,6 @@
 typedef int (*list_cmp_func)(const void* v1, const void* v2);
 
 template<typename T>
-class ListIterator
-	{
-public:
-	ListIterator(T* entries, int offset, int num_entries) :
-		entries(entries), offset(offset), num_entries(num_entries), endptr() {}
-	bool operator==(const ListIterator& rhs) { return entries == rhs.entries && offset == rhs.offset; }
-	bool operator!=(const ListIterator& rhs) { return entries != rhs.entries || offset != rhs.offset; }
-	ListIterator & operator++() { offset++; return *this; }
-	ListIterator operator++(int) { auto t = *this; offset++; return t; }
-	ListIterator & operator--() { offset--; return *this; }
-	ListIterator operator--(int) { auto t = *this; offset--; return t; }
-	std::ptrdiff_t operator-(ListIterator const& sibling) const { return offset - sibling.offset; }
-	ListIterator & operator+=(int amount) { offset += amount; return *this; }
-	ListIterator & operator-=(int amount) { offset -= amount; return *this; }
-	bool operator<(ListIterator const&sibling) const { return offset < sibling.offset;}
-	bool operator<=(ListIterator const&sibling) const { return offset <= sibling.offset; }
-	bool operator>(ListIterator const&sibling) const { return offset > sibling.offset; }
-	bool operator>=(ListIterator const&sibling) const { return offset >= sibling.offset; }
-	T& operator[](int index)
-		{
-		if (index < num_entries)
-			return entries[index];
-		else
-			return endptr;
-		}
-	T& operator*()
-		{
-		if ( offset < num_entries )
-			return entries[offset];
-		else
-			return endptr;
-		}
-
-private:
-	T* const entries;
-	int offset;
-	int num_entries;
-	T endptr; // let this get set to some random value on purpose. It's only used
-			  // for the operator[] and operator* cases where you pass something
-			  // off the end of the collection, which is undefined behavior anyways.
-	};
-
-
-namespace std {
-	template<typename T>
-	class iterator_traits<ListIterator<T> >
-	{
-	public:
-		using difference_type = std::ptrdiff_t;
-		using size_type = std::size_t;
-		using value_type = T;
-		using pointer = T*;
-		using reference = T&;
-		using iterator_category = std::random_access_iterator_tag;
-	};
-}
-
-
-template<typename T>
 class List {
 public:
 
@@ -353,19 +294,21 @@ public:
 
 	// Type traits needed for some of the std algorithms to work
 	using value_type = T;
+	using pointer = T*;
+	using const_pointer = const T*;
 
 	// Iterator support
-	using iterator = ListIterator<T>;
-	using const_iterator = ListIterator<const T>;
+	using iterator = pointer;
+	using const_iterator = const_pointer;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-	iterator begin() { return { entries, 0, num_entries }; }
-	iterator end() { return { entries, num_entries, num_entries }; }
-	const_iterator begin() const { return { entries, 0, num_entries }; }
-	const_iterator end() const { return { entries, num_entries, num_entries }; }
-	const_iterator cbegin() const { return { entries, 0, num_entries }; }
-	const_iterator cend() const { return { entries, num_entries, num_entries }; }
+	iterator begin() { return entries; }
+	iterator end() { return entries + num_entries; }
+	const_iterator begin() const { return entries; }
+	const_iterator end() const { return entries + num_entries; }
+	const_iterator cbegin() const { return entries; }
+	const_iterator cend() const { return entries + num_entries; }
 
 	reverse_iterator rbegin() { return reverse_iterator{end()}; }
 	reverse_iterator rend() { return reverse_iterator{begin()}; }

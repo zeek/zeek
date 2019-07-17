@@ -21,52 +21,6 @@
 //	Entries must be either a pointer to the data or nonzero data with
 //	sizeof(data) <= sizeof(void*).
 
-template<typename T>
-class QueueIterator
-	{
-	T* const entries;
-	int offset;
-	int num_entries;
-public:
-	QueueIterator(T* entries, int offset, int num_entries) :
-		entries(entries), offset(offset), num_entries(num_entries) {}
-	bool operator==(const QueueIterator& rhs) { return entries == rhs.entries && offset == rhs.offset; }
-	bool operator!=(const QueueIterator& rhs) { return entries != rhs.entries || offset != rhs.offset; }
-	QueueIterator & operator++() { offset++; return *this; }
-	QueueIterator operator++(int) { auto t = *this; offset++; return t; }
-	QueueIterator & operator--() { offset--; return *this; }
-	QueueIterator operator--(int) { auto t = *this; offset--; return t; }
-	std::ptrdiff_t operator-(QueueIterator const& sibling) const { return offset - sibling.offset; }
-	QueueIterator & operator+=(int amount) { offset += amount; return *this; }
-	QueueIterator & operator-=(int amount) { offset -= amount; return *this; }
-	bool operator<(QueueIterator const&sibling) const { return offset < sibling.offset;}
-	bool operator<=(QueueIterator const&sibling) const { return offset <= sibling.offset; }
-	bool operator>(QueueIterator const&sibling) const { return offset > sibling.offset; }
-	bool operator>=(QueueIterator const&sibling) const { return offset >= sibling.offset; }
-	T& operator[](int index)
-		{
-		return entries[index];
-		}
-	T& operator*()
-		{
-		return entries[offset];
-		}
-	};
-
-namespace std {
-	template<typename T>
-	class iterator_traits<QueueIterator<T> >
-	{
-	public:
-		using difference_type = std::ptrdiff_t;
-		using size_type = std::size_t;
-		using value_type = T;
-		using pointer = T*;
-		using reference = T&;
-		using iterator_category = std::random_access_iterator_tag;
-	};
-}
-
 
 template<typename T>
 class Queue {
@@ -205,19 +159,21 @@ public:
 
 	// Type traits needed for some of the std algorithms to work
 	using value_type = T;
+	using pointer = T*;
+	using const_pointer = const T*;
 
 	// Iterator support
-	using iterator = QueueIterator<T>;
-	using const_iterator = QueueIterator<const T>;
+	using iterator = pointer;
+	using const_iterator = const_pointer;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-	iterator begin() { return { entries, 0, num_entries }; }
-	iterator end() { return { entries, num_entries, num_entries }; }
-	const_iterator begin() const { return { entries, 0, num_entries }; }
-	const_iterator end() const { return { entries, num_entries, num_entries }; }
-	const_iterator cbegin() const { return { entries, 0, num_entries }; }
-	const_iterator cend() const { return { entries, num_entries, num_entries }; }
+	iterator begin() { return entries; }
+	iterator end() { return entries + num_entries; }
+	const_iterator begin() const { return entries; }
+	const_iterator end() const { return entries + num_entries; }
+	const_iterator cbegin() const { return entries; }
+	const_iterator cend() const { return entries + num_entries; }
 
 	reverse_iterator rbegin() { return reverse_iterator{end()}; }
 	reverse_iterator rend() { return reverse_iterator{begin()}; }

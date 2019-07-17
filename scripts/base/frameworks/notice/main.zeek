@@ -347,12 +347,8 @@ function NOTICE(n: Notice::Info)
 module Notice;
 
 # This is used as a hack to implement per-item expiration intervals.
-function per_notice_suppression_interval(t: table[Notice::Type, string] of time, idx: any): interval
+function per_notice_suppression_interval(t: table[Notice::Type, string] of time, n: Notice::Type, s: string): interval
 	{
-	local n: Notice::Type;
-	local s: string;
-	[n,s] = idx;
-
 	local suppress_time = t[n,s] - network_time();
 	if ( suppress_time < 0secs )
 		suppress_time = 0secs;

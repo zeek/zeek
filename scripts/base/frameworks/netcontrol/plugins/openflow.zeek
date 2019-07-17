@@ -80,12 +80,8 @@ export {
 }
 
 global of_messages: table[count, OpenFlow::ofp_flow_mod_command] of OfTable &create_expire=openflow_message_timeout
-	&expire_func=function(t: table[count, OpenFlow::ofp_flow_mod_command] of OfTable, idx: any): interval
+	&expire_func=function(t: table[count, OpenFlow::ofp_flow_mod_command] of OfTable, rid: count, command: OpenFlow::ofp_flow_mod_command): interval
 		{
-		local rid: count;
-		local command: OpenFlow::ofp_flow_mod_command;
-		[rid, command] = idx;
-
 		local p = t[rid, command]$p;
 		local r = t[rid, command]$r;
 		event NetControl::rule_error(r, p, "Timeout during rule insertion/removal");

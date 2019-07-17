@@ -436,24 +436,34 @@ void Attributes::CheckAttr(Attr* a)
 			Error("expiration only applicable to tables");
 			break;
 			}
-
 		const Expr* expire_func = a->AttrExpr();
+
+		if ( expire_func->Type()->Tag() != TYPE_FUNC )
+			Error("&expire_func attribute is not a function");
+
 		const FuncType* e_ft = expire_func->Type()->AsFuncType();
 
-		if ( ((const BroType*) e_ft)->YieldType()->Tag() != TYPE_INTERVAL )
+		if ( e_ft->YieldType()->Tag() != TYPE_INTERVAL )
 			{
 			Error("&expire_func must yield a value of type interval");
 			break;
 			}
 
-		if ( e_ft->Args()->NumFields() != 2 )
-			{
-			Error("&expire_func function must take exactly two arguments");
-			break;
-			}
+		const TableType* the_table = type->AsTableType();
 
-		// ### Should type-check arguments to make sure first is
-		// table type and second is table index type.
+		if (the_table->IsUnspecifiedTable())
+			break;
+
+		const type_list* index_types = the_table->IndexTypes();
+
+		type_list expected_args;
+		expected_args.push_back(type->AsTableType());
+		for (const auto& t : *index_types)
+			{
+			expected_args.push_back(t);
+			}
+		if ( ! e_ft->CheckArgs(&expected_args) )
+			Error("&expire_func argument type clash");
 		}
 		break;
 

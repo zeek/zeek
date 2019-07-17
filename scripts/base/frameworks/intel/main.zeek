@@ -202,7 +202,7 @@ type MetaDataTable: table[string] of MetaData;
 # Expiration handlers.
 global expire_host_data: function(data: table[addr] of MetaDataTable, idx: addr): interval;
 global expire_subnet_data: function(data: table[subnet] of MetaDataTable, idx: subnet): interval;
-global expire_string_data: function(data: table[string, Type] of MetaDataTable, idx: any): interval;
+global expire_string_data: function(data: table[string, Type] of MetaDataTable, indicator: string, indicator_type: Type): interval;
 
 # The in memory data structure for holding intelligence.
 type DataStore: record {
@@ -259,11 +259,8 @@ function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): 
 	return expire_item(cat(idx), SUBNET, metas);
 	}
 
-function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any): interval
+function expire_string_data(data: table[string, Type] of MetaDataTable, indicator: string, indicator_type: Type): interval
 	{
-	local indicator: string;
-	local indicator_type: Type;
-	[indicator, indicator_type] = idx;
 
 	local meta_tbl: MetaDataTable = data[indicator, indicator_type];
 	local metas: set[MetaData];

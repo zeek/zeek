@@ -2308,24 +2308,28 @@ double TableVal::CallExpireFunc(Val* idx)
 			return 0;
 			}
 
+		const Func* f = vf->AsFunc();
+		val_list vl { Ref() };
 
-		// Flatten lists of a single element.
-		if ( idx->Type()->Tag() == TYPE_LIST &&
-		     idx->AsListVal()->Length() == 1 )
+		if ( idx->Type()->Tag() == TYPE_LIST )
 			{
-			Val* old = idx;
-			idx = idx->AsListVal()->Index(0);
-			idx->Ref();
-			Unref(old);
+			const val_list* vl0 = idx->AsListVal()->Vals();
+			for ( const auto& v : *idx->AsListVal()->Vals() )
+				vl.append(v->Ref());
+			}
+		else 
+			{
+			vl.append(idx->Ref());
 			}
 
-		val_list vl{Ref(), idx};
-		Val* vs = vf->AsFunc()->Call(&vl);
+		Val* result = 0;
 
-		if ( vs )
+		result = f->Call(&vl);
+
+		if ( result )
 			{
-			secs = vs->AsInterval();
-			Unref(vs);
+			secs = result->AsInterval();
+			Unref(result);
 			}
 
 		Unref(vf);

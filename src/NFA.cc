@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include <algorithm>
+
 #include "NFA.h"
 #include "EquivClass.h"
 
@@ -342,10 +344,13 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 			if ( ! closuremap.Contains(ns->ID()) )
 				{
 				closuremap.Insert(ns->ID());
-				closure->sortedinsert(ns, NFA_state_cmp_neg);
+				closure->append(ns);
 				}
 			}
 		}
+
+	// Sort all of the closures in the list by ID
+	std::sort(closure->begin(), closure->end(), NFA_state_cmp_neg);
 
 	// Make it fit.
 	closure->resize(0);
@@ -355,15 +360,10 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 	return closure;
 	}
 
-int NFA_state_cmp_neg(const void* v1, const void* v2)
+bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2)
 	{
-	const NFA_State* n1 = (const NFA_State*) v1;
-	const NFA_State* n2 = (const NFA_State*) v2;
-
-	if ( n1->ID() < n2->ID() )
-		return -1;
-	else if ( n1->ID() == n2->ID() )
-		return 0;
+	if ( v1->ID() < v2->ID() )
+		return true;
 	else
-		return 1;
+		return false;
 	}

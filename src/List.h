@@ -27,6 +27,7 @@
 #include <cassert>
 #include "util.h"
 
+// TODO: this can be removed in v3.1 when List::sort() is removed
 typedef int (*list_cmp_func)(const void* v1, const void* v2);
 
 template<typename T>
@@ -154,6 +155,7 @@ public:
 		return max_entries;
 		}
 
+	ZEEK_DEPRECATED("Remove in v3.1: Use std::sort instead")
 	void sort(list_cmp_func cmp_func)
 		{
 		qsort(entries, num_entries, sizeof(T), cmp_func);
@@ -172,31 +174,6 @@ public:
 
 		++num_entries;
 		entries[0] = a;
-		}
-
-	// Assumes that the list is sorted and inserts at correct position.
-	void sortedinsert(const T& a, list_cmp_func cmp_func)
-		{
-		// We optimize for the case that the new element is
-		// larger than most of the current entries.
-
-		// First append element.
-		if ( num_entries == max_entries )
-			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
-
-		entries[num_entries++] = a;
-
-		// Then move it to the correct place.
-		T tmp;
-		for ( int i = num_entries - 1; i > 0; --i )
-			{
-			if ( cmp_func(entries[i],entries[i-1]) <= 0 )
-				break;
-
-			tmp = entries[i];
-			entries[i] = entries[i-1];
-			entries[i-1] = tmp;
-			}
 		}
 
 	void push_back(const T& a)	{ append(a); }

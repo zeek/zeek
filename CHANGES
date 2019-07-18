@@ -1,4 +1,47 @@
 
+2.6-624 | 2019-07-16 16:07:59 +0000
+
+  * Redo README. We now have separate plain text and Markdown versions.
+    (Zeke Medley, Corelight)
+
+2.6-616 | 2019-07-16 15:21:37 +0000
+
+  * Fix referecne counting bug in EnumType copy constructor. (Jon
+    Siwek, Corelight)
+
+  * Remove unused BroObj::in_ser_cache member. (Jon Siwek, Corelight)
+
+2.6-612 | 2019-07-15 19:46:04 -0700
+
+  * Fix a potential usage of List::remove_nth(-1) (Jon Siwek, Corelight)
+
+  * Change List::remote(const T&) to return a bool (Jon Siwek, Corelight)
+
+    It now indicates whether the removal took place or not, depending
+    on whether a matching element was found in the list.
+
+  * Fix debug build due to old int_list usage within assert (Jon Siwek, Corelight)
+
+  * Convert uses of loop_over_list to ranged-for loops (Tim Wojtulewicz, Corelight)
+
+  * Remove loop_over_queue (as an example for later removing loop_over_list) (Tim Wojtulewicz, Corelight)
+
+  * Change int_list in CCL.h to be a vector, fix uses of int_list to match (Tim Wojtulewicz, Corelight)
+
+  * Remove List<> usage from strings.bif (Tim Wojtulewicz, Corelight)
+
+  * Replace uses of the old Queue/PQueue generation code with new template versions (Tim Wojtulewicz, Corelight)
+
+  * Convert BaseQueue/Queue/PQueue into templates, including iterator support (Tim Wojtulewicz, Corelight)
+
+  * Replace uses of the old Dict generation code with new template versions (Tim Wojtulewicz, Corelight)
+
+  * Convert PDict into template (Tim Wojtulewicz, Corelight)
+
+  * Replace uses of the old List generation code with new template versions (Tim Wojtulewicz, Corelight)
+
+  * Convert BaseList/List/PList into templates, including iterator support (Tim Wojtulewicz, Corelight)
+
 2.6-598 | 2019-07-12 18:20:12 -0700
 
   * Fix canonification of timestamps with a decisecond multiple (Jon Siwek, Corelight)

@@ -1035,7 +1035,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	// cut_points is a set of pairs of indices in str that should
 	// be removed/replaced.  A pair <x,y> means "delete starting
 	// at offset x, up to but not including offset y".
-	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
+	vector<std::pair<int, int>> cut_points;
 
 	int size = 0;	// size of result
 
@@ -1058,8 +1058,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 			break;
 
 		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.append(offset);
-		cut_points.append(offset + end_of_match);
+		cut_points.push_back({offset, offset + end_of_match});
 
 		offset += end_of_match;
 		n -= end_of_match;
@@ -1075,8 +1074,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 
 	// size now reflects amount of space copied.  Factor in amount
 	// of space for replacement text.
-	int num_cut_points = cut_points.length() / 2;
-	size += num_cut_points * repl->Len();
+	size += cut_points.size() * repl->Len();
 
 	// And a final NUL for good health.
 	++size;
@@ -1086,13 +1084,13 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 
 	// Copy it all over.
 	int start_offset = 0;
-	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
+	for ( const auto& point : cut_points )
 		{
-		int num_to_copy = cut_points[i] - start_offset;
+		int num_to_copy = point.first - start_offset;
 		memcpy(r, s + start_offset, num_to_copy);
 
 		r += num_to_copy;
-		start_offset = cut_points[i+1];
+		start_offset = point.second;
 
 		// Now add in replacement text.
 		memcpy(r, repl->Bytes(), repl->Len());

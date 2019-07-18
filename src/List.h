@@ -24,6 +24,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <utility>
+#include <cassert>
 #include "util.h"
 
 typedef int (*list_cmp_func)(const void* v1, const void* v2);

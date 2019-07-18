@@ -592,14 +592,18 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 			args->length(), my_args->length()));
 		return 0;
 		}
+
+	int had_error = 1;
+
 	for ( int i = 0; i < my_args->length(); ++i )
 		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
 			{
 			Warn(fmt("Type mismatch in function arguments. Expected %s, got %s.",
 				type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
+			had_error = 0; // continue checking types, don't return.
 			}
 
-	return 1;
+	return had_error;
 	}
 
 void FuncType::Describe(ODesc* d) const

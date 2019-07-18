@@ -4,10 +4,15 @@
 #define func_h
 
 #include <utility>
+#include <memory> // std::shared_ptr, std::unique_ptr
+
+#include <broker/data.hh>
+#include <broker/expected.hh>
 
 #include "BroList.h"
 #include "Obj.h"
 #include "Debug.h"
+#include "Frame.h"
 
 class Val;
 class ListExpr;
@@ -59,6 +64,8 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 
+	virtual Func* DoClone();
+
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32 GetUniqueFuncID() const { return unique_id; }
@@ -67,6 +74,8 @@ public:
 
 protected:
 	Func();
+	// Copies this functions state into other.
+	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
@@ -87,12 +96,43 @@ public:
 	~BroFunc() override;
 
 	int IsPure() const override;
+
 	Val* Call(val_list* args, Frame* parent) const override;
+
+	/**
+	 * Adds adds a closure to the function. Closures are cloned and 
+	 * future calls to BroFunc will not modify *f*
+	 * 
+	 * @param ids IDs that are captured by the closure.
+	 * @param f the closure to be captured.
+	 */
+	void AddClosure(std::shared_ptr<id_list> ids, Frame* f);
+
+	/**
+	 * Replaces the current closure with one built from *data*
+	 * 
+	 * @param data a serialized closure
+	 */
+	bool UpdateClosure(const broker::vector& data);
 
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 			int priority) override;
 
-	int FrameSize() const {	return frame_size; }
+	/**
+	 * Clones this function along with its closures.
+	 */
+	Func* DoClone() override;
+
+	/**
+	 * Serializes this function's closure.
+	 * 
+	 * @return a serialized version of the function's closure.
+	 */
+	broker::expected<broker::data> SerializeClosure() const;
+
+	/** Sets this function's outer_id list. */
+	void SetOuterIDs(std::shared_ptr<id_list> ids)
+		{ outer_ids = std::move(ids); }
 
 	void Describe(ODesc* d) const override;
 
@@ -101,6 +141,20 @@ protected:
 	Stmt* AddInits(Stmt* body, id_list* inits);
 
 	int frame_size;
+
+private:
+	/**
+	 * Performs a selective clone of *f* using the IDs that were
+	 * captured in the function's closure.
+	 * 
+	 * @param f the frame to be cloned.
+	 */
+	void SetClosureFrame(Frame* f);
+
+	// List of the outer IDs used in the function.
+	std::shared_ptr<id_list> outer_ids = nullptr;
+	// The frame the BroFunc was initialized in.
+	Frame* closure = nullptr;
 };
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
@@ -135,6 +189,18 @@ struct CallInfo {
 	const Func* func;
 	const val_list* args;
 };
+
+// Struct that collects the arguments for a Func.
+// Used for BroFuncs with closures.
+struct function_ingredients
+	{
+		ID* id;
+		Stmt* body;
+		id_list* inits;
+		int frame_size;
+		int priority;
+		Scope* scope;
+	};
 
 extern vector<CallInfo> call_stack;
 

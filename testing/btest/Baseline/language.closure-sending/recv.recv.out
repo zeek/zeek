@@ -1,0 +1,12 @@
+peer added
+receiver got ping: function 2
+begin: 100 | base_step: 1
+begin: 100 | base_step: 1 | step: 76
+177
+receiver got ping: function 1
+inside: 2 | outside: 11 | global: 100
+78
+receiver got ping: function 2
+begin: 100 | base_step: 3
+begin: 100 | base_step: 3 | step: 76
+179

@@ -1,3 +1,1 @@
-error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.zeek, line 16: referencing outer function IDs not supported (c)
-error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.zeek, line 16: referencing outer function IDs not supported (d)
-error in /home/robin/bro/master/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.zeek, line 17: referencing outer function IDs not supported (b)
+error in /home/zekemedley/Desktop/corelight/lambda_stuff/zeek/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.zeek, line 11 and /home/zekemedley/Desktop/corelight/lambda_stuff/zeek/testing/btest/.tmp/language.outer_param_binding/outer_param_binding.zeek, line 17: already defined (d)

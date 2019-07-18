@@ -115,9 +115,7 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			// Immutable.
-			return Ref();
-
+		        return new Val(this->AsFunc()->DoClone());
 		if ( type->Tag() == TYPE_FILE )
 			{
 			// I think we can just ref the file here - it is unclear what else
@@ -1736,7 +1734,7 @@ Val* TableVal::Default(Val* index)
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(0);
+		        def_val = def_attr->AttrExpr()->Eval(0);
 		}
 
 	if ( ! def_val )
@@ -2145,6 +2143,28 @@ int TableVal::CheckAndAssign(Val* index, Val* new_val)
 	return Assign(index, new_val);
 	}
 
+void TableVal::InitDefaultFunc(Frame* f)
+        {
+	// Value aready initialized.
+	if ( def_val )
+	  return;
+
+	Attr* def_attr = FindAttr(ATTR_DEFAULT);
+	if ( ! def_attr )
+	  return;
+
+	BroType* ytype = Type()->YieldType();
+	BroType* dtype = def_attr->AttrExpr()->Type();
+
+	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
+		     ! same_type(dtype, ytype) &&
+		     record_promotion_compatible(dtype->AsRecordType(),
+						 ytype->AsRecordType()) )
+	  return; // TableVal::Default will handle this.
+
+	def_val = def_attr->AttrExpr()->Eval(f);
+	}
+
 void TableVal::InitTimer(double delay)
 	{
 	timer = new TableValTimer(this, network_time + delay);
@@ -2381,7 +2401,7 @@ Val* TableVal::DoClone(CloneState* state)
 		tv->expire_func = expire_func->Ref();
 
 	if ( def_val )
-		tv->def_val = def_val->Ref();
+		tv->def_val = def_val->Clone();
 
 	return tv;
 	}

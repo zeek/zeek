@@ -12,6 +12,10 @@
 #include "Debug.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
+#include "Func.h" // function_ingredients
+
+#include <memory> // std::shared_ptr
+#include <utility> // std::move
 
 typedef enum {
 	EXPR_ANY = -1,
@@ -39,6 +43,7 @@ typedef enum {
 	EXPR_IN,
 	EXPR_LIST,
 	EXPR_CALL,
+	EXPR_LAMBDA,
 	EXPR_EVENT,
 	EXPR_SCHEDULE,
 	EXPR_ARITH_COERCE,
@@ -63,6 +68,8 @@ class IndexExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
+
+struct function_ingredients;
 
 
 class Expr : public BroObj {
@@ -654,7 +661,7 @@ protected:
 	friend class Expr;
 	IndexExpr()	{ }
 
-	Val* Fold(Val* v1, Val* v2) const override;
+        Val* Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -937,12 +944,34 @@ public:
 
 protected:
 	friend class Expr;
-	CallExpr()	{ func = 0; args = 0; }
+        CallExpr()	{ func = 0; args = 0; }
 
 	void ExprDescribe(ODesc* d) const override;
 
 	Expr* func;
 	ListExpr* args;
+};
+
+
+/**
+ * Class that represents an anonymous function expression in Zeek.
+ * On evaluation, captures the frame that it is evaluated in. This becomes
+ * the closure for the instance of the function that it creates.
+ */
+class LambdaExpr : public Expr {
+public:
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
+		   std::shared_ptr<id_list> outer_ids);
+
+	Val* Eval(Frame* f) const override;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+private:
+	std::unique_ptr<function_ingredients> ingredients;
+	std::shared_ptr<id_list> outer_ids;
 };
 
 class EventExpr : public Expr {

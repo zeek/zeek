@@ -33,6 +33,7 @@
 #define ICMP_PORT_MASK	0x30000
 
 class Val;
+class BroFunc;
 class Func;
 class BroFile;
 class PrefixTable;
@@ -775,6 +776,8 @@ protected:
 };
 
 class CompositeHash;
+class Frame;
+
 class TableVal : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(TableType* t, Attributes* attrs = 0);
@@ -876,6 +879,11 @@ public:
 
 	void InitTimer(double delay);
 	void DoExpire(double t);
+
+        // If default attribute is not a function, or the functon has
+        // already been initialized this does nothing. Otherwise, evaluates
+        // the function in the frame allowing it to capture its closure.
+        void InitDefaultFunc(Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 

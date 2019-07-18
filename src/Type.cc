@@ -587,11 +587,17 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	const type_list* my_args = arg_types->Types();
 
 	if ( my_args->length() != args->length() )
+		{
+		Warn(fmt("Wrong number of arguments for function. Expected %d, got %d.", 
+			args->length(), my_args->length()));
 		return 0;
-
+		}
 	for ( int i = 0; i < my_args->length(); ++i )
 		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
-			return 0;
+			{
+			Warn(fmt("Type mismatch in function arguments. Expected %s, got %s.",
+				type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
+			}
 
 	return 1;
 	}

@@ -342,54 +342,45 @@ struct val_converter {
 
 			return rval;
 			}
-		else if (type->Tag() == TYPE_FUNC)
+		else if ( type->Tag() == TYPE_FUNC )
 			{
-			#define GET_OR_RETURN(type, name, index)							\
-				if (auto __##name##__ = broker::get_if<type>(a[index]))			\
-					name = *__##name##__;										\
-				else															\
-					return nullptr;												\
-
-			if (a.size() > 2)
+			if ( a.size() < 1 || a.size() > 2 )
 				return nullptr;
-			
-			std::string name;
-			GET_OR_RETURN(std::string, name, 0);
 
-			auto id = global_scope()->Lookup(name.c_str());
+			auto name = broker::get_if<std::string>(a[0]);
+			if ( ! name )
+				return nullptr;
 
+			auto id = global_scope()->Lookup(name->c_str());
 			if ( ! id )
 				return nullptr;
 
 			auto rval = id->ID_Val();
-
 			if ( ! rval )
 				return nullptr;
 
 			auto t = rval->Type();
-
 			if ( ! t )
 				return nullptr;
-
 
 			if ( t->Tag() != TYPE_FUNC )
 				return nullptr;
 
-			if (a.size() == 2) // We have a closure.
+			if ( a.size() == 2 ) // We have a closure.
 				{
-				broker::vector frame;
-				GET_OR_RETURN(broker::vector, frame, 1);
+				auto frame = broker::get_if<broker::vector>(a[1]);
+				if ( ! frame )
+					return nullptr;
 
-				bool status = false;
-				if ( BroFunc* b = dynamic_cast<BroFunc*>(rval->AsFunc()))
-					{
-					status = b->UpdateClosure(frame);
-					}
-				if ( ! status ) return nullptr;
+				auto b = dynamic_cast<BroFunc*>(rval->AsFunc());
+				if ( ! b )
+					return nullptr;
+
+				if ( ! b->UpdateClosure(*frame) )
+					return nullptr;
 				}
 
 			return rval->Ref();
-			#undef GET_OR_RETURN
 			}
 		else if ( type->Tag() == TYPE_RECORD )
 			{
@@ -705,30 +696,22 @@ struct type_checker {
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
-			#define GET_OR_RETURN(type, name, index)							\
-				if (auto __##name##__ = broker::get_if<type>(a[index]))			\
-					name = *__##name##__;										\
-				else															\
-					return false;												\
-
-			if (a.size() > 2)
+			if ( a.size() < 1 || a.size() > 2 )
 				return false;
-			
-			std::string name;
-			GET_OR_RETURN(std::string, name, 0);
 
-			auto id = global_scope()->Lookup(name.c_str());
+			auto name = broker::get_if<std::string>(a[0]);
+			if ( ! name )
+				return false;
 
+			auto id = global_scope()->Lookup(name->c_str());
 			if ( ! id )
 				return false;
 
 			auto rval = id->ID_Val();
-
 			if ( ! rval )
 				return false;
 
 			auto t = rval->Type();
-
 			if ( ! t )
 				return false;
 
@@ -881,30 +864,32 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
 	        {
-			Func* f = v->AsFunc();
-			std::string name(f->Name());
-			broker::vector rval;
-			rval.push_back(name);
+		Func* f = v->AsFunc();
+		std::string name(f->Name());
 
-			auto starts_with = [](const std::string& s ,const std::string& in) -> bool 
-				{ return (0 == s.find(in)); };
+		broker::vector rval;
+		rval.push_back(name);
 
-			if ( starts_with(name, "anonymous-function") )
+		if ( name.find("anonymous-function") == 0 )
+			{
+			// Only BroFuncs have closures.
+			if ( auto b = dynamic_cast<BroFunc*>(f) )
 				{
-				// Only BroFuncs have closures.
-				if (BroFunc* b = dynamic_cast<BroFunc*>(f))
-					{
-					auto bc = dynamic_cast<BroFunc*>(f)->SerializeClosure();
-					if ( ! bc )
-						return broker::ec::invalid_data;
-					rval.emplace_back(std::move(*bc));
-					}
-				else
+				auto bc = dynamic_cast<BroFunc*>(f)->SerializeClosure();
+				if ( ! bc )
 					return broker::ec::invalid_data;
-				}
 
-			return {std::move(rval)};
+				rval.emplace_back(std::move(*bc));
+				}
+			else
+				{
+				reporter->InternalWarning("closure with non-BroFunc");
+				return broker::ec::invalid_data;
+				}
 			}
+
+		return {std::move(rval)};
+		}
 	case TYPE_TABLE:
 		{
 		auto is_set = v->Type()->IsSet();
@@ -1058,10 +1043,10 @@ RecordVal* bro_broker::make_data_val(Val* v)
 	auto rval = new RecordVal(BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
 
-	if  ( ! data ) reporter->Warning("Didn't get a value from val_to_data");
-
-	if ( data )
+	if  ( data )
 		rval->Assign(0, new DataVal(move(*data)));
+	else
+		reporter->Warning("did not get a value from val_to_data");
 
 	return rval;
 	}

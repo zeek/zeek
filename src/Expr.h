@@ -12,10 +12,9 @@
 #include "Debug.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
-#include "Func.h" // function_ingredients
 
-#include <memory> // std::shared_ptr
-#include <utility> // std::move
+#include <memory>
+#include <utility>
 
 typedef enum {
 	EXPR_ANY = -1,
@@ -661,7 +660,7 @@ protected:
 	friend class Expr;
 	IndexExpr()	{ }
 
-        Val* Fold(Val* v1, Val* v2) const override;
+	Val* Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -944,7 +943,7 @@ public:
 
 protected:
 	friend class Expr;
-        CallExpr()	{ func = 0; args = 0; }
+	CallExpr()	{ func = 0; args = 0; }
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -971,6 +970,13 @@ protected:
 
 private:
 	std::unique_ptr<function_ingredients> ingredients;
+
+	// TODO(robin): I'm wondering if we should just generally pass all
+	// the new "id_list" instances by value (or const ref where it
+	// works). It's going to be very small and easy to copy; and a
+	// shared_ptr with dynamic memory comes with overhead, too. (I'm
+	// actually tempted to suggest the same for "ingredients" though
+	// that's less clear.)
 	std::shared_ptr<id_list> outer_ids;
 };
 

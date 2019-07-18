@@ -438,46 +438,43 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 
 // Gets a function's priority from its Scope's attributes. Errors if it sees any
 // problems.
-int get_func_priotity(attr_list* attrs)
+static int get_func_priotity(const attr_list& attrs)
 	{
 	int priority = 0;
-	if ( attrs )
+
+	for ( const auto& a : attrs )
 		{
-		for ( const auto& a : *attrs )
+		if ( a->Tag() == ATTR_DEPRECATED )
+			continue;
+
+		if ( a->Tag() != ATTR_PRIORITY )
 			{
-			if ( a->Tag() == ATTR_DEPRECATED )
-				continue;
-
-			if ( a->Tag() != ATTR_PRIORITY )
-				{
-				a->Error("illegal attribute for function body");
-				continue;
-				}
-
-			Val* v = a->AttrExpr()->Eval(0);
-			if ( ! v )
-				{
-				a->Error("cannot evaluate attribute expression");
-				continue;
-				}
-
-			if ( ! IsIntegral(v->Type()->Tag()) )
-				{
-				a->Error("expression is not of integral type");
-				continue;
-				}
-
-			priority = v->InternalInt();
+			a->Error("illegal attribute for function body");
+			continue;
 			}
+
+		Val* v = a->AttrExpr()->Eval(0);
+		if ( ! v )
+			{
+			a->Error("cannot evaluate attribute expression");
+			continue;
+			}
+
+		if ( ! IsIntegral(v->Type()->Tag()) )
+			{
+			a->Error("expression is not of integral type");
+			continue;
+			}
+
+		priority = v->InternalInt();
 		}
-		return priority;
+
+	return priority;
 	}
 
 void end_func(Stmt* body)
 	{
-	std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(body);
-	
-	pop_scope();
+	std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(pop_scope(), body);
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
@@ -503,7 +500,7 @@ void end_func(Stmt* body)
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
-		
+
 		ingredients->id->SetVal(new Val(f));
 		ingredients->id->SetConst();
 		}
@@ -511,21 +508,19 @@ void end_func(Stmt* body)
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
 	}
 
-// Gathers all of the information from the current scope needed to build a
-// function and collects it into a function_ingredients struct.
-std::unique_ptr<function_ingredients> gather_function_ingredients(Stmt* body)
+std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body)
 	{
-	std::unique_ptr<function_ingredients> ingredients = build_unique<function_ingredients>();
+	auto ingredients = build_unique<function_ingredients>();
 
-	ingredients->frame_size = current_scope()->Length();
-	ingredients->inits = current_scope()->GetInits();
+	ingredients->frame_size = scope->Length();
+	ingredients->inits = scope->GetInits();
 
-	ingredients->scope = current_scope();
-	ingredients->id = ingredients->scope->ScopeID();
+	ingredients->scope = scope;
+	ingredients->id = scope->ScopeID();
 
-	auto attrs = ingredients->scope->Attrs();
+	auto attrs = scope->Attrs();
 
-	ingredients->priority = get_func_priotity(attrs);
+	ingredients->priority = (attrs ? get_func_priotity(*attrs) : 0);
 	ingredients->body = body;
 
 	return ingredients;

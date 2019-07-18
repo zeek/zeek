@@ -4,7 +4,7 @@
 #define func_h
 
 #include <utility>
-#include <memory> // std::shared_ptr, std::unique_ptr
+#include <memory>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -74,7 +74,8 @@ public:
 
 protected:
 	Func();
-	// Copies this functions state into other.
+
+	// Copies this function's state into other.
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
@@ -96,13 +97,12 @@ public:
 	~BroFunc() override;
 
 	int IsPure() const override;
-
 	Val* Call(val_list* args, Frame* parent) const override;
 
 	/**
-	 * Adds adds a closure to the function. Closures are cloned and 
-	 * future calls to BroFunc will not modify *f*
-	 * 
+	 * Adds adds a closure to the function. Closures are cloned and
+	 * future calls to BroFunc methods will not modify *f*.
+	 *
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
 	 */
@@ -110,25 +110,20 @@ public:
 
 	/**
 	 * Replaces the current closure with one built from *data*
-	 * 
+	 *
 	 * @param data a serialized closure
 	 */
 	bool UpdateClosure(const broker::vector& data);
 
-	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
-			int priority) override;
-
-	/**
-	 * Clones this function along with its closures.
-	 */
-	Func* DoClone() override;
-
 	/**
 	 * Serializes this function's closure.
-	 * 
+	 *
 	 * @return a serialized version of the function's closure.
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
+
+	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
+			int priority) override;
 
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(std::shared_ptr<id_list> ids)
@@ -140,16 +135,21 @@ protected:
 	BroFunc() : Func(BRO_FUNC)	{}
 	Stmt* AddInits(Stmt* body, id_list* inits);
 
-	int frame_size;
+	/**
+	 * Clones this function along with its closures.
+	 */
+	Func* DoClone() override;
 
-private:
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
 	 * captured in the function's closure.
-	 * 
+	 *
 	 * @param f the frame to be cloned.
 	 */
 	void SetClosureFrame(Frame* f);
+
+private:
+	int frame_size;
 
 	// List of the outer IDs used in the function.
 	std::shared_ptr<id_list> outer_ids = nullptr;
@@ -190,16 +190,15 @@ struct CallInfo {
 	const val_list* args;
 };
 
-// Struct that collects the arguments for a Func.
-// Used for BroFuncs with closures.
-struct function_ingredients
-	{
-		ID* id;
-		Stmt* body;
-		id_list* inits;
-		int frame_size;
-		int priority;
-		Scope* scope;
+// Struct that collects all the specifics defining a Func. Used for BroFuncs
+// with closures.
+struct function_ingredients {
+	ID* id;
+	Stmt* body;
+	id_list* inits;
+	int frame_size;
+	int priority;
+	Scope* scope;
 	};
 
 extern vector<CallInfo> call_stack;

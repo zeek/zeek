@@ -3,7 +3,8 @@
 #include "zeek-config.h"
 
 #include <string>
-#include <algorithm> // std::any_of
+#include <algorithm>
+#include <broker/error.hh>
 
 #include "Frame.h"
 #include "Stmt.h"
@@ -11,7 +12,6 @@
 #include "Trigger.h"
 
 #include "broker/Data.h"
-#include <broker/error.hh>
 
 vector<Frame*> g_frame_stack;
 
@@ -50,28 +50,27 @@ Frame::Frame(const Frame* other, bool view)
 	break_before_next_stmt = false;
         break_on_return = false;
 	delayed = false;
- 
+
 	if ( is_view )
-	  {
-	  frame = other->frame;
-	  }
+		frame = other->frame;
 	else
-	  {
-	  if (trigger)
-	    Ref(trigger);
-	  for ( int i = 0; i < size; ++i )
-	    frame[i] = other->frame[i] ? other->frame[i]->Clone() : 0;
-	  }
+		{
+		if  ( trigger )
+			Ref(trigger);
+
+		for ( int i = 0; i < size; ++i )
+			frame[i] = other->frame[i] ? other->frame[i]->Clone() : 0;
+		}
 	}
 
 Frame::~Frame()
 	{
 	// Deleting a Frame that is a view is a no-op.
 	if ( ! is_view )
-	  {
-	  Unref(trigger);
-	  Release();
-	  }
+		{
+		Unref(trigger);
+		Release();
+		}
 	}
 
 void Frame::SetElement(int n, Val* v)
@@ -85,19 +84,19 @@ void Frame::SetElement(const ID* id, Val* v)
 	SetElement(id->Offset(), v);
 	}
 
-
 Val* Frame::GetElement(const ID* id) const
 	{
-	if (HasOuterIDs())
+	if ( HasOuterIDs() )
 		{
 		auto where = offset_map.find(std::string(id->Name()));
-		if (where != offset_map.end())
-			return frame[ where->second ];
+		if ( where != offset_map.end() )
+			return frame[where->second];
 		}
+
 	return frame[id->Offset()];
 	}
 
-void Frame::AddElement(ID* id, Val* v)
+void Frame::AddElement(const ID* id, Val* v)
 	{
 	this->SetElement(id, v);
 	}
@@ -152,7 +151,7 @@ Frame* Frame::Clone()
 	{
 	Frame* f = new Frame(size, function, func_args);
 	f->Clear();
-	
+
 	for ( int i = 0; i < size; ++i )
 		f->frame[i] = frame[i] ? frame[i]->Clone() : 0;
 
@@ -341,15 +340,14 @@ bool Frame::CaptureContains(const ID* i) const
 	return where != offset_map.end();
 	}
 
-ClosureFrame::ClosureFrame(Frame* closure, Frame* not_closure,
+ClosureFrame::ClosureFrame(Frame* arg_closure, Frame* not_closure,
 	std::shared_ptr<id_list> outer_ids) : Frame(not_closure, true)
 	{
-	assert(closure);
-	assert(outer_ids);
+	assert(arg_closure);
 
-	this->closure = closure;
+	closure = arg_closure;
 	body = not_closure;
-	
+
 	SetOuterIDs(outer_ids);
 	}
 
@@ -358,6 +356,9 @@ ClosureFrame::~ClosureFrame()
 	// No need to Unref the closure. BroFunc handles this.
 	// Unref body though. When the ClosureFrame is done, so is
 	// the frame that is is wrapped around.
+
+	// TODO(robin): It would be good handle body & closure the same in
+	// terms needing to ref/unref; it's easy to get confused otherwise.
 	Unref(body);
 	}
 
@@ -368,18 +369,20 @@ Val* ClosureFrame::GetElement(const ID* id) const
 		int my_offset = offset_map.at(std::string(id->Name()));
 		return ClosureFrame::GatherFromClosure(this, id, my_offset);
 		}
-	return this->NthElement(id->Offset());
+
+	return NthElement(id->Offset());
 	}
 
 void ClosureFrame::SetElement(const ID* id, Val* v)
 	{
 	if ( CaptureContains(id) )
-	  {
-	  int my_offset = offset_map.at(std::string(id->Name()));
-	  ClosureFrame::SetInClosure(this, id, v, my_offset);
-	  }
-	else
-	  this->Frame::SetElement(id->Offset(), v);
+		{
+		int my_offset = offset_map.at(std::string(id->Name()));
+		ClosureFrame::SetInClosure(this, id, v, my_offset);
+		return;
+		}
+
+	Frame::SetElement(id->Offset(), v);
 	}
 
 Frame* ClosureFrame::Clone()
@@ -397,18 +400,18 @@ Frame* ClosureFrame::SelectiveClone(id_list* choose)
 	id_list us;
 	// and
 	id_list them;
-	
-	for (const auto& we : *choose)
-	  {
-	    if ( CaptureContains(we) )
-	      us.append(we);
-	    else
-	      them.append(we);
-	  }
 
-	Frame* me = this->closure->SelectiveClone(&us);
+	for (const auto& we : *choose)
+		{
+		if ( CaptureContains(we) )
+			us.append(we);
+		else
+			them.append(we);
+		}
+
+	Frame* me = closure->SelectiveClone(&us);
 	// and
-	Frame* you = this->body->SelectiveClone(&them);
+	Frame* you = body->SelectiveClone(&them);
 
 	ClosureFrame* who = new ClosureFrame(me, you, nullptr);
 	who->offset_map = offset_map;
@@ -422,17 +425,22 @@ broker::expected<broker::data> ClosureFrame::Serialize() const
 	rval.emplace_back(std::string("ClosureFrame"));
 
 	auto om = SerializeOffsetMap();
-	if ( ! om ) return broker::ec::invalid_data;
+	if ( ! om )
+		return broker::ec::invalid_data;
+
 	rval.emplace_back( *om );
 
 	auto cl = closure->Serialize();
-	if ( ! cl ) broker::ec::invalid_data;
+	if ( ! cl )
+		return broker::ec::invalid_data;
+
 	rval.emplace_back( *cl );
 
 	auto bo = body->Serialize();
-	if ( ! bo ) broker::ec::invalid_data;
-	rval.emplace_back( *bo );
+	if ( ! bo )
+		return broker::ec::invalid_data;
 
+	rval.emplace_back(*bo);
 	return {std::move(rval)};
 	}
 
@@ -440,8 +448,8 @@ broker::expected<broker::data> Frame::SerializeOffsetMap() const
 	{
 	broker::vector rval;
 
-	std::for_each(offset_map.begin(), offset_map.end(), 
-		[&rval] (const std::pair<std::string, int>& e) 
+	std::for_each(offset_map.begin(), offset_map.end(),
+		[&rval] (const std::pair<std::string, int>& e)
 			{ rval.emplace_back(e.first); rval.emplace_back(e.second);});
 
 	return {std::move(rval)};
@@ -449,34 +457,32 @@ broker::expected<broker::data> Frame::SerializeOffsetMap() const
 
 bool ClosureFrame::UnserializeIntoOffsetMap(const broker::vector& data, std::unordered_map<std::string, int>& target)
 	{
-	#define GET_OR_RETURN(type, name, index)							\
-		if (auto __##name##__ = broker::get_if<type>(data[index]))		\
-			name = *__##name##__;										\
-		else															\
-			return false;												\
-
 	assert(target.size() == 0);
 
 	std::unordered_map<std::string, int> rval;
 
 	for (broker::vector::size_type i = 0; i < data.size(); i += 2)
 		{
-		std::string key;
-		int offset;
-		GET_OR_RETURN(std::string, key, i)
-		GET_OR_RETURN(broker::integer, offset, i+1)
-		target.insert( {std::move(key), std::move(offset)} );
+		auto key = broker::get_if<std::string>(data[i]);
+		if ( ! key )
+			return false;
+
+		auto offset = broker::get_if<broker::integer>(data[i+1]);
+		if ( ! offset )
+			return false;
+
+		target.insert( {std::move(*key), std::move(*offset)} );
 		}
 
 	return true;
-	#undef GET_OR_RETURN
 	}
 
-// Each ClosureFrame knows all of the outer IDs that are used inside of it. This is known at
-// parse time. These leverage that. If frame_1 encloses frame_2 then the location of a lookup
-// for an outer id in frame_2 can be determined by checking if that id is also an outer id in
-// frame_2. If it is not, then frame_2 owns the id and the lookup is done there, otherwise, 
-// go deeper.
+// Each ClosureFrame knows all of the outer IDs that are used inside of it.
+// This is known at parse time. These leverage that. If frame_1 encloses
+// frame_2 then the location of a lookup for an outer id in frame_2 can be
+// determined by checking if that id is also an outer id in frame_2. If it is
+// not, then frame_2 owns the id and the lookup is done there, otherwise, go
+// deeper.
 Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id, const int offset)
 	{
 	const ClosureFrame* conductor = dynamic_cast<const ClosureFrame*>(start);
@@ -485,13 +491,13 @@ Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id, const int
 	// was born. We differ to its maping as it is older and wiser. Otherwise, we use our own.
 	if ( ! conductor )
 		{
-		if (start->HasOuterIDs())
+		if ( start->HasOuterIDs() )
 			return start->GetElement(id);
 
 		return start->NthElement(offset);
 		}
 
-	if (conductor->CaptureContains(id))
+	if ( conductor->CaptureContains(id) )
 		return ClosureFrame::GatherFromClosure(conductor->closure, id, offset);
 
 	return conductor->NthElement(offset);
@@ -502,11 +508,11 @@ void ClosureFrame::SetInClosure(Frame* start, const ID* id, Val* val, const int 
 	ClosureFrame* conductor = dynamic_cast<ClosureFrame*>(start);
 
 	if ( ! conductor )
-	  start->SetElement(offset, val);
+		start->SetElement(offset, val);
 
-	else if (conductor->CaptureContains(id))
-	  ClosureFrame::SetInClosure(conductor->closure, id, val, offset);
+	else if ( conductor->CaptureContains(id) )
+		ClosureFrame::SetInClosure(conductor->closure, id, val, offset);
 
 	else
-	  conductor->Frame::SetElement(offset, val);
+		conductor->Frame::SetElement(offset, val);
 	}

@@ -2639,7 +2639,7 @@ Val* IndexExpr::Eval(Frame* f) const
 			}
 		}
 	else
-	  result = Fold(v1, v2);
+		result = Fold(v1, v2);
 
 	Unref(v1);
 	Unref(v2);
@@ -2694,7 +2694,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-	  v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
 		break;
 
 	case TYPE_STRING:
@@ -3865,7 +3865,6 @@ FlattenExpr::FlattenExpr(Expr* arg_op)
 	SetType(tl);
 	}
 
-
 Val* FlattenExpr::Fold(Val* v) const
 	{
 	RecordVal* rv = v->AsRecordVal();
@@ -4317,11 +4316,11 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ing,
-		       std::shared_ptr<id_list> outer_ids) : Expr(EXPR_LAMBDA)
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
+		       std::shared_ptr<id_list> arg_outer_ids) : Expr(EXPR_LAMBDA)
 	{
-	ingredients = std::move(ing);
-	this->outer_ids = std::move(outer_ids);
+	ingredients = std::move(arg_ing);
+	outer_ids = std::move(arg_outer_ids);
 
 	SetType(ingredients->id->Type()->Ref());
 
@@ -4334,7 +4333,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ing,
 		ingredients->frame_size,
 		ingredients->priority);
 
-	dummy_func->SetOuterIDs(this->outer_ids);
+	dummy_func->SetOuterIDs(outer_ids);
 
 	// Get the body's "string" representation.
 	ODesc d;
@@ -4342,23 +4341,23 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> ing,
 	const char* desc = d.Description();
 
 	// Install that in the global_scope
+	//
+	// TODO(robin): Let's canonify these names a bit, otherwise somebody
+	// iterating through the namespace might be up surprised ... How
+	// about calling them "lambda_<short_hash_of(desc)>"?
 	ID* id = install_ID(desc, current_module.c_str(), true, false);
 
 	// Update lamb's name
 	dummy_func->SetName(desc);
 
-	// When the id goes away it will unref v.
 	Val* v = new Val(dummy_func);
-
-	// id will unref v when its done.
-	id->SetVal(v);
+	id->SetVal(v); // id will unref v when its done.
 	id->SetType(ingredients->id->Type()->Ref());
 	id->SetConst();
 	}
 
 Val* LambdaExpr::Eval(Frame* f) const
 	{
-
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,
@@ -4368,6 +4367,8 @@ Val* LambdaExpr::Eval(Frame* f) const
 
 	lamb->AddClosure(outer_ids, f);
 
+	// TODO(robin): Similar to above, plus: Could we cache this name?
+	// Isn't the same on every on Eval()?
 	ODesc d;
 	lamb->Describe(&d);
 	const char* desc = d.Description();
@@ -4375,7 +4376,7 @@ Val* LambdaExpr::Eval(Frame* f) const
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
 	lamb->SetName(desc);
-	
+
 	return new Val(lamb);
 	}
 
@@ -4390,7 +4391,7 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreExpr(this);
 	HANDLE_TC_EXPR_PRE(tc);
 
-        tc = ingredients->body->Traverse(cb);
+	tc = ingredients->body->Traverse(cb);
 	HANDLE_TC_EXPR_POST(tc);
 
 	tc = cb->PostExpr(this);

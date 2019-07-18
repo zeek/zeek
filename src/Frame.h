@@ -3,11 +3,11 @@
 #ifndef frame_h
 #define frame_h
 
-#include <vector>
-#include <unordered_map>
+#include <memory>
 #include <string>
-#include <memory> // std::shared_ptr
-#include <utility> // std::pair
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -19,21 +19,26 @@ class Trigger;
 class CallExpr;
 class Val;
 
+// TODO(robin): As discussed, I think this would benefit from merging the two closes.
+// I don't think having that one derived class buys us much in the end in terms
+// of performance, and it makes the code quite a bit more complex.
+
 class Frame : public BroObj {
-friend class BroFunc;
 public:
 	Frame(int size, const BroFunc* func, const val_list *fn_args);
-	// Constructs a copy or view of other. If a view is constructed the
-	// destructor will not change other's state on deletion.
+
+	// Constructs a copy, or view, of another frame. If a view is
+	// constructed the destructor will not change other's state on
+	// deletion.
 	Frame(const Frame* other, bool is_view = false);
+
 	~Frame() override;
 
-	Val* NthElement(int n) const { return frame[n]; }
+	Val* NthElement(int n) const	{ return frame[n]; }
 	void SetElement(int n, Val* v);
 	virtual void SetElement(const ID* id, Val* v);
-
 	virtual Val* GetElement(const ID* id) const;
-	void AddElement(ID* id, Val* v);
+	void AddElement(const ID* id, Val* v);
 
 	void Reset(int startIdx);
 	void Release();
@@ -43,6 +48,9 @@ public:
 	// For which function is this stack frame.
 	const BroFunc* GetFunction() const	{ return function; }
 	const val_list* GetFuncArgs() const	{ return func_args; }
+
+ 	// Changes the function associated with the frame.
+	void SetFunction(BroFunc* func)	{ function = func; }
 
 	// Next statement to be executed in the context of this frame.
 	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
@@ -83,23 +91,25 @@ public:
 	/**
 	 * Instantiates a Frame from a serialized one.
 	 *
-	 * @return a pair. the first item is the status of the serialization,
-	 * the second is the Unserialized frame with reference count +1
+	 * @return a pair in which the first item is the status of the serialization;
+	 * and the second is the unserialized frame with reference count +1, or
+	 * null if the serialization wasn't succesful.
 	 */
 	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
 
 	/**
-	 * Installs *outer_ids* in this Frame's offset_map. 
-	 * 
-	 * Note: This needs to be done before serializing a Frame to guarantee that 
+	 * Installs *outer_ids* into the set of IDs the frame knows offsets for.
+	 *
+	 * Note: This needs to be done before serializing a Frame to guarantee that
 	 * the unserialized frame will perform lookups properly.
-	 * 
+	 *
 	 * @param outer_ids the ids that this frame holds
 	 */
 	void SetOuterIDs(std::shared_ptr<id_list> outer_ids);
 
 	/**
-	 * @return does this frame have an initialized offset_map?
+	 * @return does this frame have any IDs installed to know their
+	 * offsets?
 	 */
 	bool HasOuterIDs() const { return offset_map.size(); }
 
@@ -129,7 +139,7 @@ protected:
 
 	/**
 	 * Serializes this Frame's offset map.
-	 * 
+	 *
 	 * @return a serialized version of the offset map.
 	 */
 	broker::expected<broker::data> SerializeOffsetMap() const;
@@ -148,11 +158,11 @@ protected:
 	const CallExpr* call;
 	bool delayed;
 
-	/** 
+	/**
 	 * Maps ID names to the offsets they had when passed into the frame.
-	 * 
+	 *
 	 * A frame that has been serialized maintains its own map between IDs and
-	 * their offsets. This is because a serialized frame is not guaranteed to 
+	 * their offsets. This is because a serialized frame is not guaranteed to
 	 * be unserialized somewhere where the offsets for the IDs that it contains
 	 * are the same.
 	 */
@@ -160,8 +170,8 @@ protected:
 
 private:
 
-	/** 
-	 * Rather or not this frame is a view of another one. Frames that
+	/**
+	 * Wether or not this frame is a view of another one. Frames that
 	 * are views do not delete their underlying frame on deletion.
 	 */
 	bool is_view;
@@ -169,16 +179,17 @@ private:
 
 
 /**
- * Class that allows for actions in both a regular frame and a closure frame
- * according to a list of outer IDs captured in the closure passed into the
- * constructor. 
+ * Frame variant that allows for performing operation on both a regular frame
+ * and an additional closure frame according to a list of outer IDs captured
+ * in the closure passed into the constructor.
  */
 class ClosureFrame : public Frame {
 public:
 	/**
-	 * Constructs a closure Frame from a closure and body frame, and a list of ids
-	 * that this frame should refer to its closure to for values. For non closure
-	 * related operations the ClosureFrame is just a view of the body frame.
+	 * Constructs a closure frame from a closure and body frame, and a
+	 * list of ids for which this frame should refer to its closure for
+	 * values. For other, non-closure ID the ClosureFrame is just a view
+	 * of the body frame. 
 	 *
 	 * @param closure the frame that holds IDs in *outer_ids*.
 	 * @param body the frame to refer to for all non-closure actions.
@@ -199,15 +210,14 @@ public:
 		(const broker::vector& data, std::unordered_map<std::string, int>& target);
 
 private:
-
 	/**
-	 * Finds the Value corresponding to *id* in the closure of *start*.
-	 * 
+	 * Finds the value corresponding to *id* in the closure of *start*.
+	 *
 	 * @param start the frame to begin the search from
 	 * @param id the ID whose corresponding value is to be collected.
 	 * @param offset the offset at which to look for id's value when its
 	 * frame has been found.
-	 * @return the Value corresponding to *id*.
+	 * @return the value corresponding to *id*.
 	 */
 	static Val* GatherFromClosure(const Frame* start, const ID* id, const int offset);
 
@@ -215,7 +225,7 @@ private:
 	 * Sets the Value corresponding to *id* in the closure of *start* to *val*
 	 *
 	 * @param start the frame to begin the search from
-	 * @param val the Value to associate with *id* in the closure.
+	 * @param val the value to associate with *id* in the closure.
 	 * @param id the ID whose corresponding value is to be updated.
 	 * @param offset the offset at which to look for id's value when its
 	 * frame has been found.

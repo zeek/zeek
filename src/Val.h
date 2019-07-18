@@ -880,8 +880,8 @@ public:
 	void InitTimer(double delay);
 	void DoExpire(double t);
 
-        // If default attribute is not a function, or the functon has
-        // already been initialized this does nothing. Otherwise, evaluates
+        // If the &default attribute is not a function, or the functon has
+        // already been initialized, this does nothing. Otherwise, evaluates
         // the function in the frame allowing it to capture its closure.
         void InitDefaultFunc(Frame* f);
 

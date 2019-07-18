@@ -28,6 +28,7 @@
 #include <signal.h>
 
 #include <algorithm>
+
 #include <broker/error.hh>
 
 #include "Base64.h"
@@ -126,7 +127,6 @@ void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
 	{
 	Internal("Func::AddBody called");
 	}
-
 
 Func* Func::DoClone()
 	{
@@ -267,7 +267,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		int arg_frame_size, int priority) : Func(BRO_FUNC)
+		 int arg_frame_size, int priority) : Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
 	type = arg_id->Type()->Ref();
@@ -284,7 +284,7 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 
 BroFunc::~BroFunc()
 	{
-	std::for_each(bodies.begin(), bodies.end(), 
+	std::for_each(bodies.begin(), bodies.end(),
 		[](Body& b) { Unref(b.stmts); });
 	Unref(closure);
 	}
@@ -327,10 +327,9 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		}
 
 	Frame* f = new Frame(frame_size, this, args);
+
 	if ( closure )
-		{
-		f = new ClosureFrame(this->closure, f, this->outer_ids);
-		}
+		f = new ClosureFrame(closure, f, outer_ids);
 
 	// Hand down any trigger.
 	if ( parent )
@@ -389,6 +388,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 				{
 				Unref(f);
+				// TODO(robin): Shouldn't "result" have been left unset in this case?
 				Unref(result);
 				throw;
 				}
@@ -485,15 +485,15 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 
 void BroFunc::AddClosure(std::shared_ptr<id_list> ids, Frame* f)
 	{
-	this->SetOuterIDs(ids);
-	this->SetClosureFrame(f);
+	SetOuterIDs(ids);
+	SetClosureFrame(f);
 	}
 
 void BroFunc::SetClosureFrame(Frame* f)
 	{
 	if ( closure )
-	  reporter->InternalError
-	    ("Tried to override closure for BroFunc %s.", this->Name());
+		reporter->InternalError("Tried to override closure for BroFunc %s.",
+					Name());
 
 	closure = f ? f->SelectiveClone( outer_ids.get() ) : nullptr;
 	}
@@ -501,18 +501,21 @@ void BroFunc::SetClosureFrame(Frame* f)
 bool BroFunc::UpdateClosure(const broker::vector& data)
 	{
 	auto result = Frame::Unserialize(data);
-	if ( ! result.first ) return false;
+	if ( ! result.first )
+		return false;
 
 	Frame* new_closure = result.second;
+	if ( new_closure )
+		new_closure->SetFunction(this);
 
-	if (new_closure)
-		new_closure->function = this;
+	if ( closure )
+		Unref(closure);
 
-	if (closure) Unref(closure);
 	closure = new_closure;
 
 	return true;
 	}
+
 
 Func* BroFunc::DoClone()
 	{
@@ -523,7 +526,6 @@ Func* BroFunc::DoClone()
 	CopyStateInto(other);
 
 	other->frame_size = frame_size;
-
 	other->closure = closure ? closure->Clone() : nullptr;
 	other->outer_ids = outer_ids;
 
@@ -532,16 +534,15 @@ Func* BroFunc::DoClone()
 
 broker::expected<broker::data> BroFunc::SerializeClosure() const
 	{
-	if (! closure) 
-		{
+	if ( ! closure )
 		return broker::vector({"Frame"});
-		}
 
 	closure->SetOuterIDs(outer_ids);
 
 	auto e = closure->Serialize();
+	if ( ! e )
+		return broker::ec::invalid_data;
 
-	if ( !e ) return broker::ec::invalid_data;
 	return *e;
 	}
 

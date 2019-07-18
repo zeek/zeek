@@ -115,7 +115,8 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-		        return new Val(this->AsFunc()->DoClone());
+		        return new Val(AsFunc()->DoClone());
+
 		if ( type->Tag() == TYPE_FILE )
 			{
 			// I think we can just ref the file here - it is unclear what else
@@ -1734,7 +1735,7 @@ Val* TableVal::Default(Val* index)
 			}
 
 		else
-		        def_val = def_attr->AttrExpr()->Eval(0);
+			def_val = def_attr->AttrExpr()->Eval(0);
 		}
 
 	if ( ! def_val )
@@ -2144,23 +2145,23 @@ int TableVal::CheckAndAssign(Val* index, Val* new_val)
 	}
 
 void TableVal::InitDefaultFunc(Frame* f)
-        {
+	{
 	// Value aready initialized.
 	if ( def_val )
-	  return;
+		return;
 
 	Attr* def_attr = FindAttr(ATTR_DEFAULT);
 	if ( ! def_attr )
-	  return;
+		return;
 
 	BroType* ytype = Type()->YieldType();
 	BroType* dtype = def_attr->AttrExpr()->Type();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-		     ! same_type(dtype, ytype) &&
-		     record_promotion_compatible(dtype->AsRecordType(),
-						 ytype->AsRecordType()) )
-	  return; // TableVal::Default will handle this.
+	     ! same_type(dtype, ytype) &&
+	     record_promotion_compatible(dtype->AsRecordType(),
+					 ytype->AsRecordType()) )
+		return; // TableVal::Default will handle this.
 
 	def_val = def_attr->AttrExpr()->Eval(f);
 	}

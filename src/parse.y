@@ -1214,7 +1214,7 @@ func_body:
 
 anonymous_function:
 		TOK_FUNCTION begin_func
-		
+
 		'{'
 			{
 			saved_in_init.push_back(in_init);
@@ -1222,7 +1222,6 @@ anonymous_function:
 			}
 
 		stmt_list
-
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
@@ -1230,8 +1229,11 @@ anonymous_function:
 
 		'}'
 			{
+                        // TODO(robin): Can move the following into end_func()?
+			// If so, we could reuse the "func_body" rule here and avoid the code duplication.
+
 			// Gather the ingredients for a BroFunc from the current scope
-			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients($5);
+			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(current_scope(), $5);
 			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));

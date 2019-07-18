@@ -1042,20 +1042,20 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			vl.append(val);
 		else
 			{
-			const char* expected_name = type_name(expected_type->Tag());
+			auto expected_name = type_name(expected_type->Tag());
 
 			reporter->Warning("failed to convert remote event '%s' arg #%d,"
 						" got %s, expected %s",
 						name.data(), i, got_type,
 						expected_name);
 
-			// If we got a vector and expected a function this is possibly because of a mismatch
-			// between anonymous-function bodies.
-			if ( (strcmp( expected_name, "func") == 0) && (strcmp("vector", got_type) ==  0) )
-				{
+			// If we got a vector and expected a function this is
+			// possibly because of a mismatch between
+			// anonymous-function bodies.
+			if ( strcmp(expected_name, "func") == 0 && strcmp("vector", got_type) == 0 )
 				reporter->Warning("when sending functions the receiver must have access to a"
-				" version of that function.\nFor anonymous functions, that function must have the same body.");
-				}
+						  " version of that function.\nFor anonymous functions, that function must have the same body.");
+
 			break;
 			}
 		}

@@ -29,7 +29,7 @@ public:
 	explicit NFA_State(CCL* ccl);
 	~NFA_State() override;
 
-	void AddXtion(NFA_State* next_state)	{ xtions.append(next_state); }
+	void AddXtion(NFA_State* next_state)	{ xtions.push_back(next_state); }
 	NFA_state_list* Transitions()		{ return &xtions; }
 	void AddXtionsTo(NFA_state_list* ns);
 

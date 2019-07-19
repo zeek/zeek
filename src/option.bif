@@ -17,11 +17,11 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 			{
 			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
 			val_list vl(2 + add_loc);
-			vl.append(name->Ref());
-			vl.append(val);
+			vl.push_back(name->Ref());
+			vl.push_back(val);
 
 			if ( add_loc )
-				vl.append(location->Ref());
+				vl.push_back(location->Ref());
 
 			val = handler_function->Call(&vl); // consumed by next call.
 			if ( ! val )

@@ -164,7 +164,7 @@ public:
 	int MemoryAllocation() const
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
 
-	void insert(const T& a)	// add at head of list
+	void push_front(const T& a)
 		{
 		if ( num_entries == max_entries )
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
@@ -175,21 +175,31 @@ public:
 		++num_entries;
 		entries[0] = a;
 		}
+	
+	void push_back(const T& a)
+		{
+		if ( num_entries == max_entries )
+			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
 
-	void push_back(const T& a)	{ append(a); }
-	void push_front(const T& a)	{ insert(a); }
+		entries[num_entries++] = a;
+		}
+	
 	void pop_front()	{ remove_nth(0); }
 	void pop_back()	{ remove_nth(num_entries-1); }
 
 	T& front()	 { return entries[0]; }
 	T& back()	 { return entries[num_entries-1]; }
 
+	ZEEK_DEPRECATED("Remove in v3.1: Use push_front instead")
+	void insert(const T& a)	// add at head of list
+		{
+		push_front(a);
+		}
+
+	ZEEK_DEPRECATED("Remove in v3.1: Use push_back instead")
 	void append(const T& a)	// add to end of list
 		{
-		if ( num_entries == max_entries )
-			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
-
-		entries[num_entries++] = a;
+		push_back(a);
 		}
 
 	bool remove(const T& a)	// delete entry from list

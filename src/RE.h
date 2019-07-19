@@ -64,7 +64,7 @@ public:
 	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict.Insert(txt, ccl); }
 	int InsertCCL(CCL* ccl)
 		{
-		ccl_list.append(ccl);
+		ccl_list.push_back(ccl);
 		return ccl_list.length() - 1;
 		}
 	CCL* LookupCCL(const char* txt)	{ return ccl_dict.Lookup(txt); }

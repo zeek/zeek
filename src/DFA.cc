@@ -402,7 +402,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 	dfa_state_cache = new DFA_State_Cache();
 
 	NFA_state_list* ns = new NFA_state_list;
-	ns->append(n->FirstState());
+	ns->push_back(n->FirstState());
 
 	if ( ns->length() > 0 )
 		{

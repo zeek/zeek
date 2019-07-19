@@ -40,9 +40,9 @@ public:
 
 	bool Active()	{ return active; }
 	void SetActiveStatus(bool new_status)	{ active = new_status; }
-	void AddAction(RuleAction* act)		{ actions.append(act); }
-	void AddCondition(RuleCondition* cond)	{ conditions.append(cond); }
-	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.append(hdr_test);	}
+	void AddAction(RuleAction* act)		{ actions.push_back(act); }
+	void AddCondition(RuleCondition* cond)	{ conditions.push_back(cond); }
+	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.push_back(hdr_test);	}
 	void AddPattern(const char* str, Rule::PatternType type,
 			uint32 offset = 0, uint32 depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);

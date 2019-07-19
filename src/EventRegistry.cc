@@ -25,7 +25,7 @@ EventRegistry::string_list* EventRegistry::Match(RE_Matcher* pattern)
 	while ( (v = handlers.NextEntry(k, c)) )
 		{
 		if ( v->LocalHandler() && pattern->MatchExactly(v->Name()) )
-			names->append(v->Name());
+			names->push_back(v->Name());
 
 		delete k;
 		}
@@ -44,7 +44,7 @@ EventRegistry::string_list* EventRegistry::UnusedHandlers()
 	while ( (v = handlers.NextEntry(k, c)) )
 		{
 		if ( v->LocalHandler() && ! v->Used() )
-			names->append(v->Name());
+			names->push_back(v->Name());
 
 		delete k;
 		}
@@ -63,7 +63,7 @@ EventRegistry::string_list* EventRegistry::UsedHandlers()
 	while ( (v = handlers.NextEntry(k, c)) )
 		{
 		if ( v->LocalHandler() && v->Used() )
-			names->append(v->Name());
+			names->push_back(v->Name());
 
 		delete k;
 		}
@@ -81,7 +81,7 @@ EventRegistry::string_list* EventRegistry::AllHandlers()
 	EventHandler* v;
 	while ( (v = handlers.NextEntry(k, c)) )
 		{
-		names->append(v->Name());
+		names->push_back(v->Name());
 		delete k;
 		}
 

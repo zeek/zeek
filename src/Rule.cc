@@ -76,9 +76,9 @@ void Rule::AddPattern(const char* str, Rule::PatternType type,
 	p->id = ++pattern_counter;
 	p->offset = offset;
 	p->depth = depth;
-	patterns.append(p);
+	patterns.push_back(p);
 
-	rule_table.append(this);
+	rule_table.push_back(this);
 	}
 
 void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
@@ -89,7 +89,7 @@ void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
 	p->opposite_dir = opposite_direction;
 	p->negate = negate;
 
-	preconds.append(p);
+	preconds.push_back(p);
 	}
 
 void Rule::SortHdrTests()

@@ -129,6 +129,7 @@ html_last_updated_fmt = '%B %d, %Y'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
+    'analytics_id': 'UA-144186885-1',
     'collapse_navigation': False,
     'display_version': True,
 }

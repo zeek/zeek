@@ -97,7 +97,6 @@ public:
 	// TODO: get rid of this ?
 	Scope* GetScope() const;
 
-<<<<<<< HEAD
 	// TODO: get rid of this ? mark deprecated
 	FuncType* FType() const
 		{
@@ -113,8 +112,6 @@ public:
 	static Func* GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
-=======
->>>>>>> WIP: re-organize function overload structures
 	// TODO: could we change hashing to use the function name ?
 	uint32 GetUniqueFuncID() const
 		{ return unique_id; }
@@ -142,16 +139,13 @@ protected:
 	static vector<Func*> unique_ids;
 	uint32 unique_id;
 	std::vector<FuncOverload*> overloads;
-
 	static std::vector<Func*> unique_ids;
 };
 
 class BroFunc : public FuncImpl {
 public:
-
-	BroFunc(Func* f, BroType* type, Stmt* body, id_list* inits, int frame_size,
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size,
-	        int priority, Scope* scope);
+	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority, Scope* scope);
+	BroFunc(Func* f, BroType* type, Stmt* body, id_list* inits, int frame_size, int priority, Scope* scope);     
 	~BroFunc() override;
 
 	int IsPure() const override;

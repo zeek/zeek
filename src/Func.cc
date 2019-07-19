@@ -172,8 +172,12 @@ Func::~Func()
 	Unref(type);
 	}
 
-Val* Func::Call(val_list* args, Frame* parent) const
+Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 	{
+	// TODO: may need to look at all internal Call usages to judge if they're
+	// fine to leave be without any explicit overload idx (guessing they should
+	// be since implicitly they were functions defined at a time when
+	// overloading did not exist, so they take the |overloads| == 1 shortcut.
 	auto& overloads = type->Overloads();
 
 	if ( overloads.size() == 1 )
@@ -182,9 +186,31 @@ Val* Func::Call(val_list* args, Frame* parent) const
 		// because we can't overload such va_args functions.
 		return overloads[0]->impl->Call(args, parent);
 
-	for ( auto i = 0u; i < overloads.size(); ++i )
+	if ( overload_idx >= 0 )
+		// TODO: we actually may not need this check if we for sure know that
+		// all function call expressions will have resolved into a particular
+		// overload.  I think that will generally be the case because, while
+		// we may temporarily pass around an unresolved function overload
+		// via an `any`, when we go to actually call it, we need to have
+		// resolved it into an actual function type (e.g. by assigning it
+		// to something that has a concrete function type).
+		//
+		// A problem at moment is that we do allow assigning an `any` even to
+		// a variable whose type does not match any function overload.
+		// We'll catch this at run-time when we go to call and don't find a
+		// matching overload, but maybe can do better?  Options would be:
+		//
+		// (1) Catch it at time of call
+		// (2) Catch it at time of assignment
+		//
+		// In either case, we'd emit a non-fatal runtime error/exception, so
+		// maybe doesn't matter.  And a runtime error is better behavior
+		// than what was done pre-function-overloading: it just went ahead
+		// and called the function with mismatching argument types.
+		return overloads[overload_idx]->impl->Call(args, parent);
+
+	for ( const auto& o : overloads )
 		{
-		auto& o = overloads[i];
 		auto oargs = o->decl->arg_types->Types();
 
 		if ( oargs->length() != args->length() )
@@ -206,6 +232,7 @@ Val* Func::Call(val_list* args, Frame* parent) const
 		}
 
 	reporter->PushLocation(GetLocationInfo());
+	// TODO: actually may need to be a non-fatal run-time error
 	reporter->FatalError("Invalid function call for %s: no matching overload", Name());
 	return nullptr;
 	}
@@ -250,7 +277,8 @@ void Func::Describe(ODesc* d) const
 	{
 	// TODO: print all overloads ?
 	auto& overloads = type->Overloads();
-	assert(overloads.size() == 1);
+	// TODO: guess if there's no impls yet, could just print the name ?
+	assert(overloads.size() > 0);
 
 	if ( overloads[0]->impl )
 		overloads[0]->impl->Describe(d);

@@ -1,0 +1,2 @@
+expression error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.func-overload-call-indirectly-runtime-resolve-error/func-overload-call-indirectly-runtime-resolve-error.zeek, line 10: unresolved function overload reference (bar)
+other stuff still happens

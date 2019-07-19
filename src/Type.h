@@ -452,6 +452,10 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
+
+	FuncType(RecordType* args, BroType* yield, function_flavor f, bool solitary);
+	int AddOverload(RecordType* args, bool solitary);
+
 	FuncType() : BroType(TYPE_FUNC) { yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
 
 	BroType* yield;

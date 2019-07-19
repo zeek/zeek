@@ -1,0 +1,3 @@
+foo(13: count)
+foo(hello: string)
+foo()

@@ -57,6 +57,11 @@ class VectorVal;
 class TableEntryVal;
 declare(PDict,TableEntryVal);
 
+struct FuncVal {
+	Func* func;
+	int overload_idx;
+};
+
 typedef union {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -74,7 +79,7 @@ typedef union {
 	double double_val;
 
 	BroString* string_val;
-	Func* func_val;
+	FuncVal func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict(TableEntryVal)* table_val;
@@ -146,6 +151,8 @@ public:
 		}
 
 	explicit Val(Func* f);
+
+	Val(Func* f, int overload_idx);
 
 	// Note, will unref 'f' when it's done, closing it unless
 	// class has ref'd it.
@@ -227,12 +234,24 @@ public:
 	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
-	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsTable)
 	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+
+	const Func* AsFunc() const
+		{
+		// TODO: audit usages
+		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name);
+		return val.func_val.func;
+		}
+
+	const FuncVal& AsFuncVal() const
+		{
+		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::FuncVal", type_name);
+		return val.func_val;
+		}
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -263,10 +282,16 @@ public:
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
 	// ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
-	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+
+	Func* AsFunc()
+		{
+		// TODO: audit usages
+		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
+		return val.func_val.func;
+		}
 
 	const IPPrefix& AsSubNet()
 		{

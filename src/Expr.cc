@@ -31,8 +31,8 @@ const char* expr_name(BroExprTag t)
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]="
+		"coerce", "record_coerce", "table_coerce", "vector_coerce",
+		"sizeof", "flatten", "cast", "is", "[:]=", "func_ref"
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -422,7 +422,7 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 			d->Add("(coerce ");
 		else if ( Tag() == EXPR_FLATTEN )
 			d->Add("flatten ");
-		else if ( Tag() != EXPR_REF )
+		else if ( Tag() != EXPR_REF && Tag() != EXPR_FUNC_REF )
 			d->Add(expr_name(Tag()));
 		}
 
@@ -2041,6 +2041,95 @@ Expr* RefExpr::MakeLvalue()
 	return this;
 	}
 
+static bool resolve_func_overload_expr(Expr*& e, BroType* t)
+	{
+	BroType* et = e->Type();
+	TypeTag e_tag = et->Tag();
+	TypeTag t_tag = t->Tag();
+
+	if ( t_tag != TYPE_FUNC )
+		return false;
+
+	if ( e_tag != TYPE_FUNC )
+		return false;
+
+	auto tft = t->AsFuncType();
+
+	if ( tft->Overloads().size() != 1 )
+		return false;
+
+	auto eft = et->AsFuncType();
+
+	// Even if we don't have more than one overload at this point in time, we
+	// may still insert a new node into the AST since it saves us from
+	// resolving the overload index later.
+	if ( eft->Overloads().size() < 1 )
+		return false;
+
+	auto overload_idx = eft->GetOverloadIndex(tft->Args());
+
+	if ( overload_idx < 0 )
+		return false;
+
+	auto o = eft->GetOverload(overload_idx);
+
+	if ( ! o->impl )
+		{
+		e = new FuncRefExpr(e, tft, overload_idx);
+		return true;
+		}
+
+	if ( e->Tag() != EXPR_NAME )
+		{
+		e = new FuncRefExpr(e, tft, overload_idx);
+		return true;
+		}
+
+	auto id = e->AsNameExpr()->Id();
+
+	if ( ! id->IsConst() )
+		{
+		e = new FuncRefExpr(e, tft, overload_idx);
+		return true;
+		}
+
+	// TODO: pre-allocate all possible Vals for each overload ?
+	auto v = new Val(o->impl->GetFunc(), overload_idx);
+	Unref(e);
+	e = new ConstExpr(v);
+	return true;
+	}
+
+FuncRefExpr::FuncRefExpr(Expr* arg_op, FuncType* target, int arg_overload_idx)
+    : UnaryExpr(EXPR_FUNC_REF, arg_op)
+	{
+	SetType(target->Ref());
+	overload_idx = arg_overload_idx;
+	assert(overload_idx >= 0);
+	}
+
+Val* FuncRefExpr::Eval(Frame* f) const
+	{
+	auto fv = op->Eval(f);
+
+	if ( ! fv )
+		return nullptr;
+
+	auto func = fv->AsFunc();
+
+	if ( func->FType()->GetOverload(overload_idx)->impl )
+		{
+		// TODO: pre-allocate all possible Vals for each overload ?
+		auto rval = new Val(func, overload_idx);
+		Unref(fv);
+		return rval;
+		}
+
+	Unref(fv);
+	RuntimeError("unresolved function overload reference");
+	return nullptr;
+	}
+
 void RefExpr::Assign(Frame* f, Val* v)
 	{
 	op->Assign(f, v);
@@ -2176,6 +2265,9 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		op2 = new RecordCoerceExpr(op2, op1->Type()->AsRecordType());
 		return true;
 		}
+
+	if ( resolve_func_overload_expr(op2, op1->Type()) )
+		return true;
 
 	if ( ! same_type(op1->Type(), op2->Type()) )
 		{
@@ -4289,14 +4381,14 @@ Val* CallExpr::Eval(Frame* f) const
 
 	if ( func_val && v )
 		{
-		const ::Func* func = func_val->AsFunc();
+		const FuncVal& fv = func_val->AsFuncVal();
 		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )
 			f->SetCall(this);
 
 		// TODO: statically cache overload index when directly using name
-		ret = func->Call(v, f);
+		ret = fv.func->Call(v, f, fv.overload_idx);
 
 		if ( f )
 			f->SetCall(current_call);
@@ -5010,6 +5102,8 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 		return 0;
 		}
 
+	if ( resolve_func_overload_expr(e, t) )
+		return 1;
 
 	if ( ! same_type(t, et) )
 		{

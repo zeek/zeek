@@ -79,7 +79,7 @@ public:
 	const std::vector<FuncOverload*>& Overloads() const
 		{ return type->Overloads(); }
 
-	Val* Call(val_list* args, Frame* parent = 0) const;
+	Val* Call(val_list* args, Frame* parent = 0, int overload_idx = -1) const;
 
 	// TODO: get rid of this ?
 	const std::vector<FuncBody>& GetBodies() const;

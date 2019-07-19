@@ -1,0 +1,4 @@
+foo(808: count)
+foo(wow: string)
+foo()
+foo(37: count)

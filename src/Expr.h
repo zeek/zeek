@@ -50,7 +50,8 @@ typedef enum {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+	EXPR_FUNC_REF,
+#define NUM_EXPRS (int(EXPR_FUNC_REF) + 1)
 } BroExprTag;
 
 extern const char* expr_name(BroExprTag t);
@@ -592,6 +593,19 @@ public:
 protected:
 	friend class Expr;
 	RefExpr()	{ }
+};
+
+class FuncRefExpr : public UnaryExpr {
+public:
+	explicit FuncRefExpr(Expr* op, FuncType* target, int overload_idx);
+
+	// TODO: need more testing of overloaded function assignments
+
+	Val* Eval(Frame* f) const override;
+
+protected:
+
+	int overload_idx;
 };
 
 class AssignExpr : public BinaryExpr {

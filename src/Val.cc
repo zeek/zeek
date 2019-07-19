@@ -29,9 +29,21 @@
 
 Val::Val(Func* f)
 	{
-	val.func_val = f;
-	::Ref(val.func_val);
+	// TODO: audit usages to see if we can actually get an overload idx ?
+	val.func_val = {f, -1};
+	::Ref(val.func_val.func);
 	type = f->FType()->Ref();
+#ifdef DEBUG
+	bound_id = 0;
+#endif
+	}
+
+Val::Val(Func* f, int overload_idx)
+	{
+	assert(overload_idx >= 0);
+	val.func_val = {f, overload_idx};
+	::Ref(val.func_val.func);
+	type = f->FType()->GetOverload(overload_idx)->type->Ref();
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -59,7 +71,7 @@ Val::~Val()
 		delete val.string_val;
 
 	else if ( type->Tag() == TYPE_FUNC )
-		Unref(val.func_val);
+		Unref(val.func_val.func);
 
 	else if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);
@@ -249,7 +261,7 @@ Val* Val::SizeVal() const
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->GetCount(val.func_val->FType()->ArgTypes()->Types()->length());
+			return val_mgr->GetCount(val.func_val.func->FType()->ArgTypes()->Types()->length());
 
 		if ( type->Tag() == TYPE_FILE )
 			return new Val(val.file_val->Size(), TYPE_DOUBLE);

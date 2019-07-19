@@ -510,7 +510,21 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 	AddOverload(arg_args);
 	}
 
+FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor,
+                   bool solitary)
+: BroType(TYPE_FUNC)
+	{
+	yield = arg_yield;
+	flavor = arg_flavor;
+	AddOverload(arg_args, solitary);
+	}
+
 int FuncType::AddOverload(RecordType* args)
+	{
+	return AddOverload(args, false);
+	}
+
+int FuncType::AddOverload(RecordType* args, bool solitary)
 	{
 	auto odecl = new FuncDecl();
 	odecl->args = args;
@@ -596,7 +610,14 @@ int FuncType::AddOverload(RecordType* args)
 		rval = overloads.size();
 		auto o = new FuncOverload();
 		o->index = rval;
-		o->type = this;
+
+		if ( solitary )
+			o->type = this->Ref()->AsFuncType();
+		else
+			o->type = new FuncType(args->Ref()->AsRecordType(),
+			                       yield ? yield->Ref() : nullptr,
+			                       flavor, true);
+
 		o->decl = odecl;
 		o->impl = nullptr;
 		overloads.emplace_back(o);
@@ -645,7 +666,7 @@ FuncType* FuncType::ShallowClone()
 		auto co = new FuncOverload();
 		auto codecl = new FuncDecl();
 		co->index = o->index;
-		co->type = f;
+		co->type = o->type->Ref()->AsFuncType();
 		co->decl->args = o->decl->args->Ref()->AsRecordType();
 		co->decl->arg_types = o->decl->arg_types->Ref()->AsTypeList();
 
@@ -681,6 +702,7 @@ FuncType::~FuncType()
 	{
 	for ( auto& o : overloads )
 		{
+		Unref(o->type);
 		Unref(o->decl->args);
 		Unref(o->decl->arg_types);
 		delete o->decl;

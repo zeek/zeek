@@ -1,4 +1,10 @@
 
+2.6-628 | 2019-07-19 15:48:58 +0000
+
+  * Support old plugins that may still reference "bro-config.h",
+    "bro-path-dev", or "bro" inside the build tree through
+    compatibility symlinks/wrappers. (Jon Siwek, Corelight)
+
 2.6-626 | 2019-07-18 19:44:31 -0700
 
   * Remove unused expression type tag: EXPR_MATCH (Jon Siwek, Corelight)

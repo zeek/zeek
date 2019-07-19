@@ -1,4 +1,10 @@
 
+2.6-626 | 2019-07-18 19:44:31 -0700
+
+  * Remove unused expression type tag: EXPR_MATCH (Jon Siwek, Corelight)
+
+  * Add missing expr_name: vector_coerce (Jon Siwek, Corelight)
+
 2.6-624 | 2019-07-16 16:07:59 +0000
 
   * Redo README. We now have separate plain text and Markdown versions.

@@ -35,8 +35,11 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			id->Error("already defined", init);
-			return;
+			if ( id->Type()->Tag() != TYPE_FUNC )
+				{
+				id->Error("already defined", init);
+				return;
+				}
 			}
 		}
 
@@ -52,7 +55,8 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			t = id->Type();
 		}
 
-	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
+	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR  &&
+	     id->Type()->Tag() != TYPE_FUNC )
 		{
 		if ( dt != VAR_REDEF &&
 		     (! init || ! do_init || (! t && ! (t = init_type(init)))) )
@@ -105,7 +109,29 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 	else
 		Ref(t);
 
-	id->SetType(t);
+	if ( id->Type() && id->Type()->Tag() == TYPE_FUNC )
+		{
+		auto existing_type = id->Type()->AsFuncType();
+		auto new_type = t->AsFuncType();
+
+		if ( ! same_type(existing_type->YieldType(), new_type->YieldType()) )
+			{
+			id->Type()->Error("incompatible function return types", new_type);
+			return;
+			}
+
+		auto o = existing_type->GetOverload(new_type->Args());
+
+		if ( o )
+			{
+			id->Type()->Error("function type re-declaration", new_type);
+			return;
+			}
+
+		existing_type->AddOverload(new_type->Args());
+		}
+	else
+		id->SetType(t);
 
 	if ( attr )
 		id->AddAttrs(new Attributes(attr, t, false));

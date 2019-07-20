@@ -1,4 +1,8 @@
 
+2.6-630 | 2019-07-19 18:01:44 -0700
+
+  * Fix typo in NEWS (Jon Siwek, Corelight)
+
 2.6-628 | 2019-07-19 15:48:58 +0000
 
   * Support old plugins that may still reference "bro-config.h",

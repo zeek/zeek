@@ -257,7 +257,7 @@ Changed Functionality
   used it to generate their own documentation via the ``--broxygen`` flag,
   which is now named ``--zeekygen``.  Besides that, the various documentation
   in scripts has also been updated to replace Sphinx cross-referencing roles
-  and directives like ":bro:see:" with ":zeek:zee:".
+  and directives like ":bro:see:" with ":zeek:see:".
 
 - The catch-and-release and unified2 scripts are no longer loaded by
   default.  Because there was a performance impact simply from loading

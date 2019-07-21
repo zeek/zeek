@@ -2055,11 +2055,27 @@ static bool resolve_func_overload_expr(Expr*& e, BroType* t)
 		return false;
 
 	auto tft = t->AsFuncType();
+	auto eft = et->AsFuncType();
 
 	if ( tft->Overloads().size() != 1 )
-		return false;
+		{
+		if ( eft->Overloads().size() == 1 )
+			{
+			auto o = tft->GetOverload(eft->GetOverload(0)->decl->args);
 
-	auto eft = et->AsFuncType();
+			if ( o )
+				tft = o->type;
+			else
+				return false;
+			}
+		else
+			{
+			if ( et != t )
+				e->SetError("ambiguous function overload reference");
+
+			return false;
+			}
+		}
 
 	// Even if we don't have more than one overload at this point in time, we
 	// may still insert a new node into the AST since it saves us from

@@ -414,9 +414,9 @@ public:
 
 	int AddOverload(RecordType* args);
 
-	int GetOverloadIndex(RecordType* matching_args);
-	FuncOverload* GetOverload(RecordType* matching_args);
-	FuncOverload* GetOverload(int idx);
+	int GetOverloadIndex(RecordType* matching_args) const;
+	FuncOverload* GetOverload(RecordType* matching_args) const;
+	FuncOverload* GetOverload(int idx) const;
 
 	const std::vector<FuncOverload*>& Overloads() const
 		{ return overloads; }

@@ -61,11 +61,68 @@ void ID::ClearVal()
 
 void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( ! weak_ref )
-		Unref(val);
+	if ( type && type->Tag() == TYPE_FUNC &&
+	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
+		{
+		// To correctly handle overloads, don't assign the new
+		// value directly instead swap out the particular overload impl.
+		// TODO: this is weird, it's technically modifying stuff within
+		// the FuncType, so should try to change that store impls in the
+		// Func objects.
+		auto fv = v->AsFuncVal();
+		auto t = type->AsFuncType();
 
-	val = v;
-	weak_ref = arg_weak_ref;
+		FuncOverload* vo = nullptr;
+
+		if ( fv.overload_idx >= 0 )
+			vo = fv.func->FType()->GetOverload(fv.overload_idx);
+		else
+			{
+			auto vt = v->Type()->AsFuncType();
+
+			for ( const auto& vto : vt->Overloads() )
+				if ( t->GetOverload(vto->decl->args) )
+					{
+					vo = vto;
+					break;
+					}
+
+			if ( ! vo )
+				reporter->RuntimeError(GetLocationInfo(),
+				                       "invalid assignment to function ID");
+			}
+
+		auto o = t->GetOverload(vo->decl->args);
+
+		if ( ! o )
+			reporter->RuntimeError(GetLocationInfo(),
+			                       "invalid assignment to function ID");
+
+		if ( vo->impl )
+			::Ref(vo->impl);
+
+		Unref(o->impl);
+		o->impl = vo->impl;
+
+		if ( ! val )
+			{
+			val = new Val(new Func(this));
+
+			if ( ! arg_weak_ref )
+				Unref(v);
+
+			arg_weak_ref = false;
+			}
+		}
+	else
+		{
+		if ( ! weak_ref )
+			Unref(val);
+
+		val = v;
+		weak_ref = arg_weak_ref;
+		}
+
 	Modified();
 
 #ifdef DEBUG

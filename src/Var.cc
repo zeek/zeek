@@ -432,7 +432,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				auto& os = existing_func_val->FType()->Overloads();
 
 				if ( overload_idx >= 0 &&
-				     static_cast<int>(os.size()) > overload_idx &&
+				     overload_idx < static_cast<int>(os.size()) &&
 				     os[overload_idx]->impl )
 					id->Error("already defined");
 				}

@@ -632,7 +632,7 @@ int FuncType::AddOverload(RecordType* args, bool solitary)
 	return rval;
 	}
 
-int FuncType::GetOverloadIndex(RecordType* matching_args)
+int FuncType::GetOverloadIndex(RecordType* matching_args) const
 	{
 	for ( auto i = 0u; i < overloads.size(); ++i )
 		if ( same_type(overloads[i]->decl->args, matching_args, false, false) )
@@ -641,13 +641,13 @@ int FuncType::GetOverloadIndex(RecordType* matching_args)
 	return -1;
 	}
 
-FuncOverload* FuncType::GetOverload(RecordType* matching_args)
+FuncOverload* FuncType::GetOverload(RecordType* matching_args) const
 	{
 	auto idx = GetOverloadIndex(matching_args);
 	return GetOverload(idx);
 	}
 
-FuncOverload* FuncType::GetOverload(int idx)
+FuncOverload* FuncType::GetOverload(int idx) const
 	{
 	if ( idx < 0 )
 		return nullptr;

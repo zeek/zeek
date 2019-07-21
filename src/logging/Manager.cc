@@ -592,11 +592,14 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_RECORD )
+		const auto& os = filter->ext_func->FType()->Overloads();
+		auto yt = os[0]->impl->GetType()->YieldType();
+
+		if ( yt->Tag() == TYPE_RECORD )
 			{
 			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_VOID )
+		else if ( yt->Tag() == TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.

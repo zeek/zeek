@@ -2943,6 +2943,43 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
+static Val* check_func_overload(Val* v, const BroType* t)
+	{
+	auto vt = v->Type();
+	auto vtag = vt->Tag();
+	auto ttag = t->Tag();
+
+	if ( vtag != TYPE_FUNC )
+		return nullptr;
+
+	if ( ttag != TYPE_FUNC )
+		return nullptr;
+
+	auto tft = t->AsFuncType();
+	auto vft = vt->AsFuncType();
+
+	if ( ! same_type(tft->YieldType(), vft->YieldType()) )
+		return nullptr;
+
+	auto& fv = v->AsFuncVal();
+
+	if ( fv.overload_idx < 0 )
+		{
+		for ( const auto& vo : vft->Overloads() )
+			if ( tft->GetOverload(vo->decl->args) )
+				return new Val(fv.func, vo->index);
+		}
+	else
+		{
+		auto o = fv.func->FType()->GetOverload(fv.overload_idx);
+
+		if ( tft->GetOverload(o->decl->args) )
+			return v->Ref();
+		}
+
+	return nullptr;
+	}
+
 Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
@@ -2964,6 +3001,14 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 	     /* allow sets as initializers */
 	     (is_init && v_tag == TYPE_TABLE) )
 		{
+		auto vo = check_func_overload(v, t);
+
+		if ( vo )
+			{
+			Unref(v);
+			return vo;
+			}
+
 		if ( same_type(t, vt, is_init) )
 			return v;
 

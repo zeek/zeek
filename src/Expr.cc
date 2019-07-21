@@ -2067,6 +2067,9 @@ static bool resolve_func_overload_expr(Expr*& e, BroType* t)
 	if ( eft->Overloads().size() < 1 )
 		return false;
 
+	if ( ! same_type(tft->YieldType(), eft->YieldType()) )
+		return false;
+
 	auto overload_idx = eft->GetOverloadIndex(tft->Args());
 
 	if ( overload_idx < 0 )

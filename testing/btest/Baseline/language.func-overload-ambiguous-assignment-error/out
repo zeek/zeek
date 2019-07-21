@@ -1,0 +1,2 @@
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.func-overload-ambiguous-assignment-error/func-overload-ambiguous-assignment-error.zeek, line 18: ambiguous function overload reference (foo)
+error in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.func-overload-ambiguous-assignment-error/func-overload-ambiguous-assignment-error.zeek, line 18: type clash in assignment (qux = foo)

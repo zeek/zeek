@@ -1215,7 +1215,7 @@ void ListVal::Append(Val* v)
 			Internal("heterogeneous list in ListVal::Append");
 		}
 
-	vals.append(v);
+	vals.push_back(v);
 	type->AsTypeList()->Append(v->Type()->Ref());
 	}
 
@@ -1770,7 +1770,7 @@ Val* TableVal::Default(Val* index)
 		const val_list* vl0 = index->AsListVal()->Vals();
 		vl = val_list(vl0->length());
 		for ( const auto& v : *vl0 )
-			vl.append(v->Ref());
+			vl.push_back(v->Ref());
 		}
 	else
 		{
@@ -2457,7 +2457,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 				def = new VectorVal(type->AsVectorType());
 			}
 
-		vl->append(def ? def->Ref() : 0);
+		vl->push_back(def ? def->Ref() : 0);
 
 		Unref(def);
 		}
@@ -2676,7 +2676,7 @@ Val* RecordVal::DoClone(CloneState* state)
 	for ( const auto& vlv : *val.val_list_val )
 		{
 		Val* v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.val_list_val->append(v);
+  		rv->val.val_list_val->push_back(v);
 		}
 
 	return rv;

@@ -194,13 +194,13 @@ ID* install_ID(const char* name, const char* module_name,
 
 void push_existing_scope(Scope* scope)
 	{
-	scopes.append(scope);
+	scopes.push_back(scope);
 	}
 
 void push_scope(ID* id, attr_list* attrs)
 	{
 	top_scope = new Scope(id, attrs);
-	scopes.append(top_scope);
+	scopes.push_back(top_scope);
 	}
 
 Scope* pop_scope()

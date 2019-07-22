@@ -1,4 +1,12 @@
 
+2.6-640 | 2019-07-22 12:22:08 -0700
+
+  * Mark List::insert deprecated in favor of push_front (Tim Wojtulewicz, Corelight)
+
+  * Mark List::sort as deprecated, remove List::sortedinsert (Tim Wojtulewicz, Corelight)
+
+  * Simplify container iterators to just use pointers directly (Tim Wojtulewicz, Corelight)
+
 2.6-635 | 2019-07-22 10:58:56 -0700
 
   * Add DPD::max_violations option

@@ -27,66 +27,8 @@
 #include <cassert>
 #include "util.h"
 
+// TODO: this can be removed in v3.1 when List::sort() is removed
 typedef int (*list_cmp_func)(const void* v1, const void* v2);
-
-template<typename T>
-class ListIterator
-	{
-public:
-	ListIterator(T* entries, int offset, int num_entries) :
-		entries(entries), offset(offset), num_entries(num_entries), endptr() {}
-	bool operator==(const ListIterator& rhs) { return entries == rhs.entries && offset == rhs.offset; }
-	bool operator!=(const ListIterator& rhs) { return entries != rhs.entries || offset != rhs.offset; }
-	ListIterator & operator++() { offset++; return *this; }
-	ListIterator operator++(int) { auto t = *this; offset++; return t; }
-	ListIterator & operator--() { offset--; return *this; }
-	ListIterator operator--(int) { auto t = *this; offset--; return t; }
-	std::ptrdiff_t operator-(ListIterator const& sibling) const { return offset - sibling.offset; }
-	ListIterator & operator+=(int amount) { offset += amount; return *this; }
-	ListIterator & operator-=(int amount) { offset -= amount; return *this; }
-	bool operator<(ListIterator const&sibling) const { return offset < sibling.offset;}
-	bool operator<=(ListIterator const&sibling) const { return offset <= sibling.offset; }
-	bool operator>(ListIterator const&sibling) const { return offset > sibling.offset; }
-	bool operator>=(ListIterator const&sibling) const { return offset >= sibling.offset; }
-	T& operator[](int index)
-		{
-		if (index < num_entries)
-			return entries[index];
-		else
-			return endptr;
-		}
-	T& operator*()
-		{
-		if ( offset < num_entries )
-			return entries[offset];
-		else
-			return endptr;
-		}
-
-private:
-	T* const entries;
-	int offset;
-	int num_entries;
-	T endptr; // let this get set to some random value on purpose. It's only used
-			  // for the operator[] and operator* cases where you pass something
-			  // off the end of the collection, which is undefined behavior anyways.
-	};
-
-
-namespace std {
-	template<typename T>
-	class iterator_traits<ListIterator<T> >
-	{
-	public:
-		using difference_type = std::ptrdiff_t;
-		using size_type = std::size_t;
-		using value_type = T;
-		using pointer = T*;
-		using reference = T&;
-		using iterator_category = std::random_access_iterator_tag;
-	};
-}
-
 
 template<typename T>
 class List {
@@ -213,6 +155,7 @@ public:
 		return max_entries;
 		}
 
+	ZEEK_DEPRECATED("Remove in v3.1: Use std::sort instead")
 	void sort(list_cmp_func cmp_func)
 		{
 		qsort(entries, num_entries, sizeof(T), cmp_func);
@@ -221,7 +164,7 @@ public:
 	int MemoryAllocation() const
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
 
-	void insert(const T& a)	// add at head of list
+	void push_front(const T& a)
 		{
 		if ( num_entries == max_entries )
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
@@ -232,46 +175,32 @@ public:
 		++num_entries;
 		entries[0] = a;
 		}
-
-	// Assumes that the list is sorted and inserts at correct position.
-	void sortedinsert(const T& a, list_cmp_func cmp_func)
+	
+	void push_back(const T& a)
 		{
-		// We optimize for the case that the new element is
-		// larger than most of the current entries.
-
-		// First append element.
 		if ( num_entries == max_entries )
 			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
 
 		entries[num_entries++] = a;
-
-		// Then move it to the correct place.
-		T tmp;
-		for ( int i = num_entries - 1; i > 0; --i )
-			{
-			if ( cmp_func(entries[i],entries[i-1]) <= 0 )
-				break;
-
-			tmp = entries[i];
-			entries[i] = entries[i-1];
-			entries[i-1] = tmp;
-			}
 		}
-
-	void push_back(const T& a)	{ append(a); }
-	void push_front(const T& a)	{ insert(a); }
+	
 	void pop_front()	{ remove_nth(0); }
 	void pop_back()	{ remove_nth(num_entries-1); }
 
 	T& front()	 { return entries[0]; }
 	T& back()	 { return entries[num_entries-1]; }
 
+	ZEEK_DEPRECATED("Remove in v3.1: Use push_front instead")
+	void insert(const T& a)	// add at head of list
+		{
+		push_front(a);
+		}
+
+	// The append method is maintained for historical/compatibility reasons.
+	// (It's commonly used in the event generation API)
 	void append(const T& a)	// add to end of list
 		{
-		if ( num_entries == max_entries )
-			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
-
-		entries[num_entries++] = a;
+		push_back(a);
 		}
 
 	bool remove(const T& a)	// delete entry from list
@@ -353,19 +282,21 @@ public:
 
 	// Type traits needed for some of the std algorithms to work
 	using value_type = T;
+	using pointer = T*;
+	using const_pointer = const T*;
 
 	// Iterator support
-	using iterator = ListIterator<T>;
-	using const_iterator = ListIterator<const T>;
+	using iterator = pointer;
+	using const_iterator = const_pointer;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-	iterator begin() { return { entries, 0, num_entries }; }
-	iterator end() { return { entries, num_entries, num_entries }; }
-	const_iterator begin() const { return { entries, 0, num_entries }; }
-	const_iterator end() const { return { entries, num_entries, num_entries }; }
-	const_iterator cbegin() const { return { entries, 0, num_entries }; }
-	const_iterator cend() const { return { entries, num_entries, num_entries }; }
+	iterator begin() { return entries; }
+	iterator end() { return entries + num_entries; }
+	const_iterator begin() const { return entries; }
+	const_iterator end() const { return entries + num_entries; }
+	const_iterator cbegin() const { return entries; }
+	const_iterator cend() const { return entries + num_entries; }
 
 	reverse_iterator rbegin() { return reverse_iterator{end()}; }
 	reverse_iterator rend() { return reverse_iterator{begin()}; }

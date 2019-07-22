@@ -536,8 +536,8 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	// Not found, or priming.
 	switch ( mode ) {
 	case DNS_PRIME:
-		requests.append(new DNS_Mgr_Request(name, AF_INET, false));
-		requests.append(new DNS_Mgr_Request(name, AF_INET6, false));
+		requests.push_back(new DNS_Mgr_Request(name, AF_INET, false));
+		requests.push_back(new DNS_Mgr_Request(name, AF_INET6, false));
 		return empty_addr_set();
 
 	case DNS_FORCE:
@@ -545,8 +545,8 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 		return 0;
 
 	case DNS_DEFAULT:
-		requests.append(new DNS_Mgr_Request(name, AF_INET, false));
-		requests.append(new DNS_Mgr_Request(name, AF_INET6, false));
+		requests.push_back(new DNS_Mgr_Request(name, AF_INET, false));
+		requests.push_back(new DNS_Mgr_Request(name, AF_INET6, false));
 		Resolve();
 		return LookupHost(name);
 
@@ -581,7 +581,7 @@ Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 	// Not found, or priming.
 	switch ( mode ) {
 	case DNS_PRIME:
-		requests.append(new DNS_Mgr_Request(addr));
+		requests.push_back(new DNS_Mgr_Request(addr));
 		return new StringVal("<none>");
 
 	case DNS_FORCE:
@@ -590,7 +590,7 @@ Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 		return 0;
 
 	case DNS_DEFAULT:
-		requests.append(new DNS_Mgr_Request(addr));
+		requests.push_back(new DNS_Mgr_Request(addr));
 		Resolve();
 		return LookupAddr(addr);
 

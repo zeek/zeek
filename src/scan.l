@@ -682,11 +682,11 @@ static int load_files(const char* orig_file)
 	// was done when we're finished processing it.
 	if ( ! did_module_restore )
 		{
-		file_stack.append(new FileInfo(current_module));
+		file_stack.push_back(new FileInfo(current_module));
 		did_module_restore = true;
 		}
 	else
-		file_stack.append(new FileInfo);
+		file_stack.push_back(new FileInfo);
 
 	zeekygen_mgr->Script(file_path);
 
@@ -839,7 +839,7 @@ void add_essential_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		essential_input_files.append(copy_string(file));
+		essential_input_files.push_back(copy_string(file));
 	}
 
 void add_input_file(const char* file)
@@ -850,7 +850,7 @@ void add_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.append(copy_string(file));
+		input_files.push_back(copy_string(file));
 	}
 
 void add_input_file_at_front(const char* file)
@@ -861,7 +861,7 @@ void add_input_file_at_front(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.insert(copy_string(file));
+		input_files.push_front(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)
@@ -872,7 +872,7 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 		if ( s_delim )
 			*s_delim = 0;
 
-		nl.append(copy_string(s));
+		nl.push_back(copy_string(s));
 
 		if ( s_delim )
 			s = s_delim + 1;

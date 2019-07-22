@@ -29,7 +29,7 @@ public:
 	explicit NFA_State(CCL* ccl);
 	~NFA_State() override;
 
-	void AddXtion(NFA_State* next_state)	{ xtions.append(next_state); }
+	void AddXtion(NFA_State* next_state)	{ xtions.push_back(next_state); }
 	NFA_state_list* Transitions()		{ return &xtions; }
 	void AddXtionsTo(NFA_state_list* ns);
 
@@ -132,6 +132,6 @@ extern NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2);
 extern NFA_state_list* epsilon_closure(NFA_state_list* states);
 
 // For sorting NFA states based on their ID fields (decreasing)
-extern int NFA_state_cmp_neg(const void* v1, const void* v2);
+extern bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2);
 
 #endif

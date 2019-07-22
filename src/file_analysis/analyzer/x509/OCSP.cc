@@ -87,10 +87,10 @@ bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
 	if ( ! res )
 		{
 		reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
-		vl->append(val_mgr->GetEmptyString());
-		vl->append(val_mgr->GetEmptyString());
-		vl->append(val_mgr->GetEmptyString());
-		vl->append(val_mgr->GetEmptyString());
+		vl->push_back(val_mgr->GetEmptyString());
+		vl->push_back(val_mgr->GetEmptyString());
+		vl->push_back(val_mgr->GetEmptyString());
+		vl->push_back(val_mgr->GetEmptyString());
 		return false;
 		}
 
@@ -99,22 +99,22 @@ bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
 
 	i2a_ASN1_OBJECT(bio, hash_alg);
 	int len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->push_back(new StringVal(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_name_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->push_back(new StringVal(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_key_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->push_back(new StringVal(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_INTEGER(bio, serial_number);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->push_back(new StringVal(len, buf));
 	BIO_reset(bio);
 
 	return true;
@@ -436,7 +436,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	for ( int i=0; i<req_count; i++ )
 		{
 		val_list rvl(5);
-		rvl.append(GetFile()->GetVal()->Ref());
+		rvl.push_back(GetFile()->GetVal()->Ref());
 
 		OCSP_ONEREQ *one_req = OCSP_request_onereq_get0(req, i);
 		OCSP_CERTID *cert_id = OCSP_onereq_get0_id(one_req);
@@ -503,26 +503,26 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 		}
 #endif
 
-	vl.append(GetFile()->GetVal()->Ref());
-	vl.append(status_val);
+	vl.push_back(GetFile()->GetVal()->Ref());
+	vl.push_back(status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-	vl.append(val_mgr->GetCount((uint64)ASN1_INTEGER_get(resp_data->version)));
+	vl.push_back(val_mgr->GetCount((uint64)ASN1_INTEGER_get(resp_data->version)));
 #else
-	vl.append(parse_basic_resp_data_version(basic_resp));
+	vl.push_back(parse_basic_resp_data_version(basic_resp));
 #endif
 
 	// responderID
 	if ( OCSP_RESPID_bio(basic_resp, bio) )
 		{
 		len = BIO_read(bio, buf, sizeof(buf));
-		vl.append(new StringVal(len, buf));
+		vl.push_back(new StringVal(len, buf));
 		BIO_reset(bio);
 		}
 	else
 		{
 		reporter->Weird("OpenSSL failed to get OCSP responder id");
-		vl.append(val_mgr->GetEmptyString());
+		vl.push_back(val_mgr->GetEmptyString());
 		}
 
 	// producedAt
@@ -532,7 +532,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl.append(new Val(GetTimeFromAsn1(produced_at, GetFile(), reporter), TYPE_TIME));
+	vl.push_back(new Val(GetTimeFromAsn1(produced_at, GetFile(), reporter), TYPE_TIME));
 
 	// responses
 
@@ -546,7 +546,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			continue;
 
 		val_list rvl(10);
-		rvl.append(GetFile()->GetVal()->Ref());
+		rvl.push_back(GetFile()->GetVal()->Ref());
 
 		// cert id
 		const OCSP_CERTID* cert_id = nullptr;
@@ -574,36 +574,36 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			reporter->Weird("OpenSSL failed to find status of OCSP response");
 
 		const char* cert_status_str = OCSP_cert_status_str(status);
-		rvl.append(new StringVal(strlen(cert_status_str), cert_status_str));
+		rvl.push_back(new StringVal(strlen(cert_status_str), cert_status_str));
 
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl.append(new Val(GetTimeFromAsn1(revoke_time, GetFile(), reporter), TYPE_TIME));
+			rvl.push_back(new Val(GetTimeFromAsn1(revoke_time, GetFile(), reporter), TYPE_TIME));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
 				const char* revoke_reason = OCSP_crl_reason_str(reason);
-				rvl.append(new StringVal(strlen(revoke_reason), revoke_reason));
+				rvl.push_back(new StringVal(strlen(revoke_reason), revoke_reason));
 				}
 			else
-				rvl.append(new StringVal(0, ""));
+				rvl.push_back(new StringVal(0, ""));
 			}
 		else
 			{
-			rvl.append(new Val(0.0, TYPE_TIME));
-			rvl.append(new StringVal(0, ""));
+			rvl.push_back(new Val(0.0, TYPE_TIME));
+			rvl.push_back(new StringVal(0, ""));
 			}
 
 		if ( this_update )
-			rvl.append(new Val(GetTimeFromAsn1(this_update, GetFile(), reporter), TYPE_TIME));
+			rvl.push_back(new Val(GetTimeFromAsn1(this_update, GetFile(), reporter), TYPE_TIME));
 		else
-			rvl.append(new Val(0.0, TYPE_TIME));
+			rvl.push_back(new Val(0.0, TYPE_TIME));
 
 		if ( next_update )
-			rvl.append(new Val(GetTimeFromAsn1(next_update, GetFile(), reporter), TYPE_TIME));
+			rvl.push_back(new Val(GetTimeFromAsn1(next_update, GetFile(), reporter), TYPE_TIME));
 		else
-			rvl.append(new Val(0.0, TYPE_TIME));
+			rvl.push_back(new Val(0.0, TYPE_TIME));
 
 		mgr.QueueEvent(ocsp_response_certificate, std::move(rvl));
 
@@ -621,10 +621,10 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl.append(new StringVal(len, buf));
+	vl.push_back(new StringVal(len, buf));
 	BIO_reset(bio);
 #else
-	vl.append(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
+	vl.push_back(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
 #endif
 
 	//i2a_ASN1_OBJECT(bio, basic_resp->signature);
@@ -633,7 +633,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	//BIO_reset(bio);
 
 	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
-	vl.append(certs_vector);
+	vl.push_back(certs_vector);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	certs = basic_resp->certs;

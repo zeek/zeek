@@ -570,6 +570,8 @@ Removed Functionality
 
 - Removed the BackDoor analyzer.
 
+- Removed ``List::sortedinsert`` from the C++ API.
+
 Deprecated Functionality
 ------------------------
 
@@ -586,6 +588,9 @@ Deprecated Functionality
 
 - The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
   replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
+
+- The ``List::insert`` method from the C++ API is deprecated, use
+  ``List::push_front`` instead.
 
 Bro 2.6
 =======

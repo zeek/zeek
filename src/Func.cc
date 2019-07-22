@@ -473,8 +473,8 @@ Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
 		return body;
 
 	StmtList* stmt_series = new StmtList;
-	stmt_series->Stmts().append(new InitStmt(inits));
-	stmt_series->Stmts().append(body);
+	stmt_series->Stmts().push_back(new InitStmt(inits));
+	stmt_series->Stmts().push_back(body);
 
 	return stmt_series;
 	}

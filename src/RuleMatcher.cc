@@ -84,7 +84,7 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 
 	vals = new maskedvalue_list;
 	for ( const auto& val : *h.vals )
-		vals->append(new MaskedValue(*val));
+		vals->push_back(new MaskedValue(*val));
 
 	prefix_vals = h.prefix_vals;
 
@@ -96,7 +96,7 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			copied_set->re = 0;
 			copied_set->ids = orig_set->ids;
 			for ( const auto& pattern : orig_set->patterns )
-				copied_set->patterns.append(copy_string(pattern));
+				copied_set->patterns.push_back(copy_string(pattern));
 			delete copied_set;
 			// TODO: Why do we create copied_set only to then
 			// never use it?
@@ -273,7 +273,7 @@ void RuleMatcher::AddRule(Rule* rule)
 		return;
 		}
 
-	rules.append(rule);
+	rules.push_back(rule);
 	rules_by_id.Insert(rule->ID(), rule);
 	}
 
@@ -303,7 +303,7 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
 			}
 
 		pc->rule = pc_rule;
-		pc_rule->dependents.append(r);
+		pc_rule->dependents.push_back(r);
 		}
 
 	// All tests in tree already?
@@ -349,7 +349,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 		{
 		for ( const auto& p : r->patterns )
 			{
-			exprs[p->type].append(p->pattern);
+			exprs[p->type].push_back(p->pattern);
 			ids[p->type].push_back(p->id);
 			}
 		}
@@ -374,7 +374,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs,
 			{
 			loop_over_list(child_exprs[i], j)
 				{
-				exprs[i].append(child_exprs[i][j]);
+				exprs[i].push_back(child_exprs[i][j]);
 				ids[i].push_back(child_ids[i][j]);
 				}
 			}
@@ -406,7 +406,7 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 		{
 		if ( i < exprs.length() )
 			{
-			group_exprs.append(exprs[i]);
+			group_exprs.push_back(exprs[i]);
 			group_ids.push_back(ids[i]);
 			}
 
@@ -419,7 +419,7 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 			set->re->CompileSet(group_exprs, group_ids);
 			set->patterns = group_exprs;
 			set->ids = group_ids;
-			dst->append(set);
+			dst->push_back(set);
 
 			group_exprs.clear();
 			group_ids.clear();
@@ -585,7 +585,7 @@ RuleFileMagicState* RuleMatcher::InitFileMagic() const
 		assert(set->re);
 		RuleFileMagicState::Matcher* m = new RuleFileMagicState::Matcher;
 		m->state = new RE_Match_State(set->re);
-		state->matchers.append(m);
+		state->matchers.push_back(m);
 		}
 
 	// Save some memory.
@@ -706,7 +706,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		new RuleEndpointState(analyzer, from_orig, opposite, pia);
 
 	rule_hdr_test_list tests;
-	tests.append(root);
+	tests.push_back(root);
 
 	loop_over_list(tests, h)
 		{
@@ -719,7 +719,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// Current HdrTest node matches the packet, so remember it
 		// if we have any rules on it.
 		if ( hdr_test->pattern_rules || hdr_test->pure_rules )
-			state->hdr_tests.append(hdr_test);
+			state->hdr_tests.push_back(hdr_test);
 
 		// Evaluate all rules on this node which don't contain
 		// any patterns.
@@ -741,7 +741,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 						new RuleEndpointState::Matcher;
 					m->state = new RE_Match_State(set->re);
 					m->type = (Rule::PatternType) i;
-					state->matchers.append(m);
+					state->matchers.push_back(m);
 					}
 				}
 			}
@@ -795,7 +795,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 				}
 
 				if ( match )
-					tests.append(h);
+					tests.push_back(h);
 				}
 			}
 		}
@@ -918,9 +918,9 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			// Remember that all patterns have matched.
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
-				state->matched_by_patterns.append(r);
+				state->matched_by_patterns.push_back(r);
 				BroString* s = new BroString(data, data_len, 0);
-				state->matched_text.append(s);
+				state->matched_text.push_back(s);
 				}
 
 			DBG_LOG(DBG_RULES, "And has not already fired");
@@ -1314,7 +1314,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 			return false;
 	}
 
-	append_to->append(mval);
+	append_to->push_back(mval);
 
 	return true;
 	}

@@ -926,12 +926,12 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 
 	val_list vl(2 + (bool)arg1 + (bool)arg2);
 
-	vl.append(BuildConnVal());
-	vl.append(val_mgr->GetBool(is_orig));
+	vl.push_back(BuildConnVal());
+	vl.push_back(val_mgr->GetBool(is_orig));
 	if ( arg1 )
-		vl.append(new StringVal(arg1));
+		vl.push_back(new StringVal(arg1));
 	if ( arg2 )
-		vl.append(new StringVal(arg2));
+		vl.push_back(new StringVal(arg2));
 
 	ConnectionEventFast(event, std::move(vl));
 	}

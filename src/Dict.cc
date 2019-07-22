@@ -179,7 +179,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
 		delete new_entry;
 		}
 	else if ( order )
-		order->append(new_entry);
+		order->push_back(new_entry);
 
 	// Resize logic.
 	if ( tbl2 )
@@ -470,7 +470,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 
 	// We happen to know (:-() that appending is more efficient
 	// on lists than prepending.
-	chain->append(new_entry);
+	chain->push_back(new_entry);
 
 	++cumulative_entries;
 	if ( *max_num_entries_ptr < ++*num_entries_ptr )
@@ -481,7 +481,7 @@ void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
 	for ( const auto& c : cookies )
 		{
 		if ( h < (unsigned int) c->bucket )
-			c->inserted.append(new_entry);
+			c->inserted.push_back(new_entry);
 		}
 
 	return 0;

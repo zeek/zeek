@@ -221,12 +221,12 @@ void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::
 	val_list vl(2);
 
 	if ( conn_val )
-		vl.append(conn_val);
+		vl.push_back(conn_val);
 	else if ( f )
-		vl.append(f->GetVal()->Ref());
+		vl.push_back(f->GetVal()->Ref());
 
 	if ( addl )
-		vl.append(new StringVal(addl));
+		vl.push_back(new StringVal(addl));
 
 	va_list ap;
 	va_start(ap, fmt_name);
@@ -491,15 +491,15 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		val_list vl(vl_size);
 
 		if ( time )
-			vl.append(new Val(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.push_back(new Val(network_time ? network_time : current_time(), TYPE_TIME));
 
-		vl.append(new StringVal(buffer));
+		vl.push_back(new StringVal(buffer));
 
 		if ( location )
-			vl.append(new StringVal(loc_str.c_str()));
+			vl.push_back(new StringVal(loc_str.c_str()));
 
 		if ( conn )
-			vl.append(conn->BuildConnVal());
+			vl.push_back(conn->BuildConnVal());
 
 		if ( addl )
 			std::copy(addl->begin(), addl->end(), std::back_inserter(vl));

@@ -44,7 +44,7 @@ public:
 	id_list* GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(ID* id)		{ inits->append(id); }
+	void AddInit(ID* id)		{ inits->push_back(id); }
 
 	void Describe(ODesc* d) const override;
 

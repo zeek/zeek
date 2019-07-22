@@ -284,20 +284,20 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 
 	val_list vl;
 
-	vl.append(analyzer->BuildConnVal());
+	vl.push_back(analyzer->BuildConnVal());
 
 	if ( status == BifEnum::RPC_SUCCESS )
 		{
 		if ( request )
-			vl.append(request);
+			vl.push_back(request);
 		if ( reply )
-			vl.append(reply);
+			vl.push_back(reply);
 		}
 	else
 		{
-		vl.append(BifType::Enum::rpc_status->GetVal(status));
+		vl.push_back(BifType::Enum::rpc_status->GetVal(status));
 		if ( request )
-			vl.append(request);
+			vl.push_back(request);
 		}
 
 	analyzer->ConnectionEventFast(f, std::move(vl));

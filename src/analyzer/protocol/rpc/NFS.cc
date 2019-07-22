@@ -280,10 +280,10 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 					start_time, last_time, reply_len, (bool)request + (bool)reply);
 
 		if ( request )
-			vl.append(request);
+			vl.push_back(request);
 
 		if ( reply )
-			vl.append(reply);
+			vl.push_back(reply);
 
 		analyzer->ConnectionEventFast(event, std::move(vl));
 		}
@@ -325,7 +325,7 @@ val_list NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_st
 	// Returns a new val_list that already has a conn_val, and nfs3_info.
 	// These are the first parameters for each nfs_* event ...
 	val_list vl(2 + extra_elements);
-	vl.append(analyzer->BuildConnVal());
+	vl.push_back(analyzer->BuildConnVal());
 	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
@@ -346,7 +346,7 @@ val_list NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_st
 	info->Assign(11, new StringVal(c->MachineName()));
 	info->Assign(12, auxgids);
 
-	vl.append(info);
+	vl.push_back(info);
 	return vl;
 	}
 

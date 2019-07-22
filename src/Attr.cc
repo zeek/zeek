@@ -168,7 +168,7 @@ void Attributes::AddAttr(Attr* attr)
 		// We overwrite old attributes by deleting them first.
 		RemoveAttr(attr->Tag());
 
-	attrs->append(attr);
+	attrs->push_back(attr);
 	Ref(attr);
 
 	// We only check the attribute after we've added it, to facilitate
@@ -179,11 +179,11 @@ void Attributes::AddAttr(Attr* attr)
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! FindAttr(ATTR_REDEF) )
-		attrs->append(new Attr(ATTR_REDEF));
+		attrs->push_back(new Attr(ATTR_REDEF));
 
 	// For DEFAULT, add an implicit OPTIONAL.
 	if ( attr->Tag() == ATTR_DEFAULT && ! FindAttr(ATTR_OPTIONAL) )
-		attrs->append(new Attr(ATTR_OPTIONAL));
+		attrs->push_back(new Attr(ATTR_OPTIONAL));
 	}
 
 void Attributes::AddAttrs(Attributes* a)

@@ -525,7 +525,7 @@ void Connection::AddTimer(timer_func timer, double t, int do_expire,
 
 	Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
 	GetTimerMgr()->Add(conn_timer);
-	timers.append(conn_timer);
+	timers.push_back(conn_timer);
 	}
 
 void Connection::RemoveTimer(Timer* t)

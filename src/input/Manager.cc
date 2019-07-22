@@ -1825,7 +1825,7 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.append( va_arg(lP, Val*) );
+		vl.push_back( va_arg(lP, Val*) );
 
 	va_end(lP);
 
@@ -1881,7 +1881,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	for ( int j = 0; j < num_vals; j++)
 		{
 		Val* v = ValueToVal(i, vals[j], convert_error);
-		vl.append(v);
+		vl.push_back(v);
 		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
 			{
 			convert_error = true;
@@ -1916,7 +1916,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.append( va_arg(lP, Val*) );
+		vl.push_back( va_arg(lP, Val*) );
 
 	va_end(lP);
 
@@ -1933,7 +1933,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		vl.append( *i );
+		vl.push_back( *i );
 
 	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
 	}

@@ -103,7 +103,7 @@ function Broker::publish%(topic: string, ...%): bool
 	val_list args(bif_args->length() - 1);
 
 	for ( auto i = 1; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+		args.push_back((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return val_mgr->GetBool(rval);
@@ -196,7 +196,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	val_list args(bif_args->length() - 2);
 
 	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+		args.push_back((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);
@@ -237,7 +237,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	val_list args(bif_args->length() - 2);
 
 	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+		args.push_back((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	Unref(topic);

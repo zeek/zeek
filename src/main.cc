@@ -481,7 +481,7 @@ int main(int argc, char** argv)
 
 	prog = argv[0];
 
-	prefixes.append(strdup(""));	// "" = "no prefix"
+	prefixes.push_back(strdup(""));	// "" = "no prefix"
 
 	char* p = zeekenv("ZEEK_PREFIXES");
 
@@ -537,19 +537,19 @@ int main(int argc, char** argv)
 			break;
 
 		case 'i':
-			interfaces.append(optarg);
+			interfaces.push_back(optarg);
 			break;
 
 		case 'p':
-			prefixes.append(optarg);
+			prefixes.push_back(optarg);
 			break;
 
 		case 'r':
-			read_files.append(optarg);
+			read_files.push_back(optarg);
 			break;
 
 		case 's':
-			rule_files.append(optarg);
+			rule_files.push_back(optarg);
 			break;
 
 		case 't':
@@ -877,11 +877,11 @@ int main(int argc, char** argv)
 	char* s;
 	while ( (s = strsep(&tmp, " \t")) )
 		if ( *s )
-			rule_files.append(s);
+			rule_files.push_back(s);
 
 	// Append signature files defined in @load-sigs
 	for ( size_t i = 0; i < sig_files.size(); ++i )
-		rule_files.append(copy_string(sig_files[i].c_str()));
+		rule_files.push_back(copy_string(sig_files[i].c_str()));
 
 	if ( rule_files.length() > 0 )
 		{

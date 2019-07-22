@@ -170,18 +170,18 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	val_list vl(4 + orig);
 	const char* line = (const char*) data;
 	line = skip_whitespace(line);
-	vl.append(BuildConnVal());
-	vl.append(client_name ? client_name->Ref() : new StringVal("<none>"));
-	vl.append(username ? username->Ref() : new StringVal("<none>"));
-	vl.append(new StringVal(line));
+	vl.push_back(BuildConnVal());
+	vl.push_back(client_name ? client_name->Ref() : new StringVal("<none>"));
+	vl.push_back(username ? username->Ref() : new StringVal("<none>"));
+	vl.push_back(new StringVal(line));
 
 	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.append(val_mgr->GetTrue());
+			vl.push_back(val_mgr->GetTrue());
 		else
-			vl.append(val_mgr->GetFalse());
+			vl.push_back(val_mgr->GetFalse());
 
 		ConnectionEventFast(rsh_request, std::move(vl));
 		}

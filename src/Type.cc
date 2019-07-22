@@ -226,7 +226,7 @@ void TypeList::Append(BroType* t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
-	types.append(t);
+	types.push_back(t);
 	}
 
 void TypeList::AppendEvenIfNotPure(BroType* t)
@@ -237,7 +237,7 @@ void TypeList::AppendEvenIfNotPure(BroType* t)
 		pure_type = 0;
 		}
 
-	types.append(t);
+	types.push_back(t);
 	}
 
 void TypeList::Describe(ODesc* d) const
@@ -714,7 +714,7 @@ RecordType* RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
-		pass->append(new TypeDecl(*type));
+		pass->push_back(new TypeDecl(*type));
 	return new RecordType(pass);
 	}
 
@@ -853,7 +853,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 			td->attrs->AddAttr(new Attr(ATTR_LOG));
 			}
 
-		types->append(td);
+		types->push_back(td);
 		}
 
 	delete others;
@@ -1883,7 +1883,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 				return 0;
 				}
 
-			tdl3->append(new TypeDecl(tdl3_i, copy_string(td1->id)));
+			tdl3->push_back(new TypeDecl(tdl3_i, copy_string(td1->id)));
 			}
 
 		return new RecordType(tdl3);

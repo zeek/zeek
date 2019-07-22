@@ -112,4 +112,5 @@
 @load tuning/defaults/packet-fragments.zeek
 @load tuning/defaults/warnings.zeek
 @load tuning/json-logs.zeek
+@load tuning/enable-utf-8-logs.zeek
 @load tuning/track-all-assets.zeek

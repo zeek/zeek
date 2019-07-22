@@ -124,12 +124,19 @@ Here is a more detailed explanation of each attribute:
 
 .. zeek:attr:: &expire_func
 
-    Called right before a container element expires.  The function's
-    first parameter is of the same type of the container and the second
-    parameter the same type of the container's index.  The return
-    value is an :zeek:type:`interval` indicating the amount of additional
-    time to wait before expiring the container element at the given
-    index (which will trigger another execution of this function).
+    Called right before a container element expires. The function's first
+    argument is of the same type as the container it is associated with.
+    The function then takes a variable number of arguments equal to the
+    number of indexes in the container. For example, for a
+    ``table[string,string] of count`` the expire function signature is:
+
+    .. sourcecode:: zeek
+
+        function(t: table[string, string] of count, s: string, s2: string): interval
+
+    The return value is an :zeek:type:`interval` indicating the amount of
+    additional time to wait before expiring the container element at the
+    given index (which will trigger another execution of this function).
 
 .. zeek:attr:: &read_expire
 

@@ -152,6 +152,10 @@ endif ()
 
 if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
+
+    if (NOT JEMALLOC_FOUND)
+        message(FATAL_ERROR "Could not find requested JeMalloc")
+    endif()
 endif ()
 
 if ( BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5 )

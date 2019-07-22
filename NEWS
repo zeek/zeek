@@ -384,6 +384,10 @@ Changed Functionality
   The --disable-perftools flag is also no longer provided since
   there's no longer any case in which tcmalloc will be used by default.
 
+- There now is a maximum number of protocol violations that can be raised by an analyzer
+  before it is disabled; the default is set to 5. This behavior is customizable using
+  ``DPD::max_violations`` and ``DPD::ignore_violations``.
+
 Removed Functionality
 ---------------------
 

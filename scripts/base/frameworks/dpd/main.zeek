@@ -21,11 +21,16 @@ export {
 		analyzer:       string          &log;
 		## The textual reason for the analysis failure.
 		failure_reason: string          &log;
-
-		## Disabled analyzer IDs.  This is only for internal tracking
-		## so as to not attempt to disable analyzers multiple times.
-		disabled_aids:  set[count];
 	};
+
+	## Ongoing DPD state tracking information.
+	type State: record {
+		## Current number of protocol violations seen per analyzer instance.
+		violations: table[count] of count;
+	};
+
+	## Number of protocol violations to tolerate before disabling an analyzer.
+	option max_violations: table[Analyzer::Tag] of count = table() &default = 5;
 
 	## Analyzers which you don't want to throw 
 	option ignore_violations: set[Analyzer::Tag] = set();
@@ -37,6 +42,7 @@ export {
 
 redef record connection += {
 	dpd: Info &optional;
+	dpd_state: State &optional;
 };
 
 event zeek_init() &priority=5
@@ -78,19 +84,31 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,
 
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason: string) &priority=5
 	{
-	if ( !c?$dpd || aid in c$dpd$disabled_aids )
+	if ( atype in ignore_violations )
 		return;
 
 	local size = c$orig$size + c$resp$size;
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
-	if ( atype in ignore_violations )
-		return;
+	if ( ! c?$dpd_state )
+		{
+		local s: State;
+		c$dpd_state = s;
+		}
 
-	# Disable the analyzer that raised the last core-generated event.
-	disable_analyzer(c$id, aid, F);
-	add c$dpd$disabled_aids[aid];
+	if ( aid in c$dpd_state$violations )
+		++c$dpd_state$violations[aid];
+	else
+		c$dpd_state$violations[aid] = 1;
+
+	if ( c?$dpd || c$dpd_state$violations[aid] > max_violations[atype] )
+		{
+		# Disable an analyzer we've previously confirmed, but is now in
+		# violation, or else any analyzer in excess of the max allowed
+		# violations, regardless of whether it was previously confirmed.
+		disable_analyzer(c$id, aid, F);
+		}
 	}
 
 event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count,

@@ -1,4 +1,21 @@
 
+2.6-635 | 2019-07-22 10:58:56 -0700
+
+  * Add DPD::max_violations option
+
+    This allows one to tune the number of protocol violations to tolerate
+    from any given analyzer type before just disabling a given instance
+    of it.
+
+    Also removes the "disabled_aids" field from the DPD::Info record
+    since it serves no purpose: in this case, calling disable_analyzer
+    multiple times for the same analyzer is a no-op. (Jon Siwek, Corelight)
+
+  * Abort when --enable-jemalloc is given, but JeMalloc is not found
+    (Johanna Amann, Corelight)
+
+  * GH-475: Require --enable-perftools to link in tcmalloc. (Jon Siwek, Corelight)
+
 2.6-630 | 2019-07-19 18:01:44 -0700
 
   * Fix typo in NEWS (Jon Siwek, Corelight)

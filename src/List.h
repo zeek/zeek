@@ -196,7 +196,8 @@ public:
 		push_front(a);
 		}
 
-	ZEEK_DEPRECATED("Remove in v3.1: Use push_back instead")
+	// The append method is maintained for historical/compatibility reasons.
+	// (It's commonly used in the event generation API)
 	void append(const T& a)	// add to end of list
 		{
 		push_back(a);

@@ -13,16 +13,18 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=============================================================================== ===============================================================
-:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef`         Analyzers which you don't want to throw 
-:zeek:id:`DPD::ignore_violations_after`: :zeek:type:`count` :zeek:attr:`&redef` Ignore violations which go this many bytes into the connection.
-=============================================================================== ===============================================================
+=========================================================================================================================== =======================================================================
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef`                                                     Analyzers which you don't want to throw 
+:zeek:id:`DPD::ignore_violations_after`: :zeek:type:`count` :zeek:attr:`&redef`                                             Ignore violations which go this many bytes into the connection.
+:zeek:id:`DPD::max_violations`: :zeek:type:`table` :zeek:attr:`&default` = ``5`` :zeek:attr:`&optional` :zeek:attr:`&redef` Number of protocol violations to tolerate before disabling an analyzer.
+=========================================================================================================================== =======================================================================
 
 Types
 #####
-=========================================== ======================================================================
-:zeek:type:`DPD::Info`: :zeek:type:`record` The record type defining the columns to log in the DPD logging stream.
-=========================================== ======================================================================
+============================================ ======================================================================
+:zeek:type:`DPD::Info`: :zeek:type:`record`  The record type defining the columns to log in the DPD logging stream.
+:zeek:type:`DPD::State`: :zeek:type:`record` Ongoing DPD state tracking information.
+============================================ ======================================================================
 
 Redefinitions
 #############
@@ -65,6 +67,14 @@ Runtime Options
    Ignore violations which go this many bytes into the connection.
    Set to 0 to never ignore protocol violations.
 
+.. zeek:id:: DPD::max_violations
+
+   :Type: :zeek:type:`table` [:zeek:type:`Analyzer::Tag`] of :zeek:type:`count`
+   :Attributes: :zeek:attr:`&default` = ``5`` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Default: ``{}``
+
+   Number of protocol violations to tolerate before disabling an analyzer.
+
 Types
 #####
 .. zeek:type:: DPD::Info
@@ -89,10 +99,6 @@ Types
       failure_reason: :zeek:type:`string` :zeek:attr:`&log`
          The textual reason for the analysis failure.
 
-      disabled_aids: :zeek:type:`set` [:zeek:type:`count`]
-         Disabled analyzer IDs.  This is only for internal tracking
-         so as to not attempt to disable analyzers multiple times.
-
       packet_segment: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
          (present if :doc:`/scripts/policy/frameworks/dpd/packet-segment-logging.zeek` is loaded)
 
@@ -100,5 +106,14 @@ Types
          protocol violation.
 
    The record type defining the columns to log in the DPD logging stream.
+
+.. zeek:type:: DPD::State
+
+   :Type: :zeek:type:`record`
+
+      violations: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`count`
+         Current number of protocol violations seen per analyzer instance.
+
+   Ongoing DPD state tracking information.
 
 

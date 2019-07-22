@@ -6768,6 +6768,10 @@ Types
          (present if :doc:`/scripts/base/frameworks/dpd/main.zeek` is loaded)
 
 
+      dpd_state: :zeek:type:`DPD::State` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/base/frameworks/dpd/main.zeek` is loaded)
+
+
       conn: :zeek:type:`Conn::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/conn/main.zeek` is loaded)
 

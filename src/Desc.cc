@@ -259,6 +259,11 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 
 size_t check_utf8 (const char* bytes, size_t n, size_t i)
 	{
+	// Check if this is infact a multibyte UTF-8 sequence,
+	// which requires a 1 to be the first bit of the first byte
+	if (!(bytes[i] >> 7 & 1)) 
+		return 0;
+
 	// Checks two to four bytes from starting position i
 	// and returns the length of the valid utf-8 sequence
 	size_t num_to_check = ((n-i+1) < 4) ? (n-i+1) : 4;
@@ -283,7 +288,10 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 
 	for ( size_t i = 0; i < n; ++i )
 		{
-		if (!isprint(bytes[i])) 
+		if (bytes[i] == '\\' )
+			return escape_pos(bytes + i, 1);
+
+		else if (!isprint(bytes[i])) 
 			{
 			if (utf8)
 				{
@@ -296,9 +304,6 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 				}
 			return escape_pos(bytes + i, 1);
 			}
-
-		else if (bytes[i] == '\\' )
-			return escape_pos(bytes + i, 1);
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);
 

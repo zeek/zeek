@@ -47,15 +47,13 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
-    --enable-perftools     force use of Google perftools on non-Linux systems
-                           (automatically on when perftools is present on Linux)
+    --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
-    --disable-perftools    don't try to build with Google Perftools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
     --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
@@ -149,14 +147,12 @@ append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
-append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry DISABLE_PERFTOOLS    BOOL   false
 append_cache_entry SANITIZERS           STRING ""
 
 # parse arguments
@@ -247,9 +243,6 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
-            ;;
-        --disable-perftools)
-            append_cache_entry DISABLE_PERFTOOLS    BOOL   true
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true

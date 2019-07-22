@@ -378,6 +378,12 @@ Changed Functionality
     Queue::pop methods do not return a value at all (one must check for
     a non-empty container before removing an element).
 
+- Google Perftools (tcmalloc) is no longer used by default on Linux
+  systems if it's found during the configuration process.
+  Use the --enable-perftools configuration flag to use tcmalloc.
+  The --disable-perftools flag is also no longer provided since
+  there's no longer any case in which tcmalloc will be used by default.
+
 Removed Functionality
 ---------------------
 

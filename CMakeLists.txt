@@ -199,15 +199,11 @@ set(HAVE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 set(USE_PERFTOOLS_TCMALLOC false)
 
-if (NOT DISABLE_PERFTOOLS)
+if ( ENABLE_PERFTOOLS )
    find_package(GooglePerftools)
-endif ()
 
-if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
-    set(HAVE_PERFTOOLS true)
-    # Non-Linux systems may not be well-supported by gperftools, so
-    # require explicit request from user to enable it in that case.
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ENABLE_PERFTOOLS)
+    if ( GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND )
+        set(HAVE_PERFTOOLS true)
         set(USE_PERFTOOLS_TCMALLOC true)
 
         if (ENABLE_PERFTOOLS_DEBUG)
@@ -216,16 +212,12 @@ if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
             include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
             list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
         else ()
-            # Link in tcmalloc for better performance.
+            # Link in tcmalloc.
             list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
         endif ()
+    else()
+        message(FATAL_ERROR "Could not find requested Google Perftools.")
     endif ()
-endif ()
-
-if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
-    # Just a no op to prevent CMake from complaining about manually-specified
-    # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
-    # perftools weren't found
 endif ()
 
 # Making sure any non-standard OpenSSL includes get searched earlier

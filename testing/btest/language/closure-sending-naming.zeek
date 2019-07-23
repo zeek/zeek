@@ -27,7 +27,9 @@ global n = 0;
 
 function send_event()
     {
+    local event_count = 1;
     # log fails to be looked up because of a missing print statment
+    # functions must have the sama name on both ends of broker.
     local log : myfunctype = function(c: count) : function(d: count) : count
         {
         # print fmt("inside: %s | outside: %s | global: %s", c, event_count, global_with_same_name);
@@ -82,7 +84,7 @@ function my_funcs()
 
     local l : myfunctype = function(c: count) : function(d: count) : count
     {
-    print fmt("inside: %s | outside: %s | global: %s", c, event_count, global_with_same_name);
+    print fmt("dogs");
     return function(d: count) : count { return d + c; };
     };
     }

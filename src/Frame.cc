@@ -1,76 +1,40 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
-
-#include <string>
-#include <algorithm>
 #include <broker/error.hh>
+#include "broker/Data.h"
 
 #include "Frame.h"
-#include "Stmt.h"
-#include "Func.h"
 #include "Trigger.h"
-
-#include "broker/Data.h"
 
 vector<Frame*> g_frame_stack;
 
-Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
+Frame::Frame(int arg_size, const BroFunc* func, const val_list *fn_args)
 	{
 	size = arg_size;
 	frame = new Val*[size];
 	function = func;
 	func_args = fn_args;
 
-	next_stmt = 0;
+	next_stmt = nullptr;
 	break_before_next_stmt = false;
 	break_on_return = false;
 
-	trigger = 0;
-	call = 0;
+	trigger = nullptr;
+	call = nullptr;
 	delayed = false;
 
-	is_view = false;
+    closure = nullptr;
 
-	Clear();
-	}
-
-Frame::Frame(const Frame* other, bool view)
-	{
-	is_view = view;
-
-	size = other->size;
-	trigger = other->trigger;
-	call = other->call;
-
-	function = other->function;
-	func_args = other->func_args;
-
-	next_stmt = 0;
-	break_before_next_stmt = false;
-        break_on_return = false;
-	delayed = false;
-
-	if ( is_view )
-		frame = other->frame;
-	else
-		{
-		if  ( trigger )
-			Ref(trigger);
-
-		for ( int i = 0; i < size; ++i )
-			frame[i] = other->frame[i] ? other->frame[i]->Clone() : 0;
-		}
+    for (int i = 0; i < size; ++i)
+        frame[i] = nullptr;
 	}
 
 Frame::~Frame()
 	{
 	// Deleting a Frame that is a view is a no-op.
-	if ( ! is_view )
-		{
-		Unref(trigger);
-		Release();
-		}
+    Unref(trigger);
+	if (closure) Unref(closure);
+    Release();
 	}
 
 void Frame::SetElement(int n, Val* v)
@@ -81,24 +45,43 @@ void Frame::SetElement(int n, Val* v)
 
 void Frame::SetElement(const ID* id, Val* v)
 	{
+    if (closure)
+        if ( IsOuterID(id) )
+            {
+            closure->SetElement(id, v);
+            return;
+            }
+
+    // do we have an offset for it?
+    if (offset_map.size())
+        {
+        auto where = offset_map.find(std::string(id->Name()));
+        if ( where != offset_map.end() )
+            {
+            SetElement(where->second, v);
+            }
+        }
+
 	SetElement(id->Offset(), v);
 	}
 
 Val* Frame::GetElement(const ID* id) const
 	{
-	if ( HasOuterIDs() )
+    if (closure)
+        if ( IsOuterID(id) )
+			{
+            return closure->GetElement(id);
+			}
+    // do we have an offset for it?
+	if ( offset_map.size() )
 		{
 		auto where = offset_map.find(std::string(id->Name()));
 		if ( where != offset_map.end() )
-			return frame[where->second];
+			{
+			return frame[where->second];\
+			}
 		}
-
 	return frame[id->Offset()];
-	}
-
-void Frame::AddElement(const ID* id, Val* v)
-	{
-	this->SetElement(id, v);
 	}
 
 void Frame::Reset(int startIdx)
@@ -141,182 +124,261 @@ void Frame::Describe(ODesc* d) const
 			d->Add("<nil>");
 	}
 
-void Frame::Clear()
-	{
-	for ( int i = 0; i < size; ++i )
-		frame[i] = 0;
-	}
-
-Frame* Frame::Clone()
-	{
-	Frame* f = new Frame(size, function, func_args);
-	f->Clear();
-
-	for ( int i = 0; i < size; ++i )
-		f->frame[i] = frame[i] ? frame[i]->Clone() : 0;
-
-	if ( trigger )
-		Ref(trigger);
-	f->trigger = trigger;
-
-	f->call = call;
-
-	return f;
-	}
-
-Frame* Frame::SelectiveClone(id_list* selection)
+Frame* Frame::Clone() const
 	{
 	Frame* other = new Frame(size, function, func_args);
+	other->offset_map = offset_map;
+	other->CaptureClosure(closure, outer_ids);
 
-	loop_over_list(*selection, i)
-	  {
-	  ID* current = (*selection)[i];
-	  Val* v = this->frame[current->Offset()];
-	  other->frame[current->Offset()] = v ? v->Clone() : 0;
-	  }
+	other->trigger = trigger;
+	if (trigger) Ref(trigger);
+	other->call = call;
+
+	for (int i = 0; i < size; i++)
+		{
+		other->frame[i] = frame[i] ? frame[i]->Clone() : nullptr;
+		}
 
 	return other;
 	}
 
-broker::expected<broker::data> Frame::Serialize() const
+Frame* Frame::SelectiveClone(const id_list& selection) const
 	{
-	broker::vector rval;
-	rval.emplace_back(std::string("Frame"));
+	if (selection.length() == 0)
+		return nullptr;
 
-	auto om = SerializeOffsetMap();
-	if ( ! om ) return broker::ec::invalid_data;
-	rval.emplace_back( *om );
+	id_list us;
+	// and
+	id_list them;
 
-	for (int i = 0; i < size; ++i)
+	for (const auto& we : selection)
 		{
-		if ( ! frame[i] )
+		if ( ! IsOuterID(we) )
+			us.append(we);
+		else
+			them.append(we);
+		}
+
+	Frame* other = new Frame(size, function, func_args);
+
+	for (const auto& id : us)
+		{
+		if ( offset_map.size() )
 			{
-			// data
-			rval.emplace_back(broker::none());
-			// type
-			rval.emplace_back(broker::none());
+			auto where = offset_map.find(std::string(id->Name()));
+			if ( where != offset_map.end() )
+				{
+				other->frame[where->second] = frame[where->second]->Clone();
+				continue;
+				}
 			}
+		if ( ! frame[id->Offset()] )
+			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
+
+		other->frame[id->Offset()] = frame[id->Offset()]->Clone();
+		}
+
+	/**
+	 * What to do here depends on what the expected behavior of a copy
+	 * operation on a function with a closure is. As we let function's
+	 * mutate their closures, it seems reasonable that when cloned, the
+	 * clone should continue to mutate the same closure as the function
+	 * doesn't **own** the closure. Uncommenting the below if statement
+	 * will change that behavior such that the function also copies the
+	 * closure frame.
+	 */
+	// if (closure)
+	// 	other->closure = closure->SelectiveClone(them);
+	// other->outer_ids = outer_ids;
+
+	if(closure)
+		other->CaptureClosure(closure, outer_ids);
+
+	other->offset_map = offset_map;
+
+	return other;
+	}
+
+broker::expected<broker::data> Frame::Serialize(const Frame* target, id_list selection)
+    {
+	broker::vector rval;
+
+	if (selection.length() == 0)
+		return {std::move(rval)};
+
+	id_list us;
+	// and
+	id_list them;
+
+	std::unordered_map<std::string, int> new_map(target->offset_map);
+
+	for (const auto& we : selection)
+		{
+		if ( target->IsOuterID(we) )
+			them.append(we);
 		else
 			{
-			auto expected = bro_broker::val_to_data(frame[i]);
-			if ( ! expected )
-				return broker::ec::invalid_data;
-			else
-				{
-				// data
-				rval.emplace_back(std::move(*expected));
-				// type
-				rval.emplace_back(static_cast<broker::integer>(frame[i]->Type()->Tag()));
-				}
+			us.append(we);
+			new_map.insert(std::make_pair(std::string(we->Name()), we->Offset()));
 			}
 		}
+
+	if (them.length())
+		{
+		if ( ! target->closure )
+			reporter->InternalError("Attempting to serialize values from a frame that does not exist.");
+
+		rval.emplace_back(std::string("ClosureFrame"));
+
+		auto ids = SerializeIDList(target->outer_ids);
+		if ( ! ids ) return broker::ec::invalid_data;
+		rval.emplace_back(*ids);
+
+		auto serialized = Frame::Serialize(target->closure, them);
+		if ( ! serialized ) return broker::ec::invalid_data;
+
+		rval.emplace_back(*serialized);
+		}
+	else
+		rval.emplace_back(std::string("Frame"));
+
+	auto map = SerializeOffsetMap(new_map);
+	if ( ! map ) return broker::ec::invalid_data;
+	rval.emplace_back(*map);
+
+	broker::vector body;
+
+	for (int i = 0; i < target->size; ++i)
+		{
+		body.emplace_back(broker::none());
+		}
+	for (const auto& id : us)
+		{
+		int location = id->Offset();
+
+		auto where = new_map.find(std::string(id->Name()));
+		if (where != new_map.end())
+			{
+			location = where->second;
+			}
+
+		Val* val = target->frame[location];
+
+		TypeTag tag = val->Type()->Tag();
+
+		auto expected = bro_broker::val_to_data(val);
+		if ( ! expected ) return broker::ec::invalid_data;
+
+		broker::vector val_tuple {std::move(*expected), static_cast<broker::integer>(tag)};
+
+		body[location] = val_tuple;
+		}
+
+	rval.emplace_back(body);
 
 	return {std::move(rval)};
-	}
+    }
 
 std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
-	{
-	#define FAIL std::make_pair(false, nullptr)
-	#define GET_OR_RETURN(type, name, index)							\
-		if (auto __##name##__ = broker::get_if<type>(data[index]))		\
-			name = *__##name##__;										\
-		else															\
-			return FAIL;												\
+    {
+	if (data.size() == 0)
+		return std::make_pair(true, nullptr);
 
-	std::string pivot;
-	GET_OR_RETURN(std::string, pivot, 0)
+	id_list outer_ids;
+	std::unordered_map<std::string, int> offset_map;
+	Frame* closure = nullptr;
 
-	if (pivot == "Frame")
+	auto where = data.begin();
+
+	auto has_name = broker::get_if<std::string>(*where);
+	if ( ! has_name ) return std::make_pair(false, nullptr);
+	std::advance(where, 1);
+
+	if (*has_name == "ClosureFrame")
 		{
+		auto has_vec = broker::get_if<broker::vector>(*where);
+		if ( ! has_vec ) return std::make_pair(false, nullptr);
+		std::advance(where, 1);
 
-		int frame_size = (data.size() - 2) / 2;
-		// Cool -> We serialized a function with a null frame.
-		if (frame_size == 0) return std::make_pair(true, nullptr);
+		auto list_pair = UnserializeIDList(*has_vec);
+		if ( ! list_pair.first ) return std::make_pair(false, nullptr);
+		outer_ids = std::move(list_pair.second);
 
-		// Unserialize the offset map.
-		broker::vector o_map;
-		GET_OR_RETURN(broker::vector, o_map, 1)
+		has_vec = broker::get_if<broker::vector>(*where);
+		if ( ! has_vec ) return std::make_pair(false, nullptr);
+		std::advance(where, 1);
 
-		std::unordered_map<std::string, int> offset_map;
-		bool status = ClosureFrame::UnserializeIntoOffsetMap(o_map, offset_map);
-
-		// Function / arg information updated later as needed.
-		Frame* f = new Frame(frame_size, nullptr, nullptr);
-		f->offset_map = std::move(offset_map);
-
-		for (int i = 0, j = 2; i < frame_size; ++i, j += 2)
-			{
-			// Null values in the serialized frame are stored as broker::none.
-			if ( ! broker::get_if<broker::none>(data[j]) )
-				{
-				broker::integer g;
-				GET_OR_RETURN(broker::integer, g, (j+1))
-
-				BroType t( static_cast<TypeTag>(g) );
-
-				auto val = bro_broker::data_to_val(std::move(data[j]), &t);
-				if ( ! val ) return FAIL;
-
-				f->frame[i] = val;
-				}
-			}
-
-		return std::make_pair(true, f);
+		auto closure_pair = Frame::Unserialize(*has_vec);
+		if ( ! closure_pair.first ) return std::make_pair(false, nullptr);
+		closure = closure_pair.second;
 		}
 
-	else if (pivot == "ClosureFrame")
+	auto has_vec = broker::get_if<broker::vector>(*where);
+	if ( ! has_vec ) return std::make_pair(false, nullptr);
+	std::advance(where, 1);
+
+	auto map_pair = UnserializeOffsetMap(*has_vec);
+	if ( ! map_pair.first ) return std::make_pair(false, nullptr);
+	offset_map = std::move(map_pair.second);
+
+	auto has_body = broker::get_if<broker::vector>(*where);
+	if ( ! has_body ) return std::make_pair(false, nullptr);
+	broker::vector body = *has_body;
+
+	int frame_size = body.size();
+
+	// We'll associate this frame with a function later.
+	Frame* rf = new Frame(frame_size, nullptr, nullptr);
+	rf->offset_map = std::move(offset_map);
+	rf->outer_ids = std::move(outer_ids);
+	rf->closure = closure;
+
+	for (int i = 0; i < frame_size; ++i)
 		{
+		auto has_vec = broker::get_if<broker::vector>(body[i]);
+		if ( ! has_vec ) continue;
 
-		broker::vector o_map;
-		broker::vector v_closure;
-		broker::vector v_body;
+		broker::vector val_tuple = *has_vec;
+		if (val_tuple.size() != 2) return std::make_pair(false, nullptr);
 
-		GET_OR_RETURN(broker::vector, o_map, 1)
-		GET_OR_RETURN(broker::vector, v_closure, 2)
-		GET_OR_RETURN(broker::vector, v_body, 3)
+		auto has_type = broker::get_if<broker::integer>(val_tuple[1]);
+		if ( ! has_type ) return std::make_pair(false, nullptr);
 
-		std::unordered_map<std::string, int> offset_map;
-		bool status = ClosureFrame::UnserializeIntoOffsetMap(o_map, offset_map);
+		broker::integer g = *has_type;
+		BroType t( static_cast<TypeTag>(g) );
 
-		if ( ! status ) return FAIL;
+		Val* val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
+		if ( ! val ) return std::make_pair(false, nullptr);
 
-		auto result = Frame::Unserialize(v_closure);
-		if ( ! result.first )
-			return FAIL;
-		Frame* closure = result.second;
-
-		result = Frame::Unserialize(v_body);
-		if ( ! result.first )
-			return FAIL;
-		Frame* body = result.second;
-
-		ClosureFrame* c = new ClosureFrame(closure, body, nullptr);
-		c->offset_map = std::move(offset_map);
-
-		return std::make_pair(true, c);
+		rf->frame[i] = val;
 		}
 
-	return FAIL;
-	#undef GET_OR_RETURN
-	#undef FAIL
-	}
+	return std::make_pair(true, rf);
+    }
 
-void Frame::SetOuterIDs (std::shared_ptr<id_list> outer_ids)
-	{
-	// When cloning we bypass this step and just directly copy over the map,
-	// hence the check.
-	if ( ! outer_ids ) return;
+void Frame::AddKnownOffsets(const id_list& ids)
+    {
+    std::transform(ids.begin(), ids.end(), std::inserter(offset_map, offset_map.end()),
+        [] (const ID* id) -> std::pair<std::string, int>
+        {
+        return std::make_pair( std::string(id->Name()), id->Offset() );
+        });
+    }
 
-	if (offset_map.size()) return;
+void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
+    {
+    if (closure) reporter->InternalError("Attempted to override a closure.");
 
-	id_list tmp = *(outer_ids.get());
-	loop_over_list(tmp, i)
-	  {
-	    ID* id = tmp[i];
-	    if (id)
-	      offset_map.emplace(id->Name(), id->Offset());
-	  }
-	}
+    outer_ids = std::move(arg_outer_ids);
+	closure = c;
+	if (closure) Ref(closure);
+
+	/**
+	 * Want to capture closures by copy?
+	 * You'll also need to remove the Unref in the destructor.
+	 */
+	// if (c) closure = c->SelectiveClone(outer_ids);
+    }
 
 void Frame::SetTrigger(Trigger* arg_trigger)
 	{
@@ -331,188 +393,85 @@ void Frame::SetTrigger(Trigger* arg_trigger)
 void Frame::ClearTrigger()
 	{
 	Unref(trigger);
-	trigger = 0;
+	trigger = nullptr;
 	}
 
-bool Frame::CaptureContains(const ID* i) const
+bool Frame::IsOuterID(const ID* in) const
 	{
-	auto where = offset_map.find(std::string(i->Name()));
-	return where != offset_map.end();
+	return std::any_of(outer_ids.begin(), outer_ids.end(),
+		[&in](ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
 	}
 
-ClosureFrame::ClosureFrame(Frame* arg_closure, Frame* not_closure,
-	std::shared_ptr<id_list> outer_ids) : Frame(not_closure, true)
-	{
-	assert(arg_closure);
-
-	closure = arg_closure;
-	body = not_closure;
-
-	SetOuterIDs(outer_ids);
-	}
-
-ClosureFrame::~ClosureFrame()
-	{
-	// No need to Unref the closure. BroFunc handles this.
-	// Unref body though. When the ClosureFrame is done, so is
-	// the frame that is is wrapped around.
-
-	// TODO(robin): It would be good handle body & closure the same in
-	// terms needing to ref/unref; it's easy to get confused otherwise.
-	Unref(body);
-	}
-
-Val* ClosureFrame::GetElement(const ID* id) const
-	{
-	if ( CaptureContains(id) )
-		{
-		int my_offset = offset_map.at(std::string(id->Name()));
-		return ClosureFrame::GatherFromClosure(this, id, my_offset);
-		}
-
-	return NthElement(id->Offset());
-	}
-
-void ClosureFrame::SetElement(const ID* id, Val* v)
-	{
-	if ( CaptureContains(id) )
-		{
-		int my_offset = offset_map.at(std::string(id->Name()));
-		ClosureFrame::SetInClosure(this, id, v, my_offset);
-		return;
-		}
-
-	Frame::SetElement(id->Offset(), v);
-	}
-
-Frame* ClosureFrame::Clone()
-	{
-	Frame* new_closure = closure->Clone();
-	Frame* new_regular = body->Clone();
-
-	ClosureFrame* cf = new ClosureFrame(new_closure, new_regular, nullptr);
-	cf->offset_map = offset_map;
-	return cf;
-	}
-
-Frame* ClosureFrame::SelectiveClone(id_list* choose)
-	{
-	id_list us;
-	// and
-	id_list them;
-
-	for (const auto& we : *choose)
-		{
-		if ( CaptureContains(we) )
-			us.append(we);
-		else
-			them.append(we);
-		}
-
-	Frame* me = closure->SelectiveClone(&us);
-	// and
-	Frame* you = body->SelectiveClone(&them);
-
-	ClosureFrame* who = new ClosureFrame(me, you, nullptr);
-	who->offset_map = offset_map;
-
-	return who;
-	}
-
-broker::expected<broker::data> ClosureFrame::Serialize() const
+broker::expected<broker::data> Frame::SerializeIDList(const id_list& in)
 	{
 	broker::vector rval;
-	rval.emplace_back(std::string("ClosureFrame"));
 
-	auto om = SerializeOffsetMap();
-	if ( ! om )
-		return broker::ec::invalid_data;
+	for (const auto& id : in)
+		{
+		// name
+		rval.emplace_back(std::string(id->Name()));
+		// offset
+		rval.emplace_back(id->Offset());
+		}
 
-	rval.emplace_back( *om );
-
-	auto cl = closure->Serialize();
-	if ( ! cl )
-		return broker::ec::invalid_data;
-
-	rval.emplace_back( *cl );
-
-	auto bo = body->Serialize();
-	if ( ! bo )
-		return broker::ec::invalid_data;
-
-	rval.emplace_back(*bo);
 	return {std::move(rval)};
 	}
 
-broker::expected<broker::data> Frame::SerializeOffsetMap() const
+broker::expected<broker::data>
+Frame::SerializeOffsetMap(const std::unordered_map<std::string, int>& in)
 	{
 	broker::vector rval;
 
-	std::for_each(offset_map.begin(), offset_map.end(),
+	std::for_each(in.begin(), in.end(),
 		[&rval] (const std::pair<std::string, int>& e)
 			{ rval.emplace_back(e.first); rval.emplace_back(e.second);});
 
 	return {std::move(rval)};
 	}
 
-bool ClosureFrame::UnserializeIntoOffsetMap(const broker::vector& data, std::unordered_map<std::string, int>& target)
+std::pair<bool, id_list>
+Frame::UnserializeIDList(const broker::vector& data)
 	{
-	assert(target.size() == 0);
+	id_list rval;
+	if (data.size() % 2 != 0) return std::make_pair(false, std::move(rval));
 
+	auto where = data.begin();
+	while (where < data.end())
+		{
+		auto has_name = broker::get_if<std::string>(*where);
+		if ( ! has_name ) return std::make_pair(false, std::move(rval));
+
+		ID* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
+
+		std::advance(where, 1);
+		auto has_offset = broker::get_if<broker::integer>(*where);
+		if ( ! has_offset ) return std::make_pair(false, std::move(rval));
+
+		id->SetOffset(*has_offset);
+		rval.push_back(id);
+		std::advance(where, 1);
+		}
+
+	return std::make_pair(true, std::move(rval));
+	}
+
+std::pair<bool, std::unordered_map<std::string, int>>
+Frame::UnserializeOffsetMap(const broker::vector& data)
+	{
 	std::unordered_map<std::string, int> rval;
 
 	for (broker::vector::size_type i = 0; i < data.size(); i += 2)
 		{
 		auto key = broker::get_if<std::string>(data[i]);
 		if ( ! key )
-			return false;
+			return std::make_pair(false, std::move(rval));
 
 		auto offset = broker::get_if<broker::integer>(data[i+1]);
 		if ( ! offset )
-			return false;
+			return std::make_pair(false, std::move(rval));
 
-		target.insert( {std::move(*key), std::move(*offset)} );
+		rval.insert( {std::move(*key), std::move(*offset)} );
 		}
 
-	return true;
-	}
-
-// Each ClosureFrame knows all of the outer IDs that are used inside of it.
-// This is known at parse time. These leverage that. If frame_1 encloses
-// frame_2 then the location of a lookup for an outer id in frame_2 can be
-// determined by checking if that id is also an outer id in frame_2. If it is
-// not, then frame_2 owns the id and the lookup is done there, otherwise, go
-// deeper.
-Val* ClosureFrame::GatherFromClosure(const Frame* start, const ID* id, const int offset)
-	{
-	const ClosureFrame* conductor = dynamic_cast<const ClosureFrame*>(start);
-
-	// If a subframe has outer IDs then it was serialized and passed around before this frame
-	// was born. We differ to its maping as it is older and wiser. Otherwise, we use our own.
-	if ( ! conductor )
-		{
-		if ( start->HasOuterIDs() )
-			return start->GetElement(id);
-
-		return start->NthElement(offset);
-		}
-
-	if ( conductor->CaptureContains(id) )
-		return ClosureFrame::GatherFromClosure(conductor->closure, id, offset);
-
-	return conductor->NthElement(offset);
-	}
-
-void ClosureFrame::SetInClosure(Frame* start, const ID* id, Val* val, const int offset)
-	{
-	ClosureFrame* conductor = dynamic_cast<ClosureFrame*>(start);
-
-	if ( ! conductor )
-		start->SetElement(offset, val);
-
-	else if ( conductor->CaptureContains(id) )
-		ClosureFrame::SetInClosure(conductor->closure, id, val, offset);
-
-	else
-		conductor->Frame::SetElement(offset, val);
+	return std::make_pair(true, std::move(rval));
 	}

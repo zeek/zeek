@@ -372,7 +372,7 @@ struct val_converter {
 				if ( ! frame )
 					return nullptr;
 
-				auto b = dynamic_cast<BroFunc*>(rval->AsFunc());
+				BroFunc* b = dynamic_cast<BroFunc*>(rval->AsFunc());
 				if ( ! b )
 					return nullptr;
 
@@ -863,19 +863,19 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 	case TYPE_FILE:
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
-	        {
+		{
 		Func* f = v->AsFunc();
 		std::string name(f->Name());
 
 		broker::vector rval;
 		rval.push_back(name);
 
-		if ( name.find("anonymous-function") == 0 )
+		if ( name.find("lambda_< ") == 0 )
 			{
 			// Only BroFuncs have closures.
 			if ( auto b = dynamic_cast<BroFunc*>(f) )
 				{
-				auto bc = dynamic_cast<BroFunc*>(f)->SerializeClosure();
+				auto bc = b->SerializeClosure();
 				if ( ! bc )
 					return broker::ec::invalid_data;
 
@@ -883,7 +883,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 				}
 			else
 				{
-				reporter->InternalWarning("closure with non-BroFunc");
+				reporter->InternalWarning("Closure with non-BroFunc");
 				return broker::ec::invalid_data;
 				}
 			}

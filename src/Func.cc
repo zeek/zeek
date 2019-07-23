@@ -267,7 +267,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 	}
 
 BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		 int arg_frame_size, int priority) : Func(BRO_FUNC)
+		 size_t arg_frame_size, int priority) : Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
 	type = arg_id->Type()->Ref();
@@ -300,7 +300,6 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-
 	SegmentProfiler(segment_logger, location);
 
 	if ( sample_logger )
@@ -329,7 +328,9 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	Frame* f = new Frame(frame_size, this, args);
 
 	if ( closure )
-		f = new ClosureFrame(closure, f, outer_ids);
+		{
+		f->CaptureClosure(closure, outer_ids);
+		}
 
 	// Hand down any trigger.
 	if ( parent )
@@ -388,8 +389,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 				{
 				Unref(f);
-				// TODO(robin): Shouldn't "result" have been left unset in this case?
-				Unref(result);
+				// Result not set b/c exception was thrown
 				throw;
 				}
 
@@ -483,9 +483,11 @@ void BroFunc::AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 	sort(bodies.begin(), bodies.end());
 	}
 
-void BroFunc::AddClosure(std::shared_ptr<id_list> ids, Frame* f)
+void BroFunc::AddClosure(id_list ids, Frame* f)
 	{
-	SetOuterIDs(ids);
+	if (! f) return;
+
+	SetOuterIDs(std::move(ids));
 	SetClosureFrame(f);
 	}
 
@@ -495,7 +497,8 @@ void BroFunc::SetClosureFrame(Frame* f)
 		reporter->InternalError("Tried to override closure for BroFunc %s.",
 					Name());
 
-	closure = f ? f->SelectiveClone( outer_ids.get() ) : nullptr;
+	closure = f;
+	Ref(closure);
 	}
 
 bool BroFunc::UpdateClosure(const broker::vector& data)
@@ -519,14 +522,14 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 
 Func* BroFunc::DoClone()
 	{
-	// A BroFunc could hold a closure. In this case a clone of it must
+	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
 	BroFunc* other = new BroFunc();
 
 	CopyStateInto(other);
 
 	other->frame_size = frame_size;
-	other->closure = closure ? closure->Clone() : nullptr;
+	other->closure = closure ? closure->SelectiveClone(outer_ids) : nullptr;
 	other->outer_ids = outer_ids;
 
 	return other;
@@ -534,16 +537,7 @@ Func* BroFunc::DoClone()
 
 broker::expected<broker::data> BroFunc::SerializeClosure() const
 	{
-	if ( ! closure )
-		return broker::vector({"Frame"});
-
-	closure->SetOuterIDs(outer_ids);
-
-	auto e = closure->Serialize();
-	if ( ! e )
-		return broker::ec::invalid_data;
-
-	return *e;
+	return Frame::Serialize(closure, outer_ids);
 	}
 
 void BroFunc::Describe(ODesc* d) const

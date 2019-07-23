@@ -93,7 +93,7 @@ protected:
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, int frame_size, int priority);
+	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority);
 	~BroFunc() override;
 
 	int IsPure() const override;
@@ -106,7 +106,7 @@ public:
 	 * @param ids IDs that are captured by the closure.
 	 * @param f the closure to be captured.
 	 */
-	void AddClosure(std::shared_ptr<id_list> ids, Frame* f);
+	void AddClosure(id_list ids, Frame* f);
 
 	/**
 	 * Replaces the current closure with one built from *data*
@@ -126,7 +126,7 @@ public:
 			int priority) override;
 
 	/** Sets this function's outer_id list. */
-	void SetOuterIDs(std::shared_ptr<id_list> ids)
+	void SetOuterIDs(id_list ids)
 		{ outer_ids = std::move(ids); }
 
 	void Describe(ODesc* d) const override;
@@ -149,10 +149,10 @@ protected:
 	void SetClosureFrame(Frame* f);
 
 private:
-	int frame_size;
+	size_t frame_size;
 
 	// List of the outer IDs used in the function.
-	std::shared_ptr<id_list> outer_ids = nullptr;
+	id_list outer_ids;
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
 };

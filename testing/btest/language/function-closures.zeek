@@ -77,8 +77,8 @@ event zeek_init()
 	local ac = copy(adder);
 	print ac(2);
 
-	# copies closure:
-	print "expect: 100";
+	# can mutate closure:
+	print "expect: 101";
 	print cat_dog;
 	
 	# complicated - has state across calls
@@ -99,7 +99,7 @@ event zeek_init()
 	print stepper(15);
 
 	# another copy check
-	print "expect: 225";
+	print "expect: 290";
 	print twotwofive(15);
 
 	local hamster : count = 3;
@@ -114,12 +114,13 @@ event zeek_init()
 	    [3] = "client",
             } &default = function(i: count):string { return fmt("unknown-%d. outside-%d", i, hamster += 1); } &redef;
 
+	# changing the value here will show in the function.
 	hamster += hamster;
 	
-	print "expect: unknown-11. outside-4";
+	print "expect: unknown-11. outside-7";
 	print modes[11];
 	local dogs = copy(modes);
-	print "expect: unknown-11. outside-5";
+	print "expect: unknown-11. outside-8";
 	print modes[11];
 
 	print "expect: client";
@@ -127,7 +128,8 @@ event zeek_init()
 	
 	print "expect: client";
 	print dogs[3];
-	print "expect: unknown-33. outside-5";
+	# this is subtle -> copying is a deep copy so afer the copy
+	print "expect: unknown-33. outside-8";
 	print dogs[33];	
 
 	print "";

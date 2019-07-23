@@ -960,7 +960,7 @@ protected:
 class LambdaExpr : public Expr {
 public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
-		   std::shared_ptr<id_list> outer_ids);
+		   id_list outer_ids);
 
 	Val* Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -971,13 +971,14 @@ protected:
 private:
 	std::unique_ptr<function_ingredients> ingredients;
 
-	// TODO(robin): I'm wondering if we should just generally pass all
-	// the new "id_list" instances by value (or const ref where it
-	// works). It's going to be very small and easy to copy; and a
-	// shared_ptr with dynamic memory comes with overhead, too. (I'm
-	// actually tempted to suggest the same for "ingredients" though
-	// that's less clear.)
-	std::shared_ptr<id_list> outer_ids;
+	// I prefer a shared pointer here to copying. Despite the
+	// list being quite small most of the time, there is much
+	// copying that happens.
+	// 1 - when a function is created
+	// 2 - when that function is called (to create the closure)
+	// 2 - when a closure is cloned / serialized
+	id_list outer_ids;
+	std::string my_name;
 };
 
 class EventExpr : public Expr {

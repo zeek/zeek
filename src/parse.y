@@ -1229,12 +1229,13 @@ anonymous_function:
 
 		'}'
 			{
-                        // TODO(robin): Can move the following into end_func()?
-			// If so, we could reuse the "func_body" rule here and avoid the code duplication.
-
+			// Code duplication here is sad but needed. end_func actually instantiates the function
+			// and associates it with an ID. We perform that association later and need to return
+			// a lambda expression.
+			
 			// Gather the ingredients for a BroFunc from the current scope
 			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(current_scope(), $5);
-			std::shared_ptr<id_list> outer_ids = gather_outer_ids(pop_scope(), $5);
+			id_list outer_ids = gather_outer_ids(pop_scope(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}

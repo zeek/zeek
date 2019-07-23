@@ -1,7 +1,7 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
 # @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
+# @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
 #
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff send/send.out
@@ -18,6 +18,7 @@ global ping: event(msg: string, f: myfunctype);
 
 event zeek_init()
     {
+    print "hello :)";
     Broker::subscribe("zeek/event/my_topic");
     Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
@@ -55,12 +56,12 @@ function send_event()
     ++n;
     if ( n % 2 == 0)
         {
-        local e2 = Broker::make_event(ping, "function 1", log);
+        local e2 = Broker::make_event(ping, "function 1", l);
         Broker::publish("zeek/event/my_topic", e2);
         }
     else
         {
-        local e = Broker::make_event(ping, "function 2", l);
+        local e = Broker::make_event(ping, "function 2", log);
         Broker::publish("zeek/event/my_topic", e);
         }
     }
@@ -117,15 +118,17 @@ function my_funcs()
 
     local dog_fish = function (base_step : count) : function (step : count) : count
         {
-print fmt("begin: %s | base_step: %s", begin, base_step); # actual formatting doesn't matter for name resolution.
-return function (step : count) : count
-    {
-                print fmt("begin: %s | base_step: %s | step: %s", begin, base_step, step);
-                return (begin += base_step + step); }; };
-    }
+# actual formatting doesn't matter for name resolution.
+print fmt("begin: %s | base_step: %s", begin, base_step);
+        return function (step : count) : count
+            {
+                        print fmt("begin: %s | base_step: %s | step: %s", begin, base_step, step);
+                        return (begin += base_step + step); }; };
+        }
 
 event zeek_init()
     {
+    print "hello :-)";
     Broker::subscribe("zeek/event/my_topic");
     Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
@@ -145,6 +148,7 @@ global n = 0;
 event ping(msg: string, f: myfunctype)
     {
     print fmt("receiver got ping: %s", msg);
+    terminate();
     ++n;
     local adder = f(n);
     print adder(76);

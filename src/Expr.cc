@@ -4317,7 +4317,7 @@ void CallExpr::ExprDescribe(ODesc* d) const
 	}
 
 LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
-		       std::shared_ptr<id_list> arg_outer_ids) : Expr(EXPR_LAMBDA)
+		       id_list arg_outer_ids) : Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
@@ -4340,15 +4340,13 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	dummy_func->Describe(&d);
 	const char* desc = d.Description();
 
+	my_name = "lambda_< " + std::to_string( std::hash<std::string>()( std::string(desc) ) ) + " >";
+
 	// Install that in the global_scope
-	//
-	// TODO(robin): Let's canonify these names a bit, otherwise somebody
-	// iterating through the namespace might be up surprised ... How
-	// about calling them "lambda_<short_hash_of(desc)>"?
-	ID* id = install_ID(desc, current_module.c_str(), true, false);
+	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(desc);
+	dummy_func->SetName(my_name.c_str());
 
 	Val* v = new Val(dummy_func);
 	id->SetVal(v); // id will unref v when its done.
@@ -4367,15 +4365,9 @@ Val* LambdaExpr::Eval(Frame* f) const
 
 	lamb->AddClosure(outer_ids, f);
 
-	// TODO(robin): Similar to above, plus: Could we cache this name?
-	// Isn't the same on every on Eval()?
-	ODesc d;
-	lamb->Describe(&d);
-	const char* desc = d.Description();
-
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
-	lamb->SetName(desc);
+	lamb->SetName(my_name.c_str());
 
 	return new Val(lamb);
 	}

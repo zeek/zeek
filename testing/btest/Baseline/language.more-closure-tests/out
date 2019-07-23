@@ -1,0 +1,8 @@
+expect [1, 3, 5]
+[1, 3, 5]
+expect 16
+16
+expect [8, 16, 24]
+[8, 16, 24]
+thunder
+buster

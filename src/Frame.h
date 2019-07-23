@@ -3,115 +3,202 @@
 #ifndef frame_h
 #define frame_h
 
+#include <unordered_map>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
 #include "Val.h"
 
-class BroFunc;
 class Trigger;
 class CallExpr;
-class Val;
 
-// TODO(robin): As discussed, I think this would benefit from merging the two closes.
-// I don't think having that one derived class buys us much in the end in terms
-// of performance, and it makes the code quite a bit more complex.
-
-class Frame : public BroObj {
+class Frame :  public BroObj {
 public:
-	Frame(int size, const BroFunc* func, const val_list *fn_args);
+    /**
+     * Constructs a new frame belonging to *func* with *fn_args*
+     * arguments.
+     * 
+     * @param the size of the frame
+     * @param func the function that is creating this frame
+     * @param fn_args the arguments being passed to that function.
+     */
+    Frame(int size, const BroFunc* func, const val_list *fn_args);
 
-	// Constructs a copy, or view, of another frame. If a view is
-	// constructed the destructor will not change other's state on
-	// deletion.
-	Frame(const Frame* other, bool is_view = false);
+    /**
+     * Deletes the frame. Unrefs its trigger, the values that it
+     * contains and its closure if applicable.
+     */
+    ~Frame() override;
 
-	~Frame() override;
+    /**
+     * @param n the index to get.
+     * @return the value at index *n* of the underlying array.
+     */
+    Val* NthElement(int n) const	{ return frame[n]; }
 
-	Val* NthElement(int n) const	{ return frame[n]; }
+    /**
+     * Sets the element at index *n* of the underlying array
+     * to *v*.
+     * 
+     * @param n the index to set
+     * @param v the value to set it to
+     */
 	void SetElement(int n, Val* v);
-	virtual void SetElement(const ID* id, Val* v);
-	virtual Val* GetElement(const ID* id) const;
-	void AddElement(const ID* id, Val* v);
 
+    /**
+     * Associates *id* and *v* in the frame. Future lookups of
+     * *id* will return *v*.
+     * 
+     * @param id the ID to associate
+     * @param v the value to associate it with
+     */
+	void SetElement(const ID* id, Val* v);
+
+    /**
+     * Gets the value associated with *id* and retuns it. Returns
+     * nullptr if no such element exists.
+     * 
+     * @param id the id who's value to retreive
+     * @return the value associated with *id*
+     */
+	Val* GetElement(const ID* id) const;
+
+    /**
+     * Resets all of the indexes from [*startIdx, frame_size) in
+     * the Frame. Unrefs all of the values in reset indexes.
+     * 
+     * @param the first index to unref.
+     */
 	void Reset(int startIdx);
+    /**
+     * Resets all of the values in the frame and clears out the
+     * underlying array.
+     */
 	void Release();
 
+    /**
+     * Describes the frame and all of its values.
+     */
 	void Describe(ODesc* d) const override;
 
-	// For which function is this stack frame.
+	/**
+     * @return the function that the frame is associated with.
+     */
 	const BroFunc* GetFunction() const	{ return function; }
+
+    /**
+     * @return the arguments passed to the function that this frame
+     * is associated with.
+     */
 	const val_list* GetFuncArgs() const	{ return func_args; }
 
- 	// Changes the function associated with the frame.
+ 	/**
+      * Change the function that the frame is associated with.
+      * 
+      * @param func the function for the frame to be associated with.
+      */
 	void SetFunction(BroFunc* func)	{ function = func; }
 
-	// Next statement to be executed in the context of this frame.
+	/**
+     * Sets the next statement to be executed in the context of the frame.
+     * 
+     * @param stmt the statement to set it to.
+     */
 	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
+
+    /**
+     * @return the next statement to be executed in the context of the frame.
+     */
 	Stmt* GetNextStmt() const	{ return next_stmt; }
 
-	// Used to implement "next" command in debugger.
+	/** Used to implement "next" command in debugger. */
 	void BreakBeforeNextStmt(bool should_break)
 		{ break_before_next_stmt = should_break; }
 	bool BreakBeforeNextStmt() const
 		{ return break_before_next_stmt; }
 
-	// Used to implement "finish" command in debugger.
+	/** Used to implement "finish" command in debugger. */
 	void BreakOnReturn(bool should_break)
 		{ break_on_return = should_break; }
 	bool BreakOnReturn() const	{ return break_on_return; }
 
-	// Deep-copies values.
-	virtual Frame* Clone();
+     /**
+      * Performs a deep copy of all the values in the current frame. If
+      * th frame has a closure the returned frame captures that closure.
+      * As such, performing a clone operation does not copy the values
+      * in the closure.
+      * 
+      * @return a copy of this frame.
+      */
+     Frame* Clone() const;
 
-	/**
-	 * Clones this frame, only copying values corresponding to IDs in
-	 * *selection*. All other values are null.
-	 *
-	 * @param selection a list of IDs that will be cloned into the new
-	 * frame.
-	 * @return a new frame with the requested values and ref count +1
-	 */
-	virtual Frame* SelectiveClone(id_list* selection);
+     /**
+      * Clones a Frame, only making copies of the values associated with
+      * the IDs in selection. Cloning a frame does not clone its closure
+      * instead is makes a new copy of the frame which Refs the closure
+      * and all the elements that it might use from that closure. 
+      * 
+      * Unlike a regular clone operation where cloning the closure is quite
+      * hard because of circular references, cloning the closure here is
+      * possible. See Frame.cc for more notes on this.
+      * 
+      * @return A copy of the frame where all the values assocaited with
+      * *selection* have been cloned. All other values are made to be 
+      * null.
+      */
+     Frame* SelectiveClone(const id_list& selection) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
+      * 
+      * Serializing a frame can be fairly non-trivial. If the frame has no
+      * closure the serialized frame is just a vector: 
+      * 
+      * [ "Frame", [offset_map] [serialized_values] ]
+      * 
+      * Where serialized_values are two element vectors. A serialized_value
+      * has the result of calling broker::data_to_val on the value in the
+      * first index, and an integer representing that value's type in the
+      * second index. offser_map is a serialized version of the frame's
+      * offset_map
+      * 
+      * A Frame with a closure needs to serialize a little more information.
+      * It is serialized as:
+      * 
+      * [ "ClosureFrame", [outer_ids], Serialize(closure), [offset_map],
+      *   [serialized_values] ]
 	 *
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	*/
-	virtual broker::expected<broker::data> Serialize() const;
+	static broker::expected<broker::data> Serialize(const Frame* target, const id_list selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.
 	 *
 	 * @return a pair in which the first item is the status of the serialization;
 	 * and the second is the unserialized frame with reference count +1, or
-	 * null if the serialization wasn't succesful.
+	 * null if the serialization wasn't successful.
 	 */
 	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
 
 	/**
-	 * Installs *outer_ids* into the set of IDs the frame knows offsets for.
-	 *
-	 * Note: This needs to be done before serializing a Frame to guarantee that
-	 * the unserialized frame will perform lookups properly.
-	 *
-	 * @param outer_ids the ids that this frame holds
+	 * Sets the IDs that the frame knows offsets for. These offsets will be 
+      * used instead of the provided ones for future lookups of IDs in *ids*.
+      * 
+	 * @param ids the ids that the frame will intake.
 	 */
-	void SetOuterIDs(std::shared_ptr<id_list> outer_ids);
+	void AddKnownOffsets(const id_list& ids);
 
-	/**
-	 * @return does this frame have any IDs installed to know their
-	 * offsets?
-	 */
-	bool HasOuterIDs() const { return offset_map.size(); }
+     /**
+      * Captures *c* as this frame's closure and Refs all of the values
+      * corresponding to outer_ids in that closure. This also Refs *c* as
+      * the frame will unref it upon deconstruction.
+      */
+     void CaptureClosure(Frame* c, id_list outer_ids);
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
@@ -126,116 +213,71 @@ public:
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
 
-protected:
-	void Clear();
-
-	/**
-	 * Does offset_map contain an offset corresponding to *i*?
-	 *
-	 * @param i the ID to check for.
-	 * @return true of offset_map has an offset for i, false otherwise.
-	 */
-	bool CaptureContains(const ID* i) const;
-
-	/**
-	 * Serializes this Frame's offset map.
-	 *
-	 * @return a serialized version of the offset map.
-	 */
-	broker::expected<broker::data> SerializeOffsetMap() const;
-
-	Val** frame;
-	int size;
-
-	const BroFunc* function;
-	const val_list* func_args;
-	Stmt* next_stmt;
-
-	bool break_before_next_stmt;
-	bool break_on_return;
-
-	Trigger* trigger;
-	const CallExpr* call;
-	bool delayed;
-
-	/**
-	 * Maps ID names to the offsets they had when passed into the frame.
-	 *
-	 * A frame that has been serialized maintains its own map between IDs and
-	 * their offsets. This is because a serialized frame is not guaranteed to
-	 * be unserialized somewhere where the offsets for the IDs that it contains
-	 * are the same.
-	 */
-	std::unordered_map<std::string, int> offset_map;
 
 private:
+     /** Have we captured this id? */
+     bool IsOuterID(const ID* in) const;
 
-	/**
-	 * Wether or not this frame is a view of another one. Frames that
-	 * are views do not delete their underlying frame on deletion.
-	 */
-	bool is_view;
+     /** Serializes an offset_map */
+     static broker::expected<broker::data>
+     SerializeOffsetMap(const std::unordered_map<std::string, int>& in);
+
+     /** Serializes an id_list */
+     static broker::expected<broker::data>
+     SerializeIDList(const id_list& in);
+
+     /** Unserializes an offset map. */
+     static std::pair<bool, std::unordered_map<std::string, int>>
+     UnserializeOffsetMap(const broker::vector& data);
+
+     /** Unserializes an id_list. */
+     static std::pair<bool, id_list>
+     UnserializeIDList(const broker::vector& data);
+
+     /** The number of vals that can be stored in this frame. */
+     int size;
+
+     /** Associates ID's offsets with values. */
+     Val** frame;
+
+     /** The enclosing frame of this frame. */
+     Frame* closure;
+
+     /** ID's used in this frame from the enclosing frame. */
+     id_list outer_ids;
+
+     /** 
+     * Maps ID names to offsets. Used if this frame is  serialized
+     * to maintain proper offsets after being sent elsewhere.
+     */
+     std::unordered_map<std::string, int> offset_map;
+
+     /** The function this frame is associated with. */
+     const BroFunc* function;
+     /** The arguments to the function that this Frame is associated with. */
+     const val_list* func_args;
+
+     /** The next statement to be evaluted in the context of this frame. */
+     Stmt* next_stmt;
+
+     bool break_before_next_stmt;
+     bool break_on_return;
+
+     Trigger* trigger;
+     const CallExpr* call;
+     bool delayed;
 };
-
 
 /**
- * Frame variant that allows for performing operation on both a regular frame
- * and an additional closure frame according to a list of outer IDs captured
- * in the closure passed into the constructor.
+ * If we stopped using this and instead just made a struct of the information
+ * that the debugger actually uses we could make the Frame a class a template.
+ * The template argument could be <int frame_size> and doing this would allow
+ * us to use an std::array under the hood rather than a c style array.
+ * 
+ * Another way to do this might to be to have Frame inherit from a class
+ * DebugFrame which provides the information that the debugger uses. See:
+ * https://stackoverflow.com/a/16211097
  */
-class ClosureFrame : public Frame {
-public:
-	/**
-	 * Constructs a closure frame from a closure and body frame, and a
-	 * list of ids for which this frame should refer to its closure for
-	 * values. For other, non-closure ID the ClosureFrame is just a view
-	 * of the body frame. 
-	 *
-	 * @param closure the frame that holds IDs in *outer_ids*.
-	 * @param body the frame to refer to for all non-closure actions.
-	 * @param outer_ids a list of ids that have been captured by the ClosureFrame.
-	 * These inform the closure on where to refer get and set operations.
-	 */
-	ClosureFrame(Frame* closure, Frame* body, std::shared_ptr<id_list> outer_ids);
-	~ClosureFrame() override;
-
-	Val* GetElement(const ID* id) const override;
-	void SetElement(const ID* id, Val* v) override;
-
-	Frame* Clone() override;
-	Frame* SelectiveClone(id_list* selection) override;
-
-	broker::expected<broker::data> Serialize() const override;
-	static bool UnserializeIntoOffsetMap
-		(const broker::vector& data, std::unordered_map<std::string, int>& target);
-
-private:
-	/**
-	 * Finds the value corresponding to *id* in the closure of *start*.
-	 *
-	 * @param start the frame to begin the search from
-	 * @param id the ID whose corresponding value is to be collected.
-	 * @param offset the offset at which to look for id's value when its
-	 * frame has been found.
-	 * @return the value corresponding to *id*.
-	 */
-	static Val* GatherFromClosure(const Frame* start, const ID* id, const int offset);
-
-	/**
-	 * Sets the Value corresponding to *id* in the closure of *start* to *val*
-	 *
-	 * @param start the frame to begin the search from
-	 * @param val the value to associate with *id* in the closure.
-	 * @param id the ID whose corresponding value is to be updated.
-	 * @param offset the offset at which to look for id's value when its
-	 * frame has been found.
-	 */
-	static void SetInClosure(Frame* start, const ID* id, Val* val, const int offset);
-
-	Frame* closure;
-	Frame* body;
-};
-
 extern std::vector<Frame*> g_frame_stack;
 
 #endif

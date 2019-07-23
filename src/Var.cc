@@ -538,15 +538,15 @@ Val* internal_val(const char* name)
 	return rval;
 	}
 
-std::shared_ptr<id_list> gather_outer_ids(Scope* scope, Stmt* body)
+id_list gather_outer_ids(Scope* scope, Stmt* body)
 	{
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);
 
-	std::shared_ptr<id_list> idl (new id_list);
+	id_list idl ( cb.outer_id_references.size() );
 
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-	        idl->append(cb.outer_id_references[i]->Id());
+	        idl.append(cb.outer_id_references[i]->Id());
 
 	return idl;
 	}

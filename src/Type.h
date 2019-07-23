@@ -402,7 +402,6 @@ struct FuncOverload {
 	int index;
 	FuncType* type;
 	FuncDecl* decl;
-	FuncImpl* impl;
 };
 
 class FuncType : public BroType {

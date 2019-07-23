@@ -592,8 +592,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		const auto& os = filter->ext_func->FType()->Overloads();
-		auto yt = os[0]->impl->GetType()->YieldType();
+		const auto& os = filter->ext_func->Overloads();
+		auto yt = os[0]->GetType()->YieldType();
 
 		if ( yt->Tag() == TYPE_RECORD )
 			{

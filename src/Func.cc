@@ -131,9 +131,9 @@ FuncImpl::FuncImpl(const char* arg_name)
 	::Ref(type);
 
 	// TODO: can assume order of impl follows same order as decls ?
-	auto& os = type->Overloads();
-	assert( ! os[0]->impl );
-	os[0]->impl = this;
+	auto& os = func->Overloads();
+	assert( os.empty() ); // for the moment
+	func->AddOverload(this);
 
 	id->SetVal(new Val(func));
 	Unref(id);
@@ -168,6 +168,44 @@ Func::Func(ID* id)
 Func::~Func()
 	{
 	Unref(type);
+
+	for ( auto& o : overloads )
+		Unref(o);
+	}
+
+FuncImpl* Func::GetOverload(int idx) const
+	{
+	if ( idx < 0 )
+		return nullptr;
+
+	if ( idx >= static_cast<int>(overloads.size()) )
+		return nullptr;
+
+	return overloads[idx];
+	}
+
+int Func::AddOverload(FuncImpl* impl)
+	{
+	if ( impl )
+		::Ref(impl);
+
+	overloads.push_back(impl);
+	return overloads.size() - 1;
+	}
+
+void Func::SetOverload(int idx, FuncImpl* impl)
+	{
+	if ( impl )
+		::Ref(impl);
+
+	auto size = static_cast<int>(overloads.size());
+
+	if ( idx >= size )
+		for ( auto i = size; i <= idx; ++i )
+			overloads.push_back(nullptr);
+
+	Unref(overloads[idx]);
+	overloads[idx] = impl;
 	}
 
 Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
@@ -176,13 +214,11 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 	// fine to leave be without any explicit overload idx (guessing they should
 	// be since implicitly they were functions defined at a time when
 	// overloading did not exist, so they take the |overloads| == 1 shortcut.
-	auto& overloads = type->Overloads();
-
 	if ( overloads.size() == 1 )
 		// Note: va_args BIFs would be one case that relies on taking this
 		// shortcut not just as a performance optimization.  Should be safe
 		// because we can't overload such va_args functions.
-		return overloads[0]->impl->Call(args, parent);
+		return overloads[0]->Call(args, parent);
 
 	if ( overload_idx >= 0 )
 		// TODO: we actually may not need this check if we for sure know that
@@ -205,9 +241,9 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 		// maybe doesn't matter.  And a runtime error is better behavior
 		// than what was done pre-function-overloading: it just went ahead
 		// and called the function with mismatching argument types.
-		return overloads[overload_idx]->impl->Call(args, parent);
+		return overloads[overload_idx]->Call(args, parent);
 
-	for ( const auto& o : overloads )
+	for ( const auto& o : type->Overloads())
 		{
 		auto oargs = o->decl->arg_types->Types();
 
@@ -226,7 +262,7 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 			}
 
 		if ( args_match )
-			return o->impl->Call(args, parent);
+			return overloads[o->index]->Call(args, parent);
 		}
 
 	reporter->PushLocation(GetLocationInfo());
@@ -237,37 +273,33 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 
 Scope* Func::GetScope() const
 	{
-	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
-	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetScope();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetScope();
 	}
 
 const vector<FuncBody>& Func::GetBodies() const
 	{
-	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
-	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetBodies();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies();
 	}
 
 bool Func::HasBodies() const
 	{
-	auto& overloads = type->Overloads();
 	assert(overloads.size() == 1);
-	assert(dynamic_cast<const BroFunc*>(overloads[0]->impl));
-	return dynamic_cast<const BroFunc*>(overloads[0]->impl)->GetBodies().size();
+	assert(dynamic_cast<const BroFunc*>(overloads[0]));
+	return dynamic_cast<const BroFunc*>(overloads[0])->GetBodies().size();
 	}
 
 void Func::Describe(ODesc* d) const
 	{
 	// TODO: print all overloads ?
-	auto& overloads = type->Overloads();
 	// TODO: guess if there's no impls yet, could just print the name ?
 	assert(overloads.size() > 0);
 
-	if ( overloads[0]->impl )
-		overloads[0]->impl->Describe(d);
+	if ( overloads[0] )
+		overloads[0]->Describe(d);
 	}
 
 void Func::DescribeDebug(ODesc* d, const val_list* args) const
@@ -349,12 +381,12 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc;
 
-	for ( auto& o : type->Overloads() )
+	for ( auto& o : overloads )
 		{
-		if ( ! o->impl )
+		if ( ! o )
 			continue;
 
-		tc = o->impl->Traverse(cb);
+		tc = o->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

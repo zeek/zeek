@@ -66,9 +66,6 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 		{
 		// To correctly handle overloads, don't assign the new
 		// value directly instead swap out the particular overload impl.
-		// TODO: this is weird, it's technically modifying stuff within
-		// the FuncType, so should try to change that store impls in the
-		// Func objects.
 		auto fv = v->AsFuncVal();
 		auto t = type->AsFuncType();
 
@@ -98,21 +95,20 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 			reporter->RuntimeError(GetLocationInfo(),
 			                       "invalid assignment to function ID");
 
-		if ( vo->impl )
-			::Ref(vo->impl);
-
-		Unref(o->impl);
-		o->impl = vo->impl;
-
-		if ( ! val )
+		if ( val )
+			val->AsFunc()->SetOverload(o->index, fv.func->GetOverload(vo->index));
+		else
 			{
-			val = new Val(new Func(this));
+			auto nf = new Func(this);
+			nf->SetOverload(o->index, fv.func->GetOverload(vo->index));
+			val = new Val(nf);
 
 			if ( ! arg_weak_ref )
 				Unref(v);
 
 			arg_weak_ref = false;
 			}
+
 		}
 	else
 		{

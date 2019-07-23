@@ -620,7 +620,6 @@ int FuncType::AddOverload(RecordType* args, bool solitary)
 			                       flavor, true);
 
 		o->decl = odecl;
-		o->impl = nullptr;
 		overloads.emplace_back(o);
 		}
 	else
@@ -671,9 +670,6 @@ FuncType* FuncType::ShallowClone()
 		co->decl->args = o->decl->args->Ref()->AsRecordType();
 		co->decl->arg_types = o->decl->arg_types->Ref()->AsTypeList();
 
-		co->impl = o->impl;
-		::Ref(co->impl);
-
 		f->overloads.emplace_back(co);
 		}
 
@@ -707,7 +703,6 @@ FuncType::~FuncType()
 		Unref(o->decl->args);
 		Unref(o->decl->arg_types);
 		delete o->decl;
-		Unref(o->impl);
 		delete o;
 		}
 

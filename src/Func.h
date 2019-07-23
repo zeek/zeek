@@ -76,8 +76,14 @@ public:
 	function_flavor Flavor() const
 		{ return type->Flavor(); }
 
-	const std::vector<FuncOverload*>& Overloads() const
-		{ return type->Overloads(); }
+	const std::vector<FuncImpl*>& Overloads() const
+		{ return overloads; }
+
+	FuncImpl* GetOverload(int idx) const;
+
+	int AddOverload(FuncImpl* impl);
+
+	void SetOverload(int idx, FuncImpl* impl);
 
 	Val* Call(val_list* args, Frame* parent = 0, int overload_idx = -1) const;
 
@@ -109,6 +115,7 @@ protected:
 	FuncType* type;
 	string name;
 	uint32 unique_id;
+	std::vector<FuncImpl*> overloads;
 
 	static std::vector<Func*> unique_ids;
 };

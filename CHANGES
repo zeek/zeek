@@ -1,4 +1,8 @@
 
+2.6-649 | 2019-07-23 09:37:05 -0700
+
+  * Remove --disable-perftools from coverity builds (Jon Siwek, Corelight)
+
 2.6-647 | 2019-07-22 12:46:04 -0700
 
   * Ignore abs-path in test. (Zeke Medley, Corelight)

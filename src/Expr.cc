@@ -2093,12 +2093,6 @@ static bool resolve_func_overload_expr(Expr*& e, BroType* t)
 
 	auto o = eft->GetOverload(overload_idx);
 
-	if ( ! o->impl )
-		{
-		e = new FuncRefExpr(e, tft, overload_idx);
-		return true;
-		}
-
 	if ( e->Tag() != EXPR_NAME )
 		{
 		e = new FuncRefExpr(e, tft, overload_idx);
@@ -2113,8 +2107,22 @@ static bool resolve_func_overload_expr(Expr*& e, BroType* t)
 		return true;
 		}
 
+	if ( ! id->HasVal() )
+		{
+		e = new FuncRefExpr(e, tft, overload_idx);
+		return true;
+		}
+
+	auto f = id->ID_Val()->AsFunc();
+
+	if ( ! f->GetOverload(overload_idx) )
+		{
+		e = new FuncRefExpr(e, tft, overload_idx);
+		return true;
+		}
+
 	// TODO: pre-allocate all possible Vals for each overload ?
-	auto v = new Val(o->impl->GetFunc(), overload_idx);
+	auto v = new Val(f, overload_idx);
 	Unref(e);
 	e = new ConstExpr(v);
 	return true;
@@ -2137,7 +2145,7 @@ Val* FuncRefExpr::Eval(Frame* f) const
 
 	auto func = fv->AsFunc();
 
-	if ( func->FType()->GetOverload(overload_idx)->impl )
+	if ( func->GetOverload(overload_idx) )
 		{
 		// TODO: pre-allocate all possible Vals for each overload ?
 		auto rval = new Val(func, overload_idx);
@@ -4320,11 +4328,11 @@ CallExpr::CallExpr(Expr* arg_func, ListExpr* arg_args, bool in_hook)
 		     (func_val = func->Eval(0)) )
 			{
 			::Func* f = func_val->AsFunc();
-			auto& os = f->FType()->Overloads();
+			auto& os = f->Overloads();
 
 			if ( os.size() == 1 )
 				{
-				auto o = dynamic_cast<BuiltinFunc*>(os[0]->impl);
+				auto o = dynamic_cast<BuiltinFunc*>(os[0]);
 
 				if ( o && ! check_built_in_call(o, this) )
 					SetError();
@@ -4359,11 +4367,11 @@ int CallExpr::IsPure() const
 	// or indirectly).
 	int pure = 0;
 
-	auto& os = f->FType()->Overloads();
+	auto& os = f->Overloads();
 
 	if ( os.size() == 1 )
 		{
-		auto o = os[0]->impl;
+		auto o = os[0];
 		auto bif = dynamic_cast<BuiltinFunc*>(o);
 
 		if ( bif )

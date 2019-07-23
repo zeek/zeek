@@ -80,8 +80,14 @@ public:
 	function_flavor Flavor() const
 		{ return type->Flavor(); }
 
-	const std::vector<FuncOverload*>& Overloads() const
-		{ return type->Overloads(); }
+	const std::vector<FuncImpl*>& Overloads() const
+		{ return overloads; }
+
+	FuncImpl* GetOverload(int idx) const;
+
+	int AddOverload(FuncImpl* impl);
+
+	void SetOverload(int idx, FuncImpl* impl);
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(Stmt* new_body, id_list* new_inits,
@@ -138,7 +144,7 @@ protected:
 	uint32_t unique_id;
 	static vector<Func*> unique_ids;
 	uint32 unique_id;
-	std::vector<FuncOverload*> overloads;
+	std::vector<FuncImpl*> overloads;
 	static std::vector<Func*> unique_ids;
 };
 

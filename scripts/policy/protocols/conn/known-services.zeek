@@ -210,7 +210,12 @@ event connection_state_remove(c: connection) &priority=-5
 	if ( c$known_services_done )
 		return;
 
-	if ( c$resp$state != TCP_ESTABLISHED )
+	# log tcp connection if established or udp if active
+	if ( c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE)
+		return;
+
+	# don't log empty service
+	if ( |c$service| == 0 )
 		return;
 
 	known_services_done(c);

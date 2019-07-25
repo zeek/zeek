@@ -145,9 +145,9 @@ event known_service_add(info: ServicesInfo)
         if ( check(info) )
                 return;
 
-	if([info$host, info$port_num] !in Known::services) 
+	if([info$host, info$port_num] !in Known::services)
 		Known::services[info$host, info$port_num] = set();
-	
+
 	for(s in info$service)
 		{
 		if ( s !in Known::services[info$host, info$port_num] )
@@ -218,10 +218,22 @@ event known_services_done(c: connection)
 			return;
 		}
 
+	# TODO: this is a temporary patch, because sometimes in c$service the protocol name is written with "-" 
+	# at the beginning. This comes from the analyzers (I've seen it for HTTP and SSL), but causes problems
+	# when checking for known_services on triplets (host, port, services). The service starting with "-" (i.e. -HTTP) is 
+	# reconized as different from the normal one (HTTP).
+	# It would be better to correct the analyzers some time later...
+	local tempservs : set[string];
+        for (s in c$service)
+        	if ( s[0] == "-" )
+			add tempservs[s[1:]];
+		else
+			add tempservs[s];
+              		
 	local info = ServicesInfo($ts = network_time(), $host = id$resp_h,
 	                          $port_num = id$resp_p,
 	                          $port_proto = get_port_transport_proto(id$resp_p),
-	                          $service = c$service);
+	                          $service = tempservs);
 
 	event service_info_commit(info);
 	}

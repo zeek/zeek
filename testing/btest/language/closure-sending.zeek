@@ -1,11 +1,11 @@
 # @TEST-PORT: BROKER_PORT
 #
-# @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
+# @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
 #
-# @TEST-EXEC: btest-bg-wait 20
-# @TEST-EXEC: btest-diff send/send.out
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
+# @TEST-EXEC: btest-diff send/send.out
 
 @TEST-START-FILE send.zeek
 
@@ -91,7 +91,7 @@ event pong(msg: string, f: myfunctype)
 @TEST-START-FILE recv.zeek
 
 redef exit_only_after_terminate = T;
-const events_to_recv = 3;
+const events_to_recv = 7;
 type myfunctype: function(c: count) : function(d: count) : count;
 # type myfunctype: function(c: count);
 
@@ -148,13 +148,14 @@ global n = 0;
 event ping(msg: string, f: myfunctype)
     {
     print fmt("receiver got ping: %s", msg);
-    terminate();
     ++n;
     local adder = f(n);
     print adder(76);
 
     if ( n == events_to_recv )
+        {
         terminate();
+        }
     else
         {
         local e = Broker::make_event(pong, msg, f);

@@ -970,12 +970,6 @@ protected:
 private:
 	std::unique_ptr<function_ingredients> ingredients;
 
-	// I prefer a shared pointer here to copying. Despite the
-	// list being quite small most of the time, there is much
-	// copying that happens.
-	// 1 - when a function is created
-	// 2 - when that function is called (to create the closure)
-	// 2 - when a closure is cloned / serialized
 	id_list outer_ids;
 	std::string my_name;
 };

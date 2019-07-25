@@ -1783,6 +1783,39 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_ERROR:
 		return base_type(tg1);
 
+	case TYPE_ENUM:
+		{
+		// Could compare pointers t1 == t2, but maybe there's someone out
+		// there creating clones of the type, so safer to compare name.
+		if ( t1->GetName() != t2->GetName() )
+			{
+			std::string msg = fmt("incompatible enum types: '%s' and '%s'",
+			                      t1->GetName().data(), t2->GetName().data());
+
+			t1->Error(msg.data(), t2);
+			return 0;
+			}
+
+		// Doing a lookup here as a roundabout way of ref-ing t1, without
+		// changing the function params which has t1 as const and also
+		// (potentially) avoiding a pitfall mentioned earlier about clones.
+		auto id = global_scope()->Lookup(t1->GetName().data());
+
+		if ( id && id->AsType() && id->AsType()->Tag() == TYPE_ENUM )
+			// It should make most sense to return the real type here rather
+			// than a copy since it may be redef'd later in parsing.  If we
+			// return a copy, then whoever is using this return value won't
+			// actually see those changes from the redef.
+			return id->AsType()->Ref();
+
+		std::string msg = fmt("incompatible enum types: '%s' and '%s'"
+		                      " ('%s' enum type ID is invalid)",
+		                      t1->GetName().data(), t2->GetName().data(),
+		                      t1->GetName().data());
+		t1->Error(msg.data(), t2);
+		return 0;
+		}
+
 	case TYPE_TABLE:
 		{
 		const IndexType* it1 = (const IndexType*) t1;

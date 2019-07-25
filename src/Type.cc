@@ -1770,6 +1770,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		}
 
 	switch ( tg1 ) {
+	case TYPE_ENUM:
 	case TYPE_TIME:
 	case TYPE_INTERVAL:
 	case TYPE_STRING:

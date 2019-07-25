@@ -165,7 +165,7 @@ static type_decl_list* copy_type_decl_list(type_decl_list* tdl)
 	type_decl_list* rval = new type_decl_list();
 
 	for ( const auto& td : *tdl )
-		rval->append(new TypeDecl(*td));
+		rval->push_back(new TypeDecl(*td));
 
 	return rval;
 	}
@@ -180,7 +180,7 @@ static attr_list* copy_attr_list(attr_list* al)
 	for ( const auto& a : *al )
 		{
 		::Ref(a);
-		rval->append(a);
+		rval->push_back(a);
 		}
 
 	return rval;
@@ -264,7 +264,7 @@ bro:
 		decl_list stmt_list
 			{
 			if ( stmts )
-				stmts->AsStmtList()->Stmts().append($2);
+				stmts->AsStmtList()->Stmts().push_back($2);
 			else
 				stmts = $2;
 
@@ -1017,7 +1017,7 @@ type_list:
 type_decl_list:
 		type_decl_list type_decl
 			{
-			$1->append($2);
+			$1->push_back($2);
 			}
 	|
 			{
@@ -1047,11 +1047,11 @@ formal_args:
 
 formal_args_decl_list:
 		formal_args_decl_list ';' formal_args_decl
-			{ $1->append($3); }
+			{ $1->push_back($3); }
 	|	formal_args_decl_list ',' formal_args_decl
-			{ $1->append($3); }
+			{ $1->push_back($3); }
 	|	formal_args_decl
-			{ $$ = new type_decl_list(); $$->append($1); }
+			{ $$ = new type_decl_list(); $$->push_back($1); }
 	;
 
 formal_args_decl:
@@ -1308,11 +1308,11 @@ opt_attr:
 
 attr_list:
 		attr_list attr
-			{ $1->append($2); }
+			{ $1->push_back($2); }
 	|	attr
 			{
 			$$ = new attr_list;
-			$$->append($1);
+			$$->push_back($1);
 			}
 	;
 
@@ -1547,7 +1547,7 @@ stmt_list:
 		stmt_list stmt
 			{
 			set_location(@1, @2);
-			$1->AsStmtList()->Stmts().append($2);
+			$1->AsStmtList()->Stmts().push_back($2);
 			$1->UpdateLocationEndInfo(@2);
 			}
 	|
@@ -1577,7 +1577,7 @@ event:
 
 case_list:
 		case_list case
-			{ $1->append($2); }
+			{ $1->push_back($2); }
 	|
 			{ $$ = new case_list; }
 	;
@@ -1595,12 +1595,12 @@ case:
 
 case_type_list:
 		case_type_list ',' case_type
-			{ $1->append($3); }
+			{ $1->push_back($3); }
 	|
 		case_type
 			{
 			$$ = new id_list;
-			$$->append($1);
+			$$->push_back($1);
 			}
 	;
 
@@ -1648,7 +1648,7 @@ for_head:
 						      false, false);
 
 			id_list* loop_vars = new id_list;
-			loop_vars->append(loop_var);
+			loop_vars->push_back(loop_var);
 
 			$$ = new ForStmt(loop_vars, $5);
 			}
@@ -1686,7 +1686,7 @@ for_head:
 				val_var = install_ID($5, module, false, false);
 
 			id_list* loop_vars = new id_list;
-			loop_vars->append(key_var);
+			loop_vars->push_back(key_var);
 
 			$$ = new ForStmt(loop_vars, $7, val_var);
 			}
@@ -1713,11 +1713,11 @@ for_head:
 
 local_id_list:
 		local_id_list ',' local_id
-			{ $1->append($3); }
+			{ $1->push_back($3); }
 	|	local_id
 			{
 			$$ = new id_list;
-			$$->append($1);
+			$$->push_back($1);
 			}
 	;
 

@@ -226,7 +226,7 @@ void TypeList::Append(BroType* t)
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
-	types.append(t);
+	types.push_back(t);
 	}
 
 void TypeList::AppendEvenIfNotPure(BroType* t)
@@ -237,7 +237,7 @@ void TypeList::AppendEvenIfNotPure(BroType* t)
 		pure_type = 0;
 		}
 
-	types.append(t);
+	types.push_back(t);
 	}
 
 void TypeList::Describe(ODesc* d) const
@@ -587,13 +587,23 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	const type_list* my_args = arg_types->Types();
 
 	if ( my_args->length() != args->length() )
+		{
+		Warn(fmt("Wrong number of arguments for function. Expected %d, got %d.",
+			args->length(), my_args->length()));
 		return 0;
+		}
+
+	int success = 1;
 
 	for ( int i = 0; i < my_args->length(); ++i )
 		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
-			return 0;
+			{
+			Warn(fmt("Type mismatch in function argument #%d. Expected %s, got %s.",
+				i, type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
+			success = 0;
+			}
 
-	return 1;
+	return success;
 	}
 
 void FuncType::Describe(ODesc* d) const
@@ -704,7 +714,7 @@ RecordType* RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
-		pass->append(new TypeDecl(*type));
+		pass->push_back(new TypeDecl(*type));
 	return new RecordType(pass);
 	}
 
@@ -843,7 +853,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 			td->attrs->AddAttr(new Attr(ATTR_LOG));
 			}
 
-		types->append(td);
+		types->push_back(td);
 		}
 
 	delete others;
@@ -1873,7 +1883,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 				return 0;
 				}
 
-			tdl3->append(new TypeDecl(tdl3_i, copy_string(td1->id)));
+			tdl3->push_back(new TypeDecl(tdl3_i, copy_string(td1->id)));
 			}
 
 		return new RecordType(tdl3);

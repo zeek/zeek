@@ -40,6 +40,9 @@ get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
 set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                "${CMAKE_CURRENT_BINARY_DIR}/zeek-wrapper.in"
+                "${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
      "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
@@ -149,6 +152,10 @@ endif ()
 
 if (ENABLE_JEMALLOC)
     find_package(JeMalloc)
+
+    if (NOT JEMALLOC_FOUND)
+        message(FATAL_ERROR "Could not find requested JeMalloc")
+    endif()
 endif ()
 
 if ( BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5 )
@@ -196,15 +203,11 @@ set(HAVE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 set(USE_PERFTOOLS_TCMALLOC false)
 
-if (NOT DISABLE_PERFTOOLS)
+if ( ENABLE_PERFTOOLS )
    find_package(GooglePerftools)
-endif ()
 
-if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
-    set(HAVE_PERFTOOLS true)
-    # Non-Linux systems may not be well-supported by gperftools, so
-    # require explicit request from user to enable it in that case.
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ENABLE_PERFTOOLS)
+    if ( GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND )
+        set(HAVE_PERFTOOLS true)
         set(USE_PERFTOOLS_TCMALLOC true)
 
         if (ENABLE_PERFTOOLS_DEBUG)
@@ -213,16 +216,12 @@ if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
             include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
             list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
         else ()
-            # Link in tcmalloc for better performance.
+            # Link in tcmalloc.
             list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
         endif ()
+    else()
+        message(FATAL_ERROR "Could not find requested Google Perftools.")
     endif ()
-endif ()
-
-if (ENABLE_PERFTOOLS_DEBUG OR ENABLE_PERFTOOLS)
-    # Just a no op to prevent CMake from complaining about manually-specified
-    # ENABLE_PERFTOOLS_DEBUG or ENABLE_PERFTOOLS not being used if google
-    # perftools weren't found
 endif ()
 
 # Making sure any non-standard OpenSSL includes get searched earlier
@@ -290,8 +289,11 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/zeek)
 
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
@@ -323,7 +325,6 @@ include(InstallShellScript)
 include(InstallSymlink)
 InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
 InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
-InstallSymlink("${CMAKE_INSTALL_PREFIX}/include/zeek/zeek-config.h" "${CMAKE_INSTALL_PREFIX}/include/zeek/bro-config.h")
 
 ########################################################################
 ## Recurse on sub-directories

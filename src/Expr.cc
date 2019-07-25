@@ -27,7 +27,7 @@ const char* expr_name(BroExprTag t)
 		"&", "|", "^",
 		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
-		"=", "~", "[]", "$", "?$", "[=]",
+		"=", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
@@ -3039,7 +3039,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 		FieldAssignExpr* field = (FieldAssignExpr*) e;
 		BroType* field_type = field->Type()->Ref();
 		char* field_name = copy_string(field->FieldName());
-		record_types->append(new TypeDecl(field_type, field_name));
+		record_types->push_back(new TypeDecl(field_type, field_name));
 		}
 
 	SetType(new RecordType(record_types));
@@ -4494,7 +4494,7 @@ ListExpr::~ListExpr()
 
 void ListExpr::Append(Expr* e)
 	{
-	exprs.append(e);
+	exprs.push_back(e);
 	((TypeList*) type)->Append(e->Type()->Ref());
 	}
 
@@ -4558,7 +4558,7 @@ BroType* ListExpr::InitType() const
 				return 0;
 				}
 
-			types->append(td);
+			types->push_back(td);
 			}
 
 
@@ -5137,11 +5137,11 @@ int check_and_promote_args(ListExpr*& args, RecordType* types)
 				return 0;
 				}
 
-			def_elements.insert(def_attr->AttrExpr());
+			def_elements.push_front(def_attr->AttrExpr());
 			}
 
 		for ( const auto& elem : def_elements )
-			el.append(elem->Ref());
+			el.push_back(elem->Ref());
 		}
 
 	TypeList* tl = new TypeList();
@@ -5192,7 +5192,7 @@ val_list* eval_list(Frame* f, const ListExpr* l)
 			success = false;
 			break;
 			}
-		v->append(ev);
+		v->push_back(ev);
 		}
 
 	if ( ! success )

@@ -168,7 +168,7 @@ void Attributes::AddAttr(Attr* attr)
 		// We overwrite old attributes by deleting them first.
 		RemoveAttr(attr->Tag());
 
-	attrs->append(attr);
+	attrs->push_back(attr);
 	Ref(attr);
 
 	// We only check the attribute after we've added it, to facilitate
@@ -179,11 +179,11 @@ void Attributes::AddAttr(Attr* attr)
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! FindAttr(ATTR_REDEF) )
-		attrs->append(new Attr(ATTR_REDEF));
+		attrs->push_back(new Attr(ATTR_REDEF));
 
 	// For DEFAULT, add an implicit OPTIONAL.
 	if ( attr->Tag() == ATTR_DEFAULT && ! FindAttr(ATTR_OPTIONAL) )
-		attrs->append(new Attr(ATTR_OPTIONAL));
+		attrs->push_back(new Attr(ATTR_OPTIONAL));
 	}
 
 void Attributes::AddAttrs(Attributes* a)
@@ -436,22 +436,40 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		const Expr* expire_func = a->AttrExpr();
+
+		if ( expire_func->Type()->Tag() != TYPE_FUNC )
+			Error("&expire_func attribute is not a function");
+
 		const FuncType* e_ft = expire_func->Type()->AsFuncType();
 
-		if ( ((const BroType*) e_ft)->YieldType()->Tag() != TYPE_INTERVAL )
+		if ( e_ft->YieldType()->Tag() != TYPE_INTERVAL )
 			{
 			Error("&expire_func must yield a value of type interval");
 			break;
 			}
 
-		if ( e_ft->Args()->NumFields() != 2 )
-			{
-			Error("&expire_func function must take exactly two arguments");
+		const TableType* the_table = type->AsTableType();
+
+		if (the_table->IsUnspecifiedTable())
 			break;
+
+		const type_list* func_index_types = e_ft->ArgTypes()->Types();
+		// Keep backwards compatibility with idx: any idiom.
+		if ( func_index_types->length() == 2 )
+			{
+			if ((*func_index_types)[1]->Tag() == TYPE_ANY)
+				break;
 			}
 
-		// ### Should type-check arguments to make sure first is
-		// table type and second is table index type.
+		const type_list* table_index_types = the_table->IndexTypes();
+
+		type_list expected_args;
+		expected_args.push_back(type->AsTableType());
+		for (const auto& t : *table_index_types)
+			expected_args.push_back(t);
+
+		if ( ! e_ft->CheckArgs(&expected_args) )
+			Error("&expire_func argument type clash");
 		}
 		break;
 

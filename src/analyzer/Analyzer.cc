@@ -713,7 +713,7 @@ void Analyzer::AddTimer(analyzer_timer_func timer, double t,
 		AnalyzerTimer(this, timer, t, do_expire, type);
 
 	Conn()->GetTimerMgr()->Add(analyzer_timer);
-	timers.append(analyzer_timer);
+	timers.push_back(analyzer_timer);
 	}
 
 void Analyzer::RemoveTimer(Timer* t)

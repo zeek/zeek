@@ -1039,7 +1039,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl.append(val);
+			vl.push_back(val);
 		else
 			{
 			auto expected_name = type_name(expected_type->Tag());

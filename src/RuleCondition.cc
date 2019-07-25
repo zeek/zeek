@@ -163,12 +163,12 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	// Call function with a signature_state value as argument.
 	val_list args(2);
-	args.append(rule_matcher->BuildRuleStateValue(rule, state));
+	args.push_back(rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.append(new StringVal(len, (const char*) data));
+		args.push_back(new StringVal(len, (const char*) data));
 	else
-		args.append(val_mgr->GetEmptyString());
+		args.push_back(val_mgr->GetEmptyString());
 
 	bool result = 0;
 

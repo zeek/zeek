@@ -113,7 +113,7 @@ public:
 	// removed. (We don't get this for free, so only use it if
 	// necessary.)
 	void MakeRobustCookie(IterCookie* cookie)
-		{ cookies.append(cookie); }
+		{ cookies.push_back(cookie); }
 
 	// Remove all entries.
 	void Clear();

@@ -395,11 +395,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			val_list vl(6);
-			vl.append(BuildConnVal());
-			vl.append(val_mgr->GetBool(orig));
-			vl.append(new StringVal(parts[0].c_str()));
-			vl.append(new StringVal(parts[1].c_str()));
-			vl.append(new StringVal(parts[2].c_str()));
+			vl.push_back(BuildConnVal());
+			vl.push_back(val_mgr->GetBool(orig));
+			vl.push_back(new StringVal(parts[0].c_str()));
+			vl.push_back(new StringVal(parts[1].c_str()));
+			vl.push_back(new StringVal(parts[2].c_str()));
 
 			parts.erase(parts.begin(), parts.begin() + 4);
 
@@ -410,7 +410,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( real_name[0] == ':' )
 				real_name = real_name.substr(1);
 
-			vl.append(new StringVal(real_name.c_str()));
+			vl.push_back(new StringVal(real_name.c_str()));
 
 			ConnectionEventFast(irc_whois_user_line, std::move(vl));
 			}
@@ -740,20 +740,20 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		// extract username and real name
 		vector<string> parts = SplitWords(params, ' ');
 		val_list vl(6);
-		vl.append(BuildConnVal());
-		vl.append(val_mgr->GetBool(orig));
+		vl.push_back(BuildConnVal());
+		vl.push_back(val_mgr->GetBool(orig));
 
 		if ( parts.size() > 0 )
-			vl.append(new StringVal(parts[0].c_str()));
-		else vl.append(val_mgr->GetEmptyString());
+			vl.push_back(new StringVal(parts[0].c_str()));
+		else vl.push_back(val_mgr->GetEmptyString());
 
 		if ( parts.size() > 1 )
-			vl.append(new StringVal(parts[1].c_str()));
-		else vl.append(val_mgr->GetEmptyString());
+			vl.push_back(new StringVal(parts[1].c_str()));
+		else vl.push_back(val_mgr->GetEmptyString());
 
 		if ( parts.size() > 2 )
-			vl.append(new StringVal(parts[2].c_str()));
-		else vl.append(val_mgr->GetEmptyString());
+			vl.push_back(new StringVal(parts[2].c_str()));
+		else vl.push_back(val_mgr->GetEmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -764,7 +764,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		const char* name = realname.c_str();
-		vl.append(new StringVal(*name == ':' ? name + 1 : name));
+		vl.push_back(new StringVal(*name == ':' ? name + 1 : name));
 
 		ConnectionEventFast(irc_user_message, std::move(vl));
 		}
@@ -798,11 +798,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		val_list vl(6);
-		vl.append(BuildConnVal());
-		vl.append(val_mgr->GetBool(orig));
-		vl.append(new StringVal(prefix.c_str()));
-		vl.append(new StringVal(parts[0].c_str()));
-		vl.append(new StringVal(parts[1].c_str()));
+		vl.push_back(BuildConnVal());
+		vl.push_back(val_mgr->GetBool(orig));
+		vl.push_back(new StringVal(prefix.c_str()));
+		vl.push_back(new StringVal(parts[0].c_str()));
+		vl.push_back(new StringVal(parts[1].c_str()));
 		if ( parts.size() > 2 )
 			{
 			string comment = parts[2];
@@ -812,10 +812,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( comment[0] == ':' )
 				comment = comment.substr(1);
 
-			vl.append(new StringVal(comment.c_str()));
+			vl.push_back(new StringVal(comment.c_str()));
 			}
 		else
-			vl.append(val_mgr->GetEmptyString());
+			vl.push_back(val_mgr->GetEmptyString());
 
 		ConnectionEventFast(irc_kick_message, std::move(vl));
 		}

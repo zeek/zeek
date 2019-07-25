@@ -119,6 +119,12 @@ New Functionality
 	local p1 = paraglob_init(v1);
 	print paraglob_match(p1, "dog");
 
+- An ``expire_func`` for a table with a multi-value-index will now unroll
+  the index and take one argument for each index value. For example, for a
+  ``table[string,string] of count`` the expire function signature is:
+
+  function(t: table[string, string] of count, s: string, s2: string): interval
+
 Changed Functionality
 ---------------------
 
@@ -257,7 +263,7 @@ Changed Functionality
   used it to generate their own documentation via the ``--broxygen`` flag,
   which is now named ``--zeekygen``.  Besides that, the various documentation
   in scripts has also been updated to replace Sphinx cross-referencing roles
-  and directives like ":bro:see:" with ":zeek:zee:".
+  and directives like ":bro:see:" with ":zeek:see:".
 
 - The catch-and-release and unified2 scripts are no longer loaded by
   default.  Because there was a performance impact simply from loading
@@ -377,6 +383,16 @@ Changed Functionality
     when the provided index is out of range, so they assert instead, and
     Queue::pop methods do not return a value at all (one must check for
     a non-empty container before removing an element).
+
+- Google Perftools (tcmalloc) is no longer used by default on Linux
+  systems if it's found during the configuration process.
+  Use the --enable-perftools configuration flag to use tcmalloc.
+  The --disable-perftools flag is also no longer provided since
+  there's no longer any case in which tcmalloc will be used by default.
+
+- There now is a maximum number of protocol violations that can be raised by an analyzer
+  before it is disabled; the default is set to 5. This behavior is customizable using
+  ``DPD::max_violations`` and ``DPD::ignore_violations``.
 
 Removed Functionality
 ---------------------
@@ -560,6 +576,8 @@ Removed Functionality
 
 - Removed the BackDoor analyzer.
 
+- Removed ``List::sortedinsert`` from the C++ API.
+
 Deprecated Functionality
 ------------------------
 
@@ -576,6 +594,9 @@ Deprecated Functionality
 
 - The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
   replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
+
+- The ``List::insert`` method from the C++ API is deprecated, use
+  ``List::push_front`` instead.
 
 Bro 2.6
 =======

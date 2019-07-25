@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	known_services
+#open	2019-07-25-12-52-46
+#fields	ts	host	port_num	port_proto	service
+#types	time	addr	port	enum	set[string]
+1258578181.260420	192.168.1.1	53	udp	DNS
+#close	2019-07-25-12-52-46

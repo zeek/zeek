@@ -37,13 +37,14 @@ export {
 	## See :zeek:type:`Host` for possible choices.
 	option service_tracking = LOCAL_HOSTS;
 
-	type AddrPortPair: record {
+	type AddrPortServTriplet: record {
 		host: addr;
 		p: port;
+		serv: set[string];
 	};
 
 	## Holds the set of all known services.  Keys in the store are
-	## :zeek:type:`Known::AddrPortPair` and their associated value is
+	## :zeek:type:`Known::AddrPortServTriplet` and their associated value is
 	## always the boolean value of "true".
 	global service_store: Cluster::StoreInfo;
 
@@ -111,7 +112,7 @@ event service_info_commit(info: ServicesInfo)
 	if ( ! Known::use_service_store )
 		return;
 
-	local key = AddrPortPair($host = info$host, $p = info$port_num);
+	local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = info$service);
 
 	when ( local r = Broker::put_unique(Known::service_store$store, key,
 	                                    T, Known::service_store_expiry) )

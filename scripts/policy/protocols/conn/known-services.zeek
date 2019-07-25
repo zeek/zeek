@@ -58,6 +58,12 @@ export {
 	## :zeek:see:`Known::service_store`.
 	option service_store_timeout = 15sec;
 
+	## The timeout interval to wait after protocol confirmation before logging
+	## a new service. Some time is needed after a protocol confirmation event
+	## to either obtain a reply on certain protocols (i.e. DNS) or to fill
+	## :zeek:type:`connection$service`. 
+	option protocol_confirmation_timeout = 5min;
+
 	## Tracks the set of daily-detected services for preventing the logging
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
@@ -167,7 +173,7 @@ event service_info_commit(info: ServicesInfo)
 	event known_service_add(info);
 	}
 
-function known_services_done(c: connection)
+event known_services_done(c: connection)
 	{
 	local id = c$id;
 	c$known_services_done = T;
@@ -191,17 +197,12 @@ function known_services_done(c: connection)
 	                          $port_proto = get_port_transport_proto(id$resp_p),
 	                          $service = c$service);
 
-	# If no protocol was detected, wait a short time before attempting to log
-	# in case a protocol is detected on another connection.
-	if ( |c$service| == 0 )
-		schedule 5min { service_info_commit(info) };
-	else 
-		event service_info_commit(info);
+	event service_info_commit(info);
 	}
 	
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
 	{
-	known_services_done(c);
+	schedule protocol_confirmation_timeout { known_services_done(c) };
 	}
 
 # Handle the connection ending in case no protocol was ever detected.
@@ -213,7 +214,7 @@ event connection_state_remove(c: connection) &priority=-5
 	if ( c$resp$state != TCP_ESTABLISHED )
 		return;
 
-	known_services_done(c);
+	event known_services_done(c);
 	}
 
 event zeek_init() &priority=5

@@ -68,11 +68,11 @@ export {
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
 	##
-	## In cluster operation, this set is uniformly distributed across
+	## In cluster operation, this table is uniformly distributed across
 	## proxy nodes.
 	##
-	## This set is automatically populated and shouldn't be directly modified.
-	global services: set[addr, port] &create_expire=1day;
+	## This table is automatically populated and shouldn't be directly modified.
+	global services: table[addr, port] of set[string] &create_expire=1day;
 
 	## Event that can be handled to access the :zeek:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -85,6 +85,24 @@ redef record connection += {
 	known_services_done: bool &default=F;
 };
 
+# Check if the triplet (host,port_num,service) is already in Known::services
+function check(info: ServicesInfo) : bool
+{
+
+        if ( [info$host, info$port_num] !in Known::services ) 
+                return F;
+
+	if ( |info$service| == 0 )
+		return T;  # don't log empty service
+
+        for(s in info$service)
+                {
+                if ( s !in Known::services[info$host, info$port_num] )
+                        return F;
+                }
+
+        return T;
+}
 
 event zeek_init()
 	{
@@ -95,7 +113,6 @@ event zeek_init()
 	}
 
 event service_info_commit(info: ServicesInfo)
-                          
 	{
 	if ( ! Known::use_service_store )
 		return;
@@ -125,10 +142,19 @@ event known_service_add(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
-	if ( [info$host, info$port_num] in Known::services )
-		return;
+        if ( check(info) )
+                return;
 
-	add Known::services[info$host, info$port_num];
+	if([info$host, info$port_num] !in Known::services) 
+		Known::services[info$host, info$port_num] = set();
+	
+	for(s in info$service)
+		{
+		if ( s !in Known::services[info$host, info$port_num] )
+			{
+			add Known::services[info$host, info$port_num][s];
+			}
+		}
 
 	@if ( ! Cluster::is_enabled() ||
 	      Cluster::local_node_type() == Cluster::PROXY )
@@ -145,7 +171,7 @@ event Cluster::node_up(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::services = set();
+	Known::services = table();
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -157,7 +183,7 @@ event Cluster::node_down(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::services = set();
+	Known::services = table();
 	}
 
 event service_info_commit(info: ServicesInfo)
@@ -165,10 +191,10 @@ event service_info_commit(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
-	if ( [info$host, info$port_num] in Known::services )
+	if ( check(info) )
 		return;
 
-	local key = cat(info$host, info$port_num);
+	local key = cat(info$host, info$port_num, info$service);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
 	event known_service_add(info);
 	}

@@ -22,7 +22,6 @@ SteppingStoneEndpoint::SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStone
 	stp_last_time = stp_resume_time = 0.0;
 	stp_manager = m;
 	stp_id = stp_manager->NextID();
-	stp_key = new HashKey(bro_int_t(stp_id));
 
 	CreateEndpEvent(e->IsOrig());
 
@@ -32,7 +31,6 @@ SteppingStoneEndpoint::SteppingStoneEndpoint(tcp::TCP_Endpoint* e, SteppingStone
 
 SteppingStoneEndpoint::~SteppingStoneEndpoint()
 	{
-	delete stp_key;
 	Unref(endp->TCP()->Conn());
 	}
 
@@ -42,20 +40,19 @@ void SteppingStoneEndpoint::Done()
 		return;
 
 	SteppingStoneEndpoint* ep;
-	IterCookie* cookie;
 
-	cookie = stp_inbound_endps.InitForIteration();
-	while ( (ep = stp_inbound_endps.NextEntry(cookie)) )
+	for ( const auto& entry : stp_inbound_endps )
 		{
-		ep->stp_outbound_endps.Remove(stp_key);
+		ep = entry.second;
+		ep->stp_outbound_endps.erase(stp_id);
 		Event(stp_remove_pair, ep->stp_id, stp_id);
 		Unref(ep);
 		}
 
-	cookie = stp_outbound_endps.InitForIteration();
-	while ( (ep = stp_outbound_endps.NextEntry(cookie)) )
+	for ( const auto& entry : stp_outbound_endps )
 		{
-		ep->stp_inbound_endps.Remove(stp_key);
+		ep = entry.second;
+		ep->stp_inbound_endps.erase(stp_id);
 		Event(stp_remove_pair, stp_id, ep->stp_id);
 		Unref(ep);
 		}
@@ -115,8 +112,8 @@ int SteppingStoneEndpoint::DataSent(double t, uint64 seq, int len, int caplen,
 			Ref(ep);
 			Ref(this);
 
-			stp_inbound_endps.Insert(ep->stp_key, ep);
-			ep->stp_outbound_endps.Insert(stp_key, this);
+			stp_inbound_endps[ep->stp_id] = ep;
+			ep->stp_outbound_endps[stp_id] = this;
 
 			Event(stp_correlate_pair, ep->stp_id, stp_id);
 			}

@@ -29,10 +29,10 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	// find all option names and their types.
 	auto globals = global_scope()->Vars();
-	auto c = globals->InitForIteration();
 
-	while ( auto id = globals->NextEntry(c) )
+	for ( const auto& entry : globals )
 		{
+		ID* id = entry.second;
 		if ( ! id->IsOption() )
 			continue;
 

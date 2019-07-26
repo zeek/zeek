@@ -19,7 +19,6 @@ Scope::Scope(ID* id, attr_list* al)
 	attrs = al;
 	return_type = 0;
 
-	local = new PDict<ID>(ORDERED);
 	inits = new id_list;
 
 	if ( id )
@@ -42,8 +41,8 @@ Scope::Scope(ID* id, attr_list* al)
 
 Scope::~Scope()
 	{
-	for ( int i = 0; i < local->Length(); ++i )
-		Unref(local->NthEntry(i));
+	for ( const auto& entry : local )
+		Unref(entry.second);
 
 	if ( attrs )
 		{
@@ -55,7 +54,6 @@ Scope::~Scope()
 
 	Unref(scope_id);
 	Unref(return_type);
-	delete local;
 	delete inits;
 	}
 
@@ -82,7 +80,7 @@ void Scope::Describe(ODesc* d) const
 		d->SP();
 		d->Add(return_type != 0);
 		d->SP();
-		d->Add(local->Length());
+		d->Add(static_cast<uint64_t>(local.size()));
 		d->SP();
 		}
 
@@ -98,9 +96,9 @@ void Scope::Describe(ODesc* d) const
 		d->NL();
 		}
 
-	for ( int i = 0; i < local->Length(); ++i )
+	for ( const auto& entry : local )
 		{
-		ID* id = local->NthEntry(i);
+		ID* id = entry.second;
 		id->Describe(d);
 		d->NL();
 		}
@@ -108,13 +106,9 @@ void Scope::Describe(ODesc* d) const
 
 TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	{
-	PDict<ID>* ids = GetIDs();
-	IterCookie* iter = ids->InitForIteration();
-
-	HashKey* key;
-	ID* id;
-	while ( (id = ids->NextEntry(key, iter)) )
+	for ( const auto& entry : local )
 		{
+		ID* id = entry.second;
 		TraversalCode tc = id->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}

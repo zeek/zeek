@@ -51,14 +51,16 @@ void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
 		}
 
 	Scope* global = global_scope();
-	PDict<ID>* syms = global->Vars();
+	auto syms = global->Vars();
 
 	ID* nextid;
-	IterCookie* cookie = syms->InitForIteration();
-	while ( (nextid = syms->NextEntry( cookie )) )
+	for ( const auto& sym : syms )
+		{
+		ID* nextid = sym.second;
 		if ( ! func_only || nextid->Type()->Tag() == TYPE_FUNC )
 			if ( ! regexec (&re, nextid->Name(), 0, 0, 0) )
 				matches.push_back(nextid);
+		}
 	}
 
 void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,

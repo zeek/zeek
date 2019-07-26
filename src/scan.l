@@ -671,7 +671,7 @@ static int load_files(const char* orig_file)
 		// Add the filename to the file mapping table (Debug.h).
 		Filemap* map = new Filemap;
 		HashKey* key = new HashKey(file_path.c_str());
-		g_dbgfilemaps.Insert(key, map);
+		g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}
 

@@ -27,7 +27,7 @@ using namespace std;
 bool g_policy_debug = false;
 DebuggerState g_debugger_state;
 TraceState g_trace_state;
-PDict<Filemap> g_dbgfilemaps;
+std::map<string, Filemap*> g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next
@@ -364,8 +364,8 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 
 	if ( plr.type == plrFileAndLine )
 		{
-		Filemap* map = g_dbgfilemaps.Lookup(loc_filename);
-		if ( ! map )
+		auto iter = g_dbgfilemaps.find(loc_filename);
+		if ( iter == g_dbgfilemaps.end() )
 			reporter->InternalError("Policy file %s should have been loaded\n",
 					loc_filename);
 
@@ -378,7 +378,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			}
 
 		StmtLocMapping* hit = 0;
-		for ( const auto entry : *map )
+		for ( const auto entry : *(iter->second) )
 			{
 			plr.filename = entry->Loc().filename;
 

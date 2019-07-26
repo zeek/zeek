@@ -267,14 +267,14 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 void RuleMatcher::AddRule(Rule* rule)
 	{
-	if ( rules_by_id.Lookup(rule->ID()) )
+	if ( rules_by_id.find(rule->ID()) != rules_by_id.end() )
 		{
 		rules_error("rule defined twice");
 		return;
 		}
 
 	rules.push_back(rule);
-	rules_by_id.Insert(rule->ID(), rule);
+	rules_by_id[rule->ID()] = rule;
 	}
 
 void RuleMatcher::BuildRulesTree()
@@ -295,15 +295,15 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
 	// Initiliaze the preconditions
 	for ( const auto& pc : r->preconds )
 		{
-		Rule* pc_rule = rules_by_id.Lookup(pc->id);
-		if ( ! pc_rule )
+		auto entry = rules_by_id.find(pc->id);
+		if ( entry == rules_by_id.end() )
 			{
 			rules_error(r, "unknown rule referenced");
 			return;
 			}
 
-		pc->rule = pc_rule;
-		pc_rule->dependents.push_back(r);
+		pc->rule = entry->second;
+		entry->second->dependents.push_back(r);
 		}
 
 	// All tests in tree already?

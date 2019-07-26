@@ -85,14 +85,14 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 			char* nmstr = copy_string(yytext+1);
 			nmstr[yyleng - 2] = '\0';  // chop trailing brace
 
-			const char* namedef = rem->LookupDef(nmstr);
+			std::string namedef = rem->LookupDef(nmstr);
 			delete nmstr;
 
-			if ( ! namedef )
+			if ( namedef.empty() )
 				synerr("undefined definition");
 			else
 				{ // push back name surrounded by ()'s
-				int len = strlen(namedef);
+				int len = namedef.size();
 
 				if ( namedef[0] == '^' ||
 				     (len > 0 && namedef[len - 1] == '$') )

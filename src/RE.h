@@ -59,15 +59,22 @@ public:
 	// The following is vestigial from flex's use of "{name}" definitions.
 	// It's here because at some point we may want to support such
 	// functionality.
-	const char* LookupDef(const char* def);
+	std::string LookupDef(const std::string& def);
 
-	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict.Insert(txt, ccl); }
+	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict[string(txt)] = ccl; }
 	int InsertCCL(CCL* ccl)
 		{
 		ccl_list.push_back(ccl);
 		return ccl_list.length() - 1;
 		}
-	CCL* LookupCCL(const char* txt)	{ return ccl_dict.Lookup(txt); }
+	CCL* LookupCCL(const char* txt)
+		{
+		const auto& iter = ccl_dict.find(string(txt));
+		if ( iter != ccl_dict.end() )
+			return iter->second;
+
+		return nullptr;
+		}
 	CCL* LookupCCL(int index)	{ return ccl_list[index]; }
 	CCL* AnyCCL();
 
@@ -119,8 +126,8 @@ protected:
 	int multiline;
 	char* pattern_text;
 
-	PDict<char> defs;
-	PDict<CCL> ccl_dict;
+	std::map<string,string> defs;
+	std::map<string,CCL*> ccl_dict;
 	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;

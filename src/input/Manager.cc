@@ -153,31 +153,31 @@ Manager::EventStream::EventStream()
 
 Manager::EventStream::~EventStream()
 	{
-        if ( fields )
-                Unref(fields);
+	if ( fields )
+		Unref(fields);
 	}
 
 Manager::TableStream::~TableStream()
 	{
-        if ( tab )
-	        Unref(tab);
+	if ( tab )
+		Unref(tab);
 
-        if ( itype )
-	        Unref(itype);
+	if ( itype )
+		Unref(itype);
 
 	if ( rtype ) // can be 0 for sets
 		Unref(rtype);
 
-        if ( currDict != 0 )
+	if ( currDict != 0 )
 		{
 		currDict->Clear();
-	        delete currDict;
+		delete currDict;
 		}
 
-        if ( lastDict != 0 )
+	if ( lastDict != 0 )
 		{
 		lastDict->Clear();;
-	        delete lastDict;
+		delete lastDict;
 		}
 	}
 

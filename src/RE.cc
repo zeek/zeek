@@ -194,9 +194,13 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	return 1;
 	}
 
-const char* Specific_RE_Matcher::LookupDef(const char* def)
+string Specific_RE_Matcher::LookupDef(const string& def)
 	{
-	return defs.Lookup(def);
+	const auto& iter = defs.find(def);
+	if ( iter != defs.end() )
+		return iter->first;
+
+	return string();
 	}
 
 int Specific_RE_Matcher::MatchAll(const char* s)
@@ -412,10 +416,18 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	for ( int i = 0; i < ccl_list.length(); ++i )
 		size += ccl_list[i]->MemoryAllocation();
 
+	size += pad_size(sizeof(CCL*) * ccl_dict.size());
+	for ( const auto& entry : ccl_dict )
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+
+	for ( const auto& entry : defs )
+		{
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.second.size());
+		}
+
 	return size + padded_sizeof(*this)
 		+ (pattern_text ? pad_size(strlen(pattern_text) + 1) : 0)
-		+ defs.MemoryAllocation() - padded_sizeof(defs) // FIXME: count content
-		+ ccl_dict.MemoryAllocation() - padded_sizeof(ccl_dict) // FIXME: count content
 		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?

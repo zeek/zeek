@@ -5,6 +5,7 @@
 
 #include <string>
 #include <queue>
+#include <unordered_set>
 
 #include "Dict.h"
 #include "Net.h"
@@ -325,19 +326,16 @@ public:
 	std::string DetectMIME(const u_char* data, uint64 len) const;
 
 	uint64 CurrentFiles()
-		{ return id_map.Length(); }
+		{ return id_map.size(); }
 
 	uint64 MaxFiles()
-		{ return id_map.MaxLength(); }
+		{ return max_files; }
 
 	uint64 CumulativeFiles()
-		{ return id_map.NumCumulativeInserts(); }
+		{ return cumulative_files; }
 
 protected:
 	friend class FileTimer;
-
-	typedef PDict<bool> IDSet;
-	typedef PDict<File> IDMap;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -407,8 +405,8 @@ private:
 
 	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
-	PDict<File> id_map;  /**< Map file ID to file_analysis::File records. */
-	PDict<bool> ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	std::map<string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
+	std::unordered_set<string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
@@ -416,6 +414,9 @@ private:
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static TableType* tag_set_type;	/**< Type for set[tag]. */
 	static string salt; /**< A salt added to file handles before hashing. */
+
+	size_t cumulative_files;
+	size_t max_files;
 };
 
 /**

@@ -2,6 +2,7 @@
 #define rule_h
 
 #include <limits.h>
+#include <map>
 
 #include "Obj.h"
 #include "List.h"
@@ -15,7 +16,7 @@ class RuleHdrTest;
 class Rule;
 
 typedef PList<Rule> rule_list;
-typedef PDict<Rule> rule_dict;
+typedef std::map<string, Rule*> rule_dict;
 
 class Rule {
 public:

@@ -982,16 +982,14 @@ int main(int argc, char** argv)
 	if ( zeek_init )	//### this should be a function
 		mgr.QueueEventFast(zeek_init, val_list{});
 
-	EventRegistry::string_list* dead_handlers =
+	EventRegistry::string_list dead_handlers =
 		event_registry->UnusedHandlers();
 
-	if ( dead_handlers->length() > 0 && check_for_unused_event_handlers )
+	if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
 		{
-		for ( int i = 0; i < dead_handlers->length(); ++i )
-			reporter->Warning("event handler never invoked: %s", (*dead_handlers)[i]);
+		for ( const string& handler : dead_handlers )
+			reporter->Warning("event handler never invoked: %s", handler.c_str());
 		}
-
-	delete dead_handlers;
 
 	if ( stmts )
 		{

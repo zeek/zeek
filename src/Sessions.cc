@@ -1051,9 +1051,9 @@ void NetSessions::Remove(Connection* c)
 		{
 		c->CancelTimers();
 
-		analyzer::tcp::TCP_Analyzer* ta = (analyzer::tcp::TCP_Analyzer*) c->GetRootAnalyzer();
-		if ( ta && c->ConnTransport() == TRANSPORT_TCP )
+		if ( c->ConnTransport() == TRANSPORT_TCP )
 			{
+			auto ta = static_cast<analyzer::tcp::TCP_Analyzer*>(c->GetRootAnalyzer());
 			assert(ta->IsAnalyzer("TCP"));
 			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
 			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();

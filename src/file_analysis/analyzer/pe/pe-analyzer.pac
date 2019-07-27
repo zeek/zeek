@@ -61,9 +61,10 @@ refine flow File += {
 			dh->Assign(15, val_mgr->GetCount(${h.OEMinfo}));
 			dh->Assign(16, val_mgr->GetCount(${h.AddressOfNewExeHeader}));
 
-			BifEvent::generate_pe_dos_header((analyzer::Analyzer *) connection()->bro_analyzer(),
-			                                 connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                                 dh);
+			mgr.QueueEventFast(pe_dos_header, {
+			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			    dh
+			    });
 			}
 		return true;
 		%}
@@ -72,9 +73,10 @@ refine flow File += {
 		%{
 		if ( pe_dos_code )
 			{
-			BifEvent::generate_pe_dos_code((analyzer::Analyzer *) connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                               new StringVal(code.length(), (const char*) code.data()));
+			mgr.QueueEventFast(pe_dos_code, {
+			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			    new StringVal(code.length(), (const char*) code.data())
+			    });
 			}
 		return true;
 		%}
@@ -100,9 +102,11 @@ refine flow File += {
 			fh->Assign(3, val_mgr->GetCount(${h.NumberOfSymbols}));
 			fh->Assign(4, val_mgr->GetCount(${h.SizeOfOptionalHeader}));
 			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
-			BifEvent::generate_pe_file_header((analyzer::Analyzer *) connection()->bro_analyzer(),
-			                                  connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                                  fh);
+
+			mgr.QueueEventFast(pe_file_header, {
+			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			    fh
+			    });
 			}
 
 		return true;
@@ -151,9 +155,10 @@ refine flow File += {
 
 			oh->Assign(23, process_rvas(${h.rvas}));
 
-			BifEvent::generate_pe_optional_header((analyzer::Analyzer *) connection()->bro_analyzer(),
-			                                      connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                                      oh);
+			mgr.QueueEventFast(pe_optional_header, {
+			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			    oh
+			    });
 			}
 		return true;
 		%}
@@ -183,9 +188,10 @@ refine flow File += {
 			section_header->Assign(8, val_mgr->GetCount(${h.non_used_num_of_line_nums}));
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
-			BifEvent::generate_pe_section_header((analyzer::Analyzer *) connection()->bro_analyzer(),
-			                                     connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			                                     section_header);
+			mgr.QueueEventFast(pe_section_header, {
+			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
+			    section_header
+			    });
 			}
 		return true;
 		%}

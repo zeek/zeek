@@ -5,7 +5,6 @@
 
 #include <sys/types.h>
 
-#include <unordered_map>
 #include <string>
 
 #include "Dict.h"
@@ -57,7 +56,7 @@ namespace analyzer { class Analyzer; }
 
 class Connection : public BroObj {
 public:
-	Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+	Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
 	~Connection() override;
 
@@ -90,11 +89,15 @@ public:
 			// arguments for reproducing packets
 			const Packet *pkt);
 
-	HashKey* Key() const			{ return key; }
-	void ClearKey()				{ key = 0; }
+	// Keys are only considered valid for a connection when a
+	// connection is in the session map. If it is removed, the key
+	// should be marked invalid.
+	const ConnIDKey& Key() const	{ return key; }
+	void ClearKey()					{ key_valid = false; }
+	bool IsKeyValid() const			{ return key_valid; }
 
 	double StartTime() const		{ return start_time; }
-	void  SetStartTime(double t)		{ start_time = t; }
+	void SetStartTime(double t)		{ start_time = t; }
 	double LastTime() const			{ return last_time; }
 	void SetLastTime(double t) 		{ last_time = t; }
 
@@ -306,7 +309,8 @@ protected:
 	void RemoveConnectionTimer(double t);
 
 	NetSessions* sessions;
-	HashKey* key;
+	ConnIDKey key;
+	bool key_valid;
 
 	// Timer manager to use for this conn (or nil).
 	TimerMgr::Tag* conn_timer_mgr;

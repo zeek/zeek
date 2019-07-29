@@ -3289,6 +3289,42 @@ export {
 		create_action : count;
 	};
 
+	## A series of integers flags used to set quota and content indexing control information for a file system volume in SMB2.
+	##
+	## For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.5.2
+	##
+	type SMB2::Fscontrol: record {
+		## minimum amount of free disk space required to begin document filtering
+		free_space_start_filtering      : int;
+		## minimum amount of free disk space required to continue document filtering
+		free_space_threshold          	: int;
+		## minimum amount of free disk space required to continue document filtering
+		free_space_threshold          	: int;
+		## default per-user disk quota
+		delete_quota_threshold          : count;
+		## default per-user disk limit
+		default_quota_limit 		: count;
+		## file systems control flags passed as unsigned int
+		fs_control_flags		: count;
+	};
+
+	## This information class is used to query or set extended attribute (EA) information for a file.
+	##
+	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	##
+	type SMB2::FileEA: record {
+		## Specifies the extended attribute name
+		ea_name  : string;
+		## Contains the extended attribute value
+		ea_value : string;
+	};
+
+	## A vector of extended attribute (EA) information for a file.
+	##
+	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	##
+	type SMB2::FileEAs: vector of SMB2::FileEA;
+
 	## An SMB2 transform header (for SMB 3.x dialects with encryption enabled).
 	##
 	## For more information, see MS-SMB2:2.2.41

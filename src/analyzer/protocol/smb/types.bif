@@ -5,6 +5,9 @@ type SMB1::Header: record;
 type SMB2::Header: record;
 type SMB2::GUID: record;
 type SMB2::FileAttrs: record;
+type SMB2::Fscontrol: record;
+type SMB2::FileEA: record;
+type SMB2::FileEAs: vector;
 
 type SMB2::PreAuthIntegrityCapabilities: record;
 type SMB2::EncryptionCapabilities: record;

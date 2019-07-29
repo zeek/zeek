@@ -777,6 +777,49 @@ Here is a more detailed description of each type:
 
         print greeting("Dave");
 
+    Anonymously defined functions capture their closures. This means that they
+    can use and modify variables from their enclosing scope at the time of their
+    creation. Here is an example of a simple anonymous function that captures its
+    closure in Zeek:
+
+    .. sourcecode:: zeek
+
+        local make_adder = function(n: count): function(m: count): count
+            {
+            return function (m: count): count
+                {
+                return n + m;
+                };
+            };
+
+        print make_adder(3)(5); # prints 8
+
+        local three = make_adder(3);
+        print three(5); # prints 8
+
+    Here `make_adder` is generating a function that captures `n` in its closure.
+    
+    Anonymous functions capture their closures by reference. This means that they
+    can modify the variables in their closures. For example:
+
+    .. sourcecode:: zeek
+
+        local n = 3;
+        local f = function() { n += 1; };
+        f();
+        print n; # prints 4
+
+    When anonymous functions are serialized over Broker they keep their closures,
+    but they will not continue to mutate the values from the sending script. At 
+    the time of serialization they create a copy of their closure. Anonymous
+    function's do not capture global variables in their closures though and will
+    use the receivers global variables.
+
+    In order to serialize an anonymous function, that function must have been
+    already declared on the receivers end because Zeek will not serialize the
+    function's source code. See `testing/btest/language/closure-sending.zeek` for
+    an example of how to serialize anonymous functions over Broker.
+
     Function parameters may specify default values as long as they appear
     last in the parameter list:
 

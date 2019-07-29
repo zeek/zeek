@@ -16,7 +16,7 @@ refine flow MQTT_Flow += {
 		if ( mqtt_connack )
 			{
 			auto m = new RecordVal(BifType::Record::MQTT::ConnectAckMsg);
-			m->Assign(0, val_mgr->GetBool(${msg.return_code}));
+			m->Assign(0, val_mgr->GetCount(${msg.return_code}));
 			m->Assign(1, val_mgr->GetBool(${msg.session_present}));
 			BifEvent::generate_mqtt_connack(connection()->bro_analyzer(),
 			                                connection()->bro_analyzer()->Conn(),

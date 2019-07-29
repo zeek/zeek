@@ -5,7 +5,7 @@
 #include "MQTT.h"
 
 namespace plugin { 
-namespace Bro_MQTT {
+namespace Zeek_MQTT {
 
 class Plugin : public plugin::Plugin {
 public:
@@ -15,7 +15,7 @@ public:
 		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
 		
 		plugin::Configuration config;
-		config.name = "Bro::MQTT";
+		config.name = "Zeek::MQTT";
 		config.description = "Message Queuing Telemetry Transport v3.1.1 Protocol analyzer";
 		return config;
 		}

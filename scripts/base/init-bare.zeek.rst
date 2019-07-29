@@ -333,7 +333,7 @@ State Variables
 
 Types
 #####
-============================================================================= ==============================================================================================
+============================================================================= =======================================================================================================================
 :zeek:type:`BrokerStats`: :zeek:type:`record`                                 Statistics about Broker communication.
 :zeek:type:`Cluster::Pool`: :zeek:type:`record`                               A pool used for distributing data/work among a set of cluster nodes.
 :zeek:type:`ConnStats`: :zeek:type:`record`                                   
@@ -463,6 +463,9 @@ Types
                                                                               either creation of or access to a file.
 :zeek:type:`SMB2::EncryptionCapabilities`: :zeek:type:`record`                Encryption information as defined in SMB v.
 :zeek:type:`SMB2::FileAttrs`: :zeek:type:`record`                             A series of boolean flags describing basic and extended file attributes for SMB2.
+:zeek:type:`SMB2::FileEA`: :zeek:type:`record`                                This information class is used to query or set extended attribute (EA) information for a file.
+:zeek:type:`SMB2::FileEAs`: :zeek:type:`vector`                               A vector of extended attribute (EA) information for a file.
+:zeek:type:`SMB2::Fscontrol`: :zeek:type:`record`                             A series of integers flags used to set quota and content indexing control information for a file system volume in SMB2.
 :zeek:type:`SMB2::GUID`: :zeek:type:`record`                                  An SMB2 globally unique identifier which identifies a file.
 :zeek:type:`SMB2::Header`: :zeek:type:`record`                                An SMB2 header.
 :zeek:type:`SMB2::NegotiateContextValue`: :zeek:type:`record`                 The context type information as defined in SMB v.
@@ -665,7 +668,7 @@ Types
 :zeek:type:`udp_hdr`: :zeek:type:`record`                                     Values extracted from a UDP header.
 :zeek:type:`var_sizes`: :zeek:type:`table`                                    Table type used to map variable names to their memory allocation.
 :zeek:type:`x509_opaque_vector`: :zeek:type:`vector`                          A vector of x509 opaques.
-============================================================================= ==============================================================================================
+============================================================================= =======================================================================================================================
 
 Functions
 #########
@@ -5804,6 +5807,57 @@ Types
    For more information, see MS-CIFS:2.2.1.2.3 and MS-FSCC:2.6
    
    .. zeek:see:: smb2_create_response
+
+.. zeek:type:: SMB2::FileEA
+
+   :Type: :zeek:type:`record`
+
+      ea_name: :zeek:type:`string`
+         Specifies the extended attribute name
+
+      ea_value: :zeek:type:`string`
+         Contains the extended attribute value
+
+   This information class is used to query or set extended attribute (EA) information for a file.
+   
+   For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+   
+
+.. zeek:type:: SMB2::FileEAs
+
+   :Type: :zeek:type:`vector` of :zeek:type:`SMB2::FileEA`
+
+   A vector of extended attribute (EA) information for a file.
+   
+   For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+   
+
+.. zeek:type:: SMB2::Fscontrol
+
+   :Type: :zeek:type:`record`
+
+      free_space_start_filtering: :zeek:type:`int`
+         minimum amount of free disk space required to begin document filtering
+
+      free_space_threshold: :zeek:type:`int`
+         minimum amount of free disk space required to continue document filtering
+
+      free_space_threshold: :zeek:type:`int`
+         minimum amount of free disk space required to continue document filtering
+
+      delete_quota_threshold: :zeek:type:`count`
+         default per-user disk quota
+
+      default_quota_limit: :zeek:type:`count`
+         default per-user disk limit
+
+      fs_control_flags: :zeek:type:`count`
+         file systems control flags passed as unsigned int
+
+   A series of integers flags used to set quota and content indexing control information for a file system volume in SMB2.
+   
+   For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.5.2
+   
 
 .. zeek:type:: SMB2::GUID
 

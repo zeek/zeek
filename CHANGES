@@ -1,4 +1,41 @@
 
+2.6-664 | 2019-07-29 10:01:12 -0700
+
+  * Add release branches to Travis CI whitelist (Jon Siwek, Corelight)
+
+  * GH-488: teach the Version module to parse new version scheme
+
+    Such as the new -rc format for release candidates (replacing "beta") and
+    -dev.X for development versions in the master branch. (Jon Siwek, Corelight)
+
+  * Improve type inference for vector-of-enum constructor (Jon Siwek, Corelight)
+
+  * GHI-486: Switch over to using LLVM utf8-checking code to better validate characters (Tim Wojtulewicz, Corelight)
+
+  * Fix undefined behavior via casting file analyzers to protocol analyzers
+
+    When generating some events for PE and X509 file analyzers, there's
+    an invalid cast from file_analysis::Analyzer to analyzer::Analyzer
+    and subsequent invalid member access via analyzer::Analyzer::GetID()
+    called on what is really a pointer to a file analyzer. (Jon Siwek, Corelight)
+
+  * Fix undefined behavior via hrw_weight BIF signed int overflow (Jon Siwek, Corelight)
+
+  * Fix undefined behavior via invalid TCP analyzer cast
+
+    A connection's root analyzer isn't necessarily TCP and an unchecked
+    C-style cast is undefined behavior in those cases. (Jon Siwek, Corelight)
+
+  * GH-485: fix cases where DHCP log omits MAC field
+
+    The field is populated in this order of preference:
+
+      (1) Use a client-identifier option sent by client
+      (2) Use the server's CHADDR field
+      (3) Use the client's CHADDR field
+
+    Case (3) did not exist before this patch. (Jon Siwek, Corelight)
+
 2.6-649 | 2019-07-23 09:37:05 -0700
 
   * Remove --disable-perftools from coverity builds (Jon Siwek, Corelight)

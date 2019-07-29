@@ -1,4 +1,8 @@
 
+2.6-674 | 2019-07-29 16:11:42 -0400
+
+  * added more options to SMB2 set-info command (Mauro Palumbo)
+
 2.6-664 | 2019-07-29 10:01:12 -0700
 
   * Add release branches to Travis CI whitelist (Jon Siwek, Corelight)

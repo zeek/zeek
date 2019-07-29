@@ -272,7 +272,7 @@ Constants
             }
             scope_sep="."
             ext_prefix="_"
-            ext_func=anonymous-function
+            ext_func=lambda_<1052917868251127101>
             ;
             interv=0 secs
             postprocessor=<uninitialized>

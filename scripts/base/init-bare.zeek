@@ -3295,17 +3295,17 @@ export {
 	##
 	type SMB2::Fscontrol: record {
 		## minimum amount of free disk space required to begin document filtering
-		free_space_start_filtering      : int;
+		free_space_start_filtering : int;
 		## minimum amount of free disk space required to continue document filtering
-		free_space_threshold          	: int;
+		free_space_threshold       : int;
 		## minimum amount of free disk space required to continue document filtering
-		free_space_threshold          	: int;
+		free_space_threshold       : int;
 		## default per-user disk quota
-		delete_quota_threshold          : count;
+		delete_quota_threshold     : count;
 		## default per-user disk limit
-		default_quota_limit 		: count;
+		default_quota_limit        : count;
 		## file systems control flags passed as unsigned int
-		fs_control_flags		: count;
+		fs_control_flags           : count;
 	};
 
 	## This information class is used to query or set extended attribute (EA) information for a file.

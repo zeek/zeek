@@ -99,6 +99,7 @@ State Variables
             server_message=<uninitialized>
             msg_types=[]
             duration=0 secs
+            client_chaddr=<uninitialized>
             last_message_ts=<uninitialized>
             msg_orig=<uninitialized>
             client_software=<uninitialized>
@@ -192,6 +193,9 @@ Types
       duration: :zeek:type:`interval` :zeek:attr:`&log` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`
          Duration of the DHCP "session" representing the 
          time from the first message to the last.
+
+      client_chaddr: :zeek:type:`string` :zeek:attr:`&optional`
+         The CHADDR field sent by the client.
 
       last_message_ts: :zeek:type:`time` :zeek:attr:`&optional`
 

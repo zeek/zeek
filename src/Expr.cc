@@ -30,8 +30,8 @@ const char* expr_name(BroExprTag t)
 		"=", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
-		"()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce", "vector_coerce",
+		"()", "function()", "event", "schedule",
+		"coerce", "record_coerce", "table_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
@@ -232,7 +232,7 @@ Val* NameExpr::Eval(Frame* f) const
 		v = id->ID_Val();
 
 	else if ( f )
-		v = f->NthElement(id->Offset());
+		v = f->GetElement(id);
 
 	else
 		// No frame - evaluating for Simplify() purposes
@@ -266,7 +266,7 @@ void NameExpr::Assign(Frame* f, Val* v)
 	if ( id->IsGlobal() )
 		id->SetVal(v);
 	else
-		f->SetElement(id->Offset(), v);
+		f->SetElement(id, v);
 	}
 
 int NameExpr::IsPure() const
@@ -2694,7 +2694,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->Lookup(v2);
+		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
 		break;
 
 	case TYPE_STRING:
@@ -3176,6 +3176,8 @@ Val* TableConstructorExpr::Eval(Frame* f) const
 
 	for ( const auto& expr : exprs )
 		expr->EvalIntoAggregate(type, aggr, f);
+
+	aggr->AsTableVal()->InitDefaultFunc(f);
 
 	return aggr;
 	}
@@ -4312,6 +4314,80 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		}
 	else
 		args->Describe(d);
+	}
+
+LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
+		       id_list arg_outer_ids) : Expr(EXPR_LAMBDA)
+	{
+	ingredients = std::move(arg_ing);
+	outer_ids = std::move(arg_outer_ids);
+
+	SetType(ingredients->id->Type()->Ref());
+
+	// Install a dummy version of the function globally for use only
+	// when broker provides a closure.
+	BroFunc* dummy_func = new BroFunc(
+		ingredients->id,
+		ingredients->body,
+		ingredients->inits,
+		ingredients->frame_size,
+		ingredients->priority);
+
+	dummy_func->SetOuterIDs(outer_ids);
+
+	// Get the body's "string" representation.
+	ODesc d;
+	dummy_func->Describe(&d);
+	const char* desc = d.Description();
+
+	my_name = "lambda_<" + std::to_string(std::hash<std::string>()(std::string(desc))) + ">";
+
+	// Install that in the global_scope
+	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+
+	// Update lamb's name
+	dummy_func->SetName(my_name.c_str());
+
+	Val* v = new Val(dummy_func);
+	id->SetVal(v); // id will unref v when its done.
+	id->SetType(ingredients->id->Type()->Ref());
+	id->SetConst();
+	}
+
+Val* LambdaExpr::Eval(Frame* f) const
+	{
+	BroFunc* lamb = new BroFunc(
+		ingredients->id,
+		ingredients->body,
+		ingredients->inits,
+		ingredients->frame_size,
+		ingredients->priority);
+
+	lamb->AddClosure(outer_ids, f);
+
+	// Set name to corresponding dummy func.
+	// Allows for lookups by the receiver.
+	lamb->SetName(my_name.c_str());
+
+	return new Val(lamb);
+	}
+
+void LambdaExpr::ExprDescribe(ODesc* d) const
+	{
+	d->Add(expr_name(Tag()));
+	ingredients->body->Describe(d);
+	}
+
+TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = ingredients->body->Traverse(cb);
+	HANDLE_TC_EXPR_POST(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
 	}
 
 EventExpr::EventExpr(const char* arg_name, ListExpr* arg_args)

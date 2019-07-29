@@ -268,7 +268,7 @@ bro:
 			else
 				stmts = $2;
 
-			// Any objects creates from hereon out should not
+			// Any objects creates from here on out should not
 			// have file positions associated with them.
 			set_location(no_location);
 			}
@@ -644,6 +644,7 @@ expr:
 			}
 
 	|	anonymous_function
+
 
 	|	TOK_SCHEDULE expr '{' event '}'
 			{
@@ -1212,16 +1213,39 @@ func_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_func func_body
-			{ $$ = new ConstExpr($2->ID_Val()); }
+		TOK_FUNCTION begin_func
+
+		'{'
+			{
+			saved_in_init.push_back(in_init);
+			in_init = 0;
+			}
+
+		stmt_list
+			{
+			in_init = saved_in_init.back();
+			saved_in_init.pop_back();
+			}
+
+		'}'
+			{
+			// Code duplication here is sad but needed. end_func actually instantiates the function
+			// and associates it with an ID. We perform that association later and need to return
+			// a lambda expression.
+
+			// Gather the ingredients for a BroFunc from the current scope
+			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(current_scope(), $5);
+			id_list outer_ids = gather_outer_ids(pop_scope(), $5);
+
+			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
+			}
 	;
 
 begin_func:
 		func_params
 			{
 			$$ = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func($$, current_module.c_str(),
-				   FUNC_FLAVOR_FUNCTION, 0, $1);
+			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $1);
 			}
 	;
 
@@ -1294,7 +1318,7 @@ attr_list:
 
 attr:
 		TOK_ATTR_DEFAULT '=' expr
-			{ $$ = new Attr(ATTR_DEFAULT, $3); }
+		        { $$ = new Attr(ATTR_DEFAULT, $3); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF

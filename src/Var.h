@@ -3,9 +3,12 @@
 #ifndef var_h
 #define var_h
 
+#include <memory> // std::unique_ptr
+
 #include "ID.h"
 #include "Expr.h"
 #include "Type.h"
+#include "Func.h" // function_ingredients
 
 class Func;
 class EventHandlerPtr;
@@ -23,6 +26,14 @@ extern void add_type(ID* id, BroType* t, attr_list* attr);
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		       int is_redef, FuncType* t, attr_list* attrs = nullptr);
 extern void end_func(Stmt* body);
+
+// Gathers all of the information from a scope and a function body needed to
+// build a function and collects it into a function_ingredients struct.
+// Gathered elements are not refeed.
+extern std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body);
+
+// Gather all IDs referenced inside a body that aren't part of a given scope.
+extern id_list gather_outer_ids(Scope* scope, Stmt* body);
 
 extern Val* internal_val(const char* name);
 extern Val* internal_const_val(const char* name); // internal error if not const

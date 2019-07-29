@@ -125,6 +125,43 @@ New Functionality
 
   function(t: table[string, string] of count, s: string, s2: string): interval
 
+- Zeek's anonymous functions now capture their closures by reference.
+  This means that they can use and modify variables from the scope
+  that they were generated in. For example:
+
+      local n = 3;
+      local f = function() { n += 1; };
+      f();
+      print n; # prints 4
+
+  These anonymous functions can also be serialized over Broker with
+  their closures. In order to be serialzed over Broker the receiving
+  script needs to have an identical version of the function declared.
+  For the above example, a receiving script would need to have
+  declared a function
+
+      local name = function() { n += 1; };
+
+  to be able to receive the senders function over Broker.
+
+  Functions with closures can still use the variables they have
+  captured even after they have left the scope that they were declared
+  in. For example, a simple generator function like the one below
+  works as expected.
+
+      local make_adder = function(n: count): function(m: count): count
+          {
+          return function (m: count): count
+              {
+              return n + m;
+              };
+          };
+
+      print make_adder(3)(5); # prints 8
+
+      local three = make_adder(3);
+      print three(5); # prints 8
+
 Changed Functionality
 ---------------------
 

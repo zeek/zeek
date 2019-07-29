@@ -1,0 +1,4 @@
+warning: failed to convert remote event 'ping' arg #1, got vector, expected func
+warning: when sending functions the receiver must have access to a version of that function.
+For anonymous functions, that function must have the same body.
+received termination signal

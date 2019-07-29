@@ -1,4 +1,17 @@
 
+2.6-706 | 2019-07-30 02:30:44 +0000
+
+  * Zeek's anonymous functions now capture their closures by
+    reference. This means that they can use and modify variables from
+    the scope that they were generated in. For example:
+
+        local n = 3;
+        local f = function() { n += 1; };
+        f();
+        print n; # prints 4
+
+    See NEWS and the documentations for more details. (Zeke Medley, Corelight)
+
 2.6-674 | 2019-07-29 16:11:42 -0400
 
   * added more options to SMB2 set-info command (Mauro Palumbo)

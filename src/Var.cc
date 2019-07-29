@@ -389,6 +389,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
+
 	for ( int i = 0; i < num_args; ++i )
 		{
 		TypeDecl* arg_i = args->FieldDecl(i);
@@ -435,67 +436,94 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(Stmt* body)
+// Gets a function's priority from its Scope's attributes. Errors if it sees any
+// problems.
+static int get_func_priotity(const attr_list& attrs)
 	{
-	int frame_size = current_scope()->Length();
-	id_list* inits = current_scope()->GetInits();
-
-	Scope* scope = pop_scope();
-	ID* id = scope->ScopeID();
-
 	int priority = 0;
-	auto attrs = scope->Attrs();
 
-	if ( attrs )
+	for ( const auto& a : attrs )
 		{
-		for ( const auto& a : *attrs )
+		if ( a->Tag() == ATTR_DEPRECATED )
+			continue;
+
+		if ( a->Tag() != ATTR_PRIORITY )
 			{
-			if ( a->Tag() == ATTR_DEPRECATED )
-				continue;
-
-			if ( a->Tag() != ATTR_PRIORITY )
-				{
-				a->Error("illegal attribute for function body");
-				continue;
-				}
-
-			Val* v = a->AttrExpr()->Eval(0);
-			if ( ! v )
-				{
-				a->Error("cannot evaluate attribute expression");
-				continue;
-				}
-
-			if ( ! IsIntegral(v->Type()->Tag()) )
-				{
-				a->Error("expression is not of integral type");
-				continue;
-				}
-
-			priority = v->InternalInt();
+			a->Error("illegal attribute for function body");
+			continue;
 			}
+
+		Val* v = a->AttrExpr()->Eval(0);
+		if ( ! v )
+			{
+			a->Error("cannot evaluate attribute expression");
+			continue;
+			}
+
+		if ( ! IsIntegral(v->Type()->Tag()) )
+			{
+			a->Error("expression is not of integral type");
+			continue;
+			}
+
+		priority = v->InternalInt();
 		}
 
-	if ( streq(id->Name(), "anonymous-function") )
+	return priority;
+	}
+
+void end_func(Stmt* body)
+	{
+	std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(pop_scope(), body);
+
+	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
-		OuterIDBindingFinder cb(scope);
-		body->Traverse(&cb);
+		OuterIDBindingFinder cb(ingredients->scope);
+		ingredients->body->Traverse(&cb);
 
 		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
 			cb.outer_id_references[i]->Error(
 						"referencing outer function IDs not supported");
 		}
 
-	if ( id->HasVal() )
-		id->ID_Val()->AsFunc()->AddBody(body, inits, frame_size, priority);
+	if ( ingredients->id->HasVal() )
+		ingredients->id->ID_Val()->AsFunc()->AddBody(
+			ingredients->body,
+			ingredients->inits,
+			ingredients->frame_size,
+			ingredients->priority);
 	else
 		{
-		Func* f = new BroFunc(id, body, inits, frame_size, priority);
-		id->SetVal(new Val(f));
-		id->SetConst();
+		Func* f = new BroFunc(
+			ingredients->id,
+			ingredients->body,
+			ingredients->inits,
+			ingredients->frame_size,
+			ingredients->priority);
+
+		ingredients->id->SetVal(new Val(f));
+		ingredients->id->SetConst();
 		}
 
-	id->ID_Val()->AsFunc()->SetScope(scope);
+	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	}
+
+std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body)
+	{
+	auto ingredients = build_unique<function_ingredients>();
+
+	ingredients->frame_size = scope->Length();
+	ingredients->inits = scope->GetInits();
+
+	ingredients->scope = scope;
+	ingredients->id = scope->ScopeID();
+
+	auto attrs = scope->Attrs();
+
+	ingredients->priority = (attrs ? get_func_priotity(*attrs) : 0);
+	ingredients->body = body;
+
+	return ingredients;
 	}
 
 Val* internal_val(const char* name)
@@ -508,6 +536,19 @@ Val* internal_val(const char* name)
 	Val* rval = id->ID_Val();
 	Unref(id);
 	return rval;
+	}
+
+id_list gather_outer_ids(Scope* scope, Stmt* body)
+	{
+	OuterIDBindingFinder cb(scope);
+	body->Traverse(&cb);
+
+	id_list idl ( cb.outer_id_references.size() );
+
+	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
+	        idl.append(cb.outer_id_references[i]->Id());
+
+	return idl;
 	}
 
 Val* internal_const_val(const char* name)

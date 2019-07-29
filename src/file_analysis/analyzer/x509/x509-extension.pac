@@ -38,15 +38,15 @@ refine connection MockConnection += {
 		if ( ! x509_ocsp_ext_signed_certificate_timestamp )
 			return true;
 
-		BifEvent::generate_x509_ocsp_ext_signed_certificate_timestamp((analyzer::Analyzer *) bro_analyzer(),
+		mgr.QueueEventFast(x509_ocsp_ext_signed_certificate_timestamp, {
 			bro_analyzer()->GetFile()->GetVal()->Ref(),
-			version,
+			val_mgr->GetCount(version),
 			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
-			timestamp,
-			digitally_signed_algorithms->HashAlgorithm(),
-			digitally_signed_algorithms->SignatureAlgorithm(),
+			val_mgr->GetCount(timestamp),
+			val_mgr->GetCount(digitally_signed_algorithms->HashAlgorithm()),
+			val_mgr->GetCount(digitally_signed_algorithms->SignatureAlgorithm()),
 			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
-		);
+			});
 
 		return true;
 		%}

@@ -901,17 +901,14 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 	%{
 	uint32 d = key_digest;
 	d &= 0x7fffffff; // 31-bit digest
-	int32 si = site_id;
+	uint32 si = site_id;
 	auto a = 1103515245;
 	auto b = 12345;
 	auto m = 2147483648; // 2**31
 
-	int32 rval = (a * ((a * si + b) ^ d) + b) % m;
+	uint32 rval = (a * ((a * si + b) ^ d) + b) % m;
 
-	if ( rval < 0 )
-		rval += m; // [0, 2**31 - 1]
-
-	return val_mgr->GetCount((uint64) rval);
+	return val_mgr->GetCount(rval);
 	%}
 
 ## Generates a random number.

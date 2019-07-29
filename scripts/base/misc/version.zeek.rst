@@ -76,10 +76,17 @@ Types
          Patch version number (e.g. 0 for 2.5 or 1 for 2.4.1)
 
       commit: :zeek:type:`count`
-         Commit number for development versions, e.g. 12 for 2.4-12. 0 for non-development versions
+         Commit number for development versions, Versions prior to 3.0.0,
+         like "2.4-12", use a post-release commit number (12 commits
+         after the 2.4 release).  Versions after 3.0.0, like
+         "3.1.0-dev.37", use a pre-release commit number (37 commits
+         into the development cycle for 3.1.0).  For non-development version
+         this number will be zero.
 
       beta: :zeek:type:`bool`
-         If set to true, the version is a beta build of Zeek
+         If set to true, the version is a beta build of Zeek.  These versions
+         may start like "2.6-beta" or "3.0.0-rc" (the "rc" form started
+         being used for 3.0.0 and later).
 
       debug: :zeek:type:`bool`
          If set to true, the version is a debug build

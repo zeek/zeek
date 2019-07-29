@@ -93,9 +93,6 @@ function check(info: ServicesInfo) : bool
         if ( [info$host, info$port_num] !in Known::services ) 
                 return F;
 
-	if ( |info$service| == 0 )
-		return T;  # don't log empty service
-
         for(s in info$service)
                 {
                 if ( s !in Known::services[info$host, info$port_num] )
@@ -143,23 +140,31 @@ event known_service_add(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
-        if ( check(info) )
-                return;
+	if ( check(info) )
+		return;
 
 	if([info$host, info$port_num] !in Known::services)
 		Known::services[info$host, info$port_num] = set();
+
+	local info_to_log : ServicesInfo; # service to log can be a subset of info$service if some were already seen
+	info_to_log$ts = info$ts;
+	info_to_log$host = info$host;
+	info_to_log$port_num = info$port_num;
+	info_to_log$port_proto = info$port_proto;
+	info_to_log$service = set();
 
 	for(s in info$service)
 		{
 		if ( s !in Known::services[info$host, info$port_num] )
 			{
 			add Known::services[info$host, info$port_num][s];
+			add info_to_log$service[s];
 			}
 		}
 
 	@if ( ! Cluster::is_enabled() ||
 	      Cluster::local_node_type() == Cluster::PROXY )
-		Log::write(Known::SERVICES_LOG, info);
+		Log::write(Known::SERVICES_LOG, info_to_log);
 	@endif
 	}
 
@@ -206,6 +211,10 @@ event known_services_done(c: connection)
 	c$known_services_done = T;
 
 	if ( ! addr_matches_host(id$resp_h, service_tracking) )
+		return;
+
+	# don't log empty service
+	if ( |c$service| == 0 )
 		return;
 
 	if ( |c$service| == 1 )

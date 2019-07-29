@@ -274,12 +274,12 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 		if ( len )
 			return escape_pos(bytes + i, len);
 
-		if (!isprint(bytes[i]))
+		if ( !isprint(bytes[i]) )
 			{
 			if (utf8)
 				{
 				size_t utf_found = getNumBytesForUTF8(bytes[i]);
-				if (utf_found > 1 && utf_found < (n-i+1) && isLegalUTF8Sequence(reinterpret_cast<const unsigned char *>(bytes+i), reinterpret_cast<const unsigned char *>(bytes+i+utf_found) ))
+				if ( utf_found > 1 && utf_found < (n-i+1) && isLegalUTF8Sequence(reinterpret_cast<const unsigned char *>(bytes+i), reinterpret_cast<const unsigned char *>(bytes+i+utf_found)) )
 					{
 					i += utf_found - 1;
 					continue;

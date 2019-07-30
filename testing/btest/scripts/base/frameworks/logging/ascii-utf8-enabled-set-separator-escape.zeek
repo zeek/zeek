@@ -2,7 +2,7 @@
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff test.log
 
-@load tuning/enable-utf-8-logs
+redef LogAscii::enable_utf_8 = T;
 
 redef LogAscii::set_separator = "\xc2\xae";
 

@@ -31,7 +31,7 @@ public:
 	 * @return false if there was no extraction file open and the data couldn't
 	 *         be written, else true.
 	 */
-	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
 
 	/**
 	 * Report undelivered bytes.
@@ -39,7 +39,7 @@ public:
 	 * @param len number of bytes undelivered.
 	 * @return true
 	 */
-	bool Undelivered(uint64 offset, uint64 len) override;
+	bool Undelivered(uint64_t offset, uint64_t len) override;
 
 	/**
 	 * Create a new instance of an Extract analyzer.
@@ -55,7 +55,7 @@ public:
 	 * "no limit".
 	 * @param bytes number of bytes allowed to be extracted
 	 */
-	void SetLimit(uint64 bytes) { limit = bytes; }
+	void SetLimit(uint64_t bytes) { limit = bytes; }
 
 protected:
 
@@ -68,13 +68,13 @@ protected:
 	 * @param arg_limit the maximum allowed file size.
 	 */
 	Extract(RecordVal* args, File* file, const string& arg_filename,
-	        uint64 arg_limit);
+	        uint64_t arg_limit);
 
 private:
 	string filename;
 	int fd;
-	uint64 limit;
-	uint64 depth;
+	uint64_t limit;
+	uint64_t depth;
 };
 
 } // namespace file_analysis

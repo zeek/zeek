@@ -65,7 +65,7 @@ public:
 		}
 
 	// Total number of entries ever.
-	uint64 NumCumulativeInserts() const
+	uint64_t NumCumulativeInserts() const
 		{
 		return cumulative_entries;
 		}
@@ -163,7 +163,7 @@ private:
 	int num_buckets;
 	int num_entries;
 	int max_num_entries;
-	uint64 cumulative_entries;
+	uint64_t cumulative_entries;
 	double den_thresh;
 	int thresh_entries;
 

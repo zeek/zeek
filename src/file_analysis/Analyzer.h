@@ -13,7 +13,7 @@ namespace file_analysis {
 
 class File;
 
-typedef uint32 ID;
+typedef uint32_t ID;
 
 /**
  * Base class for analyzers that can be attached to file_analysis::File objects.
@@ -47,7 +47,7 @@ public:
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+	virtual bool DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		{ return true; }
 
 	/**
@@ -57,7 +57,7 @@ public:
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool DeliverStream(const u_char* data, uint64 len)
+	virtual bool DeliverStream(const u_char* data, uint64_t len)
 		{ return true; }
 
 	/**
@@ -78,7 +78,7 @@ public:
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool Undelivered(uint64 offset, uint64 len)
+	virtual bool Undelivered(uint64_t offset, uint64_t len)
 		{ return true; }
 
 	/**

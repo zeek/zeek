@@ -37,7 +37,7 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	return new DataEvent(args, file, chunk, stream);
 	}
 
-bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	if ( ! chunk_event ) return true;
 
@@ -50,7 +50,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	return true;
 	}
 
-bool DataEvent::DeliverStream(const u_char* data, uint64 len)
+bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! stream_event ) return true;
 

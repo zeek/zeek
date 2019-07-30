@@ -69,7 +69,7 @@ protected:
 
 	size_t hdr_len;
 	u_char* msg_buf;
-	uint64 msg_len;
+	uint64_t msg_len;
 	size_t buf_n;	// number of bytes in msg_buf
 	size_t buf_len;	// size off msg_buf
 };
@@ -91,7 +91,7 @@ public:
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	NCP_FrameBuffer buffer;
 	NCP_Session* session;

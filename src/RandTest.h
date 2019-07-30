@@ -20,12 +20,12 @@ class RandTest {
 	private:
 	  friend class EntropyVal;
 
-		int64 ccount[256];  /* Bins to count occurrences of values */
-		int64 totalc;       /* Total bytes counted */
+		int64_t ccount[256];  /* Bins to count occurrences of values */
+		int64_t totalc;       /* Total bytes counted */
 		int mp;
 		int sccfirst;
 		unsigned int monte[RT_MONTEN];
-		int64 inmont, mcount;
+		int64_t inmont, mcount;
 		double cexp, montex, montey, montepi,
 		       sccu0, scclast, scct1, scct2, scct3;
 };

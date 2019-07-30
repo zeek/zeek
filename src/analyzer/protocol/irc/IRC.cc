@@ -650,7 +650,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			// Calculate IP address.
-			uint32 raw_ip = 0;
+			uint32_t raw_ip = 0;
 			for ( unsigned int i = 0; i < parts[3].size(); ++i )
 				{
 				string s = parts[3].substr(i, 1);

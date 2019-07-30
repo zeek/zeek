@@ -22,7 +22,7 @@ public:
 	void FlipRoles() override;
 
 	void SetByteAndPacketThreshold(uint64_t threshold, bool bytes, bool orig);
-	uint64 GetByteAndPacketThreshold(bool bytes, bool orig);
+	uint64_t GetByteAndPacketThreshold(bool bytes, bool orig);
 
 	void SetDurationThreshold(double duration);
 	double GetDurationThreshold() { return duration_thresh; };
@@ -32,10 +32,10 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void CheckThresholds(bool is_orig);
 
-	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);
+	void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);
 
 	uint64_t orig_bytes;
 	uint64_t resp_bytes;

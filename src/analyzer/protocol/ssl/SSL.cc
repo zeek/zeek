@@ -71,7 +71,7 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSL_Analyzer::SendHandshake(uint16 raw_tls_version, const u_char* begin, const u_char* end, bool orig)
+void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end, bool orig)
 	{
 	handshake_interp->set_record_version(raw_tls_version);
 	try
@@ -84,7 +84,7 @@ void SSL_Analyzer::SendHandshake(uint16 raw_tls_version, const u_char* begin, co
 		}
 	}
 
-void SSL_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

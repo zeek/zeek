@@ -31,7 +31,7 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @return false if the digest is in an invalid state, else true.
 	 */
-	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
 
 	/**
 	 * Finalizes the hash and raises a "file_hash" event.
@@ -46,7 +46,7 @@ public:
 	 * @param len number of missing bytes.
 	 * @return always false so analyzer will detach from file.
 	 */
-	bool Undelivered(uint64 offset, uint64 len) override;
+	bool Undelivered(uint64_t offset, uint64_t len) override;
 
 protected:
 

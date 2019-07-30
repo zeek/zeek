@@ -34,15 +34,15 @@ public:
 
 protected:
 	void BlockInserted(DataBlock* start_block) override;
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
 	IP_Hdr* reassembled_pkt;
-	uint16 proto_hdr_len;
+	uint16_t proto_hdr_len;
 	NetSessions* s;
-	uint64 frag_size;	// size of fully reassembled fragment
-	uint16 next_proto; // first IPv6 fragment header's next proto field
+	uint64_t frag_size;	// size of fully reassembled fragment
+	uint16_t next_proto; // first IPv6 fragment header's next proto field
 	HashKey* key;
 
 	FragTimer* expire_timer;

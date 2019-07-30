@@ -111,7 +111,7 @@ void ODesc::Add(int i)
 		}
 	}
 
-void ODesc::Add(uint32 u)
+void ODesc::Add(uint32_t u)
 	{
 	if ( IsBinary() )
 		AddBytes(&u, sizeof(u));
@@ -123,7 +123,7 @@ void ODesc::Add(uint32 u)
 		}
 	}
 
-void ODesc::Add(int64 i)
+void ODesc::Add(int64_t i)
 	{
 	if ( IsBinary() )
 		AddBytes(&i, sizeof(i));
@@ -135,7 +135,7 @@ void ODesc::Add(int64 i)
 		}
 	}
 
-void ODesc::Add(uint64 u)
+void ODesc::Add(uint64_t u)
 	{
 	if ( IsBinary() )
 		AddBytes(&u, sizeof(u));

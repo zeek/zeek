@@ -105,7 +105,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
+	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
 	                   analyzer::Tag tag, Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
@@ -132,7 +132,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+	std::string DataIn(const u_char* data, uint64_t len, analyzer::Tag tag,
 	                   Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
@@ -146,7 +146,7 @@ public:
 	 *        in human-readable form where the file input is coming from (e.g.
 	 *        a local file path).
 	 */
-	void DataIn(const u_char* data, uint64 len, const string& file_id,
+	void DataIn(const u_char* data, uint64_t len, const string& file_id,
 	            const string& source);
 
 	/**
@@ -187,7 +187,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+	std::string Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
 	                Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
@@ -206,7 +206,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+	std::string SetSize(uint64_t size, analyzer::Tag tag, Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -240,7 +240,7 @@ public:
 	/**
 	 * Set the reassembly for a file in bytes.
 	 */
-	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+	bool SetReassemblyBuffer(const string& file_id, uint64_t max);
 
 	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
@@ -253,7 +253,7 @@ public:
 	 *         else true.
 	 */
 	bool SetExtractionLimit(const string& file_id, RecordVal* args,
-	                        uint64 n) const;
+	                        uint64_t n) const;
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
@@ -312,7 +312,7 @@ public:
 	 * @return Set of all matching file magic signatures, which may be
 	 *         an object allocated by the method if \a rval is a null pointer.
 	 */
-	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64 len,
+	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64_t len,
 					      RuleMatcher::MIME_Matches* rval) const;
 
 	/**
@@ -322,15 +322,15 @@ public:
 	 * @returns The MIME type string of the strongest file magic signature
 	 *          match, or an empty string if nothing matched.
 	 */
-	std::string DetectMIME(const u_char* data, uint64 len) const;
+	std::string DetectMIME(const u_char* data, uint64_t len) const;
 
-	uint64 CurrentFiles()
+	uint64_t CurrentFiles()
 		{ return id_map.Length(); }
 
-	uint64 MaxFiles()
+	uint64_t MaxFiles()
 		{ return id_map.MaxLength(); }
 
-	uint64 CumulativeFiles()
+	uint64_t CumulativeFiles()
 		{ return id_map.NumCumulativeInserts(); }
 
 protected:

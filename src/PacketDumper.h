@@ -25,7 +25,7 @@ protected:
 };
 
 struct IP_ID {
-	uint32 ip, id;
+	uint32_t ip, id;
 };
 
 struct ltipid {
@@ -37,6 +37,6 @@ struct ltipid {
 };
 
 typedef set<IP_ID, ltipid> IP_IDSet;
-uint16 NextIP_ID(const uint32 src_addr, const uint16 id);
+uint16_t NextIP_ID(const uint32_t src_addr, const uint16_t id);
 
 #endif

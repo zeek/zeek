@@ -16,7 +16,7 @@ namespace probabilistic {
 struct Element;
 
 struct Bucket {
-	uint64 count;
+	uint64_t count;
 	std::list<Element*> elements;
 
 	// Iterators only get invalidated for removed elements. This one
@@ -26,7 +26,7 @@ struct Bucket {
 };
 
 struct Element {
-	uint64 epsilon;
+	uint64_t epsilon;
 	Val* value;
 	Bucket* parent;
 
@@ -43,7 +43,7 @@ public:
 	 *
 	 * @return A newly initialized TopkVal
 	 */
-	explicit TopkVal(uint64 size);
+	explicit TopkVal(uint64_t size);
 
 	/**
 	 * Destructor.
@@ -167,8 +167,8 @@ private:
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
 	PDict<Element>* elementDict;
-	uint64 size; // how many elements are we tracking?
-	uint64 numElements; // how many elements do we have at the moment
+	uint64_t size; // how many elements are we tracking?
+	uint64_t numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?
 };
 

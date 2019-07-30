@@ -50,7 +50,7 @@ void FTP_Analyzer::Done()
 		Weird("partial_ftp_request");
 	}
 
-static uint32 get_reply_code(int len, const char* line)
+static uint32_t get_reply_code(int len, const char* line)
 	{
 	if ( len >= 3 && isdigit(line[0]) && isdigit(line[1]) && isdigit(line[2]) )
 		return (line[0] - '0') * 100 + (line[1] - '0') * 10 + (line[2] - '0');
@@ -113,7 +113,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		}
 	else
 		{
-		uint32 reply_code = get_reply_code(length, line);
+		uint32_t reply_code = get_reply_code(length, line);
 
 		int cont_resp;
 
@@ -232,7 +232,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				// that the fourth and fifth bytes indicating the length of
 				// the record match the length of the decoded data.
 				if ( msg_len < 5 || msg[0] != 0x16 ||
-				     msg_len - 5 != ntohs(*((uint16*)(msg + 3))) )
+				     msg_len - 5 != ntohs(*((uint16_t*)(msg + 3))) )
 					{
 					// Doesn't look like TLS/SSL, so done analyzing.
 					done = true;
@@ -251,7 +251,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	else
 		{
-		uint32 reply_code = get_reply_code(len, line);
+		uint32_t reply_code = get_reply_code(len, line);
 
 		switch ( reply_code ) {
 		case 232:

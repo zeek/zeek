@@ -322,7 +322,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 		// Ensure that it doesn't get turned into zero.
 		retry = 1.0;
 
-	auto secs = broker::timeout::seconds(static_cast<uint64>(retry));
+	auto secs = broker::timeout::seconds(static_cast<uint64_t>(retry));
 	bstate->endpoint.peer_nosync(addr, port, secs);
 
 	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();

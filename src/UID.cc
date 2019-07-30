@@ -7,7 +7,7 @@
 using namespace Bro;
 using namespace std;
 
-void UID::Set(bro_uint_t bits, const uint64* v, size_t n)
+void UID::Set(bro_uint_t bits, const uint64_t* v, size_t n)
 	{
 	initialized = true;
 

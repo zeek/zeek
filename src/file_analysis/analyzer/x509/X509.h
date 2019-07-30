@@ -68,8 +68,8 @@ class X509Val;
 
 class X509 : public file_analysis::X509Common {
 public:
-	bool DeliverStream(const u_char* data, uint64 len) override;
-	bool Undelivered(uint64 offset, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
+	bool Undelivered(uint64_t offset, uint64_t len) override;
 	bool EndOfFile() override;
 
 	/**

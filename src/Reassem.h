@@ -23,17 +23,17 @@ class Reassembler;
 class DataBlock {
 public:
 	DataBlock(Reassembler* reass, const u_char* data,
-	          uint64 size, uint64 seq,
+	          uint64_t size, uint64_t seq,
 	          DataBlock* prev, DataBlock* next,
 	          ReassemblerType reassem_type = REASSEM_UNKNOWN);
 
 	~DataBlock();
 
-	uint64 Size() const	{ return upper - seq; }
+	uint64_t Size() const	{ return upper - seq; }
 
 	DataBlock* next;	// next block with higher seq #
 	DataBlock* prev;	// previous block with lower seq #
-	uint64 seq, upper;
+	uint64_t seq, upper;
 	u_char* block;
 	ReassemblerType rtype;
 
@@ -42,49 +42,49 @@ public:
 
 class Reassembler : public BroObj {
 public:
-	Reassembler(uint64 init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
+	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
 	~Reassembler() override;
 
-	void NewBlock(double t, uint64 seq, uint64 len, const u_char* data);
+	void NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data);
 
 	// Throws away all blocks up to seq.  Returns number of bytes
 	// if not all in-sequence, 0 if they were.
-	uint64 TrimToSeq(uint64 seq);
+	uint64_t TrimToSeq(uint64_t seq);
 
 	// Delete all held blocks.
 	void ClearBlocks();
 	void ClearOldBlocks();
 
 	int HasBlocks() const		{ return blocks != 0; }
-	uint64 LastReassemSeq() const	{ return last_reassem_seq; }
+	uint64_t LastReassemSeq() const	{ return last_reassem_seq; }
 
-	uint64 TotalSize() const;	// number of bytes buffered up
+	uint64_t TotalSize() const;	// number of bytes buffered up
 
 	void Describe(ODesc* d) const override;
 
 	// Sum over all data buffered in some reassembler.
-	static uint64 TotalMemoryAllocation()	{ return total_size; }
+	static uint64_t TotalMemoryAllocation()	{ return total_size; }
 
 	// Data buffered by type of reassembler.
-	static uint64 MemoryAllocation(ReassemblerType rtype);
+	static uint64_t MemoryAllocation(ReassemblerType rtype);
 
-	void SetMaxOldBlocks(uint32 count)	{ max_old_blocks = count; }
+	void SetMaxOldBlocks(uint32_t count)	{ max_old_blocks = count; }
 
 protected:
 	Reassembler()	{ }
 
 	friend class DataBlock;
 
-	virtual void Undelivered(uint64 up_to_seq);
+	virtual void Undelivered(uint64_t up_to_seq);
 
 	virtual void BlockInserted(DataBlock* b) = 0;
-	virtual void Overlap(const u_char* b1, const u_char* b2, uint64 n) = 0;
+	virtual void Overlap(const u_char* b1, const u_char* b2, uint64_t n) = 0;
 
-	DataBlock* AddAndCheck(DataBlock* b, uint64 seq,
-				uint64 upper, const u_char* data);
+	DataBlock* AddAndCheck(DataBlock* b, uint64_t seq,
+				uint64_t upper, const u_char* data);
 
 	void CheckOverlap(DataBlock *head, DataBlock *tail,
-				uint64 seq, uint64 len, const u_char* data);
+				uint64_t seq, uint64_t len, const u_char* data);
 
 	DataBlock* blocks;
 	DataBlock* last_block;
@@ -92,16 +92,16 @@ protected:
 	DataBlock* old_blocks;
 	DataBlock* last_old_block;
 
-	uint64 last_reassem_seq;
-	uint64 trim_seq;	// how far we've trimmed
-	uint32 max_old_blocks;
-	uint32 total_old_blocks;
-	uint64 size_of_all_blocks;
+	uint64_t last_reassem_seq;
+	uint64_t trim_seq;	// how far we've trimmed
+	uint32_t max_old_blocks;
+	uint32_t total_old_blocks;
+	uint64_t size_of_all_blocks;
 
 	ReassemblerType rtype;
 
-	static uint64 total_size;
-	static uint64 sizes[REASSEM_NUM];
+	static uint64_t total_size;
+	static uint64_t sizes[REASSEM_NUM];
 };
 
 inline DataBlock::~DataBlock()

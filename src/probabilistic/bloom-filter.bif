@@ -126,7 +126,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 
 	const Hasher* h = new DefaultHasher(k, seed);
 
-	uint16 width = 1;
+	uint16_t width = 1;
 	while ( max >>= 1 )
 		++width;
 
@@ -180,7 +180,7 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return val_mgr->GetCount(static_cast<uint64>(bfv->Count(x)));
+		return val_mgr->GetCount(static_cast<uint64_t>(bfv->Count(x)));
 
 	return val_mgr->GetCount(0);
 	%}

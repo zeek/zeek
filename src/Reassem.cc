@@ -10,7 +10,7 @@
 static const bool DEBUG_reassem = false;
 
 DataBlock::DataBlock(Reassembler* reass, const u_char* data,
-                     uint64 size, uint64 arg_seq, DataBlock* arg_prev,
+                     uint64_t size, uint64_t arg_seq, DataBlock* arg_prev,
                      DataBlock* arg_next, ReassemblerType reassem_type)
 	{
 	seq = arg_seq;
@@ -35,10 +35,10 @@ DataBlock::DataBlock(Reassembler* reass, const u_char* data,
 	Reassembler::total_size += pad_size(size) + padded_sizeof(DataBlock);
 	}
 
-uint64 Reassembler::total_size = 0;
-uint64 Reassembler::sizes[REASSEM_NUM];
+uint64_t Reassembler::total_size = 0;
+uint64_t Reassembler::sizes[REASSEM_NUM];
 
-Reassembler::Reassembler(uint64 init_seq, ReassemblerType reassem_type)
+Reassembler::Reassembler(uint64_t init_seq, ReassemblerType reassem_type)
 	:  blocks(), last_block(), old_blocks(), last_old_block(),
 	  last_reassem_seq(init_seq), trim_seq(init_seq),
 	  max_old_blocks(0), total_old_blocks(0), size_of_all_blocks(0),
@@ -53,7 +53,7 @@ Reassembler::~Reassembler()
 	}
 
 void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
-					uint64 seq, uint64 len, const u_char* data)
+					uint64_t seq, uint64_t len, const u_char* data)
 	{
 	if ( ! head || ! tail )
 		return;
@@ -62,12 +62,12 @@ void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
 		// Special case check for common case of appending to the end.
 		return;
 
-	uint64 upper = (seq + len);
+	uint64_t upper = (seq + len);
 
 	for ( DataBlock* b = head; b; b = b->next )
 		{
-		uint64 nseq = seq;
-		uint64 nupper = upper;
+		uint64_t nseq = seq;
+		uint64_t nupper = upper;
 		const u_char* ndata = data;
 
 		if ( nupper <= b->seq )
@@ -85,20 +85,20 @@ void Reassembler::CheckOverlap(DataBlock *head, DataBlock *tail,
 		if ( nupper > b->upper )
 			nupper = b->upper;
 
-		uint64 overlap_offset = (nseq - b->seq);
-		uint64 overlap_len = (nupper - nseq);
+		uint64_t overlap_offset = (nseq - b->seq);
+		uint64_t overlap_len = (nupper - nseq);
 
 		if ( overlap_len )
 			Overlap(&b->block[overlap_offset], ndata, overlap_len);
 		}
 	}
 
-void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
+void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data)
 	{
 	if ( len == 0 )
 		return;
 
-	uint64 upper_seq = seq + len;
+	uint64_t upper_seq = seq + len;
 
 	CheckOverlap(old_blocks, last_old_block, seq, len, data);
 
@@ -110,7 +110,7 @@ void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
 
 	if ( seq < trim_seq )
 		{ // Partially old data, just keep the good stuff.
-		uint64 amount_old = trim_seq - seq;
+		uint64_t amount_old = trim_seq - seq;
 
 		data += amount_old;
 		seq += amount_old;
@@ -128,9 +128,9 @@ void Reassembler::NewBlock(double t, uint64 seq, uint64 len, const u_char* data)
 	BlockInserted(start_block);
 	}
 
-uint64 Reassembler::TrimToSeq(uint64 seq)
+uint64_t Reassembler::TrimToSeq(uint64_t seq)
 	{
-	uint64 num_missing = 0;
+	uint64_t num_missing = 0;
 
 	// Do this accounting before looking for Undelivered data,
 	// since that will alter last_reassem_seq.
@@ -252,7 +252,7 @@ void Reassembler::ClearOldBlocks()
 	last_old_block = 0;
 	}
 
-uint64 Reassembler::TotalSize() const
+uint64_t Reassembler::TotalSize() const
 	{
 	return size_of_all_blocks;
 	}
@@ -262,13 +262,13 @@ void Reassembler::Describe(ODesc* d) const
 	d->Add("reassembler");
 	}
 
-void Reassembler::Undelivered(uint64 up_to_seq)
+void Reassembler::Undelivered(uint64_t up_to_seq)
 	{
 	// TrimToSeq() expects this.
 	last_reassem_seq = up_to_seq;
 	}
 
-DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
+DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64_t seq, uint64_t upper,
 					const u_char* data)
 	{
 	if ( DEBUG_reassem )
@@ -315,7 +315,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	if ( seq < b->seq )
 		{
 		// The new block has a prefix that comes before b.
-		uint64 prefix_len = b->seq - seq;
+		uint64_t prefix_len = b->seq - seq;
 		new_b = new DataBlock(this, data, prefix_len, seq,
 		                      b->prev, b, rtype);
 		if ( b == blocks )
@@ -327,11 +327,11 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	else
 		new_b = b;
 
-	uint64 overlap_start = seq;
-	uint64 overlap_offset = overlap_start - b->seq;
-	uint64 new_b_len = upper - seq;
-	uint64 b_len = b->upper - overlap_start;
-	uint64 overlap_len = min(new_b_len, b_len);
+	uint64_t overlap_start = seq;
+	uint64_t overlap_offset = overlap_start - b->seq;
+	uint64_t new_b_len = upper - seq;
+	uint64_t b_len = b->upper - overlap_start;
+	uint64_t overlap_len = min(new_b_len, b_len);
 
 	if ( overlap_len < new_b_len )
 		{
@@ -351,7 +351,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64 seq, uint64 upper,
 	return new_b;
 	}
 
-uint64 Reassembler::MemoryAllocation(ReassemblerType rtype)
+uint64_t Reassembler::MemoryAllocation(ReassemblerType rtype)
 	{
 	return Reassembler::sizes[rtype];
 	}

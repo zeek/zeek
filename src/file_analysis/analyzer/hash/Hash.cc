@@ -20,7 +20,7 @@ Hash::~Hash()
 	Unref(hash);
 	}
 
-bool Hash::DeliverStream(const u_char* data, uint64 len)
+bool Hash::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! hash->IsValid() )
 		return false;
@@ -38,7 +38,7 @@ bool Hash::EndOfFile()
 	return false;
 	}
 
-bool Hash::Undelivered(uint64 offset, uint64 len)
+bool Hash::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}

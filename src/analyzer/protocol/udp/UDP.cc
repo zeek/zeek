@@ -42,7 +42,7 @@ void UDP_Analyzer::Done()
 	}
 
 void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -105,14 +105,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 			if ( is_orig )
 				{
-				uint32 t = req_chk_thresh;
+				uint32_t t = req_chk_thresh;
 				if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt,
 				                                req_chk_thresh) )
 					ChecksumEvent(is_orig, t);
 				}
 			else
 				{
-				uint32 t = rep_chk_thresh;
+				uint32_t t = rep_chk_thresh;
 				if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt,
 				                                rep_chk_thresh) )
 					ChecksumEvent(is_orig, t);
@@ -246,7 +246,7 @@ unsigned int UDP_Analyzer::MemoryAllocation() const
 	return Analyzer::MemoryAllocation() + padded_sizeof(*this) - 24;
 	}
 
-void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32 threshold)
+void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 	{
 	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors,
 	                              is_orig, threshold);
@@ -254,7 +254,7 @@ void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32 threshold)
 
 bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	{
-	uint32 sum;
+	uint32_t sum;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.

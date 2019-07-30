@@ -47,13 +47,13 @@ namespace analyzer {
 // Given a header expression like "ip[offset:len] & mask = val", we parse
 // it into a Range and a MaskedValue.
 struct Range {
-	uint32 offset;
-	uint32 len;
+	uint32_t offset;
+	uint32_t len;
 };
 
 struct MaskedValue {
-	uint32 val;
-	uint32 mask;
+	uint32_t val;
+	uint32_t mask;
 };
 
 typedef PList<MaskedValue> maskedvalue_list;
@@ -64,7 +64,7 @@ typedef PList<BroString> bstr_list;
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
                                 vector<IPPrefix>* prefix_vector = 0);
 extern char* id_to_str(const char* id);
-extern uint32 id_to_uint(const char* id);
+extern uint32_t id_to_uint(const char* id);
 
 class RuleHdrTest {
 public:
@@ -72,7 +72,7 @@ public:
 	enum Comp { LE, GE, LT, GT, EQ, NE };
 	enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
-	RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
+	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
 	RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v);
 	~RuleHdrTest();
@@ -92,11 +92,11 @@ private:
 	Comp comp;
 	maskedvalue_list* vals;
 	vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
-	uint32 offset;
-	uint32 size;
+	uint32_t offset;
+	uint32_t size;
 
-	uint32 id;	// For debugging, each HdrTest gets an unique ID
-	static uint32 idcounter;
+	uint32_t id;	// For debugging, each HdrTest gets an unique ID
+	static uint32_t idcounter;
 
 	// The following are all set by RuleMatcher::BuildRulesTree().
 	friend class RuleMatcher;
@@ -251,7 +251,7 @@ public:
 	 * @return The results of the signature matching.
 	 */
 	MIME_Matches* Match(RuleFileMagicState* state, const u_char* data,
-	                   uint64 len, MIME_Matches* matches = 0) const;
+	                   uint64_t len, MIME_Matches* matches = 0) const;
 
 
 	/**

@@ -103,7 +103,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(BroType* t)
 		}
 
 	// A base type.
-	return {broker::vector{false, static_cast<uint64>(t->Tag())}};
+	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
 BroType* OpaqueVal::UnserializeType(const broker::data& data)
@@ -133,7 +133,7 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 		return t->Ref();
 		}
 
-	auto tag = caf::get_if<uint64>(&(*v)[1]);
+	auto tag = caf::get_if<uint64_t>(&(*v)[1]);
 	if ( ! tag )
 		return nullptr;
 
@@ -299,17 +299,17 @@ broker::expected<broker::data> MD5Val::DoSerialize() const
 
 	broker::vector d = {
 	    true,
-	    static_cast<uint64>(md->A),
-	    static_cast<uint64>(md->B),
-	    static_cast<uint64>(md->C),
-	    static_cast<uint64>(md->D),
-	    static_cast<uint64>(md->Nl),
-	    static_cast<uint64>(md->Nh),
-	    static_cast<uint64>(md->num)
+	    static_cast<uint64_t>(md->A),
+	    static_cast<uint64_t>(md->B),
+	    static_cast<uint64_t>(md->C),
+	    static_cast<uint64_t>(md->D),
+	    static_cast<uint64_t>(md->Nl),
+	    static_cast<uint64_t>(md->Nh),
+	    static_cast<uint64_t>(md->num)
 	};
 
 	for ( int i = 0; i < MD5_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64>(md->data[i]));
+		d.emplace_back(static_cast<uint64_t>(md->data[i]));
 
 	return {std::move(d)};
 	}
@@ -439,18 +439,18 @@ broker::expected<broker::data> SHA1Val::DoSerialize() const
 
 	broker::vector d = {
 	    true,
-	    static_cast<uint64>(md->h0),
-	    static_cast<uint64>(md->h1),
-	    static_cast<uint64>(md->h2),
-	    static_cast<uint64>(md->h3),
-	    static_cast<uint64>(md->h4),
-	    static_cast<uint64>(md->Nl),
-	    static_cast<uint64>(md->Nh),
-	    static_cast<uint64>(md->num)
+	    static_cast<uint64_t>(md->h0),
+	    static_cast<uint64_t>(md->h1),
+	    static_cast<uint64_t>(md->h2),
+	    static_cast<uint64_t>(md->h3),
+	    static_cast<uint64_t>(md->h4),
+	    static_cast<uint64_t>(md->Nl),
+	    static_cast<uint64_t>(md->Nh),
+	    static_cast<uint64_t>(md->num)
 	};
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64>(md->data[i]));
+		d.emplace_back(static_cast<uint64_t>(md->data[i]));
 
 	return {std::move(d)};
 	}
@@ -582,17 +582,17 @@ broker::expected<broker::data> SHA256Val::DoSerialize() const
 
 	broker::vector d = {
 	    true,
-	    static_cast<uint64>(md->Nl),
-	    static_cast<uint64>(md->Nh),
-	    static_cast<uint64>(md->num),
-	    static_cast<uint64>(md->md_len)
+	    static_cast<uint64_t>(md->Nl),
+	    static_cast<uint64_t>(md->Nh),
+	    static_cast<uint64_t>(md->num),
+	    static_cast<uint64_t>(md->md_len)
 	};
 
 	for ( int i = 0; i < 8; ++i )
-		d.emplace_back(static_cast<uint64>(md->h[i]));
+		d.emplace_back(static_cast<uint64_t>(md->h[i]));
 
 	for ( int i = 0; i < SHA_LBLOCK; ++i )
-		d.emplace_back(static_cast<uint64>(md->data[i]));
+		d.emplace_back(static_cast<uint64_t>(md->data[i]));
 
 	return {std::move(d)};
 	}
@@ -663,29 +663,29 @@ broker::expected<broker::data> EntropyVal::DoSerialize() const
 	{
 	broker::vector d =
 		{
-		static_cast<uint64>(state.totalc),
-		static_cast<uint64>(state.mp),
-		static_cast<uint64>(state.sccfirst),
-		static_cast<uint64>(state.inmont),
-		static_cast<uint64>(state.mcount),
-		static_cast<uint64>(state.cexp),
-		static_cast<uint64>(state.montex),
-		static_cast<uint64>(state.montey),
-		static_cast<uint64>(state.montepi),
-		static_cast<uint64>(state.sccu0),
-		static_cast<uint64>(state.scclast),
-		static_cast<uint64>(state.scct1),
-		static_cast<uint64>(state.scct2),
-		static_cast<uint64>(state.scct3),
+		static_cast<uint64_t>(state.totalc),
+		static_cast<uint64_t>(state.mp),
+		static_cast<uint64_t>(state.sccfirst),
+		static_cast<uint64_t>(state.inmont),
+		static_cast<uint64_t>(state.mcount),
+		static_cast<uint64_t>(state.cexp),
+		static_cast<uint64_t>(state.montex),
+		static_cast<uint64_t>(state.montey),
+		static_cast<uint64_t>(state.montepi),
+		static_cast<uint64_t>(state.sccu0),
+		static_cast<uint64_t>(state.scclast),
+		static_cast<uint64_t>(state.scct1),
+		static_cast<uint64_t>(state.scct2),
+		static_cast<uint64_t>(state.scct3),
 		};
 
 	d.reserve(256 + 3 + RT_MONTEN + 11);
 
 	for ( int i = 0; i < 256; ++i )
-		d.emplace_back(static_cast<uint64>(state.ccount[i]));
+		d.emplace_back(static_cast<uint64_t>(state.ccount[i]));
 
         for ( int i = 0; i < RT_MONTEN; ++i )
-		d.emplace_back(static_cast<uint64>(state.monte[i]));
+		d.emplace_back(static_cast<uint64_t>(state.monte[i]));
 
 	return {std::move(d)};
 	}

@@ -1066,8 +1066,8 @@ int main(int argc, char** argv)
 
 		double time_net_start = current_time(true);;
 
-		uint64 mem_net_start_total;
-		uint64 mem_net_start_malloced;
+		uint64_t mem_net_start_total;
+		uint64_t mem_net_start_malloced;
 
 		if ( time_bro )
 			{
@@ -1084,8 +1084,8 @@ int main(int argc, char** argv)
 
 		double time_net_done = current_time(true);;
 
-		uint64 mem_net_done_total;
-		uint64 mem_net_done_malloced;
+		uint64_t mem_net_done_total;
+		uint64_t mem_net_done_malloced;
 
 		if ( time_bro )
 			{

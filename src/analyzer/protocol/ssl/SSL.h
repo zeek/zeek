@@ -19,9 +19,9 @@ public:
 	// Overriden from Analyzer.
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	void SendHandshake(uint16 raw_tls_version, const u_char* begin, const u_char* end, bool orig);
+	void SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end, bool orig);
 
 	// Tell the analyzer that encryption has started.
 	void StartEncryption();

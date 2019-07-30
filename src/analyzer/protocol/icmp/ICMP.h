@@ -27,7 +27,7 @@ public:
 protected:
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
@@ -60,8 +60,8 @@ protected:
 	void Context4(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
 
-	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port,
-			uint32* dst_port);
+	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* src_port,
+			uint32_t* dst_port);
 
 	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr );

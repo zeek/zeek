@@ -26,23 +26,23 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		uint64 received;
+		uint64_t received;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64 dropped;	// pkts dropped
+		uint64_t dropped;	// pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		uint64 link;
+		uint64_t link;
 
 		/**
 		  * Bytes received by source after filtering (w/o drops).
 		*/
-		uint64 bytes_received;
+		uint64_t bytes_received;
 
 		Stats()	{ received = dropped = link = bytes_received = 0; }
 	};
@@ -77,7 +77,7 @@ public:
 	 * Returns the netmask associated with the source, or \c
 	 * NETMASK_UNKNOWN if unknown.
 	 */
-	uint32 Netmask() const;
+	uint32_t Netmask() const;
 
 	/**
 	 * Returns true if the source has flagged an error.
@@ -236,7 +236,7 @@ protected:
 		 * Returns the netmask associated with the source, or \c
 		 * NETMASK_UNKNOWN if unknown.
 		 */
-		uint32 netmask;
+		uint32_t netmask;
 
 		/**
 		 * True if the source is reading live inout, false for

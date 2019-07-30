@@ -108,7 +108,7 @@ protected:
 	virtual ~Modifiable();
 
 	// Number of currently registered receivers.
-	uint64 num_receivers = 0;
+	uint64_t num_receivers = 0;
 };
 
 }

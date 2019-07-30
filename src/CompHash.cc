@@ -111,7 +111,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 	case TYPE_INTERNAL_ADDR:
 		{
-		uint32* kp = AlignAndPadType<uint32>(kp0);
+		uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
 		v->AsAddr().CopyIPv6(kp);
 		kp1 = reinterpret_cast<char*>(kp+4);
 		}
@@ -119,7 +119,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 	case TYPE_INTERNAL_SUBNET:
 		{
-		uint32* kp = AlignAndPadType<uint32>(kp0);
+		uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
 		v->AsSubNet().Prefix().CopyIPv6(kp);
 		kp[4] = v->AsSubNet().Length();
 		kp1 = reinterpret_cast<char*>(kp+5);
@@ -140,7 +140,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		switch ( v->Type()->Tag() ) {
 		case TYPE_FUNC:
 			{
-			uint32* kp = AlignAndPadType<uint32>(kp0);
+			uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
 			*kp = v->AsFunc()->GetUniqueFuncID();
 			kp1 = reinterpret_cast<char*>(kp+1);
 			break;
@@ -439,13 +439,13 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		break;
 
 	case TYPE_INTERNAL_ADDR:
-		sz = SizeAlign(sz, sizeof(uint32));
-		sz += sizeof(uint32) * 3;	// to make a total of 4 words
+		sz = SizeAlign(sz, sizeof(uint32_t));
+		sz += sizeof(uint32_t) * 3;	// to make a total of 4 words
 		break;
 
 	case TYPE_INTERNAL_SUBNET:
-		sz = SizeAlign(sz, sizeof(uint32));
-		sz += sizeof(uint32) * 4;	// to make a total of 5 words
+		sz = SizeAlign(sz, sizeof(uint32_t));
+		sz += sizeof(uint32_t) * 4;	// to make a total of 5 words
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
@@ -458,7 +458,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		switch ( bt->Tag() ) {
 		case TYPE_FUNC:
 			{
-			sz = SizeAlign(sz, sizeof(uint32));
+			sz = SizeAlign(sz, sizeof(uint32_t));
 			break;
 			}
 
@@ -770,7 +770,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	case TYPE_INTERNAL_ADDR:
 		{
-		const uint32* const kp = AlignType<uint32>(kp0);
+		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+4);
 
 		IPAddr addr(IPv6, kp, IPAddr::Network);
@@ -790,7 +790,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	case TYPE_INTERNAL_SUBNET:
 		{
-		const uint32* const kp = AlignType<uint32>(kp0);
+		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+5);
 		pval = new SubNetVal(kp, kp[4]);
 		}
@@ -802,7 +802,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		switch ( t->Tag() ) {
 		case TYPE_FUNC:
 			{
-			const uint32* const kp = AlignType<uint32>(kp0);
+			const uint32_t* const kp = AlignType<uint32_t>(kp0);
 			kp1 = reinterpret_cast<const char*>(kp+1);
 
 			Func* f = Func::GetFuncPtrByID(*kp);

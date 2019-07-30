@@ -79,9 +79,9 @@ public:
 	void AddN(const char* s, int len)	{ AddBytes(s, len); }
 	void Add(const string& s)	{ AddBytes(s.data(), s.size()); }
 	void Add(int i);
-	void Add(uint32 u);
-	void Add(int64 i);
-	void Add(uint64 u);
+	void Add(uint32_t u);
+	void Add(int64_t i);
+	void Add(uint64_t u);
 	void Add(double d, bool no_exp=false);
 	void Add(const IPAddr& addr);
 	void Add(const IPPrefix& prefix);

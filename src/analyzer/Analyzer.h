@@ -26,7 +26,7 @@ class SupportAnalyzer;
 class OutputHandler;
 
 typedef list<Analyzer*> analyzer_list;
-typedef uint32 ID;
+typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
 /**
@@ -44,7 +44,7 @@ public:
 	 * Analyzer::DeliverPacket().
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
-				   bool orig, uint64 seq,
+				   bool orig, uint64_t seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
 
@@ -59,7 +59,7 @@ public:
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(uint64 seq, int len, bool orig)	{ }
+	virtual void Undelivered(uint64_t seq, int len, bool orig)	{ }
 };
 
 /**
@@ -143,7 +143,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64 seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64_t seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -173,7 +173,7 @@ public:
 	 *
 	 * @param is_orig True if this is about originator-side input.
 	 */
-	void NextUndelivered(uint64 seq, int len, bool is_orig);
+	void NextUndelivered(uint64_t seq, int len, bool is_orig);
 
 	/**
 	 * Reports a message boundary.  This is a generic method that can be
@@ -195,7 +195,7 @@ public:
 	 * Parameters are the same as for NextPacket().
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
-					bool orig, uint64 seq,
+					bool orig, uint64_t seq,
 					const IP_Hdr* ip, int caplen);
 
 	/**
@@ -212,7 +212,7 @@ public:
 	 *
 	 * Parameters are the same as for NextUndelivered().
 	 */
-	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64_t seq, int len, bool orig);
 
 	/**
 	 * Forwards an end-of-data notification on to all child analyzers.
@@ -227,7 +227,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -241,7 +241,7 @@ public:
 	 * NextUndelivered() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	virtual void Undelivered(uint64_t seq, int len, bool orig);
 
 	/**
 	 * Hook for accessing end-of-data notifications. This is called by
@@ -768,7 +768,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -788,7 +788,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	void ForwardUndelivered(uint64 seq, int len, bool orig) override;
+	void ForwardUndelivered(uint64_t seq, int len, bool orig) override;
 
 protected:
 	friend class Analyzer;

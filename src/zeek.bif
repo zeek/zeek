@@ -198,7 +198,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 				if ( v->Type()->Tag() == TYPE_PORT )
 					u = v->AsPortVal()->Port();
 				else
-					u = ntohl(uint32(u));
+					u = ntohl(uint32_t(u));
 				}
 
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
@@ -871,13 +871,13 @@ function fnv1a32%(input: any%): count
 	input->Describe(&desc);
 	auto bytes = desc.Bytes();
 
-	uint32 offset32 = 2166136261;
-	uint32 prime32 = 16777619;
-	uint32 rval = offset32;
+	uint32_t offset32 = 2166136261;
+	uint32_t prime32 = 16777619;
+	uint32_t rval = offset32;
 
 	for ( auto i = 0; i < desc.Len(); ++i )
 		{
-		rval ^= (uint32) bytes[i];
+		rval ^= (uint32_t) bytes[i];
 		rval *= prime32;
 		}
 
@@ -899,14 +899,14 @@ function fnv1a32%(input: any%): count
 ## .. zeek:see:: fnv1a32
 function hrw_weight%(key_digest: count, site_id: count%): count
 	%{
-	uint32 d = key_digest;
+	uint32_t d = key_digest;
 	d &= 0x7fffffff; // 31-bit digest
-	uint32 si = site_id;
+	uint32_t si = site_id;
 	auto a = 1103515245;
 	auto b = 12345;
 	auto m = 2147483648; // 2**31
 
-	uint32 rval = (a * ((a * si + b) ^ d) + b) % m;
+	uint32_t rval = (a * ((a * si + b) ^ d) + b) % m;
 
 	return val_mgr->GetCount(rval);
 	%}
@@ -1116,7 +1116,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 function unique_id%(prefix: string%) : string
 	%{
 	char tmp[20];
-	uint64 uid = calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
+	uint64_t uid = calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
 	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
@@ -1134,7 +1134,7 @@ function unique_id_from%(pool: int, prefix: string%) : string
 	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
 
 	char tmp[20];
-	uint64 uid = calculate_unique_id(pool);
+	uint64_t uid = calculate_unique_id(pool);
 	return new StringVal(uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
 	%}
 
@@ -2028,7 +2028,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv4, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -2037,7 +2037,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(IPAddr(IPv6, (uint32*)ent->h_addr_list[len],
+			addrs.push_back(IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
 			                       IPAddr::Network));
 		}
 
@@ -2181,7 +2181,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		IPAddr a(IPv6, (const uint32*) bytes, IPAddr::Network);
+		IPAddr a(IPv6, (const uint32_t*) bytes, IPAddr::Network);
 		rval->Assign(rval->Size(), new AddrVal(a));
 		bytes += 16;
 		len -= 16;
@@ -2201,7 +2201,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 function addr_to_counts%(a: addr%): index_vec
 	%{
 	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
-	const uint32* bytes;
+	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
@@ -2226,7 +2226,7 @@ function counts_to_addr%(v: index_vec%): addr
 		}
 	else if ( v->AsVector()->size() == 4 )
 		{
-		uint32 bytes[4];
+		uint32_t bytes[4];
 		for ( int i = 0; i < 4; ++i )
 			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
 		return new AddrVal(bytes);
@@ -2234,7 +2234,7 @@ function counts_to_addr%(v: index_vec%): addr
 	else
 		{
 		builtin_error("invalid vector size", @ARG@[0]);
-		uint32 bytes[4];
+		uint32_t bytes[4];
 		memset(bytes, 0, sizeof(bytes));
 		return new AddrVal(bytes);
 		}
@@ -2324,7 +2324,7 @@ function to_count%(str: string%): count
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64 u = (uint64) strtoull(s, &end_s, 10);
+	uint64_t u = (uint64_t) strtoull(s, &end_s, 10);
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{
@@ -2544,10 +2544,10 @@ function count_to_v4_addr%(ip: count%): addr
 	if ( ip > 4294967295LU )
 		{
 		builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
-		return new AddrVal(uint32(0));
+		return new AddrVal(uint32_t(0));
 		}
 
-	return new AddrVal(htonl(uint32(ip)));
+	return new AddrVal(htonl(uint32_t(ip)));
 	%}
 
 ## Converts a :zeek:type:`string` of bytes into an IPv4 address. In particular,
@@ -2561,7 +2561,7 @@ function count_to_v4_addr%(ip: count%): addr
 ## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet
 function raw_bytes_to_v4_addr%(b: string%): addr
 	%{
-	uint32 a = 0;
+	uint32_t a = 0;
 
 	if ( b->Len() < 4 )
 		builtin_error("too short a string as input to raw_bytes_to_v4_addr()");
@@ -2646,69 +2646,69 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	unsigned int i;
 
 	switch ( s->Len() ) {
-	case sizeof(uint8):
+	case sizeof(uint8_t):
 		{
-		uint8 value = 0;
-		memcpy(&value, p, sizeof(uint8));
+		uint8_t value = 0;
+		memcpy(&value, p, sizeof(uint8_t));
 		return val_mgr->GetCount(value);
 		}
 
-	case sizeof(uint16):
+	case sizeof(uint16_t):
 		{
-		uint16 value = 0;
+		uint16_t value = 0;
 
 		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
-			char buf[sizeof(uint16)];
-			char *d = &buf[sizeof(uint16)-1];
+			char buf[sizeof(uint16_t)];
+			char *d = &buf[sizeof(uint16_t)-1];
 
-			for ( i = 0; i < sizeof(uint16); i++ )
+			for ( i = 0; i < sizeof(uint16_t); i++ )
 				*d-- = *p++;
 
-			memcpy(&value, buf, sizeof(uint16));
+			memcpy(&value, buf, sizeof(uint16_t));
 			}
 		else
-			memcpy(&value, p, sizeof(uint16));
-
-		return val_mgr->GetCount(value);
-		}
-
-	case sizeof(uint32):
-		{
-		uint32 value = 0;
-
-		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
-			{
-			char buf[sizeof(uint32)];
-			char *d = &buf[sizeof(uint32)-1];
-
-			for ( i = 0; i < sizeof(uint32); i++ )
-				*d-- = *p++;
-
-			memcpy(&value, buf, sizeof(uint32));
-			}
-		else
-			memcpy(&value, p, sizeof(uint32));
+			memcpy(&value, p, sizeof(uint16_t));
 
 		return val_mgr->GetCount(value);
 		}
 
-	case sizeof(uint64):
+	case sizeof(uint32_t):
 		{
-		uint64 value = 0;
+		uint32_t value = 0;
 
 		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
 			{
-			char buf[sizeof(uint64)];
-			char *d = &buf[sizeof(uint64)-1];
+			char buf[sizeof(uint32_t)];
+			char *d = &buf[sizeof(uint32_t)-1];
 
-			for ( i = 0; i < sizeof(uint64); i++ )
+			for ( i = 0; i < sizeof(uint32_t); i++ )
 				*d-- = *p++;
 
-			memcpy(&value, buf, sizeof(uint64));
+			memcpy(&value, buf, sizeof(uint32_t));
 			}
 		else
-			memcpy(&value, p, sizeof(uint64));
+			memcpy(&value, p, sizeof(uint32_t));
+
+		return val_mgr->GetCount(value);
+		}
+
+	case sizeof(uint64_t):
+		{
+		uint64_t value = 0;
+
+		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+			{
+			char buf[sizeof(uint64_t)];
+			char *d = &buf[sizeof(uint64_t)-1];
+
+			for ( i = 0; i < sizeof(uint64_t); i++ )
+				*d-- = *p++;
+
+			memcpy(&value, buf, sizeof(uint64_t));
+			}
+		else
+			memcpy(&value, p, sizeof(uint64_t));
 
 		return val_mgr->GetCount(value);
 		}
@@ -2731,7 +2731,7 @@ function ptr_name_to_addr%(s: string%): addr
 	if ( s->Len() != 72 )
 		{
 		int a[4];
-		uint32 addr;
+		uint32_t addr;
 		char ss[13]; // this will contain "in-addr.arpa"
 
 		if ( sscanf(s->CheckString(),
@@ -2749,8 +2749,8 @@ function ptr_name_to_addr%(s: string%): addr
 		}
 	else
 		{
-		uint32 addr6[4];
-		uint32 b[32];
+		uint32_t addr6[4];
+		uint32_t b[32];
 		char ss[9]; // this will contain "ip6.arpa"
 		if ( sscanf(s->CheckString(),
 			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
@@ -2770,7 +2770,7 @@ function ptr_name_to_addr%(s: string%): addr
 			{
 			for ( unsigned int i = 0; i < 4; ++i )
 				{
-				uint32 a = 0;
+				uint32_t a = 0;
 				for ( unsigned int j = 1; j <= 8; ++j )
 					a |= b[8*i+j-1] << (32-j*4);
 
@@ -2941,12 +2941,12 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 
 %%{
 typedef struct {
-	uint32 time_low;
-	uint16 time_mid;
-	uint16 time_hi_and_version;
-	uint8 clock_seq_hi_and_reserved;
-	uint8 clock_seq_low;
-	uint8 node[6];
+	uint32_t time_low;
+	uint16_t time_mid;
+	uint16_t time_hi_and_version;
+	uint8_t clock_seq_hi_and_reserved;
+	uint8_t clock_seq_low;
+	uint8_t node[6];
 } bro_uuid_t;
 %%}
 
@@ -3323,9 +3323,9 @@ const char* conn_id_string(Val* c)
 	const val_list* vl = id->AsRecord();
 
 	const IPAddr& orig_h = (*vl)[0]->AsAddr();
-	uint32 orig_p = (*vl)[1]->AsPortVal()->Port();
+	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
 	const IPAddr& resp_h = (*vl)[2]->AsAddr();
-	uint32 resp_p = (*vl)[3]->AsPortVal()->Port();
+	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
 
 	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
 	                               resp_h.AsString().c_str(), resp_p);
@@ -3387,8 +3387,8 @@ function get_current_packet%(%) : pcap_packet
 		return pkt;
 		}
 
-	pkt->Assign(0, val_mgr->GetCount(uint32(p->ts.tv_sec)));
-	pkt->Assign(1, val_mgr->GetCount(uint32(p->ts.tv_usec)));
+	pkt->Assign(0, val_mgr->GetCount(uint32_t(p->ts.tv_sec)));
+	pkt->Assign(1, val_mgr->GetCount(uint32_t(p->ts.tv_usec)));
 	pkt->Assign(2, val_mgr->GetCount(p->cap_len));
 	pkt->Assign(3, val_mgr->GetCount(p->len));
 	pkt->Assign(4, new StringVal(p->cap_len, (const char*)p->data));
@@ -3440,7 +3440,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	if ( ! addl_pkt_dumper->IsError() )
 		{
 		pkt_timeval ts;
-		uint32 caplen, len, link_type;
+		uint32_t caplen, len, link_type;
 		u_char *data;
 
 		const val_list* pkt_vl = pkt->AsRecord();
@@ -4979,7 +4979,7 @@ function preserve_prefix%(a: addr, width: count%): any
 			builtin_error("preserve_prefix() not supported for IPv6 addresses");
 		else
 			{
-			const uint32* bytes;
+			const uint32_t* bytes;
 			a->AsAddr().GetBytes(&bytes);
 			ip_anon->PreservePrefix(*bytes, width);
 			}
@@ -5006,7 +5006,7 @@ function preserve_subnet%(a: subnet%): any
 			builtin_error("preserve_subnet() not supported for IPv6 addresses");
 		else
 			{
-			const uint32* bytes;
+			const uint32_t* bytes;
 			a->AsSubNet().Prefix().GetBytes(&bytes);
 			ip_anon->PreservePrefix(*bytes, a->AsSubNet().Length());
 			}
@@ -5045,7 +5045,7 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		}
 	else
 		{
-		const uint32* bytes;
+		const uint32_t* bytes;
 		a->AsAddr().GetBytes(&bytes);
 		return new AddrVal(anonymize_ip(*bytes,
 			(enum ip_addr_anonymization_class_t) anon_class));

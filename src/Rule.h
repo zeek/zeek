@@ -44,7 +44,7 @@ public:
 	void AddCondition(RuleCondition* cond)	{ conditions.push_back(cond); }
 	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.push_back(hdr_test);	}
 	void AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset = 0, uint32 depth = INT_MAX);
+			uint32_t offset = 0, uint32_t depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);
 
 	const Location& GetLocation() const	{ return location; }
@@ -88,8 +88,8 @@ private:
 		char* pattern;	// the pattern itself
 		PatternType type;
 		int id;	// ID of pattern (for identifying it within regexps)
-		uint32 offset;
-		uint32 depth;
+		uint32_t offset;
+		uint32_t depth;
 	};
 
 	typedef PList<Pattern> pattern_list;

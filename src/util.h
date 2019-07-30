@@ -22,8 +22,8 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
 
 #include <string>
 #include <array>
@@ -62,31 +62,39 @@ extern HeapLeakChecker* heap_checker;
 
 #include <stdint.h>
 
+ZEEK_DEPRECATED("Remove in v4.1. Use uint64_t instead.")
 typedef uint64_t uint64;
+ZEEK_DEPRECATED("Remove in v4.1. Use uint32_t instead.")
 typedef uint32_t uint32;
+ZEEK_DEPRECATED("Remove in v4.1. Use uint16_t instead.")
 typedef uint16_t uint16;
+ZEEK_DEPRECATED("Remove in v4.1. Use uint8_t instead.")
 typedef uint8_t uint8;
 
+ZEEK_DEPRECATED("Remove in v4.1. Use int64_t instead.")
 typedef int64_t int64;
+ZEEK_DEPRECATED("Remove in v4.1. Use int32_t instead.")
 typedef int32_t int32;
+ZEEK_DEPRECATED("Remove in v4.1. Use int16_t instead.")
 typedef int16_t int16;
+ZEEK_DEPRECATED("Remove in v4.1. Use int8_t instead.")
 typedef int8_t int8;
 
-typedef int64 bro_int_t;
-typedef uint64 bro_uint_t;
+typedef int64_t bro_int_t;
+typedef uint64_t bro_uint_t;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
 // which represent their entities as void* pointers.
 //
 #if SIZEOF_VOID_P == 8
-typedef uint64 ptr_compat_uint;
-typedef int64 ptr_compat_int;
+typedef uint64_t ptr_compat_uint;
+typedef int64_t ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId64 // Format to use with printf.
 #define PRI_PTR_COMPAT_UINT PRIu64
 #elif SIZEOF_VOID_P == 4
-typedef uint32 ptr_compat_uint;
-typedef int32 ptr_compat_int;
+typedef uint32_t ptr_compat_uint;
+typedef int32_t ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId32
 #define PRI_PTR_COMPAT_UINT PRIu32
 #else
@@ -157,7 +165,7 @@ extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix=0);
+extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=0);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -191,9 +199,9 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 extern std::string strstrip(std::string s);
 
 extern bool hmac_key_set;
-extern uint8 shared_hmac_md5_key[16];
+extern uint8_t shared_hmac_md5_key[16];
 extern bool siphash_key_set;
-extern uint8 shared_siphash_key[SIPHASH_KEYLEN];
+extern uint8_t shared_siphash_key[SIPHASH_KEYLEN];
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
@@ -226,7 +234,7 @@ long int bro_random();
 // in deterministic mode, else it updates the state of the deterministic PRNG.
 void bro_srandom(unsigned int seed);
 
-extern uint64 rand64bit();
+extern uint64_t rand64bit();
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets
@@ -424,8 +432,8 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 #define UID_POOL_DEFAULT_INTERNAL 1
 #define UID_POOL_DEFAULT_SCRIPT   2
 #define UID_POOL_CUSTOM_SCRIPT    10 // First available custom script level pool.
-extern uint64 calculate_unique_id();
-extern uint64 calculate_unique_id(const size_t pool);
+extern uint64_t calculate_unique_id();
+extern uint64_t calculate_unique_id(const size_t pool);
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0
@@ -523,7 +531,7 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 
 // Returns total memory allocations and (if available) amount actually
 // handed out by malloc.
-extern void get_memory_usage(uint64* total, uint64* malloced);
+extern void get_memory_usage(uint64_t* total, uint64_t* malloced);
 
 // Class to be used as a third argument for STL maps to be able to use
 // char*'s as keys. Otherwise the pointer values will be compared instead of

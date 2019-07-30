@@ -102,13 +102,13 @@ extern ProfileLogger* segment_logger;
 extern SampleLogger* sample_logger;
 
 // Connection statistics.
-extern uint64 killed_by_inactivity;
+extern uint64_t killed_by_inactivity;
 
 // Content gap statistics.
-extern uint64 tot_ack_events;
-extern uint64 tot_ack_bytes;
-extern uint64 tot_gap_events;
-extern uint64 tot_gap_bytes;
+extern uint64_t tot_ack_events;
+extern uint64_t tot_ack_bytes;
+extern uint64_t tot_gap_events;
+extern uint64_t tot_gap_bytes;
 
 class PacketProfiler {
 public:
@@ -127,9 +127,9 @@ protected:
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;
 	double last_timestamp, time;
-	uint64 last_mem;
-	uint64 pkt_cnt;
-	uint64 byte_cnt;
+	uint64_t last_mem;
+	uint64_t pkt_cnt;
+	uint64_t byte_cnt;
 };
 
 #endif

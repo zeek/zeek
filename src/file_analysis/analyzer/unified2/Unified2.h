@@ -19,7 +19,7 @@ class Unified2 : public file_analysis::Analyzer {
 public:
 	~Unified2() override;
 
-	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
 

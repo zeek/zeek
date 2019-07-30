@@ -51,8 +51,8 @@ public:
 	int RespState() const	{ return resp->state; }
 	int OrigPrevState() const	{ return orig->prev_state; }
 	int RespPrevState() const	{ return resp->prev_state; }
-	uint32 OrigSeq() const	{ return orig->LastSeq(); }
-	uint32 RespSeq() const	{ return resp->LastSeq(); }
+	uint32_t OrigSeq() const	{ return orig->LastSeq(); }
+	uint32_t RespSeq() const	{ return resp->LastSeq(); }
 
 	// True if either endpoint still has pending data.  closing_endp
 	// is an endpoint that has indicated it is closing (i.e., for
@@ -89,9 +89,9 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void FlipRoles() override;
 	bool IsReuse(double t, const u_char* pkt) override;
 
@@ -116,13 +116,13 @@ protected:
 	// this fact.
 	void UpdateStateMachine(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			uint32 base_seq, uint32 ack_seq,
-			int len, int32 delta_last, int is_orig, TCP_Flags flags,
+			uint32_t base_seq, uint32_t ack_seq,
+			int len, int32_t delta_last, int is_orig, TCP_Flags flags,
 			int& do_close, int& gen_event);
 
 	void UpdateInactiveState(double t,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				uint32 base_seq, uint32 ack_seq,
+				uint32_t base_seq, uint32_t ack_seq,
 				int len, int is_orig, TCP_Flags flags,
 				int& do_close, int& gen_event);
 
@@ -134,18 +134,18 @@ protected:
 				    TCP_Flags flags, int& do_close, int& gen_event);
 
 	void UpdateClosedState(double t, TCP_Endpoint* endpoint,
-				int32 delta_last, TCP_Flags flags,
+				int32_t delta_last, TCP_Flags flags,
 				int& do_close);
 
 	void UpdateResetState(int len, TCP_Flags flags);
 
-	void GeneratePacketEvent(uint64 rel_seq, uint64 rel_ack,
+	void GeneratePacketEvent(uint64_t rel_seq, uint64_t rel_ack,
 				 const u_char* data, int len, int caplen,
 				 int is_orig, TCP_Flags flags);
 
 	int DeliverData(double t, const u_char* data, int len, int caplen,
 			const IP_Hdr* ip, const struct tcphdr* tp,
-			TCP_Endpoint* endpoint, uint64 rel_data_seq,
+			TCP_Endpoint* endpoint, uint64_t rel_data_seq,
 			int is_orig, TCP_Flags flags);
 
 	void CheckRecording(int need_contents, TCP_Flags flags);
@@ -175,9 +175,9 @@ protected:
 				  bool is_orig, void* cookie);
 
 	// A couple utility functions that may also be useful to derived analyzers.
-	static uint64 get_relative_seq(const TCP_Endpoint* endpoint,
-	                               uint32 cur_base, uint32 last,
-	                               uint32 wraps, bool* underflow = 0);
+	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint,
+	                               uint32_t cur_base, uint32_t last,
+	                               uint32_t wraps, bool* underflow = 0);
 
 	static int get_segment_len(int payload_len, TCP_Flags flags);
 
@@ -245,7 +245,7 @@ public:
 	virtual void PacketWithRST();
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void Init() override;
 
 	// This suppresses violations if the TCP connection wasn't
@@ -282,7 +282,7 @@ class TCPStats_Endpoint {
 public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
-	int DataSent(double t, uint64 seq, int len, int caplen, const u_char* data,
+	int DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
 	RecordVal* BuildStats();
@@ -295,7 +295,7 @@ protected:
 	int num_in_order;
 	int num_OO;
 	int num_repl;
-	uint64 max_top_seq;
+	uint64_t max_top_seq;
 	int last_id;
 	int endian_type;
 };
@@ -313,7 +313,7 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;

@@ -74,8 +74,8 @@ void TCP_Reassembler::Done()
 		}
 	}
 
-void TCP_Reassembler::SizeBufferedData(uint64& waiting_on_hole,
-					uint64& waiting_on_ack) const
+void TCP_Reassembler::SizeBufferedData(uint64_t& waiting_on_hole,
+					uint64_t& waiting_on_ack) const
 	{
 	waiting_on_hole = waiting_on_ack = 0;
 	for ( DataBlock* b = blocks; b; b = b->next )
@@ -130,7 +130,7 @@ static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
 	         established_or_cleanly_closing(a, b) );
 	}
 
-void TCP_Reassembler::Gap(uint64 seq, uint64 len)
+void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 	{
 	// Only report on content gaps for connections that
 	// are in a cleanly established or closing  state. In
@@ -159,7 +159,7 @@ void TCP_Reassembler::Gap(uint64 seq, uint64 len)
 	had_gap = true;
 	}
 
-void TCP_Reassembler::Undelivered(uint64 up_to_seq)
+void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 	{
 	TCP_Endpoint* endpoint = endp;
 	TCP_Endpoint* peer = endpoint->peer;
@@ -245,8 +245,8 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 					// Block is beyond what we need to process at this point.
 					break;
 
-				uint64 gap_at_seq = last_reassem_seq;
-				uint64 gap_len = b->seq - last_reassem_seq;
+				uint64_t gap_at_seq = last_reassem_seq;
+				uint64_t gap_len = b->seq - last_reassem_seq;
 
 				Gap(gap_at_seq, gap_len);
 				last_reassem_seq += gap_len;
@@ -275,7 +275,7 @@ void TCP_Reassembler::Undelivered(uint64 up_to_seq)
 		last_reassem_seq = up_to_seq;	// we've done our best ...
 	}
 
-void TCP_Reassembler::MatchUndelivered(uint64 up_to_seq, bool use_last_upper)
+void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	{
 	if ( ! blocks || ! rule_matcher )
 		return;
@@ -306,7 +306,7 @@ void TCP_Reassembler::MatchUndelivered(uint64 up_to_seq, bool use_last_upper)
 	ASSERT(b);
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64 start_seq, uint64 stop_seq, BroFile* f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f)
 	{
 	DataBlock* b = blocks;
 	// Skip over blocks up to the start seq.
@@ -316,7 +316,7 @@ void TCP_Reassembler::RecordToSeq(uint64 start_seq, uint64 stop_seq, BroFile* f)
 	if ( ! b )
 		return;
 
-	uint64 last_seq = start_seq;
+	uint64_t last_seq = start_seq;
 	while ( b && b->upper <= stop_seq )
 		{
 		if ( b->seq > last_seq )
@@ -350,7 +350,7 @@ void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
 		}
 	}
 
-void TCP_Reassembler::RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f)
 	{
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
@@ -384,8 +384,8 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 		{
 		if ( b->seq == last_reassem_seq )
 			{ // New stuff.
-			uint64 len = b->Size();
-			uint64 seq = last_reassem_seq;
+			uint64_t len = b->Size();
+			uint64_t seq = last_reassem_seq;
 			last_reassem_seq += len;
 
 			if ( record_contents_file )
@@ -404,7 +404,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 		TrimToSeq(last_reassem_seq);
 
 	else if ( e->NoDataAcked() && tcp_max_initial_window &&
-		  e->Size() > static_cast<uint64>(tcp_max_initial_window) )
+		  e->Size() > static_cast<uint64_t>(tcp_max_initial_window) )
 		// We've sent quite a bit of data, yet none of it has
 		// been acked.  Presume that we're not seeing the peer's
 		// acks (perhaps due to filtering or split routing) and
@@ -418,7 +418,7 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 	// TCP_Connection::NextPacket.
 	}
 
-void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
+void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( DEBUG_tcp_contents )
 		DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64" IsOrig()=%d\n", network_time,  n, IsOrig());
@@ -441,7 +441,7 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		}
 	}
 
-void TCP_Reassembler::Deliver(uint64 seq, int len, const u_char* data)
+void TCP_Reassembler::Deliver(uint64_t seq, int len, const u_char* data)
 	{
 	if ( type == Direct )
 		dst_analyzer->NextStream(len, data, IsOrig());
@@ -449,11 +449,11 @@ void TCP_Reassembler::Deliver(uint64 seq, int len, const u_char* data)
 		dst_analyzer->ForwardStream(len, data, IsOrig());
 	}
 
-int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
+int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 				const u_char* data, TCP_Flags arg_flags, bool replaying)
 	{
-	uint64 ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
-	uint64 upper_seq = seq + len;
+	uint64_t ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
+	uint64_t upper_seq = seq + len;
 
 	if ( DEBUG_tcp_contents )
 		{
@@ -475,7 +475,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		// packet held [a, a+b) and this packet holds [a, a+c) for c>b
 		// (which some TCP's will do when retransmitting).  Trim the
 		// packet to just the unacked data.
-		uint64 amount_acked = ack - seq;
+		uint64_t amount_acked = ack - seq;
 		seq += amount_acked;
 		data += amount_acked;
 		len -= amount_acked;
@@ -486,7 +486,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 	flags = TCP_Flags();
 
 	if ( Endpoint()->NoDataAcked() && tcp_max_above_hole_without_any_acks &&
-	     NumUndeliveredBytes() > static_cast<uint64>(tcp_max_above_hole_without_any_acks) )
+	     NumUndeliveredBytes() > static_cast<uint64_t>(tcp_max_above_hole_without_any_acks) )
 		{
 		tcp_analyzer->Weird("above_hole_data_without_any_acks");
 		ClearBlocks();
@@ -494,7 +494,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 		}
 
 	if ( tcp_excessive_data_without_further_acks &&
-	     size_of_all_blocks > static_cast<uint64>(tcp_excessive_data_without_further_acks) )
+	     size_of_all_blocks > static_cast<uint64_t>(tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();
@@ -505,7 +505,7 @@ int TCP_Reassembler::DataSent(double t, uint64 seq, int len,
 	}
 
 
-void TCP_Reassembler::AckReceived(uint64 seq)
+void TCP_Reassembler::AckReceived(uint64_t seq)
 	{
 	if ( endp->FIN_cnt > 0 && seq >= endp->FIN_seq )
 		seq = endp->FIN_seq - 1;
@@ -519,7 +519,7 @@ void TCP_Reassembler::AckReceived(uint64 seq)
 			(endp->state == TCP_ENDPOINT_ESTABLISHED &&
 				endp->peer->state == TCP_ENDPOINT_ESTABLISHED ) );
 
-	uint64 num_missing = TrimToSeq(seq);
+	uint64_t num_missing = TrimToSeq(seq);
 
 	if ( test_active )
 		{
@@ -574,14 +574,14 @@ void TCP_Reassembler::CheckEOF()
 // Deliver, DeliverBlock is not virtual, and this allows us to insert
 // operations that apply to all connections using TCP_Contents.
 
-void TCP_Reassembler::DeliverBlock(uint64 seq, int len, const u_char* data)
+void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 	{
 	if ( seq + len <= seq_to_skip )
 		return;
 
 	if ( seq < seq_to_skip )
 		{
-		uint64 to_skip = seq_to_skip - seq;
+		uint64_t to_skip = seq_to_skip - seq;
 		len -= to_skip;
 		data += to_skip;
 		seq = seq_to_skip;
@@ -615,7 +615,7 @@ void TCP_Reassembler::DeliverBlock(uint64 seq, int len, const u_char* data)
 
 	}
 
-void TCP_Reassembler::SkipToSeq(uint64 seq)
+void TCP_Reassembler::SkipToSeq(uint64_t seq)
 	{
 	if ( seq > seq_to_skip )
 		{
@@ -632,8 +632,8 @@ int TCP_Reassembler::DataPending() const
 	if ( skip_deliveries )
 		return 0;
 
-	uint64 delivered_seq = Endpoint()->StartSeqI64() + DataSeq();
-	uint64 last_seq = TCP_Endpoint::ToFullSeqSpace(Endpoint()->LastSeq(),
+	uint64_t delivered_seq = Endpoint()->StartSeqI64() + DataSeq();
+	uint64_t last_seq = TCP_Endpoint::ToFullSeqSpace(Endpoint()->LastSeq(),
 	                                               Endpoint()->SeqWraps());
 
 	if ( last_seq < delivered_seq )

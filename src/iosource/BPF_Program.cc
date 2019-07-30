@@ -41,7 +41,7 @@ pcap_t* pcap_open_dead(int linktype, int snaplen)
 
 int pcap_compile_nopcap(int snaplen_arg, int linktype_arg,
 			struct bpf_program* program, char* buf,
-			int optimize, bpf_u_int32 mask)
+			int optimize, bpf_u_int32_t mask)
 	{
 	pcap_t* p;
 	int ret;
@@ -74,7 +74,7 @@ BPF_Program::~BPF_Program()
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask,
 			  char* errbuf, unsigned int errbuf_len, bool optimize)
 	{
 	if ( ! pcap )
@@ -99,7 +99,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 	}
 
 bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
-			  uint32 netmask, char* errbuf, unsigned int errbuf_len,
+			  uint32_t netmask, char* errbuf, unsigned int errbuf_len,
 			  bool optimize)
 	{
 	FreeCode();

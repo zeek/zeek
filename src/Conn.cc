@@ -50,12 +50,12 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
-uint64 Connection::total_connections = 0;
-uint64 Connection::current_connections = 0;
-uint64 Connection::external_connections = 0;
+uint64_t Connection::total_connections = 0;
+uint64_t Connection::current_connections = 0;
+uint64_t Connection::external_connections = 0;
 
 Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow, const Packet* pkt,
+                       uint32_t flow, const Packet* pkt,
 		       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
@@ -228,9 +228,9 @@ bool Connection::IsReuse(double t, const u_char* pkt)
 	return root_analyzer && root_analyzer->IsReuse(t, pkt);
 	}
 
-bool Connection::ScaledHistoryEntry(char code, uint32& counter,
-                                    uint32& scaling_threshold,
-                                    uint32 scaling_base)
+bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
+                                    uint32_t& scaling_threshold,
+                                    uint32_t scaling_base)
 	{
 	if ( ++counter == scaling_threshold )
 		{
@@ -254,7 +254,7 @@ bool Connection::ScaledHistoryEntry(char code, uint32& counter,
 	}
 
 void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
-                                       uint32 threshold)
+                                       uint32_t threshold)
 	{
 	if ( ! e )
 		return;
@@ -568,7 +568,7 @@ void Connection::FlipRoles()
 	resp_addr = orig_addr;
 	orig_addr = tmp_addr;
 
-	uint32 tmp_port = resp_port;
+	uint32_t tmp_port = resp_port;
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
@@ -582,7 +582,7 @@ void Connection::FlipRoles()
 	saw_first_resp_packet = saw_first_orig_packet;
 	saw_first_orig_packet = tmp_bool;
 
-	uint32 tmp_flow = resp_flow_label;
+	uint32_t tmp_flow = resp_flow_label;
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
@@ -678,9 +678,9 @@ void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, ana
 	primary_PIA = pia;
 	}
 
-void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
+void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 	{
-	uint32& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
+	uint32_t& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
 
 	if ( my_flow_label != flow_label )
 		{
@@ -710,7 +710,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 		saw_first_resp_packet = 1;
 	}
 
-bool Connection::PermitWeird(const char* name, uint64 threshold, uint64 rate,
+bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                              double duration)
 	{
 	return ::PermitWeird(weird_state, name, threshold, rate, duration);

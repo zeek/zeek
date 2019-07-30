@@ -475,12 +475,12 @@ int DNS_Interpreter::ExtractLabel(const u_char*& data, int& len,
 	return 1;
 	}
 
-uint16 DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
+uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
 	{
 	if ( len < 2 )
 		return 0;
 
-	uint16 val;
+	uint16_t val;
 
 	val = data[0] << 8;
 
@@ -495,12 +495,12 @@ uint16 DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
 	return val;
 	}
 
-uint32 DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
+uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
 	{
 	if ( len < 4 )
 		return 0;
 
-	uint32 val;
+	uint32_t val;
 
 	val = data[0] << 24;
 	val |= data[1] << 16;
@@ -588,11 +588,11 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	if ( len < 20 )
 		return 0;
 
-	uint32 serial = ExtractLong(data, len);
-	uint32 refresh = ExtractLong(data, len);
-	uint32 retry = ExtractLong(data, len);
-	uint32 expire = ExtractLong(data, len);
-	uint32 minimum = ExtractLong(data, len);
+	uint32_t serial = ExtractLong(data, len);
+	uint32_t refresh = ExtractLong(data, len);
+	uint32_t retry = ExtractLong(data, len);
+	uint32_t expire = ExtractLong(data, len);
+	uint32_t minimum = ExtractLong(data, len);
 
 	if ( data - data_start != rdlength )
 		analyzer->Weird("DNS_RR_length_mismatch");
@@ -727,7 +727,7 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
                                     BroString** p)
 	{
-	uint16 dlen = ExtractShort(data, len);
+	uint16_t dlen = ExtractShort(data, len);
 	dlen = min(len, static_cast<int>(dlen));
 
 	if ( p )
@@ -762,7 +762,7 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	if ( ! alg_name_end )
 		return 0;
 
-	uint32 sign_time_sec = ExtractLong(data, len);
+	uint32_t sign_time_sec = ExtractLong(data, len);
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
 	BroString* request_MAC;
@@ -809,13 +809,13 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 
 	unsigned int type_covered = ExtractShort(data, len);
 	// split the two bytes for algo and labels extraction
-	uint32 algo_lab = ExtractShort(data, len);
+	uint32_t algo_lab = ExtractShort(data, len);
 	unsigned int algo = (algo_lab >> 8) & 0xff;
 	unsigned int lab = algo_lab & 0xff;
 
-	uint32 orig_ttl = ExtractLong(data, len);
-	uint32 sign_exp = ExtractLong(data, len);
-	uint32 sign_incp = ExtractLong(data, len);
+	uint32_t orig_ttl = ExtractLong(data, len);
+	uint32_t sign_exp = ExtractLong(data, len);
+	uint32_t sign_incp = ExtractLong(data, len);
 	unsigned int key_tag = ExtractShort(data, len);
 
 	//implement signer's name with the msg_start offset
@@ -1015,7 +1015,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
-		uint32 block_bmlen = ExtractShort(data, len);
+		uint32_t block_bmlen = ExtractShort(data, len);
 		unsigned int win_blck = (block_bmlen >> 8) & 0xff;
 		unsigned int bmlen = block_bmlen & 0xff;
 
@@ -1059,12 +1059,12 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		return 0;
 
 	const u_char* data_start = data;
-	uint32 halgo_flags = ExtractShort(data, len);
+	uint32_t halgo_flags = ExtractShort(data, len);
 	unsigned int hash_algo = (halgo_flags >> 8) & 0xff;
 	unsigned int nsec_flags = halgo_flags & 0xff;
 	unsigned int iter = ExtractShort(data, len);
 
-	uint8 salt_len = 0;
+	uint8_t salt_len = 0;
 
 	if ( len > 0 )
 		{
@@ -1075,7 +1075,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
 
-	uint8 hash_len = 0;
+	uint8_t hash_len = 0;
 
 	if ( len > 0 )
 		{
@@ -1092,7 +1092,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
-		uint32 block_bmlen = ExtractShort(data, len);
+		uint32_t block_bmlen = ExtractShort(data, len);
 		unsigned int win_blck = ( block_bmlen >> 8) & 0xff;
 		unsigned int bmlen = block_bmlen & 0xff;
 
@@ -1146,7 +1146,7 @@ int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 
 	unsigned int ds_key_tag = ExtractShort(data, len);
 	// split the two bytes for algorithm and digest type extraction
-	uint32 ds_algo_dtype = ExtractShort(data, len);
+	uint32_t ds_algo_dtype = ExtractShort(data, len);
 	unsigned int ds_algo = (ds_algo_dtype >> 8) & 0xff;
 	unsigned int ds_dtype = ds_algo_dtype & 0xff;
 	DNSSEC_Digest ds_digest_type = DNSSEC_Digest(ds_dtype);
@@ -1197,7 +1197,7 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 		return 0;
 		}
 
-	uint32 addr = ExtractLong(data, len);
+	uint32_t addr = ExtractLong(data, len);
 
 	if ( dns_A_reply && ! msg->skip_event )
 		{
@@ -1215,7 +1215,7 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength)
 	{
-	uint32 addr[4];
+	uint32_t addr[4];
 
 	for ( int i = 0; i < 4; ++i )
 		{
@@ -1273,7 +1273,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
 	if ( rdlen <= 0 )
 		return 0;
 
-	uint8 str_size = data[0];
+	uint8_t str_size = data[0];
 
 	--rdlen;
 	--len;
@@ -1755,7 +1755,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->ParseMessage(data, len, orig);

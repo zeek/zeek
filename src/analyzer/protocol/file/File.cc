@@ -40,7 +40,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		                                orig, file_id_resp);
 	}
 
-void File_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 

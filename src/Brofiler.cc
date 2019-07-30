@@ -37,7 +37,7 @@ bool Brofiler::ReadStats()
 		string location(strtok(0, delimiter.c_str()));
 		string desc(strtok(0, delimiter.c_str()));
 		pair<string, string> location_desc(location, desc);
-		uint64 count;
+		uint64_t count;
 		atoi_n(cnt.size(), cnt.c_str(), 0, 10, count);
 		usage_map[location_desc] = count;
 		}
@@ -104,7 +104,7 @@ bool Brofiler::WriteStats()
 			usage_map[location_desc] = (*it)->GetAccessCount();
 		}
 
-	map<pair<string, string>, uint64 >::const_iterator it;
+	map<pair<string, string>, uint64_t >::const_iterator it;
 	for ( it = usage_map.begin(); it != usage_map.end(); ++it )
 		{
 		fprintf(f, "%" PRIu64"%c%s%c%s\n", it->second, delim,

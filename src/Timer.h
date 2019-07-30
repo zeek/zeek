@@ -102,7 +102,7 @@ public:
 
 	virtual int Size() const = 0;
 	virtual int PeakSize() const = 0;
-	virtual uint64 CumulativeNum() const = 0;
+	virtual uint64_t CumulativeNum() const = 0;
 
 	double LastTimestamp() const	{ return last_timestamp; }
 	// Returns time of last advance in global network time.
@@ -142,7 +142,7 @@ public:
 
 	int Size() const override { return q->Size(); }
 	int PeakSize() const override { return q->PeakSize(); }
-	uint64 CumulativeNum() const override { return q->CumulativeNum(); }
+	uint64_t CumulativeNum() const override { return q->CumulativeNum(); }
 
 protected:
 	int DoAdvance(double t, int max_expire) override;
@@ -164,7 +164,7 @@ public:
 
 	int Size() const override { return cq_size(cq); }
 	int PeakSize() const override { return cq_max_size(cq); }
-	uint64 CumulativeNum() const override { return cq_cumulative_num(cq); }
+	uint64_t CumulativeNum() const override { return cq_cumulative_num(cq); }
 	unsigned int MemoryUsage() const;
 
 protected:

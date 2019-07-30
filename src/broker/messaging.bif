@@ -112,7 +112,7 @@ function Broker::publish%(topic: string, ...%): bool
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return val_mgr->GetCount(static_cast<uint64>(rval));
+	return val_mgr->GetCount(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool

@@ -1469,11 +1469,11 @@ DivideExpr::DivideExpr(Expr* arg_op1, Expr* arg_op2)
 
 Val* DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
-	uint32 mask;
+	uint32_t mask;
 	if ( v2->Type()->Tag() == TYPE_COUNT )
-		mask = static_cast<uint32>(v2->InternalUnsigned());
+		mask = static_cast<uint32_t>(v2->InternalUnsigned());
 	else
-		mask = static_cast<uint32>(v2->InternalInt());
+		mask = static_cast<uint32_t>(v2->InternalInt());
 
 	auto& a = v1->AsAddr();
 

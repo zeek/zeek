@@ -68,7 +68,7 @@ void PcapSource::OpenLive()
 		}
 
 	// Determine network and netmask.
-	uint32 net;
+	uint32_t net;
 	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, tmp_errbuf) < 0 )
 		{
 		// ### The lookup can fail if no address is assigned to

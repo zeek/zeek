@@ -25,7 +25,7 @@ namespace { // local namespace
 #define MAX_RPC_LEN 65536
 
 
-RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
+RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
 	v = nullptr;
 	xid = arg_xid;
@@ -116,8 +116,8 @@ RPC_Interpreter::~RPC_Interpreter()
 int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 				int is_orig, double start_time, double last_time)
 	{
-	uint32 xid = extract_XDR_uint32(buf, n);
-	uint32 msg_type = extract_XDR_uint32(buf, n);
+	uint32_t xid = extract_XDR_uint32(buf, n);
+	uint32_t msg_type = extract_XDR_uint32(buf, n);
 	int rpc_len = n;
 
 	if ( ! buf )
@@ -186,7 +186,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 		if ( is_orig )
 			Weird("originator_RPC_reply");
 
-		uint32 reply_stat = extract_XDR_uint32(buf, n);
+		uint32_t reply_stat = extract_XDR_uint32(buf, n);
 		if ( ! buf )
 			return 0;
 
@@ -195,7 +195,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 		if ( reply_stat == RPC_MSG_ACCEPTED )
 			{
 			(void) skip_XDR_opaque_auth(buf, n);
-			uint32 accept_stat = extract_XDR_uint32(buf, n);
+			uint32_t accept_stat = extract_XDR_uint32(buf, n);
 
 			// The first members of BifEnum::RPC_* correspond
 			// to accept_stat.
@@ -217,7 +217,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 		else if ( reply_stat == RPC_MSG_DENIED )
 			{
-			uint32 reject_stat = extract_XDR_uint32(buf, n);
+			uint32_t reject_stat = extract_XDR_uint32(buf, n);
 			if ( ! buf )
 				return 0;
 
@@ -432,7 +432,7 @@ Contents_RPC::~Contents_RPC()
 	{
 	}
 
-void Contents_RPC::Undelivered(uint64 seq, int len, bool orig)
+void Contents_RPC::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
@@ -440,10 +440,10 @@ void Contents_RPC::Undelivered(uint64 seq, int len, bool orig)
 
 bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	{
-	uint32 frame_len;
+	uint32_t frame_len;
 	bool last_frag;
-	uint32 xid;
-	uint32 frame_type;
+	uint32_t xid;
+	uint32_t frame_type;
 
 	bool discard_this_chunk = false;
 
@@ -621,7 +621,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
-	uint32 marker;
+	uint32_t marker;
 	bool last_frag;
 
 	if ( ! CheckResync(len, data, orig) )
@@ -735,7 +735,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = min(len, caplen);

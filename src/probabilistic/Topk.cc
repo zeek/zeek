@@ -38,7 +38,7 @@ HashKey* TopkVal::GetHash(Val* v) const
 	return key;
 	}
 
-TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(topk_type)
+TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	{
 	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
@@ -364,7 +364,7 @@ void TopkVal::Encountered(Val* encountered)
 void TopkVal::IncrementCounter(Element* e, unsigned int count)
 	{
 	Bucket* currBucket = e->parent;
-	uint64 currcount = currBucket->count;
+	uint64_t currcount = currBucket->count;
 
 	// well, let's test if there is a bucket for currcount++
 	std::list<Bucket*>::iterator bucketIter = currBucket->bucketPos;
@@ -432,7 +432,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 		Bucket* b = *it;
 		uint32_t elements_count = b->elements.size();
 
-		d.emplace_back(static_cast<uint64>(b->elements.size()));
+		d.emplace_back(static_cast<uint64_t>(b->elements.size()));
 		d.emplace_back(b->count);
 
 		std::list<Element*>::const_iterator eit = b->elements.begin();
@@ -465,8 +465,8 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	if ( ! (v && v->size() >= 4) )
 		return false;
 
-	auto size_ = caf::get_if<uint64>(&(*v)[0]);
-	auto numElements_ = caf::get_if<uint64>(&(*v)[1]);
+	auto size_ = caf::get_if<uint64_t>(&(*v)[0]);
+	auto numElements_ = caf::get_if<uint64_t>(&(*v)[1]);
 	auto pruned_ = caf::get_if<bool>(&(*v)[2]);
 
 	if ( ! (size_ && numElements_ && pruned_) )
@@ -492,8 +492,8 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 	while ( i < numElements )
 		{
-		auto elements_count = caf::get_if<uint64>(&(*v)[idx++]);
-		auto count = caf::get_if<uint64>(&(*v)[idx++]);
+		auto elements_count = caf::get_if<uint64_t>(&(*v)[idx++]);
+		auto count = caf::get_if<uint64_t>(&(*v)[idx++]);
 
 		if ( ! (elements_count && count) )
 			return false;
@@ -504,7 +504,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
-			auto epsilon = caf::get_if<uint64>(&(*v)[idx++]);
+			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
 			Val* val = bro_broker::data_to_val((*v)[idx++], type);
 
 			if ( ! (epsilon && val) )

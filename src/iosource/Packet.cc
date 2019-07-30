@@ -16,8 +16,8 @@ extern "C" {
 #endif
 }
 
-void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
-		  uint32 arg_len, const u_char *arg_data, int arg_copy,
+void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
+		  uint32_t arg_len, const u_char *arg_data, int arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )
@@ -407,7 +407,7 @@ void Packet::ProcessLayer2()
 		{
 		// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
 
-		uint8 protocol = pdata[0];
+		uint8_t protocol = pdata[0];
 
 		if ( protocol == AF_INET )
 			l3_proto = L3_IPV4;
@@ -419,7 +419,7 @@ void Packet::ProcessLayer2()
 			return;
 			}
 
-		uint8 version = pdata[1];
+		uint8_t version = pdata[1];
 
 		if ( version != 0 )
 			{
@@ -430,8 +430,8 @@ void Packet::ProcessLayer2()
 		// Skip to TLVs.
 		pdata += 4;
 
-		uint16 tlv_len;
-		uint16 tlv_type;
+		uint16_t tlv_len;
+		uint16_t tlv_type;
 
 		while ( true )
 			{
@@ -444,8 +444,8 @@ void Packet::ProcessLayer2()
 			// TLV Type and Length values are specified in host byte order
 			// (libpcap should have done any needed byteswapping already).
 
-			tlv_len = *(reinterpret_cast<const uint16*>(pdata));
-			tlv_type = *(reinterpret_cast<const uint16*>(pdata + 2));
+			tlv_len = *(reinterpret_cast<const uint16_t*>(pdata));
+			tlv_type = *(reinterpret_cast<const uint16_t*>(pdata + 2));
 
 			auto constexpr nflog_type_payload = 9;
 

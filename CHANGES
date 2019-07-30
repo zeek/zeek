@@ -1,4 +1,8 @@
 
+2.6-711 | 2019-07-29 20:15:27 -0700
+
+  * Fix duplicate TCP packets not being detected as retransmissions (Jeff Barber)
+
 2.6-708 | 2019-07-30 02:46:39 +0000
 
   * Add an additional license file, COPYING.3rdparty, that collects

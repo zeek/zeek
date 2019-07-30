@@ -891,6 +891,8 @@ static void init_endpoint(TCP_Endpoint* endpoint, TCP_Flags flags,
 			// numbering consistent.
 			endpoint->InitAckSeq(first_seg_seq - 1);
 			endpoint->InitStartSeq(first_seg_seq - 1);
+			// But ensure first packet is not marked duplicate
+			last_seq = first_seg_seq;
 			}
 
 		endpoint->InitLastSeq(last_seq);
@@ -1019,7 +1021,7 @@ static int32 update_last_seq(TCP_Endpoint* endpoint, uint32 last_seq,
 		// ## endpoint->last_seq = last_seq;
 		endpoint->UpdateLastSeq(last_seq);
 
-	else if ( delta_last < 0 && len > 0 )
+	else if ( delta_last <= 0 && len > 0 )
 		endpoint->DidRxmit();
 
 	return delta_last;

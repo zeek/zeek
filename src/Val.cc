@@ -2339,24 +2339,27 @@ double TableVal::CallExpireFunc(Val* idx)
 			{
 			if ( ! any_idiom )
 				{
-				const val_list* vl0 = idx->AsListVal()->Vals();
 				for ( const auto& v : *idx->AsListVal()->Vals() )
 					vl.append(v->Ref());
+
+				Unref(idx);
 				}
 			else
 				{
 				ListVal* idx_list = idx->AsListVal();
 				// Flatten if only one element
-				if (idx_list->Length() == 1)
-					idx = idx_list->Index(0);
+				if ( idx_list->Length() == 1 )
+					{
+					Val* old = idx;
+					idx = idx_list->Index(0)->Ref();
+					Unref(old);
+					}
 
-				vl.append(idx->Ref());
+				vl.append(idx);
 				}
 			}
 		else
-			{
-			vl.append(idx->Ref());
-			}
+			vl.append(idx);
 
 		Val* result = 0;
 

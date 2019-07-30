@@ -1,4 +1,9 @@
 
+2.6-713 | 2019-07-30 18:12:49 +0000
+
+  * Fix memory leaks in expire_func introduced by recent changes (Jon
+    Siwek, Corelight)
+
 2.6-711 | 2019-07-29 20:15:27 -0700
 
   * Fix duplicate TCP packets not being detected as retransmissions (Jeff Barber)

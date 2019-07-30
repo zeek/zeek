@@ -1,4 +1,9 @@
 
+2.6-708 | 2019-07-30 02:46:39 +0000
+
+  * Add an additional license file, COPYING.3rdparty, that collects
+    all third party software licenses. (Johanna Amann, Corelight)
+
 2.6-706 | 2019-07-30 02:30:44 +0000
 
   * Zeek's anonymous functions now capture their closures by

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2018-01-12-21-44-59
+#open	2019-07-30-14-59-56
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	orig_l2_addr	resp_l2_addr
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	string	string
 1300475169.780331	C3eiCBGOLw3VtHfOj	173.192.163.128	80	141.142.220.235	6705	tcp	-	-	-	-	OTH	-	-	0	H	1	48	0	0	-	00:13:7f:be:8c:ff	00:e0:db:01:cf:4b
@@ -40,4 +40,4 @@
 1300475168.893988	C8rquZ3DjgNW06JGLl	141.142.220.118	45000	141.142.2.2	53	udp	-	0.000384	38	89	SF	-	-	0	Dd	1	66	1	117	-	00:24:7e:e0:1d:b5	00:13:7f:be:8c:ff
 1300475168.857956	CzrZOtXqhwwndQva3	141.142.220.118	32902	141.142.2.2	53	udp	-	0.000317	38	89	SF	-	-	0	Dd	1	66	1	117	-	00:24:7e:e0:1d:b5	00:13:7f:be:8c:ff
 1300475168.891644	CaGCc13FffXe6RkQl9	141.142.220.118	58206	141.142.2.2	53	udp	-	0.000339	38	89	SF	-	-	0	Dd	1	66	1	117	-	00:24:7e:e0:1d:b5	00:13:7f:be:8c:ff
-#close	2018-01-12-21-44-59
+#close	2019-07-30-14-59-56

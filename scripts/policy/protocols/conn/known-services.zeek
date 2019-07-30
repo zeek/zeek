@@ -40,7 +40,7 @@ export {
 	type AddrPortServTriplet: record {
 		host: addr;
 		p: port;
-		serv: set[string];
+		serv: vector of string;
 	};
 
 	## Holds the set of all known services.  Keys in the store are
@@ -109,7 +109,12 @@ event service_info_commit(info: ServicesInfo)
 	if ( ! Known::use_service_store )
 		return;
 
-	local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = info$service);
+	local v : vector of string;
+	for ( s in info$service )
+		v += s;
+	sort(v, strcmp);	# sort the vector for proper key comparison in put_unique
+
+	local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = v);
 
 	when ( local r = Broker::put_unique(Known::service_store$store, key,
 	                                    T, Known::service_store_expiry) )

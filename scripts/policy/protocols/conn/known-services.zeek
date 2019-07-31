@@ -212,10 +212,6 @@ function known_services_done(c: connection)
 	if ( ! addr_matches_host(id$resp_h, service_tracking) )
 		return;
 
-	# don't log empty service
-	if ( |c$service| == 0 )
-		return;
-
 	if ( |c$service| == 1 )
 		{
 		if ( "ftp-data" in c$service )

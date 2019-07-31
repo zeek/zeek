@@ -1,4 +1,8 @@
 
+2.6-729 | 2019-07-31 14:24:44 -0700
+
+  * Rename a broxygen unit test to zeekygen (Jon Siwek, Corelight)
+
 2.6-728 | 2019-07-31 14:15:29 -0700
 
   * Fix hello world script in READMEs (Seth Hall, Corelight & Jon Siwek, Corelight)

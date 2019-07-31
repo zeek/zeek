@@ -199,7 +199,7 @@ event service_info_commit(info: ServicesInfo)
 	if ( check(info) )
 		return;
 
-	local key = cat(info$host, info$port_num, info$service);
+	local key = cat(info$host, info$port_num);
 	Cluster::publish_hrw(Cluster::proxy_pool, key, known_service_add, info);
 	event known_service_add(info);
 	}

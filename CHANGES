@@ -1,4 +1,8 @@
 
+2.6-725 | 2019-07-31 10:44:05 -0700
+
+  * GH-506: fix NTP script errors (Seth Hall, Corelight)
+
 2.6-723 | 2019-07-30 19:36:56 -0700
 
   * Add LogAscii::enable_utf_8 option (Dev Bali, Corelight)

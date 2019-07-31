@@ -56,6 +56,12 @@ redef record connection += {
 const ports = { 123/udp };
 redef likely_server_ports += { ports };
 
+event zeek_init() &priority=5
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
+	Log::create_stream(NTP::LOG, [$columns = Info, $ev = log_ntp]);
+	}
+
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 	{
 	local info: Info;
@@ -65,7 +71,7 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 	info$version = msg$version;
 	info$mode = msg$mode;
 
-	if ( msg$mode < 6 )
+	if ( msg?$std_msg )
 		{
 		info$stratum = msg$std_msg$stratum;
 		info$poll = msg$std_msg$poll;
@@ -96,12 +102,7 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=-5
 	{
-	if ( msg$mode < 6 )
+	if ( c?$ntp && msg$mode <= 5 )
 		Log::write(NTP::LOG, c$ntp);
 	}
 
-event zeek_init() &priority=5
-	{
-	Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
-	Log::create_stream(NTP::LOG, [$columns = Info, $ev = log_ntp]);
-	}

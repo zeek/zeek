@@ -83,7 +83,7 @@ refine flow NTP_Flow += {
 			}
 
 		return rv;
-        %}
+		%}
 
 	# This builds the control msg record
 	function BuildNTPControlMsg(ncm: NTP_control_msg): BroVal
@@ -140,7 +140,7 @@ refine flow NTP_Flow += {
 		rv->Assign(1, val_mgr->GetCount(${msg.mode}));
 
 		// The standard record
-		if ( ${msg.mode} > 0 && ${msg.mode} < 6 )
+		if ( ${msg.mode} >=1 && ${msg.mode} <= 5 )
 			rv->Assign(2, BuildNTPStdMsg(${msg.std}));
 		else if ( ${msg.mode} == 6 )
 			rv->Assign(3, BuildNTPControlMsg(${msg.control}));

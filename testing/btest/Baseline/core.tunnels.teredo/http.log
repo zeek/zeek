@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2019-03-13-20-10-25
+#open	2019-07-31-18-53-28
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1210953057.917183	C3eiCBGOLw3VtHfOj	192.168.2.16	1578	75.126.203.78	80	1	POST	download913.avast.com	/cgi-bin/iavs4stats.cgi	-	1.1	Syncer/4.80 (av_pro-1169;f)	-	589	0	204	<empty>	-	-	(empty)	-	-	-	Fp32SIJztq0Szn5Qc	-	text/plain	-	-	-
 1210953061.585996	CNnMIj2QSd84NKf7U3	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	1	GET	ipv6.google.com	/	-	1.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9b5) Gecko/2008032620 Firefox/3.0b5	-	0	6640	200	OK	-	-	(empty)	-	-	-	-	-	-	FNFYdH11h5iQcoD3a2	-	text/html
 1210953073.381474	CNnMIj2QSd84NKf7U3	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	2	GET	ipv6.google.com	/search?hl=en&q=Wireshark+!&btnG=Google+Search	http://ipv6.google.com/	1.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9b5) Gecko/2008032620 Firefox/3.0b5	-	0	25119	200	OK	-	-	(empty)	-	-	-	-	-	-	FHD5nv1iSVFZVM0aH7	-	text/html
 1210953074.674817	CpmdRlaUoJLN3uIRa	192.168.2.16	1580	67.228.110.120	80	1	GET	www.wireshark.org	/	http://ipv6.google.com/search?hl=en&q=Wireshark+%21&btnG=Google+Search	1.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9b5) Gecko/2008032620 Firefox/3.0b5	-	0	11845	200	OK	-	-	(empty)	-	-	-	-	-	-	FS7lUf2cJFAVBCu6w6	-	text/html
-#close	2019-03-13-20-10-25
+#close	2019-07-31-18-53-28

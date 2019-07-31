@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2017-12-21-02-27-54
+#open	2019-07-31-20-23-20
 #fields	ts	id	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count
 1348168976.510615	FBtbj87tgpyeDSj31	3	01	CN=host/alpha,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348161979.000000	1379697979.000000	rsaEncryption	sha1WithRSAEncryption	rsa	1024	65537	-	-	-	-	-	-	-
@@ -18,4 +18,4 @@
 1348168976.554445	FFWYVj4BcvQb35WIaf	3	36B07110	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348162941.000000	1348206441.000000	rsaEncryption	sha1WithRSAEncryption	rsa	512	65537	-	-	-	-	-	-	-
 1348168976.554445	Fj16G835fnJgnVlKU6	3	02	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348162263.000000	1379698263.000000	rsaEncryption	sha1WithRSAEncryption	rsa	1024	65537	-	-	-	-	-	-	-
 1348168976.554445	FGONoc1Nj0Ka5zlxDa	3	EA83D17188B68E4D	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	1348161502.000000	1505841502.000000	rsaEncryption	sha1WithRSAEncryption	rsa	1024	65537	-	-	-	-	-	T	-
-#close	2017-12-21-02-27-54
+#close	2019-07-31-20-23-21

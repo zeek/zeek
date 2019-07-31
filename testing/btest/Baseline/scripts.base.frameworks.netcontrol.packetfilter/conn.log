@@ -3,13 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2019-04-17-21-00-04
+#open	2019-07-31-22-25-32
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1254722767.492060	CHhAvVGS1DHFjwGM9	10.10.1.4	56166	10.10.1.1	53	udp	dns	0.034025	34	100	SF	-	-	0	Dd	1	62	1	128	-
 1254722776.690444	C4J4Th3PJpwUYZZ6gc	10.10.1.20	138	10.10.1.255	138	udp	-	-	-	-	S0	-	-	0	D	1	229	0	0	-
 1254722767.529046	ClEkJM2Vm5giqnMf4h	10.10.1.4	1470	74.53.140.153	25	tcp	-	0.346950	0	0	S1	-	-	0	Sh	1	48	1	48	-
 1437831776.764391	CtPZjS20MLrsMUOJi2	192.168.133.100	49285	66.196.121.26	5050	tcp	-	0.343008	41	0	OTH	-	-	0	Da	1	93	1	52	-
-1437831787.856895	CUM0KZ3MLUfNB0cl11	192.168.133.100	49648	192.168.133.102	25	tcp	-	0.048043	162	154	S1	-	-	154	ShDgA	3	192	1	60	-
 1437831798.533765	CmES5u32sYpV7JYN	192.168.133.100	49336	74.125.71.189	443	tcp	-	-	-	-	OTH	-	-	0	A	1	52	0	0	-
-#close	2019-04-17-21-00-04
+1437831787.856895	CUM0KZ3MLUfNB0cl11	192.168.133.100	49648	192.168.133.102	25	tcp	-	0.048043	162	154	S1	-	-	154	ShDgA	3	192	1	60	-
+#close	2019-07-31-22-25-32

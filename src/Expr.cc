@@ -4339,10 +4339,25 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Get the body's "string" representation.
 	ODesc d;
 	dummy_func->Describe(&d);
-	uint64_t h[2];
-	internal_md5(d.Bytes(), d.Len(), reinterpret_cast<unsigned char*>(h));
 
-	my_name = "lambda_<" + std::to_string(h[0]) + ">";
+	for ( ; ; )
+		{
+		uint64_t h[2];
+		internal_md5(d.Bytes(), d.Len(), reinterpret_cast<unsigned char*>(h));
+
+		my_name = "lambda_<" + std::to_string(h[0]) + ">";
+		auto fullname = make_full_var_name(current_module.data(), my_name.data());
+		auto id = global_scope()->Lookup(fullname.data());
+
+		if ( id )
+			// Just try again to make a unique lambda name.  If two peer
+			// processes need to agree on the same lambda name, this assumes
+			// they're loading the same scripts and thus have the same hash
+			// collisions.
+			d.Add(" ");
+		else
+			break;
+		}
 
 	// Install that in the global_scope
 	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);

@@ -1,4 +1,11 @@
 
+2.6-723 | 2019-07-30 19:36:56 -0700
+
+  * Add LogAscii::enable_utf_8 option (Dev Bali, Corelight)
+
+    This option allows valid utf8 sequences to be written directly
+    into the ASCII logs without any escaping.
+
 2.6-713 | 2019-07-30 18:12:49 +0000
 
   * Fix memory leaks in expire_func introduced by recent changes (Jon

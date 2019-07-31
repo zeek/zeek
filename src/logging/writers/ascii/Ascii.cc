@@ -23,6 +23,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	include_meta = false;
 	tsv = false;
 	use_json = false;
+	enable_utf_8 = false;
 	formatter = 0;
 	gzip_level = 0;
 	gzfile = nullptr;
@@ -36,6 +37,7 @@ void Ascii::InitConfigOptions()
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
+	enable_utf_8 = BifConst::LogAscii::enable_utf_8;
 	gzip_level = BifConst::LogAscii::gzip_level;
 
 	separator.assign(
@@ -115,6 +117,19 @@ bool Ascii::InitFilterOptions()
 				}
 			}
 
+		else if ( strcmp(i->first, "enable_utf_8") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				enable_utf_8 = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				enable_utf_8 = false;
+			else
+				{
+				Error("invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
 		else if ( strcmp(i->first, "output_to_stdout") == 0 )
 			{
 			if ( strcmp(i->second, "T") == 0 )
@@ -181,6 +196,10 @@ bool Ascii::InitFormatter()
 		}
 	else
 		{
+		// Enable utf-8 if needed
+		if ( enable_utf_8 )
+			desc.EnableUTF8();
+
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);

@@ -26,6 +26,12 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const use_json = F &redef;
 
+	## If true, valid UTF-8 sequences will pass through unescaped and be
+	## written into logs.
+	##
+	## This option is also available as a per-filter ``$config`` option.
+	const enable_utf_8 = F &redef;
+
 	## Define the gzip level to compress the logs.  If 0, then no gzip
 	## compression is performed. Enabling compression also changes
 	## the log file name extension to include ".gz".

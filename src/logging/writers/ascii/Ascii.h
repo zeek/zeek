@@ -65,6 +65,7 @@ private:
 
 	int gzip_level; // level > 0 enables gzip compression
 	bool use_json;
+	bool enable_utf_8;
 	string json_timestamps;
 
 	threading::formatter::Formatter* formatter;

@@ -10,6 +10,8 @@
 #include "File.h"
 #include "Reporter.h"
 
+#include "ConvertUTF.h"
+
 #define DEFAULT_SIZE 128
 #define SLOP 10
 
@@ -39,6 +41,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	include_stats = 0;
 	indent_with_spaces = 0;
 	escape = false;
+	utf8 = false;
 	}
 
 ODesc::~ODesc()
@@ -55,6 +58,11 @@ ODesc::~ODesc()
 void ODesc::EnableEscaping()
 	{
 	escape = true;
+	}
+
+void ODesc::EnableUTF8 ()
+	{
+	utf8 = true;
 	}
 
 void ODesc::PushIndent()
@@ -258,13 +266,42 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 
 	for ( size_t i = 0; i < n; ++i )
 		{
-		if ( ! isprint(bytes[i]) || bytes[i] == '\\' )
+		auto printable = isprint(bytes[i]);
+
+		if ( ! printable && ! utf8 )
+			return escape_pos(bytes + i, 1);
+
+		if ( bytes[i] == '\\' )
 			return escape_pos(bytes + i, 1);
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);
 
 		if ( len )
 			return escape_pos(bytes + i, len);
+
+		if ( ! printable && utf8 )
+			{
+			size_t utf_found = getNumBytesForUTF8(bytes[i]);
+
+			if ( utf_found == 1 )
+				return escape_pos(bytes + i, 1);
+
+			if ( i + utf_found > n )
+				// Don't know if this is even meant to be a utf8 encoding,
+				// since there's not enough bytes left to check it's a valid
+				// sequence, so maybe safest to just move up by one instead
+				// of escaping the entire remainder.
+				return escape_pos(bytes + i, 1);
+
+			if ( isLegalUTF8Sequence(reinterpret_cast<const unsigned char *>(bytes + i),
+			                         reinterpret_cast<const unsigned char *>(bytes + i + utf_found)) )
+				{
+				i += utf_found - 1;
+				continue;
+				}
+
+			return escape_pos(bytes + i, 1);
+			}
 		}
 
 	return escape_pos(0, 0);

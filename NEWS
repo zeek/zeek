@@ -162,6 +162,9 @@ New Functionality
       local three = make_adder(3);
       print three(5); # prints 8
 
+- Add ``LogAscii::enable_utf_8`` option to allow valid utf8 sequences
+  to be written directly into the ASCII logs without any escaping.
+
 Changed Functionality
 ---------------------
 

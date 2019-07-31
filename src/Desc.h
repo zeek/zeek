@@ -54,6 +54,7 @@ public:
 	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
 
 	void EnableEscaping();
+	void EnableUTF8();
 	void AddEscapeSequence(const char* s) { escape_sequences.insert(s); }
 	void AddEscapeSequence(const char* s, size_t n)
 	    { escape_sequences.insert(string(s, n)); }
@@ -185,6 +186,7 @@ protected:
 	unsigned int offset;	// where we are in the buffer
 	unsigned int size;	// size of buffer in bytes
 
+	bool utf8; // whether valid utf-8 sequences may pass through unescaped
 	bool escape;	// escape unprintable characters in output?
 	typedef set<string> escape_set;
 	escape_set escape_sequences; // additional sequences of chars to escape

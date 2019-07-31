@@ -67,7 +67,7 @@ Write your first Zeek script:
 ```zeek
 # File "hello.zeek"
 
-event zeek_init
+event zeek_init()
     {
     print "Hello World!";
     }

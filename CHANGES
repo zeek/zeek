@@ -1,4 +1,10 @@
 
+2.6-728 | 2019-07-31 14:15:29 -0700
+
+  * Fix hello world script in READMEs (Seth Hall, Corelight & Jon Siwek, Corelight)
+
+  * Fixes a tiny Bro->Zeek renaming issue (Seth Hall, Corelight)
+
 2.6-725 | 2019-07-31 10:44:05 -0700
 
   * GH-506: fix NTP script errors (Seth Hall, Corelight)

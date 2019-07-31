@@ -26,6 +26,8 @@ Redefinable Options
 ###################
 ============================================================================================ =====================================================================
 :zeek:id:`LogAscii::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`                    String to use for empty fields.
+:zeek:id:`LogAscii::enable_utf_8`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, valid UTF-8 sequences will pass through unescaped and be
+                                                                                             written into logs.
 :zeek:id:`LogAscii::gzip_level`: :zeek:type:`count` :zeek:attr:`&redef`                      Define the gzip level to compress the logs.
 :zeek:id:`LogAscii::include_meta`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, include lines with log meta information such as column names
                                                                                              with types, the values of ASCII logging options that are in use, and
@@ -59,6 +61,17 @@ Redefinable Options
 
    String to use for empty fields. This should be different from
    *unset_field* to make the output unambiguous.
+   
+   This option is also available as a per-filter ``$config`` option.
+
+.. zeek:id:: LogAscii::enable_utf_8
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``F``
+
+   If true, valid UTF-8 sequences will pass through unescaped and be
+   written into logs.
    
    This option is also available as a per-filter ``$config`` option.
 

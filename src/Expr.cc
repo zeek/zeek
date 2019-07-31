@@ -14,6 +14,7 @@
 #include "Traverse.h"
 #include "Trigger.h"
 #include "IPAddr.h"
+#include "digest.h"
 
 #include "broker/Data.h"
 
@@ -4338,9 +4339,10 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Get the body's "string" representation.
 	ODesc d;
 	dummy_func->Describe(&d);
-	const char* desc = d.Description();
+	uint64_t h[2];
+	internal_md5(d.Bytes(), d.Len(), reinterpret_cast<unsigned char*>(h));
 
-	my_name = "lambda_<" + std::to_string(std::hash<std::string>()(std::string(desc))) + ">";
+	my_name = "lambda_<" + std::to_string(h[0]) + ">";
 
 	// Install that in the global_scope
 	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);

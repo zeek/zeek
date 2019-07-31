@@ -40,7 +40,7 @@ export {
 	type AddrPortServTriplet: record {
 		host: addr;
 		p: port;
-		serv: vector of string;
+		serv: string;
 	};
 
 	## Holds the set of all known services.  Keys in the store are
@@ -109,28 +109,29 @@ event service_info_commit(info: ServicesInfo)
 	if ( ! Known::use_service_store )
 		return;
 
-	local v : vector of string;
-	for ( s in info$service )
-		v += s;
-	sort(v, strcmp);	# sort the vector for proper key comparison in put_unique
+	local tempservs = info$service;
+	for ( s in tempservs ) {
 
-	local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = v);
+		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-	when ( local r = Broker::put_unique(Known::service_store$store, key,
+		when ( local r = Broker::put_unique(Known::service_store$store, key,
 	                                    T, Known::service_store_expiry) )
-		{
-		if ( r$status == Broker::SUCCESS )
 			{
-			if ( r$result as bool )
-				Log::write(Known::SERVICES_LOG, info);
+			if ( r$status == Broker::SUCCESS )
+				{
+				if ( r$result as bool ) {
+					info$service = set(s);	# log one service at the time if multiservice
+					Log::write(Known::SERVICES_LOG, info);
+					}
+				}
+			else
+				Reporter::error(fmt("%s: data store put_unique failure",
+				                    Known::service_store_name));
 			}
-		else
-			Reporter::error(fmt("%s: data store put_unique failure",
-			                    Known::service_store_name));
-		}
-	timeout Known::service_store_timeout
-		{
-		Log::write(Known::SERVICES_LOG, info);
+		timeout Known::service_store_timeout
+			{
+			Log::write(Known::SERVICES_LOG, info);
+			}
 		}
 	}
 

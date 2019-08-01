@@ -20,7 +20,7 @@ global ping: event(msg: string, f: myfunctype);
 event zeek_init()
     {
     Broker::subscribe("zeek/event/my_topic");
-    Broker::peer("127.0.0.1", 9999/tcp);
+    Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 function send_event()
     {
@@ -60,7 +60,7 @@ global pong: event(msg: string, f: myfunctype);
 event zeek_init()
     {
     Broker::subscribe("zeek/event/my_topic");
-    Broker::listen("127.0.0.1", 9999/tcp);
+    Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     {

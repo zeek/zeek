@@ -1,4 +1,8 @@
 
+2.6-739 | 2019-08-01 12:28:25 -0700
+
+  * Fix a test that used a hardcoded Broker port (Jon Siwek, Corelight)
+
 2.6-737 | 2019-08-01 11:22:57 -0700
 
   * GH-512: add --mandir configure option (Jon Siwek, Corelight)

@@ -167,6 +167,19 @@ New Functionality
 
 - Add parsing, analysis, and logging support for MQTT protocol v3.1/v3.1.1.
 
+- Zeek now supports duration thresholding on connections, similarly to how it supports
+  byte and packet thresholds.
+
+  - New events:
+    - ConnThreshold::duration_threshold_crossed
+    - conn_duration_threshold_crossed
+
+  - New functions:
+    - ConnThreshold::set_duration_threshold
+    - ConnThreshold::delete_duration_threshold
+    - set_current_conn_duration_threshold
+    - get_current_conn_duration_threshold
+
 Changed Functionality
 ---------------------
 

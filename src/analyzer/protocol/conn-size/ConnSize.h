@@ -21,8 +21,11 @@ public:
 	void UpdateConnVal(RecordVal *conn_val) override;
 	void FlipRoles() override;
 
-	void SetThreshold(uint64_t threshold, bool bytes, bool orig);
-	uint64 GetThreshold(bool bytes, bool orig);
+	void SetByteAndPacketThreshold(uint64_t threshold, bool bytes, bool orig);
+	uint64 GetByteAndPacketThreshold(bool bytes, bool orig);
+
+	void SetDurationThreshold(double duration);
+	double GetDurationThreshold() { return duration_thresh; };
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new ConnSize_Analyzer(conn); }
@@ -30,7 +33,7 @@ public:
 protected:
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64 seq, const IP_Hdr* ip, int caplen) override;
-	void CheckSizes(bool is_orig);
+	void CheckThresholds(bool is_orig);
 
 	void ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool is_orig);
 
@@ -43,6 +46,9 @@ protected:
 	uint64_t resp_bytes_thresh;
 	uint64_t orig_pkts_thresh;
 	uint64_t resp_pkts_thresh;
+
+	double start_time;
+	double duration_thresh;
 };
 
 } } // namespace analyzer::* 

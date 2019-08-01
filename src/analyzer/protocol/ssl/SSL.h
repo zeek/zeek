@@ -5,6 +5,8 @@
 
 #include "analyzer/protocol/tcp/TCP.h"
 
+namespace analyzer { namespace openvpn { class OpenVPN_Analyzer; } }
+
 namespace binpac { namespace SSL { class SSL_Conn; } }
 
 namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
@@ -37,6 +39,7 @@ protected:
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
 
+	friend class analyzer::openvpn::OpenVPN_Analyzer;
 };
 
 } } // namespace analyzer::* 

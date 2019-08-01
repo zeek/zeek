@@ -9,12 +9,12 @@
 %include bro.pac
 
 %extern{
-#include "events.bif.h"
+#include "analyzer/protocol/ssl/events.bif.h"
 
 namespace analyzer { namespace ssl { class SSL_Analyzer; } }
 typedef analyzer::ssl::SSL_Analyzer* SSLAnalyzer;
 
-#include "SSL.h"
+#include "analyzer/protocol/ssl/SSL.h"
 %}
 
 extern type SSLAnalyzer;

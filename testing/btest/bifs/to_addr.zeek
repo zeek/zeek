@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >output 2>error
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff error
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff error
 
 function test_to_addr(ip: string, expect: addr)
 	{

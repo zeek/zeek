@@ -87,17 +87,6 @@ void IPTunnelTimer::Dispatch(double t, int is_expire)
 
 NetSessions::NetSessions()
 	{
-	TypeList* t = new TypeList();
-	t->Append(base_type(TYPE_ADDR));	// source IP address
-	t->Append(base_type(TYPE_ADDR));	// dest IP address
-	t->Append(base_type(TYPE_COUNT));	// source and dest ports
-
-	ch = new CompositeHash(t);
-
-	Unref(t);
-
-	fragments.SetDeleteFunc(bro_obj_delete_func);
-
 	if ( stp_correlate_pair )
 		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
@@ -131,7 +120,6 @@ NetSessions::NetSessions()
 
 NetSessions::~NetSessions()
 	{
-	delete ch;
 	delete packet_filter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
@@ -143,6 +131,8 @@ NetSessions::~NetSessions()
 	for ( const auto& entry : udp_conns )
 		Unref(entry.second);
 	for ( const auto& entry : icmp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : fragments )
 		Unref(entry.second);
 	}
 
@@ -939,26 +929,21 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	{
 	uint32_t frag_id = ip->ID();
 
-	ListVal* key = new ListVal(TYPE_ANY);
-	key->Append(new AddrVal(ip->SrcAddr()));
-	key->Append(new AddrVal(ip->DstAddr()));
-	key->Append(val_mgr->GetCount(frag_id));
+	FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
 
-	HashKey* h = ch->ComputeHash(key, 1);
-	if ( ! h )
-		reporter->InternalError("hash computation failed");
+	FragReassembler* f = nullptr;
+	auto it = fragments.find(key);
+	if ( it != fragments.end() )
+		f = it->second;
 
-	FragReassembler* f = fragments.Lookup(h);
 	if ( ! f )
 		{
-		f = new FragReassembler(this, ip, pkt, h, t);
-		fragments.Insert(h, f);
-		Unref(key);
+		f = new FragReassembler(this, ip, pkt, key, t);
+		fragments[key] = f;
+		if ( fragments.size() > stats.max_fragments )
+			stats.max_fragments = fragments.size();
 		return f;
 		}
-
-	delete h;
-	Unref(key);
 
 	f->AddFragment(t, ip, pkt);
 	return f;
@@ -1097,15 +1082,8 @@ void NetSessions::Remove(FragReassembler* f)
 	if ( ! f )
 		return;
 
-	HashKey* k = f->Key();
-
-	if ( k )
-		{
-		if ( ! fragments.RemoveEntry(k) )
-			reporter->InternalWarning("fragment reassembler not in dict");
-		}
-	else
-		reporter->InternalWarning("missing fragment reassembler hash key");
+	if ( fragments.erase(f->Key()) == 0 )
+		reporter->InternalWarning("fragment reassembler not in dict");
 
 	Unref(f);
 	}
@@ -1188,13 +1166,13 @@ void NetSessions::GetStats(SessionStats& s) const
 	s.cumulative_UDP_conns = stats.cumulative_UDP_conns;
 	s.num_ICMP_conns = icmp_conns.size();
 	s.cumulative_ICMP_conns = stats.cumulative_ICMP_conns;
-	s.num_fragments = fragments.Length();
+	s.num_fragments = fragments.size();
 	s.num_packets = num_packets_processed;
 
 	s.max_TCP_conns = stats.max_TCP_conns;
 	s.max_UDP_conns = stats.max_UDP_conns;
 	s.max_ICMP_conns = stats.max_ICMP_conns;
-	s.max_fragments = fragments.MaxLength();
+	s.max_fragments = stats.max_fragments;
 	}
 
 Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
@@ -1481,11 +1459,10 @@ unsigned int NetSessions::MemoryAllocation()
 
 	return ConnectionMemoryUsage()
 		+ padded_sizeof(*this)
-		+ ch->MemoryAllocation()
 		+ padded_sizeof(tcp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
 		+ padded_sizeof(udp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
 		+ padded_sizeof(icmp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ fragments.MemoryAllocation() - padded_sizeof(fragments)
+		+ padded_sizeof(fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type)))
 		// FIXME: MemoryAllocation() not implemented for rest.
 		;
 	}

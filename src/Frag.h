@@ -3,6 +3,8 @@
 #ifndef frag_h
 #define frag_h
 
+#include <tuple>
+
 #include "util.h"
 #include "IP.h"
 #include "Net.h"
@@ -17,10 +19,12 @@ class FragTimer;
 
 typedef void (FragReassembler::*frag_timer_func)(double t);
 
+using FragReassemblerKey = std::tuple<IPAddr, IPAddr, bro_uint_t>;
+
 class FragReassembler : public Reassembler {
 public:
 	FragReassembler(NetSessions* s, const IP_Hdr* ip, const u_char* pkt,
-			HashKey* k, double t);
+			const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
 	void AddFragment(double t, const IP_Hdr* ip, const u_char* pkt);
@@ -30,7 +34,7 @@ public:
 	void ClearTimer()	{ expire_timer = 0; }
 
 	const IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
-	HashKey* Key() const	{ return key; }
+	const FragReassemblerKey& Key() const	{ return key; }
 
 protected:
 	void BlockInserted(DataBlock* start_block) override;
@@ -43,7 +47,7 @@ protected:
 	NetSessions* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
 	uint16_t next_proto; // first IPv6 fragment header's next proto field
-	HashKey* key;
+	FragReassemblerKey key;
 
 	FragTimer* expire_timer;
 };

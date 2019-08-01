@@ -13,8 +13,9 @@ using namespace analyzer::conn_size;
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
     : Analyzer("CONNSIZE", c),
       orig_bytes(), resp_bytes(), orig_pkts(), resp_pkts(),
-      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh()
+      orig_bytes_thresh(), resp_bytes_thresh(), orig_pkts_thresh(), resp_pkts_thresh(), duration_thresh()
 	{
+	start_time = c->StartTime();
 	}
 
 
@@ -54,7 +55,7 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64 threshold, bool
 	});
 	}
 
-void ConnSize_Analyzer::CheckSizes(bool is_orig)
+void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 	{
 	if ( is_orig )
 		{
@@ -84,6 +85,19 @@ void ConnSize_Analyzer::CheckSizes(bool is_orig)
 			resp_pkts_thresh = 0;
 			}
 		}
+
+	if ( duration_thresh != 0 )
+		{
+		if ( duration_thresh > ( network_time - start_time ) && conn_duration_threshold_crossed )
+			{
+			ConnectionEventFast(conn_duration_threshold_crossed, {
+					BuildConnVal(),
+					new Val(duration_thresh, TYPE_INTERVAL),
+					val_mgr->GetBool(is_orig),
+			});
+			duration_thresh = 0;
+			}
+		}
 	}
 
 void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
@@ -101,10 +115,10 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		resp_pkts ++;
 		}
 
-	CheckSizes(is_orig);
+	CheckThresholds(is_orig);
 	}
 
-void ConnSize_Analyzer::SetThreshold(uint64 threshold, bool bytes, bool orig)
+void ConnSize_Analyzer::SetByteAndPacketThreshold(uint64 threshold, bool bytes, bool orig)
 	{
 	if ( bytes )
 		{
@@ -122,10 +136,10 @@ void ConnSize_Analyzer::SetThreshold(uint64 threshold, bool bytes, bool orig)
 		}
 
 	// Check if threshold is already crossed.
-	CheckSizes(orig);
+	CheckThresholds(orig);
 	}
 
-uint64_t ConnSize_Analyzer::GetThreshold(bool bytes, bool orig)
+uint64_t ConnSize_Analyzer::GetByteAndPacketThreshold(bool bytes, bool orig)
 	{
 	if ( bytes )
 		{
@@ -141,6 +155,14 @@ uint64_t ConnSize_Analyzer::GetThreshold(bool bytes, bool orig)
 		else
 			return resp_pkts_thresh;
 		}
+	}
+
+void ConnSize_Analyzer::SetDurationThreshold(double duration)
+	{
+	duration_thresh = duration;
+
+	// for duration thresholds, it does not matter which direction we check.
+	CheckThresholds(true);
 	}
 
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
@@ -181,4 +203,3 @@ void ConnSize_Analyzer::FlipRoles()
 	orig_pkts = resp_pkts;
 	resp_pkts = tmp;
 	}
-

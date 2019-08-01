@@ -96,6 +96,13 @@ type table_string_of_count: table[string] of count;
 ##    directly and then remove this alias.
 type files_tag_set: set[Files::Tag];
 
+## A set of intervals.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type interval_set: set[interval];
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##

@@ -1,4 +1,17 @@
 
+2.6-744 | 2019-08-01 13:33:12 -0700
+
+  * Guarantee unique internal name for each lambda function
+    By dealing with hash collisions. (Jon Siwek, Corelight)
+
+  * Use consistent hashing method for internal lambda function names
+
+    The results of std::hash<std::string> may vary depending on platform.
+    E.g. test suite failed on macOS due to Linux generating different lambda
+    function names. (Jon Siwek, Corelight)
+
+  * Improve error messages from to_addr and to_subnet BIFs. (Jon Siwek, Corelight)
+
 2.6-739 | 2019-08-01 12:28:25 -0700
 
   * Fix a test that used a hardcoded Broker port (Jon Siwek, Corelight)

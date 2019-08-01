@@ -1,4 +1,8 @@
 
+2.6-735 | 2019-07-31 21:29:58 -0700
+
+  * Fix the link to "good first issue" tickets. (Seth Hall, Corelight)
+
 2.6-733 | 2019-07-31 21:23:37 -0700
 
   * Add MQTT analyzer, updated/ported from original version by Supriya Kumar (Seth Hall, Corelight)

@@ -208,6 +208,12 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek`
 
 

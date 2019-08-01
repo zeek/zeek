@@ -71,6 +71,8 @@ Protocol Analyzers
 
       .. zeek:enum:: Analyzer::ANALYZER_MODBUS Analyzer::Tag
 
+      .. zeek:enum:: Analyzer::ANALYZER_MQTT Analyzer::Tag
+
       .. zeek:enum:: Analyzer::ANALYZER_MYSQL Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_CONTENTS_NCP Analyzer::Tag
@@ -6839,6 +6841,282 @@ Events
    
 
    :fifos: The register values read from the FIFO queue on the device.
+
+Zeek::MQTT
+----------
+
+Message Queuing Telemetry Transport v3.1.1 Protocol analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`Analyzer::ANALYZER_MQTT`
+
+Types
++++++
+
+.. zeek:type:: MQTT::ConnectMsg
+
+   :Type: :zeek:type:`record`
+
+      protocol_name: :zeek:type:`string`
+         Protocol name
+
+      protocol_version: :zeek:type:`count`
+         Protocol version
+
+      client_id: :zeek:type:`string`
+         Identifies the Client to the Server.
+
+      keep_alive: :zeek:type:`interval`
+         The maximum time interval that is permitted to elapse between the
+         point at which the Client finishes transmitting one Control Packet
+         and the point it starts sending the next.
+
+      clean_session: :zeek:type:`bool`
+         The clean_session flag indicates if the server should or shouldn't
+         use a clean session or use existing previous session state.
+
+      will_retain: :zeek:type:`bool`
+         Specifies if the Will Message is to be retained when it is published.
+
+      will_qos: :zeek:type:`count`
+         Specifies the QoS level to be used when publishing the Will Message.
+
+      will_topic: :zeek:type:`string` :zeek:attr:`&optional`
+         Topic to publish the Will message to.
+
+      will_msg: :zeek:type:`string` :zeek:attr:`&optional`
+         The actual Will message to publish.
+
+      username: :zeek:type:`string` :zeek:attr:`&optional`
+         Username to use for authentication to the server.
+
+      password: :zeek:type:`string` :zeek:attr:`&optional`
+         Pass to use for authentication to the server.
+
+
+.. zeek:type:: MQTT::ConnectAckMsg
+
+   :Type: :zeek:type:`record`
+
+      return_code: :zeek:type:`count`
+         Return code from the connack message
+
+      session_present: :zeek:type:`bool`
+         The Session present flag helps the client
+         establish whether the Client and Server
+         have a consistent view about whether there
+         is already stored Session state.
+
+
+.. zeek:type:: MQTT::PublishMsg
+
+   :Type: :zeek:type:`record`
+
+      dup: :zeek:type:`bool`
+         Indicates if this is the first attempt at publishing the message.
+
+      qos: :zeek:type:`count`
+         Indicates what level of QoS is enabled for this message.
+
+      retain: :zeek:type:`bool`
+         Indicates if the server should retain this message so that clients
+         subscribing to the topic in the future will receive this message
+         automatically.
+
+      topic: :zeek:type:`string`
+         Name of the topic the published message is directed into.
+
+      payload: :zeek:type:`string`
+         Payload of the published message.
+
+
+Events
+++++++
+
+.. zeek:id:: mqtt_connect
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`MQTT::ConnectMsg`)
+
+   Generated for MQTT "client requests a connection" messages
+   
+
+   :c: The connection
+   
+
+   :msg: MQTT connect message fields.
+
+.. zeek:id:: mqtt_connack
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`MQTT::ConnectAckMsg`)
+
+   Generated for MQTT acknowledge connection messages
+   
+
+   :c: The connection
+   
+
+   :msg: MQTT connect ack message fields.
+
+.. zeek:id:: mqtt_publish
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`, msg: :zeek:type:`MQTT::PublishMsg`)
+
+   Generated for MQTT publish messages
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg: The MQTT publish message record.
+
+.. zeek:id:: mqtt_puback
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
+
+   Generated for MQTT publish acknowledgement messages
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_pubrec
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
+
+   Generated for MQTT publish received messages (QoS 2 publish received, part 1)
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_pubrel
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
+
+   Generated for MQTT publish release messages (QoS 2 publish received, part 2)
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_pubcomp
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
+
+   Generated for MQTT publish complete messages (QoS 2 publish received, part 3)
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_subscribe
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`, requested_qos: :zeek:type:`count`)
+
+   Generated for MQTT subscribe messages
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_suback
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, granted_qos: :zeek:type:`count`)
+
+   Generated for MQTT subscribe messages
+   
+
+   :c: The connection
+   
+
+   :is_orig: Direction in which the message was sent
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_unsubscribe
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`)
+
+   Generated for MQTT unsubscribe messages sent by the client
+   
+
+   :c: The connection
+   
+
+   :msg_id: The id value for the message.
+   
+
+   :topic: The topic being unsubscribed from
+
+.. zeek:id:: mqtt_unsuback
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`)
+
+   Generated for MQTT unsubscribe acknowledgements sent by the server
+   
+
+   :c: The connection
+   
+
+   :msg_id: The id value for the message.
+
+.. zeek:id:: mqtt_pingreq
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Generated for MQTT ping requests sent by the client.
+   
+
+   :c: The connection
+
+.. zeek:id:: mqtt_pingresp
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Generated for MQTT ping responses sent by the server.
+   
+
+   :c: The connection
+
+.. zeek:id:: mqtt_disconnect
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Generated for MQTT disconnect messages sent by the client when it is diconnecting cleanly.
+   
+
+   :c: The connection
 
 Zeek::MySQL
 -----------

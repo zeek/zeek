@@ -85,6 +85,8 @@
    base/bif/plugins/Zeek_Login.functions.bif.zeek </scripts/base/bif/plugins/Zeek_Login.functions.bif.zeek>
    base/bif/plugins/Zeek_MIME.events.bif.zeek </scripts/base/bif/plugins/Zeek_MIME.events.bif.zeek>
    base/bif/plugins/Zeek_Modbus.events.bif.zeek </scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek>
+   base/bif/plugins/Zeek_MQTT.types.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek>
+   base/bif/plugins/Zeek_MQTT.events.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek>
    base/bif/plugins/Zeek_MySQL.events.bif.zeek </scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek>
    base/bif/plugins/Zeek_NCP.events.bif.zeek </scripts/base/bif/plugins/Zeek_NCP.events.bif.zeek>
    base/bif/plugins/Zeek_NCP.consts.bif.zeek </scripts/base/bif/plugins/Zeek_NCP.consts.bif.zeek>
@@ -313,6 +315,9 @@
    base/protocols/modbus/__load__.zeek </scripts/base/protocols/modbus/__load__.zeek>
    base/protocols/modbus/consts.zeek </scripts/base/protocols/modbus/consts.zeek>
    base/protocols/modbus/main.zeek </scripts/base/protocols/modbus/main.zeek>
+   base/protocols/mqtt/__load__.zeek </scripts/base/protocols/mqtt/__load__.zeek>
+   base/protocols/mqtt/main.zeek </scripts/base/protocols/mqtt/main.zeek>
+   base/protocols/mqtt/consts.zeek </scripts/base/protocols/mqtt/consts.zeek>
    base/protocols/mysql/__load__.zeek </scripts/base/protocols/mysql/__load__.zeek>
    base/protocols/mysql/main.zeek </scripts/base/protocols/mysql/main.zeek>
    base/protocols/mysql/consts.zeek </scripts/base/protocols/mysql/consts.zeek>

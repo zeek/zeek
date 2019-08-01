@@ -10,6 +10,7 @@ base/init-bare.zeek
 .. zeek:namespace:: JSON
 .. zeek:namespace:: KRB
 .. zeek:namespace:: MOUNT3
+.. zeek:namespace:: MQTT
 .. zeek:namespace:: NCP
 .. zeek:namespace:: NFS3
 .. zeek:namespace:: NTLM
@@ -33,7 +34,7 @@ base/init-bare.zeek
 .. zeek:namespace:: X509
 
 
-:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, NCP, NFS3, NTLM, NTP, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
+:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, MQTT, NCP, NFS3, NTLM, NTP, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
 :Imports: :doc:`base/bif/const.bif.zeek </scripts/base/bif/const.bif.zeek>`, :doc:`base/bif/event.bif.zeek </scripts/base/bif/event.bif.zeek>`, :doc:`base/bif/option.bif.zeek </scripts/base/bif/option.bif.zeek>`, :doc:`base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>`, :doc:`base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>`, :doc:`base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>`, :doc:`base/bif/stats.bif.zeek </scripts/base/bif/stats.bif.zeek>`, :doc:`base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>`, :doc:`base/bif/types.bif.zeek </scripts/base/bif/types.bif.zeek>`, :doc:`base/bif/zeek.bif.zeek </scripts/base/bif/zeek.bif.zeek>`
 
 Summary
@@ -371,6 +372,9 @@ Types
 :zeek:type:`MOUNT3::info_t`: :zeek:type:`record`                              Record summarizing the general results and status of MOUNT3
                                                                               request/reply pairs.
 :zeek:type:`MOUNT3::mnt_reply_t`: :zeek:type:`record`                         MOUNT lookup reply.
+:zeek:type:`MQTT::ConnectAckMsg`: :zeek:type:`record`                         
+:zeek:type:`MQTT::ConnectMsg`: :zeek:type:`record`                            
+:zeek:type:`MQTT::PublishMsg`: :zeek:type:`record`                            
 :zeek:type:`MatcherStats`: :zeek:type:`record`                                Statistics of all regular expression matchers.
 :zeek:type:`ModbusCoils`: :zeek:type:`vector`                                 A vector of boolean values that indicate the setting
                                                                               for a range of modbus coils.
@@ -1347,6 +1351,12 @@ Redefinable Options
       ``+=``::
 
          Modbus::ports
+
+   :Redefinition: from :doc:`/scripts/base/protocols/mqtt/main.zeek`
+
+      ``+=``::
+
+         MQTT::ports
 
    :Redefinition: from :doc:`/scripts/base/protocols/ntp/main.zeek`
 
@@ -3601,6 +3611,83 @@ Types
    mount succeeded, *fh* is always set.
    
    .. zeek:see:: mount_proc_mnt
+
+.. zeek:type:: MQTT::ConnectAckMsg
+
+   :Type: :zeek:type:`record`
+
+      return_code: :zeek:type:`count`
+         Return code from the connack message
+
+      session_present: :zeek:type:`bool`
+         The Session present flag helps the client
+         establish whether the Client and Server
+         have a consistent view about whether there
+         is already stored Session state.
+
+
+.. zeek:type:: MQTT::ConnectMsg
+
+   :Type: :zeek:type:`record`
+
+      protocol_name: :zeek:type:`string`
+         Protocol name
+
+      protocol_version: :zeek:type:`count`
+         Protocol version
+
+      client_id: :zeek:type:`string`
+         Identifies the Client to the Server.
+
+      keep_alive: :zeek:type:`interval`
+         The maximum time interval that is permitted to elapse between the
+         point at which the Client finishes transmitting one Control Packet
+         and the point it starts sending the next.
+
+      clean_session: :zeek:type:`bool`
+         The clean_session flag indicates if the server should or shouldn't
+         use a clean session or use existing previous session state.
+
+      will_retain: :zeek:type:`bool`
+         Specifies if the Will Message is to be retained when it is published.
+
+      will_qos: :zeek:type:`count`
+         Specifies the QoS level to be used when publishing the Will Message.
+
+      will_topic: :zeek:type:`string` :zeek:attr:`&optional`
+         Topic to publish the Will message to.
+
+      will_msg: :zeek:type:`string` :zeek:attr:`&optional`
+         The actual Will message to publish.
+
+      username: :zeek:type:`string` :zeek:attr:`&optional`
+         Username to use for authentication to the server.
+
+      password: :zeek:type:`string` :zeek:attr:`&optional`
+         Pass to use for authentication to the server.
+
+
+.. zeek:type:: MQTT::PublishMsg
+
+   :Type: :zeek:type:`record`
+
+      dup: :zeek:type:`bool`
+         Indicates if this is the first attempt at publishing the message.
+
+      qos: :zeek:type:`count`
+         Indicates what level of QoS is enabled for this message.
+
+      retain: :zeek:type:`bool`
+         Indicates if the server should retain this message so that clients
+         subscribing to the topic in the future will receive this message
+         automatically.
+
+      topic: :zeek:type:`string`
+         Name of the topic the published message is directed into.
+
+      payload: :zeek:type:`string`
+         Payload of the published message.
+
 
 .. zeek:type:: MatcherStats
 
@@ -6901,6 +6988,14 @@ Types
 
       modbus: :zeek:type:`Modbus::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/modbus/main.zeek` is loaded)
+
+
+      mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/base/protocols/mqtt/main.zeek` is loaded)
+
+
+      mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/base/protocols/mqtt/main.zeek` is loaded)
 
 
       mysql: :zeek:type:`MySQL::Info` :zeek:attr:`&optional`

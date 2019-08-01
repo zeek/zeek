@@ -189,6 +189,9 @@
 
    Support for Modbus protocol analysis.
 
+:doc:`base/protocols/mqtt </scripts/base/protocols/mqtt/index>`
+
+
 :doc:`base/protocols/mysql </scripts/base/protocols/mysql/index>`
 
    Support for MySQL protocol analysis.

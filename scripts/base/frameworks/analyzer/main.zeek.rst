@@ -74,8 +74,8 @@ State Variables
       ::
 
          {
-            Analyzer::ANALYZER_TCPSTATS,
-            Analyzer::ANALYZER_STEPPINGSTONE
+            Analyzer::ANALYZER_STEPPINGSTONE,
+            Analyzer::ANALYZER_TCPSTATS
          }
 
 

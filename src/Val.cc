@@ -863,19 +863,10 @@ Val* AddrVal::DoClone(CloneState* state)
 
 SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
 	{
-	string s(text);
-	size_t slash_loc = s.find('/');
+	val.subnet_val = new IPPrefix();
 
-	if ( slash_loc == string::npos )
-		{
+	if ( ! IPPrefix::ConvertString(text, val.subnet_val) )
 		reporter->Error("Bad string in SubNetVal ctor: %s", text);
-		val.subnet_val = new IPPrefix();
-		}
-	else
-		{
-		val.subnet_val = new IPPrefix(s.substr(0, slash_loc),
-		                              atoi(s.substr(slash_loc + 1).c_str()));
-		}
 	}
 
 SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)

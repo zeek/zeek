@@ -242,29 +242,38 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 	prefix.Mask(this->length);
 	}
 
-IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
-	: prefix(addr)
+bool IPAddr::CheckPrefixLength(uint8_t length, bool len_is_v6_relative) const
 	{
-	if ( prefix.GetFamily() == IPv4 && ! len_is_v6_relative )
+	if ( GetFamily() == IPv4 && ! len_is_v6_relative )
 		{
 		if ( length > 32 )
-			{
-			reporter->Error("Bad IPAddr(v4) IPPrefix length : %d", length);
-			this->length = 0;
-			}
-		else
-			this->length = length + 96;
+			return false;
 		}
 
 	else
 		{
 		if ( length > 128 )
-			{
-			reporter->Error("Bad IPAddr(v6) IPPrefix length : %d", length);
-			this->length = 0;
-			}
+			return false;
+		}
+
+	return true;
+	}
+
+IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
+	: prefix(addr)
+	{
+	if ( prefix.CheckPrefixLength(length, len_is_v6_relative) )
+		{
+		if ( prefix.GetFamily() == IPv4 && ! len_is_v6_relative )
+			this->length = length + 96;
 		else
 			this->length = length;
+		}
+	else
+		{
+		auto vstr = prefix.GetFamily() == IPv4 ? "v4" : "v6";
+		reporter->Error("Bad IPAddr(%s) IPPrefix length : %d", vstr, length);
+		this->length = 0;
 		}
 
 	prefix.Mask(this->length);
@@ -280,4 +289,29 @@ string IPPrefix::AsString() const
 		modp_uitoa10(length, l);
 
 	return prefix.AsString() +"/" + l;
+	}
+
+bool IPPrefix::ConvertString(const char* text, IPPrefix* result)
+	{
+	string s(text);
+	size_t slash_loc = s.find('/');
+
+	if ( slash_loc == string::npos )
+		return false;
+
+	auto ip_str = s.substr(0, slash_loc);
+	auto len = atoi(s.substr(slash_loc + 1).data());
+
+	in6_addr tmp;
+
+	if ( ! IPAddr::ConvertString(ip_str.data(), &tmp) )
+		return false;
+
+	auto ip = IPAddr(tmp);
+
+	if ( ! ip.CheckPrefixLength(len) )
+		return false;
+
+	*result = IPPrefix(ip, len);
+	return true;
 	}

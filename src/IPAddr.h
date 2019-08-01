@@ -367,6 +367,21 @@ public:
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
 	/**
+	 * Check if an IP prefix length would be valid against this IP address.
+	 *
+	 * @param length the IP prefix length to check
+	 *
+	 * @param len_is_v6_relative whether the length is relative to the full
+	 * IPv6 address length (e.g. since IPv4 addrs are internally stored
+	 * in v4-to-v6-mapped format, this parameter disambiguates whether
+	 * a the length is in the usual 32-bit space for IPv4 or the full
+	 * 128-bit space of IPv6 address.
+	 *
+	 * @return whether the prefix length is valid.
+	 */
+	bool CheckPrefixLength(uint8_t length, bool len_is_v6_relative = false) const;
+
+	/**
 	 * Converts an IPv4 or IPv6 string into a network address structure
 	 * (IPv6 or v4-to-v6-mapping in network bytes order).
 	 *
@@ -657,6 +672,28 @@ public:
 	friend bool operator>(const IPPrefix& net1, const IPPrefix& net2)
 		{
 		return ! ( net1 <= net2 );
+		}
+
+	/**
+	 * Converts an IPv4 or IPv6 prefix string into a network address prefix structure.
+	 *
+	 * @param s the IPv4 or IPv6 prefix string to convert (ASCII, NUL-terminated).
+	 *
+	 * @param result buffer that the caller supplies to store the result.
+	 *
+	 * @return whether the conversion was successful.
+	 */
+	static bool ConvertString(const char* s, IPPrefix* result);
+
+	/**
+	 * @param s the IPv4 or IPv6 prefix string to convert (ASCII, NUL-terminated).
+	 *
+	 * @return whether the string is a valid IP address prefix
+	 */
+	static bool IsValid(const char* s)
+		{
+		IPPrefix tmp;
+		return ConvertString(s, &tmp);
 		}
 
 private:

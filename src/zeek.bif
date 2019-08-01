@@ -2421,7 +2421,17 @@ function count_to_port%(num: count, proto: transport_proto%): port
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
-	Val* ret = new AddrVal(s);
+	Val* ret = nullptr;
+	in6_addr tmp;
+
+	if ( IPAddr::ConvertString(s, &tmp) )
+		ret = new AddrVal(IPAddr(tmp));
+	else
+		{
+		ret = new AddrVal(IPAddr());
+		builtin_error("failed converting string to IP address", ip);
+		}
+
 	delete [] s;
 	return ret;
 	%}
@@ -2451,7 +2461,12 @@ function is_valid_ip%(ip: string%): bool
 function to_subnet%(sn: string%): subnet
 	%{
 	char* s = sn->AsString()->Render();
-	Val* ret = new SubNetVal(s);
+	IPPrefix tmp;
+
+	if ( ! IPPrefix::ConvertString(s, &tmp) )
+		builtin_error("failed converting string to IP prefix", sn);
+
+	Val* ret = new SubNetVal(tmp);
 	delete [] s;
 	return ret;
 	%}

@@ -94,7 +94,7 @@ securing their cyber infrastructure.
 If you're interested in getting involved, we collect feature requests
 and issues on GitHub [here](https://github.com/zeek/zeek/issues) and
 you might find
-[these](https://github.com/zeek/zeek/issues?q=is%3Aissue+is%3Aopen+label%3A%22Difficulty%3A+Easy%22)
+[these](https://github.com/zeek/zeek/labels/good%20first%20issue)
 to be a good place to get started. More information on Zeek's
 development can be found
 [here](https://www.zeek.org/development/index.html), and information

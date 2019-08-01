@@ -604,6 +604,7 @@ Types
 :zeek:type:`id_table`: :zeek:type:`table`                                     Table type used to map script-level identifiers to meta-information
                                                                               describing them.
 :zeek:type:`index_vec`: :zeek:type:`vector`                                   A vector of counts, used by some builtin functions to store a list of indices.
+:zeek:type:`interval_set`: :zeek:type:`set`                                   A set of intervals.
 :zeek:type:`ip4_hdr`: :zeek:type:`record`                                     Values extracted from an IPv4 header.
 :zeek:type:`ip6_ah`: :zeek:type:`record`                                      Values extracted from an IPv6 Authentication extension header.
 :zeek:type:`ip6_dstopts`: :zeek:type:`record`                                 Values extracted from an IPv6 Destination options extension header.
@@ -8288,6 +8289,16 @@ Types
    :Type: :zeek:type:`vector` of :zeek:type:`count`
 
    A vector of counts, used by some builtin functions to store a list of indices.
+   
+   .. todo:: We need this type definition only for declaring builtin functions
+      via ``bifcl``. We should extend ``bifcl`` to understand composite types
+      directly and then remove this alias.
+
+.. zeek:type:: interval_set
+
+   :Type: :zeek:type:`set` [:zeek:type:`interval`]
+
+   A set of intervals.
    
    .. todo:: We need this type definition only for declaring builtin functions
       via ``bifcl``. We should extend ``bifcl`` to understand composite types

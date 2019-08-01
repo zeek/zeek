@@ -562,7 +562,7 @@ Events
 
    Generated for a connection that crossed a set byte threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
-   ConnThreshold::bytes_threshold_crossed instead.
+   :zeek:see:`ConnThreshold::bytes_threshold_crossed` instead.
    
 
    :c: the connection
@@ -574,7 +574,8 @@ Events
    :is_orig: true if the threshold was crossed by the originator of the connection
    
    .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_packets_threshold_crossed
-                get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold conn_duration_threshold_crossed
+                 set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: conn_packets_threshold_crossed
 
@@ -582,7 +583,7 @@ Events
 
    Generated for a connection that crossed a set packet threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
-   ConnThreshold::bytes_threshold_crossed instead.
+   :zeek:see:`ConnThreshold::packets_threshold_crossed` instead.
    
 
    :c: the connection
@@ -594,7 +595,33 @@ Events
    :is_orig: true if the threshold was crossed by the originator of the connection
    
    .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
-                get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold conn_duration_threshold_crossed
+                 set_current_conn_duration_threshold get_current_conn_duration_threshold
+
+.. zeek:id:: conn_duration_threshold_crossed
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, threshold: :zeek:type:`interval`, is_orig: :zeek:type:`bool`)
+
+   Generated for a connection that crossed a set duration threshold. Note that this
+   is a low level event that should usually be avoided for user code. Use
+   :zeek:see:`ConnThreshold::duration_threshold_crossed` instead.
+   
+   Note that this event is not raised at the exact moment that a duration threshold is crossed; instead
+   it is raised when the next packet is seen after the threshold has been crossed. On a connection that is
+   idle, this can be raised significantly later.
+   
+
+   :c: the connection
+   
+
+   :threshold: the threshold that was set
+   
+
+   :is_orig: true if the threshold was crossed by the originator of the connection
+   
+   .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 Functions
 +++++++++
@@ -605,7 +632,7 @@ Functions
 
    Sets the current byte threshold for connection sizes, overwriting any potential old
    threshold. Be aware that in nearly any case you will want to use the high level API
-   instead (ConnThreshold::set_bytes_threshold).
+   instead (:zeek:see:`ConnThreshold::set_bytes_threshold`).
    
 
    :cid: The connection id.
@@ -617,7 +644,8 @@ Functions
    :is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
    
    .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-                get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_packets_threshold
 
@@ -625,7 +653,7 @@ Functions
 
    Sets a threshold for connection packets, overwtiting any potential old thresholds.
    Be aware that in nearly any case you will want to use the high level API
-   instead (ConnThreshold::set_packets_threshold).
+   instead (:zeek:see:`ConnThreshold::set_packets_threshold`).
    
 
    :cid: The connection id.
@@ -637,13 +665,31 @@ Functions
    :is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
    
    .. zeek:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-                get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 set_current_conn_duration_threshold get_current_conn_duration_threshold
+
+.. zeek:id:: set_current_conn_duration_threshold
+
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`interval`) : :zeek:type:`bool`
+
+   Sets the current duration threshold for connection, overwriting any potential old
+   threshold. Be aware that in nearly any case you will want to use the high level API
+   instead (:zeek:see:`ConnThreshold::set_duration_threshold`).
+   
+
+   :cid: The connection id.
+   
+
+   :threshold: Threshold in seconds.
+   
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+                 get_current_conn_bytes_threshold get_current_conn_packets_threshold
+                 get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_bytes_threshold
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
-   Gets the current byte threshold size for a connection.
    
 
    :cid: The connection id.
@@ -655,7 +701,8 @@ Functions
    :returns: 0 if no threshold is set or the threshold in bytes
    
    .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-                get_current_conn_packets_threshold
+                 get_current_conn_packets_threshold set_current_conn_duration_threshold
+                 get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_packets_threshold
 
@@ -673,7 +720,22 @@ Functions
    :returns: 0 if no threshold is set or the threshold in packets
    
    .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
-                get_current_conn_bytes_threshold
+                 get_current_conn_bytes_threshold set_current_conn_duration_threshold get_current_conn_duration_threshold
+
+.. zeek:id:: get_current_conn_duration_threshold
+
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`interval`
+
+   Gets the current duration threshold size for a connection.
+   
+
+   :cid: The connection id.
+   
+
+   :returns: 0 if no threshold is set or the threshold in seconds
+   
+   .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
+                 get_current_conn_packets_threshold set_current_conn_duration_threshold
 
 Zeek::DCE_RPC
 -------------

@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	mqtt_publish
+#open	2019-07-29-16-44-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	from_client	retain	qos	status	topic	payload
+#types	time	string	addr	port	addr	port	bool	bool	string	string	string	string
+1461170591.219981	CHhAvVGS1DHFjwGM9	10.0.1.4	49327	198.41.30.241	1883	F	T	at most once	ok	SampleTopic	Hello from the Paho blocking client
+1461170596.653674	ClEkJM2Vm5giqnMf4h	10.0.1.4	49330	198.41.30.241	1883	T	F	at most once	ok	SampleTopic	Hello MQTT
+1461170596.891281	CHhAvVGS1DHFjwGM9	10.0.1.4	49327	198.41.30.241	1883	F	F	at most once	ok	SampleTopic	Hello MQTT
+#close	2019-07-29-16-44-12

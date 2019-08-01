@@ -22,6 +22,9 @@ known_services
 loaded_scripts
 modbus
 modbus_register_change
+mqtt_connect
+mqtt_publish
+mqtt_subscribe
 mysql
 netcontrol
 netcontrol_catch_release

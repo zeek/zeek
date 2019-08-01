@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	mqtt_subscribe
+#open	2019-07-29-16-44-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	topic	qos_level	granted_qos_level	ack
+#types	time	string	addr	port	addr	port	enum	string	count	count	bool
+1461170590.745647	CHhAvVGS1DHFjwGM9	10.0.1.4	49327	198.41.30.241	1883	MQTT::SUBSCRIBE	SampleTopic	0	0	T
+#close	2019-07-29-16-44-12

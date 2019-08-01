@@ -165,6 +165,8 @@ New Functionality
 - Add ``LogAscii::enable_utf_8`` option to allow valid utf8 sequences
   to be written directly into the ASCII logs without any escaping.
 
+- Add parsing, analysis, and logging support for MQTT protocol v3.1/v3.1.1.
+
 Changed Functionality
 ---------------------
 

@@ -5014,6 +5014,71 @@ export {
 	};
 }
 
+module MQTT;
+export {
+	type MQTT::ConnectMsg: record {
+		## Protocol name
+		protocol_name    : string;
+		## Protocol version
+		protocol_version : count;
+
+		## Identifies the Client to the Server.
+		client_id        : string;
+		## The maximum time interval that is permitted to elapse between the
+		## point at which the Client finishes transmitting one Control Packet
+		## and the point it starts sending the next.
+		keep_alive       : interval;
+
+		## The clean_session flag indicates if the server should or shouldn't
+		## use a clean session or use existing previous session state.
+		clean_session    : bool;
+
+		## Specifies if the Will Message is to be retained when it is published.
+		will_retain      : bool;
+		## Specifies the QoS level to be used when publishing the Will Message.
+		will_qos         : count;
+		## Topic to publish the Will message to.
+		will_topic       : string &optional;
+		## The actual Will message to publish.
+		will_msg         : string &optional;
+
+		## Username to use for authentication to the server.
+		username         : string &optional;
+		## Pass to use for authentication to the server.
+		password         : string &optional;
+	};
+
+	type MQTT::ConnectAckMsg: record {
+		## Return code from the connack message
+		return_code: count;
+
+		## The Session present flag helps the client
+		## establish whether the Client and Server
+		## have a consistent view about whether there
+		## is already stored Session state.
+		session_present: bool;
+	};
+
+	type MQTT::PublishMsg: record {
+		## Indicates if this is the first attempt at publishing the message.
+		dup     : bool;
+
+		## Indicates what level of QoS is enabled for this message.
+		qos     : count;
+
+		## Indicates if the server should retain this message so that clients
+		## subscribing to the topic in the future will receive this message
+		## automatically.
+		retain  : bool;
+
+		## Name of the topic the published message is directed into.
+		topic   : string;
+
+		## Payload of the published message.
+		payload : string;
+	};
+}
+
 module Cluster;
 export {
 	type Cluster::Pool: record {};

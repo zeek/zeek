@@ -1,4 +1,15 @@
 
+2.6-733 | 2019-07-31 21:23:37 -0700
+
+  * Add MQTT analyzer, updated/ported from original version by Supriya Kumar (Seth Hall, Corelight)
+
+    This analyzer generates three logs to fully display what is happening over the MQTT connection.
+      - mqtt_connect.log
+      - mqtt_subscribe.log
+      - mqtt_publish.log
+
+    At this time it only supports MQTT 3.1 and 3.1.1
+
 2.6-729 | 2019-07-31 14:24:44 -0700
 
   * Rename a broxygen unit test to zeekygen (Jon Siwek, Corelight)

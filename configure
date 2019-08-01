@@ -42,6 +42,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
+    --mandir=PATH          installation path for man pages [PREFIX/share/man]
 
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
@@ -208,6 +209,9 @@ while [ $# -ne 0 ]; do
             ;;
         --logdir=*)
             append_cache_entry ZEEK_LOG_DIR         PATH   $optarg
+            ;;
+        --mandir=*)
+            append_cache_entry ZEEK_MAN_INSTALL_PATH         PATH   $optarg
             ;;
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE         BOOL   true

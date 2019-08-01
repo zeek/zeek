@@ -1,4 +1,8 @@
 
+2.6-737 | 2019-08-01 11:22:57 -0700
+
+  * GH-512: add --mandir configure option (Jon Siwek, Corelight)
+
 2.6-735 | 2019-07-31 21:29:58 -0700
 
   * Fix the link to "good first issue" tickets. (Seth Hall, Corelight)

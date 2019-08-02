@@ -1,4 +1,18 @@
 
+2.6-747 | 2019-08-02 11:30:52 -0700
+
+  * Fix how Broker/CAF sleep duration options are set (Jon Siwek, Corelight)
+
+  * Add duration thresholding to the conn-size analyzer. (Johanna Amann, Corelight)
+
+    Now, in addition to setting thresholds for bytes and packet, one can set
+    a threshold for connection duration. Note that the threshold event is
+    only raised once the next packet in the connection is seen.
+
+    This also fixes a small pre-existing bug, in which a bunch of warnings
+    were raised if someone just used the lower-level functions without going
+    through the higher-level scripting API.
+
 2.6-744 | 2019-08-01 13:33:12 -0700
 
   * Guarantee unique internal name for each lambda function

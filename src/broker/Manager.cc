@@ -195,11 +195,11 @@ void Manager::InitPostScript()
 		config.set("scheduler.max-threads",
 		           get_option("Broker::max_threads")->AsCount());
 
-	config.set("work-stealing.moderate-sleep-duration-us",
-	    static_cast<unsigned>(get_option("Broker::moderate_sleep")->AsInterval() / Microseconds));
+	config.set("work-stealing.moderate-sleep-duration", caf::timespan(
+	    static_cast<unsigned>(get_option("Broker::moderate_sleep")->AsInterval() * 1e9)));
 
-	config.set("work-stealing.relaxed-sleep-duration-us",
-	    static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() / Microseconds));
+	config.set("work-stealing.relaxed-sleep-duration", caf::timespan(
+	    static_cast<unsigned>(get_option("Broker::relaxed_sleep")->AsInterval() * 1e9)));
 
 	config.set("work-stealing.aggressive-poll-attempts",
 	           get_option("Broker::aggressive_polls")->AsCount());

@@ -1,4 +1,8 @@
 
+2.6-748 | 2019-08-02 11:55:46 -0700
+
+  * GH-517: fix MQTT suback/unsuback accessing non-existent index (Jon Siwek, Corelight)
+
 2.6-747 | 2019-08-02 11:30:52 -0700
 
   * Fix how Broker/CAF sleep duration options are set (Jon Siwek, Corelight)

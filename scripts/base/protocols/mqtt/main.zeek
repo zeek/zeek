@@ -302,6 +302,9 @@ event mqtt_suback(c: connection, msg_id: count, granted_qos: count) &priority=5
 	{
 	set_session(c);
 
+	if ( msg_id !in c$mqtt_state$subscribe )
+		return;
+
 	local x = c$mqtt_state$subscribe[msg_id];
 	x$granted_qos_level = granted_qos;
 	x$ack = T;
@@ -326,6 +329,9 @@ event mqtt_unsubscribe(c: connection, msg_id: count, topic: string) &priority=5
 event mqtt_unsuback(c: connection, msg_id: count) &priority=-5
 	{
 	set_session(c);
+
+	if ( msg_id !in c$mqtt_state$subscribe )
+		return;
 
 	local x = c$mqtt_state$subscribe[msg_id];
 	x$ack = T;

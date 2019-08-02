@@ -85,6 +85,11 @@ export {
 		## Payload of the message
 		payload:     string  &log;
 
+		## The actual length of the payload in the case the *payload*
+		## field's contents were truncated according to
+		## :zeek:see:`MQTT::max_payload_size`.
+		payload_len: count   &log;
+
 		## Track if the message was acked
 		ack:         bool    &default=F;
 		## Indicates if the server sent the RECEIVED qos message
@@ -190,7 +195,8 @@ event mqtt_publish(c: connection, is_orig: bool, msg_id: count, msg: MQTT::Publi
 	                       $qos=qos_levels[msg$qos],
 	                       $qos_level=msg$qos,
 	                       $topic=msg$topic,
-	                       $payload=msg$payload);
+	                       $payload=msg$payload,
+	                       $payload_len=msg$payload_len);
 	if ( pi$qos_level == 0 )
 		pi$status="ok";
 

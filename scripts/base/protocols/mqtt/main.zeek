@@ -50,10 +50,10 @@ export {
 
 		## Indicates if a subscribe or unsubscribe action is taking place
 		action:            SubUnsub &log;
-		## The topic (or topic pattern) being subscribed to
-		topic:             string   &log;
-		## QoS level requested for messages from subscribed topics
-		qos_level:         count    &log &optional;
+		## The topics (or topic patterns) being subscribed to
+		topics:             string_vec   &log;
+		## QoS levels requested for messages from subscribed topics
+		qos_levels:         index_vec    &log &optional;
 		## QoS level the server granted
 		granted_qos_level: count    &log &optional;
 		## Indicates if the request was acked by the server
@@ -284,7 +284,7 @@ event mqtt_pubcomp(c: connection, is_orig: bool, msg_id: count) &priority=-5
 	}
 
 
-event mqtt_subscribe(c: connection, msg_id: count, topic: string, requested_qos: count) &priority=5
+event mqtt_subscribe(c: connection, msg_id: count, topics: string_vec, requested_qos: index_vec) &priority=5
 	{
 	local info = set_session(c);
 
@@ -292,8 +292,8 @@ event mqtt_subscribe(c: connection, msg_id: count, topic: string, requested_qos:
 	                         $uid = c$uid,
 	                         $id  = c$id,
 	                         $action = MQTT::SUBSCRIBE,
-	                         $topic = topic,
-	                         $qos_level = requested_qos);
+	                         $topics = topics,
+	                         $qos_levels = requested_qos);
 
 	c$mqtt_state$subscribe[msg_id] = si;
 	}
@@ -313,7 +313,7 @@ event mqtt_suback(c: connection, msg_id: count, granted_qos: count) &priority=5
 	delete c$mqtt_state$subscribe[msg_id];
 	}
 
-event mqtt_unsubscribe(c: connection, msg_id: count, topic: string) &priority=5
+event mqtt_unsubscribe(c: connection, msg_id: count, topics: string_vec) &priority=5
 	{
 	set_session(c);
 
@@ -321,7 +321,7 @@ event mqtt_unsubscribe(c: connection, msg_id: count, topic: string) &priority=5
 	                         $uid = c$uid,
 	                         $id  = c$id,
 	                         $action = MQTT::UNSUBSCRIBE,
-	                         $topic = topic);
+	                         $topics = topics);
 
 	c$mqtt_state$subscribe[msg_id] = si;
 	}

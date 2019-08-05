@@ -29,6 +29,7 @@ Redefinable Options
 :zeek:id:`LogAscii::enable_utf_8`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, valid UTF-8 sequences will pass through unescaped and be
                                                                                              written into logs.
 :zeek:id:`LogAscii::gzip_level`: :zeek:type:`count` :zeek:attr:`&redef`                      Define the gzip level to compress the logs.
+:zeek:id:`LogAscii::gzip_file_extension`: :zeek:type:`string` :zeek:attr:`&redef`            Define the file extension to use when compressing logs.
 :zeek:id:`LogAscii::include_meta`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, include lines with log meta information such as column names
                                                                                              with types, the values of ASCII logging options that are in use, and
                                                                                              the time when the file was opened and closed (the latter at the end).
@@ -83,7 +84,18 @@ Redefinable Options
 
    Define the gzip level to compress the logs.  If 0, then no gzip
    compression is performed. Enabling compression also changes
-   the log file name extension to include ".gz".
+   the log file name extension to include ".gz" unless the
+   ``gzip_file_extension`` option is specified.
+
+   This option is also available as a per-filter ``$config`` option.
+
+.. zeek:id:: LogAscii::gzip_file_extension
+
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``"gz"``
+
+   Define the file extension used when compressing the logs.
    
    This option is also available as a per-filter ``$config`` option.
 

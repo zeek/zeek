@@ -14,3 +14,4 @@ const use_json: bool;
 const enable_utf_8: bool;
 const json_timestamps: JSON::TimestampFormat;
 const gzip_level: count;
+const gzip_file_extension: string;

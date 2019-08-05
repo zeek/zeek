@@ -39,6 +39,12 @@ export {
 	## This option is also available as a per-filter ``$config`` option.
 	const gzip_level = 0 &redef;
 
+	## Define the file extension used when compressing log files when
+	## they are created.
+	##
+	## This option is also available as a per-filter ``$config`` option.
+	const gzip_file_extension = "gz" &redef;
+
 	## Format of timestamps when writing out JSON. By default, the JSON
 	## formatter will use double values for timestamps which represent the
 	## number of seconds from the UNIX epoch.

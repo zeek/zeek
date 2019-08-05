@@ -86,6 +86,7 @@
    base/bif/plugins/Zeek_MIME.events.bif.zeek </scripts/base/bif/plugins/Zeek_MIME.events.bif.zeek>
    base/bif/plugins/Zeek_Modbus.events.bif.zeek </scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek>
    base/bif/plugins/Zeek_MQTT.types.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek>
+   base/bif/plugins/Zeek_MQTT.consts.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.consts.bif.zeek>
    base/bif/plugins/Zeek_MQTT.events.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek>
    base/bif/plugins/Zeek_MySQL.events.bif.zeek </scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek>
    base/bif/plugins/Zeek_NCP.events.bif.zeek </scripts/base/bif/plugins/Zeek_NCP.events.bif.zeek>

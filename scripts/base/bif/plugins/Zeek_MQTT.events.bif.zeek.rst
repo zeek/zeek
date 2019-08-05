@@ -176,7 +176,7 @@ Events
 
 .. zeek:id:: mqtt_subscribe
 
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`, requested_qos: :zeek:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`, requested_qos: :zeek:type:`index_vec`)
 
    Generated for MQTT subscribe messages
    
@@ -188,6 +188,12 @@ Events
    
 
    :msg_id: The id value for the message.
+   
+
+   :topics: The topics being subscribed to
+   
+
+   :requested_qos: The desired QoS option associated with each topic.
 
 .. zeek:id:: mqtt_unsuback
 
@@ -203,7 +209,7 @@ Events
 
 .. zeek:id:: mqtt_unsubscribe
 
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`)
 
    Generated for MQTT unsubscribe messages sent by the client
    
@@ -214,6 +220,6 @@ Events
    :msg_id: The id value for the message.
    
 
-   :topic: The topic being unsubscribed from
+   :topics: The topics being unsubscribed from
 
 

@@ -107,6 +107,11 @@ Types
       payload: :zeek:type:`string` :zeek:attr:`&log`
          Payload of the message
 
+      payload_len: :zeek:type:`count` :zeek:attr:`&log`
+         The actual length of the payload in the case the *payload*
+         field's contents were truncated according to
+         :zeek:see:`MQTT::max_payload_size`.
+
       ack: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          Track if the message was acked
 
@@ -149,11 +154,11 @@ Types
       action: :zeek:type:`MQTT::SubUnsub` :zeek:attr:`&log`
          Indicates if a subscribe or unsubscribe action is taking place
 
-      topic: :zeek:type:`string` :zeek:attr:`&log`
-         The topic (or topic pattern) being subscribed to
+      topics: :zeek:type:`string_vec` :zeek:attr:`&log`
+         The topics (or topic patterns) being subscribed to
 
-      qos_level: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
-         QoS level requested for messages from subscribed topics
+      qos_levels: :zeek:type:`index_vec` :zeek:attr:`&log` :zeek:attr:`&optional`
+         QoS levels requested for messages from subscribed topics
 
       granted_qos_level: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
          QoS level the server granted

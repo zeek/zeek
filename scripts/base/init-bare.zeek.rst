@@ -70,6 +70,9 @@ Redefinable Options
                                                                                            will tolerate on a command before the analyzer will generate a weird
                                                                                            and skip further input.
 :zeek:id:`KRB::keytab`: :zeek:type:`string` :zeek:attr:`&redef`                            Kerberos keytab file name.
+:zeek:id:`MQTT::max_payload_size`: :zeek:type:`count` :zeek:attr:`&redef`                  The maximum payload size to allocate for the purpose of
+                                                                                           payload information in :zeek:see:`mqtt_publish` events (and the
+                                                                                           default MQTT logs generated from that).
 :zeek:id:`NCP::max_frame_size`: :zeek:type:`count` :zeek:attr:`&redef`                     The maximum number of bytes to allocate when parsing NCP frames.
 :zeek:id:`NFS3::return_data`: :zeek:type:`bool` :zeek:attr:`&redef`                        If true, :zeek:see:`nfs_proc_read` and :zeek:see:`nfs_proc_write`
                                                                                            events return the file data that has been read/written.
@@ -824,6 +827,16 @@ Redefinable Options
    :Default: ``""``
 
    Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
+
+.. zeek:id:: MQTT::max_payload_size
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100``
+
+   The maximum payload size to allocate for the purpose of
+   payload information in :zeek:see:`mqtt_publish` events (and the
+   default MQTT logs generated from that).
 
 .. zeek:id:: NCP::max_frame_size
 
@@ -3688,6 +3701,11 @@ Types
 
       payload: :zeek:type:`string`
          Payload of the published message.
+
+      payload_len: :zeek:type:`count`
+         The actual length of the payload in the case the *payload*
+         field's contents were truncated according to
+         :zeek:see:`MQTT::max_payload_size`.
 
 
 .. zeek:type:: MatcherStats

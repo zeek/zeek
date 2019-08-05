@@ -6914,6 +6914,19 @@ Components
 
 :zeek:enum:`Analyzer::ANALYZER_MQTT`
 
+Options/Constants
++++++++++++++++++
+
+.. zeek:id:: MQTT::max_payload_size
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100``
+
+   The maximum payload size to allocate for the purpose of
+   payload information in :zeek:see:`mqtt_publish` events (and the
+   default MQTT logs generated from that).
+
 Types
 +++++
 
@@ -6992,6 +7005,11 @@ Types
 
       payload: :zeek:type:`string`
          Payload of the published message.
+
+      payload_len: :zeek:type:`count`
+         The actual length of the payload in the case the *payload*
+         field's contents were truncated according to
+         :zeek:see:`MQTT::max_payload_size`.
 
 
 Events
@@ -7098,7 +7116,7 @@ Events
 
 .. zeek:id:: mqtt_subscribe
 
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`, requested_qos: :zeek:type:`count`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`, requested_qos: :zeek:type:`index_vec`)
 
    Generated for MQTT subscribe messages
    
@@ -7110,6 +7128,12 @@ Events
    
 
    :msg_id: The id value for the message.
+   
+
+   :topics: The topics being subscribed to
+   
+
+   :requested_qos: The desired QoS option associated with each topic.
 
 .. zeek:id:: mqtt_suback
 
@@ -7128,7 +7152,7 @@ Events
 
 .. zeek:id:: mqtt_unsubscribe
 
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topic: :zeek:type:`string`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`)
 
    Generated for MQTT unsubscribe messages sent by the client
    
@@ -7139,7 +7163,7 @@ Events
    :msg_id: The id value for the message.
    
 
-   :topic: The topic being unsubscribed from
+   :topics: The topics being unsubscribed from
 
 .. zeek:id:: mqtt_unsuback
 

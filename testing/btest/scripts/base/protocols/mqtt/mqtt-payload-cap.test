@@ -3,4 +3,4 @@
 
 redef MQTT::max_payload_size = 8;
 
-@load base/protocols/mqtt
+@load policy/protocols/mqtt

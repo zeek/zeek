@@ -85,6 +85,8 @@
 @load protocols/krb/ticket-logging.zeek
 @load protocols/modbus/known-masters-slaves.zeek
 @load protocols/modbus/track-memmap.zeek
+@load protocols/mqtt/__load__.zeek
+@load protocols/mqtt/main.zeek
 @load protocols/mysql/software.zeek
 @load protocols/rdp/indicate_ssl.zeek
 @load protocols/smb/log-cmds.zeek

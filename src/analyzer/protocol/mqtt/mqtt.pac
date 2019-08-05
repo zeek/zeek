@@ -6,6 +6,7 @@
 %extern{
 	#include "events.bif.h"
 	#include "types.bif.h"
+	#include "consts.bif.h"
 %}
 
 analyzer MQTT withcontext {

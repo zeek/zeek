@@ -29,8 +29,16 @@ refine flow MQTT_Flow += {
 			m->Assign(2, val_mgr->GetBool(${msg.retain}));
 			m->Assign(3, new StringVal(${msg.topic.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
-			m->Assign(4, new StringVal(${msg.payload}.length(),
+
+			auto len = ${msg.payload}.length();
+
+			if ( len > static_cast<int>(BifConst::MQTT::max_payload_size) )
+				len = BifConst::MQTT::max_payload_size;
+
+			m->Assign(4, new StringVal(len,
 			                           reinterpret_cast<const char*>(${msg.payload}.begin())));
+
+			m->Assign(5, val_mgr->GetCount(${msg.payload}.length()));
 
 			BifEvent::generate_mqtt_publish(connection()->bro_analyzer(),
 			                                connection()->bro_analyzer()->Conn(),

@@ -91,6 +91,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_MIME.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_MQTT.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NCP.events.bif.zeek

@@ -50,10 +50,10 @@ export {
 
 		## Indicates if a subscribe or unsubscribe action is taking place
 		action:            SubUnsub &log;
-		## The topic (or topic pattern) being subscribed to
-		topic:             string   &log;
-		## QoS level requested for messages from subscribed topics
-		qos_level:         count    &log &optional;
+		## The topics (or topic patterns) being subscribed to
+		topics:             string_vec   &log;
+		## QoS levels requested for messages from subscribed topics
+		qos_levels:         index_vec    &log &optional;
 		## QoS level the server granted
 		granted_qos_level: count    &log &optional;
 		## Indicates if the request was acked by the server
@@ -84,6 +84,11 @@ export {
 		topic:       string  &log;
 		## Payload of the message
 		payload:     string  &log;
+
+		## The actual length of the payload in the case the *payload*
+		## field's contents were truncated according to
+		## :zeek:see:`MQTT::max_payload_size`.
+		payload_len: count   &log;
 
 		## Track if the message was acked
 		ack:         bool    &default=F;
@@ -190,7 +195,8 @@ event mqtt_publish(c: connection, is_orig: bool, msg_id: count, msg: MQTT::Publi
 	                       $qos=qos_levels[msg$qos],
 	                       $qos_level=msg$qos,
 	                       $topic=msg$topic,
-	                       $payload=msg$payload);
+	                       $payload=msg$payload,
+	                       $payload_len=msg$payload_len);
 	if ( pi$qos_level == 0 )
 		pi$status="ok";
 
@@ -284,7 +290,7 @@ event mqtt_pubcomp(c: connection, is_orig: bool, msg_id: count) &priority=-5
 	}
 
 
-event mqtt_subscribe(c: connection, msg_id: count, topic: string, requested_qos: count) &priority=5
+event mqtt_subscribe(c: connection, msg_id: count, topics: string_vec, requested_qos: index_vec) &priority=5
 	{
 	local info = set_session(c);
 
@@ -292,8 +298,8 @@ event mqtt_subscribe(c: connection, msg_id: count, topic: string, requested_qos:
 	                         $uid = c$uid,
 	                         $id  = c$id,
 	                         $action = MQTT::SUBSCRIBE,
-	                         $topic = topic,
-	                         $qos_level = requested_qos);
+	                         $topics = topics,
+	                         $qos_levels = requested_qos);
 
 	c$mqtt_state$subscribe[msg_id] = si;
 	}
@@ -313,7 +319,7 @@ event mqtt_suback(c: connection, msg_id: count, granted_qos: count) &priority=5
 	delete c$mqtt_state$subscribe[msg_id];
 	}
 
-event mqtt_unsubscribe(c: connection, msg_id: count, topic: string) &priority=5
+event mqtt_unsubscribe(c: connection, msg_id: count, topics: string_vec) &priority=5
 	{
 	set_session(c);
 
@@ -321,7 +327,7 @@ event mqtt_unsubscribe(c: connection, msg_id: count, topic: string) &priority=5
 	                         $uid = c$uid,
 	                         $id  = c$id,
 	                         $action = MQTT::UNSUBSCRIBE,
-	                         $topic = topic);
+	                         $topics = topics);
 
 	c$mqtt_state$subscribe[msg_id] = si;
 	}

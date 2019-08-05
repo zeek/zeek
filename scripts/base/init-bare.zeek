@@ -5083,7 +5083,17 @@ export {
 
 		## Payload of the published message.
 		payload : string;
+
+		## The actual length of the payload in the case the *payload*
+		## field's contents were truncated according to
+		## :zeek:see:`MQTT::max_payload_size`.
+		payload_len : count;
 	};
+
+	## The maximum payload size to allocate for the purpose of
+	## payload information in :zeek:see:`mqtt_publish` events (and the
+	## default MQTT logs generated from that).
+	const max_payload_size = 100 &redef;
 }
 
 module Cluster;

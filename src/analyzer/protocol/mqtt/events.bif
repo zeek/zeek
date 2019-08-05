@@ -64,7 +64,11 @@ event mqtt_pubcomp%(c: connection, is_orig: bool, msg_id: count%);
 ## is_orig: Direction in which the message was sent
 ##
 ## msg_id: The id value for the message.
-event mqtt_subscribe%(c: connection, msg_id: count, topic: string, requested_qos: count%);
+##
+## topics: The topics being subscribed to
+##
+## requested_qos: The desired QoS option associated with each topic.
+event mqtt_subscribe%(c: connection, msg_id: count, topics: string_vec, requested_qos: index_vec%);
 
 ## Generated for MQTT subscribe messages
 ##
@@ -81,8 +85,8 @@ event mqtt_suback%(c: connection, msg_id: count, granted_qos: count%);
 ##
 ## msg_id: The id value for the message.
 ##
-## topic: The topic being unsubscribed from
-event mqtt_unsubscribe%(c: connection, msg_id: count, topic: string%);
+## topics: The topics being unsubscribed from
+event mqtt_unsubscribe%(c: connection, msg_id: count, topics: string_vec%);
 
 ## Generated for MQTT unsubscribe acknowledgements sent by the server
 ##

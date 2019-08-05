@@ -1,4 +1,18 @@
 
+2.6-754 | 2019-08-05 10:12:51 -0700
+
+  * GH-474: add MQTT::max_payload_size option
+
+    This caps size of payload strings within mqtt_publish events and
+    mqtt_publish.log files.  A new "payload_len" field in the log file
+    shows the real payload size in cases where it may have been truncated. (Jon Siwek, Corelight)
+
+  * GH-474: use topic vectors for MQTT (un)subscribe events/logs (Jon Siwek, Corelight)
+
+  * Update Certificate Transparency list (Johanna Amann)
+
+  * Update CA store to NSS 3.45 (Johanna Amann)
+
 2.6-748 | 2019-08-02 11:55:46 -0700
 
   * GH-517: fix MQTT suback/unsuback accessing non-existent index (Jon Siwek, Corelight)

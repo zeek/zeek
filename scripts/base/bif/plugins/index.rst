@@ -103,9 +103,6 @@ Package: base/bif/plugins
 :doc:`/scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek`
 
 
-:doc:`/scripts/base/bif/plugins/Zeek_MQTT.consts.bif.zeek`
-
-
 :doc:`/scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek`
 
 

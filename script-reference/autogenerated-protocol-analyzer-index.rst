@@ -6914,19 +6914,6 @@ Components
 
 :zeek:enum:`Analyzer::ANALYZER_MQTT`
 
-Options/Constants
-+++++++++++++++++
-
-.. zeek:id:: MQTT::max_payload_size
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``100``
-
-   The maximum payload size to allocate for the purpose of
-   payload information in :zeek:see:`mqtt_publish` events (and the
-   default MQTT logs generated from that).
-
 Types
 +++++
 

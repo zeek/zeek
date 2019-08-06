@@ -105,15 +105,24 @@ export {
 	## Event that can be handled to access the MQTT record as it is sent on
 	## to the logging framework.
 	global MQTT::log_mqtt: event(rec: ConnectInfo);
+
+	## The expiration function for published messages that haven't been logged
+	## yet simply causes the message to be logged.
+	global publish_expire: function(tbl: table[count] of PublishInfo, idx: count): interval;
+
+	## The expiration function for subscription messages that haven't been logged
+	## yet simply causes the message to be logged.
+	global subscribe_expire: function(tbl: table[count] of SubscribeInfo, idx: count): interval;
+
+	## Data structure to track pub/sub messaging state of a given connection.
+	type State: record {
+		## Published messages that haven't been logged yet.
+		publish: table[count] of PublishInfo &optional &write_expire=5secs &expire_func=publish_expire;
+		## Subscription/unsubscription messages that haven't been ACK'd or
+		## logged yet.
+		subscribe: table[count] of SubscribeInfo &optional &write_expire=5secs &expire_func=subscribe_expire;
+	};
 }
-
-global publish_expire: function(tbl: table[count] of PublishInfo, idx: count): interval;
-global subscribe_expire: function(tbl: table[count] of SubscribeInfo, idx: count): interval;
-
-type State: record {
-	publish: table[count] of PublishInfo &optional &write_expire=5secs &expire_func=publish_expire;
-	subscribe: table[count] of SubscribeInfo &optional &write_expire=5secs &expire_func=subscribe_expire;
-};
 
 function publish_expire(tbl: table[count] of PublishInfo, idx: count): interval
 	{

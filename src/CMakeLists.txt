@@ -444,17 +444,12 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
         DESTINATION include/zeek/3rdparty
 )
 
-find_program(CLANG_TIDY NAMES clang-tidy)
-if (CLANG_TIDY)
-    set(TIDY_SRCS "")
-    foreach(f ${MAIN_SRCS})
-        list(APPEND TIDY_SRCS "src/${f}")
-    endforeach(f)
-    # TODO: this currently doesn't include many of the subdirectories/plugins
-    # that build static libraries for inclusion into the final zeek binary
-    # (analyzers, broker, etc.) or generated code (BIFs, BinPAC, etc.).
-    add_custom_target(clang-tidy
-                      COMMAND ${CLANG_TIDY} -p ${CMAKE_BINARY_DIR} ${TIDY_SRCS}
-                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
-endif()
+########################################################################
+## Clang-tidy target now that we have all of the sources
+
+add_clang_tidy_files(${MAIN_SRCS})
+
+# At this point we have included all of the cc files in src, all of the BinPAC
+# (*.pac.cc) files, and most of the generated code for BIFs (not including
+# *.bif.register.cc)
+create_clang_tidy_target()

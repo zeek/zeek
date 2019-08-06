@@ -5,6 +5,7 @@ project(Zeek C CXX)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 include(cmake/CommonCMakeConfig.cmake)
+include(cmake/FindClangTidy.cmake)
 
 ########################################################################
 ## Project/Build Configuration

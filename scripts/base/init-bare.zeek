@@ -5093,7 +5093,7 @@ export {
 	## The maximum payload size to allocate for the purpose of
 	## payload information in :zeek:see:`mqtt_publish` events (and the
 	## default MQTT logs generated from that).
-	const max_payload_size = 100 &redef;
+	option max_payload_size = 100;
 }
 
 module Cluster;

@@ -3,11 +3,10 @@
 #ifndef ANALYZER_PROTOCOL_MQTT_MQTT_H
 #define ANALYZER_PROTOCOL_MQTT_MQTT_H
 
-#include "events.bif.h"
-
 #include "analyzer/protocol/tcp/TCP.h"
+#include "ID.h"
 
-#include "mqtt_pac.h"
+namespace binpac { namespace MQTT { class MQTT_Conn; } }
 
 namespace analyzer { namespace MQTT {
 
@@ -24,6 +23,8 @@ public:
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new MQTT_Analyzer(conn); }
+
+	static const ::ID* max_payload_size;
 
 protected:
 	binpac::MQTT::MQTT_Conn* interp;

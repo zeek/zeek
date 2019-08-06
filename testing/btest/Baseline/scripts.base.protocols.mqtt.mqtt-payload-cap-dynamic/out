@@ -1,0 +1,3 @@
+mqtt_publish, Hello from the Paho blocking client, 35, 35
+mqtt_publish, Hello MQ, 8, 10
+mqtt_publish, Hello, 5, 10

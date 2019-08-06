@@ -1,1 +1,0 @@
-const MQTT::max_payload_size: count;

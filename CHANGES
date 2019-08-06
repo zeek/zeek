@@ -1,4 +1,8 @@
 
+2.6-760 | 2019-08-05 21:01:16 -0700
+
+  * GH-474: change MQTT::max_payload_size to be a runtime option (Jon Siwek, Corelight)
+
 2.6-758 | 2019-08-05 18:59:53 -0700
 
   * Fix malformed SMB documentation (Jon Siwek, Corelight)

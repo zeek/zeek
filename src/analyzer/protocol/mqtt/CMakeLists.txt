@@ -5,7 +5,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DI
 
 zeek_plugin_begin(Zeek MQTT)
 zeek_plugin_cc(MQTT.cc Plugin.cc)
-zeek_plugin_bif(types.bif consts.bif events.bif)
+zeek_plugin_bif(types.bif events.bif)
 zeek_plugin_pac(mqtt.pac
                 mqtt-protocol.pac
                 commands/connect.pac

@@ -4,9 +4,9 @@
 %include bro.pac
 
 %extern{
+	#include "MQTT.h"
 	#include "events.bif.h"
 	#include "types.bif.h"
-	#include "consts.bif.h"
 %}
 
 analyzer MQTT withcontext {

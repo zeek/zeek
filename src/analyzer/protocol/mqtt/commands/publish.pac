@@ -31,9 +31,10 @@ refine flow MQTT_Flow += {
 			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
 
 			auto len = ${msg.payload}.length();
+			auto max = analyzer::MQTT::MQTT_Analyzer::max_payload_size->ID_Val()->AsCount();
 
-			if ( len > static_cast<int>(BifConst::MQTT::max_payload_size) )
-				len = BifConst::MQTT::max_payload_size;
+			if ( len > static_cast<int>(max) )
+				len = max;
 
 			m->Assign(4, new StringVal(len,
 			                           reinterpret_cast<const char*>(${msg.payload}.begin())));

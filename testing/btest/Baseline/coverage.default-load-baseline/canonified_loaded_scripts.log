@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-07-29-19-05-51
+#open	2019-08-06-00-02-39
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -322,8 +322,7 @@ scripts/base/init-default.zeek
     scripts/base/protocols/modbus/consts.zeek
     scripts/base/protocols/modbus/main.zeek
   scripts/base/protocols/mqtt/__load__.zeek
-    scripts/base/protocols/mqtt/main.zeek
-      scripts/base/protocols/mqtt/consts.zeek
+    scripts/base/protocols/mqtt/consts.zeek
   scripts/base/protocols/mysql/__load__.zeek
     scripts/base/protocols/mysql/main.zeek
       scripts/base/protocols/mysql/consts.zeek
@@ -377,4 +376,4 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-filtered-trace.zeek
   scripts/base/misc/version.zeek
 scripts/policy/misc/loaded-scripts.zeek
-#close	2019-07-29-19-05-51
+#close	2019-08-06-00-02-39

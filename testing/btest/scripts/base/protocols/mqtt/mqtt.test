@@ -3,4 +3,4 @@
 # @TEST-EXEC: btest-diff mqtt_subscribe.log
 # @TEST-EXEC: btest-diff mqtt_publish.log
 
-@load base/protocols/mqtt
+@load policy/protocols/mqtt

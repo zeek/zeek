@@ -3,7 +3,7 @@
 
 module MQTT;
 
-@load ./consts
+@load base/protocols/mqtt/consts
 
 export {
 	redef enum Log::ID += {

@@ -1,4 +1,11 @@
 
+2.6-756 | 2019-08-05 17:32:33 -0700
+
+  * Disable MQTT by default (Johanna Amann, Corelight)
+
+    To enable MQTT, one has to load policy/scripts/mqtt. Like with smb in
+    2.5, the consts are loaded by default.
+
 2.6-754 | 2019-08-05 10:12:51 -0700
 
   * GH-474: add MQTT::max_payload_size option

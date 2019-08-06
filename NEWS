@@ -166,6 +166,8 @@ New Functionality
   to be written directly into the ASCII logs without any escaping.
 
 - Add parsing, analysis, and logging support for MQTT protocol v3.1/v3.1.1.
+  This is not enabled by default, use ``@load policy/protocols/mqtt`` to
+  use the new MQTT analysis support.
 
 - Zeek now supports duration thresholding on connections, similarly to how it supports
   byte and packet thresholds.

@@ -4401,7 +4401,7 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = ingredients->body->Traverse(cb);
-	HANDLE_TC_EXPR_POST(tc);
+	HANDLE_TC_STMT_PRE(tc);
 
 	tc = cb->PostExpr(this);
 	HANDLE_TC_EXPR_POST(tc);

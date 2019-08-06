@@ -11,7 +11,7 @@
 ##
 ## dst_filename: The filename to rename the file into.
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string%);
 
@@ -29,7 +29,7 @@ event smb2_file_rename%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ## delete_pending: A boolean value to indicate that a file should be deleted 
 ##                 when it's closed if set to T.
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool%);
 
@@ -48,7 +48,7 @@ event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ##
 ## attrs: File attributes.
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 event smb2_file_sattr%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, times: SMB::MACTimes, attrs: SMB2::FileAttrs%);
 
@@ -65,7 +65,7 @@ event smb2_file_sattr%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, ti
 ##
 ## alloc_size: desired allocation size.
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_allocation%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, alloc_size: int%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -81,7 +81,7 @@ event smb2_file_allocation%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUI
 ##
 ## end_of_file: the absolute new end of file position as a byte offset from the start of the file
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_endoffile%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, end_of_file: int%);
 
 
@@ -98,7 +98,7 @@ event smb2_file_endoffile%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ##
 ## mode: specifies how the file will subsequently be accessed.
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_mode%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, mode: count%);
 
 
@@ -117,7 +117,7 @@ event smb2_file_mode%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, mod
 ##
 ## completion_mode: specifies if blocking mode must be enabled or not
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_pipe%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, read_mode: count, completion_mode: count%);
 
 
@@ -134,7 +134,7 @@ event smb2_file_pipe%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, rea
 ##
 ## current_byte_offset: specifies the offset, in bytes, of the file pointer from the beginning of the file
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_position%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, current_byte_offset: int%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -150,7 +150,7 @@ event smb2_file_position%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID,
 ##
 ## file_name: specifies the name of the file to be changed
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_shortname%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_name: string %);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -166,7 +166,7 @@ event smb2_file_shortname%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ##
 ## valid_data_length: specifies the new valid data length for the file
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_validdatalength%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, valid_data_length: int %);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -182,7 +182,7 @@ event smb2_file_validdatalength%(c: connection, hdr: SMB2::Header, file_id: SMB2
 ##
 ## FileEAs: a vector of extended file attributes as defined in MS-FSCC:2.4.15
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_fullea%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, file_eas: SMB2::FileEAs %);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -200,7 +200,7 @@ event smb2_file_fullea%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, f
 ##
 ## file_name: contains the name to be assigned to the newly created link
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_link%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, root_directory: count, file_name: string %);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -216,7 +216,7 @@ event smb2_file_link%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, roo
 ##
 ## fs_control: contains fs_control info (see MS-FCC 2.5.2)
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 event smb2_file_fscontrol%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, fs_control: SMB2::Fscontrol %);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -234,7 +234,7 @@ event smb2_file_fscontrol%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ##
 ## extended_info: contains extended information on the file system volume
 ##
-## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+## .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link
 event smb2_file_fsobjectid%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, object_id: SMB2::GUID, extended_info: string %);
 
 # TODO - Not implemented

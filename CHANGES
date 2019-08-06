@@ -1,4 +1,10 @@
 
+2.6-758 | 2019-08-05 18:59:53 -0700
+
+  * Fix malformed SMB documentation (Jon Siwek, Corelight)
+
+  * Fix documentation warnings for MQTT identifiers (Jon Siwek, Corelight)
+
 2.6-756 | 2019-08-05 17:32:33 -0700
 
   * Disable MQTT by default (Johanna Amann, Corelight)

@@ -33,9 +33,10 @@ Frame::~Frame()
 	{
 	// Deleting a Frame that is a view is a no-op.
 	Unref(trigger);
+	Unref(closure);
 
-	if ( closure )
-		Unref(closure);
+	for ( auto& i : outer_ids )
+		Unref(i);
 
 	Release();
 	}
@@ -317,32 +318,57 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 
 		has_vec = broker::get_if<broker::vector>(*where);
 		if ( ! has_vec )
+			{
+			for ( auto& i : outer_ids )
+				Unref(i);
+
 			return std::make_pair(false, nullptr);
+			}
 
 		std::advance(where, 1);
 
 		auto closure_pair = Frame::Unserialize(*has_vec);
 		if ( ! closure_pair.first )
+			{
+			for ( auto& i : outer_ids )
+				Unref(i);
+
 			return std::make_pair(false, nullptr);
+			}
 
 		closure = closure_pair.second;
 		}
 
 	auto has_vec = broker::get_if<broker::vector>(*where);
 	if ( ! has_vec )
+		{
+		for ( auto& i : outer_ids )
+			Unref(i);
+
 		return std::make_pair(false, nullptr);
+		}
 
 	std::advance(where, 1);
 
 	auto map_pair = UnserializeOffsetMap(*has_vec);
 	if ( ! map_pair.first )
+		{
+		for ( auto& i : outer_ids )
+			Unref(i);
+
 		return std::make_pair(false, nullptr);
+		}
 
 	offset_map = std::move(map_pair.second);
 
 	auto has_body = broker::get_if<broker::vector>(*where);
 	if ( ! has_body )
+		{
+		for ( auto& i : outer_ids )
+			Unref(i);
+
 		return std::make_pair(false, nullptr);
+		}
 
 	broker::vector body = *has_body;
 	int frame_size = body.size();
@@ -350,6 +376,7 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 	// We'll associate this frame with a function later.
 	Frame* rf = new Frame(frame_size, nullptr, nullptr);
 	rf->offset_map = std::move(offset_map);
+	// Frame takes ownership of unref'ing elements in outer_ids
 	rf->outer_ids = std::move(outer_ids);
 	rf->closure = closure;
 
@@ -361,18 +388,27 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 
 		broker::vector val_tuple = *has_vec;
 		if ( val_tuple.size() != 2 )
+			{
+			Unref(rf);
 			return std::make_pair(false, nullptr);
+			}
 
 		auto has_type = broker::get_if<broker::integer>(val_tuple[1]);
 		if ( ! has_type )
+			{
+			Unref(rf);
 			return std::make_pair(false, nullptr);
+			}
 
 		broker::integer g = *has_type;
 		BroType t( static_cast<TypeTag>(g) );
 
 		Val* val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
+			{
+			Unref(rf);
 			return std::make_pair(false, nullptr);
+			}
 
 		rf->frame[i] = val;
 		}
@@ -391,10 +427,14 @@ void Frame::AddKnownOffsets(const id_list& ids)
 
 void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	{
-	if ( closure )
+	if ( closure || outer_ids.length() )
 		reporter->InternalError("Attempted to override a closure.");
 
 	outer_ids = std::move(arg_outer_ids);
+
+	for ( auto& i : outer_ids )
+		::Ref(i);
+
 	closure = c;
 	if ( closure )
 		Ref(closure);
@@ -467,16 +507,27 @@ Frame::UnserializeIDList(const broker::vector& data)
 		{
 		auto has_name = broker::get_if<std::string>(*where);
 		if ( ! has_name )
-			return std::make_pair(false, std::move(rval));
+			{
+			for ( auto& i : rval )
+				Unref(i);
 
-		ID* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
+			rval = id_list{};
+			return std::make_pair(false, std::move(rval));
+			}
 
 		std::advance(where, 1);
 
 		auto has_offset = broker::get_if<broker::integer>(*where);
 		if ( ! has_offset )
-			return std::make_pair(false, std::move(rval));
+			{
+			for ( auto& i : rval )
+				Unref(i);
 
+			rval = id_list{};
+			return std::make_pair(false, std::move(rval));
+			}
+
+		ID* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
 		id->SetOffset(*has_offset);
 		rval.push_back(id);
 		std::advance(where, 1);

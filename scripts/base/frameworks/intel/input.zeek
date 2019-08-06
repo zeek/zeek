@@ -20,12 +20,13 @@ export {
 	## any path_prefix specified in the input framework will apply
 	## additionally.
 	const path_prefix = "" &redef;
-}
 
-event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
-	{
-	Intel::insert(item);
-	}
+	event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
+		{
+		Intel::insert(item);
+		}
+
+}
 
 event zeek_init() &priority=5
 	{

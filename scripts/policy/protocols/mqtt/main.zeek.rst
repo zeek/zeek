@@ -14,12 +14,13 @@ Summary
 ~~~~~~~
 Types
 #####
-================================================================== =
+================================================================== ======================================================================
 :zeek:type:`MQTT::ConnectInfo`: :zeek:type:`record`                
 :zeek:type:`MQTT::PublishInfo`: :zeek:type:`record`                
+:zeek:type:`MQTT::State`: :zeek:type:`record`                      Data structure to track pub/sub messaging state of a given connection.
 :zeek:type:`MQTT::SubUnsub`: :zeek:type:`enum` :zeek:attr:`&redef` 
 :zeek:type:`MQTT::SubscribeInfo`: :zeek:type:`record`              
-================================================================== =
+================================================================== ======================================================================
 
 Redefinitions
 #############
@@ -35,6 +36,15 @@ Events
 :zeek:id:`MQTT::log_mqtt`: :zeek:type:`event` Event that can be handled to access the MQTT record as it is sent on
                                               to the logging framework.
 ============================================= ====================================================================
+
+Functions
+#########
+======================================================== ==========================================================================
+:zeek:id:`MQTT::publish_expire`: :zeek:type:`function`   The expiration function for published messages that haven't been logged
+                                                         yet simply causes the message to be logged.
+:zeek:id:`MQTT::subscribe_expire`: :zeek:type:`function` The expiration function for subscription messages that haven't been logged
+                                                         yet simply causes the message to be logged.
+======================================================== ==========================================================================
 
 
 Detailed Interface
@@ -128,6 +138,19 @@ Types
          Internally used for comparing numeric qos level
 
 
+.. zeek:type:: MQTT::State
+
+   :Type: :zeek:type:`record`
+
+      publish: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::PublishInfo` :zeek:attr:`&optional` :zeek:attr:`&write_expire` = ``5.0 secs`` :zeek:attr:`&expire_func` = :zeek:see:`MQTT::publish_expire`
+         Published messages that haven't been logged yet.
+
+      subscribe: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::SubscribeInfo` :zeek:attr:`&optional` :zeek:attr:`&write_expire` = ``5.0 secs`` :zeek:attr:`&expire_func` = :zeek:see:`MQTT::subscribe_expire`
+         Subscription/unsubscription messages that haven't been ACK'd or
+         logged yet.
+
+   Data structure to track pub/sub messaging state of a given connection.
+
 .. zeek:type:: MQTT::SubUnsub
 
    :Type: :zeek:type:`enum`
@@ -175,5 +198,21 @@ Events
 
    Event that can be handled to access the MQTT record as it is sent on
    to the logging framework.
+
+Functions
+#########
+.. zeek:id:: MQTT::publish_expire
+
+   :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::PublishInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
+
+   The expiration function for published messages that haven't been logged
+   yet simply causes the message to be logged.
+
+.. zeek:id:: MQTT::subscribe_expire
+
+   :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::SubscribeInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
+
+   The expiration function for subscription messages that haven't been logged
+   yet simply causes the message to be logged.
 
 

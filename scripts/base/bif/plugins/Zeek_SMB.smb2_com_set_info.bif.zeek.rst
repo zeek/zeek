@@ -68,7 +68,7 @@ Events
 
    :alloc_size: desired allocation size.
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_delete
 
@@ -92,7 +92,7 @@ Events
    :delete_pending: A boolean value to indicate that a file should be deleted 
                    when it's closed if set to T.
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_endoffile
 
@@ -115,7 +115,7 @@ Events
 
    :end_of_file: the absolute new end of file position as a byte offset from the start of the file
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_fscontrol
 
@@ -138,7 +138,7 @@ Events
 
    :fs_control: contains fs_control info (see MS-FCC 2.5.2)
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_fsobjectid
 
@@ -164,7 +164,7 @@ Events
 
    :extended_info: contains extended information on the file system volume
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link
 
 .. zeek:id:: smb2_file_fullea
 
@@ -187,7 +187,7 @@ Events
 
    :FileEAs: a vector of extended file attributes as defined in MS-FSCC:2.4.15
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_link
 
@@ -213,7 +213,7 @@ Events
 
    :file_name: contains the name to be assigned to the newly created link
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_mode
 
@@ -236,7 +236,7 @@ Events
 
    :mode: specifies how the file will subsequently be accessed.
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_pipe
 
@@ -262,7 +262,7 @@ Events
 
    :completion_mode: specifies if blocking mode must be enabled or not
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_position
 
@@ -285,7 +285,7 @@ Events
 
    :current_byte_offset: specifies the offset, in bytes, of the file pointer from the beginning of the file
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_rename
 
@@ -308,7 +308,7 @@ Events
 
    :dst_filename: The filename to rename the file into.
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_sattr
 
@@ -334,7 +334,7 @@ Events
 
    :attrs: File attributes.
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_shortname
 
@@ -357,7 +357,7 @@ Events
 
    :file_name: specifies the name of the file to be changed
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_validdatalength
 
@@ -380,6 +380,6 @@ Events
 
    :valid_data_length: specifies the new valid data length for the file
    
-   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr, smb2_file_allocation, smb2_file_endoffile, smb2_file_mode, smb2_file_pipe, smb2_file_position, smb2_file_shortname, smb2_file_validdatalength, smb2_file_fullea, smb2_file_link, smb2_file_fsobjectid, smb2_file_fsobjectid
+   .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 

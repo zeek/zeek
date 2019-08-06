@@ -1,7 +1,7 @@
 :tocdepth: 3
 
-base/protocols/mqtt/main.zeek
-=============================
+policy/protocols/mqtt/main.zeek
+===============================
 .. zeek:namespace:: MQTT
 
 Implements base functionality for MQTT (v3.1.1) analysis.

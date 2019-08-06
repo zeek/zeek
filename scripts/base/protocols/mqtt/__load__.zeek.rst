@@ -4,7 +4,7 @@ base/protocols/mqtt/__load__.zeek
 =================================
 
 
-:Imports: :doc:`base/protocols/mqtt/main.zeek </scripts/base/protocols/mqtt/main.zeek>`
+:Imports: :doc:`base/protocols/mqtt/consts.zeek </scripts/base/protocols/mqtt/consts.zeek>`
 
 Summary
 ~~~~~~~

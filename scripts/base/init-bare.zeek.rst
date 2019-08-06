@@ -1366,12 +1366,6 @@ Redefinable Options
 
          Modbus::ports
 
-   :Redefinition: from :doc:`/scripts/base/protocols/mqtt/main.zeek`
-
-      ``+=``::
-
-         MQTT::ports
-
    :Redefinition: from :doc:`/scripts/base/protocols/ntp/main.zeek`
 
       ``+=``::
@@ -1437,6 +1431,12 @@ Redefinable Options
       ``+=``::
 
          XMPP::ports
+
+   :Redefinition: from :doc:`/scripts/policy/protocols/mqtt/main.zeek`
+
+      ``+=``::
+
+         MQTT::ports
 
 
    Ports which the core considers being likely used by servers. For ports in
@@ -7009,14 +7009,6 @@ Types
          (present if :doc:`/scripts/base/protocols/modbus/main.zeek` is loaded)
 
 
-      mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
-         (present if :doc:`/scripts/base/protocols/mqtt/main.zeek` is loaded)
-
-
-      mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
-         (present if :doc:`/scripts/base/protocols/mqtt/main.zeek` is loaded)
-
-
       mysql: :zeek:type:`MySQL::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/protocols/mysql/main.zeek` is loaded)
 
@@ -7079,6 +7071,14 @@ Types
 
       known_services_done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/conn/known-services.zeek` is loaded)
+
+
+      mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/protocols/mqtt/main.zeek` is loaded)
+
+
+      mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/protocols/mqtt/main.zeek` is loaded)
 
 
    A connection. This is Zeek's basic connection type describing IP- and

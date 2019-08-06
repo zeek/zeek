@@ -317,7 +317,6 @@
    base/protocols/modbus/consts.zeek </scripts/base/protocols/modbus/consts.zeek>
    base/protocols/modbus/main.zeek </scripts/base/protocols/modbus/main.zeek>
    base/protocols/mqtt/__load__.zeek </scripts/base/protocols/mqtt/__load__.zeek>
-   base/protocols/mqtt/main.zeek </scripts/base/protocols/mqtt/main.zeek>
    base/protocols/mqtt/consts.zeek </scripts/base/protocols/mqtt/consts.zeek>
    base/protocols/mysql/__load__.zeek </scripts/base/protocols/mysql/__load__.zeek>
    base/protocols/mysql/main.zeek </scripts/base/protocols/mysql/main.zeek>
@@ -445,6 +444,8 @@
    policy/protocols/krb/ticket-logging.zeek </scripts/policy/protocols/krb/ticket-logging.zeek>
    policy/protocols/modbus/known-masters-slaves.zeek </scripts/policy/protocols/modbus/known-masters-slaves.zeek>
    policy/protocols/modbus/track-memmap.zeek </scripts/policy/protocols/modbus/track-memmap.zeek>
+   policy/protocols/mqtt/__load__.zeek </scripts/policy/protocols/mqtt/__load__.zeek>
+   policy/protocols/mqtt/main.zeek </scripts/policy/protocols/mqtt/main.zeek>
    policy/protocols/mysql/software.zeek </scripts/policy/protocols/mysql/software.zeek>
    policy/protocols/rdp/indicate_ssl.zeek </scripts/policy/protocols/rdp/indicate_ssl.zeek>
    policy/protocols/smb/log-cmds.zeek </scripts/policy/protocols/smb/log-cmds.zeek>

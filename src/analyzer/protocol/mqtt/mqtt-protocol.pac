@@ -30,7 +30,7 @@ type Command(pdu: MQTT_PDU, msg_type: uint8) = case msg_type of {
 
 type MQTT_PDU(is_orig: bool) = record {
 	fixed_header     : uint8;
-	remaining_length : uint8[] &until(($element & 0x80) != 1);
+	remaining_length : uint8[] &until(($element & 0x80) != 0x80);
 	command          : Command(this, msg_type) &length=real_length;
 } &let {
 	msg_type : uint8 = (fixed_header >> 4);
@@ -43,6 +43,13 @@ refine connection MQTT_Conn += {
 		%{
 		int multiplier = 1;
 		uint32_t value = 0;
+
+		if ( vals->size() > 4 )
+			{
+			this->bro_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too many bytes");
+			return 0;
+			}
+
 		for ( auto encoded_byte: *vals )
 			{
 			value += (encoded_byte & 127) * multiplier;
@@ -50,7 +57,7 @@ refine connection MQTT_Conn += {
 			if ( multiplier > 128*128*128 )
 				{
 				// This is definitely a protocol violation
-				this->bro_analyzer()->ProtocolViolation("malformed 'remaining length'");
+				this->bro_analyzer()->ProtocolViolation("malformed MQTT 'remaining length': too large");
 				return 0;
 				}
 			}

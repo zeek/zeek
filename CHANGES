@@ -1,4 +1,22 @@
 
+2.6-765 | 2019-08-07 08:05:35 -0700
+
+  * GH-527: fix parsing of MQTT Remaining Length field
+
+    Packet length is encoded in up to four bytes, with MSB (0x80)
+    indicating if there's more bytes in the representation still to follow.
+    The comparison/bitwise-mask wasn't correctly testing the MSB.
+
+    Coverity CID 1403964 (Jon Siwek, Corelight)
+
+  * GH-527: fix LambdaExpr::Traverse
+
+    Coverity CID 1403966 (Jon Siwek, Corelight)
+
+  * GH-527: fix ref-counting issues in Frame unserialization
+
+    Coverity CIDs 1403968, 1403967 (Jon Siwek, Corelight)
+
 2.6-760 | 2019-08-05 21:01:16 -0700
 
   * GH-474: change MQTT::max_payload_size to be a runtime option (Jon Siwek, Corelight)

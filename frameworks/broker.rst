@@ -51,7 +51,7 @@ Some general suggestions as to the purpose/utilization of each node type:
   sharing non-persistent state or as a "second pass" analysis for any
   work that you don't want interfering with the workers' capacity to
   keep up with capturing and parsing packets.  Note that the default scripts
-  that come with Zeek don't utilize proxies themselves, so if you are coming
+  that come with Zeek make minimal use of proxies, so if you are coming
   from a previous ZeekControl deployment, you may want to try reducing down
   to a single proxy node.  If you come to have custom/community scripts
   that utilize proxies, that would be the time to start considering scaling

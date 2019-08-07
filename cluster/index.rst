@@ -21,6 +21,10 @@ The figure below illustrates the main components of a Zeek cluster.
 
 .. image:: /images/deployment.png
 
+For more specific information on the way Zeek processes are connected,
+how they function, and how they communicate with each other, see the
+:ref:`Broker Framework Documentation <brokercomm-framework>`.
+
 Tap
 ***
 The tap is a mechanism that splits the packet stream in order to make a copy
@@ -38,61 +42,29 @@ Manager
 *******
 The manager is a Zeek process that has two primary jobs.  It receives log
 messages and notices from the rest of the nodes in the cluster using the Zeek
-communications protocol (note that if you are using a logger, then the
+communications protocol (note that if you use a separate logger node, then the
 logger receives all logs instead of the manager).  The result
 is a single log instead of many discrete logs that you have to
-combine in some manner with post-processing.  The manager also takes
-the opportunity to de-duplicate notices, and it has the
-ability to do so since it's acting as the choke point for notices and how
-notices might be processed into actions (e.g., emailing, paging, or blocking).
-
-The manager process is started first by ZeekControl and it only opens its
-designated port and waits for connections, it doesn't initiate any
-connections to the rest of the cluster.  Once the workers are started and
-connect to the manager, logs and notices will start arriving to the manager
-process from the workers.
+combine in some manner with post-processing.
+The manager also supports other functionality and analysis which
+requires a centralized, global view of events or data.
 
 Logger
 ******
-The logger is an optional Zeek process that receives log messages from the
+A logger is an optional Zeek process that receives log messages from the
 rest of the nodes in the cluster using the Zeek communications protocol.
 The purpose of having a logger receive logs instead of the manager is
 to reduce the load on the manager.  If no logger is needed, then the
 manager will receive logs instead.
 
-The logger process is started first by ZeekControl and it only opens its
-designated port and waits for connections, it doesn't initiate any
-connections to the rest of the cluster.  Once the rest of the cluster is
-started and connect to the logger, logs will start arriving to the logger
-process.
-
 Proxy
 *****
-The proxy is a Zeek process that manages synchronized state.  Variables can
-be synchronized across connected Zeek processes automatically. Proxies help
-the workers by alleviating the need for all of the workers to connect
-directly to each other.
-
-Examples of synchronized state from the scripts that ship with Zeek include
-the full list of "known" hosts and services (which are hosts or services
-identified as performing full TCP handshakes) or an analyzed protocol has been
-found on the connection.  If worker A detects host 1.2.3.4 as an active host,
-it would be beneficial for worker B to know that as well.  So worker A shares
-that information as an insertion to a set which travels to the cluster's
-proxy and the proxy sends that same set insertion to worker B. The result
-is that worker A and worker B have shared knowledge about host and services
-that are active on the network being monitored.
-
-The proxy model extends to having multiple proxies when necessary for
-performance reasons. It only adds one additional step for the Zeek processes.
-Each proxy connects to another proxy in a ring and the workers are shared
-between them as evenly as possible.  When a proxy receives some new bit of
-state it will share that with its proxy, which is then shared around the
-ring of proxies, and down to all of the workers.  From a practical standpoint,
-there are no rules of thumb established for the number of proxies
-necessary for the number of workers they are serving.  It is best to start
-with a single proxy and add more if communication performance problems are
-found.
+A proxy is a Zeek process that may be used to offload data storage or
+any arbitrary workload.  A cluster may contain multiple proxy nodes.
+The default scripts that come with Zeek make minimal use of proxies, so
+a single one may be sufficient, but customized use of them to partition
+data or workloads provides greater cluster scalability potential than
+just doing similar tasks on a single, centralized Manager node.
 
 Zeek processes acting as proxies don't tend to be extremely hard on CPU
 or memory and users frequently run proxy processes on the same physical

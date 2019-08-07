@@ -7,8 +7,6 @@
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT
 # @TEST-EXEC: btest-bg-wait 60
 
-redef exit_only_after_terminate = T;
-
 # maps a function to a vector
 function map_1 (f: function(a: count): count, v: vector of count) : vector of count
     {
@@ -54,22 +52,7 @@ function make_dog(name: string, weight: count) : function(i: string, item: strin
         };
     }
 
-function die()
-    {
-    local h: addr = 127.0.0.1;
-
-	when ( local hname = lookup_addr(h) )
-		{
-		print "lookup successful";
-		terminate();
-		}
-	timeout 10sec
-		{
-		print "timeout (1)";
-		}
-    }
-
-event zeek_init()
+event new_connection(c: connection)
     {
     local v = vector(vector(1, 2, 3), vector(4, 5, 6));
 
@@ -121,6 +104,4 @@ event zeek_init()
         }
     for ( i in mfs)
         mfs[i]();
-
-    die();
     }

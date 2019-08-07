@@ -1,4 +1,8 @@
 
+2.6-767 | 2019-08-07 12:27:21 -0700
+
+  * Add memory leak test of closure (un)serialization (Jon Siwek, Corelight)
+
 2.6-765 | 2019-08-07 08:05:35 -0700
 
   * GH-527: fix parsing of MQTT Remaining Length field

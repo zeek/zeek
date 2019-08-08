@@ -1,4 +1,10 @@
 
+3.0.0-rc1 | 2019-08-08 11:15:35 -0700
+
+  * Release 3.0.0-rc1
+
+  * Update local.zeek compatibility test (Jon Siwek, Corelight)
+
 2.6-767 | 2019-08-07 12:27:21 -0700
 
   * Add memory leak test of closure (un)serialization (Jon Siwek, Corelight)

@@ -4,6 +4,25 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.6.3
+=========
+
+This is a security patch release to address potential Denial of Service
+vulnerabilities:
+
+- Null pointer dereference in the RPC analysis code. RPC analyzers
+  (e.g. MOUNT or NFS) are not enabled in the default configuration.
+
+- Signed integer overflow in BinPAC-generated parser code.  The result
+  of this is Undefined Behavior with respect to the array bounds
+  checking conditions that BinPAC generates, so it's unpredictable
+  what an optimizing compiler may actually do under the assumption
+  that signed integer overlows should never happen.  The specific
+  symptom which lead to finding this issue was with the PE analyzer
+  causing out-of-memory crashes due to large allocations that were
+  otherwise prevented when the array bounds checking logic was changed
+  to prevent any possible signed integer overlow.
+
 Bro 2.6.2
 =========
 

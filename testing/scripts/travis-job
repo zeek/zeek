@@ -13,6 +13,7 @@ usage() {
     echo "  CMD is a build step:"
     echo "    install: install prereqs"
     echo "    build: build zeek"
+    echo "    build_leaktests: build zeek with memory leak testing enabled"
     echo "    run: run the tests"
     echo "    all: do all of the above"
     echo "  DISTRO is a Linux distro, 'travis' to run without docker, or 'coverity' to run a coverity scan"
@@ -29,6 +30,7 @@ distro=$2
 case $step in
     install) ;;
     build) ;;
+    build_leaktests) ;;
     run) ;;
     all) ;;
     *) echo "Error: unknown build step: $step"; usage; exit 1 ;;
@@ -78,6 +80,7 @@ run_coverity() {
 
 # Create a docker container, and install all packages needed to build Zeek.
 install_in_docker() {
+    local_distro=$distro
     case $distro in
         centos_7)
         distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
@@ -94,13 +97,17 @@ install_in_docker() {
         ubuntu_18.04)
         distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
+        ubuntu_18.04_leaktest)
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils google-perftools libgoogle-perftools4 libgoogle-perftools-dev; ln -s /usr/bin/python3 /usr/local/bin/python"
+        local_distro="ubuntu_18.04"
+        ;;
         *)
         echo "Error: distro ${distro} is not recognized by this script"
         exit 1
         ;;
     esac
 
-    docker_image=`echo $distro | tr '_' ':'`
+    docker_image=`echo $local_distro | tr '_' ':'`
     docker run --name zeektest -id -v "`pwd`:/zeek" -w /zeek ${docker_image} sh
     docker exec zeektest sh -c "${distro_cmds}"
 }
@@ -108,7 +115,11 @@ install_in_docker() {
 
 # Build Zeek in a docker container.
 build_in_docker() {
-    docker exec zeektest sh testing/scripts/travis-job build travis
+    if [ "${distro}" = "ubuntu_18.04_leaktest" ]; then
+	docker exec zeektest sh testing/scripts/travis-job build_leaktests travis
+    else
+	docker exec zeektest sh testing/scripts/travis-job build travis
+    fi
 }
 
 
@@ -126,9 +137,21 @@ build() {
 
     # Skip building Broker tests, python bindings, and zeekctl, as these are
     # not needed by the Zeek tests.
+    echo "Configuring for normal build"
     ./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
 }
 
+# Build Zeek for leak testing
+build_leaktests() {
+    # Cleanup any previous build (this is really only necessary if running this
+    # outside of Travis).
+    make distclean > /dev/null
+
+    # Skip building Broker tests, python bindings, and zeekctl, as these are
+    # not needed by the Zeek tests.
+    echo "Configuring with perftools for leak testing"
+    ./configure --build-type=Debug --disable-broker-tests --disable-python --disable-zeekctl --enable-perftools --enable-perftools-debug && make -j 2
+}
 
 # Get the private tests.
 get_private_tests() {
@@ -336,6 +359,8 @@ elif [ "$distro" = "travis" ]; then
     # a single line when viewing the "Job log" on the Travis CI web site).
     if [ "$step" = "build" ]; then
         build
+    elif [ "$step" = "build_leaktests" ]; then
+        build_leaktests
     elif [ "$step" = "run" ]; then
         run
     elif [ "$step" = "all" ]; then

@@ -27,6 +27,7 @@ env:
   - distro: fedora_28
   - distro: ubuntu_16.04
   - distro: ubuntu_18.04
+  - distro: ubuntu_18.04_leaktest
 
 install: sh testing/scripts/travis-job install $distro
 

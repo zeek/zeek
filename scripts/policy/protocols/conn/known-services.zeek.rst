@@ -32,20 +32,20 @@ Redefinable Options
 
 State Variables
 ###############
-====================================================================================== ====================================================================
-:zeek:id:`Known::service_store`: :zeek:type:`Cluster::StoreInfo`                       Holds the set of all known services.
-:zeek:id:`Known::services`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` Tracks the set of daily-detected services for preventing the logging
-                                                                                       of duplicates, but can also be inspected by other scripts for
-                                                                                       different purposes.
-====================================================================================== ====================================================================
+======================================================================================== ====================================================================
+:zeek:id:`Known::service_store`: :zeek:type:`Cluster::StoreInfo`                         Holds the set of all known services.
+:zeek:id:`Known::services`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day`` Tracks the set of daily-detected services for preventing the logging
+                                                                                         of duplicates, but can also be inspected by other scripts for
+                                                                                         different purposes.
+======================================================================================== ====================================================================
 
 Types
 #####
-===================================================== ======================================================================
-:zeek:type:`Known::AddrPortPair`: :zeek:type:`record` 
-:zeek:type:`Known::ServicesInfo`: :zeek:type:`record` The record type which contains the column fields of the known-services
-                                                      log.
-===================================================== ======================================================================
+============================================================ ======================================================================
+:zeek:type:`Known::AddrPortServTriplet`: :zeek:type:`record` 
+:zeek:type:`Known::ServicesInfo`: :zeek:type:`record`        The record type which contains the column fields of the known-services
+                                                             log.
+============================================================ ======================================================================
 
 Redefinitions
 #############
@@ -143,12 +143,12 @@ State Variables
 
 
    Holds the set of all known services.  Keys in the store are
-   :zeek:type:`Known::AddrPortPair` and their associated value is
+   :zeek:type:`Known::AddrPortServTriplet` and their associated value is
    always the boolean value of "true".
 
 .. zeek:id:: Known::services
 
-   :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`port`]
+   :Type: :zeek:type:`table` [:zeek:type:`addr`, :zeek:type:`port`] of :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day``
    :Default: ``{}``
 
@@ -156,20 +156,22 @@ State Variables
    of duplicates, but can also be inspected by other scripts for
    different purposes.
    
-   In cluster operation, this set is uniformly distributed across
+   In cluster operation, this table is uniformly distributed across
    proxy nodes.
    
-   This set is automatically populated and shouldn't be directly modified.
+   This table is automatically populated and shouldn't be directly modified.
 
 Types
 #####
-.. zeek:type:: Known::AddrPortPair
+.. zeek:type:: Known::AddrPortServTriplet
 
    :Type: :zeek:type:`record`
 
       host: :zeek:type:`addr`
 
       p: :zeek:type:`port`
+
+      serv: :zeek:type:`string`
 
 
 .. zeek:type:: Known::ServicesInfo

@@ -3,6 +3,25 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 3.1.0
+==========
+
+New Functionality
+-----------------
+
+Changed Functionality
+---------------------
+
+- The key type of ``Known::service_store`` has changed to
+  ``Known::AddrPortServTriplet`` and ``Known::services`` is now a table
+  instead of just a set.
+
+Removed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
+
 Zeek 3.0.0
 ==========
 

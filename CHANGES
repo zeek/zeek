@@ -1,4 +1,8 @@
 
+3.1.0-dev | 2019-08-08 16:08:50 -0700
+
+  * Change version to 3.1.0-dev (Jon Siwek, Corelight)
+
 2.6-767 | 2019-08-07 12:27:21 -0700
 
   * Add memory leak test of closure (un)serialization (Jon Siwek, Corelight)

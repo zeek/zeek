@@ -1,4 +1,10 @@
 
+3.1.0-dev.7 | 2019-08-09 09:56:06 -0700
+
+  * Remove empty services from known_services.log (Mauro Palumbo)
+
+  * Add check to log to known_services.log when removing active udp connections (Mauro Palumbo)
+
 3.1.0-dev.5 | 2019-08-09 09:33:22 -0700
 
   * Add Intel::read_error event to allow custom error handling (Mauro Palumbo)

@@ -210,7 +210,10 @@ event connection_state_remove(c: connection) &priority=-5
 	if ( c$known_services_done )
 		return;
 
-	if ( c$resp$state != TCP_ESTABLISHED )
+	if ( c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE )
+		return;
+
+	if ( |c$service| == 0 )
 		return;
 
 	known_services_done(c);

@@ -1,4 +1,10 @@
 
+3.1.0-dev.5 | 2019-08-09 09:33:22 -0700
+
+  * Add Intel::read_error event to allow custom error handling (Mauro Palumbo)
+
+  * Export Intel::read_entry event for general user access (Mauro Palumbo)
+
 3.1.0-dev | 2019-08-08 16:08:50 -0700
 
   * Change version to 3.1.0-dev (Jon Siwek, Corelight)

@@ -19,6 +19,15 @@ Redefinable Options
 :zeek:id:`Intel::read_files`: :zeek:type:`set` :zeek:attr:`&redef`     Intelligence files that will be read off disk.
 ====================================================================== ==============================================
 
+Events
+######
+================================================ ===================================================================
+:zeek:id:`Intel::read_entry`: :zeek:type:`event` This event is raised each time the intel framework reads a new line
+                                                 from an intel file.
+:zeek:id:`Intel::read_error`: :zeek:type:`event` This event is raised each time the input framework detects an error
+                                                 while reading the intel file.
+================================================ ===================================================================
+
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
@@ -48,5 +57,43 @@ Redefinable Options
    Intelligence files that will be read off disk. The files are
    reread every time they are updated so updates must be atomic
    with "mv" instead of writing the file in place.
+
+Events
+######
+.. zeek:id:: Intel::read_entry
+
+   :Type: :zeek:type:`event` (desc: :zeek:type:`Input::EventDescription`, tpe: :zeek:type:`Input::Event`, item: :zeek:type:`Intel::Item`)
+
+   This event is raised each time the intel framework reads a new line
+   from an intel file. It is used in the intel framework but can
+   also be used in custom scripts for further checks.
+   
+
+   :desc: The :zeek:type:`Input::EventDescription` record which generated the event.
+   
+
+   :tpe: The type of input event.
+   
+
+   :item: The intel item being read (of type :zeek:type:`Intel::Item`).
+   
+
+.. zeek:id:: Intel::read_error
+
+   :Type: :zeek:type:`event` (desc: :zeek:type:`Input::EventDescription`, message: :zeek:type:`string`, level: :zeek:type:`Reporter::Level`)
+
+   This event is raised each time the input framework detects an error
+   while reading the intel file. It can be used to implement further checks
+   in custom scripts. Errors can be of different levels (information, warning, errors).
+   
+
+   :desc: The :zeek:type:`Input::EventDescription` record which generated the error.
+   
+
+   :message: An error message.
+   
+
+   :level: The :zeek:type:`Reporter::Level` of the error.
+   
 
 

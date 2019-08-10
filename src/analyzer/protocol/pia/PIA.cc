@@ -282,10 +282,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		return;
 		}
 
-	if ( Parent()->HasChildAnalyzer(tag) )
+	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+
+	if ( ! a )
 		return;
 
-	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 	a->SetSignature(rule);
 
 	// We have two cases here:

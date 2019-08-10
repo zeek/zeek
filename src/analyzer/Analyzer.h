@@ -4,6 +4,7 @@
 #define ANALYZER_ANALYZER_H
 
 #include <list>
+#include <vector>
 
 #include "Tag.h"
 
@@ -319,6 +320,12 @@ public:
 	bool IsFinished() const 		{ return finished; }
 
 	/**
+	 * Returns true if the analyzer has been flagged for removal and
+	 * shouldn't be used anymore.
+	 */
+	bool Removing() const	{ return removing; }
+
+	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
 	Tag GetAnalyzerTag() const		{ assert(tag); return tag; }
@@ -349,19 +356,19 @@ public:
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
-	 * the same type already exists, the one passes in is silenty
-	 * discarded.
+	 * the same type already exists or is prevented, the one passed in is
+	 * silently discarded.
 	 *
 	 * @param analyzer The ananlyzer to add. Takes ownership.
-	 * @return false if analyzer type was already a child, else true.
+	 * @return false if analyzer type was already a child or prevented, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer)
 		{ return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
-	 * the same type already exists, the one passes in is silenty
-	 * discarded.
+	 * the same type already exists or is prevented, the one passed in is
+	 * silently discarded.
 	 *
 	 * @param tag The type of analyzer to add.
 	 * @return the new analyzer instance that was added.
@@ -373,16 +380,30 @@ public:
 	 * child, in which case the method does nothing.
 	 *
 	 * @param analyzer The analyzer to remove.
+	 *
+	 * @return whether the child analyzer is scheduled for removal
+	 * (and was not before).
 	 */
-	void RemoveChildAnalyzer(Analyzer* analyzer);
+	bool RemoveChildAnalyzer(Analyzer* analyzer)
+		{ return RemoveChildAnalyzer(analyzer->GetID()); }
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
 	 * child, in which case the method does nothing.
 	 *
-	 * @param tag The type of analyzer to remove.
+	 * @param id The type of analyzer to remove.
+	 *
+	 * @return whether the child analyzer is scheduled for removal
+	 * (and was not before).
 	 */
-	void RemoveChildAnalyzer(ID id);
+	virtual bool RemoveChildAnalyzer(ID id);
+
+	/**
+	 * Prevents an analyzer type from ever being added as a child.
+	 *
+	 * @param tag The type of analyzer to prevent.
+	 */
+	void PreventChildren(Tag tag);
 
 	/**
 	 * Returns true if analyzer has a direct child of a given type.
@@ -450,8 +471,10 @@ public:
 	/**
 	 * Remove the analyzer form its parent. The analyzer must have a
 	 * parent associated with it.
+	 *
+	 * @return whether the analyzer is being removed
 	 */
-	void Remove()	{ assert(parent); parent->RemoveChildAnalyzer(this); }
+	bool Remove();
 
 	/**
 	 * Appends a support analyzer to the current list.
@@ -571,6 +594,13 @@ protected:
 	friend class tcp::TCP_ApplicationAnalyzer;
 
 	/**
+	 * Return a string represantation of an analyzer, containing its name
+	 * and ID.
+	 */
+	static string fmt_analyzer(const Analyzer* a)
+		{ return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+
+	/**
 	 * Associates a connection with this analyzer.  Must be called if
 	 * using the default ctor.
 	 *
@@ -644,10 +674,10 @@ protected:
 	void AppendNewChildren();
 
 	/**
-	 * Returns true if the analyzer has been flagged for removal and
-	 * shouldn't be used otherwise anymore.
+	 * Returns true if the child analyzer is now scheduled to be
+	 * removed (and was not before)
 	 */
-	bool Removing() const	{ return removing; }
+	bool RemoveChild(const analyzer_list& children, ID id);
 
 private:
 	// Internal method to eventually delete a child analyzer that's
@@ -670,6 +700,7 @@ private:
 	SupportAnalyzer* resp_supporters;
 
 	analyzer_list new_children;
+	std::vector<Tag> prevented;
 
 	bool protocol_confirmed;
 

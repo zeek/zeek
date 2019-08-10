@@ -36,6 +36,7 @@ public:
 
 	Analyzer* FindChild(ID id) override;
 	Analyzer* FindChild(Tag tag) override;
+	bool RemoveChildAnalyzer(ID id) override;
 
 	// True if the connection has closed in some sense, false otherwise.
 	int IsClosed() const	{ return orig->did_close || resp->did_close; }

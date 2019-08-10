@@ -91,12 +91,6 @@ bool Analyzer::IsAnalyzer(const char* name)
 	return strcmp(analyzer_mgr->GetComponentName(tag).c_str(), name) == 0;
 	}
 
-// Used in debugging output.
-static string fmt_analyzer(Analyzer* a)
-	{
-	return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID());
-	}
-
 Analyzer::Analyzer(const char* name, Connection* conn)
 	{
 	Tag tag = analyzer_mgr->GetComponentTag(name);
@@ -381,7 +375,11 @@ void Analyzer::ForwardEndOfData(bool orig)
 
 bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
-	if ( HasChildAnalyzer(analyzer->GetAnalyzerTag()) )
+	auto t = analyzer->GetAnalyzerTag();
+	auto it = std::find(prevented.begin(), prevented.end(), t);
+	auto prevent = it != prevented.end();
+
+	if ( HasChildAnalyzer(t) || prevent )
 		{
 		analyzer->Done();
 		delete analyzer;
@@ -407,46 +405,67 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 
 Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
 	{
-	if ( ! HasChildAnalyzer(analyzer) )
-		{
-		Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
+	if ( HasChildAnalyzer(analyzer) )
+		return nullptr;
 
-		if ( a && AddChildAnalyzer(a) )
-			return a;
+	auto it = std::find(prevented.begin(), prevented.end(), analyzer);
+
+	if ( it != prevented.end() )
+		return nullptr;
+
+	Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
+
+	if ( a && AddChildAnalyzer(a) )
+		return a;
+
+	return nullptr;
+	}
+
+bool Analyzer::RemoveChild(const analyzer_list& children, ID id)
+	{
+	for ( const auto& i : children )
+		{
+		if ( i->id != id )
+			continue;
+
+		if ( i->finished || i->removing )
+			return false;
+
+		DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
+		        fmt_analyzer(this).c_str(), fmt_analyzer(i).c_str());
+		// We just flag it as being removed here but postpone
+		// actually doing that to later. Otherwise, we'd need
+		// to call Done() here, which then in turn might
+		// cause further code to be executed that may assume
+		// something not true because of a violation that
+		// triggered the removal in the first place.
+		i->removing = true;
+		return true;
 		}
 
-	return 0;
+	return false;
 	}
 
-void Analyzer::RemoveChildAnalyzer(Analyzer* analyzer)
+bool Analyzer::RemoveChildAnalyzer(ID id)
 	{
-	LOOP_OVER_CHILDREN(i)
-		if ( *i == analyzer && ! (analyzer->finished || analyzer->removing) )
-			{
-			DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
-			// We just flag it as being removed here but postpone
-			// actually doing that to later. Otherwise, we'd need
-			// to call Done() here, which then in turn might
-			// cause further code to be executed that may assume
-			// something not true because of a violation that
-			// triggered the removal in the first place.
-			(*i)->removing = true;
-			return;
-			}
+	return RemoveChild(children, id) || RemoveChild(new_children, id);
 	}
 
-void Analyzer::RemoveChildAnalyzer(ID id)
+bool Analyzer::Remove()
 	{
-	LOOP_OVER_CHILDREN(i)
-		if ( (*i)->id == id && ! ((*i)->finished || (*i)->removing) )
-			{
-			DBG_LOG(DBG_ANALYZER, "%s  disabling child %s",
-					fmt_analyzer(this).c_str(), fmt_analyzer(*i).c_str());
-			// See comment above.
-			(*i)->removing = true;
-			return;
-			}
+	assert(parent);
+	parent->RemoveChildAnalyzer(this);
+	return removing;
+	}
+
+void Analyzer::PreventChildren(Tag tag)
+	{
+	auto it = std::find(prevented.begin(), prevented.end(), tag);
+
+	if ( it != prevented.end() )
+		return;
+
+	prevented.emplace_back(tag);
 	}
 
 bool Analyzer::HasChildAnalyzer(Tag tag)

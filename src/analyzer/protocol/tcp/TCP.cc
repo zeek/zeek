@@ -205,6 +205,15 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
 	return 0;
 	}
 
+bool TCP_Analyzer::RemoveChildAnalyzer(ID id)
+	{
+	auto rval = analyzer::TransportLayerAnalyzer::RemoveChildAnalyzer(id);
+
+	if ( rval )
+		return rval;
+
+	return RemoveChild(packet_children, id);
+	}
 
 void TCP_Analyzer::EnableReassembly()
 	{
@@ -1209,8 +1218,28 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	// Handle child_packet analyzers.  Note: This happens *after* the
 	// packet has been processed and the TCP state updated.
-	LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-		(*i)->NextPacket(len, data, is_orig, rel_data_seq, ip, caplen);
+	analyzer_list::iterator next;
+
+	for ( auto i = packet_children.begin(); i != packet_children.end(); i = next )
+		{
+		auto child = *i;
+		next = ++i;
+
+		if ( child->IsFinished() || child->Removing() )
+			{
+			--i;
+
+			if ( child->Removing() )
+				child->Done();
+
+			DBG_LOG(DBG_ANALYZER, "%s deleted child %s",
+			        fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
+			packet_children.erase(i);
+			delete child;
+			}
+		else
+			child->NextPacket(len, data, is_orig, rel_data_seq, ip, caplen);
+		}
 
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig, rel_data_seq, ip, caplen);

@@ -8,11 +8,14 @@
 # outside of Travis then you will need to fetch the private tests manually
 # (if you don't, then the private tests will be skipped).
 
+LEAK_TEST_DISTRO="ubuntu_18.04_leaktest"
+
 usage() {
     echo "usage: $0 CMD DISTRO"
     echo "  CMD is a build step:"
     echo "    install: install prereqs"
     echo "    build: build zeek"
+    echo "    build_leaktests: build zeek with memory leak testing enabled"
     echo "    run: run the tests"
     echo "    all: do all of the above"
     echo "  DISTRO is a Linux distro, 'travis' to run without docker, or 'coverity' to run a coverity scan"
@@ -78,6 +81,7 @@ run_coverity() {
 
 # Create a docker container, and install all packages needed to build Zeek.
 install_in_docker() {
+    local_distro=$distro
     case $distro in
         centos_7)
         distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
@@ -94,13 +98,17 @@ install_in_docker() {
         ubuntu_18.04)
         distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
+        ${LEAK_TEST_DISTRO})
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils google-perftools libgoogle-perftools4 libgoogle-perftools-dev; ln -s /usr/bin/python3 /usr/local/bin/python"
+        local_distro="ubuntu_18.04"
+        ;;
         *)
         echo "Error: distro ${distro} is not recognized by this script"
         exit 1
         ;;
     esac
 
-    docker_image=`echo $distro | tr '_' ':'`
+    docker_image=`echo $local_distro | tr '_' ':'`
     docker run --name zeektest -id -v "`pwd`:/zeek" -w /zeek ${docker_image} sh
     docker exec zeektest sh -c "${distro_cmds}"
 }
@@ -108,13 +116,17 @@ install_in_docker() {
 
 # Build Zeek in a docker container.
 build_in_docker() {
-    docker exec zeektest sh testing/scripts/travis-job build travis
+    # Pass the distro as a different environment variable name to docker since
+    # the script will set $distro to "travis" as part of the invocation.
+    docker exec -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job build travis
 }
 
 
 # Run Zeek tests in a docker container.
 run_in_docker() {
-    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY zeektest sh testing/scripts/travis-job run travis
+    # Pass the distro as a different environment variable name to docker since
+    # the script will set $distro to "travis" as part of the invocation.
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job run travis
 }
 
 
@@ -125,10 +137,15 @@ build() {
     make distclean > /dev/null
 
     # Skip building Broker tests, python bindings, and zeekctl, as these are
-    # not needed by the Zeek tests.
-    ./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
+    # not needed by the Zeek tests. If the distro is set for leak tests, enable
+    # those options as well.
+    if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+	./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
+    else
+	echo "Configuring zeek to build for leak testing"
+	./configure --build-type=Debug --disable-broker-tests --disable-python --disable-zeekctl --enable-perftools --enable-perftools-debug && make -j 2
+    fi
 }
-
 
 # Get the private tests.
 get_private_tests() {
@@ -170,7 +187,12 @@ run() {
 
     set +e
     # Must specify a value for "-j" option, otherwise Travis uses a huge value.
-    ../../aux/btest/btest -j 4 -d
+    if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+	../../aux/btest/btest -j 4 -d
+    else
+	../../aux/btest/btest -j 4 -d -g leaks
+    fi
+
     ret=$?
     set -e
 
@@ -208,27 +230,35 @@ run() {
     set +e
 
     if [ -d zeek-testing ]; then
-      cd zeek-testing
-      make
+	cd zeek-testing
+	if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+	    make
+	else
+	    make leaks
+	fi
 
-      if [ $? -ne 0 ]; then
-          showdiag
-          ret=1
-      fi
+	if [ $? -ne 0 ]; then
+            showdiag
+            ret=1
+	fi
 
-      cd ..
+	cd ..
     fi
 
     if [ -d zeek-testing-private ]; then
-      cd zeek-testing-private
-      make
+	cd zeek-testing-private
+	if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+	    make
+	else
+	    make leaks
+	fi
 
-      if [ $? -ne 0 ]; then
-          showdiag
-          ret=1
-      fi
+	if [ $? -ne 0 ]; then
+            showdiag
+            ret=1
+	fi
 
-      cd ..
+	cd ..
     fi
 
     cd ../..

@@ -134,7 +134,7 @@ Constants
 
          {
             [2] = "C_CSNET",
-            [4] = "C_HESOD",
+            [4] = "C_HESIOD",
             [1] = "C_INTERNET",
             [254] = "C_NONE",
             [255] = "C_ANY",

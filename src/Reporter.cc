@@ -2,6 +2,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
+#include <unistd.h>
 #include <syslog.h>
 
 #include "zeek-config.h"
@@ -117,7 +118,9 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_end(ap);
 
 	set_processing_status("TERMINATED", "fatal_error");
-	exit(1);
+	fflush(stderr);
+	fflush(stdout);
+	_exit(1);
 	}
 
 void Reporter::FatalErrorWithCore(const char* fmt, ...)

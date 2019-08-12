@@ -76,7 +76,7 @@ Include files in both headers and implementation files should be ordered as foll
 - C++ includes such as `string` and `vector`
 - Local include headers from Zeek
 
-Use angle braces around the file name for anything not coming directly from the Zeek code base. This includes any system headers and any external libraries. Use quotes around the file name for anything coming from the Zeek code base. This includes "external" libraries like Broker, since they are part of the Zeek code distribution.
+Use angle braces around the file name for anything not coming directly from the Zeek code base. This includes any system headers, any external libraries, and anything that can be referring to a file outside the code distribution, even if typically it does refer to a file within the Zeek source tree because it's embedded for convenience (e.g. Broker/CAF). Use quotes around the file name for anything coming from the Zeek code base. This includes "external" libraries like Broker, since they are part of the Zeek code distribution.
 
 Use forward declarations instead of including whenever possible.
 

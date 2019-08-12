@@ -1,4 +1,8 @@
 
+3.1.0-dev.22 | 2019-08-12 13:31:12 -0700
+
+  * GH-535: fix typo of "C_HESIOD" in DNS::classes (Jon Siwek, Corelight)
+
 3.1.0-dev.21 | 2019-08-12 13:00:21 -0700
 
   * Add new distro to Travis CI configuration for running leak tests (Tim Wojtulewicz, Corelight)

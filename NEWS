@@ -16,6 +16,12 @@ Changed Functionality
   ``Known::AddrPortServTriplet`` and ``Known::services`` is now a table
   instead of just a set.
 
+- The DNS class name for Hesiod in the ``DNS::classes`` table is now spelled
+  correctly as "C_HESIOD" instead of "C_HESOD".  For reference, this
+  class name string may appear in the dns.log file or in any custom
+  script logic that inspects the ``qclass`` field of ``DNS::Info``
+  after a ``dns_request`` event.
+
 Removed Functionality
 ---------------------
 

@@ -126,7 +126,7 @@ export {
 		[1]   = "C_INTERNET",
 		[2]   = "C_CSNET",
 		[3]   = "C_CHAOS",
-		[4]   = "C_HESOD",
+		[4]   = "C_HESIOD",
 		[254] = "C_NONE",
 		[255] = "C_ANY",
 	} &default = function(n: count): string { return fmt("qclass-%d", n); };

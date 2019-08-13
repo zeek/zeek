@@ -1,4 +1,12 @@
 
+3.1.0-dev.36 | 2019-08-13 22:42:54 +0000
+
+  * Replace use of deprecated pcap_lookupdev(). (Jon Siwek, Corelight)
+
+  * Use _exit() in Reporter::FatalError. (Jon Siwek, Corelight)
+
+  * GH-533: Use consistent "lib" install dir. (Jon Siwek, Corelight)
+
 3.1.0-dev.30 | 2019-08-13 13:48:47 -0700
 
   * Add new LogAscii::gzip_file_extension option. (Tim Wojtulewicz, Corelight)

@@ -1,4 +1,8 @@
 
+3.0.0-rc1.1 | 2019-08-13 23:16:55 +0000
+
+  * GH-533: Use consistent "lib" install dir. (Jon Siwek, Corelight)
+
 3.0.0-rc1 | 2019-08-08 11:15:35 -0700
 
   * Release 3.0.0-rc1

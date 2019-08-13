@@ -1,4 +1,11 @@
 
+3.1.0-dev.26 | 2019-08-13 11:25:20 -0700
+
+  * Add tests for {http,mime}_all_headers events (Jon Siwek, Corelight)
+
+    And remove unnecessary check for mime_all_headers in HTTP entities
+    (they ony raise the http_all_headers event, never mime_all_headers).
+
 3.1.0-dev.24 | 2019-08-12 19:30:26 -0700
 
   * Avoid buffering all http/mime headers (Justin Azoff)

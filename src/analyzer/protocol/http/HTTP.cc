@@ -53,9 +53,9 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	offset = 0;
 	instance_length = -1; // unspecified
 	send_size = true;
-	// MIME_Entity already set want_all_headers depending on mime_all_headers
-	if ( ! want_all_headers )
-		want_all_headers = (bool)http_all_headers;
+	// Always override what MIME_Entity set for want_all_headers: HTTP doesn't
+	// raise the generic MIME events, but rather it's own specific ones.
+	want_all_headers = (bool)http_all_headers;
 	}
 
 void HTTP_Entity::EndOfData()

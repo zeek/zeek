@@ -28,6 +28,8 @@ Redefinable Options
 :zeek:id:`LogAscii::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`                    String to use for empty fields.
 :zeek:id:`LogAscii::enable_utf_8`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, valid UTF-8 sequences will pass through unescaped and be
                                                                                              written into logs.
+:zeek:id:`LogAscii::gzip_file_extension`: :zeek:type:`string` :zeek:attr:`&redef`            Define the file extension used when compressing log files when
+                                                                                             they are created with the :zeek:see:`LogAscii::gzip_level` option.
 :zeek:id:`LogAscii::gzip_level`: :zeek:type:`count` :zeek:attr:`&redef`                      Define the gzip level to compress the logs.
 :zeek:id:`LogAscii::include_meta`: :zeek:type:`bool` :zeek:attr:`&redef`                     If true, include lines with log meta information such as column names
                                                                                              with types, the values of ASCII logging options that are in use, and
@@ -75,6 +77,17 @@ Redefinable Options
    
    This option is also available as a per-filter ``$config`` option.
 
+.. zeek:id:: LogAscii::gzip_file_extension
+
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``"gz"``
+
+   Define the file extension used when compressing log files when
+   they are created with the :zeek:see:`LogAscii::gzip_level` option.
+   
+   This option is also available as a per-filter ``$config`` option.
+
 .. zeek:id:: LogAscii::gzip_level
 
    :Type: :zeek:type:`count`
@@ -83,7 +96,8 @@ Redefinable Options
 
    Define the gzip level to compress the logs.  If 0, then no gzip
    compression is performed. Enabling compression also changes
-   the log file name extension to include ".gz".
+   the log file name extension to include the value of
+   :zeek:see:`LogAscii::gzip_file_extension`.
    
    This option is also available as a per-filter ``$config`` option.
 

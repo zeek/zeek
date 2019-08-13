@@ -1,4 +1,11 @@
 
+3.1.0-dev.30 | 2019-08-13 13:48:47 -0700
+
+  * Add new LogAscii::gzip_file_extension option. (Tim Wojtulewicz, Corelight)
+
+    This can be used with the LogAscii::gzip_level option to set the file
+    extension of log files when they are compressed at creation time.
+
 3.1.0-dev.28 | 2019-08-13 12:01:44 -0700
 
   * Remove redundant buffering in ContentLine analyzer (Justin Azoff)

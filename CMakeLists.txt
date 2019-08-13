@@ -14,6 +14,7 @@ if ( NOT CMAKE_INSTALL_LIBDIR )
 endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
+include(cmake/FindClangTidy.cmake)
 
 ########################################################################
 ## Project/Build Configuration

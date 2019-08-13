@@ -1,4 +1,12 @@
 
+3.1.0-dev.40 | 2019-08-13 23:44:45 +0000
+
+  * Change over to whitelisting clang-tidy options instead of
+    blacklisting. (Tim Wojtulewicz, Corelight)
+
+  * Use FindClangTidy from the cmake submodule. (Tim Wojtulewicz,
+    Corelight)
+
 3.1.0-dev.36 | 2019-08-13 22:42:54 +0000
 
   * Replace use of deprecated pcap_lookupdev(). (Jon Siwek, Corelight)

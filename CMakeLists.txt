@@ -4,6 +4,15 @@ project(Zeek C CXX)
 # aux/zeek-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
+if ( NOT CMAKE_INSTALL_LIBDIR )
+    # Currently, some sub-projects may use GNUInstallDirs.cmake to choose the
+    # library install dir, while others just default to "lib".  For sake of
+    # consistency, this just overrides the former to always use "lib" in case
+    # it would have chosen something else, like "lib64", but a thing for the
+    # future may be to standardize all sub-projects to use GNUInstallDirs.
+    set(CMAKE_INSTALL_LIBDIR lib)
+endif ()
+
 include(cmake/CommonCMakeConfig.cmake)
 
 ########################################################################

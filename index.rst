@@ -41,6 +41,7 @@ Development
    :maxdepth: 2
 
    devel/plugins.rst
+   devel/style_guide
 
 Related Tools/Software
 ======================

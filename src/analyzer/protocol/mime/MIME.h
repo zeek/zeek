@@ -172,6 +172,7 @@ protected:
 
 	MIME_Message* message;
 	bool delay_adding_implicit_CRLF;
+	bool want_all_headers;
 };
 
 // The reason I separate MIME_Message as an abstract class is to

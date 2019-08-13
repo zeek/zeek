@@ -53,6 +53,9 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	offset = 0;
 	instance_length = -1; // unspecified
 	send_size = true;
+	// MIME_Entity already set want_all_headers depending on mime_all_headers
+	if ( ! want_all_headers )
+		want_all_headers = (bool)http_all_headers;
 	}
 
 void HTTP_Entity::EndOfData()
@@ -762,7 +765,10 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 
 void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
 	{
-	// Do nothing for now.
+	// Do nothing for now.  Note that if this ever changes do something
+	// which relies on the header list argument, that's currently not
+	// populated unless the http_all_headers or mime_all_headers events
+	// are being used (so you may need to change that, too).
 	}
 
 void HTTP_Message::SubmitData(int len, const char* buf)

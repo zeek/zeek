@@ -1,4 +1,11 @@
 
+3.1.0-dev.24 | 2019-08-12 19:30:26 -0700
+
+  * Avoid buffering all http/mime headers (Justin Azoff)
+
+    Only buffer all http/mime headers if the http_all_headers or
+    mime_all_headers events are in use.
+
 3.1.0-dev.22 | 2019-08-12 13:31:12 -0700
 
   * GH-535: fix typo of "C_HESIOD" in DNS::classes (Jon Siwek, Corelight)

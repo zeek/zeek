@@ -598,12 +598,20 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 			{
 			is_suboption = 1;
 			last_was_IAC = 0;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
 		else if ( IS_3_BYTE_OPTION(code) )
 			{
 			is_suboption = 0;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
@@ -638,6 +646,9 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 	// A suboption.  Spin looking for end.
 	for ( ; len > 0; --len, ++data )
 		{
+		if ( offset >= buf_len )
+			InitBuffer(buf_len * 2);
+
 		unsigned int code = data[0];
 
 		if ( last_was_IAC )

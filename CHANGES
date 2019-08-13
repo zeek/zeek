@@ -1,4 +1,20 @@
 
+3.1.0-dev.28 | 2019-08-13 12:01:44 -0700
+
+  * Remove redundant buffering in ContentLine analyzer (Justin Azoff)
+
+    The contentline analyzer has two code paths that buffer data:
+     * right at the top of DeliverStream
+     * later in DoDeliverOnce
+
+    However, contentline can be in plain delivery mode, and if so, the
+    buffer resize in DeliverStream does not need to be done just because
+    DeliverStream was passed an 8K data chunk.
+
+    This was causing contentline to resize it's buffer to fit chunks of HTTP
+    response data.  Additionally, the buffer was sized to be 3/2 of the
+    chunk, so an 8K chunk would result in a 12K allocation.
+
 3.1.0-dev.26 | 2019-08-13 11:25:20 -0700
 
   * Add tests for {http,mime}_all_headers events (Jon Siwek, Corelight)

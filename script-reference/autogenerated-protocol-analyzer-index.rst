@@ -1397,8 +1397,8 @@ Events
    Generated for a DNP3 "Response_Data_Object".
    The "Response_Data_Object" contains two parts: object prefix and object
    data. In most cases, object data are defined by new record types. But
-   in a few cases, object data are directly basic types, such as int16, or
-   int8; thus we use an additional *data_value* to record the values of those
+   in a few cases, object data are directly basic types, such as int16_t, or
+   int8_t; thus we use an additional *data_value* to record the values of those
    object data.
    
 

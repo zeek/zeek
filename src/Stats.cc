@@ -239,7 +239,7 @@ void ProfileLogger::Log()
 
 	// Script-level state.
 	unsigned int size, mem = 0;
-	PDict<ID>* globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	if ( expensive )
 		{
@@ -249,10 +249,10 @@ void ProfileLogger::Log()
 		file->Write(fmt("%.06f Global_sizes > 100k: %dK\n",
 				network_time, mem / 1024));
 
-		ID* id;
-		IterCookie* c = globals->InitForIteration();
+		for ( const auto& global : globals )
+			{
+			ID* id = global.second;
 
-		while ( (id = globals->NextEntry(c)) )
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.
 			if ( id->HasVal() )
@@ -298,6 +298,7 @@ void ProfileLogger::Log()
 						file->Write("\n");
 					}
 				}
+			}
 
 		file->Write(fmt("%.06f Global_sizes total: %dK\n",
 				network_time, mem / 1024));

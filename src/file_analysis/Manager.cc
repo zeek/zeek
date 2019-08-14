@@ -24,7 +24,7 @@ string Manager::salt;
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
 	                           file_analysis::Component>("Files", "Tag"),
-	id_map(), ignored(), current_file_id(), magic_state()
+	  current_file_id(), magic_state(), cumulative_files(0), max_files(0)
 	{
 	}
 
@@ -33,21 +33,10 @@ Manager::~Manager()
 	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
 		delete i->second;
 
-	// Have to assume that too much of Bro has been shutdown by this point
+	// Have to assume that too much of Zeek has been shutdown by this point
 	// to do anything more than reclaim memory.
-
-	File* f;
-	bool* b;
-
-	IterCookie* it = id_map.InitForIteration();
-
-	while ( (f = id_map.NextEntry(it)) )
-		delete f;
-
-	it = ignored.InitForIteration();
-
-	while( (b = ignored.NextEntry(it)) )
-		delete b;
+	for ( const auto& entry : id_map )
+		delete entry.second;
 
 	delete magic_state;
 	}
@@ -69,19 +58,13 @@ void Manager::InitMagic()
 void Manager::Terminate()
 	{
 	vector<string> keys;
+	keys.reserve(id_map.size());
 
-	IterCookie* it = id_map.InitForIteration();
-	HashKey* key;
+	for ( const auto& entry : id_map )
+		keys.push_back(entry.first);
 
-	while ( id_map.NextEntry(key, it) )
-		{
-		keys.push_back(string(static_cast<const char*>(key->Key()),
-		                      key->Size()));
-		delete key;
-		}
-
-	for ( size_t i = 0; i < keys.size(); ++i )
-		Timeout(keys[i], true);
+	for ( const string& key : keys )
+		Timeout(key, true);
 
 	mgr.Drain();
 	}
@@ -329,7 +312,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 	if ( IsIgnored(file_id) )
 		return 0;
 
-	File* rval = id_map.Lookup(file_id.c_str());
+	File* rval = LookupFile(file_id);
 
 	if ( ! rval )
 		{
@@ -337,7 +320,12 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		                source_name ? source_name
 		                            : analyzer_mgr->GetComponentName(tag),
 		                conn, tag, is_orig);
-		id_map.Insert(file_id.c_str(), rval);
+		id_map[file_id] = rval;
+
+		++cumulative_files;
+		if ( id_map.size() > max_files )
+			max_files = id_map.size();
+
 		rval->ScheduleInactivityTimer();
 
 		// Generate file_new after inserting it into manager's mapping
@@ -362,7 +350,11 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 
 File* Manager::LookupFile(const string& file_id) const
 	{
-	return id_map.Lookup(file_id.c_str());
+	const auto& entry = id_map.find(file_id);
+	if ( entry == id_map.end() )
+		return nullptr;
+
+	return entry->second;
 	}
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
@@ -393,22 +385,21 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 
 bool Manager::IgnoreFile(const string& file_id)
 	{
-	if ( ! id_map.Lookup(file_id.c_str()) )
+	if ( ! LookupFile(file_id) )
 		return false;
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
 
-	delete ignored.Insert(file_id.c_str(), new bool);
+	ignored.insert(file_id);
 	return true;
 	}
 
 bool Manager::RemoveFile(const string& file_id)
 	{
-	HashKey key(file_id.c_str());
 	// Can't remove from the dictionary/map right away as invoking EndOfFile
 	// may cause some events to be executed which actually depend on the file
 	// still being in the dictionary/map.
-	File* f = static_cast<File*>(id_map.Lookup(&key));
+	File* f = LookupFile(file_id);
 
 	if ( ! f )
 		return false;
@@ -417,14 +408,15 @@ bool Manager::RemoveFile(const string& file_id)
 
 	f->EndOfFile();
 	delete f;
-	id_map.Remove(&key);
-	delete static_cast<bool*>(ignored.Remove(&key));
+
+	id_map.erase(file_id);
+	ignored.erase(file_id);
 	return true;
 	}
 
 bool Manager::IsIgnored(const string& file_id)
 	{
-	return ignored.Lookup(file_id.c_str()) != 0;
+	return ignored.find(file_id) != ignored.end();
 	}
 
 string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)

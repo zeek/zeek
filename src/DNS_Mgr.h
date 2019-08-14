@@ -141,8 +141,6 @@ protected:
 
 	DNS_MgrMode mode;
 
-	PDict<ListVal> services;
-
 	HostMap host_mappings;
 	AddrMap addr_mappings;
 	TextMap text_mappings;

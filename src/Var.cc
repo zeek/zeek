@@ -429,7 +429,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
 
-	if ( scope->GetIDs()->Lookup(e->Id()->Name()) )
+	if ( scope->Lookup(e->Id()->Name()) )
 		return TC_CONTINUE;
 
 	outer_id_references.push_back(e);

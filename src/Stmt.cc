@@ -50,11 +50,11 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 
 	// Update the Filemap of line number -> statement mapping for
 	// breakpoints (Debug.h).
-	Filemap* map_ptr = (Filemap*) g_dbgfilemaps.Lookup(location->filename);
-	if ( ! map_ptr )
+	auto map_iter = g_dbgfilemaps.find(location->filename);
+	if ( map_iter == g_dbgfilemaps.end() )
 		return false;
 
-	Filemap& map = *map_ptr;
+	Filemap& map = *(map_iter->second);
 
 	StmtLocMapping* new_mapping = new StmtLocMapping(GetLocationInfo(), this);
 

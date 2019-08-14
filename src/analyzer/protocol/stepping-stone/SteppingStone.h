@@ -37,9 +37,8 @@ protected:
 	// removing correlated endpoint pairs in Bro, since there is
 	// no LOOP in Bro language.
 	int stp_id;
-	HashKey* stp_key;
-	PDict<SteppingStoneEndpoint> stp_inbound_endps;
-	PDict<SteppingStoneEndpoint> stp_outbound_endps;
+	std::map<int, SteppingStoneEndpoint*> stp_inbound_endps;
+	std::map<int, SteppingStoneEndpoint*> stp_outbound_endps;
 };
 
 class SteppingStone_Analyzer : public tcp::TCP_ApplicationAnalyzer {

@@ -1799,7 +1799,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		// Doing a lookup here as a roundabout way of ref-ing t1, without
 		// changing the function params which has t1 as const and also
 		// (potentially) avoiding a pitfall mentioned earlier about clones.
-		auto id = global_scope()->Lookup(t1->GetName().data());
+		auto id = global_scope()->Lookup(t1->GetName());
 
 		if ( id && id->AsType() && id->AsType()->Tag() == TYPE_ENUM )
 			// It should make most sense to return the real type here rather

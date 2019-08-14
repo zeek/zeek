@@ -1895,11 +1895,11 @@ function reading_traces%(%): bool
 function global_sizes%(%): var_sizes
 	%{
 	TableVal* sizes = new TableVal(var_sizes);
-	PDict<ID>* globals = global_scope()->Vars();
-	IterCookie* c = globals->InitForIteration();
+	const auto& globals = global_scope()->Vars();
 
-	ID* id;
-	while ( (id = globals->NextEntry(c)) )
+	for ( const auto& global : globals )
+		{
+		ID* id = global.second;
 		if ( id->HasVal() )
 			{
 			Val* id_name = new StringVal(id->Name());
@@ -1907,6 +1907,7 @@ function global_sizes%(%): var_sizes
 			sizes->Assign(id_name, id_size);
 			Unref(id_name);
 			}
+		}
 
 	return sizes;
 	%}
@@ -1922,12 +1923,11 @@ function global_sizes%(%): var_sizes
 function global_ids%(%): id_table
 	%{
 	TableVal* ids = new TableVal(id_table);
-	PDict<ID>* globals = global_scope()->Vars();
-	IterCookie* c = globals->InitForIteration();
+	const auto& globals = global_scope()->Vars();
 
-	ID* id;
-	while ( (id = globals->NextEntry(c)) )
+	for ( const auto& global : globals )
 		{
+		ID* id = global.second;
 		RecordVal* rec = new RecordVal(script_id);
 		rec->Assign(0, new StringVal(type_name(id->Type()->Tag())));
 		rec->Assign(1, val_mgr->GetBool(id->IsExport()));

@@ -17,7 +17,6 @@ class DFA_State;
 
 class DFA_Machine;
 class DFA_State;
-struct CacheEntry;
 
 class DFA_State : public BroObj {
 public:
@@ -64,15 +63,11 @@ protected:
 	NFA_state_list* nfa_states;
 	EquivClass* meta_ec;	// which ec's make same transition
 	DFA_State* mark;
-	CacheEntry* centry;
 
 	static unsigned int transition_counter;	// see Xtion()
 };
 
-struct CacheEntry {
-	DFA_State* state;
-	HashKey* hash;
-};
+using DigestStr = basic_string<u_char>;
 
 class DFA_State_Cache {
 public:
@@ -80,13 +75,12 @@ public:
 	~DFA_State_Cache();
 
 	// If the caller stores the handle, it has to call Ref() on it.
-	DFA_State* Lookup(const NFA_state_list& nfa_states,
-					HashKey** hash);
+	DFA_State* Lookup(const NFA_state_list& nfa_states, DigestStr* digest);
 
-	// Takes ownership of both; hash is the one returned by Lookup().
-	DFA_State* Insert(DFA_State* state, HashKey* hash);
+	// Takes ownership of state; digest is the one returned by Lookup().
+	DFA_State* Insert(DFA_State* state, DigestStr digest);
 
-	int NumEntries() const	{ return states.Length(); }
+	int NumEntries() const	{ return states.size(); }
 
 	struct Stats {
 		// Sum of all NFA states
@@ -106,7 +100,7 @@ private:
 	int misses;
 
 	// Hash indexed by NFA states (MD5s of them, actually).
-	PDict<CacheEntry> states;
+	std::map<DigestStr, DFA_State*> states;
 };
 
 class DFA_Machine : public BroObj {
@@ -134,7 +128,7 @@ protected:
 	int state_count;
 
 	// The state list has to be sorted according to IDs.
-	int StateSetToDFA_State(NFA_state_list* state_set, DFA_State*& d,
+	bool StateSetToDFA_State(NFA_state_list* state_set, DFA_State*& d,
 				const EquivClass* ec);
 	const EquivClass* EC() const	{ return ec; }
 

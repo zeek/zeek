@@ -407,7 +407,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( peer_count == 0 )
 		return true;
 
-	ID* i = global_scope()->Lookup(id.c_str());
+	ID* i = global_scope()->Lookup(id);
 
 	if ( ! i )
 		return false;
@@ -998,7 +998,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	DBG_LOG(DBG_BROKER, "Process event: %s %s",
 			name.data(), RenderMessage(args).data());
 	++statistics.num_events_incoming;
-	auto handler = event_registry->Lookup(name.data());
+	auto handler = event_registry->Lookup(name);
 
 	if ( ! handler )
 		return;
@@ -1240,7 +1240,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	++statistics.num_ids_incoming;
 	auto id_name = std::move(iu.id_name());
 	auto id_value = std::move(iu.id_value());
-	auto id = global_scope()->Lookup(id_name.c_str());
+	auto id = global_scope()->Lookup(id_name);
 
 	if ( ! id )
 		{

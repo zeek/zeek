@@ -153,31 +153,31 @@ Manager::EventStream::EventStream()
 
 Manager::EventStream::~EventStream()
 	{
-        if ( fields )
-                Unref(fields);
+	if ( fields )
+		Unref(fields);
 	}
 
 Manager::TableStream::~TableStream()
 	{
-        if ( tab )
-	        Unref(tab);
+	if ( tab )
+		Unref(tab);
 
-        if ( itype )
-	        Unref(itype);
+	if ( itype )
+		Unref(itype);
 
 	if ( rtype ) // can be 0 for sets
 		Unref(rtype);
 
-        if ( currDict != 0 )
+	if ( currDict != 0 )
 		{
 		currDict->Clear();
-	        delete currDict;
+		delete currDict;
 		}
 
-        if ( lastDict != 0 )
+	if ( lastDict != 0 )
 		{
 		lastDict->Clear();;
-	        delete lastDict;
+		delete lastDict;
 		}
 	}
 
@@ -1852,7 +1852,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		return false;
 		}
 
-	EventHandler* handler = event_registry->Lookup(name.c_str());
+	EventHandler* handler = event_registry->Lookup(name);
 	if ( handler == 0 )
 		{
 		Warning(i, "Event %s not found", name.c_str());

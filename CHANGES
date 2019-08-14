@@ -1,4 +1,10 @@
 
+3.1.0-dev.48 | 2019-08-13 20:15:17 -0700
+
+  * Cleanups related to PDict -> std::map replacements (Jon Siwek, Corelight)
+
+  * Replace various uses of PDict with std::map (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.40 | 2019-08-13 23:44:45 +0000
 
   * Change over to whitelisting clang-tidy options instead of

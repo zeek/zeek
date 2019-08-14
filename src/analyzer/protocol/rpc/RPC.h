@@ -123,7 +123,7 @@ protected:
 
 	void Weird(const char* name, const char* addl = "");
 
-	PDict<RPC_CallInfo> calls;
+	std::map<uint32, RPC_CallInfo*> calls;
 	analyzer::Analyzer* analyzer;
 };
 

@@ -28,11 +28,11 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	fail_on_file_problem = false;
 
 	// find all option names and their types.
-	auto globals = global_scope()->Vars();
-	auto c = globals->InitForIteration();
+	const auto& globals = global_scope()->Vars();
 
-	while ( auto id = globals->NextEntry(c) )
+	for ( const auto& entry : globals )
 		{
+		ID* id = entry.second;
 		if ( ! id->IsOption() )
 			continue;
 

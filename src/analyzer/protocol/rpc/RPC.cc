@@ -98,19 +98,15 @@ int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	}
 
 
-void rpc_callinfo_delete_func(void* v)
-	{
-	delete (RPC_CallInfo*) v;
-	}
-
 RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer)
 	{
 	analyzer = arg_analyzer;
-	calls.SetDeleteFunc(rpc_callinfo_delete_func);
 	}
 
 RPC_Interpreter::~RPC_Interpreter()
 	{
+	for ( const auto& call : calls )
+		delete call.second;
 	}
 
 int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
@@ -123,8 +119,10 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 	if ( ! buf )
 		return 0;
 
-	HashKey h(&xid, 1);
-	RPC_CallInfo* call = calls.Lookup(&h);
+	RPC_CallInfo* call = nullptr;
+	auto iter = calls.find(xid);
+	if ( iter != calls.end() )
+		call = iter->second;
 
 	if ( msg_type == RPC_CALL )
 		{
@@ -164,7 +162,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 				return 0;
 				}
 
-			calls.Insert(&h, call);
+			calls[xid] = call;
 			}
 
 		// We now have a valid RPC_CallInfo (either the previous one
@@ -274,7 +272,8 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 			Event_RPC_Dialogue(call, status, n);
 
-			delete calls.RemoveEntry(&h);
+			calls.erase(xid);
+			delete call;
 			}
 		else
 			{
@@ -308,11 +307,9 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
 
 void RPC_Interpreter::Timeout()
 	{
-	IterCookie* cookie = calls.InitForIteration();
-	RPC_CallInfo* c;
-
-	while ( (c = calls.NextEntry(cookie)) )
+	for ( const auto& entry : calls )
 		{
+		RPC_CallInfo* c = entry.second;
 		Event_RPC_Dialogue(c, BifEnum::RPC_TIMEOUT, 0);
 
 		if ( c->IsValidCall() )

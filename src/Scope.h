@@ -4,6 +4,7 @@
 #define scope_h
 
 #include <string>
+#include <map>
 
 #include "Dict.h"
 #include "Obj.h"
@@ -20,24 +21,36 @@ public:
 	explicit Scope(ID* id, attr_list* al);
 	~Scope() override;
 
-	ID* Lookup(const char* name) const	{ return local->Lookup(name); }
-	void Insert(const char* name, ID* id)	{ local->Insert(name, id); }
-	ID* Remove(const char* name)
+	ID* Lookup(const std::string& name) const
 		{
-		HashKey key(name);
-		return (ID*) local->Remove(&key);
+		const auto& entry = local.find(name);
+		if ( entry != local.end() )
+			return entry->second;
+
+		return nullptr;
+		}
+	void Insert(const std::string& name, ID* id)	{ local[name] = id; }
+	ID* Remove(const std::string& name)
+		{
+		const auto& entry = local.find(name);
+		if ( entry != local.end() )
+			{
+			ID* id = entry->second;
+			local.erase(entry);
+			return id;
+			}
+
+		return nullptr;
 		}
 
 	ID* ScopeID() const		{ return scope_id; }
 	attr_list* Attrs() const	{ return attrs; }
 	BroType* ReturnType() const	{ return return_type; }
 
-	int Length() const		{ return local->Length(); }
-	PDict<ID>* Vars() const		{ return local; }
+	size_t Length() const		{ return local.size(); }
+	std::map<string, ID*>& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
-
-	PDict<ID>* GetIDs() const	{ return local; }
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
@@ -54,7 +67,7 @@ protected:
 	ID* scope_id;
 	attr_list* attrs;
 	BroType* return_type;
-	PDict<ID>* local;
+	std::map<string, ID*> local;
 	id_list* inits;
 };
 

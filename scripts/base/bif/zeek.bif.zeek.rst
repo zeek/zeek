@@ -2680,11 +2680,6 @@ Functions
    :returns: *s* as :zeek:type:`pattern`.
    
    .. zeek:see:: convert_for_pattern
-   
-   .. note::
-   
-        This function must be called at Zeek startup time, e.g., in the event
-        :zeek:id:`zeek_init`.
 
 .. zeek:id:: strptime
 

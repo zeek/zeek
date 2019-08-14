@@ -320,12 +320,11 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 	vector<ParseLocationRec> result;
 	result.push_back(ParseLocationRec());
 	ParseLocationRec& plr = result[0];
-	const char* full_filename = 0;
 
 	// If plrFileAndLine, set this to the filename you want; for
 	// memory management reasons, the real filename is set when looking
 	// up the line number to find the corresponding statement.
-	const char* loc_filename = 0;
+	std::string loc_filename;
 
 	if ( sscanf(s.c_str(), "%d", &plr.line) )
 		{ // just a line number (implicitly referring to the current file)
@@ -357,7 +356,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 				return result;
 				}
 
-			loc_filename = copy_string(path.c_str());
+			loc_filename = path;
 			plr.type = plrFileAndLine;
 			}
 		}
@@ -367,12 +366,11 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		auto iter = g_dbgfilemaps.find(loc_filename);
 		if ( iter == g_dbgfilemaps.end() )
 			reporter->InternalError("Policy file %s should have been loaded\n",
-					loc_filename);
+					loc_filename.data());
 
-		if ( plr.line > how_many_lines_in(loc_filename) )
+		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{
-			debug_msg("No line %d in %s.\n", plr.line, loc_filename);
-			delete [] full_filename;
+			debug_msg("No line %d in %s.\n", plr.line, loc_filename.data());
 			plr.type = plrUnknown;
 			return result;
 			}
@@ -399,7 +397,6 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			plr.stmt = 0;
 		}
 
-	delete [] full_filename;
 	return result;
 	}
 

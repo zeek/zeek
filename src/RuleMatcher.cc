@@ -204,6 +204,7 @@ RuleMatcher::RuleMatcher(int arg_RE_level)
 	root = new RuleHdrTest(RuleHdrTest::NOPROT, 0, 0, RuleHdrTest::EQ,
 				new maskedvalue_list);
 	RE_level = arg_RE_level;
+	parse_error = false;
 	}
 
 RuleMatcher::~RuleMatcher()

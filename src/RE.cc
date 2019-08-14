@@ -198,7 +198,7 @@ string Specific_RE_Matcher::LookupDef(const string& def)
 	{
 	const auto& iter = defs.find(def);
 	if ( iter != defs.end() )
-		return iter->first;
+		return iter->second;
 
 	return string();
 	}
@@ -418,7 +418,10 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 
 	size += pad_size(sizeof(CCL*) * ccl_dict.size());
 	for ( const auto& entry : ccl_dict )
+		{
 		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += entry.second->MemoryAllocation();
+		}
 
 	for ( const auto& entry : defs )
 		{

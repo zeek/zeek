@@ -122,7 +122,7 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 		if ( ! name )
 			return nullptr;
 
-		ID* id = global_scope()->Lookup(name->c_str());
+		ID* id = global_scope()->Lookup(*name);
 		if ( ! id )
 			return nullptr;
 

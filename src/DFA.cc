@@ -303,7 +303,7 @@ DFA_State_Cache::~DFA_State_Cache()
 	states.clear();
 	}
 
-DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr& digest)
+DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest)
 	{
 	// We assume that state ID's don't exceed 10 digits, plus
 	// we allow one more character for the delimiter.
@@ -332,9 +332,9 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr& digest
 	// HashKey because the data is copied into the key.
 	u_char digest_bytes[16];
 	internal_md5(id_tag, p - id_tag, digest_bytes);
-	digest = DigestStr(digest_bytes, 16);
+	*digest = DigestStr(digest_bytes, 16);
 
-	auto entry = states.find(digest);
+	auto entry = states.find(*digest);
 	if ( entry == states.end() )
 		{
 		++misses;
@@ -342,14 +342,14 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr& digest
 		}
 	++hits;
 
-	digest.clear();
+	digest->clear();
 
 	return entry->second;
 	}
 
-DFA_State* DFA_State_Cache::Insert(DFA_State* state, const DigestStr& digest)
+DFA_State* DFA_State_Cache::Insert(DFA_State* state, DigestStr digest)
 	{
-	states.emplace(digest, state);
+	states.emplace(std::move(digest), state);
 	return state;
 	}
 
@@ -432,7 +432,7 @@ bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
 				DFA_State*& d, const EquivClass* ec)
 	{
 	DigestStr digest;
-	d = dfa_state_cache->Lookup(*state_set, digest);
+	d = dfa_state_cache->Lookup(*state_set, &digest);
 
 	if ( d )
 		return false;
@@ -454,7 +454,7 @@ bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
 		}
 
 	DFA_State* ds = new DFA_State(state_count++, ec, state_set, accept);
-	d = dfa_state_cache->Insert(ds, digest);
+	d = dfa_state_cache->Insert(ds, std::move(digest));
 
 	return true;
 	}

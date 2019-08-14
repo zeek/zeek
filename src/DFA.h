@@ -75,10 +75,10 @@ public:
 	~DFA_State_Cache();
 
 	// If the caller stores the handle, it has to call Ref() on it.
-	DFA_State* Lookup(const NFA_state_list& nfa_states, DigestStr& digest);
+	DFA_State* Lookup(const NFA_state_list& nfa_states, DigestStr* digest);
 
-	// Takes ownership of both; hash is the one returned by Lookup().
-	DFA_State* Insert(DFA_State* state, const DigestStr& digest);
+	// Takes ownership of state; digest is the one returned by Lookup().
+	DFA_State* Insert(DFA_State* state, DigestStr digest);
 
 	int NumEntries() const	{ return states.size(); }
 

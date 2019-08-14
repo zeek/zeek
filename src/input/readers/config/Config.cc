@@ -28,7 +28,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	fail_on_file_problem = false;
 
 	// find all option names and their types.
-	auto globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& entry : globals )
 		{

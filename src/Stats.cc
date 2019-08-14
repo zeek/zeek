@@ -239,7 +239,7 @@ void ProfileLogger::Log()
 
 	// Script-level state.
 	unsigned int size, mem = 0;
-	auto globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	if ( expensive )
 		{

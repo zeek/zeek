@@ -92,7 +92,7 @@ void EventRegistry::SetErrorHandler(const string& name)
 		return;
 		}
 
-	reporter->InternalWarning(
-		        "unknown event handler '%s' in SetErrorHandler()", name.c_str());
+	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
+	                          name.c_str());
 	}
 

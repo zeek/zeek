@@ -126,8 +126,8 @@ protected:
 	int multiline;
 	char* pattern_text;
 
-	std::map<string,string> defs;
-	std::map<string,CCL*> ccl_dict;
+	std::map<string, string> defs;
+	std::map<string, CCL*> ccl_dict;
 	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;

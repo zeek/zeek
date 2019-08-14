@@ -264,7 +264,7 @@ public:
 	virtual unsigned MemoryAllocation() const;
 
 	void SetName(const string& arg_name) { name = arg_name; }
-	string GetName() const { return name; }
+	const string& GetName() const { return name; }
 
 	typedef std::map<std::string, std::set<BroType*> > TypeAliasMap;
 

@@ -351,7 +351,7 @@ struct val_converter {
 			if ( ! name )
 				return nullptr;
 
-			auto id = global_scope()->Lookup(name->c_str());
+			auto id = global_scope()->Lookup(*name);
 			if ( ! id )
 				return nullptr;
 
@@ -703,7 +703,7 @@ struct type_checker {
 			if ( ! name )
 				return false;
 
-			auto id = global_scope()->Lookup(name->c_str());
+			auto id = global_scope()->Lookup(*name);
 			if ( ! id )
 				return false;
 

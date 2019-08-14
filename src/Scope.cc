@@ -128,7 +128,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 
 	for ( int i = scopes.length() - 1; i >= 0; --i )
 		{
-		ID* id = scopes[i]->Lookup(fullname.c_str());
+		ID* id = scopes[i]->Lookup(fullname);
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
@@ -144,7 +144,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 			     ! same_module_only) )
 		{
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		ID* id = global_scope()->Lookup(globalname.c_str());
+		ID* id = global_scope()->Lookup(globalname);
 		if ( id )
 			{
 			Ref(id);

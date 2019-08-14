@@ -1852,7 +1852,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		return false;
 		}
 
-	EventHandler* handler = event_registry->Lookup(name.c_str());
+	EventHandler* handler = event_registry->Lookup(name);
 	if ( handler == 0 )
 		{
 		Warning(i, "Event %s not found", name.c_str());

@@ -1895,7 +1895,7 @@ function reading_traces%(%): bool
 function global_sizes%(%): var_sizes
 	%{
 	TableVal* sizes = new TableVal(var_sizes);
-	auto globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
@@ -1923,7 +1923,7 @@ function global_sizes%(%): var_sizes
 function global_ids%(%): id_table
 	%{
 	TableVal* ids = new TableVal(id_table);
-	auto globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{

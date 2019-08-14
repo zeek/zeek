@@ -33,7 +33,7 @@ Manager::~Manager()
 	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
 		delete i->second;
 
-	// Have to assume that too much of Bro has been shutdown by this point
+	// Have to assume that too much of Zeek has been shutdown by this point
 	// to do anything more than reclaim memory.
 	for ( const auto& entry : id_map )
 		delete entry.second;
@@ -58,6 +58,8 @@ void Manager::InitMagic()
 void Manager::Terminate()
 	{
 	vector<string> keys;
+	keys.reserve(id_map.size());
+
 	for ( const auto& entry : id_map )
 		keys.push_back(entry.first);
 
@@ -406,8 +408,8 @@ bool Manager::RemoveFile(const string& file_id)
 
 	f->EndOfFile();
 	delete f;
-	id_map.erase(file_id);
 
+	id_map.erase(file_id);
 	ignored.erase(file_id);
 	return true;
 	}

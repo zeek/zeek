@@ -23,7 +23,7 @@ public:
 protected:
 	login::NVT_Analyzer* nvt_orig;
 	login::NVT_Analyzer* nvt_resp;
-	uint32 pending_reply;	// code associated with multi-line reply, or 0
+	uint32_t pending_reply;	// code associated with multi-line reply, or 0
 	string auth_requested;	// AUTH method requested
 };
 

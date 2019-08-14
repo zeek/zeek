@@ -53,13 +53,13 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			// Pad1 option
 			rv->Assign(1, val_mgr->GetCount(0));
 			rv->Assign(2, val_mgr->GetEmptyString());
-			data += sizeof(uint8);
-			len -= sizeof(uint8);
+			data += sizeof(uint8_t);
+			len -= sizeof(uint8_t);
 			}
 		else
 			{
 			// PadN or other option
-			uint16 off = 2 * sizeof(uint8);
+			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(1, val_mgr->GetCount(opt->ip6o_len));
 			rv->Assign(2, new StringVal(
 			        new BroString(data + off, opt->ip6o_len, 1)));
@@ -102,7 +102,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		const struct ip6_hbh* hbh = (const struct ip6_hbh*)data;
 		rv->Assign(0, val_mgr->GetCount(hbh->ip6h_nxt));
 		rv->Assign(1, val_mgr->GetCount(hbh->ip6h_len));
-		uint16 off = 2 * sizeof(uint8);
+		uint16_t off = 2 * sizeof(uint8_t);
 		rv->Assign(2, BuildOptionsVal(data + off, Length() - off));
 
 		}
@@ -114,7 +114,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		const struct ip6_dest* dst = (const struct ip6_dest*)data;
 		rv->Assign(0, val_mgr->GetCount(dst->ip6d_nxt));
 		rv->Assign(1, val_mgr->GetCount(dst->ip6d_len));
-		uint16 off = 2 * sizeof(uint8);
+		uint16_t off = 2 * sizeof(uint8_t);
 		rv->Assign(2, BuildOptionsVal(data + off, Length() - off));
 		}
 		break;
@@ -127,7 +127,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(1, val_mgr->GetCount(rt->ip6r_len));
 		rv->Assign(2, val_mgr->GetCount(rt->ip6r_type));
 		rv->Assign(3, val_mgr->GetCount(rt->ip6r_segleft));
-		uint16 off = 4 * sizeof(uint8);
+		uint16_t off = 4 * sizeof(uint8_t);
 		rv->Assign(4, new StringVal(new BroString(data + off, Length() - off, 1)));
 		}
 		break;
@@ -150,15 +150,15 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv = new RecordVal(hdrType(ip6_ah_type, "ip6_ah"));
 		rv->Assign(0, val_mgr->GetCount(((ip6_ext*)data)->ip6e_nxt));
 		rv->Assign(1, val_mgr->GetCount(((ip6_ext*)data)->ip6e_len));
-		rv->Assign(2, val_mgr->GetCount(ntohs(((uint16*)data)[1])));
-		rv->Assign(3, val_mgr->GetCount(ntohl(((uint32*)data)[1])));
+		rv->Assign(2, val_mgr->GetCount(ntohs(((uint16_t*)data)[1])));
+		rv->Assign(3, val_mgr->GetCount(ntohl(((uint32_t*)data)[1])));
 
 		if ( Length() >= 12 )
 			{
 			// Sequence Number and ICV fields can only be extracted if
 			// Payload Len was non-zero for this header.
-			rv->Assign(4, val_mgr->GetCount(ntohl(((uint32*)data)[2])));
-			uint16 off = 3 * sizeof(uint32);
+			rv->Assign(4, val_mgr->GetCount(ntohl(((uint32_t*)data)[2])));
+			uint16_t off = 3 * sizeof(uint32_t);
 			rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
 			}
 		}
@@ -167,7 +167,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	case IPPROTO_ESP:
 		{
 		rv = new RecordVal(hdrType(ip6_esp_type, "ip6_esp"));
-		const uint32* esp = (const uint32*)data;
+		const uint32_t* esp = (const uint32_t*)data;
 		rv->Assign(0, val_mgr->GetCount(ntohl(esp[0])));
 		rv->Assign(1, val_mgr->GetCount(ntohl(esp[1])));
 		}
@@ -187,15 +187,15 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		RecordVal* msg = new RecordVal(hdrType(ip6_mob_msg_type, "ip6_mobility_msg"));
 		msg->Assign(0, val_mgr->GetCount(mob->ip6mob_type));
 
-		uint16 off = sizeof(ip6_mobility);
+		uint16_t off = sizeof(ip6_mobility);
 		const u_char* msg_data = data + off;
 
 		switch ( mob->ip6mob_type ) {
 		case 0:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_brr"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			off += sizeof(uint16);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			off += sizeof(uint16_t);
 			m->Assign(1, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(1, m);
 			}
@@ -204,9 +204,9 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 1:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_hoti"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16))))));
-			off += sizeof(uint16) + sizeof(uint64);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t))))));
+			off += sizeof(uint16_t) + sizeof(uint64_t);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(2, m);
 			break;
@@ -215,9 +215,9 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 2:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_coti"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16))))));
-			off += sizeof(uint16) + sizeof(uint64);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t))))));
+			off += sizeof(uint16_t) + sizeof(uint64_t);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(3, m);
 			break;
@@ -226,10 +226,10 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 3:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_hot"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16))))));
-			m->Assign(2, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16) + sizeof(uint64))))));
-			off += sizeof(uint16) + 2 * sizeof(uint64);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t))))));
+			m->Assign(2, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t) + sizeof(uint64_t))))));
+			off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
 			m->Assign(3, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(4, m);
 			break;
@@ -238,10 +238,10 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 4:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_cot"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16))))));
-			m->Assign(2, val_mgr->GetCount(ntohll(*((uint64*)(msg_data + sizeof(uint16) + sizeof(uint64))))));
-			off += sizeof(uint16) + 2 * sizeof(uint64);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			m->Assign(1, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t))))));
+			m->Assign(2, val_mgr->GetCount(ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t) + sizeof(uint64_t))))));
+			off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
 			m->Assign(3, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(5, m);
 			break;
@@ -250,13 +250,13 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 5:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_bu"));
-			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16*)msg_data))));
-			m->Assign(1, val_mgr->GetBool(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x8000));
-			m->Assign(2, val_mgr->GetBool(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x4000));
-			m->Assign(3, val_mgr->GetBool(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x2000));
-			m->Assign(4, val_mgr->GetBool(ntohs(*((uint16*)(msg_data + sizeof(uint16)))) & 0x1000));
-			m->Assign(5, val_mgr->GetCount(ntohs(*((uint16*)(msg_data + 2*sizeof(uint16))))));
-			off += 3 * sizeof(uint16);
+			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
+			m->Assign(1, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
+			m->Assign(2, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
+			m->Assign(3, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));
+			m->Assign(4, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
+			m->Assign(5, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t))))));
+			off += 3 * sizeof(uint16_t);
 			m->Assign(6, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(6, m);
 			break;
@@ -265,11 +265,11 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 6:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_back"));
-			m->Assign(0, val_mgr->GetCount(*((uint8*)msg_data)));
-			m->Assign(1, val_mgr->GetBool(*((uint8*)(msg_data + sizeof(uint8))) & 0x80));
-			m->Assign(2, val_mgr->GetCount(ntohs(*((uint16*)(msg_data + sizeof(uint16))))));
-			m->Assign(3, val_mgr->GetCount(ntohs(*((uint16*)(msg_data + 2*sizeof(uint16))))));
-			off += 3 * sizeof(uint16);
+			m->Assign(0, val_mgr->GetCount(*((uint8_t*)msg_data)));
+			m->Assign(1, val_mgr->GetBool(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
+			m->Assign(2, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t))))));
+			m->Assign(3, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t))))));
+			off += 3 * sizeof(uint16_t);
 			m->Assign(4, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(7, m);
 			break;
@@ -278,10 +278,10 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		case 7:
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_be"));
-			m->Assign(0, val_mgr->GetCount(*((uint8*)msg_data)));
-			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16));
+			m->Assign(0, val_mgr->GetCount(*((uint8_t*)msg_data)));
+			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16_t));
 			m->Assign(1, new AddrVal(IPAddr(*hoa)));
-			off += sizeof(uint16) + sizeof(in6_addr);
+			off += sizeof(uint16_t) + sizeof(in6_addr);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(8, m);
 			break;
@@ -372,8 +372,8 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 
 		tcp_hdr->Assign(0, val_mgr->GetPort(ntohs(tp->th_sport), TRANSPORT_TCP));
 		tcp_hdr->Assign(1, val_mgr->GetPort(ntohs(tp->th_dport), TRANSPORT_TCP));
-		tcp_hdr->Assign(2, val_mgr->GetCount(uint32(ntohl(tp->th_seq))));
-		tcp_hdr->Assign(3, val_mgr->GetCount(uint32(ntohl(tp->th_ack))));
+		tcp_hdr->Assign(2, val_mgr->GetCount(uint32_t(ntohl(tp->th_seq))));
+		tcp_hdr->Assign(3, val_mgr->GetCount(uint32_t(ntohl(tp->th_ack))));
 		tcp_hdr->Assign(4, val_mgr->GetCount(tcp_hdr_len));
 		tcp_hdr->Assign(5, val_mgr->GetCount(data_len));
 		tcp_hdr->Assign(6, val_mgr->GetCount(tp->th_flags));
@@ -428,7 +428,7 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 	return pkt_hdr;
 	}
 
-static inline bool isIPv6ExtHeader(uint8 type)
+static inline bool isIPv6ExtHeader(uint8_t type)
 	{
 	switch (type) {
 	case IPPROTO_HOPOPTS:
@@ -447,10 +447,10 @@ static inline bool isIPv6ExtHeader(uint8 type)
 	}
 
 void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
-                          bool set_next, uint16 next)
+                          bool set_next, uint16_t next)
 	{
 	length = 0;
-	uint8 current_type, next_type;
+	uint8_t current_type, next_type;
 	next_type = IPPROTO_IPV6;
 	const u_char* hdrs = (const u_char*) ip6;
 
@@ -471,7 +471,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 		IPv6_Hdr* p = new IPv6_Hdr(current_type, hdrs);
 
 		next_type = p->NextHdr();
-		uint16 cur_len = p->Length();
+		uint16_t cur_len = p->Length();
 
 		// If this header is truncated, don't add it to chain, don't go further.
 		if ( cur_len > total_len )
@@ -510,7 +510,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 				  isIPv6ExtHeader(next_type) );
 	}
 
-void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len)
+void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len)
 	{
 	if ( finalDst )
 		{
@@ -559,11 +559,11 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len)
 	}
 
 #ifdef ENABLE_MOBILE_IPV6
-void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16 len)
+void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 	{
 	const u_char* data = (const u_char*) d;
-	len -= 2 * sizeof(uint8);
-	data += 2* sizeof(uint8);
+	len -= 2 * sizeof(uint8_t);
+	data += 2* sizeof(uint8_t);
 
 	while ( len > 0 )
 		{
@@ -587,13 +587,13 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16 len)
 
 		if ( opt->ip6o_type == 0 )
 			{
-			data += sizeof(uint8);
-			len -= sizeof(uint8);
+			data += sizeof(uint8_t);
+			len -= sizeof(uint8_t);
 			}
 		else
 			{
-			data += 2 * sizeof(uint8) + opt->ip6o_len;
-			len -= 2 * sizeof(uint8) + opt->ip6o_len;
+			data += 2 * sizeof(uint8_t) + opt->ip6o_len;
+			len -= 2 * sizeof(uint8_t) + opt->ip6o_len;
 			}
 		}
 	}
@@ -620,7 +620,7 @@ VectorVal* IPv6_Hdr_Chain::BuildVal() const
 		{
 		RecordVal* v = chain[i]->BuildRecordVal();
 		RecordVal* ext_hdr = new RecordVal(ip6_ext_hdr_type);
-		uint8 type = chain[i]->Type();
+		uint8_t type = chain[i]->Type();
 		ext_hdr->Assign(0, val_mgr->GetCount(type));
 
 		switch (type) {

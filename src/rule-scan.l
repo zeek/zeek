@@ -162,12 +162,12 @@ finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
 	}
 
 {D}	{
-	rules_lval.val = (uint32) atoi(yytext);
+	rules_lval.val = (uint32_t) atoi(yytext);
 	return TOK_INT;
 	}
 
 0x{H}	{
-	rules_lval.val = (uint32) strtol(yytext, 0, 16);
+	rules_lval.val = (uint32_t) strtol(yytext, 0, 16);
 	return TOK_INT;
 	}
 

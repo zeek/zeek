@@ -59,7 +59,7 @@ void SIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SIP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void SIP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

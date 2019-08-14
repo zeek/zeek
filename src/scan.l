@@ -469,7 +469,7 @@ F	RET_CONST(val_mgr->GetFalse())
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
 {D}"/tcp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -478,7 +478,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
 		}
 {D}"/udp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -487,7 +487,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
 		}
 {D}"/icmp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -496,7 +496,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
 		}
 {D}"/unknown"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);

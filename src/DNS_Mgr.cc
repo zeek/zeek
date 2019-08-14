@@ -89,7 +89,7 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 		return nb_dns_host_request2(nb_dns, host, fam, qtype, (void*) this, err) >= 0;
 	else
 		{
-		const uint32* bytes;
+		const uint32_t* bytes;
 		int len = addr.GetBytes(&bytes);
 		return nb_dns_addr_request2(nb_dns, (char*) bytes,
 				len == 1 ? AF_INET : AF_INET6, (void*) this, err) >= 0;
@@ -98,8 +98,8 @@ int DNS_Mgr_Request::MakeRequest(nb_dns_info* nb_dns)
 
 class DNS_Mapping {
 public:
-	DNS_Mapping(const char* host, struct hostent* h, uint32 ttl);
-	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl);
+	DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl);
+	DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl);
 	DNS_Mapping(FILE* f);
 
 	int NoMapping() const		{ return no_mapping; }
@@ -147,7 +147,7 @@ protected:
 
 	char* req_host;
 	IPAddr req_addr;
-	uint32 req_ttl;
+	uint32_t req_ttl;
 
 	int num_names;
 	char** names;
@@ -176,7 +176,7 @@ static TableVal* empty_addr_set()
 	return new TableVal(s);
 	}
 
-DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
+DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_host = copy_string(host);
@@ -186,7 +186,7 @@ DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32 ttl)
 		names[0] = copy_string(host);
 	}
 
-DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32 ttl)
+DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_addr = addr;
@@ -337,10 +337,10 @@ void DNS_Mapping::Init(struct hostent* h)
 		addrs = new IPAddr[num_addrs];
 		for ( int i = 0; i < num_addrs; ++i )
 			if ( h->h_addrtype == AF_INET )
-				addrs[i] = IPAddr(IPv4, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv4, (uint32_t*)h->h_addr_list[i],
 				                  IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs[i] = IPAddr(IPv6, (uint32*)h->h_addr_list[i],
+				addrs[i] = IPAddr(IPv6, (uint32_t*)h->h_addr_list[i],
 				                  IPAddr::Network);
 		}
 	else
@@ -473,7 +473,7 @@ void DNS_Mgr::InitPostScript()
 
 static TableVal* fake_name_lookup_result(const char* name)
 	{
-	uint32 hash[4];
+	uint32_t hash[4];
 	internal_md5(reinterpret_cast<const u_char*>(name), strlen(name),
 	    reinterpret_cast<u_char*>(hash));
 	ListVal* hv = new ListVal(TYPE_ADDR);

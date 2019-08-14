@@ -54,7 +54,7 @@ public:
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
-	uint32 GetAccessCount() const { return access_count; }
+	uint32_t GetAccessCount() const { return access_count; }
 
 	void Describe(ODesc* d) const override;
 
@@ -83,7 +83,7 @@ protected:
 
 	// FIXME: Learn the exact semantics of mutable.
 	mutable double last_access;	// time of last execution
-	mutable uint32 access_count;	// number of executions
+	mutable uint32_t access_count;	// number of executions
 };
 
 class ExprListStmt : public Stmt {

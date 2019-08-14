@@ -180,7 +180,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
@@ -208,7 +208,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 */
-	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -269,7 +269,7 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
 				TransportProto proto, Tag analyzer, double timeout);
 
 	/**
@@ -293,7 +293,7 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
 				TransportProto proto, const char* analyzer,
 				double timeout);
 
@@ -339,15 +339,15 @@ public:
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
 	 */
-	const std::vector<uint16>& GetVxlanPorts() const
+	const std::vector<uint16_t>& GetVxlanPorts() const
 		{ return vxlan_ports; }
 
 private:
 	typedef set<Tag> tag_set;
-	typedef map<uint32, tag_set*> analyzer_map_by_port;
+	typedef map<uint32_t, tag_set*> analyzer_map_by_port;
 
 	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
-	tag_set* LookupPort(TransportProto proto, uint32 port, bool add_if_not_found);
+	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
@@ -365,11 +365,11 @@ private:
 	struct ConnIndex {
 		IPAddr orig;
 		IPAddr resp;
-		uint16 resp_p;
-		uint16 proto;
+		uint16_t resp_p;
+		uint16_t proto;
 
 		ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-			     uint16 _resp_p, uint16 _proto);
+			     uint16_t _resp_p, uint16_t _proto);
 		ConnIndex();
 
 		bool operator<(const ConnIndex& other) const;
@@ -395,7 +395,7 @@ private:
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
-	std::vector<uint16> vxlan_ports;
+	std::vector<uint16_t> vxlan_ports;
 };
 
 }

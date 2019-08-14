@@ -249,12 +249,12 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 
 	if ( load_sample )
 		{
-		static uint32 load_freq = 0;
+		static uint32_t load_freq = 0;
 
 		if ( load_freq == 0 )
-			load_freq = uint32(0xffffffff) / uint32(load_sample_freq);
+			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
 
-		if ( uint32(bro_random() & 0xffffffff) < load_freq )
+		if ( uint32_t(bro_random() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.

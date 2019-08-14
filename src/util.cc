@@ -453,14 +453,14 @@ template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
 template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 
-char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix)
+char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	{
 	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	assert(n);
 
 	int i = 0;
-	uint64 v;
+	uint64_t v;
 	char* p, *q;
 	char c;
 
@@ -707,10 +707,10 @@ std::string strstrip(std::string s)
 	}
 
 bool hmac_key_set = false;
-uint8 shared_hmac_md5_key[16];
+uint8_t shared_hmac_md5_key[16];
 
 bool siphash_key_set = false;
-uint8 shared_siphash_key[SIPHASH_KEYLEN];
+uint8_t shared_siphash_key[SIPHASH_KEYLEN];
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
@@ -725,8 +725,8 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	internal_md5(digest, 16, digest);
 	}
 
-static bool read_random_seeds(const char* read_file, uint32* seed,
-				uint32* buf, int bufsiz)
+static bool read_random_seeds(const char* read_file, uint32_t* seed,
+				uint32_t* buf, int bufsiz)
 	{
 	FILE* f = 0;
 
@@ -761,8 +761,8 @@ static bool read_random_seeds(const char* read_file, uint32* seed,
 	return true;
 	}
 
-static bool write_random_seeds(const char* write_file, uint32 seed,
-				uint32* buf, int bufsiz)
+static bool write_random_seeds(const char* write_file, uint32_t seed,
+				uint32_t* buf, int bufsiz)
 	{
 	FILE* f = 0;
 
@@ -806,11 +806,11 @@ void bro_srandom(unsigned int seed)
 void init_random_seed(const char* read_file, const char* write_file)
 	{
 	static const int bufsiz = 20;
-	uint32 buf[bufsiz];
+	uint32_t buf[bufsiz];
 	memset(buf, 0, sizeof(buf));
 	int pos = 0;	// accumulates entropy
 	bool seeds_done = false;
-	uint32 seed = 0;
+	uint32_t seed = 0;
 
 	if ( read_file )
 		{
@@ -825,7 +825,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 		{
 		// Gather up some entropy.
 		gettimeofday((struct timeval *)(buf + pos), 0);
-		pos += sizeof(struct timeval) / sizeof(uint32);
+		pos += sizeof(struct timeval) / sizeof(uint32_t);
 
 		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
 #if defined(O_NONBLOCK)
@@ -839,11 +839,11 @@ void init_random_seed(const char* read_file, const char* write_file)
 		if ( fd >= 0 )
 			{
 			int amt = read(fd, buf + pos,
-					sizeof(uint32) * (bufsiz - pos));
+					sizeof(uint32_t) * (bufsiz - pos));
 			safe_close(fd);
 
 			if ( amt > 0 )
-				pos += amt / sizeof(uint32);
+				pos += amt / sizeof(uint32_t);
 			else
 				// Clear errno, which can be set on some
 				// systems due to a lack of entropy.
@@ -930,9 +930,9 @@ long int bro_random()
 	}
 
 // Returns a 64-bit random string.
-uint64 rand64bit()
+uint64_t rand64bit()
 	{
-	uint64 base = 0;
+	uint64_t base = 0;
 	int i;
 
 	for ( i = 1; i <= 4; ++i )
@@ -1545,12 +1545,12 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b)
 
 struct UIDEntry {
 	UIDEntry() : key(0, 0), needs_init(true) { }
-	UIDEntry(const uint64 i) : key(i, 0), needs_init(false) { }
+	UIDEntry(const uint64_t i) : key(i, 0), needs_init(false) { }
 
 	struct UIDKey {
-		UIDKey(uint64 i, uint64 c) : instance(i), counter(c) { }
-		uint64 instance;
-		uint64 counter;
+		UIDKey(uint64_t i, uint64_t c) : instance(i), counter(c) { }
+		uint64_t instance;
+		uint64_t counter;
 	} key;
 
 	bool needs_init;
@@ -1558,14 +1558,14 @@ struct UIDEntry {
 
 static std::vector<UIDEntry> uid_pool;
 
-uint64 calculate_unique_id()
+uint64_t calculate_unique_id()
 	{
 	return calculate_unique_id(UID_POOL_DEFAULT_INTERNAL);
 	}
 
-uint64 calculate_unique_id(size_t pool)
+uint64_t calculate_unique_id(size_t pool)
 	{
-	uint64 uid_instance = 0;
+	uint64_t uid_instance = 0;
 
 	if( pool >= uid_pool.size() )
 		{
@@ -1589,7 +1589,7 @@ uint64 calculate_unique_id(size_t pool)
 			// globally unique.
 			struct {
 				char hostname[120];
-				uint64 pool;
+				uint64_t pool;
 				struct timeval time;
 				pid_t pid;
 				int rnd;
@@ -1599,7 +1599,7 @@ uint64 calculate_unique_id(size_t pool)
 			gethostname(unique.hostname, 120);
 			unique.hostname[sizeof(unique.hostname)-1] = '\0';
 			gettimeofday(&unique.time, 0);
-			unique.pool = (uint64) pool;
+			unique.pool = (uint64_t) pool;
 			unique.pid = getpid();
 			unique.rnd = bro_random();
 
@@ -1706,9 +1706,9 @@ extern "C" void out_of_memory(const char* where)
 	abort();
 	}
 
-void get_memory_usage(uint64* total, uint64* malloced)
+void get_memory_usage(uint64_t* total, uint64_t* malloced)
 	{
-	uint64 ret_total;
+	uint64_t ret_total;
 
 #ifdef HAVE_MALLINFO
 	struct mallinfo mi = mallinfo();

@@ -11,12 +11,12 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 
-uint64 killed_by_inactivity = 0;
+uint64_t killed_by_inactivity = 0;
 
-uint64 tot_ack_events = 0;
-uint64 tot_ack_bytes = 0;
-uint64 tot_gap_events = 0;
-uint64 tot_gap_bytes = 0;
+uint64_t tot_ack_events = 0;
+uint64_t tot_ack_bytes = 0;
+uint64_t tot_gap_events = 0;
+uint64_t tot_gap_bytes = 0;
 
 
 class ProfileTimer : public Timer {
@@ -79,7 +79,7 @@ void ProfileLogger::Log()
 	struct timeval tv_utime = r.ru_utime;
 	struct timeval tv_stime = r.ru_stime;
 
-	uint64 total, malloced;
+	uint64_t total, malloced;
 	get_memory_usage(&total, &malloced);
 
 	static unsigned int first_total = 0;
@@ -461,7 +461,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 		double curr_Rtime =
 			ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
 
-		uint64 curr_mem;
+		uint64_t curr_mem;
 		get_memory_usage(&curr_mem, 0);
 
 		file->Write(fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",

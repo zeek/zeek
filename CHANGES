@@ -1,4 +1,8 @@
 
+3.1.0-dev.54 | 2019-08-14 15:38:02 -0700
+
+  * Deprecate int/uint{8,16,32,64} typedefs, replace with actual cstdint types (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.52 | 2019-08-14 13:46:40 -0700
 
   * Change file_analysis::Manager::ignored to use std::set (Jon Siwek, Corelight)

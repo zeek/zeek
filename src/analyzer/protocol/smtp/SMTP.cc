@@ -78,7 +78,7 @@ void SMTP_Analyzer::Done()
 		EndData();
 	}
 
-void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
+void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 

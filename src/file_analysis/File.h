@@ -65,7 +65,7 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
-	bool SetExtractionLimit(RecordVal* args, uint64 bytes);
+	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
@@ -86,7 +86,7 @@ public:
 	 * Set "total_bytes" field of #val record to \a size.
 	 * @param size the new value of the "total_bytes" field.
 	 */
-	void SetTotalBytes(uint64 size);
+	void SetTotalBytes(uint64_t size);
 
 	/**
 	 * @return true if file analysis is complete for the file, else false.
@@ -131,14 +131,14 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @param offset number of bytes from start of file at which chunk occurs.
 	 */
-	void DataIn(const u_char* data, uint64 len, uint64 offset);
+	void DataIn(const u_char* data, uint64_t len, uint64_t offset);
 
 	/**
 	 * Pass in sequential data and deliver to attached analyzers.
 	 * @param data pointer to start of a chunk of file data.
 	 * @param len number of bytes in the data chunk.
 	 */
-	void DataIn(const u_char* data, uint64 len);
+	void DataIn(const u_char* data, uint64_t len);
 
 	/**
 	 * Inform attached analyzers about end of file being seen.
@@ -150,7 +150,7 @@ public:
 	 * @param offset number of bytes in to file at which missing chunk starts.
 	 * @param len length in bytes of the missing chunk of file data.
 	 */
-	void Gap(uint64 offset, uint64 len);
+	void Gap(uint64_t offset, uint64_t len);
 
 	/**
 	 * @param h pointer to an event handler.
@@ -203,7 +203,7 @@ public:
 	 * Whether to permit a weird to carry on through the full reporter/weird
 	 * framework.
 	 */
-	bool PermitWeird(const char* name, uint64 threshold, uint64 rate,
+	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
 	                 double duration);
 
 protected:
@@ -243,7 +243,7 @@ protected:
 	 * @param size number of bytes by which to increment.
 	 * @param field_idx the index of the field in \c fa_file to increment.
 	 */
-	void IncrementByteCount(uint64 size, int field_idx);
+	void IncrementByteCount(uint64_t size, int field_idx);
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
@@ -251,7 +251,7 @@ protected:
 	 * @param idx the index of a field of type "count" in \c fa_file.
 	 * @return the value of the field, which may be it &default.
 	 */
-	uint64 LookupFieldDefaultCount(int idx) const;
+	uint64_t LookupFieldDefaultCount(int idx) const;
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
@@ -267,7 +267,7 @@ protected:
 	 * @param len number of bytes in the data chunk.
 	 * @return true if buffering is still required, else false
 	 */
-	bool BufferBOF(const u_char* data, uint64 len);
+	bool BufferBOF(const u_char* data, uint64_t len);
 
 	/**
 	 * Does metadata inference (e.g. mime type detection via file
@@ -291,17 +291,17 @@ protected:
 	/**
 	 * Set a maximum allowed bytes of memory for file reassembly for this file.
 	 */
-	void SetReassemblyBuffer(uint64 max);
+	void SetReassemblyBuffer(uint64_t max);
 
 	/**
 	 * Perform stream-wise delivery for analyzers that need it.
 	 */
-	void DeliverStream(const u_char* data, uint64 len);
+	void DeliverStream(const u_char* data, uint64_t len);
 
 	/** 
 	 * Perform chunk-wise delivery for analyzers that need it.
 	 */
-	void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+	void DeliverChunk(const u_char* data, uint64_t len, uint64_t offset);
 
 	/**
 	 * Lookup a record field index/offset by name.
@@ -320,8 +320,8 @@ protected:
 	string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
-	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
-	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
+	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
+	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
 	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
@@ -335,7 +335,7 @@ protected:
 			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
 
 		bool full;
-		uint64 size;
+		uint64_t size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
 

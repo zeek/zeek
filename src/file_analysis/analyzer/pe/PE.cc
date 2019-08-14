@@ -17,7 +17,7 @@ PE::~PE()
 	delete conn;
 	}
 
-bool PE::DeliverStream(const u_char* data, uint64 len)
+bool PE::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( conn->is_done() )
 		return false;

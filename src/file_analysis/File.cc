@@ -162,10 +162,10 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		}
 	}
 
-uint64 File::LookupFieldDefaultCount(int idx) const
+uint64_t File::LookupFieldDefaultCount(int idx) const
 	{
 	Val* v = val->LookupWithDefault(idx);
-	uint64 rval = v->AsCount();
+	uint64_t rval = v->AsCount();
 	Unref(v);
 	return rval;
 	}
@@ -211,7 +211,7 @@ void File::SetTimeoutInterval(double interval)
 	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
 	}
 
-bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
+bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
 	{
 	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
 
@@ -227,13 +227,13 @@ bool File::SetExtractionLimit(RecordVal* args, uint64 bytes)
 	return true;
 	}
 
-void File::IncrementByteCount(uint64 size, int field_idx)
+void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
-	uint64 old = LookupFieldDefaultCount(field_idx);
+	uint64_t old = LookupFieldDefaultCount(field_idx);
 	val->Assign(field_idx, val_mgr->GetCount(old + size));
 	}
 
-void File::SetTotalBytes(uint64 size)
+void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
 	val->Assign(total_bytes_idx, val_mgr->GetCount(size));
@@ -287,7 +287,7 @@ void File::DisableReassembly()
 	file_reassembler = 0;
 	}
 
-void File::SetReassemblyBuffer(uint64 max)
+void File::SetReassemblyBuffer(uint64_t max)
 	{
 	reassembly_max_buffer = max;
 	}
@@ -332,7 +332,7 @@ void File::InferMetadata()
 
 	RuleMatcher::MIME_Matches matches;
 	const u_char* data = bof_buffer_val->AsString()->Bytes();
-	uint64 len = bof_buffer_val->AsString()->Len();
+	uint64_t len = bof_buffer_val->AsString()->Len();
 	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
@@ -350,12 +350,12 @@ void File::InferMetadata()
 	return;
 	}
 
-bool File::BufferBOF(const u_char* data, uint64 len)
+bool File::BufferBOF(const u_char* data, uint64_t len)
 	{
 	if ( bof_buffer.full )
 		return false;
 
-	uint64 desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
+	uint64_t desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
 	bof_buffer.chunks.push_back(new BroString(data, len, 0));
 	bof_buffer.size += len;
@@ -374,7 +374,7 @@ bool File::BufferBOF(const u_char* data, uint64 len)
 	return false;
 	}
 
-void File::DeliverStream(const u_char* data, uint64 len)
+void File::DeliverStream(const u_char* data, uint64_t len)
 	{
 	bool bof_was_full = bof_buffer.full;
 	// Buffer enough data for the BOF buffer
@@ -388,7 +388,7 @@ void File::DeliverStream(const u_char* data, uint64 len)
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64)40, len)),
+	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = 0;
@@ -407,7 +407,7 @@ void File::DeliverStream(const u_char* data, uint64 len)
 				// as it will get delivered on its own.
 				num_bof_chunks_behind -= 1;
 
-			uint64 bytes_delivered = 0;
+			uint64_t bytes_delivered = 0;
 
 			// Catch this analyzer up with the BOF buffer.
 			for ( int i = 0; i < num_bof_chunks_behind; ++i )
@@ -444,7 +444,7 @@ void File::DeliverStream(const u_char* data, uint64 len)
 	IncrementByteCount(len, seen_bytes_idx);
 	}
 
-void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	// Potentially handle reassembly and deliver to the stream analyzers.
 	if ( file_reassembler )
@@ -452,8 +452,8 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 		if ( reassembly_max_buffer > 0 &&
 		     reassembly_max_buffer < file_reassembler->TotalSize() )
 			{
-			uint64 current_offset = stream_offset;
-			uint64 gap_bytes = file_reassembler->Flush();
+			uint64_t current_offset = stream_offset;
+			uint64_t gap_bytes = file_reassembler->Flush();
 			IncrementByteCount(gap_bytes, overflow_bytes_idx);
 
 			if ( FileEventAvailable(file_reassembly_overflow) )
@@ -492,7 +492,7 @@ void File::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64)40, len)),
+	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = 0;
@@ -520,14 +520,14 @@ void File::DoneWithAnalyzer(Analyzer* analyzer)
 	done_analyzers.push_back(analyzer);
 	}
 
-void File::DataIn(const u_char* data, uint64 len, uint64 offset)
+void File::DataIn(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	analyzers.DrainModifications();
 	DeliverChunk(data, len, offset);
 	analyzers.DrainModifications();
 	}
 
-void File::DataIn(const u_char* data, uint64 len)
+void File::DataIn(const u_char* data, uint64_t len)
 	{
 	analyzers.DrainModifications();
 	DeliverChunk(data, len, stream_offset);
@@ -573,7 +573,7 @@ void File::EndOfFile()
 	analyzers.DrainModifications();
 	}
 
-void File::Gap(uint64 offset, uint64 len)
+void File::Gap(uint64_t offset, uint64_t len)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Gap of size %" PRIu64 " at offset %" PRIu64,
 		id.c_str(), len, offset);
@@ -649,7 +649,7 @@ void File::FileEvent(EventHandlerPtr h, val_list vl)
 		}
 	}
 
-bool File::PermitWeird(const char* name, uint64 threshold, uint64 rate,
+bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                        double duration)
 	{
 	return ::PermitWeird(weird_state, name, threshold, rate, duration);

@@ -37,7 +37,7 @@ enum ip_addr_anonymization_method_t {
 	NUM_ADDR_ANONYMIZATION_METHODS,
 };
 
-typedef uint32 ipaddr32_t;
+typedef uint32_t ipaddr32_t;
 
 // NOTE: all addresses in parameters of *public* functions are in
 // network order.

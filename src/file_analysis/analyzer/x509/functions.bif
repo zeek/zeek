@@ -41,7 +41,7 @@ X509_STORE* x509_get_root_store(TableVal* root_certs)
 		Val* key = idxs->Index(i);
 		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
 		assert(sv);
-		const uint8* data = sv->Bytes();
+		const uint8_t* data = sv->Bytes();
 		X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
@@ -710,7 +710,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		}
 
 	unsigned char *cert_out = nullptr;
-	uint32 cert_length;
+	uint32_t cert_length;
 	if ( precert )
 		{
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
@@ -724,7 +724,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	else
 		cert_length = i2d_X509(x, &cert_out);
 	assert( cert_out );
-	uint32 cert_length_network = htonl(cert_length);
+	uint32_t cert_length_network = htonl(cert_length);
 	assert( sizeof(cert_length_network) == 4);
 
 	data.append(reinterpret_cast<const char*>(&cert_length_network)+1, 3); // 3 bytes certificate length

@@ -609,7 +609,7 @@ public:
 		{
 		struct {
 			in6_addr ip;
-			uint32 len;
+			uint32_t len;
 		} key;
 
 		key.ip = prefix.in6;

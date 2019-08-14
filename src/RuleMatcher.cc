@@ -23,14 +23,14 @@
 //		  - tcp-state always evaluates to true
 //			(implemented but deactivated for comparison to Snort)
 
-uint32 RuleHdrTest::idcounter = 0;
+uint32_t RuleHdrTest::idcounter = 0;
 
 static bool is_member_of(const int_list& l, int_list::value_type v)
 	{
 	return std::find(l.begin(), l.end(), v) != l.end();
 	}
 
-RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
+RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 				Comp arg_comp, maskedvalue_list* arg_vals)
 	{
 	prot = arg_prot;
@@ -428,17 +428,17 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 	}
 
 // Get a 8/16/32-bit value from the given position in the packet header
-static inline uint32 getval(const u_char* data, int size)
+static inline uint32_t getval(const u_char* data, int size)
 	{
 	switch ( size ) {
 	case 1:
-		return *(uint8*) data;
+		return *(uint8_t*) data;
 
 	case 2:
-		return ntohs(*(uint16*) data);
+		return ntohs(*(uint16_t*) data);
 
 	case 4:
-		return ntohl(*(uint32*) data);
+		return ntohl(*(uint32_t*) data);
 
 	default:
 		reporter->InternalError("illegal HdrTest size");
@@ -451,7 +451,7 @@ static inline uint32 getval(const u_char* data, int size)
 
 // Evaluate a value list (matches if at least one value matches).
 template <typename FuncT>
-static inline bool match_or(const maskedvalue_list& mvals, uint32 v, FuncT comp)
+static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT comp)
 	{
 	// TODO: this could be a find_if
 	for ( const auto& val : mvals )
@@ -479,7 +479,7 @@ static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
 
 // Evaluate a value list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const maskedvalue_list& mvals, uint32 v,
+static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
                                  FuncT comp)
 	{
 	// TODO: this could be a find_if
@@ -506,32 +506,32 @@ static inline bool match_not_and(const vector<IPPrefix>& prefixes,
 	return true;
 	}
 
-static inline bool compare(const maskedvalue_list& mvals, uint32 v,
+static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
                            RuleHdrTest::Comp comp)
 	{
 	switch ( comp ) {
 		case RuleHdrTest::EQ:
-			return match_or(mvals, v, std::equal_to<uint32>());
+			return match_or(mvals, v, std::equal_to<uint32_t>());
 			break;
 
 		case RuleHdrTest::NE:
-			return match_not_and(mvals, v, std::equal_to<uint32>());
+			return match_not_and(mvals, v, std::equal_to<uint32_t>());
 			break;
 
 		case RuleHdrTest::LT:
-			return match_or(mvals, v, std::less<uint32>());
+			return match_or(mvals, v, std::less<uint32_t>());
 			break;
 
 		case RuleHdrTest::GT:
-			return match_or(mvals, v, std::greater<uint32>());
+			return match_or(mvals, v, std::greater<uint32_t>());
 			break;
 
 		case RuleHdrTest::LE:
-			return match_or(mvals, v, std::less_equal<uint32>());
+			return match_or(mvals, v, std::less_equal<uint32_t>());
 			break;
 
 		case RuleHdrTest::GE:
-			return match_or(mvals, v, std::greater_equal<uint32>());
+			return match_or(mvals, v, std::greater_equal<uint32_t>());
 			break;
 
 		default:
@@ -617,7 +617,7 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	}
 
 RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
-                                              const u_char* data, uint64 len,
+                                              const u_char* data, uint64_t len,
                                               MIME_Matches* rval) const
 	{
 	if ( ! rval )
@@ -1281,8 +1281,8 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 				}
 			else
 				{
-				const uint32* n;
-				uint32 m[4];
+				const uint32_t* n;
+				uint32_t m[4];
 				v->AsSubNet().Prefix().GetBytes(&n);
 				v->AsSubNetVal()->Mask().CopyIPv6(m);
 
@@ -1370,7 +1370,7 @@ error:
 	return dummy;
 	}
 
-uint32 id_to_uint(const char* id)
+uint32_t id_to_uint(const char* id)
 	{
 	Val* v = get_bro_val(id);
 	if ( ! v )

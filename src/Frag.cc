@@ -97,9 +97,9 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		// Linux MTU discovery for UDP can do this, for example.
 		s->Weird("fragment_with_DF", ip);
 
-	uint16 offset = ip->FragOffset();
-	uint32 len = ip->TotalLen();
-	uint16 hdr_len = ip->HdrLen();
+	uint16_t offset = ip->FragOffset();
+	uint32_t len = ip->TotalLen();
+	uint16_t hdr_len = ip->HdrLen();
 
 	if ( len < hdr_len )
 		{
@@ -107,7 +107,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		return;
 		}
 
-	uint64 upper_seq = offset + len - hdr_len;
+	uint64_t upper_seq = offset + len - hdr_len;
 
 	if ( ! offset )
 		// Make sure to use the first fragment header's next field.
@@ -178,7 +178,7 @@ void FragReassembler::Weird(const char* name) const
 		}
 	}
 
-void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
+void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( memcmp((const void*) b1, (const void*) b2, n) )
 		Weird("fragment_inconsistency");
@@ -231,7 +231,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 		return;
 
 	// We have it all.  Compute the expected size of the fragment.
-	uint64 n = proto_hdr_len + frag_size;
+	uint64_t n = proto_hdr_len + frag_size;
 
 	// It's possible that we have blocks associated with this fragment
 	// that exceed this size, if we saw MF fragments (which don't lead

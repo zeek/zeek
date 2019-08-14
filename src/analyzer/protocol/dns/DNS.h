@@ -143,7 +143,7 @@ struct RRSIG_DATA {
 	unsigned short type_covered;	// 16 : ExtractShort(data, len)
 	unsigned short algorithm;		// 8
 	unsigned short labels;			// 8
-	uint32 orig_ttl;				// 32
+	uint32_t orig_ttl;				// 32
 	unsigned long sig_exp;			// 32
 	unsigned long sig_incep;		// 32
 	unsigned short key_tag;			//16
@@ -208,7 +208,7 @@ public:
 	StringVal* query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
-	uint32 ttl;
+	uint32_t ttl;
 
 	DNS_AnswerType answer_type;
 	int skip_event;		///< if true, don't generate corresponding events
@@ -249,8 +249,8 @@ protected:
 			 u_char*& label, int& label_len,
 			 const u_char* msg_start);
 
-	uint16 ExtractShort(const u_char*& data, int& len);
-	uint32 ExtractLong(const u_char*& data, int& len);
+	uint16_t ExtractShort(const u_char*& data, int& len);
+	uint32_t ExtractLong(const u_char*& data, int& len);
 	void ExtractOctets(const u_char*& data, int& len, BroString** p);
 
 	BroString* ExtractStream(const u_char*& data, int& len, int sig_len);
@@ -353,7 +353,7 @@ public:
 	~DNS_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void Init() override;
 	void Done() override;

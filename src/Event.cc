@@ -10,8 +10,8 @@
 
 EventMgr mgr;
 
-uint64 num_events_queued = 0;
-uint64 num_events_dispatched = 0;
+uint64_t num_events_queued = 0;
+uint64_t num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
 		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,

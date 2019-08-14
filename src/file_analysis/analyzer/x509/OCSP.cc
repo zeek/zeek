@@ -135,13 +135,13 @@ file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_r
 	{
 	}
 
-bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64 len)
+bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64_t len)
 	{
 	ocsp_data.append(reinterpret_cast<const char*>(data), len);
 	return true;
 	}
 
-bool file_analysis::OCSP::Undelivered(uint64 offset, uint64 len)
+bool file_analysis::OCSP::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
@@ -365,7 +365,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	return val_mgr->GetCount(asn1_int);
 	}
 
-static uint64 parse_request_version(OCSP_REQUEST* req)
+static uint64_t parse_request_version(OCSP_REQUEST* req)
 	{
 	int der_req_len = 0;
 	unsigned char* der_req_dat = nullptr;
@@ -414,11 +414,11 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
-	uint64 version = 0;
+	uint64_t version = 0;
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	if ( req->tbsRequest->version )
-		version = (uint64)ASN1_INTEGER_get(req->tbsRequest->version);
+		version = (uint64_t)ASN1_INTEGER_get(req->tbsRequest->version);
 #else
 	version = parse_request_version(req);
 	// TODO: try to parse out general name ?
@@ -507,7 +507,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	vl.push_back(status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-	vl.push_back(val_mgr->GetCount((uint64)ASN1_INTEGER_get(resp_data->version)));
+	vl.push_back(val_mgr->GetCount((uint64_t)ASN1_INTEGER_get(resp_data->version)));
 #else
 	vl.push_back(parse_basic_resp_data_version(basic_resp));
 #endif

@@ -74,7 +74,7 @@ BPF_Program::~BPF_Program()
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask,
 			  char* errbuf, unsigned int errbuf_len, bool optimize)
 	{
 	if ( ! pcap )
@@ -99,7 +99,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 	}
 
 bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
-			  uint32 netmask, char* errbuf, unsigned int errbuf_len,
+			  uint32_t netmask, char* errbuf, unsigned int errbuf_len,
 			  bool optimize)
 	{
 	FreeCode();

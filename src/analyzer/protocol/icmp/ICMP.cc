@@ -31,7 +31,7 @@ void ICMP_Analyzer::Done()
 	}
 
 void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, uint64 seq, const IP_Hdr* ip, int caplen)
+			bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -238,10 +238,10 @@ RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 	return icmp_conn_val;
 	}
 
-TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port, uint32* dst_port)
+TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* src_port, uint32_t* dst_port)
 	{
 	const u_char* transport_hdr;
-	uint32 ip_hdr_len = ip_hdr->HdrLen();
+	uint32_t ip_hdr_len = ip_hdr->HdrLen();
 	bool ip4 = ip_hdr->IP4_Hdr();
 
 	if ( ip4 )
@@ -308,15 +308,15 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
 	const IP_Hdr* ip_hdr = &ip_hdr_data;
 
-	uint32 ip_hdr_len = ip_hdr->HdrLen();
+	uint32_t ip_hdr_len = ip_hdr->HdrLen();
 
-	uint32 ip_len, frag_offset;
+	uint32_t ip_len, frag_offset;
 	TransportProto proto = TRANSPORT_UNKNOWN;
 	int DF, MF, bad_hdr_len, bad_checksum;
 	IPAddr src_addr, dst_addr;
-	uint32 src_port, dst_port;
+	uint32_t src_port, dst_port;
 
-	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32(len) )
+	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32_t(len) )
 		{
 		// We don't have an entire IP header.
 		bad_hdr_len = 1;
@@ -338,7 +338,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 		MF = ip_hdr->MF();
 		frag_offset = ip_hdr->FragOffset();
 
-		if ( uint32(len) >= ip_hdr_len + 4 )
+		if ( uint32_t(len) >= ip_hdr_len + 4 )
 			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
 		else
 			{
@@ -376,8 +376,8 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 	IPAddr src_addr;
 	IPAddr dst_addr;
-	uint32 ip_len, frag_offset = 0;
-	uint32 src_port, dst_port;
+	uint32_t ip_len, frag_offset = 0;
+	uint32_t src_port, dst_port;
 
 	if ( len < (int)sizeof(struct ip6_hdr) )
 		{
@@ -397,7 +397,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 		MF = ip_hdr->MF();
 		DF = ip_hdr->DF();
 
-		if ( uint32(len) >= uint32(ip_hdr->HdrLen() + 4) )
+		if ( uint32_t(len) >= uint32_t(ip_hdr->HdrLen() + 4) )
 			proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
 		else
 			{
@@ -530,7 +530,7 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	if ( ! f )
 		return;
 
-	uint32 reachable = 0, retrans = 0;
+	uint32_t reachable = 0, retrans = 0;
 
 	if ( caplen >= (int)sizeof(reachable) )
 		memcpy(&reachable, data, sizeof(reachable));
@@ -744,8 +744,8 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			break;
 			}
 
-		uint8 type = *((const uint8*)data);
-		uint8 length = *((const uint8*)(data + 1));
+		uint8_t type = *((const uint8_t*)data);
+		uint8_t length = *((const uint8_t*)(data + 1));
 
 		if ( length == 0 )
 			{
@@ -788,11 +788,11 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			if ( caplen >= 30 )
 				{
 				RecordVal* info = new RecordVal(icmp6_nd_prefix_info_type);
-				uint8 prefix_len = *((const uint8*)(data));
-				bool L_flag = (*((const uint8*)(data + 1)) & 0x80) != 0;
-				bool A_flag = (*((const uint8*)(data + 1)) & 0x40) != 0;
-				uint32 valid_life = *((const uint32*)(data + 2));
-				uint32 prefer_life = *((const uint32*)(data + 6));
+				uint8_t prefix_len = *((const uint8_t*)(data));
+				bool L_flag = (*((const uint8_t*)(data + 1)) & 0x80) != 0;
+				bool A_flag = (*((const uint8_t*)(data + 1)) & 0x40) != 0;
+				uint32_t valid_life = *((const uint32_t*)(data + 2));
+				uint32_t prefer_life = *((const uint32_t*)(data + 6));
 				in6_addr prefix = *((const in6_addr*)(data + 14));
 				info->Assign(0, val_mgr->GetCount(prefix_len));
 				info->Assign(1, val_mgr->GetBool(L_flag));
@@ -827,7 +827,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			// MTU option
 			{
 			if ( caplen >= 6 )
-				rv->Assign(5, val_mgr->GetCount(ntohl(*((const uint32*)(data + 2)))));
+				rv->Assign(5, val_mgr->GetCount(ntohl(*((const uint32_t*)(data + 2)))));
 			else
 				set_payload_field = true;
 

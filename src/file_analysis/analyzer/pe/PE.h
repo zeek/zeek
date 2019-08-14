@@ -19,7 +19,7 @@ public:
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new PE(args, file); }
 
-	virtual bool DeliverStream(const u_char* data, uint64 len);
+	virtual bool DeliverStream(const u_char* data, uint64_t len);
 
 	virtual bool EndOfFile();
 

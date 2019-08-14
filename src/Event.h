@@ -49,8 +49,8 @@ protected:
 	Event* next_event;
 };
 
-extern uint64 num_events_queued;
-extern uint64 num_events_dispatched;
+extern uint64_t num_events_queued;
+extern uint64_t num_events_dispatched;
 
 class EventMgr : public BroObj {
 public:

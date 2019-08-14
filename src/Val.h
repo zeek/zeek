@@ -97,7 +97,7 @@ public:
 		}
 
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(int32 i, TypeTag t)
+	Val(int32_t i, TypeTag t)
 		{
 		val.int_val = bro_int_t(i);
 		type = base_type(t);
@@ -107,7 +107,7 @@ public:
 		}
 
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(uint32 u, TypeTag t)
+	Val(uint32_t u, TypeTag t)
 		{
 		val.uint_val = bro_uint_t(u);
 		type = base_type(t);
@@ -117,7 +117,7 @@ public:
 		}
 
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(int64 i, TypeTag t)
+	Val(int64_t i, TypeTag t)
 		{
 		val.int_val = i;
 		type = base_type(t);
@@ -127,7 +127,7 @@ public:
 		}
 
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(uint64 u, TypeTag t)
+	Val(uint64_t u, TypeTag t)
 		{
 		val.uint_val = u;
 		type = base_type(t);
@@ -434,15 +434,15 @@ class PortManager {
 public:
 	// Port number given in host order.
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal* Get(uint32 port_num, TransportProto port_type) const;
+	PortVal* Get(uint32_t port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal* Get(uint32 port_num) const;
+	PortVal* Get(uint32_t port_num) const;
 
 	// Returns a masked port number
 	ZEEK_DEPRECATED("Remove in v3.1: use PortVal::Mask() instead")
-	uint32 Mask(uint32 port_num, TransportProto port_type) const;
+	uint32_t Mask(uint32_t port_num, TransportProto port_type) const;
 };
 
 extern PortManager* port_mgr;
@@ -471,13 +471,13 @@ public:
 	inline Val* GetBool(bool b) const
 		{ return b ? b_true->Ref() : b_false->Ref(); }
 
-	inline Val* GetInt(int64 i) const
+	inline Val* GetInt(int64_t i) const
 		{
 		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
 		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
 		}
 
-	inline Val* GetCount(uint64 i) const
+	inline Val* GetCount(uint64_t i) const
 		{
 		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i]->Ref();
 		}
@@ -485,10 +485,10 @@ public:
 	StringVal* GetEmptyString() const;
 
 	// Port number given in host order.
-	PortVal* GetPort(uint32 port_num, TransportProto port_type) const;
+	PortVal* GetPort(uint32_t port_num, TransportProto port_type) const;
 
 	// Host-order port number already masked with port space protocol mask.
-	PortVal* GetPort(uint32 port_num) const;
+	PortVal* GetPort(uint32_t port_num) const;
 
 private:
 
@@ -524,16 +524,16 @@ class PortVal : public Val {
 public:
 	// Port number given in host order.
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal(uint32 p, TransportProto port_type);
+	PortVal(uint32_t p, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
 	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	explicit PortVal(uint32 p);
+	explicit PortVal(uint32_t p);
 
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
 
 	// Returns the port number in host order (not including the mask).
-	uint32 Port() const;
+	uint32_t Port() const;
 	string Protocol() const;
 
 	// Tests for protocol types.
@@ -554,13 +554,13 @@ public:
 		}
 
 	// Returns a masked port number
-	static uint32 Mask(uint32 port_num, TransportProto port_type);
+	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
 protected:
 	friend class Val;
 	friend class ValManager;
 	PortVal()	{}
-	PortVal(uint32 p, bool unused);
+	PortVal(uint32_t p, bool unused);
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
@@ -575,8 +575,8 @@ public:
 	Val* SizeVal() const override;
 
 	// Constructor for address already in network order.
-	explicit AddrVal(uint32 addr);          // IPv4.
-	explicit AddrVal(const uint32 addr[4]); // IPv6.
+	explicit AddrVal(uint32_t addr);          // IPv4.
+	explicit AddrVal(const uint32_t addr[4]); // IPv6.
 	explicit AddrVal(const IPAddr& addr);
 
 	unsigned int MemoryAllocation() const override;
@@ -594,8 +594,8 @@ class SubNetVal : public Val {
 public:
 	explicit SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
-	SubNetVal(uint32 addr, int width); // IPv4.
-	SubNetVal(const uint32 addr[4], int width); // IPv6.
+	SubNetVal(uint32_t addr, int width); // IPv4.
+	SubNetVal(const uint32_t addr[4], int width); // IPv6.
 	SubNetVal(const IPAddr& addr, int width);
 	explicit SubNetVal(const IPPrefix& prefix);
 	~SubNetVal() override;
@@ -1034,7 +1034,7 @@ public:
 	~VectorVal() override;
 
 	Val* SizeVal() const override
-		{ return val_mgr->GetCount(uint32(val.vector_val->size())); }
+		{ return val_mgr->GetCount(uint32_t(val.vector_val->size())); }
 
 	// Returns false if the type of the argument was wrong.
 	// The vector will automatically grow to accomodate the index.

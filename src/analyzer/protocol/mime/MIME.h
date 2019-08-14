@@ -258,7 +258,7 @@ protected:
 
 	BroString* data_buffer;
 
-	uint64 cur_entity_len;
+	uint64_t cur_entity_len;
 	string cur_entity_id;
 };
 

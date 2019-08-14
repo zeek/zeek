@@ -74,7 +74,7 @@ string Manager::HashHandle(const string& handle) const
 	if ( salt.empty() )
 		salt = BifConst::Files::salt->CheckString();
 
-	uint64 hash[2];
+	uint64_t hash[2];
 	string msg(handle + salt);
 
 	internal_md5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
@@ -101,7 +101,7 @@ void Manager::SetHandle(const string& handle)
 	current_file_id = HashHandle(handle);
 	}
 
-string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
+string Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset,
                        analyzer::Tag tag, Connection* conn, bool is_orig,
                        const string& precomputed_id, const string& mime_type)
 	{
@@ -131,7 +131,7 @@ string Manager::DataIn(const u_char* data, uint64 len, uint64 offset,
 	return id;
 	}
 
-string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+string Manager::DataIn(const u_char* data, uint64_t len, analyzer::Tag tag,
 		       Connection* conn, bool is_orig, const string& precomputed_id,
 		       const string& mime_type)
 	{
@@ -157,7 +157,7 @@ string Manager::DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
 	return id;
 	}
 
-void Manager::DataIn(const u_char* data, uint64 len, const string& file_id,
+void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id,
                      const string& source)
 	{
 	File* file = GetFile(file_id, 0, analyzer::Tag::Error, false, false,
@@ -189,7 +189,7 @@ void Manager::EndOfFile(const string& file_id)
 	RemoveFile(file_id);
 	}
 
-string Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+string Manager::Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
                     Connection* conn, bool is_orig, const string& precomputed_id)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
@@ -202,7 +202,7 @@ string Manager::Gap(uint64 offset, uint64 len, analyzer::Tag tag,
 	return id;
 	}
 
-string Manager::SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+string Manager::SetSize(uint64_t size, analyzer::Tag tag, Connection* conn,
                         bool is_orig, const string& precomputed_id)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
@@ -258,7 +258,7 @@ bool Manager::DisableReassembly(const string& file_id)
 	return true;
 	}
 
-bool Manager::SetReassemblyBuffer(const string& file_id, uint64 max)
+bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 	{
 	File* file = LookupFile(file_id);
 
@@ -270,7 +270,7 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64 max)
 	}
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
-                                 uint64 n) const
+                                 uint64_t n) const
 	{
 	File* file = LookupFile(file_id);
 
@@ -494,7 +494,7 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
 	return a;
 	}
 
-RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,
+RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64_t len,
         RuleMatcher::MIME_Matches* rval) const
 	{
 	if ( ! magic_state )
@@ -505,7 +505,7 @@ RuleMatcher::MIME_Matches* Manager::DetectMIME(const u_char* data, uint64 len,
 	return rval;
 	}
 
-string Manager::DetectMIME(const u_char* data, uint64 len) const
+string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	{
 	RuleMatcher::MIME_Matches matches;
 	DetectMIME(data, len, &matches);

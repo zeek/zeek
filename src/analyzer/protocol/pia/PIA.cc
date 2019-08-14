@@ -30,7 +30,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	buffer->size = 0;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
+void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 			bool is_orig, const IP_Hdr* ip)
 	{
 	u_char* tmp = 0;
@@ -79,7 +79,7 @@ void PIA::PIA_Done()
 	FinishEndpointMatcher();
 	}
 
-void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq,
+void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
 				const IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
@@ -261,7 +261,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	stream_buffer.state = new_state;
 	}
 
-void PIA_TCP::Undelivered(uint64 seq, int len, bool is_orig)
+void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -342,8 +342,8 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
 					tcp->Resp());
 
-	uint64 orig_seq = 0;
-	uint64 resp_seq = 0;
+	uint64_t orig_seq = 0;
+	uint64_t resp_seq = 0;
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		{

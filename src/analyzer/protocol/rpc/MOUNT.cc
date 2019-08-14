@@ -19,7 +19,7 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	if ( c->Program() != 100005 )
 		Weird("bad_RPC_program", fmt("%d", c->Program()));
 
-	uint32 proc = c->Proc();
+	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
 	Val *callarg = 0;
 

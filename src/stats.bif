@@ -39,10 +39,10 @@ RecordType* ReporterStats;
 ##              get_reporter_stats
 function get_net_stats%(%): NetStats
 	%{
-	uint64 recv = 0;
-	uint64 drop = 0;
-	uint64 link = 0;
-	uint64 bytes_recv = 0;
+	uint64_t recv = 0;
+	uint64_t drop = 0;
+	uint64_t link = 0;
+	uint64_t bytes_recv = 0;
 
 	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
 
@@ -164,7 +164,7 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, new IntervalVal(user_time, Seconds));
 	r->Assign(n++, new IntervalVal(system_time, Seconds));
 
-	uint64 total_mem;
+	uint64_t total_mem;
 	get_memory_usage(&total_mem, NULL);
 	r->Assign(n++, val_mgr->GetCount(unsigned(total_mem)));
 

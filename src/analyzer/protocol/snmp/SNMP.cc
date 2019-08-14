@@ -25,7 +25,7 @@ void SNMP_Analyzer::Done()
 	}
 
 void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                  uint64 seq, const IP_Hdr* ip, int caplen)
+                                  uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

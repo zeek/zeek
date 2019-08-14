@@ -32,12 +32,12 @@ public:
 	/**
 	 * Type for the analyzer's main type.
 	 */
-	typedef uint32 type_t;
+	typedef uint32_t type_t;
 
 	/**
 	 * Type for the analyzer's subtype.
 	 */
-	typedef uint32 subtype_t;
+	typedef uint32_t subtype_t;
 
 	/**
 	 * Returns the tag's main type.

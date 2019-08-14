@@ -701,17 +701,17 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	DO_UNIT(Microseconds, "usec")
 	}
 
-PortVal* PortManager::Get(uint32 port_num) const
+PortVal* PortManager::Get(uint32_t port_num) const
 	{
 	return val_mgr->GetPort(port_num);
 	}
 
-PortVal* PortManager::Get(uint32 port_num, TransportProto port_type) const
+PortVal* PortManager::Get(uint32_t port_num, TransportProto port_type) const
 	{
 	return val_mgr->GetPort(port_num, port_type);
 	}
 
-uint32 PortVal::Mask(uint32 port_num, TransportProto port_type)
+uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	{
 	// Note, for ICMP one-way connections:
 	// src_port = icmp_type, dst_port = icmp_code.
@@ -742,18 +742,18 @@ uint32 PortVal::Mask(uint32 port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32 p, TransportProto port_type) : Val(TYPE_PORT)
+PortVal::PortVal(uint32_t p, TransportProto port_type) : Val(TYPE_PORT)
 	{
 	auto port_num = PortVal::Mask(p, port_type);
 	val.uint_val = static_cast<bro_uint_t>(port_num);
 	}
 
-PortVal::PortVal(uint32 p, bool unused) : Val(TYPE_PORT)
+PortVal::PortVal(uint32_t p, bool unused) : Val(TYPE_PORT)
 	{
 	val.uint_val = static_cast<bro_uint_t>(p);
 	}
 
-PortVal::PortVal(uint32 p) : Val(TYPE_PORT)
+PortVal::PortVal(uint32_t p) : Val(TYPE_PORT)
 	{
 	if ( p >= 65536 * NUM_PORT_SPACES )
 		{
@@ -764,9 +764,9 @@ PortVal::PortVal(uint32 p) : Val(TYPE_PORT)
 	val.uint_val = static_cast<bro_uint_t>(p);
 	}
 
-uint32 PortVal::Port() const
+uint32_t PortVal::Port() const
 	{
-	uint32 p = static_cast<uint32>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(val.uint_val);
 	return p & ~PORT_SPACE_MASK;
 	}
 
@@ -799,7 +799,7 @@ int PortVal::IsICMP() const
 
 void PortVal::ValDescribe(ODesc* d) const
 	{
-	uint32 p = static_cast<uint32>(val.uint_val);
+	uint32_t p = static_cast<uint32_t>(val.uint_val);
 	d->Add(p & ~PORT_SPACE_MASK);
 	d->Add("/");
 	d->Add(Protocol());
@@ -821,13 +821,13 @@ AddrVal::AddrVal(const std::string& text) : Val(TYPE_ADDR)
 	val.addr_val = new IPAddr(text);
 	}
 
-AddrVal::AddrVal(uint32 addr) : Val(TYPE_ADDR)
+AddrVal::AddrVal(uint32_t addr) : Val(TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
 	val.addr_val = new IPAddr(IPv4, &addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const uint32 addr[4]) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const uint32_t addr[4]) : Val(TYPE_ADDR)
 	{
 	val.addr_val = new IPAddr(IPv6, addr, IPAddr::Network);
 	}
@@ -874,13 +874,13 @@ SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(text, width);
 	}
 
-SubNetVal::SubNetVal(uint32 addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(uint32_t addr, int width) : Val(TYPE_SUBNET)
 	{
 	IPAddr a(IPv4, &addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
 	}
 
-SubNetVal::SubNetVal(const uint32* addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const uint32_t* addr, int width) : Val(TYPE_SUBNET)
 	{
 	IPAddr a(IPv6, addr, IPAddr::Network);
 	val.subnet_val = new IPPrefix(a, width);
@@ -933,17 +933,17 @@ IPAddr SubNetVal::Mask() const
 		{
 		// We need to special-case a mask width of zero, since
 		// the compiler doesn't guarantee that 1 << 32 yields 0.
-		uint32 m[4];
+		uint32_t m[4];
 		for ( unsigned int i = 0; i < 4; ++i )
 			m[i] = 0;
 		IPAddr rval(IPv6, m, IPAddr::Host);
 		return rval;
 		}
 
-	uint32 m[4];
-	uint32* mp = m;
+	uint32_t m[4];
+	uint32_t* mp = m;
 
-	uint32 w;
+	uint32_t w;
 	for ( w = val.subnet_val->Length(); w >= 32; w -= 32 )
 		   *(mp++) = 0xffffffff;
 
@@ -3229,7 +3229,7 @@ StringVal* ValManager::GetEmptyString() const
 	return empty_string;
 	}
 
-PortVal* ValManager::GetPort(uint32 port_num, TransportProto port_type) const
+PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
 	{
 	if ( port_num >= 65536 )
 		{
@@ -3242,7 +3242,7 @@ PortVal* ValManager::GetPort(uint32 port_num, TransportProto port_type) const
 	return rval;
 	}
 
-PortVal* ValManager::GetPort(uint32 port_num) const
+PortVal* ValManager::GetPort(uint32_t port_num) const
 	{
 	auto mask = port_num & PORT_SPACE_MASK;
 	port_num &= ~PORT_SPACE_MASK;

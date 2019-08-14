@@ -28,6 +28,10 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The C++ API typedefs for int{8,16,32,64} and uint{8,16,32,64} are deprecated
+  in favor of the real <cstdint> types they alias.  E.g. use int8_t instead of
+  int8.
+
 Zeek 3.0.0
 ==========
 

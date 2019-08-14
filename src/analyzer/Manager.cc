@@ -19,7 +19,7 @@
 using namespace analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-				     uint16 _resp_p, uint16 _proto)
+				     uint16_t _resp_p, uint16_t _proto)
 	{
 	if ( _orig == IPAddr(string("0.0.0.0")) )
 		// don't use the IPv4 mapping, use the literal unspecified address
@@ -255,7 +255,7 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	return UnregisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
-bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port)
+bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -271,7 +271,7 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port
 	return true;
 	}
 
-bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port)
+bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -326,7 +326,7 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	return tag ? InstantiateAnalyzer(tag, conn) : 0;
 	}
 
-Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32 port, bool add_if_not_found)
+Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found)
 	{
 	analyzer_map_by_port* m = 0;
 
@@ -464,7 +464,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			// handle non-reassembled data, it doesn't really fit into
 			// our general framing ...  Better would be to turn it
 			// on *after* we discover we have interactive traffic.
-			uint16 resp_port = ntohs(conn->RespPort());
+			uint16_t resp_port = ntohs(conn->RespPort());
 			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
 				{
 				AddrVal src(conn->OrigAddr());
@@ -541,7 +541,7 @@ void Manager::ExpireScheduledAnalyzers()
 	}
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
-			uint16 resp_p,
+			uint16_t resp_p,
 			TransportProto proto, Tag analyzer,
 			double timeout)
 	{
@@ -566,7 +566,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 	}
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
-			uint16 resp_p,
+			uint16_t resp_p,
 			TransportProto proto, const char* analyzer,
 			double timeout)
 	{

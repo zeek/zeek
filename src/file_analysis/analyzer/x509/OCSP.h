@@ -15,8 +15,8 @@ namespace file_analysis {
 
 class OCSP : public file_analysis::X509Common {
 public:
-	bool DeliverStream(const u_char* data, uint64 len) override;
-	bool Undelivered(uint64 offset, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
+	bool Undelivered(uint64_t offset, uint64_t len) override;
 	bool EndOfFile() override;
 
 	static file_analysis::Analyzer* InstantiateRequest(RecordVal* args, File* file);

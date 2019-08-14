@@ -153,7 +153,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 			if ( buf + num_octets > *pbuf + blen )
 				break;
 
-			uint32 bit32 =
+			uint32_t bit32 =
 				((base64_group[0] & 0x3f) << 18) |
 				((base64_group[1] & 0x3f) << 12) |
 				((base64_group[2] & 0x3f) << 6)  |

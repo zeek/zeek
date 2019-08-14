@@ -68,8 +68,8 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
-	uint32 GetUniqueFuncID() const { return unique_id; }
-	static Func* GetFuncPtrByID(uint32 id)
+	uint32_t GetUniqueFuncID() const { return unique_id; }
+	static Func* GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
 protected:
@@ -86,7 +86,7 @@ protected:
 	Kind kind;
 	BroType* type;
 	string name;
-	uint32 unique_id;
+	uint32_t unique_id;
 	static vector<Func*> unique_ids;
 };
 

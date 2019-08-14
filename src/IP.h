@@ -20,11 +20,11 @@
 #endif
 
 struct ip6_mobility {
-	uint8 ip6mob_payload;
-	uint8 ip6mob_len;
-	uint8 ip6mob_type;
-	uint8 ip6mob_rsv;
-	uint16 ip6mob_chksum;
+	uint8_t ip6mob_payload;
+	uint8_t ip6mob_len;
+	uint8_t ip6mob_type;
+	uint8_t ip6mob_rsv;
+	uint16_t ip6mob_chksum;
 };
 
 #endif //ENABLE_MOBILE_IPV6
@@ -37,12 +37,12 @@ public:
 	/**
 	 * Construct an IPv6 header or extension header from assigned type number.
 	 */
-	IPv6_Hdr(uint8 t, const u_char* d) : type(t), data(d) {}
+	IPv6_Hdr(uint8_t t, const u_char* d) : type(t), data(d) {}
 
 	/**
 	 * Replace the value of the next protocol field.
 	 */
-	void ChangeNext(uint8 next_type)
+	void ChangeNext(uint8_t next_type)
 		{
 		switch ( type ) {
 		case IPPROTO_IPV6:
@@ -70,7 +70,7 @@ public:
 	 * Returns the assigned IPv6 extension header type number of the header
 	 * that immediately follows this one.
 	 */
-	uint8 NextHdr() const
+	uint8_t NextHdr() const
 		{
 		switch ( type ) {
 		case IPPROTO_IPV6:
@@ -93,7 +93,7 @@ public:
 	/**
 	 * Returns the length of the header in bytes.
 	 */
-	uint16 Length() const
+	uint16_t Length() const
 		{
 		switch ( type ) {
 		case IPPROTO_IPV6:
@@ -119,7 +119,7 @@ public:
 	/**
 	 * Returns the RFC 1700 et seq. IANA assigned number for the header.
 	 */
-	uint8 Type() const { return type; }
+	uint8_t Type() const { return type; }
 
 	/**
 	 * Returns pointer to the start of where header structure resides in memory.
@@ -132,7 +132,7 @@ public:
 	RecordVal* BuildRecordVal(VectorVal* chain = 0) const;
 
 protected:
-	uint8 type;
+	uint8_t type;
 	const u_char* data;
 };
 
@@ -171,7 +171,7 @@ public:
 	/**
 	 * Returns the sum of the length of all headers in the chain in bytes.
 	 */
-	uint16 TotalLength() const { return length; }
+	uint16_t TotalLength() const { return length; }
 
 	/**
 	 * Accesses the header at the given location in the chain.
@@ -203,14 +203,14 @@ public:
 	 * If the header chain is a fragment, returns the offset in number of bytes
 	 * relative to the start of the Fragmentable Part of the original packet.
 	 */
-	uint16 FragOffset() const
+	uint16_t FragOffset() const
 		{ return IsFragment() ?
 				(ntohs(GetFragHdr()->ip6f_offlg) & 0xfff8) : 0; }
 
 	/**
 	 * If the header chain is a fragment, returns the identification field.
 	 */
-	uint32 ID() const
+	uint32_t ID() const
 		{ return IsFragment() ?	ntohl(GetFragHdr()->ip6f_ident) : 0; }
 
 	/**
@@ -282,7 +282,7 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16 next, int len) :
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, int len) :
 #ifdef ENABLE_MOBILE_IPV6
 		homeAddr(0),
 #endif
@@ -295,20 +295,20 @@ protected:
 	 * points to a fragment header.
 	 */
 	void Init(const struct ip6_hdr* ip6, int total_len, bool set_next,
-	          uint16 next = 0);
+	          uint16_t next = 0);
 
 	/**
 	 * Process a routing header and allocate/remember the final destination
 	 * address if it has segments left and is a valid routing header.
 	 */
-	void ProcessRoutingHeader(const struct ip6_rthdr* r, uint16 len);
+	void ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len);
 
 #ifdef ENABLE_MOBILE_IPV6
 	/**
 	 * Inspect a Destination Option header's options for things we need to
 	 * remember, such as the Home Address option from Mobile IPv6.
 	 */
-	void ProcessDstOpts(const struct ip6_dest* d, uint16 len);
+	void ProcessDstOpts(const struct ip6_dest* d, uint16_t len);
 #endif
 
 	vector<IPv6_Hdr*> chain;
@@ -316,7 +316,7 @@ protected:
 	/**
 	 * The summation of all header lengths in the chain in bytes.
 	 */
-	uint16 length;
+	uint16_t length;
 
 #ifdef ENABLE_MOBILE_IPV6
 	/**
@@ -459,7 +459,7 @@ public:
 	 * Returns the length of the IP packet's payload (length of packet minus
 	 * header length or, for IPv6, also minus length of all extension headers).
 	 */
-	uint16 PayloadLen() const
+	uint16_t PayloadLen() const
 		{
 		if ( ip4 )
 			return ntohs(ip4->ip_len) - ip4->ip_hl * 4;
@@ -470,19 +470,19 @@ public:
 	/**
 	 * Returns the length of the IP packet (length of headers and payload).
 	 */
-	uint32 TotalLen() const
+	uint32_t TotalLen() const
 		{ return ip4 ? ntohs(ip4->ip_len) : ntohs(ip6->ip6_plen) + 40; }
 
 	/**
 	 * Returns length of IP packet header (includes extension headers for IPv6).
 	 */
-	uint16 HdrLen() const
+	uint16_t HdrLen() const
 		{ return ip4 ? ip4->ip_hl * 4 : ip6_hdrs->TotalLength(); }
 
 	/**
 	 * For IPv6 header chains, returns the type of the last header in the chain.
 	 */
-	uint8 LastHeader() const
+	uint8_t LastHeader() const
 		{
 		if ( ip4 )
 			return IPPROTO_RAW;
@@ -528,14 +528,14 @@ public:
 	 * Returns the fragment packet's offset in relation to the original
 	 * packet in bytes.
 	 */
-	uint16 FragOffset() const
+	uint16_t FragOffset() const
 		{ return ip4 ? (ntohs(ip4->ip_off) & 0x1fff) * 8 :
 				ip6_hdrs->FragOffset(); }
 
 	/**
 	 * Returns the fragment packet's identification field.
 	 */
-	uint32 ID() const
+	uint32_t ID() const
 		{ return ip4 ? ntohs(ip4->ip_id) : ip6_hdrs->ID(); }
 
 	/**
@@ -554,7 +554,7 @@ public:
 	/**
 	 * Returns value of an IPv6 header's flow label field or 0 if it's IPv4.
 	 */
-	uint32 FlowLabel() const
+	uint32_t FlowLabel() const
 		{ return ip4 ? 0 : (ntohl(ip6->ip6_flow) & 0x000fffff); }
 
 	/**

@@ -59,7 +59,7 @@ private:
 	 * startup time and modified at shutdown time before writing back
 	 * to a file.
 	 */
-	map<pair<string, string>, uint64> usage_map;
+	map<pair<string, string>, uint64_t> usage_map;
 
 	/**
 	 * The character to use to delimit Brofiler output files.  Default is '\t'.

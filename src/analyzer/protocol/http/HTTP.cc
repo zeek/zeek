@@ -1097,7 +1097,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		}
 	}
 
-void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
+void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 

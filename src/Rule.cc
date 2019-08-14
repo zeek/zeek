@@ -68,7 +68,7 @@ void Rule::PrintDebug()
 	}
 
 void Rule::AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset, uint32 depth)
+			uint32_t offset, uint32_t depth)
 	{
 	Pattern* p = new Pattern;
 	p->pattern = copy_string(str);

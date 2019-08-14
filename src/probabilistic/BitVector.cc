@@ -491,10 +491,10 @@ BitVector::size_type BitVector::FindNext(size_type i) const
 	return block ? bi * bits_per_block + lowest_bit(block) : find_from(bi + 1);
 	}
 
-uint64 BitVector::Hash() const
+uint64_t BitVector::Hash() const
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
-	uint64 digest;
+	uint64_t digest;
 	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
 
 	for ( size_type i = 0; i < Blocks(); ++i )
@@ -507,11 +507,11 @@ uint64 BitVector::Hash() const
 
 broker::expected<broker::data> BitVector::Serialize() const
 	{
-	broker::vector v = {static_cast<uint64>(num_bits), static_cast<uint64>(bits.size())};
+	broker::vector v = {static_cast<uint64_t>(num_bits), static_cast<uint64_t>(bits.size())};
 	v.reserve(2 + bits.size());
 
 	for ( size_t i = 0; i < bits.size(); ++i )
-		v.emplace_back(static_cast<uint64>(bits[i]));
+		v.emplace_back(static_cast<uint64_t>(bits[i]));
 
 	return {std::move(v)};
 	}
@@ -522,8 +522,8 @@ std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
 	if ( ! (v && v->size() >= 2) )
 		return nullptr;
 
-	auto num_bits = caf::get_if<uint64>(&(*v)[0]);
-	auto size = caf::get_if<uint64>(&(*v)[1]);
+	auto num_bits = caf::get_if<uint64_t>(&(*v)[0]);
+	auto size = caf::get_if<uint64_t>(&(*v)[1]);
 
 	if ( ! (num_bits && size) )
 		return nullptr;
@@ -536,7 +536,7 @@ std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
 
 	for ( size_t i = 0; i < *size; ++i )
 		{
-		auto x = caf::get_if<uint64>(&(*v)[2 + i]);
+		auto x = caf::get_if<uint64_t>(&(*v)[2 + i]);
 		if ( ! x )
 			return nullptr;
 

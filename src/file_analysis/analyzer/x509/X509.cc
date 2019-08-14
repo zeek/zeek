@@ -26,14 +26,14 @@ file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
 	cert_data.clear();
 	}
 
-bool file_analysis::X509::DeliverStream(const u_char* data, uint64 len)
+bool file_analysis::X509::DeliverStream(const u_char* data, uint64_t len)
 	{
 	// just add it to the data we have so far, since we cannot do anything else anyways...
 	cert_data.append(reinterpret_cast<const char*>(data), len);
 	return true;
 	}
 
-bool file_analysis::X509::Undelivered(uint64 offset, uint64 len)
+bool file_analysis::X509::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
@@ -96,7 +96,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, val_mgr->GetCount((uint64) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, val_mgr->GetCount((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, new StringVal(len, buf));
@@ -330,7 +330,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 				if ( ips == 0 )
 					ips = new VectorVal(internal_type("addr_vec")->AsVectorType());
 
-				uint32* addr = (uint32*) gen->d.ip->data;
+				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 
 				if( gen->d.ip->length == 4 )
 					ips->Assign(ips->Size(), new AddrVal(*addr));

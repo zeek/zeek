@@ -1,34 +1,34 @@
 #include "PacketFilter.h"
 
-void PacketFilter::AddSrc(const IPAddr& src, uint32 tcp_flags, double probability)
+void PacketFilter::AddSrc(const IPAddr& src, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
+	f->probability = uint32_t(probability * RAND_MAX);
 	src_filter.Insert(src, 128, f);
 	}
 
-void PacketFilter::AddSrc(Val* src, uint32 tcp_flags, double probability)
+void PacketFilter::AddSrc(Val* src, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
+	f->probability = uint32_t(probability * RAND_MAX);
 	src_filter.Insert(src, f);
 	}
 
-void PacketFilter::AddDst(const IPAddr& dst, uint32 tcp_flags, double probability)
+void PacketFilter::AddDst(const IPAddr& dst, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
+	f->probability = uint32_t(probability * RAND_MAX);
 	dst_filter.Insert(dst, 128, f);
 	}
 
-void PacketFilter::AddDst(Val* dst, uint32 tcp_flags, double probability)
+void PacketFilter::AddDst(Val* dst, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
+	f->probability = uint32_t(probability * RAND_MAX);
 	dst_filter.Insert(dst, f);
 	}
 
@@ -87,5 +87,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			return false;
 		}
 
-	return uint32(bro_random()) < f.probability;
+	return uint32_t(bro_random()) < f.probability;
 	}

@@ -19,8 +19,8 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 	struct {
 		in6_addr ip1;
 		in6_addr ip2;
-		uint16 port1;
-		uint16 port2;
+		uint16_t port1;
+		uint16_t port2;
 	} key;
 
 	// Lookup up connection based on canonical ordering, which is
@@ -206,7 +206,7 @@ string IPAddr::PtrName() const
 
 		for ( unsigned int i = 0; i < 4; ++i )
 			{
-			uint32 a = ntohl(p[i]);
+			uint32_t a = ntohl(p[i]);
 			for ( unsigned int j = 1; j <=8; ++j )
 				{
 				ptr_name.insert(0, 1, '.');

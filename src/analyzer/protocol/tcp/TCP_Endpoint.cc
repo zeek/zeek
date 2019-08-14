@@ -111,8 +111,8 @@ void TCP_Endpoint::CheckEOF()
 		contents_processor->CheckEOF();
 	}
 
-void TCP_Endpoint::SizeBufferedData(uint64& waiting_on_hole,
-                                    uint64& waiting_on_ack)
+void TCP_Endpoint::SizeBufferedData(uint64_t& waiting_on_hole,
+                                    uint64_t& waiting_on_ack)
 	{
 	if ( contents_processor )
 		contents_processor->SizeBufferedData(waiting_on_hole, waiting_on_ack);
@@ -122,7 +122,7 @@ void TCP_Endpoint::SizeBufferedData(uint64& waiting_on_hole,
 
 int TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len) const
 	{
-	uint32 sum = checksum_base;
+	uint32_t sum = checksum_base;
 	int tcp_len = tp->th_off * 4 + len;
 
 	if ( len % 2 == 1 )
@@ -163,7 +163,7 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		}
 	}
 
-uint64 TCP_Endpoint::Size() const
+uint64_t TCP_Endpoint::Size() const
 	{
 	if ( prev_state == TCP_ENDPOINT_SYN_SENT && state == TCP_ENDPOINT_RESET &&
 	     peer->state == TCP_ENDPOINT_INACTIVE && ! NoDataAcked() )
@@ -172,9 +172,9 @@ uint64 TCP_Endpoint::Size() const
 		// and there was never a chance for this endpoint to send data anyway.
 		return 0;
 
-	uint64 size;
-	uint64 last_seq_64 = ToFullSeqSpace(LastSeq(), SeqWraps());
-	uint64 ack_seq_64 = ToFullSeqSpace(AckSeq(), AckWraps());
+	uint64_t size;
+	uint64_t last_seq_64 = ToFullSeqSpace(LastSeq(), SeqWraps());
+	uint64_t ack_seq_64 = ToFullSeqSpace(AckSeq(), AckWraps());
 
 	// Going straight to relative sequence numbers and comparing those might
 	// make more sense, but there's some cases (e.g. due to RSTs) where
@@ -198,7 +198,7 @@ uint64 TCP_Endpoint::Size() const
 	return size;
 	}
 
-int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
+int TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 				const u_char* data,
 				const IP_Hdr* ip, const struct tcphdr* tp)
 	{
@@ -218,7 +218,7 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 	if ( contents_file && ! contents_processor &&
 	     seq + len > contents_start_seq )
 		{
-		int64 under_seq = contents_start_seq - seq;
+		int64_t under_seq = contents_start_seq - seq;
 		if ( under_seq > 0 )
 			{
 			seq += under_seq;
@@ -249,7 +249,7 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 	return status;
 	}
 
-void TCP_Endpoint::AckReceived(uint64 seq)
+void TCP_Endpoint::AckReceived(uint64_t seq)
 	{
 	if ( contents_processor )
 		contents_processor->AckReceived(seq);
@@ -268,7 +268,7 @@ void TCP_Endpoint::SetContentsFile(BroFile* f)
 		contents_processor->SetContentsFile(contents_file);
 	}
 
-int TCP_Endpoint::CheckHistory(uint32 mask, char code)
+int TCP_Endpoint::CheckHistory(uint32_t mask, char code)
 	{
 	if ( ! IsOrig() )
 		{
@@ -289,7 +289,7 @@ void TCP_Endpoint::AddHistory(char code)
 
 void TCP_Endpoint::ChecksumError()
 	{
-	uint32 t = chk_thresh;
+	uint32_t t = chk_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'C' : 'c',
 	                                chk_cnt, chk_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_checksum_errors,
@@ -298,7 +298,7 @@ void TCP_Endpoint::ChecksumError()
 
 void TCP_Endpoint::DidRxmit()
 	{
-	uint32 t = rxmt_thresh;
+	uint32_t t = rxmt_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'T' : 't',
 	                                rxmt_cnt, rxmt_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_retransmissions,
@@ -307,16 +307,16 @@ void TCP_Endpoint::DidRxmit()
 
 void TCP_Endpoint::ZeroWindow()
 	{
-	uint32 t = win0_thresh;
+	uint32_t t = win0_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'W' : 'w',
 	                                win0_cnt, win0_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows,
 		                              IsOrig(), t);
 	}
 
-void TCP_Endpoint::Gap(uint64 seq, uint64 len)
+void TCP_Endpoint::Gap(uint64_t seq, uint64_t len)
 	{
-	uint32 t = gap_thresh;
+	uint32_t t = gap_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'G' : 'g',
 					gap_cnt, gap_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);

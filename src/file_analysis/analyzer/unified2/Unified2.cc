@@ -21,7 +21,7 @@ file_analysis::Analyzer* Unified2::Instantiate(RecordVal* args, File* file)
 	return new Unified2(args, file);
 	}
 
-bool Unified2::DeliverStream(const u_char* data, uint64 len)
+bool Unified2::DeliverStream(const u_char* data, uint64_t len)
 	{
 	try
 		{

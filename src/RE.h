@@ -34,7 +34,7 @@ extern void synerr(const char str[]);
 
 typedef int AcceptIdx;
 typedef std::set<AcceptIdx> AcceptingSet;
-typedef uint64 MatchPos;
+typedef uint64_t MatchPos;
 typedef std::map<AcceptIdx, MatchPos> AcceptingMatchSet;
 typedef name_list string_list;
 

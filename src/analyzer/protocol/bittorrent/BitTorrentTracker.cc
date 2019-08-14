@@ -207,7 +207,7 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 		}
 	}
 
-void BitTorrentTracker_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void BitTorrentTracker_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
@@ -477,8 +477,8 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			// addresses in network order but PortVal's
 			// take ports in host order.  BitTorrent specifies
 			// that both are in network order here.
-			uint32 ad = extract_uint32((u_char*) value);
-			uint16 pt = ntohs((value[4] << 8) | value[5]);
+			uint32_t ad = extract_uint32((u_char*) value);
+			uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
 			RecordVal* peer = new RecordVal(bittorrent_peer);
 			peer->Assign(0, new AddrVal(ad));

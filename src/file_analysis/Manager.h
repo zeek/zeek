@@ -4,8 +4,8 @@
 #define FILE_ANALYSIS_MANAGER_H
 
 #include <string>
-#include <queue>
-#include <unordered_set>
+#include <set>
+#include <map>
 
 #include "Dict.h"
 #include "Net.h"
@@ -406,7 +406,7 @@ private:
 	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
 	std::map<string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
-	std::unordered_set<string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	std::set<string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */

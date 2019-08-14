@@ -1,4 +1,8 @@
 
+3.1.0-dev.52 | 2019-08-14 13:46:40 -0700
+
+  * Change file_analysis::Manager::ignored to use std::set (Jon Siwek, Corelight)
+
 3.1.0-dev.50 | 2019-08-14 12:32:56 -0700
 
   * Update documentation for string_to_pattern BIF (Jon Siwek, Corelight)

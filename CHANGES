@@ -1,4 +1,18 @@
 
+3.1.0-dev.58 | 2019-08-16 18:45:39 +0000
+
+  * GH-532: Improve disable_analyzer BIF. (Jon Siwek, Corelight)
+
+    - Add an extra "prevent" parameter (default value of false), which
+      helps prevent the same analyzer type from being attached in the
+      future.
+
+    - Fixes disable_analyzer() to work when called even earlier, like
+      within the protocol_confirmation event.
+
+    - Fixes disable_analyzer() when called on an analyzer added to the
+      tree via TCP_Analyzer::AddChildPacketAnalyzer.
+
 3.1.0-dev.55 | 2019-08-14 16:18:44 -0700
 
   * Fix misc. Coverity warnings (Jon Siwek, Corelight)

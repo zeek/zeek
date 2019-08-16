@@ -1,0 +1,6 @@
+proto confirm, Analyzer::ANALYZER_HTTP
+T
+http_request, GET, /style/enhanced.css
+total http messages, {
+[[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp]] = 1
+}

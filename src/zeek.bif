@@ -4223,11 +4223,18 @@ function file_mode%(mode: count%): string
 ##
 ## aid: The analyzer ID.
 ##
+## err_if_no_conn: Emit an error message if the connection does not exit.
+##
+## prevent: Prevent the same analyzer type from being attached in the future.
+##          This is useful for preventing the same analyzer from being
+##          automatically reattached in the future, e.g. as a result of a
+##          DPD signature suddenly matching.
+##
 ## Returns: True if the connection identified by *cid* exists and has analyzer
-##          *aid*.
+##          *aid* and it is scheduled for removal.
 ##
 ## .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
-function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T%) : bool
+function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &default=T, prevent: bool &default=F%) : bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
@@ -4244,8 +4251,11 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		return val_mgr->GetBool(0);
 		}
 
-	a->Remove();
-	return val_mgr->GetBool(1);
+	if ( prevent )
+		a->Parent()->PreventChildren(a->GetAnalyzerTag());
+
+	auto rval = a->Remove();
+	return val_mgr->GetBool(rval);
 	%}
 
 ## Informs Zeek that it should skip any further processing of the contents of

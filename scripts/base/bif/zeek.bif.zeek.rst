@@ -662,7 +662,7 @@ Functions
 
 .. zeek:id:: disable_analyzer
 
-   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, aid: :zeek:type:`count`, err_if_no_conn: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`bool`
+   :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, aid: :zeek:type:`count`, err_if_no_conn: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`, prevent: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Disables the analyzer which raised the current event (if the analyzer
    belongs to the given connection).
@@ -674,8 +674,17 @@ Functions
    :aid: The analyzer ID.
    
 
+   :err_if_no_conn: Emit an error message if the connection does not exit.
+   
+
+   :prevent: Prevent the same analyzer type from being attached in the future.
+            This is useful for preventing the same analyzer from being
+            automatically reattached in the future, e.g. as a result of a
+            DPD signature suddenly matching.
+   
+
    :returns: True if the connection identified by *cid* exists and has analyzer
-            *aid*.
+            *aid* and it is scheduled for removal.
    
    .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
 

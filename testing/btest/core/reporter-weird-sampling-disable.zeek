@@ -4,7 +4,7 @@
 redef Weird::sampling_threshold = 1;
 redef Weird::sampling_rate = 0;
 
-event net_weird(name: string)
+event net_weird(name: string, addl: string)
 	{
 	print "net_weird", name;
 	}

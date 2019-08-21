@@ -15,7 +15,7 @@ event ipv6_ext_headers(c: connection, p: pkt_hdr)
 	}
 
 # Also check the weird for routing type 0 extensions headers
-event flow_weird(name: string, src: addr, dst: addr)
+event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	{
 	print fmt("weird %s from %s to %s", name, src, dst);
 	}

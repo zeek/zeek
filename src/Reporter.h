@@ -84,10 +84,10 @@ public:
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
-	void Weird(const char* name);	// Raises net_weird().
+	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name);	// Raises flow_weird().
+	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -245,10 +245,9 @@ private:
 		   Connection* conn, val_list* addl, bool location, bool time,
 		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
-	// The order if addl, name needs to be like that since fmt_name can
-	// contain format specifiers
-	void WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::File* f, const char* addl, const char* fmt_name, ...) __attribute__((format(printf, 6, 7)));;
-	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
+	// and that takes va_list anyway.
+	void WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }

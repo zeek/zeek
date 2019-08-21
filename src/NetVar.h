@@ -166,6 +166,7 @@ extern RecordType* irc_join_info;
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
 extern int dpd_match_only_beginning;
+extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
 extern TableVal* likely_server_ports;

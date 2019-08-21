@@ -288,7 +288,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			}
 
 		default:
-			reporter->Weird("unknown_mobility_type");
+			reporter->Weird("unknown_mobility_type", fmt("%d", mob->ip6mob_type));
 			break;
 		}
 
@@ -553,7 +553,8 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 #endif
 
 	default:
-		reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type");
+		reporter->Weird(SrcAddr(), DstAddr(), "unknown_routing_type",
+		                fmt("%d", r->ip6r_type));
 		break;
 	}
 	}

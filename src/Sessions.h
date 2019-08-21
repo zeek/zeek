@@ -90,9 +90,9 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	    const EncapsulationStack* encap = 0);
+	    const EncapsulationStack* encap = 0, const char* addl = "");
 	void Weird(const char* name, const IP_Hdr* ip,
-	    const EncapsulationStack* encap = 0);
+	    const EncapsulationStack* encap = 0, const char* addl = "");
 
 	PacketFilter* GetPacketFilter()
 		{

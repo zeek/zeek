@@ -24,13 +24,26 @@ refine connection NTLM_Conn += {
 		return result;
 		%}
 
-	function build_av_record(val: NTLM_AV_Pair_Sequence): BroVal
+	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::AVs);
-		for ( uint i = 0; ${val.pairs[i].id} != 0; i++ )
+		for ( uint i = 0; ; i++ )
 			{
+			if ( i >= ${val.pairs}->size() )
+				{
+				if ( len != 0 )
+					// According to spec, the TargetInfo MUST be a sequence of
+					// AV_PAIRs and terminated by the null AV_PAIR when the
+					// TargetInfoLen is non-zero, so this is in violation.
+					bro_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
+
+				return result;
+				}
+
 			switch ( ${val.pairs[i].id} )
 				{
+				case 0:
+					return result;
 				case 1:
 					result->Assign(0, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
 					break;
@@ -131,7 +144,7 @@ refine connection NTLM_Conn += {
 			result->Assign(2, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, build_av_record(${val.target_info}));
+			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
 
 		BifEvent::generate_ntlm_challenge(bro_analyzer(),
 		                                  bro_analyzer()->Conn(),

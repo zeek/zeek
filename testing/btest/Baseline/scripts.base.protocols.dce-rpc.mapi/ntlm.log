@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntlm
-#open	2018-09-04-21-59-48
+#open	2019-07-31-20-23-16
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	hostname	domainname	server_nb_computer_name	server_dns_computer_name	server_tree_name	success
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	bool
-1056991898.900518	C37jN32gN3y3AZzyf6	192.168.0.173	1068	192.168.0.2	4997	ALeonard	ALEONARD-XP	CNAMIS	SATURN	-	-	-
 1056991899.591337	CFLRIC3zaTU1loLGxh	192.168.0.173	1073	192.168.0.2	1032	ALeonard	ALEONARD-XP	CNAMIS	SATURN	-	-	-
-#close	2018-09-04-21-59-48
+1056991898.900518	C37jN32gN3y3AZzyf6	192.168.0.173	1068	192.168.0.2	4997	ALeonard	ALEONARD-XP	CNAMIS	SATURN	-	-	-
+#close	2019-07-31-20-23-16

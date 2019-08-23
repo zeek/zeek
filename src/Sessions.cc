@@ -87,20 +87,6 @@ void IPTunnelTimer::Dispatch(double t, int is_expire)
 
 NetSessions::NetSessions()
 	{
-	TypeList* t = new TypeList();
-	t->Append(base_type(TYPE_ADDR));	// source IP address
-	t->Append(base_type(TYPE_ADDR));	// dest IP address
-	t->Append(base_type(TYPE_COUNT));	// source and dest ports
-
-	ch = new CompositeHash(t);
-
-	Unref(t);
-
-	tcp_conns.SetDeleteFunc(bro_obj_delete_func);
-	udp_conns.SetDeleteFunc(bro_obj_delete_func);
-	icmp_conns.SetDeleteFunc(bro_obj_delete_func);
-	fragments.SetDeleteFunc(bro_obj_delete_func);
-
 	if ( stp_correlate_pair )
 		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
@@ -128,16 +114,26 @@ NetSessions::NetSessions()
 		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
 		arp_analyzer = 0;
+
+	memset(&stats, 0, sizeof(SessionStats));
 	}
 
 NetSessions::~NetSessions()
 	{
-	delete ch;
 	delete packet_filter;
 	delete pkt_profiler;
 	Unref(arp_analyzer);
 	delete discarder;
 	delete stp_manager;
+
+	for ( const auto& entry : tcp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : udp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : icmp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : fragments )
+		Unref(entry.second);
 	}
 
 void NetSessions::Done()
@@ -427,7 +423,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	ConnID id;
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
-	Dictionary* d = 0;
+	ConnectionMap* d = nullptr;
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
 
 	switch ( proto ) {
@@ -715,30 +711,27 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 	}
 
-	HashKey* h = BuildConnIDHashKey(id);
-	if ( ! h )
-		reporter->InternalError("hash computation failed");
-
-	Connection* conn = 0;
+	ConnIDKey key = BuildConnIDKey(id);
+	Connection* conn = nullptr;
 
 	// FIXME: The following is getting pretty complex. Need to split up
 	// into separate functions.
-	conn = (Connection*) d->Lookup(h);
+	auto it = d->find(key);
+	if ( it != d->end() )
+		conn = it->second;
+
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+		conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 		if ( conn )
-			d->Insert(h, conn);
+			InsertConnection(d, key, conn);
 		}
 	else
 		{
 		// We already know that connection.
 		int consistent = CheckConnectionTag(conn);
 		if ( consistent < 0 )
-			{
-			delete h;
 			return;
-			}
 
 		if ( ! consistent || conn->IsReuse(t, data) )
 			{
@@ -746,22 +739,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 			if ( conn )
-				d->Insert(h, conn);
+				InsertConnection(d, key, conn);
 			}
 		else
 			{
-			delete h;
 			conn->CheckEncapsulation(encapsulation);
 			}
 		}
 
 	if ( ! conn )
-		{
-		delete h;
 		return;
-		}
 
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
@@ -940,26 +929,21 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 	{
 	uint32_t frag_id = ip->ID();
 
-	ListVal* key = new ListVal(TYPE_ANY);
-	key->Append(new AddrVal(ip->SrcAddr()));
-	key->Append(new AddrVal(ip->DstAddr()));
-	key->Append(val_mgr->GetCount(frag_id));
+	FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
 
-	HashKey* h = ch->ComputeHash(key, 1);
-	if ( ! h )
-		reporter->InternalError("hash computation failed");
+	FragReassembler* f = nullptr;
+	auto it = fragments.find(key);
+	if ( it != fragments.end() )
+		f = it->second;
 
-	FragReassembler* f = fragments.Lookup(h);
 	if ( ! f )
 		{
-		f = new FragReassembler(this, ip, pkt, h, t);
-		fragments.Insert(h, f);
-		Unref(key);
+		f = new FragReassembler(this, ip, pkt, key, t);
+		fragments[key] = f;
+		if ( fragments.size() > stats.max_fragments )
+			stats.max_fragments = fragments.size();
 		return f;
 		}
-
-	delete h;
-	Unref(key);
 
 	f->AddFragment(t, ip, pkt);
 	return f;
@@ -1016,11 +1000,8 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = BuildConnIDHashKey(id);
-	if ( ! h )
-		reporter->InternalError("hash computation failed");
-
-	Dictionary* d;
+	ConnIDKey key = BuildConnIDKey(id);
+	ConnectionMap* d;
 
 	if ( orig_portv->IsTCP() )
 		d = &tcp_conns;
@@ -1033,22 +1014,22 @@ Connection* NetSessions::FindConnection(Val* v)
 		// This can happen due to pseudo-connections we
 		// construct, for example for packet headers embedded
 		// in ICMPs.
-		delete h;
 		return 0;
 		}
 
-	Connection* conn = (Connection*) d->Lookup(h);
-
-	delete h;
+	Connection* conn = nullptr;
+	auto it = d->find(key);
+	if ( it != d->end() )
+		conn = it->second;
 
 	return conn;
 	}
 
 void NetSessions::Remove(Connection* c)
 	{
-	HashKey* k = c->Key();
-	if ( k )
+	if ( c->IsKeyValid() )
 		{
+		const ConnIDKey& key = c->Key();
 		c->CancelTimers();
 
 		if ( c->ConnTransport() == TRANSPORT_TCP )
@@ -1073,17 +1054,17 @@ void NetSessions::Remove(Connection* c)
 
 		switch ( c->ConnTransport() ) {
 		case TRANSPORT_TCP:
-			if ( ! tcp_conns.RemoveEntry(k) )
+			if ( tcp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_UDP:
-			if ( ! udp_conns.RemoveEntry(k) )
+			if ( udp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
 			break;
 
 		case TRANSPORT_ICMP:
-			if ( ! icmp_conns.RemoveEntry(k) )
+			if ( icmp_conns.erase(key) == 0 )
 				reporter->InternalWarning("connection missing");
 			break;
 
@@ -1093,7 +1074,6 @@ void NetSessions::Remove(Connection* c)
 		}
 
 		Unref(c);
-		delete k;
 		}
 	}
 
@@ -1102,42 +1082,38 @@ void NetSessions::Remove(FragReassembler* f)
 	if ( ! f )
 		return;
 
-	HashKey* k = f->Key();
-
-	if ( k )
-		{
-		if ( ! fragments.RemoveEntry(k) )
-			reporter->InternalWarning("fragment reassembler not in dict");
-		}
-	else
-		reporter->InternalWarning("missing fragment reassembler hash key");
+	if ( fragments.erase(f->Key()) == 0 )
+		reporter->InternalWarning("fragment reassembler not in dict");
 
 	Unref(f);
 	}
 
 void NetSessions::Insert(Connection* c)
 	{
-	assert(c->Key());
+	assert(c->IsKeyValid());
 
-	Connection* old = 0;
+	Connection* old = nullptr;
 
 	switch ( c->ConnTransport() ) {
-	// Remove first. Otherwise the dictioanry would still
-	// reference the old key for already existing connections.
+	// Remove first. Otherwise the map would still reference the old key for
+	// already existing connections.
 
 	case TRANSPORT_TCP:
-		old = (Connection*) tcp_conns.Remove(c->Key());
-		tcp_conns.Insert(c->Key(), c);
+		old = LookupConn(tcp_conns, c->Key());
+		tcp_conns.erase(c->Key());
+		InsertConnection(&tcp_conns, c->Key(), c);
 		break;
 
 	case TRANSPORT_UDP:
-		old = (Connection*) udp_conns.Remove(c->Key());
-		udp_conns.Insert(c->Key(), c);
+		old = LookupConn(udp_conns, c->Key());
+		udp_conns.erase(c->Key());
+		InsertConnection(&udp_conns, c->Key(), c);
 		break;
 
 	case TRANSPORT_ICMP:
-		old = (Connection*) icmp_conns.Remove(c->Key());
-		icmp_conns.Insert(c->Key(), c);
+		old = LookupConn(icmp_conns, c->Key());
+		icmp_conns.erase(c->Key());
+		InsertConnection(&icmp_conns, c->Key(), c);
 		break;
 
 	default:
@@ -1151,7 +1127,6 @@ void NetSessions::Insert(Connection* c)
 		// Some clean-ups similar to those in Remove() (but invisible
 		// to the script layer).
 		old->CancelTimers();
-		delete old->Key();
 		old->ClearKey();
 		Unref(old);
 		}
@@ -1159,29 +1134,23 @@ void NetSessions::Insert(Connection* c)
 
 void NetSessions::Drain()
 	{
-	IterCookie* cookie = tcp_conns.InitForIteration();
-	Connection* tc;
-
-	while ( (tc = tcp_conns.NextEntry(cookie)) )
+	for ( const auto& entry : tcp_conns )
 		{
+		Connection* tc = entry.second;
 		tc->Done();
 		tc->Event(connection_state_remove, 0);
 		}
 
-	cookie = udp_conns.InitForIteration();
-	Connection* uc;
-
-	while ( (uc = udp_conns.NextEntry(cookie)) )
+	for ( const auto& entry : udp_conns )
 		{
+		Connection* uc = entry.second;
 		uc->Done();
 		uc->Event(connection_state_remove, 0);
 		}
 
-	cookie = icmp_conns.InitForIteration();
-	Connection* ic;
-
-	while ( (ic = icmp_conns.NextEntry(cookie)) )
+	for ( const auto& entry : icmp_conns )
 		{
+		Connection* ic = entry.second;
 		ic->Done();
 		ic->Event(connection_state_remove, 0);
 		}
@@ -1191,22 +1160,22 @@ void NetSessions::Drain()
 
 void NetSessions::GetStats(SessionStats& s) const
 	{
-	s.num_TCP_conns = tcp_conns.Length();
-	s.cumulative_TCP_conns = tcp_conns.NumCumulativeInserts();
-	s.num_UDP_conns = udp_conns.Length();
-	s.cumulative_UDP_conns = udp_conns.NumCumulativeInserts();
-	s.num_ICMP_conns = icmp_conns.Length();
-	s.cumulative_ICMP_conns = icmp_conns.NumCumulativeInserts();
-	s.num_fragments = fragments.Length();
+	s.num_TCP_conns = tcp_conns.size();
+	s.cumulative_TCP_conns = stats.cumulative_TCP_conns;
+	s.num_UDP_conns = udp_conns.size();
+	s.cumulative_UDP_conns = stats.cumulative_UDP_conns;
+	s.num_ICMP_conns = icmp_conns.size();
+	s.cumulative_ICMP_conns = stats.cumulative_ICMP_conns;
+	s.num_fragments = fragments.size();
 	s.num_packets = num_packets_processed;
 
-	s.max_TCP_conns = tcp_conns.MaxLength();
-	s.max_UDP_conns = udp_conns.MaxLength();
-	s.max_ICMP_conns = icmp_conns.MaxLength();
-	s.max_fragments = fragments.MaxLength();
+	s.max_TCP_conns = stats.max_TCP_conns;
+	s.max_UDP_conns = stats.max_UDP_conns;
+	s.max_ICMP_conns = stats.max_ICMP_conns;
+	s.max_fragments = stats.max_fragments;
 	}
 
-Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
+Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 					const u_char* data, int proto, uint32_t flow_label,
 					const Packet* pkt, const EncapsulationStack* encapsulation)
 	{
@@ -1280,6 +1249,15 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 		}
 
 	return conn;
+	}
+
+Connection* NetSessions::LookupConn(const ConnectionMap& conns, const ConnIDKey& key)
+	{
+	auto it = conns.find(key);
+	if ( it != conns.end() )
+		return it->second;
+
+	return nullptr;
 	}
 
 bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
@@ -1441,23 +1419,14 @@ unsigned int NetSessions::ConnectionMemoryUsage()
 		// Connections have been flushed already.
 		return 0;
 
-	IterCookie* cookie = tcp_conns.InitForIteration();
-	Connection* tc;
+	for ( const auto& entry : tcp_conns )
+		mem += entry.second->MemoryAllocation();
 
-	while ( (tc = tcp_conns.NextEntry(cookie)) )
-		mem += tc->MemoryAllocation();
+	for ( const auto& entry : udp_conns )
+		mem += entry.second->MemoryAllocation();
 
-	cookie = udp_conns.InitForIteration();
-	Connection* uc;
-
-	while ( (uc = udp_conns.NextEntry(cookie)) )
-		mem += uc->MemoryAllocation();
-
-	cookie = icmp_conns.InitForIteration();
-	Connection* ic;
-
-	while ( (ic = icmp_conns.NextEntry(cookie)) )
-		mem += ic->MemoryAllocation();
+	for ( const auto& entry : icmp_conns )
+		mem += entry.second->MemoryAllocation();
 
 	return mem;
 	}
@@ -1470,23 +1439,14 @@ unsigned int NetSessions::ConnectionMemoryUsageConnVals()
 		// Connections have been flushed already.
 		return 0;
 
-	IterCookie* cookie = tcp_conns.InitForIteration();
-	Connection* tc;
+	for ( const auto& entry : tcp_conns )
+		mem += entry.second->MemoryAllocationConnVal();
 
-	while ( (tc = tcp_conns.NextEntry(cookie)) )
-		mem += tc->MemoryAllocationConnVal();
+	for ( const auto& entry : udp_conns )
+		mem += entry.second->MemoryAllocationConnVal();
 
-	cookie = udp_conns.InitForIteration();
-	Connection* uc;
-
-	while ( (uc = udp_conns.NextEntry(cookie)) )
-		mem += uc->MemoryAllocationConnVal();
-
-	cookie = icmp_conns.InitForIteration();
-	Connection* ic;
-
-	while ( (ic = icmp_conns.NextEntry(cookie)) )
-		mem += ic->MemoryAllocationConnVal();
+	for ( const auto& entry : icmp_conns )
+		mem += entry.second->MemoryAllocationConnVal();
 
 	return mem;
 	}
@@ -1499,17 +1459,35 @@ unsigned int NetSessions::MemoryAllocation()
 
 	return ConnectionMemoryUsage()
 		+ padded_sizeof(*this)
-		+ ch->MemoryAllocation()
-		// must take care we don't count the HaskKeys twice.
-		+ tcp_conns.MemoryAllocation() - padded_sizeof(tcp_conns) -
-		// 12 is sizeof(Key) from ConnID::BuildConnKey();
-		// it can't be (easily) accessed here. :-(
-			(tcp_conns.Length() * pad_size(12))
-		+ udp_conns.MemoryAllocation() - padded_sizeof(udp_conns) -
-			(udp_conns.Length() * pad_size(12))
-		+ icmp_conns.MemoryAllocation() - padded_sizeof(icmp_conns) -
-			(icmp_conns.Length() * pad_size(12))
-		+ fragments.MemoryAllocation() - padded_sizeof(fragments)
+		+ padded_sizeof(tcp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ padded_sizeof(udp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ padded_sizeof(icmp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ padded_sizeof(fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type)))
 		// FIXME: MemoryAllocation() not implemented for rest.
 		;
+	}
+
+void NetSessions::InsertConnection(ConnectionMap* m, const ConnIDKey& key, Connection* conn)
+	{
+	(*m)[key] = conn;
+
+	switch ( conn->ConnTransport() )
+		{
+		case TRANSPORT_TCP:
+			stats.cumulative_TCP_conns++;
+			if ( m->size() > stats.max_TCP_conns )
+				stats.max_TCP_conns = m->size();
+			break;
+		case TRANSPORT_UDP:
+			stats.cumulative_UDP_conns++;
+			if ( m->size() > stats.max_UDP_conns )
+				stats.max_UDP_conns = m->size();
+			break;
+		case TRANSPORT_ICMP:
+			stats.cumulative_ICMP_conns++;
+			if ( m->size() > stats.max_ICMP_conns )
+				stats.max_ICMP_conns = m->size();
+			break;
+		default: break;
+		}
 	}

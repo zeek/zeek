@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2019-04-17-20-42-43
+#open	2019-07-31-18-52-37
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1285862902.700271	CHhAvVGS1DHFjwGM9	10.0.88.85	50368	192.168.0.27	80	tcp	-	60.991770	474	23783	RSTO	-	-	24257	ShADaGdgtR	17	1250	22	28961	-
-#close	2019-04-17-20-42-43
+#close	2019-07-31-18-52-37

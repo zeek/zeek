@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#open	2016-07-13-16-13-04
+#open	2019-07-31-18-52-20
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
 #types	time	string	addr	port	addr	port	enum	enum
 1257655293.629048	CHhAvVGS1DHFjwGM9	192.168.3.101	53796	216.14.98.22	5072	Tunnel::AYIYA	Tunnel::DISCOVER
 1257655296.585034	C4J4Th3PJpwUYZZ6gc	192.168.3.101	53859	216.14.98.22	5072	Tunnel::AYIYA	Tunnel::DISCOVER
-1257655317.464035	C4J4Th3PJpwUYZZ6gc	192.168.3.101	53859	216.14.98.22	5072	Tunnel::AYIYA	Tunnel::CLOSE
 1257655317.464035	CHhAvVGS1DHFjwGM9	192.168.3.101	53796	216.14.98.22	5072	Tunnel::AYIYA	Tunnel::CLOSE
-#close	2016-07-13-16-13-04
+1257655317.464035	C4J4Th3PJpwUYZZ6gc	192.168.3.101	53859	216.14.98.22	5072	Tunnel::AYIYA	Tunnel::CLOSE
+#close	2019-07-31-18-52-20

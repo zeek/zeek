@@ -5,6 +5,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include <string>
 
 #include "BroString.h"
@@ -17,6 +18,31 @@ struct ConnID;
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
+
+struct ConnIDKey
+	{
+	in6_addr ip1;
+	in6_addr ip2;
+	uint16_t port1;
+	uint16_t port2;
+
+	ConnIDKey() : port1(0), port2(0)
+		{
+		memset(&ip1, 0, sizeof(in6_addr));
+		memset(&ip2, 0, sizeof(in6_addr));
+		}
+
+	bool operator<(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) < 0; }
+	bool operator==(const ConnIDKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnIDKey)) == 0; }
+
+	ConnIDKey& operator=(const ConnIDKey& rhs)
+		{
+		if ( this != &rhs )
+			memcpy(this, &rhs, sizeof(ConnIDKey));
+
+		return *this;
+		}
+	};
 
 /**
  * Class storing both IPv4 and IPv6 addresses.
@@ -362,7 +388,7 @@ public:
 	  */
 	void ConvertToThreadingValue(threading::Value::addr_t* v) const;
 
-	friend HashKey* BuildConnIDHashKey(const ConnID& id);
+	friend ConnIDKey BuildConnIDKey(const ConnID& id);
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this); }
 
@@ -485,9 +511,9 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 	}
 
 /**
-  * Returns a hash key for a given ConnID. Passes ownership to caller.
+  * Returns a map key for a given ConnID.
   */
-HashKey* BuildConnIDHashKey(const ConnID& id);
+ConnIDKey BuildConnIDKey(const ConnID& id);
 
 /**
  * Class storing both IPv4 and IPv6 prefixes

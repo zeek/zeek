@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2019-03-13-19-35-20
+#open	2019-07-31-18-53-34
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1340127577.361683	CP5puj4I8PtEU4qzYg	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	1	GET	ipv6.google.com	/	-	1.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9b5) Gecko/2008032620 Firefox/3.0b5	-	0	6640	200	OK	-	-	(empty)	-	-	-	-	-	-	FWSTWv4EZLVlc2Zywi	-	text/html
 1340127577.379360	CP5puj4I8PtEU4qzYg	2001:0:4137:9e50:8000:f12a:b9c8:2815	1286	2001:4860:0:2001::68	80	2	GET	ipv6.google.com	/search?hl=en&q=Wireshark+!&btnG=Google+Search	http://ipv6.google.com/	1.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9b5) Gecko/2008032620 Firefox/3.0b5	-	0	25119	200	OK	-	-	(empty)	-	-	-	-	-	-	FGKV3B3jz083xhGO13	-	text/html
-#close	2019-03-13-19-35-20
+#close	2019-07-31-18-53-34

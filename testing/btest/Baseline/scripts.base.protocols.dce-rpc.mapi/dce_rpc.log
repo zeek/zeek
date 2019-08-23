@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dce_rpc
-#open	2018-09-04-21-14-51
+#open	2019-07-31-20-23-16
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
 1056991898.891148	CmES5u32sYpV7JYN	192.168.0.173	1066	192.168.0.2	135	0.000375	135	epmapper	ept_map
@@ -18,4 +18,4 @@
 1056991899.658670	CFLRIC3zaTU1loLGxh	192.168.0.173	1073	192.168.0.2	1032	0.001624	1032	exchange_mapi	EcDoRpc
 1056991899.660794	CFLRIC3zaTU1loLGxh	192.168.0.173	1073	192.168.0.2	1032	0.003998	1032	exchange_mapi	EcRRegisterPushNotification
 1056991899.707516	CFLRIC3zaTU1loLGxh	192.168.0.173	1073	192.168.0.2	1032	0.003998	1032	exchange_mapi	EcRRegisterPushNotification
-#close	2018-09-04-21-14-51
+#close	2019-07-31-20-23-16

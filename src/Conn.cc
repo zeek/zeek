@@ -54,12 +54,13 @@ uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 uint64_t Connection::external_connections = 0;
 
-Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
+Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
                        uint32_t flow, const Packet* pkt,
-		       const EncapsulationStack* arg_encap)
+                       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
+	key_valid = true;
 	start_time = last_time = t;
 
 	orig_addr = id->src_addr;
@@ -144,7 +145,6 @@ Connection::~Connection()
 		Unref(conn_val);
 		}
 
-	delete key;
 	delete root_analyzer;
 	delete conn_timer_mgr;
 	delete encapsulation;
@@ -520,7 +520,7 @@ void Connection::AddTimer(timer_func timer, double t, int do_expire,
 	// If the key is cleared, the connection isn't stored in the connection
 	// table anymore and will soon be deleted. We're not installing new
 	// timers anymore then.
-	if ( ! key )
+	if ( ! key_valid )
 		return;
 
 	Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
@@ -600,7 +600,6 @@ void Connection::FlipRoles()
 unsigned int Connection::MemoryAllocation() const
 	{
 	return padded_sizeof(*this)
-		+ (key ? key->MemoryAllocation() : 0)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
 		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)

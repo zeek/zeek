@@ -3,62 +3,62 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-19
+#open	2019-07-31-20-23-25
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
-1475791805.525848	ClEkJM2Vm5giqnMf4h	192.168.6.203	53227	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
 1475791805.468951	CHhAvVGS1DHFjwGM9	192.168.6.203	53226	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
-#close	2019-06-03-04-33-19
+1475791805.525848	ClEkJM2Vm5giqnMf4h	192.168.6.203	53227	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
+#close	2019-07-31-20-23-25
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-20
+#open	2019-07-31-20-23-26
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1475794630.046060	CHhAvVGS1DHFjwGM9	192.168.6.203	53994	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	F	-	-	-	-	-	-
 1475794635.195006	ClEkJM2Vm5giqnMf4h	192.168.6.203	53996	138.68.41.77	443	TLSv13-draft14	TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	x25519	-	F	-	-	T	-	-	-	-	-	-
-#close	2019-06-03-04-33-20
+#close	2019-07-31-20-23-26
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-20
+#open	2019-07-31-20-23-26
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1475787575.867992	CHhAvVGS1DHFjwGM9	192.150.187.20	54980	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
 1475787575.922474	ClEkJM2Vm5giqnMf4h	192.150.187.20	54982	52.32.149.186	443	-	-	-	tls13.crypto.mozilla.org	F	protocol_version	-	F	-	-	-	-	-	-
-#close	2019-06-03-04-33-20
+#close	2019-07-31-20-23-26
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-21
+#open	2019-07-31-20-23-27
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1475795116.906579	CHhAvVGS1DHFjwGM9	192.150.187.20	36778	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	unknown_ca	-	F	-	-	-	-	-	-
 1475795124.328003	ClEkJM2Vm5giqnMf4h	192.150.187.20	36782	138.68.41.77	443	TLSv13-draft16	TLS_CHACHA20_POLY1305_SHA256	secp384r1	-	F	-	-	T	-	-	-	-	-	-
-#close	2019-06-03-04-33-21
+#close	2019-07-31-20-23-27
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-22
+#open	2019-07-31-20-23-27
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1555610808.383902	CHhAvVGS1DHFjwGM9	192.168.178.80	54220	174.138.9.219	443	TLSv13	TLS_CHACHA20_POLY1305_SHA256	x25519	-	T	-	-	T	-	-	-	-	-	-
-#close	2019-06-03-04-33-22
+#close	2019-07-31-20-23-27
 #separator \x09
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2019-06-03-04-33-22
+#open	2019-07-31-20-23-27
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1556554523.016311	CHhAvVGS1DHFjwGM9	10.192.48.168	63564	64.233.185.139	443	TLSv13	TLS_AES_256_GCM_SHA384	secp256r1	-	T	-	-	T	-	-	-	-	-	-
-#close	2019-06-03-04-33-22
+#close	2019-07-31-20-23-27

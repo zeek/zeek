@@ -27,7 +27,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
-			HashKey* k, double t)
+			const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
 	s = arg_s;
@@ -68,7 +68,6 @@ FragReassembler::~FragReassembler()
 	DeleteTimer();
 	delete [] proto_hdr;
 	delete reassembled_pkt;
-	delete key;
 	}
 
 void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)

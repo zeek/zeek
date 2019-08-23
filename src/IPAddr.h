@@ -430,6 +430,16 @@ public:
 		return ConvertString(s, &tmp);
 		}
 
+	/**
+	 * Unspecified IPv4 addr, "0.0.0.0".
+	 */
+	static const IPAddr v4_unspecified;
+
+	/**
+	 * Unspecified IPv6 addr, "::".
+	 */
+	static const IPAddr v6_unspecified;
+
 private:
 	friend class IPPrefix;
 

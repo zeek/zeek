@@ -1,0 +1,3 @@
+*.sig linguist-language=none
+*.pac linguist-language=none
+testing/btest/Baseline/** linguist-language=none

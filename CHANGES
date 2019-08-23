@@ -1,4 +1,21 @@
 
+3.1.0-dev.68 | 2019-08-23 06:34:50 -0400
+
+  * Fix unit tests for new ordering from NetSessions::Drain (Tim Wojtulewicz, Corelight)
+
+  * Change FragReassembler to use a tuple as a key and use std::map for fragments in Sessions (Tim Wojtulewicz, Corelight)
+
+  * Rework Session/Connection tracking to use a std::map instead of PDict (Tim Wojtulewicz, Corelight)
+
+  * Improve GitHub language identification/stats (Seth Hall, Corelight)
+
+  * Zeekify thread naming. (Seth Hall, Corelight)
+
+    I copied the same style that caf uses ("zk" with single dot and no space).
+    This gives some consistency with caf and avoids us wasting more
+    space beyond "bro: ".  OSs only give 16 characters for thread names
+    so anything we can gain here is nice.
+
 3.1.0-dev.58 | 2019-08-16 18:45:39 +0000
 
   * GH-532: Improve disable_analyzer BIF. (Jon Siwek, Corelight)

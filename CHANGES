@@ -1,4 +1,13 @@
 
+3.0.0-rc2.1 | 2019-09-09 10:49:53 -0700
+
+  * Zeekify thread naming. (Seth Hall, Corelight)
+
+    I copied the same style that caf uses ("zk" with single dot and no space).
+    This gives some consistency with caf and avoids us wasting more
+    space beyond "bro: ".  OSs only give 16 characters for thread names
+    so anything we can gain here is nice.
+
 3.0.0-rc2 | 2019-08-28 16:39:50 -0700
 
   * Release 3.0.0-rc2 (Jon Siwek, Corelight)

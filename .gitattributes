@@ -1,3 +1,4 @@
-*.sig linguist-language=none
-*.pac linguist-language=none
-testing/btest/Baseline/** linguist-language=none
+*.sig linguist-detectable=false
+*.pac linguist-detectable=false
+*.bif linguist-detectable=false
+testing/btest/Baseline/** linguist-detectable=false

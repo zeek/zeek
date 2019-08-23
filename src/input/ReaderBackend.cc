@@ -257,7 +257,7 @@ bool ReaderBackend::Init(const int arg_num_fields,
 
 	disabled = false;
 
-	SetOSName(Fmt("bro: %s", Name()));
+	SetOSName(Fmt("zk.%s", Name()));
 
 	num_fields = arg_num_fields;
 	fields = arg_fields;

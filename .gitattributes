@@ -1,0 +1,4 @@
+*.sig linguist-detectable=false
+*.pac linguist-detectable=false
+*.bif linguist-language=C++
+testing/btest/Baseline/** linguist-detectable=false

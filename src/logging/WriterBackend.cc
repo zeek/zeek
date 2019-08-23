@@ -179,7 +179,7 @@ void WriterBackend::DisableFrontend()
 
 bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	{
-	SetOSName(Fmt("bro: %s", Name()));
+	SetOSName(Fmt("zk.%s", Name()));
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 

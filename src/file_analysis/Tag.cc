@@ -5,7 +5,7 @@
 
 using namespace file_analysis;
 
-file_analysis::Tag file_analysis::Tag::Error;
+const file_analysis::Tag file_analysis::Tag::Error;
 
 file_analysis::Tag::Tag(type_t type, subtype_t subtype)
 	: ::Tag(file_mgr->GetTagEnumType(), type, subtype)

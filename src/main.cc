@@ -1101,23 +1101,19 @@ int main(int argc, char** argv)
 
 		done_with_network();
 		net_delete();
-
-		terminate_bro();
-
-		sqlite3_shutdown();
-
-		ERR_free_strings();
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
-
-		// Close files after net_delete(), because net_delete()
-		// might write to connection content files.
-		BroFile::CloseOpenFiles();
 		}
-	else
-		{
-		terminate_bro();
-		}
+
+	terminate_bro();
+
+	sqlite3_shutdown();
+
+	ERR_free_strings();
+	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+
+	// Close files after net_delete(), because net_delete()
+	// might write to connection content files.
+	BroFile::CloseOpenFiles();
 
 	delete rule_matcher;
 

@@ -660,6 +660,9 @@ int main(int argc, char** argv)
 			break;
 		}
 
+	if ( interfaces.length() > 0 && read_files.length() > 0 )
+		usage(1);
+
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
 
@@ -688,17 +691,14 @@ int main(int argc, char** argv)
 	SSL_library_init();
 	SSL_load_error_strings();
 
-	int r = sqlite3_initialize();
-
-	if ( r != SQLITE_OK )
-		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
-
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
 
-	if ( interfaces.length() > 0 && read_files.length() > 0 )
-		usage(1);
+	int r = sqlite3_initialize();
+
+	if ( r != SQLITE_OK )
+		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 #ifdef USE_IDMEF
 	char* libidmef_dtd_path_cstr = new char[libidmef_dtd_path.length() + 1];
@@ -1101,23 +1101,19 @@ int main(int argc, char** argv)
 
 		done_with_network();
 		net_delete();
-
-		terminate_bro();
-
-		sqlite3_shutdown();
-
-		ERR_free_strings();
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
-
-		// Close files after net_delete(), because net_delete()
-		// might write to connection content files.
-		BroFile::CloseOpenFiles();
 		}
-	else
-		{
-		terminate_bro();
-		}
+
+	terminate_bro();
+
+	sqlite3_shutdown();
+
+	ERR_free_strings();
+	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+
+	// Close files after net_delete(), because net_delete()
+	// might write to connection content files.
+	BroFile::CloseOpenFiles();
 
 	delete rule_matcher;
 

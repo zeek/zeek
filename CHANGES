@@ -1,4 +1,10 @@
 
+3.1.0-dev.73 | 2019-08-26 14:57:45 -0700
+
+  * Close down SSL/sqlite at shutdown even if net_run not used (Tim Wojtulewicz, Corelight)
+
+  * Finish processing program arguments before setting up SSL/sqlite (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.70 | 2019-08-23 14:31:17 -0700
 
   * Make github identify our Flex source correctly. (Seth Hall, Corelight)

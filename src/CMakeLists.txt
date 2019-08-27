@@ -135,6 +135,160 @@ binpac_target(binpac_bro-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 ########################################################################
+## libuv for the event loop
+##
+## The majority of this was taken from the configuration for CAF in the
+## broker module.
+
+if ( LIBUV_ROOT_DIR )
+  set(static_ext "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+  find_path(LIBUV_ROOT_DIR
+    NAMES "include/uv.h")
+
+  find_library(LIBUV_LIBRARIES
+    NAMES libuv.a
+    HINTS ${LIBUV_ROOT_DIR}/lib)
+  
+  find_path(LIBUV_INCLUDE_DIRS
+    NAMES uv.h
+    HINTS ${LIBUV_ROOT_DIR}/include)
+
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(LIBUV DEFAULT_MSG
+    LIBUV_LIBRARIES
+    LIBUV_INCLUDE_DIRS
+    )
+  
+  mark_as_advanced(
+    LIBUV_ROOT_DIR
+    LIBUV_LIBRARIES
+    LIBUV_INCLUDE_DIRS
+    )
+
+else ()
+
+  include(ExternalProject)
+  set(uv_src     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libuv")
+  set(uv_ep      "${CMAKE_CURRENT_BINARY_DIR}/libuv-ep")
+  set(uv_build   "${CMAKE_CURRENT_BINARY_DIR}/libuv-build")
+  set(uv_dir     "${uv_src}")
+  set(uv_install "${CMAKE_INSTALL_PREFIX}")
+  set(static_ext "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+  if ( ${CMAKE_VERSION} VERSION_LESS "3.2.0" )
+    # Build byproducts is just required by the Ninja generator
+    # though it's not available before CMake 3.2 ...
+    if ( ${CMAKE_GENERATOR} STREQUAL Ninja )
+      message(FATAL_ERROR "Ninja generator requires CMake >= 3.2")
+    endif ()
+
+    set(build_byproducts_arg)
+  else ()
+    set(build_byproducts_arg BUILD_BYPRODUCTS
+      ${uv_build}/libuv_a${static_ext}
+      )
+  endif ()
+
+  message("${build_byproducts_arg}")
+
+  ExternalProject_Add(project_uv
+    PREFIX            "${uv_ep}"
+    BINARY_DIR        "${uv_build}"
+    DOWNLOAD_COMMAND  ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    ${build_byproducts_arg}
+  )
+
+  if ( ${CMAKE_VERSION} VERSION_LESS "3.4.0" )
+    set(use_terminal_arg)
+  else ()
+    set(use_terminal_arg USES_TERMINAL 1)
+  endif ()
+
+  ExternalProject_Add_Step(project_uv project_uv_build_step
+    COMMAND ${CMAKE_MAKE_PROGRAM}
+    COMMENT "Building libuv"
+    WORKING_DIRECTORY ${uv_build}
+    ALWAYS 1
+    ${use_terminal_arg}
+  )
+
+  install(CODE "execute_process(
+    COMMAND ${CMAKE_MAKE_PROGRAM} install
+    WORKING_DIRECTORY ${uv_build}
+    )"
+  )
+
+  if ( CMAKE_TOOLCHAIN_FILE )
+    set(toolchain_arg -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
+  else ()
+    set(toolchain_arg)
+  endif ()
+
+  if ( CMAKE_C_COMPILER_LAUNCHER )
+    set(cmake_c_compiler_launcher_arg
+        -DCMAKE_C_COMPILER_LAUNCHER:path=${CMAKE_C_COMPILER_LAUNCHER})
+  else ()
+    set(cmake_c_compiler_launcher_arg)
+  endif ()
+
+  if ( CMAKE_CXX_COMPILER_LAUNCHER )
+    set(cmake_cxx_compiler_launcher_arg
+        -DCMAKE_CXX_COMPILER_LAUNCHER:path=${CMAKE_CXX_COMPILER_LAUNCHER})
+  else ()
+    set(cmake_cxx_compiler_launcher_arg)
+  endif ()
+
+  execute_process(
+      COMMAND
+        ${CMAKE_COMMAND}
+        -G${CMAKE_GENERATOR}
+        ${toolchain_arg}
+        ${cmake_c_compiler_launcher_arg}
+        ${cmake_cxx_compiler_launcher_arg}
+	-DBUILD_TESTING=OFF
+        -DCMAKE_BUILD_TYPE:string=${CMAKE_BUILD_TYPE}
+        -DCMAKE_INSTALL_PREFIX:path=${uv_install}
+        ${uv_src}
+      WORKING_DIRECTORY ${uv_build}
+      RESULT_VARIABLE uv_cmake_result
+      ERROR_VARIABLE UV_CMAKE_OUTPUT
+      OUTPUT_VARIABLE UV_CMAKE_OUTPUT
+      ERROR_STRIP_TRAILING_WHITESPACE
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  message("\n********** Begin libuv External Project CMake Output ************")
+  message("\n${UV_CMAKE_OUTPUT}")
+  message("\n*********** End libuv External Project CMake Output *************")
+  message("\n")
+
+  if (uv_cmake_result)
+    message(FATAL_ERROR "libuv CMake configuration failed")
+  endif ()
+
+  add_library(libuv_a STATIC IMPORTED)
+  set_property(TARGET libuv_a PROPERTY IMPORTED_LOCATION
+    ${uv_build}/libuv_a${static_ext})
+  add_dependencies(libuv_a project_uv)
+
+  set(LIBUV_FOUND true)
+  set(LIBUV_LIBRARIES libuv_a CACHE STRING "libuv libs" FORCE)
+  set(LIBUV_INCLUDE_DIRS "${uv_src}/include" CACHE STRING "libuv includes" FORCE)
+  
+endif ()
+
+if ( LIBUV_FOUND )
+  include_directories(AFTER ${LIBUV_INCLUDE_DIRS})
+  set(zeekdeps ${zeekdeps} ${LIBUV_LIBRARIES})
+else()
+  message(FATAL_ERROR "Failed to find libuv")
+endif()
+
+########################################################################
 ## Including subdirectories.
 ########################################################################
 

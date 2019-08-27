@@ -75,6 +75,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-libuv=PATH      path to libuv install root
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
@@ -311,6 +312,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg
+            ;;
+        --with-libuv=*)
+            append_cache_entry LIBUV_ROOT_DIR      PATH   $optarg
             ;;
         --with-rocksdb=*)
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg

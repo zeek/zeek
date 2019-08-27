@@ -4,6 +4,6 @@
 @load base/protocols/smb
 
 event smb2_negotiate_response(c: connection , hdr: SMB2::Header , response: SMB2::NegotiateResponse )
-{
-    print response;
-}
+	{
+	print response;
+	}

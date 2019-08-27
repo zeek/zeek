@@ -115,7 +115,6 @@ type SMB2_negotiate_request(header: SMB2_Header) = record {
 };
 
 type NegotiateContextList(len: uint16) = record {
-	pad  : padding align 8;
 	vals : SMB3_negotiate_context_value[len];
 }
 
@@ -135,7 +134,7 @@ type SMB2_negotiate_response(header: SMB2_Header) = record {
 	security_length           : uint16;
 	negotiate_context_offset  : uint32;
 	security_blob             : bytestring &length=security_length;
-	pad1                      : padding to negotiate_context_offset - header.head_length;
+	pad1                      : padding to (dialect_revision == 0x0311 ? negotiate_context_offset - header.head_length : 0);
 	negotiate_context_list    : case dialect_revision of {
 		0x0311    -> smb3_ncl : NegotiateContextList(negotiate_context_count);
 		default   -> unknown  : empty;

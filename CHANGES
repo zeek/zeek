@@ -1,4 +1,8 @@
 
+3.0.0-rc1.3 | 2019-08-27 10:25:44 -0700
+
+  * Fix parsing of smb3 negotiate context (Pavel Ershov)
+
 3.0.0-rc1.1 | 2019-08-13 23:16:55 +0000
 
   * GH-533: Use consistent "lib" install dir. (Jon Siwek, Corelight)

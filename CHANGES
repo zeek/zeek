@@ -1,4 +1,8 @@
 
+3.1.0-dev.75 | 2019-08-27 10:04:43 -0700
+
+  * Fix parsing of smb3 negotiate context (Pavel Ershov)
+
 3.1.0-dev.73 | 2019-08-26 14:57:45 -0700
 
   * Close down SSL/sqlite at shutdown even if net_run not used (Tim Wojtulewicz, Corelight)

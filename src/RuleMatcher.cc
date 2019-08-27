@@ -731,7 +731,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// pattern matching to do.
 		if ( hdr_test->level <= RE_level )
 			{
-			for ( int i = 0; i < Rule::TYPES; ++i )
+			for ( int i = Rule::PAYLOAD; i < Rule::TYPES; ++i )
 				{
 				for ( const auto& set : hdr_test->psets[i] )
 					{

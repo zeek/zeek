@@ -590,7 +590,7 @@ Events
 
 .. zeek:id:: flow_weird
 
-   :Type: :zeek:type:`event` (name: :zeek:type:`string`, src: :zeek:type:`addr`, dst: :zeek:type:`addr`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, src: :zeek:type:`addr`, dst: :zeek:type:`addr`, addl: :zeek:type:`string`)
 
    Generated for unexpected activity related to a pair of hosts, but independent
    of a specific connection.  When Zeek's packet analysis encounters activity
@@ -609,6 +609,9 @@ Events
    
 
    :dst: The destination address corresponding to the activity.
+   
+
+   :addl: Optional additional context further describing the situation.
    
    .. zeek:see:: conn_weird net_weird file_weird
    
@@ -688,7 +691,7 @@ Events
 
 .. zeek:id:: net_weird
 
-   :Type: :zeek:type:`event` (name: :zeek:type:`string`)
+   :Type: :zeek:type:`event` (name: :zeek:type:`string`, addl: :zeek:type:`string`)
 
    Generated for unexpected activity that is not tied to a specific connection
    or pair of hosts. When Zeek's packet analysis encounters activity that
@@ -700,6 +703,9 @@ Events
    :name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
+   
+
+   :addl: Optional additional context further describing the situation.
    
    .. zeek:see:: flow_weird file_weird
    

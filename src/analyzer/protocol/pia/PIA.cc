@@ -130,6 +130,9 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 	if ( ! rule_matcher )
 		return;
 
+	if ( ! rule_matcher->HasNonFileMagicRule() )
+		return;
+
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), ip, len, is_orig, this);
 

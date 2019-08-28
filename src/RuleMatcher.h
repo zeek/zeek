@@ -286,6 +286,8 @@ public:
 	void AddRule(Rule* rule);
 	void SetParseError()		{ parse_error = true; }
 
+	bool HasNonFileMagicRule() const	{ return has_non_file_magic_rule; }
+
 	// Interface to for getting some statistics
 	struct Stats {
 		unsigned int matchers;	// # distinct RE matchers
@@ -356,6 +358,7 @@ private:
 	                                   const AcceptingMatchSet& ams);
 
 	int RE_level;
+	bool has_non_file_magic_rule;
 	bool parse_error;
 	RuleHdrTest* root;
 	rule_list rules;

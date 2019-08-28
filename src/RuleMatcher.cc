@@ -205,6 +205,7 @@ RuleMatcher::RuleMatcher(int arg_RE_level)
 				new maskedvalue_list);
 	RE_level = arg_RE_level;
 	parse_error = false;
+	has_non_file_magic_rule = false;
 	}
 
 RuleMatcher::~RuleMatcher()
@@ -284,6 +285,25 @@ void RuleMatcher::BuildRulesTree()
 		{
 		if ( ! rule->Active() )
 			continue;
+
+		const auto& pats = rule->patterns;
+
+		if ( ! has_non_file_magic_rule )
+			{
+			if ( pats.length() > 0 )
+				{
+				for ( const auto& p : pats )
+					{
+					if ( p->type != Rule::FILE_MAGIC )
+						{
+						has_non_file_magic_rule = true;
+						break;
+						}
+					}
+				}
+			else
+				has_non_file_magic_rule = true;
+			}
 
 		rule->SortHdrTests();
 		InsertRuleIntoTree(rule, 0, root, 0);
@@ -732,7 +752,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// pattern matching to do.
 		if ( hdr_test->level <= RE_level )
 			{
-			for ( int i = 0; i < Rule::TYPES; ++i )
+			for ( int i = Rule::PAYLOAD; i < Rule::TYPES; ++i )
 				{
 				for ( const auto& set : hdr_test->psets[i] )
 					{

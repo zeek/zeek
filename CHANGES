@@ -1,4 +1,21 @@
 
+3.0.0-rc1.8 | 2019-08-28 15:25:08 -0700
+
+  * GH-545: add "addl" parameter to flow_weird and net_weird events (Jon Siwek, Corelight)
+
+  * GH-541: add test cases for NTLM AV Pair sequence handling (Jon Siwek, Corelight)
+
+  * GH-541: fix handling of NTLM AV Pair sequences (Jon Siwek, Corelight)
+
+    Empty AV Pair sequences or AV Pair sequences that lack a terminator
+    could cause accesses past the end of the parsed vector.
+
+  * GH-554: remove use of file magic in protocol-based signature logic (Jon Siwek, Corelight)
+
+    This can be a significant performance/memory improvement since
+    otherwise the protocol-based rule matching logic ends up superfluously
+    creating file-matching state per file-matcher per connection/endpoint.
+
 3.0.0-rc1.3 | 2019-08-27 10:25:44 -0700
 
   * Fix parsing of smb3 negotiate context (Pavel Ershov)

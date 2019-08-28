@@ -21,10 +21,10 @@ using namespace analyzer;
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
 				     uint16_t _resp_p, uint16_t _proto)
 	{
-	if ( _orig == IPAddr(string("0.0.0.0")) )
+	if ( _orig == IPAddr::v4_unspecified )
 		// don't use the IPv4 mapping, use the literal unspecified address
 		// to indicate a wildcard
-		orig = IPAddr(string("::"));
+		orig = IPAddr::v6_unspecified;
 	else
 		orig = _orig;
 
@@ -35,7 +35,7 @@ Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
 
 Manager::ConnIndex::ConnIndex()
 	{
-	orig = resp = IPAddr("0.0.0.0");
+	orig = resp = IPAddr::v4_unspecified;
 	resp_p = 0;
 	proto = 0;
 	}
@@ -596,7 +596,7 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 		result.insert(i->second->analyzer);
 
 	// Try wildcard for originator.
-	c.orig = IPAddr(string("::"));
+	c.orig = IPAddr::v6_unspecified;
 	all = conns.equal_range(c);
 
 	for ( conns_map::iterator i = all.first; i != all.second; i++ )

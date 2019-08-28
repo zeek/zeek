@@ -14,6 +14,10 @@ const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
                                                0, 0, 0, 0,
                                                0, 0, 0xff, 0xff };
 
+const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
+
+const IPAddr IPAddr::v6_unspecified = IPAddr();
+
 ConnIDKey BuildConnIDKey(const ConnID& id)
 	{
 	ConnIDKey key;

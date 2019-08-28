@@ -406,7 +406,7 @@ event conn_weird(name: string, c: connection, addl: string)
 	weird(i);
 	}
 
-event flow_weird(name: string, src: addr, dst: addr)
+event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	{
 	# We add the source and destination as port 0/unknown because that is
 	# what fits best here.
@@ -414,12 +414,20 @@ event flow_weird(name: string, src: addr, dst: addr)
 	                   $resp_h=dst, $resp_p=count_to_port(0, unknown_transport));
 
 	local i = Info($ts=network_time(), $name=name, $id=id, $identifier=flow_id_string(src,dst));
+
+	if ( addl != "" )
+		i$addl = addl;
+
 	weird(i);
 	}
 
-event net_weird(name: string)
+event net_weird(name: string, addl: string)
 	{
 	local i = Info($ts=network_time(), $name=name);
+
+	if ( addl != "" )
+		i$addl = addl;
+
 	weird(i);
 	}
 

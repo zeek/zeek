@@ -219,31 +219,11 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::File* f, const char* addl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
 	{
-	val_list vl(2);
-
-	if ( conn_val )
-		vl.push_back(conn_val);
-	else if ( f )
-		vl.push_back(f->GetVal()->Ref());
-
-	if ( addl )
-		vl.push_back(new StringVal(addl));
-
 	va_list ap;
 	va_start(ap, fmt_name);
 	DoLog("weird", event, 0, 0, &vl, false, false, 0, fmt_name, ap);
-	va_end(ap);
-	}
-
-void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...)
-	{
-	val_list vl{new AddrVal(orig), new AddrVal(resp)};
-
-	va_list ap;
-	va_start(ap, fmt_name);
-	DoLog("weird", flow_weird, 0, 0, &vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 	}
 
@@ -331,7 +311,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-void Reporter::Weird(const char* name)
+void Reporter::Weird(const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -341,7 +321,7 @@ void Reporter::Weird(const char* name)
 			return;
 		}
 
-	WeirdHelper(net_weird, 0, 0, 0, "%s", name);
+	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
 	}
 
 void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
@@ -355,7 +335,8 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, 0, f, addl, "%s", name);
+	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
@@ -369,10 +350,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, conn->BuildConnVal(), 0, addl, "%s", name);
+	WeirdHelper(conn_weird, {conn->BuildConnVal(), new StringVal(addl)},
+	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -382,7 +364,9 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 			 return;
 		}
 
-	WeirdFlowHelper(orig, resp, "%s", name);
+	WeirdHelper(flow_weird,
+	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,

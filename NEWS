@@ -298,9 +298,14 @@ Changed Functionality
   that didn't otherwise handle them (like syslog, modbus, dnp3) are now
   a ProtocolViolation instead
 
+- An "addl" parameter was added to the ``flow_weird`` and ``net_weird`` events
+  for describing additional information about the weird.  The ``conn_weird``
+  event already had such a parameter.
+
 - Weird names that contained variable content and may result in an unbounded
   number of weird names have been renamed to remove the variable content
-  (which has been made available in the "addl" field of conn_weirds):
+  (which has been made available in the "addl" field of ``conn_weird``,
+   ``flow_weird``, or ``net_weird`` events):
 
     - "unknown_dce_rpc_auth_type_%d" -> unknown_dce_rpc_auth_type
     - "gtp_invalid_info_element_%d" -> gtp_invalid_info_element

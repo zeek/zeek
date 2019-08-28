@@ -450,13 +450,15 @@ event conn_weird%(name: string, c: connection, addl: string%);
 ##
 ## dst: The destination address corresponding to the activity.
 ##
+## addl: Optional additional context further describing the situation.
+##
 ## .. zeek:see:: conn_weird net_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
-event flow_weird%(name: string, src: addr, dst: addr%);
+event flow_weird%(name: string, src: addr, dst: addr, addl: string%);
 
 ## Generated for unexpected activity that is not tied to a specific connection
 ## or pair of hosts. When Zeek's packet analysis encounters activity that
@@ -468,13 +470,15 @@ event flow_weird%(name: string, src: addr, dst: addr%);
 ##       scripts use this name in filtering policies that specify which
 ##       "weirds" are worth reporting.
 ##
+## addl: Optional additional context further describing the situation.
+##
 ## .. zeek:see:: flow_weird file_weird
 ##
 ## .. note:: "Weird" activity is much more common in real-world network traffic
 ##    than one would intuitively expect. While in principle, any protocol
 ##    violation could be an attack attempt, it's much more likely that an
 ##    endpoint's implementation interprets an RFC quite liberally.
-event net_weird%(name: string%);
+event net_weird%(name: string, addl: string%);
 
 ## Generated for unexpected activity that is tied to a file.
 ## When Zeek's packet analysis encounters activity that

@@ -24,12 +24,12 @@ event conn_weird(name: string, c: connection, addl: string)
 	print "conn_weird", name;
 	}
 
-event flow_weird(name: string, src: addr, dst: addr)
+event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	{
 	print "flow_weird", name;
 	}
 
-event net_weird(name: string)
+event net_weird(name: string, addl: string)
 	{
 	print "net_weird", name;
 	}

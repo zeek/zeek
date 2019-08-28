@@ -499,7 +499,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		if ( gre_version != 0 && gre_version != 1 )
 			{
-			Weird("unknown_gre_version", ip_hdr, encapsulation);
+			Weird("unknown_gre_version", ip_hdr, encapsulation,
+			      fmt("%d", gre_version));
 			return;
 			}
 
@@ -574,7 +575,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			else
 				{
 				// Not IPv4/IPv6 payload.
-				Weird("unknown_gre_protocol", ip_hdr, encapsulation);
+				Weird("unknown_gre_protocol", ip_hdr, encapsulation,
+				      fmt("%d", proto_typ));
 				return;
 				}
 
@@ -585,7 +587,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			if ( proto_typ != 0x880b )
 				{
 				// Enhanced GRE payload must be PPP.
-				Weird("egre_protocol_type", ip_hdr, encapsulation);
+				Weird("egre_protocol_type", ip_hdr, encapsulation,
+				      fmt("%d", proto_typ));
 				return;
 				}
 			}
@@ -707,7 +710,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		}
 
 	default:
-		Weird("unknown_protocol", pkt, encapsulation);
+		Weird("unknown_protocol", pkt, encapsulation, fmt("%d", proto));
 		return;
 	}
 
@@ -1390,25 +1393,25 @@ void NetSessions::DumpPacket(const Packet *pkt, int len)
 	}
 
 void NetSessions::Weird(const char* name, const Packet* pkt,
-                        const EncapsulationStack* encap)
+                        const EncapsulationStack* encap, const char* addl)
 	{
 	if ( pkt )
 		dump_this_packet = 1;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
-		reporter->Weird(fmt("%s_in_tunnel", name));
+		reporter->Weird(fmt("%s_in_tunnel", name), addl);
 	else
-		reporter->Weird(name);
+		reporter->Weird(name, addl);
 	}
 
 void NetSessions::Weird(const char* name, const IP_Hdr* ip,
-                        const EncapsulationStack* encap)
+                        const EncapsulationStack* encap, const char* addl)
 	{
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(ip->SrcAddr(), ip->DstAddr(),
-		                fmt("%s_in_tunnel", name));
+		                fmt("%s_in_tunnel", name), addl);
 	else
-		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name);
+		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), name, addl);
 	}
 
 unsigned int NetSessions::ConnectionMemoryUsage()

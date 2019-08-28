@@ -1,4 +1,44 @@
 
+3.1.0-dev.88 | 2019-08-28 12:48:04 -0700
+
+  * GH-545: add "addl" parameter to flow_weird and net_weird events (Jon Siwek, Corelight)
+
+  * GH-554: don't init PIA endpoint matchers if there's only file-magic
+
+    The logic for initializing PIA endpoint matchers was previously
+    skipped if "there's no global rule matcher", and that's only true
+    when no signature files get loaded.
+
+    But when using `zeek -b`, some file-magic signatures still get loaded
+    by default, so the PIA endpoint matchers still get initialized even
+    though they don't need to be -- file-magic patterns play no part
+    in PIA.
+
+    For typical use-cases (not using the `-b` flag), this change won't
+    help any, but we do at least use `-b` often within the test suite. (Jon Siwek, Corelight)
+
+  * GH-554: remove use of file magic in protocol-based signature logic
+
+    This can be a significant performance/memory improvement since
+    otherwise the protocol-based rule matching logic ends up superfluously
+    creating file-matching state per file-matcher per connection/endpoint. (Jon Siwek, Corelight)
+
+  * GH-541: add test cases for NTLM AV Pair sequence handling (Jon Siwek, Corelight)
+
+  * GH-541: fix handling of NTLM AV Pair sequences
+
+    Empty AV Pair sequences or AV Pair sequences that lack a terminator
+    could cause accesses past the end of the parsed vector. (Jon Siwek, Corelight)
+
+  * Make Tag::Error values constant (Jon Siwek, Corelight)
+
+  * Simplify operator bool()'s used for Tag error checks (Jon Siwek, Corelight)
+
+  * Add/use unspecified IPAddr constants
+
+    The analyzer-scheduling code was otherwise frequently converting the
+    unspecified v4/v6 addresses from strings. (Jon Siwek, Corelight)
+
 3.1.0-dev.75 | 2019-08-27 10:04:43 -0700
 
   * Fix parsing of smb3 negotiate context (Pavel Ershov)

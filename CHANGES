@@ -1,4 +1,13 @@
 
+2.6.4 | 2019-08-28 16:25:19 -0700
+
+  * GH-541: add test cases for NTLM AV Pair sequence handling (Jon Siwek, Corelight)
+
+  * GH-541: fix handling of NTLM AV Pair sequences (Jon Siwek, Corelight)
+
+    Empty AV Pair sequences or AV Pair sequences that lack a terminator
+    could cause accesses past the end of the parsed vector.
+
 2.6.3 | 2019-08-08 10:12:08 -0700
 
   * Update binpac submodule to v0.53 (Jon Siwek, Corelight)

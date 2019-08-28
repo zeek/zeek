@@ -4,6 +4,19 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as BroControl and Broccoli, come with
 their own ``CHANGES``.)
 
+Bro 2.6.4
+=========
+
+This is a security patch release to address a potential Denial of Service
+vulnerability:
+
+- The NTLM analyzer did not properly handle AV Pair sequences that were
+  either empty or unterminated, resulting in invalid memory access or
+  heap buffer over-read.  The NTLM analyzer is enabled by default and
+  used in the analysis of SMB, DCE/RPC, and GSSAPI protocols.
+
+  Thanks to Chris Hinshaw for reporting the issue.
+
 Bro 2.6.3
 =========
 

@@ -1,0 +1,34 @@
+##! This script adds information about matched DPD signatures to the connection
+##! log.
+
+@load base/protocols/conn
+
+module Conn;
+
+redef record Info += {
+	## Protocol that was determined by a matching signature after the beginning
+	## of a connection. In this situation no analyzer can be attached and hence
+	## the data cannot be analyzed nor the protocol can be confirmed.
+	speculative_service: string &log &optional;
+};
+
+redef record connection += {
+	speculative_service: set[string] &default=string_set();
+};
+
+redef dpd_match_only_beginning = F;
+redef dpd_late_match_stop = T;
+
+event protocol_late_match(c: connection, atype: Analyzer::Tag)
+	{
+	local analyzer = Analyzer::name(atype);
+	add c$speculative_service[analyzer];
+	}
+
+event connection_state_remove(c: connection)
+	{
+	local sp_service = "";
+	for ( s in c$speculative_service )
+		sp_service = sp_service == "" ? s : cat(sp_service, ",", s);
+	c$conn$speculative_service = to_lower(sp_service);
+	}

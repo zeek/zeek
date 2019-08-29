@@ -1,4 +1,8 @@
 
+3.1.0-dev.89 | 2019-08-29 13:05:09 -0700
+
+  * CID 1404734: fix NetSessions::MemoryAllocation() (Jon Siwek, Corelight)
+
 3.1.0-dev.88 | 2019-08-28 12:48:04 -0700
 
   * GH-545: add "addl" parameter to flow_weird and net_weird events (Jon Siwek, Corelight)

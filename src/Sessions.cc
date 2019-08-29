@@ -1462,10 +1462,10 @@ unsigned int NetSessions::MemoryAllocation()
 
 	return ConnectionMemoryUsage()
 		+ padded_sizeof(*this)
-		+ padded_sizeof(tcp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ padded_sizeof(udp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ padded_sizeof(icmp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
-		+ padded_sizeof(fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type)))
+		+ (tcp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ (udp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ (icmp_conns.size() * (sizeof(ConnectionMap::key_type) + sizeof(ConnectionMap::value_type)))
+		+ (fragments.size() * (sizeof(FragmentMap::key_type) + sizeof(FragmentMap::value_type)))
 		// FIXME: MemoryAllocation() not implemented for rest.
 		;
 	}

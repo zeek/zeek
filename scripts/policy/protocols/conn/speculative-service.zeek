@@ -30,5 +30,7 @@ event connection_state_remove(c: connection)
 	local sp_service = "";
 	for ( s in c$speculative_service )
 		sp_service = sp_service == "" ? s : cat(sp_service, ",", s);
-	c$conn$speculative_service = to_lower(sp_service);
+
+	if ( sp_service != "" )
+		c$conn$speculative_service = to_lower(sp_service);
 	}

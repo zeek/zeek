@@ -23,24 +23,26 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 		uint16_t port2;
 	} key;
 
+	ConnIDBasic* conn_id_data = static_cast<ConnIDBasic*>(id.data);
+
 	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>
 	// followed by the other.
-	if ( id.is_one_way ||
-	     addr_port_canon_lt(id.src_addr, id.src_port, id.dst_addr, id.dst_port)
+	if ( conn_id_data->is_one_way ||
+	     addr_port_canon_lt(conn_id_data->src_addr, conn_id_data->src_port, conn_id_data->dst_addr, conn_id_data->dst_port)
 	   )
 		{
-		key.ip1 = id.src_addr.in6;
-		key.ip2 = id.dst_addr.in6;
-		key.port1 = id.src_port;
-		key.port2 = id.dst_port;
+		key.ip1 = conn_id_data->src_addr.in6;
+		key.ip2 = conn_id_data->dst_addr.in6;
+		key.port1 = conn_id_data->src_port;
+		key.port2 = conn_id_data->dst_port;
 		}
 	else
 		{
-		key.ip1 = id.dst_addr.in6;
-		key.ip2 = id.src_addr.in6;
-		key.port1 = id.dst_port;
-		key.port2 = id.src_port;
+		key.ip1 = conn_id_data->dst_addr.in6;
+		key.ip2 = conn_id_data->src_addr.in6;
+		key.port1 = conn_id_data->dst_port;
+		key.port2 = conn_id_data->src_port;
 		}
 
 	return new HashKey(&key, sizeof(key));

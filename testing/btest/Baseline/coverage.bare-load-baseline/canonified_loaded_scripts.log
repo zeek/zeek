@@ -3,20 +3,21 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-07-29-19-05-26
+#open	2019-08-30-21-39-06
 #fields	name
 #types	string
-scripts/base/init-bare.zeek
-  build/scripts/base/bif/const.bif.zeek
-  build/scripts/base/bif/types.bif.zeek
-  build/scripts/base/bif/zeek.bif.zeek
-  build/scripts/base/bif/stats.bif.zeek
-  build/scripts/base/bif/reporter.bif.zeek
-  build/scripts/base/bif/strings.bif.zeek
-  build/scripts/base/bif/option.bif.zeek
-  build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
-  build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
-  build/scripts/base/bif/event.bif.zeek
+scripts/base/misc/conn-id/basic.zeek
+  scripts/base/init-bare.zeek
+    build/scripts/base/bif/const.bif.zeek
+    build/scripts/base/bif/types.bif.zeek
+    build/scripts/base/bif/zeek.bif.zeek
+    build/scripts/base/bif/stats.bif.zeek
+    build/scripts/base/bif/reporter.bif.zeek
+    build/scripts/base/bif/strings.bif.zeek
+    build/scripts/base/bif/option.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
+    build/scripts/base/bif/event.bif.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek
@@ -181,4 +182,4 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek
-#close	2019-07-29-19-05-26
+#close	2019-08-30-21-39-06

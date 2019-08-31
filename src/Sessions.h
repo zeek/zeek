@@ -18,7 +18,6 @@
 class EncapsulationStack;
 class Connection;
 class ConnCompressor;
-struct ConnID;
 
 class Discarder;
 class PacketFilter;

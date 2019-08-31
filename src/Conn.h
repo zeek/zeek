@@ -37,15 +37,36 @@ typedef enum {
 	NUM_EVENTS_TO_FLAG,
 } ConnEventToFlag;
 
+typedef enum {
+	BASIC,
+	BASIC_WITH_VLAN
+} ConnIDType;
+
 typedef void (Connection::*timer_func)(double t);
 
 struct ConnID {
+	void* data;
+	unsigned int type;
+};
+
+struct ConnIDBasic {
 	IPAddr src_addr;
 	IPAddr dst_addr;
 	uint32_t src_port;
 	uint32_t dst_port;
 	bool is_one_way;	// if true, don't canonicalize order
 };
+
+struct ConnIDBasicWithVLAN {
+	IPAddr src_addr;
+	IPAddr dst_addr;
+	uint32_t src_port;
+	uint32_t dst_port;
+	bool is_one_way;	// if true, don't canonicalize order
+	uint16_t vlan_id;
+};
+
+extern ConnIDType conn_id_type;
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 					const IPAddr& addr2, uint32_t p2)

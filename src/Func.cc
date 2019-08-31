@@ -52,6 +52,7 @@ extern	RETSIGTYPE sig_handler(int signo);
 
 vector<CallInfo> call_stack;
 bool did_builtin_init = false;
+bool to_builtin_init = false;
 
 vector<Func*> Func::unique_ids;
 static const std::pair<bool, Val*> empty_hook_result(false, NULL);

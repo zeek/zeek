@@ -8,4 +8,5 @@
 -./frameworks/openflow/cluster.zeek
 -./frameworks/packet-filter/cluster.zeek
 -./frameworks/sumstats/cluster.zeek
+-./misc/conn-id/basic-with-vlan.zeek
 -./utils/json.zeek

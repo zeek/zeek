@@ -14,6 +14,7 @@
 #include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
+#include "Scope.h"
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
 
@@ -62,10 +63,12 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	key = k;
 	start_time = last_time = t;
 
-	orig_addr = id->src_addr;
-	resp_addr = id->dst_addr;
-	orig_port = id->src_port;
-	resp_port = id->dst_port;
+	ConnIDBasic* conn_id_data = static_cast<ConnIDBasic*>(id->data);
+	orig_addr = conn_id_data->src_addr;
+	resp_addr = conn_id_data->dst_addr;
+	orig_port = conn_id_data->src_port;
+	resp_port = conn_id_data->dst_port;
+
 	proto = TRANSPORT_UNKNOWN;
 	orig_flow_label = flow;
 	resp_flow_label = 0;
@@ -341,12 +344,16 @@ RecordVal* Connection::BuildConnVal()
 		conn_val = new RecordVal(connection_type);
 
 		TransportProto prot_type = ConnTransport();
-
 		RecordVal* id_val = new RecordVal(conn_id);
 		id_val->Assign(0, new AddrVal(orig_addr));
 		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
 		id_val->Assign(2, new AddrVal(resp_addr));
 		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
+		cout << conn_id_type << ";" << vlan << endl;
+		if (conn_id_type == BASIC_WITH_VLAN && vlan != 0) {
+			id_val->Assign(4, val_mgr->GetInt(vlan));
+			cout << "djskfflskld;k;fsafldfljdsklfjkdlsjfkljfklasdjfkl;jkl;dasjhfkljdsfkldsjfsdlkjfkldasjfdjsfkjsdkljf";
+		}
 
 		RecordVal* orig_endp = new RecordVal(endpoint);
 		orig_endp->Assign(0, val_mgr->GetCount(0));

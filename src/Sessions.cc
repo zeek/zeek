@@ -424,7 +424,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	const u_char* data = ip_hdr->Payload();
 
-	ConnID id;
+	ConnIDBasic id;
 	id.src_addr = ip_hdr->SrcAddr();
 	id.dst_addr = ip_hdr->DstAddr();
 	Dictionary* d = 0;
@@ -715,7 +715,11 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 	}
 
-	HashKey* h = BuildConnIDHashKey(id);
+	ConnID connid;
+	connid.data = &id;
+	connid.type = 0;
+
+	HashKey* h = BuildConnIDHashKey(connid);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -726,7 +730,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	conn = (Connection*) d->Lookup(h);
 	if ( ! conn )
 		{
-		conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+		conn = NewConn(h, t, &connid, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 		if ( conn )
 			d->Insert(h, conn);
 		}
@@ -746,7 +750,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				conn->Event(connection_reused, 0);
 
 			Remove(conn);
-			conn = NewConn(h, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
+			conn = NewConn(h, t, &connid, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
 			if ( conn )
 				d->Insert(h, conn);
 			}
@@ -1006,7 +1010,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
 	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
 
-	ConnID id;
+	ConnIDBasic id;
 
 	id.src_addr = orig_addr;
 	id.dst_addr = resp_addr;
@@ -1016,7 +1020,11 @@ Connection* NetSessions::FindConnection(Val* v)
 
 	id.is_one_way = 0;	// ### incorrect for ICMP connections
 
-	HashKey* h = BuildConnIDHashKey(id);
+	ConnID connid;
+	connid.data = &id;
+	connid.type = 0;
+
+	HashKey* h = BuildConnIDHashKey(connid);
 	if ( ! h )
 		reporter->InternalError("hash computation failed");
 
@@ -1212,8 +1220,8 @@ Connection* NetSessions::NewConn(HashKey* k, double t, const ConnID* id,
 	{
 	// FIXME: This should be cleaned up a bit, it's too protocol-specific.
 	// But I'm not yet sure what the right abstraction for these things is.
-	int src_h = ntohs(id->src_port);
-	int dst_h = ntohs(id->dst_port);
+	int src_h = ntohs(static_cast<ConnIDBasic*>(id->data)->src_port);
+	int dst_h = ntohs(static_cast<ConnIDBasic*>(id->data)->dst_port);
 	int flags = 0;
 
 	// Hmm... This is not great.

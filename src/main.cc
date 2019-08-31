@@ -24,6 +24,7 @@ extern "C" {
 #include "bsd-getopt-long.h"
 #include "input.h"
 #include "DNS_Mgr.h"
+#include "Conn.h"
 #include "Frame.h"
 #include "Scope.h"
 #include "Event.h"
@@ -108,6 +109,7 @@ char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
 char* proc_status_file = 0;
+ConnIDType conn_id_type;
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -154,6 +156,7 @@ void usage(int code = 1)
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
+	fprintf(stderr, "    -c|--conn-id <scheme>          | define conn-id based on the given scheme (int)\n");
 	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
 	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
@@ -432,6 +435,7 @@ int main(int argc, char** argv)
 	static struct option long_opts[] = {
 		{"parse-only",	no_argument,		0,	'a'},
 		{"bare-mode",	no_argument,		0,	'b'},
+		{"conn-id",		required_argument,	0,	'c'},
 		{"debug-policy",	no_argument,		0,	'd'},
 		{"exec",		required_argument,	0,	'e'},
 		{"filter",		required_argument,	0,	'f'},
@@ -517,6 +521,20 @@ int main(int argc, char** argv)
 
 		case 'b':
 			bare_mode = true;
+			break;
+
+		case 'c':
+			switch (optarg[0]) {
+				case '0':
+					conn_id_type = BASIC;
+					break;
+				case '1':
+					conn_id_type = BASIC_WITH_VLAN;
+					break;
+				default:
+					fprintf(stdout, "This scheme is not supported as a conn-id\n");
+					exit(0);
+			}
 			break;
 
 		case 'd':
@@ -713,7 +731,17 @@ int main(int argc, char** argv)
 
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_config, bro_argv[0]);
 
-	add_essential_input_file("base/init-bare.zeek");
+	switch (conn_id_type) {
+		case BASIC:
+			add_essential_input_file("base/misc/conn-id/basic.zeek");
+			break;
+
+		case BASIC_WITH_VLAN:
+			add_essential_input_file("base/misc/conn-id/basic-with-vlan.zeek");
+			break;
+	}
+
+	//add_essential_input_file("base/init-bare.zeek", true);
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
 
 	if ( ! bare_mode )

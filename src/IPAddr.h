@@ -14,6 +14,8 @@
 #include "threading/SerialTypes.h"
 
 struct ConnID;
+struct ConnIDBasic;
+struct ConnIDBasicWithVLAN;
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;

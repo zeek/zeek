@@ -427,7 +427,7 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 
 // Returns an integer that's very likely to be unique, even across Bro
 // instances. The integer can be drawn from different pools, which is helpful
-// when the randon number generator is seeded to be deterministic. In that
+// when the random number generator is seeded to be deterministic. In that
 // case, the same sequence of integers is generated per pool.
 #define UID_POOL_DEFAULT_INTERNAL 1
 #define UID_POOL_DEFAULT_SCRIPT   2

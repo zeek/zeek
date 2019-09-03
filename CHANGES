@@ -1,4 +1,8 @@
 
+3.1.0-dev.93 | 2019-09-03 10:35:16 -0700
+
+  * Fix minor typos in code comments (The Alchemist)
+
 3.1.0-dev.89 | 2019-08-29 13:05:09 -0700
 
   * CID 1404734: fix NetSessions::MemoryAllocation() (Jon Siwek, Corelight)

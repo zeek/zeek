@@ -360,8 +360,8 @@ else ()
   else()
     set(zeekdeps ${zeekdeps} broker)
   endif()
-  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
-                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker/include
+                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker/include)
 endif ()
 
 # CAF headers aren't necessarily in same location as Broker headers and

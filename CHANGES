@@ -1,4 +1,8 @@
 
+3.1.0-dev.98 | 2019-09-04 16:28:01 -0700
+
+  * Update Broker include dir search path (Jon Siwek, Corelight)
+
 3.1.0-dev.96 | 2019-09-04 13:41:42 -0700
 
   * Update embedded CAF to 0.17.1 (plus cherry-picked memory leak fix) (Jon Siwek, Corelight)

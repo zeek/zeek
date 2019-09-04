@@ -16,14 +16,32 @@ const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
 
 HashKey* BuildConnIDHashKey(const ConnID& id)
 	{
-	struct {
-		in6_addr ip1;
-		in6_addr ip2;
-		uint16_t port1;
-		uint16_t port2;
-	} key;
+	
 
-	ConnIDBasic* conn_id_data = static_cast<ConnIDBasic*>(id.data);
+	switch (id.type)
+		{
+		case BASIC_WITH_VLAN:
+			struct {
+				in6_addr ip1;
+				in6_addr ip2;
+				uint16_t port1;
+				uint16_t port2;
+				uint16_t vlanid;
+			} key;
+			ConnIDBasic* conn_id_data = static_cast<ConnIDBasicWithVLAN*>(id.data);
+			key.vlanid = conn_id_data.vlan_id;
+			break;
+
+		case BASIC:
+			struct {
+				in6_addr ip1;
+				in6_addr ip2;
+				uint16_t port1;
+				uint16_t port2;
+			} key;
+			ConnIDBasic* conn_id_data = static_cast<ConnIDBasic*>(id.data);
+			break;
+		}
 
 	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>

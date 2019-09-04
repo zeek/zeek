@@ -352,7 +352,6 @@ RecordVal* Connection::BuildConnVal()
 		cout << conn_id_type << ";" << vlan << endl;
 		if (conn_id_type == BASIC_WITH_VLAN && vlan != 0) {
 			id_val->Assign(4, val_mgr->GetInt(vlan));
-			cout << "djskfflskld;k;fsafldfljdsklfjkdlsjfkljfklasdjfkl;jkl;dasjhfkljdsfkldsjfsdlkjfkldasjfdjsfkjsdkljf";
 		}
 
 		RecordVal* orig_endp = new RecordVal(endpoint);

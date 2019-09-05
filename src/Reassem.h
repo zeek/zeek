@@ -24,8 +24,7 @@ class DataBlock {
 public:
 	DataBlock(Reassembler* reass, const u_char* data,
 	          uint64_t size, uint64_t seq,
-	          DataBlock* prev, DataBlock* next,
-	          ReassemblerType reassem_type = REASSEM_UNKNOWN);
+	          DataBlock* prev, DataBlock* next);
 
 	~DataBlock();
 
@@ -35,7 +34,6 @@ public:
 	DataBlock* prev;	// previous block with lower seq #
 	uint64_t seq, upper;
 	u_char* block;
-	ReassemblerType rtype;
 
 	Reassembler* reassembler; // Non-owning pointer back to parent.
 };
@@ -108,7 +106,7 @@ inline DataBlock::~DataBlock()
 	{
 	reassembler->size_of_all_blocks -= Size();
 	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
-	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
+	Reassembler::sizes[reassembler->rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	delete [] block;
 	}
 

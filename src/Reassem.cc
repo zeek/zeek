@@ -11,7 +11,7 @@ static const bool DEBUG_reassem = false;
 
 DataBlock::DataBlock(Reassembler* reass, const u_char* data,
                      uint64_t size, uint64_t arg_seq, DataBlock* arg_prev,
-                     DataBlock* arg_next, ReassemblerType reassem_type)
+                     DataBlock* arg_next)
 	{
 	seq = arg_seq;
 	upper = seq + size;
@@ -30,8 +30,7 @@ DataBlock::DataBlock(Reassembler* reass, const u_char* data,
 	reassembler = reass;
 	reassembler->size_of_all_blocks += size;
 
-	rtype = reassem_type;
-	Reassembler::sizes[rtype] += pad_size(size) + padded_sizeof(DataBlock);
+	Reassembler::sizes[reass->rtype] += pad_size(size) + padded_sizeof(DataBlock);
 	Reassembler::total_size += pad_size(size) + padded_sizeof(DataBlock);
 	}
 
@@ -121,7 +120,7 @@ void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* d
 
 	if ( ! blocks )
 		blocks = last_block = start_block =
-			new DataBlock(this, data, len, seq, 0, 0, rtype);
+			new DataBlock(this, data, len, seq, 0, 0);
 	else
 		start_block = AddAndCheck(blocks, seq, upper_seq, data);
 
@@ -281,7 +280,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64_t seq, uint64_t upper,
 	if ( last_block && seq == last_block->upper )
 		{
 		last_block = new DataBlock(this, data, upper - seq,
-		                           seq, last_block, 0, rtype);
+		                           seq, last_block, 0);
 		return last_block;
 		}
 
@@ -295,7 +294,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64_t seq, uint64_t upper,
 		// b is the last block, and it comes completely before
 		// the new block.
 		last_block = new DataBlock(this, data, upper - seq,
-		                           seq, b, 0, rtype);
+		                           seq, b, 0);
 		return last_block;
 		}
 
@@ -305,7 +304,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64_t seq, uint64_t upper,
 		{
 		// The new block comes completely before b.
 		new_b = new DataBlock(this, data, upper - seq, seq,
-		                      b->prev, b, rtype);
+		                      b->prev, b);
 		if ( b == blocks )
 			blocks = new_b;
 		return new_b;
@@ -317,7 +316,7 @@ DataBlock* Reassembler::AddAndCheck(DataBlock* b, uint64_t seq, uint64_t upper,
 		// The new block has a prefix that comes before b.
 		uint64_t prefix_len = b->seq - seq;
 		new_b = new DataBlock(this, data, prefix_len, seq,
-		                      b->prev, b, rtype);
+		                      b->prev, b);
 		if ( b == blocks )
 			blocks = new_b;
 

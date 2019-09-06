@@ -38,10 +38,48 @@ public:
 	Reassembler* reassembler; // Non-owning pointer back to parent.
 };
 
+// TODO: add comments
+class DataBlockList {
+public:
+
+	~DataBlockList()
+		{ Clear(); }
+
+	const DataBlock* Head() const
+		{ return head; }
+
+	const DataBlock* Tail() const
+		{ return tail; }
+
+	bool Empty() const
+		{ return head == nullptr; };
+
+	size_t NumBlocks() const
+		{ return total_blocks; };
+
+	void Size(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const;
+
+	void Clear();
+
+	DataBlock* Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	                  Reassembler* reass, DataBlock* start = nullptr);
+
+	void Add(DataBlock* block, uint64_t limit);
+
+	uint64_t Trim(uint64_t seq, Reassembler* reass,
+	              uint64_t max_old, DataBlockList* old_list);
+
+private:
+
+	DataBlock* head = nullptr;
+	DataBlock* tail = nullptr;
+	size_t total_blocks = 0;
+};
+
 class Reassembler : public BroObj {
 public:
 	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
-	~Reassembler() override;
+	~Reassembler() override	{}
 
 	void NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data);
 
@@ -53,8 +91,16 @@ public:
 	void ClearBlocks();
 	void ClearOldBlocks();
 
-	int HasBlocks() const		{ return blocks != 0; }
+	int HasBlocks() const
+		{ return ! block_list.Empty(); }
+
 	uint64_t LastReassemSeq() const	{ return last_reassem_seq; }
+
+	uint64_t TrimSeq() const
+		{ return trim_seq; }
+
+	void SetTrimSeq(uint64_t seq)
+		{ if ( seq > trim_seq ) trim_seq = seq; }
 
 	uint64_t TotalSize() const;	// number of bytes buffered up
 
@@ -72,28 +118,23 @@ protected:
 	Reassembler()	{ }
 
 	friend class DataBlock;
+	friend class DataBlockList;
 
 	virtual void Undelivered(uint64_t up_to_seq);
 
-	virtual void BlockInserted(DataBlock* b) = 0;
+	virtual void BlockInserted(const DataBlock* b) = 0;
 	virtual void Overlap(const u_char* b1, const u_char* b2, uint64_t n) = 0;
 
-	DataBlock* AddAndCheck(DataBlock* b, uint64_t seq,
-				uint64_t upper, const u_char* data);
-
-	void CheckOverlap(DataBlock *head, DataBlock *tail,
+	void CheckOverlap(const DataBlockList& list,
 				uint64_t seq, uint64_t len, const u_char* data);
 
-	DataBlock* blocks;
-	DataBlock* last_block;
+	DataBlockList block_list;
+	DataBlockList old_block_list;
 
-	DataBlock* old_blocks;
-	DataBlock* last_old_block;
-
+	// TODO: maybe roll some of these stats into DataBlockList ?
 	uint64_t last_reassem_seq;
 	uint64_t trim_seq;	// how far we've trimmed
 	uint32_t max_old_blocks;
-	uint32_t total_old_blocks;
 	uint64_t size_of_all_blocks;
 
 	ReassemblerType rtype;

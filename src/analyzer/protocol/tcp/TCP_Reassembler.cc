@@ -66,7 +66,9 @@ void TCP_Reassembler::Done()
 
 	if ( record_contents_file )
 		{ // Record any undelivered data.
-		if ( blocks && last_reassem_seq < last_block->upper )
+		auto last_block = block_list.Tail();
+
+		if ( ! block_list.Empty() && last_reassem_seq < last_block->upper )
 			RecordToSeq(last_reassem_seq, last_block->upper,
 					record_contents_file);
 
@@ -78,15 +80,17 @@ void TCP_Reassembler::SizeBufferedData(uint64_t& waiting_on_hole,
 					uint64_t& waiting_on_ack) const
 	{
 	waiting_on_hole = waiting_on_ack = 0;
-	for ( DataBlock* b = blocks; b; b = b->next )
-		{
-		if ( b->seq <= last_reassem_seq )
-			// We must have delivered this block, but
-			// haven't yet trimmed it.
-			waiting_on_ack += b->Size();
-		else
-			waiting_on_hole += b->Size();
-		}
+	block_list.Size(last_reassem_seq, &waiting_on_ack, &waiting_on_hole);
+	}
+
+uint64_t TCP_Reassembler::NumUndeliveredBytes() const
+	{
+	auto last_block = block_list.Tail();
+
+	if ( last_block )
+		return last_block->upper - last_reassem_seq;
+
+	return 0;
 	}
 
 void TCP_Reassembler::SetContentsFile(BroFile* f)
@@ -102,8 +106,8 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 		Unref(record_contents_file);
 	else
 		{
-		if ( blocks )
-			RecordToSeq(blocks->seq, last_reassem_seq, f);
+		if ( ! block_list.Empty() )
+			RecordToSeq(block_list.Head()->seq, last_reassem_seq, f);
 		}
 
 	Ref(f);
@@ -231,9 +235,10 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		if ( ! skip_deliveries )
 			{
 			// If we have blocks that begin below up_to_seq, deliver them.
-			DataBlock* b = blocks;
+			auto b = block_list.Head();
 			while ( b )
 				{
+				// TODO: better way to do this iteration ?
 				if ( b->seq < last_reassem_seq )
 					{
 					// Already delivered this block.
@@ -253,7 +258,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 				BlockInserted(b);
 				// Inserting a block may cause trimming of what's buffered,
 				// so have to assume 'b' is invalid, hence re-assign to start.
-				b = blocks;
+				b = block_list.Head();
 				}
 
 			if ( up_to_seq > last_reassem_seq )
@@ -277,9 +282,10 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 
 void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	{
-	if ( ! blocks || ! rule_matcher )
+	if ( block_list.Empty() || ! rule_matcher )
 		return;
 
+	auto last_block = block_list.Tail();
 	ASSERT(last_block);
 	if ( use_last_upper )
 		up_to_seq = last_block->upper;
@@ -298,8 +304,9 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	// Skip blocks that are already delivered (but not ACK'ed).
 	// Question: shall we instead keep a pointer to the first undelivered
 	// block?
-	DataBlock* b;
-	for ( b = blocks; b && b->upper <= last_reassem_seq; b = b->next )
+	// TODO: better way to iterate ?
+	const DataBlock* b;
+	for ( b = block_list.Head(); b && b->upper <= last_reassem_seq; b = b->next )
 	      tcp_analyzer->Conn()->Match(Rule::PAYLOAD, b->block, b->Size(),
 						false, false, IsOrig(), false);
 
@@ -308,7 +315,8 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 
 void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f)
 	{
-	DataBlock* b = blocks;
+	auto b = block_list.Head();
+	// TODO: better way to iterate ?
 	// Skip over blocks up to the start seq.
 	while ( b && b->upper <= start_seq )
 		b = b->next;
@@ -333,7 +341,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(DataBlock* b, BroFile* f)
+void TCP_Reassembler::RecordBlock(const DataBlock* b, BroFile* f)
 	{
 	if ( f->Write((const char*) b->block, b->Size()) )
 		return;
@@ -367,7 +375,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile*
 		}
 	}
 
-void TCP_Reassembler::BlockInserted(DataBlock* start_block)
+void TCP_Reassembler::BlockInserted(const DataBlock* start_block)
 	{
 	if ( start_block->seq > last_reassem_seq ||
 	     start_block->upper <= last_reassem_seq )
@@ -379,7 +387,8 @@ void TCP_Reassembler::BlockInserted(DataBlock* start_block)
 	// new stuff off into its own block(s), but in the following
 	// loop we have to take care not to deliver already-delivered
 	// data.
-	for ( DataBlock* b = start_block;
+	// TODO: better way to iterate ?
+	for ( auto b = start_block;
 	      b && b->seq <= last_reassem_seq; b = b->next )
 		{
 		if ( b->seq == last_reassem_seq )

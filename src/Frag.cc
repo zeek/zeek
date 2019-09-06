@@ -185,15 +185,17 @@ void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 		Weird("fragment_overlap");
 	}
 
-void FragReassembler::BlockInserted(DataBlock* /* start_block */)
+void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 	{
-	if ( blocks->seq > 0 || ! frag_size )
+	const DataBlock* b = block_list.Head();
+	// TODO: review all iteration here to see if it can be done better
+
+	if ( b->seq > 0 || ! frag_size )
 		// For sure don't have it all yet.
 		return;
 
 	// We might have it all - look for contiguous all the way.
-	DataBlock* b;
-	for ( b = blocks; b->next; b = b->next )
+	for ( ; b->next; b = b->next )
 		if ( b->upper != b->next->seq )
 			break;
 
@@ -219,13 +221,13 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			return;
 		}
 
-	else if ( last_block->upper > frag_size )
+	else if ( block_list.Tail()->upper > frag_size )
 		{
 		Weird("fragment_size_inconsistency");
-		frag_size = last_block->upper;
+		frag_size = block_list.Tail()->upper;
 		}
 
-	else if ( last_block->upper < frag_size )
+	else if ( block_list.Tail()->upper < frag_size )
 		// Missing the tail.
 		return;
 
@@ -246,7 +248,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 	pkt += proto_hdr_len;
 
-	for ( b = blocks; b; b = b->next )
+	for ( b = block_list.Head(); b; b = b->next )
 		{
 		// If we're above a hole, stop.  This can happen because
 		// the logic above regarding a hole that's above the
@@ -299,13 +301,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 void FragReassembler::Expire(double t)
 	{
-	while ( blocks )
-		{
-		DataBlock* b = blocks->next;
-		delete blocks;
-		blocks = b;
-		}
-
+	block_list.Clear();
 	expire_timer->ClearReassembler();
 	expire_timer = 0;	// timer manager will delete it
 

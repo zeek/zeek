@@ -26,6 +26,8 @@ uint64_t FileReassembler::Flush()
 	if ( flushing )
 		return 0;
 
+	auto last_block = block_list.Tail();
+
 	if ( last_block )
 		{
 		// This is expected to call back into FileReassembler::Undelivered().
@@ -50,13 +52,14 @@ uint64_t FileReassembler::FlushTo(uint64_t sequence)
 	return rval;
 	}
 
-void FileReassembler::BlockInserted(DataBlock* start_block)
+void FileReassembler::BlockInserted(const DataBlock* start_block)
 	{
 	if ( start_block->seq > last_reassem_seq ||
 	     start_block->upper <= last_reassem_seq )
 		return;
 
-	for ( DataBlock* b = start_block;
+	// TODO: better way to iterate ?
+	for ( auto b = start_block;
 	      b && b->seq <= last_reassem_seq; b = b->next )
 		{
 		if ( b->seq == last_reassem_seq )
@@ -74,8 +77,9 @@ void FileReassembler::BlockInserted(DataBlock* start_block)
 void FileReassembler::Undelivered(uint64_t up_to_seq)
 	{
 	// If we have blocks that begin below up_to_seq, deliver them.
-	DataBlock* b = blocks;
+	const DataBlock* b = block_list.Head();
 
+	// TODO: better way to iterate ?
 	while ( b )
 		{
 		if ( b->seq < last_reassem_seq )
@@ -96,7 +100,7 @@ void FileReassembler::Undelivered(uint64_t up_to_seq)
 		BlockInserted(b);
 		// Inserting a block may cause trimming of what's buffered,
 		// so have to assume 'b' is invalid, hence re-assign to start.
-		b = blocks;
+		b = block_list.Head();
 		}
 
 	if ( up_to_seq > last_reassem_seq )

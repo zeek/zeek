@@ -3643,6 +3643,32 @@ extern "C" {
 #include <netinet/ip.h>
 }
 
+static int mmdb_msg_count = 0;
+static constexpr int mmdb_msg_limit = 20;
+static double mmdb_msg_suppression_time = 0;
+static constexpr double mmdb_msg_suppression_duration = 300;
+
+static void report_mmdb_msg(const char* format, ...)
+	{
+	if ( network_time > mmdb_msg_suppression_time + mmdb_msg_suppression_duration )
+		{
+		mmdb_msg_count = 0;
+		mmdb_msg_suppression_time = network_time;
+		}
+
+	if ( mmdb_msg_count >= mmdb_msg_limit )
+		return;
+
+	++mmdb_msg_count;
+
+	va_list al;
+	va_start(al, format);
+	std::string msg = fmt(format, al);
+	va_end(al);
+
+	reporter->Info("%s", msg.data());
+	}
+
 class MMDB {
 public:
 	MMDB(const char* filename, struct stat info);
@@ -3715,8 +3741,8 @@ bool MMDB::StaleDB()
 
 	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
 		{
-		reporter->Info("Inode change detected for MaxMind DB [%s]",
-		               mmdb.filename);
+		report_mmdb_msg("Inode change detected for MaxMind DB [%s]",
+		                mmdb.filename);
 		return true;
 		}
 
@@ -3761,8 +3787,8 @@ static bool mmdb_open(const char* filename, bool asn)
 		else
 			did_mmdb_loc_db_error = false;
 
-		reporter->Info("Failed to open MaxMind DB: %s [%s]", filename,
-		               e.what());
+		report_mmdb_msg("Failed to open MaxMind DB: %s [%s]", filename,
+		                e.what());
 		return false;
 		}
 
@@ -3783,7 +3809,7 @@ static void mmdb_check_loc()
 	{
 	if ( mmdb_loc && mmdb_loc->StaleDB() )
 		{
-		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
+		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
 		did_mmdb_loc_db_error = false;
 		mmdb_loc.release();
 		}
@@ -3793,7 +3819,7 @@ static void mmdb_check_asn()
 	{
 	if ( mmdb_asn && mmdb_asn->StaleDB() )
 		{
-		reporter->Info("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
+		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
 		did_mmdb_asn_db_error = false;
 		mmdb_asn.release();
 		}
@@ -3826,8 +3852,7 @@ static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
 
 	catch ( const std::exception& e )
 		{
-		reporter->Info("MaxMind DB lookup location error [%s]",
-		               e.what());
+		report_mmdb_msg("MaxMind DB lookup location error [%s]", e.what());
 		return false;
 		}
 
@@ -3877,7 +3902,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 			break;
 
 		default:
-			reporter->Info("MaxMind DB error [%s]", MMDB_strerror(status));
+			report_mmdb_msg("MaxMind DB error [%s]", MMDB_strerror(status));
 			break;
 		}
 

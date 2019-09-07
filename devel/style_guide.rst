@@ -251,3 +251,11 @@ semantics and the caller can use ``std::move``. For objects that will not be
 modified by the function, pass by const-reference. For objects that may be
 modified by the function, prefer making the argument a pointer instead of a
 reference.
+
+Default Member Variable Initialization
+--------------------------------------
+
+In new code, prefer using default initialization to set the values of member
+variables when they are defined in the header. Override the values in
+constructors only when necessary. For older code, use constructor
+initialization for consistency.

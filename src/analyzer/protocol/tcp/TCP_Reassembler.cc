@@ -80,7 +80,7 @@ void TCP_Reassembler::SizeBufferedData(uint64_t& waiting_on_hole,
 					uint64_t& waiting_on_ack) const
 	{
 	waiting_on_hole = waiting_on_ack = 0;
-	block_list.Size(last_reassem_seq, &waiting_on_ack, &waiting_on_hole);
+	block_list.DataSize(last_reassem_seq, &waiting_on_ack, &waiting_on_hole);
 	}
 
 uint64_t TCP_Reassembler::NumUndeliveredBytes() const
@@ -503,7 +503,7 @@ int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 		}
 
 	if ( tcp_excessive_data_without_further_acks &&
-	     size_of_all_blocks > static_cast<uint64_t>(tcp_excessive_data_without_further_acks) )
+	     block_list.DataSize() > static_cast<uint64_t>(tcp_excessive_data_without_further_acks) )
 		{
 		tcp_analyzer->Weird("excessive_data_without_further_acks");
 		ClearBlocks();

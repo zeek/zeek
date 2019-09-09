@@ -19,14 +19,15 @@ enum ReassemblerType {
 };
 
 class Reassembler;
+class DataBlockList;
 
 class DataBlock {
 public:
-	DataBlock(Reassembler* reass, const u_char* data,
-	          uint64_t size, uint64_t seq,
+	DataBlock(DataBlockList* list,
+	          const u_char* data, uint64_t size, uint64_t seq,
 	          DataBlock* prev, DataBlock* next);
 
-	~DataBlock();
+	~DataBlock()	{ delete [] block; }
 
 	uint64_t Size() const	{ return upper - seq; }
 
@@ -34,13 +35,17 @@ public:
 	DataBlock* prev;	// previous block with lower seq #
 	uint64_t seq, upper;
 	u_char* block;
-
-	Reassembler* reassembler; // Non-owning pointer back to parent.
 };
 
 // TODO: add comments
 class DataBlockList {
 public:
+
+	DataBlockList()
+		{ }
+
+	DataBlockList(Reassembler* r) : reassembler(r)
+		{ }
 
 	~DataBlockList()
 		{ Clear(); }
@@ -57,23 +62,31 @@ public:
 	size_t NumBlocks() const
 		{ return total_blocks; };
 
-	void Size(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const;
+	size_t DataSize() const
+		{ return total_data_size; }
+
+	void DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const;
 
 	void Clear();
 
 	DataBlock* Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	                  Reassembler* reass, DataBlock* start = nullptr);
+	                  DataBlock* start = nullptr);
 
-	void Add(DataBlock* block, uint64_t limit);
+	void Append(DataBlock* block, uint64_t limit);
 
-	uint64_t Trim(uint64_t seq, Reassembler* reass,
-	              uint64_t max_old, DataBlockList* old_list);
+	uint64_t Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list);
 
 private:
 
+	void DeleteBlock(DataBlock* b);
+
+	friend class DataBlock;
+
+	Reassembler* reassembler = nullptr;
 	DataBlock* head = nullptr;
 	DataBlock* tail = nullptr;
 	size_t total_blocks = 0;
+	size_t total_data_size = 0;
 };
 
 class Reassembler : public BroObj {
@@ -135,20 +148,11 @@ protected:
 	uint64_t last_reassem_seq;
 	uint64_t trim_seq;	// how far we've trimmed
 	uint32_t max_old_blocks;
-	uint64_t size_of_all_blocks;
 
 	ReassemblerType rtype;
 
 	static uint64_t total_size;
 	static uint64_t sizes[REASSEM_NUM];
 };
-
-inline DataBlock::~DataBlock()
-	{
-	reassembler->size_of_all_blocks -= Size();
-	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
-	Reassembler::sizes[reassembler->rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
-	delete [] block;
-	}
 
 #endif

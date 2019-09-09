@@ -10,9 +10,9 @@
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];
 
-DataBlock::DataBlock(Reassembler* reass, const u_char* data,
-                     uint64_t size, uint64_t arg_seq, DataBlock* arg_prev,
-                     DataBlock* arg_next)
+DataBlock::DataBlock(DataBlockList* list,
+                     const u_char* data, uint64_t size, uint64_t arg_seq,
+                     DataBlock* arg_prev, DataBlock* arg_next)
 	{
 	seq = arg_seq;
 	upper = seq + size;
@@ -28,16 +28,14 @@ DataBlock::DataBlock(Reassembler* reass, const u_char* data,
 	if ( next )
 		next->prev = this;
 
-	// TODO: could probably store this pointer and do book-keeping in
-	// DataBlockList instead
-	reassembler = reass;
-	reassembler->size_of_all_blocks += size;
+	++list->total_blocks;
+	list->total_data_size += size;
 
-	Reassembler::sizes[reass->rtype] += pad_size(size) + padded_sizeof(DataBlock);
+	Reassembler::sizes[list->reassembler->rtype] += pad_size(size) + padded_sizeof(DataBlock);
 	Reassembler::total_size += pad_size(size) + padded_sizeof(DataBlock);
 	}
 
-void DataBlockList::Size(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const
+void DataBlockList::DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const
 	{
 	// TODO: just have book-keeping to track this info and avoid iterating ?
 	for ( auto b = head; b; b = b->next )
@@ -49,19 +47,35 @@ void DataBlockList::Size(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) 
 		}
 	}
 
+void DataBlockList::DeleteBlock(DataBlock* b)
+	{
+	auto size = b->Size();
+
+	--total_blocks;
+	total_data_size -= size;
+
+	Reassembler::total_size -= pad_size(size) + padded_sizeof(DataBlock);
+	Reassembler::sizes[reassembler->rtype] -= pad_size(size) + padded_sizeof(DataBlock);
+
+	delete b;
+	}
+
 void DataBlockList::Clear()
 	{
 	while ( head )
 		{
 		auto next = head->next;
-		delete head;
+		DeleteBlock(head);
 		head = next;
 		}
+
+	tail = nullptr;
 	}
 
-void DataBlockList::Add(DataBlock* block, uint64_t limit)
+void DataBlockList::Append(DataBlock* block, uint64_t limit)
 	{
 	++total_blocks;
+	total_data_size += block->Size();
 	block->next = nullptr;
 
 	if ( tail )
@@ -78,31 +92,27 @@ void DataBlockList::Add(DataBlock* block, uint64_t limit)
 	while ( head && total_blocks > limit )
 		{
 		auto next = head->next;
-		delete head;
+		DeleteBlock(head);
 		head = next;
-		--total_blocks;
 		}
 	}
 
 DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
-                                 const u_char* data, Reassembler* reass,
-                                 DataBlock* start)
+                                 const u_char* data, DataBlock* start)
     {
 	// TODO: can probably do a lot better at finding the right insertion location
 
 	// Empty list.
 	if ( ! head )
 		{
-		head = tail = new DataBlock(reass, data, upper - seq, seq, 0, 0);
-		++total_blocks;
+		head = tail = new DataBlock(this, data, upper - seq, seq, 0, 0);
 		return head;
 		}
 
 	// Special check for the common case of appending to the end.
 	if ( tail && seq == tail->upper )
 		{
-		tail = new DataBlock(reass, data, upper - seq, seq, tail, 0);
-		++total_blocks;
+		tail = new DataBlock(this, data, upper - seq, seq, tail, 0);
 		return tail;
 		}
 
@@ -117,8 +127,7 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 		{
 		// b is the last block, and it comes completely before
 		// the new block.
-		tail = new DataBlock(reass, data, upper - seq, seq, b, 0);
-		++total_blocks;
+		tail = new DataBlock(this, data, upper - seq, seq, b, 0);
 		return tail;
 		}
 
@@ -127,8 +136,7 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 	if ( upper <= b->seq )
 		{
 		// The new block comes completely before b.
-		new_b = new DataBlock(reass, data, upper - seq, seq, b->prev, b);
-		++total_blocks;
+		new_b = new DataBlock(this, data, upper - seq, seq, b->prev, b);
 
 		if ( b == head )
 			head = new_b;
@@ -141,8 +149,7 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 		{
 		// The new block has a prefix that comes before b.
 		uint64_t prefix_len = b->seq - seq;
-		new_b = new DataBlock(reass, data, prefix_len, seq, b->prev, b);
-		++total_blocks;
+		new_b = new DataBlock(this, data, prefix_len, seq, b->prev, b);
 
 		if ( b == head )
 			head = new_b;
@@ -166,9 +173,9 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 		seq += overlap_len;
 
 		if ( new_b == b )
-			new_b = Insert(seq, upper, data, reass, b);
+			new_b = Insert(seq, upper, data, b);
 		else
-			Insert(seq, upper, data, reass, b);
+			Insert(seq, upper, data, b);
 		}
 
 	if ( new_b->prev == tail )
@@ -177,8 +184,8 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 	return new_b;
     }
 
-uint64_t DataBlockList::Trim(uint64_t seq, Reassembler* reass,
-                             uint64_t max_old, DataBlockList* old_list)
+uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
+                             DataBlockList* old_list)
 	{
 	uint64_t num_missing = 0;
 
@@ -187,23 +194,23 @@ uint64_t DataBlockList::Trim(uint64_t seq, Reassembler* reass,
 
 	if ( head )
 		{
-		if ( head->seq > reass->LastReassemSeq() )
+		if ( head->seq > reassembler->LastReassemSeq() )
 			// An initial hole.
-			num_missing += head->seq - reass->LastReassemSeq();
+			num_missing += head->seq - reassembler->LastReassemSeq();
 		}
 
-	else if ( seq > reass->LastReassemSeq() )
+	else if ( seq > reassembler->LastReassemSeq() )
 		{ // Trimming data we never delivered.
 		if ( ! head )
 			// We won't have any accounting based on blocks
 			// for this hole.
-			num_missing += seq - reass->LastReassemSeq();
+			num_missing += seq - reassembler->LastReassemSeq();
 		}
 
-	if ( seq > reass->LastReassemSeq() )
+	if ( seq > reassembler->LastReassemSeq() )
 		{
 		// We're trimming data we never delivered.
-		reass->Undelivered(seq);
+		reassembler->Undelivered(seq);
 		}
 
 	// TODO: better loop ?
@@ -227,9 +234,13 @@ uint64_t DataBlockList::Trim(uint64_t seq, Reassembler* reass,
 			}
 
 		if ( max_old )
-			old_list->Add(head, max_old);
+			{
+			--total_blocks;
+			total_data_size -= head->Size();
+			old_list->Append(head, max_old);
+			}
 		else
-			delete head;
+			DeleteBlock(head);
 
 		head = b;
 		}
@@ -241,20 +252,20 @@ uint64_t DataBlockList::Trim(uint64_t seq, Reassembler* reass,
 		// If we skipped over some undeliverable data, then
 		// it's possible that this block is now deliverable.
 		// Give it a try.
-		if ( head->seq == reass->LastReassemSeq() )
-			reass->BlockInserted(head);
+		if ( head->seq == reassembler->LastReassemSeq() )
+			reassembler->BlockInserted(head);
 		}
 	else
 		tail = 0;
 
-	reass->SetTrimSeq(seq);
+	reassembler->SetTrimSeq(seq);
 	return num_missing;
 	}
 
 Reassembler::Reassembler(uint64_t init_seq, ReassemblerType reassem_type)
-	: last_reassem_seq(init_seq), trim_seq(init_seq),
-	  max_old_blocks(0), size_of_all_blocks(0),
-	  rtype(reassem_type)
+	: block_list(this), old_block_list(this),
+	  last_reassem_seq(init_seq), trim_seq(init_seq),
+	  max_old_blocks(0), rtype(reassem_type)
 	{
 	}
 
@@ -329,13 +340,13 @@ void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* d
 		len -= amount_old;
 		}
 
-	auto start_block = block_list.Insert(seq, upper_seq, data, this);;
+	auto start_block = block_list.Insert(seq, upper_seq, data);;
 	BlockInserted(start_block);
 	}
 
 uint64_t Reassembler::TrimToSeq(uint64_t seq)
 	{
-	return block_list.Trim(seq, this, max_old_blocks, &old_block_list);
+	return block_list.Trim(seq, max_old_blocks, &old_block_list);
 	}
 
 void Reassembler::ClearBlocks()
@@ -350,7 +361,7 @@ void Reassembler::ClearOldBlocks()
 
 uint64_t Reassembler::TotalSize() const
 	{
-	return size_of_all_blocks;
+	return block_list.DataSize() + old_block_list.DataSize();
 	}
 
 void Reassembler::Describe(ODesc* d) const

@@ -185,24 +185,24 @@ void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 		Weird("fragment_overlap");
 	}
 
-void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
+void FragReassembler::BlockInserted(const DataBlockNode* /* start_block */)
 	{
-	const DataBlock* b = block_list.Head();
+	const DataBlockNode* b = block_list.Head();
 	// TODO: review all iteration here to see if it can be done better
 
-	if ( b->seq > 0 || ! frag_size )
+	if ( b->db->seq > 0 || ! frag_size )
 		// For sure don't have it all yet.
 		return;
 
 	// We might have it all - look for contiguous all the way.
 	for ( ; b->next; b = b->next )
-		if ( b->upper != b->next->seq )
+		if ( b->db->upper != b->next->db->seq )
 			break;
 
 	if ( b->next )
 		{
 		// We have a hole.
-		if ( b->upper >= frag_size )
+		if ( b->db->upper >= frag_size )
 			{
 			// We're stuck.  The point where we stopped is
 			// contiguous up through the expected end of
@@ -215,19 +215,19 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 			// We decide to analyze the contiguous portion now.
 			// Extend the fragment up through the end of what
 			// we have.
-			frag_size = b->upper;
+			frag_size = b->db->upper;
 			}
 		else
 			return;
 		}
 
-	else if ( block_list.Tail()->upper > frag_size )
+	else if ( block_list.Tail()->db->upper > frag_size )
 		{
 		Weird("fragment_size_inconsistency");
-		frag_size = block_list.Tail()->upper;
+		frag_size = block_list.Tail()->db->upper;
 		}
 
-	else if ( block_list.Tail()->upper < frag_size )
+	else if ( block_list.Tail()->db->upper < frag_size )
 		// Missing the tail.
 		return;
 
@@ -253,10 +253,10 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 		// If we're above a hole, stop.  This can happen because
 		// the logic above regarding a hole that's above the
 		// expected fragment size.
-		if ( b->prev && b->prev->upper < b->seq )
+		if ( b->prev && b->prev->db->upper < b->db->seq )
 			break;
 
-		if ( b->upper > n )
+		if ( b->db->upper > n )
 			{
 			reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
@@ -265,8 +265,8 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 			return;
 			}
 
-		memcpy((void*) &pkt[b->seq], (const void*) b->block,
-			b->upper - b->seq);
+		memcpy((void*) &pkt[b->db->seq], (const void*) b->db->block,
+			b->db->upper - b->db->seq);
 		}
 
 	delete reassembled_pkt;

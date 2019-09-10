@@ -24,17 +24,35 @@ class DataBlockList;
 class DataBlock {
 public:
 	DataBlock(DataBlockList* list,
-	          const u_char* data, uint64_t size, uint64_t seq,
-	          DataBlock* prev, DataBlock* next);
+	          const u_char* data, uint64_t size, uint64_t seq);
 
 	~DataBlock()	{ delete [] block; }
 
 	uint64_t Size() const	{ return upper - seq; }
 
-	DataBlock* next;	// next block with higher seq #
-	DataBlock* prev;	// previous block with lower seq #
+	bool operator<(const DataBlock& other) const
+		{ return seq < other.seq; }
+
 	uint64_t seq, upper;
 	u_char* block;
+};
+
+class DataBlockNode {
+public:
+	DataBlockNode(DataBlock* db, DataBlockNode* prev, DataBlockNode* next);
+
+	DataBlockNode(DataBlockList* list,
+	              const u_char* data, uint64_t size, uint64_t seq,
+	              DataBlockNode* prev, DataBlockNode* next);
+
+	uint64_t Size() const
+		{ return db->upper - db->seq; }
+
+	bool operator<(const DataBlockNode& other) const;
+
+	DataBlockNode* next = nullptr;  // next block with higher seq #
+	DataBlockNode* prev = nullptr;  // prev block with lower seq #
+	DataBlock* db = nullptr;
 };
 
 // TODO: add comments
@@ -50,10 +68,10 @@ public:
 	~DataBlockList()
 		{ Clear(); }
 
-	const DataBlock* Head() const
+	const DataBlockNode* Head() const
 		{ return head; }
 
-	const DataBlock* Tail() const
+	const DataBlockNode* Tail() const
 		{ return tail; }
 
 	bool Empty() const
@@ -69,22 +87,22 @@ public:
 
 	void Clear();
 
-	DataBlock* Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	                  DataBlock* start = nullptr);
+	DataBlockNode* Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	                      DataBlockNode* start = nullptr);
 
-	void Append(DataBlock* block, uint64_t limit);
+	void Append(DataBlockNode* block, uint64_t limit);
 
 	uint64_t Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list);
 
 private:
 
-	void DeleteBlock(DataBlock* b);
+	void Delete(DataBlockNode* b);
 
 	friend class DataBlock;
 
 	Reassembler* reassembler = nullptr;
-	DataBlock* head = nullptr;
-	DataBlock* tail = nullptr;
+	DataBlockNode* head = nullptr;
+	DataBlockNode* tail = nullptr;
 	size_t total_blocks = 0;
 	size_t total_data_size = 0;
 };
@@ -135,7 +153,7 @@ protected:
 
 	virtual void Undelivered(uint64_t up_to_seq);
 
-	virtual void BlockInserted(const DataBlock* b) = 0;
+	virtual void BlockInserted(const DataBlockNode* b) = 0;
 	virtual void Overlap(const u_char* b1, const u_char* b2, uint64_t n) = 0;
 
 	void CheckOverlap(const DataBlockList& list,

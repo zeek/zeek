@@ -32,7 +32,7 @@ uint64_t FileReassembler::Flush()
 		{
 		// This is expected to call back into FileReassembler::Undelivered().
 		flushing = true;
-		uint64_t rval = TrimToSeq(last_block->upper);
+		uint64_t rval = TrimToSeq(last_block->db->upper);
 		flushing = false;
 		return rval;
 		}
@@ -52,21 +52,21 @@ uint64_t FileReassembler::FlushTo(uint64_t sequence)
 	return rval;
 	}
 
-void FileReassembler::BlockInserted(const DataBlock* start_block)
+void FileReassembler::BlockInserted(const DataBlockNode* start_block)
 	{
-	if ( start_block->seq > last_reassem_seq ||
-	     start_block->upper <= last_reassem_seq )
+	if ( start_block->db->seq > last_reassem_seq ||
+	     start_block->db->upper <= last_reassem_seq )
 		return;
 
 	// TODO: better way to iterate ?
 	for ( auto b = start_block;
-	      b && b->seq <= last_reassem_seq; b = b->next )
+	      b && b->db->seq <= last_reassem_seq; b = b->next )
 		{
-		if ( b->seq == last_reassem_seq )
+		if ( b->db->seq == last_reassem_seq )
 			{ // New stuff.
 			uint64_t len = b->Size();
 			last_reassem_seq += len;
-			the_file->DeliverStream(b->block, len);
+			the_file->DeliverStream(b->db->block, len);
 			}
 		}
 
@@ -77,24 +77,24 @@ void FileReassembler::BlockInserted(const DataBlock* start_block)
 void FileReassembler::Undelivered(uint64_t up_to_seq)
 	{
 	// If we have blocks that begin below up_to_seq, deliver them.
-	const DataBlock* b = block_list.Head();
+	const DataBlockNode* b = block_list.Head();
 
 	// TODO: better way to iterate ?
 	while ( b )
 		{
-		if ( b->seq < last_reassem_seq )
+		if ( b->db->seq < last_reassem_seq )
 			{
 			// Already delivered this block.
 			b = b->next;
 			continue;
 			}
 
-		if ( b->seq >= up_to_seq )
+		if ( b->db->seq >= up_to_seq )
 			// Block is beyond what we need to process at this point.
 			break;
 
 		uint64_t gap_at_seq = last_reassem_seq;
-		uint64_t gap_len = b->seq - last_reassem_seq;
+		uint64_t gap_len = b->db->seq - last_reassem_seq;
 		the_file->Gap(gap_at_seq, gap_len);
 		last_reassem_seq += gap_len;
 		BlockInserted(b);

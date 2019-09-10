@@ -1,4 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
+#ifdef USE_OPEN_DICT
+
+#include "OpenDict.h"
+
+#else//USE_OPEN_DICT
 
 #pragma once
 
@@ -419,3 +424,5 @@ public:
 
 using Dictionary [[deprecated("Remove in v4.1. Use zeek::Dictionary instead.")]] = zeek::Dictionary;
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
+
+#endif//USE_OPEN_DICT

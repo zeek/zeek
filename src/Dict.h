@@ -1,4 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
+#ifdef USE_OPEN_DICT
+
+#include "OpenDict.h"
+
+#else//USE_OPEN_DICT
 
 #ifndef dict_h
 #define dict_h
@@ -221,3 +226,5 @@ public:
 };
 
 #endif
+
+#endif//USE_OPEN_DICT

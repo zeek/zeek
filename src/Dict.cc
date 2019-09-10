@@ -1,5 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#ifdef USE_OPEN_DICT
+
+#include "OpenDict.cc"
+
+#else//USE_OPEN_DICT
+
 #include "zeek-config.h"
 
 #ifdef HAVE_MEMORY_H
@@ -632,3 +638,5 @@ void generic_delete_func(void* v)
 	{
 	free(v);
 	}
+
+#endif//USE_OPEN_DICT

@@ -188,7 +188,6 @@ void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 void FragReassembler::BlockInserted(const DataBlockNode* /* start_block */)
 	{
 	const DataBlockNode* b = block_list.Head();
-	// TODO: review all iteration here to see if it can be done better
 
 	if ( b->db->seq > 0 || ! frag_size )
 		// For sure don't have it all yet.

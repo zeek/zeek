@@ -39,6 +39,8 @@ public:
 	//
 	// If we're not processing contents, then naturally each of
 	// these is empty.
+	//
+	// WARNING: this is an O(n) operation and potentially very slow.
 	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack) const;
 
 	// How much data is pending delivery since it's not yet reassembled.

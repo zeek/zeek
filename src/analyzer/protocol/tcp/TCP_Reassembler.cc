@@ -238,7 +238,6 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 			auto b = block_list.Head();
 			while ( b )
 				{
-				// TODO: better way to do this iteration ?
 				if ( b->db->seq < last_reassem_seq )
 					{
 					// Already delivered this block.
@@ -304,7 +303,6 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	// Skip blocks that are already delivered (but not ACK'ed).
 	// Question: shall we instead keep a pointer to the first undelivered
 	// block?
-	// TODO: better way to iterate ?
 	const DataBlockNode* b;
 	for ( b = block_list.Head(); b && b->db->upper <= last_reassem_seq; b = b->next )
 	      tcp_analyzer->Conn()->Match(Rule::PAYLOAD, b->db->block, b->Size(),
@@ -316,7 +314,6 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f)
 	{
 	auto b = block_list.Head();
-	// TODO: better way to iterate ?
 	// Skip over blocks up to the start seq.
 	while ( b && b->db->upper <= start_seq )
 		b = b->next;
@@ -387,7 +384,6 @@ void TCP_Reassembler::BlockInserted(const DataBlockNode* start_block)
 	// new stuff off into its own block(s), but in the following
 	// loop we have to take care not to deliver already-delivered
 	// data.
-	// TODO: better way to iterate ?
 	for ( auto b = start_block;
 	      b && b->db->seq <= last_reassem_seq; b = b->next )
 		{

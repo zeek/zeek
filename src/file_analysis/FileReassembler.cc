@@ -58,7 +58,6 @@ void FileReassembler::BlockInserted(const DataBlockNode* start_block)
 	     start_block->db->upper <= last_reassem_seq )
 		return;
 
-	// TODO: better way to iterate ?
 	for ( auto b = start_block;
 	      b && b->db->seq <= last_reassem_seq; b = b->next )
 		{
@@ -79,7 +78,6 @@ void FileReassembler::Undelivered(uint64_t up_to_seq)
 	// If we have blocks that begin below up_to_seq, deliver them.
 	const DataBlockNode* b = block_list.Head();
 
-	// TODO: better way to iterate ?
 	while ( b )
 		{
 		if ( b->db->seq < last_reassem_seq )

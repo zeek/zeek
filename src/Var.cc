@@ -148,8 +148,8 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			// intention clearly isn't to overwrite entire existing table val.
 			c = INIT_EXTRA;
 
-		if ( (c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
-		     (c == INIT_REMOVE && id->FindAttr(ATTR_DEL_FUNC)) )
+		if ( init && ((c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
+		              (c == INIT_REMOVE && id->FindAttr(ATTR_DEL_FUNC)) ))
 			// Just apply the function.
 			id->SetVal(init, c);
 

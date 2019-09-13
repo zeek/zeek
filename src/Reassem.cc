@@ -10,10 +10,11 @@
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];
 
-DataBlock::DataBlock(DataBlockList* list,
+DataBlock::DataBlock(DataBlockList* list, DataBlockMap::const_iterator hint,
                      const u_char* data, uint64_t size, uint64_t arg_seq,
                      DataBlock* arg_prev, DataBlock* arg_next)
 	{
+	// TODO: make a separate DataBlockList::Insert()
 	seq = arg_seq;
 	upper = seq + size;
 	block = new u_char[size];
@@ -28,6 +29,8 @@ DataBlock::DataBlock(DataBlockList* list,
 	if ( next )
 		next->prev = this;
 
+	list->block_map.emplace_hint(hint, seq, this);
+	// TODO: no longer need a separate block count since the map can provide that
 	++list->total_blocks;
 	list->total_data_size += size;
 
@@ -49,6 +52,7 @@ void DataBlockList::DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* abo
 
 void DataBlockList::DeleteBlock(DataBlock* b)
 	{
+	// TODO: Separate Remove / Delete ?
 	auto size = b->Size();
 
 	--total_blocks;
@@ -57,11 +61,15 @@ void DataBlockList::DeleteBlock(DataBlock* b)
 	Reassembler::total_size -= pad_size(size) + padded_sizeof(DataBlock);
 	Reassembler::sizes[reassembler->rtype] -= pad_size(size) + padded_sizeof(DataBlock);
 
+	// TODO: most of the time we'd better erase via iterator rather than search
+	//block_map.erase(b->seq);
+
 	delete b;
 	}
 
 void DataBlockList::Clear()
 	{
+	// TODO: can be done more efficiently
 	while ( head )
 		{
 		auto next = head->next;
@@ -69,6 +77,7 @@ void DataBlockList::Clear()
 		head = next;
 		}
 
+	block_map.clear();
 	tail = nullptr;
 	}
 
@@ -89,45 +98,71 @@ void DataBlockList::Append(DataBlock* block, uint64_t limit)
 		head = tail = block;
 		}
 
+	block_map.emplace_hint(block_map.end(), block->seq, block);
+
 	while ( head && total_blocks > limit )
 		{
 		auto next = head->next;
 		DeleteBlock(head);
+		block_map.erase(block_map.begin());
 		head = next;
 		}
 	}
 
-DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
-                                 const u_char* data, DataBlock* start)
-    {
-	// TODO: can probably do a lot better at finding the right insertion location
+DataBlockMap::const_iterator DataBlockList::FindFirstBlockBefore(uint64_t seq) const
+	{
+	// Upper sequence number doesn't matter for the search
+	auto it = block_map.upper_bound(seq);
 
+	if ( it == block_map.end() )
+		return block_map.empty() ? it : std::prev(it);
+
+	if ( it == block_map.begin() )
+		return block_map.end();
+
+	return std::prev(it);
+	}
+
+DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
+                                 const u_char* data,
+                                 DataBlockMap::const_iterator* hint)
+    {
 	// Empty list.
 	if ( ! head )
 		{
-		head = tail = new DataBlock(this, data, upper - seq, seq, 0, 0);
+		head = tail = new DataBlock(this, block_map.end(), data, upper - seq, seq, 0, 0);
 		return head;
 		}
 
 	// Special check for the common case of appending to the end.
 	if ( tail && seq == tail->upper )
 		{
-		tail = new DataBlock(this, data, upper - seq, seq, tail, 0);
+		tail = new DataBlock(this, block_map.end(), data, upper - seq, seq, tail, 0);
 		return tail;
 		}
 
-	auto b = start ? start : head;
+	// Find the first block that doesn't come completely before the new data.
+	DataBlockMap::const_iterator it;
 
-	// Find the first block that doesn't come completely before the
-	// new data.
-	while ( b->next && b->upper <= seq )
-		b = b->next;
+	if ( hint )
+		it = *hint;
+	else
+		{
+		it = FindFirstBlockBefore(seq);
+
+		if ( it == block_map.end() )
+			it = block_map.begin();
+		}
+
+	while ( std::next(it) != block_map.end() && it->second->upper <= seq )
+		++it;
+
+	DataBlock* b = it->second;
 
 	if ( b->upper <= seq )
 		{
-		// b is the last block, and it comes completely before
-		// the new block.
-		tail = new DataBlock(this, data, upper - seq, seq, b, 0);
+		// b is the last block, and it comes completely before the new block.
+		tail = new DataBlock(this, block_map.end(), data, upper - seq, seq, b, 0);
 		return tail;
 		}
 
@@ -136,7 +171,7 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 	if ( upper <= b->seq )
 		{
 		// The new block comes completely before b.
-		new_b = new DataBlock(this, data, upper - seq, seq, b->prev, b);
+		new_b = new DataBlock(this, it, data, upper - seq, seq, b->prev, b);
 
 		if ( b == head )
 			head = new_b;
@@ -149,7 +184,7 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 		{
 		// The new block has a prefix that comes before b.
 		uint64_t prefix_len = b->seq - seq;
-		new_b = new DataBlock(this, data, prefix_len, seq, b->prev, b);
+		new_b = new DataBlock(this, it, data, prefix_len, seq, b->prev, b);
 
 		if ( b == head )
 			head = new_b;
@@ -173,9 +208,9 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 		seq += overlap_len;
 
 		if ( new_b == b )
-			new_b = Insert(seq, upper, data, b);
+			new_b = Insert(seq, upper, data, &it);
 		else
-			Insert(seq, upper, data, b);
+			Insert(seq, upper, data, &it);
 		}
 
 	if ( new_b->prev == tail )
@@ -213,7 +248,8 @@ uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
 		reassembler->Undelivered(seq);
 		}
 
-	// TODO: better loop ?
+	auto first_removed = head && head->upper <= seq ? block_map.begin() : block_map.end();
+	auto last_removed = first_removed;
 
 	while ( head && head->upper <= seq )
 		{
@@ -233,6 +269,8 @@ uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
 				num_missing += seq - head->upper;
 			}
 
+		// NOTE: erasing the node from the map takes place over the full
+		// range getting removed (see below) rather than one node at a time.
 		if ( max_old )
 			{
 			--total_blocks;
@@ -242,8 +280,11 @@ uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old,
 		else
 			DeleteBlock(head);
 
+		++last_removed;
 		head = b;
 		}
+
+	block_map.erase(first_removed, last_removed);
 
 	if ( head )
 		{
@@ -279,22 +320,28 @@ void Reassembler::CheckOverlap(const DataBlockList& list,
 	auto head = list.Head();
 	auto tail = list.Tail();
 
-	// TODO: better way to iterate ?
-
 	if ( seq == tail->upper )
 		// Special case check for common case of appending to the end.
 		return;
 
 	uint64_t upper = (seq + len);
 
-	for ( auto b = head; b; b = b->next )
+	auto it = list.FindFirstBlockBefore(seq);
+	const DataBlock* start;
+
+	if ( it == list.block_map.end() )
+		start = head;
+	else
+		start = it->second;
+
+	for ( auto b = start; b; b = b->next )
 		{
 		uint64_t nseq = seq;
 		uint64_t nupper = upper;
 		const u_char* ndata = data;
 
 		if ( nupper <= b->seq )
-			continue;
+			break;
 
 		if ( nseq >= b->upper )
 			continue;

@@ -3,6 +3,8 @@
 #ifndef reassem_h
 #define reassem_h
 
+#include <map>
+
 #include "Obj.h"
 #include "IPAddr.h"
 
@@ -19,11 +21,13 @@ enum ReassemblerType {
 };
 
 class Reassembler;
+class DataBlock;
 class DataBlockList;
+using DataBlockMap = std::map<uint64_t, DataBlock*>;
 
 class DataBlock {
 public:
-	DataBlock(DataBlockList* list,
+	DataBlock(DataBlockList* list, DataBlockMap::const_iterator hint,
 	          const u_char* data, uint64_t size, uint64_t seq,
 	          DataBlock* prev, DataBlock* next);
 
@@ -70,23 +74,27 @@ public:
 	void Clear();
 
 	DataBlock* Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	                  DataBlock* start = nullptr);
+	                  DataBlockMap::const_iterator* hint = nullptr);
 
 	void Append(DataBlock* block, uint64_t limit);
 
 	uint64_t Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list);
+
+	DataBlockMap::const_iterator FindFirstBlockBefore(uint64_t seq) const;
 
 private:
 
 	void DeleteBlock(DataBlock* b);
 
 	friend class DataBlock;
+	friend class Reassembler;
 
 	Reassembler* reassembler = nullptr;
 	DataBlock* head = nullptr;
 	DataBlock* tail = nullptr;
 	size_t total_blocks = 0;
 	size_t total_data_size = 0;
+	DataBlockMap block_map;
 };
 
 class Reassembler : public BroObj {

@@ -19,8 +19,6 @@ DataBlock::DataBlock(const u_char* data, uint64_t size, uint64_t arg_seq)
 
 void DataBlockList::DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const
 	{
-	// TODO: add warnings that this is O(n) and slow
-
 	for ( const auto& e : block_map )
 		{
 		const auto& b = e.second;

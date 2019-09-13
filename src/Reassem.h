@@ -22,8 +22,16 @@ enum ReassemblerType {
 
 class Reassembler;
 
+
+/**
+ * A block/segment of data for use in the reassembly process.
+ */
 class DataBlock {
 public:
+
+	/**
+	 * Create a data block/segment with associated sequence numbering.
+	 */
 	DataBlock(const u_char* data, uint64_t size, uint64_t seq);
 
 	DataBlock(const DataBlock& other)
@@ -73,6 +81,9 @@ public:
 	~DataBlock()
 		{ delete [] block; }
 
+	/**
+	 * @return length of the data block
+	 */
 	uint64_t Size() const
 		{ return upper - seq; }
 
@@ -83,7 +94,11 @@ public:
 
 using DataBlockMap = std::map<uint64_t, DataBlock>;
 
-// TODO: add comments
+
+/**
+ * The data structure used for reassembling arbitrary sequences of data
+ * blocks/segments.  It internally uses an ordered map (std::map).
+ */
 class DataBlockList {
 public:
 
@@ -96,49 +111,134 @@ public:
 	~DataBlockList()
 		{ Clear(); }
 
+	/**
+	 * @return iterator to start of the block list.
+	 */
 	DataBlockMap::const_iterator Begin() const
 		{ return block_map.begin(); }
 
+	/**
+	 * @return iterator to end of the block list (one past last element).
+	 */
 	DataBlockMap::const_iterator End() const
 		{ return block_map.end(); }
 
+	/**
+	 * @return reference to the first data block in the list.
+	 * Must not be called when the list is empty.
+	 */
 	const DataBlock& FirstBlock() const
 		{ return block_map.begin()->second; }
 
+	/**
+	 * @return reference to the last data block in the list.
+	 * Must not be called when the list is empty.
+	 */
 	const DataBlock& LastBlock() const
 		{ return block_map.rbegin()->second; }
 
+	/**
+	 * @return whether the list is empty.
+	 */
 	bool Empty() const
 		{ return block_map.empty(); };
 
+	/**
+	 * @return the number of blocks in the list.
+	 */
 	size_t NumBlocks() const
 		{ return block_map.size(); };
 
+	/**
+	 * @return the total size, in bytes, of all blocks in the list.
+	 */
 	size_t DataSize() const
 		{ return total_data_size; }
 
+	/**
+	 * Counts the total size of all list elements paritioned by some cuttof.
+	 * WARNING: this is an O(n) operation and potentially very slow.
+	 * @param seq_cutoff  the sequence number used to partition
+	 * element sizes returned via "below" and "above" parameters
+	 * @param below  the size in bytes of all elements below "seq_cutoff"
+	 * @param above  the size in bytes of all elements above "seq_cutoff"
+	 */
 	void DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const;
 
+	/**
+	 * Remove all elements from the list
+	 */
 	void Clear();
 
+	/**
+	 * Insert a new data block into the list.
+	 * @param seq  lower sequence number of the data block
+	 * @param upper  highest sequence number of the data block
+	 * @param data  points to the data block contents
+	 * @param hint  a suggestion of the node from which to start searching
+	 * for an insertion point or null to search from the beginning of the list
+	 * @return an iterator to the element that was inserted
+	 */
 	DataBlockMap::const_iterator
 	Insert(uint64_t seq, uint64_t upper, const u_char* data,
 	       DataBlockMap::const_iterator* hint = nullptr);
 
+	/**
+	 * Insert a new data block at the end of the list and remove blocks
+	 * from the beginning of the list to keep the list size under a limit.
+	 * @param block  the block to append
+	 * @param limit  the max number of blocks allowed (list is pruned from
+	 * starting from the beginning after the insertion takes place).
+	 */
 	void Append(DataBlock block, uint64_t limit);
 
+
+	/**
+	 * Remove all elements below a given sequence number.
+	 * @param seq  blocks below this number are discarded (removed/deleted)
+	 * @param max_old  if non-zero instead of deleting the underlying block,
+	 * move it to "old_list"
+	 * @param old_list  another list to move discarded blocks into
+	 * @return the amount of data (in bytes) that was not part of any
+	 * discarded block (the total size of all bypassed gaps).
+	 */
 	uint64_t Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list);
 
+	/**
+	 * @return an iterator pointing to the first element with a segment whose
+	 * starting sequence number comes before "seq".  If no such element
+	 * exists, returns an iterator denoting one-past the end of the list.
+	 */
 	DataBlockMap::const_iterator FindFirstBlockBefore(uint64_t seq) const;
 
 private:
 
+	/**
+	 * Insert a new data block into the list.
+	 * @param seq  lower sequence number of the data block
+	 * @param upper  highest sequence number of the data block
+	 * @param data  points to the data block contents
+	 * @param hint  a suggestion of the node from which to start searching
+	 * for an insertion point
+	 * @return an iterator to the element that was inserted
+	 */
 	DataBlockMap::const_iterator
 	Insert(uint64_t seq, uint64_t upper, const u_char* data,
 	       DataBlockMap::const_iterator hint);
 
+	/**
+	 * Removes a block from the list and updates other state which keeps
+	 * track of total size of blocks.
+	 * @param it  the element to remove
+	 */
 	void Delete(DataBlockMap::const_iterator it);
 
+	/**
+	 * Removes a block from the list and returns it, assuming it will
+	 * immediately be appended to another list.
+	 * @param it  the element to remove
+	 * @return the removed block
+	 */
 	DataBlock Remove(DataBlockMap::const_iterator it);
 
 	Reassembler* reassembler = nullptr;

@@ -87,7 +87,7 @@ private:
 	void Gap(uint64_t seq, uint64_t len);
 
 	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f);
-	void RecordBlock(const DataBlock* b, BroFile* f);
+	void RecordBlock(const DataBlock& b, BroFile* f);
 	void RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f);
 
 	void BlockInserted(DataBlockMap::const_iterator it) override;

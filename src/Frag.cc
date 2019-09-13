@@ -189,7 +189,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 	{
 	auto it = block_list.Begin();
 
-	if ( it->second->seq > 0 || ! frag_size )
+	if ( it->second.seq > 0 || ! frag_size )
 		// For sure don't have it all yet.
 		return;
 
@@ -198,19 +198,19 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 	// We might have it all - look for contiguous all the way.
 	while ( next != block_list.End() )
 		{
-		if ( it->second->upper != next->second->seq )
+		if ( it->second.upper != next->second.seq )
 			break;
 
 		++it;
 		++next;
 		}
 
-	auto last = std::prev(block_list.End())->second;
+	const auto& last = std::prev(block_list.End())->second;
 
 	if ( next != block_list.End() )
 		{
 		// We have a hole.
-		if ( it->second->upper >= frag_size )
+		if ( it->second.upper >= frag_size )
 			{
 			// We're stuck.  The point where we stopped is
 			// contiguous up through the expected end of
@@ -223,19 +223,19 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 			// We decide to analyze the contiguous portion now.
 			// Extend the fragment up through the end of what
 			// we have.
-			frag_size = it->second->upper;
+			frag_size = it->second.upper;
 			}
 		else
 			return;
 		}
 
-	else if ( last->upper > frag_size )
+	else if ( last.upper > frag_size )
 		{
 		Weird("fragment_size_inconsistency");
-		frag_size = last->upper;
+		frag_size = last.upper;
 		}
 
-	else if ( last->upper < frag_size )
+	else if ( last.upper < frag_size )
 		// Missing the tail.
 		return;
 
@@ -258,16 +258,20 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 	for ( it = block_list.Begin(); it != block_list.End(); ++it )
 		{
-		auto b = it->second;
-		DataBlock* prev = it == block_list.Begin() ? nullptr : std::prev(it)->second;
+		const auto& b = it->second;
 
-		// If we're above a hole, stop.  This can happen because
-		// the logic above regarding a hole that's above the
-		// expected fragment size.
-		if ( prev && prev->upper < b->seq )
-			break;
+		if ( it != block_list.Begin() )
+			{
+			const auto& prev = std::prev(it)->second;
 
-		if ( b->upper > n )
+			// If we're above a hole, stop.  This can happen because
+			// the logic above regarding a hole that's above the
+			// expected fragment size.
+			if ( prev.upper < b.seq )
+				break;
+			}
+
+		if ( b.upper > n )
 			{
 			reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
@@ -276,7 +280,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 			return;
 			}
 
-		memcpy(&pkt[b->seq], b->block, b->upper - b->seq);
+		memcpy(&pkt[b.seq], b.block, b.upper - b.seq);
 		}
 
 	delete reassembled_pkt;

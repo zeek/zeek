@@ -29,7 +29,7 @@ DataBlock::DataBlock(DataBlockList* list, DataBlockMap::const_iterator hint,
 	if ( next )
 		next->prev = this;
 
-	list->block_map.emplace_hint(hint, seq, this);
+	list->block_map.emplace(hint, DataBlockMapElement{seq, this});
 	// TODO: no longer need a separate block count since the map can provide that
 	++list->total_blocks;
 	list->total_data_size += size;
@@ -98,7 +98,7 @@ void DataBlockList::Append(DataBlock* block, uint64_t limit)
 		head = tail = block;
 		}
 
-	block_map.emplace_hint(block_map.end(), block->seq, block);
+	block_map.emplace(block_map.end(), DataBlockMapElement{block->seq, block});
 
 	while ( head && total_blocks > limit )
 		{
@@ -112,7 +112,8 @@ void DataBlockList::Append(DataBlock* block, uint64_t limit)
 DataBlockMap::const_iterator DataBlockList::FindFirstBlockBefore(uint64_t seq) const
 	{
 	// Upper sequence number doesn't matter for the search
-	auto it = block_map.upper_bound(seq);
+	auto it = std::upper_bound(block_map.begin(), block_map.end(),
+	                           DataBlockMapElement{seq, nullptr});
 
 	if ( it == block_map.end() )
 		return block_map.empty() ? it : std::prev(it);
@@ -154,10 +155,10 @@ DataBlock* DataBlockList::Insert(uint64_t seq, uint64_t upper,
 			it = block_map.begin();
 		}
 
-	while ( std::next(it) != block_map.end() && it->second->upper <= seq )
+	while ( std::next(it) != block_map.end() && it->b->upper <= seq )
 		++it;
 
-	DataBlock* b = it->second;
+	DataBlock* b = it->b;
 
 	if ( b->upper <= seq )
 		{
@@ -332,7 +333,7 @@ void Reassembler::CheckOverlap(const DataBlockList& list,
 	if ( it == list.block_map.end() )
 		start = head;
 	else
-		start = it->second;
+		start = it->b;
 
 	for ( auto b = start; b; b = b->next )
 		{

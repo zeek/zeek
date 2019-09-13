@@ -3,7 +3,8 @@
 #ifndef reassem_h
 #define reassem_h
 
-#include <map>
+#include <vector>
+#include <algorithm>
 
 #include "Obj.h"
 #include "IPAddr.h"
@@ -23,7 +24,16 @@ enum ReassemblerType {
 class Reassembler;
 class DataBlock;
 class DataBlockList;
-using DataBlockMap = std::map<uint64_t, DataBlock*>;
+
+struct DataBlockMapElement {
+	uint64_t seq;
+	DataBlock* b;
+
+	bool operator<(const DataBlockMapElement& other) const
+		{ return seq < other.seq; }
+};
+
+using DataBlockMap = std::vector<DataBlockMapElement>;
 
 class DataBlock {
 public:

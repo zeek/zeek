@@ -165,7 +165,7 @@ BroFile::~BroFile()
 
 void BroFile::Init()
 	{
-	is_open = 0;
+	open_time = is_open = 0;
 	attrs = 0;
 	buffered = true;
 	raw_output = false;

@@ -2998,8 +2998,6 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			}
 		else if ( t_tag == TYPE_INT )
 			promoted_v = val_mgr->GetInt(v->CoerceToInt());
-		else if ( t_tag == TYPE_BOOL )
-			promoted_v = val_mgr->GetBool(v->CoerceToInt());
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");

@@ -185,24 +185,32 @@ void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 		Weird("fragment_overlap");
 	}
 
-void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
+void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 	{
-	const DataBlock* b = block_list.Head();
-	// TODO: review all iteration here to see if it can be done better
+	auto it = block_list.Begin();
 
-	if ( b->seq > 0 || ! frag_size )
+	if ( it->second->seq > 0 || ! frag_size )
 		// For sure don't have it all yet.
 		return;
 
+	auto next = std::next(it);
+
 	// We might have it all - look for contiguous all the way.
-	for ( ; b->next; b = b->next )
-		if ( b->upper != b->next->seq )
+	while ( next != block_list.End() )
+		{
+		if ( it->second->upper != next->second->seq )
 			break;
 
-	if ( b->next )
+		++it;
+		++next;
+		}
+
+	auto last = std::prev(block_list.End())->second;
+
+	if ( next != block_list.End() )
 		{
 		// We have a hole.
-		if ( b->upper >= frag_size )
+		if ( it->second->upper >= frag_size )
 			{
 			// We're stuck.  The point where we stopped is
 			// contiguous up through the expected end of
@@ -215,19 +223,19 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 			// We decide to analyze the contiguous portion now.
 			// Extend the fragment up through the end of what
 			// we have.
-			frag_size = b->upper;
+			frag_size = it->second->upper;
 			}
 		else
 			return;
 		}
 
-	else if ( block_list.Tail()->upper > frag_size )
+	else if ( last->upper > frag_size )
 		{
 		Weird("fragment_size_inconsistency");
-		frag_size = block_list.Tail()->upper;
+		frag_size = last->upper;
 		}
 
-	else if ( block_list.Tail()->upper < frag_size )
+	else if ( last->upper < frag_size )
 		// Missing the tail.
 		return;
 
@@ -248,12 +256,15 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 
 	pkt += proto_hdr_len;
 
-	for ( b = block_list.Head(); b; b = b->next )
+	for ( it = block_list.Begin(); it != block_list.End(); ++it )
 		{
+		auto b = it->second;
+		DataBlock* prev = it == block_list.Begin() ? nullptr : std::prev(it)->second;
+
 		// If we're above a hole, stop.  This can happen because
 		// the logic above regarding a hole that's above the
 		// expected fragment size.
-		if ( b->prev && b->prev->upper < b->seq )
+		if ( prev && prev->upper < b->seq )
 			break;
 
 		if ( b->upper > n )
@@ -265,8 +276,7 @@ void FragReassembler::BlockInserted(const DataBlock* /* start_block */)
 			return;
 			}
 
-		memcpy((void*) &pkt[b->seq], (const void*) b->block,
-			b->upper - b->seq);
+		memcpy(&pkt[b->seq], b->block, b->upper - b->seq);
 		}
 
 	delete reassembled_pkt;

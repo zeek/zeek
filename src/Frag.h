@@ -37,7 +37,7 @@ public:
 	const FragReassemblerKey& Key() const	{ return key; }
 
 protected:
-	void BlockInserted(const DataBlock* start_block) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 	void Weird(const char* name) const;
 

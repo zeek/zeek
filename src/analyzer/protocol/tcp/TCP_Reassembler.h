@@ -90,7 +90,7 @@ private:
 	void RecordBlock(const DataBlock* b, BroFile* f);
 	void RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f);
 
-	void BlockInserted(const DataBlock* b) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	TCP_Endpoint* endp;

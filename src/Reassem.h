@@ -21,25 +21,23 @@ enum ReassemblerType {
 };
 
 class Reassembler;
-class DataBlock;
-class DataBlockList;
-using DataBlockMap = std::map<uint64_t, DataBlock*>;
 
 class DataBlock {
 public:
-	DataBlock(DataBlockList* list, DataBlockMap::const_iterator hint,
-	          const u_char* data, uint64_t size, uint64_t seq,
-	          DataBlock* prev, DataBlock* next);
+	DataBlock(const u_char* data, uint64_t size, uint64_t seq);
 
-	~DataBlock()	{ delete [] block; }
+	~DataBlock()
+		{ delete [] block; }
 
-	uint64_t Size() const	{ return upper - seq; }
+	uint64_t Size() const
+		{ return upper - seq; }
 
-	DataBlock* next;	// next block with higher seq #
-	DataBlock* prev;	// previous block with lower seq #
-	uint64_t seq, upper;
+	uint64_t seq;
+	uint64_t upper;
 	u_char* block;
 };
+
+using DataBlockMap = std::map<uint64_t, DataBlock*>;
 
 // TODO: add comments
 class DataBlockList {
@@ -54,17 +52,23 @@ public:
 	~DataBlockList()
 		{ Clear(); }
 
-	const DataBlock* Head() const
-		{ return head; }
+	DataBlockMap::const_iterator Begin() const
+		{ return block_map.begin(); }
 
-	const DataBlock* Tail() const
-		{ return tail; }
+	DataBlockMap::const_iterator End() const
+		{ return block_map.end(); }
+
+	DataBlock* FirstBlock() const
+		{ return block_map.begin()->second; }
+
+	DataBlock* LastBlock() const
+		{ return block_map.rbegin()->second; }
 
 	bool Empty() const
-		{ return head == nullptr; };
+		{ return block_map.empty(); };
 
 	size_t NumBlocks() const
-		{ return total_blocks; };
+		{ return block_map.size(); };
 
 	size_t DataSize() const
 		{ return total_data_size; }
@@ -73,8 +77,9 @@ public:
 
 	void Clear();
 
-	DataBlock* Insert(uint64_t seq, uint64_t upper, const u_char* data,
-	                  DataBlockMap::const_iterator* hint = nullptr);
+	DataBlockMap::const_iterator
+	Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	       DataBlockMap::const_iterator* hint = nullptr);
 
 	void Append(DataBlock* block, uint64_t limit);
 
@@ -84,15 +89,15 @@ public:
 
 private:
 
-	void DeleteBlock(DataBlock* b);
+	DataBlockMap::const_iterator
+	Insert(uint64_t seq, uint64_t upper, const u_char* data,
+	       DataBlockMap::const_iterator hint);
 
-	friend class DataBlock;
-	friend class Reassembler;
+	void Delete(DataBlockMap::const_iterator it);
+
+	DataBlock* Remove(DataBlockMap::const_iterator it);
 
 	Reassembler* reassembler = nullptr;
-	DataBlock* head = nullptr;
-	DataBlock* tail = nullptr;
-	size_t total_blocks = 0;
 	size_t total_data_size = 0;
 	DataBlockMap block_map;
 };
@@ -138,12 +143,11 @@ public:
 protected:
 	Reassembler()	{ }
 
-	friend class DataBlock;
 	friend class DataBlockList;
 
 	virtual void Undelivered(uint64_t up_to_seq);
 
-	virtual void BlockInserted(const DataBlock* b) = 0;
+	virtual void BlockInserted(DataBlockMap::const_iterator it) = 0;
 	virtual void Overlap(const u_char* b1, const u_char* b2, uint64_t n) = 0;
 
 	void CheckOverlap(const DataBlockList& list,
@@ -152,7 +156,6 @@ protected:
 	DataBlockList block_list;
 	DataBlockList old_block_list;
 
-	// TODO: maybe roll some of these stats into DataBlockList ?
 	uint64_t last_reassem_seq;
 	uint64_t trim_seq;	// how far we've trimmed
 	uint32_t max_old_blocks;

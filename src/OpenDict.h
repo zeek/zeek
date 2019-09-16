@@ -62,7 +62,7 @@ struct DictEntry{//24 bytes. perfectly alligned. always own the key. but not the
 		char* key;
 	};
 
-	DictEntry(void*& arg_key, int key_size=0, hash_t hash=0, void* value=0, int16_t d=TOO_FAR_TO_REACH, int copy_key=0) 
+	DictEntry(void* arg_key, int key_size=0, hash_t hash=0, void* value=0, int16_t d=TOO_FAR_TO_REACH, int copy_key=0) 
 	: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
 		{
 		#ifdef DEBUG
@@ -73,7 +73,6 @@ struct DictEntry{//24 bytes. perfectly alligned. always own the key. but not the
 			memcpy(key_here, arg_key, key_size);
 			if(!copy_key)
 				delete (char*)arg_key; //own the arg_key, now don't need it.
-			arg_key = const_cast<char*>(key_here);
 		}
 		else
 		{
@@ -81,7 +80,6 @@ struct DictEntry{//24 bytes. perfectly alligned. always own the key. but not the
 			{
 				key = new char[key_size];
 				memcpy(key, arg_key, key_size);
-				arg_key = key;
 			}
 			else
 			{

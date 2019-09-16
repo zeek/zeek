@@ -1,4 +1,8 @@
 
+3.1.0-dev.102 | 2019-09-16 10:50:47 -0700
+
+  * Stop loading scan detection in local.zeek by default (Jon Siwek, Corelight)
+
 3.1.0-dev.98 | 2019-09-04 16:28:01 -0700
 
   * Update Broker include dir search path (Jon Siwek, Corelight)

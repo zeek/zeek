@@ -485,6 +485,9 @@ Changed Functionality
   before it is disabled; the default is set to 5. This behavior is customizable using
   ``DPD::max_violations`` and ``DPD::ignore_violations``.
 
+- The scan detection script, ``policy/misc/scan``, is no longer loaded by
+  default in ``site/local.zeek`` due to it frequenty causing performance issues.
+
 Removed Functionality
 ---------------------
 

@@ -17,7 +17,7 @@ public:
 	~IMAP_Analyzer() override;
 
 	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.

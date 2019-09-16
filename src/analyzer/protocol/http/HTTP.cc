@@ -208,7 +208,7 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
-void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBodyClear(uint64_t len, const char* data, int trailing_CRLF)
 	{
 	bool new_data = (body_length == 0);
 
@@ -914,7 +914,7 @@ void HTTP_Analyzer::Done()
 	*/
 	}
 
-void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
+void HTTP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 

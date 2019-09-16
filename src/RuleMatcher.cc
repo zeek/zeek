@@ -831,7 +831,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 	}
 
 void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
-			const u_char* data, int data_len,
+			const u_char* data, unsigned int data_len,
 			bool bol, bool eol, bool clear)
 	{
 	if ( ! state )
@@ -1004,7 +1004,7 @@ bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
 	}
 
 bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
-		const u_char* data, int len, bool eos)
+		const u_char* data, unsigned int len, bool eos)
 	{
 	DBG_LOG(DBG_RULES, "Evaluating conditions for rule %s", r->ID());
 
@@ -1048,7 +1048,7 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 	}
 
 void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
-				const u_char* data, int len, bool eos)
+				const u_char* data, unsigned int len, bool eos)
 	{
 	if ( state->opposite &&
 		 is_member_of(state->opposite->matched_rules, r->Index()) )
@@ -1242,7 +1242,7 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 
 			for ( const auto& id : set->ids )
 				{
-				Rule* r = Rule::rule_table[id - 1];
+				Rule* r = Rule::rule_table [ static_cast<int> (id) - 1 ];
 				f->Write(fmt("%s ", r->ID()));
 				}
 

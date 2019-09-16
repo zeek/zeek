@@ -294,7 +294,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 	case TYPE_INTERNAL_STRING:
 		{
 		// Align to int for the length field.
-		int* kp = AlignAndPadType<int>(kp0);
+		unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
 		const BroString* sval = v->AsString();
 
 		*kp = sval->Len();	// so we can recover the value

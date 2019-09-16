@@ -86,7 +86,7 @@ IOSource* Manager::FindSoonest(double* ts)
 				soonest_ts = ts;
 				soonest_src = (*i)->src;
 				soonest_local_network_time =
-					local_network_time ?
+					local_network_time != 0.0 ?
 						local_network_time : ts;
 				}
 			}
@@ -167,7 +167,7 @@ IOSource* Manager::FindSoonest(double* ts)
 					soonest_ts = ts;
 					soonest_src = src->src;
 					soonest_local_network_time =
-						local_network_time ?
+						local_network_time != 0.0 ?
 							local_network_time : ts;
 					}
 				}

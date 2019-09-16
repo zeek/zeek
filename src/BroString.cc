@@ -25,7 +25,7 @@ const int BroString::BRO_STRING_LITERAL;
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
 // arg_final_NUL == 0.
 
-BroString::BroString(int arg_final_NUL, byte_vec str, unsigned int arg_n)
+BroString::BroString(int arg_final_NUL, byte_vec str, uint64_t arg_n)
 	{
 	b = str;
 	n = arg_n;
@@ -33,7 +33,7 @@ BroString::BroString(int arg_final_NUL, byte_vec str, unsigned int arg_n)
 	use_free_to_delete = 0;
 	}
 
-BroString::BroString(const u_char* str, unsigned int arg_n, int add_NUL)
+BroString::BroString(const u_char* str, uint64_t arg_n, int add_NUL)
 	{
 	b = 0;
 	n = 0;
@@ -122,7 +122,7 @@ void BroString::Adopt(byte_vec bytes, unsigned int len)
 	n = len - final_NUL;
 	}
 
-void BroString::Set(const u_char* str, unsigned int len, int add_NUL)
+void BroString::Set(const u_char* str, uint64_t len, int add_NUL)
 	{
 	Reset();
 
@@ -459,7 +459,7 @@ BroString* concatenate(std::vector<data_chunk_t>& v)
 BroString* concatenate(BroString::CVec& v)
 	{
 	int n = v.size();
-	int len = 0;
+	unsigned int len = 0;
 	int i;
 	for ( i = 0; i < n; ++i )
 		len += v[i]->Len();

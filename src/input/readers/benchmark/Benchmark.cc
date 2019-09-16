@@ -84,7 +84,7 @@ double Benchmark::CurrTime()
 // read the entire file and send appropriate thingies back to InputMgr
 bool Benchmark::DoUpdate()
 	{
-	int linestosend = num_lines * heartbeat_interval;
+	int linestosend = static_cast<int>(num_lines * heartbeat_interval);
 	for ( int i = 0; i < linestosend; i++ )
 		{
 		Value** field = new Value*[NumFields()];

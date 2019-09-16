@@ -486,7 +486,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			else
 				endpoint->SetState(TCP_ENDPOINT_SYN_SENT);
 
-			if ( tcp_attempt_delay )
+			if ( tcp_attempt_delay != 0.0 )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
 					t + tcp_attempt_delay, 1,
 					TIMER_TCP_ATTEMPT);

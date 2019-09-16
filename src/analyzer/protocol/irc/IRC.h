@@ -31,7 +31,7 @@ public:
 	* \param data pointer to line start
 	* \param orig was this data sent from connection originator?
 	*/
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{

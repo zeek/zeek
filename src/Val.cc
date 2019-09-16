@@ -973,7 +973,7 @@ StringVal::StringVal(BroString* s) : Val(TYPE_STRING)
 	val.string_val = s;
 	}
 
-StringVal::StringVal(unsigned int length, const char* s) : Val(TYPE_STRING)
+StringVal::StringVal(uint64_t length, const char* s) : Val(TYPE_STRING)
 	{
 	// The following adds a NUL at the end.
 	val.string_val = new BroString((const u_char*)  s, length, 1);

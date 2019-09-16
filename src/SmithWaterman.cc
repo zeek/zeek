@@ -31,7 +31,7 @@ const BroSubstring& BroSubstring::operator=(const BroSubstring& bst)
 	return *this;
 	}
 
-void BroSubstring::AddAlignment(const BroString* str, int index)
+void BroSubstring::AddAlignment(const BroString* str, uint64_t index)
 	{
 	_aligns.push_back(BSSAlign(str, index));
 	}
@@ -160,7 +160,7 @@ BroString::IdxVec* BroSubstring::GetOffsetsVec(const Vec* vec, unsigned int inde
 
 	for ( VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
-		int start, end;
+		unsigned int start, end;
 		const BroSubstring* bst = (*it);
 
 		if ( bst->_aligns.size() <= index )
@@ -244,8 +244,8 @@ public:
 	const BroString* GetRowsString() const	{ return _s1; }
 	const BroString* GetColsString() const	{ return _s2; }
 
-	int GetHeight() const	{ return _rows; }
-	int GetWidth() const	{ return _cols; }
+	unsigned int GetHeight() const	{ return _rows; }
+	unsigned int GetWidth() const	{ return _cols; }
 
 	// Quick helper function that calculates the coordinates of a
 	// node in the matrix via pointer arithmetic.
@@ -262,7 +262,7 @@ private:
 	const BroString* _s1;
 	const BroString* _s2;
 
-	int _rows, _cols;
+	unsigned int _rows, _cols;
 	SWNode* _nodes;
 };
 
@@ -422,8 +422,8 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 	// Length of both strings, plus one because SW needs
 	// an extra row and column.
 	//
-	int i, len1 = s1->Len() + 1;
-	int j, len2 = s2->Len() + 1;
+	unsigned int i, len1 = s1->Len() + 1;
+	unsigned int j, len2 = s2->Len() + 1;
 
 	int row = 0, col = 0;
 

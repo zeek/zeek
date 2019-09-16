@@ -246,67 +246,67 @@ protected:
 				u_char* label, int label_len,
 				const u_char* msg_start);
 	int ExtractLabel(const u_char*& data, uint64_t& len,
-			 u_char*& label, int& label_len,
+			 u_char*& label, uint64_t& label_len,
 			 const u_char* msg_start);
 
 	uint16_t ExtractShort(const u_char*& data, uint64_t& len);
 	uint32_t ExtractLong(const u_char*& data, uint64_t& len);
 	void ExtractOctets(const u_char*& data, uint64_t& len, BroString** p);
 
-	BroString* ExtractStream(const u_char*& data, uint64_t& len, int sig_len);
+	BroString* ExtractStream(const u_char*& data, uint64_t& len, unsigned int sig_len);
 
 	int ParseRR_Name(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_SOA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_MX(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_NBS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_SRV(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_EDNS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_A(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength);
+				const u_char*& data, uint64_t& len, uint64_t rdlength);
 	int ParseRR_AAAA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength);
+				const u_char*& data, uint64_t& len, uint64_t rdlength);
 	int ParseRR_WKS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength);
+				const u_char*& data, uint64_t& len, uint64_t rdlength);
 	int ParseRR_HINFO(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength);
+				const u_char*& data, uint64_t& len, uint64_t rdlength);
 	int ParseRR_TXT(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_SPF(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_CAA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_TSIG(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_RRSIG(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_DNSKEY(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_NSEC(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_NSEC3(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	int ParseRR_DS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start);
 	void SendReplyOrRejectEvent(DNS_MsgInfo* msg, EventHandlerPtr event,
 					const u_char*& data, uint64_t& len,

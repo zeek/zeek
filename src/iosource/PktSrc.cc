@@ -180,7 +180,7 @@ void PktSrc::Done()
 void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                     iosource::FD_Set* except)
 	{
-	if ( pseudo_realtime )
+	if ( pseudo_realtime != 0.0 )
 		{
 		// Select would give erroneous results. But we simulate it
 		// by setting idle accordingly.
@@ -212,7 +212,7 @@ double PktSrc::NextTimestamp(double* local_network_time)
 	if ( ! ExtractNextPacketInternal() )
 		return -1.0;
 
-	if ( pseudo_realtime )
+	if ( pseudo_realtime != 0.0 )
 		{
 		// Delay packet if necessary.
 		double packet_time = CheckPseudoTime();
@@ -236,11 +236,11 @@ void PktSrc::Process()
 
 	if ( current_packet.Layer2Valid() )
 		{
-		if ( pseudo_realtime )
+		if ( pseudo_realtime != 0.0 )
 			{
 			current_pseudo = CheckPseudoTime();
 			net_packet_dispatch(current_pseudo, &current_packet, this);
-			if ( ! first_wallclock )
+			if ( first_wallclock == 0.0 )
 				first_wallclock = current_time(true);
 			}
 
@@ -266,13 +266,13 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	// Don't return any packets if processing is suspended (except for the
 	// very first packet which we need to set up times).
-	if ( net_is_processing_suspended() && first_timestamp )
+	if ( net_is_processing_suspended() && first_timestamp != 0.0 )
 		{
 		SetIdle(true);
 		return 0;
 		}
 
-	if ( pseudo_realtime )
+	if ( pseudo_realtime != 0.0 )
 		current_wallclock = current_time(true);
 
 	if ( ExtractNextPacket(&current_packet) )
@@ -283,7 +283,7 @@ bool PktSrc::ExtractNextPacketInternal()
 			return 0;
 			}
 
-		if ( ! first_timestamp )
+		if ( first_timestamp == 0.0 )
 			first_timestamp = current_packet.time;
 
 		SetIdle(false);
@@ -291,7 +291,7 @@ bool PktSrc::ExtractNextPacketInternal()
 		return 1;
 		}
 
-	if ( pseudo_realtime && ! IsOpen() )
+	if ( pseudo_realtime != 0.0 && ! IsOpen() )
 		{
 		if ( broker_mgr->Active() )
 			iosource_mgr->Terminate();

@@ -169,7 +169,7 @@ int DNS_Interpreter::ParseQuestion(DNS_MsgInfo* msg,
 				const u_char* msg_start)
 	{
 	u_char name[513];
-	int name_len = sizeof(name) - 1;
+	uint64_t name_len = sizeof(name) - 1;
 
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
 	if ( ! name_end )
@@ -215,7 +215,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 				const u_char* msg_start)
 	{
 	u_char name[513];
-	int name_len = sizeof(name) - 1;
+	uint64_t name_len = sizeof(name) - 1;
 
 	u_char* name_end = ExtractName(data, len, name, name_len, msg_start);
 
@@ -237,7 +237,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	msg->aclass = ExtractShort(data, len);
 	msg->ttl = ExtractLong(data, len);
 
-	int rdlength = ExtractShort(data, len);
+	uint64_t rdlength = ExtractShort(data, len);
 	if ( rdlength > len )
 		{
 		analyzer->Weird("DNS_truncated_RR_rdlength_lt_len");
@@ -357,7 +357,7 @@ int DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	}
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, uint64_t& len,
-					u_char* name, int name_len,
+					u_char* name, uint64_t name_len,
 					const u_char* msg_start)
 	{
 	u_char* name_start = name;
@@ -386,7 +386,7 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, uint64_t& len,
 	}
 
 int DNS_Interpreter::ExtractLabel(const u_char*& data, uint64_t& len,
-				u_char*& name, int& name_len,
+				u_char*& name, uint64_t& name_len,
 				const u_char* msg_start)
 	{
 	if ( len <= 0 )
@@ -514,7 +514,7 @@ uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
 	}
 
 int DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	const u_char* data_start = data;
@@ -566,20 +566,20 @@ int DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	const u_char* data_start = data;
 
 	u_char mname[513];
-	int mname_len = sizeof(mname) - 1;
+	uint64_t mname_len = sizeof(mname) - 1;
 
 	u_char* mname_end = ExtractName(data, len, mname, mname_len, msg_start);
 	if ( ! mname_end )
 		return 0;
 
 	u_char rname[513];
-	int rname_len = sizeof(rname) - 1;
+	uint64_t rname_len = sizeof(rname) - 1;
 
 	u_char* rname_end = ExtractName(data, len, rname, rname_len, msg_start);
 	if ( ! rname_end )
@@ -620,7 +620,7 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	const u_char* data_start = data;
@@ -652,7 +652,7 @@ int DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_NBS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	data += rdlength;
@@ -661,7 +661,7 @@ int DNS_Interpreter::ParseRR_NBS(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	const u_char* data_start = data;
@@ -697,7 +697,7 @@ int DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	// We need a pair-value set mechanism here to dump useful information
@@ -737,7 +737,7 @@ void DNS_Interpreter::ExtractOctets(const u_char*& data, uint64_t& len,
 	len -= dlen;
 	}
 
-BroString* DNS_Interpreter::ExtractStream(const u_char*& data, uint64_t& len, int l)
+BroString* DNS_Interpreter::ExtractStream(const u_char*& data, uint64_t& len, unsigned int l)
 	{
 	l = max(l, 0);
 	int dlen = min(len, l); // Len in bytes of the algorithm use
@@ -749,7 +749,7 @@ BroString* DNS_Interpreter::ExtractStream(const u_char*& data, uint64_t& len, in
 	}
 
 int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	const u_char* data_start = data;
@@ -794,7 +794,7 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_RRSIG || msg->skip_event )
@@ -827,7 +827,7 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 	if ( ! name_end )
 		return 0;
 
-	int sig_len = rdlength - ((data - data_start) + 18);
+	unsigned int sig_len = rdlength - ((data - data_start) + 18);
 	DNSSEC_Algo dsa = DNSSEC_Algo(algo);
 	BroString* sign = ExtractStream(data, len, sig_len);
 
@@ -896,7 +896,7 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_DNSKEY || msg->skip_event )
@@ -991,7 +991,7 @@ int DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_NSEC || msg->skip_event )
@@ -1045,7 +1045,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_NSEC3 || msg->skip_event )
@@ -1073,7 +1073,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		--len;
 		}
 
-	auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
+	auto salt_val = ExtractStream(data, len, static_cast<unsigned int>(salt_len));
 
 	uint8_t hash_len = 0;
 
@@ -1084,7 +1084,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		--len;
 		}
 
-	auto hash_val = ExtractStream(data, len, static_cast<int>(hash_len));
+	auto hash_val = ExtractStream(data, len, static_cast<unsigned int>(hash_len));
 
 	int typebitmaps_len = rdlength - (data - data_start);
 
@@ -1131,7 +1131,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_DS || msg->skip_event )
@@ -1189,7 +1189,7 @@ int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength)
+				const u_char*& data, uint64_t& len, uint64_t rdlength)
 	{
 	if ( rdlength != 4 )
 		{
@@ -1213,7 +1213,7 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength)
+				const u_char*& data, uint64_t& len, uint64_t rdlength)
 	{
 	uint32_t addr[4];
 
@@ -1250,7 +1250,7 @@ int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_WKS(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength)
+				const u_char*& data, uint64_t& len, uint64_t rdlength)
 	{
 	data += rdlength;
 	len -= rdlength;
@@ -1259,7 +1259,7 @@ int DNS_Interpreter::ParseRR_WKS(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength)
+				const u_char*& data, uint64_t& len, uint64_t rdlength)
 	{
 	data += rdlength;
 	len -= rdlength;
@@ -1296,7 +1296,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
 	}
 
 int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_TXT_reply || msg->skip_event )
@@ -1326,7 +1326,7 @@ int DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_SPF_reply || msg->skip_event )
@@ -1356,7 +1356,7 @@ int DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 	}
 
 int DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
-				const u_char*& data, uint64_t& len, int rdlength,
+				const u_char*& data, uint64_t& len, uint64_t rdlength,
 				const u_char* msg_start)
 	{
 	if ( ! dns_CAA_reply || msg->skip_event )

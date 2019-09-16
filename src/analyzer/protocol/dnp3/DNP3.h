@@ -44,7 +44,7 @@ protected:
 	 * buffer is not yet \a target_len bytes in size, or 1 the buffer is the
 	 * required size.
 	 */
-	int AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len);
+	int AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, int* len);
 
 	bool ParseAppLayer(Endpoint* endp);
 	bool CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where);

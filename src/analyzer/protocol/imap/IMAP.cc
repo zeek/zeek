@@ -33,7 +33,7 @@ void IMAP_Analyzer::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void IMAP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void IMAP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 

@@ -470,7 +470,7 @@ cq_resize(register struct cq_handle *hp, register int grow)
 	hp->buckets = buckets;
 
 	/* Initialize other parameters */
-	hp->himark = hp->nbuckets * 1.5;
+	hp->himark = (int) (hp->nbuckets * 1.5);
 	hp->lowmark = (hp->nbuckets / 2) - 2;
 	hp->bwidth = hp->ysize / (double)hp->nbuckets;
 

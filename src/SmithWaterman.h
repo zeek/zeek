@@ -24,7 +24,7 @@ public:
 	//
 	struct BSSAlign {
 
-		BSSAlign(const BroString* string, int index)
+		BSSAlign(const BroString* string, uint64_t index)
 			{ this->string = string; this->index = index; }
 
 		// The other string
@@ -34,7 +34,7 @@ public:
 		// Offset in the string that substring
 		// starts at, counting from 0.
 		//
-		int index;
+		uint64_t index;
 	};
 
 	typedef vector<BSSAlign> BSSAlignVec;
@@ -58,7 +58,7 @@ public:
 	//
 	bool DoesCover(const BroSubstring* bst) const;
 
-	void AddAlignment(const BroString* string, int index);
+	void AddAlignment(const BroString* string, uint64_t index);
 	const BSSAlignVec& GetAlignments() const	{ return _aligns; }
 	unsigned int GetNumAlignments() const	{ return _aligns.size(); }
 

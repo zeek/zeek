@@ -13,7 +13,7 @@ public:
 	explicit FTP_Analyzer(Connection* conn);
 
 	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{
@@ -40,7 +40,7 @@ public:
 	    : SupportAnalyzer("FTP_ADAT", conn, arg_orig),
 	      first_token(true) { }
 
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 protected:
 	// Used by the client-side analyzer to tell if it needs to peek at the

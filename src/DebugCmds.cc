@@ -200,12 +200,12 @@ static int dbg_backtrace_internal(unsigned long start, unsigned long end)
 
 	if ( start < end )
 		{
-		int temp = start;
+		unsigned long temp = start;
 		start = end;
 		end = temp;
 		}
 
-	for ( int i = start; i >= end; --i )
+	for ( unsigned long i = start; i >= end; --i )
 		{
 		const Frame* f = g_frame_stack[i];
 		const Stmt* stmt = f ? f->GetNextStmt() : 0;

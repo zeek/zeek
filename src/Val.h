@@ -623,7 +623,7 @@ public:
 	explicit StringVal(BroString* s);
 	explicit StringVal(const char* s);
 	explicit StringVal(const string& s);
-	StringVal(int length, const char* s);
+	StringVal(unsigned int length, const char* s);
 
 	Val* SizeVal() const override
 		{ return val_mgr->GetCount(val.string_val->Len()); }

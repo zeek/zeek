@@ -1469,16 +1469,16 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 
 	double rotation_interval = winfo->interval;
 
-	if ( rotation_interval )
+	if ( rotation_interval != 0.0 )
 		{
 		// When this is called for the first time, network_time can still be
 		// zero. If so, we set a timer which fires immediately but doesn't
 		// rotate when it expires.
-		if ( ! network_time )
+		if ( network_time == 0.0 )
 			winfo->rotation_timer = new RotationTimer(1, winfo, false);
 		else
 			{
-			if ( ! winfo->open_time )
+			if ( winfo->open_time == 0.0 )
 				winfo->open_time = network_time;
 
 			const char* base_time = log_rotate_base_time ?

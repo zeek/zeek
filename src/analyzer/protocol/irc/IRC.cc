@@ -41,7 +41,7 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 		str = str.substr(first_char);
 	}
 
-void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
+void IRC_Analyzer::DeliverStream(uint64_t length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 

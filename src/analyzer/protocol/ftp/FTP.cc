@@ -50,7 +50,7 @@ void FTP_Analyzer::Done()
 		Weird("partial_ftp_request");
 	}
 
-static uint32_t get_reply_code(int len, const char* line)
+static uint32_t get_reply_code(uint64_t len, const char* line)
 	{
 	if ( len >= 3 && isdigit(line[0]) && isdigit(line[1]) && isdigit(line[2]) )
 		return (line[0] - '0') * 100 + (line[1] - '0') * 10 + (line[2] - '0');
@@ -58,7 +58,7 @@ static uint32_t get_reply_code(int len, const char* line)
 		return 0;
 	}
 
-void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
+void FTP_Analyzer::DeliverStream(uint64_t length, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
 
@@ -188,7 +188,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	ForwardStream(length, data, orig);
 	}
 
-void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void FTP_ADAT_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	// Don't know how to parse anything but the ADAT exchanges of GSI GSSAPI,
 	// which is basically just TLS/SSL.
@@ -206,7 +206,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	if ( orig )
 		{
-		int cmd_len;
+		uint64_t cmd_len;
 		const char* cmd;
 		line = skip_whitespace(line, end_of_line);
 		get_word(len, line, cmd_len, cmd);
@@ -225,7 +225,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				// token, but GSI doesn't do that and starts right in on a
 				// TLS/SSL handshake, so look for that to identify it.
 				const u_char* msg = decoded_adat->Bytes();
-				int msg_len = decoded_adat->Len();
+				uint64_t msg_len = decoded_adat->Len();
 
 				// Just check that it looks like a viable TLS/SSL handshake
 				// record from the first byte (content type of 0x16) and

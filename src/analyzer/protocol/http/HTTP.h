@@ -70,7 +70,7 @@ protected:
 	MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
 	void DeliverBody(int len, const char* data, int trailing_CRLF);
-	void DeliverBodyClear(int len, const char* data, int trailing_CRLF);
+	void DeliverBodyClear(uint64_t len, const char* data, int trailing_CRLF);
 
 	void SubmitData(int len, const char* buf) override;
 
@@ -167,7 +167,7 @@ public:
 
 	// Overriden from Analyzer.
 	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer

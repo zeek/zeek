@@ -206,7 +206,7 @@ public:
 	 *
 	 * Parameters are the same as for NextStream().
 	 */
-	virtual void ForwardStream(int len, const u_char* data, bool orig);
+	virtual void ForwardStream(uint64_t len, const u_char* data, bool orig);
 
 	/**
 	 * Forwards a sequence gap on to all child analyzers.

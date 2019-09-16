@@ -1,4 +1,8 @@
 
+3.0.0-rc2.2 | 2019-09-16 10:32:02 -0700
+
+  * Stop loading scan detection in local.zeek by default (Jon Siwek, Corelight)
+
 3.0.0-rc2.1 | 2019-09-09 10:49:53 -0700
 
   * Zeekify thread naming. (Seth Hall, Corelight)

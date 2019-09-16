@@ -231,7 +231,7 @@ void expire_timers(iosource::PktSrc* src_ps)
 
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
-	if ( ! bro_start_network_time )
+	if ( bro_start_network_time == 0.0 )
 		bro_start_network_time = t;
 
 	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
@@ -311,7 +311,7 @@ void net_run()
 		if ( src )
 			src->Process();	// which will call net_packet_dispatch()
 
-		else if ( reading_live && ! pseudo_realtime)
+		else if ( reading_live && pseudo_realtime == 0.0 )
 			{ // live but  no source is currently active
 			double ct = current_time();
 			if ( ! net_is_processing_suspended() )
@@ -326,7 +326,7 @@ void net_run()
 
 		else if ( (have_pending_timers || communication_enabled ||
 		           BifConst::exit_only_after_terminate) &&
-			  ! pseudo_realtime )
+			  pseudo_realtime == 0.0 )
 			{
 			// Take advantage of the lull to get up to
 			// date on timers and events.  Because we only
@@ -374,7 +374,7 @@ void net_run()
 			// the future on which we need to wait.
 			have_pending_timers = timer_mgr->Size() > 0;
 
-		if ( pseudo_realtime && communication_enabled )
+		if ( pseudo_realtime != 0.0 && communication_enabled )
 			{
 			auto have_active_packet_source = false;
 

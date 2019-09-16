@@ -592,7 +592,7 @@ void Dictionary::FinishChangeSize()
 
 unsigned int Dictionary::MemoryAllocation() const
 	{
-	int size = padded_sizeof(*this);
+	size_t size = padded_sizeof(*this);
 
 	if ( ! tbl )
 		return size;

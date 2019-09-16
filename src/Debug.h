@@ -82,7 +82,7 @@ public:
 	//### Umesh, why do these all need to be public? -- Vern
 
 	// Which frame we're looking at; 0 = the innermost frame.
-	int curr_frame_idx;
+	unsigned long curr_frame_idx;
 
 	bool already_did_list;	// did we already do a 'list' command?
 

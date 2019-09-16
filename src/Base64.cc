@@ -5,9 +5,9 @@
 int Base64Converter::default_base64_table[256];
 const string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
+void Base64Converter::Encode(uint64_t len, const unsigned char* data, uint64_t* pblen, char** pbuf)
 	{
-	int blen;
+	uint64_t blen;
 	char *buf;
 
 	if ( ! pbuf )
@@ -23,12 +23,12 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 		}
 	else
 		{
-		blen = (int)(4 * ceil((double)len / 3));
+		blen = (uint64_t)(4 * ceil((double)len / 3));
 		*pbuf = buf = new char[blen];
 		*pblen = blen;
 		}
 
-	for ( int i = 0, j = 0; (i < len) && ( j < blen ); )
+	for ( uint64_t i = 0, j = 0; (i < len) && ( j < blen ); )
 		{
 			uint32_t bit32 = data[i++]  << 16;
 			bit32 += (i++ < len ? data[i-1] : 0) << 8; 
@@ -107,9 +107,9 @@ Base64Converter::~Base64Converter()
 		delete [] base64_table;
 	}
 
-int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
+uint64_t Base64Converter::Decode(uint64_t len, const char* data, uint64_t* pblen, char** pbuf)
 	{
-	int blen;
+	uint64_t blen;
 	char* buf;
 
 	// Initialization of table on first_time call of Decode.
@@ -128,11 +128,11 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		{
 		// Estimate the maximal number of 3-byte groups needed,
 		// plus 1 byte for the optional ending NUL.
-		blen = int((len + base64_group_next + 3) / 4) * 3 + 1;
+		blen = uint64_t((len + base64_group_next + 3) / 4) * 3 + 1;
 		*pbuf = buf = new char[blen];
 		}
 
-	int dlen = 0;
+	uint64_t dlen = 0;
 
 	while ( 1 )
 		{
@@ -183,7 +183,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 
 		int k = base64_table[(unsigned char) data[dlen]];
 		if ( k >= 0 )
-			base64_group[base64_group_next++] = k;
+			base64_group[base64_group_next++] = static_cast<char> (k);
 		else
 			{
 			if ( ++errored == 1 )

@@ -192,7 +192,7 @@ void Connection::Done()
 void Connection::NextPacket(double t, int is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
-			int& record_packet, int& record_content,
+			unsigned int& record_packet, unsigned int& record_content,
 			// arguments for reproducing packets
 			const Packet *pkt)
 	{
@@ -283,7 +283,7 @@ void Connection::InactivityTimer(double t)
 	{
 	// If the inactivity_timeout is zero, there has been an active
 	// timeout once, but it's disabled now. We do nothing then.
-	if ( inactivity_timeout )
+	if ( inactivity_timeout != 0.0 )
 		{
 		if ( last_time + inactivity_timeout <= t )
 			{
@@ -308,7 +308,7 @@ void Connection::SetInactivityTimeout(double timeout)
 	{
 	// We add a new inactivity timer even if there already is one.  When
 	// it fires, we always use the current value to check for inactivity.
-	if ( timeout )
+	if ( timeout != 0.0 )
 		ADD_TIMER(&Connection::InactivityTimer,
 				last_time + timeout, 0, TIMER_CONN_INACTIVITY);
 
@@ -317,7 +317,7 @@ void Connection::SetInactivityTimeout(double timeout)
 
 void Connection::EnableStatusUpdateTimer()
 	{
-	if ( connection_status_update && connection_status_update_interval )
+	if ( connection_status_update && connection_status_update_interval != 0.0 )
 		{
 		ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,

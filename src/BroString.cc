@@ -25,7 +25,7 @@ const int BroString::BRO_STRING_LITERAL;
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
 // arg_final_NUL == 0.
 
-BroString::BroString(int arg_final_NUL, byte_vec str, int arg_n)
+BroString::BroString(int arg_final_NUL, byte_vec str, unsigned int arg_n)
 	{
 	b = str;
 	n = arg_n;
@@ -33,7 +33,7 @@ BroString::BroString(int arg_final_NUL, byte_vec str, int arg_n)
 	use_free_to_delete = 0;
 	}
 
-BroString::BroString(const u_char* str, int arg_n, int add_NUL)
+BroString::BroString(const u_char* str, unsigned int arg_n, int add_NUL)
 	{
 	b = 0;
 	n = 0;
@@ -110,7 +110,7 @@ bool BroString::operator<(const BroString &bs) const
 	return Bstr_cmp(this, &bs) < 0;
 	}
 
-void BroString::Adopt(byte_vec bytes, int len)
+void BroString::Adopt(byte_vec bytes, unsigned int len)
 	{
 	Reset();
 
@@ -122,7 +122,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 	n = len - final_NUL;
 	}
 
-void BroString::Set(const u_char* str, int len, int add_NUL)
+void BroString::Set(const u_char* str, unsigned int len, int add_NUL)
 	{
 	Reset();
 
@@ -187,12 +187,12 @@ const char* BroString::CheckString() const
 	return (const char*) b;
 	}
 
-char* BroString::Render(int format, int* len) const
+char* BroString::Render(int format, uint64_t* len) const
 	{
 	// Maxmimum character expansion is as \xHH, so a factor of 4.
 	char* s = new char[n*4 + 1];	// +1 is for final '\0'
 	char* sp = s;
-	int tmp_len;
+	uint64_t tmp_len;
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -305,7 +305,7 @@ int BroString::FindSubstring(const BroString* s) const
 
 BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	{
-	unsigned int i;
+	unsigned long i;
 
 	if ( indices.size() == 0 )
 		return 0;
@@ -351,7 +351,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 	if ( ! result )
 		return 0;
 
-	for ( unsigned int i = 0; i < vec->size(); ++i )
+	for ( unsigned long i = 0; i < vec->size(); ++i )
 		{
 		BroString* string = (*vec)[i];
 		StringVal* val = new StringVal(string->Len(),
@@ -489,7 +489,7 @@ BroString* concatenate(BroString::Vec& v)
 
 void delete_strings(std::vector<const BroString*>& v)
 	{
-	for ( unsigned int i = 0; i < v.size(); ++i )
+	for ( unsigned long i = 0; i < v.size(); ++i )
 		delete v[i];
 	v.clear();
 	}

@@ -518,7 +518,7 @@ nb_dns_addr_request2(register struct nb_dns_info *nd, char *addrp,
 {
 #ifdef AF_INET6
 	register char *cp;
-	register int n, i;
+	register unsigned long n, i;
 	register size_t size;
 #endif
 	register u_char *uaddr;

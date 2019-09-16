@@ -115,7 +115,7 @@ void ProfileLogger::Log()
 		network_time, (utime + stime) - (first_utime + first_stime),
 		utime - first_utime, stime - first_stime, rtime - first_rtime));
 
-	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
+	unsigned int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
 	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " ext=%" PRIu64 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		network_time,
@@ -320,7 +320,7 @@ void ProfileLogger::Log()
 	}
 
 void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
-					double dtime, int dmem)
+					double dtime, long dmem)
 	{
 	if ( name )
 		file->Write(fmt("%.06f segment-%s dt=%.06f dmem=%d\n",
@@ -400,11 +400,11 @@ void SegmentProfiler::Report()
 		double(final_rusage.ru_stime.tv_sec) +
 		double(final_rusage.ru_stime.tv_usec) / 1e6;
 
-	int start_mem = initial_rusage.ru_maxrss * 1024;
-	int stop_mem = initial_rusage.ru_maxrss * 1024;
+	long start_mem = initial_rusage.ru_maxrss * 1024;
+	long stop_mem = initial_rusage.ru_maxrss * 1024;
 
 	double dtime = stop_time - start_time;
-	int dmem = stop_mem - start_mem;
+	long dmem = stop_mem - start_mem;
 
 	reporter->SegmentProfile(name, loc, dtime, dmem);
 	}

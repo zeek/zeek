@@ -250,10 +250,10 @@ public:
 	// Quick helper function that calculates the coordinates of a
 	// node in the matrix via pointer arithmetic.
 	//
-	void GetNodeIndices(SWNode* node, int& row, int& col)
+	void GetNodeIndices(SWNode* node, uint64_t& row, uint64_t& col)
 		{
 		SWNode* base = &_nodes[0];
-		int offset = (node - base);
+		uint64_t offset = (node - base);
 		col = (offset % _cols);
 		row = (offset / _cols);
 		}
@@ -276,7 +276,7 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 			      SWNode* node, SWParams& params)
 	{
 	string substring("");
-	int row = 0, col = 0;
+	uint64_t row = 0, col = 0;
 
 	while ( node )
 		{

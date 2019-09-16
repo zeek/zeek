@@ -48,7 +48,7 @@ protected:
 
 	// Returns offset+size rounded up so it can correctly align data
 	// of the given size.
-	int SizeAlign(int offset, unsigned int size) const;
+	unsigned int SizeAlign(unsigned int offset, unsigned int size) const;
 
 	template<class T>
 	T* AlignAndPadType(char* ptr) const
@@ -72,16 +72,16 @@ protected:
 	// the value is computed for the particular list of values.
 	// Returns 0 if the key has an indeterminant size (if v not given),
 	// or if v doesn't match the index type (if given).
-	int ComputeKeySize(const Val* v, int type_check,
+	unsigned int ComputeKeySize(const Val* v, int type_check,
 			   bool calc_static_size) const;
 
-	int SingleTypeKeySize(BroType*, const Val*,
-			      int type_check, int sz, bool optional,
+	unsigned int SingleTypeKeySize(BroType*, const Val*,
+			      int type_check, unsigned int sz, bool optional,
 			      bool calc_static_size) const;
 
 	TypeList* type;
 	char* key;	// space for composite key
-	int size;
+	unsigned int size;
 	int is_singleton;	// if just one type in index
 
 	// If one type, but not normal "singleton", e.g. record.

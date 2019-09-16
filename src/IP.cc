@@ -367,8 +367,8 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		const struct tcphdr* tp = (const struct tcphdr*) data;
 		RecordVal* tcp_hdr = new RecordVal(tcp_hdr_type);
 
-		int tcp_hdr_len = tp->th_off * 4;
-		int data_len = PayloadLen() - tcp_hdr_len;
+		unsigned int tcp_hdr_len = tp->th_off * 4;
+		unsigned int data_len = PayloadLen() - tcp_hdr_len;
 
 		tcp_hdr->Assign(0, val_mgr->GetPort(ntohs(tp->th_sport), TRANSPORT_TCP));
 		tcp_hdr->Assign(1, val_mgr->GetPort(ntohs(tp->th_dport), TRANSPORT_TCP));
@@ -701,7 +701,7 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 
 	for ( size_t i = 0; i < chain.size(); ++i )
 		{
-		int off = chain[i]->Data() - old_data;
+		uint64_t off = chain[i]->Data() - old_data;
 		rval->chain.push_back(new IPv6_Hdr(chain[i]->Type(), new_data + off));
 		}
 

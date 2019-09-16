@@ -78,7 +78,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		// Add a marker saying whether the optional field is set.
 		char* kp = AlignAndPadType<char>(kp0);
-		*kp = ( v ? 1 : 0);
+		*kp = ( v ? static_cast<char>(1) : '\0');
 		kp0 = reinterpret_cast<char*>(kp+1);
 
 		if ( ! v )
@@ -340,7 +340,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 
 	if ( ! k )
 		{
-		int sz = ComputeKeySize(v, type_check, false);
+		unsigned int sz = ComputeKeySize(v, type_check, false);
 		if ( sz == 0 )
 			return 0;
 
@@ -416,8 +416,8 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 	}
 
-int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-				     int type_check, int sz, bool optional,
+unsigned int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
+				     int type_check, unsigned int sz, bool optional,
 				     bool calc_static_size) const
 	{
 	InternalTypeTag t = bt->InternalType();
@@ -583,7 +583,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
+unsigned int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
 	const val_list* vl = 0;
@@ -597,7 +597,7 @@ int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static
 			return 0;
 		}
 
-	int sz = 0;
+	unsigned int sz = 0;
 	loop_over_list(*tl, i)
 		{
 		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : 0,
@@ -649,7 +649,7 @@ void* CompositeHash::AlignAndPad(char* ptr, unsigned int size) const
 	return reinterpret_cast<void *>(ptr);
 	}
 
-int CompositeHash::SizeAlign(int offset, unsigned int size) const
+unsigned int CompositeHash::SizeAlign(unsigned int offset, unsigned int size) const
 	{
 	if ( ! size )
 		return offset;

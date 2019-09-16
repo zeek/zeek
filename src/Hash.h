@@ -42,19 +42,19 @@ public:
 	// The calling sequence here is unusual (normally key would be
 	// first) to avoid possible ambiguities with the next constructor,
 	// which is the more commonly used one.
-	HashKey(int copy_key, void* key, int size);
+	HashKey(int copy_key, void* key, uint64_t size);
 
 	// Same, but automatically copies the key.
-	HashKey(const void* key, int size, hash_t hash);
+	HashKey(const void* key, uint64_t size, hash_t hash);
 
 	// Builds a key from the given chunk of bytes.
-	HashKey(const void* bytes, int size);
+	HashKey(const void* bytes, uint64_t size);
 
 	// Create a Hashkey given all of its components *without*
 	// copying the key and *without* taking ownership.  Note that
 	// "dont_copy" is a type placeholder to differentiate this member
 	// function from the one above; its value is not used.
-	HashKey(const void* key, int size, hash_t hash, bool dont_copy);
+	HashKey(const void* key, uint64_t size, hash_t hash, bool dont_copy);
 
 	// Hands over the key to the caller.  This means that if the
 	// key is our dynamic, we give it to the caller and mark it
@@ -68,9 +68,9 @@ public:
 
 	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + pad_size(size); }
 
-	static hash_t HashBytes(const void* bytes, int size);
+	static hash_t HashBytes(const void* bytes, uint64_t size);
 protected:
-	void* CopyKey(const void* key, int size) const;
+	void* CopyKey(const void* key, uint64_t size) const;
 
 	union {
 		bro_int_t i;
@@ -81,7 +81,7 @@ protected:
 
 	void* key;
 	int is_our_dynamic;
-	int size;
+	uint64_t size;
 	hash_t hash;
 };
 

@@ -31,8 +31,8 @@ public:
 	// input bytes processed, since the decoding will stop when there
 	// is not enough output buffer space.
 
-	int Decode(int len, const char* data, int* blen, char** buf);
-	void Encode(int len, const unsigned char* data, int* blen, char** buf);
+	uint64_t Decode(uint64_t len, const char* data, uint64_t* pblen, char** buf);
+	void Encode(uint64_t len, const unsigned char* data, uint64_t* blen, char** buf);
 
 	int Done(int* pblen, char** pbuf);
 	int HasData() const { return base64_group_next != 0; }

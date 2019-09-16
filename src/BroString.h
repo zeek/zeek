@@ -35,13 +35,13 @@ public:
 	typedef IdxVec::const_iterator IdxVecCIt;
 
 	// Constructors creating internal copies of the data passed in.
-	BroString(const u_char* str, int arg_n, int add_NUL);
+	BroString(const u_char* str, unsigned int arg_n, int add_NUL);
 	explicit BroString(const char* str);
 	explicit BroString(const string& str);
 	BroString(const BroString& bs);
 
 	// Constructor that takes owernship of the vector passed in.
-	BroString(int arg_final_NUL, byte_vec str, int arg_n);
+	BroString(int arg_final_NUL, byte_vec str, unsigned int arg_n);
 
 	BroString();
 	~BroString()	{ Reset(); }
@@ -51,7 +51,7 @@ public:
 	bool operator<(const BroString& bs) const;
 
 	byte_vec Bytes() const	{ return b; }
-	int Len() const	{ return n; }
+	unsigned int Len() const	{ return n; }
 
 	// Releases the string's current contents, if any, and
 	// adopts the byte vector of given length.  The string will
@@ -63,7 +63,7 @@ public:
 	// current contents, if any, and then set the string's
 	// contents to a copy of the string given by the arguments.
 	//
-	void Set(const u_char* str, int len, int add_NUL=1);
+	void Set(const u_char* str, unsigned int len, int add_NUL=1);
 	void Set(const char* str);
 	void Set(const string& str);
 	void Set(const BroString &str);
@@ -98,7 +98,7 @@ public:
 	//
 	// Note that you need to delete[] the resulting string.
 	//
-	char* Render(int format = EXPANDED_STRING, int* len = 0) const;
+	char* Render(int format = EXPANDED_STRING, uint64_t* len = 0) const;
 
 	// Similar to the above, but useful for output streams.
 	// Also more useful for debugging purposes since no deallocation
@@ -147,8 +147,8 @@ protected:
 	void Reset();
 
 	byte_vec b;
-	int n;
-	unsigned int final_NUL:1;	// whether we have added a final NUL
+	unsigned int n;
+	int final_NUL:1;	// whether we have added a final NUL
 	unsigned int use_free_to_delete:1;	// free() vs. operator delete
 };
 

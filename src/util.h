@@ -166,8 +166,8 @@ extern char* strcasestr(const char* s, const char* find);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
 extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=0);
-int strstr_n(const int big_len, const unsigned char* big,
-		const int little_len, const unsigned char* little);
+int strstr_n(const unsigned int big_len, const unsigned char* big,
+		const unsigned int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
 extern bool is_printable(const char* s, int len);
 
@@ -522,9 +522,9 @@ inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	return result;
 	}
 
-inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
+inline size_t safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
-	int result = vsnprintf(str, size, format, al);
+	size_t result = vsnprintf(str, size, format, al);
 	str[size-1] = '\0';
 	return result;
 	}

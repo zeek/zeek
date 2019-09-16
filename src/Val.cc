@@ -973,7 +973,7 @@ StringVal::StringVal(BroString* s) : Val(TYPE_STRING)
 	val.string_val = s;
 	}
 
-StringVal::StringVal(int length, const char* s) : Val(TYPE_STRING)
+StringVal::StringVal(unsigned int length, const char* s) : Val(TYPE_STRING)
 	{
 	// The following adds a NUL at the end.
 	val.string_val = new BroString((const u_char*)  s, length, 1);
@@ -1027,7 +1027,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	// at offset x, up to but not including offset y".
 	vector<std::pair<int, int>> cut_points;
 
-	int size = 0;	// size of result
+	size_t size = 0;	// size of result
 
 	while ( n > 0 )
 		{

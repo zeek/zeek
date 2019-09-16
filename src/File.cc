@@ -114,7 +114,7 @@ const char* BroFile::Name() const
 bool BroFile::Open(FILE* file, const char* mode)
 	{
 	static bool fds_maximized = false;
-	open_time = network_time ? network_time : current_time();
+	open_time = network_time != 0.0 ? network_time : current_time();
 
 	if ( ! fds_maximized )
 		{
@@ -305,7 +305,7 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-int BroFile::Write(const char* data, int len)
+int BroFile::Write(const char* data, unsigned int len)
 	{
 	if ( ! is_open )
 		return 0;

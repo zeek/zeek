@@ -83,8 +83,8 @@ void ARP_Analyzer::NextPacket(double t, const Packet* pkt)
 		(const struct arp_pkthdr*) (data + pkt->hdr_size);
 
 	// Check the size.
-	int min_length = (ar_tpa(ah) - (char*) (data + pkt->hdr_size)) + ah->ar_pln;
-	int real_length = pkt->cap_len - pkt->hdr_size;
+	unsigned long min_length = (ar_tpa(ah) - (char*) (data + pkt->hdr_size)) + ah->ar_pln;
+	unsigned int real_length = pkt->cap_len - pkt->hdr_size;
 	if ( min_length > real_length )
 		{
 		Corrupted("truncated_ARP");

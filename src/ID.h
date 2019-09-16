@@ -65,7 +65,7 @@ public:
 	void SetEnumConst()		{ is_enum_const = true; }
 	bool IsEnumConst() const		{ return is_enum_const; }
 
-	void SetOffset(int arg_offset)	{ offset = arg_offset; }
+	void SetOffset(long long arg_offset)	{ offset = arg_offset; }
 	int Offset() const		{ return offset; }
 
 	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
@@ -123,7 +123,7 @@ protected:
 	bool is_export;
 	BroType* type;
 	bool is_const, is_enum_const, is_type, is_option;
-	int offset;
+	long long offset;
 	Val* val;
 	Attributes* attrs;
 	// contains list of functions that are called when an option changes

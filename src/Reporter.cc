@@ -430,7 +430,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		va_list aq;
 		va_copy(aq, ap);
-		int n = safe_vsnprintf(buffer, size, fmt, aq);
+		size_t n = safe_vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
 		if ( postfix )
@@ -478,7 +478,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		val_list vl(vl_size);
 
 		if ( time )
-			vl.push_back(new Val(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.push_back(new Val(network_time != 0.0 ? network_time : current_time(), TYPE_TIME));
 
 		vl.push_back(new StringVal(buffer));
 

@@ -109,8 +109,8 @@ std::string get_unescaped_string(const std::string& arg_str)
 		if ( str[pos] == '\\' && str[pos+1] == 'x' &&
 		     isxdigit(str[pos+2]) && isxdigit(str[pos+3]) )
 			{
-				*bufpos = (decode_hex(str[pos+2]) << 4) +
-					decode_hex(str[pos+3]);
+				*bufpos = static_cast <char> ( (decode_hex(str[pos+2]) << 4) +
+					decode_hex(str[pos+3]) );
 
 				pos += 4;
 				bufpos++;
@@ -321,7 +321,7 @@ void to_upper(char* s)
 	while ( *s )
 		{
 		if ( islower(*s) )
-			*s = toupper(*s);
+			*s = static_cast<char> ( toupper( static_cast<unsigned char>(*s) ) );
 		++s;
 		}
 	}
@@ -487,8 +487,8 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	}
 
 
-int strstr_n(const int big_len, const u_char* big,
-		const int little_len, const u_char* little)
+int strstr_n(const unsigned int big_len, const u_char* big,
+		const unsigned int little_len, const u_char* little)
 	{
 	if ( little_len > big_len )
 		return -1;
@@ -808,7 +808,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 	static const int bufsiz = 20;
 	uint32_t buf[bufsiz];
 	memset(buf, 0, sizeof(buf));
-	int pos = 0;	// accumulates entropy
+	unsigned long pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
 
@@ -1339,7 +1339,7 @@ string find_script_file(const string& filename, const string& path_set)
 FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	{
 	// Build file names.
-	const int buflen = strlen(name) + 128;
+	const unsigned long buflen = strlen(name) + 128;
 
 	char newname[buflen], tmpname[buflen+4];
 
@@ -1412,7 +1412,7 @@ double parse_rotate_base_time(const char* rotate_base_time)
 
 double calc_next_rotate(double current, double interval, double base)
 	{
-	if ( ! interval )
+	if ( interval == 0.0 ) // if set to zero exactly
 		{
 		reporter->Error("calc_next_rotate(): interval is zero, falling back to 24hrs");
 		interval = 86400;
@@ -1509,7 +1509,7 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( pseudo_realtime == 0.0 || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
 		return t;
 
 	// This obviously only works for a single source ...
@@ -1592,7 +1592,7 @@ uint64_t calculate_unique_id(size_t pool)
 				uint64_t pool;
 				struct timeval time;
 				pid_t pid;
-				int rnd;
+				long rnd;
 			} unique;
 
 			memset(&unique, 0, sizeof(unique)); // Make valgrind happy.

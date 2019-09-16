@@ -504,7 +504,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 void Manager::ExpireScheduledAnalyzers()
 	{
-	if ( ! network_time )
+	if ( network_time == 0.0 )
 		return;
 
 	while ( conns_by_timeout.size() )
@@ -545,7 +545,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			TransportProto proto, Tag analyzer,
 			double timeout)
 	{
-	if ( ! network_time )
+	if ( network_time == 0.0 )
 		{
 		reporter->Warning("cannot schedule analyzers before processing begins; ignored");
 		return;

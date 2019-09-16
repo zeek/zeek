@@ -1124,7 +1124,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 
 void MIME_Entity::DecodeBase64(int len, const char* data)
 	{
-	int rlen;
+	uint64_t rlen;
 	char rbuf[128];
 
 	while ( len > 0 )

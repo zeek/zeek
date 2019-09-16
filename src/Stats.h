@@ -15,7 +15,7 @@ public:
 	virtual ~SegmentStatsReporter()	{ }
 
 	virtual void SegmentProfile(const char* name, const Location* loc,
-					double dtime, int dmem) = 0;
+					double dtime, long dmem) = 0;
 };
 
 
@@ -70,7 +70,7 @@ public:
 
 protected:
 	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem) override;
+				double dtime, long dmem) override;
 
 private:
 	BroFile* file;
@@ -91,7 +91,7 @@ public:
 
 protected:
 	void SegmentProfile(const char* name, const Location* loc,
-				double dtime, int dmem) override;
+				double dtime, long dmem) override;
 
 	TableVal* load_samples;
 };

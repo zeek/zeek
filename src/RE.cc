@@ -84,7 +84,7 @@ void Specific_RE_Matcher::AddExactPat(const char* new_pat)
 void Specific_RE_Matcher::AddPat(const char* new_pat,
 				const char* orig_fmt, const char* app_fmt)
 	{
-	int n = strlen(new_pat);
+	size_t n = strlen(new_pat);
 
 	if ( pattern_text )
 		n += strlen(pattern_text) + strlen(app_fmt);
@@ -105,7 +105,7 @@ void Specific_RE_Matcher::AddPat(const char* new_pat,
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
 	const char fmt[] = "(?i:%s)";
-	int n = strlen(pattern_text) + strlen(fmt);
+	size_t n = strlen(pattern_text) + strlen(fmt);
 
 	char* s = new char[n + 5 /* slop */];
 
@@ -490,7 +490,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 	const char* text1 = re1->PatternText();
 	const char* text2 = re2->PatternText();
 
-	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
+	size_t n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
 
 	char* merge_text = new char[n];
 	safe_snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);

@@ -22,10 +22,10 @@ public:
 
 	int IsActive();
 
-	int NextPacket(const IP_Hdr* ip, int len, int caplen);
+	int NextPacket(const IP_Hdr* ip, unsigned int len, unsigned int caplen);
 
 protected:
-	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
+	Val* BuildData(const u_char* data, unsigned int hdrlen, unsigned int len, unsigned int caplen);
 
 	Func* check_ip;
 	Func* check_tcp;

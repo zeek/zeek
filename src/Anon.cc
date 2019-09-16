@@ -50,7 +50,7 @@ int bi_ffs(uint32_t value)
 	return add + bvals[value & 0xf];
 	}
 
-#define first_n_bit_mask(n)	(~(0xFFFFFFFFU >> n))
+#define first_n_bit_mask(n)	(~(0xFFFFFFFFU >> (n)))
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 	{
@@ -133,7 +133,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 
 AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
-	for ( unsigned int i = 0; i < blocks.size(); ++i )
+	for ( unsigned long i = 0; i < blocks.size(); ++i )
 		delete [] blocks[i];
 
 	blocks.clear();
@@ -281,7 +281,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	int swivel = bi_ffs(a ^ n->input);
 
 	// bitvalue is the value of that bit of 'a'.
-	int bitvalue = (a >> (32 - swivel)) & 1;
+	unsigned int bitvalue = (a >> (32 - swivel)) & 1;
 
 	down[bitvalue]->input = a;
 	down[bitvalue]->output = make_output(n->output, swivel);
@@ -335,7 +335,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 				// Input differs earlier.
 				n = make_peer(a, n);
 
-			else if ( a & (1 << (32 - swivel)) )
+			else if ( a & ( 1 << (32 - swivel)) ) // swivel can not be zero
 				n = n->child[1];
 
 			else

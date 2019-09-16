@@ -755,8 +755,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( ! conn )
 		return;
 
-	int record_packet = 1;	// whether to record the packet at all
-	int record_content = 1;	// whether to record its data
+	unsigned int record_packet = 1;	// whether to record the packet at all
+	unsigned int record_content = 1;	// whether to record its data
 
 	int is_orig = (id.src_addr == conn->OrigAddr()) &&
 			(id.src_port == conn->OrigPort());
@@ -791,7 +791,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		else
 			{
-			int hdr_len = data - pkt->data;
+			uint64_t hdr_len = data - pkt->data;
 			DumpPacket(pkt, hdr_len);	// just save the header
 			}
 		}
@@ -1376,14 +1376,14 @@ void NetSessions::ExpireTimerMgrs()
 		}
 	}
 
-void NetSessions::DumpPacket(const Packet *pkt, int len)
+void NetSessions::DumpPacket(const Packet *pkt, uint64_t len)
 	{
 	if ( ! pkt_dumper )
 		return;
 
 	if ( len != 0 )
 		{
-		if ( (uint32_t)len > pkt->cap_len )
+		if ( len > pkt->cap_len )
 			reporter->Warning("bad modified caplen");
 		else
 			const_cast<Packet *>(pkt)->cap_len = len;

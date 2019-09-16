@@ -518,7 +518,7 @@ F	RET_CONST(val_mgr->GetFalse())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
-	int len = strlen(text) + 1;
+	unsigned long len = strlen(text) + 1;
 	int i = 0;
 
 	char* s = new char[len];
@@ -529,7 +529,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		if ( *text == '\\' )
 			{
 			++text;	// skip '\'
-			s[i++] = expand_escape(text);
+			s[i++] = static_cast<char> (expand_escape(text));
 			--text;	// point to end of sequence
 			}
 		else
@@ -1019,7 +1019,7 @@ int yywrap()
 	// not strictly necessary.
 	if ( command_line_policy )
 		{
-		int tmp_len = strlen(command_line_policy) + 32;
+		unsigned long tmp_len = strlen(command_line_policy) + 32;
 		char* tmp = new char[tmp_len];
 		snprintf(tmp, tmp_len, "%s\n;\n", command_line_policy);
 		yylloc.filename = filename = "<command line>";

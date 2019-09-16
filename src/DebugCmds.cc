@@ -191,7 +191,7 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 
 // Start, end bounds of which frame numbers to print
-static int dbg_backtrace_internal(int start, int end)
+static int dbg_backtrace_internal(unsigned long start, unsigned long end)
 	{
 	if ( start < 0 || end < 0 ||
 	     (unsigned) start >= g_frame_stack.size() ||
@@ -225,8 +225,8 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 	assert(cmd == dcBacktrace);
 	assert(g_frame_stack.size() > 0);
 
-	unsigned int start_iter;
-	int end_iter;
+	unsigned long start_iter;
+	unsigned long end_iter;
 
 	if ( args.size() > 0 )
 		{
@@ -320,7 +320,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 		++g_debugger_state.curr_frame_idx;
 		}
 
-	int user_frame_number =
+	unsigned long user_frame_number =
 		g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
 	// Set the current location to the new frame being looked at
@@ -361,7 +361,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.size() == 0 || args[0] == "if" )
 		{ // break on next stmt
-		int user_frame_number =
+		unsigned long user_frame_number =
 			g_frame_stack.size() - 1 -
 				g_debugger_state.curr_frame_idx;
 
@@ -621,7 +621,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 	assert(cmd == dcList);
 
 	// The constant 4 is to match the GDB behavior.
-	const unsigned int CENTER_IDX = 4; // 5th line is the 'interesting' one
+	const int CENTER_IDX = 4; // 5th line is the 'interesting' one
 
 	int pre_offset = 0;
 	if ( args.size() > 1 )

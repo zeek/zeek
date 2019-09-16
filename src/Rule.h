@@ -88,7 +88,7 @@ private:
 	struct Pattern {
 		char* pattern;	// the pattern itself
 		PatternType type;
-		int id;	// ID of pattern (for identifying it within regexps)
+		unsigned int id;	// ID of pattern (for identifying it within regexps)
 		uint32_t offset;
 		uint32_t depth;
 	};

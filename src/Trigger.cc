@@ -86,7 +86,7 @@ public:
 		// The network_time may still have been zero when the
 		// timer was instantiated.  In this case, it fires
 		// immediately and we simply restart it.
-		if ( time )
+		if ( time != 0.0 )
 			trigger->Timeout();
 		else
 			{

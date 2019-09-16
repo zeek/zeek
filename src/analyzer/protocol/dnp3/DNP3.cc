@@ -203,7 +203,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			// the packet length by determining how much 16-byte
 			// chunks fit in there, and then add 2 bytes CRC for
 			// each.
-			int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2
+			unsigned int n = PSEUDO_APP_LAYER_INDEX + (endp->pkt_length - 5) + ((endp->pkt_length - 5) / 16) * 2
 					+ 2 * ( ((endp->pkt_length - 5) % 16 == 0) ? 0 : 1) - 1 ;
 
 			int res = AddToBuffer(endp, n, &data, &len);
@@ -227,7 +227,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 	return true;
 	}
 
-int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len)
+int DNP3_Base::AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, int* len)
 	{
 	if ( ! target_len )
 		return 1;

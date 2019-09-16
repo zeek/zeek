@@ -466,8 +466,8 @@ void BitTorrentTracker_Analyzer::ParseHeader(char* name, char* value,
 #endif
 	}
 
-void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
-			enum btt_benc_types type, int value_len, char* value)
+void BitTorrentTracker_Analyzer::ResponseBenc(unsigned int name_len, char* name,
+			enum btt_benc_types type, unsigned int value_len, char* value)
 	{
 	if ( name_len == 5 && ! strncmp(name, "peers", 5) )
 		{
@@ -499,7 +499,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 		}
 	}
 
-void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
+void BitTorrentTracker_Analyzer::ResponseBenc(unsigned int name_len, char* name,
 				enum btt_benc_types type, bro_int_t value)
 	{
 	RecordVal* benc_value = new RecordVal(bittorrent_benc_value);

@@ -27,7 +27,7 @@ int Discarder::IsActive()
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
+int Discarder::NextPacket(const IP_Hdr* ip, unsigned int len, unsigned int caplen)
 	{
 	int discard_packet = 0;
 
@@ -60,13 +60,13 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 		// Never check any fragment.
 		return 0;
 
-	int ip_hdr_len = ip->HdrLen();
+	unsigned int ip_hdr_len = ip->HdrLen();
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
 	int is_tcp = (proto == IPPROTO_TCP);
 	int is_udp = (proto == IPPROTO_UDP);
-	int min_hdr_len = is_tcp ?
+	unsigned int min_hdr_len = is_tcp ?
 		sizeof(struct tcphdr) :
 		(is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
 
@@ -83,7 +83,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 		if ( check_tcp )
 			{
 			const struct tcphdr* tp = (const struct tcphdr*) data;
-			int th_len = tp->th_off * 4;
+			unsigned int th_len = tp->th_off * 4;
 
 			val_list args{
 				ip->BuildPktHdrVal(),
@@ -107,7 +107,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 		if ( check_udp )
 			{
 			const struct udphdr* up = (const struct udphdr*) data;
-			int uh_len = sizeof (struct udphdr);
+			unsigned int uh_len = sizeof (struct udphdr);
 
 			val_list args{
 				ip->BuildPktHdrVal(),
@@ -149,7 +149,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	return discard_packet;
 	}
 
-Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
+Val* Discarder::BuildData(const u_char* data, unsigned int hdrlen, unsigned int len, unsigned int caplen)
 	{
 	len -= hdrlen;
 	caplen -= hdrlen;

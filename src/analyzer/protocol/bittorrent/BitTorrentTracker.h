@@ -74,9 +74,9 @@ protected:
 	void ResponseHeader(char* name, char* value)
 		{ ParseHeader(name, value, false); }
 	void ResponseBody();
-	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
-				int value_len, char* value);
-	void ResponseBenc(int name_len, char* name, enum btt_benc_types type,
+	void ResponseBenc(unsigned int name_len, char* name, enum btt_benc_types type,
+				unsigned int value_len, char* value);
+	void ResponseBenc(unsigned int name_len, char* name, enum btt_benc_types type,
 				bro_int_t value);
 	int ResponseParseBenc();
 	void EmitResponse();

@@ -600,14 +600,6 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, int co
 			max_entries = num_entries;
 		if( num_entries > ThresholdEntries() )
 			SizeUp();
-	#ifdef DEBUG//validate the newly inserted entry can be looked up.
-		position = LookupIndex(key, key_size, hash);
-		if(position < 0)
-			{//if not found. stop here and try again. the second time is for step by step debugging.
-			ASSERT(false);
-			LookupIndex(key, key_size, hash);
-			}
-	#endif//DEBUG
 		}
 
 	//Remap after insert can adjust asap to shorten period of mixed table.

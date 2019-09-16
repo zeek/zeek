@@ -206,10 +206,11 @@ public:
 
 	/**
 	 * @return an iterator pointing to the first element with a segment whose
-	 * starting sequence number comes before "seq".  If no such element
-	 * exists, returns an iterator denoting one-past the end of the list.
+	 * starting sequence number is less than or equal to "seq".  If no such
+	 * element exists, returns an iterator denoting one-past the end of the
+	 * list.
 	 */
-	DataBlockMap::const_iterator FindFirstBlockBefore(uint64_t seq) const;
+	DataBlockMap::const_iterator FirstBlockAtOrBefore(uint64_t seq) const;
 
 private:
 

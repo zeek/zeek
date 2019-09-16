@@ -73,7 +73,7 @@ void DataBlockList::Append(DataBlock block, uint64_t limit)
 		Delete(block_map.begin());
 	}
 
-DataBlockMap::const_iterator DataBlockList::FindFirstBlockBefore(uint64_t seq) const
+DataBlockMap::const_iterator DataBlockList::FirstBlockAtOrBefore(uint64_t seq) const
 	{
 	// Upper sequence number doesn't matter for the search
 	auto it = block_map.upper_bound(seq);
@@ -122,7 +122,7 @@ DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
 		it = *hint;
 	else
 		{
-		it = FindFirstBlockBefore(seq);
+		it = FirstBlockAtOrBefore(seq);
 
 		if ( it == block_map.end() )
 			it = block_map.begin();
@@ -275,7 +275,7 @@ void Reassembler::CheckOverlap(const DataBlockList& list,
 
 	uint64_t upper = (seq + len);
 
-	auto it = list.FindFirstBlockBefore(seq);
+	auto it = list.FirstBlockAtOrBefore(seq);
 
 	if ( it == list.End() )
 		it = list.Begin();

@@ -1,4 +1,12 @@
 
+3.1.0-dev.118 | 2019-09-17 17:21:58 +0000
+
+  * GH-566: Fix cases where ssh_encrypted_packet event wasn't raised.
+    When encrypted data was bundled within the same segment as the
+    NewKeys message, it wasn't not reported via a
+    ssh_encrypted_package event as it should have been. (Jon Siwek,
+    Corelight)
+
 3.1.0-dev.116 | 2019-09-17 10:08:38 -0700
 
   * Switch from header guards to pragma once (Dominik Charousset, Corelight)

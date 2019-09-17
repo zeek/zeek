@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTERS_JSON_H
-#define THREADING_FORMATTERS_JSON_H
+#pragma once
 
 #include "../Formatter.h"
 #include "3rdparty/json.hpp"
@@ -46,5 +45,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTERS_JSON_H */

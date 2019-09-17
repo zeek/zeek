@@ -1,5 +1,4 @@
-#ifndef BRO_FD_SET_H
-#define BRO_FD_SET_H
+#pragma once
 
 #include <set>
 #include <sys/select.h>
@@ -100,5 +99,3 @@ private:
 };
 
 } // namespace bro
-
-#endif // BRO_FD_SET_H

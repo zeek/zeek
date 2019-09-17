@@ -1,5 +1,4 @@
-#ifndef BRO_COMM_MANAGER_H
-#define BRO_COMM_MANAGER_H
+#pragma once
 
 #include <broker/topic.hh>
 #include <broker/data.hh>
@@ -408,5 +407,3 @@ private:
 } // namespace bro_broker
 
 extern bro_broker::Manager* broker_mgr;
-
-#endif // BRO_COMM_MANAGER_H

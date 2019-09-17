@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netutil_h
-#define netutil_h
+#pragma once
 
 #include "zeek-config.h"
 
@@ -228,8 +227,6 @@ inline uint64_t ntohll(uint64_t i)
 	}
 
 inline uint64_t htonll(uint64_t i) { return ntohll(i); }
-#endif
-
 #endif
 
 #endif

@@ -1,5 +1,4 @@
-#ifndef BROFILER_H_
-#define BROFILER_H_
+#pragma once
 
 #include <map>
 #include <utility>
@@ -79,5 +78,3 @@ private:
 };
 
 extern Brofiler brofiler;
-
-#endif /* BROFILER_H_ */

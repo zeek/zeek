@@ -21,8 +21,7 @@
  *
  */
 
-#ifndef COM_MODP_STRINGENCODERS_NUMTOA_H
-#define COM_MODP_STRINGENCODERS_NUMTOA_H
+#pragma once
 
 #ifdef __cplusplus
 #define BEGIN_C extern "C" {
@@ -107,5 +106,3 @@ void modp_dtoa2(double value, char* buf, int precision);
 void modp_dtoa3(double value, char* buf, int n, int precision);
 
 END_C
-
-#endif

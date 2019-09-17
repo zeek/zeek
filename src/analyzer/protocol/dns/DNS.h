@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_DNS_DNS_H
-#define ANALYZER_PROTOCOL_DNS_DNS_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "binpac_bro.h"
@@ -375,5 +374,3 @@ protected:
 int IsReuse(double t, const u_char* pkt);
 
 } } // namespace analyzer::* 
-
-#endif

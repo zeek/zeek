@@ -5,8 +5,7 @@
 // from notifier::Receiver and register the interesting objects with the
 // notification::Registry.
 
-#ifndef NOTIFIER_H
-#define NOTIFIER_H
+#pragma once
 
 #include <set>
 #include <unordered_map>
@@ -112,5 +111,3 @@ protected:
 };
 
 }
-
-#endif

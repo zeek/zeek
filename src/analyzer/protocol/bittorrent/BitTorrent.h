@@ -1,7 +1,6 @@
 // This code contributed by Nadi Sarrar.
 
-#ifndef ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
-#define ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -31,5 +30,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

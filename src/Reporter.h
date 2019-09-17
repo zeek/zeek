@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef REPORTER_H
-#define REPORTER_H
+#pragma once
 
 #include <stdarg.h>
 
@@ -280,5 +279,3 @@ private:
 };
 
 extern Reporter* reporter;
-
-#endif

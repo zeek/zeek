@@ -2,8 +2,7 @@
 //
 // Dummy log writer that just discards everything (but still pretends to rotate).
 
-#ifndef LOGGING_WRITER_NONE_H
-#define LOGGING_WRITER_NONE_H
+#pragma once
 
 #include "logging/WriterBackend.h"
 
@@ -32,5 +31,3 @@ protected:
 
 }
 }
-
-#endif

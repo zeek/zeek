@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_IMAP_IMAP_H
-#define ANALYZER_PROTOCOL_IMAP_IMAP_H
+#pragma once
 
 // for std::transform
 #include <algorithm>
@@ -36,5 +35,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif /* ANALYZER_PROTOCOL_IMAP_IMAP_H */

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_ANALYZER_H
-#define FILE_ANALYSIS_ANALYZER_H
+#pragma once
 
 #include "Val.h"
 #include "NetVar.h"
@@ -189,5 +188,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

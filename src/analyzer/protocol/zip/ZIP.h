@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_ZIP_ZIP_H
-#define ANALYZER_PROTOCOL_ZIP_ZIP_H
+#pragma once
 
 #include "zeek-config.h"
 
@@ -29,5 +28,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

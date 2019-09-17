@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_MANAGER_H
-#define ZEEKYGEN_MANAGER_H
+#pragma once
 
 #include "Configuration.h"
 #include "Info.h"
@@ -264,5 +263,3 @@ bool Manager::IsUpToDate(const string& target_file,
 } // namespace zeekygen
 
 extern zeekygen::Manager* zeekygen_mgr;
-
-#endif

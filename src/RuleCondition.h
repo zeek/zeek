@@ -1,5 +1,4 @@
-#ifndef rulecondition_h
-#define rulecondition_h
+#pragma once
 
 #include "BroString.h"
 #include "Func.h"
@@ -117,5 +116,3 @@ private:
 };
 
 
-
-#endif

@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include <Val.h>
 #include <iosource/PktSrc.h>
@@ -30,5 +29,3 @@ private:
 
 }
 }
-
-#endif

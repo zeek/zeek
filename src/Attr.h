@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef attr_h
-#define attr_h
+#pragma once
 
 #include "Obj.h"
 
@@ -103,5 +102,3 @@ protected:
 	bool in_record;
 	bool global_var;
 };
-
-#endif

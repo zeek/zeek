@@ -1,5 +1,4 @@
-#ifndef FILE_ANALYSIS_PE_H
-#define FILE_ANALYSIS_PE_H
+#pragma once
 
 #include <string>
 
@@ -31,5 +30,3 @@ protected:
 };
 
 } // namespace file_analysis
-
-#endif

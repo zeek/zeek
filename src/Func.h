@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef func_h
-#define func_h
+#pragma once
 
 #include <utility>
 #include <memory>
@@ -207,5 +206,3 @@ extern std::string render_call_stack();
 
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
-
-#endif

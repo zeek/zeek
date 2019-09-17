@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef scope_h
-#define scope_h
+#pragma once
 
 #include <string>
 #include <map>
@@ -92,5 +91,3 @@ extern Scope* global_scope();
 
 // Current module (identified by its name).
 extern string current_module;
-
-#endif

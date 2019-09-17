@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef reassem_h
-#define reassem_h
+#pragma once
 
 #include "Obj.h"
 #include "IPAddr.h"
@@ -111,5 +110,3 @@ inline DataBlock::~DataBlock()
 	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
 	delete [] block;
 	}
-
-#endif

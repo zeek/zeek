@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef conn_h
-#define conn_h
+#pragma once
 
 #include <sys/types.h>
 
@@ -378,5 +377,3 @@ protected:
 
 #define ADD_TIMER(timer, t, do_expire, type) \
 	AddTimer(timer_func(timer), (t), (do_expire), (type))
-
-#endif

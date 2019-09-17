@@ -18,8 +18,7 @@
  * maintains mappings of (1) analyzer::Tag to component, and (2)
  * human-readable analyzer name to component.
  */
-#ifndef ANALYZER_MANAGER_H
-#define ANALYZER_MANAGER_H
+#pragma once
 
 #include <queue>
 #include <vector>
@@ -416,6 +415,4 @@ extern analyzer::Manager* analyzer_mgr;
 #else
 # define DBG_ANALYZER(conn, txt)
 # define DBG_ANALYZER_ARGS(conn, fmt, args...)
-#endif
-
 #endif

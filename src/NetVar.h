@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netvar_h
-#define netvar_h
+#pragma once
 
 #include "Val.h"
 #include "Func.h"
@@ -203,5 +202,3 @@ extern void init_net_var();
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
 #include "reporter.bif.netvar_h"
-
-#endif

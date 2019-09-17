@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_ANALYZERSET_H
-#define FILE_ANALYSIS_ANALYZERSET_H
+#pragma once
 
 #include <queue>
 
@@ -207,5 +206,3 @@ private:
 };
 
 } // namespace file_analysiss
-
-#endif

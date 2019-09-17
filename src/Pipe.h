@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef BRO_PIPE_H
-#define BRO_PIPE_H
+#pragma once
 
 namespace bro {
 
@@ -52,5 +51,3 @@ private:
 };
 
 } // namespace bro
-
-#endif // BRO_PIPE_H

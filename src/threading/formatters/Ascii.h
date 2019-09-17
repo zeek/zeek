@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTERS_ASCII_H
-#define THREADING_FORMATTERS_ASCII_H
+#pragma once
 
 #include "../Formatter.h"
 
@@ -59,5 +58,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTERS_ASCII_H */

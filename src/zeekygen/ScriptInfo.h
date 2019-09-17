@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_SCRIPTINFO_H
-#define ZEEKYGEN_SCRIPTINFO_H
+#pragma once
 
 #include "Info.h"
 #include "IdentifierInfo.h"
@@ -120,5 +119,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

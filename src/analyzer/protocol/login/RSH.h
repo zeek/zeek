@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_RSH_H
-#define ANALYZER_PROTOCOL_LOGIN_RSH_H
+#pragma once
 
 #include "Login.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -57,5 +56,3 @@ public:
 };
 
 } } // namespace analyzer::* 
-
-#endif

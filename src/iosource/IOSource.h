@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_IOSOURCE_H
-#define IOSOURCE_IOSOURCE_H
+#pragma once
 
 extern "C" {
 #include <pcap.h>
@@ -136,5 +135,3 @@ private:
 };
 
 }
-
-#endif

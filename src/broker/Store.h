@@ -1,5 +1,4 @@
-#ifndef BRO_COMM_STORE_H
-#define BRO_COMM_STORE_H
+#pragma once
 
 #include "broker/store.bif.h"
 #include "broker/data.bif.h"
@@ -135,5 +134,3 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options);
 
 } // namespace bro_broker
-
-#endif // BRO_COMM_STORE_H

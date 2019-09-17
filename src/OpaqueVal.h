@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef OPAQUEVAL_H
-#define OPAQUEVAL_H
+#pragma once
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -335,5 +334,3 @@ protected:
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
-
-#endif

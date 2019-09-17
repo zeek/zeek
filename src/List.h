@@ -1,5 +1,4 @@
-#ifndef list_h
-#define list_h
+#pragma once
 
 // BaseList.h --
 //	Interface for class BaseList, current implementation is as an
@@ -348,5 +347,3 @@ typedef PList<char> name_list;
 #define loop_over_list(list, iterator)  \
 	int iterator;	\
 	for ( iterator = 0; iterator < (list).length(); ++iterator )
-
-#endif /* list_h */

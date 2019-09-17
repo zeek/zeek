@@ -1,7 +1,6 @@
 // Provides some very limited but fast packet filter mechanisms
 
-#ifndef PACKETFILTER_H
-#define PACKETFILTER_H
+#pragma once
 
 #include "IP.h"
 #include "PrefixTable.h"
@@ -41,5 +40,3 @@ private:
 	PrefixTable src_filter;
 	PrefixTable dst_filter;
 };
-
-#endif

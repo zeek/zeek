@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef LOGGING_TAG_H
-#define LOGGING_TAG_H
+#pragma once
 
 #include "zeek-config.h"
 #include "util.h"
@@ -114,5 +113,3 @@ protected:
 };
 
 }
-
-#endif

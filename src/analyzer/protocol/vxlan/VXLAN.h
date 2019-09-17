@@ -1,7 +1,6 @@
 // See the file  in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_VXLAN_VXLAN_H
-#define ANALYZER_PROTOCOL_VXLAN_VXLAN_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
@@ -25,5 +24,3 @@ public:
 };
 
 } } // namespace analyzer::*
-
-#endif

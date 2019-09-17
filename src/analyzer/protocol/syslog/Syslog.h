@@ -1,6 +1,5 @@
 
-#ifndef ANALYZER_PROTOCOL_SYSLOG_SYSLOG_H
-#define ANALYZER_PROTOCOL_SYSLOG_SYSLOG_H
+#pragma once
 
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -47,5 +46,3 @@ protected:
 //};
 //
 } } // namespace analyzer::* 
-
-#endif

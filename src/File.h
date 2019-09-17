@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef file_h
-#define file_h
+#pragma once
 
 #include <fcntl.h>
 #include "util.h"
@@ -102,5 +101,3 @@ protected:
 private:
 	static std::list<std::pair<std::string, BroFile*>> open_files;
 };
-
-#endif

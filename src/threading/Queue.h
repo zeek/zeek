@@ -1,5 +1,4 @@
-#ifndef THREADING_QUEUE_H
-#define THREADING_QUEUE_H
+#pragma once
 
 #include <mutex>
 #include <condition_variable>
@@ -260,5 +259,3 @@ inline void Queue<T>::WakeUp()
 	}
 
 }
-
-#endif

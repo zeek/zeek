@@ -1,7 +1,6 @@
   // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef dnsmgr_h
-#define dnsmgr_h
+#pragma once
 
 #include <list>
 #include <map>
@@ -246,5 +245,3 @@ protected:
 };
 
 extern DNS_Mgr* dns_mgr;
-
-#endif

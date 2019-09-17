@@ -1,5 +1,4 @@
-#ifndef TRIGGER_H
-#define TRIGGER_H
+#pragma once
 
 #include <list>
 #include <map>
@@ -112,5 +111,3 @@ private:
 
 	static unsigned long total_triggers;
 };
-
-#endif

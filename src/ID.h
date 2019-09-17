@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef id_h
-#define id_h
+#pragma once
 
 #include "Type.h"
 #include "Attr.h"
@@ -132,5 +131,3 @@ protected:
 	bool infer_return_type;
 	bool weak_ref;
 };
-
-#endif

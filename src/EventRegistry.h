@@ -1,7 +1,6 @@
 // Each event raised/handled by Bro is registered in the EventRegistry.
 
-#ifndef EVENT_REGISTRY
-#define EVENT_REGISTRY
+#pragma once
 
 #include <map>
 #include <string>
@@ -43,5 +42,3 @@ private:
 };
 
 extern EventRegistry* event_registry;
-
-#endif

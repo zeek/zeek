@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_MODBUS_MODBUS_H
-#define ANALYZER_PROTOCOL_MODBUS_MODBUS_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "modbus_pac.h"
@@ -25,5 +24,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

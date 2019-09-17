@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#ifndef dfa_h
-#define dfa_h
+#pragma once
 
 #include <assert.h>
 
@@ -146,5 +145,3 @@ inline DFA_State* DFA_State::Xtion(int sym, DFA_Machine* machine)
 	else
 		return xtions[sym];
 	}
-
-#endif

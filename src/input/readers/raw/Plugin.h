@@ -1,5 +1,7 @@
 // See the file in the main distribution directory for copyright.
 
+#pragma once
+
 #include <mutex>
 
 #include "plugin/Plugin.h"

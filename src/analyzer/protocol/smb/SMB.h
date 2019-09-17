@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SMB_SMB_H
-#define ANALYZER_PROTOCOL_SMB_SMB_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "smb_pac.h"
@@ -33,5 +32,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef util_h
-#define util_h
+#pragma once
 
 #ifdef __GNUC__
     #define ZEEK_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
@@ -580,5 +579,3 @@ std::unique_ptr<T> build_unique (Args&&... args) {
  * @return the escaped string
  */
 std::string json_escape_utf8(const std::string& val);
-
-#endif

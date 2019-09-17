@@ -1,7 +1,6 @@
 // Structures and methods for implementing breakpoints in the Bro debugger.
 
-#ifndef DbgBreakpoint_h
-#define DbgBreakpoint_h
+#pragma once
 
 #include "Debug.h"
 
@@ -77,5 +76,3 @@ protected:
 
 	string condition;	// condition to evaluate; nil for none
 };
-
-#endif

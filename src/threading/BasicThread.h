@@ -1,6 +1,5 @@
 
-#ifndef THREADING_BASICTHREAD_H
-#define THREADING_BASICTHREAD_H
+#pragma once
 
 #include <thread>
 
@@ -214,5 +213,3 @@ private:
 };
 
 }
-
-#endif

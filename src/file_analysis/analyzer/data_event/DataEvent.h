@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_DATAEVENT_H
-#define FILE_ANALYSIS_DATAEVENT_H
+#pragma once
 
 #include <string>
 
@@ -65,5 +64,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

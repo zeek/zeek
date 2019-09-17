@@ -1,5 +1,4 @@
-#ifndef base64_h
-#define base64_h
+#pragma once
 
 #include <assert.h>
 #include <stdio.h>
@@ -71,5 +70,3 @@ protected:
 
 BroString* decode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
 BroString* encode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
-
-#endif /* base64_h */

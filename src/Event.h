@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef event_h
-#define event_h
+#pragma once
 
 #include "EventRegistry.h"
 
@@ -143,5 +142,3 @@ protected:
 };
 
 extern EventMgr mgr;
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PKTSRC_PCAP_SOURCE_H
-#define IOSOURCE_PKTSRC_PCAP_SOURCE_H
+#pragma once
 
 #include "../PktSrc.h"
 
@@ -43,5 +42,3 @@ private:
 
 }
 }
-
-#endif

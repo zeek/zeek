@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_MIME_MIME_H
-#define ANALYZER_PROTOCOL_MIME_MIME_H
+#pragma once
 
 #include <assert.h>
 #include <openssl/evp.h>
@@ -284,5 +283,3 @@ extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } } // namespace analyzer::*
-
-#endif

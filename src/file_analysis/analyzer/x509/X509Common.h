@@ -3,8 +3,7 @@
 // Common base class for the X509 and OCSP analyzer, which share a fair amount of
 // code
 
-#ifndef FILE_ANALYSIS_X509_COMMON
-#define FILE_ANALYSIS_X509_COMMON
+#pragma once
 
 #include "file_analysis/File.h"
 #include "Analyzer.h"
@@ -42,5 +41,3 @@ protected:
 };
 
 }
-
-#endif /* FILE_ANALYSIS_X509_COMMON */

@@ -1,6 +1,5 @@
 
-#ifndef THREADING_MSGTHREAD_H
-#define THREADING_MSGTHREAD_H
+#pragma once
 
 #include "DebugLogger.h"
 
@@ -436,6 +435,3 @@ private:
 };
 
 }
-
-
-#endif

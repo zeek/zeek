@@ -1,7 +1,6 @@
 // Implements different data formats for serialization.
 
-#ifndef SERIALIZATION_FORMAT
-#define SERIALIZATION_FORMAT
+#pragma once
 
 #include <string>
 
@@ -133,5 +132,3 @@ public:
 	bool WriteCloseTag(const char* tag) override;
 	bool WriteSeparator() override;
 };
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef queue_h
-#define queue_h
+#pragma once
 
 // Queue.h --
 //	Interface for class Queue, current implementation is as an
@@ -195,5 +194,3 @@ protected:
 
 template<typename T>
 using PQueue = Queue<T*>;
-
-#endif /* queue_h */

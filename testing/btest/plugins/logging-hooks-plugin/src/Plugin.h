@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_Log_Hooks
-#define BRO_PLUGIN_Log_Hooks
+#pragma once
 
 #include <plugin/Plugin.h>
 
@@ -24,5 +23,3 @@ extern Plugin plugin;
 
 }
 }
-
-#endif

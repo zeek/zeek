@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SNMP_SNMP_H
-#define ANALYZER_PROTOCOL_SNMP_SNMP_H
+#pragma once
 
 #include "snmp_pac.h"
 
@@ -27,5 +26,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

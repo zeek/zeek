@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef BRO_UID_H
-#define BRO_UID_H
+#pragma once
 
 #include <string>
 
@@ -111,5 +110,3 @@ inline std::string UID::Base62(std::string prefix) const
 	}
 
 } // namespace Bro
-
-#endif

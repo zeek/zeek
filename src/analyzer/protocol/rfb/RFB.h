@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_RFB_RFB_H
-#define ANALYZER_PROTOCOL_RFB_RFB_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -40,5 +39,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

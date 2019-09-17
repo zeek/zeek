@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef brostring_h
-#define brostring_h
+#pragma once
 
 #include <vector>
 #include <string>
@@ -187,5 +186,3 @@ extern BroString* concatenate(std::vector<data_chunk_t>& v);
 extern BroString* concatenate(BroString::Vec& v);
 extern BroString* concatenate(BroString::CVec& v);
 extern void delete_strings(std::vector<const BroString*>& v);
-
-#endif

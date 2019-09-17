@@ -16,6 +16,12 @@ logging::Tag& logging::Tag::operator=(const logging::Tag& other)
 	return *this;
 	}
 
+logging::Tag& logging::Tag::operator=(const logging::Tag&& other)
+	{
+	::Tag::operator=(other);
+	return *this;
+	}
+
 EnumVal* logging::Tag::AsEnumVal() const
 	{
 	return ::Tag::AsEnumVal(log_mgr->GetTagEnumType());

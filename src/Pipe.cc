@@ -19,13 +19,15 @@ static void pipe_fail(int eno)
 static void set_flags(int fd, int flags)
 	{
 	if ( flags )
-		fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | flags);
+		if ( fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | flags) == -1 )
+			pipe_fail(errno);
 	}
 
 static void set_status_flags(int fd, int flags)
 	{
 	if ( flags )
-		fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | flags);
+		if ( fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | flags) == -1 )
+			pipe_fail(errno);
 	}
 
 static int dup_or_fail(int fd, int flags)

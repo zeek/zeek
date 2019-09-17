@@ -1,4 +1,42 @@
 
+3.1.0-dev.112 | 2019-09-16 17:11:41 -0700
+
+  * Add move assignment operator to logging::Tag (Tim Wojtulewicz, Corelight)
+
+    Coverity 1357732
+
+  * Throw an error during input::Manager::CreateTableStream if val is null (Tim Wojtulewicz, Corelight)
+
+    Coverity 1402730
+
+  * Use ntohl instead of manually swapping bytes in extract_XDR_uint32 (Tim Wojtulewicz, Corelight)
+
+    Coverity 1375796 and others
+
+  * Add check for null init variable during make_var. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1403419
+
+  * Remove dead check in Val::check_and_promote. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1401810
+
+  * Handle failure of fcntl in Pipe. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1241934, 1241935
+
+  * Initialize missing field in File. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1057851, 1057852, 1057853
+
+  * Add null check for results of dynamic_cast in AssignExpr::TypeCheck. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1403416 and 1403417
+
+  * Add null check when getting key size for List types. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1058242
+
 3.1.0-dev.102 | 2019-09-16 10:50:47 -0700
 
   * Stop loading scan detection in local.zeek by default (Jon Siwek, Corelight)

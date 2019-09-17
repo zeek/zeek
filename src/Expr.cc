@@ -2187,7 +2187,19 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				// we can create a new constructor now that the expected type
 				// of LHS is known and let it do coercions where possible.
 				SetConstructorExpr* sce = dynamic_cast<SetConstructorExpr*>(op2);
+				if ( ! sce )
+					{
+					ExprError("Failed typecast to SetConstructorExpr");
+					return false;
+					}
+
 				ListExpr* ctor_list = dynamic_cast<ListExpr*>(sce->Op());
+				if ( ! ctor_list )
+					{
+					ExprError("Failed typecast to ListExpr");
+					return false;
+					}
+
 				attr_list* attr_copy = 0;
 
 				if ( sce->Attrs() )

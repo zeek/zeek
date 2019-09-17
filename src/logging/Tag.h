@@ -51,6 +51,11 @@ public:
 	Tag& operator=(const Tag& other);
 
 	/**
+	 * Move assignment operator.
+	 */
+	Tag& operator=(const Tag&& other);
+
+	/**
 	 * Compares two tags for equality.
 	 */
 	bool operator==(const Tag& other) const

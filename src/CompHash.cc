@@ -545,6 +545,9 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 		case TYPE_LIST:
 			{
+			if ( ! v )
+				return (optional && ! calc_static_size) ? sz : 0;
+
 			sz = SizeAlign(sz, sizeof(int));
 			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
 			for ( int i = 0; i < lv->Length(); ++i )

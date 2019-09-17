@@ -621,7 +621,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( want_record->InternalInt() == 1 && ! same_type((*args)[3], val) )
+		if ( want_record->InternalInt() == 1 && val && ! same_type((*args)[3], val) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -632,7 +632,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
-		           && !same_type((*args)[3], val->FieldType(0) ) )
+		           && val && !same_type((*args)[3], val->FieldType(0) ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -641,6 +641,10 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
 			return false;
+			}
+		else if ( ! val )
+			{
+			reporter->Error("Encountered a null value when creating a table stream");
 			}
 
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);

@@ -4684,6 +4684,18 @@ const dpd_buffer_size = 1024 &redef;
 ##    only signatures used for dynamic protocol detection.
 const dpd_match_only_beginning = T &redef;
 
+## If true, stops signature matching after a late match. A late match may occur
+## in case the DPD buffer is exhausted but a protocol signature matched. To
+## allow late matching, :zeek:see:`dpd_match_only_beginning` must be disabled.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+##    dpd_match_only_beginning
+##
+## .. note:: Despite the name, this option stops *all* signature matching, not
+##    only signatures used for dynamic protocol detection but is triggered by
+##    DPD signatures only.
+const dpd_late_match_stop = F &redef;
+
 ## If true, don't consider any ports for deciding which protocol analyzer to
 ## use.
 ##

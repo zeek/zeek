@@ -1,4 +1,17 @@
 
+3.1.0-dev.124 | 2019-09-17 11:16:47 -0700
+
+  * Add speculative service script. (Jan Grashoefer)
+
+    The speculative service script handles dpd_late_match events to extend
+    conn.log with infos about potential protocol identifications.
+
+  * Allow to handle late DPD matches. (Jan Grashoefer)
+
+    If "dpd_match_only_beginning" is disabled, matches of protocol signatures
+    can be handeld using protocol_late_match. To prevent further matching in
+    this case, the new option "dpd_late_match_stop" may be activated.
+
 3.1.0-dev.118 | 2019-09-17 17:21:58 +0000
 
   * GH-566: Fix cases where ssh_encrypted_packet event wasn't raised.

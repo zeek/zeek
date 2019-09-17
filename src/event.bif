@@ -369,6 +369,20 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##    there (and thus in ``conn.log``).
 event protocol_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
 
+## Generated if a DPD signature matched but the DPD buffer is already exhausted
+## and thus the analyzer could not be attached. While this does not confirm
+## that a protocol is actually used, it allows to retain that information.
+##
+## c: The connection.
+##
+## atype: The type of the analyzer confirming that its protocol is in
+##        use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
+##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
+##        parsing an HTTP connection.
+##
+## .. bro:see:: dpd_buffer_size
+event protocol_late_match%(c: connection, atype: Analyzer::Tag%);
+
 ## Generated when a protocol analyzer determines that a connection it is parsing
 ## is not conforming to the protocol it expects. Zeek's dynamic protocol
 ## detection heuristically activates analyzers as soon as it believes a

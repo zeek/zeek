@@ -1,4 +1,10 @@
 
+3.1.0-dev.114 | 2019-09-17 09:32:34 -0700
+
+  * GH-580: Add additional 3rd party headers to includes (Derek Ditch)
+
+    Adds FIFO Map and JSON headers to include distribution
+
 3.1.0-dev.112 | 2019-09-16 17:11:41 -0700
 
   * Add move assignment operator to logging::Tag (Tim Wojtulewicz, Corelight)

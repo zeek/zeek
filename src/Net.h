@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef net_h
-#define net_h
+#pragma once
 
 #include "net_util.h"
 #include "util.h"
@@ -99,5 +98,3 @@ struct ScannedFile {
 
 extern std::list<ScannedFile> files_scanned;
 extern std::vector<string> sig_files;
-
-#endif

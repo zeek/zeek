@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef comphash_h
-#define comphash_h
+#pragma once
 
 #include "Hash.h"
 #include "Type.h"
@@ -89,5 +88,3 @@ protected:
 
 	InternalTypeTag singleton_tag;
 };
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_BLOOMFILTER_H
-#define PROBABILISTIC_BLOOMFILTER_H
+#pragma once
 
 #include <vector>
 
@@ -227,5 +226,3 @@ private:
 };
 
 }
-
-#endif

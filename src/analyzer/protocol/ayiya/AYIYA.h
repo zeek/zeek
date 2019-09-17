@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_AYIYA_AYIYA_H
-#define ANALYZER_PROTOCOL_AYIYA_AYIYA_H
+#pragma once
 
 #include "ayiya_pac.h"
 
@@ -22,5 +21,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

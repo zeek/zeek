@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef TUNNELS_H
-#define TUNNELS_H
+#pragma once
 
 #include "zeek-config.h"
 #include "NetVar.h"
@@ -216,5 +215,3 @@ public:
 protected:
 	vector<EncapsulatingConn>* conns;
 };
-
-#endif

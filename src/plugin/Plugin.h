@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PLUGIN_PLUGIN_H
-#define PLUGIN_PLUGIN_H
+#pragma once
 
 #include <list>
 #include <string>
@@ -911,5 +910,3 @@ private:
 };
 
 }
-
-#endif

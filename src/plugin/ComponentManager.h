@@ -1,5 +1,4 @@
-#ifndef PLUGIN_COMPONENT_MANAGER_H
-#define PLUGIN_COMPONENT_MANAGER_H
+#pragma once
 
 #include <map>
 #include <list>
@@ -248,5 +247,3 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	}
 
 } // namespace plugin
-
-#endif

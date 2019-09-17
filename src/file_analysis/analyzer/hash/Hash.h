@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_HASH_H
-#define FILE_ANALYSIS_HASH_H
+#pragma once
 
 #include <string>
 
@@ -156,5 +155,3 @@ protected:
 };
 
 } // namespace file_analysis
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_PORTMAP_H
-#define ANALYZER_PROTOCOL_RPC_PORTMAP_H
+#pragma once
 
 #include "RPC.h"
 
@@ -36,5 +35,3 @@ public:
 };
 
 } } // namespace analyzer::* 
-
-#endif

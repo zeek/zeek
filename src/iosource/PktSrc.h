@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PKTSRC_PKTSRC_H
-#define IOSOURCE_PKTSRC_PKTSRC_H
+#pragma once
 
 #include <vector>
 
@@ -370,5 +369,3 @@ private:
 };
 
 }
-
-#endif

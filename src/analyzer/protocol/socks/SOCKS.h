@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SOCKS_SOCKS_H
-#define ANALYZER_PROTOCOL_SOCKS_SOCKS_H
+#pragma once
 
 // SOCKS v4 analyzer.
 
@@ -39,5 +38,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

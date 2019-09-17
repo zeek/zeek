@@ -2,6 +2,8 @@
 // These functions are used by both Bro and bifcl.
 //
 
+#pragma once
+
 #include <string>
 
 using namespace std;

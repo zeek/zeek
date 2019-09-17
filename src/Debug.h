@@ -1,7 +1,6 @@
 // Debugging support for Bro policy files.
 
-#ifndef debug_h
-#define debug_h
+#pragma once
 
 #include <vector>
 #include <map>
@@ -180,5 +179,3 @@ extern std::map<string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
-
-#endif

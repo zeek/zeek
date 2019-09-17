@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NCP_NCP_H
-#define ANALYZER_PROTOCOL_NCP_NCP_H
+#pragma once
 
 // A very crude analyzer for NCP (Netware Core Protocol)
 //
@@ -117,5 +116,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif /* ncp_h */

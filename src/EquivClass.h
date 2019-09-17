@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef equiv_class_h
-#define equiv_class_h
+#pragma once
 
 #include <stdio.h>
 
@@ -42,5 +41,3 @@ protected:
 	int* ccl_flags;
 	int ec_nil, no_class, no_rep;
 };
-
-#endif

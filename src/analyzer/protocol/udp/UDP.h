@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_UDP_UDP_H
-#define ANALYZER_PROTOCOL_UDP_UDP_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
@@ -53,5 +52,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

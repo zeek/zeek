@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_RPC_H
-#define ANALYZER_PROTOCOL_RPC_RPC_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -252,5 +251,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

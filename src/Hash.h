@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef hash_h
-#define hash_h
+#pragma once
 
 #include <stdlib.h>
 
@@ -86,5 +85,3 @@ protected:
 };
 
 extern void init_hash_function();
-
-#endif

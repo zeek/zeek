@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef input_h
-#define input_h
+#pragma once
 
 #include <vector>
 #include <string>
@@ -45,5 +44,3 @@ extern vector<string> params;
 
 class Stmt;
 extern Stmt* stmts;	// global statements
-
-#endif

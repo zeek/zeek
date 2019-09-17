@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_INFO_H
-#define ZEEKYGEN_INFO_H
+#pragma once
 
 #include <string>
 #include <ctime>
@@ -69,5 +68,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

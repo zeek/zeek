@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef expr_h
-#define expr_h
+#pragma once
 
 // BRO expressions.
 
@@ -1108,5 +1107,3 @@ extern int expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Val* has a vector type
 inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }
-
-#endif

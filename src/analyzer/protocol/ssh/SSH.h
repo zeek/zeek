@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SSH_SSH_H
-#define ANALYZER_PROTOCOL_SSH_SSH_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -41,8 +40,6 @@ namespace analyzer {
 			int service_accept_size;
 			int userauth_failure_size;
 
-			};
-
-		}
+		};
 	}
-#endif
+}

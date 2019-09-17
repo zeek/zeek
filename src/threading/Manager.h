@@ -1,6 +1,5 @@
 
-#ifndef THREADING_MANAGER_H
-#define THREADING_MANAGER_H
+#pragma once
 
 #include <list>
 
@@ -142,5 +141,3 @@ private:
  * called from Bro's main thread.
  */
 extern threading::Manager* thread_mgr;
-
-#endif

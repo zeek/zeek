@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef frame_h
-#define frame_h
+#pragma once
 
 #include <unordered_map>
 #include <memory>
@@ -282,5 +281,3 @@ private:
  * https://stackoverflow.com/a/16211097
  */
 extern std::vector<Frame*> g_frame_stack;
-
-#endif

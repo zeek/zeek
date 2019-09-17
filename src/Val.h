@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef val_h
-#define val_h
+#pragma once
 
 #include <vector>
 #include <list>
@@ -1133,5 +1132,3 @@ extern bool can_cast_value_to_type(const Val* v, BroType* t);
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
 extern bool can_cast_value_to_type(const BroType* s, BroType* t);
-
-#endif

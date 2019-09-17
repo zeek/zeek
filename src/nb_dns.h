@@ -2,6 +2,8 @@
  * See the file "COPYING" in the main distribution directory for copyright.
  */
 
+#pragma once
+
 /* Private data */
 struct nb_dns_info;
 

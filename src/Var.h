@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef var_h
-#define var_h
+#pragma once
 
 #include <memory> // std::unique_ptr
 
@@ -49,5 +48,3 @@ extern Func* internal_func(const char* name);
 extern EventHandlerPtr internal_handler(const char* name);
 
 extern int signal_val;	// 0 if no signal pending
-
-#endif

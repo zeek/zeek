@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_BITVECTOR_H
-#define PROBABILISTIC_BITVECTOR_H
+#pragma once
 
 #include <iterator>
 #include <vector>
@@ -356,5 +355,3 @@ private:
 };
 
 }
-
-#endif

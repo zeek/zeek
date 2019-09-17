@@ -2,8 +2,6 @@
  * See the file "COPYING" in the main distribution directory for copyright.
  *
  */
-#ifndef setsignal_h
-#define setsignal_h
+#pragma once
 
 RETSIGTYPE (*setsignal(int, RETSIGTYPE (*)(int)))(int);
-#endif

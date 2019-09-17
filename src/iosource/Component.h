@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PLUGIN_COMPONENT_H
-#define IOSOURCE_PLUGIN_COMPONENT_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -168,5 +167,3 @@ private:
 };
 
 }
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef BRO_FLARE_H
-#define BRO_FLARE_H
+#pragma once
 
 #include "Pipe.h"
 
@@ -40,5 +39,3 @@ private:
 };
 
 } // namespace bro
-
-#endif // BRO_FLARE_H

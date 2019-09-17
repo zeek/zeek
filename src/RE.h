@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef re_h
-#define re_h
+#pragma once
 
 #include "Obj.h"
 #include "Dict.h"
@@ -229,5 +228,3 @@ protected:
 
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 extern RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2);
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef bpf_program_h
-#define bpf_program_h
+#pragma once
 
 extern "C" {
 #include <pcap.h>
@@ -54,5 +53,3 @@ protected:
 	bool m_matches_anything;
 	struct bpf_program m_program;
 };
-
-#endif

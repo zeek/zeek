@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_STEPPING_STONE_STEPPINGSTONE_H
-#define ANALYZER_PROTOCOL_STEPPING_STONE_STEPPINGSTONE_H
+#pragma once
 
 #include "Queue.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -84,5 +83,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif /* steppingstone_h */

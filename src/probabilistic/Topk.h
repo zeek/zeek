@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef topk_h
-#define topk_h
+#pragma once
 
 #include <list>
 #include "Val.h"
@@ -173,5 +172,3 @@ private:
 };
 
 };
-
-#endif

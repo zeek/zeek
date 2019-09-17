@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_GNUTELLA_GNUTELLA_H
-#define ANALYZER_PROTOCOL_GNUTELLA_GNUTELLA_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -70,5 +69,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

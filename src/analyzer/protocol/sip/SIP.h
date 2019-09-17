@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SIP_SIP_H
-#define ANALYZER_PROTOCOL_SIP_SIP_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -27,5 +26,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

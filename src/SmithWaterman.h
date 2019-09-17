@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef smith_waterman_h
-#define smith_waterman_h
+#pragma once
 
 #include "BroString.h"
 #include <map>
@@ -153,5 +152,3 @@ struct SWParams {
 extern BroSubstring::Vec* smith_waterman(const BroString* s1,
 					 const BroString* s2,
 					 SWParams& params);
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef PREFIXTABLE_H
-#define PREFIXTABLE_H
+#pragma once
 
 #include "Val.h"
 #include "net_util.h"
@@ -55,5 +54,3 @@ private:
 
 	patricia_tree_t* tree;
 };
-
-#endif

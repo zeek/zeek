@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_H
-#define ANALYZER_PROTOCOL_TCP_TCP_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "PacketDumper.h"
@@ -321,5 +320,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

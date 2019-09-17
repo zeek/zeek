@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PKTSRC_PKTDUMPER_H
-#define IOSOURCE_PKTSRC_PKTDUMPER_H
+#pragma once
 
 #include "Packet.h"
 #include "IOSource.h"
@@ -138,5 +137,3 @@ private:
 };
 
 }
-
-#endif

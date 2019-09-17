@@ -1,6 +1,3 @@
-#ifndef event_launcher_h
-#define event_launcher_h
+#pragma once
 
 #include "event.bif.func_h"
-
-#endif

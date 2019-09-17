@@ -1,5 +1,4 @@
-#ifndef FILE_ANALYSIS_FILEREASSEMBLER_H
-#define FILE_ANALYSIS_FILEREASSEMBLER_H
+#pragma once
 
 #include "Reassem.h"
 #include "File.h"
@@ -59,5 +58,3 @@ protected:
 };
 
 } // namespace analyzer::* 
-
-#endif

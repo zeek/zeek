@@ -1,5 +1,4 @@
-#ifndef sigs_h
-#define sigs_h
+#pragma once
 
 #include <limits.h>
 #include <vector>
@@ -391,5 +390,3 @@ private:
 	RuleEndpointState* orig_match_state;
 	RuleEndpointState* resp_match_state;
 };
-
-#endif

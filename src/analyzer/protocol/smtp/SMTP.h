@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SMTP_SMTP_H
-#define ANALYZER_PROTOCOL_SMTP_SMTP_H
+#pragma once
 
 #include <list>
 using namespace std;
@@ -97,5 +96,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

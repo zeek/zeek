@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
-#define ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
+#pragma once
 
 #include "Reassem.h"
 #include "TCP_Endpoint.h"
@@ -120,5 +119,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_MANAGER_H
-#define FILE_ANALYSIS_MANAGER_H
+#pragma once
 
 #include <string>
 #include <set>
@@ -428,5 +427,3 @@ VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 } // namespace file_analysis
 
 extern file_analysis::Manager* file_mgr;
-
-#endif

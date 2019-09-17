@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_UTILS_H
-#define ZEEKYGEN_UTILS_H
+#pragma once
 
 #include "ID.h"
 
@@ -63,5 +62,3 @@ bool is_all_whitespace(const std::string& s);
 std::string redef_indication(const std::string& from_script);
 
 } // namespace zeekygen
-
-#endif

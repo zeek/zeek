@@ -136,8 +136,7 @@
 
 ------------------------------------------------------------------------ */
 
-#ifndef LLVM_SUPPORT_CONVERTUTF_H
-#define LLVM_SUPPORT_CONVERTUTF_H
+#pragma once
 
 /* ---------------------------------------------------------------------
     The following 4 definitions are compiler-specific.
@@ -232,5 +231,3 @@ unsigned getNumBytesForUTF8(UTF8 firstByte);
 #endif
 
 /* --------------------------------------------------------------------- */
-
-#endif

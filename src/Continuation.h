@@ -4,8 +4,7 @@
 // TODO: - Document how to use this.
 //       - Find some nice macro-based interface?
 
-#ifndef continuation_h
-#define continuation_h
+#pragma once
 
 #include "List.h"
 
@@ -54,5 +53,3 @@ private:
 
 	voidp_list states;
 };
-
-#endif

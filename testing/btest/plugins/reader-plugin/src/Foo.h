@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -30,5 +29,3 @@ private:
 };
 
 } }
-
-#endif

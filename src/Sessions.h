@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef sessions_h
-#define sessions_h
+#pragma once
 
 #include <map>
 #include <utility>
@@ -283,5 +282,3 @@ private:
 
 // Manager for the currently active sessions.
 extern NetSessions* sessions;
-
-#endif

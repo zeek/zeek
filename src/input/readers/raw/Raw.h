@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_RAW_H
-#define INPUT_READERS_RAW_H
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -92,5 +91,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_RAW_H */

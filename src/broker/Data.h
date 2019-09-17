@@ -1,5 +1,4 @@
-#ifndef BRO_COMM_DATA_H
-#define BRO_COMM_DATA_H
+#pragma once
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -302,5 +301,3 @@ protected:
 };
 
 } // namespace bro_broker
-
-#endif // BRO_COMM_DATA_H

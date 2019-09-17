@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_RDP_RDP_H
-#define ANALYZER_PROTOCOL_RDP_RDP_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -34,5 +33,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

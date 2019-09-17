@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_HTTP_HTTP_H
-#define ANALYZER_PROTOCOL_HTTP_HTTP_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -271,5 +270,3 @@ extern BroString* unescape_URI(const u_char* line, const u_char* line_end,
 				analyzer::Analyzer* analyzer);
 
 } } // namespace analyzer::* 
-
-#endif

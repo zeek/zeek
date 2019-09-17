@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef descriptor_h
-#define descriptor_h
+#pragma once
 
 #include <stdio.h>
 #include <set>
@@ -202,5 +201,3 @@ protected:
 
 	std::set<const BroType*> encountered_types;
 };
-
-#endif

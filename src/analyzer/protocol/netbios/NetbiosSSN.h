@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
-#define ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
+#pragma once
 
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -169,5 +168,3 @@ protected:
 int IsReuse(double t, const u_char* pkt);
 
 } } // namespace analyzer::*
-
-#endif

@@ -47,8 +47,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  */
 
-#ifndef _PATRICIA_H
-#define _PATRICIA_H
+#pragma once
 
 #include <sys/types.h>
 
@@ -173,5 +172,3 @@ do { \
             } \
         } \
     } while (0)
-
-#endif /* _PATRICIA_H */

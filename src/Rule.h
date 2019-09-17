@@ -1,5 +1,4 @@
-#ifndef rule_h
-#define rule_h
+#pragma once
 
 #include <limits.h>
 #include <map>
@@ -108,5 +107,3 @@ private:
 	// Array of rules indexed by payloadid.
 	static rule_list rule_table;
 	};
-
-#endif

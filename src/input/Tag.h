@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_TAG_H
-#define INPUT_TAG_H
+#pragma once
 
 #include "zeek-config.h"
 #include "util.h"
@@ -109,5 +108,3 @@ protected:
 };
 
 }
-
-#endif

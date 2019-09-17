@@ -1,6 +1,5 @@
 
-#ifndef ANALYZER_PROTOCOL_DNP3_DNP3_H
-#define ANALYZER_PROTOCOL_DNP3_DNP3_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -90,5 +89,3 @@ public:
 
 
 } } // namespace analyzer::*
-
-#endif

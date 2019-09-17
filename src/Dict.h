@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef dict_h
-#define dict_h
+#pragma once
 
 #include "List.h"
 #include "Hash.h"
@@ -219,5 +218,3 @@ public:
 	T* RemoveEntry(const HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
 };
-
-#endif

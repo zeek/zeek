@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef frag_h
-#define frag_h
+#pragma once
 
 #include <tuple>
 
@@ -67,5 +66,3 @@ public:
 protected:
 	FragReassembler* f;
 };
-
-#endif

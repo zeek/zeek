@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef TAG_H
-#define TAG_H
+#pragma once
 
 #include "zeek-config.h"
 #include "util.h"
@@ -139,5 +138,3 @@ private:
 	subtype_t subtype;      // Subtype.
 	mutable EnumVal* val;   // Script-layer value.
 };
-
-#endif

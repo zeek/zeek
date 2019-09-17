@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef statictypes_h
-#define statictypes_h
+#pragma once
 
 enum TraversalCode {
 	TC_CONTINUE = 0,
@@ -35,5 +34,3 @@ enum TraversalCode {
 	return (code);
 
 class TraversalCallback;
-
-#endif

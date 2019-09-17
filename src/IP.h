@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ip_h
-#define ip_h
+#pragma once
 
 #include "zeek-config.h"
 #include "net_util.h"
@@ -586,5 +585,3 @@ private:
 	bool del;
 	const IPv6_Hdr_Chain* ip6_hdrs;
 };
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_CARDINALITYCOUNTER_H
-#define PROBABILISTIC_CARDINALITYCOUNTER_H
+#pragma once
 
 #include <stdint.h>
 #include <memory>
@@ -186,5 +185,3 @@ private:
 };
 
 }
-
-#endif

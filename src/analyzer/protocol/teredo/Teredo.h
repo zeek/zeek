@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_TEREDO_TEREDO_H
-#define ANALYZER_PROTOCOL_TEREDO_TEREDO_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
@@ -90,5 +89,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

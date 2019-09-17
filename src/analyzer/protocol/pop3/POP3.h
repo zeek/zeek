@@ -2,8 +2,7 @@
 //
 // An analyser for the POP3 protocol.
 
-#ifndef ANALYZER_PROTOCOL_POP3_POP3_H
-#define ANALYZER_PROTOCOL_POP3_POP3_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -116,5 +115,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

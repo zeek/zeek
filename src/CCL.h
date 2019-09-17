@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ccl_h
-#define ccl_h
+#pragma once
 
 #include <vector>
 #include "List.h"
@@ -33,5 +32,3 @@ protected:
 	int negated;
 	int index;
 };
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_COUNTERVECTOR_H
-#define PROBABILISTIC_COUNTERVECTOR_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -154,5 +153,3 @@ private:
 };
 
 }
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
-#define ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
+#pragma once
 
 #include "IPAddr.h"
 
@@ -252,5 +251,3 @@ protected:
 #define ENDIAN_CONFUSED 3
 
 } } // namespace analyzer::* 
-
-#endif

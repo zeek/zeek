@@ -1,8 +1,7 @@
 // Support routines to help deal with Bro debugging commands and
 // implementation of most commands.
 
-#ifndef debug_cmds_h
-#define debug_cmds_h
+#pragma once
 
 #include <stdlib.h>
 #include <string>
@@ -77,5 +76,3 @@ DbgCmdFn dbg_cmd_print;
 DbgCmdFn dbg_cmd_info;
 DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
-
-#endif

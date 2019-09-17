@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef stmt_h
-#define stmt_h
+#pragma once
 
 // BRO statements.
 
@@ -495,5 +494,3 @@ protected:
 	Expr* timeout;
 	bool is_return;
 };
-
-#endif

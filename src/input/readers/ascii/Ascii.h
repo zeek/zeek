@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_ASCII_H
-#define INPUT_READERS_ASCII_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -96,5 +95,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_ASCII_H */

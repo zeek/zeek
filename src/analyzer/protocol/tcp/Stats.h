@@ -1,6 +1,5 @@
 
-#ifndef ANALYZER_PROTOCOL_TCP_STATS_H
-#define ANALYZER_PROTOCOL_TCP_STATS_H
+#pragma once
 
 #include "TCP_Endpoint.h"
 
@@ -67,5 +66,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

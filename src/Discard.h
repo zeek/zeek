@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef discard_h
-#define discard_h
+#pragma once
 
 #include "IP.h"
 #include "Func.h"
@@ -35,5 +34,3 @@ protected:
 	// Maximum amount of application data passed to filtering functions.
 	int discarder_maxlen;
 };
-
-#endif

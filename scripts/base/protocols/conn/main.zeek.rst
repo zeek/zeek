@@ -208,6 +208,13 @@ Types
 
          The inner VLAN for this connection, if applicable.
 
+      speculative_service: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/protocols/conn/speculative-service.zeek` is loaded)
+
+         Protocol that was determined by a matching signature after the beginning
+         of a connection. In this situation no analyzer can be attached and hence
+         the data cannot be analyzed nor the protocol can be confirmed.
+
    The record type which contains column fields of the connection log.
 
 Events

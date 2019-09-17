@@ -477,4 +477,5 @@
    policy/frameworks/control/controller.zeek </scripts/policy/frameworks/control/controller.zeek>
    policy/frameworks/files/extract-all-files.zeek </scripts/policy/frameworks/files/extract-all-files.zeek>
    policy/misc/dump-events.zeek </scripts/policy/misc/dump-events.zeek>
+   policy/protocols/conn/speculative-service.zeek </scripts/policy/protocols/conn/speculative-service.zeek>
    zeekygen/example.zeek </scripts/zeekygen/example.zeek>

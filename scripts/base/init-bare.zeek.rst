@@ -119,6 +119,7 @@ Redefinable Options
 :zeek:id:`dpd_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`                         Size of per-connection buffer used for dynamic protocol detection.
 :zeek:id:`dpd_ignore_ports`: :zeek:type:`bool` :zeek:attr:`&redef`                         If true, don't consider any ports for deciding which protocol analyzer to
                                                                                            use.
+:zeek:id:`dpd_late_match_stop`: :zeek:type:`bool` :zeek:attr:`&redef`                      If true, stops signature matching after a late match.
 :zeek:id:`dpd_match_only_beginning`: :zeek:type:`bool` :zeek:attr:`&redef`                 If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
                                                                                            reached.
 :zeek:id:`dpd_reassemble_first_packets`: :zeek:type:`bool` :zeek:attr:`&redef`             Reassemble the beginning of all TCP connections before doing
@@ -1157,11 +1158,40 @@ Redefinable Options
    .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
       dpd_match_only_beginning
 
+.. zeek:id:: dpd_late_match_stop
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``F``
+   :Redefinition: from :doc:`/scripts/policy/protocols/conn/speculative-service.zeek`
+
+      ``=``::
+
+         T
+
+
+   If true, stops signature matching after a late match. A late match may occur
+   in case the DPD buffer is exhausted but a protocol signature matched. To
+   allow late matching, :zeek:see:`dpd_match_only_beginning` must be disabled.
+   
+   .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+      dpd_match_only_beginning
+   
+   .. note:: Despite the name, this option stops *all* signature matching, not
+      only signatures used for dynamic protocol detection but is triggered by
+      DPD signatures only.
+
 .. zeek:id:: dpd_match_only_beginning
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
+   :Redefinition: from :doc:`/scripts/policy/protocols/conn/speculative-service.zeek`
+
+      ``=``::
+
+         F
+
 
    If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
    reached.
@@ -7079,6 +7109,10 @@ Types
 
       mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
          (present if :doc:`/scripts/policy/protocols/mqtt/main.zeek` is loaded)
+
+
+      speculative_service: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
+         (present if :doc:`/scripts/policy/protocols/conn/speculative-service.zeek` is loaded)
 
 
    A connection. This is Zeek's basic connection type describing IP- and

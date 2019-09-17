@@ -76,6 +76,8 @@ Events
 :zeek:id:`profiling_update`: :zeek:type:`event`                                                        Generated each time Zeek's internal profiling log is updated.
 :zeek:id:`protocol_confirmation`: :zeek:type:`event`                                                   Generated when a protocol analyzer confirms that a connection is indeed
                                                                                                        using that protocol.
+:zeek:id:`protocol_late_match`: :zeek:type:`event`                                                     Generated if a DPD signature matched but the DPD buffer is already exhausted
+                                                                                                       and thus the analyzer could not be attached.
 :zeek:id:`protocol_violation`: :zeek:type:`event`                                                      Generated when a protocol analyzer determines that a connection it is parsing
                                                                                                        is not conforming to the protocol it expects.
 :zeek:id:`raw_packet`: :zeek:type:`event`                                                              Generated for every packet Zeek sees that have a valid link-layer header.
@@ -844,6 +846,25 @@ Events
       Zeek's default scripts use this event to determine the ``service`` column
       of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
       there (and thus in ``conn.log``).
+
+.. zeek:id:: protocol_late_match
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, atype: :zeek:type:`Analyzer::Tag`)
+
+   Generated if a DPD signature matched but the DPD buffer is already exhausted
+   and thus the analyzer could not be attached. While this does not confirm
+   that a protocol is actually used, it allows to retain that information.
+   
+
+   :c: The connection.
+   
+
+   :atype: The type of the analyzer confirming that its protocol is in
+          use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
+          ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
+          parsing an HTTP connection.
+   
+   .. bro:see:: dpd_buffer_size
 
 .. zeek:id:: protocol_violation
 

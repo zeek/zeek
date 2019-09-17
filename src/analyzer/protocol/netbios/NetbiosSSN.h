@@ -67,29 +67,29 @@ public:
 	explicit NetbiosSSN_Interpreter(Analyzer* analyzer);
 
 	int ParseMessage(unsigned int type, unsigned int flags,
-			const u_char* data, int len, int is_query);
+			const u_char* data, unsigned int len, int is_query);
 
 	// Version used when data points to type/flags/length.
-	int ParseMessageTCP(const u_char* data, int len, int is_query);
-	int ParseMessageUDP(const u_char* data, int len, int is_query);
+	int ParseMessageTCP(const u_char* data, unsigned int len, int is_query);
+	int ParseMessageUDP(const u_char* data, unsigned int len, int is_query);
 
 	void Timeout()	{ }
 
 protected:
-	int ParseSessionMsg(const u_char* data, int len, int is_query);
-	int ParseSessionReq(const u_char* data, int len, int is_query);
-	int ParseSessionPosResp(const u_char* data, int len, int is_query);
-	int ParseSessionNegResp(const u_char* data, int len, int is_query);
-	int ParseRetArgResp(const u_char* data, int len, int is_query);
-	int ParseKeepAlive(const u_char* data, int len, int is_query);
+	int ParseSessionMsg(const u_char* data, unsigned int len, int is_query);
+	int ParseSessionReq(const u_char* data, unsigned int len, int is_query);
+	int ParseSessionPosResp(const u_char* data, unsigned int len, int is_query);
+	int ParseSessionNegResp(const u_char* data, unsigned int len, int is_query);
+	int ParseRetArgResp(const u_char* data, unsigned int len, int is_query);
+	int ParseKeepAlive(const u_char* data, unsigned int len, int is_query);
 
 	// Datagram parsing
-	int ParseBroadcast(const u_char* data, int len, int is_query);
-	int ParseDatagram(const u_char* data, int len, int is_query);
+	int ParseBroadcast(const u_char* data, unsigned int len, int is_query);
+	int ParseDatagram(const u_char* data, unsigned int len, int is_query);
 
-	int ParseSambaMsg(const u_char* data, int len, int is_query);
+	int ParseSambaMsg(const u_char* data, unsigned int len, int is_query);
 
-	void Event(EventHandlerPtr event, const u_char* data, int len,
+	void Event(EventHandlerPtr event, const u_char* data, unsigned int len,
 			int is_orig = -1);
 
 	// Pass in name/length, returns in xname/xlen the converted
@@ -124,7 +124,7 @@ public:
 	NetbiosSSN_State State() const		{ return state; }
 
 protected:
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(unsigned int len, const u_char* data, bool orig) override;
 
 	NetbiosSSN_Interpreter* interp;
 
@@ -145,7 +145,7 @@ public:
 	~NetbiosSSN_Analyzer() override;
 
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(unsigned int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

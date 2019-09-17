@@ -18,13 +18,13 @@ public:
 	GnutellaMsgState ();
 
 	string buffer;
-	int current_offset;
+	unsigned int current_offset;
 	int got_CR;
 	string headers;
 	char msg[GNUTELLA_MSG_SIZE];
 	u_char msg_hops;
 	unsigned int msg_len;
-	int msg_pos;
+	unsigned int msg_pos;
 	int msg_sent;
 	u_char msg_type;
 	u_char msg_ttl;

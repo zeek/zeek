@@ -148,7 +148,7 @@ int Gnutella_Analyzer::GnutellaOK(string header)
 	if ( strncmp("GNUTELLA", header.data(), 8) )
 		return 0;
 
-	int codepos = header.find(' ') + 1;
+	unsigned long codepos = header.find(' ') + 1;
 	if ( ! strncmp("200", header.data() + codepos, 3) )
 		return 1;
 
@@ -256,7 +256,7 @@ void Gnutella_Analyzer::DeliverMessages(int len, const u_char* data, bool orig)
 		      (bytes_left >= GNUTELLA_MSG_SIZE)) ||
 		     (ms->msg_pos && (bytes_left >= needed)) )
 			{
-			int sz = ms->msg_pos ? needed : GNUTELLA_MSG_SIZE;
+			unsigned int sz = ms->msg_pos ? needed : GNUTELLA_MSG_SIZE;
 
 			memcpy(&ms->msg[ms->msg_pos],
 				&data[ms->current_offset], sz);

@@ -284,7 +284,7 @@ int Specific_RE_Matcher::Match(const u_char* bv, unsigned int n)
 		{
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 		if ( d && d->Accept() )
-			return n > 0 ? n : 1;	// we can't return 0 here for match...
+			return n > 0 ? static_cast<int> (n) : 1;	// we can't return 0 here for match...
 		}
 
 	return 0;
@@ -335,7 +335,7 @@ bool RE_Match_State::Match(const u_char* bv, unsigned int n,
 	size_t old_matches = accepted_matches.size();
 
 	int ec;
-	int m = bol ? n + 1 : n;
+	int m = bol ? static_cast<int>(n) + 1 : static_cast<int>(n);
 	int e = eol ? -1 : 0;
 
 	while ( --m >= e )

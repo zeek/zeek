@@ -102,7 +102,7 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 	}
 	}
 
-int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	//if ( smb_session )
@@ -114,7 +114,7 @@ int NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len,
 	return 0;
  	}
 
-int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, unsigned int len,
 						int is_query)
  	{
 	// FIND THE NUL-TERMINATED NAME STRINGS HERE!
@@ -137,7 +137,7 @@ int NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	NetbiosSSN_RawMsgHdr hdr(data, len);
@@ -155,7 +155,7 @@ int NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len,
 	return ParseMessage(hdr.type, hdr.flags, data, len, is_query);
 	}
 
-int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, unsigned int len,
 						int is_query)
 	{
 
@@ -176,7 +176,7 @@ int NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len,
 	}
 
 
-int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	if ( len < 4 || strncmp((const char*) data, "\xffSMB", 4) )
@@ -201,7 +201,7 @@ int NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len,
 		}
 	}
 
-int NetbiosSSN_Interpreter::ParseSambaMsg(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseSambaMsg(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	return 0;
@@ -217,7 +217,7 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len,
 	if ( name_len < 1 )
 		return 0;
 
-	int len = (*name++) / 2;
+	unsigned int len = (*name++) / 2;
 	xlen = len;
 
 	if ( len > 30 || len < 1 || name_len < len )
@@ -246,7 +246,7 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len,
 	return 1;
 	}
 
-int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	if ( ! is_query )
@@ -263,7 +263,7 @@ int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ParseSessionPosResp(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseSessionPosResp(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	if ( is_query )
@@ -274,7 +274,7 @@ int NetbiosSSN_Interpreter::ParseSessionPosResp(const u_char* data, int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ParseSessionNegResp(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseSessionNegResp(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	if ( is_query )
@@ -303,7 +303,7 @@ int NetbiosSSN_Interpreter::ParseSessionNegResp(const u_char* data, int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ParseRetArgResp(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseRetArgResp(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	if ( is_query )
@@ -314,7 +314,7 @@ int NetbiosSSN_Interpreter::ParseRetArgResp(const u_char* data, int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, int len,
+int NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, unsigned int len,
 						int is_query)
 	{
 	Event(netbios_session_keepalive, data, len);
@@ -323,7 +323,7 @@ int NetbiosSSN_Interpreter::ParseKeepAlive(const u_char* data, int len,
 	}
 
 void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
-					int len, int is_orig)
+					unsigned int len, int is_orig)
 	{
 	if ( ! event )
 		return;
@@ -369,7 +369,7 @@ void Contents_NetbiosSSN::Flush()
 		}
 	}
 
-void Contents_NetbiosSSN::DeliverStream(int len, const u_char* data, bool orig)
+void Contents_NetbiosSSN::DeliverStream(unsigned int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
@@ -517,7 +517,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	// resp_netbios->Flush();
 	}
 
-void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
+void NetbiosSSN_Analyzer::DeliverPacket(unsigned int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

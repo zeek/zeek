@@ -1009,7 +1009,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 	if ( ! name_end )
 		return 0;
 
-	int typebitmaps_len = rdlength - (data - data_start);
+	uint64_t typebitmaps_len = rdlength - (data - data_start);
 
 	VectorVal* char_strings = new VectorVal(string_vec);
 
@@ -1534,7 +1534,7 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	{
 	RecordVal* r = new RecordVal(dns_tsig_additional);
-	double rtime = tsig->time_s + tsig->time_ms / 1000.0;
+	double rtime = static_cast <double> (tsig->time_s) + tsig->time_ms / 1000.0;
 
 	Ref(query_name);
 	// r->Assign(0, val_mgr->GetCount(int(answer_type)));

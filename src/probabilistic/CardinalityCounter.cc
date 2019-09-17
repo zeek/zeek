@@ -53,7 +53,7 @@ void CardinalityCounter::Init(uint64_t size)
 	if ( trunc(calc_p) != calc_p )
 		reporter->InternalError("Invalid size %" PRIu64 ". Size either has to be a power of 2", size);
 
-	p = calc_p;
+	p = static_cast<int> (calc_p);
 
 	buckets.reserve(m);
 	for ( uint64_t i = 0; i < m; i++ )

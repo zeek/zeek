@@ -286,7 +286,7 @@ void BroString::ToUpper()
 			b[i] = toupper(b[i]);
 	}
 
-BroString* BroString::GetSubstring(int start, int len) const
+BroString* BroString::GetSubstring(uint64_t start, uint64_t len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )

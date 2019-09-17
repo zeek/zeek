@@ -160,7 +160,7 @@ public:
 
 	LoginConn* AsLoginConn()		{ return login_conn; }
 
-	void Match(Rule::PatternType type, const u_char* data, int len,
+	void Match(Rule::PatternType type, const u_char* data, uint64_t len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
 
 	// If a handler exists for 'f', an event will be generated.  If 'name' is

@@ -124,7 +124,7 @@ public:
 	// A negative @length means "until end of string".  Other invalid
 	// values result in a return value of 0.
 	//
-	BroString* GetSubstring(int start, int length) const;
+	BroString* GetSubstring(uint64_t start, uint64_t length) const;
 
 	// Returns the start index of s in this string, counting from 0.
 	// If s is not found, -1 is returned.
@@ -179,7 +179,7 @@ extern int Bstr_cmp(const BroString* s1, const BroString* s2);
 // "BroConstString" might be a better name here.
 
 struct data_chunk_t {
-	int length;
+	unsigned int length;
 	const char* data;
 };
 

@@ -230,7 +230,7 @@ public:
 
 	~SWNodeMatrix()	{ delete [] _nodes; }
 
-	SWNode* operator()(int row, int col)
+	SWNode* operator()(unsigned int row, unsigned int col)
 		{
 		// Make sure access is in allowed range.
 		if ( row < 0 || row >= _rows )
@@ -440,8 +440,8 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 	// structure in the matrix).
 	//
 	int matrix_max = 1;
-	int br_max_r = 0;
-	int br_max_b = 0;
+	unsigned int br_max_r = 0;
+	unsigned int br_max_b = 0;
 
 
 	// Matrix initialization ----------------------------------------------

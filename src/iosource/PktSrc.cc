@@ -216,7 +216,7 @@ double PktSrc::NextTimestamp(double* local_network_time)
 		{
 		// Delay packet if necessary.
 		double packet_time = CheckPseudoTime();
-		if ( packet_time )
+		if ( packet_time != 0.0 )
 			return packet_time;
 
 		SetIdle(true);

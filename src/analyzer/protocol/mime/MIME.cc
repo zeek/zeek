@@ -469,7 +469,7 @@ MIME_Header::MIME_Header(MIME_Multiline* hl)
 	name = value = value_token = rest_value = null_data_chunk;
 
 	BroString* s = hl->get_concatenated_line();
-	int len = s->Len();
+	unsigned int len = s->Len();
 	const char* data = (const char*) s->Bytes();
 
 	int offset = MIME_get_field_name(len, data, &name);

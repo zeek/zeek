@@ -1,5 +1,4 @@
-#ifndef ZEEK_CONFIG_H
-#define ZEEK_CONFIG_H
+#pragma once
 
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
@@ -239,5 +238,3 @@ extern const char* BRO_VERSION_FUNCTION();
 #ifdef __cplusplus
 }
 #endif
-
-#endif // ZEEK_CONFIG_H

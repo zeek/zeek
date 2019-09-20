@@ -1,4 +1,10 @@
 
+3.0.0-rc2.4 | 2019-09-20 10:58:31 -0700
+
+  * Fix uncaught InterpreterException in Frame cloning (Robin Sommer, Corelight)
+
+    Fix for CIDs 1402823 and 1394050.
+
 3.0.0-rc2.3 | 2019-09-17 09:45:49 -0700
 
   * GH-580: Add additional 3rd party headers to includes (Derek Ditch)

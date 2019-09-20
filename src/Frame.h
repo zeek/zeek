@@ -129,7 +129,7 @@ public:
 	/**
 	 * Performs a deep copy of all the values in the current frame. If
 	 * the frame has a closure the returned frame captures that closure
-	 * by reference.. As such, performing a clone operation does not copy
+	 * by reference. As such, performing a clone operation does not copy
 	 * the values in the closure.
 	 *
 	 * @return a copy of this frame.

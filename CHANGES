@@ -1,4 +1,10 @@
 
+3.1.0-dev.127 | 2019-09-20 10:40:54 -0700
+
+  * Fix uncaught InterpreterException in Frame cloning (Robin Sommer, Corelight)
+
+    Fix for CIDs 1402823 and 1394050.
+
 3.1.0-dev.125 | 2019-09-19 16:40:10 -0700
 
   * Update header include guard in zeek-config.h/bro-config.h (Jon Siwek, Corelight)

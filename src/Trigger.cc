@@ -218,7 +218,22 @@ bool Trigger::Eval()
 	// An alternative approach to copying the frame would be to deep-copy
 	// the expression itself, replacing all references to locals with
 	// constants.
-	Frame* f = frame->Clone();
+
+	Frame* f = nullptr;
+
+	try
+		{
+		f = frame->Clone();
+		}
+	catch ( InterpreterException& )
+		{
+		// Frame contains values that couldn't be cloned. It's
+		// already been reported, disable trigger.
+		Disable();
+		Unref(this);
+		return false;
+		}
+
 	f->SetTrigger(this);
 
 	Val* v = nullptr;

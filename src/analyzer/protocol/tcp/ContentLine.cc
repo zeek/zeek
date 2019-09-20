@@ -97,7 +97,7 @@ void ContentLine_Analyzer::DeliverStream(uint64_t len, const u_char* data,
 	seq += len;
 	}
 
-void ContentLine_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void ContentLine_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	ForwardUndelivered(seq, len, orig);
 	}

@@ -13,7 +13,7 @@ public:
 	~DHCP_Analyzer() override;
 
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 	                   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

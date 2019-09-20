@@ -44,7 +44,7 @@ public:
 		{ return state; }
 
 protected:
-	void DoDeliver(int len, const u_char* data) override;
+	void DoDeliver(uint64_t len, const u_char* data) override;
 	void BadProlog();
 
 	rlogin_state state, save_state;

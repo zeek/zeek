@@ -30,8 +30,8 @@ void ICMP_Analyzer::Done()
 	matcher_state.FinishEndpointMatcher();
 	}
 
-void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
-			bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void ICMP_Analyzer::DeliverPacket(uint64_t len, const u_char* data,
+			bool is_orig, uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	assert(ip);
 

@@ -36,7 +36,7 @@ void Finger_Analyzer::Done()
 			Weird("partial_finger_request");
 	}
 
-void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
+void Finger_Analyzer::DeliverStream(uint64_t length, const u_char* data, bool is_orig)
 	{
 	const char* line = (const char*) data;
 	const char* end_of_line = line + length;

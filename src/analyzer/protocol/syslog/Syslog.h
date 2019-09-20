@@ -15,7 +15,7 @@ public:
 	~Syslog_Analyzer() override;
 
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -35,8 +35,8 @@ protected:
 //	virtual ~Syslog_tcp::TCP_Analyzer();
 //
 //	virtual void Done();
-//	virtual void DeliverStream(int len, const u_char* data, bool orig);
-//	virtual void Undelivered(uint64_t seq, int len, bool orig);
+//	virtual void DeliverStream(uint64_t len, const u_char* data, bool orig);
+//	virtual void Undelivered(uint64_t seq, uint64_t len, bool orig);
 //	virtual void EndpointEOF(tcp::TCP_Reassembler* endp);
 //
 //	static analyzer::Analyzer* Instantiate(Connection* conn)

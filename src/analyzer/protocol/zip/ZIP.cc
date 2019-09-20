@@ -43,7 +43,7 @@ void ZIP_Analyzer::Done()
 		inflateEnd(zip);
 	}
 
-void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void ZIP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 

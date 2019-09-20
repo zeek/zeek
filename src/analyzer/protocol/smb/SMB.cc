@@ -34,7 +34,7 @@ void SMB_Analyzer::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void SMB_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void SMB_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
@@ -57,7 +57,7 @@ void SMB_Analyzer::NeedResync()
 	need_sync=true;
 	}
 
-void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void SMB_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 

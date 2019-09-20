@@ -90,9 +90,9 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 	void FlipRoles() override;
 	bool IsReuse(double t, const u_char* pkt) override;
 
@@ -245,7 +245,7 @@ public:
 	// of ConnectionReset is delayed.
 	virtual void PacketWithRST();
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void Init() override;
 
@@ -313,7 +313,7 @@ public:
 		{ return new TCPStats_Analyzer(conn); }
 
 protected:
-	void DeliverPacket(int len, const u_char* data, bool is_orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	TCPStats_Endpoint* orig_stats;

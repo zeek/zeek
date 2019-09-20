@@ -429,7 +429,7 @@ Contents_RPC::~Contents_RPC()
 	{
 	}
 
-void Contents_RPC::Undelivered(uint64_t seq, int len, bool orig)
+void Contents_RPC::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 	NeedResync();
@@ -615,7 +615,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 
 
 
-void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
+void Contents_RPC::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 	uint32_t marker;
@@ -731,7 +731,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	delete interp;
 	}
 
-void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
+void RPC_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

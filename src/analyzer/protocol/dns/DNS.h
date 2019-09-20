@@ -243,7 +243,7 @@ protected:
 			const u_char*& data, uint64_t& len, const u_char* start);
 
 	u_char* ExtractName(const u_char*& data, uint64_t& len,
-				u_char* label, int label_len,
+				u_char* label, uint64_t label_len,
 				const u_char* msg_start);
 	int ExtractLabel(const u_char*& data, uint64_t& len,
 			 u_char*& label, uint64_t& label_len,
@@ -253,7 +253,7 @@ protected:
 	uint32_t ExtractLong(const u_char*& data, uint64_t& len);
 	void ExtractOctets(const u_char*& data, uint64_t& len, BroString** p);
 
-	BroString* ExtractStream(const u_char*& data, uint64_t& len, unsigned int sig_len);
+	BroString* ExtractStream(const u_char*& data, uint64_t& len, uint64_t sig_len);
 
 	int ParseRR_Name(DNS_MsgInfo* msg,
 				const u_char*& data, uint64_t& len, uint64_t rdlength,
@@ -335,7 +335,7 @@ public:
 	TCP_DNS_state State() const	{ return state; }
 
 protected:
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 	DNS_Interpreter* interp;
 
@@ -352,7 +352,7 @@ public:
 	explicit DNS_Analyzer(Connection* conn);
 	~DNS_Analyzer() override;
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void Init() override;

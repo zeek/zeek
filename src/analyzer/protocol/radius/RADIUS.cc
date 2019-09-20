@@ -24,7 +24,7 @@ void RADIUS_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void RADIUS_Analyzer::DeliverPacket(int len, const u_char* data,
+void RADIUS_Analyzer::DeliverPacket(uint64_t len, const u_char* data,
 				    bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

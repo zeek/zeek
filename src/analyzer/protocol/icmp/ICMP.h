@@ -26,8 +26,8 @@ public:
 
 protected:
 	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 

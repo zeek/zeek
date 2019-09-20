@@ -79,7 +79,7 @@ void PIA::PIA_Done()
 	FinishEndpointMatcher();
 	}
 
-void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
+void PIA::PIA_DeliverPacket(uint64_t len, const u_char* data, bool is_orig, uint64_t seq,
 				const IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
@@ -234,7 +234,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 		DoMatch((const u_char*)"", 0, is_orig, true, false, false, ip);
 	}
 
-void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
+void PIA_TCP::DeliverStream(uint64_t len, const u_char* data, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
@@ -264,7 +264,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	stream_buffer.state = new_state;
 	}
 
-void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
+void PIA_TCP::Undelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 

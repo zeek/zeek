@@ -16,8 +16,8 @@ public:
 	~Foo();
 
 	virtual void Done();
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	virtual void DeliverStream(uint64_t len, const u_char* data, bool orig);
+	virtual void Undelivered(uint64 seq, uint64_t len, bool orig);
 	virtual void EndpointEOF(bool is_orig);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

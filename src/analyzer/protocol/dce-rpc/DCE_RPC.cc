@@ -39,14 +39,14 @@ void DCE_RPC_Analyzer::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void DCE_RPC_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void DCE_RPC_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
 
-void DCE_RPC_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void DCE_RPC_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 

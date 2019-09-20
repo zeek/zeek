@@ -40,7 +40,7 @@ public:
 	~Gnutella_Analyzer() override;
 
 	void Done () override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Gnutella_Analyzer(conn); }

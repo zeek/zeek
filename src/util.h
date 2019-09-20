@@ -155,7 +155,7 @@ extern char* skip_whitespace(char* s, char* end_of_s);
 extern const char* skip_whitespace(const char* s, const char* end_of_s);
 extern char* skip_digits(char* s);
 extern char* get_word(char*& s);
-extern void get_word(uint64_t length, const char* s, int& pwlen, const char*& pw);
+extern void get_word(uint64_t length, const char* s, uint64_t& pwlen, const char*& pw);
 extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
 extern int decode_hex(char ch);

@@ -69,7 +69,7 @@ void POP3_Analyzer::Done()
 	}
 
 
-void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void POP3_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 

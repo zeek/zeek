@@ -15,7 +15,7 @@ public:
 	virtual ~SNMP_Analyzer();
 
 	virtual void Done();
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
+	virtual void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 	                           uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)

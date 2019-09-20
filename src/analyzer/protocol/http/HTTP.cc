@@ -208,7 +208,7 @@ void HTTP_Entity::DeliverBody(uint64_t len, const char* data, int trailing_CRLF)
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
-void HTTP_Entity::DeliverBodyClear(int64_t len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBodyClear(uint64_t len, const char* data, int trailing_CRLF)
 	{
 	bool new_data = (body_length == 0);
 
@@ -302,7 +302,7 @@ int HTTP_Entity::Undelivered(int64_t len)
 	return 0;
 	}
 
-void HTTP_Entity::SubmitData(int len, const char* buf)
+void HTTP_Entity::SubmitData(uint64_t len, const char* buf)
 	{
 	if ( deliver_body )
 		MIME_Entity::SubmitData(len, buf);
@@ -1097,7 +1097,7 @@ void HTTP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool is_orig
 		}
 	}
 
-void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
+void HTTP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -1113,7 +1113,7 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 		{
 		if ( msg )
 			msg->SubmitEvent(mime::MIME_EVENT_CONTENT_GAP,
-				fmt("seq=%" PRIu64", len=%d", seq, len));
+				fmt("seq=%" PRIu64", len=%llu", seq, len));
 		}
 
 	// Check if the content gap falls completely within a message body

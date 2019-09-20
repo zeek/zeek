@@ -78,7 +78,7 @@ void FTP_Analyzer::DeliverStream(uint64_t length, const u_char* data, bool orig)
 	EventHandlerPtr f;
 	if ( orig )
 		{
-		int cmd_len;
+		uint64_t cmd_len;
 		const char* cmd;
 		StringVal* cmd_str;
 

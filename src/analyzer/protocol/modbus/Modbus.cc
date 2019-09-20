@@ -25,13 +25,13 @@ void ModbusTCP_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-void ModbusTCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void ModbusTCP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 	interp->NewData(orig, data, data + len);
 	}
 
-void ModbusTCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void ModbusTCP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);

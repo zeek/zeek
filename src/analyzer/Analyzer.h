@@ -44,7 +44,7 @@ public:
 	 * Hook for receiving packet data. Parameters are the same as for
 	 * Analyzer::DeliverPacket().
 	 */
-	virtual void DeliverPacket(int len, const u_char* data,
+	virtual void DeliverPacket(uint64_t len, const u_char* data,
 				   bool orig, uint64_t seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
@@ -53,14 +53,14 @@ public:
 	 * Hook for receiving stream data. Parameters are the same as for
 	 * Analyzer::DeliverStream().
 	 */
-	virtual void DeliverStream(int len, const u_char* data,
+	virtual void DeliverStream(uint64_t len, const u_char* data,
 				   bool orig)	{ }
 
 	/**
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(uint64_t seq, int len, bool orig)	{ }
+	virtual void Undelivered(uint64_t seq, uint64_t len, bool orig)	{ }
 };
 
 /**
@@ -227,7 +227,7 @@ public:
 	 * NextDeliverPacket() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void DeliverPacket(int len, const u_char* data, bool orig,
+	virtual void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	/**
@@ -235,14 +235,14 @@ public:
 	 * NextDeliverStream() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
+	virtual void DeliverStream(uint64_t len, const u_char* data, bool orig);
 
 	/**
 	 * Hook for accessing input gap during parsing. This is called by
 	 * NextUndelivered() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void Undelivered(uint64_t seq, int len, bool orig);
+	virtual void Undelivered(uint64_t seq, uint64_t len, bool orig);
 
 	/**
 	 * Hook for accessing end-of-data notifications. This is called by
@@ -809,7 +809,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardStream.
 	*/
-	void ForwardStream(int len, const u_char* data, bool orig) override;
+	void ForwardStream(uint64_t len, const u_char* data, bool orig) override;
 
 	/**
 	* Passes gap information to the next sibling SupportAnalyzer if any,

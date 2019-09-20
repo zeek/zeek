@@ -41,7 +41,7 @@ void UDP_Analyzer::Done()
 	Analyzer::Done();
 	}
 
-void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
+void UDP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);

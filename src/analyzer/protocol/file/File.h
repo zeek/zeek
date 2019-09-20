@@ -15,9 +15,9 @@ public:
 
 	void Done() override;
 
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 
 //	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new File_Analyzer(conn); }
@@ -27,7 +27,7 @@ protected:
 
 	static const int BUFFER_SIZE = 1024;
 	char buffer[BUFFER_SIZE];
-	int buffer_len;
+	uint64_t buffer_len;
 	string file_id_orig;
 	string file_id_resp;
 };

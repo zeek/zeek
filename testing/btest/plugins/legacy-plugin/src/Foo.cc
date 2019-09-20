@@ -32,7 +32,7 @@ void Foo::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void Foo::DeliverStream(int len, const u_char* data, bool orig)
+void Foo::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
@@ -52,7 +52,7 @@ void Foo::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void Foo::Undelivered(uint64 seq, int len, bool orig)
+void Foo::Undelivered(uint64 seq, uint64_t len, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);

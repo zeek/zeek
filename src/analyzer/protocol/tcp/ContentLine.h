@@ -66,7 +66,7 @@ protected:
 	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
 	void DeliverStream(uint64_t len, const u_char* data, bool is_orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	class State;

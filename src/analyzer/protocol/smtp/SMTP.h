@@ -43,9 +43,9 @@ public:
 	~SMTP_Analyzer() override;
 
 	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 	void ConnectionFinished(int half_finished) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
 

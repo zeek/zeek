@@ -41,7 +41,7 @@ void SSH_Analyzer::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void SSH_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
@@ -76,7 +76,7 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SSH_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void SSH_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

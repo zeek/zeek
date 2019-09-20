@@ -129,7 +129,7 @@ DNP3_Base::~DNP3_Base()
 	delete interp;
 	}
 
-bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
+bool DNP3_Base::ProcessData(uint64_t len, const u_char* data, bool orig)
 	{
 	Endpoint* endp = orig ? &orig_state : &resp_state;
 
@@ -227,14 +227,14 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 	return true;
 	}
 
-int DNP3_Base::AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, int* len)
+int DNP3_Base::AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, uint64_t* len)
 	{
 	if ( ! target_len )
 		return 1;
 
 	if ( *len < 0 )
 		{
-		reporter->AnalyzerError(analyzer, "dnp3 negative input length: %d", *len);
+		reporter->AnalyzerError(analyzer, "dnp3 negative input length: %llu", *len);
 		return -1;
 		}
 
@@ -245,7 +245,7 @@ int DNP3_Base::AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char
 		return -1;
 		}
 
-	int to_copy = min(*len, target_len - endp->buffer_len);
+	unsigned int to_copy = min( static_cast <unsigned int> (*len), target_len - endp->buffer_len);
 
 	if ( endp->buffer_len + to_copy > MAX_BUFFER_SIZE )
 		{
@@ -271,7 +271,7 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 	binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
 
 	u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
-	int len = endp->pkt_length - 5;
+	unsigned int len = endp->pkt_length - 5;
 
 	// DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer
 	// DNP3 Serial Transport Layer data is always 1 byte.
@@ -287,7 +287,7 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp)
 	int i = 0;
 	while ( len > 0 )
 		{
-		int n = min(len, 16);
+		int n = min( static_cast <int> (len), 16);
 
 		// Make sure chunk has a correct checksum.
 		if ( ! CheckCRC(n, data, data + n, "app_chunk") )
@@ -342,7 +342,7 @@ void DNP3_Base::ClearEndpointState(bool orig)
 	endp->pkt_cnt = 0;
 	}
 
-bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where)
+bool DNP3_Base::CheckCRC(unsigned int len, const u_char* data, const u_char* crc16, const char* where)
 	{
 	unsigned int crc = CalcCRC(len, data);
 
@@ -371,7 +371,7 @@ void DNP3_Base::PrecomputeCRCTable()
 		}
 	}
 
-unsigned int DNP3_Base::CalcCRC(int len, const u_char* data)
+unsigned int DNP3_Base::CalcCRC(unsigned int len, const u_char* data)
 	{
 	unsigned int crc = 0x0000;
 
@@ -401,7 +401,7 @@ void DNP3_TCP_Analyzer::Done()
 	Interpreter()->FlowEOF(false);
 	}
 
-void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void DNP3_TCP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
@@ -418,7 +418,7 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	Interpreter()->NewGap(orig, len);
@@ -439,7 +439,7 @@ DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
 	{
 	}
 
-void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void DNP3_UDP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

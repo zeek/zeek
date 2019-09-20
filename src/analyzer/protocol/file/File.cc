@@ -17,11 +17,11 @@ File_Analyzer::File_Analyzer(const char* name, Connection* conn)
 	buffer_len = 0;
 	}
 
-void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void File_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	int n = min(len, BUFFER_SIZE - buffer_len);
+	uint64_t n = min(len, static_cast <uint64_t> (BUFFER_SIZE - buffer_len));
 
 	if ( n )
 		{
@@ -40,7 +40,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		                                orig, file_id_resp);
 	}
 
-void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void File_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 

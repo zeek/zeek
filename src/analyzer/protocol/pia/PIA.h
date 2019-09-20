@@ -41,7 +41,7 @@ public:
 
 protected:
 	void PIA_Done();
-	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,
+	void PIA_DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 				uint64_t seq, const IP_Hdr* ip, int caplen, bool clear_state);
 
 	enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
@@ -105,7 +105,7 @@ protected:
 		PIA_Done();
 		}
 
-	void DeliverPacket(int len, const u_char* data, bool is_orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
@@ -150,15 +150,15 @@ protected:
 		PIA_Done();
 		}
 
-	void DeliverPacket(int len, const u_char* data, bool is_orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, false);
 		}
 
-	void DeliverStream(int len, const u_char* data, bool is_orig) override;
-	void Undelivered(uint64_t seq, int len, bool is_orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool is_orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool is_orig) override;
 
 	void ActivateAnalyzer(analyzer::Tag tag,
 					const Rule* rule = 0) override;

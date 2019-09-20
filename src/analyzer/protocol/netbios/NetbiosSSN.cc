@@ -517,7 +517,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	// resp_netbios->Flush();
 	}
 
-void NetbiosSSN_Analyzer::DeliverPacket(unsigned int len, const u_char* data, bool orig,
+void NetbiosSSN_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

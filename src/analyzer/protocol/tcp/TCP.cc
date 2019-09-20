@@ -1036,7 +1036,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	return delta_last;
 	}
 
-void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
+void TCP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
@@ -1247,12 +1247,12 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	CheckPIA_FirstPacket(is_orig, ip);
 	}
 
-void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void TCP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	Analyzer::DeliverStream(len, data, orig);
 	}
 
-void TCP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
+void TCP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	Analyzer::Undelivered(seq, len, orig);
 	}
@@ -1781,7 +1781,7 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 	Analyzer::ProtocolViolation(reason, data, len);
 	}
 
-void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
+void TCP_ApplicationAnalyzer::DeliverPacket(unsigned int len, const u_char* data,
 						bool is_orig, uint64_t seq,
 						const IP_Hdr* ip, int caplen)
 	{
@@ -2006,7 +2006,7 @@ void TCPStats_Analyzer::Done()
 		});
 	}
 
-void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(unsigned int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

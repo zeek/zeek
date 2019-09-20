@@ -16,7 +16,7 @@ void VXLAN_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
+void VXLAN_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
                                    uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

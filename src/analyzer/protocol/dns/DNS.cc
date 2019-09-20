@@ -475,7 +475,7 @@ int DNS_Interpreter::ExtractLabel(const u_char*& data, uint64_t& len,
 	return 1;
 	}
 
-uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
+uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, uint64_t& len)
 	{
 	if ( len < 2 )
 		return 0;
@@ -495,7 +495,7 @@ uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
 	return val;
 	}
 
-uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
+uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, uint64_t& len)
 	{
 	if ( len < 4 )
 		return 0;
@@ -727,8 +727,8 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 void DNS_Interpreter::ExtractOctets(const u_char*& data, uint64_t& len,
                                     BroString** p)
 	{
-	uint16_t dlen = ExtractShort(data, len);
-	dlen = min(len, static_cast<int>(dlen));
+	uint64_t dlen = ExtractShort(data, len);
+	dlen = min(len, dlen);
 
 	if ( p )
 		*p = new BroString(data, dlen, 0);
@@ -737,10 +737,10 @@ void DNS_Interpreter::ExtractOctets(const u_char*& data, uint64_t& len,
 	len -= dlen;
 	}
 
-BroString* DNS_Interpreter::ExtractStream(const u_char*& data, uint64_t& len, unsigned int l)
+BroString* DNS_Interpreter::ExtractStream(const u_char*& data, uint64_t& len, uint64_t l)
 	{
-	l = max(l, 0);
-	int dlen = min(len, l); // Len in bytes of the algorithm use
+	l = max(l, static_cast<uint64_t>(0));
+	uint64_t dlen = min(len, l); // Len in bytes of the algorithm use
 	auto rval = new BroString(data, dlen, 0);
 
 	data += dlen;
@@ -1268,7 +1268,7 @@ int DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	}
 
 static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
-                                      const u_char*& data, uint64_t& len, int& rdlen)
+                                      const u_char*& data, uint64_t& len, uint64_t& rdlen)
 	{
 	if ( rdlen <= 0 )
 		return 0;
@@ -1650,7 +1650,7 @@ void Contents_DNS::Flush()
 		}
 	}
 
-void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
+void Contents_DNS::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	if ( state == DNS_LEN_HI )
 		{
@@ -1754,7 +1754,7 @@ void DNS_Analyzer::Done()
 		interp->Timeout();
 	}
 
-void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
+void DNS_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);

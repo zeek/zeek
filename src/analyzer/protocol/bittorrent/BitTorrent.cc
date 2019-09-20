@@ -28,7 +28,7 @@ void BitTorrent_Analyzer::Done()
 	interp->FlowEOF(false);
 	}
 
-void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void BitTorrent_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	bool& this_stop = orig ? stop_orig : stop_resp;
@@ -68,7 +68,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void BitTorrent_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 

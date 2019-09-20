@@ -180,7 +180,7 @@ Contents_NCP_Analyzer::~Contents_NCP_Analyzer()
 	{
 	}
 
-void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void Contents_NCP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
@@ -241,7 +241,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		}
 	}
 
-void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void Contents_NCP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 

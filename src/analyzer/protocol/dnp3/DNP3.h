@@ -29,7 +29,7 @@ protected:
 		bool encountered_first_chunk;
 		};
 
-	bool ProcessData(int len, const u_char* data, bool orig);
+	bool ProcessData(uint64_t len, const u_char* data, bool orig);
 	void ClearEndpointState(bool orig);
 
 	/**
@@ -44,11 +44,11 @@ protected:
 	 * buffer is not yet \a target_len bytes in size, or 1 the buffer is the
 	 * required size.
 	 */
-	int AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, int* len);
+	int AddToBuffer(Endpoint* endp, unsigned int target_len, const u_char** data, uint64_t* len);
 
 	bool ParseAppLayer(Endpoint* endp);
-	bool CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where);
-	unsigned int CalcCRC(int len, const u_char* data);
+	bool CheckCRC(unsigned int len, const u_char* data, const u_char* crc16, const char* where);
+	unsigned int CalcCRC(unsigned int len, const u_char* data);
 
 	static void PrecomputeCRCTable();
 
@@ -68,8 +68,8 @@ public:
 	~DNP3_TCP_Analyzer() override;
 
 	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static Analyzer* Instantiate(Connection* conn)
@@ -81,7 +81,7 @@ public:
 	explicit DNP3_UDP_Analyzer(Connection* conn);
 	~DNP3_UDP_Analyzer() override;
 
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
                     uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)

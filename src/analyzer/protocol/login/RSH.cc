@@ -32,7 +32,7 @@ Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer()
 	{
 	}
 
-void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
+void Contents_Rsh_Analyzer::DoDeliver(uint64_t len, const u_char* data)
 	{
 	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);
@@ -152,7 +152,7 @@ Rsh_Analyzer::Rsh_Analyzer(Connection* conn)
 	AddSupportAnalyzer(contents_resp);
 	}
 
-void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void Rsh_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	Login_Analyzer::DeliverStream(len, data, orig);
 

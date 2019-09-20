@@ -171,7 +171,7 @@ void SteppingStone_Analyzer::Init()
 	resp_endp = new SteppingStoneEndpoint(TCP()->Resp(), stp_manager);
 	}
 
-void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
+void SteppingStone_Analyzer::DeliverPacket(uint64_t len, const u_char* data,
 						bool is_orig, uint64_t seq,
 						const IP_Hdr* ip, int caplen)
 	{
@@ -184,7 +184,7 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 		resp_endp->DataSent(network_time, seq, len, caplen, data, 0, 0);
 	}
 
-void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
+void SteppingStone_Analyzer::DeliverStream(uint64_t len, const u_char* data,
 						bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);

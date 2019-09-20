@@ -310,7 +310,7 @@ void Gnutella_Analyzer::DeliverMessages(int len, const u_char* data, bool orig)
 	}
 
 
-void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
+void Gnutella_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 

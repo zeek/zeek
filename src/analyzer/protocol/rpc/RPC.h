@@ -209,8 +209,8 @@ protected:
 
 	void Init() override;
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
+	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 
 	virtual void NeedResync() {
 		resync_state = NEED_RESYNC;
@@ -240,7 +240,7 @@ public:
 	void Done() override;
 
 protected:
-	void DeliverPacket(int len, const u_char* data, bool orig,
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void ExpireTimer(double t);

@@ -91,7 +91,7 @@ public:
 	MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entity);
 	virtual ~MIME_Entity();
 
-	virtual void Deliver(int len, const char* data, int trailing_CRLF);
+	virtual void Deliver(uint64_t len, const char* data, int trailing_CRLF);
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
@@ -132,7 +132,7 @@ protected:
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
 	void FlushData();
-	virtual void SubmitData(int len, const char* buf);
+	virtual void SubmitData(uint64_t len, const char* buf);
 
 	virtual void SubmitHeader(MIME_Header* h);
 	// Submit all headers in member "headers".

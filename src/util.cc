@@ -302,11 +302,11 @@ char* get_word(char*& s)
 	return w;
 	}
 
-void get_word(uint64_t length, const char* s, int& pwlen, const char*& pw)
+void get_word(uint64_t length, const char* s, uint64_t& pwlen, const char*& pw)
 	{
 	pw = s;
 
-	int len = 0;
+	uint64_t len = 0;
 	while ( len < length && *s && ! isspace(*s) )
 		{
 		++s;

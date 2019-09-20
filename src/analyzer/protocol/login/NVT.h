@@ -42,7 +42,7 @@ public:
 	void SetDont()	{ flags |= OPT_SAID_DONT; }
 
 	void RecvOption(unsigned int type);
-	virtual void RecvSubOption(u_char* data, int len);
+	virtual void RecvSubOption(u_char* data, uint64_t len);
 
 	virtual void SetActive(int is_active);
 
@@ -64,7 +64,7 @@ public:
 	explicit TelnetTerminalOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_TERMINAL)	{ }
 
-	void RecvSubOption(u_char* data, int len) override;
+	void RecvSubOption(u_char* data, uint64_t len) override;
 };
 
 class TelnetEncryptOption : public TelnetOption {
@@ -73,7 +73,7 @@ public:
 		: TelnetOption(arg_endp, TELNET_OPTION_ENCRYPT)
 			{ did_encrypt_request = doing_encryption = 0; }
 
-	void RecvSubOption(u_char* data, int len) override;
+	void RecvSubOption(u_char* data, uint64_t len) override;
 
 	int DidRequest() const		{ return did_encrypt_request; }
 	int DoingEncryption() const	{ return doing_encryption; }
@@ -89,7 +89,7 @@ public:
 		: TelnetOption(arg_endp, TELNET_OPTION_AUTHENTICATE)
 			{ authentication_requested = 0; }
 
-	void RecvSubOption(u_char* data, int len) override;
+	void RecvSubOption(u_char* data, uint64_t len) override;
 
 	int DidRequestAuthentication() const
 		{ return authentication_requested; }
@@ -146,7 +146,7 @@ public:
 		{ return authentication_has_been_accepted; }
 
 protected:
-	void DoDeliver(int len, const u_char* data) override;
+	void DoDeliver(uint64_t len, const u_char* data) override;
 
 	void ScanOption(int seq, int len, const u_char* data);
 	virtual void SawOption(unsigned int code);

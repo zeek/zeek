@@ -28,7 +28,7 @@ void Syslog_Analyzer::Done()
 		Event(udp_session_done);
 	}
 
-void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void Syslog_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->NewData(orig, data, data + len);
@@ -74,7 +74,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	interp->FlowEOF(endp->IsOrig());
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::DeliverStream(int len, const u_char* data,
+//void Syslog_tcp::TCP_Analyzer::DeliverStream(uint64_t len, const u_char* data,
 //						bool orig)
 //	{
 //	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
@@ -88,7 +88,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	interp->NewData(orig, data, data + len);
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+//void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 //	{
 //	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);

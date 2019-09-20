@@ -446,7 +446,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 
 	for ( ;; )
 		{
-		size_t readbytes = fread(buf.get()+bufpos+offset, 1, block_size-bufpos, arg_file);
+		int readbytes = static_cast<int> (fread(buf.get()+bufpos+offset, 1, block_size-bufpos, arg_file));
 		pos += bufpos + readbytes;
 		//printf("Pos: %d\n", pos);
 		bufpos = offset = 0; // read full block size in next read...

@@ -39,7 +39,7 @@ public:
 		}
 
 	void EndOfData() override;
-	void Deliver(int len, const char* data, int trailing_CRLF) override;
+	void Deliver(uint64_t len, const char* data, int trailing_CRLF) override;
 	int Undelivered(int64_t len);
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
@@ -69,10 +69,10 @@ protected:
 
 	MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
-	void DeliverBody(int len, const char* data, int trailing_CRLF);
+	void DeliverBody(uint64_t len, const char* data, int trailing_CRLF);
 	void DeliverBodyClear(uint64_t len, const char* data, int trailing_CRLF);
 
-	void SubmitData(int len, const char* buf) override;
+	void SubmitData(uint64_t len, const char* buf) override;
 
 	void SetPlainDelivery(int64_t length);
 
@@ -205,7 +205,7 @@ protected:
 				const char* prefix);
 
 	int ParseRequest(const char* line, const char* end_of_line);
-	double HTTP_Version(int len, const char* data);
+	double HTTP_Version(uint64_t len, const char* data);
 
 	void SetVersion(double& version, double new_version);
 

@@ -108,7 +108,7 @@ int is_lws(char ch)
 	return ch == 9 || ch == 32;
 	}
 
-StringVal* new_string_val(int length, const char* data)
+StringVal* new_string_val(uint64_t length, const char* data)
 	{
 	return new StringVal(length, data);
 	}
@@ -205,7 +205,7 @@ int MIME_skip_comments(int len, const char* data)
 
 // Skip over lws and comments, but not tspecials. Do not use this
 // function in quoted-string or comments.
-int MIME_skip_lws_comments(int len, const char* data)
+int MIME_skip_lws_comments(uint64_t len, const char* data)
 	{
 	int i = 0;
 	while ( i < len )
@@ -224,7 +224,7 @@ int MIME_skip_lws_comments(int len, const char* data)
 	return len;
 	}
 
-int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
+int MIME_get_field_name(uint64_t len, const char* data, data_chunk_t* name)
 	{
 	int i = MIME_skip_lws_comments(len, data);
 	while ( i < len )
@@ -272,7 +272,7 @@ int MIME_is_token_char (char ch, bool is_boundary = false)
 
 // See RFC 2045, page 12.
 // A token is composed of characters that are not SPACE, CTLs or tspecials
-int MIME_get_token(int len, const char* data, data_chunk_t* token,
+int MIME_get_token(uint64_t len, const char* data, data_chunk_t* token,
                    bool is_boundary)
 	{
 	int i = 0;
@@ -304,7 +304,7 @@ int MIME_get_token(int len, const char* data, data_chunk_t* token,
 	return -1;
 	}
 
-int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second)
+int MIME_get_slash_token_pair(uint64_t len, const char* data, data_chunk_t* first, data_chunk_t* second)
 	{
 	int offset;
 	const char* data_start = data;
@@ -344,7 +344,7 @@ int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, da
 	}
 
 // See RFC 2822, page 13.
-int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
+int MIME_get_quoted_string(uint64_t len, const char* data, data_chunk_t* str)
 	{
 	int offset = MIME_skip_lws_comments(len, data);
 
@@ -371,7 +371,7 @@ int MIME_get_quoted_string(int len, const char* data, data_chunk_t* str)
 	return -1;
 	}
 
-int MIME_get_value(int len, const char* data, BroString*& buf, bool is_boundary)
+int MIME_get_value(uint64_t len, const char* data, BroString*& buf, bool is_boundary)
 	{
 	int offset = 0;
 
@@ -446,7 +446,7 @@ MIME_Multiline::~MIME_Multiline()
 	delete_strings(buffer);
 	}
 
-void MIME_Multiline::append(int len, const char* data)
+void MIME_Multiline::append(uint64_t len, const char* data)
 	{
 	buffer.push_back(new BroString((const u_char*) data, len, 1));
 	}

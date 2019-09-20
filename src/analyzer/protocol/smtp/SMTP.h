@@ -56,11 +56,11 @@ public:
 
 protected:
 
-	void ProcessLine(int length, const char* line, bool orig);
+	void ProcessLine(uint length, const char* line, bool orig);
 	void NewCmd(const int cmd_code);
 	void NewReply(const int reply_code, bool orig);
 	void ProcessExtension(int ext_len, const char* ext);
-	void ProcessData(int length, const char* line);
+	void ProcessData(uint64_t length, const char* line);
 
 	void UpdateState(const int cmd_code, const int reply_code, bool orig);
 
@@ -70,7 +70,7 @@ protected:
 	int ParseCmd(int cmd_len, const char* cmd);
 
 	void RequestEvent(int cmd_len, const char* cmd,
-				int arg_len, const char* arg);
+				uint64_t arg_len, const char* arg);
 	void Unexpected(const int is_orig, const char* msg,
 				int detail_len, const char* detail);
 	void UnexpectedCommand(const int cmd_code, const int reply_code);

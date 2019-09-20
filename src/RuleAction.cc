@@ -13,7 +13,7 @@ using std::string;
 #include "analyzer/Manager.h"
 
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len)
+				const u_char* data, unsigned int len)
 	{
 	if ( signature_match )
 		{
@@ -69,7 +69,7 @@ void RuleActionAnalyzer::PrintDebug()
 
 
 void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len)
+				const u_char* data, unsigned int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{
@@ -98,7 +98,7 @@ void RuleActionEnable::PrintDebug()
 	}
 
 void RuleActionDisable::DoAction(const Rule* parent, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 	if ( ! ChildAnalyzer() )
 		{

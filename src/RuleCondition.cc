@@ -16,7 +16,7 @@ static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	}
 
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 	analyzer::Analyzer* root = state->GetAnalyzer()->Conn()->GetRootAnalyzer();
 
@@ -53,7 +53,7 @@ void RuleConditionIPOptions::PrintDebug()
 	}
 
 bool RuleConditionIPOptions::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 	// FIXME: Not implemented yet
 	return false;
@@ -65,7 +65,7 @@ void RuleConditionSameIP::PrintDebug()
 	}
 
 bool RuleConditionSameIP::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 	return state->GetAnalyzer()->Conn()->OrigAddr() ==
 		state->GetAnalyzer()->Conn()->RespAddr();
@@ -77,7 +77,7 @@ void RuleConditionPayloadSize::PrintDebug()
 	}
 
 bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 #ifdef MATCHER_PRINT_DEBUG
 	fprintf(stderr, "%.06f PayloadSize check: val = %d, payload_size = %d\n",
@@ -150,7 +150,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 	}
 
 bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
-					const u_char* data, int len)
+					const u_char* data, unsigned int len)
 	{
 	if ( ! id->HasVal() )
 		{

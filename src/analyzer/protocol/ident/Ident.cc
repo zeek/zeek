@@ -112,7 +112,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			}
 
 		line = skip_whitespace(line + 1, end_of_line);
-		int restlen = end_of_line - line;
+		uint64_t restlen = end_of_line - line;
 
 		int is_error;
 		if ( restlen >= 5 && ! strncmp(line, "ERROR", 5) )

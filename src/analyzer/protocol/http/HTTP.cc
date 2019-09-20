@@ -78,7 +78,7 @@ void HTTP_Entity::EndOfData()
 	MIME_Entity::EndOfData();
 	}
 
-void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::Deliver(uint64_t len, const char* data, int trailing_CRLF)
 	{
 	if ( DEBUG_http )
 		{
@@ -177,7 +177,7 @@ class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
 	virtual	~UncompressedOutput() { }
-	virtual void DeliverStream(int len, const u_char* data, bool orig)
+	virtual void DeliverStream(uint64_t len, const u_char* data, bool orig)
 		{
 		entity->DeliverBodyClear(len, (char*) data, false);
 		}
@@ -185,7 +185,7 @@ private:
 	HTTP_Entity* entity;
 };
 
-void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBody(uint64_t len, const char* data, int trailing_CRLF)
 	{
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
@@ -208,7 +208,7 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
-void HTTP_Entity::DeliverBodyClear(uint64_t len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBodyClear(int64_t len, const char* data, int trailing_CRLF)
 	{
 	bool new_data = (body_length == 0);
 
@@ -1349,7 +1349,7 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	}
 
 // Only recognize [0-9][.][0-9].
-double HTTP_Analyzer::HTTP_Version(int len, const char* data)
+double HTTP_Analyzer::HTTP_Version(uint64_t len, const char* data)
 	{
 	if ( len >= 3 &&
 	     data[0] >= '0' && data[0] <= '9' &&
@@ -1420,7 +1420,7 @@ void HTTP_Analyzer::HTTP_Request()
 	ProtocolConfirmation();
 
 	const char* method = (const char*) request_method->AsString()->Bytes();
-	int method_len = request_method->AsString()->Len();
+	unsigned int method_len = request_method->AsString()->Len();
 
 	if ( strncasecmp(method, "CONNECT", method_len) == 0 )
 		connect_request = true;

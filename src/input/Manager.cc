@@ -657,12 +657,12 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	bool status = (! UnrollRecordType(&fieldsV, idx, "", false));
 
-	int idxfields = fieldsV.size();
+	unsigned idxfields = fieldsV.size();
 
 	if ( val ) // if we are not a set
 		status = status || ! UnrollRecordType(&fieldsV, val, "", BifConst::Input::accept_unsupported_types);
 
-	int valfields = fieldsV.size() - idxfields;
+	unsigned valfields = fieldsV.size() - idxfields;
 
 	if ( (valfields > 1) && (want_record->InternalInt() != 1) )
 		{
@@ -1113,7 +1113,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	delete_value_ptr_array(vals, readFields);
 	}
 
-int Manager::SendEntryTable(Stream* i, const Value* const *vals)
+unsigned int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	{
 	bool updated = false;
 
@@ -1502,7 +1502,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	delete_value_ptr_array(vals, readFields);
 	}
 
-int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *vals)
+unsigned int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *vals)
 	{
 	assert(i);
 
@@ -1558,7 +1558,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 	return stream->num_fields;
 	}
 
-int Manager::PutTable(Stream* i, const Value* const *vals)
+unsigned int Manager::PutTable(Stream* i, const Value* const *vals)
 	{
 	assert(i);
 

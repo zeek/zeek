@@ -105,10 +105,10 @@ public:
 		: TelnetOption(arg_endp, TELNET_OPTION_ENVIRON)
 			{ }
 
-	void RecvSubOption(u_char* data, int len) override;
+	void RecvSubOption(u_char* data, uint64_t len) override;
 
 protected:
-	char* ExtractEnv(u_char*& data, int& len, int& code);
+	char* ExtractEnv(u_char*& data, uint64_t& len, int& code);
 };
 
 class TelnetBinaryOption : public TelnetOption {

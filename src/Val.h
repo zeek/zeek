@@ -628,7 +628,7 @@ public:
 	Val* SizeVal() const override
 		{ return val_mgr->GetCount(val.string_val->Len()); }
 
-	int Len()		{ return AsString()->Len(); }
+	unsigned int Len()		{ return AsString()->Len(); }
 	const u_char* Bytes()	{ return AsString()->Bytes(); }
 	const char* CheckString() { return AsString()->CheckString(); }
 

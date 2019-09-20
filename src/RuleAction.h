@@ -17,7 +17,7 @@ public:
 	virtual ~RuleAction()	{ }
 
 	virtual void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len) = 0;
+				const u_char* data, unsigned int len) = 0;
 	virtual void PrintDebug() = 0;
 };
 
@@ -28,7 +28,7 @@ public:
 	~RuleActionEvent() override { delete [] msg; }
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 
@@ -45,7 +45,7 @@ public:
 		{ delete [] mime; }
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
-	                      const u_char* data, int len) override
+	                      const u_char* data, unsigned int len) override
 		{ }
 
 	void PrintDebug() override;
@@ -67,7 +67,7 @@ public:
 	explicit RuleActionAnalyzer(const char* analyzer);
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
-			      const u_char* data, int len) override = 0;
+			      const u_char* data, unsigned int len) override = 0;
 
 	void PrintDebug() override;
 
@@ -84,7 +84,7 @@ public:
 	explicit RuleActionEnable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 };
@@ -94,7 +94,7 @@ public:
 	explicit RuleActionDisable(const char* analyzer) : RuleActionAnalyzer(analyzer)	{}
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 };

@@ -206,7 +206,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( line[0] == '.' )
 				++line;
 
-			int data_len = end_of_line - line;
+			uint64_t data_len = end_of_line - line;
 
 			if ( ! mail )
 				// This can happen if we're already shut
@@ -268,7 +268,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 			if ( smtp_request )
 				{
-				int data_len = end_of_line - line;
+				uint64_t data_len = end_of_line - line;
 
 				if ( cmd_len > 0 || data_len > 0 )
 					RequestEvent(cmd_len, cmd, data_len, line);
@@ -850,7 +850,7 @@ int SMTP_Analyzer::ParseCmd(int cmd_len, const char* cmd)
 	}
 
 void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
-				int arg_len, const char* arg)
+				uint64_t arg_len, const char* arg)
 	{
 	ProtocolConfirmation();
 
@@ -908,7 +908,7 @@ void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
 	Unexpected (1, "unexpected reply", len, buf);
 	}
 
-void SMTP_Analyzer::ProcessData(int length, const char* line)
+void SMTP_Analyzer::ProcessData(uint64_t length, const char* line)
 	{
 	mail->Deliver(length, line, 1 /* trailing_CRLF */);
 	}

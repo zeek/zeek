@@ -32,8 +32,8 @@ namespace { // local namespace
 
 #define TOO_LARGE_SEQ_DELTA 1048576
 
-static const int ORIG = 1;
-static const int RESP = 2;
+static const unsigned int ORIG = 1;
+static const unsigned int RESP = 2;
 
 static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
                                        const struct tcphdr* tcp)

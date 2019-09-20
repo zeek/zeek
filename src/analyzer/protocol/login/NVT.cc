@@ -267,7 +267,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
 #define ENVIRON_ESC 2
 #define ENVIRON_USERVAR 3
 
-void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
+void TelnetEnvironmentOption::RecvSubOption(u_char* data, uint64_t len)
 	{
 	if ( len <= 0 )
 		{
@@ -312,7 +312,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len)
 		}
 	}
 
-char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
+char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, uint64_t& len, int& code)
 	{
 	code = data[0];
 
@@ -341,7 +341,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 			}
 		}
 
-	int size = d - data;
+	uint64_t size = d - data;
 	char* env = new char[size+1];
 
 	// Now copy into env.

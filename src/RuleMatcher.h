@@ -182,7 +182,7 @@ private:
 	rule_list matched_by_patterns;
 	bstr_list matched_text;
 
-	int payload_size;
+	unsigned int payload_size;
 
 	int_list matched_rules;		// Rules for which all conditions have matched
 };
@@ -378,7 +378,7 @@ public:
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.
-	void Match(Rule::PatternType type, const u_char* data, int data_len,
+	void Match(Rule::PatternType type, const u_char* data, unsigned int data_len,
 			bool from_orig, bool bol, bool eol, bool clear_state);
 
 	void FinishEndpointMatcher();

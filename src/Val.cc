@@ -1020,7 +1020,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
-	int n = Len();
+	int n = static_cast<int> (Len());
 
 	// cut_points is a set of pairs of indices in str that should
 	// be removed/replaced.  A pair <x,y> means "delete starting
@@ -1088,7 +1088,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 		}
 
 	// Copy final trailing characters.
-	int num_to_copy = Len() - start_offset;
+	unsigned int num_to_copy = Len() - start_offset;
 	memcpy(r, s + start_offset, num_to_copy);
 	r += num_to_copy;
 

@@ -264,23 +264,23 @@ protected:
 
 
 extern int is_null_data_chunk(data_chunk_t b);
-extern StringVal* new_string_val(int length, const char* data);
+extern StringVal* new_string_val(uint64_t length, const char* data);
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
 extern StringVal* new_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
 extern bool istrequal(data_chunk_t s, const char* t);
 extern int is_lws(char ch);
 extern int MIME_is_field_name_char(char ch);
-extern int MIME_count_leading_lws(int len, const char* data);
-extern int MIME_count_trailing_lws(int len, const char* data);
-extern int MIME_skip_comments(int len, const char* data);
-extern int MIME_skip_lws_comments(int len, const char* data);
-extern int MIME_get_token(int len, const char* data, data_chunk_t* token,
+extern int MIME_count_leading_lws(uint64_t len, const char* data);
+extern int MIME_count_trailing_lws(uint64_t len, const char* data);
+extern int MIME_skip_comments(uint64_t len, const char* data);
+extern int MIME_skip_lws_comments(uint64_t len, const char* data);
+extern int MIME_get_token(uint64_t len, const char* data, data_chunk_t* token,
                           bool is_boundary = false);
-extern int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second);
-extern int MIME_get_value(int len, const char* data, BroString*& buf,
+extern int MIME_get_slash_token_pair(uint64_t len, const char* data, data_chunk_t* first, data_chunk_t* second);
+extern int MIME_get_value(uint64_t len, const char* data, BroString*& buf,
                           bool is_boundary = false);
-extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
+extern int MIME_get_field_name(uint64_t len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } } // namespace analyzer::*

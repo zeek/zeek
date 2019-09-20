@@ -75,7 +75,7 @@ int ContentLine_Analyzer::HasPartialLine() const
 	return buf && offset > 0;
 	}
 
-void ContentLine_Analyzer::DeliverStream(int len, const u_char* data,
+void ContentLine_Analyzer::DeliverStream(uint64_t len, const u_char* data,
 						bool is_orig)
 	{
 	TCP_SupportAnalyzer::DeliverStream(len, data, is_orig);
@@ -108,7 +108,7 @@ void ContentLine_Analyzer::EndpointEOF(bool is_orig)
 		DeliverStream(1, (const u_char*) "\n", is_orig);
 	}
 
-void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
+void ContentLine_Analyzer::SetPlainDelivery(uint64_t length)
 	{
 	if ( length < 0 )
 		{
@@ -120,7 +120,7 @@ void ContentLine_Analyzer::SetPlainDelivery(int64_t length)
 	plain_delivery_length = length;
 	}
 
-void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
+void ContentLine_Analyzer::DoDeliver(uint64_t len, const u_char* data)
 	{
 	seq_delivered_in_lines = seq;
 
@@ -184,14 +184,14 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 		if ( len <= 0 )
 			break;
 
-		int n = DoDeliverOnce(len, data);
+		uint64_t n = DoDeliverOnce(len, data);
 		len -= n;
 		data += n;
 		seq += n;
 		}
 	}
 
-int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data)
+uint64_t ContentLine_Analyzer::DoDeliverOnce(uint64_t len, const u_char* data)
 	{
 	const u_char* data_start = data;
 

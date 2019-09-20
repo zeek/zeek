@@ -16,7 +16,7 @@ public:
 	virtual ~RuleCondition()	{ }
 
 	virtual bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) = 0;
+				const u_char* data, unsigned int len) = 0;
 
 	virtual void PrintDebug() = 0;
 };
@@ -37,7 +37,7 @@ public:
 	~RuleConditionTCPState() override { }
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 
@@ -62,7 +62,7 @@ public:
 		{ }
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 
@@ -77,7 +77,7 @@ public:
 	~RuleConditionSameIP() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 };
@@ -93,7 +93,7 @@ public:
 	~RuleConditionPayloadSize() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 
@@ -109,7 +109,7 @@ public:
 	~RuleConditionEval() override {}
 
 	bool DoMatch(Rule* rule, RuleEndpointState* state,
-				const u_char* data, int len) override;
+				const u_char* data, unsigned int len) override;
 
 	void PrintDebug() override;
 private:

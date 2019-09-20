@@ -95,8 +95,8 @@ protected:
 	// Pass in name/length, returns in xname/xlen the converted
 	// name/length.  Returns 0 on failure; xname may still be
 	// allocated and hold partial results at that point.
-	int ConvertName(const u_char* name, int name_len,
-			u_char*& xname, int& xlen);
+	int ConvertName(const u_char* name, unsigned name_len,
+			u_char*& xname, unsigned& xlen);
 
 protected:
 	Analyzer* analyzer;

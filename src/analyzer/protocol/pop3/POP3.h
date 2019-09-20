@@ -96,7 +96,7 @@ protected:
 	void ProcessClientCmd();
 	void FinishClientCmd();
 	void BeginData(bool orig);
-	void ProcessData(int length, const char* line);
+	void ProcessData(uint64_t length, const char* line);
 	void EndData();
 	void StartTLS();
 

@@ -228,7 +228,7 @@ protected:
 	double last_time;
 
 	resync_state_t resync_state;
-	int resync_toskip;
+	uint32_t resync_toskip;
 };
 
 class RPC_Analyzer : public tcp::TCP_ApplicationAnalyzer {

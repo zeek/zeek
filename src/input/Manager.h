@@ -193,13 +193,13 @@ private:
 	bool CheckErrorEventTypes(std::string stream_name, const Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
-	int SendEntryTable(Stream* i, const threading::Value* const *vals);
+	unsigned int SendEntryTable(Stream* i, const threading::Value* const *vals);
 
 	// Put implementation for Table stream.
-	int PutTable(Stream* i, const threading::Value* const *vals);
+	unsigned int PutTable(Stream* i, const threading::Value* const *vals);
 
 	// SendEntry and Put implementation for Event stream.
-	int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
+	unsigned int SendEventStreamEvent(Stream* i, EnumVal* type, const threading::Value* const *vals);
 
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls

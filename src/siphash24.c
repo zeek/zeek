@@ -87,7 +87,7 @@ int _siphash(uint8_t *out, const uint8_t *in, uint64_t inlen, const uint8_t *k) 
   uint64_t m;
   int i;
   const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
-  const int left = inlen & 7;
+  const int left = static_cast <int> (inlen & 7);
   b = ((uint64_t)inlen) << 56;
   v3 ^= k1;
   v2 ^= k0;

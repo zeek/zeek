@@ -207,8 +207,8 @@ int NetbiosSSN_Interpreter::ParseSambaMsg(const u_char* data, unsigned int len,
 	return 0;
 	}
 
-int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len,
-					u_char*& xname, int& xlen)
+int NetbiosSSN_Interpreter::ConvertName(const u_char* name, unsigned int name_len,
+					u_char*& xname, unsigned int& xlen)
 	{
 	// Taken from tcpdump's smbutil.c.
 
@@ -253,7 +253,7 @@ int NetbiosSSN_Interpreter::ParseSessionReq(const u_char* data, unsigned int len
 		analyzer->Weird("netbios_server_session_request");
 
 	u_char* xname;
-	int xlen;
+	unsigned int xlen;
 
 	if ( ConvertName(data, len, xname, xlen) )
 		Event(netbios_session_request, xname, xlen);

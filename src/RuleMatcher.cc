@@ -1458,7 +1458,7 @@ void RuleMatcherState::FinishEndpointMatcher()
 	}
 
 void RuleMatcherState::Match(Rule::PatternType type, const u_char* data,
-				int data_len, bool from_orig,
+				unsigned int data_len, bool from_orig,
 				bool bol, bool eol, bool clear)
 	{
 	if ( ! rule_matcher )

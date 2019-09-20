@@ -154,7 +154,7 @@ public:
 
 	// Returns true if this inputs leads to at least one new match.
 	// If clear is true, starts matching over.
-	bool Match(const u_char* bv, int n, bool bol, bool eol, bool clear);
+	bool Match(const u_char* bv, unsigned int n, bool bol, bool eol, bool clear);
 
 	void Clear()
 		{

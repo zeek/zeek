@@ -401,7 +401,7 @@ int Specific_RE_Matcher::LongestMatch(const u_char* bv, unsigned int n)
 		{
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 		if ( d && d->Accept() )
-			return n;
+			return static_cast<int> (n);
 		}
 
 	return last_accept;

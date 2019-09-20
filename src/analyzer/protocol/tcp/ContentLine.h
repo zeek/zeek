@@ -65,15 +65,15 @@ public:
 protected:
 	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
-	void DeliverStream(int len, const u_char* data, bool is_orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool is_orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	class State;
 	void InitState();
 	void InitBuffer(int size);
-	virtual void DoDeliver(int len, const u_char* data);
-	int DoDeliverOnce(int len, const u_char* data);
+	virtual void DoDeliver(uint64_t len, const u_char* data);
+	int DoDeliverOnce(uint64_t len, const u_char* data);
 	void CheckNUL();
 
 	// Returns the sequence number delivered so far.

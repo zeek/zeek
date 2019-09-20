@@ -95,7 +95,7 @@ int SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 
 	stp_max_top_seq = top_seq;
 
-	if ( stp_last_time && t <= stp_last_time + stp_idle_min )
+	if ( stp_last_time != 0.0 && t <= stp_last_time + stp_idle_min )
 		{
 		stp_last_time = t;
 		return 1;

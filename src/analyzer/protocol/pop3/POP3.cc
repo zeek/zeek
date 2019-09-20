@@ -165,7 +165,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 			// Format: "authorization identity<NUL>authentication
 			//		identity<NUL>password"
 			char* str = (char*) decoded->Bytes();
-			int len = decoded->Len();
+			unsigned int len = decoded->Len();
 			char* end = str + len;
 			char* s;
 			char* e;
@@ -195,7 +195,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 				}
 
 			char tmp[len];	// more than enough
-			int n = len - (s - str);
+			unsigned int n = len - (s - str);
 			memcpy(tmp, s, n);
 			tmp[n] = '\0';
 			password = tmp;
@@ -620,7 +620,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			{
 			if ( state == RETR || state == TOP )
 				{
-				int data_len = end_of_line - line;
+				uint64_t data_len = end_of_line - line;
 				ProcessData(data_len, line);
 				}
 
@@ -713,7 +713,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 		case TOP:
 		case RETR:
 			{
-			int data_len = end_of_line - line;
+			uint64_t data_len = end_of_line - line;
 			if ( ! mail )
 				// ProcessReply is only called if orig == false
 				BeginData(false);
@@ -862,7 +862,7 @@ void POP3_Analyzer::EndData()
 		}
 	}
 
-void POP3_Analyzer::ProcessData(int length, const char* line)
+void POP3_Analyzer::ProcessData(uint64_t length, const char* line)
 	{
 	mail->Deliver(length, line, 1);
 	}

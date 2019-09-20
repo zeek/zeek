@@ -1086,7 +1086,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	auto hash_val = ExtractStream(data, len, static_cast<unsigned int>(hash_len));
 
-	int typebitmaps_len = rdlength - (data - data_start);
+	uint64_t typebitmaps_len = rdlength - (data - data_start);
 
 	VectorVal* char_strings = new VectorVal(string_vec);
 

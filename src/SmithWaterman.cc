@@ -341,9 +341,9 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 	{
 	vector<BroSubstring::Vec*> als;
 
-	for ( int i = matrix.GetHeight() - 1; i > 0; --i )
+	for ( unsigned int i = matrix.GetHeight() - 1; i > 0; --i )
 		{
-		for ( int j = matrix.GetWidth() - 1; j > 0; --j )
+		for ( unsigned int j = matrix.GetWidth() - 1; j > 0; --j )
 			{
 			SWNode* node = matrix(i, j);
 

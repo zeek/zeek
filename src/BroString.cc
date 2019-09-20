@@ -437,7 +437,7 @@ int Bstr_cmp(const BroString* s1, const BroString* s2)
 BroString* concatenate(std::vector<data_chunk_t>& v)
 	{
 	int n = v.size();
-	int len = 0;
+	unsigned int len = 0;
 	int i;
 	for ( i = 0; i < n; ++i )
 		len += v[i].length;

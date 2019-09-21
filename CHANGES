@@ -1,4 +1,10 @@
 
+3.0.0-rc2.6 | 2019-09-21 12:21:27 -0700
+
+  * Update 3rdparty submodule to fix broken build (Jon Siwek, Corelight)
+
+    Accidentally updated it to the wrong place in previous commit.
+
 3.0.0-rc2.5 | 2019-09-21 11:04:26 -0700
 
   * Update embedded CAF to 0.16.4 (fix compiler warnings) (Jon Siwek, Corelight)

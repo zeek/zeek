@@ -366,9 +366,7 @@ endif ()
 
 # CAF headers aren't necessarily in same location as Broker headers and
 # inclusion of a Broker header may pull in CAF headers.
-include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
+include_directories(BEFORE ${CAF_INCLUDE_DIRS})
 
 add_subdirectory(aux/paraglob)
 set(zeekdeps ${zeekdeps} paraglob)

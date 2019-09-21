@@ -6,8 +6,7 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+include_directories(BEFORE ${CAF_INCLUDE_DIRS})
 
 add_subdirectory(writers)
 

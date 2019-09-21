@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace caf { class serializer; }
+
 class SerializationFormat;
 
 namespace threading {
@@ -182,6 +184,8 @@ struct Value {
 	 * @return False if an error occured.
 	 */
 	bool Write(SerializationFormat* fmt) const;
+
+	bool Write(caf::serializer* sink) const;
 
 	/**
 	 * Returns true if the type can be represented by a Value. If

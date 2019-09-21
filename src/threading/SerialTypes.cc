@@ -5,6 +5,8 @@
 #include "SerializationFormat.h"
 #include "Reporter.h"
 
+#include "caf/serializer.hpp"
+
 using namespace threading;
 
 bool Field::Read(SerializationFormat* fmt)
@@ -410,6 +412,132 @@ bool Value::Write(SerializationFormat* fmt) const
 			}
 
 		return true;
+		}
+
+	default:
+		reporter->InternalError("unsupported type %s in Value::Write",
+		                        type_name(type));
+	}
+
+	return false;
+	}
+
+#define CAF_WRITE(x)                                                           \
+  if (auto err = (*sink)(x))                                                   \
+    return false
+
+bool Value::Write(caf::serializer* sink) const
+	{
+  CAF_WRITE(static_cast<uint32_t>(type));
+  CAF_WRITE(static_cast<uint32_t>(subtype));
+  CAF_WRITE(present);
+
+	if ( ! present )
+		return true;
+
+	switch ( type ) {
+	case TYPE_BOOL:
+	  CAF_WRITE(static_cast<bool>(val.int_val));
+		return true;
+
+	case TYPE_INT:
+	  CAF_WRITE(val.int_val);
+		return true;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	  CAF_WRITE(val.uint_val);
+		return true;
+
+	case TYPE_PORT:
+	  CAF_WRITE(val.port_val.port);
+	  CAF_WRITE(val.port_val.proto);
+		return true;
+
+	case TYPE_ADDR:
+		{
+		switch ( val.addr_val.family ) {
+		case IPv4:
+		  CAF_WRITE(uint8_t{4});
+		  CAF_WRITE(val.addr_val.in.in4.s_addr);
+		  return true;
+		case IPv6:
+		  CAF_WRITE(uint8_t{6});
+		  const void* ptr = val.addr_val.in.in6.s6_addr;
+		  if (auto err = sink->apply_raw(16, const_cast<void*>(ptr)))
+		    return false;
+      return true;
+		}
+
+		// Can't be reached.
+		abort();
+		}
+
+	case TYPE_SUBNET:
+		{
+		CAF_WRITE(static_cast<uint8_t>(val.subnet_val.length));
+
+		switch ( val.subnet_val.prefix.family ) {
+		case IPv4:
+		  CAF_WRITE(uint8_t{4});
+		  CAF_WRITE(val.subnet_val.prefix.in.in4.s_addr);
+		  return true;
+
+		case IPv6:
+		  CAF_WRITE(uint8_t{6});
+		  const void* ptr = val.addr_val.in.in6.s6_addr;
+		  if (auto err = sink->apply_raw(16, const_cast<void*>(ptr)))
+		    return false;
+		  return true;
+		}
+
+		// Can't be reached.
+		abort();
+		}
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+	  CAF_WRITE(val.double_val);
+	  return true;
+
+	case TYPE_ENUM:
+	case TYPE_STRING:
+	case TYPE_FILE:
+	case TYPE_FUNC:
+    if (auto err = sink->apply_raw((size_t) val.string_val.length,
+                                   val.string_val.data))
+      return false;
+    return true;
+
+	case TYPE_TABLE:
+		{
+		auto seq_size = (size_t) val.set_val.size;
+	  if (auto err = sink->begin_sequence(seq_size))
+	    return false;
+	  for ( int i = 0; i < val.set_val.size; ++i )
+      {
+        if ( ! val.set_val.vals[i]->Write(sink) )
+          return false;
+      }
+	  if (auto err = sink->end_sequence())
+	    return false;
+	  return true;
+		}
+
+	case TYPE_VECTOR:
+		{
+		auto seq_size = (size_t) val.vector_val.size;
+	  if (auto err = sink->begin_sequence(seq_size))
+	    return false;
+	  for ( int i = 0; i < val.vector_val.size; ++i )
+      {
+        if ( ! val.vector_val.vals[i]->Write(sink) )
+          return false;
+      }
+	  if (auto err = sink->end_sequence())
+	    return false;
+	  return true;
 		}
 
 	default:

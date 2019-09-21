@@ -2,6 +2,7 @@
 #include <broker/broker.hh>
 #include <broker/zeek.hh>
 #include <cstdio>
+#include <fstream>
 #include <cstring>
 #include <unistd.h>
 
@@ -19,6 +20,8 @@
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
 #include "SerializationFormat.h"
+
+#include "caf/serializer_impl.hpp"
 
 using namespace std;
 
@@ -520,6 +523,10 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return false;
 		}
 
+  // Serialize via BinarySerializationFormat.
+
+  auto fmt_start = std::chrono::steady_clock::now();
+
 	BinarySerializationFormat fmt;
 	char* data;
 	int len;
@@ -547,19 +554,47 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	val_list vl{
-		stream->Ref(),
-		new StringVal(path),
-	};
+  auto fmt_time = std::chrono::steady_clock::now() - fmt_start;
 
-	Val* v = log_topic_func->Call(&vl);
+	// Serialize again via caf::serializer_impl.
 
-	if ( ! v )
+  auto caf_start = std::chrono::steady_clock::now();
+  std::vector<char> serial_data2;
+  caf::serializer_impl<std::vector<char>> sink{nullptr, serial_data2};
+  auto unsigned_num_fields = static_cast<size_t>(num_fields);
+  if (auto err = sink.begin_sequence(unsigned_num_fields))
+    return false;
+	for ( int i = 0; i < num_fields; ++i )
 		{
-		reporter->Error("Failed to remotely log: log_topic func did not return"
-		                " a value for stream %s at path %s", stream_id,
-		                path.data());
-		return false;
+		if ( ! vals[i]->Write(&sink) )
+			{
+			reporter->Error("Failed to remotely log stream %s: field %d serialization failed", stream_id, i);
+			return false;
+			}
+		}
+  if (auto err = sink.end_sequence())
+    return false;
+  auto caf_time = std::chrono::steady_clock::now() - caf_start;
+
+  std::ofstream out{"/Users/neverlord/corelight/tmp/serialization.txt",
+                    std::ios_base::app | std::ios_base::out};
+  out << "FMT: " << caf::deep_to_string(fmt_time) << ", "
+      << "CAF: " << caf::deep_to_string(caf_time) << '\n';
+
+  // Continue doing other sutff.
+
+  val_list vl{
+      stream->Ref(),
+      new StringVal(path),
+  };
+
+  Val *v = log_topic_func->Call(&vl);
+
+  if (!v) {
+    reporter->Error("Failed to remotely log: log_topic func did not return"
+                    " a value for stream %s at path %s",
+                    stream_id, path.data());
+    return false;
 		}
 
 	std::string topic = v->AsString()->CheckString();

@@ -1,4 +1,10 @@
 
+3.1.0-dev.131 | 2019-09-23 13:07:09 -0700
+
+  * Add --build-dir as alias for --builddir (Dominik Charousset, Corelight)
+
+  * Fix overly specific include_directories usage in CMake script (Dominik Charousset, Corelight)
+
 3.1.0-dev.127 | 2019-09-20 10:40:54 -0700
 
   * Fix uncaught InterpreterException in Frame cloning (Robin Sommer, Corelight)

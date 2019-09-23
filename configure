@@ -18,6 +18,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
     --builddir=DIR         place build files in directory [build]
+    --build-dir=DIR        alias for --builddir
     --build-type=TYPE      set CMake build type [RelWithDebInfo]:
                              - Debug: optimizations off, debug symbols + flags
                              - MinSizeRel: size optimizations, debugging off
@@ -169,6 +170,9 @@ while [ $# -ne 0 ]; do
             exit 1
             ;;
         --builddir=*)
+            builddir=$optarg
+            ;;
+        --build-dir=*)
             builddir=$optarg
             ;;
         --build-type=*)

@@ -197,7 +197,7 @@ uint64_t Base64Converter::Decode(uint64_t len, const char* data, uint64_t* pblen
 	return dlen;
 	}
 
-int Base64Converter::Done(int* pblen, char** pbuf)
+int Base64Converter::Done(uint64_t* pblen, char** pbuf)
 	{
 	const char* padding = "===";
 
@@ -225,8 +225,8 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 		return 0;
 		}
 
-	int buf_len = int((s->Len() + 3) / 4) * 3 + 1;
-	int rlen2, rlen = buf_len;
+	uint64_t buf_len = uint64_t((s->Len() + 3) / 4) * 3 + 1;
+	uint64_t rlen2, rlen = buf_len;
 	char* rbuf2, *rbuf = new char[rlen];
 
 	Base64Converter dec(conn, a ? a->CheckString() : "");
@@ -258,7 +258,7 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 		}
 
 	char* outbuf = 0;
-	int outlen = 0;
+	uint64_t outlen = 0;
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 

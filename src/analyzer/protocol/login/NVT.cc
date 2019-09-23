@@ -96,7 +96,7 @@ void TelnetOption::RecvOption(unsigned int type)
 	}
 	}
 
-void TelnetOption::RecvSubOption(u_char* /* data */, int /* len */)
+void TelnetOption::RecvSubOption(u_char* /* data */, uint64_t /* len */)
 	{
 	}
 
@@ -116,7 +116,7 @@ void TelnetOption::BadOption()
 	}
 
 
-void TelnetTerminalOption::RecvSubOption(u_char* data, int len)
+void TelnetTerminalOption::RecvSubOption(u_char* data, uint64_t len)
 	{
 	if ( len <= 0 )
 		{
@@ -147,7 +147,7 @@ void TelnetTerminalOption::RecvSubOption(u_char* data, int len)
 #define ENCRYPT_ENCRYPT_KEY 7
 #define ENCRYPT_DECRYPT_KEY 8
 
-void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
+void TelnetEncryptOption::RecvSubOption(u_char* data, uint64_t len)
 	{
 	if ( ! active )
 		{
@@ -197,7 +197,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len)
 #define AUTH_REJECT 1
 #define AUTH_ACCEPT 2
 
-void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len)
+void TelnetAuthenticateOption::RecvSubOption(u_char* data, uint64_t len)
 	{
 	if ( len <= 0 )
 		{
@@ -478,7 +478,7 @@ void NVT_Analyzer::SetEncrypting(int mode)
 
 #define MAX_DELIVER_UNIT 128
 
-void NVT_Analyzer::DoDeliver(int len, const u_char* data)
+void NVT_Analyzer::DoDeliver(uint64_t len, const u_char* data)
 	{
 	// This code is very similar to that for TCP_ContentLine.  We
 	// don't virtualize out the differences because some of them

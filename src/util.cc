@@ -851,7 +851,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 			}
 
 		if ( pos < bufsiz )
-			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
+			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %lu", bufsiz, pos);
 
 		if ( ! seed )
 			{

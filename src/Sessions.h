@@ -159,7 +159,7 @@ public:
 	 *         long enough to be an IP header, and \a inner is always non-null
 	 *         for other return values.
 	 */
-	int ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+	int ParseIPPacket(uint64_t caplen, const u_char* const pkt, int proto,
 	                  IP_Hdr*& inner);
 
 	unsigned int ConnectionMemoryUsage();
@@ -209,7 +209,7 @@ protected:
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
 	// len bytes.
-	void DumpPacket(const Packet *pkt, int len=0);
+	void DumpPacket(const Packet *pkt, uint64_t len=0);
 
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less

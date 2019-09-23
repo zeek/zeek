@@ -67,7 +67,7 @@ Login_Analyzer::~Login_Analyzer()
 	Unref(client_name);
 	}
 
-void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
+void Login_Analyzer::DeliverStream(uint64_t length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 

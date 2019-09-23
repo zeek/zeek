@@ -32,7 +32,7 @@ void DTLS_Analyzer::Done()
 	handshake_interp->FlowEOF(false);
 	}
 
-void DTLS_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void DTLS_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

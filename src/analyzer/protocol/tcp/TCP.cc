@@ -238,7 +238,7 @@ void TCP_Analyzer::SetReassembler(TCP_Reassembler* rorig,
 	}
 
 const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
-							int& len, int& caplen)
+							uint64_t& len, uint64_t& caplen)
 	{
 	const struct tcphdr* tp = (const struct tcphdr*) data;
 	uint32_t tcp_hdr_len = tp->th_off * 4;
@@ -1037,7 +1037,7 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	}
 
 void TCP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	TransportLayerAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -1781,9 +1781,9 @@ void TCP_ApplicationAnalyzer::ProtocolViolation(const char* reason,
 	Analyzer::ProtocolViolation(reason, data, len);
 	}
 
-void TCP_ApplicationAnalyzer::DeliverPacket(unsigned int len, const u_char* data,
+void TCP_ApplicationAnalyzer::DeliverPacket(uint64_t len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const IP_Hdr* ip, uint64_t caplen)
 	{
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
@@ -2006,7 +2006,7 @@ void TCPStats_Analyzer::Done()
 		});
 	}
 
-void TCPStats_Analyzer::DeliverPacket(unsigned int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void TCPStats_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 

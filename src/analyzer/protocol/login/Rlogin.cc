@@ -27,7 +27,7 @@ Contents_Rlogin_Analyzer::~Contents_Rlogin_Analyzer()
 	{
 	}
 
-void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
+void Contents_Rlogin_Analyzer::DoDeliver(uint64_t len, const u_char* data)
 	{
 	tcp::TCP_Analyzer* tcp = static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
 	assert(tcp);

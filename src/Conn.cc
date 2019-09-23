@@ -190,7 +190,7 @@ void Connection::Done()
 	}
 
 void Connection::NextPacket(double t, int is_orig,
-			const IP_Hdr* ip, int len, int caplen,
+			const IP_Hdr* ip, uint64_t len, uint64_t caplen,
 			const u_char*& data,
 			unsigned int& record_packet, unsigned int& record_content,
 			// arguments for reproducing packets

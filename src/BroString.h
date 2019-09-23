@@ -57,7 +57,7 @@ public:
 	// adopts the byte vector of given length.  The string will
 	// manage the memory occupied by the string afterwards.
 	//
-	void Adopt(byte_vec bytes, int len);
+	void Adopt(byte_vec bytes, unsigned int len);
 
 	// Various flavors of methods that release the string's
 	// current contents, if any, and then set the string's

@@ -65,7 +65,7 @@ void IMAP_Analyzer::DeliverStream(uint64_t len, const u_char* data, bool orig)
 		}
 	}
 
-void IMAP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
+void IMAP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

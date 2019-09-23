@@ -111,7 +111,7 @@ void FrameBuffer::Reset()
 	msg_len = 0;
 	}
 
-int FrameBuffer::Deliver(int &len, const u_char* &data)
+int FrameBuffer::Deliver(uint64_t &len, const u_char* &data)
 	{
 	ASSERT(buf_len >= hdr_len);
 

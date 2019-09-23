@@ -21,7 +21,7 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-							   uint64_t seq, const IP_Hdr* ip, int caplen);
+							   uint64_t seq, const IP_Hdr* ip, uint64_t caplen);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }

@@ -50,7 +50,7 @@ public:
 	// mode for next <length> bytes.  Plain-delivery data is also passed
 	// via DeliverStream() and can differentiated by calling
 	// IsPlainDelivery().
-	void SetPlainDelivery(int64_t length);
+	void SetPlainDelivery(uint64_t length);
 	int64_t GetPlainDeliveryLength() const	{ return plain_delivery_length; }
 	bool IsPlainDelivery()			{ return is_plain; }
 
@@ -73,7 +73,7 @@ protected:
 	void InitState();
 	void InitBuffer(int size);
 	virtual void DoDeliver(uint64_t len, const u_char* data);
-	int DoDeliverOnce(uint64_t len, const u_char* data);
+	uint64_t DoDeliverOnce(uint64_t len, const u_char* data);
 	void CheckNUL();
 
 	// Returns the sequence number delivered so far.

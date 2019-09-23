@@ -55,7 +55,7 @@ public:
 	MIME_Multiline();
 	~MIME_Multiline();
 
-	void append(int len, const char* data);
+	void append(uint64_t len, const char* data);
 	BroString* get_concatenated_line();
 
 protected:
@@ -273,7 +273,7 @@ extern int is_lws(char ch);
 extern int MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(uint64_t len, const char* data);
 extern int MIME_count_trailing_lws(uint64_t len, const char* data);
-extern int MIME_skip_comments(uint64_t len, const char* data);
+extern uint64_t MIME_skip_comments(uint64_t len, const char* data);
 extern int MIME_skip_lws_comments(uint64_t len, const char* data);
 extern int MIME_get_token(uint64_t len, const char* data, data_chunk_t* token,
                           bool is_boundary = false);

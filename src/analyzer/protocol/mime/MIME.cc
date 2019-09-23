@@ -175,7 +175,7 @@ int MIME_count_trailing_lws(int len, const char* data)
 	}
 
 // See RFC 2822, page 11
-int MIME_skip_comments(int len, const char* data)
+uint64_t MIME_skip_comments(uint64_t len, const char* data)
 	{
 	if ( len == 0 || data[0] != '(' )
 		return 0;
@@ -593,7 +593,7 @@ MIME_Entity::~MIME_Entity()
 	delete base64_decoder;
 	}
 
-void MIME_Entity::Deliver(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::Deliver(uint64_t len, const char* data, int trailing_CRLF)
 	{
 	if ( in_header )
 		{
@@ -1161,7 +1161,7 @@ void MIME_Entity::FinishDecodeBase64()
 	if ( ! base64_decoder )
 		return;
 
-	int rlen = 128;
+	uint64_t rlen = 128;
 	char rbuf[128];
 	char* prbuf = rbuf;
 
@@ -1203,7 +1203,7 @@ void MIME_Entity::DataOctet(char ch)
 		}
 	}
 
-void MIME_Entity::SubmitData(int len, const char* buf)
+void MIME_Entity::SubmitData(uint64_t len, const char* buf)
 	{
 	message->SubmitData(len, buf);
 	}

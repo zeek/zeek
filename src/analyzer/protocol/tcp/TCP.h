@@ -90,7 +90,7 @@ protected:
 	// Analyzer interface.
 	void Init() override;
 	void Done() override;
-	void DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 	void FlipRoles() override;
@@ -99,8 +99,8 @@ protected:
 	// Returns the TCP header pointed to by data (which we assume is
 	// aligned), updating data, len & caplen.  Returns nil if the header
 	// isn't fully present.
-	const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len,
-						int& caplen);
+	const struct tcphdr* ExtractTCP_Header(const u_char*& data, uint64_t& len,
+						uint64_t& caplen);
 
 	// Returns true if the checksum is valid, false if not (and in which
 	// case also updates the status history of the endpoint).
@@ -246,7 +246,7 @@ public:
 	virtual void PacketWithRST();
 
 	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 	void Init() override;
 
 	// This suppresses violations if the TCP connection wasn't
@@ -314,7 +314,7 @@ public:
 
 protected:
 	void DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;

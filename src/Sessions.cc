@@ -844,7 +844,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	delete outer;
 	}
 
-int NetSessions::ParseIPPacket(int caplen, const u_char* const pkt, int proto,
+int NetSessions::ParseIPPacket(uint64_t caplen, const u_char* const pkt, int proto,
 		IP_Hdr*& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )

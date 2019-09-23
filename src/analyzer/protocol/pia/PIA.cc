@@ -80,7 +80,7 @@ void PIA::PIA_Done()
 	}
 
 void PIA::PIA_DeliverPacket(uint64_t len, const u_char* data, bool is_orig, uint64_t seq,
-				const IP_Hdr* ip, int caplen, bool clear_state)
+				const IP_Hdr* ip, uint64_t caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
 		return;

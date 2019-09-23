@@ -15,7 +15,7 @@ void Teredo_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
+bool TeredoEncapsulation::DoParse(const u_char* data, uint64_t& len,
                                   bool found_origin, bool found_auth)
 	{
 	if ( len < 2 )
@@ -140,7 +140,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	}
 
 void Teredo_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
-                                    uint64_t seq, const IP_Hdr* ip, int caplen)
+                                    uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

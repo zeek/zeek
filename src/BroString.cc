@@ -232,7 +232,7 @@ char* BroString::Render(int format, uint64_t* len) const
 	if ( (format & ESC_SER) )
 		{
 		char* result = new char[tmp_len + 16];
-		snprintf(result, tmp_len + 16, "%u ", tmp_len - 1);
+		snprintf(result, tmp_len + 16, "%llu ", tmp_len - 1);
 		tmp_len += strlen(result);
 		memcpy(result + strlen(result), s, sp - s);
 		delete [] s;

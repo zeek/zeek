@@ -31,7 +31,7 @@ typedef enum {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 struct NetbiosSSN_RawMsgHdr {
-	NetbiosSSN_RawMsgHdr(const u_char*& data, int& len);
+	NetbiosSSN_RawMsgHdr(const u_char*& data, unsigned int& len);
 
 	unsigned int type:8;
 	unsigned int flags:8;
@@ -50,7 +50,7 @@ struct NetbiosSSN_RawMsgHdr {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |
 
 struct NetbiosDGM_RawMsgHdr {
-	NetbiosDGM_RawMsgHdr(const u_char*& data, int& len);
+	NetbiosDGM_RawMsgHdr(const u_char*& data, unsigned int& len);
 
 	unsigned int type:8;
 	unsigned int flags:8;
@@ -124,7 +124,7 @@ public:
 	NetbiosSSN_State State() const		{ return state; }
 
 protected:
-	void DeliverStream(unsigned int len, const u_char* data, bool orig) override;
+	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 
 	NetbiosSSN_Interpreter* interp;
 
@@ -146,7 +146,7 @@ public:
 
 	void Done() override;
 	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }

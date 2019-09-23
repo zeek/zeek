@@ -20,7 +20,7 @@ public:
 	// Overriden from Analyzer.
 	void Done() override;
 	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new RADIUS_Analyzer(conn); }

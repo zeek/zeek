@@ -27,7 +27,7 @@ int Discarder::IsActive()
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-int Discarder::NextPacket(const IP_Hdr* ip, unsigned int len, unsigned int caplen)
+int Discarder::NextPacket(const IP_Hdr* ip, uint64_t len, uint64_t caplen)
 	{
 	int discard_packet = 0;
 
@@ -149,13 +149,14 @@ int Discarder::NextPacket(const IP_Hdr* ip, unsigned int len, unsigned int caple
 	return discard_packet;
 	}
 
-Val* Discarder::BuildData(const u_char* data, unsigned int hdrlen, unsigned int len, unsigned int caplen)
+Val* Discarder::BuildData(const u_char* data, uint64_t hdrlen, uint64_t len, uint64_t caplen)
 	{
-	len -= hdrlen;
+	if (hdrlen >= len) len = 0;
+	else len -= hdrlen;
 	caplen -= hdrlen;
 	data += hdrlen;
 
-	len = max(min(min(len, caplen), discarder_maxlen), 0);
+	len = min(min(len, caplen), discarder_maxlen);
 
 	return new StringVal(new BroString(data, len, 1));
 	}

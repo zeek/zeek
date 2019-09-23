@@ -19,7 +19,7 @@ public:
 	void Done() override;
 
 	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
@@ -63,7 +63,7 @@ public:
 	 * Returns whether input data parsed as a valid Teredo encapsulation type.
 	 * If it was valid, the len argument is decremented appropriately.
 	 */
-	bool Parse(const u_char* data, int& len)
+	bool Parse(const u_char* data, uint64_t& len)
 		{ return DoParse(data, len, false, false); }
 
 	const u_char* InnerIP() const
@@ -78,7 +78,7 @@ public:
 	RecordVal* BuildVal(const IP_Hdr* inner) const;
 
 protected:
-	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);
+	bool DoParse(const u_char* data, uint64_t& len, bool found_orig, bool found_au);
 
 	void Weird(const char* name) const
 		{ analyzer->Weird(name); }

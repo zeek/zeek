@@ -17,7 +17,7 @@ double netbios_ssn_session_timeout = 15.0;
 
 #define MAKE_INT16(dest, src) dest = *src; dest <<=8; src++; dest |= *src; src++;
 
-NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, int& len)
+NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, unsigned int& len)
 	{
 	type = *data; ++data, --len;
 	flags = *data; ++data, --len;
@@ -28,7 +28,7 @@ NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, int& len)
 	++data, --len;
 	}
 
-NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len)
+NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, unsigned int& len)
 	{
 	type = *data; ++data, --len;
 	flags = *data; ++data, --len;
@@ -54,7 +54,7 @@ NetbiosSSN_Interpreter::NetbiosSSN_Interpreter(Analyzer* arg_analyzer)
 	}
 
 int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
-				const u_char* data, int len, int is_query)
+				const u_char* data, unsigned int len, int is_query)
 	{
 	if ( netbios_session_message )
 		{
@@ -369,7 +369,7 @@ void Contents_NetbiosSSN::Flush()
 		}
 	}
 
-void Contents_NetbiosSSN::DeliverStream(unsigned int len, const u_char* data, bool orig)
+void Contents_NetbiosSSN::DeliverStream(uint64_t len, const u_char* data, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
@@ -518,7 +518,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	}
 
 void NetbiosSSN_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

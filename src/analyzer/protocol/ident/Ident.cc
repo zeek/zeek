@@ -42,7 +42,7 @@ void Ident_Analyzer::Done()
 			Weird("partial_ident_request");
 	}
 
-void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
+void Ident_Analyzer::DeliverStream(uint64_t length, const u_char* data, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 

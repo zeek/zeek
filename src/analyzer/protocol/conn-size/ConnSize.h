@@ -32,7 +32,7 @@ public:
 
 protected:
 	void DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
-					   uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					   uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 	void CheckThresholds(bool is_orig);
 
 	void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);

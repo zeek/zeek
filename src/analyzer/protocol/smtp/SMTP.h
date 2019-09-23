@@ -56,7 +56,7 @@ public:
 
 protected:
 
-	void ProcessLine(uint length, const char* line, bool orig);
+	void ProcessLine(uint64_t length, const char* line, bool orig);
 	void NewCmd(const int cmd_code);
 	void NewReply(const int reply_code, bool orig);
 	void ProcessExtension(int ext_len, const char* ext);

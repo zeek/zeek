@@ -21,7 +21,7 @@ void AYIYA_Analyzer::Done()
 	Event(udp_session_done);
 	}
 
-void AYIYA_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
+void AYIYA_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

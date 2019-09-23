@@ -23,7 +23,7 @@ public:
 	explicit HashKey(bro_int_t i);
 	explicit HashKey(bro_uint_t u);
 	explicit HashKey(uint32_t u);
-	HashKey(const uint32_t u[], int n);
+	HashKey(const uint32_t u[], uint64_t n);
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
 	explicit HashKey(const char* s);

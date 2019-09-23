@@ -198,8 +198,8 @@ void Analyzer::Done()
 	finished = true;
 	}
 
-void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
-				const IP_Hdr* ip, int caplen)
+void Analyzer::NextPacket(uint64_t len, const u_char* data, bool is_orig, uint64_t seq,
+				const IP_Hdr* ip, uint64_t caplen)
 	{
 	if ( skip )
 		return;
@@ -222,7 +222,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
 		}
 	}
 
-void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
+void Analyzer::NextStream(uint64_t len, const u_char* data, bool is_orig)
 	{
 	if ( skip )
 		return;
@@ -245,7 +245,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig)
 		}
 	}
 
-void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig)
+void Analyzer::NextUndelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	if ( skip )
 		return;
@@ -281,8 +281,8 @@ void Analyzer::NextEndOfData(bool is_orig)
 		EndOfData(is_orig);
 	}
 
-void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+void Analyzer::ForwardPacket(uint64_t len, const u_char* data, bool is_orig,
+				uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	if ( output_handler )
 		output_handler->DeliverPacket(len, data, is_orig, seq,
@@ -330,7 +330,7 @@ void Analyzer::ForwardStream(uint64_t len, const u_char* data, bool is_orig)
 	AppendNewChildren();
 	}
 
-void Analyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
+void Analyzer::ForwardUndelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	if ( output_handler )
 		output_handler->Undelivered(seq, len, is_orig);
@@ -629,7 +629,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	}
 
 void Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
-				uint64_t seq, const IP_Hdr* ip, int caplen)
+				uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
@@ -834,8 +834,8 @@ SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const
 	return next;
 	}
 
-void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+void SupportAnalyzer::ForwardPacket(uint64_t len, const u_char* data, bool is_orig,
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
 
@@ -876,7 +876,7 @@ void SupportAnalyzer::ForwardStream(uint64_t len, const u_char* data, bool is_or
 		Parent()->DeliverStream(len, data, is_orig);
 	}
 
-void SupportAnalyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
+void SupportAnalyzer::ForwardUndelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	// We do not call parent's method, as we're replacing the functionality.
 
@@ -914,7 +914,7 @@ BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) c
 	return 0;
 	}
 
-void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
+void TransportLayerAnalyzer::PacketContents(const u_char* data, uint64_t len)
 	{
 	if ( packet_contents && len > 0 )
 		{

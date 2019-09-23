@@ -42,7 +42,7 @@ void UDP_Analyzer::Done()
 	}
 
 void UDP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	assert(ip);
 
@@ -124,7 +124,7 @@ void UDP_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool is_orig,
 
 	int ulen = ntohs(up->uh_ulen);
 	if ( ulen != len )
-		Weird("UDP_datagram_length_mismatch", fmt("%d != %d", ulen, len));
+		Weird("UDP_datagram_length_mismatch", fmt("%d != %llu", ulen, len));
 
 	len -= sizeof(struct udphdr);
 	ulen -= sizeof(struct udphdr);

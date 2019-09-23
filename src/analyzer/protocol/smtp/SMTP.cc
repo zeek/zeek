@@ -78,14 +78,14 @@ void SMTP_Analyzer::Done()
 		EndData();
 	}
 
-void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
+void SMTP_Analyzer::Undelivered(uint64_t seq, uint64_t len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
 	if ( len <= 0 )
 		return;
 
-	const char* buf = fmt("seq = %" PRIu64", len = %d", seq, len);
+	const char* buf = fmt("seq = %" PRIu64", len = %llu", seq, len);
 	int buf_len = strlen(buf);
 
 	Unexpected(is_orig, "content gap", buf_len, buf);
@@ -116,7 +116,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	state = SMTP_AFTER_GAP;
 	}
 
-void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
+void SMTP_Analyzer::DeliverStream(uint64_t length, const u_char* line, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
@@ -158,10 +158,10 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	}
 
 
-void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
+void SMTP_Analyzer::ProcessLine(uint64_t length, const char* line, bool orig)
 	{
 	const char* end_of_line = line + length;
-	int cmd_len = 0;
+	uint64_t cmd_len = 0;
 	const char* cmd = "";
 
 	// NOTE: do not use IsOrig() here, because of TURN command.
@@ -365,7 +365,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 		if ( last_replied_cmd == SMTP_CMD_EHLO && reply_code == 250 )
 			{
 			const char* ext;
-			int ext_len;
+			uint64_t ext_len;
 
 			get_word(end_of_line - line, line, ext_len, ext);
 			ProcessExtension(ext_len, ext);

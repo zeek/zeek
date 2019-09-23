@@ -56,7 +56,7 @@ HashKey::HashKey(uint32_t u)
 	is_our_dynamic = 0;
 	}
 
-HashKey::HashKey(const uint32_t u[], int uint64_t)
+HashKey::HashKey(const uint32_t u[], uint64_t n)
 	{
 	size = n * sizeof(u[0]);
 	key = (void*) u;

@@ -173,7 +173,7 @@ public:
 	// size). data and len will be adjusted accordingly. Returns true if
 	// "expected" bytes have been processed, i.e., returns true when we
 	// don't expect any more data.
-	bool ConsumeChunk(const u_char*& data, int& len);
+	bool ConsumeChunk(const u_char*& data, uint64_t& len);
 
 protected:
 	int64_t fill;	// how many bytes we currently have in the buffer
@@ -208,7 +208,7 @@ protected:
 	} resync_state_t;
 
 	void Init() override;
-	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
+	virtual bool CheckResync(uint64_t& len, const u_char*& data, bool orig);
 	void DeliverStream(uint64_t len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, uint64_t len, bool orig) override;
 
@@ -241,7 +241,7 @@ public:
 
 protected:
 	void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	void ExpireTimer(double t);
 

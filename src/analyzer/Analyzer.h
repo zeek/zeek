@@ -46,7 +46,7 @@ public:
 	 */
 	virtual void DeliverPacket(uint64_t len, const u_char* data,
 				   bool orig, uint64_t seq,
-				   const IP_Hdr* ip, int caplen)
+				   const IP_Hdr* ip, uint64_t caplen)
 		{ }
 
 	/**
@@ -143,8 +143,8 @@ public:
 	 *
 	 * @param caplen The packet's capture length, if available.
 	 */
-	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+	void NextPacket(uint64_t len, const u_char* data, bool is_orig,
+			uint64_t seq = -1, const IP_Hdr* ip = 0, uint64_t caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -161,7 +161,7 @@ public:
 	 *
 	 * @param is_orig True if this is originator-side input.
 	 */
-	void NextStream(int len, const u_char* data, bool is_orig);
+	void NextStream(uint64_t len, const u_char* data, bool is_orig);
 
 	/**
 	 * Informs the analyzer about a gap in the TCP stream, i.e., data
@@ -174,7 +174,7 @@ public:
 	 *
 	 * @param is_orig True if this is about originator-side input.
 	 */
-	void NextUndelivered(uint64_t seq, int len, bool is_orig);
+	void NextUndelivered(uint64_t seq, uint64_t len, bool is_orig);
 
 	/**
 	 * Reports a message boundary.  This is a generic method that can be
@@ -195,9 +195,9 @@ public:
 	 *
 	 * Parameters are the same as for NextPacket().
 	 */
-	virtual void ForwardPacket(int len, const u_char* data,
+	virtual void ForwardPacket(uint64_t len, const u_char* data,
 					bool orig, uint64_t seq,
-					const IP_Hdr* ip, int caplen);
+					const IP_Hdr* ip, uint64_t caplen);
 
 	/**
 	 * Forwards stream input on to all child analyzers. If the analyzer
@@ -213,7 +213,7 @@ public:
 	 *
 	 * Parameters are the same as for NextUndelivered().
 	 */
-	virtual void ForwardUndelivered(uint64_t seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64_t seq, uint64_t len, bool orig);
 
 	/**
 	 * Forwards an end-of-data notification on to all child analyzers.
@@ -228,7 +228,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -798,8 +798,8 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen) override;
+	void ForwardPacket(uint64_t len, const u_char* data, bool orig,
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -819,7 +819,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	void ForwardUndelivered(uint64_t seq, int len, bool orig) override;
+	void ForwardUndelivered(uint64_t seq, uint64_t len, bool orig) override;
 
 protected:
 	friend class Analyzer;
@@ -911,7 +911,7 @@ public:
 	 *
 	 * @param len The length of \a data.
 	 */
-	void PacketContents(const u_char* data, int len);
+	void PacketContents(const u_char* data, uint64_t len);
 
 private:
 	pia::PIA* pia;

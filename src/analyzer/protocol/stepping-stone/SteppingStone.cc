@@ -173,7 +173,7 @@ void SteppingStone_Analyzer::Init()
 
 void SteppingStone_Analyzer::DeliverPacket(uint64_t len, const u_char* data,
 						bool is_orig, uint64_t seq,
-						const IP_Hdr* ip, int caplen)
+						const IP_Hdr* ip, uint64_t caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq,
 						ip, caplen);

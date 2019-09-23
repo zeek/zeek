@@ -368,7 +368,7 @@ void SampleLogger::LocationSeen(const Location* loc)
 
 void SampleLogger::SegmentProfile(const char* /* name */,
 					const Location* /* loc */,
-					double dtime, int dmem)
+					double dtime, long dmem)
 	{
 	if ( load_sample )
 		mgr.QueueEventFast(load_sample, {

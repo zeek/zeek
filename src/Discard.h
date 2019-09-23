@@ -22,10 +22,10 @@ public:
 
 	int IsActive();
 
-	int NextPacket(const IP_Hdr* ip, unsigned int len, unsigned int caplen);
+	int NextPacket(const IP_Hdr* ip, uint64_t len, uint64_t caplen);
 
 protected:
-	Val* BuildData(const u_char* data, unsigned int hdrlen, unsigned int len, unsigned int caplen);
+	Val* BuildData(const u_char* data, uint64_t hdrlen, uint64_t len, uint64_t caplen);
 
 	Func* check_ip;
 	Func* check_tcp;
@@ -33,7 +33,7 @@ protected:
 	Func* check_icmp;
 
 	// Maximum amount of application data passed to filtering functions.
-	int discarder_maxlen;
+	uint64_t discarder_maxlen;
 };
 
 #endif

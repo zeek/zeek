@@ -34,7 +34,7 @@ public:
 	uint64_t Decode(uint64_t len, const char* data, uint64_t* pblen, char** buf);
 	void Encode(uint64_t len, const unsigned char* data, uint64_t* blen, char** buf);
 
-	int Done(int* pblen, char** pbuf);
+	int Done(uint64_t* pblen, char** pbuf);
 	int HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.

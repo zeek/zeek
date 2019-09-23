@@ -383,7 +383,7 @@ void RPC_Reasm_Buffer::Init(int64_t arg_maxsize, int64_t arg_expected) {
 	buf = new u_char[maxsize];
 };
 
-bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
+bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, uint64_t& len)
 	{
 	// How many bytes do we want to process with this call?  Either the
 	// all of the bytes available or the number of bytes that we are
@@ -435,7 +435,7 @@ void Contents_RPC::Undelivered(uint64_t seq, uint64_t len, bool orig)
 	NeedResync();
 	}
 
-bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
+bool Contents_RPC::CheckResync(uint64_t& len, const u_char*& data, bool orig)
 	{
 	uint32_t frame_len;
 	bool last_frag;
@@ -529,7 +529,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 				DEBUG_MSG("%.6f RPC resync: "
 						  "discard small pieces: %d\n",
 							  network_time, len);
-				Conn()->Weird("RPC_resync", fmt("discard %d bytes\n", len));
+				Conn()->Weird("RPC_resync", fmt("discard %llu bytes\n", len));
 				}
 
 			NeedResync();
@@ -732,7 +732,7 @@ RPC_Analyzer::~RPC_Analyzer()
 	}
 
 void RPC_Analyzer::DeliverPacket(uint64_t len, const u_char* data, bool orig,
-					uint64_t seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, uint64_t caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	len = min(len, caplen);

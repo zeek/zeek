@@ -56,7 +56,7 @@ public:
 
 	// Returns -1 if frame is not ready, 0 if it else, and 1 if
 	// the frame would require too large of a buffer allocation.
-	int Deliver(int& len, const u_char* &data);
+	int Deliver(uint64_t& len, const u_char* &data);
 
 	void Reset();
 

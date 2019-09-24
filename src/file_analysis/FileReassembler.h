@@ -50,7 +50,7 @@ protected:
 	FileReassembler();
 
 	void Undelivered(uint64_t up_to_seq) override;
-	void BlockInserted(DataBlock* b) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	File* the_file;

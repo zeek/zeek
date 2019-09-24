@@ -38,18 +38,14 @@ public:
 	//
 	// If we're not processing contents, then naturally each of
 	// these is empty.
+	//
+	// WARNING: this is an O(n) operation and potentially very slow.
 	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack) const;
 
 	// How much data is pending delivery since it's not yet reassembled.
 	// Includes the data due to holes (so this value is a bit different
 	// from waiting_on_hole above; and is computed in a different fashion).
-	uint64_t NumUndeliveredBytes() const
-		{
-		if ( last_block )
-			return last_block->upper - last_reassem_seq;
-		else
-			return 0;
-		}
+	uint64_t NumUndeliveredBytes() const;
 
 	void SetContentsFile(BroFile* f);
 	BroFile* GetContentsFile() const	{ return record_contents_file; }
@@ -92,10 +88,10 @@ private:
 	void Gap(uint64_t seq, uint64_t len);
 
 	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f);
-	void RecordBlock(DataBlock* b, BroFile* f);
+	void RecordBlock(const DataBlock& b, BroFile* f);
 	void RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f);
 
-	void BlockInserted(DataBlock* b) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	TCP_Endpoint* endp;

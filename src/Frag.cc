@@ -205,7 +205,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		++next;
 		}
 
-	const auto& last = std::prev(block_list.End())->second;
+	const auto& last = block_list.LastBlock();
 
 	if ( next != block_list.End() )
 		{

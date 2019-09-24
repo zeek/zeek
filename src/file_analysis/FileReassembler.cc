@@ -29,7 +29,7 @@ uint64_t FileReassembler::Flush()
 	if ( block_list.Empty() )
 		return 0;
 
-	const auto& last_block = std::prev(block_list.End())->second;
+	const auto& last_block = block_list.LastBlock();
 
 	// This is expected to call back into FileReassembler::Undelivered().
 	flushing = true;

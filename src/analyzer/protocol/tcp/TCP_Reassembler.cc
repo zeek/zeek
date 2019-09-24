@@ -68,7 +68,7 @@ void TCP_Reassembler::Done()
 		{ // Record any undelivered data.
 		if ( ! block_list.Empty() )
 			{
-			auto last_block = std::prev(block_list.End())->second;
+			const auto& last_block = block_list.LastBlock();
 
 			if ( last_reassem_seq < last_block.upper )
 				RecordToSeq(last_reassem_seq, last_block.upper,
@@ -91,7 +91,7 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	if ( block_list.Empty() )
 		return 0;
 
-	auto last_block = std::prev(block_list.End())->second;
+	const auto& last_block = block_list.LastBlock();
 	return last_block.upper - last_reassem_seq;
 	}
 
@@ -289,7 +289,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 	if ( block_list.Empty() || ! rule_matcher )
 		return;
 
-	const auto& last_block = std::prev(block_list.End())->second;
+	const auto& last_block = block_list.LastBlock();
 
 	if ( use_last_upper )
 		up_to_seq = last_block.upper;

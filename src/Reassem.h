@@ -309,11 +309,3 @@ protected:
 	static uint64_t total_size;
 	static uint64_t sizes[REASSEM_NUM];
 };
-
-inline DataBlock::~DataBlock()
-	{
-	reassembler->size_of_all_blocks -= Size();
-	Reassembler::total_size -= pad_size(upper - seq) + padded_sizeof(DataBlock);
-	Reassembler::sizes[rtype] -= pad_size(upper - seq) + padded_sizeof(DataBlock);
-	delete [] block;
-	}

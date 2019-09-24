@@ -24,9 +24,17 @@ void DataBlockList::DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* abo
 		const auto& b = e.second;
 
 		if ( b.seq <= seq_cutoff )
-			*above += b.Size();
+			{
+			if ( b.upper <= seq_cutoff )
+				*below += b.Size();
+			else
+				{
+				*below += seq_cutoff - b.seq;
+				*above += b.upper - seq_cutoff;
+				}
+			}
 		else
-			*below += b.Size();
+			*above += b.Size();
 		}
 	}
 

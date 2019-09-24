@@ -155,12 +155,13 @@ public:
 		{ return total_data_size; }
 
 	/**
-	 * Counts the total size of all list elements paritioned by some cuttof.
+	 * Counts the total size of all data contained in list elements
+	 * partitioned by some cutoff.
 	 * WARNING: this is an O(n) operation and potentially very slow.
 	 * @param seq_cutoff  the sequence number used to partition
 	 * element sizes returned via "below" and "above" parameters
-	 * @param below  the size in bytes of all elements below "seq_cutoff"
-	 * @param above  the size in bytes of all elements above "seq_cutoff"
+	 * @param below  the size in bytes of all data below "seq_cutoff"
+	 * @param above  the size in bytes of all data above "seq_cutoff"
 	 */
 	void DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const;
 

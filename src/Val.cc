@@ -494,8 +494,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 		case TYPE_PORT:
 			{
 			auto* pval = val->AsPortVal();
-			j["port"] = pval->Port();
-			j["proto"] = pval->Protocol();
+			j.emplace("port", pval->Port());
+			j.emplace("proto", pval->Protocol());
 			break;
 			}
 
@@ -577,7 +577,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 					else
 						key_string = key_json.dump();
 
-					j[key_string] = BuildJSON(entry_value, only_loggable, re);
+					j.emplace(key_string, BuildJSON(entry_value, only_loggable, re));
 					}
 
 				Unref(lv);
@@ -614,7 +614,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				Val* value = key_field->Lookup("value", true);
 
 				if ( value && ( ! only_loggable || key_field->Lookup("log")->AsBool() ) )
-					j[key_string] = BuildJSON(value, only_loggable, re);
+					j.emplace(key_string, BuildJSON(value, only_loggable, re));
 				}
 
 			delete fields;
@@ -646,9 +646,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 
 		case TYPE_OPAQUE:
 			{
-			j = ZeekJson::object();
 			auto* oval = val->AsOpaqueVal();
-			j["opaque_type"] = OpaqueMgr::mgr()->TypeID(oval);
+			j = { { "opaque_type", OpaqueMgr::mgr()->TypeID(oval) } };
 			break;
 			}
 

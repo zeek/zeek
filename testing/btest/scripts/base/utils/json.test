@@ -122,4 +122,8 @@ event zeek_init()
 	print to_json(ta3);
 	print to_json(ta4);
 	print to_json(ta5, T);
+
+	# Opaque
+	local o1: opaque of topk = topk_init(5);
+	print to_json(o1);
 	}

@@ -543,28 +543,21 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				auto lv = tval->RecoverIndex(k);
 				delete k;
 
+				Val* entry_key;
+				if ( lv->Length() == 1 )
+					entry_key = lv->Index(0)->Ref();
+				else
+					entry_key = lv->Ref();
+
+				ZeekJson key_json = BuildJSON(entry_key, only_loggable, re);
+
 				if ( tval->Type()->IsSet() )
 					{
-					auto* value = lv->Index(0)->Ref();
-					j.push_back(BuildJSON(value, only_loggable, re));
-					Unref(value);
+					j.push_back(key_json);
 					}
 				else
 					{
-					ZeekJson key_json;
-					Val* entry_value;
-					if ( lv->Length() == 1 )
-						{
-						Val* entry_key = lv->Index(0)->Ref();
-						entry_value = tval->Lookup(entry_key, true);
-						key_json = BuildJSON(entry_key, only_loggable, re);
-						Unref(entry_key);
-						}
-					else
-						{
-						entry_value = tval->Lookup(lv, true);
-						key_json = BuildJSON(lv, only_loggable, re);
-						}
+					Val* entry_value = tval->Lookup(entry_key, true);
 
 					string key_string;
 					if ( key_json.is_string() )
@@ -575,6 +568,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 					j[key_string] = BuildJSON(entry_value, only_loggable, re);
 					}
 
+				Unref(entry_key);
 				Unref(lv);
 				}
 

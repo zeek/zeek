@@ -73,6 +73,10 @@ threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag 
 
 ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 	{
+	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
+	if ( ! val->present )
+		return nullptr;
+
 	ZeekJson j;
 	switch ( val->type )
 		{

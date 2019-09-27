@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#open	2015-04-17-03-37-33
+#open	2019-09-27-18-50-42
 #fields	s
 #types	string
 AB\x00CD\x00
@@ -17,4 +17,4 @@ abc\x00def
 foo \xc2\xae bar \\xc2\\xae baz
 foo\x00bar\\0baz
 foo \x0e bar ^N baz
-#close	2015-04-17-03-37-33
+#close	2019-09-27-18-50-42

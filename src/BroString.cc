@@ -2,14 +2,13 @@
 
 #include "zeek-config.h"
 
-#include <algorithm>
 #include <ctype.h>
-
 #include <algorithm>
 
 #include "BroString.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "ConvertUTF.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -208,11 +207,21 @@ char* BroString::Render(int format, int* len) const
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_HEX) )
 			{
-			char hex_fmt[16];
-
-			*sp++ = '\\'; *sp++ = 'x';
-			sprintf(hex_fmt, "%02x", b[i]);
-			*sp++ = hex_fmt[0]; *sp++ = hex_fmt[1];
+			// Pass through anything that's a valid unicode character but hex escape any of the control characters.
+			int num_utf8_bytes = getNumBytesForUTF8(static_cast<UTF8>(b[i]));
+			if ( b[i] > 126 && num_utf8_bytes <= (n-i) && isLegalUTF8Sequence(static_cast<UTF8*>(b+i), static_cast<UTF8*>(b+i+num_utf8_bytes)))
+				{
+				for ( int j = 0; j < num_utf8_bytes; j++ )
+					*sp++ = b[i + j];
+				i += num_utf8_bytes - 1;
+				}
+			else
+				{
+				char hex_fmt[16];
+				*sp++ = '\\'; *sp++ = 'x';
+				sprintf(hex_fmt, "%02x", b[i]);
+				*sp++ = hex_fmt[0]; *sp++ = hex_fmt[1];
+				}
 			}
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_DOT) )

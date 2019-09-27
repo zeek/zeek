@@ -808,7 +808,7 @@
                   [1] version: count     = 771
                   [2] record_version: count = 769
                   [3] possible_ts: time  = 1437831799.0
-                  [4] client_random: string = \xd4\xda\xbe{\xfa\xaa\x16\xb2\xe7\x92\x9d\xbf\xe1c\x97\xde\xdca7\x92\x90\xf6\x967\xf7\xec\x1e\xe6
+                  [4] client_random: string = \xd4ھ{\xfa\xaa\x16\xb2璝\xbf\xe1c\x97\xde\xdca7\x92\x90\xf6\x967\xf7\xec\x1e\xe6
                   [5] session_id: string = \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
                   [6] ciphers: vector of count = [255, 49188, 49187, 49162, 49161, 49160, 49192, 49191, 49172, 49171, 49170, 49190, 49189, 49157, 49156, 49155, 49194, 49193, 49167, 49166, 49165, 107, 103, 57, 51, 22, 61, 60, 53, 47, 10, 49159, 49169, 49154, 49164, 5, 4]
                   [7] comp_methods: vector of count = [0]

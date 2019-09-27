@@ -458,6 +458,10 @@ TableVal* Val::GetRecordFields()
 // This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
 static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"))
 	{
+	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
+	if ( ! val )
+		return nullptr;
+
 	ZeekJson j;
 	BroType* type = val->Type();
 	switch ( type->Tag() )
@@ -2869,7 +2873,7 @@ int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 Val* VectorVal::Lookup(unsigned int index) const
 	{
 	if ( index >= val.vector_val->size() )
-		return 0;
+		return nullptr;
 
 	return (*val.vector_val)[index];
 	}

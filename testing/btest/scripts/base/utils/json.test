@@ -93,11 +93,15 @@ event zeek_init()
 	local ve3: vector of addr = vector(1.2.3.4);
 	local ve4: vector of set[bool] = vector(set(T, F));
 	local ve5: vector of myrec1 = vector(myrec1($s="test", $c=2));
+	local ve6: vector of count;
+	ve6[0] = 0;
+	ve6[2] = 2;
 	print to_json(ve1);
 	print to_json(ve2);
 	print to_json(ve3);
 	print to_json(ve4);
 	print to_json(ve5, T);
+	print to_json(ve6);
 
 	# Sets
 	local st1: set[count] = set();

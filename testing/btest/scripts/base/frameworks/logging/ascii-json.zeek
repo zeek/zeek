@@ -28,6 +28,7 @@ export {
 		se: set[string];
 		vc: vector of count;
 		ve: vector of string;
+		vn: vector of count;
 		f: function(i: count) : string;
 	} &log;
 }
@@ -47,6 +48,10 @@ event zeek_init()
 	local empty_set: set[string];
 	local empty_vector: vector of string;
 
+	local vector_with_null: vector of count;
+	vector_with_null[0] = 0;
+	vector_with_null[2] = 2;
+
 	Log::write(SSH::LOG, [
 		$b=T,
 		$i=-42,
@@ -64,6 +69,7 @@ event zeek_init()
 		$se=empty_set,
 		$vc=vector(10, 20, 30),
 		$ve=empty_vector,
+		$vn=vector_with_null,
 		$f=foo
 		]);
 }

@@ -8,7 +8,7 @@
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
-#include "src/paraglob.h"
+#include "paraglob/paraglob.h"
 
 class OpaqueVal;
 

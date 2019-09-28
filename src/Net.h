@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include "net_util.h"
 #include "util.h"
 #include "List.h"
@@ -10,8 +13,9 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 
-extern void net_init(name_list& interfaces, name_list& readfiles,
-		const char* writefile, int do_watchdog);
+extern void net_init(const std::vector<std::string>& interfaces,
+					 const std::vector<std::string>& pcap_input_files,
+                     const std::string& pcap_output_file, bool do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -75,8 +79,6 @@ extern iosource::PktSrc* current_pktsrc;
 extern iosource::IOSource* current_iosrc;
 
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
-
-extern char* writefile;
 
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by inode number.

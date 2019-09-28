@@ -60,6 +60,15 @@ extern HeapLeakChecker* heap_checker;
 #endif
 
 #include <stdint.h>
+#include <pthread.h>
+
+#ifdef HAVE_LINUX
+#include <sys/prctl.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
 
 ZEEK_DEPRECATED("Remove in v4.1. Use uint64_t instead.")
 typedef uint64_t uint64;
@@ -579,3 +588,14 @@ std::unique_ptr<T> build_unique (Args&&... args) {
  * @return the escaped string
  */
 std::string json_escape_utf8(const std::string& val);
+
+namespace zeek {
+/**
+ * Set the process/thread name.  May not be supported on all OSs.
+ * @param name  new name for the process/thread.  OS limitations typically
+ * truncate the name to 15 bytes maximum.
+ * @param tid  handle of thread whose name shall change
+ */
+void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+} // namespace zeek

@@ -231,7 +231,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 	delete node;
 	}
 
-bool RuleMatcher::ReadFiles(const name_list& files)
+bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 	{
 #ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
@@ -239,18 +239,18 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 	parse_error = false;
 
-	for ( int i = 0; i < files.length(); ++i )
+	for ( const auto& f : files )
 		{
-		rules_in = open_file(find_file(files[i], bro_path(), ".sig"));
+		rules_in = open_file(find_file(f, bro_path(), ".sig"));
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", files[i]);
+			reporter->Error("Can't open signature file %s", f.data());
 			return false;
 			}
 
 		rules_line_number = 0;
-		current_rule_file = files[i];
+		current_rule_file = f.data();
 		rules_parse();
 		fclose(rules_in);
 		}

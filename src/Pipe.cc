@@ -13,7 +13,11 @@ static void pipe_fail(int eno)
 	{
 	char tmp[256];
 	bro_strerror_r(eno, tmp, sizeof(tmp));
-	reporter->FatalError("Pipe failure: %s", tmp);
+
+	if ( reporter )
+		reporter->FatalError("Pipe failure: %s", tmp);
+	else
+		fprintf(stderr, "Pipe failure: %s", tmp);
 	}
 
 static void set_flags(int fd, int flags)

@@ -17,7 +17,14 @@ static void bad_pipe_op(const char* which)
 	{
 	char buf[256];
 	bro_strerror_r(errno, buf, sizeof(buf));
-	reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+
+	if ( reporter )
+		reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+	else
+		{
+		fprintf(stderr, "unexpected pipe %s failure: %s", which, buf);
+		abort();
+		}
 	}
 
 void Flare::Fire()
@@ -49,8 +56,9 @@ void Flare::Fire()
 		}
 	}
 
-void Flare::Extinguish()
+int Flare::Extinguish()
 	{
+	int rval = 0;
 	char tmp[256];
 
 	for ( ; ; )
@@ -58,8 +66,11 @@ void Flare::Extinguish()
 		int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
 
 		if ( n >= 0 )
+			{
+			rval += n;
 			// Pipe may not be empty yet: try again.
 			continue;
+			}
 
 		if ( errno == EAGAIN )
 			// Success: pipe is now empty.
@@ -71,4 +82,6 @@ void Flare::Extinguish()
 
 		bad_pipe_op("read");
 		}
+
+	return rval;
 	}

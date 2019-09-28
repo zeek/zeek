@@ -1003,7 +1003,7 @@ string bro_prefixes()
 	{
 	string rval;
 
-	for ( const auto& prefix : prefixes )
+	for ( const auto& prefix : zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
 			rval.append(":");
@@ -1935,4 +1935,19 @@ string json_escape_utf8(const string& val)
 			result.append(json_escape_byte(val[idx]));
 
 	return result;
+	}
+
+void zeek::set_thread_name(const char* name, pthread_t tid)
+	{
+#ifdef HAVE_LINUX
+	prctl(PR_SET_NAME, name, 0, 0, 0);
+#endif
+
+#ifdef __APPLE__
+	pthread_setname_np(name);
+#endif
+
+#ifdef __FreeBSD__
+	pthread_set_name_np(tid, name);
+#endif
 	}

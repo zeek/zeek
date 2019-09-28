@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/types.h>
 #include <list>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -43,6 +44,7 @@ extern "C" {
 #include "Brofiler.h"
 #include "Traverse.h"
 
+#include "Supervisor.h"
 #include "threading/Manager.h"
 #include "input/Manager.h"
 #include "logging/Manager.h"
@@ -91,10 +93,9 @@ file_analysis::Manager* file_mgr = 0;
 zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
+zeek::Supervisor* zeek::supervisor = 0;
 
-const char* prog;
-char* writefile = 0;
-name_list prefixes;
+std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
 EventHandlerPtr net_done = 0;
 RuleMatcher* rule_matcher = 0;
@@ -104,10 +105,10 @@ ProfileLogger* segment_logger = 0;
 SampleLogger* sample_logger = 0;
 int signal_val = 0;
 extern char version[];
-char* command_line_policy = 0;
+const char* command_line_policy = 0;
 vector<string> params;
 set<string> requested_plugins;
-char* proc_status_file = 0;
+const char* proc_status_file = 0;
 
 OpaqueType* md5_type = 0;
 OpaqueType* sha1_type = 0;
@@ -142,24 +143,24 @@ const char* zeek_version()
 #endif
 	}
 
-bool bro_dns_fake()
+static bool zeek_dns_fake()
 	{
 	return zeekenv("ZEEK_DNS_FAKE");
 	}
 
-void usage(int code = 1)
+static void usage(const char* prog, int code = 1)
 	{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
-	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
+	fprintf(stderr, "    <file>                         | Zeek script file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
-	fprintf(stderr, "    -d|--debug-policy              | activate policy file debugging\n");
-	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded policies by given code\n");
+	fprintf(stderr, "    -d|--debug-script              | activate Zeek script debugging\n");
+	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded scripts by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
 	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
-	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
+	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
 	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
@@ -187,6 +188,7 @@ void usage(int code = 1)
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
+	fprintf(stderr, "    -j|--jobs[=<worker count>]     | enable supervisor mode with N workers (default 1)\n");
 
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
@@ -196,16 +198,277 @@ void usage(int code = 1)
 	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
 	fprintf(stderr, "    $ZEEK_PREFIXES                 | prefix list (%s)\n", bro_prefixes().c_str());
-	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", bro_dns_fake() ? "on" : "off");
+	fprintf(stderr, "    $ZEEK_DNS_FAKE                 | disable DNS lookups (%s)\n", zeek_dns_fake() ? "on" : "off");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $ZEEK_LOG_SUFFIX               | ASCII log file extension (.%s)\n", logging::writer::Ascii::LogExt().c_str());
 	fprintf(stderr, "    $ZEEK_PROFILER_FILE            | Output file for script execution statistics (not set)\n");
 	fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN         | Disable Zeekygen documentation support (%s)\n", zeekenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
 	fprintf(stderr, "    $ZEEK_DNS_RESOLVER             | IPv4/IPv6 address of DNS resolver to use (%s)\n", zeekenv("ZEEK_DNS_RESOLVER") ? zeekenv("ZEEK_DNS_RESOLVER") : "not set, will use first IPv4 address from /etc/resolv.conf");
+	fprintf(stderr, "    $ZEEK_DEBUG_LOG_STDERR         | Use stderr for debug logs generated via the -B flag");
 
 	fprintf(stderr, "\n");
 
 	exit(code);
+	}
+
+struct zeek_options {
+	bool print_version = false;
+	bool print_usage = false;
+	bool print_execution_time = false;
+	bool print_signature_debug_info = false;
+	int print_plugins = 0;
+
+	std::string debug_log_streams;
+	std::string debug_script_tracing_file;
+
+	std::string identifier_to_print;
+	std::string script_code_to_exec;
+	std::vector<std::string> script_prefixes = { "" }; // "" = "no prefix"
+
+	int supervised_workers = 0;
+	int signature_re_level = 4;
+	bool ignore_checksums = false;
+	bool use_watchdog = false;
+	double pseudo_realtime = 0;
+	DNS_MgrMode dns_mode = DNS_DEFAULT;
+
+	bool parse_only = false;
+	bool bare_mode = false;
+	bool debug_scripts = false;
+	bool perftools_check_leaks = false;
+	bool perftools_profile = false;
+
+	std::string pcap_filter;
+	std::vector<std::string> interfaces;
+	std::vector<std::string> pcap_files;
+	std::vector<std::string> signature_files;
+
+	std::string pcap_output_file;
+	std::string random_seed_input_file;
+	std::string random_seed_output_file;
+	std::string process_status_file;
+	std::string zeekygen_config_file;
+	std::string libidmef_dtd_file = "idmef-message.dtd";
+
+	std::set<std::string> plugins_to_load;
+	std::vector<std::string> scripts_to_load;
+	std::vector<std::string> script_options_to_set;
+};
+
+static zeek_options parse_cmdline(int argc, char** argv)
+	{
+	zeek_options rval = {};
+
+	constexpr struct option long_opts[] = {
+		{"parse-only",	no_argument,		0,	'a'},
+		{"bare-mode",	no_argument,		0,	'b'},
+		{"debug-script",	no_argument,		0,	'd'},
+		{"exec",		required_argument,	0,	'e'},
+		{"filter",		required_argument,	0,	'f'},
+		{"help",		no_argument,		0,	'h'},
+		{"iface",		required_argument,	0,	'i'},
+		{"zeekygen",		required_argument,		0,	'X'},
+		{"prefix",		required_argument,	0,	'p'},
+		{"readfile",		required_argument,	0,	'r'},
+		{"rulefile",		required_argument,	0,	's'},
+		{"tracefile",		required_argument,	0,	't'},
+		{"writefile",		required_argument,	0,	'w'},
+		{"version",		no_argument,		0,	'v'},
+		{"no-checksums",	no_argument,		0,	'C'},
+		{"force-dns",		no_argument,		0,	'F'},
+		{"load-seeds",		required_argument,	0,	'G'},
+		{"save-seeds",		required_argument,	0,	'H'},
+		{"print-plugins",	no_argument,		0,	'N'},
+		{"prime-dns",		no_argument,		0,	'P'},
+		{"time",		no_argument,		0,	'Q'},
+		{"debug-rules",		no_argument,		0,	'S'},
+		{"re-level",		required_argument,	0,	'T'},
+		{"watchdog",		no_argument,		0,	'W'},
+		{"print-id",		required_argument,	0,	'I'},
+		{"status-file",		required_argument,	0,	'U'},
+
+#ifdef	DEBUG
+		{"debug",		required_argument,	0,	'B'},
+#endif
+#ifdef	USE_IDMEF
+		{"idmef-dtd",		required_argument,	0,	'n'},
+#endif
+#ifdef	USE_PERFTOOLS_DEBUG
+		{"mem-leaks",	no_argument,		0,	'm'},
+		{"mem-profile",	no_argument,		0,	'M'},
+#endif
+
+		{"pseudo-realtime",	optional_argument, 0,	'E'},
+		{"jobs",	optional_argument, 0,	'j'},
+
+		{0,			0,			0,	0},
+	};
+
+	char opts[256];
+	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
+	             sizeof(opts));
+
+#ifdef USE_PERFTOOLS_DEBUG
+	strncat(opts, "mM", 2);
+#endif
+
+	int op;
+	int long_optsind;
+	opterr = 0;
+
+	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
+		switch ( op ) {
+		case 'a':
+			rval.parse_only = true;
+			break;
+		case 'b':
+			rval.bare_mode = true;
+			break;
+		case 'd':
+			rval.debug_scripts = true;
+			break;
+		case 'e':
+			if ( optarg[0] == 0 )
+				// Cheating a bit, but allows checking for an empty string
+				// to determine whether -e was used or not.
+				rval.script_code_to_exec = " ";
+			else
+				rval.script_code_to_exec = optarg;
+			break;
+		case 'f':
+			rval.pcap_filter = optarg;
+			break;
+		case 'h':
+			rval.print_usage = true;
+			break;
+		case 'i':
+			if ( ! rval.pcap_files.empty() )
+				{
+				fprintf(stderr, "Using -i is not allowed when reading pcap files");
+				exit(1);
+				}
+			rval.interfaces.emplace_back(optarg);
+			break;
+		case 'j':
+			rval.supervised_workers = 1;
+			if ( optarg )
+				rval.supervised_workers = atoi(optarg);
+			break;
+		case 'p':
+			rval.script_prefixes.emplace_back(optarg);
+			break;
+		case 'r':
+			if ( ! rval.interfaces.empty() )
+				{
+				fprintf(stderr, "Using -r is not allowed when reading a live interface");
+				exit(1);
+				}
+			rval.pcap_files.emplace_back(optarg);
+			break;
+		case 's':
+			rval.signature_files.emplace_back(optarg);
+			break;
+		case 't':
+			rval.debug_script_tracing_file = optarg;
+			break;
+		case 'v':
+			rval.print_version = true;
+			break;
+		case 'w':
+			rval.pcap_output_file = optarg;
+			break;
+		case 'B':
+			rval.debug_log_streams = optarg;
+			break;
+		case 'C':
+			rval.ignore_checksums = true;
+			break;
+		case 'E':
+			rval.pseudo_realtime = 1.0;
+			if ( optarg )
+				rval.pseudo_realtime = atof(optarg);
+			break;
+		case 'F':
+			if ( rval.dns_mode != DNS_DEFAULT )
+				usage(argv[0], 1);
+			rval.dns_mode = DNS_FORCE;
+			break;
+		case 'G':
+			rval.random_seed_input_file = optarg;
+			break;
+		case 'H':
+			rval.random_seed_output_file = optarg;
+			break;
+		case 'I':
+			rval.identifier_to_print = optarg;
+			break;
+		case 'N':
+			++rval.print_plugins;
+			break;
+		case 'P':
+			if ( rval.dns_mode != DNS_DEFAULT )
+				usage(argv[0], 1);
+			rval.dns_mode = DNS_PRIME;
+			break;
+		case 'Q':
+			rval.print_execution_time = true;
+			break;
+		case 'S':
+			rval.print_signature_debug_info = true;
+			break;
+		case 'T':
+			rval.signature_re_level = atoi(optarg);
+			break;
+		case 'U':
+			rval.process_status_file = optarg;
+			break;
+		case 'W':
+			rval.use_watchdog = true;
+			break;
+		case 'X':
+			rval.zeekygen_config_file = optarg;
+			break;
+
+#ifdef USE_PERFTOOLS_DEBUG
+		case 'm':
+			rval.perftools_check_leaks = 1;
+			break;
+		case 'M':
+			rval.perftools_profile = 1;
+			break;
+#endif
+
+#ifdef USE_IDMEF
+		case 'n':
+			rval.libidmef_dtd_path = optarg;
+			break;
+#endif
+
+		case 0:
+			// This happens for long options that don't have
+			// a short-option equivalent.
+			break;
+
+		case '?':
+		default:
+			usage(argv[0], 1);
+			break;
+		}
+
+	// Process remaining arguments. X=Y arguments indicate script
+	// variable/parameter assignments. X::Y arguments indicate plugins to
+	// activate/query. The remainder are treated as scripts to load.
+	while ( optind < argc )
+		{
+		if ( strchr(argv[optind], '=') )
+			rval.script_options_to_set.emplace_back(argv[optind++]);
+		else if ( strstr(argv[optind], "::") )
+			rval.plugins_to_load.emplace(argv[optind++]);
+		else
+			rval.scripts_to_load.emplace_back(argv[optind++]);
+		}
+
+	return rval;
 	}
 
 bool show_plugins(int level)
@@ -349,6 +612,7 @@ void terminate_bro()
 	delete analyzer_mgr;
 	delete file_mgr;
 	// broker_mgr is deleted via iosource_mgr
+	// supervisor is deleted via iosource_mgr
 	delete iosource_mgr;
 	delete log_mgr;
 	delete reporter;
@@ -397,271 +661,133 @@ static void bro_new_handler()
 	out_of_memory("new");
 	}
 
+static std::vector<std::string> get_script_signature_files()
+	{
+	std::vector<std::string> rval;
+
+	// Parse rule files defined on the script level.
+	char* script_signature_files =
+		copy_string(internal_val("signature_files")->AsString()->CheckString());
+
+	char* tmp = script_signature_files;
+	char* s;
+	while ( (s = strsep(&tmp, " \t")) )
+		if ( *s )
+			rval.emplace_back(s);
+
+	delete [] script_signature_files;
+	return rval;
+	}
+
 int main(int argc, char** argv)
 	{
-	std::set_new_handler(bro_new_handler);
-
-	double time_start = current_time(true);
-
-	brofiler.ReadStats();
-
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 
 	for ( int i = 0; i < argc; i++ )
 		bro_argv[i] = copy_string(argv[i]);
 
-	name_list interfaces;
-	name_list read_files;
-	name_list rule_files;
-	char* id_name = 0;
+	auto options = parse_cmdline(argc, argv);
 
-	char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
-	char* seed_save_file = 0;
-	char* user_pcap_filter = 0;
-	char* debug_streams = 0;
-	int parse_only = false;
-	int bare_mode = false;
-	int do_watchdog = 0;
-	int override_ignore_checksums = 0;
-	int rule_debug = 0;
-	int RE_level = 4;
-	int print_plugins = 0;
-	int time_bro = 0;
+	if ( options.print_usage )
+		usage(argv[0], 0);
 
-	static struct option long_opts[] = {
-		{"parse-only",	no_argument,		0,	'a'},
-		{"bare-mode",	no_argument,		0,	'b'},
-		{"debug-policy",	no_argument,		0,	'd'},
-		{"exec",		required_argument,	0,	'e'},
-		{"filter",		required_argument,	0,	'f'},
-		{"help",		no_argument,		0,	'h'},
-		{"iface",		required_argument,	0,	'i'},
-		{"zeekygen",		required_argument,		0,	'X'},
-		{"prefix",		required_argument,	0,	'p'},
-		{"readfile",		required_argument,	0,	'r'},
-		{"rulefile",		required_argument,	0,	's'},
-		{"tracefile",		required_argument,	0,	't'},
-		{"writefile",		required_argument,	0,	'w'},
-		{"version",		no_argument,		0,	'v'},
-		{"no-checksums",	no_argument,		0,	'C'},
-		{"force-dns",		no_argument,		0,	'F'},
-		{"load-seeds",		required_argument,	0,	'G'},
-		{"save-seeds",		required_argument,	0,	'H'},
-		{"print-plugins",	no_argument,		0,	'N'},
-		{"prime-dns",		no_argument,		0,	'P'},
-		{"time",		no_argument,		0,	'Q'},
-		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'T'},
-		{"watchdog",		no_argument,		0,	'W'},
-		{"print-id",		required_argument,	0,	'I'},
-		{"status-file",		required_argument,	0,	'U'},
+	if ( options.print_version )
+		{
+		fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
+		exit(0);
+		}
 
-#ifdef	DEBUG
-		{"debug",		required_argument,	0,	'B'},
-#endif
-#ifdef	USE_IDMEF
-		{"idmef-dtd",		required_argument,	0,	'n'},
-#endif
-#ifdef	USE_PERFTOOLS_DEBUG
-		{"mem-leaks",	no_argument,		0,	'm'},
-		{"mem-profile",	no_argument,		0,	'M'},
-#endif
+	bool use_supervisor = options.supervised_workers > 0;
+	pid_t stem_pid = 0;
+	std::unique_ptr<bro::Pipe> supervisor_pipe;
 
-		{"pseudo-realtime",	optional_argument, 0,	'E'},
+	if ( use_supervisor )
+		{
+		supervisor_pipe.reset(new bro::Pipe{FD_CLOEXEC, FD_CLOEXEC,
+		                                    O_NONBLOCK, O_NONBLOCK});
+		stem_pid = fork();
 
-		{0,			0,			0,	0},
-	};
+		if ( stem_pid == -1 )
+			{
+			fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
 
-	enum DNS_MgrMode dns_type = DNS_DEFAULT;
+		if ( stem_pid == 0 )
+			{
+			zeek::set_thread_name("zeek-stem");
+			// TODO: changing the process group here so that SIGINT to the
+			// supervisor doesn't also get passed to the children.  i.e. supervisor
+			// should be in charge of initiating orderly shutdown.  But calling
+			// just setpgid() like this is technically a race-condition -- need
+			// to do more work of blocking SIGINT before fork(), unblocking after,
+			// then also calling setpgid() from parent.  And just not doing that
+			// until more is known whether that's the right SIGINT behavior in
+			// the first place.
+			auto res = setpgid(0, 0);
 
-	dns_type = bro_dns_fake() ? DNS_FAKE : DNS_DEFAULT;
+			if ( res == -1 )
+				fprintf(stderr, "failed to set stem process group: %s\n",
+				        strerror(errno));
+
+			for ( ; ; )
+				{
+				// TODO: make a proper I/O loop w/ message processing via pipe
+				// TODO: better way to detect loss of parent than polling
+
+				if ( getppid() == 1 )
+					exit(0);
+
+				sleep(1);
+				}
+			}
+		}
+
+	std::set_new_handler(bro_new_handler);
+
+	double time_start = current_time(true);
+
+	brofiler.ReadStats();
+
+	auto dns_type = options.dns_mode;
+
+	if ( dns_type == DNS_DEFAULT && zeek_dns_fake() )
+		dns_type = DNS_FAKE;
 
 	RETSIGTYPE (*oldhandler)(int);
 
-	prog = argv[0];
+	zeek_script_prefixes = options.script_prefixes;
+	auto zeek_prefixes = zeekenv("ZEEK_PREFIXES");
 
-	prefixes.push_back(strdup(""));	// "" = "no prefix"
+	if ( zeek_prefixes )
+		tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
 
-	char* p = zeekenv("ZEEK_PREFIXES");
-
-	if ( p )
-		add_to_name_list(p, ':', prefixes);
-
-	string zeekygen_config;
-
-#ifdef USE_IDMEF
-	string libidmef_dtd_path = "idmef-message.dtd";
-#endif
-
-	extern char* optarg;
-	extern int optind, opterr;
-
-	int long_optsind;
-	opterr = 0;
-
-	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
-		     sizeof(opts));
+	pseudo_realtime = options.pseudo_realtime;
 
 #ifdef USE_PERFTOOLS_DEBUG
-	strncat(opts, "mM", 2);
+	perftools_leaks = options.perftools_check_leaks;
+	perftools_profile = options.perftools_profile;
 #endif
 
-	int op;
-	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
-		switch ( op ) {
-		case 'a':
-			parse_only = true;
-			break;
-
-		case 'b':
-			bare_mode = true;
-			break;
-
-		case 'd':
-			fprintf(stderr, "Policy file debugging ON.\n");
-			g_policy_debug = true;
-			break;
-
-		case 'e':
-			command_line_policy = optarg;
-			break;
-
-		case 'f':
-			user_pcap_filter = optarg;
-			break;
-
-		case 'h':
-			usage(0);
-			break;
-
-		case 'i':
-			interfaces.push_back(optarg);
-			break;
-
-		case 'p':
-			prefixes.push_back(optarg);
-			break;
-
-		case 'r':
-			read_files.push_back(optarg);
-			break;
-
-		case 's':
-			rule_files.push_back(optarg);
-			break;
-
-		case 't':
-			g_trace_state.SetTraceFile(optarg);
-			g_trace_state.TraceOn();
-			break;
-
-		case 'v':
-			fprintf(stdout, "%s version %s\n", prog, zeek_version());
-			exit(0);
-			break;
-
-		case 'w':
-			writefile = optarg;
-			break;
-
-		case 'B':
-			debug_streams = optarg;
-			break;
-
-		case 'C':
-			override_ignore_checksums = 1;
-			break;
-
-		case 'E':
-			pseudo_realtime = 1.0;
-			if ( optarg )
-				pseudo_realtime = atof(optarg);
-			break;
-
-		case 'F':
-			if ( dns_type != DNS_DEFAULT )
-				usage(1);
-			dns_type = DNS_FORCE;
-			break;
-
-		case 'G':
-			seed_load_file = optarg;
-			break;
-
-		case 'H':
-			seed_save_file = optarg;
-			break;
-
-		case 'I':
-			id_name = optarg;
-			break;
-
-		case 'N':
-			++print_plugins;
-			break;
-
-		case 'P':
-			if ( dns_type != DNS_DEFAULT )
-				usage(1);
-			dns_type = DNS_PRIME;
-			break;
-
-		case 'Q':
-			time_bro = 1;
-			break;
-
-		case 'S':
-			rule_debug = 1;
-			break;
-
-		case 'T':
-			RE_level = atoi(optarg);
-			break;
-
-		case 'U':
-			proc_status_file = optarg;
-			break;
-
-		case 'W':
-			do_watchdog = 1;
-			break;
-
-		case 'X':
-			zeekygen_config = optarg;
-			break;
-
-#ifdef USE_PERFTOOLS_DEBUG
-		case 'm':
-			perftools_leaks = 1;
-			break;
-
-		case 'M':
-			perftools_profile = 1;
-			break;
-#endif
-
-#ifdef USE_IDMEF
-		case 'n':
-			fprintf(stderr, "Using IDMEF XML DTD from %s\n", optarg);
-			libidmef_dtd_path = optarg;
-			break;
-#endif
-
-		case 0:
-			// This happens for long options that don't have
-			// a short-option equivalent.
-			break;
-
-		case '?':
-		default:
-			usage(1);
-			break;
+	if ( options.debug_scripts )
+		{
+		g_policy_debug = options.debug_scripts;
+		fprintf(stderr, "Zeek script debugging ON.\n");
 		}
 
-	if ( interfaces.length() > 0 && read_files.length() > 0 )
-		usage(1);
+	if ( ! options.script_code_to_exec.empty() )
+		command_line_policy = options.script_code_to_exec.data();
+
+	if ( ! options.debug_script_tracing_file.empty() )
+		{
+		g_trace_state.SetTraceFile(options.debug_script_tracing_file.data());
+		g_trace_state.TraceOn();
+		}
+
+	if ( ! options.process_status_file.empty() )
+		proc_status_file = options.process_status_file.data();
 
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
@@ -675,14 +801,44 @@ int main(int argc, char** argv)
 	plugin_mgr = new plugin::Manager();
 
 #ifdef DEBUG
-	if ( debug_streams )
+	if ( ! options.debug_log_streams.empty() )
 		{
-		debug_logger.EnableStreams(debug_streams);
-		debug_logger.OpenDebugLog("debug");
+		debug_logger.EnableStreams(options.debug_log_streams.data());
+		const char* debug_log_name = nullptr;
+
+		if ( ! getenv("ZEEK_DEBUG_LOG_STDERR") )
+			{
+			if ( use_supervisor )
+				debug_log_name = "debug-supervisor";
+			else
+				debug_log_name = "debug";
+			}
+
+		debug_logger.OpenDebugLog(debug_log_name);
 		}
 #endif
 
-	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : 0) , seed_save_file);
+	if ( use_supervisor )
+		{
+		zeek::Supervisor::Config cfg = {};
+		cfg.pcaps = options.pcap_files;
+		cfg.num_workers = options.supervised_workers;
+		zeek::supervisor = new zeek::Supervisor(std::move(cfg),
+		                                        std::move(supervisor_pipe),
+		                                        stem_pid);
+
+		// TODO: what options actually apply to the supervisor ?
+		options.pcap_files = {};
+		options.interfaces = {};
+		}
+
+	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
+
+	if ( ! options.random_seed_input_file.empty() )
+		seed_load_file = options.random_seed_input_file.data();
+
+	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : 0),
+					 options.random_seed_output_file.empty() ? 0 : options.random_seed_output_file.data());
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -701,9 +857,9 @@ int main(int argc, char** argv)
 		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 
 #ifdef USE_IDMEF
-	char* libidmef_dtd_path_cstr = new char[libidmef_dtd_path.length() + 1];
-	safe_strncpy(libidmef_dtd_path_cstr, libidmef_dtd_path.c_str(),
-		     libidmef_dtd_path.length());
+	char* libidmef_dtd_path_cstr = new char[options.libidmef_dtd_file.size() + 1];
+	safe_strncpy(libidmef_dtd_path_cstr, options.libidmef_dtd_file.data(),
+	             options.libidmef_dtd_file.size());
 	globalsInit(libidmef_dtd_path_cstr);	// Init LIBIDMEF globals
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
@@ -711,34 +867,34 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	zeekygen_mgr = new zeekygen::Manager(zeekygen_config, bro_argv[0]);
+	zeekygen_mgr = new zeekygen::Manager(options.zeekygen_config_file,
+	                                     bro_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
 
-	if ( ! bare_mode )
+	if ( ! options.bare_mode )
 		add_input_file("base/init-default.zeek");
 
 	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
-	if ( optind == argc &&
-	     read_files.length() == 0 &&
-	     interfaces.length() == 0 &&
-	     ! id_name && ! command_line_policy && ! print_plugins )
+	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
+	     options.script_options_to_set.empty() &&
+	     options.pcap_files.size() == 0 &&
+	     options.interfaces.size() == 0 &&
+	     options.identifier_to_print.empty() &&
+	     ! command_line_policy && ! options.print_plugins &&
+	     ! use_supervisor )
 		add_input_file("-");
 
-	// Process remaining arguments. X=Y arguments indicate script
-	// variable/parameter assignments. X::Y arguments indicate plugins to
-	// activate/query. The remainder are treated as scripts to load.
-	while ( optind < argc )
-		{
-		if ( strchr(argv[optind], '=') )
-			params.push_back(argv[optind++]);
-		else if ( strstr(argv[optind], "::") )
-			requested_plugins.insert(argv[optind++]);
-		else
-			add_input_file(argv[optind++]);
-		}
+	for ( const auto& script_option : options.script_options_to_set )
+		params.push_back(script_option);
+
+	for ( const auto& plugin : options.plugins_to_load )
+		requested_plugins.insert(plugin);
+
+	for ( const auto& script : options.scripts_to_load )
+		add_input_file(script.data());
 
 	push_scope(nullptr, nullptr);
 
@@ -755,7 +911,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	broker_mgr = new bro_broker::Manager(read_files.length() > 0);
+	broker_mgr = new bro_broker::Manager(! options.pcap_files.empty());
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -774,7 +930,7 @@ int main(int argc, char** argv)
 	if ( missing_plugin )
 		reporter->FatalError("Failed to activate requested dynamic plugin(s).");
 
-	plugin_mgr->ActivateDynamicPlugins(! bare_mode);
+	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
 	init_event_handlers();
 
@@ -830,9 +986,9 @@ int main(int argc, char** argv)
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
 
-	if ( print_plugins )
+	if ( options.print_plugins )
 		{
-		bool success = show_plugins(print_plugins);
+		bool success = show_plugins(options.print_plugins);
 		exit(success ? 0 : 1);
 		}
 
@@ -840,7 +996,7 @@ int main(int argc, char** argv)
 	file_mgr->InitPostScript();
 	dns_mgr->InitPostScript();
 
-	if ( parse_only )
+	if ( options.parse_only )
 		{
 		int rc = (reporter->Errors() > 0 ? 1 : 0);
 		exit(rc);
@@ -859,52 +1015,48 @@ int main(int argc, char** argv)
 	reporter->InitOptions();
 	zeekygen_mgr->GenerateDocs();
 
-	if ( user_pcap_filter )
+	if ( ! options.pcap_filter.empty() )
 		{
 		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
 
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(new StringVal(user_pcap_filter));
+		id->SetVal(new StringVal(options.pcap_filter));
 		}
 
-	// Parse rule files defined on the script level.
-	char* script_rule_files =
-		copy_string(internal_val("signature_files")->AsString()->CheckString());
+	auto all_signature_files = options.signature_files;
 
-	char* tmp = script_rule_files;
-	char* s;
-	while ( (s = strsep(&tmp, " \t")) )
-		if ( *s )
-			rule_files.push_back(s);
+	// Append signature files defined in "signature_files" script option
+	for ( auto&& sf : get_script_signature_files() )
+		all_signature_files.emplace_back(std::move(sf));
 
 	// Append signature files defined in @load-sigs
-	for ( size_t i = 0; i < sig_files.size(); ++i )
-		rule_files.push_back(copy_string(sig_files[i].c_str()));
+	for ( const auto& sf : sig_files )
+		all_signature_files.emplace_back(sf);
 
-	if ( rule_files.length() > 0 )
+	if ( ! all_signature_files.empty() )
 		{
-		rule_matcher = new RuleMatcher(RE_level);
-		if ( ! rule_matcher->ReadFiles(rule_files) )
+		rule_matcher = new RuleMatcher(options.signature_re_level);
+		if ( ! rule_matcher->ReadFiles(all_signature_files) )
 			{
 			delete dns_mgr;
 			exit(1);
 			}
 
-		if ( rule_debug )
+		if ( options.print_signature_debug_info )
 			rule_matcher->PrintDebug();
 
 		file_mgr->InitMagic();
 		}
 
-	delete [] script_rule_files;
-
 	if ( g_policy_debug )
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	if ( read_files.length() == 0 && interfaces.length() == 0 )
+	auto all_interfaces = options.interfaces;
+
+	if ( options.pcap_files.empty() && options.interfaces.empty() )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )
@@ -913,14 +1065,15 @@ int main(int argc, char** argv)
 				interfaces_val->AsString()->Render();
 
 			if ( interfaces_str[0] != '\0' )
-				add_to_name_list(interfaces_str, ' ', interfaces);
+				tokenize_string(interfaces_str, " ", &all_interfaces);
 
 			delete [] interfaces_str;
 			}
 		}
 
 	if ( dns_type != DNS_PRIME )
-		net_init(interfaces, read_files, writefile, do_watchdog);
+		net_init(all_interfaces, options.pcap_files,
+		         options.pcap_output_file, options.use_watchdog);
 
 	net_done = internal_handler("net_done");
 
@@ -949,11 +1102,11 @@ int main(int argc, char** argv)
 		}
 
 	// Print the ID.
-	if ( id_name )
+	if ( ! options.identifier_to_print.empty() )
 		{
-		ID* id = global_scope()->Lookup(id_name);
+		ID* id = global_scope()->Lookup(options.identifier_to_print);
 		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", id_name);
+			reporter->FatalError("No such ID: %s\n", options.identifier_to_print.data());
 
 		ODesc desc;
 		desc.SetQuotes(true);
@@ -1009,7 +1162,7 @@ int main(int argc, char** argv)
 		g_frame_stack.pop_back();
 		}
 
-	if ( override_ignore_checksums )
+	if ( options.ignore_checksums )
 		ignore_checksums = 1;
 
 	if ( zeek_script_loaded )
@@ -1043,6 +1196,9 @@ int main(int argc, char** argv)
 
 	iosource_mgr->Register(thread_mgr, true);
 
+	if ( zeek::supervisor )
+		iosource_mgr->Register(zeek::supervisor);
+
 	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
 	     BifConst::exit_only_after_terminate )
@@ -1067,7 +1223,7 @@ int main(int argc, char** argv)
 		uint64_t mem_net_start_total;
 		uint64_t mem_net_start_malloced;
 
-		if ( time_bro )
+		if ( options.print_execution_time )
 			{
 			get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
 
@@ -1085,7 +1241,7 @@ int main(int argc, char** argv)
 		uint64_t mem_net_done_total;
 		uint64_t mem_net_done_malloced;
 
-		if ( time_bro )
+		if ( options.print_execution_time )
 			{
 			get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
 

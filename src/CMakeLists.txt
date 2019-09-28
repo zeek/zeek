@@ -286,6 +286,7 @@ set(MAIN_SRCS
     Notifier.cc
     Stats.cc
     Stmt.cc
+    Supervisor.cc
     Tag.cc
     Timer.cc
     Traverse.cc

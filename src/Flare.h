@@ -31,8 +31,10 @@ public:
 
 	/**
 	 * Take the object out of the "ready" state.
+	 * @return number of bytes read from the pipe, corresponds to the number
+	 * of times Fire() was called.
 	 */
-	void Extinguish();
+	int Extinguish();
 
 private:
 	Pipe pipe;

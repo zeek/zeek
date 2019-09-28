@@ -1,10 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-
-#include "zeek-config.h"
-
 #include "util.h"
 #include "PktSrc.h"
 #include "Hash.h"
@@ -17,24 +12,8 @@
 
 using namespace iosource;
 
-PktSrc::Properties::Properties()
+PktSrc::PktSrc() : IOSource(true)
 	{
-	selectable_fd = -1;
-	link_type = -1;
-	netmask = NETMASK_UNKNOWN;
-	is_live = false;
-	}
-
-PktSrc::PktSrc()
-	{
-	have_packet = false;
-	errbuf = "";
-	SetClosed(true);
-
-	next_sync_point = 0;
-	first_timestamp = 0.0;
-	current_pseudo = 0.0;
-	first_wallclock = current_wallclock = 0;
 	}
 
 PktSrc::~PktSrc()
@@ -74,7 +53,7 @@ bool PktSrc::IsLive() const
 	return props.is_live;
 	}
 
-double PktSrc::CurrentPacketTimestamp()
+double PktSrc::CurrentPacketTimestamp() const
 	{
 	return current_pseudo;
 	}
@@ -118,7 +97,6 @@ void PktSrc::Opened(const Properties& arg_props)
 void PktSrc::Closed()
 	{
 	SetClosed(true);
-
 	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
 
@@ -157,7 +135,7 @@ double PktSrc::CheckPseudoTime()
 	if ( ! IsOpen() )
 		return 0;
 
-	if ( ! ExtractNextPacketInternal() )
+	if ( ! have_packet )
 		return 0;
 
 	double pseudo_time = current_packet.time - first_timestamp;
@@ -177,62 +155,21 @@ void PktSrc::Done()
 		Close();
 	}
 
-void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                    iosource::FD_Set* except)
+const char* PktSrc::Tag()
 	{
-	if ( pseudo_realtime )
-		{
-		// Select would give erroneous results. But we simulate it
-		// by setting idle accordingly.
-		SetIdle(CheckPseudoTime() == 0);
-		return;
-		}
-
-	if ( IsOpen() && props.selectable_fd >= 0 )
-		read->Insert(props.selectable_fd);
-
-	// TODO: This seems like a hack that should be removed, but doing so
-	// causes the main run loop to spin more frequently and increase cpu usage.
-	// See also commit 9cd85be308.
-	if ( read->Empty() )
-		read->Insert(0);
-
-	if ( write->Empty() )
-		write->Insert(0);
-
-	if ( except->Empty() )
-		except->Insert(0);
+	return "PktSrc";
 	}
 
-double PktSrc::NextTimestamp(double* local_network_time)
+void PktSrc::HandleNewData(int fd)
 	{
-	if ( ! IsOpen() )
-		return -1.0;
-
-	if ( ! ExtractNextPacketInternal() )
-		return -1.0;
-
 	if ( pseudo_realtime )
-		{
-		// Delay packet if necessary.
-		double packet_time = CheckPseudoTime();
-		if ( packet_time )
-			return packet_time;
+		current_wallclock = current_time(true);
 
-		SetIdle(true);
-		return -1.0;
-		}
+	if ( current_packet.time < 0 )
+		Weird("negative_packet_timestamp", &current_packet);
 
-	return current_packet.time;
-	}
-
-void PktSrc::Process()
-	{
-	if ( ! IsOpen() )
-		return;
-
-	if ( ! ExtractNextPacketInternal() )
-		return;
+	if ( ! first_timestamp )
+		first_timestamp = current_packet.time;
 
 	if ( current_packet.Layer2Valid() )
 		{
@@ -248,57 +185,14 @@ void PktSrc::Process()
 			net_packet_dispatch(current_packet.time, &current_packet, this);
 		}
 
-	have_packet = 0;
-	DoneWithPacket();
-	}
-
-const char* PktSrc::Tag()
-	{
-	return "PktSrc";
-	}
-
-bool PktSrc::ExtractNextPacketInternal()
-	{
-	if ( have_packet )
-		return true;
+	// TODO: what exactly does this bit do? why are we shutting down the io manager in this case?
+	// if ( pseudo_realtime && ! IsOpen() )
+	// 	{
+	// 	if ( broker_mgr->Active() )
+	// 		iosource_mgr->Terminate();
+	// 	}
 
 	have_packet = false;
-
-	// Don't return any packets if processing is suspended (except for the
-	// very first packet which we need to set up times).
-	if ( net_is_processing_suspended() && first_timestamp )
-		{
-		SetIdle(true);
-		return 0;
-		}
-
-	if ( pseudo_realtime )
-		current_wallclock = current_time(true);
-
-	if ( ExtractNextPacket(&current_packet) )
-		{
-		if ( current_packet.time < 0 )
-			{
-			Weird("negative_packet_timestamp", &current_packet);
-			return 0;
-			}
-
-		if ( ! first_timestamp )
-			first_timestamp = current_packet.time;
-
-		SetIdle(false);
-		have_packet = true;
-		return 1;
-		}
-
-	if ( pseudo_realtime && ! IsOpen() )
-		{
-		if ( broker_mgr->Active() )
-			iosource_mgr->Terminate();
-		}
-
-	SetIdle(true);
-	return 0;
 	}
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
@@ -306,17 +200,17 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	if ( index < 0 )
 		return false;
 
-	char errbuf[PCAP_ERRBUF_SIZE];
+	char pcap_errbuf[PCAP_ERRBUF_SIZE];
 
 	// Compile filter.
 	BPF_Program* code = new BPF_Program();
 
-	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), pcap_errbuf, sizeof(pcap_errbuf)) )
 		{
 		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
-		if ( *errbuf )
-			msg += ": " + string(errbuf);
+		if ( *pcap_errbuf )
+			msg += ": " + string(pcap_errbuf);
 
 		Error(msg);
 

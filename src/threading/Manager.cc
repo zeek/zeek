@@ -4,7 +4,7 @@
 
 using namespace threading;
 
-Manager::Manager()
+Manager::Manager() : IOSource()
 	{
 	DBG_LOG(DBG_THREADING, "Creating thread manager ...");
 
@@ -27,7 +27,9 @@ void Manager::Terminate()
 	terminating = true;
 
 	// First process remaining thread output for the message threads.
-	do Process(); while ( did_process );
+	do HandleNewData(-1); while ( did_process );
+
+	IOSource::Stop();
 
 	// Signal all to stop.
 
@@ -57,6 +59,7 @@ void Manager::AddThread(BasicThread* thread)
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
 	SetIdle(false);
+	IOSource::Start();
 	}
 
 void Manager::AddMsgThread(MsgThread* thread)
@@ -65,41 +68,13 @@ void Manager::AddMsgThread(MsgThread* thread)
 	msg_threads.push_back(thread);
 	}
 
-void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                     iosource::FD_Set* except)
-	{
-	}
-
-double Manager::NextTimestamp(double* network_time)
-	{
-//	fprintf(stderr, "N %.6f %.6f did_process=%d next_next=%.6f\n", ::network_time, timer_mgr->Time(), (int)did_process, next_beat);
-
-	if ( ::network_time && (did_process || ::network_time > next_beat || ! next_beat) )
-		// If we had something to process last time (or out heartbeat
-		// is due or not set yet), we want to check for more asap.
-		return timer_mgr->Time();
-
-	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
-		{
-		MsgThread* t = *i;
-
-		if ( t->MightHaveOut() || t->Killed() )
-			// Even if the thread doesn't have output, it may be killed/done,
-			// which should also signify that processing is needed.  The
-			// "processing" in that case is joining the thread and deleting it.
-			return timer_mgr->Time();
-		}
-
-	return -1.0;
-	}
-
 void Manager::KillThreads()
 	{
 	DBG_LOG(DBG_THREADING, "Killing threads ...");
 
 	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
 		(*i)->Kill();
-        }
+	}
 
 void Manager::KillThread(BasicThread* thread)
 	{
@@ -107,11 +82,11 @@ void Manager::KillThread(BasicThread* thread)
 	thread->Kill();
 	}
 
-void Manager::Process()
+void Manager::HandleNewData(int fd)
 	{
 	bool do_beat = false;
 
-	if ( network_time && (network_time > next_beat || ! next_beat) )
+	if ( ::network_time && (::network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
 		next_beat = ::network_time + BifConst::Threading::heartbeat_interval;
@@ -119,10 +94,8 @@ void Manager::Process()
 
 	did_process = false;
 
-	for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ )
+	for ( auto t : msg_threads )
 		{
-		MsgThread* t = *i;
-
 		if ( do_beat )
 			t->Heartbeat();
 
@@ -149,17 +122,14 @@ void Manager::Process()
 
 	all_thread_list to_delete;
 
-	for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
+	for ( auto t : all_threads )
 		{
-		BasicThread* t = *i;
-
 		if ( t->Killed() )
 			to_delete.push_back(t);
 		}
 
-	for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ )
+	for ( auto t : to_delete )
 		{
-		BasicThread* t = *i;
 		t->WaitForStop();
 
 		all_threads.remove(t);
@@ -171,6 +141,9 @@ void Manager::Process()
 
 		t->Join();
 		delete t;
+
+		if ( all_threads.empty() )
+			IOSource::Stop();
 		}
 
 //	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);

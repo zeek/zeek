@@ -127,7 +127,7 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-Manager::Manager(bool arg_reading_pcaps)
+Manager::Manager(bool arg_reading_pcaps) : IOSource()
 	{
 	bound_port = 0;
 	reading_pcaps = arg_reading_pcaps;
@@ -168,8 +168,9 @@ void Manager::InitPostScript()
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
 	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
 
-	// Register as a "dont-count" source first, we may change that later.
-	iosource_mgr->Register(this, true);
+	// Register with the iosource_mgr. This doesn't mean anything at the moment other than
+	// to get us added to the list. We'll start polling later in Listen().
+	iosource_mgr->Register(this);
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
@@ -220,6 +221,9 @@ void Manager::InitPostScript()
 void Manager::Terminate()
 	{
 	FlushLogBuffers();
+
+	IOSource::Stop(bstate->subscriber.fd());
+	IOSource::Stop(bstate->status_subscriber.fd());
 
 	vector<string> stores_to_close;
 
@@ -296,8 +300,8 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 		Error("Failed to listen on %s:%" PRIu16,
 		      addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
-	// Register as a "does-count" source now.
-	iosource_mgr->Register(this, false);
+	IOSource::Start(bstate->subscriber.fd());
+	IOSource::Start(bstate->status_subscriber.fd());
 
 	DBG_LOG(DBG_BROKER, "Listening on %s:%" PRIu16,
 		addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
@@ -328,8 +332,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
 
 	if ( counts_as_iosource )
-		// Register as a "does-count" source now.
-		iosource_mgr->Register(this, false);
+		iosource_mgr->Register(this);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)
@@ -821,24 +824,6 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 	return true;
 	}
 
-void Manager::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                           iosource::FD_Set* except)
-	{
-	read->Insert(bstate->subscriber.fd());
-	read->Insert(bstate->status_subscriber.fd());
-
-	for ( auto& x : data_stores )
-		read->Insert(x.second->proxy.mailbox().descriptor());
-	}
-
-double Manager::NextTimestamp(double* local_network_time)
-	{
-	// We're only asked for a timestamp if either (1) a FD was ready
-	// or (2) we're not idle (and we go idle if when Process is no-op),
-	// so there's no case where returning -1 to signify a skip will help.
-	return timer_mgr->Time();
-	}
-
 void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	{
 	switch ( broker::zeek::Message::type(msg) ) {
@@ -889,7 +874,7 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	}
 	}
 
-void Manager::Process()
+void Manager::HandleNewData(int fd)
 	{
 	bool had_input = false;
 
@@ -1497,6 +1482,7 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
+	IOSource::Start(handle->proxy.mailbox().descriptor());
 
 	if ( bstate->endpoint.use_real_time() )
 		return handle;
@@ -1533,6 +1519,7 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
 	Ref(handle);
 
 	data_stores.emplace(name, handle);
+	IOSource::Start(handle->proxy.mailbox().descriptor());
 
 	return handle;
 	}
@@ -1550,6 +1537,8 @@ bool Manager::CloseStore(const string& name)
 	auto s = data_stores.find(name);
 	if ( s == data_stores.end() )
 		return false;
+
+	IOSource::Stop(s->second->proxy.mailbox().descriptor());
 
 	for ( auto i = pending_queries.begin(); i != pending_queries.end(); )
 		if ( i->second->Store().name() == name )

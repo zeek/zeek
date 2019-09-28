@@ -11,6 +11,7 @@ add_subdirectory(pcap)
 set(iosource_SRCS
     BPF_Program.cc
     Component.cc
+    IOSource.cc
     Manager.cc
     Packet.cc
     PktDumper.cc
@@ -19,4 +20,3 @@ set(iosource_SRCS
 
 bro_add_subdir_library(iosource ${iosource_SRCS})
 add_dependencies(bro_iosource generate_outputs)
-

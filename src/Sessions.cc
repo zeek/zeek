@@ -14,6 +14,7 @@
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Reporter.h"
+#include "iosource/Manager.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -1357,7 +1358,7 @@ TimerMgr* NetSessions::LookupTimerMgr(const TimerMgr::Tag* tag, bool create)
 			return 0;
 
 		// Create new queue for tag.
-		TimerMgr* mgr = new CQ_TimerMgr(*tag);
+		TimerMgr* mgr = new UV_TimerMgr(*tag);
 		DBG_LOG(DBG_TM, "tag %s, creating new non-global timer mgr %p", tag->c_str(), mgr);
 		timer_mgrs.insert(TimerMgrMap::value_type(*tag, mgr));
 		double t = timer_mgr->Time() + timer_mgr_inactivity_timeout;

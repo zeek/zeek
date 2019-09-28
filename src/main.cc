@@ -20,6 +20,8 @@ extern "C" {
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <uv.h>
+#include "3rdparty/sqlite3.h"
 
 #include "bsd-getopt-long.h"
 #include "input.h"
@@ -32,16 +34,13 @@ extern "C" {
 #include "Net.h"
 #include "NetVar.h"
 #include "Var.h"
-#include "Timer.h"
 #include "Stmt.h"
 #include "Debug.h"
 #include "DFA.h"
 #include "RuleMatcher.h"
-#include "Anon.h"
 #include "EventRegistry.h"
 #include "Stats.h"
 #include "Brofiler.h"
-#include "Traverse.h"
 
 #include "threading/Manager.h"
 #include "input/Manager.h"
@@ -49,7 +48,6 @@ extern "C" {
 #include "logging/writers/ascii/Ascii.h"
 #include "input/readers/raw/Raw.h"
 #include "analyzer/Manager.h"
-#include "analyzer/Tag.h"
 #include "plugin/Manager.h"
 #include "file_analysis/Manager.h"
 #include "zeekygen/Manager.h"
@@ -57,8 +55,6 @@ extern "C" {
 #include "broker/Manager.h"
 
 #include "binpac_bro.h"
-
-#include "3rdparty/sqlite3.h"
 
 Brofiler brofiler;
 
@@ -124,6 +120,9 @@ OpaqueType* paraglob_type = 0;
 int bro_argc;
 char** bro_argv;
 
+int poll_kill_pair[2];
+uv_poll_t poll_killer;
+
 const char* zeek_version()
 	{
 #ifdef DEBUG
@@ -158,9 +157,9 @@ void usage(int code = 1)
 	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded policies by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
-	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
+	fprintf(stderr, "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to policy file resolution\n");
-	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
+	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
@@ -348,8 +347,9 @@ void terminate_bro()
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
-	// broker_mgr is deleted via iosource_mgr
 	delete iosource_mgr;
+	delete broker_mgr;
+	delete thread_mgr;
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;
@@ -379,10 +379,25 @@ void termination_signal()
 	exit(0);
 	}
 
+static void poll_kill_callback(uv_poll_t* handle, int status, int error)
+	{
+	// Read out the byte from the socketpair so that it's not readable anymore
+	char val;
+	read(poll_kill_pair[0], &val, 0);
+	uv_poll_stop((uv_poll_t*)handle);
+	}
+
 RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
+
+	// Shut down anything using the IO loop
+	if ( iosource_mgr )
+		iosource_mgr->Terminate();
+
+	// Write to the socket pair to get poll to return
+	write(poll_kill_pair[1], "", 0);
 
 	return RETSIGVAL;
 	}
@@ -537,6 +552,8 @@ int main(int argc, char** argv)
 			break;
 
 		case 'i':
+			if ( interfaces.length() != 0 )
+				usage(1);
 			interfaces.push_back(optarg);
 			break;
 
@@ -545,6 +562,8 @@ int main(int argc, char** argv)
 			break;
 
 		case 'r':
+			if ( read_files.length() != 0 )
+				usage(1);
 			read_files.push_back(optarg);
 			break;
 
@@ -668,6 +687,7 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+ 	iosource_mgr = new iosource::Manager();
 	val_mgr = new ValManager();
 	port_mgr = new PortManager();
 	reporter = new Reporter();
@@ -708,8 +728,7 @@ int main(int argc, char** argv)
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
 
-	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
-	// timer_mgr = new CQ_TimerMgr();
+	timer_mgr = new UV_TimerMgr("<GLOBAL>");
 
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_config, bro_argv[0]);
 
@@ -749,7 +768,6 @@ int main(int argc, char** argv)
 	// policy, but we can't parse policy without DNS resolution.
 	dns_mgr->SetDir(".state");
 
-	iosource_mgr = new iosource::Manager();
 	event_registry = new EventRegistry();
 	analyzer_mgr = new analyzer::Manager();
 	log_mgr = new logging::Manager();
@@ -1041,9 +1059,9 @@ int main(int argc, char** argv)
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
-	iosource_mgr->Register(thread_mgr, true);
+	iosource_mgr->Register(thread_mgr);
 
-	if ( iosource_mgr->Size() > 0 ||
+	if ( iosource_mgr->HasPktSrc() ||
 	     have_pending_timers ||
 	     BifConst::exit_only_after_terminate )
 		{
@@ -1059,8 +1077,14 @@ int main(int argc, char** argv)
 			HeapProfilerStart("heap");
 			HeapProfilerDump("pre net_run");
 			}
-
 #endif
+
+		if ( reading_live )
+			{
+			socketpair(AF_UNIX, SOCK_DGRAM, 0, poll_kill_pair);
+			uv_poll_init(iosource_mgr->GetLoop(), &poll_killer, poll_kill_pair[0]);
+			uv_poll_start(&poll_killer, UV_READABLE, poll_kill_callback);
+			}
 
 		double time_net_start = current_time(true);;
 
@@ -1078,9 +1102,23 @@ int main(int argc, char** argv)
 				mem_net_start_malloced / 1024 / 1024);
 			}
 
-		net_run();
+		set_processing_status("RUNNING", "net_run");
 
-		double time_net_done = current_time(true);;
+		// Only actually run the loop if we have a packet source or we're not terminating.
+		// What this lets us do is trigger all of the timers but not run any polling.
+		if ( iosource_mgr->HasPktSrc() ||
+			( BifConst::exit_only_after_terminate && ! terminating ) )
+			{
+//			uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
+			uv_run(iosource_mgr->GetLoop(), UV_RUN_DEFAULT);
+			}
+
+		// Get the final statistics now, and not when net_finish() is called, since that
+		// might happen quite a bit in the future due to expiring pending timers, and we
+		// don't want to ding for any packets dropped beyond this point.
+		net_get_final_stats();
+
+		double time_net_done = current_time(true);
 
 		uint64_t mem_net_done_total;
 		uint64_t mem_net_done_malloced;

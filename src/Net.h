@@ -12,7 +12,6 @@
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
 		const char* writefile, int do_watchdog);
-extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
@@ -32,19 +31,19 @@ inline bool net_is_processing_suspended()
 	{ return _processing_suspended > 0; }
 
 // Whether we're reading live traffic.
-extern int reading_live;
+extern bool reading_live;
 
 // Same but for reading from traces instead.  We have two separate
 // variables because it's possible that neither is true, and we're
 // instead just running timers (per the variable after this one).
-extern int reading_traces;
+extern bool reading_traces;
 
 // True if we have timers scheduled for the future on which we need
 // to wait.  "Need to wait" here means that we're running live (though
 // perhaps not reading_live, but just running in real-time) as opposed
 // to reading a trace (in which case we don't want to wait in real-time
 // on future timers).
-extern int have_pending_timers;
+extern bool have_pending_timers;
 
 // If > 0, we are reading from traces but trying to mimic real-time behavior.
 // (In this case, both reading_traces and reading_live are true.)  The value

@@ -2,11 +2,14 @@
 
 #pragma once
 
+extern "C" {
+#include <pcap.h>
+}
+
 #include <vector>
 
 #include "IOSource.h"
 #include "BPF_Program.h"
-#include "Dict.h"
 #include "Packet.h"
 
 namespace iosource {
@@ -15,6 +18,7 @@ namespace iosource {
  * Base class for packet sources.
  */
 class PktSrc : public IOSource {
+
 public:
 	static const int NETMASK_UNKNOWN = 0xffffffff;
 
@@ -25,25 +29,23 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		uint64_t received;
+		uint64_t received = 0;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64_t dropped;	// pkts dropped
+		uint64_t dropped = 0;	// pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		uint64_t link;
+		uint64_t link = 0;
 
 		/**
 		  * Bytes received by source after filtering (w/o drops).
 		*/
-		uint64_t bytes_received;
-
-		Stats()	{ received = dropped = link = bytes_received = 0; }
+		uint64_t bytes_received = 0;
 	};
 
 	/**
@@ -54,7 +56,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~PktSrc() override;
+	virtual ~PktSrc() override;
 
 	/**
 	 * Returns the path associated with the source. This is the interface
@@ -93,7 +95,7 @@ public:
 	 * In pseudo-realtime mode, returns the logical timestamp of the
 	 * current packet. Undefined if not running pseudo-realtime mode.
 	 */
-	double CurrentPacketTimestamp();
+	double CurrentPacketTimestamp() const;
 
 	/**
 	 * In pseudo-realtime mode, returns the wall clock time associated
@@ -205,6 +207,7 @@ public:
 	virtual void Statistics(Stats* stats) = 0;
 
 protected:
+
 	friend class Manager;
 
 	// Methods to use by derived classes.
@@ -224,26 +227,24 @@ protected:
 		 * A file descriptor suitable to use with \a select() for
 		 * determining if there's input available from this source.
 		 */
-		int selectable_fd;
+		int selectable_fd = -1;
 
 		/**
 		 * The link type for packets from this source.
 		 */
-		int link_type;
+		int link_type = -1;
 
 		/**
 		 * Returns the netmask associated with the source, or \c
 		 * NETMASK_UNKNOWN if unknown.
 		 */
-		uint32_t netmask;
+		uint32_t netmask = NETMASK_UNKNOWN;
 
 		/**
 		 * True if the source is reading live inout, false for
 		 * working offline.
 		 */
-		bool is_live;
-
-		Properties();
+		bool is_live = false;
 	};
 
 	/**
@@ -276,7 +277,7 @@ protected:
 	void Error(const std::string& msg);
 
 	/**
-	 * Can be called from derived classes to flah a "weird" situation.
+	 * Can be called from derived classes to flag a "weird" situation.
 	 *
 	 * @param msg The message to pass on.
 	 *
@@ -313,57 +314,40 @@ protected:
 	virtual void Close() = 0;
 
 	/**
-	 * Provides the next packet from the source.
-	 *
-	 * @param pkt The packet structure to fill in with the packet's
-	 * information. The callee keep ownership of the data but must
-	 * guaranetee that it stays available at least until \a
-	 * DoneWithPacket() is called.  It is guaranteed that no two calls to
-	 * this method will hapen with \a DoneWithPacket() in between.
-	 *
-	 * @return True if a packet is available and *pkt* filled in. False
-	 * if not packet is available or an error occured (which must be
-	 * flageed via Error()).
+	 * Checks if the current packet has a pseudo-time <= current_time. If
+	 * yes, returns pseudo-time, otherwise 0.
 	 */
-	virtual bool ExtractNextPacket(Packet* pkt) = 0;
-
-	/**
-	 * Signals that the data of previously extracted packet will no
-	 * longer be needed.
-	 */
-	virtual void DoneWithPacket() = 0;
-
-private:
-	// Checks if the current packet has a pseudo-time <= current_time. If
-	// yes, returns pseudo-time, otherwise 0.
 	double CheckPseudoTime();
 
-	// Internal helper for ExtractNextPacket().
-	bool ExtractNextPacketInternal();
+	/**
+	 * Returns whether this IOSource is a source of packet data. Used by the IOSource
+	 * manager to register/unregister components correctly.
+	 */
+	bool IsPacketSource() const final { return true; }
+
+	virtual void HandleNewData(int fd) override;
+
+	bool have_packet = false;
+	Packet current_packet;
+
+	// Only set in pseudo-realtime mode.
+	double first_timestamp = 0.0;
+	double first_wallclock = 0.0;
+	double current_wallclock = 0.0;
+	double current_pseudo = 0.0;
+	double next_sync_point = 0.0; // For trace synchronziation in pseudo-realtime
+
+private:
 
 	// IOSource interface implementation.
 	void Init() override;
 	void Done() override;
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* local_network_time) override;
-	void Process() override;
 	const char* Tag() override;
 
 	Properties props;
 
-	bool have_packet;
-	Packet current_packet;
-
 	// For BPF filtering support.
 	std::vector<BPF_Program *> filters;
-
-	// Only set in pseudo-realtime mode.
-	double first_timestamp;
-	double first_wallclock;
-	double current_wallclock;
-	double current_pseudo;
-	double next_sync_point; // For trace synchronziation in pseudo-realtime
 
 	std::string errbuf;
 };

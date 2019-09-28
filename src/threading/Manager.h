@@ -102,23 +102,19 @@ protected:
 	/**
 	 * Part of the IOSource interface.
 	 */
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
+	double NextTimestamp(double* network_time);
 
 	/**
 	 * Part of the IOSource interface.
 	 */
-	double NextTimestamp(double* network_time) override;
-
-	/**
-	 * Part of the IOSource interface.
-	 */
-	void Process() override;
+	void Process();
 
 	/**
 	 * Part of the IOSource interface.
 	 */
 	const char* Tag() override { return "threading::Manager"; }
+
+virtual void HandleNewData(int fd) override;
 
 private:
 	typedef std::list<BasicThread*> all_thread_list;

@@ -72,7 +72,7 @@ public:
 	 *
 	 * @param type Type of input the component supports.
 	 *
-	 * @param factor Factory function to instantiate component.
+	 * @param factory Factory function to instantiate component.
 	 */
 	PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
 

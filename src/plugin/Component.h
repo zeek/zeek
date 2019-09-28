@@ -19,6 +19,7 @@ enum Type {
 	ANALYZER,	/// A protocol analyzer.
 	FILE_ANALYZER,	/// A file analyzer.
 	IOSOURCE,	/// An I/O source, excluding packet sources.
+	UVSOURCE,	/// An I/O source using libuv, excluding packet sources.
 	PKTSRC,	/// A packet source.
 	PKTDUMPER	/// A packet dumper.
 	};

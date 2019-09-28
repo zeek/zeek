@@ -1,71 +1,36 @@
-// See the file  in the main distribution directory for copyright.
-
-#include <assert.h>
-
-#include "zeek-config.h"
-
 #include "Source.h"
-#include "iosource/Packet.h"
 
-#include "pcap.bif.h"
-
-#ifdef HAVE_PCAP_INT_H
-#include <pcap-int.h>
-#endif
+#include "util.h"
+#include "Reporter.h"
 
 using namespace iosource::pcap;
 
-PcapSource::~PcapSource()
-	{
-	Close();
-	}
+// TODO: these should be from BifConst::Pcap
+const int snaplen = 9216;
+const int bufsize = 128;
 
-PcapSource::PcapSource(const std::string& path, bool is_live)
+PcapSource::PcapSource(const std::string& path, bool is_live) : PktSrc()
 	{
 	props.path = path;
 	props.is_live = is_live;
-	pd = 0;
+
 	memset(&current_hdr, 0, sizeof(current_hdr));
 	memset(&last_hdr, 0, sizeof(last_hdr));
-	last_data = 0;
 	}
 
-void PcapSource::Open()
-	{
-	if ( props.is_live )
-		OpenLive();
-	else
-		OpenOffline();
-	}
-
-void PcapSource::Close()
-	{
-	if ( ! pd )
-		return;
-
-	pcap_close(pd);
-	pd = 0;
-	last_data = 0;
-
-	Closed();
-	}
-
-void PcapSource::OpenLive()
+bool PcapSource::OpenLive()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char tmp_errbuf[PCAP_ERRBUF_SIZE];
 
 	// Determine interface if not specified.
 	if ( props.path.empty() )
 		{
-		pcap_if_t* devs;
+		pcap_if_t* devs = nullptr;
 
-		if ( pcap_findalldevs(&devs, tmp_errbuf) < 0 )
+		if ( pcap_findalldevs(&devs, errbuf) < 0 )
 			{
-			safe_snprintf(errbuf, sizeof(errbuf),
-			             "pcap_findalldevs: %s", tmp_errbuf);
-			Error(errbuf);
-			return;
+			Error(fmt("pcap_findalldevs: %s\n", errbuf));
+			return false;
 			}
 
 		if ( devs )
@@ -75,31 +40,27 @@ void PcapSource::OpenLive()
 
 			if ( props.path.empty() )
 				{
-				safe_snprintf(errbuf, sizeof(errbuf),
-				              "pcap_findalldevs: empty device name");
-				Error(errbuf);
-				return;
+				Error(fmt("pcap_findalldevs: empty device name\n"));
+				return false;
 				}
 			}
 		else
 			{
-			safe_snprintf(errbuf, sizeof(errbuf),
-			              "pcap_findalldevs: no devices found");
-			Error(errbuf);
-			return;
+			Error(fmt("pcap_findalldevs: no devices found\n"));
+			return false;
 			}
 		}
 
 	// Determine network and netmask.
 	uint32_t net;
-	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, tmp_errbuf) < 0 )
+	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, errbuf) < 0 )
 		{
 		// ### The lookup can fail if no address is assigned to
 		// the interface; and libpcap doesn't have any useful notion
 		// of error codes, just error std::strings - how bogus - so we
 		// just kludge around the error :-(.
-		// sprintf(errbuf, "pcap_lookupnet %s", tmp_errbuf);
-		// return;
+		// sprintf(errbuf, "pcap_lookupnet %s", errbuf);
+		// return false;
 		props.netmask = 0xffffff00;
 		}
 
@@ -114,22 +75,22 @@ void PcapSource::OpenLive()
 	if ( ! pd )
 		{
 		PcapError("pcap_create");
-		return;
+		return false;
 		}
 
-	if ( pcap_set_snaplen(pd, BifConst::Pcap::snaplen) )
+	if ( pcap_set_snaplen(pd, snaplen) )
 		{
 		PcapError("pcap_set_snaplen");
-		return;
+		return false;
 		}
 
 	if ( pcap_set_promisc(pd, 1) )
 		{
 		PcapError("pcap_set_promisc");
-		return;
+		return false;
 		}
 
-	// We use the smallest time-out possible to return almost immediately
+	// We use the smallest time-out possible to return false almost immediately
 	// if no packets are available. (We can't use set_nonblocking() as
 	// it's broken on FreeBSD: even when select() indicates that we can
 	// read something, we may get nothing if the store buffer hasn't
@@ -140,26 +101,26 @@ void PcapSource::OpenLive()
 	if ( pcap_set_timeout(pd, 1) )
 		{
 		PcapError("pcap_set_timeout");
-		return;
+		return false;
 		}
 
-	if ( pcap_set_buffer_size(pd, BifConst::Pcap::bufsize * 1024 * 1024) )
+	if ( pcap_set_buffer_size(pd, bufsize * 1024 * 1024) )
 		{
 		PcapError("pcap_set_buffer_size");
-		return;
+		return false;
 		}
 
 	if ( pcap_activate(pd) )
 		{
 		PcapError("pcap_activate");
-		return;
+		return false;
 		}
 
 #ifdef HAVE_LINUX
-	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
+	if ( pcap_setnonblock(pd, 1, errbuf) < 0 )
 		{
 		PcapError("pcap_setnonblock");
-		return;
+		return false;
 		}
 #endif
 
@@ -167,20 +128,19 @@ void PcapSource::OpenLive()
 	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
-	props.selectable_fd = pcap_fileno(pd);
-
 	SetHdrSize();
 
 	if ( ! pd )
 		// Was closed, couldn't get header size.
-		return;
+		return false;
 
 	props.is_live = true;
 
-	Opened(props);
+	// Tell the base class to add this to the event loop
+	return IOSource::Start(pcap_fileno(pd));
 	}
 
-void PcapSource::OpenOffline()
+bool PcapSource::OpenOffline()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -188,63 +148,86 @@ void PcapSource::OpenOffline()
 
 	if ( ! pd )
 		{
-		Error(errbuf);
-		return;
+		Error(fmt("%s\n", errbuf));
+		return false;
 		}
 
 	SetHdrSize();
 
 	if ( ! pd )
 		// Was closed, unknown link layer type.
-		return;
-
-	props.selectable_fd = fileno(pcap_file(pd));
-
-	if ( props.selectable_fd < 0 )
-		InternalError("OS does not support selectable pcap fd");
+		return false;
 
 	props.is_live = false;
-	Opened(props);
+
+	// Tell the base class to add this to the event loop
+	return IOSource::Start();
 	}
 
-bool PcapSource::ExtractNextPacket(Packet* pkt)
+void PcapSource::Open()
+	{
+	bool result = props.is_live ? OpenLive() : OpenOffline();
+	
+	if ( result )
+		Opened(props);
+	else
+		Close();
+	}
+
+void PcapSource::HandleNewData(int fd)
 	{
 	if ( ! pd )
-		return false;
+		// TODO: failure case? why are we still in the loop if the pcap is closed?
+		return;
 
-	const u_char* data = pcap_next(pd, &current_hdr);
-
-	if ( ! data )
+	// If we don't already have a packet, grab a new one. If we do, just pass it up to the parent
+	// class to be processed.
+	if ( ! have_packet )
 		{
-		// Source has gone dry.  If it's a network interface, this just means
-		// it's timed out. If it's a file, though, then the file has been
-		// exhausted.
-		if ( ! props.is_live )
-			Close();
-
-		return false;
+		// We didn't have an existing packet already so get one from pcap.
+		const u_char* data = pcap_next(pd, &current_hdr);
+		
+		if ( ! data )
+			{
+			// Source has gone dry.  If it's a network interface, this just means
+			// it's timed out. If it's a file, though, then the file has been
+			// exhausted.
+			if ( ! props.is_live )
+				Close();
+			
+			return;
+			}
+		
+		current_packet.Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
+		
+		if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
+			{
+			Weird("empty_pcap_header", &current_packet);
+			return;
+			}
+		
+		last_hdr = current_hdr;
+		last_data = data;
+		++stats.received;
+		stats.bytes_received += current_hdr.len;
+		
+		have_packet = true;
 		}
 
-	last_data = data;
-	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
-
-	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
-		{
-		Weird("empty_pcap_header", pkt);
-		return false;
-		}
-
-	last_hdr = current_hdr;
-	last_data = data;
-	++stats.received;
-	stats.bytes_received += current_hdr.len;
-
-	return true;
+	PktSrc::HandleNewData(fd);
 	}
 
-void PcapSource::DoneWithPacket()
+void PcapSource::Close()
 	{
-	// Nothing to do.
+	if ( ! pd )
+		return;
+
+	IOSource::Done();
+
+	pcap_close(pd);
+	pd = nullptr;
+
+	Closed();
 	}
 
 bool PcapSource::PrecompileFilter(int index, const std::string& filter)
@@ -324,12 +307,20 @@ void PcapSource::Statistics(Stats* s)
 		s->dropped = 0;
 	}
 
-void PcapSource::PcapError(const char* where)
+void PcapSource::SetHdrSize()
 	{
-	string location;
+	if ( ! pd )
+		return;
 
-	if ( where )
-		location = fmt(" (%s)", where);
+	props.link_type = pcap_datalink(pd);
+	}
+
+void PcapSource::PcapError(const std::string& where)
+	{
+	std::string location;
+
+	if ( ! where.empty() )
+		location = fmt(" (%s)", where.c_str());
 
 	if ( pd )
 		Error(fmt("pcap_error: %s%s", pcap_geterr(pd), location.c_str()));
@@ -337,16 +328,6 @@ void PcapSource::PcapError(const char* where)
 		Error(fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
-	}
-
-void PcapSource::SetHdrSize()
-	{
-	if ( ! pd )
-		return;
-
-	char errbuf[PCAP_ERRBUF_SIZE];
-
-	props.link_type = pcap_datalink(pd);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

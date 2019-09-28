@@ -175,11 +175,11 @@ void ProfileLogger::Log()
 			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
-	file->Write(fmt("%.06f Timers: current=%d max=%d mem=%dK lag=%.2fs\n",
+	file->Write(fmt("%.06f Timers: current=%ld max=%ld mem=%ldK lag=%.2fs\n",
 		network_time,
 		timer_mgr->Size(), timer_mgr->PeakSize(),
-		int(cq_memory_allocation() +
-		    (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
+		size_t(cq_memory_allocation() +
+		       (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
 		network_time - timer_mgr->LastTimestamp()));
 
 	DNS_Mgr::Stats dstats;

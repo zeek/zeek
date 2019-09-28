@@ -373,7 +373,7 @@ void DNS_Mapping::Save(FILE* f) const
 	}
 
 
-DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
+DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource()
 	{
 	did_init = 0;
 
@@ -392,7 +392,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 	successful = 0;
 	failed = 0;
 	nb_dns = nullptr;
-	next_timestamp = -1.0;
 	}
 
 DNS_Mgr::~DNS_Mgr()
@@ -442,6 +441,8 @@ void DNS_Mgr::Init()
 
 	if ( ! nb_dns )
 		reporter->Warning("problem initializing NB-DNS: %s", err);
+	else
+		IOSource::Start(nb_dns_fd(nb_dns));
 
 	did_init = true;
 	}
@@ -458,7 +459,7 @@ void DNS_Mgr::InitPostScript()
 	dm_rec = internal_type("dns_mapping")->AsRecordType();
 
 	// Registering will call Init()
-	iosource_mgr->Register(this, true);
+	iosource_mgr->Register(this);
 
 	// We never set idle to false, having the main loop only calling us from
 	// time to time. If we're issuing more DNS requests than we can handle
@@ -1242,30 +1243,6 @@ void DNS_Mgr::IssueAsyncRequests()
 		}
 	}
 
-void DNS_Mgr::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                     iosource::FD_Set* except)
-	{
-	if ( ! nb_dns )
-		return;
-
-	read->Insert(nb_dns_fd(nb_dns));
-	}
-
-double DNS_Mgr::NextTimestamp(double* network_time)
-	{
-	if ( asyncs_timeouts.empty() )
-		// No pending requests.
-		return -1.0;
-
-	if ( next_timestamp < 0 )
-		// Store the timestamp to help prevent starvation by some other
-		// IOSource always trying to use the same timestamp
-		// (assuming network_time does actually increase).
-		next_timestamp = timer_mgr->Time();
-
-	return next_timestamp;
-	}
-
 void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout)
 	{
 	// Note that this code is a mirror of that for CheckAsyncHostRequest.
@@ -1389,10 +1366,9 @@ void DNS_Mgr::Flush()
 	text_mappings.clear();
 	}
 
-void DNS_Mgr::Process()
+void DNS_Mgr::HandleNewData(int fd)
 	{
 	DoProcess();
-	next_timestamp = -1.0;
 	}
 
 void DNS_Mgr::DoProcess()

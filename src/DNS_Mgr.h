@@ -22,8 +22,6 @@ class EventHandler;
 class RecordType;
 class DNS_Mgr_Request;
 
-typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
-
 struct nb_dns_info;
 struct nb_dns_result;
 
@@ -131,10 +129,7 @@ protected:
 	void DoProcess();
 
 	// IOSource interface.
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* network_time) override;
-	void Process() override;
+	void HandleNewData(int fd) override;
 	void Init() override;
 	const char* Tag() override { return "DNS_Mgr"; }
 
@@ -144,6 +139,7 @@ protected:
 	AddrMap addr_mappings;
 	TextMap text_mappings;
 
+	typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
 	DNS_mgr_request_list requests;
 
 	nb_dns_info* nb_dns;
@@ -241,7 +237,6 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
-	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

@@ -345,13 +345,7 @@ private:
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));
 
-	// IOSource interface overrides:
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	            iosource::FD_Set* except) override;
-
-	double NextTimestamp(double* local_network_time) override;
-
-	void Process() override;
+	void HandleNewData(int fd) override;
 
 	const char* Tag() override
 		{ return "Broker::Manager"; }

@@ -54,6 +54,10 @@ void Component::Describe(ODesc* d) const
 		d->Add("I/O Source");
 		break;
 
+	case component::UVSOURCE:
+		d->Add("LibUV-based I/O Source");
+		break;
+
 	case component::PKTSRC:
 		d->Add("Packet Source");
 		break;

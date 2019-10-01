@@ -105,11 +105,13 @@ event zeek_init()
 	local st3: set[addr] = set(1.2.3.4);
 	local st4: set[myrec1] = set(myrec1($s="test"));
 	local st5: set[myrec1] = set(myrec1($s="test", $c=2));
+	local st6: set[string, count] = { ["one", 1], ["two", 2], ["three", 3] };
 	print to_json(st1);
 	print to_json(st2);
 	print to_json(st3);
 	print to_json(st4);
 	print to_json(st5, T);
+	print to_json(st6);
 
 	# Tables
 	local ta1: table[count] of addr = table();

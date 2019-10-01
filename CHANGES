@@ -1,4 +1,13 @@
 
+3.0.1-dev.7 | 2019-10-01 18:36:02 -0700
+
+  * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)
+
+  * Use json::emplace to avoid some extra calls to operator[] (Tim Wojtulewicz, Corelight)
+
+  * Use tessil/unordered-map instead of nlohmann/fifo-map to improve JSON
+    logging performance (Tim Wojtulewicz, Corelight)
+
 3.0.1-dev.6 | 2019-10-01 18:15:56 -0700
 
   * GH-602: fix paraglob header inclusion, installation, and search paths (Jon Siwek, Corelight)

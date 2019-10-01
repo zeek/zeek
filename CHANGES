@@ -1,4 +1,13 @@
 
+3.1.0-dev.161 | 2019-10-01 16:41:35 -0700
+
+  * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)
+
+  * Use json::emplace to avoid some extra calls to operator[] (Tim Wojtulewicz, Corelight)
+
+  * Use tessil/unordered-map instead of nlohmann/fifo-map to improve JSON
+    logging performance (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.156 | 2019-10-01 09:05:49 +0000
 
   * Improve RecordVal JSON formatting to no longer create a record

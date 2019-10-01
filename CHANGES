@@ -1,4 +1,12 @@
 
+3.1.0-dev.151 | 2019-09-30 17:39:50 -0700
+
+  * GH-606: Output nulls into json data if a field isn't set (Tim Wojtulewicz, Corelight)
+
+  * GH-598: handle multi-key sets correctly when outputting json (Tim Wojtulewicz, Corelight)
+
+  * Fix Xcode deprecation warning for std::ptr_fun (Jon Siwek, Corelight)
+
 3.1.0-dev.143 | 2019-09-24 10:23:24 -0700
 
   * Simplify reassembly code using DataBlockList::LastBlock() (Jon Siwek, Corelight)

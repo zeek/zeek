@@ -607,6 +607,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 
 				if ( value && ( ! only_loggable || key_field->Lookup("log")->AsBool() ) )
 					j[key_string] = BuildJSON(value, only_loggable, re);
+
+				Unref(value);
 				}
 
 			delete fields;

@@ -1,4 +1,11 @@
 
+3.1.0-dev.156 | 2019-10-01 09:05:49 +0000
+
+  * Improve RecordVal JSON formatting to no longer create a record
+    introspection table each time when all the required information
+    can be obtained directly in the RecordVal and RecordType objects.
+    (Jon Siwek, Corelight)
+
 3.1.0-dev.153 | 2019-09-30 21:09:55 -0700
 
   * GH-602: fix paraglob header inclusion, installation, and search paths (Jon Siwek, Corelight)

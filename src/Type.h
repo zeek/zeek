@@ -498,6 +498,12 @@ public:
 		return decl && decl->FindAttr(ATTR_DEPRECATED) != 0;
 		}
 
+	bool FieldHasAttr(int field, attr_tag at) const
+		{
+		const TypeDecl* decl = FieldDecl(field);
+		return decl && decl->FindAttr(at) != 0;
+		}
+
 	string GetFieldDeprecationWarning(int field, bool has_check) const;
 
 protected:

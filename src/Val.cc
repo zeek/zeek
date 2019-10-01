@@ -582,35 +582,32 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 			{
 			j = ZeekJson::object();
 			auto* rval = val->AsRecordVal();
-			TableVal* fields = rval->GetRecordFields();
-			auto* field_indexes = fields->ConvertToPureList();
-			int num_indexes = field_indexes->Length();
+			auto rt = rval->Type()->AsRecordType();
 
-			for ( int i = 0; i < num_indexes; ++i )
+			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				Val* key = field_indexes->Index(i);
-				auto* key_field = fields->Lookup(key)->AsRecordVal();
+				auto field_name = rt->FieldName(i);
+				std::string key_string;
 
-				auto* key_val = key->AsStringVal();
-				string key_string;
-				if ( re->MatchAnywhere(key_val->AsString()) != 0 )
+				if ( re->MatchAnywhere(field_name) != 0 )
 					{
 					StringVal blank("");
-					key_val = key_val->Substitute(re, &blank, 0)->AsStringVal();
+					StringVal fn_val(field_name);
+					auto key_val = fn_val.Substitute(re, &blank, 0)->AsStringVal();
 					key_string = key_val->ToStdString();
-					delete key_val;
+					Unref(key_val);
 					}
 				else
-					key_string = key_val->ToStdString();
+					key_string = field_name;
 
-				Val* value = key_field->Lookup("value", true);
+				Val* value = rval->LookupWithDefault(i);
 
-				if ( value && ( ! only_loggable || key_field->Lookup("log")->AsBool() ) )
+				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
 					j[key_string] = BuildJSON(value, only_loggable, re);
+
+				Unref(value);
 				}
 
-			delete fields;
-			delete field_indexes;
 			break;
 			}
 

@@ -19,7 +19,7 @@ true
 "fe80::/64"
 "Red"
 "/^?(^abcd)$?/"
-{"s":"test","c":100}
+{"c":100,"s":"test"}
 {"s":"test"}
 {"s":"test"}
 {"m":{"s":"test"}}

@@ -11,7 +11,6 @@ Manager::Manager() : IOSource()
 	did_process = true;
 	next_beat = 0;
 	terminating = false;
-	SetIdle(true);
 	}
 
 Manager::~Manager()
@@ -49,7 +48,6 @@ void Manager::Terminate()
 	all_threads.clear();
 	msg_threads.clear();
 
-	SetIdle(true);
 	SetClosed(true);
 	terminating = false;
 	}
@@ -58,7 +56,6 @@ void Manager::AddThread(BasicThread* thread)
 	{
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
-	SetIdle(false);
 	IOSource::Start();
 	}
 

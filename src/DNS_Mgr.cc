@@ -461,11 +461,6 @@ void DNS_Mgr::InitPostScript()
 	// Registering will call Init()
 	iosource_mgr->Register(this);
 
-	// We never set idle to false, having the main loop only calling us from
-	// time to time. If we're issuing more DNS requests than we can handle
-	// in this way, we are having problems anyway ...
-	SetIdle(true);
-
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
 	sprintf(cache_name, "%s/%s", cache_dir, ".bro-dns-cache");

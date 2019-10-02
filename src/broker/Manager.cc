@@ -140,8 +140,6 @@ Manager::Manager(bool arg_reading_pcaps) : IOSource()
 	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
 	writer_id_type = nullptr;
-
-	SetIdle(false);
 	}
 
 Manager::~Manager()
@@ -285,8 +283,6 @@ void Manager::FlushPendingQueries()
 				}
 			}
 		}
-
-	SetIdle(false);
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)
@@ -933,6 +929,8 @@ void Manager::HandleNewData(int fd)
 			}
 		}
 
+	// TODO: With the concept of an idle source now gone, is this section even
+	// necessary anymore?
 	if ( had_input )
 		{
 		if ( network_time == 0 )
@@ -953,18 +951,10 @@ void Manager::HandleNewData(int fd)
 		// select() call ), but still large enough such that we don't have to
 		// wait long before the next poll ourselves after being forced to idle.
 		if ( times_processed_without_idle > 12 )
-			{
 			times_processed_without_idle = 0;
-			SetIdle(true);
-			}
-		else
-			SetIdle(false);
 		}
 	else
-		{
 		times_processed_without_idle = 0;
-		SetIdle(true);
-		}
 	}
 
 

@@ -38,11 +38,6 @@ public:
 	virtual ~IOSource();
 
 	/**
-	 * Returns true if source has nothing ready to process.
-	 */
-	bool IsIdle() const	{ return idle; }
-
-	/**
 	 * Returns true if more data is to be expected in the future.
 	 * Otherwise, source may be removed.
 	 */
@@ -116,14 +111,6 @@ protected:
 	void Stop(int fd = -1);
 
 	/*
-	 * Callback for derived classes to call when they have gone dry
-	 * temporarily.
-	 *
-	 * @param is_idle True if the source is idle currently.
-	 */
-	void SetIdle(bool is_idle)	{ idle = is_idle; }
-
-	/*
 	 * Callback for derived class to call when they have shutdown.
 	 *
 	 * @param is_closed True if the source is now closed.
@@ -137,7 +124,6 @@ private:
 	uv_idle_t* idle_handle = nullptr;
 
 	bool use_idle_handle = false;
-	bool idle = false;
 	bool closed = false;
 };
 

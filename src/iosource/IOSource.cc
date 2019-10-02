@@ -142,6 +142,10 @@ bool IOSource::Start(int fd)
 		poll_handles[fd] = poll;
 		}
 
+	// Wake up the poll loop so that this new source gets added to the loop instead
+	// of waiting for the next pass through the loop.
+	iosource_mgr->WakeupLoop();
+
 	return true;
 	}
 
@@ -173,6 +177,10 @@ void IOSource::Stop(int fd)
 				}
 			}
 		}
+
+	// Wake up the poll loop so that this source gets removed from the loop instead
+	// of waiting for the next pass through the loop.
+	iosource_mgr->WakeupLoop();
 	}
 
 void IOSource::Cleanup(int fd)

@@ -44,10 +44,6 @@ Manager::~Manager()
 
 	if ( pkt_src )
 		delete pkt_src;
-
-	close(wakeup_pair[0]);
-	close(wakeup_pair[1]);
-	delete wakeup;
 	}
 
 void Manager::Terminate()
@@ -88,19 +84,15 @@ void Manager::Register(IOSource* src)
 
 void Manager::Unregister(IOSource* src)
 	{
-	if ( src->IsPacketSource() )
-		{
-		delete pkt_src;
-		pkt_src = nullptr;
-		}
-	else
+	// If this isn't a packet source, just remove it from the list of sources. If this is
+	// a packet source, we can shut everything down because this is the only packet source.
+	if ( ! src->IsPacketSource() )
 		{
 		auto it = std::find(sources.begin(), sources.end(), src);
 		if ( it != sources.end() )
 			sources.erase(it);
 		}
-
-	if ( pkt_src == nullptr )
+	else
 		{
 		for ( auto source : sources )
 			source->Done();

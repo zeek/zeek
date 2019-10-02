@@ -1689,6 +1689,22 @@ function fmt%(...%): string
 	return new StringVal(s);
 	%}
 
+## Renders a sequence of values to a string of bytes and outputs them directly
+## to ``stdout`` with no additional escape sequences added.  No additional
+## newline is added to the end either.
+##
+## Returns: Always true.
+##
+## .. zeek:see:: fmt cat cat_sep string_cat to_json
+function print_raw%(...%): bool
+	%{
+	ODesc d(DESC_READABLE);
+	d.SetStyle(RAW_STYLE);
+	describe_vals(&@ARG@, &d, 0);
+	printf("%.*s", d.Len(), d.Description());
+	return val_mgr->GetBool(true);
+	%}
+
 # ===========================================================================
 #
 #                                    Math
@@ -5060,6 +5076,8 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ##                fields with the &log attribute to be included in the JSON.
 ##
 ## returns: a JSON formatted string.
+##
+## .. zeek:see:: fmt cat cat_sep string_cat print_raw
 function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
 	%{
 	return val->ToJSON(only_loggable, field_escape_pattern);

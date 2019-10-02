@@ -1,4 +1,16 @@
 
+3.0.1-dev.8 | 2019-10-14 12:33:55 -0700
+
+  * Add new BIF: print_raw() (Jon Siwek, Corelight)
+
+    This is a convenience function to make it easier to print literal byte
+    sequences to stdout without additional escaping like what may be added
+    by the default `print` statement behavior.
+
+    For example, related to GH-596, `print` currently escapes even valid
+    UTF-8 byte sequences and makes it difficult to output valid JSON strings
+    containing such.
+
 3.0.1-dev.7 | 2019-10-01 18:36:02 -0700
 
   * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)

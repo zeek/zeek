@@ -1,4 +1,8 @@
 
+3.0.1-dev.5 | 2019-10-01 17:52:15 -0700
+
+  * Update to embedded Broker to fix Xcode compiler warnings (Jon Siwek, Corelight)
+
 3.0.1-dev.4 | 2019-10-01 17:33:51 -0700
 
   * Fix field ordering for RecordVal JSON formatting (Jon Siwek, Corelight)

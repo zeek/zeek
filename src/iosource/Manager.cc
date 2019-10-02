@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <assert.h>
+#include <unistd.h>
 
 #include <algorithm>
 
@@ -14,18 +15,39 @@
 
 using namespace iosource;
 
+int wakeup_pair[2];
+
 static void close_handle(uv_handle_t* handle)
 	{
+	}
+
+static void wakeup_callback(uv_poll_t* handle, int status, int error)
+	{
+	// Read out the byte from the socketpair so that it's not readable anymore
+	char val;
+	read(wakeup_pair[0], &val, 0);
 	}
 
 Manager::Manager()
 	{
 	loop = uv_default_loop();
+
+	socketpair(AF_UNIX, SOCK_DGRAM, 0, wakeup_pair);
+	wakeup = new uv_poll_t();
+	uv_poll_init(loop, wakeup, wakeup_pair[0]);
+	uv_poll_start(wakeup, UV_READABLE, wakeup_callback);
 	}
 
 Manager::~Manager()
 	{
 	Terminate();
+
+	if ( pkt_src )
+		delete pkt_src;
+
+	close(wakeup_pair[0]);
+	close(wakeup_pair[1]);
+	delete wakeup;
 	}
 
 void Manager::Terminate()
@@ -46,9 +68,13 @@ void Manager::Terminate()
 	pkt_dumpers.clear();
 	
 	// Calling PktSrc::Done() causes a call to Unregister(), which removes the source from
-	// the list of packet sources. Just loop until it's done doing that.
+	// the list of packet sources.
 	if ( pkt_src )
 		pkt_src->Done();
+
+	// Just in case the loop didn't wake for any of the above, force it to wake up now and
+	// finish one more pass.
+	WakeupLoop();
 	}
 
 void Manager::Register(IOSource* src)
@@ -81,8 +107,7 @@ void Manager::Unregister(IOSource* src)
 
 		sources.clear();
 
-		// This should cause the loop to stop at the end of this iteration and go into
-		// the shutdown mode.
+		// This will cause the loop to stop at the end of this iteration.
 		uv_stop(loop);
 		}
 	}
@@ -196,4 +221,9 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	pkt_dumpers.push_back(pd);
 
 	return pd;
+	}
+
+void Manager::WakeupLoop()
+	{
+	write(wakeup_pair[1], "", 0);
 	}

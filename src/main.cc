@@ -120,9 +120,6 @@ OpaqueType* paraglob_type = 0;
 int bro_argc;
 char** bro_argv;
 
-int poll_kill_pair[2];
-uv_poll_t poll_killer;
-
 const char* zeek_version()
 	{
 #ifdef DEBUG
@@ -288,17 +285,17 @@ void done_with_network()
 
 #ifdef USE_PERFTOOLS_DEBUG
 
-		if ( perftools_profile )
-			{
-			HeapProfilerDump("post net_run");
-			HeapProfilerStop();
-			}
+	if ( perftools_profile )
+		{
+		HeapProfilerDump("post net_run");
+		HeapProfilerStop();
+		}
 
-		if ( heap_checker && ! heap_checker->NoLeaks() )
-			{
-			fprintf(stderr, "Memory leaks - aborting.\n");
-			abort();
-			}
+	if ( heap_checker && ! heap_checker->NoLeaks() )
+		{
+		fprintf(stderr, "Memory leaks - aborting.\n");
+		abort();
+		}
 #endif
 	}
 
@@ -379,25 +376,15 @@ void termination_signal()
 	exit(0);
 	}
 
-static void poll_kill_callback(uv_poll_t* handle, int status, int error)
-	{
-	// Read out the byte from the socketpair so that it's not readable anymore
-	char val;
-	read(poll_kill_pair[0], &val, 0);
-	uv_poll_stop((uv_poll_t*)handle);
-	}
-
 RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
 
-	// Shut down anything using the IO loop
+	// Stop the IO loop so that it exits on the next pass, and then stop anything
+	// that's using it.
 	if ( iosource_mgr )
 		iosource_mgr->Terminate();
-
-	// Write to the socket pair to get poll to return
-	write(poll_kill_pair[1], "", 0);
 
 	return RETSIGVAL;
 	}
@@ -1090,13 +1077,6 @@ int main(int argc, char** argv)
 			HeapProfilerDump("pre net_run");
 			}
 #endif
-
-		if ( reading_live || BifConst::exit_only_after_terminate )
-			{
-			socketpair(AF_UNIX, SOCK_DGRAM, 0, poll_kill_pair);
-			uv_poll_init(iosource_mgr->GetLoop(), &poll_killer, poll_kill_pair[0]);
-			uv_poll_start(&poll_killer, UV_READABLE, poll_kill_callback);
-			}
 
 		double time_net_start = current_time(true);;
 

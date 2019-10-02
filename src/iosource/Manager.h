@@ -87,6 +87,8 @@ public:
 
 	uv_loop_t* GetLoop() const { return loop; }
 
+	void WakeupLoop();
+
 private:
 
 	uv_loop_t* loop = nullptr;
@@ -97,6 +99,8 @@ private:
 	
 	SourceList sources;
 	PktDumperList pkt_dumpers;
+
+	uv_poll_t* wakeup;
 };
 
 }

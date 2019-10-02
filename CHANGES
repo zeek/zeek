@@ -1,4 +1,8 @@
 
+3.1.0-dev.164 | 2019-10-02 11:04:13 -0700
+
+  * Fix build with external CAF but bundled Broker (Dominik Charousset)
+
 3.1.0-dev.161 | 2019-10-01 16:41:35 -0700
 
   * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)

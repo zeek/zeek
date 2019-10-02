@@ -339,11 +339,17 @@ InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFI
 ########################################################################
 ## Recurse on sub-directories
 
-if ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED)
+if ( CAF_ROOT_DIR )
   find_package(CAF COMPONENTS core io openssl REQUIRED)
+endif ()
 
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
+if ( BROKER_ROOT_DIR )
+  # Avoid calling find_package(CAF) twice.
+  if ( NOT CAF_ROOT_DIR )
+    find_package(CAF COMPONENTS core io openssl REQUIRED)
+  endif ()
+  find_package(Broker REQUIRED)
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   include_directories(BEFORE ${BROKER_INCLUDE_DIR})
 else ()
   set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
@@ -364,8 +370,11 @@ else ()
                              ${CMAKE_CURRENT_BINARY_DIR}/aux/broker/include)
 endif ()
 
-# CAF headers aren't necessarily in same location as Broker headers and
-# inclusion of a Broker header may pull in CAF headers.
+# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
+# find_package(CAF) or by calling add_subdirectory(aux/broker). In either case,
+# we have to care about CAF here because Broker headers can pull in CAF
+# headers.
+set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
 include_directories(BEFORE ${CAF_INCLUDE_DIRS})
 
 add_subdirectory(aux/paraglob)

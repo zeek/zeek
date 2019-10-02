@@ -14,7 +14,7 @@ struct uv_timer_s;
 typedef uv_timer_s uv_timer_t;
 
 // If you add a timer here, adjust TimerNames in Timer.cc.
-enum TimerType {
+enum TimerType : uint8_t {
 	TIMER_BACKDOOR,
 	TIMER_BREAKPOINT,
 	TIMER_CONN_DELETE,
@@ -54,10 +54,10 @@ class ODesc;
 class Timer : public PQ_Element {
 public:
 	Timer(double t, TimerType arg_type) : PQ_Element(t)
-		{ type = (char) arg_type; }
+		{ type = arg_type; }
 	~Timer() override { }
 
-	TimerType Type() const	{ return (TimerType) type; }
+	TimerType Type() const	{ return type; }
 
 	// t gives the dispatch time.  is_expire is true if the
 	// timer is being dispatched because we're expiring all
@@ -69,7 +69,7 @@ public:
 protected:
 	Timer()	{}
 
-	uint8_t type;
+	TimerType type;
 };
 
 class TimerMgr {
@@ -98,8 +98,8 @@ public:
 
 	double Time() const		{ return t ? t : 1; }	// 1 > 0
 
- 	typedef std::string Tag;
- 	const Tag& GetTag() const 	{ return tag; }
+	typedef std::string Tag;
+	const Tag& GetTag() const	{ return tag; }
 
 	virtual size_t Size() const = 0;
 	virtual size_t PeakSize() const = 0;
@@ -111,27 +111,24 @@ public:
 
 	static unsigned int* CurrentTimers()	{ return current_timers; }
 
+	virtual void ReloadTimers() = 0;
+
 protected:
-	explicit TimerMgr(const Tag& arg_tag)
- 		{
- 		t = 0.0;
- 		num_expired = 0;
- 		last_advance = last_timestamp = 0;
- 		tag = arg_tag;
- 		}
+	explicit TimerMgr(const Tag& arg_tag) : tag(arg_tag) {}
 
 	virtual int DoAdvance(double t, int max_expire) = 0;
 	virtual void Remove(Timer* timer) = 0;
 
-	double t;
-	double last_timestamp;
-	double last_advance;
+	double t = 0.0;
+	double last_timestamp = 0;
+	double last_advance = 0;
 	Tag tag;
 
-	int num_expired;
+	int num_expired = 0;
 
 	static unsigned int current_timers[NUM_TIMER_TYPES];
 };
+
 
 class PQ_TimerMgr : public TimerMgr {
 public:
@@ -140,45 +137,27 @@ public:
 
 	void Add(Timer* timer) override;
 	void Expire() override;
+	void Dispatch(Timer* handle);
 
-	size_t Size() const override { return q->Size(); }
-	size_t PeakSize() const override { return q->PeakSize(); }
-	uint64_t CumulativeNum() const override { return q->CumulativeNum(); }
+	size_t Size() const override;
+	size_t PeakSize() const override { return peak_size; }
+	uint64_t CumulativeNum() const override { return cumulative; }
 
-protected:
+	void ReloadTimers() override;
+
+private:
+
 	int DoAdvance(double t, int max_expire) override;
 	void Remove(Timer* timer) override;
 
 	Timer* Remove()			{ return (Timer*) q->Remove(); }
 	Timer* Top()			{ return (Timer*) q->Top(); }
 
-	PriorityQueue* q;
-};
-
-class UV_TimerMgr : public TimerMgr {
-public:
-
-	UV_TimerMgr(const Tag& arg_tag) : TimerMgr(arg_tag) {}
-	~UV_TimerMgr() override = default;
-
-	virtual void Add(Timer* timer) override;
-	
-	virtual void Expire() override;
-	virtual size_t Size() const override { return static_cast<int>(timers.size()); }
-	virtual size_t PeakSize() const override { return peak_size; }
-	virtual uint64_t CumulativeNum() const override { return cumulative; }
-
-	void Dispatch(Timer* handle);
-
-private:
-
-	virtual int DoAdvance(double t, int max_expire) override { return 0; }
-	virtual void Remove(Timer* timer) override;
-
 	using TimerMap = std::map<Timer*, uv_timer_t*>;
 	void Dispatch(TimerMap::const_iterator entry, bool is_expire);
 
 	TimerMap timers;
+	PriorityQueue* q;
 
 	size_t peak_size = 0;
 	uint64_t cumulative = 0;

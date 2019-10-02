@@ -687,7 +687,10 @@ int main(int argc, char** argv)
 
 	bro_start_time = current_time(true);
 
+	// iosource manager should be initialized before all of the other managers, since
+	// the event loop needs to be setup for the other managers to use.
  	iosource_mgr = new iosource::Manager();
+
 	val_mgr = new ValManager();
 	port_mgr = new PortManager();
 	reporter = new Reporter();
@@ -728,7 +731,12 @@ int main(int argc, char** argv)
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
 
-	timer_mgr = new UV_TimerMgr("<GLOBAL>");
+	// Timer manager needs to be instantiated before yyparse() happens because timers are
+	// added during parsing. This also means that any timers inserted before the source is
+	// known will be inserted into a priority-queue-managed timer manager. If the source
+	// is capable of using UV timers, there's a call to TimerMgr::ReloadTimers later that
+	// fixes it.
+	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_config, bro_argv[0]);
 
@@ -996,6 +1004,10 @@ int main(int argc, char** argv)
 		// we don't have any other source for it.
 		net_update_time(current_time());
 
+	// Now that a source has been established (or not), reload the timers in case the manager
+	// needs to switch to UV-based timers.
+	timer_mgr->ReloadTimers();
+
 	EventHandlerPtr zeek_init = internal_handler("zeek_init");
 	if ( zeek_init )	//### this should be a function
 		mgr.QueueEventFast(zeek_init, val_list{});
@@ -1079,7 +1091,7 @@ int main(int argc, char** argv)
 			}
 #endif
 
-		if ( reading_live )
+		if ( reading_live || BifConst::exit_only_after_terminate )
 			{
 			socketpair(AF_UNIX, SOCK_DGRAM, 0, poll_kill_pair);
 			uv_poll_init(iosource_mgr->GetLoop(), &poll_killer, poll_kill_pair[0]);

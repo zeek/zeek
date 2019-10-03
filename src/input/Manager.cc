@@ -2532,8 +2532,31 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			if ( stag == TYPE_VOID )
 				TypeTag stag = val->val.set_val.vals[0]->type;
 
-			set_index = new TypeList(base_type(stag)->Ref());
-			set_index->Append(base_type(stag)->Ref());
+			BroType* index_type;
+
+			if ( stag == TYPE_ENUM )
+				{
+				// Enums are not a base-type, so need to look it up.
+				const auto& sv = val->val.set_val.vals[0]->val.string_val;
+				std::string enum_name(sv.data, sv.length);
+				auto enum_id = global_scope()->Lookup(enum_name.data());
+
+				if ( ! enum_id )
+					{
+					Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
+					        enum_name.data(), i->name.c_str());
+
+					have_error = true;
+					return nullptr;
+					}
+
+				index_type = enum_id->Type()->AsEnumType();
+				}
+			else
+				index_type = base_type_no_ref(stag);
+
+			set_index = new TypeList(index_type);
+			set_index->Append(index_type->Ref());
 			}
 
 		SetType* s = new SetType(set_index, 0);

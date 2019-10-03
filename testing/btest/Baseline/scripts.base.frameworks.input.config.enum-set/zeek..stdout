@@ -1,0 +1,12 @@
+DPD::ignore_violations, {
+
+}
+---
+{
+Analyzer::ANALYZER_SYSLOG
+}
+---
+DPD::ignore_violations, {
+Analyzer::ANALYZER_SYSLOG
+}
+---

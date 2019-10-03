@@ -1,0 +1,41 @@
+{
+RED
+}
+{
+
+}
+{
+BLUE
+}
+{
+BLUE,
+GREEN,
+RED
+}
+{
+
+}
+---
+[RED]
+[]
+[BLUE]
+[RED, GREEN, BLUE]
+[]
+---
+{
+[RED] = red
+}
+{
+
+}
+{
+[BLUE] = blue
+}
+{
+[BLUE] = blue,
+[GREEN] = green,
+[RED] = red
+}
+{
+
+}

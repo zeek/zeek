@@ -65,6 +65,12 @@ public:
 	const std::string& Path() const;
 
 	/**
+	 * Returns true if more data is to be expected in the future.
+	 * Otherwise, source may be removed.
+	 */
+	virtual bool IsOpen() const = 0;
+
+	/**
 	 * Returns true if this is a live source.
 	 */
 	bool IsLive() const;

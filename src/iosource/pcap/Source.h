@@ -14,6 +14,8 @@ public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() = default;
 
+	virtual bool IsOpen() const final { return pd != nullptr; }
+
 	virtual void Open() final;
 	virtual void Close() final;
 

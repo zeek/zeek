@@ -48,7 +48,6 @@ void Manager::Terminate()
 	all_threads.clear();
 	msg_threads.clear();
 
-	SetClosed(true);
 	terminating = false;
 	}
 

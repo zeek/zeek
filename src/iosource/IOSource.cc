@@ -212,8 +212,6 @@ void IOSource::Cleanup(int fd)
 
 void IOSource::Done()
 	{
-	closed = true;
-	
 	if ( idle_handle && uv_is_closing((uv_handle_t*)idle_handle) == 0 )
 		{
 		uv_idle_stop(idle_handle);

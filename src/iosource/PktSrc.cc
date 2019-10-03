@@ -80,7 +80,6 @@ void PktSrc::Opened(const Properties& arg_props)
 		}
 
 	props = arg_props;
-	SetClosed(false);
 
 	if ( ! PrecompileFilter(0, "") || ! SetFilter(0) )
 		{
@@ -96,7 +95,6 @@ void PktSrc::Opened(const Properties& arg_props)
 
 void PktSrc::Closed()
 	{
-	SetClosed(true);
 	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
 

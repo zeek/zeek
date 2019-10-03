@@ -38,12 +38,6 @@ public:
 	virtual ~IOSource();
 
 	/**
-	 * Returns true if more data is to be expected in the future.
-	 * Otherwise, source may be removed.
-	 */
-	bool IsOpen() const	{ return ! closed; }
-
-	/**
 	 * Initializes the source. Can be overwritten by derived classes.
 	 */
 	virtual void Init()	{ }
@@ -110,13 +104,6 @@ protected:
 	 */
 	void Stop(int fd = -1);
 
-	/*
-	 * Callback for derived class to call when they have shutdown.
-	 *
-	 * @param is_closed True if the source is now closed.
-	 */
-	void SetClosed(bool is_closed)	{ closed = is_closed; }
-
 private:
 
 	std::map<int, uv_poll_t*> poll_handles;
@@ -124,7 +111,6 @@ private:
 	uv_idle_t* idle_handle = nullptr;
 
 	bool use_idle_handle = false;
-	bool closed = false;
 };
 
 }

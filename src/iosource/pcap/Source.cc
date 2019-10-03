@@ -148,7 +148,7 @@ bool PcapSource::OpenOffline()
 
 	if ( ! pd )
 		{
-		Error(fmt("%s\n", errbuf));
+		Error(errbuf);
 		return false;
 		}
 

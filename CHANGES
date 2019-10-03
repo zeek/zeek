@@ -1,4 +1,12 @@
 
+3.0.1-dev.11 | 2019-10-14 12:55:31 -0700
+
+  * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)
+
+  * GH-591: fix reading set[enum] values from input files (Jon Siwek, Corelight)
+
+  * GH-589: improve printing of sub-microsecond intervals (Jon Siwek, Corelight)
+
 3.0.1-dev.8 | 2019-10-14 12:33:55 -0700
 
   * Add new BIF: print_raw() (Jon Siwek, Corelight)

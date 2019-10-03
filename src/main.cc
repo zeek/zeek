@@ -20,7 +20,6 @@ extern "C" {
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <uv.h>
 #include "3rdparty/sqlite3.h"
 
 #include "bsd-getopt-long.h"
@@ -1094,21 +1093,7 @@ int main(int argc, char** argv)
 				mem_net_start_malloced / 1024 / 1024);
 			}
 
-		set_processing_status("RUNNING", "net_run");
-
-		// Only actually run the loop if we have a packet source or we're not terminating.
-		// What this lets us do is trigger all of the timers but not run any polling.
-		if ( iosource_mgr->HasPktSrc() ||
-			( BifConst::exit_only_after_terminate && ! terminating ) )
-			{
-//			uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
-			uv_run(iosource_mgr->GetLoop(), UV_RUN_DEFAULT);
-			}
-
-		// Get the final statistics now, and not when net_finish() is called, since that
-		// might happen quite a bit in the future due to expiring pending timers, and we
-		// don't want to ding for any packets dropped beyond this point.
-		net_get_final_stats();
+		net_run();
 
 		double time_net_done = current_time(true);
 

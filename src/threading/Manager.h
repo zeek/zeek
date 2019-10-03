@@ -20,8 +20,7 @@ namespace threading {
  * their outgoing message queue on a regular basis and feeds data sent into
  * the rest of Bro. It also triggers the regular heartbeats.
  */
-class Manager : public iosource::IOSource
-{
+class Manager : public iosource::IOSource {
 public:
 	/**
 	 * Constructor. Only a single instance of the manager must be
@@ -77,6 +76,9 @@ public:
 	 */
 	void KillThreads();
 
+	void InitHeartbeatTimer();
+	void SendHeartbeats();
+
 protected:
 	friend class BasicThread;
 	friend class MsgThread;
@@ -114,7 +116,7 @@ protected:
 	 */
 	const char* Tag() override { return "threading::Manager"; }
 
-virtual void HandleNewData(int fd) override;
+	virtual void HandleNewData(int fd) override;
 
 private:
 	typedef std::list<BasicThread*> all_thread_list;
@@ -128,6 +130,8 @@ private:
 	bool terminating;	// True if we are in Terminate().
 
 	msg_stats_list stats;
+
+	uv_timer_t *heartbeat_timer;
 };
 
 }

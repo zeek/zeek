@@ -3,6 +3,7 @@
 
 #include "MsgThread.h"
 #include "Manager.h"
+#include "iosource/Manager.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -325,6 +326,7 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force)
 
 	queue_in.Put(msg);
 	++cnt_sent_in;
+	iosource_mgr->WakeupLoop();
 	}
 
 
@@ -339,6 +341,8 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	queue_out.Put(msg);
 
 	++cnt_sent_out;
+
+	iosource_mgr->WakeupLoop();
 	}
 
 BasicOutputMessage* MsgThread::RetrieveOut()

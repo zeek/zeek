@@ -1,8 +1,23 @@
 
 #include "Manager.h"
 #include "NetVar.h"
+#include "iosource/Manager.h"
 
 using namespace threading;
+
+static void heartbeat_callback(uv_timer_t* handle)
+	{
+	uv_handle_t* h = reinterpret_cast<uv_handle_t*>(handle);
+	if ( auto mgr = reinterpret_cast<Manager*>(uv_handle_get_data(h)) )
+		{
+		mgr->SendHeartbeats();
+		}
+	}
+
+static void close_callback(uv_handle_t* handle)
+	{
+	delete handle;
+	}
 
 Manager::Manager() : IOSource()
 	{
@@ -29,6 +44,12 @@ void Manager::Terminate()
 	do HandleNewData(-1); while ( did_process );
 
 	IOSource::Stop();
+
+	if ( heartbeat_timer && uv_is_closing((uv_handle_t*)heartbeat_timer))
+		{
+		uv_timer_stop(heartbeat_timer);
+		uv_close(reinterpret_cast<uv_handle_t*>(heartbeat_timer), close_callback);
+		}
 
 	// Signal all to stop.
 
@@ -145,7 +166,7 @@ void Manager::HandleNewData(int fd)
 //	fprintf(stderr, "P %.6f %.6f do_beat=%d did_process=%d next_next=%.6f\n", network_time, timer_mgr->Time(), do_beat, (int)did_process, next_beat);
 	}
 
-const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats()
+const Manager::msg_stats_list& Manager::GetMsgThreadStats()
 	{
 	stats.clear();
 
@@ -162,4 +183,19 @@ const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats(
 	return stats;
 	}
 
+void Manager::InitHeartbeatTimer()
+	{
+	heartbeat_timer = new uv_timer_t();
+	uv_timer_init(iosource_mgr->GetLoop(), heartbeat_timer);
+ 	uv_handle_set_data(reinterpret_cast<uv_handle_t*>(heartbeat_timer), this);
 
+	uint64_t repeat = static_cast<uint64_t>(BifConst::Threading::heartbeat_interval * 1000);
+
+	uv_timer_start(heartbeat_timer, heartbeat_callback, repeat, repeat);
+	}
+
+void Manager::SendHeartbeats()
+	{
+	for ( auto t : msg_threads )
+		t->Heartbeat();
+	}

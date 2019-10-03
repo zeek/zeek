@@ -35,6 +35,7 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 #include "broker/Manager.h"
+#include "threading/Manager.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -148,9 +149,14 @@ RETSIGTYPE watchdog(int /* signo */)
 
 void net_update_time(double new_network_time)
 	{
+	bool first_pass = network_time < 1.0;
+
 	network_time = new_network_time;
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	time_updated = true;
+
+	if ( first_pass )
+		thread_mgr->InitHeartbeatTimer();
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,

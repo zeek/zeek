@@ -65,6 +65,8 @@ double current_timestamp = 0.0;
 iosource::PktSrc* current_pktsrc = 0;
 iosource::IOSource* current_iosrc = 0;
 
+bool time_updated = false;
+
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
 
@@ -148,6 +150,7 @@ void net_update_time(double new_network_time)
 	{
 	network_time = new_network_time;
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
+	time_updated = true;
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,
@@ -405,9 +408,25 @@ void net_run(uv_idle_t* handle)
 
 static void post_loop_check(uv_check_t* handle)
 	{
+	// If time wasn't updated by something else in the last pass like an incoming
+	// packet or a timer firing, update it now.
+	if ( ! time_updated )
+		net_update_time(current_time());
+
+	time_updated = false;
+
+	// If we're reading traces we need to make sure to expire any timers that are
+	// sitting in the queue.
+	if ( reading_traces )
+		expire_timers();
+
 	// Drain out any events that are in queue.
 	mgr.Drain();
 	
+	processing_start_time = 0.0;	// = "we're not processing now"
+	current_dispatched = 0;
+	current_iosrc = nullptr;
+
 	if ( signal_val == SIGTERM || signal_val == SIGINT )
 		{
 		// We received a termination signal during the last loop pass.

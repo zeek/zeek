@@ -41,6 +41,7 @@ Events
 :zeek:id:`tcp_multiple_zero_windows`: :zeek:type:`event`    Generated if a TCP flow crosses a zero-window threshold, per
                                                             'W'/'w' history reporting.
 :zeek:id:`tcp_option`: :zeek:type:`event`                   Generated for each option found in a TCP header.
+:zeek:id:`tcp_options`: :zeek:type:`event`                  Generated for each TCP header that contains TCP options.
 :zeek:id:`tcp_packet`: :zeek:type:`event`                   Generated for every TCP packet.
 :zeek:id:`tcp_rexmit`: :zeek:type:`event`                   Generated for each detected TCP segment retransmission.
 =========================================================== =============================================================================
@@ -464,9 +465,27 @@ Events
 
    :optlen: The length of the options value.
    
-   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
+   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_options
    
-   .. note:: There is currently no way to get the actual option value, if any.
+   .. note:: To inspect the actual option values, if any, use :zeek:see:`tcp_options`.
+
+.. zeek:id:: tcp_options
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, options: :zeek:type:`TCP::OptionList`)
+
+   Generated for each TCP header that contains TCP options.  This is a very
+   low-level event and potentially expensive as it may be raised very often.
+   
+
+   :c: The connection the packet is part of.
+   
+
+   :is_orig: True if the packet was sent by the connection's originator.
+   
+
+   :options: The list of options parsed out of the TCP header.
+   
+   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_option
 
 .. zeek:id:: tcp_packet
 

@@ -27,6 +27,7 @@ base/init-bare.zeek
 .. zeek:namespace:: SOCKS
 .. zeek:namespace:: SSH
 .. zeek:namespace:: SSL
+.. zeek:namespace:: TCP
 .. zeek:namespace:: Threading
 .. zeek:namespace:: Tunnel
 .. zeek:namespace:: Unified2
@@ -34,7 +35,7 @@ base/init-bare.zeek
 .. zeek:namespace:: X509
 
 
-:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, MQTT, NCP, NFS3, NTLM, NTP, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, Threading, Tunnel, Unified2, Weird, X509
+:Namespaces: BinPAC, Cluster, DCE_RPC, DHCP, GLOBAL, JSON, KRB, MOUNT3, MQTT, NCP, NFS3, NTLM, NTP, PE, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SNMP, SOCKS, SSH, SSL, TCP, Threading, Tunnel, Unified2, Weird, X509
 :Imports: :doc:`base/bif/const.bif.zeek </scripts/base/bif/const.bif.zeek>`, :doc:`base/bif/event.bif.zeek </scripts/base/bif/event.bif.zeek>`, :doc:`base/bif/option.bif.zeek </scripts/base/bif/option.bif.zeek>`, :doc:`base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>`, :doc:`base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>`, :doc:`base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>`, :doc:`base/bif/stats.bif.zeek </scripts/base/bif/stats.bif.zeek>`, :doc:`base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>`, :doc:`base/bif/types.bif.zeek </scripts/base/bif/types.bif.zeek>`, :doc:`base/bif/zeek.bif.zeek </scripts/base/bif/zeek.bif.zeek>`
 
 Summary
@@ -519,6 +520,8 @@ Types
 :zeek:type:`SSL::PSKIdentity`: :zeek:type:`record`                            
 :zeek:type:`SSL::SignatureAndHashAlgorithm`: :zeek:type:`record`              
 :zeek:type:`SYN_packet`: :zeek:type:`record`                                  Fields of a SYN packet.
+:zeek:type:`TCP::Option`: :zeek:type:`record`                                 A TCP Option field parsed from a TCP header.
+:zeek:type:`TCP::OptionList`: :zeek:type:`vector`                             The full list of TCP Option fields parsed from a TCP header.
 :zeek:type:`ThreadStats`: :zeek:type:`record`                                 Statistics about threads.
 :zeek:type:`TimerStats`: :zeek:type:`record`                                  Statistics of timers.
 :zeek:type:`Tunnel::EncapsulatingConn`: :zeek:type:`record` :zeek:attr:`&log` Records the identity of an encapsulating parent of a tunneled connection.
@@ -6537,6 +6540,48 @@ Types
    Fields of a SYN packet.
    
    .. zeek:see:: connection_SYN_packet
+
+.. zeek:type:: TCP::Option
+
+   :Type: :zeek:type:`record`
+
+      kind: :zeek:type:`count`
+         The kind number associated with the option.  Other optional fields
+         of this record may be set depending on this value.
+
+      length: :zeek:type:`count`
+         The total length of the option in bytes, including the kind byte and
+         length byte (if present).
+
+      data: :zeek:type:`string` :zeek:attr:`&optional`
+         This field is set to the raw option bytes if the kind is not
+         otherwise known/parsed.  It's also set for known kinds whose length
+         was invalid.
+
+      mss: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 2: Maximum Segment Size.
+
+      window_scale: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 3: Window scale.
+
+      sack: :zeek:type:`index_vec` :zeek:attr:`&optional`
+         Kind 5: Selective ACKnowledgement (SACK).  This is a list of 2, 4,
+         6, or 8 numbers with each consecutive pair being a 32-bit
+         begin-pointer and 32-bit end pointer.
+
+      send_timestamp: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 8: 4-byte sender timestamp value.
+
+      echo_timestamp: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 8: 4-byte echo reply timestamp value.
+
+   A TCP Option field parsed from a TCP header.
+
+.. zeek:type:: TCP::OptionList
+
+   :Type: :zeek:type:`vector` of :zeek:type:`TCP::Option`
+
+   The full list of TCP Option fields parsed from a TCP header.
 
 .. zeek:type:: ThreadStats
 

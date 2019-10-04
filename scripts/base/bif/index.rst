@@ -400,6 +400,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek`
 
 

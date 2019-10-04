@@ -1186,8 +1186,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,
 		                    flags);
 
-	if ( tcp_option && tcp_hdr_len > sizeof(*tp) &&
-	     tcp_hdr_len <= uint32_t(caplen) )
+	if ( tcp_option && tcp_hdr_len > sizeof(*tp) )
 		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
 
 	if ( DEBUG_tcp_data_sent )

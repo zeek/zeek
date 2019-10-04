@@ -679,8 +679,48 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
+static std::string get_exe_path(std::string invocation)
+	{
+	if ( invocation.empty() )
+		return "";
+
+	if ( invocation[0] == '/' )
+		// Absolute path
+		return invocation;
+
+	if ( invocation.find('/') != std::string::npos )
+		{
+		// Relative path
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		return std::string(cwd) + "/" + invocation;
+		}
+
+	auto path = getenv("PATH");
+
+	if ( ! path )
+		return "";
+
+	return find_file(invocation, path);
+	}
+
 int main(int argc, char** argv)
 	{
+	auto zeek_exe_path = get_exe_path(argv[0]);
+
+	if ( zeek_exe_path.empty() )
+		{
+		fprintf(stderr, "failed to get path to executable '%s'", argv[0]);
+		exit(1);
+		}
+
 	bro_argc = argc;
 	bro_argv = new char* [argc];
 
@@ -716,33 +756,30 @@ int main(int argc, char** argv)
 			}
 
 		if ( stem_pid == 0 )
+			zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		}
+
+	auto zeek_stem_env = getenv("ZEEK_STEM");
+
+	if ( zeek_stem_env )
+		{
+		std::vector<std::string> fd_strings;
+		tokenize_string(zeek_stem_env, ",", &fd_strings);
+
+		if ( fd_strings.size() != 2 )
 			{
-			zeek::set_thread_name("zeek-stem");
-			// TODO: changing the process group here so that SIGINT to the
-			// supervisor doesn't also get passed to the children.  i.e. supervisor
-			// should be in charge of initiating orderly shutdown.  But calling
-			// just setpgid() like this is technically a race-condition -- need
-			// to do more work of blocking SIGINT before fork(), unblocking after,
-			// then also calling setpgid() from parent.  And just not doing that
-			// until more is known whether that's the right SIGINT behavior in
-			// the first place.
-			auto res = setpgid(0, 0);
-
-			if ( res == -1 )
-				fprintf(stderr, "failed to set stem process group: %s\n",
-				        strerror(errno));
-
-			for ( ; ; )
-				{
-				// TODO: make a proper I/O loop w/ message processing via pipe
-				// TODO: better way to detect loss of parent than polling
-
-				if ( getppid() == 1 )
-					exit(0);
-
-				sleep(1);
-				}
+			fprintf(stderr, "invalid ZEEK_STEM environment variable value: '%s'\n",
+			        zeek_stem_env);
+			exit(1);
 			}
+
+		int fds[2];
+		fds[0] = std::stoi(fd_strings[0]);
+		fds[1] = std::stoi(fd_strings[1]);
+
+		supervisor_pipe.reset(new bro::Pipe{FD_CLOEXEC, FD_CLOEXEC,
+		                                    O_NONBLOCK, O_NONBLOCK, fds});
+		zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
 
 	std::set_new_handler(bro_new_handler);
@@ -823,6 +860,7 @@ int main(int argc, char** argv)
 		zeek::Supervisor::Config cfg = {};
 		cfg.pcaps = options.pcap_files;
 		cfg.num_workers = options.supervised_workers;
+		cfg.zeek_exe_path = zeek_exe_path;
 		zeek::supervisor = new zeek::Supervisor(std::move(cfg),
 		                                        std::move(supervisor_pipe),
 		                                        stem_pid);

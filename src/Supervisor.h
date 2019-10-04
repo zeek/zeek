@@ -16,9 +16,12 @@ namespace zeek {
 class Supervisor : public iosource::IOSource {
 public:
 
+	static void RunStem(std::unique_ptr<bro::Pipe> pipe);
+
 	struct Config {
 		int num_workers = 1;
 		std::vector<std::string> pcaps;
+		std::string zeek_exe_path;
 	};
 
 	Supervisor(Config cfg, std::unique_ptr<bro::Pipe> stem_pipe, pid_t stem_pid);
@@ -39,6 +42,8 @@ private:
 	double NextTimestamp(double* local_network_time) override;
 
 	void Process() override;
+
+	void HandleChildSignal();
 
 	const char* Tag() override
 		{ return "zeek::Supervisor"; }

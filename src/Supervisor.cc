@@ -1,6 +1,9 @@
 
+#include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #include "Supervisor.h"
 #include "Reporter.h"
@@ -28,11 +31,6 @@ zeek::Supervisor::Supervisor(zeek::Supervisor::Config cfg,
 	DBG_LOG(DBG_SUPERVISOR, "using %d workers", config.num_workers);
 	setsignal(SIGCHLD, supervisor_sig_handler);
 	SetIdle(true);
-	}
-
-void zeek::Supervisor::ObserveChildSignal()
-	{
-	signal_flare.Fire();
 	}
 
 zeek::Supervisor::~Supervisor()
@@ -68,6 +66,94 @@ zeek::Supervisor::~Supervisor()
 		}
 	}
 
+void zeek::Supervisor::ObserveChildSignal()
+	{
+	signal_flare.Fire();
+	}
+
+void zeek::Supervisor::HandleChildSignal()
+	{
+	if ( ! stem_pid )
+		return;
+
+	auto child_signals = signal_flare.Extinguish();
+
+	if ( ! child_signals )
+		return;
+
+	DBG_LOG(DBG_SUPERVISOR, "handle %d child signals, wait for stem pid %d",
+	        child_signals, stem_pid);
+
+	int status;
+	auto res = waitpid(stem_pid, &status, WNOHANG);
+
+	if ( res == 0 )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "false alarm, stem process still lives");
+		}
+	else if ( res == -1 )
+		{
+		char tmp[256];
+		bro_strerror_r(errno, tmp, sizeof(tmp));
+		reporter->Error("Supervisor failed to get exit status"
+			            " of stem process: %s", tmp);
+		}
+	else if ( WIFEXITED(status) )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
+			    WEXITSTATUS(status));
+		stem_pid = 0;
+		}
+	else if ( WIFSIGNALED(status) )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
+			    WTERMSIG(status));
+		stem_pid = 0;
+		}
+	else
+		reporter->Error("Supervisor failed to get exit status"
+			            " of stem process for unknown reason");
+
+	if ( ! stem_pid )
+		{
+		// Revive the Stem process
+		stem_pid = fork();
+
+		if ( stem_pid == -1 )
+			{
+			char tmp[256];
+			bro_strerror_r(errno, tmp, sizeof(tmp));
+			reporter->Error("failed to fork Zeek supervisor stem process: %s\n", tmp);
+			signal_flare.Fire();
+			// Sleep to avoid spining too fast in a revival-fail loop.
+			sleep(1);
+			}
+		else if ( stem_pid == 0 )
+			{
+			char stem_env[256];
+			safe_snprintf(stem_env, sizeof(stem_env), "ZEEK_STEM=%d,%d",
+			              stem_pipe->ReadFD(), stem_pipe->WriteFD());
+			char* env[] = { stem_env, (char*)0 };
+			stem_pipe->UnsetFlags(FD_CLOEXEC);
+			auto res = execle(config.zeek_exe_path.data(),
+			                  config.zeek_exe_path.data(),
+			                  (char*)0, env);
+
+			char tmp[256];
+			bro_strerror_r(errno, tmp, sizeof(tmp));
+			fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n", tmp);
+			exit(1);
+			}
+		else
+			{
+			DBG_LOG(DBG_SUPERVISOR, "stem process revived, new pid: %d", stem_pid);
+			}
+		}
+
+	// TODO: Stem process needs a way to inform Supervisor not to revive
+	}
+
+
 void zeek::Supervisor::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                               iosource::FD_Set* except)
 	{
@@ -85,51 +171,44 @@ double zeek::Supervisor::NextTimestamp(double* local_network_time)
 
 void zeek::Supervisor::Process()
 	{
-	auto child_signals = signal_flare.Extinguish();
+	HandleChildSignal();
 
-	DBG_LOG(DBG_SUPERVISOR, "process: child_signals %d, stem_pid %d",
-		    child_signals, stem_pid);
+	char buf[256];
+	int bytes_read = read(stem_pipe->ReadFD(), buf, 256);
 
-	if ( child_signals && stem_pid )
+	if ( bytes_read > 0 )
 		{
-		DBG_LOG(DBG_SUPERVISOR, "handle child signal, wait for %d", stem_pid);
-		int status;
-		auto res = waitpid(stem_pid, &status, WNOHANG);
+		DBG_LOG(DBG_SUPERVISOR, "read msg from Stem: %.*s", bytes_read, buf);
+		}
+	}
 
-		if ( res == 0 )
-			{
-			DBG_LOG(DBG_SUPERVISOR, "false alarm, stem process still lives");
-			}
-		else if ( res == -1 )
-			{
-			char tmp[256];
-			bro_strerror_r(errno, tmp, sizeof(tmp));
-			reporter->Error("Supervisor failed to get exit status"
-			                " of stem process: %s", tmp);
-			}
-		else if ( WIFEXITED(status) )
-			{
-			DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
-			        WEXITSTATUS(status));
-			stem_pid = 0;
-			}
-		else if ( WIFSIGNALED(status) )
-			{
-			DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
-			        WTERMSIG(status));
-			stem_pid = 0;
-			}
-		else
-			{
-			reporter->Error("Supervisor failed to get exit status"
-			                " of stem process for unknown reason");
-			}
+void zeek::Supervisor::RunStem(std::unique_ptr<bro::Pipe> pipe)
+	{
+	zeek::set_thread_name("zeek-stem");
+	// TODO: changing the process group here so that SIGINT to the
+	// supervisor doesn't also get passed to the children.  i.e. supervisor
+	// should be in charge of initiating orderly shutdown.  But calling
+	// just setpgid() like this is technically a race-condition -- need
+	// to do more work of blocking SIGINT before fork(), unblocking after,
+	// then also calling setpgid() from parent.  And just not doing that
+	// until more is known whether that's the right SIGINT behavior in
+	// the first place.
+	auto res = setpgid(0, 0);
 
-		// TODO: add proper handling of stem process exiting
-		// In wait cases is it ok for the stem process to terminate and
-		// in what cases do we need to automatically re-recreate it ?
-		// And how do we re-create it?  It would be too late to fork() again
-		// because we've potentially already changed so much global state by the
-		// time we get there, so guess we exec() and start over completely ?.
+	if ( res == -1 )
+		fprintf(stderr, "failed to set stem process group: %s\n",
+				strerror(errno));
+
+	for ( ; ; )
+		{
+		// TODO: make a proper I/O loop w/ message processing via pipe
+		// TODO: better way to detect loss of parent than polling
+
+		if ( getppid() == 1 )
+			exit(0);
+
+		sleep(5);
+		printf("Stem wakeup\n");
+		write(pipe->WriteFD(), "hi", 2);
 		}
 	}

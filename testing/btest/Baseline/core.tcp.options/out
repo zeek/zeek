@@ -3,14 +3,48 @@
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 8, 10
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 3, 3
+[orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T
+  kind: 2, length: 4
+    mss: 1460
+  kind: 4, length: 2
+    sack permitted
+  kind: 8, length: 10
+    send ts: 4294923497
+    echo ts: 0
+  kind: 1, length: 1
+  kind: 3, length: 3
+    window scale: 6
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F, 2, 4
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F, 4, 2
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F, 8, 10
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F, 3, 3
+[orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], F
+  kind: 2, length: 4
+    mss: 1380
+  kind: 4, length: 2
+    sack permitted
+  kind: 8, length: 10
+    send ts: 419445911
+    echo ts: 4294923497
+  kind: 1, length: 1
+  kind: 3, length: 3
+    window scale: 7
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 8, 10
+[orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T
+  kind: 1, length: 1
+  kind: 1, length: 1
+  kind: 8, length: 10
+    send ts: 4294923545
+    echo ts: 419445911
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 1, 1
 [orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T, 8, 10
+[orig_h=192.168.1.102, orig_p=36861/tcp, resp_h=193.1.193.64, resp_p=80/tcp], T
+  kind: 1, length: 1
+  kind: 1, length: 1
+  kind: 8, length: 10
+    send ts: 4294923545
+    echo ts: 419445911

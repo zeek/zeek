@@ -154,6 +154,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SteppingStone.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Syslog.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Teredo.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek

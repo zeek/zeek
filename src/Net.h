@@ -78,6 +78,9 @@ extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 extern char* writefile;
 
+extern bool processed_timer;
+extern bool processed_packet;
+
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by inode number.
 struct ScannedFile {

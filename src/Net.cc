@@ -71,6 +71,9 @@ bool time_updated = false;
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
 
+bool processed_timer = false;
+bool processed_packet = false;
+
 uv_check_t* check_handle = nullptr;
 static void post_loop_check(uv_check_t* handle);
 
@@ -333,21 +336,30 @@ void net_run()
 
 static void post_loop_check(uv_check_t* handle)
 	{
-	// If time wasn't updated by something else in the last pass like an incoming
-	// packet or a timer firing, update it now.
-	if ( ! time_updated )
-		net_update_time(current_time());
+	// This next block shouldn't run if a timer didn't fire or a packet was handled.
+	// since both of those cases would have updated the timer. This includes the
+	// case where a packet is read but not processed.
+	if ( ! processed_timer && ! processed_packet )
+		{
+		// If time wasn't updated by something else in the last pass like an incoming
+		// packet or a timer firing, update it now.
+		if ( ! time_updated )
+			net_update_time(current_time());
 
-	time_updated = false;
+		time_updated = false;
 
-	// If we're reading traces we need to make sure to expire any timers that are
-	// sitting in the queue.
-	if ( reading_traces )
-		expire_timers();
+		// If we're reading traces we need to make sure to expire any timers that are
+		// sitting in the queue.
+		if ( reading_traces )
+			expire_timers();
+		}
+
+	processed_packet = false;
+	processed_timer = false;
 
 	// Drain out any events that are in queue.
 	mgr.Drain();
-	
+
 	processing_start_time = 0.0;	// = "we're not processing now"
 	current_dispatched = 0;
 	current_iosrc = nullptr;

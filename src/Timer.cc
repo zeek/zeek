@@ -96,6 +96,8 @@ static void timer_callback(uv_timer_t* handle)
 	uv_handle_t* h = reinterpret_cast<uv_handle_t*>(handle);
 	if ( auto data = reinterpret_cast<TimerData*>(uv_handle_get_data(h)) )
 		data->mgr->Dispatch(data->timer);
+
+	processed_timer = true;
 	}
 
 static void close_callback(uv_handle_t* handle)

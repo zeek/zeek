@@ -191,6 +191,7 @@ void PktSrc::HandleNewData(int fd)
 	// 	}
 
 	have_packet = false;
+	processed_packet = true;
 	}
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)

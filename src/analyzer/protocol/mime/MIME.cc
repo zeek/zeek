@@ -1131,7 +1131,8 @@ void MIME_Entity::DecodeBase64(int len, const char* data)
 		{
 		rlen = 128;
 		char* prbuf = rbuf;
-		int decoded = base64_decoder->Decode(len, data, &rlen, &prbuf);
+		size_t x = static_cast<size_t> (rlen);
+		int decoded = base64_decoder->Decode(len, data, &x, &prbuf); // typecasting for now
 		DataOctets(rlen, rbuf);
 		len -= decoded; data += decoded;
 		}
@@ -1164,8 +1165,8 @@ void MIME_Entity::FinishDecodeBase64()
 	int rlen = 128;
 	char rbuf[128];
 	char* prbuf = rbuf;
-
-	if ( base64_decoder->Done(&rlen, &prbuf) )
+	size_t x = static_cast<size_t> (rlen); 
+	if ( base64_decoder->Done(&x, &prbuf) ) // typecasting for now
 		{ // some remaining data
 		if ( rlen > 0 )
 			DataOctets(rlen, rbuf);

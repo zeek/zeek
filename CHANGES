@@ -1,4 +1,10 @@
 
+3.1.0-dev.167 | 2019-10-07 10:42:15 -0700
+
+  * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)
+
+  * GH-591: fix reading set[enum] values from input files (Jon Siwek, Corelight)
+
 3.1.0-dev.164 | 2019-10-02 11:04:13 -0700
 
   * Fix build with external CAF but bundled Broker (Dominik Charousset)

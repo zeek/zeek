@@ -1,4 +1,8 @@
 
+3.1.0-dev.169 | 2019-10-07 10:50:35 -0700
+
+  * GH-589: improve printing of sub-microsecond intervals (Jon Siwek, Corelight)
+
 3.1.0-dev.167 | 2019-10-07 10:42:15 -0700
 
   * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)

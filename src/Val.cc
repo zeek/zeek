@@ -666,7 +666,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 	{
 	using unit_word = std::pair<double, const char*>;
 
-	constexpr std::array<unit_word, 6> units = {
+	static const std::array<unit_word, 6> units = {
 		unit_word{ Days, "day" },
 		unit_word{ Hours, "hr" },
 		unit_word{ Minutes, "min" },

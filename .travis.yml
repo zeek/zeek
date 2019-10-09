@@ -1,3 +1,5 @@
+dist: bionic
+
 language: cpp
 
 services:

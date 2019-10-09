@@ -1,4 +1,8 @@
 
+3.0.1-dev.12 | 2019-10-14 13:09:41 -0700
+
+  * Use Ubuntu 14.04 for Travis CI environment (Jon Siwek, Corelight)
+
 3.0.1-dev.11 | 2019-10-14 12:55:31 -0700
 
   * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)

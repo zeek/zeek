@@ -151,6 +151,8 @@ Functions
 :zeek:id:`port_to_count`: :zeek:type:`function`                                       Converts a :zeek:type:`port` to a :zeek:type:`count`.
 :zeek:id:`preserve_prefix`: :zeek:type:`function`                                     Preserves the prefix of an IP address in anonymization.
 :zeek:id:`preserve_subnet`: :zeek:type:`function`                                     Preserves the prefix of a subnet in anonymization.
+:zeek:id:`print_raw`: :zeek:type:`function`                                           Renders a sequence of values to a string of bytes and outputs them directly
+                                                                                      to ``stdout`` with no additional escape sequences added.
 :zeek:id:`ptr_name_to_addr`: :zeek:type:`function`                                    Converts a reverse pointer name to an address.
 :zeek:id:`rand`: :zeek:type:`function`                                                Generates a random number.
 :zeek:id:`raw_bytes_to_v4_addr`: :zeek:type:`function`                                Converts a :zeek:type:`string` of bytes into an IPv4 address.
@@ -2104,6 +2106,19 @@ Functions
    
    .. todo:: Currently dysfunctional.
 
+.. zeek:id:: print_raw
+
+   :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
+
+   Renders a sequence of values to a string of bytes and outputs them directly
+   to ``stdout`` with no additional escape sequences added.  No additional
+   newline is added to the end either.
+   
+
+   :returns: Always true.
+   
+   .. zeek:see:: fmt cat cat_sep string_cat to_json
+
 .. zeek:id:: ptr_name_to_addr
 
    :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`addr`
@@ -2899,6 +2914,8 @@ Functions
    
 
    :returns: a JSON formatted string.
+   
+   .. zeek:see:: fmt cat cat_sep string_cat print_raw
 
 .. zeek:id:: to_port
 

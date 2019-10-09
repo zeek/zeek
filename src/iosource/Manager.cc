@@ -217,5 +217,6 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 
 void Manager::WakeupLoop()
 	{
+	DBG_LOG(DBG_MAINLOOP, "Waking up loop for changes");
 	write(wakeup_pair[1], "", 0);
 	}

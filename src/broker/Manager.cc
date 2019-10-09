@@ -214,6 +214,11 @@ void Manager::InitPostScript()
 
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
 	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
+
+	// Make sure to start listening on the subscription file descriptors
+	// so that we get the events back.
+	IOSource::Start(bstate->subscriber.fd());
+	IOSource::Start(bstate->status_subscriber.fd());
 	}
 
 void Manager::Terminate()
@@ -296,9 +301,6 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 		Error("Failed to listen on %s:%" PRIu16,
 		      addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
-	IOSource::Start(bstate->subscriber.fd());
-	IOSource::Start(bstate->status_subscriber.fd());
-
 	DBG_LOG(DBG_BROKER, "Listening on %s:%" PRIu16,
 		addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
 
@@ -324,11 +326,6 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 
 	auto secs = broker::timeout::seconds(static_cast<uint64_t>(retry));
 	bstate->endpoint.peer_nosync(addr, port, secs);
-
-	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
-
-	if ( counts_as_iosource )
-		iosource_mgr->Register(this);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)

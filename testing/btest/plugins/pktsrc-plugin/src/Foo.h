@@ -14,17 +14,18 @@ public:
 	static PktSrc* Instantiate(const std::string& path, bool is_live);
 
 protected:
-	virtual void Open();
-	virtual void Close();
-	virtual bool ExtractNextPacket(Packet* pkt);
-	virtual void DoneWithPacket();
-	virtual bool PrecompileFilter(int index, const std::string& filter);
-	virtual bool SetFilter(int index);
-	virtual void Statistics(Stats* stats);
+	void Open() override;
+	void Close() override;
+	void HandleNewData(int fd) override;
+	bool PrecompileFilter(int index, const std::string& filter) override;
+	bool SetFilter(int index) override;
+	void Statistics(Stats* stats) override;
+	bool IsOpen() const override { return open; }
 
 private:
 	Properties props;
 	string packet;
+	bool open = false;
 };
 
 }

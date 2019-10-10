@@ -15,7 +15,6 @@ Foo::Foo(const std::string& path, bool is_live)
 	"\x01\x01\x08\x0a\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x04\x02", 64);
 
 	props.path = path;
-	props.selectable_fd = open("/bin/sh", O_RDONLY); // any fd is fine.
 	props.link_type = DLT_RAW;
 	props.netmask = 0;
 	props.is_live = 0;
@@ -28,30 +27,31 @@ iosource::PktSrc* Foo::Instantiate(const std::string& path, bool is_live)
 
 void Foo::Open()
 	{
+	IOSource::Start();
+	
 	Opened(props);
+	open = true;
 	}
 
 void Foo::Close()
 	{
+	IOSource::Done();
 	Closed();
+	open = false;
 	}
 
-bool Foo::ExtractNextPacket(Packet* pkt)
+void Foo::HandleNewData(int fd)
 	{
 	if ( packet.empty() )
-		{
 		Close();
-		return false;
-		}
 
 	pkt_timeval ts = { 1409193037, 0 };
-	pkt->Init(props.link_type, &ts, packet.size(), packet.size(), 
+	current_packet.Init(props.link_type, &ts, packet.size(), packet.size(), 
 		(const u_char *)packet.c_str());
-	return true;
-	}
 
-void Foo::DoneWithPacket()
-	{
+	PktSrc::HandleNewData(fd);
+
+	// For testing, clear out the packet data so the loop ends.
 	packet.clear();
 	}
 

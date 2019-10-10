@@ -2,11 +2,22 @@
 
 #pragma once
 
-#include <uv.h>
 #include <string>
 #include <map>
 
 #include "Timer.h"
+
+// Forward declare these from libuv so that plugins don't all need to
+// include uv.h, and we don't need to install it as part of the
+// installation.
+struct uv_idle_s;
+typedef uv_idle_s uv_idle_t;
+
+struct uv_prepare_s;
+typedef uv_prepare_s uv_prepare_t;
+
+struct uv_poll_s;
+typedef uv_poll_s uv_poll_t;
 
 namespace iosource {
 

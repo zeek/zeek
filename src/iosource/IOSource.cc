@@ -1,4 +1,7 @@
 #include "IOSource.h"
+
+#include <uv.h>
+
 #include "DebugLogger.h"
 #include "Manager.h"
 

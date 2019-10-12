@@ -1,4 +1,8 @@
 
+3.1.0-dev.175 | 2019-10-12 10:39:49 -0700
+
+  * Use Ubuntu 14.04 for Travis CI environment (Jon Siwek, Corelight)
+
 3.1.0-dev.172 | 2019-10-08 15:14:35 -0700
 
   * Add new BIF: print_raw()

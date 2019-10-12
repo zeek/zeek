@@ -11,9 +11,9 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-============================================================================================================================================ =======================================
-:zeek:id:`DNP3::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef` Standard defined Modbus function codes.
-============================================================================================================================================ =======================================
+===================================================================================================================== =======================================
+:zeek:id:`DNP3::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` Standard defined Modbus function codes.
+===================================================================================================================== =======================================
 
 
 Detailed Interface
@@ -23,7 +23,7 @@ Redefinable Options
 .. zeek:id:: DNP3::function_codes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
    :Default:
 
       ::

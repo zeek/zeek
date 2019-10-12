@@ -11,9 +11,9 @@ Summary
 ~~~~~~~
 Constants
 #########
-=================================================================================================================== =
-:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-=================================================================================================================== =
+============================================================================================ =
+:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+============================================================================================ =
 
 
 Detailed Interface
@@ -23,7 +23,7 @@ Constants
 .. zeek:id:: MySQL::commands
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

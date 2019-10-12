@@ -11,12 +11,12 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================================================================================== ==================================================
-:zeek:id:`DCE_RPC::operations`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`        
-:zeek:id:`DCE_RPC::pipe_name_to_common_uuid`: :zeek:type:`table` :zeek:attr:`&redef`                                                               This table is to map pipe names to the most common
-                                                                                                                                                   service used over that pipe.
-:zeek:id:`DCE_RPC::uuid_endpoint_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-================================================================================================================================================== ==================================================
+=========================================================================================================================== ==================================================
+:zeek:id:`DCE_RPC::operations`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`        
+:zeek:id:`DCE_RPC::pipe_name_to_common_uuid`: :zeek:type:`table` :zeek:attr:`&redef`                                        This table is to map pipe names to the most common
+                                                                                                                            service used over that pipe.
+:zeek:id:`DCE_RPC::uuid_endpoint_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` 
+=========================================================================================================================== ==================================================
 
 
 Detailed Interface
@@ -26,7 +26,7 @@ Redefinable Options
 .. zeek:id:: DCE_RPC::operations
 
    :Type: :zeek:type:`table` [:zeek:type:`string`, :zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -1342,7 +1342,7 @@ Redefinable Options
 .. zeek:id:: DCE_RPC::uuid_endpoint_map
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

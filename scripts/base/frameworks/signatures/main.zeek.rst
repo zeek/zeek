@@ -23,15 +23,15 @@ Runtime Options
 
 Redefinable Options
 ###################
-=============================================================================================================================================== ====================================================================
-:zeek:id:`Signatures::actions`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``Signatures::SIG_ALARM`` :zeek:attr:`&optional` Actions for a signature.
-:zeek:id:`Signatures::count_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                                                   Generate a notice if a :zeek:enum:`Signatures::SIG_COUNT_PER_RESP`
-                                                                                                                                                signature is triggered as often as given by one of these thresholds.
-:zeek:id:`Signatures::horiz_scan_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                                              Generate a notice if, for a pair [orig, signature], the number of
-                                                                                                                                                different responders has reached one of the thresholds.
-:zeek:id:`Signatures::vert_scan_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                                               Generate a notice if, for a pair [orig, resp], the number of
-                                                                                                                                                different signature matches has reached one of the thresholds.
-=============================================================================================================================================== ====================================================================
+======================================================================================================================== ====================================================================
+:zeek:id:`Signatures::actions`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``Signatures::SIG_ALARM`` Actions for a signature.
+:zeek:id:`Signatures::count_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                            Generate a notice if a :zeek:enum:`Signatures::SIG_COUNT_PER_RESP`
+                                                                                                                         signature is triggered as often as given by one of these thresholds.
+:zeek:id:`Signatures::horiz_scan_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                       Generate a notice if, for a pair [orig, signature], the number of
+                                                                                                                         different responders has reached one of the thresholds.
+:zeek:id:`Signatures::vert_scan_thresholds`: :zeek:type:`set` :zeek:attr:`&redef`                                        Generate a notice if, for a pair [orig, resp], the number of
+                                                                                                                         different signature matches has reached one of the thresholds.
+======================================================================================================================== ====================================================================
 
 Types
 #####
@@ -98,7 +98,7 @@ Redefinable Options
 .. zeek:id:: Signatures::actions
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Signatures::Action`
-   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``Signatures::SIG_ALARM`` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``Signatures::SIG_ALARM``
    :Default:
 
       ::

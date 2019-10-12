@@ -13,10 +13,10 @@ Summary
 ~~~~~~~
 Constants
 #########
-======================================================================================================================= ===================================
-:zeek:id:`DHCP::message_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Types of DHCP messages.
-:zeek:id:`DHCP::option_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  Option types mapped to their names.
-======================================================================================================================= ===================================
+================================================================================================ ===================================
+:zeek:id:`DHCP::message_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Types of DHCP messages.
+:zeek:id:`DHCP::option_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  Option types mapped to their names.
+================================================================================================ ===================================
 
 
 Detailed Interface
@@ -26,7 +26,7 @@ Constants
 .. zeek:id:: DHCP::message_types
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -59,7 +59,7 @@ Constants
 .. zeek:id:: DHCP::option_types
 
    :Type: :zeek:type:`table` [:zeek:type:`int`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

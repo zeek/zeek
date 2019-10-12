@@ -11,18 +11,18 @@ Summary
 ~~~~~~~
 Constants
 #########
-=========================================================================================================================== =
-:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`             
-:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`         
-:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`       
-:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  
-:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`      
-:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  
-:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`          
-:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`            
-:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-=========================================================================================================================== =
+==================================================================================================== =
+:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
+:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         
+:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`       
+:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  
+:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      
+:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  
+:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`          
+:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`            
+:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+==================================================================================================== =
 
 
 Detailed Interface
@@ -32,7 +32,7 @@ Constants
 .. zeek:id:: RDP::builds
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -59,7 +59,7 @@ Constants
 .. zeek:id:: RDP::cert_types
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -74,7 +74,7 @@ Constants
 .. zeek:id:: RDP::color_depths
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -91,7 +91,7 @@ Constants
 .. zeek:id:: RDP::encryption_levels
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -109,7 +109,7 @@ Constants
 .. zeek:id:: RDP::encryption_methods
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -127,7 +127,7 @@ Constants
 .. zeek:id:: RDP::failure_codes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -146,7 +146,7 @@ Constants
 .. zeek:id:: RDP::high_color_depths
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -164,7 +164,7 @@ Constants
 .. zeek:id:: RDP::languages
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -415,7 +415,7 @@ Constants
 .. zeek:id:: RDP::results
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -433,7 +433,7 @@ Constants
 .. zeek:id:: RDP::security_protocols
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

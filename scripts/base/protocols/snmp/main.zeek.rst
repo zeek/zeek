@@ -12,9 +12,9 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================================================================= ========================================================
-:zeek:id:`SNMP::version_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&optional` Maps an SNMP version integer to a human readable string.
-================================================================================================================================= ========================================================
+========================================================================================================== ========================================================
+:zeek:id:`SNMP::version_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` Maps an SNMP version integer to a human readable string.
+========================================================================================================== ========================================================
 
 Types
 #####
@@ -45,7 +45,7 @@ Redefinable Options
 .. zeek:id:: SNMP::version_map
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"``
    :Default:
 
       ::

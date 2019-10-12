@@ -11,16 +11,16 @@ Summary
 ~~~~~~~
 Constants
 #########
-=============================================================================================================================== =
-:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`             
-:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     
-:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`    
-:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`           
-:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`             
-:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`           
-:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`      
-=============================================================================================================================== =
+======================================================================================================== =
+:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
+:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     
+:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`    
+:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`           
+:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
+:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`           
+:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      
+======================================================================================================== =
 
 
 Detailed Interface
@@ -30,7 +30,7 @@ Constants
 .. zeek:id:: PE::directories
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -59,7 +59,7 @@ Constants
 .. zeek:id:: PE::dll_characteristics
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -80,7 +80,7 @@ Constants
 .. zeek:id:: PE::file_characteristics
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -108,7 +108,7 @@ Constants
 .. zeek:id:: PE::machine_types
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -143,7 +143,7 @@ Constants
 .. zeek:id:: PE::os_versions
 
    :Type: :zeek:type:`table` [:zeek:type:`count`, :zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -181,7 +181,7 @@ Constants
 .. zeek:id:: PE::section_characteristics
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -228,7 +228,7 @@ Constants
 .. zeek:id:: PE::section_descs
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -265,7 +265,7 @@ Constants
 .. zeek:id:: PE::windows_subsystems
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

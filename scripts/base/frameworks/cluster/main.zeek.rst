@@ -56,12 +56,12 @@ Redefinable Options
 
 State Variables
 ###############
-======================================================================================================================= ======================================================================
-:zeek:id:`Cluster::stores`: :zeek:type:`table` :zeek:attr:`&default` = *...* :zeek:attr:`&optional` :zeek:attr:`&redef` A table of cluster-enabled data stores that have been created, indexed
-                                                                                                                        by their name.
-:zeek:id:`Cluster::worker_count`: :zeek:type:`count`                                                                    This gives the value for the number of workers currently connected to,
-                                                                                                                        and it's maintained internally by the cluster framework.
-======================================================================================================================= ======================================================================
+================================================================================================ ======================================================================
+:zeek:id:`Cluster::stores`: :zeek:type:`table` :zeek:attr:`&default` = *...* :zeek:attr:`&redef` A table of cluster-enabled data stores that have been created, indexed
+                                                                                                 by their name.
+:zeek:id:`Cluster::worker_count`: :zeek:type:`count`                                             This gives the value for the number of workers currently connected to,
+                                                                                                 and it's maintained internally by the cluster framework.
+================================================================================================ ======================================================================
 
 Types
 #####
@@ -270,7 +270,7 @@ State Variables
 .. zeek:id:: Cluster::stores
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Cluster::StoreInfo`
-   :Attributes: :zeek:attr:`&default` = *[name=<uninitialized>, store=<uninitialized>, master_node=, master=F, backend=Broker::MEMORY, options=[sqlite=[path=], rocksdb=[path=]], clone_resync_interval=10.0 secs, clone_stale_interval=5.0 mins, clone_mutation_buffer_interval=2.0 mins]* :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = *[name=<uninitialized>, store=<uninitialized>, master_node=, master=F, backend=Broker::MEMORY, options=[sqlite=[path=], rocksdb=[path=]], clone_resync_interval=10.0 secs, clone_stale_interval=5.0 mins, clone_mutation_buffer_interval=2.0 mins]* :zeek:attr:`&redef`
    :Default: ``{}``
 
    A table of cluster-enabled data stores that have been created, indexed

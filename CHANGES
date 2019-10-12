@@ -1,4 +1,8 @@
 
+3.0.1-dev.15 | 2019-10-15 16:42:34 -0700
+
+  * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)
+
 3.0.1-dev.14 | 2019-10-14 18:04:17 -0700
 
   * Configure Travis CI to run memory leak tests (Tim Wojtulewicz, Corelight)

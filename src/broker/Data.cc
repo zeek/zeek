@@ -9,8 +9,6 @@
 #include <caf/stream_deserializer.hpp>
 #include <caf/streambuf.hpp>
 
-using namespace std;
-
 OpaqueType* bro_broker::opaque_of_data_type;
 OpaqueType* bro_broker::opaque_of_set_iterator;
 OpaqueType* bro_broker::opaque_of_table_iterator;
@@ -1273,6 +1271,120 @@ bool bro_broker::RecordIterator::DoUnserialize(const broker::data& data)
 	dat = *x;
 	it = dat.begin() + *y;
 	return true;
+	}
+
+broker::expected<broker::data> bro_broker::threading_val_to_data(const threading::Value* v)
+	{
+	auto to_address = [](const threading::Value::addr_t& src)
+		{
+		if (src.family == IPv4)
+			{
+			return broker::address{&src.in.in4.s_addr,
+			                       broker::address::family::ipv4,
+			                       broker::address::byte_order::network};
+			}
+		assert(src.family == IPv6);
+		broker::address result;
+		memcpy(result.bytes().data(), src.in.in6.s6_addr, 16);
+		return result;
+		};
+
+	auto to_timespan = [](double seconds_since_epoch)
+		{
+		using std::chrono::duration_cast;
+		auto t = broker::fractional_seconds(seconds_since_epoch);
+		return duration_cast<broker::timespan>(t);
+		};
+
+	using bd = broker::data;
+
+	switch (v->type) {
+
+	case TYPE_VOID:
+		return bd{broker::nil};
+
+	case TYPE_BOOL:
+		return bd{static_cast<bool>(v->val.int_val)};
+
+	case TYPE_INT:
+		return bd{static_cast<broker::integer>(v->val.int_val)};
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		return bd{static_cast<broker::count>(v->val.uint_val)};
+
+	case TYPE_DOUBLE:
+		return bd{v->val.double_val};
+
+	case TYPE_PORT:
+		{
+		auto& val = v->val.port_val;
+		auto p = broker::port{static_cast<uint16_t>(val.port),
+		                      static_cast<broker::port::protocol>(val.proto)};
+		return bd{p};
+		}
+
+	case TYPE_ADDR:
+		return bd{to_address(v->val.addr_val)};
+
+	case TYPE_SUBNET:
+		{
+		auto& val = v->val.subnet_val;
+		return bd{broker::subnet(to_address(val.prefix), val.length)};
+		}
+
+	case TYPE_TIME:
+		return bd{broker::timestamp{to_timespan(v->val.double_val)}};
+
+	case TYPE_INTERVAL:
+		return bd{to_timespan(v->val.double_val)};
+
+	case TYPE_ENUM:
+		{
+		auto& val = v->val.string_val;
+		auto len = static_cast<size_t>(val.length);
+		return bd{broker::enum_value{std::string{val.data, len}}};
+		}
+
+	case TYPE_STRING:
+		{
+		auto& val = v->val.string_val;
+		auto len = static_cast<size_t>(val.length);
+		return bd{std::string{val.data, len}};
+		}
+
+	case TYPE_TABLE:
+		{
+		auto& val = v->val.set_val;
+		broker::set result;
+		for ( int i = 0; i < val.size; ++i )
+			{
+			if (auto value = threading_val_to_data(val.vals[i]))
+				result.emplace(std::move(*value));
+			else
+				return std::move(value.error());
+			}
+		return bd{std::move(result)};
+		}
+
+	case TYPE_VECTOR:
+		{
+		auto& val = v->val.vector_val;
+		broker::vector result;
+		result.reserve(val.size);
+		for ( int i = 0; i < val.size; ++i )
+			{
+			if (auto value = threading_val_to_data(val.vals[i]))
+				result.emplace_back(std::move(*value));
+			else
+				return std::move(value.error());
+			}
+		return bd{std::move(result)};
+		}
+
+	default:
+		return broker::ec::type_clash;
+	}
 	}
 
 broker::data bro_broker::threading_field_to_data(const threading::Field* f)

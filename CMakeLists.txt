@@ -340,7 +340,7 @@ InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFI
 ## Recurse on sub-directories
 
 if ( CAF_ROOT_DIR )
-  find_package(CAF COMPONENTS core io openssl REQUIRED)
+  find_package(CAF COMPONENTS core test io openssl REQUIRED)
 endif ()
 
 if ( BROKER_ROOT_DIR )

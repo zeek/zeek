@@ -9,7 +9,10 @@ operation:
         A framework for downloading additional test sets that run more
         complex Zeek configuration on larger traces files. Due to their
         size, these are not included directly. See the README for more
-        information. 
+        information.
 
     scripts/
         Helpers scripts used by some tests.
+
+    cpp/
+        C++ unit tests for Zeek's internal components.

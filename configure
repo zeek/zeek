@@ -48,6 +48,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
+    --enable-cpp-tests     build C++ unit test suites (zeek-test)
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
@@ -220,6 +221,9 @@ while [ $# -ne 0 ]; do
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE         BOOL   true
             append_cache_entry ENABLE_DEBUG         BOOL   true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ZEEK_ENABLE_CPP_UNIT_TESTS BOOL true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true

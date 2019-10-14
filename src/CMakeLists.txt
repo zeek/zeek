@@ -221,7 +221,6 @@ set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
 set(MAIN_SRCS
-    main.cc
     net_util.cc
     util.cc
     module_util.cc
@@ -324,6 +323,10 @@ set(MAIN_SRCS
     digest.h
 )
 
+set (test_SRCS
+    ../testing/cpp/broker/Data.cc
+)
+
 set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
@@ -352,10 +355,10 @@ set(bro_SRCS
 collect_headers(bro_HEADERS ${bro_SRCS})
 
 if ( bro_HAVE_OBJECT_LIBRARIES )
-    add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+    add_executable(zeek main.cc ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
     target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 else ()
-    add_executable(zeek ${bro_SRCS} ${bro_HEADERS})
+    add_executable(zeek main.cc ${bro_SRCS} ${bro_HEADERS})
     target_link_libraries(zeek ${bro_SUBDIRS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()
 
@@ -461,3 +464,58 @@ add_clang_tidy_files(${MAIN_SRCS})
 # (*.pac.cc) files, and most of the generated code for BIFs (not including
 # *.bif.register.cc)
 create_clang_tidy_target()
+
+########################################################################
+## Add zeek-test target and add CTest setup
+
+if (ZEEK_ENABLE_CPP_UNIT_TESTS)
+
+    set (ZEEK_TEST_TIMEOUT 20)
+
+    enable_testing ()
+
+    include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/../testing/cpp")
+
+    # Build zeek-test.
+    if (bro_HAVE_OBJECT_LIBRARIES)
+        add_executable(zeek-test
+                       "${CMAKE_CURRENT_SOURCE_DIR}/../testing/cpp/zeek-test.cc"
+                       ${test_SRCS} ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
+        target_link_libraries(zeek-test ${zeekdeps}
+                              ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    else ()
+        add_executable(zeek-test
+                       "${CMAKE_CURRENT_SOURCE_DIR}/../testing/cpp/zeek-test.cc"
+                       ${test_SRCS} ${bro_SRCS} ${bro_HEADERS})
+        target_link_libraries(zeek-test
+                              ${bro_SUBDIRS} ${zeekdeps}
+                              ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    endif ()
+
+    if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
+        set_target_properties(zeek-test PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")
+    endif ()
+
+    add_dependencies(zeek-test zeek)
+
+    # Find all test suites.
+    foreach (test ${tests})
+        file (STRINGS ${test} contents)
+        foreach (line ${contents})
+            if ("${line}" MATCHES "SUITE")
+                string (REGEX REPLACE ".* SUITE (.*)" "\\1" suite ${line})
+                list (APPEND suites ${suite})
+            endif ()
+        endforeach ()
+    endforeach ()
+
+    list (REMOVE_DUPLICATES suites)
+
+    # Add CTest targets.
+    foreach (suite ${suites})
+        add_test (NAME ${suite}
+                  COMMAND zeek-test -v 4 -s "^${suite}$")
+        set_tests_properties (${suite} PROPERTIES TIMEOUT ${ZEEK_TEST_TIMEOUT})
+    endforeach ()
+
+endif (ZEEK_ENABLE_CPP_UNIT_TESTS)

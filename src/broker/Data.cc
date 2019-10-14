@@ -88,14 +88,14 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(std::string& a)
+	result_type operator()(const std::string& a)
 		{
 		switch ( type->Tag() ) {
 		case TYPE_STRING:
-			return new StringVal(a.size(), a.data());
+			return new StringVal(a.size(), a.c_str());
 		case TYPE_FILE:
 			{
-			auto file = BroFile::GetFile(a.data());
+			auto file = BroFile::GetFile(a.c_str());
 
 			if ( file )
 				return new Val(file);
@@ -107,7 +107,7 @@ struct val_converter {
 		}
 		}
 
-	result_type operator()(broker::address& a)
+	result_type operator()(const broker::address& a)
 		{
 		if ( type->Tag() == TYPE_ADDR )
 			{
@@ -118,7 +118,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(broker::subnet& a)
+	result_type operator()(const broker::subnet& a)
 		{
 		if ( type->Tag() == TYPE_SUBNET )
 			{
@@ -129,7 +129,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(broker::port& a)
+	result_type operator()(const broker::port& a)
 		{
 		if ( type->Tag() == TYPE_PORT )
 			return val_mgr->GetPort(a.number(), bro_broker::to_bro_port_proto(a.type()));
@@ -137,7 +137,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(broker::timestamp& a)
+	result_type operator()(broker::timestamp a)
 		{
 		if ( type->Tag() != TYPE_TIME )
 			return nullptr;
@@ -147,7 +147,7 @@ struct val_converter {
 		return new Val(s.count(), TYPE_TIME);
 		}
 
-	result_type operator()(broker::timespan& a)
+	result_type operator()(broker::timespan a)
 		{
 		if ( type->Tag() != TYPE_INTERVAL )
 			return nullptr;
@@ -157,12 +157,12 @@ struct val_converter {
 		return new Val(s.count(), TYPE_INTERVAL);
 		}
 
-	result_type operator()(broker::enum_value& a)
+	result_type operator()(const broker::enum_value& a)
 		{
 		if ( type->Tag() == TYPE_ENUM )
 			{
 			auto etype = type->AsEnumType();
-			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
+			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.c_str());
 
 			if ( i == -1 )
 				return nullptr;
@@ -173,7 +173,7 @@ struct val_converter {
 		return nullptr;
 		}
 
-	result_type operator()(broker::set& a)
+	result_type operator()(const broker::set& a)
 		{
 		if ( ! type->IsSet() )
 			return nullptr;
@@ -241,7 +241,7 @@ struct val_converter {
 		return rval;
 		}
 
-	result_type operator()(broker::table& a)
+	result_type operator()(const broker::table& a)
 		{
 		if ( ! type->IsTable() )
 			return nullptr;
@@ -318,7 +318,7 @@ struct val_converter {
 		return rval;
 		}
 
-	result_type operator()(broker::vector& a)
+	result_type operator()(const broker::vector& a)
 		{
 		if ( type->Tag() == TYPE_VECTOR )
 			{
@@ -524,7 +524,7 @@ struct type_checker {
 		return false;
 		}
 
-	result_type operator()(const broker::timestamp& a)
+	result_type operator()(broker::timestamp a)
 		{
 		if ( type->Tag() == TYPE_TIME )
 			return true;
@@ -532,7 +532,7 @@ struct type_checker {
 		return false;
 		}
 
-	result_type operator()(const broker::timespan& a)
+	result_type operator()(broker::timespan a)
 		{
 		if ( type->Tag() == TYPE_INTERVAL )
 			return true;
@@ -789,12 +789,12 @@ static bool data_type_check(const broker::data& d, BroType* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type)
+Val* bro_broker::data_to_val(const broker::data& d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return caf::visit(val_converter{type}, d);
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)
@@ -1410,7 +1410,7 @@ broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 	return broker::vector({name, secondary, type, subtype, optional});
 	}
 
-threading::Field* bro_broker::data_to_threading_field(broker::data d)
+threading::Field* bro_broker::data_to_threading_field(const broker::data& d)
 	{
 	if ( ! caf::holds_alternative<broker::vector>(d) )
 		return nullptr;

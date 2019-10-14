@@ -58,7 +58,7 @@ broker::expected<broker::data> val_to_data(Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-Val* data_to_val(broker::data d, BroType* type);
+Val* data_to_val(const broker::data& d, BroType* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -80,7 +80,7 @@ broker::data threading_field_to_data(const threading::Field* f);
  * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Value* data_to_threading_val(broker::data d);
+threading::Value* data_to_threading_val(const broker::data& d);
 
 /**
  * Convert a Broker data value to a Bro threading::Value.
@@ -88,7 +88,7 @@ threading::Value* data_to_threading_val(broker::data d);
  * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Field* data_to_threading_field(broker::data d);
+threading::Field* data_to_threading_field(const broker::data& d);
 
 /**
  * A Bro value which wraps a Broker data value.
@@ -181,7 +181,7 @@ struct type_name_getter {
 		{ return "table"; }
 
 	result_type operator()(const broker::vector&)
-		{ 
+		{
 		assert(tag == TYPE_VECTOR || tag == TYPE_RECORD);
 	 	return tag == TYPE_VECTOR ? "vector" : "record";
 		}

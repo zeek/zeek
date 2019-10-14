@@ -662,6 +662,17 @@ IntervalVal::IntervalVal(double quantity, double units) :
 	{
 	}
 
+using unit_word = std::pair<double, const char*>;
+
+static const std::array<unit_word, 6> interval_units = {
+	unit_word{ Days, "day" },
+	unit_word{ Hours, "hr" },
+	unit_word{ Minutes, "min" },
+	unit_word{ Seconds, "sec" },
+	unit_word{ Milliseconds, "msec" },
+	unit_word{ Microseconds, "usec" },
+};
+
 void IntervalVal::ValDescribe(ODesc* d) const
 	{
 	double v = val.double_val;
@@ -672,31 +683,55 @@ void IntervalVal::ValDescribe(ODesc* d) const
 		return;
 		}
 
-	int did_one = 0;
+	bool did_one = false;
+	constexpr auto last_idx = interval_units.size() - 1;
 
-#define DO_UNIT(unit, name) \
-	if ( v >= unit || v <= -unit ) \
-		{ \
-		double num = double(int(v / unit)); \
-		if ( num != 0.0 ) \
-			{ \
-			if ( did_one++ ) \
-				d->SP(); \
-			d->Add(num); \
-			d->SP(); \
-			d->Add(name); \
-			if ( num != 1.0 && num != -1.0 ) \
-				d->Add("s"); \
-			v -= num * unit; \
-			} \
+	auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool
+		{
+		auto v = a - b;
+		return v < 0 ? -v < tolerance : v < tolerance;
+		};
+
+	for ( size_t i = 0; i < interval_units.size(); ++i )
+		{
+		auto unit = interval_units[i].first;
+		auto word = interval_units[i].second;
+		double to_print = 0;
+
+		if ( i == last_idx )
+			{
+			to_print = v / unit;
+
+			if ( approx_equal(to_print, 0) )
+				{
+				if ( ! did_one )
+					d->Add("0 secs");
+
+				break;
+				}
+			}
+		else
+			{
+			if ( ! (v >= unit || v <= -unit) )
+				continue;
+
+			double num = static_cast<double>(static_cast<int64_t>(v / unit));
+			v -= num * unit;
+			to_print = num;
+			}
+
+		if ( did_one )
+			d->SP();
+
+		d->Add(to_print);
+		d->SP();
+		d->Add(word);
+
+		if ( ! approx_equal(to_print, 1) && ! approx_equal(to_print, -1) )
+			d->Add("s");
+
+		did_one = true;
 		}
-
-	DO_UNIT(Days, "day")
-	DO_UNIT(Hours, "hr")
-	DO_UNIT(Minutes, "min")
-	DO_UNIT(Seconds, "sec")
-	DO_UNIT(Milliseconds, "msec")
-	DO_UNIT(Microseconds, "usec")
 	}
 
 PortVal* PortManager::Get(uint32 port_num) const

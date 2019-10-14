@@ -199,7 +199,7 @@ bool Config::DoUpdate()
 		}
 
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*)$", REG_EXTENDED) )
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*[^[:blank:]])[[:blank:]]*$", REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;

@@ -1510,7 +1510,7 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->HasPktSrc() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...

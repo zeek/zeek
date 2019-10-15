@@ -459,7 +459,7 @@ void DNS_Mgr::InitPostScript()
 	dm_rec = internal_type("dns_mapping")->AsRecordType();
 
 	// Registering will call Init()
-	iosource_mgr->Register(this);
+	iosource_mgr->Register(this, true);
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];

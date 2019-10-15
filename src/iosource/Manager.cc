@@ -46,12 +46,21 @@ Manager::~Manager()
 		delete pkt_src;
 	}
 
+size_t Manager::Size()
+	{
+	size_t size = pkt_src ? 1 : 0;
+	for ( auto i : sources )
+		if ( i.second )
+			size++;
+	return size;
+	}
+
 void Manager::Terminate()
 	{
 	// Shut down all of the non-packet sources first. This is because shutting down the last
 	// packet source clears out all of these.
 	for ( auto i : sources )
-		i->Done();
+		i.first->Done();
 
 	sources.clear();
 
@@ -73,13 +82,13 @@ void Manager::Terminate()
 	WakeupLoop();
 	}
 
-void Manager::Register(IOSource* src)
+void Manager::Register(IOSource* src, bool inactive)
 	{
 	src->Init();
 	if ( src->IsPacketSource() )
 		pkt_src = dynamic_cast<PktSrc*>(src);
 	else
-		sources.push_back(src);
+		sources[src] = ! inactive;
 	}
 
 void Manager::Unregister(IOSource* src)
@@ -88,14 +97,12 @@ void Manager::Unregister(IOSource* src)
 	// a packet source, we can shut everything down because this is the only packet source.
 	if ( ! src->IsPacketSource() )
 		{
-		auto it = std::find(sources.begin(), sources.end(), src);
-		if ( it != sources.end() )
-			sources.erase(it);
+		sources.erase(src);
 		}
 	else
 		{
 		for ( auto source : sources )
-			source->Done();
+			source.first->Done();
 
 		sources.clear();
 

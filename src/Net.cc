@@ -307,18 +307,21 @@ void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
-	if ( iosource_mgr->HasPktSrc() ||
+	if ( iosource_mgr->Size() > 0 ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		// If we're not reading from something, set up an idle handle. Otherwise
-		// the loop will just sit doing nothing forever and never process events.
-		if ( ! reading_live && ! reading_traces )
+		// If we're not actively receiving data from something (packet source,
+		// broker, etc), then setup an idle handle. This keeps the loop actively
+		// running. Otherwise the loop will just sit doing nothing forever.
+		// This is the case when we don't have a source but
+		// exit_only_after_terminate is set.
+		if ( iosource_mgr->Size() == 0 )
 			{
 			no_source_idler = new uv_idle_t();
 			uv_idle_init(iosource_mgr->GetLoop(), no_source_idler);
 			uv_idle_start(no_source_idler, no_source_idle_callback);
 			}
-		
+
 //		uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
 		uv_run(iosource_mgr->GetLoop(), UV_RUN_DEFAULT);
 

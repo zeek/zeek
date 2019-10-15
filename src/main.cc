@@ -1057,9 +1057,9 @@ int main(int argc, char** argv)
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 
-	iosource_mgr->Register(thread_mgr);
+	iosource_mgr->Register(thread_mgr, true);
 
-	if ( iosource_mgr->HasPktSrc() ||
+	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
 	     BifConst::exit_only_after_terminate )
 		{

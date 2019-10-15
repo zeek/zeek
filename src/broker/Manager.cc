@@ -168,7 +168,7 @@ void Manager::InitPostScript()
 
 	// Register with the iosource_mgr. This doesn't mean anything at the moment other than
 	// to get us added to the list. We'll start polling later in Listen().
-	iosource_mgr->Register(this);
+	iosource_mgr->Register(this, true);
 
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
@@ -297,6 +297,8 @@ uint16_t Manager::Listen(const string& addr, uint16_t port)
 
 	bound_port = bstate->endpoint.listen(addr, port);
 
+	iosource_mgr->Register(this, false);
+
 	if ( bound_port == 0 )
 		Error("Failed to listen on %s:%" PRIu16,
 		      addr.empty() ? "INADDR_ANY" : addr.c_str(), port);
@@ -326,6 +328,12 @@ void Manager::Peer(const string& addr, uint16_t port, double retry)
 
 	auto secs = broker::timeout::seconds(static_cast<uint64_t>(retry));
 	bstate->endpoint.peer_nosync(addr, port, secs);
+
+	auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
+
+	if ( counts_as_iosource )
+		// Register as a "does-count" source now.
+		iosource_mgr->Register(this, false);
 	}
 
 void Manager::Unpeer(const string& addr, uint16_t port)

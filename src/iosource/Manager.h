@@ -4,6 +4,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 #include <uv.h>
 
 namespace iosource {
@@ -33,8 +34,15 @@ public:
 	 * registered, this method does nothing.
 	 *
 	 * @param src The source. The manager takes ownership.
+	 * @param inactive Whether this source should be considered active
+	 * or not. An active source will cause the main loop to start running,
+	 * and is counted when Size() is called. This doesn't mean that an
+	 * inactive source will not have data processed, but that such
+	 * sources will not be the reason for the loop to continue running.
+	 *
+	 * @see Size
 	 */
-	void Register(IOSource* src);
+	void Register(IOSource* src, bool inactive = false);
 
 	/**
 	 * Unregisters an IOSource with the manager.
@@ -44,10 +52,11 @@ public:
 	void Unregister(IOSource* src);
 
 	/**
-	 * Returns whether the manager has an active packet srouce.
+	 * Returns the number of packet sources plus the number of "active"
+	 * sources.
 	 */
-	bool HasPktSrc() const { return pkt_src != nullptr; }
-
+	size_t Size();
+	
 	/**
 	 * Returns a list of all registered PktSrc instances. This is a
 	 * subset of all registered IOSource instances.
@@ -94,10 +103,10 @@ private:
 	uv_loop_t* loop = nullptr;
 	PktSrc* pkt_src = nullptr;
 
-	using SourceList = std::list<IOSource*>;
+	using SourceMap = std::map<IOSource*, bool>;
 	using PktDumperList = std::list<PktDumper*>;
 	
-	SourceList sources;
+	SourceMap sources;
 	PktDumperList pkt_dumpers;
 
 	uv_poll_t* wakeup;

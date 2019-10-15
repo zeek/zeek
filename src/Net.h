@@ -11,10 +11,10 @@
 #include "iosource/PktDumper.h"
 
 extern void net_init(name_list& interfaces, name_list& readfiles,
-		const char* writefile, int do_watchdog);
+		const char* writefile, bool do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
-extern void net_finish(int drain_events);
+extern void net_finish(bool drain_events);
 extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const Packet* pkt,

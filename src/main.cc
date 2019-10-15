@@ -278,9 +278,8 @@ void done_with_network()
 	timer_mgr->Expire();
 	dns_mgr->Flush();
 	mgr.Drain();
-	mgr.Drain();
 
-	net_finish(1);
+	net_finish(true);
 
 #ifdef USE_PERFTOOLS_DEBUG
 
@@ -423,7 +422,7 @@ int main(int argc, char** argv)
 	char* debug_streams = 0;
 	int parse_only = false;
 	int bare_mode = false;
-	int do_watchdog = 0;
+	bool do_watchdog = false;
 	int override_ignore_checksums = 0;
 	int rule_debug = 0;
 	int RE_level = 4;
@@ -630,7 +629,7 @@ int main(int argc, char** argv)
 			break;
 
 		case 'W':
-			do_watchdog = 1;
+			do_watchdog = true;
 			break;
 
 		case 'X':
@@ -1077,7 +1076,7 @@ int main(int argc, char** argv)
 			}
 #endif
 
-		double time_net_start = current_time(true);;
+		double time_net_start = current_time(true);
 
 		uint64_t mem_net_start_total;
 		uint64_t mem_net_start_malloced;

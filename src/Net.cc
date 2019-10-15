@@ -166,7 +166,7 @@ void net_update_time(double new_network_time)
 	}
 
 void net_init(name_list& interfaces, name_list& readfiles,
-	      const char* writefile, int do_watchdog)
+	      const char* writefile, bool do_watchdog)
 	{
 	if ( readfiles.length() > 0 )
 		{
@@ -387,7 +387,7 @@ void net_get_final_stats()
 		}
 	}
 
-void net_finish(int drain_events)
+void net_finish(bool drain_events)
 	{
 	set_processing_status("TERMINATING", "net_finish");
 

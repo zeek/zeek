@@ -14804,6 +14804,51 @@ Components
 
 :zeek:enum:`Analyzer::ANALYZER_TCPSTATS`
 
+Types
++++++
+
+.. zeek:type:: TCP::Option
+
+   :Type: :zeek:type:`record`
+
+      kind: :zeek:type:`count`
+         The kind number associated with the option.  Other optional fields
+         of this record may be set depending on this value.
+
+      length: :zeek:type:`count`
+         The total length of the option in bytes, including the kind byte and
+         length byte (if present).
+
+      data: :zeek:type:`string` :zeek:attr:`&optional`
+         This field is set to the raw option bytes if the kind is not
+         otherwise known/parsed.  It's also set for known kinds whose length
+         was invalid.
+
+      mss: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 2: Maximum Segment Size.
+
+      window_scale: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 3: Window scale.
+
+      sack: :zeek:type:`index_vec` :zeek:attr:`&optional`
+         Kind 5: Selective ACKnowledgement (SACK).  This is a list of 2, 4,
+         6, or 8 numbers with each consecutive pair being a 32-bit
+         begin-pointer and 32-bit end pointer.
+
+      send_timestamp: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 8: 4-byte sender timestamp value.
+
+      echo_timestamp: :zeek:type:`count` :zeek:attr:`&optional`
+         Kind 8: 4-byte echo reply timestamp value.
+
+   A TCP Option field parsed from a TCP header.
+
+.. zeek:type:: TCP::OptionList
+
+   :Type: :zeek:type:`vector` of :zeek:type:`TCP::Option`
+
+   The full list of TCP Option fields parsed from a TCP header.
+
 Events
 ++++++
 
@@ -15130,9 +15175,27 @@ Events
 
    :optlen: The length of the options value.
    
-   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
+   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_options
    
-   .. note:: There is currently no way to get the actual option value, if any.
+   .. note:: To inspect the actual option values, if any, use :zeek:see:`tcp_options`.
+
+.. zeek:id:: tcp_options
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, options: :zeek:type:`TCP::OptionList`)
+
+   Generated for each TCP header that contains TCP options.  This is a very
+   low-level event and potentially expensive as it may be raised very often.
+   
+
+   :c: The connection the packet is part of.
+   
+
+   :is_orig: True if the packet was sent by the connection's originator.
+   
+
+   :options: The list of options parsed out of the TCP header.
+   
+   .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_option
 
 .. zeek:id:: tcp_contents
 

@@ -149,6 +149,7 @@
    base/bif/plugins/Zeek_SteppingStone.events.bif.zeek </scripts/base/bif/plugins/Zeek_SteppingStone.events.bif.zeek>
    base/bif/plugins/Zeek_Syslog.events.bif.zeek </scripts/base/bif/plugins/Zeek_Syslog.events.bif.zeek>
    base/bif/plugins/Zeek_TCP.events.bif.zeek </scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek>
+   base/bif/plugins/Zeek_TCP.types.bif.zeek </scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek>
    base/bif/plugins/Zeek_TCP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek>
    base/bif/plugins/Zeek_Teredo.events.bif.zeek </scripts/base/bif/plugins/Zeek_Teredo.events.bif.zeek>
    base/bif/plugins/Zeek_UDP.events.bif.zeek </scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek>

@@ -1,3 +1,8 @@
-warning in <params>, line 1: event handler never invoked: this_is_never_used
 warning in <params>, line 1: event handler never invoked: InputConfig::new_value
 warning in <params>, line 1: event handler never invoked: InputRaw::process_finished
+warning in <params>, line 1: event handler never invoked: Supervisor::create_request
+warning in <params>, line 1: event handler never invoked: Supervisor::destroy_request
+warning in <params>, line 1: event handler never invoked: Supervisor::restart_request
+warning in <params>, line 1: event handler never invoked: Supervisor::status_request
+warning in <params>, line 1: event handler never invoked: Supervisor::stop_request
+warning in <params>, line 1: event handler never invoked: this_is_never_used

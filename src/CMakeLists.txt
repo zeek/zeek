@@ -111,6 +111,7 @@ set(BIF_SRCS
     strings.bif
     reporter.bif
     option.bif
+    supervisor.bif
 )
 
 foreach (bift ${BIF_SRCS})

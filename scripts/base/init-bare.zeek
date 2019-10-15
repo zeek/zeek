@@ -1781,6 +1781,8 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/bif/reporter.bif
 @load base/bif/strings.bif
 @load base/bif/option.bif
+@load base/frameworks/supervisor/api
+@load base/bif/supervisor.bif
 
 global done_with_network = F;
 event net_done(t: time) { done_with_network = T; }

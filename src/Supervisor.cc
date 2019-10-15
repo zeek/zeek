@@ -8,6 +8,8 @@
 #include "Supervisor.h"
 #include "Reporter.h"
 #include "DebugLogger.h"
+#include "Val.h"
+#include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
 
@@ -211,4 +213,31 @@ void zeek::Supervisor::RunStem(std::unique_ptr<bro::Pipe> pipe)
 		printf("Stem wakeup\n");
 		write(pipe->WriteFD(), "hi", 2);
 		}
+	}
+
+RecordVal* zeek::Supervisor::Status(const std::string& nodes)
+	{
+	// TODO: return real status information
+	static auto count = 0;
+	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
+	rval->Assign(0, val_mgr->GetCount(count++));
+	return rval;
+	}
+
+std::string zeek::Supervisor::Create(const RecordVal* node_config)
+	{
+	// TODO: return error msg on fail, or empty on success
+	return "";
+	}
+
+bool zeek::Supervisor::Destroy(const std::string& nodes)
+	{
+	// TODO: return true if a matching node exists
+	return false;
+	}
+
+bool zeek::Supervisor::Restart(const std::string& nodes)
+	{
+	// TODO: return true if a matching node exists
+	return false;
 	}

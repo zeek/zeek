@@ -1,0 +1,35 @@
+##! The BIFs that define the Zeek supervisor control interface.
+
+%%{
+#include "Supervisor.h"
+%%}
+
+module Supervisor;
+
+type Supervisor::Status: record;
+type Supervisor::NodeConfig: record;
+
+function Supervisor::__status%(nodes: string%): Supervisor::Status
+	%{
+	return zeek::supervisor->Status(nodes->CheckString());
+	%}
+
+function Supervisor::__create%(config: Supervisor::NodeConfig%): string
+	%{
+	auto rval = zeek::supervisor->Create(config->AsRecordVal());
+	return new StringVal(rval);
+	%}
+
+function Supervisor::__destroy%(nodes: string%): bool
+	%{
+	auto rval = zeek::supervisor->Destroy(nodes->CheckString());
+	return val_mgr->GetBool(rval);
+	%}
+
+function Supervisor::__restart%(nodes: string%): bool
+	%{
+	auto rval = zeek::supervisor->Restart(nodes->CheckString());
+	return val_mgr->GetBool(rval);
+	%}
+
+# TODO: BIFs for "restart", "add", "remove" operations

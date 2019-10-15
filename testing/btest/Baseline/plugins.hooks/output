@@ -157,6 +157,8 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Broker::subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::local_node_type, <null>, ()) -> <no result>
@@ -274,7 +276,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -455,7 +457,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -693,6 +695,7 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/add-geodata.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/addrs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/analyzer.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/api.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/ascii.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/average.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/benchmark.zeek) -> -1
@@ -766,6 +769,7 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/store.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/sum.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/top-k.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/topk.zeek) -> -1
@@ -787,6 +791,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/addrs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/analyzer) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/analyzer.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/api.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/bif) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/broker) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/cluster) -> -1
@@ -867,6 +872,8 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/strings.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/sumstats) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/syslog) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/thresholds.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/time.zeek) -> -1
@@ -1052,6 +1059,8 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_VXLAN, {4789/udp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_XMPP, {5222<...>/tcp}))
+0.000000   MetaHookPre   CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(Broker::subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::local_node_type, <null>, ())
@@ -1169,7 +1178,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1350,7 +1359,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1588,6 +1597,7 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/add-geodata.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/analyzer.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/api.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/ascii.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/average.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/benchmark.zeek)
@@ -1661,6 +1671,7 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/store.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/sum.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/top-k.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/topk.zeek)
@@ -1682,6 +1693,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/analyzer)
 0.000000   MetaHookPre   LoadFile(0, base<...>/analyzer.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/api.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/bif)
 0.000000   MetaHookPre   LoadFile(0, base<...>/broker)
 0.000000   MetaHookPre   LoadFile(0, base<...>/cluster)
@@ -1762,6 +1774,8 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/strings.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/sumstats)
+0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor)
+0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/syslog)
 0.000000   MetaHookPre   LoadFile(0, base<...>/thresholds.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/time.zeek)
@@ -1947,6 +1961,8 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_VXLAN, {4789/udp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, {5222<...>/tcp})
+0.000000 | HookCallFunction Broker::__subscribe(zeek/supervisor)
+0.000000 | HookCallFunction Broker::subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::local_node_type()
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
@@ -2063,7 +2079,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2244,7 +2260,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2482,6 +2498,7 @@
 0.000000 | HookLoadFile  .<...>/add-geodata.zeek
 0.000000 | HookLoadFile  .<...>/addrs.zeek
 0.000000 | HookLoadFile  .<...>/analyzer.bif.zeek
+0.000000 | HookLoadFile  .<...>/api.zeek
 0.000000 | HookLoadFile  .<...>/archive.sig
 0.000000 | HookLoadFile  .<...>/ascii.zeek
 0.000000 | HookLoadFile  .<...>/audio.sig
@@ -2563,6 +2580,7 @@
 0.000000 | HookLoadFile  .<...>/store.zeek
 0.000000 | HookLoadFile  .<...>/strings.bif.zeek
 0.000000 | HookLoadFile  .<...>/sum.zeek
+0.000000 | HookLoadFile  .<...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  .<...>/thresholds.zeek
 0.000000 | HookLoadFile  .<...>/top-k.bif.zeek
 0.000000 | HookLoadFile  .<...>/topk.zeek
@@ -2585,6 +2603,7 @@
 0.000000 | HookLoadFile  base<...>/addrs.zeek
 0.000000 | HookLoadFile  base<...>/analyzer
 0.000000 | HookLoadFile  base<...>/analyzer.bif.zeek
+0.000000 | HookLoadFile  base<...>/api.zeek
 0.000000 | HookLoadFile  base<...>/bif
 0.000000 | HookLoadFile  base<...>/broker
 0.000000 | HookLoadFile  base<...>/cluster
@@ -2665,6 +2684,8 @@
 0.000000 | HookLoadFile  base<...>/strings.bif.zeek
 0.000000 | HookLoadFile  base<...>/strings.zeek
 0.000000 | HookLoadFile  base<...>/sumstats
+0.000000 | HookLoadFile  base<...>/supervisor
+0.000000 | HookLoadFile  base<...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  base<...>/syslog
 0.000000 | HookLoadFile  base<...>/thresholds.zeek
 0.000000 | HookLoadFile  base<...>/time.zeek
@@ -2678,7 +2699,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1565053246.404549, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1571104127.525167, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

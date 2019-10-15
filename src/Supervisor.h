@@ -33,6 +33,11 @@ public:
 
 	void ObserveChildSignal();
 
+	RecordVal* Status(const std::string& nodes);
+	std::string Create(const RecordVal* node_config);
+	bool Destroy(const std::string& nodes);
+	bool Restart(const std::string& nodes);
+
 private:
 
 	// IOSource interface overrides:

@@ -1,4 +1,8 @@
 
+3.1.0-dev.177 | 2019-10-14 20:13:24 -0700
+
+  * Proof of Concept on Bugprone Narrowing Conversions: Base64 (Dev Bali, Corelight)
+
 3.1.0-dev.175 | 2019-10-12 10:39:49 -0700
 
   * Use Ubuntu 14.04 for Travis CI environment (Jon Siwek, Corelight)

@@ -12,11 +12,11 @@ testcount    1
 testcount 2
 testcount 2
 testint		-1
-testenum Conn::LOG
+testenum Conn::LOG 
 testport 45
 testportandproto 45/udp
 testaddr 127.0.0.1
-testaddr 2607:f8b0:4005:801::200e
+testaddr 2607:f8b0:4005:801::200e  
 testinterval 60
 testtime 1507321987
 test_set a	b	c	d	erdbeerschnitzel

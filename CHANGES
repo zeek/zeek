@@ -1,4 +1,8 @@
 
+3.1.0-dev.179 | 2019-10-14 21:33:15 -0700
+
+  * Support whitespace at end of line for config reader (Seth Hall, Corelight)
+
 3.1.0-dev.177 | 2019-10-14 20:13:24 -0700
 
   * Proof of Concept on Bugprone Narrowing Conversions: Base64 (Dev Bali, Corelight)

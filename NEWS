@@ -32,6 +32,9 @@ Changed Functionality
   script logic that inspects the ``qclass`` field of ``DNS::Info``
   after a ``dns_request`` event.
 
+- The configuration input reader now ignores trailing spaces at the end of
+  configuration lines.
+
 Removed Functionality
 ---------------------
 

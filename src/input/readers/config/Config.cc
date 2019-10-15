@@ -199,7 +199,7 @@ bool Config::DoUpdate()
 		}
 
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*)$", REG_EXTENDED) )
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*[^[:blank:]])?[[:blank:]]*$", REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;
@@ -215,7 +215,9 @@ bool Config::DoUpdate()
 			}
 
 		string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
-		string value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
+		string value;
+		if ( match[2].rm_so > 0 )
+			value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )

@@ -234,7 +234,7 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		(void) alarm(watchdog_interval);
 		}
 
-	check_handle = new uv_check_t();
+	check_handle = (uv_check_t*)malloc(sizeof(uv_check_t));
 	uv_check_init(iosource_mgr->GetLoop(), check_handle);
 	uv_check_start(check_handle, post_loop_check);
 	}
@@ -303,6 +303,11 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	current_pktsrc = nullptr;
 	}
 
+static void close_callback(uv_handle_t* handle)
+	{
+	free(handle);
+	}
+
 void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
@@ -317,7 +322,7 @@ void net_run()
 		// exit_only_after_terminate is set.
 		if ( iosource_mgr->Size() == 0 )
 			{
-			no_source_idler = new uv_idle_t();
+			no_source_idler = (uv_idle_t*)malloc(sizeof(uv_idle_t));
 			uv_idle_init(iosource_mgr->GetLoop(), no_source_idler);
 			uv_idle_start(no_source_idler, no_source_idle_callback);
 			}
@@ -325,10 +330,11 @@ void net_run()
 //		uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
 		uv_run(iosource_mgr->GetLoop(), UV_RUN_DEFAULT);
 
-		if ( no_source_idler )
-			{
-			// TODO: uv_close
-			}
+		if ( no_source_idler && ! uv_is_closing((uv_handle_t*)no_source_idler) )
+			uv_close((uv_handle_t*)no_source_idler, close_callback);
+
+		if ( check_handle && ! uv_is_closing((uv_handle_t*)check_handle) )
+			uv_close((uv_handle_t*)check_handle, close_callback);
 		}
 
 	// Get the final statistics now, and not when net_finish() is called, since that

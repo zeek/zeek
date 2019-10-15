@@ -1342,6 +1342,16 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 		{
 		auto option_list = new VectorVal(BifType::Vector::TCP::OptionList);
 
+		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
+			{
+			if ( olen <= 2 )
+				return;
+
+			auto data_len = olen - 2;
+			auto data = reinterpret_cast<const char*>(odata + 2);
+			rv->Assign(2, new StringVal(data_len, data));
+			};
+
 		for ( const auto& o : opts )
 			{
 			auto kind = o[0];
@@ -1351,8 +1361,6 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			option_record->Assign(0, val_mgr->GetCount(kind));
 			option_record->Assign(1, val_mgr->GetCount(length));
 
-			auto handled_option = false;
-
 			switch ( kind ) {
 			case 2:
 				// MSS
@@ -1360,7 +1368,11 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
 					option_record->Assign(3, val_mgr->GetCount(mss));
-					handled_option = true;
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_mss_invalid_len", fmt("%d", length));
 					}
 				break;
 
@@ -1370,12 +1382,21 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto scale = o[2];
 					option_record->Assign(4, val_mgr->GetCount(scale));
-					handled_option = true;
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_window_scale_invalid_len", fmt("%d", length));
 					}
 				break;
 
 			case 4:
 				// sack permitted (implicit boolean)
+				if ( length != 2 )
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_sack_invalid_len", fmt("%d", length));
+					}
 				break;
 
 			case 5:
@@ -1392,7 +1413,11 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 						sack->Assign(sack->Size(), val_mgr->GetCount(ntohl(p[i])));
 
 					option_record->Assign(5, sack);
-					handled_option = true;
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_sack_blocks_invalid_len", fmt("%d", length));
 					}
 				break;
 
@@ -1404,21 +1429,18 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
 					option_record->Assign(6, val_mgr->GetCount(send));
 					option_record->Assign(7, val_mgr->GetCount(echo));
-					handled_option = true;
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_timestamps_invalid_len", fmt("%d", length));
 					}
 				break;
 
 			default:
+				add_option_data(option_record, o, length);
 				break;
 			}
-
-			if ( ! handled_option && length > 2 )
-				{
-				// unknown option or invalid option length
-				auto data_len = length - 2;
-				auto data = reinterpret_cast<const char*>(o + 2);
-				option_record->Assign(2, new StringVal(data_len, data));
-				}
 			}
 
 		ConnectionEventFast(tcp_options, {

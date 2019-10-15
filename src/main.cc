@@ -989,10 +989,6 @@ int main(int argc, char** argv)
 		// we don't have any other source for it.
 		net_update_time(current_time());
 
-	// Now that a source has been established (or not), reload the timers in case the manager
-	// needs to switch to UV-based timers.
-	timer_mgr->ReloadTimers();
-
 	EventHandlerPtr zeek_init = internal_handler("zeek_init");
 	if ( zeek_init )	//### this should be a function
 		mgr.QueueEventFast(zeek_init, val_list{});

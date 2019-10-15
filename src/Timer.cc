@@ -76,11 +76,6 @@ int TimerMgr::Advance(double arg_t, int max_expire)
 	return DoAdvance(t, max_expire);
 	}
 
-static bool UsingUVTimer()
-	{
-	return iosource_mgr->Size() > 0 && ! reading_traces;
-	}
-
 
 struct TimerData {
 	Timer* timer;
@@ -102,7 +97,10 @@ static void timer_callback(uv_timer_t* handle)
 
 static void close_callback(uv_handle_t* handle)
 	{
-	delete handle;
+	if ( auto src = reinterpret_cast<TimerData*>(uv_handle_get_data(handle)) )
+		delete src;
+
+	free(handle);
 	}
 
 PQ_TimerMgr::PQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
@@ -117,12 +115,17 @@ PQ_TimerMgr::~PQ_TimerMgr()
 
 void PQ_TimerMgr::Add(Timer* timer)
 	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
+	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p in PQ%s",
+		timer_type_to_string(timer->Type()), this, (! reading_traces && reloaded) ? " and UV" : "");
 
-	if ( UsingUVTimer() )
+	// By default, all timers get inserted into the PQ. If we're done with start up and
+	// we've intentionally reloaded our set of timers, then they may also get added into
+	// the UV loop as well so they get activated automatically when they expire. This
+	// only happens when not reading traces since in that case the timers are only
+	// expired out of the PQ as needed.
+	if ( ! reading_traces && reloaded )
 		{
-		uv_timer_t *handle = new uv_timer_t();
+		uv_timer_t *handle = (uv_timer_t*)malloc(sizeof(uv_timer_t));
 
 		int r = uv_timer_init(iosource_mgr->GetLoop(), handle);
 		if ( r != 0 )
@@ -143,12 +146,12 @@ void PQ_TimerMgr::Add(Timer* timer)
 		// absolute time
 		uint64_t scheduled_time = 0;
 		if ( timer->Time() > network_time )
-			scheduled_time = static_cast<uint64_t>((timer->Time() - network_time) * 1000);
+			scheduled_time = std::lround((timer->Time() - network_time) * 1000.0);
 
 		r = uv_timer_start(handle, timer_callback, scheduled_time, 0);
 		if ( r != 0 )
 			{
-			DBG_LOG(DBG_TM, "Timer failed to start: %s", uv_strerror(r));
+			DBG_LOG(DBG_TM, "UV timer failed to start: %s", uv_strerror(r));
 			timers.erase(it.first);
 			delete handle;
 			return;
@@ -158,49 +161,31 @@ void PQ_TimerMgr::Add(Timer* timer)
 		if ( scheduled_time == 0 )
 			iosource_mgr->WakeupLoop();
 		}
-	else
-		{
-		// Add the timer even if it's already expired - that way, if
-		// multiple already-added timers are added, they'll still
-		// execute in sorted order.
-		if ( ! q->Add(timer) )
-			reporter->InternalError("out of memory");
-		}
 
-	cumulative++;
-	if ( timers.size() > peak_size )
-		peak_size = (int)timers.size();
+	// Add the timer even if it's already expired - that way, if
+	// multiple already-added timers are added, they'll still
+	// execute in sorted order.
+	if ( ! q->Add(timer) )
+		reporter->InternalError("out of memory");
 
 	++current_timers[timer->Type()];
 	}
 
 void PQ_TimerMgr::Expire()
 	{
-	if ( UsingUVTimer() )
+	DBG_LOG(DBG_TM, "Expiring %lu remaining timers in TimeMgr %p", Size(), this);
+	while ( Timer* timer = Remove() )
 		{
-		while ( ! timers.empty() )
-			{
-			auto entry = timers.begin();
-			--current_timers[entry->first->Type()];
-			Dispatch(entry, true);
-			}
-		}
-	else
-		{
-		while ( Timer* timer = Remove() )
-			{
-			DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-			timer->Dispatch(t, 1);
-			--current_timers[timer->Type()];
-			delete timer;
-			}
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p) in TimeMgr %p",
+			timer_type_to_string(timer->Type()), timer, this);
+		timer->Dispatch(t, true);
+		Remove(timer, true);
 		}
 	}
 
 int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 	{
-	if ( UsingUVTimer() )
+	if ( ! reading_traces )
 		return 0;
 
 	Timer* timer = Top();
@@ -217,7 +202,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 
 		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
 				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(new_t, 0);
+		timer->Dispatch(new_t, false);
 		delete timer;
 
 		timer = Top();
@@ -229,36 +214,27 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 void PQ_TimerMgr::Dispatch(Timer* timer)
 	{
 	DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
+		timer_type_to_string(timer->Type()), this);
 
 	auto it = timers.find(timer);
 	if ( it == timers.end() )
 		return;
 
-	Dispatch(it, false);
+	timer->Dispatch(network_time, false);
+	Remove(timer, false);
 	}
 
-void PQ_TimerMgr::Dispatch(TimerMap::const_iterator entry, bool is_expire)
+void PQ_TimerMgr::Remove(Timer* timer, bool is_expire)
 	{
-	Timer* timer = entry->first;
-	uv_timer_t* handle = entry->second;
-	timers.erase(entry);
+	DBG_LOG(DBG_TM, "Removing timer %s in TimeMgr %p",
+		timer_type_to_string(timer->Type()), this);
 
-	timer->Dispatch(network_time, is_expire);
-	delete timer;
-
-	uv_timer_stop(handle);
-	uv_close(reinterpret_cast<uv_handle_t*>(handle), close_callback);
-	}
-
-void PQ_TimerMgr::Remove(Timer* timer)
-	{
-	if ( UsingUVTimer() )
+	if ( ! reading_traces && reloaded )
 		{
 		auto it = timers.find(timer);
 		if ( it == timers.end() )
 			{
-			reporter->InternalError("asked to remove a missing timer");
+			reporter->InternalError("asked to remove a missing UV timer");
 			return;
 			}
 
@@ -271,37 +247,44 @@ void PQ_TimerMgr::Remove(Timer* timer)
 			uv_close(reinterpret_cast<uv_handle_t*>(handle), close_callback);
 			}
 		}
-	else
-		{
-		if ( ! q->Remove(timer) )
-			reporter->InternalError("asked to remove a missing timer");
 
-		--current_timers[timer->Type()];
-		}
+	if ( ! is_expire && ! q->Remove(timer) )
+		reporter->InternalError("asked to remove a missing PQ timer");
+
+	--current_timers[timer->Type()];
 
 	delete timer;
 	}
 
 void PQ_TimerMgr::ReloadTimers()
 	{
-	if ( q->Size() > 0 && timers.empty() && UsingUVTimer() )
+	reloaded = true;
+
+	if ( ! reading_traces && q->Size() > 0 && timers.empty() )
 		{
 		DBG_LOG(DBG_TM, "Moving all timers to use UV-based timers");
 
 		// Reset all of the counters because they'll get fixed by Add()
-		cumulative = 0;
-		peak_size = 0;
 		memset(current_timers, 0, sizeof(unsigned int) * NUM_TIMER_TYPES);
+		q->ResetCounts();
 
+		// This will remove timers from the PQ and then immediately reinsert
+		// them, but this method will only ever be called during startup
+		// so no timers are lost and this is an acceptable minor performance
+		// hit.
+		std::vector<Timer*> timers;
 		while ( Timer* timer = Remove() )
-			Add(timer);
-		}
-	}
+			timers.push_back(timer);
 
-size_t PQ_TimerMgr::Size() const
-	{
-	if ( UsingUVTimer() )
-		return timers.size();
-	else
-		return q->Size();
+		// This forces the time for the libuv loop to be the current clock,
+		// which is used as the basis for timers. Callling it here ensures
+		// that the timers scheduled in the loop below will be called at
+		// the correct time instead of way earlier than they should.
+		uv_update_time(iosource_mgr->GetLoop());
+
+		for ( Timer* timer : timers )
+			Add(timer);
+
+		timers.clear();
+		}
 	}

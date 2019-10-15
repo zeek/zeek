@@ -117,12 +117,13 @@ protected:
 	explicit TimerMgr(const Tag& arg_tag) : tag(arg_tag) {}
 
 	virtual int DoAdvance(double t, int max_expire) = 0;
-	virtual void Remove(Timer* timer) = 0;
+	virtual void Remove(Timer* timer, bool is_expire = false) = 0;
 
 	double t = 0.0;
 	double last_timestamp = 0;
 	double last_advance = 0;
 	Tag tag;
+	bool reloaded = false;
 
 	int num_expired = 0;
 
@@ -139,28 +140,24 @@ public:
 	void Expire() override;
 	void Dispatch(Timer* handle);
 
-	size_t Size() const override;
-	size_t PeakSize() const override { return peak_size; }
-	uint64_t CumulativeNum() const override { return cumulative; }
+	size_t Size() const override { return q->Size(); }
+	size_t PeakSize() const override { return q->PeakSize(); }
+	uint64_t CumulativeNum() const override { return q->CumulativeNum(); }
 
 	void ReloadTimers() override;
 
 private:
 
 	int DoAdvance(double t, int max_expire) override;
-	void Remove(Timer* timer) override;
+	void Remove(Timer* timer, bool is_expire = false) override;
 
 	Timer* Remove()			{ return (Timer*) q->Remove(); }
 	Timer* Top()			{ return (Timer*) q->Top(); }
 
 	using TimerMap = std::map<Timer*, uv_timer_t*>;
-	void Dispatch(TimerMap::const_iterator entry, bool is_expire);
-
 	TimerMap timers;
-	PriorityQueue* q;
 
-	size_t peak_size = 0;
-	uint64_t cumulative = 0;
+	PriorityQueue* q = nullptr;
 };
 
 extern TimerMgr* timer_mgr;

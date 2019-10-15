@@ -161,7 +161,7 @@ void net_update_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	time_updated = true;
 
-	if ( first_pass )
+	if ( first_pass && ! reading_traces )
 		thread_mgr->InitHeartbeatTimer();
 	}
 
@@ -241,14 +241,20 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 void expire_timers(iosource::PktSrc* src_ps)
 	{
-	SegmentProfiler(segment_logger, "expiring-timers");
-	TimerMgr* tmgr =
-		src_ps ? sessions->LookupTimerMgr(src_ps->GetCurrentTag())
+	// Calls to expire_timers when not reading traces are ignored because in
+	// that mode, the timers should be handled as UV timers and are called
+	// automatically when the timer expires.
+	if ( reading_traces )
+		{
+		SegmentProfiler(segment_logger, "expiring-timers");
+		TimerMgr* tmgr =
+			src_ps ? sessions->LookupTimerMgr(src_ps->GetCurrentTag())
 			: timer_mgr;
 
-	current_dispatched +=
-		tmgr->Advance(network_time,
+		current_dispatched +=
+			tmgr->Advance(network_time,
 				max_timer_expires - current_dispatched);
+		}
 	}
 
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
@@ -315,6 +321,10 @@ void net_run()
 	if ( iosource_mgr->Size() > 0 ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		// If we're actually going to start the loop, convert the timers over to
+		// use UV timers since we want them to fire based on the loop.
+		timer_mgr->ReloadTimers();
+
 		// If we're not actively receiving data from something (packet source,
 		// broker, etc), then setup an idle handle. This keeps the loop actively
 		// running. Otherwise the loop will just sit doing nothing forever.
@@ -356,11 +366,7 @@ static void post_loop_check(uv_check_t* handle)
 			net_update_time(current_time());
 
 		time_updated = false;
-
-		// If we're reading traces we need to make sure to expire any timers that are
-		// sitting in the queue.
-		if ( reading_traces )
-			expire_timers();
+		expire_timers();
 		}
 
 	processed_packet = false;

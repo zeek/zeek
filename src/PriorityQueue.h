@@ -55,6 +55,8 @@ public:
 	int PeakSize() const	{ return peak_heap_size; }
 	uint64_t CumulativeNum() const { return cumulative_num; }
 
+	void ResetCounts() { peak_heap_size = 0; cumulative_num = 0; }
+
 protected:
 	int Resize(int new_size);
 

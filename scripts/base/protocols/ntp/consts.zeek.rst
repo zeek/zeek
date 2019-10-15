@@ -11,10 +11,10 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================================================================== ====================================================
-:zeek:id:`NTP::modes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef` The descriptions of the NTP mode value, as described
-                                                                                                                                   in :rfc:`5905`, Figure 1
-================================================================================================================================== ====================================================
+=========================================================================================================== ====================================================
+:zeek:id:`NTP::modes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` The descriptions of the NTP mode value, as described
+                                                                                                            in :rfc:`5905`, Figure 1
+=========================================================================================================== ====================================================
 
 
 Detailed Interface
@@ -24,7 +24,7 @@ Redefinable Options
 .. zeek:id:: NTP::modes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
    :Default:
 
       ::

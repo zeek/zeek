@@ -11,11 +11,11 @@ Summary
 ~~~~~~~
 Constants
 #########
-==================================================================================================================================== =
-:zeek:id:`SOCKS::v4_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`                 
-:zeek:id:`SOCKS::v5_authentication_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-:zeek:id:`SOCKS::v5_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`                 
-==================================================================================================================================== =
+============================================================================================================= =
+:zeek:id:`SOCKS::v4_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                 
+:zeek:id:`SOCKS::v5_authentication_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`SOCKS::v5_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                 
+============================================================================================================= =
 
 Types
 #####
@@ -31,7 +31,7 @@ Constants
 .. zeek:id:: SOCKS::v4_status
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -48,7 +48,7 @@ Constants
 .. zeek:id:: SOCKS::v5_authentication_methods
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -70,7 +70,7 @@ Constants
 .. zeek:id:: SOCKS::v5_status
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

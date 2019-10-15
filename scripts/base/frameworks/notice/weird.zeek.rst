@@ -28,9 +28,9 @@ Runtime Options
 
 Redefinable Options
 ###################
-====================================================================================================================================== ==============================================================
-:zeek:id:`Weird::actions`: :zeek:type:`table` :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&optional` :zeek:attr:`&redef` A table specifying default/recommended actions per weird type.
-====================================================================================================================================== ==============================================================
+=============================================================================================================== ==============================================================
+:zeek:id:`Weird::actions`: :zeek:type:`table` :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&redef` A table specifying default/recommended actions per weird type.
+=============================================================================================================== ==============================================================
 
 State Variables
 ###############
@@ -108,7 +108,7 @@ Redefinable Options
 .. zeek:id:: Weird::actions
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Weird::Action`
-   :Attributes: :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = ``Weird::ACTION_LOG`` :zeek:attr:`&redef`
    :Default:
 
       ::

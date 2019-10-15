@@ -13,19 +13,19 @@ Summary
 ~~~~~~~
 Constants
 #########
-==================================================================================================================== ======================================================================
-:zeek:id:`DNS::ANY`: :zeek:type:`count`                                                                              A QTYPE value describing a request for all records.
-:zeek:id:`DNS::EDNS`: :zeek:type:`count`                                                                             An OPT RR TYPE value described by EDNS.
-:zeek:id:`DNS::PTR`: :zeek:type:`count`                                                                              RR TYPE value for a domain name pointer.
-:zeek:id:`DNS::algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`  Possible values of the algorithms used in DNSKEY, DS and RRSIG records
-:zeek:id:`DNS::base_errors`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Errors used for non-TSIG/EDNS types.
-:zeek:id:`DNS::classes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     Possible values of the CLASS field in resource records or QCLASS
-                                                                                                                     field in query messages.
-:zeek:id:`DNS::digests`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     Possible digest types used in DNSSEC.
-:zeek:id:`DNS::edns_zfield`: :zeek:type:`table` :zeek:attr:`&default` = ``"?"`` :zeek:attr:`&optional`               This deciphers EDNS Z field values.
-:zeek:id:`DNS::query_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Mapping of DNS query type codes to human readable string
-                                                                                                                     representation.
-==================================================================================================================== ======================================================================
+============================================================================================= ======================================================================
+:zeek:id:`DNS::ANY`: :zeek:type:`count`                                                       A QTYPE value describing a request for all records.
+:zeek:id:`DNS::EDNS`: :zeek:type:`count`                                                      An OPT RR TYPE value described by EDNS.
+:zeek:id:`DNS::PTR`: :zeek:type:`count`                                                       RR TYPE value for a domain name pointer.
+:zeek:id:`DNS::algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  Possible values of the algorithms used in DNSKEY, DS and RRSIG records
+:zeek:id:`DNS::base_errors`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Errors used for non-TSIG/EDNS types.
+:zeek:id:`DNS::classes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     Possible values of the CLASS field in resource records or QCLASS
+                                                                                              field in query messages.
+:zeek:id:`DNS::digests`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     Possible digest types used in DNSSEC.
+:zeek:id:`DNS::edns_zfield`: :zeek:type:`table` :zeek:attr:`&default` = ``"?"``               This deciphers EDNS Z field values.
+:zeek:id:`DNS::query_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Mapping of DNS query type codes to human readable string
+                                                                                              representation.
+============================================================================================= ======================================================================
 
 
 Detailed Interface
@@ -56,7 +56,7 @@ Constants
 .. zeek:id:: DNS::algorithms
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -89,7 +89,7 @@ Constants
 .. zeek:id:: DNS::base_errors
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -127,7 +127,7 @@ Constants
 .. zeek:id:: DNS::classes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -148,7 +148,7 @@ Constants
 .. zeek:id:: DNS::digests
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -167,7 +167,7 @@ Constants
 .. zeek:id:: DNS::edns_zfield
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"?"`` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = ``"?"``
    :Default:
 
       ::
@@ -183,7 +183,7 @@ Constants
 .. zeek:id:: DNS::query_types
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

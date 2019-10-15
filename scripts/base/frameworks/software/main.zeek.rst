@@ -23,11 +23,11 @@ Runtime Options
 
 State Variables
 ###############
-============================================================================================================================= ==========================================================
-:zeek:id:`Software::alternate_names`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` Sometimes software will expose itself on the network with 
-                                                                                                                              slight naming variations.
-:zeek:id:`Software::tracked`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day``                                    The set of software associated with an address.
-============================================================================================================================= ==========================================================
+====================================================================================================== ==========================================================
+:zeek:id:`Software::alternate_names`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Sometimes software will expose itself on the network with 
+                                                                                                       slight naming variations.
+:zeek:id:`Software::tracked`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day``             The set of software associated with an address.
+====================================================================================================== ==========================================================
 
 Types
 #####
@@ -89,7 +89,7 @@ State Variables
 .. zeek:id:: Software::alternate_names
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

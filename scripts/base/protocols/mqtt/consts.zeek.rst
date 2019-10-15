@@ -12,12 +12,12 @@ Summary
 ~~~~~~~
 Constants
 #########
-====================================================================================================================== =
-:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`    
-:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`   
-:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` 
-:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`     
-====================================================================================================================== =
+=============================================================================================== =
+:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`    
+:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   
+:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     
+=============================================================================================== =
 
 
 Detailed Interface
@@ -27,7 +27,7 @@ Constants
 .. zeek:id:: MQTT::msg_types
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -54,7 +54,7 @@ Constants
 .. zeek:id:: MQTT::qos_levels
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -70,7 +70,7 @@ Constants
 .. zeek:id:: MQTT::return_codes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -89,7 +89,7 @@ Constants
 .. zeek:id:: MQTT::versions
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

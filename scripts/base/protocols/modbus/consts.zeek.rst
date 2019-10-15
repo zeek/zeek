@@ -11,10 +11,10 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=============================================================================================================================================== =======================================
-:zeek:id:`Modbus::exception_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef` 
-:zeek:id:`Modbus::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`  Standard defined Modbus function codes.
-=============================================================================================================================================== =======================================
+======================================================================================================================== =======================================
+:zeek:id:`Modbus::exception_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` 
+:zeek:id:`Modbus::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`  Standard defined Modbus function codes.
+======================================================================================================================== =======================================
 
 
 Detailed Interface
@@ -24,7 +24,7 @@ Redefinable Options
 .. zeek:id:: Modbus::exception_codes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
    :Default:
 
       ::
@@ -46,7 +46,7 @@ Redefinable Options
 .. zeek:id:: Modbus::function_codes
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&optional` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
    :Default:
 
       ::

@@ -1,0 +1,24 @@
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 5, 10
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 0, 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T
+  kind: 5, length: 10
+    sack: [1, 16]
+  kind: 0, length: 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 5, 18
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 0, 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T
+  kind: 5, length: 18
+    sack: [1, 16, 256, 4096]
+  kind: 0, length: 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 5, 26
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 0, 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T
+  kind: 5, length: 26
+    sack: [1, 16, 256, 4096, 65536, 1048576]
+  kind: 0, length: 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 5, 34
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T, 0, 1
+[orig_h=127.0.0.1, orig_p=20/tcp, resp_h=127.0.0.1, resp_p=80/tcp], T
+  kind: 5, length: 34
+    sack: [1, 16, 256, 4096, 65536, 1048576, 16777216, 268435456]
+  kind: 0, length: 1

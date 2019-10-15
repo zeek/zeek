@@ -1,4 +1,15 @@
 
+3.1.0-dev.185 | 2019-10-15 16:46:22 -0700
+
+  * Add weirds for invalid TCP option lengths (Jon Siwek, Corelight)
+
+  * GH-618: add "tcp_options" event containing TCP option values (Jon Siwek, Corelight)
+
+  * Fix tcp_option event
+
+    It was not being raised in all the cases it should have been due to
+    an incorrect/unnecessary truncation check. (Jon Siwek, Corelight)
+
 3.1.0-dev.181 | 2019-10-14 22:05:01 -0700
 
   * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)

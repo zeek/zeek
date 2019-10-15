@@ -64,19 +64,10 @@ public:
 	void SetContentsFile(unsigned int direction, BroFile* f) override;
 	BroFile* GetContentsFile(unsigned int direction) const override;
 
-	// Callback to process a TCP option.
-	typedef int (*proc_tcp_option_t)(unsigned int opt, unsigned int optlen,
-			const u_char* option, TCP_Analyzer* analyzer,
-			bool is_orig, void* cookie);
-
 	// From Analyzer.h
 	void UpdateConnVal(RecordVal *conn_val) override;
 
-	// Needs to be static because it's passed as a pointer-to-function
-	// rather than pointer-to-member-function.
-	static int ParseTCPOptions(const struct tcphdr* tcp,
-			proc_tcp_option_t proc, TCP_Analyzer* analyzer,
-			bool is_orig, void* cookie);
+	int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new TCP_Analyzer(conn); }
@@ -167,12 +158,6 @@ protected:
 	void PacketWithRST();
 
 	void SetReassembler(tcp::TCP_Reassembler* rorig, tcp::TCP_Reassembler* rresp);
-
-	// Needs to be static because it's passed as a pointer-to-function
-	// rather than pointer-to-member-function.
-	static int TCPOptionEvent(unsigned int opt, unsigned int optlen,
-				const u_char* option, TCP_Analyzer* analyzer,
-				  bool is_orig, void* cookie);
 
 	// A couple utility functions that may also be useful to derived analyzers.
 	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint,

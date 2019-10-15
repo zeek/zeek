@@ -181,8 +181,9 @@ void Attributes::AddAttr(Attr* attr)
 	     ! FindAttr(ATTR_REDEF) )
 		attrs->push_back(new Attr(ATTR_REDEF));
 
-	// For DEFAULT, add an implicit OPTIONAL.
-	if ( attr->Tag() == ATTR_DEFAULT && ! FindAttr(ATTR_OPTIONAL) )
+	// For DEFAULT, add an implicit OPTIONAL if it's not a global.
+	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
+	     ! FindAttr(ATTR_OPTIONAL) )
 		attrs->push_back(new Attr(ATTR_OPTIONAL));
 	}
 

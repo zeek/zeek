@@ -1,4 +1,8 @@
 
+3.1.0-dev.181 | 2019-10-14 22:05:01 -0700
+
+  * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)
+
 3.1.0-dev.179 | 2019-10-14 21:33:15 -0700
 
   * Support whitespace at end of line for config reader (Seth Hall, Corelight)

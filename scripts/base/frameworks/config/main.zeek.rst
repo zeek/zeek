@@ -78,7 +78,7 @@ Functions
 #########
 .. zeek:id:: Config::set_value
 
-   :Type: :zeek:type:`function` (ID: :zeek:type:`string`, val: :zeek:type:`any`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional` :zeek:attr:`&optional`) : :zeek:type:`bool`
+   :Type: :zeek:type:`function` (ID: :zeek:type:`string`, val: :zeek:type:`any`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    This function is the config framework layer around the lower-level
    :zeek:see:`Option::set` call. Config::set_value will set the configuration

@@ -164,10 +164,8 @@ void Attributes::AddAttr(Attr* attr)
 	if ( ! attrs )
 		attrs = new attr_list(1);
 
-	if ( ! attr->RedundantAttrOkay() )
-		// We overwrite old attributes by deleting them first.
-		RemoveAttr(attr->Tag());
-
+	// We overwrite old attributes by deleting them first.
+	RemoveAttr(attr->Tag());
 	attrs->push_back(attr);
 	Ref(attr);
 

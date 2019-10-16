@@ -320,14 +320,8 @@ protected:
 	virtual void Close() = 0;
 
 	/**
-	 * Checks if the current packet has a pseudo-time <= current_time. If
-	 * yes, returns pseudo-time, otherwise 0.
-	 */
-	double CheckPseudoTime();
-
-	/**
-	 * Returns whether this IOSource is a source of packet data. Used by the IOSource
-	 * manager to register/unregister components correctly.
+	 * Returns whether this IOSource is a source of packet data. Used by
+	 * the IOSource manager to register/unregister components correctly.
 	 */
 	bool IsPacketSource() const final { return true; }
 
@@ -349,6 +343,12 @@ private:
 	void Init() override;
 	void Done() override;
 	const char* Tag() override;
+
+	/**
+	 * Checks if the current packet has a pseudo-time <= current_time. If
+	 * yes, returns pseudo-time, otherwise 0.
+	 */
+	double CheckPseudoTime();
 
 	Properties props;
 

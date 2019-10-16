@@ -136,8 +136,16 @@ double PktSrc::CheckPseudoTime()
 	if ( ! have_packet )
 		return 0;
 
+	// Time between when we got the first packet and the current packet
 	double pseudo_time = current_packet.time - first_timestamp;
+
+	// Time between the current wallclock time and the first wallclock time (set when we got
+	// the first packet) adjusted for the speed of realtime we're after.
 	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
+
+	// If the time span between first/last packet is less than the wallclock difference,
+	// return runtime start + the packet difference, otherwise return zero as an error.
+	double ret = pseudo_time <= ct ? bro_start_time + pseudo_time : 0;
 
 	return pseudo_time <= ct ? bro_start_time + pseudo_time : 0;
 	}
@@ -174,14 +182,28 @@ void PktSrc::HandleNewData(int fd)
 		if ( pseudo_realtime )
 			{
 			current_pseudo = CheckPseudoTime();
-			net_packet_dispatch(current_pseudo, &current_packet, this);
+			if ( current_pseudo != 0 )
+				{
+				net_packet_dispatch(current_pseudo, &current_packet, this);
+				have_packet = false;
+				}
+
 			if ( ! first_wallclock )
 				first_wallclock = current_time(true);
 			}
-
 		else
+			{
 			net_packet_dispatch(current_packet.time, &current_packet, this);
+			have_packet = false;
+			}
 		}
+	else
+		{
+		// We don't want to deal with this packet, so just mark that we're done with it.
+		have_packet = false;
+		}
+
+	processed_packet = true;
 
 	// TODO: what exactly does this bit do? why are we shutting down the io manager in this case?
 	// if ( pseudo_realtime && ! IsOpen() )
@@ -189,9 +211,6 @@ void PktSrc::HandleNewData(int fd)
 	// 	if ( broker_mgr->Active() )
 	// 		iosource_mgr->Terminate();
 	// 	}
-
-	have_packet = false;
-	processed_packet = true;
 	}
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)

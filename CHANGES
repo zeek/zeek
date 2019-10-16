@@ -1,4 +1,14 @@
 
+3.1.0-dev.191 | 2019-10-16 10:02:45 -0700
+
+  * Update broker submodule to use pybind11 v2.4.3 (Jon Siwek, Corelight)
+
+  * Improve &default validation for global vars: exclude sets (Jon Siwek, Corelight)
+
+  * Remove unnecessary &optional from a Config::set_value() parameter (Jon Siwek, Corelight)
+
+  * Remove check for redundant attributes (Jon Siwek, Corelight)
+
 3.1.0-dev.185 | 2019-10-15 16:46:22 -0700
 
   * Add weirds for invalid TCP option lengths (Jon Siwek, Corelight)

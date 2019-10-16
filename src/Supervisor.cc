@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <poll.h>
 
 #include "Supervisor.h"
 #include "Reporter.h"
@@ -201,43 +202,171 @@ void zeek::Supervisor::RunStem(std::unique_ptr<bro::Pipe> pipe)
 		fprintf(stderr, "failed to set stem process group: %s\n",
 				strerror(errno));
 
+	std::string msg_buffer;
+	std::map<std::string, Node> nodes;
+
+	auto extract_messages = [](std::string* buf) -> std::vector<std::string>
+		{
+		std::vector<std::string> rval;
+
+		for ( ; ; )
+			{
+			auto msg_end = buf->find('\0');
+
+			if ( msg_end == std::string::npos )
+				// Don't have a full message yet
+				break;
+
+			auto msg = buf->substr(0, msg_end);
+			rval.emplace_back(std::move(msg));
+			buf->erase(0, msg_end + 1);
+			}
+
+		return rval;
+		};
+
 	for ( ; ; )
 		{
-		// TODO: make a proper I/O loop w/ message processing via pipe
-		// TODO: better way to detect loss of parent than polling
+		// TODO: better way to detect loss of parent than polling ?
+
+		pollfd fds = { pipe->ReadFD(), POLLIN, 0 };
+		constexpr auto poll_timeout_ms = 1000;
+		auto res = poll(&fds, 1, poll_timeout_ms);
+
+		if ( res < 0 )
+			{
+			fprintf(stderr, "poll() failed: %s\n", strerror(errno));
+			continue;
+			}
 
 		if ( getppid() == 1 )
 			exit(0);
 
-		sleep(5);
-		printf("Stem wakeup\n");
-		write(pipe->WriteFD(), "hi", 2);
+		if ( res == 0 )
+			continue;
+
+		char buf[256];
+		int bytes_read = read(pipe->ReadFD(), buf, 256);
+
+		if ( bytes_read == 0 )
+			// EOF
+			exit(0);
+
+		if ( bytes_read < 0 )
+			{
+			fprintf(stderr, "read() failed: %s\n", strerror(errno));
+			continue;
+			}
+
+		msg_buffer.append(buf, bytes_read);
+		auto msgs = extract_messages(&msg_buffer);
+
+		for ( auto& msg : msgs )
+			{
+			// TODO: improve message format ...
+			std::vector<std::string> msg_tokens;
+			tokenize_string(std::move(msg), " ", &msg_tokens);
+			const auto& cmd = msg_tokens[0];
+			const auto& node_name = msg_tokens[1];
+
+			if ( cmd == "create" )
+				{
+				auto res = nodes.emplace(node_name, Node{node_name});
+				assert(res.second);
+				// TODO: fork
+				printf("Stem creating node: %s\n", node_name.data());
+				}
+			else if ( cmd == "destroy" )
+				{
+				auto res = nodes.erase(node_name);
+				assert(res > 0 );
+				printf("Stem destroying node: %s\n", node_name.data());
+				// TODO: kill
+				}
+			else if ( cmd == "restart" )
+				{
+				auto it = nodes.find(node_name);
+				assert(it != nodes.end());
+				printf("Stem restarting node: %s\n", node_name.data());
+				// TODO: re-use logic for destroy then create
+				}
+			else
+				fprintf(stderr, "unknown supervisor message: %s", cmd.data());
+			}
 		}
 	}
 
-RecordVal* zeek::Supervisor::Status(const std::string& nodes)
+static zeek::Supervisor::Node node_val_to_struct(const RecordVal* node)
 	{
+	zeek::Supervisor::Node rval;
+	rval.name = node->Lookup("name")->AsString()->CheckString();
+	return rval;
+	}
+
+static RecordVal* node_struct_to_val(const zeek::Supervisor::Node& node)
+	{
+	auto rval = new RecordVal(BifType::Record::Supervisor::Node);
+	rval->Assign(0, new StringVal(node.name));
+	return rval;
+	}
+
+RecordVal* zeek::Supervisor::Status(const std::string& node_name)
+	{
+	// TODO: handle node classes
 	// TODO: return real status information
 	static auto count = 0;
 	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
 	rval->Assign(0, val_mgr->GetCount(count++));
+
+	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
+	auto node_table_val = new TableVal(tt->AsTableType());
+	rval->Assign(1, node_table_val);
+
+	for ( const auto& n : nodes )
+		{
+		const auto& node = n.second;
+		auto key = new StringVal(node.name);
+		auto val = node_struct_to_val(node);
+		node_table_val->Assign(key, val);
+		Unref(key);
+		}
+
 	return rval;
 	}
 
-std::string zeek::Supervisor::Create(const RecordVal* node_config)
+std::string zeek::Supervisor::Create(const RecordVal* node_val)
 	{
-	// TODO: return error msg on fail, or empty on success
+	auto node = node_val_to_struct(node_val);
+
+	if ( nodes.find(node.name) != nodes.end() )
+		return fmt("node with name '%s' already exists", node.name.data());
+
+	std::string msg = fmt("create %s", node.name.data());
+	safe_write(stem_pipe->WriteFD(), msg.data(), msg.size() + 1);
+	nodes.emplace(node.name, node);
 	return "";
 	}
 
-bool zeek::Supervisor::Destroy(const std::string& nodes)
+bool zeek::Supervisor::Destroy(const std::string& node_name)
 	{
-	// TODO: return true if a matching node exists
-	return false;
+	// TODO: handle node classes
+
+	if ( ! nodes.erase(node_name) )
+		return false;
+
+	std::string msg = fmt("destroy %s", node_name.data());
+	safe_write(stem_pipe->WriteFD(), msg.data(), msg.size() + 1);
+	return true;
 	}
 
-bool zeek::Supervisor::Restart(const std::string& nodes)
+bool zeek::Supervisor::Restart(const std::string& node_name)
 	{
-	// TODO: return true if a matching node exists
-	return false;
+	// TODO: handle node classes
+
+	if ( nodes.find(node_name) == nodes.end() )
+		return false;
+
+	std::string msg = fmt("restart %s", node_name.data());
+	safe_write(stem_pipe->WriteFD(), msg.data(), msg.size() + 1);
+	return true;
 	}

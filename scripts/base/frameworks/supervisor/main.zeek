@@ -28,9 +28,9 @@ event Supervisor::status_request(id: count, nodes: string)
 	Broker::publish(topic, Supervisor::status_response, id, res);
 	}
 
-event Supervisor::create_request(id: count, config: NodeConfig)
+event Supervisor::create_request(id: count, node: Node)
 	{
-	local res = Supervisor::create(config);
+	local res = Supervisor::create(node);
 	local topic = Supervisor::topic_prefix + "/create_response";
 	Broker::publish(topic, Supervisor::create_response, id, res);
 	}
@@ -54,9 +54,9 @@ function Supervisor::status(nodes: string): Status
 	return Supervisor::__status(nodes);
 	}
 
-function create(config: NodeConfig): string
+function create(node: Node): string
 	{
-	return Supervisor::__create(config);
+	return Supervisor::__create(node);
 	}
 
 function destroy(nodes: string): bool

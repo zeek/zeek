@@ -6,6 +6,7 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <map>
 
 #include "iosource/IOSource.h"
 #include "Pipe.h"
@@ -24,6 +25,10 @@ public:
 		std::string zeek_exe_path;
 	};
 
+	struct Node {
+		std::string name;
+	};
+
 	Supervisor(Config cfg, std::unique_ptr<bro::Pipe> stem_pipe, pid_t stem_pid);
 
 	~Supervisor();
@@ -33,10 +38,10 @@ public:
 
 	void ObserveChildSignal();
 
-	RecordVal* Status(const std::string& nodes);
-	std::string Create(const RecordVal* node_config);
-	bool Destroy(const std::string& nodes);
-	bool Restart(const std::string& nodes);
+	RecordVal* Status(const std::string& node_name);
+	std::string Create(const RecordVal* node);
+	bool Destroy(const std::string& node_name);
+	bool Restart(const std::string& node_name);
 
 private:
 
@@ -57,6 +62,7 @@ private:
 	pid_t stem_pid;
 	std::unique_ptr<bro::Pipe> stem_pipe;
 	bro::Flare signal_flare;
+	std::map<std::string, Node> nodes;
 };
 
 extern Supervisor* supervisor;

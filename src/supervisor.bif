@@ -7,16 +7,16 @@
 module Supervisor;
 
 type Supervisor::Status: record;
-type Supervisor::NodeConfig: record;
+type Supervisor::Node: record;
 
 function Supervisor::__status%(nodes: string%): Supervisor::Status
 	%{
 	return zeek::supervisor->Status(nodes->CheckString());
 	%}
 
-function Supervisor::__create%(config: Supervisor::NodeConfig%): string
+function Supervisor::__create%(node: Supervisor::Node%): string
 	%{
-	auto rval = zeek::supervisor->Create(config->AsRecordVal());
+	auto rval = zeek::supervisor->Create(node->AsRecordVal());
 	return new StringVal(rval);
 	%}
 

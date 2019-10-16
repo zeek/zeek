@@ -164,10 +164,8 @@ void Attributes::AddAttr(Attr* attr)
 	if ( ! attrs )
 		attrs = new attr_list(1);
 
-	if ( ! attr->RedundantAttrOkay() )
-		// We overwrite old attributes by deleting them first.
-		RemoveAttr(attr->Tag());
-
+	// We overwrite old attributes by deleting them first.
+	RemoveAttr(attr->Tag());
 	attrs->push_back(attr);
 	Ref(attr);
 
@@ -290,9 +288,9 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		// &default is allowed for global tables, since it's used in initialization
 		// of table fields. it's not allowed otherwise.
-		if ( global_var && ! type->IsSet() && type->Tag() != TYPE_TABLE )
+		if ( global_var && ! type->IsTable() )
 			{
-			Error("&default is not valid for global variables");
+			Error("&default is not valid for global variables except for tables");
 			break;
 			}
 

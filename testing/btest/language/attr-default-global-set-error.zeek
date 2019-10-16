@@ -7,3 +7,4 @@ global d: count &default = 10
 		&optional
 		&log
 		&add_func = function(): count { return 3; };
+global myset: set[count] &default=set();

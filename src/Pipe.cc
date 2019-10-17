@@ -141,3 +141,9 @@ Pipe& Pipe::operator=(const Pipe& other)
 	status_flags[1] = other.status_flags[1];
 	return *this;
 	}
+
+PipePair::PipePair(int flags, int status_flags, int* fds)
+	: pipes{Pipe(flags, flags, status_flags, status_flags, fds ? fds + 0 : nullptr),
+	        Pipe(flags, flags, status_flags, status_flags, fds ? fds + 2 : nullptr)}
+	{
+	}

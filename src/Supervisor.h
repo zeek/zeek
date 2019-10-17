@@ -17,7 +17,7 @@ namespace zeek {
 class Supervisor : public iosource::IOSource {
 public:
 
-	static void RunStem(std::unique_ptr<bro::Pipe> pipe);
+	static std::string RunStem(std::unique_ptr<bro::PipePair> pipe);
 
 	struct Config {
 		int num_workers = 1;
@@ -27,9 +27,10 @@ public:
 
 	struct Node {
 		std::string name;
+		pid_t pid = 0;
 	};
 
-	Supervisor(Config cfg, std::unique_ptr<bro::Pipe> stem_pipe, pid_t stem_pid);
+	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);
 
 	~Supervisor();
 
@@ -60,7 +61,7 @@ private:
 
 	Config config;
 	pid_t stem_pid;
-	std::unique_ptr<bro::Pipe> stem_pipe;
+	std::unique_ptr<bro::PipePair> stem_pipe;
 	bro::Flare signal_flare;
 	std::map<std::string, Node> nodes;
 };

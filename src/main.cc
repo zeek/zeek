@@ -740,12 +740,12 @@ int main(int argc, char** argv)
 
 	bool use_supervisor = options.supervised_workers > 0;
 	pid_t stem_pid = 0;
-	std::unique_ptr<bro::Pipe> supervisor_pipe;
+	std::unique_ptr<bro::PipePair> supervisor_pipe;
+	std::string stem_spawn = "";
 
 	if ( use_supervisor )
 		{
-		supervisor_pipe.reset(new bro::Pipe{FD_CLOEXEC, FD_CLOEXEC,
-		                                    O_NONBLOCK, O_NONBLOCK});
+		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
 		stem_pid = fork();
 
 		if ( stem_pid == -1 )
@@ -756,7 +756,7 @@ int main(int argc, char** argv)
 			}
 
 		if ( stem_pid == 0 )
-			zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+			stem_spawn = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
 
 	auto zeek_stem_env = getenv("ZEEK_STEM");
@@ -766,20 +766,34 @@ int main(int argc, char** argv)
 		std::vector<std::string> fd_strings;
 		tokenize_string(zeek_stem_env, ",", &fd_strings);
 
-		if ( fd_strings.size() != 2 )
+		if ( fd_strings.size() != 4 )
 			{
 			fprintf(stderr, "invalid ZEEK_STEM environment variable value: '%s'\n",
 			        zeek_stem_env);
 			exit(1);
 			}
 
-		int fds[2];
-		fds[0] = std::stoi(fd_strings[0]);
-		fds[1] = std::stoi(fd_strings[1]);
+		int fds[4];
 
-		supervisor_pipe.reset(new bro::Pipe{FD_CLOEXEC, FD_CLOEXEC,
-		                                    O_NONBLOCK, O_NONBLOCK, fds});
-		zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		for ( auto i = 0; i < 4; ++i )
+			fds[i] = std::stoi(fd_strings[i]);
+
+		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
+		stem_spawn = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		}
+
+	if ( ! stem_spawn.empty() )
+		{
+		for ( ; ; )
+			{
+			// TODO: this no-op loop is here just to test the process hierarchy
+			printf("node wakeup: %s\n", stem_spawn.data());
+			sleep(2);
+
+			// TODO: this re-parenting check needs to go somewhere proper
+			if ( getppid() == 1 )
+				exit(0);
+			}
 		}
 
 	std::set_new_handler(bro_new_handler);

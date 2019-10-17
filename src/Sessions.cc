@@ -1028,7 +1028,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	return conn;
 	}
 
-void NetSessions::Remove(Connection* c)
+void NetSessions::Remove(Connection* c, bool skip_connection_state_remove_event)
 	{
 	if ( c->IsKeyValid() )
 		{
@@ -1047,7 +1047,7 @@ void NetSessions::Remove(Connection* c)
 
 		c->Done();
 
-		if ( connection_state_remove )
+		if ( !skip_connection_state_remove_event && connection_state_remove )
 			c->Event(connection_state_remove, 0);
 
 		// Zero out c's copy of the key, so that if c has been Ref()'d

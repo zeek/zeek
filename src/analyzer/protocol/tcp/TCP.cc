@@ -1469,7 +1469,7 @@ void TCP_Analyzer::AttemptTimer(double /* t */)
 		is_active = 0;
 
 		// All done with this connection.
-		sessions->Remove(Conn());
+		sessions->Remove(Conn(), true);
 		}
 	}
 

@@ -78,7 +78,7 @@ public:
 	// no such connection or the Val is ill-formed.
 	Connection* FindConnection(Val* v);
 
-	void Remove(Connection* c);
+	void Remove(Connection* c, bool skip_connection_state_remove_event=false);
 	void Remove(FragReassembler* f);
 
 	void Insert(Connection* c);

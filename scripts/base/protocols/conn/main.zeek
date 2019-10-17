@@ -303,3 +303,13 @@ event connection_state_remove(c: connection) &priority=-5
 	Log::write(Conn::LOG, c$conn);
 	}
 
+event connection_attempt(c: connection) &priority=5
+	{
+	set_conn(c, T);
+	}
+
+event connection_attempt(c: connection) &priority=-5
+	{
+	Log::write(Conn::LOG, c$conn);
+	}
+

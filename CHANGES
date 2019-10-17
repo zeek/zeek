@@ -1,4 +1,8 @@
 
+3.1.0-dev.192 | 2019-10-17 16:32:16 -0700
+
+   * Zeekctl: change gzip compression level from 9 to default #614 (JC Connell)
+
 3.1.0-dev.191 | 2019-10-16 10:02:45 -0700
 
   * Update broker submodule to use pybind11 v2.4.3 (Jon Siwek, Corelight)

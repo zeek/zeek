@@ -18,6 +18,36 @@ extern "C" {
 #include "setsignal.h"
 }
 
+struct StemState {
+	StemState(std::unique_ptr<bro::PipePair> p);
+
+	~StemState();
+
+	std::string Run();
+
+	void Reap();
+
+	std::string Revive();
+
+	bool Spawn(zeek::Supervisor::Node* node);
+
+	std::vector<std::string> ExtractMessages(std::string* buffer) const;
+
+	std::unique_ptr<bro::Flare> signal_flare;
+	std::unique_ptr<bro::PipePair> pipe;
+	std::map<std::string, zeek::Supervisor::Node> nodes;
+	std::string msg_buffer;
+};
+
+static StemState* stem_state = nullptr;
+
+static RETSIGTYPE stem_sig_handler(int signo)
+	{
+	printf("Stem received SIGCHLD signal: %d\n", signo);
+	stem_state->signal_flare->Fire();
+	return RETSIGVAL;
+	}
+
 static RETSIGTYPE supervisor_sig_handler(int signo)
 	{
 	DBG_LOG(DBG_SUPERVISOR, "received SIGCHLD signal: %d", signo);
@@ -38,6 +68,8 @@ zeek::Supervisor::Supervisor(zeek::Supervisor::Config cfg,
 
 zeek::Supervisor::~Supervisor()
 	{
+	setsignal(SIGCHLD, SIG_DFL);
+
 	if ( ! stem_pid )
 		{
 		DBG_LOG(DBG_SUPERVISOR, "shutdown, stem process already exited");
@@ -101,21 +133,24 @@ void zeek::Supervisor::HandleChildSignal()
 		reporter->Error("Supervisor failed to get exit status"
 			            " of stem process: %s", tmp);
 		}
-	else if ( WIFEXITED(status) )
-		{
-		DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
-			    WEXITSTATUS(status));
-		stem_pid = 0;
-		}
-	else if ( WIFSIGNALED(status) )
-		{
-		DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
-			    WTERMSIG(status));
-		stem_pid = 0;
-		}
 	else
-		reporter->Error("Supervisor failed to get exit status"
-			            " of stem process for unknown reason");
+		{
+		stem_pid = 0;
+
+		if ( WIFEXITED(status) )
+			{
+			DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
+			        WEXITSTATUS(status));
+			}
+		else if ( WIFSIGNALED(status) )
+			{
+			DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
+			       WTERMSIG(status));
+			}
+		else
+			reporter->Error("Supervisor failed to get exit status"
+			                " of stem process for unknown reason");
+		}
 
 	if ( ! stem_pid )
 		{
@@ -194,10 +229,124 @@ void zeek::Supervisor::Process()
 		}
 	}
 
-std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
+StemState::StemState(std::unique_ptr<bro::PipePair> p)
+	: signal_flare(new bro::Flare()), pipe(std::move(p))
 	{
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
+	stem_state = this;
+	setsignal(SIGCHLD, stem_sig_handler);
+	}
+
+StemState::~StemState()
+	{
+	setsignal(SIGCHLD, SIG_DFL);
+	}
+
+void StemState::Reap()
+	{
+	for ( auto& n : nodes )
+		{
+		auto& node = n.second;
+
+		if ( ! node.pid )
+			continue;
+
+		int status;
+		auto res = waitpid(node.pid, &status, WNOHANG);
+
+		if ( res == 0 )
+			// It's still alive.
+			continue;
+
+		if ( res == -1 )
+			{
+			fprintf(stderr, "Stem failed to get node exit status %s (%d): %s\n",
+			        node.name.data(), node.pid, strerror(errno));
+			continue;
+			}
+
+		if ( WIFEXITED(status) )
+			{
+			node.exit_status = WEXITSTATUS(status);
+			// TODO: may be some cases where the node is intended to exit
+			printf("node '%s' exited with status %d\n",
+			       node.name.data(), node.exit_status);
+			}
+		else if ( WIFSIGNALED(status) )
+			{
+			node.signal_number = WTERMSIG(status);
+			printf("node '%s' terminated by signal %d\n",
+			       node.name.data(), node.signal_number);
+			}
+		else
+			fprintf(stderr, "Stem failed to get node exit status %s (%d)\n",
+			        node.name.data(), node.pid);
+
+		node.pid = 0;
+		}
+	}
+
+std::string StemState::Revive()
+	{
+	for ( auto& n : nodes )
+		{
+		auto& node = n.second;
+
+		if ( node.pid )
+			continue;
+
+		if ( Spawn(&node) )
+			return node.name;
+		}
+
+	return "";
+	}
+
+bool StemState::Spawn(zeek::Supervisor::Node* node)
+	{
+	auto node_pid = fork();
+
+	if ( node_pid == -1 )
+		{
+		fprintf(stderr, "failed to fork Zeek node '%s': %s\n",
+		        node->name.data(), strerror(errno));
+		return false;
+		}
+
+	if ( node_pid == 0 )
+		{
+		zeek::set_thread_name(fmt("zeek.%s", node->name.data()));
+		return true;
+		}
+
+	node->pid = node_pid;
+	printf("Stem spawned node: %s (%d)\n", node->name.data(), node->pid);
+	return false;
+	}
+
+std::vector<std::string> StemState::ExtractMessages(std::string* buffer) const
+	{
+	std::vector<std::string> rval;
+
+	for ( ; ; )
+		{
+		auto msg_end = buffer->find('\0');
+
+		if ( msg_end == std::string::npos )
+			// Don't have any full messages left
+			break;
+
+		auto msg = buffer->substr(0, msg_end);
+		rval.emplace_back(std::move(msg));
+		buffer->erase(0, msg_end + 1);
+		}
+
+	return rval;
+	}
+
+std::string StemState::Run()
+	{
 	// TODO: changing the process group here so that SIGINT to the
 	// supervisor doesn't also get passed to the children.  i.e. supervisor
 	// should be in charge of initiating orderly shutdown.  But calling
@@ -212,51 +361,52 @@ std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
 		fprintf(stderr, "failed to set stem process group: %s\n",
 				strerror(errno));
 
-	std::string msg_buffer;
-	std::map<std::string, Node> nodes;
-
-	auto extract_messages = [](std::string* buf) -> std::vector<std::string>
-		{
-		std::vector<std::string> rval;
-
-		for ( ; ; )
-			{
-			auto msg_end = buf->find('\0');
-
-			if ( msg_end == std::string::npos )
-				// Don't have a full message yet
-				break;
-
-			auto msg = buf->substr(0, msg_end);
-			rval.emplace_back(std::move(msg));
-			buf->erase(0, msg_end + 1);
-			}
-
-		return rval;
-		};
-
 	for ( ; ; )
 		{
 		// TODO: better way to detect loss of parent than polling ?
 
-		pollfd fds = { pipe->InFD(), POLLIN, 0 };
+		pollfd fds[2] = { { pipe->InFD(), POLLIN, 0 },
+		                  { signal_flare->FD(), POLLIN, 0} };
 		constexpr auto poll_timeout_ms = 1000;
-		auto res = poll(&fds, 1, poll_timeout_ms);
+		auto res = poll(fds, 2, poll_timeout_ms);
 
 		if ( res < 0 )
 			{
-			fprintf(stderr, "poll() failed: %s\n", strerror(errno));
-			continue;
+			if ( errno != EINTR )
+				{
+				fprintf(stderr, "poll() failed: %s\n", strerror(errno));
+				continue;
+				}
 			}
 
 		if ( getppid() == 1 )
+			{
+			// TODO: kill/wait on children
 			exit(0);
+			}
+
+		auto new_node_name = Revive();
+
+		if ( ! new_node_name.empty() )
+			return new_node_name;
 
 		// TODO: periodically send node status updates back to supervisor?
 		// e.g. can fill in information gaps in the supervisor's node map
 		// for things such as node PIDs.
 
 		if ( res == 0 )
+			continue;
+
+		if ( signal_flare->Extinguish() )
+			{
+			Reap();
+			auto new_node_name = Revive();
+
+			if ( ! new_node_name.empty() )
+				return new_node_name;
+			}
+
+		if ( ! fds[0].revents )
 			continue;
 
 		char buf[256];
@@ -273,7 +423,7 @@ std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
 			}
 
 		msg_buffer.append(buf, bytes_read);
-		auto msgs = extract_messages(&msg_buffer);
+		auto msgs = ExtractMessages(&msg_buffer);
 
 		for ( auto& msg : msgs )
 			{
@@ -286,24 +436,17 @@ std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
 			if ( cmd == "create" )
 				{
 				assert(nodes.find(node_name) == nodes.end());
-				auto node_pid = fork();
-
-				if ( node_pid == -1 )
-					fprintf(stderr, "failed to fork Zeek node '%s': %s\n",
-					        node_name.data(), strerror(errno));
-				else if ( node_pid == 0 )
-					{
-					// TODO: probably want to return the configuration the
-					// new node ought to use
-					zeek::set_thread_name(fmt("zeek.%s", node_name.data()));
-					return node_name;
-					}
-
-				Node node;
+				zeek::Supervisor::Node node;
 				node.name = node_name;
-				node.pid = node_pid;
-				nodes.emplace(node_name, node);
-				printf("Stem created node: %s %d\n", node_name.data(), node_pid);
+
+				if ( Spawn(&node) )
+					// TODO: probably want to return the full configuration the
+					// new node ought to use
+					return node.name;
+
+				// TODO: get stem printfs going through standard Zeek debug.log
+				printf("Stem created node: %s (%d)\n", node.name.data(), node.pid);
+				nodes.emplace(node_name, std::move(node));
 				}
 			else if ( cmd == "destroy" )
 				{
@@ -323,6 +466,13 @@ std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
 				fprintf(stderr, "unknown supervisor message: %s", cmd.data());
 			}
 		}
+
+	}
+
+std::string zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
+	{
+	StemState ss(std::move(pipe));
+	return ss.Run();
 	}
 
 static zeek::Supervisor::Node node_val_to_struct(const RecordVal* node)

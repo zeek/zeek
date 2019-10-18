@@ -28,6 +28,8 @@ public:
 	struct Node {
 		std::string name;
 		pid_t pid = 0;
+		int exit_status = 0;
+		int signal_number = 0;
 	};
 
 	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);

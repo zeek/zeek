@@ -289,12 +289,37 @@ void StemState::Reap()
 
 std::string StemState::Revive()
 	{
+	constexpr auto attempts_before_delay_increase = 3;
+	constexpr auto delay_increase_factor = 2;
+	constexpr auto reset_revival_state_after = 30;
+
 	for ( auto& n : nodes )
 		{
 		auto& node = n.second;
+		auto now = std::chrono::steady_clock::now();
+		auto revival_reset = std::chrono::seconds(reset_revival_state_after);
+		auto time_since_spawn = now - node.spawn_time;
 
 		if ( node.pid )
+			{
+			if ( time_since_spawn > revival_reset )
+				{
+				node.revival_attempts = 0;
+				node.revival_delay = 1;
+				}
+
 			continue;
+			}
+
+		auto delay = std::chrono::seconds(node.revival_delay);
+
+		if ( time_since_spawn < delay )
+			continue;
+
+		++node.revival_attempts;
+
+		if ( node.revival_attempts % attempts_before_delay_increase == 0 )
+			node.revival_delay *= delay_increase_factor;
 
 		if ( Spawn(&node) )
 			return node.name;
@@ -321,6 +346,7 @@ bool StemState::Spawn(zeek::Supervisor::Node* node)
 		}
 
 	node->pid = node_pid;
+	node->spawn_time = std::chrono::steady_clock::now();
 	printf("Stem spawned node: %s (%d)\n", node->name.data(), node->pid);
 	return false;
 	}

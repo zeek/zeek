@@ -6,6 +6,7 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <chrono>
 #include <map>
 
 #include "iosource/IOSource.h"
@@ -30,6 +31,9 @@ public:
 		pid_t pid = 0;
 		int exit_status = 0;
 		int signal_number = 0;
+		int revival_attempts = 0;
+		int revival_delay = 1;
+		std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	};
 
 	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);

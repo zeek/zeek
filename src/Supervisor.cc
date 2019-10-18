@@ -33,18 +33,36 @@ struct StemState {
 
 	std::vector<std::string> ExtractMessages(std::string* buffer) const;
 
+	int AliveNodeCount() const;
+
+	void KillNodes(int signal) const;
+
+	void Shutdown(int exit_code);
+
 	std::unique_ptr<bro::Flare> signal_flare;
 	std::unique_ptr<bro::PipePair> pipe;
 	std::map<std::string, zeek::Supervisor::Node> nodes;
 	std::string msg_buffer;
+	bool shutting_down = false;
 };
 
 static StemState* stem_state = nullptr;
 
-static RETSIGTYPE stem_sig_handler(int signo)
+static RETSIGTYPE stem_sigchld_handler(int signo)
 	{
 	printf("Stem received SIGCHLD signal: %d\n", signo);
 	stem_state->signal_flare->Fire();
+	return RETSIGVAL;
+	}
+
+static RETSIGTYPE stem_sigterm_handler(int signo)
+	{
+	printf("Stem received SIGTERM signal: %d\n", signo);
+
+	if ( ! stem_state->shutting_down )
+		stem_state->signal_flare->Fire();
+
+	stem_state->shutting_down = true;
 	return RETSIGVAL;
 	}
 
@@ -235,12 +253,14 @@ StemState::StemState(std::unique_ptr<bro::PipePair> p)
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
 	stem_state = this;
-	setsignal(SIGCHLD, stem_sig_handler);
+	setsignal(SIGCHLD, stem_sigchld_handler);
+	setsignal(SIGTERM, stem_sigterm_handler);
 	}
 
 StemState::~StemState()
 	{
 	setsignal(SIGCHLD, SIG_DFL);
+	setsignal(SIGTERM, SIG_DFL);
 	}
 
 void StemState::Reap()
@@ -371,6 +391,74 @@ std::vector<std::string> StemState::ExtractMessages(std::string* buffer) const
 	return rval;
 	}
 
+int StemState::AliveNodeCount() const
+	{
+	auto rval = 0;
+
+	for ( const auto& n : nodes )
+		if ( n.second.pid )
+			++rval;
+
+	return rval;
+	}
+
+void StemState::KillNodes(int signal) const
+	{
+	for ( const auto& n : nodes )
+		{
+		const auto& node = n.second;
+		auto kill_res = kill(node.pid, signal);
+
+		if ( kill_res == -1 )
+			{
+			char tmp[256];
+			bro_strerror_r(errno, tmp, sizeof(tmp));
+			fprintf(stderr, "Failed to send signal to node %s: %s",
+			        node.name.data(), tmp);
+			}
+		}
+	}
+
+void StemState::Shutdown(int exit_code)
+	{
+	constexpr auto max_term_attempts = 13;
+	constexpr auto kill_delay = 2;
+
+	auto kill_attempts = 0;
+
+	for ( ; ; )
+		{
+		auto sig = kill_attempts++ < max_term_attempts ? SIGTERM : SIGKILL;
+		printf("Stem killed nodes with signal %d\n", sig);
+		KillNodes(sig);
+		Reap();
+		auto nodes_alive = AliveNodeCount();
+
+		if ( nodes_alive == 0 )
+			exit(exit_code);
+
+		printf("Stem nodes still alive %d, sleeping for %d seconds\n",
+		       nodes_alive, kill_delay);
+
+		auto sleep_time_left = kill_delay;
+
+		while ( sleep_time_left > 0 )
+			{
+			sleep_time_left = sleep(sleep_time_left);
+
+			if ( sleep_time_left > 0 )
+				{
+				// Interrupted by signal, so check if children exited
+				Reap();
+				nodes_alive = AliveNodeCount();
+
+				if ( nodes_alive == 0 )
+					exit(exit_code);
+				}
+			}
+		}
+	}
+
 std::string StemState::Run()
 	{
 	// TODO: changing the process group here so that SIGINT to the
@@ -389,8 +477,6 @@ std::string StemState::Run()
 
 	for ( ; ; )
 		{
-		// TODO: better way to detect loss of parent than polling ?
-
 		pollfd fds[2] = { { pipe->InFD(), POLLIN, 0 },
 		                  { signal_flare->FD(), POLLIN, 0} };
 		constexpr auto poll_timeout_ms = 1000;
@@ -407,8 +493,9 @@ std::string StemState::Run()
 
 		if ( getppid() == 1 )
 			{
-			// TODO: kill/wait on children
-			exit(0);
+			// TODO: better way to detect loss of parent than polling ?
+			printf("Stem suicide\n");
+			Shutdown(13);
 			}
 
 		auto new_node_name = Revive();
@@ -425,6 +512,9 @@ std::string StemState::Run()
 
 		if ( signal_flare->Extinguish() )
 			{
+			if ( shutting_down )
+				Shutdown(0);
+
 			Reap();
 			auto new_node_name = Revive();
 

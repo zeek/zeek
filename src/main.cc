@@ -792,7 +792,10 @@ int main(int argc, char** argv)
 
 			// TODO: this re-parenting check needs to go somewhere proper
 			if ( getppid() == 1 )
-				exit(0);
+				{
+				printf("node suicide: %s\n", stem_spawn.data());
+				exit(13);
+				}
 			}
 		}
 

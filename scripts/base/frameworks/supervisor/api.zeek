@@ -7,11 +7,11 @@ export {
 	type Node: record {
 		# TODO: add proper config fields
 		name: string;
+		pid: count &optional;
 	};
 
 	type Status: record {
-		# TODO: add proper status fields
-		n: count;
+		# TODO: add more status fields ?
 		nodes: table[string] of Node;
 	};
 

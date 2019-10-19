@@ -70,6 +70,7 @@ private:
 	std::unique_ptr<bro::PipePair> stem_pipe;
 	bro::Flare signal_flare;
 	std::map<std::string, Node> nodes;
+	std::string msg_buffer;
 };
 
 extern Supervisor* supervisor;

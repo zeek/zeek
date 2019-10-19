@@ -81,7 +81,7 @@ broker::data threading_field_to_data(const threading::Field* f);
  * @return a pointer to a new Bro threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Value* data_to_threading_val(broker::data d);
+threading::Value* data_to_threading_val(const broker::data& d);
 
 /**
  * Convert a Broker data value to a Bro threading::Value.

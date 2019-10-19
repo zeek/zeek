@@ -60,11 +60,6 @@ To install the required dependencies, you can use:
   .. sourcecode:: console
 
      sudo yum install cmake3 devtoolset-7
-     sudo alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 \
-                       --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 \
-                       --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 \
-                       --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 \
-                       --family cmake
      scl enable devtoolset-7 bash
 
 * DEB/Debian-based Linux:

@@ -310,12 +310,6 @@ public:
 	                     StoreQueryCallback* cb);
 
 	/**
-	 * Send all pending log write messages.
-	 * @return the number of messages sent.
-	 */
-	size_t FlushLogBuffers();
-
-	/**
 	 * @return communication statistics.
 	 */
 	const Stats& GetStatistics();
@@ -356,15 +350,6 @@ private:
 	const char* Tag() override
 		{ return "Broker::Manager"; }
 
-	struct LogBuffer {
-		// Indexed by topic string.
-		std::unordered_map<std::string, broker::vector> msgs;
-		double last_flush;
-		size_t message_count;
-
-		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
-	};
-
 	// Data stores
 	using query_id = std::pair<broker::request_id, StoreHandleVal*>;
 
@@ -378,7 +363,6 @@ private:
 			}
 	};
 
-	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;

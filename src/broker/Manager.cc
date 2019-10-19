@@ -18,7 +18,6 @@
 #include "logging/Manager.h"
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
-#include "SerializationFormat.h"
 
 using namespace std;
 
@@ -213,8 +212,6 @@ void Manager::InitPostScript()
 
 void Manager::Terminate()
 	{
-	FlushLogBuffers();
-
 	vector<string> stores_to_close;
 
 	for ( auto& x : data_stores )
@@ -224,8 +221,6 @@ void Manager::Terminate()
 		// This doesn't loop directly over data_stores, because CloseStore
 		// modifies the map and invalidates iterators.
 		CloseStore(x);
-
-	FlushLogBuffers();
 
 	for ( auto& p : bstate->endpoint.peers() )
 		if ( p.peer.network )
@@ -334,7 +329,6 @@ void Manager::Unpeer(const string& addr, uint16_t port)
 	DBG_LOG(DBG_BROKER, "Stopping to peer with %s:%" PRIu16,
 		addr.c_str(), port);
 
-	FlushLogBuffers();
 	bstate->endpoint.unpeer_nosync(addr, port);
 	}
 
@@ -514,32 +508,18 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return false;
 		}
 
-	BinarySerializationFormat fmt;
-	char* data;
-	int len;
-
-	fmt.StartWrite();
-
-	bool success = fmt.Write(num_fields, "num_fields");
-
-	if ( ! success )
-		{
-		reporter->Error("Failed to remotely log stream %s: num_fields serialization failed", stream_id);
-		return false;
-		}
-
-	for ( int i = 0; i < num_fields; ++i )
-		{
-		if ( ! vals[i]->Write(&fmt) )
+	broker::vector field_data;
+	field_data.reserve(num_fields);
+	for (int i = 0; i < num_fields; ++i)
+		if (auto converted = threading_val_to_data(vals[i]))
 			{
-			reporter->Error("Failed to remotely log stream %s: field %d serialization failed", stream_id, i);
+			field_data.emplace_back(std::move(*converted));
+			}
+		else
+			{
+			reporter->Error("Failed to remotely log stream %s: cannot convert field %d", stream_id, i);
 			return false;
 			}
-		}
-
-	len = fmt.EndWrite(&data);
-	std::string serial_data(data, len);
-	free(data);
 
 	val_list vl{
 		stream->Ref(),
@@ -562,60 +542,13 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
 	broker::zeek::LogWrite msg(move(bstream_id), move(bwriter_id), move(path),
-	                          move(serial_data));
+	                          move(field_data));
 
-	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
+	DBG_LOG(DBG_BROKER, "Publish log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
-	if ( log_buffers.size() <= (unsigned int)stream_id_num )
-		log_buffers.resize(stream_id_num + 1);
-
-	auto& lb = log_buffers[stream_id_num];
-	++lb.message_count;
-	auto& pending_batch = lb.msgs[topic];
-	pending_batch.emplace_back(msg.move_data());
-
-	if ( lb.message_count >= log_batch_size ||
-	     (network_time - lb.last_flush >= log_batch_interval ) )
-		statistics.num_logs_outgoing += lb.Flush(bstate->endpoint, log_batch_size);
+	bstate->endpoint.publish(topic, msg.move_data());
 
 	return true;
-	}
-
-size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_size)
-	{
-	if ( endpoint.is_shutdown() )
-		return 0;
-
-	if ( ! message_count )
-		// No logs buffered for this stream.
-		return 0;
-
-	for ( auto& kv : msgs )
-		{
-		auto& topic = kv.first;
-		auto& pending_batch = kv.second;
-		broker::vector batch;
-		batch.reserve(log_batch_size + 1);
-		pending_batch.swap(batch);
-		broker::zeek::Batch msg(std::move(batch));
-		endpoint.publish(topic, msg.move_data());
-		}
-
-	auto rval = message_count;
-	last_flush = network_time;
-	message_count = 0;
-	return rval;
-	}
-
-size_t Manager::FlushLogBuffers()
-	{
-	DBG_LOG(DBG_BROKER, "Flushing all log buffers");
-	auto rval = 0u;
-
-	for ( auto& lb : log_buffers )
-		rval += lb.Flush(bstate->endpoint, log_batch_interval);
-
-	return rval;
 	}
 
 void Manager::Error(const char* format, ...)
@@ -835,44 +768,44 @@ double Manager::NextTimestamp(double* local_network_time)
 
 void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	{
-	switch ( broker::zeek::Message::type(msg) ) {
-	case broker::zeek::Message::Type::Invalid:
+	namespace bz = broker::zeek;
+	switch (bz::Message::type(msg)) {
+	case bz::Message::Type::Invalid:
 		reporter->Warning("received invalid broker message: %s",
-						  broker::to_string(msg).data());
+						  broker::to_string(msg).c_str());
 		break;
 
-	case broker::zeek::Message::Type::Event:
-		ProcessEvent(topic, std::move(msg));
+	case bz::Message::Type::Event:
+		if (!bz::Event::valid(msg))
+			reporter->Warning("received invalid broker Event: %s",
+			                  broker::to_string(msg).c_str());
+		else
+			ProcessEvent(topic, bz::Event::from(std::move(msg)));
 		break;
 
-	case broker::zeek::Message::Type::LogCreate:
-		ProcessLogCreate(std::move(msg));
+	case bz::Message::Type::LogCreate:
+		if (!bz::LogCreate::valid(msg))
+			reporter->Warning("received invalid broker LogCreate: %s",
+			                  broker::to_string(msg).c_str());
+		else
+			ProcessLogCreate(bz::LogCreate::from(std::move(msg)));
 		break;
 
-	case broker::zeek::Message::Type::LogWrite:
-		ProcessLogWrite(std::move(msg));
+	case bz::Message::Type::LogWrite:
+		if (!bz::LogWrite::valid(msg))
+			reporter->Warning("received invalid broker LogWrite: %s",
+			                  broker::to_string(msg).c_str());
+		else
+			ProcessLogWrite(bz::LogWrite::from(std::move(msg)));
 		break;
 
-	case broker::zeek::Message::Type::IdentifierUpdate:
-		ProcessIdentifierUpdate(std::move(msg));
+	case bz::Message::Type::IdentifierUpdate:
+		if (!bz::IdentifierUpdate::valid(msg))
+			reporter->Warning("received invalid broker IdentifierUpdate: %s",
+			                  broker::to_string(msg).c_str());
+		else
+			ProcessIdentifierUpdate(bz::IdentifierUpdate::from(std::move(msg)));
 		break;
-
-	case broker::zeek::Message::Type::Batch:
-		{
-		broker::zeek::Batch batch(std::move(msg));
-
-		if ( ! batch.valid() )
-			{
-			reporter->Warning("received invalid broker Batch: %s",
-			                  broker::to_string(batch).data());
-			return;
-			}
-
-		for ( auto& i : batch.batch() )
-			DispatchMessage(topic, std::move(i));
-
-		break;
-		}
 
 	default:
 		// We ignore unknown types so that we could add more in the
@@ -979,13 +912,6 @@ void Manager::Process()
 
 void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	{
-	if ( ! ev.valid() )
-		{
-		reporter->Warning("received invalid broker Event: %s",
-		                  broker::to_string(ev.as_data()).data());
-		return;
-		}
-
 	auto name = std::move(ev.name());
 	auto args = std::move(ev.args());
 
@@ -1066,12 +992,6 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc.as_data()).c_str());
-	if ( ! lc.valid() )
-		{
-		reporter->Warning("received invalid broker LogCreate: %s",
-		                  broker::to_string(lc).data());
-		return false;
-		}
 
 	auto stream_id = data_to_val(std::move(lc.stream_id()), log_id_type);
 	if ( ! stream_id )
@@ -1133,13 +1053,6 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 	{
 	DBG_LOG(DBG_BROKER, "Received log-write: %s", RenderMessage(lw.as_data()).c_str());
 
-	if ( ! lw.valid() )
-		{
-		reporter->Warning("received invalid broker LogWrite: %s",
-		                  broker::to_string(lw).data());
-		return false;
-		}
-
 	++statistics.num_logs_incoming;
 	auto& stream_id_name = lw.stream_id().name;
 
@@ -1169,60 +1082,41 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto serial_data = caf::get_if<std::string>(&lw.serial_data());
-
-	if ( ! serial_data )
+	auto& values= lw.values();
+	auto num_values = values.size();
+	auto deleter = [num_values](threading::Value** ptr)
 		{
-		reporter->Warning("failed to unpack remote log values (bad serial_data variant) for stream: %s", stream_id_name.data());
-		return false;
-		}
-
-	BinarySerializationFormat fmt;
-	fmt.StartRead(serial_data->data(), serial_data->size());
-
-	int num_fields;
-	bool success = fmt.Read(&num_fields, "num_fields");
-
-	if ( ! success )
-		{
-		reporter->Warning("failed to unserialize remote log num fields for stream: %s", stream_id_name.data());
-		return false;
-		}
-
-	auto vals = new threading::Value* [num_fields];
-
-	for ( int i = 0; i < num_fields; ++i )
-		{
-		vals[i] = new threading::Value;
-
-		if ( ! vals[i]->Read(&fmt) )
+		if (ptr == nullptr)
+			return;
+		for (size_t i = 0; i < num_values; ++i)
 			{
-			for ( int j = 0; j <=i; ++j )
-				delete vals[j];
-
-			delete [] vals;
-			reporter->Warning("failed to unserialize remote log field %d for stream: %s", i, stream_id_name.data());
-
+			delete ptr[i];
+			}
+		delete[] ptr;
+		};
+	using vals_ptr = std::unique_ptr<threading::Value*[], decltype(deleter)>;
+	vals_ptr vals{new threading::Value*[values.size()], deleter};
+	memset(vals.get(), 0, values.size());
+	for (size_t i = 0; i < num_values; ++i)
+		{
+		auto ptr = data_to_threading_val(values[i]);
+		if (ptr == nullptr)
+			{
+			reporter->Warning("failed to convert remote log field %d for stream: %s",
+			                  static_cast<int>(i), stream_id_name.data());
 			return false;
 			}
+		vals[i] = ptr;
 		}
 
 	log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(),
-	                         std::move(*path), num_fields, vals);
-	fmt.EndRead();
+	                         std::move(lw.path()), num_values, vals.release());
 	return true;
 	}
 
 bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	{
 	DBG_LOG(DBG_BROKER, "Received id-update: %s", RenderMessage(iu.as_data()).c_str());
-
-	if ( ! iu.valid() )
-		{
-		reporter->Warning("received invalid broker IdentifierUpdate: %s",
-		                  broker::to_string(iu).data());
-		return false;
-		}
 
 	++statistics.num_ids_incoming;
 	auto id_name = std::move(iu.id_name());

@@ -1410,6 +1410,205 @@ broker::data bro_broker::threading_field_to_data(const threading::Field* f)
 	return broker::vector({name, secondary, type, subtype, optional});
 	}
 
+struct threading_val_converter {
+	using result_type = threading::Value*;
+
+	result_type operator()(broker::none) const
+		{
+		return new threading::Value(TYPE_VOID);
+		}
+
+	result_type operator()(bool x) const
+		{
+		auto ptr = new threading::Value(TYPE_BOOL);
+		ptr->val.int_val = static_cast<bro_int_t>(x);
+		return ptr;
+		}
+
+	result_type operator()(broker::count x) const
+		{
+		// TODO: Is assuming COUNT always the right thing to do?
+		//       Does Broker need a new type for TYPE_COUNTER?
+		auto ptr = new threading::Value(TYPE_COUNT);
+		ptr->val.uint_val = static_cast<bro_uint_t>(x);
+		return ptr;
+		}
+
+	result_type operator()(broker::integer x) const
+		{
+		auto ptr = new threading::Value(TYPE_INT);
+		ptr->val.int_val = static_cast<bro_int_t>(x);
+		return ptr;
+		}
+
+	result_type operator()(double x) const
+		{
+		auto ptr = new threading::Value(TYPE_DOUBLE);
+		ptr->val.double_val = x;
+		return ptr;
+		}
+
+	result_type operator()(const std::string& x) const
+		{
+		auto ptr = new threading::Value(TYPE_STRING);
+		auto& sval = ptr->val.string_val;
+		sval.length = static_cast<int>(x.size());
+		sval.data = new char[x.size() + 1];
+		memcpy(sval.data, x.c_str(), x.size() + 1);
+		return ptr;
+		}
+
+	result_type operator()(const broker::address& x) const
+		{
+		auto ptr = new threading::Value(TYPE_ADDR);
+		auto& addr = ptr->val.addr_val;
+		if (x.is_v4())
+			{
+			addr.family = IPv4;
+			memcpy(&addr.in.in4.s_addr, x.bytes().data() + 12, 4);
+			}
+		else
+			{
+			addr.family = IPv6;
+			memcpy(&addr.in.in6.s6_addr, x.bytes().data(), 16);
+			}
+		return ptr;
+		}
+
+	result_type operator()(const broker::subnet& x)
+		{
+		auto ptr = new threading::Value(TYPE_SUBNET);
+		auto& val = ptr->val.subnet_val;
+		auto& addr = val.prefix;
+		if (x.network().is_v4())
+			{
+			val.length = x.length();
+			addr.family = IPv4;
+			memcpy(&addr.in.in4.s_addr, x.network().bytes().data() + 12, 4);
+			}
+		else
+			{
+			val.length = x.length();
+			addr.family = IPv6;
+			memcpy(&addr.in.in6.s6_addr, x.network().bytes().data(), 16);
+			}
+		return ptr;
+		}
+
+	result_type operator()(const broker::port& x)
+		{
+		auto ptr = new threading::Value(TYPE_PORT);
+		auto& val = ptr->val.port_val;
+		val.port = x.number();
+		val.proto = static_cast<TransportProto>(x.type());
+		return ptr;
+		}
+
+	result_type operator()(broker::timestamp x)
+		{
+		using std::chrono::duration_cast;
+		auto time_since_epoch = x.time_since_epoch();
+		auto fs = duration_cast<broker::fractional_seconds>(time_since_epoch);
+		auto ptr = new threading::Value(TYPE_TIME);
+		ptr->val.double_val = fs.count();
+		return ptr;
+		}
+
+	result_type operator()(broker::timespan x)
+		{
+		using std::chrono::duration_cast;
+		auto fs = duration_cast<broker::fractional_seconds>(x);
+		auto ptr = new threading::Value(TYPE_INTERVAL);
+		ptr->val.double_val = fs.count();
+		return ptr;
+		}
+
+	void assign_string(threading::Value& dst, const std::string& src)
+		{
+		auto& val = dst.val.string_val;
+		val.data = new char[src.size() + 1];
+		memcpy(val.data, src.data(), src.size());
+		val.data[src.size()] = '\0';
+		val.length = static_cast<int>(src.size());
+		}
+
+	result_type operator()(const broker::enum_value& x)
+		{
+		auto ptr = new threading::Value(TYPE_ENUM);
+		assign_string(*ptr, x.name);
+		return ptr;
+		}
+
+	template <class T, class Range>
+	void assign_range(threading::Value& dst, T& val, const Range& xs)
+		{
+		// TODO: ranges in a threading::Value are homogeneous, while a broker
+		//       set or vector is heterogeneous. As a result, we lose type
+		//       information when converting an empty threading::Value to
+		//       broker::data and back. Further, we cannot convert any Broker
+		//       container to a threading::Value.
+		val.size = static_cast<bro_int_t>(xs.size());
+		val.vals = new threading::Value*[xs.size()];
+		auto i = xs.begin();
+		auto j = val.vals;
+		*j++ = caf::visit(*this, *i++);
+		auto subtype = val.vals[0]->type;
+		dst.subtype = subtype;
+		while (i != xs.end())
+			{
+			*j = caf::visit(*this, *i++);
+			if ((*j)->type != subtype)
+				{
+				// Type clash! Drop this value and leave an empty entry.
+				reporter->Error("cannot convert heterogeneous broker::data");
+				delete *j;
+				*j = new threading::Value(subtype, false);
+				}
+			++j;
+			}
+		}
+
+	result_type operator()(const broker::set& x)
+		{
+		if (x.empty())
+			{
+			// We can only guess a subtype... so we just pick VOID.
+			auto ptr = new threading::Value(TYPE_TABLE);
+			ptr->subtype = TYPE_VOID;
+			return ptr;
+			}
+		auto ptr = new threading::Value(TYPE_TABLE);
+		assign_range(*ptr, ptr->val.set_val, x);
+		return ptr;
+		}
+
+	result_type operator()(const broker::table&)
+		{
+		reporter->Error("cannot convert broker::table");
+		return nullptr;
+		}
+
+	result_type operator()(const broker::vector& x)
+		{
+		if (x.empty())
+			{
+			// We can only guess a subtype... so we just pick VOID.
+			auto ptr = new threading::Value(TYPE_VECTOR);
+			ptr->subtype = TYPE_VOID;
+			return ptr;
+			}
+		auto ptr = new threading::Value(TYPE_VECTOR);
+		assign_range(*ptr, ptr->val.vector_val, x);
+		return ptr;
+		}
+	};
+
+threading::Value* bro_broker::data_to_threading_val(const broker::data& d)
+	{
+	threading_val_converter converter;
+	return caf::visit(converter, d);
+	}
+
 threading::Field* bro_broker::data_to_threading_field(broker::data d)
 	{
 	if ( ! caf::holds_alternative<broker::vector>(d) )

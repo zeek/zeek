@@ -56,29 +56,26 @@ struct Stem {
 };
 }
 
-static Stem* stem_state = nullptr;
+static Stem* stem = nullptr;
 
-static RETSIGTYPE stem_sigchld_handler(int signo)
+static RETSIGTYPE stem_sig_handler(int signo)
 	{
-	printf("Stem received SIGCHLD signal: %d\n", signo);
-	stem_state->signal_flare->Fire();
-	return RETSIGVAL;
-	}
+	printf("Stem received signal: %d\n", signo);
 
-static RETSIGTYPE stem_sigterm_handler(int signo)
-	{
-	printf("Stem received SIGTERM signal: %d\n", signo);
+	if ( stem->shutting_down )
+		return RETSIGVAL;
 
-	if ( ! stem_state->shutting_down )
-		stem_state->signal_flare->Fire();
+	stem->signal_flare->Fire();
 
-	stem_state->shutting_down = true;
+	if ( signo == SIGTERM )
+		stem->shutting_down = true;
+
 	return RETSIGVAL;
 	}
 
 static RETSIGTYPE supervisor_sig_handler(int signo)
 	{
-	DBG_LOG(DBG_SUPERVISOR, "received SIGCHLD signal: %d", signo);
+	DBG_LOG(DBG_SUPERVISOR, "received signal: %d", signo);
 	zeek::supervisor->ObserveChildSignal();
 	return RETSIGVAL;
 	}
@@ -154,101 +151,100 @@ void zeek::Supervisor::ObserveChildSignal()
 	signal_flare.Fire();
 	}
 
-void zeek::Supervisor::HandleChildSignal()
+void zeek::Supervisor::ReapStem()
 	{
 	if ( ! stem_pid )
 		return;
-
-	auto child_signals = signal_flare.Extinguish();
-
-	if ( ! child_signals )
-		return;
-
-	DBG_LOG(DBG_SUPERVISOR, "handle %d child signals, wait for stem pid %d",
-	        child_signals, stem_pid);
 
 	int status;
 	auto res = waitpid(stem_pid, &status, WNOHANG);
 
 	if ( res == 0 )
-		{
-		DBG_LOG(DBG_SUPERVISOR, "false alarm, stem process still lives");
-		}
-	else if ( res == -1 )
+		// Still alive
+		return;
+
+	if ( res == -1 )
 		{
 		char tmp[256];
 		bro_strerror_r(errno, tmp, sizeof(tmp));
 		reporter->Error("Supervisor failed to get exit status"
 			            " of stem process: %s", tmp);
+		return;
+		}
+
+	stem_pid = 0;
+
+	if ( WIFEXITED(status) )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
+		        WEXITSTATUS(status));
+		}
+	else if ( WIFSIGNALED(status) )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
+		       WTERMSIG(status));
 		}
 	else
+		reporter->Error("Supervisor failed to get exit status"
+		                " of stem process for unknown reason");
+	}
+
+void zeek::Supervisor::HandleChildSignal()
+	{
+	signal_flare.Extinguish();
+	ReapStem();
+
+	if ( stem_pid )
+		return;
+
+	// Revive the Stem process
+	// TODO: Stem process needs a way to inform Supervisor not to revive
+	stem_pid = fork();
+
+	if ( stem_pid == -1 )
 		{
 		stem_pid = 0;
-
-		if ( WIFEXITED(status) )
-			{
-			DBG_LOG(DBG_SUPERVISOR, "stem process exited with status %d",
-			        WEXITSTATUS(status));
-			}
-		else if ( WIFSIGNALED(status) )
-			{
-			DBG_LOG(DBG_SUPERVISOR, "stem process terminated by signal %d",
-			       WTERMSIG(status));
-			}
-		else
-			reporter->Error("Supervisor failed to get exit status"
-			                " of stem process for unknown reason");
+		char tmp[256];
+		bro_strerror_r(errno, tmp, sizeof(tmp));
+		reporter->Error("failed to fork Zeek supervisor stem process: %s\n", tmp);
+		signal_flare.Fire();
+		// Sleep to avoid spinning too fast in a revival-fail loop.
+		sleep(1);
+		return;
 		}
 
-	if ( ! stem_pid )
+	if ( stem_pid == 0 )
 		{
-		// Revive the Stem process
-		stem_pid = fork();
+		// Child stem process needs to exec()
+		char stem_env[256];
+		safe_snprintf(stem_env, sizeof(stem_env), "ZEEK_STEM=%d,%d,%d,%d",
+		              stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
+		              stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
+		char* env[] = { stem_env, (char*)0 };
+		stem_pipe->In().UnsetFlags(FD_CLOEXEC);
+		stem_pipe->Out().UnsetFlags(FD_CLOEXEC);
+		auto res = execle(config.zeek_exe_path.data(),
+		                  config.zeek_exe_path.data(),
+		                  (char*)0, env);
 
-		if ( stem_pid == -1 )
-			{
-			char tmp[256];
-			bro_strerror_r(errno, tmp, sizeof(tmp));
-			reporter->Error("failed to fork Zeek supervisor stem process: %s\n", tmp);
-			signal_flare.Fire();
-			// Sleep to avoid spinning too fast in a revival-fail loop.
-			sleep(1);
-			}
-		else if ( stem_pid == 0 )
-			{
-			char stem_env[256];
-			safe_snprintf(stem_env, sizeof(stem_env), "ZEEK_STEM=%d,%d,%d,%d",
-			              stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
-			              stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
-			char* env[] = { stem_env, (char*)0 };
-			stem_pipe->In().UnsetFlags(FD_CLOEXEC);
-			stem_pipe->Out().UnsetFlags(FD_CLOEXEC);
-			auto res = execle(config.zeek_exe_path.data(),
-			                  config.zeek_exe_path.data(),
-			                  (char*)0, env);
-
-			char tmp[256];
-			bro_strerror_r(errno, tmp, sizeof(tmp));
-			fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n", tmp);
-			exit(1);
-			}
-		else
-			{
-			DBG_LOG(DBG_SUPERVISOR, "stem process revived, new pid: %d", stem_pid);
-			// Recreate the desired process hierarchy.
-
-			// TODO: probably a preferred order in which to create nodes
-			// e.g. logger, manager, proxy, worker
-			for ( const auto& n : nodes )
-				{
-				const auto& node = n.second;
-				std::string msg = fmt("create %s", node.name.data());
-				safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
-				}
-			}
+		char tmp[256];
+		bro_strerror_r(errno, tmp, sizeof(tmp));
+		fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n", tmp);
+		exit(1);
 		}
 
-	// TODO: Stem process needs a way to inform Supervisor not to revive
+	// Parent supervisor process resends node configurations to recreate
+	// the desired process hierarchy
+	DBG_LOG(DBG_SUPERVISOR, "stem process revived, new pid: %d", stem_pid);
+
+	// TODO: probably a preferred order in which to create nodes
+	// e.g. logger, manager, proxy, worker
+	for ( const auto& n : nodes )
+		{
+		const auto& node = n.second;
+		std::string msg = fmt("create %s", node.name.data());
+		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		}
 	}
 
 
@@ -301,9 +297,9 @@ Stem::Stem(std::unique_ptr<bro::PipePair> p)
 	{
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
-	stem_state = this;
-	setsignal(SIGCHLD, stem_sigchld_handler);
-	setsignal(SIGTERM, stem_sigterm_handler);
+	stem = this;
+	setsignal(SIGCHLD, stem_sig_handler);
+	setsignal(SIGTERM, stem_sig_handler);
 
 	// TODO: changing the process group here so that SIGINT to the
 	// supervisor doesn't also get passed to the children.  i.e. supervisor
@@ -318,7 +314,6 @@ Stem::Stem(std::unique_ptr<bro::PipePair> p)
 	if ( res == -1 )
 		fprintf(stderr, "failed to set stem process group: %s\n",
 				strerror(errno));
-
 	}
 
 Stem::~Stem()

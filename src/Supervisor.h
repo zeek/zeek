@@ -62,6 +62,8 @@ private:
 
 	void HandleChildSignal();
 
+	void ReapStem();
+
 	const char* Tag() override
 		{ return "zeek::Supervisor"; }
 

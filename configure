@@ -4,19 +4,11 @@
 set -e
 command="$0 $*"
 
-# check for `cmake` command
-type cmake > /dev/null 2>&1 || {
-    echo "\
-This package requires CMake, please install it first, then you may
-use this configure script to access CMake equivalent functionality.\
-" >&2;
-    exit 1;
-}
-
 usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
+    --cmake=PATH           custom path to a CMake binary
     --builddir=DIR         place build files in directory [build]
     --build-dir=DIR        alias for --builddir
     --build-type=TYPE      set CMake build type [RelWithDebInfo]:
@@ -168,6 +160,9 @@ while [ $# -ne 0 ]; do
         --help|-h)
             echo "${usage}" 1>&2
             exit 1
+            ;;
+        --cmake=*)
+            CMakeCommand=$optarg
             ;;
         --builddir=*)
             builddir=$optarg
@@ -338,6 +333,20 @@ while [ $# -ne 0 ]; do
     shift
 done
 
+if [ -z "$CMakeCommand" ]; then
+    # prefer cmake3 over "regular" cmake (cmake == cmake2 on RHEL)
+    if command -v cmake3 >/dev/null 2>&1 ; then
+        CMakeCommand="cmake3"
+    elif command -v cmake >/dev/null 2>&1 ; then
+        CMakeCommand="cmake"
+    else
+        echo "This package requires CMake, please install it first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
+        exit 1;
+    fi
+fi
+
 if [ "$user_set_scriptdir" != "true" ]; then
     append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 fi
@@ -363,9 +372,9 @@ echo "Source Directory: $sourcedir"
 cd $builddir
 
 if [ -n "$CMakeGenerator" ]; then
-    cmake -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
 else
-    cmake $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" $CMakeCacheEntries $sourcedir
 fi
 
 echo "# This is the command used to configure this build" > config.status

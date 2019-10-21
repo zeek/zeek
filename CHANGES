@@ -1,4 +1,8 @@
 
+3.1.0-dev.195 | 2019-10-21 11:42:18 +0200
+
+  * Prefer cmake3 command, add --cmake=PATH option (Dominik Charousset, Corelight)
+
 3.1.0-dev.192 | 2019-10-17 16:32:16 -0700
 
    * Zeekctl: change gzip compression level from 9 to default #614 (JC Connell)

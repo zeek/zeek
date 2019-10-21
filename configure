@@ -335,9 +335,9 @@ done
 
 if [ -z "$CMakeCommand" ]; then
     # prefer cmake3 over "regular" cmake (cmake == cmake2 on RHEL)
-    if type cmake3 &> /dev/null ; then
+    if command -v cmake3 >/dev/null 2>&1 ; then
         CMakeCommand="cmake3"
-    elif type cmake &> /dev/null ; then
+    elif command -v cmake >/dev/null 2>&1 ; then
         CMakeCommand="cmake"
     else
         echo "This package requires CMake, please install it first."

@@ -22,15 +22,15 @@ export {
 
 	global Supervisor::stop_request: event();
 
-	global Supervisor::status_request: event(id: count, nodes: string);
-	global Supervisor::status_response: event(id: count, result: Status);
+	global Supervisor::status_request: event(reqid: string, nodes: string);
+	global Supervisor::status_response: event(reqid: string, result: Status);
 
-	global Supervisor::create_request: event(id: count, node: Node);
-	global Supervisor::create_response: event(id: count, result: string);
+	global Supervisor::create_request: event(reqid: string, node: Node);
+	global Supervisor::create_response: event(reqid: string, result: string);
 
-	global Supervisor::destroy_request: event(id: count, nodes: string);
-	global Supervisor::destroy_response: event(id: count, result: bool);
+	global Supervisor::destroy_request: event(reqid: string, nodes: string);
+	global Supervisor::destroy_response: event(reqid: string, result: bool);
 
-	global Supervisor::restart_request: event(id: count, nodes: string);
-	global Supervisor::restart_response: event(id: count, result: bool);
+	global Supervisor::restart_request: event(reqid: string, nodes: string);
+	global Supervisor::restart_response: event(reqid: string, result: bool);
 }

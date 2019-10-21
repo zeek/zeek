@@ -21,32 +21,32 @@ event Supervisor::stop_request()
 	terminate();
 	}
 
-event Supervisor::status_request(id: count, nodes: string)
+event Supervisor::status_request(reqid: string, nodes: string)
 	{
 	local res = Supervisor::status(nodes);
 	local topic = Supervisor::topic_prefix + "/status_response";
-	Broker::publish(topic, Supervisor::status_response, id, res);
+	Broker::publish(topic, Supervisor::status_response, reqid, res);
 	}
 
-event Supervisor::create_request(id: count, node: Node)
+event Supervisor::create_request(reqid: string, node: Node)
 	{
 	local res = Supervisor::create(node);
 	local topic = Supervisor::topic_prefix + "/create_response";
-	Broker::publish(topic, Supervisor::create_response, id, res);
+	Broker::publish(topic, Supervisor::create_response, reqid, res);
 	}
 
-event Supervisor::destroy_request(id: count, nodes: string)
+event Supervisor::destroy_request(reqid: string, nodes: string)
 	{
 	local res = Supervisor::destroy(nodes);
 	local topic = Supervisor::topic_prefix + "/destroy_response";
-	Broker::publish(topic, Supervisor::destroy_response, id, res);
+	Broker::publish(topic, Supervisor::destroy_response, reqid, res);
 	}
 
-event Supervisor::restart_request(id: count, nodes: string)
+event Supervisor::restart_request(reqid: string, nodes: string)
 	{
 	local res = Supervisor::restart(nodes);
 	local topic = Supervisor::topic_prefix + "/restart_response";
-	Broker::publish(topic, Supervisor::restart_response, id, res);
+	Broker::publish(topic, Supervisor::restart_response, reqid, res);
 	}
 
 function Supervisor::status(nodes: string): Status

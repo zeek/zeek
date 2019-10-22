@@ -131,7 +131,7 @@ private:
 
 	msg_stats_list stats;
 
-	uv_timer_t *heartbeat_timer;
+	uv_timer_t *heartbeat_timer = nullptr;
 };
 
 }

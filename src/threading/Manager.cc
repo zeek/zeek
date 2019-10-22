@@ -16,7 +16,7 @@ static void heartbeat_callback(uv_timer_t* handle)
 
 static void close_callback(uv_handle_t* handle)
 	{
-	delete handle;
+	free(handle);
 	}
 
 Manager::Manager() : IOSource()
@@ -185,9 +185,9 @@ const Manager::msg_stats_list& Manager::GetMsgThreadStats()
 
 void Manager::InitHeartbeatTimer()
 	{
-	heartbeat_timer = new uv_timer_t();
+	heartbeat_timer = static_cast<uv_timer_t*>(malloc(sizeof(uv_timer_t)));
 	uv_timer_init(iosource_mgr->GetLoop(), heartbeat_timer);
- 	uv_handle_set_data(reinterpret_cast<uv_handle_t*>(heartbeat_timer), this);
+	uv_handle_set_data(reinterpret_cast<uv_handle_t*>(heartbeat_timer), this);
 
 	uint64_t repeat = static_cast<uint64_t>(BifConst::Threading::heartbeat_interval * 1000);
 

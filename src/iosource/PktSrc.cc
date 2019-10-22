@@ -168,6 +168,16 @@ const char* PktSrc::Tag()
 
 void PktSrc::HandleNewData(int fd)
 	{
+	// if packet processing is currently suspended, just return without doing anything with
+	// the packet.
+	// TODO: in the old code, setting a source as idle meant that it wasn't checked for anything
+	// during the loop (FindSoonest ignored it). Should setting to idle actually cause the packet
+	// source to be removed from the loop? For a live source, leaving it in the loop means that
+	// it will continue to wake up the loop. For a not-live source, taking it out would mean that
+	// the loop wouldn't run at all since there wouldn't be an idle loop keeping the loop going.
+	if ( net_is_processing_suspended() && first_timestamp )
+		return;
+
 	if ( pseudo_realtime )
 		current_wallclock = current_time(true);
 
@@ -205,12 +215,12 @@ void PktSrc::HandleNewData(int fd)
 
 	processed_packet = true;
 
-	// TODO: what exactly does this bit do? why are we shutting down the io manager in this case?
-	// if ( pseudo_realtime && ! IsOpen() )
-	// 	{
-	// 	if ( broker_mgr->Active() )
-	// 		iosource_mgr->Terminate();
-	// 	}
+	// TODO: not sure this is necessary anymore
+	if ( pseudo_realtime && ! IsOpen() )
+		{
+		if ( broker_mgr->Active() )
+			iosource_mgr->Terminate();
+		}
 	}
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)

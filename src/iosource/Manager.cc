@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "Manager.h"
+#include "Net.h"
 #include "IOSource.h"
 #include "PktSrc.h"
 #include "PktDumper.h"
@@ -71,7 +72,7 @@ void Manager::Terminate()
 		}
 
 	pkt_dumpers.clear();
-	
+
 	// Calling PktSrc::Done() causes a call to Unregister(), which removes the source from
 	// the list of packet sources.
 	if ( pkt_src )
@@ -93,13 +94,13 @@ void Manager::Register(IOSource* src, bool inactive)
 
 void Manager::Unregister(IOSource* src)
 	{
-	// If this isn't a packet source, just remove it from the list of sources. If this is
-	// a packet source, we can shut everything down because this is the only packet source.
+	// IF this isn't a packet source, just remove it. If it is a packet source, we might be
+	// to shut down everything unless the script requests that we don't.
 	if ( ! src->IsPacketSource() )
 		{
 		sources.erase(src);
 		}
-	else
+	else if ( ! BifConst::exit_only_after_terminate || terminating )
 		{
 		for ( auto source : sources )
 			source.first->Done();

@@ -167,7 +167,7 @@ bool PcapSource::OpenOffline()
 void PcapSource::Open()
 	{
 	bool result = props.is_live ? OpenLive() : OpenOffline();
-	
+
 	if ( result )
 		Opened(props);
 	else
@@ -186,7 +186,7 @@ void PcapSource::HandleNewData(int fd)
 		{
 		// We didn't have an existing packet already so get one from pcap.
 		const u_char* data = pcap_next(pd, &current_hdr);
-		
+
 		if ( ! data )
 			{
 			// Source has gone dry.  If it's a network interface, this just means
@@ -194,23 +194,23 @@ void PcapSource::HandleNewData(int fd)
 			// exhausted.
 			if ( ! props.is_live )
 				Close();
-			
+
 			return;
 			}
-		
+
 		current_packet.Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
-		
+
 		if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
 			{
 			Weird("empty_pcap_header", &current_packet);
 			return;
 			}
-		
+
 		last_hdr = current_hdr;
 		last_data = data;
 		++stats.received;
 		stats.bytes_received += current_hdr.len;
-		
+
 		have_packet = true;
 		}
 
@@ -222,10 +222,10 @@ void PcapSource::Close()
 	if ( ! pd )
 		return;
 
-	IOSource::Done();
-
 	pcap_close(pd);
 	pd = nullptr;
+
+	IOSource::Done();
 
 	Closed();
 	}

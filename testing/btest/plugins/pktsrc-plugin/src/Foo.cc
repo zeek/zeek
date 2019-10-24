@@ -28,16 +28,16 @@ iosource::PktSrc* Foo::Instantiate(const std::string& path, bool is_live)
 void Foo::Open()
 	{
 	IOSource::Start();
-	
+
 	Opened(props);
 	open = true;
 	}
 
 void Foo::Close()
 	{
+	open = false;
 	IOSource::Done();
 	Closed();
-	open = false;
 	}
 
 void Foo::HandleNewData(int fd)
@@ -46,7 +46,7 @@ void Foo::HandleNewData(int fd)
 		Close();
 
 	pkt_timeval ts = { 1409193037, 0 };
-	current_packet.Init(props.link_type, &ts, packet.size(), packet.size(), 
+	current_packet.Init(props.link_type, &ts, packet.size(), packet.size(),
 		(const u_char *)packet.c_str());
 
 	PktSrc::HandleNewData(fd);

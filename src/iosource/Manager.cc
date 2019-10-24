@@ -77,8 +77,10 @@ void Manager::Terminate()
 
 	// Calling PktSrc::Done() causes a call to Unregister(), which removes the source from
 	// the list of packet sources.
-	if ( pkt_src )
+	if ( pkt_src && pkt_src->IsOpen() )
 		pkt_src->Done();
+
+	uv_stop(loop);
 
 	// Just in case the loop didn't wake for any of the above, force it to wake up now and
 	// finish one more pass.
@@ -99,19 +101,9 @@ void Manager::Unregister(IOSource* src)
 	// IF this isn't a packet source, just remove it. If it is a packet source, we might be
 	// to shut down everything unless the script requests that we don't.
 	if ( ! src->IsPacketSource() )
-		{
 		sources.erase(src);
-		}
 	else if ( ! BifConst::exit_only_after_terminate || terminating )
-		{
-		for ( auto source : sources )
-			source.first->Done();
-
-		sources.clear();
-
-		// This will cause the loop to stop at the end of this iteration.
-		uv_stop(loop);
-		}
+		Terminate();
 	}
 
 static std::pair<std::string, std::string> split_prefix(std::string path)

@@ -54,17 +54,17 @@ function Supervisor::status(nodes: string): Status
 	return Supervisor::__status(nodes);
 	}
 
-function create(node: Node): string
+function Supervisor::create(node: Node): string
 	{
 	return Supervisor::__create(node);
 	}
 
-function destroy(nodes: string): bool
+function Supervisor::destroy(nodes: string): bool
 	{
 	return Supervisor::__destroy(nodes);
 	}
 
-function restart(nodes: string): bool
+function Supervisor::restart(nodes: string): bool
 	{
 	return Supervisor::__restart(nodes);
 	}

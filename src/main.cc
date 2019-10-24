@@ -94,6 +94,7 @@ zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
 zeek::Supervisor* zeek::supervisor = 0;
+zeek::Supervisor::Node* zeek::supervised_node = 0;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
@@ -613,6 +614,7 @@ void terminate_bro()
 	delete file_mgr;
 	// broker_mgr is deleted via iosource_mgr
 	// supervisor is deleted via iosource_mgr
+	delete zeek::supervised_node;
 	delete iosource_mgr;
 	delete log_mgr;
 	delete reporter;
@@ -623,11 +625,11 @@ void terminate_bro()
 	reporter = 0;
 	}
 
-void termination_signal()
+void zeek_terminate_loop(const char* reason)
 	{
-	set_processing_status("TERMINATING", "termination_signal");
+	set_processing_status("TERMINATING", reason);
+	reporter->Info("%s", reason);
 
-	reporter->Info("received termination signal");
 	net_get_final_stats();
 	done_with_network();
 	net_delete();
@@ -738,13 +740,13 @@ int main(int argc, char** argv)
 		exit(0);
 		}
 
-	bool use_supervisor = options.supervised_workers > 0;
+	auto use_supervisor = [&]() -> bool { return options.supervised_workers > 0; };
 	pid_t stem_pid = 0;
 	std::unique_ptr<bro::PipePair> supervisor_pipe;
-	std::string stem_spawn = "";
 
-	if ( use_supervisor )
+	if ( use_supervisor() )
 		{
+		// TODO: the SIGCHLD handler should be set before fork()
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
 		stem_pid = fork();
 
@@ -756,7 +758,7 @@ int main(int argc, char** argv)
 			}
 
 		if ( stem_pid == 0 )
-			stem_spawn = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
 
 	auto zeek_stem_env = getenv("ZEEK_STEM");
@@ -779,22 +781,27 @@ int main(int argc, char** argv)
 			fds[i] = std::stoi(fd_strings[i]);
 
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
-		stem_spawn = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
 
-	if ( ! stem_spawn.empty() )
+	if ( zeek::supervised_node )
 		{
-		for ( ; ; )
-			{
-			// TODO: this no-op loop is here just to test the process hierarchy
-			printf("node wakeup: %s\n", stem_spawn.data());
-			sleep(2);
+		// TODO: possibly can inherit some command-line options?
+		// In case stem gets revived via exec(), would need to pass along
+		// original arguments to it.
+		options = {};
+		const auto& node_name = zeek::supervised_node->name;
 
-			// TODO: this re-parenting check needs to go somewhere proper
-			if ( getppid() == 1 )
+		if ( ! zeek::supervised_node->interface.empty() )
+			options.interfaces.emplace_back(zeek::supervised_node->interface);
+
+		if ( ! zeek::supervised_node->cluster.empty() )
+			{
+			if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
 				{
-				printf("node suicide: %s\n", stem_spawn.data());
-				exit(13);
+				fprintf(stderr, "cluster node %s failed to setenv: %s\n",
+				        node_name.data(), strerror(errno));
+				exit(1);
 				}
 			}
 		}
@@ -862,7 +869,7 @@ int main(int argc, char** argv)
 
 		if ( ! getenv("ZEEK_DEBUG_LOG_STDERR") )
 			{
-			if ( use_supervisor )
+			if ( use_supervisor() )
 				debug_log_name = "debug-supervisor";
 			else
 				debug_log_name = "debug";
@@ -872,7 +879,7 @@ int main(int argc, char** argv)
 		}
 #endif
 
-	if ( use_supervisor )
+	if ( use_supervisor() )
 		{
 		zeek::Supervisor::Config cfg = {};
 		cfg.pcaps = options.pcap_files;
@@ -939,7 +946,7 @@ int main(int argc, char** argv)
 	     options.interfaces.size() == 0 &&
 	     options.identifier_to_print.empty() &&
 	     ! command_line_policy && ! options.print_plugins &&
-	     ! use_supervisor )
+	     ! use_supervisor() && ! zeek::supervised_node )
 		add_input_file("-");
 
 	for ( const auto& script_option : options.script_options_to_set )

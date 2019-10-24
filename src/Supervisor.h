@@ -12,13 +12,12 @@
 #include "iosource/IOSource.h"
 #include "Pipe.h"
 #include "Flare.h"
+#include "NetVar.h"
 
 namespace zeek {
 
 class Supervisor : public iosource::IOSource {
 public:
-
-	static std::string RunStem(std::unique_ptr<bro::PipePair> pipe);
 
 	struct Config {
 		int num_workers = 1;
@@ -26,8 +25,22 @@ public:
 		std::string zeek_exe_path;
 	};
 
+	struct ClusterEndpoint {
+		BifEnum::Supervisor::ClusterRole role;
+		std::string host;
+		int port;
+		std::string interface;
+	};
+
 	struct Node {
+		static Node FromJSON(const std::string& json);
+
+		static void InitCluster();
+
 		std::string name;
+		std::string interface;
+		std::map<std::string, ClusterEndpoint> cluster;
+
 		pid_t pid = 0;
 		int exit_status = 0;
 		int signal_number = 0;
@@ -35,6 +48,8 @@ public:
 		int revival_delay = 1;
 		std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	};
+
+	static Node* RunStem(std::unique_ptr<bro::PipePair> pipe);
 
 	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);
 
@@ -46,7 +61,7 @@ public:
 	void ObserveChildSignal();
 
 	RecordVal* Status(const std::string& node_name);
-	std::string Create(const RecordVal* node);
+	std::string Create(RecordVal* node);
 	bool Destroy(const std::string& node_name);
 	bool Restart(const std::string& node_name);
 
@@ -76,5 +91,6 @@ private:
 };
 
 extern Supervisor* supervisor;
+extern Supervisor::Node* supervised_node;
 
 } // namespace zeek

@@ -4,14 +4,32 @@
 module Supervisor;
 
 export {
+	type ClusterRole: enum {
+		NONE,
+		LOGGER,
+		MANAGER,
+		PROXY,
+		WORKER,
+	};
+
+	type ClusterEndpoint: record {
+		role: ClusterRole;
+		host: addr;
+		p: port;
+		interface: string &optional;
+	};
+
 	type Node: record {
-		# TODO: add proper config fields
 		name: string;
+		interface: string &optional;
+		cluster: table[string] of ClusterEndpoint &default=table();
+
+		# TODO: separate node config fields from status fields ?
+		# TODO: add more status fields ?
 		pid: count &optional;
 	};
 
 	type Status: record {
-		# TODO: add more status fields ?
 		nodes: table[string] of Node;
 	};
 

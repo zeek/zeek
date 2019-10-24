@@ -33,6 +33,7 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 #include "broker/Manager.h"
+#include "Supervisor.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -288,6 +289,9 @@ void net_run()
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		if ( zeek::supervised_node && getppid() == 1 )
+			zeek_terminate_loop("supervised cluster node was orphaned");
+
 		double ts;
 		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
 
@@ -361,13 +365,11 @@ void net_run()
 		current_dispatched = 0;
 		current_iosrc = 0;
 
-		// Should we put the signal handling into an IOSource?
-		extern void termination_signal();
-
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			// We received a signal while processing the
 			// current packet and its related events.
-			termination_signal();
+			// Should we put the signal handling into an IOSource?
+			zeek_terminate_loop("received termination signal");
 
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for

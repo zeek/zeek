@@ -147,7 +147,7 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 
 std::vector<std::string>* tokenize_string(std::string input,
 					  const std::string& delim,
-					  std::vector<std::string>* rval = 0);
+					  std::vector<std::string>* rval = 0, int limit = 0);
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -411,9 +411,7 @@ void terminate_processing();
 // Sets the current status of the Bro process to the given string.
 // If the option --status-file has been set, this is written into
 // the the corresponding file.  Otherwise, the function is a no-op.
-#define set_processing_status(status, location) \
-	_set_processing_status(status " [" location "]\n");
-void _set_processing_status(const char* status);
+void set_processing_status(const char* status, const char* reason);
 
 // Current timestamp, from a networking perspective, not a wall-clock
 // perspective.  In particular, if we're reading from a savefile this

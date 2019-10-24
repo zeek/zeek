@@ -24,7 +24,7 @@ extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const Packet* pkt,
 			iosource::PktSrc* src_ps);
 extern void expire_timers(iosource::PktSrc* src_ps = 0);
-extern void termination_signal();
+extern void zeek_terminate_loop(const char* reason);
 
 // Functions to temporarily suspend processing of live input (network packets
 // and remote events/state). Turning this is on is sure to lead to data loss!

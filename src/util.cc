@@ -1165,17 +1165,22 @@ string flatten_script_name(const string& name, const string& prefix)
 	}
 
 vector<string>* tokenize_string(string input, const string& delim,
-                                vector<string>* rval)
+                                vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
 	size_t n;
+	auto found = 0;
 
 	while ( (n = input.find(delim)) != string::npos )
 		{
+		++found;
 		rval->push_back(input.substr(0, n));
 		input.erase(0, n + 1);
+
+		if ( limit && found == limit )
+			break;
 		}
 
 	rval->push_back(input);
@@ -1456,7 +1461,7 @@ void terminate_processing()
 	}
 
 extern const char* proc_status_file;
-void _set_processing_status(const char* status)
+void set_processing_status(const char* status, const char* reason)
 	{
 	if ( ! proc_status_file )
 		return;
@@ -1483,20 +1488,27 @@ void _set_processing_status(const char* status)
 		return;
 		}
 
-	int len = strlen(status);
-	while ( len )
+	auto write_str = [](int fd, const char* s)
 		{
-		int n = write(fd, status, len);
+		int len = strlen(s);
+		while ( len )
+			{
+			int n = write(fd, s, len);
 
-		if ( n < 0 && errno != EINTR && errno != EAGAIN )
-			// Ignore errors, as they're too difficult to
-			// safely report here.
-			break;
+			if ( n < 0 && errno != EINTR && errno != EAGAIN )
+				// Ignore errors, as they're too difficult to
+				// safely report here.
+				break;
 
-		status += n;
-		len -= n;
-		}
+			s += n;
+			len -= n;
+			}
+		};
 
+	write_str(fd, status);
+	write_str(fd, " [");
+	write_str(fd, reason);
+	write_str(fd, "]\n");
 	safe_close(fd);
 
 	errno = old_errno;

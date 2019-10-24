@@ -105,11 +105,11 @@ private:
 
 	using SourceMap = std::map<IOSource*, bool>;
 	using PktDumperList = std::list<PktDumper*>;
-	
+
 	SourceMap sources;
 	PktDumperList pkt_dumpers;
 
-	uv_poll_t* wakeup;
+	uv_poll_t wakeup;
 };
 
 }

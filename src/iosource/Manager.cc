@@ -26,7 +26,7 @@ static void wakeup_callback(uv_poll_t* handle, int status, int error)
 	{
 	// Read out the byte from the socketpair so that it's not readable anymore
 	char val;
-	read(wakeup_pair[0], &val, 0);
+	read(wakeup_pair[0], &val, 1);
 	}
 
 Manager::Manager()
@@ -34,14 +34,16 @@ Manager::Manager()
 	loop = uv_default_loop();
 
 	socketpair(AF_UNIX, SOCK_DGRAM, 0, wakeup_pair);
-	wakeup = new uv_poll_t();
-	uv_poll_init(loop, wakeup, wakeup_pair[0]);
-	uv_poll_start(wakeup, UV_READABLE, wakeup_callback);
+	uv_poll_init(loop, &wakeup, wakeup_pair[0]);
+	uv_poll_start(&wakeup, UV_READABLE, wakeup_callback);
 	}
 
 Manager::~Manager()
 	{
 	Terminate();
+
+	close(wakeup_pair[0]);
+	close(wakeup_pair[1]);
 
 	if ( pkt_src )
 		delete pkt_src;
@@ -226,5 +228,5 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 void Manager::WakeupLoop()
 	{
 	DBG_LOG(DBG_MAINLOOP, "Waking up loop for changes");
-	write(wakeup_pair[1], "", 0);
+	write(wakeup_pair[1], "", 1);
 	}

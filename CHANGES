@@ -1,4 +1,8 @@
 
+3.0.1-dev.16 | 2019-10-24 11:31:43 -0700
+
+  * Update to embedded Broker/CAF to fix potential libc++ mismatch (Robin Sommer, Corelight)
+
 3.0.1-dev.15 | 2019-10-15 16:42:34 -0700
 
   * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)

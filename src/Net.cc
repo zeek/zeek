@@ -77,8 +77,8 @@ bool processed_packet = false;
 uv_check_t* check_handle = nullptr;
 static void post_loop_check(uv_check_t* handle);
 
-uv_idle_t* no_source_idler = nullptr;
-static void no_source_idle_callback(uv_idle_t* handle) {}
+uv_timer_t* no_terminate_timer = nullptr;
+static void no_terminate_callback(uv_timer_t* handle);
 
 RETSIGTYPE watchdog(int /* signo */)
 	{
@@ -314,6 +314,11 @@ static void close_callback(uv_handle_t* handle)
 	free(handle);
 	}
 
+static void no_terminate_callback(uv_timer_t* handle)
+	{
+	net_update_time(current_time());
+	}
+
 void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
@@ -321,27 +326,24 @@ void net_run()
 	if ( iosource_mgr->Size() > 0 ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
+		// If exit_only_after_terminate is set, add a timer for every 100ms that does
+		// nothing but attempt to update the time and keep the loop moving forward.
+		if ( BifConst::exit_only_after_terminate && ! terminating )
+			{
+			no_terminate_timer = (uv_timer_t*)malloc(sizeof(uv_timer_t));
+			uv_timer_init(iosource_mgr->GetLoop(), no_terminate_timer);
+			uv_timer_start(no_terminate_timer, no_terminate_callback, 100, 100);
+			}
+
 		// If we're actually going to start the loop, convert the timers over to
 		// use UV timers since we want them to fire based on the loop.
 		timer_mgr->ReloadTimers();
 
-		// If we're not actively receiving data from something (packet source,
-		// broker, etc), then setup an idle handle. This keeps the loop actively
-		// running. Otherwise the loop will just sit doing nothing forever.
-		// This is the case when we don't have a source but
-		// exit_only_after_terminate is set.
-		if ( iosource_mgr->Size() == 0 )
-			{
-			no_source_idler = (uv_idle_t*)malloc(sizeof(uv_idle_t));
-			uv_idle_init(iosource_mgr->GetLoop(), no_source_idler);
-			uv_idle_start(no_source_idler, no_source_idle_callback);
-			}
-
-//		uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
+// 		uv_print_all_handles(iosource_mgr->GetLoop(), stderr);
 		uv_run(iosource_mgr->GetLoop(), UV_RUN_DEFAULT);
 
-		if ( no_source_idler && ! uv_is_closing((uv_handle_t*)no_source_idler) )
-			uv_close((uv_handle_t*)no_source_idler, close_callback);
+		if ( no_terminate_timer && ! uv_is_closing((uv_handle_t*)no_terminate_timer) )
+			uv_close((uv_handle_t*)no_terminate_timer, close_callback);
 
 		if ( check_handle && ! uv_is_closing((uv_handle_t*)check_handle) )
 			uv_close((uv_handle_t*)check_handle, close_callback);
@@ -379,7 +381,7 @@ static void post_loop_check(uv_check_t* handle)
 	current_dispatched = 0;
 	current_iosrc = nullptr;
 
-	if ( signal_val == SIGTERM || signal_val == SIGINT )
+	if ( signal_val == SIGTERM || signal_val == SIGINT || terminating )
 		{
 		// We received a termination signal during the last loop pass.
 		// TODO: Should we put the signal handling into an IOSource?
@@ -435,8 +437,6 @@ void net_delete()
 	}
 
 int _processing_suspended = 0;
-
-static double suspend_start = 0;
 
 void net_suspend_processing()
 	{

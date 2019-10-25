@@ -3,6 +3,19 @@ foo_func, hello
 bar_func, hmm, hi, 5
 bar_func, cool, beans, 5
 bar_func, cool, beans, 13
+begin table_func, {
+
+}
+end table_func, {
+[the test] = works
+}
+begin table_func, {
+[initial] = conditions
+}
+end table_func, {
+[initial] = conditions,
+[the test] = works
+}
 foo_hook, test
 foo_hook, hello
 bar_hook, hmm, hi, 5

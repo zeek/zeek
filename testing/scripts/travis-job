@@ -84,16 +84,16 @@ install_in_docker() {
     local_distro=$distro
     case $distro in
         centos_7)
-        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which"
+        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which centos-release-scl && yum -y install devtoolset-7"
         ;;
         debian_9)
-        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils clang-7 libc++-7-dev libc++abi-7-dev; update-alternatives --install /usr/bin/cc cc /usr/bin/clang-7 100; update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-7 100"
         ;;
-        fedora_28)
-        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git sqlite findutils which; ln -s /usr/bin/python3 /usr/local/bin/python"
+        fedora_30)
+        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git sqlite findutils which zlib-devel; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         ubuntu_16.04)
-        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils wget xz-utils; wget -q https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz; mkdir /clang-9; tar --strip-components=1 -C /clang-9 -xvf clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz; update-alternatives --install /usr/bin/cc cc /clang-9/bin/clang 100; update-alternatives --install /usr/bin/c++ c++ /clang-9/bin/clang++ 100"
         ;;
         ubuntu_18.04)
         distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
@@ -129,12 +129,24 @@ run_in_docker() {
     docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job run travis
 }
 
+update_env() {
+    if [ "${BUILD_DISTRO}" = "centos_7" ]; then
+        source /opt/rh/devtoolset-7/enable
+    elif [ "${BUILD_DISTRO}" = "debian_9" ]; then
+        export CXXFLAGS="-stdlib=libc++"
+    elif [ "${BUILD_DISTRO}" = "ubuntu_16.04" ]; then
+        export CXXFLAGS="-stdlib=libc++"
+        export LD_LIBRARY_PATH=/clang-9/lib
+    fi
+}
 
 # Build Zeek.
 build() {
     # Cleanup any previous build (this is really only necessary if running this
     # outside of Travis).
     make distclean > /dev/null
+
+    update_env
 
     # Skip building Broker tests, python bindings, and zeekctl, as these are
     # not needed by the Zeek tests. If the distro is set for leak tests, enable
@@ -178,6 +190,8 @@ get_private_tests() {
 
 # Run Zeek tests.
 run() {
+    update_env
+
     ulimit -c unlimited
     ulimit -a
     echo

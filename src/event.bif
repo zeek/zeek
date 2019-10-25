@@ -380,7 +380,7 @@ event protocol_confirmation%(c: connection, atype: Analyzer::Tag, aid: count%);
 ##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
 ##        parsing an HTTP connection.
 ##
-## .. bro:see:: dpd_buffer_size
+## .. zeek:see:: dpd_buffer_size
 event protocol_late_match%(c: connection, atype: Analyzer::Tag%);
 
 ## Generated when a protocol analyzer determines that a connection it is parsing

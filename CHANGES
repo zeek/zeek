@@ -1,4 +1,13 @@
 
+3.1.0-dev.203 | 2019-10-25 10:41:10 -0700
+
+  * Change usage of old bro:see directive to zeek:see (Jon Siwek, Corelight)
+
+  * Use explicit path name for NTP log stream (Jon Siwek, Corelight)
+
+    For consistency (we do this for all other logs) and just to avoid
+    the extra path function calls.
+
 3.1.0-dev.201 | 2019-10-25 10:12:49 -0700
 
   * Fixed typo. (Keith J. Jones)

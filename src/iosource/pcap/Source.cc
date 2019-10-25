@@ -270,6 +270,7 @@ bool PcapSource::SetFilter(int index)
 		return false;
 		}
 
+#ifndef __OpenBSD__
 	if ( LinkType() == DLT_NFLOG )
 		{
 		// No-op, NFLOG does not support BPF filters.
@@ -285,6 +286,7 @@ bool PcapSource::SetFilter(int index)
 			return false;
 			}
 		}
+#endif
 
 #ifndef HAVE_LINUX
 	// Linux doesn't clear counters when resetting filter.

@@ -372,10 +372,20 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			// &default applies to record field.
 
-			if ( same_type(atype, type) ||
-			     (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+			if ( same_type(atype, type) )
 				// Ok.
 				break;
+
+			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
+				{
+				Expr* e = a->AttrExpr();
+
+				if ( check_and_promote_expr(e, type) )
+					{
+					a->SetAttrExpr(e);
+					break;
+					}
+				}
 
 			// Table defaults may be promotable.
 			if ( ytype && ytype->Tag() == TYPE_RECORD &&

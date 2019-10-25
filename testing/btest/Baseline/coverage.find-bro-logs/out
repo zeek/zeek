@@ -33,6 +33,7 @@ netcontrol_shunt
 notice
 notice_alarm
 ntlm
+ntp
 ocsp
 openflow
 packet_filter

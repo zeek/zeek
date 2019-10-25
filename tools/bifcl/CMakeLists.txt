@@ -17,7 +17,7 @@ if ( MISSING_PREREQS )
 endif ()
 
 include_directories(BEFORE
-                    ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -39,9 +39,9 @@ set(bifcl_SRCS
    ${BISON_BIFParser_OUTPUTS}
    ${FLEX_BIFScanner_OUTPUTS}
    bif_arg.cc
-   bif_arg.h
+   include/bif_arg.h
    module_util.cc
-   module_util.h
+   include/module_util.h
 )
 
 add_executable(bifcl ${bifcl_SRCS})

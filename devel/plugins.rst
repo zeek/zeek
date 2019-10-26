@@ -51,7 +51,7 @@ name for the plugin itself relative to the namespace. Zeek uses the
 combination of namespace and name to identify a plugin. The namespace
 serves to avoid naming conflicts between plugins written by independent
 developers; pick, e.g., the name of your organisation. The namespaces
-``Bro`` (legacy) and ``Zeek`` arereserved for functionality distributed
+``Bro`` (legacy) and ``Zeek`` are reserved for functionality distributed
 by the Zeek Project. In
 our example, the plugin will be called ``Demo::Rot13``.
 

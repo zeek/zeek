@@ -14,7 +14,6 @@
 #include "Component.h"
 #include "WriterBackend.h"
 
-class SerializationFormat;
 class RotationTimer;
 
 namespace logging {

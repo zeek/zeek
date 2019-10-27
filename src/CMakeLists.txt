@@ -281,7 +281,6 @@ set(MAIN_SRCS
     RuleMatcher.cc
     SmithWaterman.cc
     Scope.cc
-    SerializationFormat.cc
     Sessions.cc
     Notifier.cc
     Stats.cc

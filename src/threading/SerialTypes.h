@@ -11,8 +11,6 @@
 
 using namespace std;
 
-class SerializationFormat;
-
 namespace threading {
 
 /**
@@ -48,26 +46,6 @@ struct Field {
 		delete [] name;
 		delete [] secondary_name;
 		}
-
-	/**
-	 * Unserializes a field.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Read(SerializationFormat* fmt);
-
-	/**
-	 * Serializes a field.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Write(SerializationFormat* fmt) const;
 
 	/**
 	 * Returns a textual description of the field's type. This method is
@@ -163,25 +141,6 @@ struct Value {
 	 * Destructor.
 	 */
 	~Value();
-
-	/**
-	 * Unserializes a value.
-	 *
-	 * @param fmt The serialization format to use. The format handles low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Read(SerializationFormat* fmt);
-
-	/**
-	 * Serializes a value.
-	 *
-	 * @param fmt The serialization format to use. The format handles
-	 * low-level I/O.
-	 *
-	 * @return False if an error occured.
-	 */
-	bool Write(SerializationFormat* fmt) const;
 
 	/**
 	 * Returns true if the type can be represented by a Value. If

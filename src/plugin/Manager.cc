@@ -271,6 +271,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
+
+		globfree(&gl);
 		}
 
 	else

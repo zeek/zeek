@@ -181,7 +181,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = makeCounted<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -214,11 +214,10 @@ struct val_converter {
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
 				{
-				Unref(rval);
 				return nullptr;
 				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = makeCounted<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -227,20 +226,17 @@ struct val_converter {
 
 				if ( ! index_val )
 					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
 					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.release());
 				}
 
 
-			rval->Assign(list_val, nullptr);
-			Unref(list_val);
+			rval->Assign(list_val.get(), nullptr);
 			}
 
-		return rval;
+		return rval.release();
 		}
 
 	result_type operator()(broker::table& a)
@@ -249,7 +245,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = makeCounted<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -282,11 +278,10 @@ struct val_converter {
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
 				{
-				Unref(rval);
 				return nullptr;
 				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = makeCounted<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -295,12 +290,10 @@ struct val_converter {
 
 				if ( ! index_val )
 					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
 					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.release());
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
@@ -308,16 +301,13 @@ struct val_converter {
 
 			if ( ! value_val )
 				{
-				Unref(rval);
-				Unref(list_val);
 				return nullptr;
 				}
 
-			rval->Assign(list_val, value_val);
-			Unref(list_val);
+			rval->Assign(list_val.get(), value_val.release());
 			}
 
-		return rval;
+		return rval.release();
 		}
 
 	result_type operator()(broker::vector& a)
@@ -325,7 +315,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = new VectorVal(vt);
+			auto rval = makeCounted<VectorVal>(vt);
 
 			for ( auto& item : a )
 				{
@@ -333,14 +323,13 @@ struct val_converter {
 
 				if ( ! item_val )
 					{
-					Unref(rval);
 					return nullptr;
 					}
 
-				rval->Assign(rval->Size(), item_val);
+				rval->Assign(rval->Size(), item_val.release());
 				}
 
-			return rval;
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -385,14 +374,13 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = new RecordVal(rt);
+			auto rval = makeCounted<RecordVal>(rt);
 			auto idx = 0u;
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
 					{
-					Unref(rval);
 					return nullptr;
 					}
 
@@ -404,19 +392,18 @@ struct val_converter {
 					}
 
 				auto item_val = bro_broker::data_to_val(move(a[idx]),
-																								rt->FieldType(i));
+				                                        rt->FieldType(i));
 
 				if ( ! item_val )
 					{
-					Unref(rval);
 					return nullptr;
 					}
 
-				rval->Assign(i, item_val);
+				rval->Assign(i, item_val.release());
 				++idx;
 				}
 
-			return rval;
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{
@@ -791,12 +778,12 @@ static bool data_type_check(const broker::data& d, BroType* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type)
+IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return bro_broker::make_data_val(move(d));
+		return {bro_broker::make_data_val(move(d)), false};
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return {caf::visit(val_converter{type}, std::move(d)), false};
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)
@@ -1161,7 +1148,7 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 	return data_type_check(data, t);
 	}
 
-Val* bro_broker::DataVal::castTo(BroType* t)
+IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
 	}

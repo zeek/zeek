@@ -90,8 +90,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			return val_mgr->GetBool(0);
 			}
 
-		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data, location);
-		Unref(val_from_data);
+		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data.get(), location);
 		return val_mgr->GetBool(rval);
 		}
 

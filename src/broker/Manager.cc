@@ -65,12 +65,6 @@ const broker::endpoint_info Manager::NoPeer{{}, {}};
 
 int Manager::script_scope = 0;
 
-struct unref_guard {
-	unref_guard(Val* v) : val(v) {}
-	~unref_guard() { Unref(val); }
-	Val* val;
-};
-
 struct scoped_reporter_location {
 	scoped_reporter_location(Frame* frame)
 		{
@@ -1039,7 +1033,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl.push_back(val);
+			vl.push_back(val.release());
 		else
 			{
 			auto expected_name = type_name(expected_type->Tag());
@@ -1086,16 +1080,12 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		return false;
 		}
 
-	unref_guard stream_id_unreffer{stream_id};
-
 	auto writer_id = data_to_val(std::move(lc.writer_id()), writer_id_type);
 	if ( ! writer_id )
 		{
 		reporter->Warning("failed to unpack remote log writer id");
 		return false;
 		}
-
-	unref_guard writer_id_unreffer{writer_id};
 
 	auto writer_info = std::unique_ptr<logging::WriterBackend::WriterInfo>(new logging::WriterBackend::WriterInfo);
 	if ( ! writer_info->FromBroker(std::move(lc.writer_info())) )
@@ -1163,8 +1153,6 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	unref_guard stream_id_unreffer{stream_id};
-
 	// Get writer ID.
 	auto writer_id = data_to_val(std::move(lw.writer_id()), writer_id_type);
 	if ( ! writer_id )
@@ -1173,7 +1161,6 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	unref_guard writer_id_unreffer{writer_id};
 	auto path = caf::get_if<std::string>(&lw.path());
 
 	if ( ! path )
@@ -1258,7 +1245,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 		return false;
 		}
 
-	id->SetVal(val);
+	id->SetVal(val.release());
 	return true;
 	}
 

@@ -7,10 +7,6 @@
 #include <string>
 #include "PriorityQueue.h"
 
-extern "C" {
-#include "cq.h"
-}
-
 // If you add a timer here, adjust TimerNames in Timer.cc.
 enum TimerType : uint8_t {
 	TIMER_BACKDOOR,
@@ -150,26 +146,6 @@ protected:
 	Timer* Top()			{ return (Timer*) q->Top(); }
 
 	PriorityQueue* q;
-};
-
-class CQ_TimerMgr : public TimerMgr {
-public:
-	explicit CQ_TimerMgr(const Tag& arg_tag);
-	~CQ_TimerMgr() override;
-
-	void Add(Timer* timer) override;
-	void Expire() override;
-
-	int Size() const override { return cq_size(cq); }
-	int PeakSize() const override { return cq_max_size(cq); }
-	uint64_t CumulativeNum() const override { return cq_cumulative_num(cq); }
-	unsigned int MemoryUsage() const;
-
-protected:
-	int DoAdvance(double t, int max_expire) override;
-	void Remove(Timer* timer) override;
-
-	struct cq_handle *cq;
 };
 
 extern TimerMgr* timer_mgr;

@@ -87,8 +87,8 @@ PQ_TimerMgr::~PQ_TimerMgr()
 
 void PQ_TimerMgr::Add(Timer* timer)
 	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
+	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p at %.6f",
+		timer_type_to_string(timer->Type()), this, timer->Time());
 
 	// Add the timer even if it's already expired - that way, if
 	// multiple already-added timers are added, they'll still
@@ -144,87 +144,4 @@ void PQ_TimerMgr::Remove(Timer* timer)
 
 	--current_timers[timer->Type()];
 	delete timer;
-	}
-
-CQ_TimerMgr::CQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
-	{
-	cq = cq_init(60.0, 1.0);
-	if ( ! cq )
-		reporter->InternalError("could not initialize calendar queue");
-	}
-
-CQ_TimerMgr::~CQ_TimerMgr()
-	{
-	cq_destroy(cq);
-	}
-
-void CQ_TimerMgr::Add(Timer* timer)
-	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
-
-	// Add the timer even if it's already expired - that way, if
-	// multiple already-added timers are added, they'll still
-	// execute in sorted order.
-	double t = timer->Time();
-
-	if ( t <= 0.0 )
-		// Illegal time, which cq_enqueue won't like.  For our
-		// purposes, just treat it as an old time that's already
-		// expired.
-		t = network_time;
-
-	if ( cq_enqueue(cq, t, timer) < 0 )
-		reporter->InternalError("problem queueing timer");
-
-	++current_timers[timer->Type()];
-	}
-
-void CQ_TimerMgr::Expire()
-	{
-	double huge_t = 1e20;	// larger than any Unix timestamp
-	for ( Timer* timer = (Timer*) cq_dequeue(cq, huge_t);
-	      timer; timer = (Timer*) cq_dequeue(cq, huge_t) )
-		{
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(huge_t, 1);
-		--current_timers[timer->Type()];
-		delete timer;
-		}
-	}
-
-int CQ_TimerMgr::DoAdvance(double new_t, int max_expire)
-	{
-	Timer* timer;
-	while ( (num_expired < max_expire || max_expire == 0) &&
-		(timer = (Timer*) cq_dequeue(cq, new_t)) )
-		{
-		last_timestamp = timer->Time();
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(new_t, 0);
-		--current_timers[timer->Type()];
-		delete timer;
-		++num_expired;
-		}
-
-	return num_expired;
-	}
-
-unsigned int CQ_TimerMgr::MemoryUsage() const
-	{
-	// FIXME.
-	return 0;
-	}
-
-void CQ_TimerMgr::Remove(Timer* timer)
-	{
-	// This may fail if we cancel a timer which has already been removed.
-	// That's ok, but then we mustn't delete the timer.
-	if ( cq_remove(cq, timer->Time(), timer) )
-		{
-		--current_timers[timer->Type()];
-		delete timer;
-		}
 	}

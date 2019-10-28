@@ -175,11 +175,9 @@ void ProfileLogger::Log()
 			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
-	file->Write(fmt("%.06f Timers: current=%d max=%d mem=%dK lag=%.2fs\n",
+	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
 		network_time,
 		timer_mgr->Size(), timer_mgr->PeakSize(),
-		int(cq_memory_allocation() +
-		    (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
 		network_time - timer_mgr->LastTimestamp()));
 
 	DNS_Mgr::Stats dstats;
@@ -208,7 +206,7 @@ void ProfileLogger::Log()
 
 	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
 	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
-	      i != thread_stats.end(); ++i ) 
+	      i != thread_stats.end(); ++i )
 		{
 		threading::MsgThread::Stats s = i->second;
 		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64

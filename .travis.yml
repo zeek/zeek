@@ -26,7 +26,7 @@ notifications:
 env:
   - distro: centos_7
   - distro: debian_9
-  - distro: fedora_28
+  - distro: fedora_30
   - distro: ubuntu_16.04
   - distro: ubuntu_18.04
   - distro: ubuntu_18.04_leaktest

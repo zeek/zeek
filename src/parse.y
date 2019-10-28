@@ -1058,7 +1058,7 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4);
+			$$ = new TypeDecl($3, $1, $4, true);
 			}
 	;
 

@@ -1,4 +1,18 @@
 
+3.1.0-dev.219 | 2019-10-28 20:59:12 +0100
+
+  * GH-654: allow table() in function &default expressions
+
+    Table parameters of functions previously did not coerce unspecified
+    tables used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * GH-654: allow table() in record &default expressions
+
+    Table fields of records previously did not coerce unspecified tables
+    used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * Fix up some documentation. (Keith J. Jones)
+
 3.1.0-dev.214 | 2019-10-28 10:58:43 +0000
 
   * GH-585: Require C++17 (Jon Siwek, Corelight)

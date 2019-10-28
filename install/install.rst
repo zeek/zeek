@@ -5,6 +5,7 @@
 .. _Fink: http://www.finkproject.org
 .. _Homebrew: http://brew.sh
 .. _downloads page: https://www.zeek.org/download/index.html
+.. _devtoolset: https://developers.redhat.com/products/developertoolset/hello-world
 
 .. _installing-zeek:
 
@@ -35,7 +36,7 @@ To build Zeek from source, the following additional dependencies are required:
 
     * CMake 2.8.12 or greater           (http://www.cmake.org)
     * Make
-    * C/C++ compiler with C++11 support (GCC 4.8+ or Clang 3.3+)
+    * C/C++ compiler with C++17 support (GCC 7+ or Clang 4+)
     * SWIG                              (http://www.swig.org)
     * Bison 2.5 or greater              (https://www.gnu.org/software/bison/)
     * Flex (lexical analyzer generator) (https://github.com/westes/flex)
@@ -52,6 +53,15 @@ To install the required dependencies, you can use:
 
      sudo yum install cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel python-devel swig zlib-devel
 
+  On RHEL/CentOS 6/7, you can install and activate a devtoolset_ to get access
+  to recent GCC versions. You will also have to install and activate CMake 3.
+  For example:
+
+  .. sourcecode:: console
+
+     sudo yum install cmake3 devtoolset-7
+     scl enable devtoolset-7 bash
+
 * DEB/Debian-based Linux:
 
   .. sourcecode:: console
@@ -59,7 +69,8 @@ To install the required dependencies, you can use:
      sudo apt-get install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 
   If your system uses Python 2.7, then you will also need to install the
-  "python-ipaddress" package.
+  "python-ipaddress" package. If you are running Debian 8 (jessie), install
+  clang-4.0 instead of GCC.
 
 * FreeBSD:
 

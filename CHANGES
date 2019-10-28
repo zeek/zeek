@@ -1,4 +1,10 @@
 
+3.1.0-dev.213 | 2019-10-28 10:09:09 +0000
+
+  * GH-585: Require C++17 (Jon Siwek, Corelight)
+
+  * Update Travis CI config for C++17 (Jon Siwek, Corelight)
+
 3.1.0-dev.209 | 2019-10-28 09:17:15 +0000
 
   * Fix HTTP::build_url. (Alexey Mokeev)

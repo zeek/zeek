@@ -1,8 +1,8 @@
-project(Zeek C CXX)
-
 # When changing the minimum version here, also adapt
 # aux/zeek-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+project(Zeek C CXX)
 
 if ( NOT CMAKE_INSTALL_LIBDIR )
     # Currently, some sub-projects may use GNUInstallDirs.cmake to choose the

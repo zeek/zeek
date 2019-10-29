@@ -564,15 +564,6 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
 char* zeekenv(const char* name);
 
 /**
- * Small convenience function. Does what std::make_unique does in C++14. Will not
- * work on arrays.
- */
-template <typename T, typename ... Args>
-std::unique_ptr<T> build_unique (Args&&... args) {
-	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-/**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
  * @param val the input string to be escaped

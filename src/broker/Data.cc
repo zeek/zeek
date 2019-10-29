@@ -229,14 +229,14 @@ struct val_converter {
 					return nullptr;
 					}
 
-				list_val->Append(index_val.release());
+				list_val->Append(index_val.detach());
 				}
 
 
 			rval->Assign(list_val.get(), nullptr);
 			}
 
-		return rval.release();
+		return rval.detach();
 		}
 
 	result_type operator()(broker::table& a)
@@ -293,7 +293,7 @@ struct val_converter {
 					return nullptr;
 					}
 
-				list_val->Append(index_val.release());
+				list_val->Append(index_val.detach());
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
@@ -304,10 +304,10 @@ struct val_converter {
 				return nullptr;
 				}
 
-			rval->Assign(list_val.get(), value_val.release());
+			rval->Assign(list_val.get(), value_val.detach());
 			}
 
-		return rval.release();
+		return rval.detach();
 		}
 
 	result_type operator()(broker::vector& a)
@@ -326,10 +326,10 @@ struct val_converter {
 					return nullptr;
 					}
 
-				rval->Assign(rval->Size(), item_val.release());
+				rval->Assign(rval->Size(), item_val.detach());
 				}
 
-			return rval.release();
+			return rval.detach();
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -399,11 +399,11 @@ struct val_converter {
 					return nullptr;
 					}
 
-				rval->Assign(i, item_val.release());
+				rval->Assign(i, item_val.detach());
 				++idx;
 				}
 
-			return rval.release();
+			return rval.detach();
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{

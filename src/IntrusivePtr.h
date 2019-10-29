@@ -5,15 +5,6 @@
 #include <type_traits>
 #include <utility>
 
-// These forward declarations only exist to enable ADL for the Ref and Unref
-// functions.
-
-struct IntrusivePtrDummy;
-
-void Ref(IntrusivePtrDummy*);
-
-void Unref(IntrusivePtrDummy*);
-
 // An intrusive, reference counting smart pointer implementation.
 template <class T>
 class IntrusivePtr {
@@ -65,7 +56,7 @@ public:
 
 	~IntrusivePtr()
 		{
-		if (ptr_)
+		if ( ptr_ )
 			Unref(ptr_);
 		}
 
@@ -76,10 +67,10 @@ public:
 
 	// Returns the raw pointer without modifying the reference count and sets
 	// this to `nullptr`.
-	pointer release() noexcept
+	pointer detach() noexcept
 		{
 		auto result = ptr_;
-		if (result)
+		if ( result )
 			ptr_ = nullptr;
 		return result;
 		}
@@ -88,7 +79,7 @@ public:
 		{
 		auto old = ptr_;
 		setPtr(new_value, add_ref);
-		if (old)
+		if ( old )
 			Unref(old);
 		}
 

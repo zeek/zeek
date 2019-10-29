@@ -410,7 +410,7 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 			return std::make_pair(false, nullptr);
 			}
 
-		rf->frame[i] = val.release();
+		rf->frame[i] = val.detach();
 		}
 
 	return std::make_pair(true, rf);

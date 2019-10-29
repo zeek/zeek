@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <memory>
+
 #include "zeek-config.h"
 
 #include "Var.h"
@@ -510,7 +512,7 @@ void end_func(Stmt* body)
 
 std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body)
 	{
-	auto ingredients = build_unique<function_ingredients>();
+	auto ingredients = std::make_unique<function_ingredients>();
 
 	ingredients->frame_size = scope->Length();
 	ingredients->inits = scope->GetInits();

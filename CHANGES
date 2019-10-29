@@ -1,4 +1,16 @@
 
+3.1.0-dev.227 | 2019-10-29 09:39:10 -0700
+
+  * Replace build_unique with make_unique (Johanna Amann, Corelight)
+
+    This was a rarely used convenience function from when we did not yet
+    have c++17 support.
+
+  * GH-626: Revert "Fix compilation on OS-X." (Johanna Amann, Corelight)
+
+    Reverts workaround in cde28074a169212aa8f38fdac225ecbeac4e642d
+    which depended on C++14 features at a time when we used only C++11.
+
 3.1.0-dev.222 | 2019-10-28 20:18:15 -0700
 
   * Install cmake3 from EPEL on CentOS CI system (Jon Siwek, Corelight)

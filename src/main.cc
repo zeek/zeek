@@ -60,6 +60,9 @@ extern "C" {
 
 #include "3rdparty/sqlite3.h"
 
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "3rdparty/doctest.h"
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -401,15 +404,74 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
+	auto copy_bro_args = [argc, argv]
+		{
+		bro_argc = argc;
+		bro_argv = new char* [argc];
+
+		for ( int i = 0; i < argc; i++ )
+			bro_argv[i] = copy_string(argv[i]);
+		};
+
+#ifndef DOCTEST_CONFIG_DISABLE
+
+	doctest::Context context;
+
+	// When running unit tests, the first argument on the command line must be
+	// --testing, followed by doctest options. Optionally, users can use "--" as
+	// separator to pass Zeek options afterwards:
+	//
+	//     zeek --testing [doctest-options] -- [zeek-options]
+
+	if (argc > 1 && strcmp(argv[1], "--testing") == 0)
+		{
+
+		// Deal with CLI arguments (copy Zeek part over to bro_argv).
+		auto is_separator = [](const char* cstr)
+			{
+			return strcmp(cstr, "--") == 0;
+			};
+		auto first = argv;
+		auto last = argv + argc;
+		auto separator = std::find_if(first, last, is_separator);
+
+		if ( separator == last )
+			{
+			bro_argc = 1;
+			bro_argv = new char*[1];
+			bro_argv[0] = copy_string(argv[0]);
+			}
+		else
+			{
+			auto first_zeek_arg = std::next(separator);
+			bro_argc = 1 + std::distance(first_zeek_arg, last);
+			bro_argv = new char*[bro_argc];
+			bro_argv[0] = copy_string(argv[0]);
+			auto bro_argv_iter = std::next(bro_argv);
+			for ( auto i = first_zeek_arg; i != last; ++i )
+				*bro_argv_iter++ = copy_string(*i);
+			}
+
+		context.applyCommandLine(std::distance(first, separator), argv);
+
+		// Run queries/tests and exit.
+		return context.run();
+
+		}
+	else
+		{
+		copy_bro_args();
+		}
+
+#else // DOCTEST_CONFIG_DISABLE
+
+	copy_bro_args();
+
+#endif // DOCTEST_CONFIG_DISABLE
+
 	double time_start = current_time(true);
 
 	brofiler.ReadStats();
-
-	bro_argc = argc;
-	bro_argv = new char* [argc];
-
-	for ( int i = 0; i < argc; i++ )
-		bro_argv[i] = copy_string(argv[i]);
 
 	name_list interfaces;
 	name_list read_files;
@@ -509,7 +571,7 @@ int main(int argc, char** argv)
 #endif
 
 	int op;
-	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
+	while ( (op = getopt_long(bro_argc, bro_argv, opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
 		case 'a':
 			parse_only = true;
@@ -721,7 +783,7 @@ int main(int argc, char** argv)
 
 	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
-	if ( optind == argc &&
+	if ( optind == bro_argc &&
 	     read_files.length() == 0 &&
 	     interfaces.length() == 0 &&
 	     ! id_name && ! command_line_policy && ! print_plugins )
@@ -730,7 +792,7 @@ int main(int argc, char** argv)
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
 	// activate/query. The remainder are treated as scripts to load.
-	while ( optind < argc )
+	while ( optind < bro_argc )
 		{
 		if ( strchr(argv[optind], '=') )
 			params.push_back(argv[optind++]);

@@ -433,3 +433,25 @@ add_clang_tidy_files(${MAIN_SRCS})
 # (*.pac.cc) files, and most of the generated code for BIFs (not including
 # *.bif.register.cc)
 create_clang_tidy_target()
+
+########################################################################
+## CTest setup.
+
+# Scan all .cc files for TEST_CASE macros and generate CTest targets.
+if (ENABLE_ZEEK_UNIT_TESTS)
+    file(GLOB_RECURSE all_cc_files "*.cc")
+    set(test_cases "")
+    foreach (cc_file ${all_cc_files})
+        file (STRINGS ${cc_file} test_case_lines REGEX "TEST_CASE")
+        foreach (line ${test_case_lines})
+            string(REGEX REPLACE "TEST_CASE\\(\"(.+)\"\\)" "\\1" test_case "${line}")
+            list(APPEND test_cases "${test_case}")
+        endforeach ()
+    endforeach ()
+    list(LENGTH test_cases num_test_cases)
+    MESSAGE(STATUS "-- Found ${num_test_cases} test cases for CTest")
+    foreach (test_case ${test_cases})
+        add_test(NAME "\"${test_case}\""
+                 COMMAND zeek --testing "--test-case=${test_case}")
+    endforeach ()
+endif ()

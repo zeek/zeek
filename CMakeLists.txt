@@ -19,6 +19,13 @@ include(cmake/FindClangTidy.cmake)
 ########################################################################
 ## Project/Build Configuration
 
+
+if (ENABLE_ZEEK_UNIT_TESTS)
+    enable_testing()
+else ()
+    add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif ()
+
 if ( ENABLE_CCACHE )
     find_program(CCACHE_PROGRAM ccache)
 

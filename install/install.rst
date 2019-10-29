@@ -34,7 +34,7 @@ before you begin:
 
 To build Zeek from source, the following additional dependencies are required:
 
-    * CMake 2.8.12 or greater           (http://www.cmake.org)
+    * CMake 3.0 or greater              (http://www.cmake.org)
     * Make
     * C/C++ compiler with C++17 support (GCC 7+ or Clang 4+)
     * SWIG                              (http://www.swig.org)

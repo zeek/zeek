@@ -84,7 +84,7 @@ install_in_docker() {
     local_distro=$distro
     case $distro in
         centos_7)
-        distro_cmds="yum -y install gdb cmake make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which centos-release-scl && yum -y install devtoolset-7"
+        distro_cmds="yum -y install gdb make gcc gcc-c++ flex bison libpcap-devel openssl-devel git openssl which centos-release-scl && yum -y install devtoolset-7 && yum -y install epel-release && yum -y install cmake3"
         ;;
         debian_9)
         distro_cmds="apt-get update; apt-get -y install gdb cmake make flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils clang-7 libc++-7-dev libc++abi-7-dev; update-alternatives --install /usr/bin/cc cc /usr/bin/clang-7 100; update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-7 100"

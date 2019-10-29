@@ -1,4 +1,8 @@
 
+3.1.0-dev.222 | 2019-10-28 20:18:15 -0700
+
+  * Install cmake3 from EPEL on CentOS CI system (Jon Siwek, Corelight)
+
 3.1.0-dev.221 | 2019-10-28 18:30:24 -0700
 
   * Require CMake 3.0+ (Dominik Charousset, Corelight)

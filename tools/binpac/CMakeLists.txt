@@ -1,5 +1,5 @@
-project(BinPAC C CXX)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+project(BinPAC C CXX)
 include(cmake/CommonCMakeConfig.cmake)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)

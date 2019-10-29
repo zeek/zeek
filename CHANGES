@@ -1,4 +1,13 @@
 
+3.1.0-dev.221 | 2019-10-28 18:30:24 -0700
+
+  * Require CMake 3.0+ (Dominik Charousset, Corelight)
+
+  * Move CMake project() after cmake_minimum_required() (Dominik Charousset, Corelight)
+
+    The call to `project` must come after `cmake_minimum_required` in CMake
+    in order to get the correct policy settings.
+
 3.1.0-dev.219 | 2019-10-28 20:59:12 +0100
 
   * GH-654: allow table() in function &default expressions

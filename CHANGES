@@ -1,4 +1,8 @@
 
+3.1.0-dev.234 | 2019-10-30 13:33:08 -0700
+
+  * Add --libdir convenience flag to configure. (Johanna Amann, Corelight)
+
 3.1.0-dev.231 | 2019-10-30 11:02:28 -0700
 
   * Add missing ipv6 support in patricia.c local_inet_pton() (Tim Shelton)

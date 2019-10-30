@@ -1,4 +1,8 @@
 
+3.1.0-dev.231 | 2019-10-30 11:02:28 -0700
+
+  * Add missing ipv6 support in patricia.c local_inet_pton() (Tim Shelton)
+
 3.1.0-dev.229 | 2019-10-30 07:57:19 +0000
 
   * GH-664: fix signature matching for cases where the first TCP

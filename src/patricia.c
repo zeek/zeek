@@ -124,17 +124,18 @@ local_inet_pton (int af, const char *src, void *dst)
 	    return 1;
 		}
 	}
-#ifdef NT
 	else if (af == AF_INET6) {
+#ifdef NT
 		struct in6_addr Address;
 		return (inet6_addr(src, &Address));
-	}
 #else
-    else {
+		return inet_pton(AF_INET6, src, dst);
+#endif /* NT */
+	}
+	else {
 	errno = EAFNOSUPPORT;
 	return -1;
     }
-#endif /* NT */
 }
 
 /* this allows imcomplete prefix */

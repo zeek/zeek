@@ -5,6 +5,8 @@
 #include <string.h>
 #include "module_util.h"
 
+using namespace std;
+
 static int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);

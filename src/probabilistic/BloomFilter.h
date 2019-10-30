@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -75,7 +76,7 @@ public:
 	 * Returns a string with a representation of the Bloom filter's
 	 * internal state. This is for debugging/testing purposes only.
 	 */
-	virtual string InternalState() const = 0;
+	virtual std::string InternalState() const = 0;
 
 	broker::expected<broker::data> Serialize() const;
 	static std::unique_ptr<BloomFilter> Unserialize(const broker::data& data);
@@ -154,7 +155,7 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	BasicBloomFilter* Clone() const override;
-	string InternalState() const override;
+	std::string InternalState() const override;
 
 protected:
 	friend class BloomFilter;
@@ -203,7 +204,7 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	CountingBloomFilter* Clone() const override;
-	string InternalState() const override;
+	std::string InternalState() const override;
 
 protected:
 	friend class BloomFilter;

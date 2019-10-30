@@ -15,7 +15,7 @@ class RuleHdrTest;
 class Rule;
 
 typedef PList<Rule> rule_list;
-typedef std::map<string, Rule*> rule_dict;
+typedef std::map<std::string, Rule*> rule_dict;
 
 class Rule {
 public:

@@ -4,7 +4,6 @@
 
 #include "BroString.h"
 #include <map>
-using namespace std;
 
 // BroSubstrings are essentially BroStrings, augmented with indexing
 // information required for the Smith-Waterman algorithm.  Each substring
@@ -15,7 +14,7 @@ using namespace std;
 class BroSubstring : public BroString {
 
 public:
-	typedef vector<BroSubstring*> Vec;
+	typedef std::vector<BroSubstring*> Vec;
 	typedef Vec::iterator VecIt;
 	typedef Vec::const_iterator VecCIt;
 
@@ -36,11 +35,11 @@ public:
 		int index;
 	};
 
-	typedef vector<BSSAlign> BSSAlignVec;
+	typedef std::vector<BSSAlign> BSSAlignVec;
 	typedef BSSAlignVec::iterator BSSAlignVecIt;
 	typedef BSSAlignVec::const_iterator BSSAlignVecCIt;
 
-	explicit BroSubstring(const string& string)
+	explicit BroSubstring(const std::string& string)
 		: BroString(string), _num(), _new(false) { }
 
 	explicit BroSubstring(const BroString& string)
@@ -76,7 +75,7 @@ public:
 						unsigned int index);
 
 private:
-	typedef map<string, void*> DataMap;
+	typedef std::map<std::string, void*> DataMap;
 	typedef DataMap::iterator DataMapIt;
 
 	BroSubstring();

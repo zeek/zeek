@@ -5,7 +5,28 @@
 #include <type_traits>
 #include <utility>
 
-// An intrusive, reference counting smart pointer implementation.
+/**
+ * An intrusive, reference counting smart pointer implementation. Much like
+ * @c std::shared_ptr, this smart pointer models shared ownership of an object
+ * through a pointer. Several @c IntrusivePtr instances may point to the same
+ * object.
+ *
+ * The @c IntrusivePtr requires two free functions associated to @c T that must
+ * be available via argument-dependent lookup: @c Ref and @c Unref. The former
+ * increments the reference by one whenever a new owner participates in the
+ * lifetime of the shared object and the latter decrements the reference count
+ * by one. Once the reference count reaches zero, @c Unref also is responsible
+ * for destroying the shared object.
+ *
+ * The @c IntrusivePtr works with any type that offers the two free functions,
+ * but most notably is designed to work with @c BroObj and its subtypes.
+ *
+ * The same object may get managed via @c IntrusivePtr in in one part of the
+ * code base while another part of the program manages it manually by passing
+ * raw pointers and calling @c Ref and @c Unref explicitly. However, new code
+ * should use a smart pointer whenever possible to reduce boilerplate code and
+ * increase robustness of the code (in particular w.r.t. exceptions).
+ */
 template <class T>
 class IntrusivePtr {
 public:
@@ -33,6 +54,13 @@ public:
 		// nop
 		}
 
+	/**
+	 * Constructs a new intrusive pointer for managing the lifetime of the object
+	 * pointed to by @c raw_ptr.
+	 * @param raw_ptr Pointer to the shared object.
+	 * @param add_ref Denotes whether the reference count of the object shall be
+	 *                increased during construction.
+	 */
 	IntrusivePtr(pointer raw_ptr, bool add_ref) noexcept
 		{
 		setPtr(raw_ptr, add_ref);
@@ -65,8 +93,11 @@ public:
 		std::swap(ptr_, other.ptr_);
 		}
 
-	// Returns the raw pointer without modifying the reference count and sets
-	// this to `nullptr`.
+	/**
+	 * Detaches an object from the automated lifetime management and sets this
+	 * intrusive pointer to @c nullptr.
+	 * @returns the raw pointer without modifying the reference count.
+	 */
 	pointer detach() noexcept
 		{
 		auto result = ptr_;
@@ -75,6 +106,13 @@ public:
 		return result;
 		}
 
+	/**
+	 * Convenience function for assigning a new raw pointer. Equivalent to calling
+	 * @c operator= with an @c IntrusivePtr constructed from the arguments.
+	 * @param new_value Pointer to the new shared object.
+	 * @param add_ref Denotes whether the reference count of the new shared object
+	 *                shall be increased.
+	 */
 	void reset(pointer new_value = nullptr, bool add_ref = true) noexcept
 		{
 		auto old = ptr_;
@@ -125,7 +163,14 @@ private:
 	pointer ptr_;
 };
 
-// Convenience function for creating intrusive pointers.
+/**
+ * Convenience function for creating a reference counted object and wrapping it
+ * into an intrusive pointers.
+ * @param args Arguments for constructing the shared object of type @c T.
+ * @returns an @c IntrusivePtr pointing to the new object.
+ * @note This function assumes that any @c T starts with a reference count of 1.
+ * @relates IntrusivePtr
+ */
 template <class T, class... Ts>
 IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
@@ -135,21 +180,33 @@ IntrusivePtr<T> make_intrusive(Ts&&... args)
 
 // -- comparison to nullptr ----------------------------------------------------
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator==(const IntrusivePtr<T>& x, std::nullptr_t) {
   return !x;
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator==(std::nullptr_t, const IntrusivePtr<T>& x) {
   return !x;
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator!=(const IntrusivePtr<T>& x, std::nullptr_t) {
   return static_cast<bool>(x);
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator!=(std::nullptr_t, const IntrusivePtr<T>& x) {
   return static_cast<bool>(x);
@@ -157,32 +214,50 @@ bool operator!=(std::nullptr_t, const IntrusivePtr<T>& x) {
 
 // -- comparison to raw pointer ------------------------------------------------
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator==(const IntrusivePtr<T>& x, const T* y) {
   return x.get() == y;
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator==(const T* x, const IntrusivePtr<T>& y) {
   return x == y.get();
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator!=(const IntrusivePtr<T>& x, const T* y) {
   return x.get() != y;
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator!=(const T* x, const IntrusivePtr<T>& y) {
   return x != y.get();
 }
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator<(const IntrusivePtr<T>& x, const T* y)
 	{
 	return x.get() < y;
 	}
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 bool operator<(const T* x, const IntrusivePtr<T>& y)
 	{
@@ -193,6 +268,10 @@ bool operator<(const T* x, const IntrusivePtr<T>& y)
 
 // Using trailing return type and decltype() here removes this function from
 // overload resolution if the two pointers types are not comparable (SFINAE).
+
+/**
+ * @relates IntrusivePtr
+ */
 template <class T, class U>
 auto operator==(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 -> decltype(x.get() == y.get())
@@ -200,6 +279,9 @@ auto operator==(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 	return x.get() == y.get();
 	}
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T, class U>
 auto operator!=(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 -> decltype(x.get() != y.get())
@@ -207,6 +289,9 @@ auto operator!=(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 	return x.get() != y.get();
 	}
 
+/**
+ * @relates IntrusivePtr
+ */
 template <class T>
 auto operator<(const IntrusivePtr<T>& x, const IntrusivePtr<T>& y)
 -> decltype(x.get() < y.get())

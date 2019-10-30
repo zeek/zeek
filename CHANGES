@@ -1,4 +1,8 @@
 
+3.1.0-dev.235 | 2019-10-30 15:04:13 -0700
+
+  * GH-649: define missing DLT_NFLOG to support OpenBSD (Jon Siwek, Corelight)
+
 3.1.0-dev.234 | 2019-10-30 13:33:08 -0700
 
   * Add --libdir convenience flag to configure. (Johanna Amann, Corelight)

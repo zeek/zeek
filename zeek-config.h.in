@@ -163,11 +163,16 @@
 /* Define u_int8_t */
 #cmakedefine u_int8_t @u_int8_t@
 
-/* OpenBSD's bpf.h may not declare this data link type, but it's supposed to be
+/* OpenBSD's bpf.h may not declare some data link types, but they're
    used consistently for the same purpose on all platforms. */
 #cmakedefine HAVE_DLT_PPP_SERIAL
 #ifndef HAVE_DLT_PPP_SERIAL
 #define DLT_PPP_SERIAL @DLT_PPP_SERIAL@
+#endif
+
+#cmakedefine HAVE_DLT_NFLOG
+#ifndef HAVE_DLT_NFLOG
+#define DLT_NFLOG @DLT_NFLOG@
 #endif
 
 /* IPv6 Next Header values defined by RFC 3542 */

@@ -1,4 +1,10 @@
 
+3.1.0-dev.229 | 2019-10-30 07:57:19 +0000
+
+  * GH-664: fix signature matching for cases where the first TCP
+    packet seen contained payload data, regardless of its TCP flags.
+    (Jon Siwek, Corelight)
+
 3.1.0-dev.227 | 2019-10-29 09:39:10 -0700
 
   * Replace build_unique with make_unique (Johanna Amann, Corelight)

@@ -198,9 +198,8 @@ Class Member Visibility/Ordering
 Language Support and Preferences
 ================================
 
-The Zeek build system only supports up to C++11 as supported by gcc 4.8.3
-(meaning not the whole C++11 feature set). This is due to compiler support on
-the target platforms users have reported needing.
+Zeek may use C++ features up to and including those supported by the C++17
+standard.
 
 Exceptions
 ----------
@@ -221,17 +220,26 @@ Strings
 
 One artifact of the long life of this Zeek code is that a large number of the
 strings created internally are plain ``char*`` values.  For new code, prefer
-using ``std::string`` instead, unless for obvious reasons of avoiding a copy.
-e.g. external library API returns a ``char*``, then just use that.  Or writing
-a new API that is expected to commonly be passed in ``char*`` (in this case,
-we'll eventually want to use ``std::string_view`` to replace ``const
-std::string&`` parameters, but that's not until adopting C++17).
+using ``std::string`` or ``std::string_view`` instead.
 
 Explicit Constructors
 ---------------------
 
 Single-argument constructors should be marked ``explicit`` to aid in
 type-checking.
+
+Using Namespaces
+----------------
+
+Source files (``*.cc``) may set up any namespace imports/aliases they find
+convenient at any scope, including file scope.  For example, they may choose to
+do ``using namespace std``.
+
+Header files (``*.h``) should avoid, at file scope, anything that alters
+namespaces or the name lookup process since it's usually not desirable for the
+inclusion of a header to have those side effects.  E.g. don't do things like
+``using namespace std`` in a header file.  However, it's acceptable to do this
+inside function scopes should the implementation be defined in the header file.
 
 Global Namespace
 ----------------

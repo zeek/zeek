@@ -130,7 +130,14 @@ local_inet_pton (int af, const char *src, void *dst)
 		return (inet6_addr(src, &Address));
 	}
 #else
-    else {
+    else if (af == AF_INET6) { // ipv6 support - redsand @ hawk.io
+        struct in6_addr i6;
+        if(inet_pton(AF_INET6, src, &i6) == 0) {
+            return 0;
+        }
+        memcpy(dst, &i6.s6_addr, sizeof(i6.s6_addr));
+        return 1;
+    } else {
 	errno = EAFNOSUPPORT;
 	return -1;
     }

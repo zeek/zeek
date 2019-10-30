@@ -1181,6 +1181,13 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	     tcp_hdr_len <= uint32(caplen) )
 		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
 
+	// PIA/signature matching state needs to be initialized before
+	// processing/reassembling any TCP data, since that processing may
+	// itself try to perform signature matching.  Also note that a SYN
+	// packet may technically carry data (see RFC793 Section 3.4 and also
+	// TCP Fast Open).
+	CheckPIA_FirstPacket(is_orig, ip);
+
 	if ( DEBUG_tcp_data_sent )
 		{
 		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",
@@ -1214,8 +1221,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig, rel_data_seq, ip, caplen);
-
-	CheckPIA_FirstPacket(is_orig, ip);
 	}
 
 void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

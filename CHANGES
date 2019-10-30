@@ -1,4 +1,12 @@
 
+3.0.1-dev.17 | 2019-10-30 13:37:15 -0700
+
+  * GH-664: fix signature matching for payload-carrying SYN packets (Jon Siwek, Corelight)
+
+    Or more generally, signatures would not work correctly for any case
+    where the first TCP packet seen contained payload data, regardless of
+    its TCP flags.
+
 3.0.1-dev.16 | 2019-10-24 11:31:43 -0700
 
   * Update to embedded Broker/CAF to fix potential libc++ mismatch (Robin Sommer, Corelight)

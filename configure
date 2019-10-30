@@ -34,6 +34,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            [PREFIX/spool]
     --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
+    --libdir=PATH          installation directory for library files [PREFIX/lib]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
 
@@ -191,6 +192,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry ZEEK_ROOT_DIR        PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/zeekctl
+            ;;
+        --libdir=*)
+            append_cache_entry CMAKE_INSTALL_LIBDIR PATH   $optarg
             ;;
         --scriptdir=*)
             append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $optarg

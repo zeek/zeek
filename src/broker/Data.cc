@@ -181,7 +181,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = makeCounted<TableVal>(tt);
+		auto rval = make_intrusive<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -215,7 +215,7 @@ struct val_converter {
 			     indices->size() )
 				return nullptr;
 
-			auto list_val = makeCounted<ListVal>(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -241,7 +241,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = makeCounted<TableVal>(tt);
+		auto rval = make_intrusive<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -275,7 +275,7 @@ struct val_converter {
 			     indices->size() )
 				return nullptr;
 
-			auto list_val = makeCounted<ListVal>(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -305,7 +305,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = makeCounted<VectorVal>(vt);
+			auto rval = make_intrusive<VectorVal>(vt);
 
 			for ( auto& item : a )
 				{
@@ -362,7 +362,7 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = makeCounted<RecordVal>(rt);
+			auto rval = make_intrusive<RecordVal>(rt);
 			auto idx = 0u;
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )

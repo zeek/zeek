@@ -127,7 +127,7 @@ private:
 
 // Convenience function for creating intrusive pointers.
 template <class T, class... Ts>
-IntrusivePtr<T> makeCounted(Ts&&... args)
+IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
 	// Assumes that objects start with a reference count of 1!
 	return {new T(std::forward<Ts>(args)...), false};

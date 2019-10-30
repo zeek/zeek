@@ -115,10 +115,13 @@ Note that for single-line functions there should be a tab between the closing
 Function and Variable Naming
 ============================
 
-Type names (classes, enums, structs, etc) and function names should always be
-``CamelCase``. Variable names, including member variables, should always be
-``snake_case``. Prefer using more descriptive variable names, except for
-counter variables.
+- Type names (classes, enums, structs, etc) should always be ``CamelCase``.
+- Class/struct methods should be ``CamelCase``, though some exceptions are
+  made.  For example, Zeek classes that are similar enough to another class
+  provided by the standard library, ``snake_case`` may be used so they
+  feel more familiar.
+- Variable names, including member variables, should always be ``snake_case``.
+- Prefer using more descriptive variable names, except for counter variables.
 
 Including Files
 ===============

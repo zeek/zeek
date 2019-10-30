@@ -213,9 +213,7 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
 				return nullptr;
-				}
 
 			auto list_val = makeCounted<ListVal>(TYPE_ANY);
 
@@ -225,9 +223,7 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
 					return nullptr;
-					}
 
 				list_val->Append(index_val.detach());
 				}
@@ -277,9 +273,7 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
 				return nullptr;
-				}
 
 			auto list_val = makeCounted<ListVal>(TYPE_ANY);
 
@@ -289,9 +283,7 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
 					return nullptr;
-					}
 
 				list_val->Append(index_val.detach());
 				}
@@ -300,9 +292,7 @@ struct val_converter {
 			                                         tt->YieldType());
 
 			if ( ! value_val )
-				{
 				return nullptr;
-				}
 
 			rval->Assign(list_val.get(), value_val.detach());
 			}
@@ -322,9 +312,7 @@ struct val_converter {
 				auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
 
 				if ( ! item_val )
-					{
 					return nullptr;
-					}
 
 				rval->Assign(rval->Size(), item_val.detach());
 				}
@@ -380,9 +368,7 @@ struct val_converter {
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
-					{
 					return nullptr;
-					}
 
 				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
@@ -395,9 +381,7 @@ struct val_converter {
 				                                        rt->FieldType(i));
 
 				if ( ! item_val )
-					{
 					return nullptr;
-					}
 
 				rval->Assign(i, item_val.detach());
 				++idx;

@@ -9,6 +9,7 @@
 # (if you don't, then the private tests will be skipped).
 
 LEAK_TEST_DISTRO="ubuntu_18.04_leaktest"
+COVERITY_DISTRO="ubuntu_18.04"
 
 usage() {
     echo "usage: $0 CMD DISTRO"
@@ -96,7 +97,7 @@ install_in_docker() {
         distro_cmds="apt-get update; apt-get -y install gdb cmake make flex bison python libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils wget xz-utils; wget -q https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz; mkdir /clang-9; tar --strip-components=1 -C /clang-9 -xvf clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz; update-alternatives --install /usr/bin/cc cc /clang-9/bin/clang 100; update-alternatives --install /usr/bin/c++ c++ /clang-9/bin/clang++ 100"
         ;;
         ubuntu_18.04)
-        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="apt-get update; apt-get -y install wget xz-utils gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         ${LEAK_TEST_DISTRO})
         distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils google-perftools libgoogle-perftools4 libgoogle-perftools-dev; ln -s /usr/bin/python3 /usr/local/bin/python"
@@ -116,17 +117,29 @@ install_in_docker() {
 
 # Build Zeek in a docker container.
 build_in_docker() {
+    recursed_distro=travis
+
+    if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
+        recursed_distro=coverity
+    fi
+
     # Pass the distro as a different environment variable name to docker since
     # the script will set $distro to "travis" as part of the invocation.
-    docker exec -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job build travis
+    docker exec -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job build ${recursed_distro}
 }
 
 
 # Run Zeek tests in a docker container.
 run_in_docker() {
+    recursed_distro=travis
+
+    if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
+        recursed_distro=coverity
+    fi
+
     # Pass the distro as a different environment variable name to docker since
     # the script will set $distro to "travis" as part of the invocation.
-    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job run travis
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job run ${recursed_distro}
 }
 
 update_env() {
@@ -326,29 +339,7 @@ fi
 
 set -e
 
-if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
-    # This is a Travis CI cron job, so check the job number.
-
-    # Extract second component of the job number.
-    if [ -z "${TRAVIS_JOB_NUMBER}" ]; then
-        echo "Error: TRAVIS_JOB_NUMBER is not defined (it should be defined by Travis CI)"
-        exit 1
-    fi
-    job=`echo ${TRAVIS_JOB_NUMBER} | cut -d . -f 2`
-
-    # If this isn't the first job in a Travis CI build, then just output a
-    # message and exit (this is not an error).
-    if [ "$job" != "1" ]; then
-        echo "Coverity scan is performed only in the first job of this build"
-        exit 0
-    fi
-fi
-
-
 if [ "${TRAVIS_EVENT_TYPE}" = "cron" ] || [ "$distro" = "coverity" ]; then
-    # Run coverity scan when this script is run from a Travis cron job, or
-    # if the user specifies the "coverity" distro.
-
     # Check if the project token is available (this is a secret value and
     # should not be hard-coded in this script).  This value can be found by
     # logging into the coverity scan web site and looking in the project
@@ -357,13 +348,26 @@ if [ "${TRAVIS_EVENT_TYPE}" = "cron" ] || [ "$distro" = "coverity" ]; then
         echo "Error: COV_TOKEN is not defined (should be defined in environment variables section of Travis settings for this repo)"
         exit 1
     fi
+fi
 
+if [ "${TRAVIS_EVENT_TYPE}" = "cron" ]; then
+    # This is a Travis CI cron job which only runs the Coverity build inside
+    # a single container.
+
+    if [ "$distro" != "${COVERITY_DISTRO}" ]; then
+        echo "Coverity scan is performed on ${COVERITY_DISTRO}"
+        exit 0
+    fi
+fi
+
+if [ "$distro" = "coverity" ]; then
     # The "build" and "run" steps are split up into separate steps because the
     # build outputs thousands of lines (which are conveniently collapsed into
     # a single line when viewing the "Job log" on the Travis CI web site).
     if [ "$step" = "install" ]; then
-        install_coverity
+        echo "No 'install' step needed for Coverity build"
     elif [ "$step" = "build" ]; then
+        install_coverity
         build_coverity
     elif [ "$step" = "run" ]; then
         run_coverity

@@ -1,4 +1,8 @@
 
+3.1.0-dev.239 | 2019-10-31 12:18:16 -0700
+
+  * Fix Travis CI script to run Coverity build in container (Jon Siwek, Corelight)
+
 3.1.0-dev.237 | 2019-10-31 06:37:23 +0100
 
   * Remove "using namespace std" from header files (Jon Siwek, Corelight)

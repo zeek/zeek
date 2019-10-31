@@ -13,7 +13,6 @@
 #include <vector>
 #include <set>
 #include <map>
-using namespace std;
 
 #include "Reporter.h"
 #include "net_util.h"

@@ -1,4 +1,8 @@
 
+3.1.0-dev.237 | 2019-10-31 06:37:23 +0100
+
+  * Remove "using namespace std" from header files (Jon Siwek, Corelight)
+
 3.1.0-dev.235 | 2019-10-30 15:04:13 -0700
 
   * GH-649: define missing DLT_NFLOG to support OpenBSD (Jon Siwek, Corelight)

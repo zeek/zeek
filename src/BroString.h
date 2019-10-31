@@ -7,7 +7,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <sys/types.h>
-using namespace std;
 
 #include "util.h"
 
@@ -20,23 +19,23 @@ class VectorVal;
 
 class BroString {
 public:
-	typedef vector<BroString*> Vec;
+	typedef std::vector<BroString*> Vec;
 	typedef Vec::iterator VecIt;
 	typedef Vec::const_iterator VecCIt;
 
-	typedef vector<const BroString*> CVec;
+	typedef std::vector<const BroString*> CVec;
 	typedef Vec::iterator CVecIt;
 	typedef Vec::const_iterator CVecCIt;
 
 	// IdxVecs are vectors of indices of characters in a string.
-	typedef vector<int> IdxVec;
+	typedef std::vector<int> IdxVec;
 	typedef IdxVec::iterator IdxVecIt;
 	typedef IdxVec::const_iterator IdxVecCIt;
 
 	// Constructors creating internal copies of the data passed in.
 	BroString(const u_char* str, int arg_n, int add_NUL);
 	explicit BroString(const char* str);
-	explicit BroString(const string& str);
+	explicit BroString(const std::string& str);
 	BroString(const BroString& bs);
 
 	// Constructor that takes owernship of the vector passed in.
@@ -64,7 +63,7 @@ public:
 	//
 	void Set(const u_char* str, int len, int add_NUL=1);
 	void Set(const char* str);
-	void Set(const string& str);
+	void Set(const std::string& str);
 	void Set(const BroString &str);
 
 	void SetUseFreeToDelete(int use_it)
@@ -103,13 +102,13 @@ public:
 	// Also more useful for debugging purposes since no deallocation
 	// is required on your part here.
 	//
-	ostream& Render(ostream& os, int format = ESC_SER) const;
+	std::ostream& Render(std::ostream& os, int format = ESC_SER) const;
 
 	// Reads a string from an input stream.  Unless you use a render
 	// style combination that uses ESC_SER, note that the streams
 	// will consider whitespace as a field delimiter.
 	//
-	istream& Read(istream& is, int format = ESC_SER);
+	std::istream& Read(std::istream& is, int format = ESC_SER);
 
 	// XXX Fix redundancy: strings.bif implements both to_lower
 	// XXX and to_upper; the latter doesn't use BroString::ToUpper().
@@ -165,7 +164,7 @@ public:
 };
 
 // Default output stream operator, using rendering mode EXPANDED_STRING.
-ostream& operator<<(ostream& os, const BroString& bs);
+std::ostream& operator<<(std::ostream& os, const BroString& bs);
 
 extern int Bstr_eq(const BroString* s1, const BroString* s2);
 extern int Bstr_cmp(const BroString* s1, const BroString* s2);

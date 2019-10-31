@@ -10,6 +10,7 @@
 
 #include <set>
 #include <map>
+#include <string>
 
 #include <ctype.h>
 typedef int (*cce_func)(int);
@@ -60,7 +61,7 @@ public:
 	// functionality.
 	std::string LookupDef(const std::string& def);
 
-	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict[string(txt)] = ccl; }
+	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict[std::string(txt)] = ccl; }
 	int InsertCCL(CCL* ccl)
 		{
 		ccl_list.push_back(ccl);
@@ -68,7 +69,7 @@ public:
 		}
 	CCL* LookupCCL(const char* txt)
 		{
-		const auto& iter = ccl_dict.find(string(txt));
+		const auto& iter = ccl_dict.find(std::string(txt));
 		if ( iter != ccl_dict.end() )
 			return iter->second;
 
@@ -125,8 +126,8 @@ protected:
 	int multiline;
 	char* pattern_text;
 
-	std::map<string, string> defs;
-	std::map<string, CCL*> ccl_dict;
+	std::map<std::string, std::string> defs;
+	std::map<std::string, CCL*> ccl_dict;
 	PList<CCL> ccl_list;
 	EquivClass equiv_class;
 	int* ecs;

@@ -1,4 +1,8 @@
 
+3.1.0-dev.240 | 2019-11-01 15:58:55 -0700
+
+  * Use #pragma once in Base64.h (Jon Siwek, Corelight)
+
 3.1.0-dev.239 | 2019-10-31 12:18:16 -0700
 
   * Fix Travis CI script to run Coverity build in container (Jon Siwek, Corelight)

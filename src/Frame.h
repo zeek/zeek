@@ -24,13 +24,15 @@ public:
 	 * @param func the function that is creating this frame
 	 * @param fn_args the arguments being passed to that function.
 	 */
-	Frame(int size, const BroFunc* func, const val_list *fn_args);
+	Frame(int size, const BroFunc* func, const val_list* fn_args);
 
 	/**
 	 * Deletes the frame. Unrefs its trigger, the values that it
 	 * contains and its closure if applicable.
 	 */
 	virtual ~Frame() override;
+
+	Frame* Refresh(int arg_size, const BroFunc* func, const val_list* fn_args);
 
 	/**
 	 * @param n the index to get.

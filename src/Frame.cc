@@ -31,7 +31,6 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 
 Frame::~Frame()
 	{
-	// Deleting a Frame that is a view is a no-op.
 	Unref(trigger);
 	Unref(closure);
 
@@ -40,6 +39,44 @@ Frame::~Frame()
 
 	Release();
 	}
+
+Frame* Frame::Refresh(int arg_size, const BroFunc* func, const val_list* fn_args)
+{
+	Unref(trigger);
+	Unref(closure);
+
+	for ( auto& i : outer_ids )
+		Unref(i);
+
+	for ( int i = 0; i < size; ++i )
+		if ( frame[i] )
+			Unref(frame[i]);
+
+	if ( arg_size != size )
+	{
+		delete [] frame;
+		size = arg_size;
+		frame = new Val*[size];
+	}
+
+	function = func;
+	func_args = fn_args;
+
+	next_stmt = nullptr;
+	break_before_next_stmt = false;
+	break_on_return = false;
+
+	trigger = nullptr;
+	call = nullptr;
+	delayed = false;
+
+	closure = nullptr;
+
+	for (int i = 0; i < size; ++i)
+		frame[i] = nullptr;
+
+	return this;
+}
 
 void Frame::SetElement(int n, Val* v)
 	{

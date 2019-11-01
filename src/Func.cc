@@ -273,6 +273,8 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 	type = arg_id->Type()->Ref();
 	frame_size = arg_frame_size;
 
+	my_frame = new Frame(frame_size, this, nullptr);
+
 	if ( arg_body )
 		{
 		Body b;
@@ -287,6 +289,7 @@ BroFunc::~BroFunc()
 	std::for_each(bodies.begin(), bodies.end(),
 		[](Body& b) { Unref(b.stmts); });
 	Unref(closure);
+	Unref(my_frame);
 	}
 
 int BroFunc::IsPure() const
@@ -325,7 +328,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
 		}
 
-	Frame* f = new Frame(frame_size, this, args);
+	Frame* f = my_frame->Refresh(frame_size, this, args);
+	Ref(my_frame);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -452,6 +456,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	g_frame_stack.pop_back();
 
 	Unref(f);
+	// Clear our frame back out.
+	my_frame->Reset(0);
 
 	return result;
 	}

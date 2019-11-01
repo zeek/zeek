@@ -150,6 +150,8 @@ protected:
 private:
 	size_t frame_size;
 
+
+	Frame* my_frame;
 	// List of the outer IDs used in the function.
 	id_list outer_ids;
 	// The frame the BroFunc was initialized in.

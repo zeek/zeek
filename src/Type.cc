@@ -824,6 +824,43 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	d->PopType(this);
 	}
 
+TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
+	{
+	auto rval = new TableVal(internal_type("record_field_table")->AsTableType());
+
+	for ( int i = 0; i < NumFields(); ++i )
+		{
+		const BroType* ft = FieldType(i);
+		const TypeDecl* fd = FieldDecl(i);
+		Val* fv = nullptr;
+
+		if ( rv )
+			fv = rv->Lookup(i);
+
+		if ( fv )
+			::Ref(fv);
+
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+
+		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+
+		if ( ft->Tag() == TYPE_RECORD )
+			nr->Assign(0, new StringVal("record " + ft->GetName()));
+		else
+			nr->Assign(0, new StringVal(type_name(ft->Tag())));
+
+		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(2, fv);
+		nr->Assign(3, FieldDefault(i));
+
+		Val* field_name = new StringVal(FieldName(i));
+		rval->Assign(field_name, nr);
+		Unref(field_name);
+		}
+
+	return rval;
+	}
+
 const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 	{
 	assert(types);

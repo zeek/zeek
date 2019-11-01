@@ -75,6 +75,7 @@ class VectorType;
 class TypeType;
 class OpaqueType;
 class EnumVal;
+class TableVal;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -482,6 +483,13 @@ public:
 	TypeDecl* FieldDecl(int field);
 
 	int NumFields() const			{ return num_fields; }
+
+	/**
+	 * Returns a "record_field_table" value for introspection purposes.
+	 * @param rv  an optional record value, if given the values of
+	 * all fields will be provided in the returned table.
+	 */
+	TableVal* GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
 	// Returns 0 if all is ok, otherwise a pointer to an error message.
 	// Takes ownership of list.

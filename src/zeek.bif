@@ -1994,6 +1994,19 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
+	if ( rec->Type()->Tag() == TYPE_STRING )
+		{
+		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
+
+		if ( ! id || ! id->AsType() || id->AsType()->Tag() != TYPE_RECORD )
+			{
+			reporter->Error("record_fields string argument does not name a record type");
+			return new TableVal(internal_type("record_field_table")->AsTableType());
+			}
+
+		return id->AsType()->AsRecordType()->GetRecordFieldsVal();
+		}
+
 	return rec->GetRecordFields();
 	%}
 

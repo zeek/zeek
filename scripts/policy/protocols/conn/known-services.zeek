@@ -250,7 +250,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 	}
 
 # Handle the connection ending in case no protocol was ever detected.
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$known_services_done )
 		return;

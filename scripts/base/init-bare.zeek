@@ -419,6 +419,13 @@ type connection: record {
 
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
+
+	## This is always true for protocols other than TCP.  For TCP, this is
+	## true if the responder host ever sent a packet or if the originator host
+	## ever sends a packet that is not a SYN.  This field will be true
+	## only if :zeek:see:`connection_successful` has already been generated for
+	## a given connection.
+	successful: bool;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

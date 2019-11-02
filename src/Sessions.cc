@@ -1046,9 +1046,7 @@ void NetSessions::Remove(Connection* c)
 			}
 
 		c->Done();
-
-		if ( connection_state_remove )
-			c->Event(connection_state_remove, 0);
+		c->RemovalEvent();
 
 		// Zero out c's copy of the key, so that if c has been Ref()'d
 		// up, we know on a future call to Remove() that it's no
@@ -1141,21 +1139,21 @@ void NetSessions::Drain()
 		{
 		Connection* tc = entry.second;
 		tc->Done();
-		tc->Event(connection_state_remove, 0);
+		tc->RemovalEvent();
 		}
 
 	for ( const auto& entry : udp_conns )
 		{
 		Connection* uc = entry.second;
 		uc->Done();
-		uc->Event(connection_state_remove, 0);
+		uc->RemovalEvent();
 		}
 
 	for ( const auto& entry : icmp_conns )
 		{
 		Connection* ic = entry.second;
 		ic->Done();
-		ic->Event(connection_state_remove, 0);
+		ic->RemovalEvent();
 		}
 
 	ExpireTimerMgrs();

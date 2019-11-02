@@ -72,6 +72,7 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	resp_flow_label = 0;
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
+	is_successful = false;
 
 	if ( pkt->l2_src )
 		memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
@@ -204,11 +205,18 @@ void Connection::NextPacket(double t, int is_orig,
 
 	if ( root_analyzer )
 		{
+		auto was_successful = is_successful;
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
+
+		if ( ConnTransport() != TRANSPORT_TCP )
+			is_successful = true;
+
+		if ( ! was_successful && is_successful && connection_successful )
+			ConnectionEventFast(connection_successful, nullptr, {BuildConnVal()});
 		}
 	else
 		last_time = t;
@@ -300,7 +308,7 @@ void Connection::InactivityTimer(double t)
 
 void Connection::RemoveConnectionTimer(double t)
 	{
-	Event(connection_state_remove, 0);
+	RemovalEvent();
 	sessions->Remove(this);
 	}
 
@@ -396,6 +404,7 @@ RecordVal* Connection::BuildConnVal()
 	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
 	conn_val->Assign(6, new StringVal(history.c_str()));
+	conn_val->Assign(11, val_mgr->GetBool(is_successful));
 
 	conn_val->SetOrigin(this);
 
@@ -446,6 +455,19 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 	{
 	if ( primary_PIA )
 		primary_PIA->Match(type, data, len, is_orig, bol, eol, clear_state);
+	}
+
+void Connection::RemovalEvent()
+	{
+	auto cv = BuildConnVal();
+
+	if ( connection_state_remove )
+		ConnectionEventFast(connection_state_remove, nullptr, {cv->Ref()});
+
+	if ( is_successful && successful_connection_remove )
+		ConnectionEventFast(successful_connection_remove, nullptr, {cv->Ref()});
+
+	Unref(cv);
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)

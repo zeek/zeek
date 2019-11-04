@@ -1701,7 +1701,7 @@ function print_raw%(...%): bool
 	ODesc d(DESC_READABLE);
 	d.SetStyle(RAW_STYLE);
 	describe_vals(&@ARG@, &d, 0);
-	printf("%.*s", d.Len(), d.Description());
+	printf("%.*s", static_cast<int>(d.Len()), d.Description());
 	return val_mgr->GetBool(true);
 	%}
 

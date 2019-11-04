@@ -25,7 +25,7 @@ const int BroString::BRO_STRING_LITERAL;
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
 // arg_final_NUL == 0.
 
-BroString::BroString(int arg_final_NUL, byte_vec str, int arg_n)
+BroString::BroString(int arg_final_NUL, byte_vec str, size_t arg_n)
 	{
 	b = str;
 	n = arg_n;
@@ -33,7 +33,7 @@ BroString::BroString(int arg_final_NUL, byte_vec str, int arg_n)
 	use_free_to_delete = 0;
 	}
 
-BroString::BroString(const u_char* str, int arg_n, int add_NUL)
+BroString::BroString(const u_char* str, size_t arg_n, int add_NUL)
 	{
 	b = 0;
 	n = 0;
@@ -110,7 +110,7 @@ bool BroString::operator<(const BroString &bs) const
 	return Bstr_cmp(this, &bs) < 0;
 	}
 
-void BroString::Adopt(byte_vec bytes, int len)
+void BroString::Adopt(byte_vec bytes, size_t len)
 	{
 	Reset();
 
@@ -122,7 +122,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 	n = len - final_NUL;
 	}
 
-void BroString::Set(const u_char* str, int len, int add_NUL)
+void BroString::Set(const u_char* str, size_t len, int add_NUL)
 	{
 	Reset();
 
@@ -187,14 +187,14 @@ const char* BroString::CheckString() const
 	return (const char*) b;
 	}
 
-char* BroString::Render(int format, int* len) const
+char* BroString::Render(int format, size_t* len) const
 	{
 	// Maxmimum character expansion is as \xHH, so a factor of 4.
 	char* s = new char[n*4 + 1];	// +1 is for final '\0'
 	char* sp = s;
-	int tmp_len;
+	size_t tmp_len;
 
-	for ( int i = 0; i < n; ++i )
+	for ( size_t i = 0; i < n; ++i )
 		{
 		if ( b[i] == '\\' && (format & ESC_ESC) )
 			{
@@ -232,7 +232,7 @@ char* BroString::Render(int format, int* len) const
 	if ( (format & ESC_SER) )
 		{
 		char* result = new char[tmp_len + 16];
-		snprintf(result, tmp_len + 16, "%u ", tmp_len - 1);
+		snprintf(result, tmp_len + 16, "%lu ", tmp_len - 1);
 		tmp_len += strlen(result);
 		memcpy(result + strlen(result), s, sp - s);
 		delete [] s;
@@ -286,7 +286,7 @@ void BroString::ToUpper()
 			b[i] = toupper(b[i]);
 	}
 
-BroString* BroString::GetSubstring(int start, int len) const
+BroString* BroString::GetSubstring(int start, size_t len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )

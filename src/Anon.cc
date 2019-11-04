@@ -281,7 +281,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	int swivel = bi_ffs(a ^ n->input);
 
 	// bitvalue is the value of that bit of 'a'.
-	int bitvalue = (a >> (32 - swivel)) & 1;
+	ipaddr32_t bitvalue = (a >> (32 - swivel)) & 1;
 
 	down[bitvalue]->input = a;
 	down[bitvalue]->output = make_output(n->output, swivel);

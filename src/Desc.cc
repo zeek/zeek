@@ -204,7 +204,7 @@ void ODesc::AddBytes(const BroString* s)
 		}
 	else
 		{
-		Add(s->Len());
+		Add(static_cast<int>(s->Len()));
 		if ( ! IsBinary() )
 			Add(" ");
 		AddBytes(s->Bytes(), s->Len());
@@ -307,7 +307,7 @@ pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	return escape_pos(0, 0);
 	}
 
-void ODesc::AddBytes(const void* bytes, unsigned int n)
+void ODesc::AddBytes(const void* bytes, size_t n)
 	{
 	if ( ! escape )
 	    {
@@ -336,7 +336,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 		}
 	}
 
-void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
+void ODesc::AddBytesRaw(const void* bytes, size_t n)
 	{
 	if ( n == 0 )
 		return;

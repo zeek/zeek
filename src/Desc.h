@@ -76,7 +76,7 @@ public:
 	void SetIndentSpaces(int i)	{ indent_with_spaces = i; }
 
 	void Add(const char* s, int do_indent=1);
-	void AddN(const char* s, int len)	{ AddBytes(s, len); }
+	void AddN(const char* s, size_t len)	{ AddBytes(s, len); }
 	void Add(const std::string& s)	{ AddBytes(s.data(), s.size()); }
 	void Add(int i);
 	void Add(uint32_t u);
@@ -119,7 +119,7 @@ public:
 			}
 
 	// Bypasses the escaping enabled via SetEscape().
-	void AddRaw(const char* s, int len)	{ AddBytesRaw(s, len); }
+	void AddRaw(const char* s, size_t len)	{ AddBytesRaw(s, len); }
 	void AddRaw(const std::string &s)		{ AddBytesRaw(s.data(), s.size()); }
 
 	// Returns the description as a string.
@@ -138,7 +138,7 @@ public:
 		return byte_vec(t);
 		}
 
-	int Len() const		{ return offset; }
+	size_t Len() const		{ return offset; }
 
 	void Clear();
 
@@ -151,8 +151,8 @@ public:
 protected:
 	void Indent();
 
-	void AddBytes(const void* bytes, unsigned int n);
-	void AddBytesRaw(const void* bytes, unsigned int n);
+	void AddBytes(const void* bytes, size_t n);
+	void AddBytesRaw(const void* bytes, size_t n);
 
 	// Make buffer big enough for n bytes beyond bufp.
 	void Grow(unsigned int n);
@@ -183,8 +183,8 @@ protected:
 	desc_style style;
 
 	void* base;		// beginning of buffer
-	unsigned int offset;	// where we are in the buffer
-	unsigned int size;	// size of buffer in bytes
+	size_t offset;	// where we are in the buffer
+	size_t size;	// size of buffer in bytes
 
 	bool utf8; // whether valid utf-8 sequences may pass through unescaped
 	bool escape;	// escape unprintable characters in output?

@@ -831,7 +831,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 	}
 
 void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
-			const u_char* data, int data_len,
+			const u_char* data, size_t data_len,
 			bool bol, bool eol, bool clear)
 	{
 	if ( ! state )
@@ -1048,7 +1048,7 @@ bool RuleMatcher::EvalRuleConditions(Rule* r, RuleEndpointState* state,
 	}
 
 void RuleMatcher::ExecRuleActions(Rule* r, RuleEndpointState* state,
-				const u_char* data, int len, bool eos)
+				const u_char* data, size_t len, bool eos)
 	{
 	if ( state->opposite &&
 		 is_member_of(state->opposite->matched_rules, r->Index()) )

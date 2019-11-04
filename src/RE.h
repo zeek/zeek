@@ -98,7 +98,7 @@ public:
 
 	int LongestMatch(const char* s);
 	int LongestMatch(const BroString* s);
-	int LongestMatch(const u_char* bv, int n);
+	int LongestMatch(const u_char* bv, size_t n);
 
 	EquivClass* EC()		{ return &equiv_class; }
 
@@ -119,8 +119,8 @@ protected:
 	// appending to an existing pattern_text.
 	void AddPat(const char* pat, const char* orig_fmt, const char* app_fmt);
 
-	int MatchAll(const u_char* bv, int n);
-	int Match(const u_char* bv, int n);
+	int MatchAll(const u_char* bv, size_t n);
+	int Match(const u_char* bv, size_t n);
 
 	match_type mt;
 	int multiline;

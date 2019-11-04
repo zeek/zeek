@@ -273,7 +273,7 @@ public:
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.
 	void Match(RuleEndpointState* state, Rule::PatternType type,
-			const u_char* data, int data_len,
+			const u_char* data, size_t data_len,
 			bool bol, bool eol, bool clear);
 
 	// Reset the state of the pattern matcher for this endpoint.
@@ -343,7 +343,7 @@ private:
 
 	// Execute the actions associated with a rule.
 	void ExecRuleActions(Rule* r, RuleEndpointState* state,
-				const u_char* data, int len, bool eos);
+				const u_char* data, size_t len, bool eos);
 
 	// Evaluate all rule conditions except patterns and "header".
 	bool EvalRuleConditions(Rule* r, RuleEndpointState* state,

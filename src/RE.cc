@@ -234,7 +234,7 @@ int Specific_RE_Matcher::LongestMatch(const BroString* s)
 	return LongestMatch(s->Bytes(), s->Len());
 	}
 
-int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
+int Specific_RE_Matcher::MatchAll(const u_char* bv, size_t n)
 	{
 	if ( ! dfa )
 		// An empty pattern matches "all" iff what's being
@@ -246,9 +246,9 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 
 	while ( d )
 		{
-		if ( --n < 0 )
+		if ( n == 0 )
 			break;
-
+		n--;
 		int ec = ecs[*(bv++)];
 		d = d->Xtion(ec, dfa);
 		}
@@ -260,7 +260,7 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	}
 
 
-int Specific_RE_Matcher::Match(const u_char* bv, int n)
+int Specific_RE_Matcher::Match(const u_char* bv, size_t n)
 	{
 	if ( ! dfa )
 		// An empty pattern matches anything.
@@ -370,7 +370,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 	return accepted_matches.size() != old_matches;
 	}
 
-int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n)
+int Specific_RE_Matcher::LongestMatch(const u_char* bv, size_t n)
 	{
 	if ( ! dfa )
 		// An empty pattern matches anything.

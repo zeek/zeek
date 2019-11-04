@@ -1,4 +1,12 @@
 
+3.1.0-dev.241 | 2019-11-04 09:44:20 -0800
+
+  * Revert recent changes to Base64.h API. (Jon Siwek, Corelight)
+
+    This reverts commit 705210a035d4128ecdf249c7db98607c570bfcd2.
+    The original changes broke the Base64.h API which may be used by
+    external plugins.
+
 3.1.0-dev.240 | 2019-11-01 15:58:55 -0700
 
   * Use #pragma once in Base64.h (Jon Siwek, Corelight)

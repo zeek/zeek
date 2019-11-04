@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <utility>
 
 #include "util.h"
 #include "BroString.h"
@@ -28,12 +27,13 @@ public:
 	// an appropriate size will be new'd and *buf will point
 	// to the buffer on return. *blen holds the length of
 	// decoded data on return.  The function returns the number of
-	// input bytes processed and a success flag.
+	// input bytes processed, since the decoding will stop when there
+	// is not enough output buffer space.
 
-	std::pair<size_t, bool> Decode(size_t len, const char* data, size_t* pblen, char** buf);
-	void Encode(size_t len, const unsigned char* data, size_t* blen, char** buf);
+	int Decode(int len, const char* data, int* blen, char** buf);
+	void Encode(int len, const unsigned char* data, int* blen, char** buf);
 
-	int Done(size_t* pblen, char** pbuf);
+	int Done(int* pblen, char** pbuf);
 	int HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.

@@ -5,9 +5,9 @@
 int Base64Converter::default_base64_table[256];
 const string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void Base64Converter::Encode(size_t len, const unsigned char* data, size_t* pblen, char** pbuf)
+void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
 	{
-	size_t blen;
+	int blen;
 	char *buf;
 
 	if ( ! pbuf )
@@ -23,12 +23,12 @@ void Base64Converter::Encode(size_t len, const unsigned char* data, size_t* pble
 		}
 	else
 		{
-		blen = (size_t)(4 * ceil((double)len / 3));
+		blen = (int)(4 * ceil((double)len / 3));
 		*pbuf = buf = new char[blen];
 		*pblen = blen;
 		}
 
-	for ( size_t i = 0, j = 0; (i < len) && ( j < blen ); )
+	for ( int i = 0, j = 0; (i < len) && ( j < blen ); )
 		{
 			uint32_t bit32 = data[i++]  << 16;
 			bit32 += (i++ < len ? data[i-1] : 0) << 8; 
@@ -107,9 +107,9 @@ Base64Converter::~Base64Converter()
 		delete [] base64_table;
 	}
 
-std::pair<size_t, bool> Base64Converter::Decode(size_t len, const char* data, size_t* pblen, char** pbuf)
+int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 	{
-	size_t blen;
+	int blen;
 	char* buf;
 
 	// Initialization of table on first_time call of Decode.
@@ -128,11 +128,11 @@ std::pair<size_t, bool> Base64Converter::Decode(size_t len, const char* data, si
 		{
 		// Estimate the maximal number of 3-byte groups needed,
 		// plus 1 byte for the optional ending NUL.
-		blen = size_t((len + base64_group_next + 3) / 4) * 3 + 1;
+		blen = int((len + base64_group_next + 3) / 4) * 3 + 1;
 		*pbuf = buf = new char[blen];
 		}
 
-	size_t dlen = 0;
+	int dlen = 0;
 
 	while ( 1 )
 		{
@@ -183,23 +183,21 @@ std::pair<size_t, bool> Base64Converter::Decode(size_t len, const char* data, si
 
 		int k = base64_table[(unsigned char) data[dlen]];
 		if ( k >= 0 )
-			base64_group[base64_group_next++] = static_cast<char> (k);
+			base64_group[base64_group_next++] = k;
 		else
 			{
 			if ( ++errored == 1 )
-				{
 				IllegalEncoding(fmt("character %d ignored by Base64 decoding", (int) (data[dlen])));
-				}
 			}
 
 		++dlen;
 		}
 
 	*pblen = buf - *pbuf;
-	return {dlen, errored == 0};
+	return dlen;
 	}
 
-int Base64Converter::Done(size_t* pblen, char** pbuf)
+int Base64Converter::Done(int* pblen, char** pbuf)
 	{
 	const char* padding = "===";
 
@@ -227,12 +225,12 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 		return 0;
 		}
 
-	size_t buf_len = size_t((s->Len() + 3) / 4) * 3 + 1;
-	size_t rlen2, rlen = buf_len;
+	int buf_len = int((s->Len() + 3) / 4) * 3 + 1;
+	int rlen2, rlen = buf_len;
 	char* rbuf2, *rbuf = new char[rlen];
 
 	Base64Converter dec(conn, a ? a->CheckString() : "");
-	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf).second == false )
+	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
 		goto err;
 
 	rlen2 = buf_len - rlen;
@@ -247,7 +245,7 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 
 err:
 	delete [] rbuf;
-	return nullptr;
+	return 0;
 	}
 
 BroString* encode_base64(const BroString* s, const BroString* a, Connection* conn)
@@ -260,7 +258,7 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 		}
 
 	char* outbuf = 0;
-	size_t outlen = 0;
+	int outlen = 0;
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 

@@ -1124,14 +1124,14 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data)
 
 void MIME_Entity::DecodeBase64(int len, const char* data)
 	{
-	size_t rlen;
+	int rlen;
 	char rbuf[128];
 
 	while ( len > 0 )
 		{
 		rlen = 128;
 		char* prbuf = rbuf;
-		int decoded = base64_decoder->Decode(len, data, &rlen, &prbuf).first; // typecasting for now
+		int decoded = base64_decoder->Decode(len, data, &rlen, &prbuf);
 		DataOctets(rlen, rbuf);
 		len -= decoded; data += decoded;
 		}
@@ -1161,10 +1161,11 @@ void MIME_Entity::FinishDecodeBase64()
 	if ( ! base64_decoder )
 		return;
 
-	size_t rlen = 128;
+	int rlen = 128;
 	char rbuf[128];
 	char* prbuf = rbuf;
-	if ( base64_decoder->Done(&rlen, &prbuf) ) // typecasting for now
+
+	if ( base64_decoder->Done(&rlen, &prbuf) )
 		{ // some remaining data
 		if ( rlen > 0 )
 			DataOctets(rlen, rbuf);

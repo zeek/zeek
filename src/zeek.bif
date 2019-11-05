@@ -23,6 +23,8 @@
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
 #include "iosource/Packet.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
 #include "IntrusivePtr.h"
 
 using namespace std;

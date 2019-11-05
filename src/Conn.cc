@@ -16,6 +16,7 @@
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
+#include "iosource/IOSource.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
 				bool arg_do_expire)

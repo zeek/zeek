@@ -17,6 +17,7 @@
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
+#include "iosource/Packet.h"
 
 class Connection;
 class ConnectionTimer;

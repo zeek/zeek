@@ -51,6 +51,7 @@
 #include "Net.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
 
 #include "3rdparty/doctest.h"

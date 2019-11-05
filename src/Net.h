@@ -10,9 +10,14 @@
 #include "util.h"
 #include "List.h"
 #include "Func.h"
-#include "iosource/IOSource.h"
-#include "iosource/PktSrc.h"
-#include "iosource/PktDumper.h"
+
+namespace iosource {
+	class IOSource;
+	class PktSrc;
+	class PktDumper;
+	}
+
+class Packet;
 
 extern void net_init(const std::string& interfaces,
                      const std::string& pcap_input_file,

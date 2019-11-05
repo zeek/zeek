@@ -1,5 +1,7 @@
 // See the file  in the main distribution directory for copyright.
 
+#include <pcap.h>	// for the DLT_EN10MB constant definition
+
 #include "VXLAN.h"
 #include "TunnelEncapsulation.h"
 #include "Conn.h"

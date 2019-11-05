@@ -29,6 +29,8 @@
 #include "TunnelEncapsulation.h"
 
 #include "analyzer/Manager.h"
+#include "iosource/IOSource.h"
+#include "iosource/PktDumper.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server

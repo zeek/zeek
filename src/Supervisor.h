@@ -33,9 +33,13 @@ public:
 	};
 
 	struct Node {
+		static Node FromRecord(const RecordVal* node_val);
 		static Node FromJSON(const std::string& json);
 
 		static void InitCluster();
+
+		std::string ToJSON() const;
+		RecordVal* ToRecord() const;
 
 		std::string name;
 		std::string interface;
@@ -61,7 +65,8 @@ public:
 	void ObserveChildSignal();
 
 	RecordVal* Status(const std::string& node_name);
-	std::string Create(RecordVal* node);
+	std::string Create(const RecordVal* node);
+	std::string Create(const Supervisor::Node& node);
 	bool Destroy(const std::string& node_name);
 	bool Restart(const std::string& node_name);
 

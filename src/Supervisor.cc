@@ -104,6 +104,12 @@ static std::vector<std::string> extract_messages(std::string* buffer)
 	return rval;
 	}
 
+static std::string make_create_message(const zeek::Supervisor::Node& node)
+	{
+	auto json_str = node.ToJSON();
+	return fmt("create %s %s", node.name.data(), json_str.data());
+	}
+
 zeek::Supervisor::Supervisor(zeek::Supervisor::Config cfg,
 							 std::unique_ptr<bro::PipePair> pipe,
                              pid_t arg_stem_pid)
@@ -227,20 +233,25 @@ void zeek::Supervisor::HandleChildSignal()
 	if ( stem_pid == 0 )
 		{
 		// Child stem process needs to exec()
-		char stem_env[256];
-		safe_snprintf(stem_env, sizeof(stem_env), "ZEEK_STEM=%d,%d,%d,%d",
+		auto stem_env = fmt("%d,%d,%d,%d",
 		              stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
 		              stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
-		char* env[] = { stem_env, (char*)0 };
+
+		if ( setenv("ZEEK_STEM", stem_env, true) == -1 )
+			{
+			fprintf(stderr, "setenv(ZEEK_STEM) failed: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
 		stem_pipe->In().UnsetFlags(FD_CLOEXEC);
 		stem_pipe->Out().UnsetFlags(FD_CLOEXEC);
-		auto res = execle(config.zeek_exe_path.data(),
-		                  config.zeek_exe_path.data(),
-		                  (char*)0, env);
+		auto res = execl(config.zeek_exe_path.data(),
+		                 config.zeek_exe_path.data(),
+		                 (char*)0);
 
-		char tmp[256];
-		bro_strerror_r(errno, tmp, sizeof(tmp));
-		fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n", tmp);
+		fprintf(stderr, "failed to exec Zeek supervisor stem process: %s\n",
+		        strerror(errno));
 		exit(1);
 		}
 
@@ -254,11 +265,10 @@ void zeek::Supervisor::HandleChildSignal()
 	for ( const auto& n : nodes )
 		{
 		const auto& node = n.second;
-		std::string msg = fmt("create %s", node.name.data());
+		auto msg = make_create_message(node);
 		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 		}
 	}
-
 
 void zeek::Supervisor::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
                               iosource::FD_Set* except)
@@ -685,7 +695,21 @@ zeek::Supervisor::Node* zeek::Supervisor::RunStem(std::unique_ptr<bro::PipePair>
 	return s.Run();
 	}
 
-static zeek::Supervisor::Node node_val_to_struct(const RecordVal* node)
+static BifEnum::Supervisor::ClusterRole role_str_to_enum(const std::string& r)
+	{
+	if ( r == "Supervisor::LOGGER" )
+		return BifEnum::Supervisor::LOGGER;
+	if ( r == "Supervisor::MANAGER" )
+		return BifEnum::Supervisor::MANAGER;
+	if ( r == "Supervisor::PROXY" )
+		return BifEnum::Supervisor::PROXY;
+	if ( r == "Supervisor::WORKER" )
+		return BifEnum::Supervisor::WORKER;
+
+	return BifEnum::Supervisor::NONE;
+	}
+
+zeek::Supervisor::Node zeek::Supervisor::Node::FromRecord(const RecordVal* node)
 	{
 	zeek::Supervisor::Node rval;
 	rval.name = node->Lookup("name")->AsString()->CheckString();
@@ -723,59 +747,6 @@ static zeek::Supervisor::Node node_val_to_struct(const RecordVal* node)
 	return rval;
 	}
 
-static RecordVal* node_struct_to_val(const zeek::Supervisor::Node& node)
-	{
-	auto rt = BifType::Record::Supervisor::Node;
-	auto rval = new RecordVal(rt);
-	rval->Assign(rt->FieldOffset("name"), new StringVal(node.name));
-
-	if ( ! node.interface.empty() )
-		rval->Assign(rt->FieldOffset("interface"),
-		             new StringVal(node.interface));
-
-	auto tt = BifType::Record::Supervisor::Node->FieldType("cluster");
-	auto cluster_val = new TableVal(tt->AsTableType());
-	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
-
-	for ( const auto& e : node.cluster )
-		{
-		auto& name = e.first;
-		auto& ep = e.second;
-		auto key = new StringVal(name);
-		auto ept = BifType::Record::Supervisor::ClusterEndpoint;
-		auto val = new RecordVal(ept);
-
-		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
-		val->Assign(ept->FieldOffset("host"), new AddrVal(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
-
-		if ( ! ep.interface.empty() )
-			val->Assign(ept->FieldOffset("interface"), new StringVal(ep.interface));
-
-		cluster_val->Assign(key, val);
-		Unref(key);
-		}
-
-	if ( node.pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetCount(node.pid));
-
-	return rval;
-	}
-
-static BifEnum::Supervisor::ClusterRole role_str_to_enum(const std::string& r)
-	{
-	if ( r == "Supervisor::LOGGER" )
-		return BifEnum::Supervisor::LOGGER;
-	if ( r == "Supervisor::MANAGER" )
-		return BifEnum::Supervisor::MANAGER;
-	if ( r == "Supervisor::PROXY" )
-		return BifEnum::Supervisor::PROXY;
-	if ( r == "Supervisor::WORKER" )
-		return BifEnum::Supervisor::LOGGER;
-
-	return BifEnum::Supervisor::NONE;
-	}
-
 zeek::Supervisor::Node zeek::Supervisor::Node::FromJSON(const std::string& json)
 	{
 	zeek::Supervisor::Node rval;
@@ -809,6 +780,57 @@ zeek::Supervisor::Node zeek::Supervisor::Node::FromJSON(const std::string& json)
 
 		rval.cluster.emplace(key, std::move(ep));
 		}
+
+	return rval;
+	}
+
+std::string zeek::Supervisor::Node::ToJSON() const
+	{
+	auto re = new RE_Matcher("^_");
+	auto node_val = ToRecord();
+	auto json_val = node_val->ToJSON(false, re);
+	auto rval = json_val->ToStdString();
+	delete re;
+	Unref(node_val);
+	Unref(json_val);
+	return rval;
+	}
+
+RecordVal* zeek::Supervisor::Node::ToRecord() const
+	{
+	auto rt = BifType::Record::Supervisor::Node;
+	auto rval = new RecordVal(rt);
+	rval->Assign(rt->FieldOffset("name"), new StringVal(name));
+
+	if ( ! interface.empty() )
+		rval->Assign(rt->FieldOffset("interface"),
+		             new StringVal(interface));
+
+	auto tt = BifType::Record::Supervisor::Node->FieldType("cluster");
+	auto cluster_val = new TableVal(tt->AsTableType());
+	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
+
+	for ( const auto& e : cluster )
+		{
+		auto& name = e.first;
+		auto& ep = e.second;
+		auto key = new StringVal(name);
+		auto ept = BifType::Record::Supervisor::ClusterEndpoint;
+		auto val = new RecordVal(ept);
+
+		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
+		val->Assign(ept->FieldOffset("host"), new AddrVal(ep.host));
+		val->Assign(ept->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+
+		if ( ! ep.interface.empty() )
+			val->Assign(ept->FieldOffset("interface"), new StringVal(ep.interface));
+
+		cluster_val->Assign(key, val);
+		Unref(key);
+		}
+
+	if ( pid )
+		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetCount(pid));
 
 	return rval;
 	}
@@ -887,7 +909,7 @@ RecordVal* zeek::Supervisor::Status(const std::string& node_name)
 		{
 		const auto& node = n.second;
 		auto key = new StringVal(node.name);
-		auto val = node_struct_to_val(node);
+		auto val = node.ToRecord();
 		node_table_val->Assign(key, val);
 		Unref(key);
 		}
@@ -895,10 +917,14 @@ RecordVal* zeek::Supervisor::Status(const std::string& node_name)
 	return rval;
 	}
 
-std::string zeek::Supervisor::Create(RecordVal* node_val)
+std::string zeek::Supervisor::Create(const RecordVal* node_val)
 	{
-	auto node = node_val_to_struct(node_val);
+	auto node = zeek::Supervisor::Node::FromRecord(node_val);
+	return Create(node);
+	}
 
+std::string zeek::Supervisor::Create(const zeek::Supervisor::Node& node)
+	{
 	if ( node.name.find(' ') != std::string::npos )
 		return fmt("node names must not contain spaces: '%s'",
 		           node.name.data());
@@ -906,13 +932,7 @@ std::string zeek::Supervisor::Create(RecordVal* node_val)
 	if ( nodes.find(node.name) != nodes.end() )
 		return fmt("node with name '%s' already exists", node.name.data());
 
-	auto re = new RE_Matcher("^_");
-	auto json_val = node_val->ToJSON(false, re);
-	auto json_str = json_val->ToStdString();
-	delete re;
-	Unref(json_val);
-
-	std::string msg = fmt("create %s %s", node.name.data(), json_str.data());
+	auto msg = make_create_message(node);
 	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 	nodes.emplace(node.name, node);
 	return "";

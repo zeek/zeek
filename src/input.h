@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <string>
-using namespace std;
 
 #include "BroList.h"
 
@@ -40,7 +39,7 @@ extern const char* prog;
 
 extern std::vector<std::string> zeek_script_prefixes;	// -p flag
 extern const char* command_line_policy;	// -e flag
-extern vector<string> params;
+extern std::vector<std::string> params;
 
 class Stmt;
 extern Stmt* stmts;	// global statements

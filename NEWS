@@ -19,6 +19,9 @@ New Functionality
   example of how to perform this tuning and add a "speculative_service"
   field to conn.log, but it's not loaded by default.
 
+- There is now a new ``tcp_options`` event that is raised for each TCP header
+  that contains options.
+
 Changed Functionality
 ---------------------
 
@@ -31,6 +34,11 @@ Changed Functionality
   class name string may appear in the dns.log file or in any custom
   script logic that inspects the ``qclass`` field of ``DNS::Info``
   after a ``dns_request`` event.
+
+- The configuration input reader now ignores trailing spaces at the end of
+  configuration lines.
+
+- The tcp_option event is now correctly raised.
 
 Removed Functionality
 ---------------------

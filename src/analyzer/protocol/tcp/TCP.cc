@@ -11,6 +11,7 @@
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"
+#include "types.bif.h"
 
 using namespace analyzer::tcp;
 
@@ -1186,9 +1187,15 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		GeneratePacketEvent(rel_seq, rel_ack, data, len, caplen, is_orig,
 		                    flags);
 
-	if ( tcp_option && tcp_hdr_len > sizeof(*tp) &&
-	     tcp_hdr_len <= uint32_t(caplen) )
-		ParseTCPOptions(tp, TCPOptionEvent, this, is_orig, 0);
+	if ( (tcp_option || tcp_options) && tcp_hdr_len > sizeof(*tp) )
+		ParseTCPOptions(tp, is_orig);
+
+	// PIA/signature matching state needs to be initialized before
+	// processing/reassembling any TCP data, since that processing may
+	// itself try to perform signature matching.  Also note that a SYN
+	// packet may technically carry data (see RFC793 Section 3.4 and also
+	// TCP Fast Open).
+	CheckPIA_FirstPacket(is_orig, ip);
 
 	if ( DEBUG_tcp_data_sent )
 		{
@@ -1243,8 +1250,6 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig, rel_data_seq, ip, caplen);
-
-	CheckPIA_FirstPacket(is_orig, ip);
 	}
 
 void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -1287,14 +1292,12 @@ void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 		(*i)->UpdateConnVal(conn_val);
 	}
 
-int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp,
-					proc_tcp_option_t proc,
-					TCP_Analyzer* analyzer,
-					bool is_orig, void* cookie)
+int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 	{
 	// Parse TCP options.
 	const u_char* options = (const u_char*) tcp + sizeof(struct tcphdr);
 	const u_char* opt_end = (const u_char*) tcp + tcp->th_off * 4;
+	std::vector<const u_char*> opts;
 
 	while ( options < opt_end )
 		{
@@ -1307,21 +1310,19 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp,
 
 		else if ( options + 1 >= opt_end )
 			// We've run off the end, no room for the length.
-			return -1;
+			break;
 
 		else
 			opt_len = options[1];
 
 		if ( opt_len == 0 )
-			return -1;	// trashed length field
+			break;	// trashed length field
 
 		if ( options + opt_len > opt_end )
 			// No room for rest of option.
-			return -1;
+			break;
 
-		if ( (*proc)(opt, opt_len, options, analyzer, is_orig, cookie) == -1 )
-			return -1;
-
+		opts.emplace_back(options);
 		options += opt_len;
 
 		if ( opt == TCPOPT_EOL )
@@ -1329,24 +1330,133 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp,
 			break;
 		}
 
-	return 0;
-	}
-
-int TCP_Analyzer::TCPOptionEvent(unsigned int opt,
-					unsigned int optlen,
-					const u_char* /* option */,
-					TCP_Analyzer* analyzer,
-					bool is_orig, void* cookie)
-	{
 	if ( tcp_option )
+		for ( const auto& o : opts )
+			{
+			auto kind = o[0];
+			auto length = kind < 2 ? 1 : o[1];
+			ConnectionEventFast(tcp_option, {
+				BuildConnVal(),
+				val_mgr->GetBool(is_orig),
+				val_mgr->GetCount(kind),
+				val_mgr->GetCount(length),
+				});
+			}
+
+	if ( tcp_options )
 		{
-		analyzer->ConnectionEventFast(tcp_option, {
-			analyzer->BuildConnVal(),
+		auto option_list = new VectorVal(BifType::Vector::TCP::OptionList);
+
+		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
+			{
+			if ( olen <= 2 )
+				return;
+
+			auto data_len = olen - 2;
+			auto data = reinterpret_cast<const char*>(odata + 2);
+			rv->Assign(2, new StringVal(data_len, data));
+			};
+
+		for ( const auto& o : opts )
+			{
+			auto kind = o[0];
+			auto length = kind < 2 ? 1 : o[1];
+			auto option_record = new RecordVal(BifType::Record::TCP::Option);
+			option_list->Assign(option_list->Size(), option_record);
+			option_record->Assign(0, val_mgr->GetCount(kind));
+			option_record->Assign(1, val_mgr->GetCount(length));
+
+			switch ( kind ) {
+			case 2:
+				// MSS
+				if ( length == 4 )
+					{
+					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
+					option_record->Assign(3, val_mgr->GetCount(mss));
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_mss_invalid_len", fmt("%d", length));
+					}
+				break;
+
+			case 3:
+				// window scale
+				if ( length == 3 )
+					{
+					auto scale = o[2];
+					option_record->Assign(4, val_mgr->GetCount(scale));
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_window_scale_invalid_len", fmt("%d", length));
+					}
+				break;
+
+			case 4:
+				// sack permitted (implicit boolean)
+				if ( length != 2 )
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_sack_invalid_len", fmt("%d", length));
+					}
+				break;
+
+			case 5:
+				// SACK blocks (1-4 pairs of 32-bit begin+end pointers)
+				if ( length == 10 || length == 18 ||
+				     length == 26 || length == 34 )
+					{
+					auto p = reinterpret_cast<const uint32_t*>(o + 2);
+					auto num_pointers = (length - 2) / 4;
+					auto vt = internal_type("index_vec")->AsVectorType();
+					auto sack = new VectorVal(vt);
+
+					for ( auto i = 0; i < num_pointers; ++i )
+						sack->Assign(sack->Size(), val_mgr->GetCount(ntohl(p[i])));
+
+					option_record->Assign(5, sack);
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_sack_blocks_invalid_len", fmt("%d", length));
+					}
+				break;
+
+			case 8:
+				// timestamps
+				if ( length == 10 )
+					{
+					auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
+					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
+					option_record->Assign(6, val_mgr->GetCount(send));
+					option_record->Assign(7, val_mgr->GetCount(echo));
+					}
+				else
+					{
+					add_option_data(option_record, o, length);
+					Weird("tcp_option_timestamps_invalid_len", fmt("%d", length));
+					}
+				break;
+
+			default:
+				add_option_data(option_record, o, length);
+				break;
+			}
+			}
+
+		ConnectionEventFast(tcp_options, {
+			BuildConnVal(),
 			val_mgr->GetBool(is_orig),
-			val_mgr->GetCount(opt),
-			val_mgr->GetCount(optlen),
-		});
+			option_list,
+			});
 		}
+
+	if ( options < opt_end )
+		return -1;
 
 	return 0;
 	}

@@ -17,6 +17,6 @@ set(analyzer_SRCS
 
 bif_target(analyzer.bif)
 
-bro_add_subdir_library(analyzer ${analyzer_SRCS} ${BIF_OUTPUT_CC})
+bro_add_subdir_library(analyzer ${analyzer_SRCS})
 add_dependencies(bro_analyzer generate_outputs)
 

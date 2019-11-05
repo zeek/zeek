@@ -27,7 +27,7 @@ public:
 	bool IsExport() const           { return is_export; }
 	void SetExport()                { is_export = true; }
 
-	string ModuleName() const;
+	std::string ModuleName() const;
 
 	void SetType(BroType* t)	{ Unref(type); type = t; }
 	BroType* Type()			{ return type; }
@@ -83,7 +83,7 @@ public:
 
 	void MakeDeprecated(Expr* deprecation);
 
-	string GetDeprecationWarning() const;
+	std::string GetDeprecationWarning() const;
 
 	void Error(const char* msg, const BroObj* o2 = 0);
 
@@ -106,7 +106,7 @@ public:
 
 	// Takes ownership of callback.
 	void AddOptionHandler(Func* callback, int priority);
-	vector<Func*> GetOptionHandlers() const;
+	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
 	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }

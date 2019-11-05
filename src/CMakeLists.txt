@@ -13,10 +13,6 @@ set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
 set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in base distribution of Zeek" FORCE)
 set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in Zeek plugins" FORCE)
 
-# If TRUE, use CMake's object libraries for sub-directories instead of
-# static libraries. This requires CMake >= 2.8.8.
-set(bro_HAVE_OBJECT_LIBRARIES FALSE)
-
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
@@ -140,7 +136,9 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 ########################################################################
 
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
+set(bro_SUBDIR_DEPS CACHE INTERNAL "subdir dependencies" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
+set(bro_PLUGIN_DEPS CACHE INTERNAL "plugin dependencies" FORCE)
 
 add_subdirectory(analyzer)
 add_subdirectory(broker)
@@ -150,26 +148,6 @@ add_subdirectory(input)
 add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
-
-set(bro_SUBDIRS
-    # Order is important here.
-    ${bro_PLUGIN_LIBS}
-    ${bro_SUBDIR_LIBS}
-)
-
-if ( NOT bro_HAVE_OBJECT_LIBRARIES )
-    foreach (_plugin ${bro_PLUGIN_LIBS})
-        string(REGEX REPLACE "plugin-" "" _plugin "${_plugin}")
-        string(REGEX REPLACE "-" "_" _plugin "${_plugin}")
-        set(_decl "namespace plugin { namespace ${_plugin} { class Plugin; extern Plugin plugin; } };")
-        set(_use "i += (size_t)(&(plugin::${_plugin}::plugin));")
-        set(__BRO_DECL_PLUGINS "${__BRO_DECL_PLUGINS}${_decl}\n")
-        set(__BRO_USE_PLUGINS "${__BRO_USE_PLUGINS}${_use}\n")
-    endforeach()
-
-    configure_file(plugins.cc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
-    set(PLUGIN_INIT ${CMAKE_CURRENT_BINARY_DIR}/plugins.cc)
-endif()
 
 ########################################################################
 ## bro target
@@ -346,20 +324,14 @@ set(bro_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-    ${PLUGIN_INIT}
     ${THIRD_PARTY_SRCS}
     ${MAIN_SRCS}
 )
 
 collect_headers(bro_HEADERS ${bro_SRCS})
 
-if ( bro_HAVE_OBJECT_LIBRARIES )
-    add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIRS})
-    target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-else ()
-    add_executable(zeek ${bro_SRCS} ${bro_HEADERS})
-    target_link_libraries(zeek ${bro_SUBDIRS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-endif ()
+add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIR_LIBS} ${bro_PLUGIN_LIBS})
+target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
     set_target_properties(zeek PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")
@@ -398,12 +370,12 @@ add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stag
 
 # Build __load__.zeek files for standard *.bif.zeek.
 bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
-add_dependencies(bif_loader ${bro_SUBDIRS})
+add_dependencies(bif_loader ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
 add_dependencies(zeek bif_loader)
 
 # Build __load__.zeek files for plugins/*.bif.zeek.
 bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
-add_dependencies(bif_loader_plugins ${bro_SUBDIRS})
+add_dependencies(bif_loader_plugins ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
 add_dependencies(zeek bif_loader_plugins)
 
 # Install *.bif.zeek.
@@ -443,10 +415,15 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
 install(FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/fifo_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/json.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
         DESTINATION include/zeek/3rdparty
+)
+
+install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tsl-ordered-map/ordered_map.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tsl-ordered-map/ordered_hash.h
+        DESTINATION include/zeek/3rdparty/tsl-ordered-map
 )
 
 ########################################################################

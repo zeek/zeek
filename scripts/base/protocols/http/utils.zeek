@@ -55,9 +55,13 @@ function extract_keys(data: string, kv_splitter: pattern): string_vec
 function build_url(rec: Info): string
 	{
 	local uri  = rec?$uri ? rec$uri : "/<missed_request>";
+	if ( strstr(uri, "://") != 0 )
+		return uri;
+
 	local host = rec?$host ? rec$host : addr_to_uri(rec$id$resp_h);
-	if ( rec$id$resp_p != 80/tcp )
-		host = fmt("%s:%s", host, rec$id$resp_p);
+	local resp_p = port_to_count(rec$id$resp_p);
+	if ( resp_p != 80 )
+		host = fmt("%s:%d", host, resp_p);
 	return fmt("%s%s", host, uri);
 	}
 	

@@ -46,9 +46,6 @@ public:
 	// previous expr as the new expr depends on it.
 	void SetAttrExpr(Expr* e) { expr = e; }
 
-	int RedundantAttrOkay() const
-		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }
-
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 

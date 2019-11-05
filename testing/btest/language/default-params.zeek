@@ -16,6 +16,13 @@ function bar_func(a: string, b: string &default="hi", c: count &default=5)
     print "bar_func", a, b, c;
     }
 
+function table_func(a: table[string] of string &default=table())
+	{
+	print "begin table_func", a;
+	a["the test"] = "works";
+	print "end table_func", a;
+	}
+
 ### events
 
 global foo_event: event(a: string &default="hello");
@@ -51,6 +58,8 @@ foo_func();
 bar_func("hmm");
 bar_func("cool", "beans");
 bar_func("cool", "beans", 13);
+table_func();
+table_func(table(["initial"] = "conditions"));
 
 event foo_event("test");
 event foo_event();

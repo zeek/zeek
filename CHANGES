@@ -1,4 +1,244 @@
 
+3.1.0-dev.253 | 2019-11-05 09:54:01 -0800
+
+  * Add and use new IntrusivePtr type (Dominik Charousset, Corelight)
+
+    Manual memory management via Ref/Unref is verbose and prone to error. An
+    intrusive smart pointer automates the reference counting, makes code
+    more robust (in particular w.r.t. to exceptions) and reduces boilerplate
+    code. A big benefit of the intrusive smart pointers for Zeek is that
+    they can co-exist with the manual memory management. Rather than having
+    to port the entire code base at once, we can migrate components
+    one-by-one. In this first step, we add the new template
+    `IntrusivePtr<T>` and start using it in the Broker Manager. This makes
+    the previous `unref_guard` obsolete.
+
+3.1.0-dev.247 | 2019-11-04 17:26:32 -0800
+
+  * Cluster-ize FTP data channel analysis (Jeff Barber)
+
+    The ftp_data_expected table is now synchronized across Zeek
+    worker nodes.  Note there's still a possible race condition where
+    the traffic for the ftp-data connection proceeds before the Zeek
+    cluster has a change to inform workers to expect it.
+
+3.1.0-dev.245 | 2019-11-04 16:57:11 -0800
+
+  * Use CMake object libraries for subdir libs and plugins (Dominik Charousset, Corelight)
+
+3.1.0-dev.242 | 2019-11-04 09:58:53 -0800
+
+  * Fix error handling in decode_base64() (Jon Siwek, Corelight)
+
+3.1.0-dev.241 | 2019-11-04 09:44:20 -0800
+
+  * Revert recent changes to Base64.h API. (Jon Siwek, Corelight)
+
+    This reverts commit 705210a035d4128ecdf249c7db98607c570bfcd2.
+    The original changes broke the Base64.h API which may be used by
+    external plugins.
+
+3.1.0-dev.240 | 2019-11-01 15:58:55 -0700
+
+  * Use #pragma once in Base64.h (Jon Siwek, Corelight)
+
+3.1.0-dev.239 | 2019-10-31 12:18:16 -0700
+
+  * Fix Travis CI script to run Coverity build in container (Jon Siwek, Corelight)
+
+3.1.0-dev.237 | 2019-10-31 06:37:23 +0100
+
+  * Remove "using namespace std" from header files (Jon Siwek, Corelight)
+
+3.1.0-dev.235 | 2019-10-30 15:04:13 -0700
+
+  * GH-649: define missing DLT_NFLOG to support OpenBSD (Jon Siwek, Corelight)
+
+3.1.0-dev.234 | 2019-10-30 13:33:08 -0700
+
+  * Add --libdir convenience flag to configure. (Johanna Amann, Corelight)
+
+3.1.0-dev.231 | 2019-10-30 11:02:28 -0700
+
+  * Add missing ipv6 support in patricia.c local_inet_pton() (Tim Shelton)
+
+3.1.0-dev.229 | 2019-10-30 07:57:19 +0000
+
+  * GH-664: fix signature matching for cases where the first TCP
+    packet seen contained payload data, regardless of its TCP flags.
+    (Jon Siwek, Corelight)
+
+3.1.0-dev.227 | 2019-10-29 09:39:10 -0700
+
+  * Replace build_unique with make_unique (Johanna Amann, Corelight)
+
+    This was a rarely used convenience function from when we did not yet
+    have c++17 support.
+
+  * GH-626: Revert "Fix compilation on OS-X." (Johanna Amann, Corelight)
+
+    Reverts workaround in cde28074a169212aa8f38fdac225ecbeac4e642d
+    which depended on C++14 features at a time when we used only C++11.
+
+3.1.0-dev.222 | 2019-10-28 20:18:15 -0700
+
+  * Install cmake3 from EPEL on CentOS CI system (Jon Siwek, Corelight)
+
+3.1.0-dev.221 | 2019-10-28 18:30:24 -0700
+
+  * Require CMake 3.0+ (Dominik Charousset, Corelight)
+
+  * Move CMake project() after cmake_minimum_required() (Dominik Charousset, Corelight)
+
+    The call to `project` must come after `cmake_minimum_required` in CMake
+    in order to get the correct policy settings.
+
+3.1.0-dev.219 | 2019-10-28 20:59:12 +0100
+
+  * GH-654: allow table() in function &default expressions
+
+    Table parameters of functions previously did not coerce unspecified
+    tables used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * GH-654: allow table() in record &default expressions
+
+    Table fields of records previously did not coerce unspecified tables
+    used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * Fix up some documentation. (Keith J. Jones)
+
+3.1.0-dev.214 | 2019-10-28 10:58:43 +0000
+
+  * GH-585: Require C++17 (Jon Siwek, Corelight)
+
+  * Update Travis CI config for C++17 (Jon Siwek, Corelight)
+
+3.1.0-dev.209 | 2019-10-28 09:17:15 +0000
+
+  * Fix HTTP::build_url. (Alexey Mokeev)
+
+  * Free memory allocated by glob() in plugin manager. (Arne Welzel)
+
+  * Remove always-false condition in plugin manager. (Arne Welzel)
+
+3.1.0-dev.203 | 2019-10-25 10:41:10 -0700
+
+  * Change usage of old bro:see directive to zeek:see (Jon Siwek, Corelight)
+
+  * Use explicit path name for NTP log stream (Jon Siwek, Corelight)
+
+    For consistency (we do this for all other logs) and just to avoid
+    the extra path function calls.
+
+3.1.0-dev.201 | 2019-10-25 10:12:49 -0700
+
+  * Fixed typo. (Keith J. Jones)
+
+3.1.0-dev.197 | 2019-10-21 09:34:18 -0700
+
+  * Update embedded CAF in Broker to 0.17.2 (Jon Siwek, Corelight)
+
+3.1.0-dev.195 | 2019-10-21 11:42:18 +0200
+
+  * Prefer cmake3 command, add --cmake=PATH option (Dominik Charousset, Corelight)
+
+3.1.0-dev.192 | 2019-10-17 16:32:16 -0700
+
+   * Zeekctl: change gzip compression level from 9 to default #614 (JC Connell)
+
+3.1.0-dev.191 | 2019-10-16 10:02:45 -0700
+
+  * Update broker submodule to use pybind11 v2.4.3 (Jon Siwek, Corelight)
+
+  * Improve &default validation for global vars: exclude sets (Jon Siwek, Corelight)
+
+  * Remove unnecessary &optional from a Config::set_value() parameter (Jon Siwek, Corelight)
+
+  * Remove check for redundant attributes (Jon Siwek, Corelight)
+
+3.1.0-dev.185 | 2019-10-15 16:46:22 -0700
+
+  * Add weirds for invalid TCP option lengths (Jon Siwek, Corelight)
+
+  * GH-618: add "tcp_options" event containing TCP option values (Jon Siwek, Corelight)
+
+  * Fix tcp_option event
+
+    It was not being raised in all the cases it should have been due to
+    an incorrect/unnecessary truncation check. (Jon Siwek, Corelight)
+
+3.1.0-dev.181 | 2019-10-14 22:05:01 -0700
+
+  * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)
+
+3.1.0-dev.179 | 2019-10-14 21:33:15 -0700
+
+  * Support whitespace at end of line for config reader (Seth Hall, Corelight)
+
+3.1.0-dev.177 | 2019-10-14 20:13:24 -0700
+
+  * Proof of Concept on Bugprone Narrowing Conversions: Base64 (Dev Bali, Corelight)
+
+3.1.0-dev.175 | 2019-10-12 10:39:49 -0700
+
+  * Use Ubuntu 14.04 for Travis CI environment (Jon Siwek, Corelight)
+
+3.1.0-dev.172 | 2019-10-08 15:14:35 -0700
+
+  * Add new BIF: print_raw()
+
+    This is a convenience function to make it easier to print literal byte
+    sequences to stdout without additional escaping like what may be added
+    by the default `print` statement behavior.
+
+    For example, related to GH-596, `print` currently escapes even valid
+    UTF-8 byte sequences and makes it difficult to output valid JSON strings
+    containing such. (Jon Siwek, Corelight)
+
+  * Fix compilation on OS-X. (Johanna Amann)
+
+3.1.0-dev.169 | 2019-10-07 10:50:35 -0700
+
+  * GH-589: improve printing of sub-microsecond intervals (Jon Siwek, Corelight)
+
+3.1.0-dev.167 | 2019-10-07 10:42:15 -0700
+
+  * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)
+
+  * GH-591: fix reading set[enum] values from input files (Jon Siwek, Corelight)
+
+3.1.0-dev.164 | 2019-10-02 11:04:13 -0700
+
+  * Fix build with external CAF but bundled Broker (Dominik Charousset)
+
+3.1.0-dev.161 | 2019-10-01 16:41:35 -0700
+
+  * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)
+
+  * Use json::emplace to avoid some extra calls to operator[] (Tim Wojtulewicz, Corelight)
+
+  * Use tessil/unordered-map instead of nlohmann/fifo-map to improve JSON
+    logging performance (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.156 | 2019-10-01 09:05:49 +0000
+
+  * Improve RecordVal JSON formatting to no longer create a record
+    introspection table each time when all the required information
+    can be obtained directly in the RecordVal and RecordType objects.
+    (Jon Siwek, Corelight)
+
+3.1.0-dev.153 | 2019-09-30 21:09:55 -0700
+
+  * GH-602: fix paraglob header inclusion, installation, and search paths (Jon Siwek, Corelight)
+
+3.1.0-dev.151 | 2019-09-30 17:39:50 -0700
+
+  * GH-606: Output nulls into json data if a field isn't set (Tim Wojtulewicz, Corelight)
+
+  * GH-598: handle multi-key sets correctly when outputting json (Tim Wojtulewicz, Corelight)
+
+  * Fix Xcode deprecation warning for std::ptr_fun (Jon Siwek, Corelight)
+
 3.1.0-dev.143 | 2019-09-24 10:23:24 -0700
 
   * Simplify reassembly code using DataBlockList::LastBlock() (Jon Siwek, Corelight)

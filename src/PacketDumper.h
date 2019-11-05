@@ -2,8 +2,6 @@
 
 #pragma once
 
-using namespace std;
-
 #include <queue>
 #include <set>
 
@@ -35,5 +33,5 @@ struct ltipid {
 		}
 };
 
-typedef set<IP_ID, ltipid> IP_IDSet;
+typedef std::set<IP_ID, ltipid> IP_IDSet;
 uint16_t NextIP_ID(const uint32_t src_addr, const uint16_t id);

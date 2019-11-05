@@ -296,6 +296,39 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
+module TCP;
+export {
+	## A TCP Option field parsed from a TCP header.
+	type Option: record {
+		## The kind number associated with the option.  Other optional fields
+		## of this record may be set depending on this value.
+		kind: count;
+		## The total length of the option in bytes, including the kind byte and
+		## length byte (if present).
+		length: count;
+		## This field is set to the raw option bytes if the kind is not
+		## otherwise known/parsed.  It's also set for known kinds whose length
+		## was invalid.
+		data: string &optional;
+		## Kind 2: Maximum Segment Size.
+		mss: count &optional;
+		## Kind 3: Window scale.
+		window_scale: count &optional;
+		## Kind 5: Selective ACKnowledgement (SACK).  This is a list of 2, 4,
+		## 6, or 8 numbers with each consecutive pair being a 32-bit
+		## begin-pointer and 32-bit end pointer.
+		sack: index_vec &optional;
+		## Kind 8: 4-byte sender timestamp value.
+		send_timestamp: count &optional;
+		## Kind 8: 4-byte echo reply timestamp value.
+		echo_timestamp: count &optional;
+	};
+
+	## The full list of TCP Option fields parsed from a TCP header.
+	type OptionList: vector of Option;
+}
+module GLOBAL;
+
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.

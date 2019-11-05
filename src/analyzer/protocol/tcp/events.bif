@@ -250,10 +250,22 @@ event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: 
 ##
 ## optlen: The length of the options value.
 ##
-## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
+## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_options
 ##
-## .. note:: There is currently no way to get the actual option value, if any.
+## .. note:: To inspect the actual option values, if any, use :zeek:see:`tcp_options`.
 event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
+
+## Generated for each TCP header that contains TCP options.  This is a very
+## low-level event and potentially expensive as it may be raised very often.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## options: The list of options parsed out of the TCP header.
+##
+## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_option
+event tcp_options%(c: connection, is_orig: bool, options: TCP::OptionList%);
 
 ## Generated for each chunk of reassembled TCP payload. When content delivery is
 ## enabled for a TCP connection (via :zeek:id:`tcp_content_delivery_ports_orig`,

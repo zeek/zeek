@@ -28,14 +28,19 @@
 #include "broker/Data.h"
 
 #include "3rdparty/json.hpp"
-#include "3rdparty/fifo_map.hpp"
+#include "3rdparty/tsl-ordered-map/ordered_map.h"
+
 
 // Define a class for use with the json library that orders the keys in the same order that
 // they were inserted. By default, the json library orders them alphabetically and we don't
 // want it like that.
-template<class K, class V, class compare, class A>
-using json_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
-using ZeekJson = nlohmann::basic_json<json_fifo_map>;
+template<class Key, class T, class Ignore, class Allocator,
+         class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
+         class AllocatorPair = typename std::allocator_traits<Allocator>::template rebind_alloc<std::pair<Key, T>>,
+         class ValueTypeContainer = std::vector<std::pair<Key, T>, AllocatorPair>>
+using ordered_map = tsl::ordered_map<Key, T, Hash, KeyEqual, AllocatorPair, ValueTypeContainer>;
+
+using ZeekJson = nlohmann::basic_json<ordered_map>;
 
 Val::Val(Func* f)
 	{
@@ -458,6 +463,10 @@ TableVal* Val::GetRecordFields()
 // This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
 static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"))
 	{
+	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
+	if ( ! val )
+		return nullptr;
+
 	ZeekJson j;
 	BroType* type = val->Type();
 	switch ( type->Tag() )
@@ -489,8 +498,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 		case TYPE_PORT:
 			{
 			auto* pval = val->AsPortVal();
-			j["port"] = pval->Port();
-			j["proto"] = pval->Protocol();
+			j.emplace("port", pval->Port());
+			j.emplace("proto", pval->Protocol());
 			break;
 			}
 
@@ -537,34 +546,26 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				j = ZeekJson::object();
 
 			HashKey* k;
+			TableEntryVal* entry;
 			auto c = table->InitForIteration();
-			while ( table->NextEntry(k, c) )
+			while ( (entry = table->NextEntry(k, c)) )
 				{
 				auto lv = tval->RecoverIndex(k);
 				delete k;
 
+				Val* entry_key;
+				if ( lv->Length() == 1 )
+					entry_key = lv->Index(0)->Ref();
+				else
+					entry_key = lv->Ref();
+
+				ZeekJson key_json = BuildJSON(entry_key, only_loggable, re);
+
 				if ( tval->Type()->IsSet() )
-					{
-					auto* value = lv->Index(0)->Ref();
-					j.push_back(BuildJSON(value, only_loggable, re));
-					Unref(value);
-					}
+					j.emplace_back(std::move(key_json));
 				else
 					{
-					ZeekJson key_json;
-					Val* entry_value;
-					if ( lv->Length() == 1 )
-						{
-						Val* entry_key = lv->Index(0)->Ref();
-						entry_value = tval->Lookup(entry_key, true);
-						key_json = BuildJSON(entry_key, only_loggable, re);
-						Unref(entry_key);
-						}
-					else
-						{
-						entry_value = tval->Lookup(lv, true);
-						key_json = BuildJSON(lv, only_loggable, re);
-						}
+					Val* entry_value = entry->Value();
 
 					string key_string;
 					if ( key_json.is_string() )
@@ -572,9 +573,10 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 					else
 						key_string = key_json.dump();
 
-					j[key_string] = BuildJSON(entry_value, only_loggable, re);
+					j.emplace(key_string, BuildJSON(entry_value, only_loggable, re));
 					}
 
+				Unref(entry_key);
 				Unref(lv);
 				}
 
@@ -585,35 +587,32 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 			{
 			j = ZeekJson::object();
 			auto* rval = val->AsRecordVal();
-			TableVal* fields = rval->GetRecordFields();
-			auto* field_indexes = fields->ConvertToPureList();
-			int num_indexes = field_indexes->Length();
+			auto rt = rval->Type()->AsRecordType();
 
-			for ( int i = 0; i < num_indexes; ++i )
+			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				Val* key = field_indexes->Index(i);
-				auto* key_field = fields->Lookup(key)->AsRecordVal();
+				auto field_name = rt->FieldName(i);
+				std::string key_string;
 
-				auto* key_val = key->AsStringVal();
-				string key_string;
-				if ( re->MatchAnywhere(key_val->AsString()) != 0 )
+				if ( re->MatchAnywhere(field_name) != 0 )
 					{
 					StringVal blank("");
-					key_val = key_val->Substitute(re, &blank, 0)->AsStringVal();
+					StringVal fn_val(field_name);
+					auto key_val = fn_val.Substitute(re, &blank, 0)->AsStringVal();
 					key_string = key_val->ToStdString();
-					delete key_val;
+					Unref(key_val);
 					}
 				else
-					key_string = key_val->ToStdString();
+					key_string = field_name;
 
-				Val* value = key_field->Lookup("value", true);
+				Val* value = rval->LookupWithDefault(i);
 
-				if ( value && ( ! only_loggable || key_field->Lookup("log")->AsBool() ) )
-					j[key_string] = BuildJSON(value, only_loggable, re);
+				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
+					j.emplace(key_string, BuildJSON(value, only_loggable, re));
+
+				Unref(value);
 				}
 
-			delete fields;
-			delete field_indexes;
 			break;
 			}
 
@@ -641,9 +640,8 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 
 		case TYPE_OPAQUE:
 			{
-			j = ZeekJson::object();
 			auto* oval = val->AsOpaqueVal();
-			j["opaque_type"] = OpaqueMgr::mgr()->TypeID(oval);
+			j = { { "opaque_type", OpaqueMgr::mgr()->TypeID(oval) } };
 			break;
 			}
 
@@ -666,6 +664,17 @@ IntervalVal::IntervalVal(double quantity, double units) :
 
 void IntervalVal::ValDescribe(ODesc* d) const
 	{
+	using unit_word = std::pair<double, const char*>;
+
+	constexpr std::array<unit_word, 6> units = {
+		unit_word{ Days, "day" },
+		unit_word{ Hours, "hr" },
+		unit_word{ Minutes, "min" },
+		unit_word{ Seconds, "sec" },
+		unit_word{ Milliseconds, "msec" },
+		unit_word{ Microseconds, "usec" },
+	};
+
 	double v = val.double_val;
 
 	if ( v == 0.0 )
@@ -674,31 +683,55 @@ void IntervalVal::ValDescribe(ODesc* d) const
 		return;
 		}
 
-	int did_one = 0;
+	bool did_one = false;
+	constexpr auto last_idx = units.size() - 1;
 
-#define DO_UNIT(unit, name) \
-	if ( v >= unit || v <= -unit ) \
-		{ \
-		double num = double(int(v / unit)); \
-		if ( num != 0.0 ) \
-			{ \
-			if ( did_one++ ) \
-				d->SP(); \
-			d->Add(num); \
-			d->SP(); \
-			d->Add(name); \
-			if ( num != 1.0 && num != -1.0 ) \
-				d->Add("s"); \
-			v -= num * unit; \
-			} \
+	auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool
+		{
+		auto v = a - b;
+		return v < 0 ? -v < tolerance : v < tolerance;
+		};
+
+	for ( size_t i = 0; i < units.size(); ++i )
+		{
+		auto unit = units[i].first;
+		auto word = units[i].second;
+		double to_print = 0;
+
+		if ( i == last_idx )
+			{
+			to_print = v / unit;
+
+			if ( approx_equal(to_print, 0) )
+				{
+				if ( ! did_one )
+					d->Add("0 secs");
+
+				break;
+				}
+			}
+		else
+			{
+			if ( ! (v >= unit || v <= -unit) )
+				continue;
+
+			double num = static_cast<double>(static_cast<int64_t>(v / unit));
+			v -= num * unit;
+			to_print = num;
+			}
+
+		if ( did_one )
+			d->SP();
+
+		d->Add(to_print);
+		d->SP();
+		d->Add(word);
+
+		if ( ! approx_equal(to_print, 1) && ! approx_equal(to_print, -1) )
+			d->Add("s");
+
+		did_one = true;
 		}
-
-	DO_UNIT(Days, "day")
-	DO_UNIT(Hours, "hr")
-	DO_UNIT(Minutes, "min")
-	DO_UNIT(Seconds, "sec")
-	DO_UNIT(Milliseconds, "msec")
-	DO_UNIT(Microseconds, "usec")
 	}
 
 PortVal* PortManager::Get(uint32_t port_num) const
@@ -2869,7 +2902,7 @@ int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 Val* VectorVal::Lookup(unsigned int index) const
 	{
 	if ( index >= val.vector_val->size() )
-		return 0;
+		return nullptr;
 
 	return (*val.vector_val)[index];
 	}
@@ -3126,7 +3159,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 		if ( ! dv )
 			return 0;
 
-		return static_cast<bro_broker::DataVal *>(dv)->castTo(t);
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).detach();
 		}
 
 	return 0;

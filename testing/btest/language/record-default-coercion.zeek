@@ -17,6 +17,10 @@ type Bar: record {
 	foo: Foo &default=[$foo=1234];
 };
 
+type Qux: record {
+	a: table[string] of string &default=table();
+};
+
 function print_bar(b: Bar)
 	{
 	print b;
@@ -46,3 +50,7 @@ print |r$v|;
 r$v += "test";
 print r;
 print |r$v|;
+
+local q = Qux();
+q$a["one"] = "1";
+print q;

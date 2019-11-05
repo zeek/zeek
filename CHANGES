@@ -1,4 +1,18 @@
 
+3.1.0-dev.253 | 2019-11-05 09:54:01 -0800
+
+  * Add and use new IntrusivePtr type (Dominik Charousset, Corelight)
+
+    Manual memory management via Ref/Unref is verbose and prone to error. An
+    intrusive smart pointer automates the reference counting, makes code
+    more robust (in particular w.r.t. to exceptions) and reduces boilerplate
+    code. A big benefit of the intrusive smart pointers for Zeek is that
+    they can co-exist with the manual memory management. Rather than having
+    to port the entire code base at once, we can migrate components
+    one-by-one. In this first step, we add the new template
+    `IntrusivePtr<T>` and start using it in the Broker Manager. This makes
+    the previous `unref_guard` obsolete.
+
 3.1.0-dev.247 | 2019-11-04 17:26:32 -0800
 
   * Cluster-ize FTP data channel analysis (Jeff Barber)

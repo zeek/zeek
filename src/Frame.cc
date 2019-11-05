@@ -403,14 +403,14 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 		broker::integer g = *has_type;
 		BroType t( static_cast<TypeTag>(g) );
 
-		Val* val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
+		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
 			{
 			Unref(rf);
 			return std::make_pair(false, nullptr);
 			}
 
-		rf->frame[i] = val;
+		rf->frame[i] = val.detach();
 		}
 
 	return std::make_pair(true, rf);

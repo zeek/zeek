@@ -20,5 +20,5 @@ set(file_analysis_SRCS
 
 bif_target(file_analysis.bif)
 
-bro_add_subdir_library(file_analysis ${file_analysis_SRCS} ${BIF_OUTPUT_CC})
+bro_add_subdir_library(file_analysis ${file_analysis_SRCS})
 add_dependencies(bro_file_analysis generate_outputs)

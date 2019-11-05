@@ -1,4 +1,8 @@
 
+3.1.0-dev.245 | 2019-11-04 16:57:11 -0800
+
+  * Use CMake object libraries for subdir libs and plugins (Dominik Charousset, Corelight)
+
 3.1.0-dev.242 | 2019-11-04 09:58:53 -0800
 
   * Fix error handling in decode_base64() (Jon Siwek, Corelight)

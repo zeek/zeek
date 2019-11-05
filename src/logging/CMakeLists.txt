@@ -20,6 +20,6 @@ set(logging_SRCS
 
 bif_target(logging.bif)
 
-bro_add_subdir_library(logging ${logging_SRCS} ${BIF_OUTPUT_CC})
+bro_add_subdir_library(logging ${logging_SRCS})
 add_dependencies(bro_logging generate_outputs)
 

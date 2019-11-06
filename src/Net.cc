@@ -148,7 +148,8 @@ void net_update_time(double new_network_time)
 
 void net_init(const std::vector<std::string>& interfaces,
               const std::vector<std::string>& pcap_input_files,
-              const std::string& pcap_output_file, bool do_watchdog)
+              const std::optional<std::string>& pcap_output_file,
+              bool do_watchdog)
 	{
 	if ( ! pcap_input_files.empty() )
 		{
@@ -189,9 +190,9 @@ void net_init(const std::vector<std::string>& interfaces,
 		// a timer.
 		reading_traces = reading_live = 0;
 
-	if ( ! pcap_output_file.empty() )
+	if ( pcap_output_file )
 		{
-		const char* writefile = pcap_output_file.data();
+		const char* writefile = pcap_output_file->data();
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 

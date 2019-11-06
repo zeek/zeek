@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <optional>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "Pipe.h"
 #include "Flare.h"
 #include "NetVar.h"
+#include "IntrusivePtr.h"
 
 namespace zeek {
 
@@ -29,7 +31,7 @@ public:
 		BifEnum::Supervisor::ClusterRole role;
 		std::string host;
 		int port;
-		std::string interface;
+		std::optional<std::string> interface;
 	};
 
 	struct Node {
@@ -39,10 +41,10 @@ public:
 		static void InitCluster();
 
 		std::string ToJSON() const;
-		RecordVal* ToRecord() const;
+		IntrusivePtr<RecordVal> ToRecord() const;
 
 		std::string name;
-		std::string interface;
+		std::optional<std::string> interface;
 		std::map<std::string, ClusterEndpoint> cluster;
 
 		pid_t pid = 0;

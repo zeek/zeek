@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <list>
+#include <optional>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -219,11 +220,11 @@ struct zeek_options {
 	bool print_signature_debug_info = false;
 	int print_plugins = 0;
 
-	std::string debug_log_streams;
-	std::string debug_script_tracing_file;
+	std::optional<std::string> debug_log_streams;
+	std::optional<std::string> debug_script_tracing_file;
 
-	std::string identifier_to_print;
-	std::string script_code_to_exec;
+	std::optional<std::string> identifier_to_print;
+	std::optional<std::string> script_code_to_exec;
 	std::vector<std::string> script_prefixes = { "" }; // "" = "no prefix"
 
 	int supervised_workers = 0;
@@ -239,16 +240,16 @@ struct zeek_options {
 	bool perftools_check_leaks = false;
 	bool perftools_profile = false;
 
-	std::string pcap_filter;
+	std::optional<std::string> pcap_filter;
 	std::vector<std::string> interfaces;
 	std::vector<std::string> pcap_files;
 	std::vector<std::string> signature_files;
 
-	std::string pcap_output_file;
-	std::string random_seed_input_file;
-	std::string random_seed_output_file;
-	std::string process_status_file;
-	std::string zeekygen_config_file;
+	std::optional<std::string> pcap_output_file;
+	std::optional<std::string> random_seed_input_file;
+	std::optional<std::string> random_seed_output_file;
+	std::optional<std::string> process_status_file;
+	std::optional<std::string> zeekygen_config_file;
 	std::string libidmef_dtd_file = "idmef-message.dtd";
 
 	std::set<std::string> plugins_to_load;
@@ -329,12 +330,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			rval.debug_scripts = true;
 			break;
 		case 'e':
-			if ( optarg[0] == 0 )
-				// Cheating a bit, but allows checking for an empty string
-				// to determine whether -e was used or not.
-				rval.script_code_to_exec = " ";
-			else
-				rval.script_code_to_exec = optarg;
+			rval.script_code_to_exec = optarg;
 			break;
 		case 'f':
 			rval.pcap_filter = optarg;
@@ -681,7 +677,7 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
-static std::string get_exe_path(std::string invocation)
+static std::string get_exe_path(const std::string& invocation)
 	{
 	if ( invocation.empty() )
 		return "";
@@ -792,8 +788,8 @@ int main(int argc, char** argv)
 		options = {};
 		const auto& node_name = zeek::supervised_node->name;
 
-		if ( ! zeek::supervised_node->interface.empty() )
-			options.interfaces.emplace_back(zeek::supervised_node->interface);
+		if ( zeek::supervised_node->interface )
+			options.interfaces.emplace_back(*zeek::supervised_node->interface);
 
 		if ( ! zeek::supervised_node->cluster.empty() )
 			{
@@ -838,17 +834,17 @@ int main(int argc, char** argv)
 		fprintf(stderr, "Zeek script debugging ON.\n");
 		}
 
-	if ( ! options.script_code_to_exec.empty() )
-		command_line_policy = options.script_code_to_exec.data();
+	if ( options.script_code_to_exec )
+		command_line_policy = options.script_code_to_exec->data();
 
-	if ( ! options.debug_script_tracing_file.empty() )
+	if ( options.debug_script_tracing_file )
 		{
-		g_trace_state.SetTraceFile(options.debug_script_tracing_file.data());
+		g_trace_state.SetTraceFile(options.debug_script_tracing_file->data());
 		g_trace_state.TraceOn();
 		}
 
-	if ( ! options.process_status_file.empty() )
-		proc_status_file = options.process_status_file.data();
+	if ( options.process_status_file )
+		proc_status_file = options.process_status_file->data();
 
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");
@@ -862,9 +858,9 @@ int main(int argc, char** argv)
 	plugin_mgr = new plugin::Manager();
 
 #ifdef DEBUG
-	if ( ! options.debug_log_streams.empty() )
+	if ( options.debug_log_streams )
 		{
-		debug_logger.EnableStreams(options.debug_log_streams.data());
+		debug_logger.EnableStreams(options.debug_log_streams->data());
 		const char* debug_log_name = nullptr;
 
 		if ( ! getenv("ZEEK_DEBUG_LOG_STDERR") )
@@ -896,11 +892,11 @@ int main(int argc, char** argv)
 
 	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
 
-	if ( ! options.random_seed_input_file.empty() )
-		seed_load_file = options.random_seed_input_file.data();
+	if ( options.random_seed_input_file )
+		seed_load_file = options.random_seed_input_file->data();
 
 	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : 0),
-					 options.random_seed_output_file.empty() ? 0 : options.random_seed_output_file.data());
+					 options.random_seed_output_file ? options.random_seed_output_file->data() : 0);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -929,8 +925,8 @@ int main(int argc, char** argv)
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
 	// timer_mgr = new CQ_TimerMgr();
 
-	zeekygen_mgr = new zeekygen::Manager(options.zeekygen_config_file,
-	                                     bro_argv[0]);
+	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
+	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
@@ -944,7 +940,7 @@ int main(int argc, char** argv)
 	     options.script_options_to_set.empty() &&
 	     options.pcap_files.size() == 0 &&
 	     options.interfaces.size() == 0 &&
-	     options.identifier_to_print.empty() &&
+	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
 	     ! use_supervisor() && ! zeek::supervised_node )
 		add_input_file("-");
@@ -1077,14 +1073,14 @@ int main(int argc, char** argv)
 	reporter->InitOptions();
 	zeekygen_mgr->GenerateDocs();
 
-	if ( ! options.pcap_filter.empty() )
+	if ( options.pcap_filter )
 		{
 		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
 
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(new StringVal(options.pcap_filter));
+		id->SetVal(new StringVal(*options.pcap_filter));
 		}
 
 	auto all_signature_files = options.signature_files;
@@ -1164,11 +1160,11 @@ int main(int argc, char** argv)
 		}
 
 	// Print the ID.
-	if ( ! options.identifier_to_print.empty() )
+	if ( options.identifier_to_print )
 		{
-		ID* id = global_scope()->Lookup(options.identifier_to_print);
+		ID* id = global_scope()->Lookup(*options.identifier_to_print);
 		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", options.identifier_to_print.data());
+			reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 
 		ODesc desc;
 		desc.SetQuotes(true);

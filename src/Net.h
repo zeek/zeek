@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <optional>
 
 #include "net_util.h"
 #include "util.h"
@@ -14,8 +15,9 @@
 #include "iosource/PktDumper.h"
 
 extern void net_init(const std::vector<std::string>& interfaces,
-					 const std::vector<std::string>& pcap_input_files,
-                     const std::string& pcap_output_file, bool do_watchdog);
+                     const std::vector<std::string>& pcap_input_files,
+                     const std::optional<std::string>& pcap_output_file,
+                     bool do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);

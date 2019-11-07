@@ -1,4 +1,8 @@
 
+3.1.0-dev.256 | 2019-11-07 13:42:11 -0800
+
+  * Allow record_fields() string arguments that name a record type (Jon Siwek, Corelight)
+
 3.1.0-dev.253 | 2019-11-05 09:54:01 -0800
 
   * Add and use new IntrusivePtr type (Dominik Charousset, Corelight)

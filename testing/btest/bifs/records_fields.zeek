@@ -43,4 +43,8 @@ event zeek_init()
     print t;
     t = record_fields(x$e);
     print t;
+
+    print record_fields("myrec");
+    print record_fields("tt");
+    print record_fields("r");
 }

@@ -31,3 +31,20 @@ F
 {
 
 }
+{
+[myfield] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>]
+}
+{
+[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
+[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>]
+}
+{
+[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Foo],
+[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[e] = [type_name=any, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[a] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>]
+}

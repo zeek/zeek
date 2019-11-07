@@ -960,6 +960,11 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	/**
+	 * Returns a "record_field_table" value for introspection purposes.
+	 */
+	TableVal* GetRecordFieldsVal() const;
+
 	// This is an experiment to associate a BroObj within the
 	// event engine to a record value in bro script.
 	void SetOrigin(BroObj* o)	{ origin = o; }

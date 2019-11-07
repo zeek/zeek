@@ -396,14 +396,12 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 
 TableVal* Val::GetRecordFields()
 	{
-	TableVal* fields = new TableVal(internal_type("record_field_table")->AsTableType());
-
 	auto t = Type();
 
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return fields;
+		return new TableVal(internal_type("record_field_table")->AsTableType());
 		}
 
 	RecordType* rt = nullptr;
@@ -421,43 +419,13 @@ TableVal* Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return fields;
+			return new TableVal(internal_type("record_field_table")->AsTableType());
 			}
 
 		rt = t->AsRecordType();
 		}
 
-	for ( int i = 0; i < rt->NumFields(); ++i )
-		{
-		BroType* ft = rt->FieldType(i);
-		TypeDecl* fd = rt->FieldDecl(i);
-		Val* fv = nullptr;
-
-		if ( rv )
-			fv = rv->Lookup(i);
-
-		if ( fv )
-			::Ref(fv);
-
-		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
-
-		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
-
-		if ( ft->Tag() == TYPE_RECORD )
-			nr->Assign(0, new StringVal("record " + ft->GetName()));
-		else
-			nr->Assign(0, new StringVal(type_name(ft->Tag())));
-
-		nr->Assign(1, val_mgr->GetBool(logged));
-		nr->Assign(2, fv);
-		nr->Assign(3, rt->FieldDefault(i));
-
-		Val* field_name = new StringVal(rt->FieldName(i));
-		fields->Assign(field_name, nr);
-		Unref(field_name);
-		}
-
-	return fields;
+	return rt->GetRecordFieldsVal(rv);
 	}
 
 // This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
@@ -2663,6 +2631,11 @@ RecordVal* RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 		}
 
 	return CoerceTo(t, 0, allow_orphaning);
+	}
+
+TableVal* RecordVal::GetRecordFieldsVal() const
+	{
+	return Type()->AsRecordType()->GetRecordFieldsVal(this);
 	}
 
 void RecordVal::Describe(ODesc* d) const

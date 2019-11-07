@@ -71,9 +71,12 @@ private:
 	 * that don't agree with the output format of Brofiler.
 	 */
 	struct canonicalize_desc {
+		char delim;
+
 		void operator() (char& c)
 			{
 			if ( c == '\n' ) c = ' ';
+			if ( c == delim ) c = ' ';
 			}
 	};
 };

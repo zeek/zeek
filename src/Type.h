@@ -698,53 +698,53 @@ extern BroType* init_type(Expr* init);
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const BroType* t);
 
-// True if the given type tag corresponds to an integral type.
-#define IsIntegral(t)	(t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER)
-
-// True if the given type tag corresponds to an arithmetic type.
-#define IsArithmetic(t)	(IsIntegral(t) || t == TYPE_DOUBLE)
-
-// True if the given type tag corresponds to a boolean type.
-#define IsBool(t)	(t == TYPE_BOOL)
-
-// True if the given type tag corresponds to an interval type.
-#define IsInterval(t)	(t == TYPE_INTERVAL)
-
-// True if the given type tag corresponds to a record type.
-#define IsRecord(t)	(t == TYPE_RECORD || t == TYPE_UNION)
-
-// True if the given type tag corresponds to a function type.
-#define IsFunc(t)	(t == TYPE_FUNC)
-
-// True if the given type type is a vector.
-#define IsVector(t)	(t == TYPE_VECTOR)
-
-// True if the given type type is a string.
-#define IsString(t)	(t == TYPE_STRING)
-
 // True if the given type tag corresponds to type that can be assigned to.
 extern int is_assignable(BroType* t);
 
+// True if the given type tag corresponds to an integral type.
+inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }
+
+// True if the given type tag corresponds to an arithmetic type.
+inline bool IsArithmetic(TypeTag t)	{ return (IsIntegral(t) || t == TYPE_DOUBLE); }
+
+// True if the given type tag corresponds to a boolean type.
+inline bool IsBool(TypeTag t)	{ return (t == TYPE_BOOL); }
+
+// True if the given type tag corresponds to an interval type.
+inline bool IsInterval(TypeTag t)	{ return (t == TYPE_INTERVAL); }
+
+// True if the given type tag corresponds to a record type.
+inline bool IsRecord(TypeTag t)	{ return (t == TYPE_RECORD || t == TYPE_UNION); }
+
+// True if the given type tag corresponds to a function type.
+inline bool IsFunc(TypeTag t)	{ return (t == TYPE_FUNC); }
+
+// True if the given type type is a vector.
+inline bool IsVector(TypeTag t)	{ return (t == TYPE_VECTOR); }
+
+// True if the given type type is a string.
+inline bool IsString(TypeTag t)	{ return (t == TYPE_STRING); }
+
 // True if the given type tag corresponds to the error type.
-#define IsErrorType(t)	(t == TYPE_ERROR)
+inline bool IsErrorType(TypeTag t)	{ return (t == TYPE_ERROR); }
 
 // True if both tags are integral types.
-#define BothIntegral(t1, t2) (IsIntegral(t1) && IsIntegral(t2))
+inline bool BothIntegral(TypeTag t1, TypeTag t2) { return (IsIntegral(t1) && IsIntegral(t2)); }
 
 // True if both tags are arithmetic types.
-#define BothArithmetic(t1, t2) (IsArithmetic(t1) && IsArithmetic(t2))
+inline bool BothArithmetic(TypeTag t1, TypeTag t2) { return (IsArithmetic(t1) && IsArithmetic(t2)); }
 
 // True if either tags is an arithmetic type.
-#define EitherArithmetic(t1, t2) (IsArithmetic(t1) || IsArithmetic(t2))
+inline bool EitherArithmetic(TypeTag t1, TypeTag t2) { return (IsArithmetic(t1) || IsArithmetic(t2)); }
 
 // True if both tags are boolean types.
-#define BothBool(t1, t2) (IsBool(t1) && IsBool(t2))
+inline bool BothBool(TypeTag t1, TypeTag t2) { return (IsBool(t1) && IsBool(t2)); }
 
 // True if both tags are interval types.
-#define BothInterval(t1, t2) (IsInterval(t1) && IsInterval(t2))
+inline bool BothInterval(TypeTag t1, TypeTag t2) { return (IsInterval(t1) && IsInterval(t2)); }
 
 // True if both tags are string types.
-#define BothString(t1, t2) (IsString(t1) && IsString(t2))
+inline bool BothString(TypeTag t1, TypeTag t2) { return (IsString(t1) && IsString(t2)); }
 
 // True if either tag is the error type.
-#define EitherError(t1, t2) (IsErrorType(t1) || IsErrorType(t2))
+inline bool EitherError(TypeTag t1, TypeTag t2) { return (IsErrorType(t1) || IsErrorType(t2)); }

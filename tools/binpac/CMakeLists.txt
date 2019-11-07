@@ -7,6 +7,7 @@ string(REPLACE "." " " _version_numbers ${BINPAC_VERSION})
 separate_arguments(_version_numbers)
 list(GET _version_numbers 0 BINPAC_VERSION_MAJOR)
 list(GET _version_numbers 1 BINPAC_VERSION_MINOR)
+string(REGEX REPLACE "-[0-9]*$" "" BINPAC_VERSION_MINOR ${BINPAC_VERSION_MINOR})
 
 # The SO number shall increase only if binary interface changes.
 set(BINPAC_SOVERSION 0)

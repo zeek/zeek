@@ -12,8 +12,17 @@
 #include <stdint.h>
 
 #include "JSON.h"
+#include "3rdparty/rapidjson/include/rapidjson/internal/ieee754.h"
 
 using namespace threading::formatter;
+
+bool JSON::NullDoubleWriter::Double(double d)
+	{
+	if ( rapidjson::internal::Double(d).IsNanOrInf() )
+		return rapidjson::Writer<rapidjson::StringBuffer>::Null();
+
+	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
+	}
 
 JSON::JSON(MsgThread* t, TimeFormat tf) : Formatter(t), surrounding_braces(true)
 	{
@@ -27,21 +36,19 @@ JSON::~JSON()
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
                     Value** vals) const
 	{
-	ZeekJson j = ZeekJson::object();
+	rapidjson::StringBuffer buffer;
+	NullDoubleWriter writer(buffer);
+
+	writer.StartObject();
 
 	for ( int i = 0; i < num_fields; i++ )
 		{
 		if ( vals[i]->present )
-			{
-			ZeekJson new_entry = BuildJSON(vals[i]);
-			if ( new_entry.is_null() )
-				return false;
-
-			j.emplace(fields[i]->name, new_entry);
-			}
+			BuildJSON(writer, vals[i], fields[i]->name);
 		}
 
-	desc->Add(j.dump());
+	writer.EndObject();
+	desc->Add(buffer.GetString());
 
 	return true;
 	}
@@ -54,14 +61,18 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 		return false;
 		}
 
-	if ( ! val->present )
+	if ( ! val->present || name.empty() )
 		return true;
 
-	ZeekJson j = BuildJSON(val, name);
-	if ( j.is_null() )
-		return false;
+	rapidjson::Document doc;
+	rapidjson::StringBuffer buffer;
+	NullDoubleWriter writer(buffer);
 
-	desc->Add(j.dump());
+	writer.StartObject();
+	BuildJSON(writer, val, name);
+	writer.EndObject();
+
+	desc->Add(buffer.GetString());
 	return true;
 	}
 
@@ -71,47 +82,56 @@ threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag 
 	return nullptr;
 	}
 
-ZeekJson JSON::BuildJSON(Value* val, const string& name) const
+void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const string& name) const
 	{
-	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
 	if ( ! val->present )
-		return nullptr;
+		{
+		writer.Null();
+		return;
+		}
 
-	ZeekJson j;
 	switch ( val->type )
 		{
 		case TYPE_BOOL:
-			j = val->val.int_val != 0;
+			if ( ! name.empty() ) writer.Key(name);
+			writer.Bool(val->val.int_val != 0);
 			break;
 
 		case TYPE_INT:
-			j = val->val.int_val;
+			if ( ! name.empty() ) writer.Key(name);
+			writer.Int64(val->val.int_val);
 			break;
 
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			j = val->val.uint_val;
+			if ( ! name.empty() ) writer.Key(name);
+			writer.Uint64(val->val.uint_val);
 			break;
 
 		case TYPE_PORT:
-			j = val->val.port_val.port;
+			if ( ! name.empty() ) writer.Key(name);
+			writer.Uint64(val->val.port_val.port);
 			break;
 
 		case TYPE_SUBNET:
-			j = Formatter::Render(val->val.subnet_val);
+			if ( ! name.empty() ) writer.Key(name);
+			writer.String(Formatter::Render(val->val.subnet_val));
 			break;
 
 		case TYPE_ADDR:
-			j = Formatter::Render(val->val.addr_val);
+			if ( ! name.empty() ) writer.Key(name);
+			writer.String(Formatter::Render(val->val.addr_val));
 			break;
 
 		case TYPE_DOUBLE:
 		case TYPE_INTERVAL:
-			j = val->val.double_val;
+			if ( ! name.empty() ) writer.Key(name);
+			writer.Double(val->val.double_val);
 			break;
 
 		case TYPE_TIME:
 			{
+			if ( ! name.empty() ) writer.Key(name);
 			if ( timestamps == TS_ISO8601 )
 				{
 				char buffer[40];
@@ -125,7 +145,7 @@ ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
 					// This was a failure, doesn't really matter what gets put here
 					// but it should probably stand out...
-					j = "2000-01-01T00:00:00.000000";
+					writer.String("2000-01-01T00:00:00.000000");
 					}
 				else
 					{
@@ -136,17 +156,17 @@ ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 						frac += 1;
 
 					snprintf(buffer2, sizeof(buffer2), "%s.%06.0fZ", buffer, fabs(frac) * 1000000);
-					j = buffer2;
+					writer.String(buffer2, strlen(buffer2));
 					}
 				}
 
 			else if ( timestamps == TS_EPOCH )
-				j = val->val.double_val;
+				writer.Double(val->val.double_val);
 
 			else if ( timestamps == TS_MILLIS )
 				{
 				// ElasticSearch uses milliseconds for timestamps
-				j = (uint64_t) (val->val.double_val * 1000);
+				writer.Uint64((uint64_t) (val->val.double_val * 1000));
 				}
 
 			break;
@@ -157,36 +177,37 @@ ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 		case TYPE_FILE:
 		case TYPE_FUNC:
 			{
-			j = json_escape_utf8(string(val->val.string_val.data, val->val.string_val.length));
+			if ( ! name.empty() ) writer.Key(name);
+			writer.String(json_escape_utf8(string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 
 		case TYPE_TABLE:
 			{
-			j = ZeekJson::array();
+			if ( ! name.empty() ) writer.Key(name);
+			writer.StartArray();
 
 			for ( int idx = 0; idx < val->val.set_val.size; idx++ )
-				j.push_back(BuildJSON(val->val.set_val.vals[idx]));
+				BuildJSON(writer, val->val.set_val.vals[idx]);
 
+			writer.EndArray();
 			break;
 			}
 
 		case TYPE_VECTOR:
 			{
-			j = ZeekJson::array();
+			if ( ! name.empty() ) writer.Key(name);
+			writer.StartArray();
 
 			for ( int idx = 0; idx < val->val.vector_val.size; idx++ )
-				j.push_back(BuildJSON(val->val.vector_val.vals[idx]));
+				BuildJSON(writer, val->val.vector_val.vals[idx]);
 
+			writer.EndArray();
 			break;
 			}
 
 		default:
+			reporter->Warning("Unhandled type in JSON::BuildJSON");
 			break;
 		}
-
-	if ( ! name.empty() && ! j.is_null() )
-		return { { name, j } };
-
-	return j;
 	}

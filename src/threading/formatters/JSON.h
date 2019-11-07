@@ -2,23 +2,13 @@
 
 #pragma once
 
-#include "../Formatter.h"
-#include "3rdparty/json.hpp"
-#include "3rdparty/tsl-ordered-map/ordered_map.h"
+#define RAPIDJSON_HAS_STDSTRING 1
+#include "3rdparty/rapidjson/include/rapidjson/document.h"
+#include "3rdparty/rapidjson/include/rapidjson/writer.h"
 
+#include "../Formatter.h"
 
 namespace threading { namespace formatter {
-
-// Define a class for use with the json library that orders the keys in the same order that
-// they were inserted. By default, the json library orders them alphabetically and we don't
-// want it like that.
-template<class Key, class T, class Ignore, class Allocator,
-         class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
-         class AllocatorPair = typename std::allocator_traits<Allocator>::template rebind_alloc<std::pair<Key, T>>,
-         class ValueTypeContainer = std::vector<std::pair<Key, T>, AllocatorPair>>
-using ordered_map = tsl::ordered_map<Key, T, Hash, KeyEqual, AllocatorPair, ValueTypeContainer>;
-
-using ZeekJson = nlohmann::basic_json<ordered_map>;
 
 /**
   * A thread-safe class for converting values into a JSON representation
@@ -42,7 +32,13 @@ public:
 
 private:
 
-	ZeekJson BuildJSON(Value* val, const string& name = "") const;
+	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
+	public:
+		NullDoubleWriter(rapidjson::StringBuffer& stream) : rapidjson::Writer<rapidjson::StringBuffer>(stream) {}
+		bool Double(double d);
+	};
+
+	void BuildJSON(NullDoubleWriter& writer, Value* val, const string& name = "") const;
 
 	TimeFormat timestamps;
 	bool surrounding_braces;

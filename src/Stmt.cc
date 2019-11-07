@@ -14,6 +14,7 @@
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "logging/Manager.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -184,9 +185,49 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 
 static BroFile* print_stdout = 0;
 
+TableVal* get_string_set_from_vals (val_list* vals, ODesc* d)
+	{
+	ListVal* set = new ListVal(TYPE_STRING);
+	for ( int i = 0; i < vals->length(); i++ )
+		{
+		d->Clear();
+		Val* val = (*vals)[i];
+		val->Describe(d);
+		set->Append(new StringVal(d->Description()));
+		}
+
+	return set->ConvertToSet();
+	}
+
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
+
+	if ( internal_val("Log::print_to_log")->AsBool() ) 
+		{
+		ID* plid = global_scope()->Lookup("Log::PRINTLOG");
+		assert(plid);
+		assert(plid->IsEnumConst());
+
+		EnumType* et = plid->Type()->AsEnumType();
+		int plint = et->Lookup("Log", "PRINTLOG");
+		assert(plint >= 0);
+		EnumVal* plval = et->GetVal(plint);
+		assert(plval);
+
+		RecordType* pltype = log_mgr->StreamColumns(plval);
+		assert(pltype);
+
+		RecordVal record = RecordVal(pltype);
+		ODesc d(DESC_READABLE);
+		d.SetFlush(0);
+
+		record.Assign(0, new Val(current_time(), TYPE_TIME));
+		record.Assign(1, get_string_set_from_vals(vals, &d));
+
+		log_mgr->Write(plval, &record);
+		return 0;
+		}
 
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);

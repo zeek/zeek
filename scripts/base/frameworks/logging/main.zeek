@@ -75,6 +75,23 @@ export {
 	## Returns: The path to be used for the filter.
 	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
 
+	# Log Print Statements
+
+	type PrintLogInfo: record {
+	    ## Current timestamp.
+		ts:                  time              &log;
+		## Set of strings passed to the print statement.
+		vals:                set[string]       &log;
+	};
+
+	redef enum Log::ID += {PRINTLOG};
+
+	## If true, logging is enabled for print statements instead of output to files
+	const print_to_log = F &redef;
+
+	## If print_to_log is true, this is the path to which the print Log Stream writes
+	const print_log_path = "print" &redef;
+
 	# Log rotation support.
 
 	## Information passed into rotation callback functions.
@@ -642,4 +659,11 @@ function add_default_filter(id: ID) : bool
 function remove_default_filter(id: ID) : bool
 	{
 	return remove_filter(id, "default");
+	}
+
+event zeek_init() &priority=5
+	{
+	if ( print_to_log )
+		# "print" added for the test coverage.find-bro-logs
+		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $path=print_log_path]); #"print"
 	}

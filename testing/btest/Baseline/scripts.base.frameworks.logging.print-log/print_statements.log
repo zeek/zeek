@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	print_statements
+#open	2019-11-13-18-11-01
+#fields	ts	vals
+#types	time	set[string]
+1573697461.909861	hello world \x2c
+1573697461.909946	T,2
+#close	2019-11-13-18-11-01

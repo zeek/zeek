@@ -3,6 +3,7 @@
 
 #include "zeek-config.h"
 
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include <stdlib.h>

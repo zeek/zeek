@@ -1,4 +1,19 @@
 
+3.0.1-dev.23 | 2019-11-26 09:00:18 -0800
+
+  * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)
+
+  * Fix compile warnings on OpenBSD (Jon Siwek, Corelight)
+
+  * Fix compilation/loading issues on OpenBSD (Jon Siwek, Corelight)
+
+  * GH-684: Fix parsing of RPC calls with non-AUTH_UNIX flavors (Jon Siwek, Corelight)
+
+    The parsing logic that should be specific to the AUTH_UNIX credential
+    flavor was previously applied unconditionally to other flavors.
+
+  * Fix ZEEK_PROFILER_FILE file format/parsing (Jon Siwek, Corelight)
+
 3.0.1-dev.17 | 2019-10-30 13:37:15 -0700
 
   * GH-664: fix signature matching for payload-carrying SYN packets (Jon Siwek, Corelight)

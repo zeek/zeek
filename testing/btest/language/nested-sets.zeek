@@ -1,5 +1,28 @@
-# @TEST-EXEC: for i in `seq 21`; do echo 0 >> random.seed; done
 # @TEST-EXEC: test `zeek -b -G random.seed %INPUT` = "pass"
+
+@TEST-START-FILE random.seed
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+@TEST-END-FILE
 
 type r: record {
 	b: set[count];

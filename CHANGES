@@ -1,4 +1,8 @@
 
+3.1.0-dev.257 | 2019-11-11 13:40:11 -0800
+
+  * Update embedded CAF to 0.17.3 (Jon Siwek, Corelight)
+
 3.1.0-dev.256 | 2019-11-07 13:42:11 -0800
 
   * Allow record_fields() string arguments that name a record type (Jon Siwek, Corelight)

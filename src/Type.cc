@@ -846,8 +846,37 @@ TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		if ( ft->Tag() == TYPE_RECORD )
 			nr->Assign(0, new StringVal("record " + ft->GetName()));
-		else
-			nr->Assign(0, new StringVal(type_name(ft->Tag())));
+		else if ( ft->Tag() == TYPE_VECTOR )
+                        {
+                        string s = "vector[";
+                        s += type_name(ft->YieldType()->Tag());
+                        s += "]";
+                        nr->Assign(0, new StringVal(s));
+                        }
+		else if ( ft->Tag() == TYPE_TABLE )
+                        {
+                        string s;
+                        if ( ft->IsSet() )
+                                s = "set[";
+                        else
+                                s = "table[";
+                        const type_list* tl = ((const IndexType*) ft)->IndexTypes();
+                        loop_over_list(*tl, i)
+                                {
+                                if (i > 0)
+                                        s += ",";
+                                s += type_name((*tl)[i]->Tag());
+                                }
+                        s += "]";
+                        if (ft->YieldType())
+                                {
+                                s += " of ";
+                                s += type_name(ft->YieldType()->Tag());
+                                }
+                        nr->Assign(0, new StringVal(s));
+                        }
+                else
+                        nr->Assign(0, new StringVal(type_name(ft->Tag())));
 
 		nr->Assign(1, val_mgr->GetBool(logged));
 		nr->Assign(2, fv);

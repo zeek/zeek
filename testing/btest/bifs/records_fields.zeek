@@ -24,6 +24,13 @@ type r: record {
 
 type mystring: string;
 
+type cr: record {
+     a: set[double];
+     b: set[double, string];
+     c: table[double, string] of string;
+     d: vector of string;
+};
+
 event zeek_init()
 {
     local x: r = [$a=42, $d="Bar", $e=tt];
@@ -47,4 +54,6 @@ event zeek_init()
     print record_fields("myrec");
     print record_fields("tt");
     print record_fields("r");
+
+    print record_fields("cr");
 }

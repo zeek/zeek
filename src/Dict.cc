@@ -133,7 +133,7 @@ void Dictionary::DeInit()
 	tbl2 = 0;
 	}
 
-void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
+void* Dictionary::Lookup(const void* key, size_t key_size, hash_t hash) const
 	{
 	if ( ! tbl && ! tbl2 )
 		return 0;
@@ -163,7 +163,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 	return 0;
 	}
 
-void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
+void* Dictionary::Insert(void* key, size_t key_size, hash_t hash, void* val,
 				int copy_key)
 	{
 	if ( ! tbl )
@@ -190,7 +190,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
 	return old_val;
 	}
 
-void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
+void* Dictionary::Remove(const void* key, size_t key_size, hash_t hash,
 				bool dont_delete)
 	{
 	if ( ! tbl && ! tbl2 )

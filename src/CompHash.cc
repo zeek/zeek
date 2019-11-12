@@ -78,7 +78,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		// Add a marker saying whether the optional field is set.
 		char* kp = AlignAndPadType<char>(kp0);
-		*kp = ( v ? 1 : 0);
+		*kp = ( v ? '1' : '0');
 		kp0 = reinterpret_cast<char*>(kp+1);
 
 		if ( ! v )
@@ -417,7 +417,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-				     int type_check, int sz, bool optional,
+				     int type_check, unsigned int sz, bool optional,
 				     bool calc_static_size) const
 	{
 	InternalTypeTag t = bt->InternalType();
@@ -652,7 +652,7 @@ void* CompositeHash::AlignAndPad(char* ptr, unsigned int size) const
 	return reinterpret_cast<void *>(ptr);
 	}
 
-int CompositeHash::SizeAlign(int offset, unsigned int size) const
+int CompositeHash::SizeAlign(unsigned offset, unsigned int size) const
 	{
 	if ( ! size )
 		return offset;

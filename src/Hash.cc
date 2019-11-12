@@ -56,7 +56,7 @@ HashKey::HashKey(uint32_t u)
 	is_our_dynamic = 0;
 	}
 
-HashKey::HashKey(const uint32_t u[], int n)
+HashKey::HashKey(const uint32_t u[], size_t n)
 	{
 	size = n * sizeof(u[0]);
 	key = (void*) u;
@@ -103,7 +103,7 @@ HashKey::HashKey(const BroString* s)
 	is_our_dynamic = 0;
 	}
 
-HashKey::HashKey(int copy_key, void* arg_key, int arg_size)
+HashKey::HashKey(int copy_key, void* arg_key, size_t arg_size)
 	{
 	size = arg_size;
 	is_our_dynamic = 1;
@@ -119,7 +119,7 @@ HashKey::HashKey(int copy_key, void* arg_key, int arg_size)
 	hash = HashBytes(key, size);
 	}
 
-HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash)
+HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash)
 	{
 	size = arg_size;
 	hash = arg_hash;
@@ -127,7 +127,7 @@ HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash)
 	is_our_dynamic = 1;
 	}
 
-HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash,
+HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash,
 		bool /* dont_copy */)
 	{
 	size = arg_size;
@@ -136,7 +136,7 @@ HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash,
 	is_our_dynamic = 0;
 	}
 
-HashKey::HashKey(const void* bytes, int arg_size)
+HashKey::HashKey(const void* bytes, size_t arg_size)
 	{
 	size = arg_size;
 	key = CopyKey(bytes, size);
@@ -155,14 +155,14 @@ void* HashKey::TakeKey()
 		return CopyKey(key, size);
 	}
 
-void* HashKey::CopyKey(const void* k, int s) const
+void* HashKey::CopyKey(const void* k, size_t s) const
 	{
 	void* k_copy = (void*) new char[s];
 	memcpy(k_copy, k, s);
 	return k_copy;
 	}
 
-hash_t HashKey::HashBytes(const void* bytes, int size)
+hash_t HashKey::HashBytes(const void* bytes, size_t size)
 	{
 	if ( size <= UHASH_KEY_SIZE )
 		{

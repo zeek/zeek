@@ -31,7 +31,7 @@ public:
 	// its size, and its (unmodulated) hash.
 	void* Lookup(const HashKey* key) const
 		{ return Lookup(key->Key(), key->Size(), key->Hash()); }
-	void* Lookup(const void* key, int key_size, hash_t hash) const;
+	void* Lookup(const void* key, size_t key_size, hash_t hash) const;
 
 	// Returns previous value, or 0 if none.
 	void* Insert(HashKey* key, void* val)
@@ -41,7 +41,7 @@ public:
 	// If copy_key is true, then the key is copied, otherwise it's assumed
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
-	void* Insert(void* key, int key_size, hash_t hash, void* val,
+	void* Insert(void* key, size_t key_size, hash_t hash, void* val,
 			int copy_key);
 
 	// Removes the given element.  Returns a pointer to the element in
@@ -49,7 +49,7 @@ public:
 	// If dontdelete is true, the key's bytes will not be deleted.
 	void* Remove(const HashKey* key)
 		{ return Remove(key->Key(), key->Size(), key->Hash()); }
-	void* Remove(const void* key, int key_size, hash_t hash,
+	void* Remove(const void* key, size_t key_size, hash_t hash,
 				bool dont_delete = false);
 
 	// Number of entries.

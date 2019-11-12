@@ -47,7 +47,7 @@ protected:
 
 	// Returns offset+size rounded up so it can correctly align data
 	// of the given size.
-	int SizeAlign(int offset, unsigned int size) const;
+	int SizeAlign(unsigned int offset, unsigned int size) const;
 
 	template<class T>
 	T* AlignAndPadType(char* ptr) const
@@ -62,7 +62,7 @@ protected:
 		}
 
 	template<class T>
-	int SizeAlignType(int offset) const
+	int SizeAlignType(unsigned int offset) const
 		{
 		return SizeAlign(offset, sizeof(T));
 		}
@@ -75,7 +75,7 @@ protected:
 			   bool calc_static_size) const;
 
 	int SingleTypeKeySize(BroType*, const Val*,
-			      int type_check, int sz, bool optional,
+			      int type_check, unsigned int sz, bool optional,
 			      bool calc_static_size) const;
 
 	TypeList* type;

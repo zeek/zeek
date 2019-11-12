@@ -22,7 +22,7 @@ public:
 	explicit HashKey(bro_int_t i);
 	explicit HashKey(bro_uint_t u);
 	explicit HashKey(uint32_t u);
-	HashKey(const uint32_t u[], int n);
+	HashKey(const uint32_t u[], size_t n);
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
 	explicit HashKey(const char* s);
@@ -41,19 +41,19 @@ public:
 	// The calling sequence here is unusual (normally key would be
 	// first) to avoid possible ambiguities with the next constructor,
 	// which is the more commonly used one.
-	HashKey(int copy_key, void* key, int size);
+	HashKey(int copy_key, void* key, size_t size);
 
 	// Same, but automatically copies the key.
-	HashKey(const void* key, int size, hash_t hash);
+	HashKey(const void* key, size_t size, hash_t hash);
 
 	// Builds a key from the given chunk of bytes.
-	HashKey(const void* bytes, int size);
+	HashKey(const void* bytes, size_t size);
 
 	// Create a Hashkey given all of its components *without*
 	// copying the key and *without* taking ownership.  Note that
 	// "dont_copy" is a type placeholder to differentiate this member
 	// function from the one above; its value is not used.
-	HashKey(const void* key, int size, hash_t hash, bool dont_copy);
+	HashKey(const void* key, size_t size, hash_t hash, bool dont_copy);
 
 	// Hands over the key to the caller.  This means that if the
 	// key is our dynamic, we give it to the caller and mark it
@@ -62,14 +62,14 @@ public:
 	void* TakeKey();
 
 	const void* Key() const	{ return key; }
-	int Size() const	{ return size; }
+	size_t Size() const	{ return size; }
 	hash_t Hash() const	{ return hash; }
 
 	unsigned int MemoryAllocation() const	{ return padded_sizeof(*this) + pad_size(size); }
 
-	static hash_t HashBytes(const void* bytes, int size);
+	static hash_t HashBytes(const void* bytes, size_t size);
 protected:
-	void* CopyKey(const void* key, int size) const;
+	void* CopyKey(const void* key, size_t size) const;
 
 	union {
 		bro_int_t i;
@@ -80,7 +80,7 @@ protected:
 
 	void* key;
 	int is_our_dynamic;
-	int size;
+	size_t size;
 	hash_t hash;
 };
 

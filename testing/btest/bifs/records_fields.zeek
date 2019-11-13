@@ -27,8 +27,9 @@ type mystring: string;
 type cr: record {
      a: set[double];
      b: set[double, string];
-     c: table[double, string] of string;
-     d: vector of string;
+     c: set[double, r];
+     d: table[double, string] of table[string] of vector of string;
+     e: vector of vector of string;
 };
 
 event zeek_init()

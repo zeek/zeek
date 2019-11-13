@@ -824,6 +824,39 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	d->PopType(this);
 	}
 
+static string container_type_name(const BroType* ft)
+        {
+	string s;
+	if ( ft->Tag() == TYPE_RECORD )
+		s = "record " + ft->GetName();
+	else if ( ft->Tag() == TYPE_VECTOR )
+		s = "vector of " + container_type_name(ft->YieldType());
+	else if ( ft->Tag() == TYPE_TABLE )
+		{
+		if ( ft->IsSet() )
+			s = "set[";
+		else
+			s = "table[";
+		const type_list* tl = ((const IndexType*) ft)->IndexTypes();
+		loop_over_list(*tl, i)
+			{
+			if ( i > 0 )
+				s += ",";
+			s += container_type_name((*tl)[i]);
+			}
+		s += "]";
+		if ( ft->YieldType() )
+			{
+			s += " of ";
+			s += container_type_name(ft->YieldType());
+			}
+		}
+	else
+		s = type_name(ft->Tag());
+	return s;
+	}
+
+
 TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
 	auto rval = new TableVal(internal_type("record_field_table")->AsTableType());
@@ -844,42 +877,11 @@ TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
 
-		if ( ft->Tag() == TYPE_RECORD )
-			nr->Assign(0, new StringVal("record " + ft->GetName()));
-		else if ( ft->Tag() == TYPE_VECTOR )
-			{
-			string s = fmt("vector of %s", ft->YieldType()->Tag());
-			nr->Assign(0, new StringVal(s));
-			}
-		else if ( ft->Tag() == TYPE_TABLE )
-			{
-			string s;
-			if ( ft->IsSet() )
-				s = "set[";
-			else
-				s = "table[";
-			const type_list* tl = ((const IndexType*) ft)->IndexTypes();
-			loop_over_list(*tl, i)
-				{
-				if ( i > 0 )
-					s += ",";
-				s += type_name((*tl)[i]->Tag());
-				}
-			s += "]";
-			if ( ft->YieldType() )
-				{
-				s += " of ";
-				s += type_name(ft->YieldType()->Tag());
-				}
-			nr->Assign(0, new StringVal(s));
-			}
-		else
-			nr->Assign(0, new StringVal(type_name(ft->Tag())));
-
+		string s = container_type_name(ft);
+		nr->Assign(0, new StringVal(s));
 		nr->Assign(1, val_mgr->GetBool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, FieldDefault(i));
-
 		Val* field_name = new StringVal(FieldName(i));
 		rval->Assign(field_name, nr);
 		Unref(field_name);

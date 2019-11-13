@@ -29,6 +29,9 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double ar
 	{
 	v = nullptr;
 	xid = arg_xid;
+	stamp = 0;
+	uid = 0;
+	gid = 0;
 
 	start_time = arg_start_time;
 	last_time = arg_last_time;
@@ -42,7 +45,8 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double ar
 	vers = extract_XDR_uint32(buf, n);
 	proc = extract_XDR_uint32(buf, n);
 	cred_flavor = extract_XDR_uint32(buf, n);
-	int cred_opaque_n, machinename_n;
+
+	int cred_opaque_n;
 	const u_char* cred_opaque = extract_XDR_opaque(buf, n, cred_opaque_n);
 
 	if ( ! cred_opaque )
@@ -51,32 +55,39 @@ RPC_CallInfo::RPC_CallInfo(uint32 arg_xid, const u_char*& buf, int& n, double ar
 		return;
 		}
 
-	stamp = extract_XDR_uint32(cred_opaque, cred_opaque_n);
-
-	const u_char* tmp = extract_XDR_opaque(cred_opaque, cred_opaque_n, machinename_n);
-
-	if ( ! tmp )
-		{
-		buf = nullptr;
-		return;
-		}
-
-	machinename = std::string(reinterpret_cast<const char*>(tmp), machinename_n);
-
-	uid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
-	gid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
-	size_t number_of_gids = extract_XDR_uint32(cred_opaque, cred_opaque_n);
-
-	if ( number_of_gids > 64 )
-		{
-		buf = nullptr;
-		return;
-		}
-
-	for ( auto i = 0u; i < number_of_gids; ++i )
-		auxgids.push_back(extract_XDR_uint32(cred_opaque, cred_opaque_n));
-
 	verf_flavor = skip_XDR_opaque_auth(buf, n);
+
+	if ( ! buf )
+		return;
+
+	if ( cred_flavor == RPC_AUTH_UNIX )
+		{
+		stamp = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+		int machinename_n;
+		constexpr auto max_machinename_len = 255;
+		auto mnp = extract_XDR_opaque(cred_opaque, cred_opaque_n, machinename_n, max_machinename_len);
+
+		if ( ! mnp )
+			{
+			buf = nullptr;
+			return;
+			}
+
+		machinename = std::string(reinterpret_cast<const char*>(mnp), machinename_n);
+		uid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+		gid = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+
+		size_t number_of_gids = extract_XDR_uint32(cred_opaque, cred_opaque_n);
+
+		if ( number_of_gids > 64 )
+			{
+			buf = nullptr;
+			return;
+			}
+
+		for ( auto i = 0u; i < number_of_gids; ++i )
+			auxgids.push_back(extract_XDR_uint32(cred_opaque, cred_opaque_n));
+		}
 
 	header_len = call_n - n;
 

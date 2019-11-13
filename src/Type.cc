@@ -863,12 +863,12 @@ TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
                         const type_list* tl = ((const IndexType*) ft)->IndexTypes();
                         loop_over_list(*tl, i)
                                 {
-                                if (i > 0)
+                                if ( i > 0 )
                                         s += ",";
                                 s += type_name((*tl)[i]->Tag());
                                 }
                         s += "]";
-                        if (ft->YieldType())
+                        if ( ft->YieldType() )
                                 {
                                 s += " of ";
                                 s += type_name(ft->YieldType()->Tag());

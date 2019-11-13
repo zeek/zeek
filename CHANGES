@@ -1,4 +1,8 @@
 
+3.1.0-dev.263 | 2019-11-13 13:43:16 -0800
+
+  * Improve record_fields() BIF to recursively give full container type names (Henri DF)
+
 3.1.0-dev.257 | 2019-11-11 13:40:11 -0800
 
   * Update embedded CAF to 0.17.3 (Jon Siwek, Corelight)

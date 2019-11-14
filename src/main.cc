@@ -153,7 +153,10 @@ bool bro_dns_fake()
 void usage(int code = 1)
 	{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
+
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
+	fprintf(stderr, "usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
+
 	fprintf(stderr, "    <file>                         | policy file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
@@ -195,6 +198,7 @@ void usage(int code = 1)
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
+	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
 	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", bro_path().c_str());
 	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
@@ -404,26 +408,13 @@ int main(int argc, char** argv)
 	{
 	std::set_new_handler(bro_new_handler);
 
-	auto copy_bro_args = [argc, argv]
-		{
-		bro_argc = argc;
-		bro_argv = new char* [argc];
-
-		for ( int i = 0; i < argc; i++ )
-			bro_argv[i] = copy_string(argv[i]);
-		};
-
-#ifndef DOCTEST_CONFIG_DISABLE
-
-	doctest::Context context;
-
 	// When running unit tests, the first argument on the command line must be
-	// --testing, followed by doctest options. Optionally, users can use "--" as
+	// --test, followed by doctest options. Optionally, users can use "--" as
 	// separator to pass Zeek options afterwards:
 	//
-	//     zeek --testing [doctest-options] -- [zeek-options]
+	//     zeek --test [doctest-options] -- [zeek-options]
 
-	if (argc > 1 && strcmp(argv[1], "--testing") == 0)
+	if (argc > 1 && strcmp(argv[1], "--test") == 0)
 		{
 
 		// Deal with CLI arguments (copy Zeek part over to bro_argv).
@@ -452,22 +443,30 @@ int main(int argc, char** argv)
 				*bro_argv_iter++ = copy_string(*i);
 			}
 
-		context.applyCommandLine(std::distance(first, separator), argv);
+#ifdef DOCTEST_CONFIG_DISABLE
 
-		// Run queries/tests and exit.
+		fprintf(stderr, "ERROR: C++ unit tests are disabled for this build.\n"
+		                "       Please re-compile with ENABLE_ZEEK_UNIT_TESTS "
+		                       "to run the C++ unit tests.\n");
+		return EXIT_FAILURE;
+
+#else
+
+		doctest::Context context;
+		context.applyCommandLine(std::distance(first, separator), argv);
 		return context.run();
+
+#endif
 
 		}
 	else
 		{
-		copy_bro_args();
+		bro_argc = argc;
+		bro_argv = new char* [argc];
+
+		for ( int i = 0; i < argc; i++ )
+			bro_argv[i] = copy_string(argv[i]);
 		}
-
-#else // DOCTEST_CONFIG_DISABLE
-
-	copy_bro_args();
-
-#endif // DOCTEST_CONFIG_DISABLE
 
 	double time_start = current_time(true);
 
@@ -531,6 +530,7 @@ int main(int argc, char** argv)
 #endif
 
 		{"pseudo-realtime",	optional_argument, 0,	'E'},
+		{"test",		no_argument,		0,	'#'},
 
 		{0,			0,			0,	0},
 	};
@@ -711,6 +711,11 @@ int main(int argc, char** argv)
 			break;
 #endif
 
+		case '#':
+			fprintf(stderr, "ERROR: --test only allowed as first argument.\n");
+			usage(1);
+			break;
+
 		case 0:
 			// This happens for long options that don't have
 			// a short-option equivalent.
@@ -794,12 +799,12 @@ int main(int argc, char** argv)
 	// activate/query. The remainder are treated as scripts to load.
 	while ( optind < bro_argc )
 		{
-		if ( strchr(argv[optind], '=') )
-			params.push_back(argv[optind++]);
-		else if ( strstr(argv[optind], "::") )
-			requested_plugins.insert(argv[optind++]);
+		if ( strchr(bro_argv[optind], '=') )
+			params.push_back(bro_argv[optind++]);
+		else if ( strstr(bro_argv[optind], "::") )
+			requested_plugins.insert(bro_argv[optind++]);
 		else
-			add_input_file(argv[optind++]);
+			add_input_file(bro_argv[optind++]);
 		}
 
 	push_scope(nullptr, nullptr);

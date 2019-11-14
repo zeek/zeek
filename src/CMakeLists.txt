@@ -452,6 +452,6 @@ if (ENABLE_ZEEK_UNIT_TESTS)
     MESSAGE(STATUS "-- Found ${num_test_cases} test cases for CTest")
     foreach (test_case ${test_cases})
         add_test(NAME "\"${test_case}\""
-                 COMMAND zeek --testing "--test-case=${test_case}")
+                 COMMAND zeek --test "--test-case=${test_case}")
     endforeach ()
 endif ()

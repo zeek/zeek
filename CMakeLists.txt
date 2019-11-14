@@ -22,6 +22,7 @@ include(cmake/FindClangTidy.cmake)
 
 if (ENABLE_ZEEK_UNIT_TESTS)
     enable_testing()
+    add_definitions(-DDOCTEST_CONFIG_SUPER_FAST_ASSERTS)
 else ()
     add_definitions(-DDOCTEST_CONFIG_DISABLE)
 endif ()

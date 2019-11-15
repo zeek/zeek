@@ -1,4 +1,11 @@
 
+3.1.0-dev.264 | 2019-11-14 16:57:13 -0800
+
+  * Install test-all-policy.zeek script (Jon Siwek, Corelight)
+
+    The zeekygen script, which is already installed, refers to it, and
+    could also generally be useful for "test everything" type scenarios.
+
 3.1.0-dev.263 | 2019-11-13 13:43:16 -0800
 
   * Improve record_fields() BIF to recursively give full container type names (Henri DF)

@@ -2,7 +2,6 @@ include(InstallPackageConfigFile)
 
 install(DIRECTORY ./ DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH} FILES_MATCHING
         PATTERN "site/local*" EXCLUDE
-        PATTERN "test-all-policy.zeek" EXCLUDE
         PATTERN "*.zeek"
         PATTERN "*.sig"
         PATTERN "*.fp"

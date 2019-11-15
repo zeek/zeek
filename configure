@@ -2,6 +2,11 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 set -e
+
+trap '[ $? -eq 0 ] && exit 0 ||
+echo "Also, before re-running configure, consider cleaning the cache \
+(removing the build directory) via \`make distclean\`"' EXIT
+
 command="$0 $*"
 
 usage="\

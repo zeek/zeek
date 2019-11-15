@@ -1,4 +1,8 @@
 
+3.1.0-dev.266 | 2019-11-14 17:29:00 -0800
+
+  * Add hint to run `make distclean` if configure fails (Simon Hardy-Francis, Corelight)
+
 3.1.0-dev.264 | 2019-11-14 16:57:13 -0800
 
   * Install test-all-policy.zeek script (Jon Siwek, Corelight)

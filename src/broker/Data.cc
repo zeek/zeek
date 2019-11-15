@@ -1,5 +1,6 @@
 #include "Data.h"
 #include "File.h"
+#include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
 
 #include <broker/error.hh>
@@ -35,6 +36,16 @@ static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	}
 	}
 
+TEST_CASE("converting Zeek to Broker protocol constants")
+	{
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_TCP), broker::port::protocol::tcp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UDP), broker::port::protocol::udp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_ICMP),
+	         broker::port::protocol::icmp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN),
+	         broker::port::protocol::unknown);
+	}
+
 TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	{
 	switch ( tp ) {
@@ -48,6 +59,16 @@ TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	default:
 		return TRANSPORT_UNKNOWN;
 	}
+	}
+
+TEST_CASE("converting Broker to Zeek protocol constants")
+	{
+	using bro_broker::to_bro_port_proto;
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::tcp), TRANSPORT_TCP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::udp), TRANSPORT_UDP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::icmp), TRANSPORT_ICMP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::unknown),
+	         TRANSPORT_UNKNOWN);
 	}
 
 struct val_converter {

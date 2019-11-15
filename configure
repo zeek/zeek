@@ -52,6 +52,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
+    --enable-cpp-tests     build Zeek's C++ unit tests
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
@@ -249,6 +250,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL       BOOL   false

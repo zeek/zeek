@@ -19,6 +19,14 @@ include(cmake/FindClangTidy.cmake)
 ########################################################################
 ## Project/Build Configuration
 
+
+if (ENABLE_ZEEK_UNIT_TESTS)
+    enable_testing()
+    add_definitions(-DDOCTEST_CONFIG_SUPER_FAST_ASSERTS)
+else ()
+    add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif ()
+
 if ( ENABLE_CCACHE )
     find_program(CCACHE_PROGRAM ccache)
 
@@ -421,6 +429,7 @@ message(
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

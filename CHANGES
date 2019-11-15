@@ -1,4 +1,8 @@
 
+3.1.0-dev.271 | 2019-11-14 19:16:31 -0800
+
+  * Add initial scaffold for unit testing via doctest (Dominik Charousset, Corelight)
+
 3.1.0-dev.266 | 2019-11-14 17:29:00 -0800
 
   * Add hint to run `make distclean` if configure fails (Simon Hardy-Francis, Corelight)

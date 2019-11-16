@@ -1,4 +1,18 @@
 
+3.1.0-dev.280 | 2019-11-15 18:27:27 -0800
+
+  * Run doctest unit tests in Travis CI (Jon Siwek, Corelight)
+
+  * Fix indents/whitespace in Travis CI script (Jon Siwek, Corelight)
+
+  * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)
+
+  * Convert pcapng test suite files to pcap format for OpenBSD compat (Jon Siwek, Corelight)
+
+  * Fix undefined symbols loading libbroker on OpenBSD (Jon Siwek, Corelight)
+
+  * Fix compile warnings on OpenBSD (Jon Siwek, Corelight)
+
 3.1.0-dev.271 | 2019-11-14 19:16:31 -0800
 
   * Add initial scaffold for unit testing via doctest (Dominik Charousset, Corelight)

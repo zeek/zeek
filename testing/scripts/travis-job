@@ -165,10 +165,10 @@ build() {
     # not needed by the Zeek tests. If the distro is set for leak tests, enable
     # those options as well.
     if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-	./configure --build-type=Release --disable-broker-tests --disable-python --disable-zeekctl && make -j 2
+        ./configure --build-type=Release --disable-broker-tests --enable-cpp-tests --disable-python --disable-zeekctl && make -j 2
     else
-	echo "Configuring zeek to build for leak testing"
-	./configure --build-type=Debug --disable-broker-tests --disable-python --disable-zeekctl --enable-perftools --enable-perftools-debug && make -j 2
+        echo "Configuring zeek to build for leak testing"
+        ./configure --build-type=Debug --disable-broker-tests --disable-python --disable-zeekctl --enable-perftools --enable-perftools-debug && make -j 2
     fi
 }
 
@@ -207,20 +207,40 @@ run() {
 
     ulimit -c unlimited
     ulimit -a
+    ret=0
+
+    if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+        echo
+        echo "Running unit tests ##################################################"
+        echo
+
+        set +e
+        ( cd build && . ./zeek-path-dev.sh && zeek --test )
+
+        if [ $? -ne 0 ]; then
+            ret=1
+        fi
+
+        set -e
+    fi
+
     echo
-    echo "Running unit tests ##################################################"
+    echo "Running baseline tests ##############################################"
     echo
     cd testing/btest
 
     set +e
     # Must specify a value for "-j" option, otherwise Travis uses a huge value.
     if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-	../../aux/btest/btest -j 4 -d
+        ../../aux/btest/btest -j 4 -d
     else
-	../../aux/btest/btest -j 4 -d -g leaks
+        ../../aux/btest/btest -j 4 -d -g leaks
     fi
 
-    ret=$?
+    if [ $? -ne 0 ]; then
+        ret=1
+    fi
+
     set -e
 
     echo
@@ -257,35 +277,35 @@ run() {
     set +e
 
     if [ -d zeek-testing ]; then
-	cd zeek-testing
-	if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-	    make
-	else
-	    make leaks
-	fi
+        cd zeek-testing
+        if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+            make
+        else
+            make leaks
+        fi
 
-	if [ $? -ne 0 ]; then
+        if [ $? -ne 0 ]; then
             showdiag
             ret=1
-	fi
+        fi
 
-	cd ..
+        cd ..
     fi
 
     if [ -d zeek-testing-private ]; then
-	cd zeek-testing-private
-	if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-	    make
-	else
-	    make leaks
-	fi
+        cd zeek-testing-private
+        if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
+            make
+        else
+            make leaks
+        fi
 
-	if [ $? -ne 0 ]; then
+        if [ $? -ne 0 ]; then
             showdiag
             ret=1
-	fi
+        fi
 
-	cd ..
+        cd ..
     fi
 
     cd ../..

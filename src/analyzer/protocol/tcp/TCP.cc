@@ -1197,6 +1197,12 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// TCP Fast Open).
 	CheckPIA_FirstPacket(is_orig, ip);
 
+	// Note the similar/inverse logic to connection_attempt.
+	if ( resp->state != TCP_ENDPOINT_INACTIVE ||
+	     (orig->state != TCP_ENDPOINT_SYN_SENT &&
+	      orig->state != TCP_ENDPOINT_SYN_ACK_SENT))
+		Conn()->SetSuccessful();
+
 	if ( DEBUG_tcp_data_sent )
 		{
 		DEBUG_MSG("%.6f before DataSent: len=%d caplen=%d skip=%d\n",

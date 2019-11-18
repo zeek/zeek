@@ -40,6 +40,24 @@ Changed Functionality
 
 - The tcp_option event is now correctly raised.
 
+'- The base scripts shipped with Zeek now use the new
+  ``successful_connection_remove`` event instead of
+  ``connection_state_remove`` where possible (when the logic doesn't
+  pertain to unestablished TCP connections). There's a performance
+  benefit to this switch, but it may potentially break custom scripts
+  that depended on accessing or modifying state via specific
+  ``&priority`` ordering of ``connection_state_remove`` event
+  handlers. However, since most of Zeek's base scripts previously just
+  used that event with the intention of writing a finalized log as the
+  last thing executed for a given connection, and the new
+  ``successful_connection_remove`` event handlers all run after
+  ``connection_state_remove``, it's not likely this change to the base
+  scripts causes any incompatibility with user scripts.
+
+  There's also a new event called ``connection_successful`` and a new
+  ``connection`` record field named "successful" to help indicate this
+  new property of connections.
+
 Removed Functionality
 ---------------------
 

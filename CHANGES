@@ -1,4 +1,22 @@
 
+3.1.0-dev.282 | 2019-11-18 12:06:13 +0000
+
+  * GH-646: Add new "successful_connection_remove" event. (Jon Siwek, Corelight)
+
+    Includes:
+
+        - Switch Zeek's base scripts over to using it in place of
+          "connection_state_remove". The difference between the two is
+          that "connection_state_remove" is raised for all events
+          while "successful_connection_remove" excludes TCP
+          connections that were never established (just SYN packets).
+          There can be performance benefits to this change for some
+          use-cases.
+
+        - Add new event called ``connection_successful`` and a new
+          ``connection`` record field named "successful" to help
+          indicate this new property of connections.
+
 3.1.0-dev.280 | 2019-11-15 18:27:27 -0800
 
   * Run doctest unit tests in Travis CI (Jon Siwek, Corelight)

@@ -384,7 +384,7 @@ Types
 :zeek:type:`ModbusCoils`: :zeek:type:`vector`                                 A vector of boolean values that indicate the setting
                                                                               for a range of modbus coils.
 :zeek:type:`ModbusHeaders`: :zeek:type:`record`                               
-:zeek:type:`ModbusRegisters`: :zeek:type:`vector`                             A vector of count values that represent 16bit modbus 
+:zeek:type:`ModbusRegisters`: :zeek:type:`vector`                             A vector of count values that represent 16bit modbus
                                                                               register values.
 :zeek:type:`NFS3::delobj_reply_t`: :zeek:type:`record`                        NFS reply for *remove*, *rmdir*.
 :zeek:type:`NFS3::direntry_t`: :zeek:type:`record`                            NFS *direntry*.
@@ -3798,7 +3798,7 @@ Types
 
    :Type: :zeek:type:`vector` of :zeek:type:`count`
 
-   A vector of count values that represent 16bit modbus 
+   A vector of count values that represent 16bit modbus
    register values.
 
 .. zeek:type:: NFS3::delobj_reply_t
@@ -4506,7 +4506,7 @@ Types
          If set, requests connectionless authentication
 
       negotiate_seal: :zeek:type:`bool`
-         If set, requests session key negotiation for message 
+         If set, requests session key negotiation for message
          confidentiality
 
       negotiate_sign: :zeek:type:`bool`
@@ -5423,7 +5423,7 @@ Types
          Note: No known implementations support this
 
       extended_security: :zeek:type:`bool`
-         The server supports extended security exchanges	
+         The server supports extended security exchanges
 
 
 .. zeek:type:: SMB1::NegotiateRawMode
@@ -5442,7 +5442,7 @@ Types
    :Type: :zeek:type:`record`
 
       core: :zeek:type:`SMB1::NegotiateResponseCore` :zeek:attr:`&optional`
-         If the server does not understand any of the dialect strings, or if 
+         If the server does not understand any of the dialect strings, or if
          PC NETWORK PROGRAM 1.0 is the chosen dialect.
 
       lanman: :zeek:type:`SMB1::NegotiateResponseLANMAN` :zeek:attr:`&optional`
@@ -6998,6 +6998,11 @@ Types
 
       inner_vlan: :zeek:type:`int` :zeek:attr:`&optional`
          The inner VLAN, if applicable for this connection.
+
+      successful: :zeek:type:`bool`
+         Flag that will be true if :zeek:see:`connection_successful` has
+         already been generated for the connection. See the documentation of
+         that event for a definition of what makes a connection "succesful".
 
       dpd: :zeek:type:`DPD::Info` :zeek:attr:`&optional`
          (present if :doc:`/scripts/base/frameworks/dpd/main.zeek` is loaded)

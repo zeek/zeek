@@ -7827,7 +7827,7 @@ Types
          If set, requests connectionless authentication
 
       negotiate_seal: :zeek:type:`bool`
-         If set, requests session key negotiation for message 
+         If set, requests session key negotiation for message
          confidentiality
 
       negotiate_sign: :zeek:type:`bool`
@@ -10360,7 +10360,7 @@ Types
    :Type: :zeek:type:`record`
 
       core: :zeek:type:`SMB1::NegotiateResponseCore` :zeek:attr:`&optional`
-         If the server does not understand any of the dialect strings, or if 
+         If the server does not understand any of the dialect strings, or if
          PC NETWORK PROGRAM 1.0 is the chosen dialect.
 
       lanman: :zeek:type:`SMB1::NegotiateResponseLANMAN` :zeek:attr:`&optional`
@@ -10562,7 +10562,7 @@ Types
          Note: No known implementations support this
 
       extended_security: :zeek:type:`bool`
-         The server supports extended security exchanges	
+         The server supports extended security exchanges
 
 
 .. zeek:type:: SMB1::SessionSetupAndXRequest
@@ -14889,6 +14889,7 @@ Events
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
+      connection_successful successful_connection_remove
 
 .. zeek:id:: connection_established
 
@@ -14911,6 +14912,7 @@ Events
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
+      connection_successful successful_connection_remove
 
 .. zeek:id:: partial_connection
 

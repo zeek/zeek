@@ -32,6 +32,8 @@ Events
 :zeek:id:`connection_state_remove`: :zeek:type:`event`                                                 Generated when a connection's internal state is about to be removed from
                                                                                                        memory.
 :zeek:id:`connection_status_update`: :zeek:type:`event`                                                Generated in regular intervals during the lifetime of a connection.
+:zeek:id:`connection_successful`: :zeek:type:`event`                                                   Generated for every new connection that is deemed "successful" according to
+                                                                                                       transport-layer-dependent criteria.
 :zeek:id:`connection_timeout`: :zeek:type:`event`                                                      Generated when a TCP connection timed out.
 :zeek:id:`content_gap`: :zeek:type:`event`                                                             Generated when Zeek detects a gap in a reassembled TCP payload stream.
 :zeek:id:`dns_mapping_altered`: :zeek:type:`event`                                                     Generated when an internal DNS lookup produced a different result than in
@@ -87,6 +89,8 @@ Events
 :zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                                                    Generated when Zeek detects a TCP retransmission inconsistency.
 :zeek:id:`scheduled_analyzer_applied`: :zeek:type:`event`                                              Generated when a connection is seen that is marked as being expected.
 :zeek:id:`signature_match`: :zeek:type:`event`                                                         Generated when a signature matches.
+:zeek:id:`successful_connection_remove`: :zeek:type:`event`                                            Like :zeek:see:`connection_state_remove`, but raised only for "successful"
+                                                                                                       connections, as defined by :zeek:see:`connection_successful`.
 :zeek:id:`tunnel_changed`: :zeek:type:`event`                                                          Generated for a connection whose tunneling has changed.
 :zeek:id:`udp_session_done`: :zeek:type:`event`                                                        Generated when a UDP session for a supported protocol has finished.
 :zeek:id:`zeek_done`: :zeek:type:`event`                                                               Generated at Zeek termination time.
@@ -248,6 +252,7 @@ Events
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection udp_inactivity_timeout
       tcp_inactivity_timeout icmp_inactivity_timeout conn_stats
+      connection_successful successful_connection_remove
 
 .. zeek:id:: connection_status_update
 
@@ -266,6 +271,31 @@ Events
       connection_pending connection_rejected connection_reset connection_reused
       connection_state_remove  connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
+
+.. zeek:id:: connection_successful
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Generated for every new connection that is deemed "successful" according to
+   transport-layer-dependent criteria.  Zeek uses a flow-based definition of
+   "connection" here that includes not only TCP sessions but also UDP and ICMP
+   flows.  For anything except TCP, this event is raised with the first packet
+   of a previously unknown connection.  For TCP, this event is raised if the
+   responder host ever sends a packet or if the originator host ever sends a
+   packet that is not a SYN (i.e. the "success" status of a connection can be
+   useful to help weed out SYN scans).
+   
+
+   :c: The new connection.
+   
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
+      connection_established connection_external connection_finished
+      connection_first_ACK connection_half_finished connection_partial_close
+      connection_pending connection_rejected connection_reset connection_reused
+      connection_status_update connection_timeout scheduled_analyzer_applied
+      new_connection new_connection_contents partial_connection udp_inactivity_timeout
+      tcp_inactivity_timeout icmp_inactivity_timeout conn_stats connection_state_remove
+      successful_connection_remove
 
 .. zeek:id:: connection_timeout
 
@@ -1079,6 +1109,29 @@ Events
          specifics here are not well-defined as Zeek does not buffer any input.
          If a match is split across packet boundaries, only the last chunk
          triggering the match will be passed on to the event.
+
+.. zeek:id:: successful_connection_remove
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Like :zeek:see:`connection_state_remove`, but raised only for "successful"
+   connections, as defined by :zeek:see:`connection_successful`. This in particular
+   excludes TCP connections that were never established (removal of such
+   "unsuccessful" connections is implied by the :zeek:see:`connection_attempt`
+   event instead.) Handlers for this event will run after handlers for
+   :zeek:see:`connection_state_remove`
+   
+
+   :c: The connection being removed
+   
+   .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
+      connection_established connection_external connection_finished
+      connection_first_ACK connection_half_finished connection_partial_close
+      connection_pending connection_rejected connection_reset connection_reused
+      connection_status_update connection_timeout scheduled_analyzer_applied
+      new_connection new_connection_contents partial_connection udp_inactivity_timeout
+      tcp_inactivity_timeout icmp_inactivity_timeout conn_stats connection_state_remove
+      connection_successful
 
 .. zeek:id:: tunnel_changed
 

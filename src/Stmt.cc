@@ -15,6 +15,7 @@
 #include "Traverse.h"
 #include "Trigger.h"
 #include "logging/Manager.h"
+#include "IntrusivePtr.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -185,48 +186,57 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 
 static BroFile* print_stdout = 0;
 
-TableVal* get_string_set_from_vals (val_list* vals, ODesc* d)
+static EnumVal* LookupEnumID (const string& module_name, const char* name)
 	{
-	ListVal* set = new ListVal(TYPE_STRING);
+	ID* id = lookup_ID(name, module_name.c_str());
+	assert(id);
+	assert(id->IsEnumConst());
+
+	EnumType* et = id->Type()->AsEnumType();
+
+	int index = et->Lookup(module_name, name);
+	assert(index >= 0);
+	EnumVal* val = et->GetVal(index);
+	assert(val);
+
+	return val;
+	}
+
+static Val* print_log (val_list* vals, ODesc* d)
+	{
+	EnumVal* plval = LookupEnumID("Log", "PRINTLOG");
+	RecordType* pltype = internal_type("Log::PrintLogInfo")->AsRecordType();
+
+	RecordVal* record = new RecordVal(pltype);
+	VectorVal* vec = new VectorVal(internal_type("string_vec")->AsVectorType());
+
 	for ( int i = 0; i < vals->length(); i++ )
 		{
 		d->Clear();
 		Val* val = (*vals)[i];
 		val->Describe(d);
-		set->Append(new StringVal(d->Description()));
+		const bool assigned = vec->Assign(i, new StringVal(d->Description()));
+		assert(assigned);
 		}
 
-	return set->ConvertToSet();
+	record->Assign(0, new Val(current_time(), TYPE_TIME));
+	record->Assign(1, vec);
+
+	log_mgr->Write(plval, record);
+	Unref(record);
+	Unref(plval);
+	return 0;
 	}
 
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
-
-	if ( internal_val("Log::print_to_log")->AsBool() ) 
+	unsigned int PrintToLog = internal_val("Log::print_to_log")->AsEnumVal()->ForceAsUInt();
+	if ( PrintToLog == 2 ) // Redirect all Print Statements to Log
 		{
-		ID* plid = global_scope()->Lookup("Log::PRINTLOG");
-		assert(plid);
-		assert(plid->IsEnumConst());
-
-		EnumType* et = plid->Type()->AsEnumType();
-		int plint = et->Lookup("Log", "PRINTLOG");
-		assert(plint >= 0);
-		EnumVal* plval = et->GetVal(plint);
-		assert(plval);
-
-		RecordType* pltype = log_mgr->StreamColumns(plval);
-		assert(pltype);
-
-		RecordVal record = RecordVal(pltype);
 		ODesc d(DESC_READABLE);
 		d.SetFlush(0);
-
-		record.Assign(0, new Val(current_time(), TYPE_TIME));
-		record.Assign(1, get_string_set_from_vals(vals, &d));
-
-		log_mgr->Write(plval, &record);
-		return 0;
+		return print_log(vals, &d);
 		}
 
 	if ( ! print_stdout )
@@ -242,6 +252,13 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 			return 0;
 
 		++offset;
+		}
+
+	if ( f->Name() == print_stdout->Name() && PrintToLog )
+		{
+		ODesc d(DESC_READABLE);
+		d.SetFlush(0);
+		return print_log(vals, &d);
 		}
 
 	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;

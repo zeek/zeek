@@ -3,9 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	print_statements
-#open	2019-11-13-18-11-01
+#open	2019-11-19-00-27-19
 #fields	ts	vals
-#types	time	set[string]
-1573697461.909861	hello world \x2c
-1573697461.909946	T,2
-#close	2019-11-13-18-11-01
+#types	time	vector[string]
+1574123239.274803	file "otherfile" of string,hello world \x2c
+1574123239.275147	hello world \x2c
+1574123239.275171	file "otherfile" of string,2,T
+1574123239.275177	2,T
+#close	2019-11-19-00-27-19

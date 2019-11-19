@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	print
+#open	2019-11-18-15-32-20
+#fields	ts	vals
+#types	time	vector[string]
+1574119940.484001	hello world \x2c
+1574119940.484104	2,T
+#close	2019-11-18-15-32-20

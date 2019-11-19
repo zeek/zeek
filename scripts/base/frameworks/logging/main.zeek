@@ -11,8 +11,7 @@ export {
 	## The log ID implicitly determines the default name of the generated log
 	## file.
 	type Log::ID: enum {
-		## Dummy place-holder.
-		UNKNOWN
+		PRINTLOG
 	};
 
 	## If true, local logging is by default enabled for all filters.
@@ -75,21 +74,35 @@ export {
 	## Returns: The path to be used for the filter.
 	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
 
-	# Log Print Statements
-
+	## If :zeek:see:`Log::print_to_log` is set to redirect, ``print`` statements will
+	## automatically populate log entries with the fields contained in this record.
 	type PrintLogInfo: record {
-	    ## Current timestamp.
+		## Current timestamp.
 		ts:                  time              &log;
 		## Set of strings passed to the print statement.
-		vals:                set[string]       &log;
+		vals:                string_vec        &log;
 	};
 
-	redef enum Log::ID += {PRINTLOG};
+	## Configurations for :zeek:see:`Log::print_to_log`
+	type PrintLogType: enum {
+		## No redirection of ``print`` statements.
+		REDIRECT_NONE,
+		## Redirection of those ``print`` statements that were being logged to stdout,
+		## leaving behind those set to go to other specific files.
+		REDIRECT_STDOUT,
+		## Redirection of all ``print`` statements.
+		REDIRECT_ALL
+	};
 
-	## If true, logging is enabled for print statements instead of output to files
-	const print_to_log = F &redef;
+	## Event for accessing logged print records
+	global log_print: event(rec: PrintLogInfo);
 
-	## If print_to_log is true, this is the path to which the print Log Stream writes
+	## Set configuration for ``print`` statements redirected to logs
+	## :zeek:see:`Log::print_log_type`
+	const print_to_log: PrintLogType = REDIRECT_NONE &redef;
+
+	## If :zeek:see:`Log::print_to_log` is enabled to write to a print log,
+	## this is the path to which the print Log Stream writes to
 	const print_log_path = "print" &redef;
 
 	# Log rotation support.
@@ -663,7 +676,7 @@ function remove_default_filter(id: ID) : bool
 
 event zeek_init() &priority=5
 	{
-	if ( print_to_log )
+	if ( print_to_log != REDIRECT_NONE )
 		# "print" added for the test coverage.find-bro-logs
-		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $path=print_log_path]); #"print"
+		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $ev=log_print, $path=print_log_path]); #"print"
 	}

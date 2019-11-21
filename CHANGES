@@ -1,4 +1,11 @@
 
+3.1.0-dev.286 | 2019-11-21 08:47:32 -0800
+
+  * GH-684: Fix parsing of RPC calls with non-AUTH_UNIX flavors
+
+    The parsing logic that should be specific to the AUTH_UNIX credential
+    flavor was previously applied unconditionally to other flavors. (Jon Siwek, Corelight)
+
 3.1.0-dev.284 | 2019-11-21 08:29:36 -0800
 
   * Fix ZEEK_PROFILER_FILE file format/parsing

@@ -1,4 +1,12 @@
 
+3.1.0-dev.284 | 2019-11-21 08:29:36 -0800
+
+  * Fix ZEEK_PROFILER_FILE file format/parsing
+
+    Some Zeek script statement descriptions were exceeding the hardcoded
+    maximum length and also could contain tab characters which were
+    supposed to be reserved for use as a delimiter in the file format. (Jon Siwek, Corelight)
+
 3.1.0-dev.282 | 2019-11-18 12:06:13 +0000
 
   * GH-646: Add new "successful_connection_remove" event. (Jon Siwek, Corelight)

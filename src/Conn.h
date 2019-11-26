@@ -321,7 +321,7 @@ protected:
 	bool key_valid;
 
 	// Timer manager to use for this conn (or nil).
-	TimerMgr::Tag* conn_timer_mgr;
+	std::string* conn_timer_mgr;
 	timer_list timers;
 
 	IPAddr orig_addr;

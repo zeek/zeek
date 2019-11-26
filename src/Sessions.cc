@@ -1338,7 +1338,7 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-TimerMgr* NetSessions::LookupTimerMgr(const TimerMgr::Tag* tag, bool create)
+TimerMgr* NetSessions::LookupTimerMgr(const std::string* tag, bool create)
 	{
 	if ( ! tag )
 		{

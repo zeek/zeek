@@ -104,7 +104,7 @@ public:
 	// Looks up timer manager associated with tag.  If tag is unknown and
 	// "create" is true, creates new timer manager and stores it.  Returns
 	// global timer manager if tag is nil.
-	TimerMgr* LookupTimerMgr(const TimerMgr::Tag* tag, bool create = true);
+	TimerMgr* LookupTimerMgr(const std::string* tag, bool create = true);
 
 	void ExpireTimerMgrs();
 
@@ -245,8 +245,8 @@ protected:
 	PacketProfiler* pkt_profiler;
 
 	// We may use independent timer managers for different sets of related
-	// activity.  The managers are identified by an unique tag.
-	typedef std::map<TimerMgr::Tag, TimerMgr*> TimerMgrMap;
+	// activity. The managers are identified by a unique tag.
+	typedef std::map<std::string, TimerMgr*> TimerMgrMap;
 	TimerMgrMap timer_mgrs;
 };
 

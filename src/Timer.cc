@@ -5,7 +5,11 @@
 #include "util.h"
 #include "Timer.h"
 #include "Desc.h"
+#include "Net.h"
+#include "NetVar.h"
 #include "broker/Manager.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 
 // Names of timers in same order than in TimerType.
 const char* TimerNames[] = {
@@ -55,6 +59,17 @@ void Timer::Describe(ODesc* d) const
 
 unsigned int TimerMgr::current_timers[NUM_TIMER_TYPES];
 
+TimerMgr::TimerMgr(const std::string& arg_tag)
+	{
+	t = 0.0;
+	num_expired = 0;
+	last_advance = last_timestamp = 0;
+	tag = arg_tag;
+
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
+	}
+
 TimerMgr::~TimerMgr()
 	{
 	DBG_LOG(DBG_TM, "deleting timer mgr %p", this);
@@ -74,8 +89,28 @@ int TimerMgr::Advance(double arg_t, int max_expire)
 	return DoAdvance(t, max_expire);
 	}
 
+void TimerMgr::Process()
+	{
+	// If we don't have a source, or the source is closed, or we're reading live (which includes
+	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
+	// move forward and the timers won't fire correctly.
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
+		net_update_time(current_time());
 
-PQ_TimerMgr::PQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
+	// Just advance the timer manager based on the current network time. This won't actually
+	// change the time, but will dispatch any timers that need dispatching.
+	current_dispatched += Advance(network_time, max_timer_expires - current_dispatched);
+	}
+
+void TimerMgr::InitPostScript()
+	{
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
+	}
+
+
+PQ_TimerMgr::PQ_TimerMgr(const std::string& tag) : TimerMgr(tag)
 	{
 	q = new PriorityQueue;
 	}
@@ -144,4 +179,13 @@ void PQ_TimerMgr::Remove(Timer* timer)
 
 	--current_timers[timer->Type()];
 	delete timer;
+	}
+
+double PQ_TimerMgr::GetNextTimeout()
+	{
+	Timer* top = Top();
+	if ( top )
+		return std::max(0.0, top->Time() - ::network_time);
+
+	return -1;
 	}

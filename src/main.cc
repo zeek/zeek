@@ -294,12 +294,10 @@ void terminate_bro()
 	plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete timer_mgr;
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
-	// broker_mgr is deleted via iosource_mgr
-	// supervisor is deleted via iosource_mgr
+	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete log_mgr;
 	delete reporter;
@@ -550,7 +548,6 @@ int main(int argc, char** argv)
 #endif
 
 	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
-	// timer_mgr = new CQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);
@@ -671,6 +668,7 @@ int main(int argc, char** argv)
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
+	timer_mgr->InitPostScript();
 
 	if ( options.print_plugins )
 		{

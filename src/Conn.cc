@@ -115,8 +115,8 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	++current_connections;
 	++total_connections;
 
-	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
-	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
+	std::string* tag = current_iosrc->GetCurrentTag();
+	conn_timer_mgr = tag ? new std::string(*tag) : nullptr;
 
 	if ( arg_encap )
 		encapsulation = new EncapsulationStack(*arg_encap);

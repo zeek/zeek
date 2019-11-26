@@ -15,11 +15,11 @@ Accessed table nums: two; three
 Accessed table nets: two; zero, three
 Time: 7.0 secs 518.0 msecs 828.15361 usecs
 
+Expired Subnet: 192.168.4.0/24 --> four at 8.0 secs 835.0 msecs 30.078888 usecs
+Expired Subnet: 192.168.1.0/24 --> one at 8.0 secs 835.0 msecs 30.078888 usecs
 Expired Num: 4 --> four at 8.0 secs 835.0 msecs 30.078888 usecs
 Expired Num: 1 --> one at 8.0 secs 835.0 msecs 30.078888 usecs
 Expired Num: 0 --> zero at 8.0 secs 835.0 msecs 30.078888 usecs
-Expired Subnet: 192.168.4.0/24 --> four at 8.0 secs 835.0 msecs 30.078888 usecs
-Expired Subnet: 192.168.1.0/24 --> one at 8.0 secs 835.0 msecs 30.078888 usecs
 Expired Subnet: 192.168.0.0/16 --> zero at 15.0 secs 150.0 msecs 681.018829 usecs
 Expired Subnet: 192.168.3.0/24 --> three at 15.0 secs 150.0 msecs 681.018829 usecs
 Expired Subnet: 192.168.2.0/24 --> two at 15.0 secs 150.0 msecs 681.018829 usecs

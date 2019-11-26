@@ -207,7 +207,7 @@ void Manager::Register(IOSource* src, bool dont_count)
 
 void Manager::Register(PktSrc* src)
 	{
-	pkt_srcs.push_back(src);
+	pkt_src = src;
 	Register(src, false);
 	}
 

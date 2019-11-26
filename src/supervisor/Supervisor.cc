@@ -1284,7 +1284,7 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 	options->filter_supervised_node_options();
 
 	if ( config.interface )
-		options->interfaces.emplace_back(*config.interface);
+		options->interface = *config.interface;
 
 	for ( const auto& s : config.scripts )
 		options->scripts_to_load.emplace_back(s);

@@ -145,41 +145,34 @@ void net_update_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
-void net_init(const std::vector<std::string>& interfaces,
-              const std::vector<std::string>& pcap_input_files,
+void net_init(const std::string& interface,
+              const std::string& pcap_input_file,
               const std::optional<std::string>& pcap_output_file,
               bool do_watchdog)
 	{
-	if ( ! pcap_input_files.empty() )
+	if ( ! pcap_input_file.empty() )
 		{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = 1;
 
-		for ( const auto& pif : pcap_input_files )
-			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(pif, false);
-			assert(ps);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(pcap_input_file, false);
+		assert(ps);
 
-			if ( ! ps->IsOpen() )
-				reporter->FatalError("problem with trace file %s (%s)",
-				                     pif.data(), ps->ErrorMsg());
-			}
+		if ( ! ps->IsOpen() )
+			reporter->FatalError("problem with trace file %s (%s)",
+				pcap_input_file.c_str(), ps->ErrorMsg());
 		}
-
-	else if ( ! interfaces.empty() )
+	else if ( ! interface.empty() )
 		{
 		reading_live = 1;
 		reading_traces = 0;
 
-		for ( const auto& iface : interfaces )
-			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(iface, true);
-			assert(ps);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interface, true);
+		assert(ps);
 
-			if ( ! ps->IsOpen() )
-				reporter->FatalError("problem with interface %s (%s)",
-				                     iface.data(), ps->ErrorMsg());
-			}
+		if ( ! ps->IsOpen() )
+			reporter->FatalError("problem with interface %s (%s)",
+				interface.c_str(), ps->ErrorMsg());
 		}
 
 	else
@@ -377,14 +370,9 @@ void net_run()
 			{
 			auto have_active_packet_source = false;
 
-			for ( auto& ps : iosource_mgr->GetPktSrcs() )
-				{
-				if ( ps->IsOpen() )
-					{
-					have_active_packet_source = true;
-					break;
-					}
-				}
+			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+			if ( ps && ps->IsOpen() )
+				have_active_packet_source = true;
 
 			if (  ! have_active_packet_source )
 				// Can turn off pseudo realtime now
@@ -401,20 +389,13 @@ void net_run()
 
 void net_get_final_stats()
 	{
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ps->IsLive() )
 		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ps->IsLive() )
-			{
-			iosource::PktSrc::Stats s;
-			ps->Statistics(&s);
-			reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " dropped",
-					s.received, ps->Path().c_str(), s.dropped);
-			}
+		iosource::PktSrc::Stats s;
+		ps->Statistics(&s);
+		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " dropped",
+			s.received, ps->Path().c_str(), s.dropped);
 		}
 	}
 
@@ -468,12 +449,8 @@ void net_continue_processing()
 	if ( _processing_suspended == 1 )
 		{
 		reporter->Info("processing continued");
-
-		const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-		for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-		      i != pkt_srcs.end(); i++ )
-			(*i)->ContinueAfterSuspend();
+		if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+			ps->ContinueAfterSuspend();
 		}
 
 	--_processing_suspended;

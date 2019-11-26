@@ -234,17 +234,17 @@ void done_with_network()
 
 #ifdef USE_PERFTOOLS_DEBUG
 
-		if ( perftools_profile )
-			{
-			HeapProfilerDump("post net_run");
-			HeapProfilerStop();
-			}
+	if ( perftools_profile )
+		{
+		HeapProfilerDump("post net_run");
+		HeapProfilerStop();
+		}
 
-		if ( heap_checker && ! heap_checker->NoLeaks() )
-			{
-			fprintf(stderr, "Memory leaks - aborting.\n");
-			abort();
-			}
+	if ( heap_checker && ! heap_checker->NoLeaks() )
+		{
+		fprintf(stderr, "Memory leaks - aborting.\n");
+		abort();
+		}
 #endif
 
 	ZEEK_LSAN_DISABLE();
@@ -560,8 +560,8 @@ int main(int argc, char** argv)
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() &&
-	     options.pcap_files.size() == 0 &&
-	     options.interfaces.size() == 0 &&
+		 options.pcap_file.empty() &&
+		 options.interface.empty() &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
 	     ! options.supervisor_mode && ! zeek::Supervisor::ThisNode() )
@@ -591,7 +591,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	broker_mgr = new bro_broker::Manager(! options.pcap_files.empty());
+	broker_mgr = new bro_broker::Manager(! options.pcap_file.empty());
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -734,9 +734,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	auto all_interfaces = options.interfaces;
-
-	if ( options.pcap_files.empty() && options.interfaces.empty() )
+	if ( options.pcap_file.empty() && options.interface.empty() )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )
@@ -745,15 +743,14 @@ int main(int argc, char** argv)
 				interfaces_val->AsString()->Render();
 
 			if ( interfaces_str[0] != '\0' )
-				tokenize_string(interfaces_str, " ", &all_interfaces);
+				options.interface = interfaces_str;
 
 			delete [] interfaces_str;
 			}
 		}
 
 	if ( dns_type != DNS_PRIME )
-		net_init(all_interfaces, options.pcap_files,
-		         options.pcap_output_file, options.use_watchdog);
+		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
 	net_done = internal_handler("net_done");
 

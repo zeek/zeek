@@ -14,8 +14,8 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 
-extern void net_init(const std::vector<std::string>& interfaces,
-                     const std::vector<std::string>& pcap_input_files,
+extern void net_init(const std::string& interfaces,
+                     const std::string& pcap_input_file,
                      const std::optional<std::string>& pcap_output_file,
                      bool do_watchdog);
 extern void net_run();

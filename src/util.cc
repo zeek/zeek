@@ -1902,11 +1902,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();

@@ -133,9 +133,6 @@ type PacketSource: record {
 	netmask: count;
 };
 
-## A list of packet sources being read by Zeek.
-type PacketSourceList: vector of PacketSource;
-
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {

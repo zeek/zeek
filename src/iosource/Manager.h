@@ -58,13 +58,11 @@ public:
 	 */
 	int Size() const	{ return sources.size() - dont_counts; }
 
-	typedef std::list<PktSrc *> PktSrcList;
-
 	/**
-	 * Returns a list of all registered PktSrc instances. This is a
-	 * subset of all registered IOSource instances.
+	 * Returns the registered PktSrc. If not source is registered yet,
+	 * returns a nullptr.
 	 */
-	const PktSrcList& GetPktSrcs() const	{ return pkt_srcs; }
+	PktSrc* GetPktSrc() const	{ return pkt_src; }
 
 	/**
 	 * Terminate all processing immediately by removing all sources (and
@@ -136,7 +134,7 @@ private:
 
 	typedef std::list<PktDumper *> PktDumperList;
 
-	PktSrcList pkt_srcs;
+	PktSrc* pkt_src = nullptr;
 	PktDumperList pkt_dumpers;
 };
 

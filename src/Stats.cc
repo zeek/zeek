@@ -188,8 +188,8 @@ void ProfileLogger::Log()
 					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
 					dstats.cached_hosts, dstats.cached_addresses));
 
-	Trigger::Stats tstats;
-	Trigger::GetStats(&tstats);
+	trigger::Manager::Stats tstats;
+	trigger_mgr->GetStats(&tstats);
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 

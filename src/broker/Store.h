@@ -66,7 +66,7 @@ inline RecordVal* query_result(RecordVal* data)
  */
 class StoreQueryCallback {
 public:
-	StoreQueryCallback(Trigger* arg_trigger, const CallExpr* arg_call,
+	StoreQueryCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
 			   broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(move(store))
 		{
@@ -101,7 +101,7 @@ public:
 
 private:
 
-	Trigger* trigger;
+	trigger::Trigger* trigger;
 	const CallExpr* call;
 	broker::store store;
 };

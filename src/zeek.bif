@@ -3503,7 +3503,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 class LookupHostCallback : public DNS_Mgr::LookupCallback {
 public:
-	LookupHostCallback(Trigger* arg_trigger, const CallExpr* arg_call,
+	LookupHostCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
 				bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
@@ -3556,7 +3556,7 @@ public:
 		}
 
 private:
-	Trigger* trigger;
+	trigger::Trigger* trigger;
 	const CallExpr* call;
 	bool lookup_name;
 };
@@ -3575,7 +3575,7 @@ function lookup_addr%(host: addr%) : string
 	%{
 	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	Trigger* trigger = frame->GetTrigger();
+	trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -3604,7 +3604,7 @@ function lookup_hostname_txt%(host: string%) : string
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	Trigger* trigger = frame->GetTrigger();
+	trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -3633,7 +3633,7 @@ function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	Trigger* trigger = frame->GetTrigger();
+	trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{

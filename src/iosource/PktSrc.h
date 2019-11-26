@@ -204,6 +204,17 @@ public:
 	 */
 	virtual void Statistics(Stats* stats) = 0;
 
+	/**
+	 * Return the next timeout value for this source. This should be
+	 * overridden by source classes where they have a timeout value
+	 * that can wake up the poll.
+	 *
+	 * @return A value for the next time that the source thinks the
+	 * poll should time out in seconds from the current time. Return
+	 * -1 if this should should not be considered.
+	 */
+	virtual double GetNextTimeout() override;
+
 protected:
 	friend class Manager;
 	friend class ManagerBase;
@@ -343,11 +354,8 @@ private:
 	bool ExtractNextPacketInternal();
 
 	// IOSource interface implementation.
-	void Init() override;
+	void InitSource() override;
 	void Done() override;
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* local_network_time) override;
 	void Process() override;
 	const char* Tag() override;
 

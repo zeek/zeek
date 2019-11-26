@@ -1838,7 +1838,7 @@ RETSIGTYPE sig_handler(int signo);
 void terminate_processing()
 	{
 	if ( ! terminating )
-		sig_handler(SIGTERM);
+		raise(SIGTERM);
 	}
 
 extern const char* proc_status_file;

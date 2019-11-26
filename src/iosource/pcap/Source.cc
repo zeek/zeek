@@ -24,10 +24,10 @@ PcapSource::PcapSource(const std::string& path, bool is_live)
 	{
 	props.path = path;
 	props.is_live = is_live;
-	pd = 0;
+	pd = nullptr;
 	memset(&current_hdr, 0, sizeof(current_hdr));
 	memset(&last_hdr, 0, sizeof(last_hdr));
-	last_data = 0;
+	last_data = nullptr;
 	}
 
 void PcapSource::Open()
@@ -44,8 +44,8 @@ void PcapSource::Close()
 		return;
 
 	pcap_close(pd);
-	pd = 0;
-	last_data = 0;
+	pd = nullptr;
+	last_data = nullptr;
 
 	Closed();
 	}
@@ -53,18 +53,15 @@ void PcapSource::Close()
 void PcapSource::OpenLive()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char tmp_errbuf[PCAP_ERRBUF_SIZE];
 
 	// Determine interface if not specified.
 	if ( props.path.empty() )
 		{
 		pcap_if_t* devs;
 
-		if ( pcap_findalldevs(&devs, tmp_errbuf) < 0 )
+		if ( pcap_findalldevs(&devs, errbuf) < 0 )
 			{
-			snprintf(errbuf, sizeof(errbuf),
-			             "pcap_findalldevs: %s", tmp_errbuf);
-			Error(errbuf);
+			Error(fmt("pcap_findalldevs: %s", errbuf));
 			return;
 			}
 
@@ -75,30 +72,26 @@ void PcapSource::OpenLive()
 
 			if ( props.path.empty() )
 				{
-				snprintf(errbuf, sizeof(errbuf),
-				              "pcap_findalldevs: empty device name");
-				Error(errbuf);
+				Error("pcap_findalldevs: empty device name");
 				return;
 				}
 			}
 		else
 			{
-			snprintf(errbuf, sizeof(errbuf),
-			              "pcap_findalldevs: no devices found");
-			Error(errbuf);
+			Error("pcap_findalldevs: no devices found");
 			return;
 			}
 		}
 
 	// Determine network and netmask.
 	uint32_t net;
-	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, tmp_errbuf) < 0 )
+	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, errbuf) < 0 )
 		{
 		// ### The lookup can fail if no address is assigned to
 		// the interface; and libpcap doesn't have any useful notion
 		// of error codes, just error std::strings - how bogus - so we
 		// just kludge around the error :-(.
-		// sprintf(errbuf, "pcap_lookupnet %s", tmp_errbuf);
+		// sprintf(errbuf, "pcap_lookupnet %s", errbuf);
 		// return;
 		props.netmask = 0xffffff00;
 		}
@@ -156,7 +149,7 @@ void PcapSource::OpenLive()
 		}
 
 #ifdef HAVE_LINUX
-	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
+	if ( pcap_setnonblock(pd, 1, errbuf) < 0 )
 		{
 		PcapError("pcap_setnonblock");
 		return;
@@ -167,14 +160,9 @@ void PcapSource::OpenLive()
 	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
-	props.selectable_fd = pcap_fileno(pd);
+	props.selectable_fd = pcap_get_selectable_fd(pd);
 
-	SetHdrSize();
-
-	if ( ! pd )
-		// Was closed, couldn't get header size.
-		return;
-
+	props.link_type = pcap_datalink(pd);
 	props.is_live = true;
 
 	Opened(props);
@@ -192,18 +180,14 @@ void PcapSource::OpenOffline()
 		return;
 		}
 
-	SetHdrSize();
-
-	if ( ! pd )
-		// Was closed, unknown link layer type.
-		return;
-
 	props.selectable_fd = fileno(pcap_file(pd));
 
 	if ( props.selectable_fd < 0 )
 		InternalError("OS does not support selectable pcap fd");
 
+	props.link_type = pcap_datalink(pd);
 	props.is_live = false;
+
 	Opened(props);
 	}
 
@@ -337,16 +321,6 @@ void PcapSource::PcapError(const char* where)
 		Error(fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
-	}
-
-void PcapSource::SetHdrSize()
-	{
-	if ( ! pd )
-		return;
-
-	char errbuf[PCAP_ERRBUF_SIZE];
-
-	props.link_type = pcap_datalink(pd);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

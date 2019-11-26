@@ -28,7 +28,6 @@ private:
 	void OpenLive();
 	void OpenOffline();
 	void PcapError(const char* where = 0);
-	void SetHdrSize();
 
 	Properties props;
 	Stats stats;

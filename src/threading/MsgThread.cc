@@ -1,11 +1,12 @@
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
 
 #include "DebugLogger.h"
 
 #include "MsgThread.h"
 #include "Manager.h"
-
-#include <unistd.h>
-#include <signal.h>
+#include "iosource/Manager.h"
 
 using namespace threading;
 
@@ -179,6 +180,17 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	child_sent_finish = false;
 	failed = false;
 	thread_mgr->AddMsgThread(this);
+
+	iosource_mgr->RegisterFd(flare.FD(), this);
+
+	SetClosed(false);
+	}
+
+MsgThread::~MsgThread()
+	{
+	// Unregister this thread from the iosource manager so it doesn't wake
+	// up the main poll anymore.
+	iosource_mgr->UnregisterFd(flare.FD());
 	}
 
 // Set by Bro's main signal handler.
@@ -252,6 +264,8 @@ void MsgThread::OnWaitForStop()
 
 void MsgThread::OnKill()
 	{
+	SetClosed(true);
+
 	// Send a message to unblock the reader if its currently waiting for
 	// input. This is just an optimization to make it terminate more
 	// quickly, even without the message it will eventually time out.
@@ -344,6 +358,8 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	queue_out.Put(msg);
 
 	++cnt_sent_out;
+
+	flare.Fire();
 	}
 
 BasicOutputMessage* MsgThread::RetrieveOut()
@@ -418,3 +434,21 @@ void MsgThread::GetStats(Stats* stats)
 	queue_out.GetStats(&stats->queue_out_stats);
 	}
 
+void MsgThread::Process()
+	{
+	flare.Extinguish();
+
+	while ( HasOut() )
+		{
+		Message* msg = RetrieveOut();
+		assert(msg);
+
+		if ( ! msg->Process() )
+			{
+			reporter->Error("%s failed, terminating thread", msg->Name());
+			SignalStop();
+			}
+
+		delete msg;
+		}
+	}

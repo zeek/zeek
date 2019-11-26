@@ -38,8 +38,9 @@ enum TimerType : uint8_t {
 	TIMER_TRIGGER,
 	TIMER_PPID_CHECK,
 	TIMER_TIMERMGR_EXPIRE,
+	TIMER_THREAD_HEARTBEAT,
 };
-const int NUM_TIMER_TYPES = int(TIMER_TIMERMGR_EXPIRE) + 1;
+const int NUM_TIMER_TYPES = int(TIMER_THREAD_HEARTBEAT) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 

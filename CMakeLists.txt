@@ -180,6 +180,40 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+add_subdirectory(aux/paraglob)
+set(zeekdeps ${zeekdeps} paraglob)
+
+if ( BROKER_ROOT_DIR )
+  find_package(Broker REQUIRED)
+  find_package(CAF COMPONENTS core io openssl REQUIRED)
+
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
+  include_directories(BEFORE ${BROKER_INCLUDE_DIR})
+else ()
+  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
+  if ( BUILD_STATIC_BROKER )
+    set(ENABLE_STATIC_ONLY true)
+  endif()
+
+  add_subdirectory(aux/broker)
+  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+  if ( BUILD_STATIC_BROKER )
+    set(zeekdeps ${zeekdeps} broker_static)
+  else()
+    set(zeekdeps ${zeekdeps} broker)
+  endif()
+  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
+                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
+endif ()
+
+# CAF headers aren't necessarily in same location as Broker headers and
+# inclusion of a Broker header may pull in CAF headers.
+include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -253,7 +287,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
     endif ()
 endif ()
 
-set(zeekdeps
+set(zeekdeps ${zeekdeps}
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
     ${OPENSSL_LIBRARIES}
@@ -337,41 +371,6 @@ InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFI
 
 ########################################################################
 ## Recurse on sub-directories
-
-if ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED)
-  find_package(CAF COMPONENTS core io openssl REQUIRED)
-
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
-  include_directories(BEFORE ${BROKER_INCLUDE_DIR})
-else ()
-  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-
-  if ( BUILD_STATIC_BROKER )
-    set(ENABLE_STATIC_ONLY true)
-  endif()
-
-  add_subdirectory(aux/broker)
-  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-  if ( BUILD_STATIC_BROKER )
-    set(zeekdeps ${zeekdeps} broker_static)
-  else()
-    set(zeekdeps ${zeekdeps} broker)
-  endif()
-  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
-                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
-endif ()
-
-# CAF headers aren't necessarily in same location as Broker headers and
-# inclusion of a Broker header may pull in CAF headers.
-include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
-
-add_subdirectory(aux/paraglob)
-set(zeekdeps ${zeekdeps} paraglob)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
 
 add_subdirectory(src)
 add_subdirectory(scripts)

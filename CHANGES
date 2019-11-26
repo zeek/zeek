@@ -1,4 +1,8 @@
 
+3.0.1-dev.24 | 2019-11-26 09:30:21 -0800
+
+  * Update embedded CAF to 0.16.5 for OpenBSD fixes (Jon Siwek, Corelight)
+
 3.0.1-dev.23 | 2019-11-26 09:00:18 -0800
 
   * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)

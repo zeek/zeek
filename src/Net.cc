@@ -278,45 +278,40 @@ void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
+	std::vector<iosource::IOSource*> ready;
+	ready.reserve(iosource_mgr->TotalSize());
+
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		double ts;
-		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
+		iosource_mgr->FindReadySources(&ready);
 
 #ifdef DEBUG
 		static int loop_counter = 0;
 
 		// If no source is ready, we log only every 100th cycle,
 		// starting with the first.
-		if ( src || loop_counter++ % 100 == 0 )
+		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f iosrc=%s ts=%.6f",
-					current_time(), src ? src->Tag() : "<all dry>", src ? ts : -1);
+			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%ld",
+				current_time(), ready.size());
 
-			if ( src )
+			if ( ! ready.empty() )
 				loop_counter = 0;
 			}
 #endif
 		current_iosrc = nullptr;
 		auto communication_enabled = broker_mgr->Active();
 
-		if ( src )
-			src->Process();	// which will call net_packet_dispatch()
-
-		else if ( reading_live && ! pseudo_realtime)
+		if ( ! ready.empty() )
 			{
-			// live but no source is currently active
-			if ( ! net_is_processing_suspended() )
+			for ( auto src : ready )
 				{
-				// Take advantage of the lull to get up to
-				// date on timers and events.
-				net_update_time(current_time());
-				expire_timers();
-				usleep(1); // Just yield.
+				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
+				current_iosrc = src;
+				src->Process();
 				}
 			}
-
 		else if ( (have_pending_timers || communication_enabled ||
 		           BifConst::exit_only_after_terminate) &&
 			  ! pseudo_realtime )
@@ -327,25 +322,6 @@ void net_run()
 			// doesn't risk blocking on other inputs.
 			net_update_time(current_time());
 			expire_timers();
-
-			// Avoid busy-waiting - pause for 100 ms.
-			// We pick a sleep value of 100 msec that buys
-			// us a lot of idle time, but doesn't delay near-term
-			// timers too much.  (Delaying them somewhat is okay,
-			// since Bro timers are not high-precision anyway.)
-			if ( ! communication_enabled )
-				usleep(100000);
-			else
-				usleep(1000);
-
-			// Flawfinder says about usleep:
-			//
-			// This C routine is considered obsolete (as opposed
-			// to the shell command by the same name).   The
-			// interaction of this function with SIGALRM and
-			// other timer functions such as sleep(), alarm(),
-			// setitimer(), and nanosleep() is unspecified.
-			// Use nanosleep(2) or setitimer(2) instead.
 			}
 
 		mgr.Drain();

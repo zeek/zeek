@@ -1279,16 +1279,15 @@ that we are going to be adding another Log Stream by adding a value to
 the :zeek:type:`Log::ID` enumerable.  In this script, we append the
 value ``LOG`` to the ``Log::ID`` enumerable, however due to this being in
 an export block the value appended to ``Log::ID`` is actually
-``Factor::Log``.  Next, we need to define the name and value pairs
+``Factor::LOG``.  Next, we define the fields
 that make up the data of our logs and dictate its format.  This script
 defines a new record datatype called ``Info`` (actually,
 ``Factor::Info``) with two fields, both unsigned integers. Each of the
-fields in the ``Factor::Log`` record type include the ``&log``
+fields in the ``Factor::Info`` record type include the ``&log``
 attribute, indicating that these fields should be passed to the
-Logging Framework when ``Log::write`` is called.  Were there to be
-any name value pairs without the ``&log`` attribute, those fields
-would simply be ignored during logging but remain available for the
-lifespan of the variable.  The next step is to create the logging
+Logging Framework when ``Log::write`` is called.
+Any record fields without the ``&log`` attribute are ignored by the
+Logging Framework. The next step is to create the logging
 stream with :zeek:id:`Log::create_stream` which takes a ``Log::ID`` and a
 record as its arguments.  In this example, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the

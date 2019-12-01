@@ -1404,14 +1404,10 @@ log stream in Zeek generates a custom event that can be handled by
 anyone wishing to act upon the data being sent to the stream.  By
 convention these events are usually in the format ``log_x`` where x is
 the name of the logging stream; as such the event raised for every log
-sent to the Logging Framework by the HTTP parser would be
-``log_http``.  In fact, we've already seen a script handle the
-``log_http`` event when we broke down how the ``detect-MHR.zeek``
-script worked.  In that example, as each log entry was sent to the
-logging framework, post-processing was taking place in the
-``log_http`` event.  Instead of using an external script to parse the
-``http.log`` file and do post-processing for the entry,
-post-processing can be done in real time in Zeek.  
+sent to the Logging Framework by the HTTP parser would be ``log_http``.
+Instead of using an external script to parse the ``http.log`` file and
+do post-processing for each entry, this can be done in real time inside
+Zeek by defining an event handler for the ``log_http`` event.
 
 Telling Zeek to raise an event in your own Logging stream is as simple
 as exporting that event name and then adding that event in the call to

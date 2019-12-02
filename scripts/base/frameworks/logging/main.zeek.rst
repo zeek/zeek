@@ -34,6 +34,9 @@ Redefinable Options
 :zeek:id:`Log::empty_field`: :zeek:type:`string` :zeek:attr:`&redef`                        Default string to use for empty fields.
 :zeek:id:`Log::enable_local_logging`: :zeek:type:`bool` :zeek:attr:`&redef`                 If true, local logging is by default enabled for all filters.
 :zeek:id:`Log::enable_remote_logging`: :zeek:type:`bool` :zeek:attr:`&redef`                If true, remote logging is by default enabled for all filters.
+:zeek:id:`Log::print_log_path`: :zeek:type:`string` :zeek:attr:`&redef`                     If :zeek:see:`Log::print_to_log` is enabled to write to a print log,
+                                                                                            this is the path to which the print Log Stream writes to
+:zeek:id:`Log::print_to_log`: :zeek:type:`Log::PrintLogType` :zeek:attr:`&redef`            Set configuration for ``print`` statements redirected to logs.
 :zeek:id:`Log::separator`: :zeek:type:`string` :zeek:attr:`&redef`                          Default separator to use between fields.
 :zeek:id:`Log::set_separator`: :zeek:type:`string` :zeek:attr:`&redef`                      Default separator to use between elements of a set.
 :zeek:id:`Log::unset_field`: :zeek:type:`string` :zeek:attr:`&redef`                        Default string to use for an unset &optional field.
@@ -53,13 +56,22 @@ State Variables
 
 Types
 #####
-=================================================== =========================================================
+=================================================== ==============================================================================
 :zeek:type:`Log::Filter`: :zeek:type:`record`       A filter type describes how to customize logging streams.
 :zeek:type:`Log::ID`: :zeek:type:`enum`             Type that defines an ID unique to each log stream.
+:zeek:type:`Log::PrintLogInfo`: :zeek:type:`record` If :zeek:see:`Log::print_to_log` is set to redirect, ``print`` statements will
+                                                    automatically populate log entries with the fields contained in this record.
+:zeek:type:`Log::PrintLogType`: :zeek:type:`enum`   Configurations for :zeek:see:`Log::print_to_log`
 :zeek:type:`Log::RotationInfo`: :zeek:type:`record` Information passed into rotation callback functions.
 :zeek:type:`Log::Stream`: :zeek:type:`record`       Type defining the content of a logging stream.
 :zeek:type:`Log::Writer`: :zeek:type:`enum`         
-=================================================== =========================================================
+=================================================== ==============================================================================
+
+Events
+######
+============================================= =========================================
+:zeek:id:`Log::log_print`: :zeek:type:`event` Event for accessing logged print records.
+============================================= =========================================
 
 Functions
 #########
@@ -220,6 +232,23 @@ Redefinable Options
    :Default: ``T``
 
    If true, remote logging is by default enabled for all filters.
+
+.. zeek:id:: Log::print_log_path
+
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``"print"``
+
+   If :zeek:see:`Log::print_to_log` is enabled to write to a print log,
+   this is the path to which the print Log Stream writes to
+
+.. zeek:id:: Log::print_to_log
+
+   :Type: :zeek:type:`Log::PrintLogType`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``Log::REDIRECT_NONE``
+
+   Set configuration for ``print`` statements redirected to logs.
 
 .. zeek:id:: Log::separator
 
@@ -418,6 +447,10 @@ Types
       .. zeek:enum:: Log::UNKNOWN Log::ID
 
          Dummy place-holder.
+
+      .. zeek:enum:: Log::PRINTLOG Log::ID
+
+         Print statements that have been redirected to a log stream.
 
       .. zeek:enum:: Broker::LOG Log::ID
 
@@ -759,6 +792,38 @@ Types
    The log ID implicitly determines the default name of the generated log
    file.
 
+.. zeek:type:: Log::PrintLogInfo
+
+   :Type: :zeek:type:`record`
+
+      ts: :zeek:type:`time` :zeek:attr:`&log`
+         Current timestamp.
+
+      vals: :zeek:type:`string_vec` :zeek:attr:`&log`
+         Set of strings passed to the print statement.
+
+   If :zeek:see:`Log::print_to_log` is set to redirect, ``print`` statements will
+   automatically populate log entries with the fields contained in this record.
+
+.. zeek:type:: Log::PrintLogType
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: Log::REDIRECT_NONE Log::PrintLogType
+
+         No redirection of ``print`` statements.
+
+      .. zeek:enum:: Log::REDIRECT_STDOUT Log::PrintLogType
+
+         Redirection of those ``print`` statements that were being logged to stdout,
+         leaving behind those set to go to other specific files.
+
+      .. zeek:enum:: Log::REDIRECT_ALL Log::PrintLogType
+
+         Redirection of all ``print`` statements.
+
+   Configurations for :zeek:see:`Log::print_to_log`
+
 .. zeek:type:: Log::RotationInfo
 
    :Type: :zeek:type:`record`
@@ -811,6 +876,14 @@ Types
 
       .. zeek:enum:: Log::WRITER_SQLITE Log::Writer
 
+
+Events
+######
+.. zeek:id:: Log::log_print
+
+   :Type: :zeek:type:`event` (rec: :zeek:type:`Log::PrintLogInfo`)
+
+   Event for accessing logged print records.
 
 Functions
 #########

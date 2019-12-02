@@ -176,6 +176,9 @@ Zeek Diagnostics
 +----------------------------+---------------------------------------+---------------------------------+
 | packet_filter.log          | List packet filters that were applied | :zeek:type:`PacketFilter::Info` |
 +----------------------------+---------------------------------------+---------------------------------+
+| print.log                  | Print statements that were redirected | :zeek:type:`Log::PrintLogInfo`  |
+|                            | to a log stream.                      |                                 |
++----------------------------+---------------------------------------+---------------------------------+
 | prof.log                   | Profiling statistics (to create this  | N/A                             |
 |                            | log, load policy/misc/profiling.zeek  |                                 |
 +----------------------------+---------------------------------------+---------------------------------+

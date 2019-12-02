@@ -66,6 +66,9 @@ public:
 	bool IsRawOutput() const	{ return raw_output; }
 
 protected:
+
+	friend class PrintStmt;
+
 	BroFile()	{ Init(); }
 	void Init();
 
@@ -80,7 +83,8 @@ protected:
 
 	// Returns nil if the file is not active, was in error, etc.
 	// (Protected because we do not want anyone to write directly
-	// to the file.)
+	// to the file, but the PrintStmt friend uses this to check whether
+	// it's really stdout.)
 	FILE* File();
 
 	// Raises a file_opened event.

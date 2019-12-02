@@ -22,6 +22,10 @@ New Functionality
 - There is now a new ``tcp_options`` event that is raised for each TCP header
   that contains options.
 
+- Added a new option, ``Log::print_to_log`` that can be set to automatically
+  redirect the output from "print" statements to a real log stream (e.g.
+  instead of writing to stdout).
+
 Changed Functionality
 ---------------------
 

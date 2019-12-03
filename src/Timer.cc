@@ -60,12 +60,11 @@ void Timer::Describe(ODesc* d) const
 
 unsigned int TimerMgr::current_timers[NUM_TIMER_TYPES];
 
-TimerMgr::TimerMgr(const std::string& arg_tag)
+TimerMgr::TimerMgr()
 	{
 	t = 0.0;
 	num_expired = 0;
 	last_advance = last_timestamp = 0;
-	tag = arg_tag;
 
 	if ( iosource_mgr )
 		iosource_mgr->Register(this, true);
@@ -73,13 +72,11 @@ TimerMgr::TimerMgr(const std::string& arg_tag)
 
 TimerMgr::~TimerMgr()
 	{
-	DBG_LOG(DBG_TM, "deleting timer mgr %p", this);
 	}
 
 int TimerMgr::Advance(double arg_t, int max_expire)
 	{
-	DBG_LOG(DBG_TM, "advancing %stimer mgr %p to %.6f",
-		this == timer_mgr ? "global " : "", this, arg_t);
+	DBG_LOG(DBG_TM, "advancing timer mgr to %.6f", arg_t);
 
 	t = arg_t;
 	last_timestamp = 0;
@@ -111,7 +108,7 @@ void TimerMgr::InitPostScript()
 	}
 
 
-PQ_TimerMgr::PQ_TimerMgr(const std::string& tag) : TimerMgr(tag)
+PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()
 	{
 	q = new PriorityQueue;
 	}
@@ -123,8 +120,8 @@ PQ_TimerMgr::~PQ_TimerMgr()
 
 void PQ_TimerMgr::Add(Timer* timer)
 	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p at %.6f",
-		timer_type_to_string(timer->Type()), this, timer->Time());
+	DBG_LOG(DBG_TM, "Adding timer %s (%p) at %.6f",
+	        timer_type_to_string(timer->Type()), timer, timer->Time());
 
 	// Add the timer even if it's already expired - that way, if
 	// multiple already-added timers are added, they'll still
@@ -140,8 +137,8 @@ void PQ_TimerMgr::Expire()
 	Timer* timer;
 	while ( (timer = Remove()) )
 		{
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
+		        timer_type_to_string(timer->Type()), timer);
 		timer->Dispatch(t, 1);
 		--current_timers[timer->Type()];
 		delete timer;
@@ -162,8 +159,8 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 		// whether we should delete it too.
 		(void) Remove();
 
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
+		        timer_type_to_string(timer->Type()), timer);
 		timer->Dispatch(new_t, 0);
 		delete timer;
 

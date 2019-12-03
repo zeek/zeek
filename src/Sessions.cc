@@ -42,32 +42,6 @@ enum NetBIOS_Service {
 
 NetSessions* sessions;
 
-void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
-	{
-	if ( mgr->LastAdvance() + timer_mgr_inactivity_timeout < timer_mgr->Time() )
-		{
-		// Expired.
-		DBG_LOG(DBG_TM, "TimeMgr %p has timed out", mgr);
-		mgr->Expire();
-
-		// Make sure events are executed.  They depend on the TimerMgr.
-		::mgr.Drain();
-
-		sessions->timer_mgrs.erase(mgr->GetTag());
-		delete mgr;
-		}
-	else
-		{
-		// Reinstall timer.
-		if ( ! is_expire )
-			{
-			double n = mgr->LastAdvance() +
-					timer_mgr_inactivity_timeout;
-			timer_mgr->Add(new TimerMgrExpireTimer(n, mgr));
-			}
-		}
-	}
-
 void IPTunnelTimer::Dispatch(double t, int is_expire)
 	{
 	NetSessions::IPTunnelMap::const_iterator it =
@@ -208,59 +182,6 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	if ( dump_this_packet && ! record_all_packets )
 		DumpPacket(pkt);
-	}
-
-int NetSessions::CheckConnectionTag(Connection* conn)
-	{
-	if ( current_iosrc->GetCurrentTag() )
-		{
-		// Packet is tagged.
-		if ( conn->GetTimerMgr() == timer_mgr )
-			{
-			// Connection uses global timer queue.  But the
-			// packet has a tag that means we got it externally,
-			// probably from the Time Machine.
-			DBG_LOG(DBG_TM, "got packet with tag %s for already"
-					"known connection, reinstantiating",
-					current_iosrc->GetCurrentTag()->c_str());
-			return 0;
-			}
-		else
-			{
-			// Connection uses local timer queue.
-			TimerMgrMap::iterator i =
-				timer_mgrs.find(*current_iosrc->GetCurrentTag());
-			if ( i != timer_mgrs.end() &&
-			     conn->GetTimerMgr() != i->second )
-				{
-				// Connection uses different local queue
-				// than the tag for the current packet
-				// indicates.
-				//
-				// This can happen due to:
-				//     (1) getting same packets with
-				//		different tags
-				//     (2) timer mgr having already expired
-				DBG_LOG(DBG_TM, "packet ignored due old/inconsistent tag");
-				return -1;
-				}
-
-			return 1;
-			}
-		}
-
-	// Packet is not tagged.
-	if ( conn->GetTimerMgr() != timer_mgr )
-		{
-		// Connection does not use the global timer queue.  That
-		// means that this is a live packet belonging to a
-		// connection for which we have already switched to
-		// processing external input.
-		DBG_LOG(DBG_TM, "packet ignored due to processing it in external data");
-		return -1;
-		}
-
-	return 1;
 	}
 
 static unsigned int gre_header_len(uint16_t flags)
@@ -735,14 +656,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	else
 		{
 		// We already know that connection.
-		int consistent = CheckConnectionTag(conn);
-		if ( consistent < 0 )
-			return;
-
-		if ( ! consistent || conn->IsReuse(t, data) )
+		if ( conn->IsReuse(t, data) )
 			{
-			if ( consistent )
-				conn->Event(connection_reused, 0);
+			conn->Event(connection_reused, 0);
 
 			Remove(conn);
 			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
@@ -1158,8 +1074,6 @@ void NetSessions::Drain()
 		ic->Done();
 		ic->RemovalEvent();
 		}
-
-	ExpireTimerMgrs();
 	}
 
 void NetSessions::GetStats(SessionStats& s) const
@@ -1233,24 +1147,8 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 		return 0;
 		}
 
-	bool external = conn->IsExternal();
-
-	if ( external )
-		conn->AppendAddl(fmt("tag=%s",
-					conn->GetTimerMgr()->GetTag().c_str()));
-
 	if ( new_connection )
-		{
 		conn->Event(new_connection, 0);
-
-		if ( external && connection_external )
-			{
-			conn->ConnectionEventFast(connection_external, 0, {
-				conn->BuildConnVal(),
-				new StringVal(conn->GetTimerMgr()->GetTag().c_str()),
-			});
-			}
-		}
 
 	return conn;
 	}
@@ -1336,45 +1234,6 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 			! IsLikelyServerPort(dst_port, TRANSPORT_UDP);
 
 	return true;
-	}
-
-TimerMgr* NetSessions::LookupTimerMgr(const std::string* tag, bool create)
-	{
-	if ( ! tag )
-		{
-		DBG_LOG(DBG_TM, "no tag, using global timer mgr %p", timer_mgr);
-		return timer_mgr;
-		}
-
-	TimerMgrMap::iterator i = timer_mgrs.find(*tag);
-	if ( i != timer_mgrs.end() )
-		{
-		DBG_LOG(DBG_TM, "tag %s, using non-global timer mgr %p", tag->c_str(), i->second);
-		return i->second;
-		}
-	else
-		{
-		if ( ! create )
-			return 0;
-
-		// Create new queue for tag.
-		TimerMgr* mgr = new PQ_TimerMgr(*tag);
-		DBG_LOG(DBG_TM, "tag %s, creating new non-global timer mgr %p", tag->c_str(), mgr);
-		timer_mgrs.insert(TimerMgrMap::value_type(*tag, mgr));
-		double t = timer_mgr->Time() + timer_mgr_inactivity_timeout;
-		timer_mgr->Add(new TimerMgrExpireTimer(t, mgr));
-		return mgr;
-		}
-	}
-
-void NetSessions::ExpireTimerMgrs()
-	{
-	for ( TimerMgrMap::iterator i = timer_mgrs.begin();
-	      i != timer_mgrs.end(); ++i )
-		{
-		i->second->Expire();
-		delete i->second;
-		}
 	}
 
 void NetSessions::DumpPacket(const Packet *pkt, int len)

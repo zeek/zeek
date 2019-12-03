@@ -117,12 +117,11 @@ void ProfileLogger::Log()
 
 	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
-	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " ext=%" PRIu64 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
+	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
 		sessions->CurrentConnections(),
-		Connection::CurrentExternalConnections(),
 		conn_mem_use,
 		expensive ? (conn_mem_use / double(sessions->CurrentConnections())) : 0,
 		expensive ? sessions->MemoryAllocation() / 1024 : 0,

@@ -228,11 +228,6 @@ public:
 	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
 
-	TimerMgr* GetTimerMgr() const;
-
-	// Returns true if connection has been received externally.
-	bool IsExternal() const	{ return conn_timer_mgr != 0; }
-
 	// Statistics.
 
 	// Just a lower bound.
@@ -243,8 +238,6 @@ public:
 		{ return total_connections; }
 	static uint64_t CurrentConnections()
 		{ return current_connections; }
-	static uint64_t CurrentExternalConnections()
-		{ return external_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
 	int CheckHistory(uint32_t mask, char code)
@@ -320,8 +313,6 @@ protected:
 	ConnIDKey key;
 	bool key_valid;
 
-	// Timer manager to use for this conn (or nil).
-	std::string* conn_timer_mgr;
 	timer_list timers;
 
 	IPAddr orig_addr;
@@ -353,7 +344,6 @@ protected:
 	// Count number of connections.
 	static uint64_t total_connections;
 	static uint64_t current_connections;
-	static uint64_t external_connections;
 
 	string history;
 	uint32_t hist_seen;

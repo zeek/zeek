@@ -213,13 +213,10 @@ void net_init(const std::string& interface,
 void expire_timers(iosource::PktSrc* src_ps)
 	{
 	SegmentProfiler(segment_logger, "expiring-timers");
-	TimerMgr* tmgr =
-		src_ps ? sessions->LookupTimerMgr(src_ps->GetCurrentTag())
-			: timer_mgr;
 
 	current_dispatched +=
-		tmgr->Advance(network_time,
-				max_timer_expires - current_dispatched);
+		timer_mgr->Advance(network_time,
+			max_timer_expires - current_dispatched);
 	}
 
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
@@ -227,10 +224,8 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
 
-	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
-
 	// network_time never goes back.
-	net_update_time(tmgr->Time() < t ? t : tmgr->Time());
+	net_update_time(timer_mgr->Time() < t ? t : timer_mgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;

@@ -44,20 +44,6 @@ struct SessionStats {
 	uint64_t num_packets;
 };
 
-// Drains and deletes a timer manager if it hasn't seen any advances
-// for an interval timer_mgr_inactivity_timeout.
-class TimerMgrExpireTimer : public Timer {
-public:
-	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
-		{ }
-
-	void Dispatch(double t, int is_expire) override;
-
-protected:
-	TimerMgr* mgr;
-};
-
 class NetSessions {
 public:
 	NetSessions();
@@ -100,13 +86,6 @@ public:
 			packet_filter = new PacketFilter(packet_filter_default);
 		return packet_filter;
 		}
-
-	// Looks up timer manager associated with tag.  If tag is unknown and
-	// "create" is true, creates new timer manager and stores it.  Returns
-	// global timer manager if tag is nil.
-	TimerMgr* LookupTimerMgr(const std::string* tag, bool create = true);
-
-	void ExpireTimerMgrs();
 
 	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
@@ -168,7 +147,6 @@ public:
 
 protected:
 	friend class ConnCompressor;
-	friend class TimerMgrExpireTimer;
 	friend class IPTunnelTimer;
 
 	using ConnectionMap = std::map<ConnIDKey, Connection*>;
@@ -179,13 +157,6 @@ protected:
 			const Packet* pkt, const EncapsulationStack* encapsulation);
 
 	Connection* LookupConn(const ConnectionMap& conns, const ConnIDKey& key);
-
-	// Check whether the tag of the current packet is consistent with
-	// the given connection.  Returns:
-	//    -1   if current packet is to be completely ignored.
-	//     0   if tag is not consistent and new conn should be instantiated.
-	//     1   if tag is consistent, i.e., packet is part of connection.
-	int CheckConnectionTag(Connection* conn);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -243,11 +214,6 @@ protected:
 	int dump_this_packet;	// if true, current packet should be recorded
 	uint64_t num_packets_processed;
 	PacketProfiler* pkt_profiler;
-
-	// We may use independent timer managers for different sets of related
-	// activity. The managers are identified by a unique tag.
-	typedef std::map<std::string, TimerMgr*> TimerMgrMap;
-	TimerMgrMap timer_mgrs;
 };
 
 

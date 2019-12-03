@@ -1788,19 +1788,6 @@ function log10%(d: double%): double
 #
 # ===========================================================================
 
-## Determines whether a connection has been received externally. For example,
-## Broccoli or the Time Machine can send packets to Zeek via a mechanism that is
-## one step lower than sending events. This function checks whether the packets
-## of a connection stem from one of these external *packet sources*.
-##
-## c: The connection to test.
-##
-## Returns: True if *c* has been received externally.
-function is_external_connection%(c: connection%) : bool
-	%{
-	return val_mgr->GetBool(c && c->IsExternal());
-	%}
-
 ## Returns the ID of the analyzer which raised the current event.
 ##
 ## Returns: The ID of the analyzer which raised the current event, or 0 if

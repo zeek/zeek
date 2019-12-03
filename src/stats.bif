@@ -88,7 +88,6 @@ function get_conn_stats%(%): ConnStats
 
 	r->Assign(n++, val_mgr->GetCount(Connection::TotalConnections()));
 	r->Assign(n++, val_mgr->GetCount(Connection::CurrentConnections()));
-	r->Assign(n++, val_mgr->GetCount(Connection::CurrentExternalConnections()));
 	r->Assign(n++, val_mgr->GetCount(sessions->CurrentConnections()));
 
 	SessionStats s;

@@ -550,7 +550,7 @@ int main(int argc, char** argv)
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
 
-	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
+	timer_mgr = new PQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);

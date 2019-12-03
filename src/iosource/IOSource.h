@@ -71,17 +71,6 @@ public:
 	virtual void Process() = 0;
 
 	/**
-	 * Returns the tag of the timer manager associated with the last
-	 * procesees data item.
-	 *
-	 * Can be overridden by derived classes.
-	 *
-	 * @return The tag, or null for the global timer manager.
-	 *
-	 */
-	virtual std::string* GetCurrentTag()	{ return 0; }
-
-	/**
 	 * Returns a descriptive tag representing the source for debugging.
 	 *
 	 * Must be overridden by derived classes.

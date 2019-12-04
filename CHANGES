@@ -1,4 +1,8 @@
 
+3.1.0-dev.295 | 2019-12-04 14:43:27 -0700
+
+  * Use new Zeek Logo instead of Bro Eyes on README.md (Dev Bali, Corelight)
+
 3.1.0-dev.292 | 2019-12-02 13:37:19 -0800
 
   * GH-619: Allow "print" statements to be redirected to a Log (Dev Bali, Corelight)

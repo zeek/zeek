@@ -1,6 +1,6 @@
 <h1 align="center">
 
-[![Zeek Logo](https://www.zeek.org/images/bro-eyes.png)](https:://www.zeek.org)
+[![Zeek Logo](https://www.zeek.org/images/zeek-logo-without-text.png)](https:://www.zeek.org)
 
 The Zeek Network Security Monitor
 

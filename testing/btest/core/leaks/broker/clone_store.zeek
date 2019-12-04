@@ -5,7 +5,7 @@
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run clone "zeek -m -b ../clone.zeek >clone.out"
 # @TEST-EXEC: btest-bg-run master "zeek -b ../master.zeek >master.out"
 
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 90
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone/clone.out
 
 @TEST-START-FILE master.zeek

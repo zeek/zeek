@@ -7,7 +7,7 @@
 #
 # @TEST-EXEC: cat conn.sql | sqlite3 conn.sqlite
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 90
 
 @TEST-START-FILE conn.sql
 PRAGMA foreign_keys=OFF;

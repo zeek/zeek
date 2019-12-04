@@ -125,7 +125,7 @@ build_in_docker() {
 
     # Pass the distro as a different environment variable name to docker since
     # the script will set $distro to "travis" as part of the invocation.
-    docker exec -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job build ${recursed_distro}
+    docker exec -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh ci/travis-job build ${recursed_distro}
 }
 
 
@@ -139,7 +139,7 @@ run_in_docker() {
 
     # Pass the distro as a different environment variable name to docker since
     # the script will set $distro to "travis" as part of the invocation.
-    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh testing/scripts/travis-job run ${recursed_distro}
+    docker exec -t -e TRAVIS -e TRAVIS_PULL_REQUEST -e TESTING_PRIVATE_DEPLOYKEY -e COV_TOKEN -e BUILD_DISTRO=${distro} zeektest sh ci/travis-job run ${recursed_distro}
 }
 
 update_env() {
@@ -352,7 +352,7 @@ remove_container() {
 }
 
 
-if [ ! -f testing/scripts/travis-job ]; then
+if [ ! -f ci/travis-job ]; then
     echo "Error: must change directory to root of zeek source tree before running this script."
     exit 1
 fi

@@ -1904,7 +1904,7 @@ function reading_traces%(%): bool
 
 ## Returns: a list of packet sources being read by Zeek.
 ##
-## .. zeek:seek:: reading_live_traffic reading_traces
+## .. zeek:see:: reading_live_traffic reading_traces
 function packet_sources%(%): PacketSourceList
 	%{
 	auto ps_type = internal_type("PacketSource")->AsRecordType();

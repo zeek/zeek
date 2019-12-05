@@ -120,6 +120,22 @@ type mime_match: record {
 ## :zeek:see:`file_magic`
 type mime_matches: vector of mime_match;
 
+## Properties of an I/O packet source being read by Zeek.
+type PacketSource: record {
+	## Whether the packet source is a live interface or offline pcap file.
+	live: bool;
+	## The interface name for a live interface or filesystem path of
+	## an offline pcap file.
+	path: string;
+	## The data link-layer type of the packet source.
+	link_type: int;
+	## The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
+	netmask: count;
+};
+
+## A list of packet sources being read by Zeek.
+type PacketSourceList: vector of PacketSource;
+
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {

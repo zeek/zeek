@@ -23,6 +23,7 @@
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
 #include "iosource/Packet.h"
+#include "IntrusivePtr.h"
 
 using namespace std;
 
@@ -1884,7 +1885,7 @@ function type_name%(t: any%): string
 ##
 ## Returns: True if reading traffic from a network interface.
 ##
-## .. zeek:see:: reading_traces
+## .. zeek:see:: reading_traces packet_sources
 function reading_live_traffic%(%): bool
 	%{
 	return val_mgr->GetBool(reading_live);
@@ -1895,12 +1896,33 @@ function reading_live_traffic%(%): bool
 ##
 ## Returns: True if reading traffic from a network trace.
 ##
-## .. zeek:see:: reading_live_traffic
+## .. zeek:see:: reading_live_traffic packet_sources
 function reading_traces%(%): bool
 	%{
 	return val_mgr->GetBool(reading_traces);
 	%}
 
+## Returns: a list of packet sources being read by Zeek.
+##
+## .. zeek:seek:: reading_live_traffic reading_traces
+function packet_sources%(%): PacketSourceList
+	%{
+	auto ps_type = internal_type("PacketSource")->AsRecordType();
+	auto psl_type = internal_type("PacketSourceList")->AsVectorType();
+	auto rval = make_intrusive<VectorVal>(psl_type);
+
+	for ( const auto& ps : iosource_mgr->GetPktSrcs() )
+		{
+		auto r = make_intrusive<RecordVal>(ps_type);
+		r->Assign(0, val_mgr->GetBool(ps->IsLive()));
+		r->Assign(1, new StringVal(ps->Path()));
+		r->Assign(2, val_mgr->GetInt(ps->LinkType()));
+		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
+		rval->Assign(rval->Size(), r.detach());
+		}
+
+	return rval.detach();
+	%}
 
 ## Generates a table of the size of all global variables. The table index is
 ## the variable name and the value is the variable size in bytes.

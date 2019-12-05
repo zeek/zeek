@@ -26,7 +26,7 @@ public:
 	const char* Name() const;
 
 	// Returns false if an error occured.
-	int Write(const char* data, int len = 0);
+	int Write(const char* data, size_t len = 0);
 
 	void Flush()	{ fflush(f); }
 

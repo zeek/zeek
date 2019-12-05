@@ -191,11 +191,9 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 
 // Start, end bounds of which frame numbers to print
-static int dbg_backtrace_internal(int start, int end)
+static int dbg_backtrace_internal(unsigned int start, unsigned int end)
 	{
-	if ( start < 0 || end < 0 ||
-	     (unsigned) start >= g_frame_stack.size() ||
-	     (unsigned) end >= g_frame_stack.size() )
+	if ( start >= g_frame_stack.size() || end >= g_frame_stack.size() )
 		reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
 	if ( start < end )
@@ -218,7 +216,6 @@ static int dbg_backtrace_internal(int start, int end)
 	return 1;
 	}
 
-
 // Returns 0 for illegal arguments, or 1 on success.
 int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 	{
@@ -226,7 +223,7 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 	assert(g_frame_stack.size() > 0);
 
 	unsigned int start_iter;
-	int end_iter;
+	unsigned int end_iter;
 
 	if ( args.size() > 0 )
 		{
@@ -241,9 +238,10 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args)
 		if ( how_many > 0 )
 			{ // innermost N frames
 			start_iter = g_frame_stack.size() - 1;
-			end_iter = start_iter - how_many + 1;
-			if ( end_iter < 0 )
+			if ( start_iter + 1 < how_many )
 				end_iter = 0;
+			else
+				end_iter = start_iter - how_many + 1;
 			}
 		else
 			{ // outermost N frames
@@ -320,7 +318,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 		++g_debugger_state.curr_frame_idx;
 		}
 
-	int user_frame_number =
+	unsigned user_frame_number =
 		g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
 	// Set the current location to the new frame being looked at
@@ -361,7 +359,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.size() == 0 || args[0] == "if" )
 		{ // break on next stmt
-		int user_frame_number =
+		unsigned user_frame_number =
 			g_frame_stack.size() - 1 -
 				g_debugger_state.curr_frame_idx;
 

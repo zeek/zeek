@@ -305,7 +305,7 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-int BroFile::Write(const char* data, int len)
+int BroFile::Write(const char* data, size_t len)
 	{
 	if ( ! is_open )
 		return 0;

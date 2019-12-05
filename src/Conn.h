@@ -84,7 +84,7 @@ public:
 	void NextPacket(double t, int is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
-			int& record_packet, int& record_content,
+			unsigned int& record_packet, unsigned int& record_content,
 			// arguments for reproducing packets
 			const Packet *pkt);
 

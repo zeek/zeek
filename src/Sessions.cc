@@ -756,8 +756,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( ! conn )
 		return;
 
-	int record_packet = 1;	// whether to record the packet at all
-	int record_content = 1;	// whether to record its data
+	unsigned int record_packet = 1;	// whether to record the packet at all
+	unsigned int record_content = 1;	// whether to record its data
 
 	int is_orig = (id.src_addr == conn->OrigAddr()) &&
 			(id.src_port == conn->OrigPort());

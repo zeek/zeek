@@ -848,7 +848,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 		const char* desc = d.Description();
 		const char* s = strchr(desc, '\n');
 
-		int len;
+		size_t len;
 		if ( s )
 			len = s - desc;
 		else
@@ -947,11 +947,12 @@ Val* dbg_eval_expr(const char* expr)
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
 	//       while the array index goes in the opposite direction
-	int frame_idx =
-		(g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
+	size_t frame_idx;
 
-	if ( ! (frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size())  )
-		reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+	if ( g_frame_stack.size() > g_debugger_state.curr_frame_idx && g_debugger_state.curr_frame_idx >= 0 )
+		reporter->InternalError("g_frame_stack.size() > g_debugger_state.curr_frame_idx && g_debugger_state.curr_frame_idx >= 0");
+	else
+		frame_idx = (g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
 	Frame* frame = g_frame_stack[frame_idx];
 	if ( ! (frame)  )

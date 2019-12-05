@@ -143,6 +143,7 @@ Functions
 :zeek:id:`open_for_append`: :zeek:type:`function`                                     Opens a file for writing or appending.
 :zeek:id:`order`: :zeek:type:`function`                                               Returns the order of the elements in a vector according to some
                                                                                       comparison function.
+:zeek:id:`packet_sources`: :zeek:type:`function`                                      Returns: a list of packet sources being read by Zeek.
 :zeek:id:`paraglob_equals`: :zeek:type:`function`                                     Compares two paraglobs for equality.
 :zeek:id:`paraglob_init`: :zeek:type:`function`                                       Initializes and returns a new paraglob.
 :zeek:id:`paraglob_match`: :zeek:type:`function`                                      Gets all the patterns inside the handle associated with an input string.
@@ -1997,6 +1998,15 @@ Functions
    
    .. zeek:see:: sort
 
+.. zeek:id:: packet_sources
+
+   :Type: :zeek:type:`function` () : :zeek:type:`PacketSourceList`
+
+
+   :returns: a list of packet sources being read by Zeek.
+   
+   .. zeek:see:: reading_live_traffic reading_traces
+
 .. zeek:id:: paraglob_equals
 
    :Type: :zeek:type:`function` (p_one: :zeek:type:`opaque` of paraglob, p_two: :zeek:type:`opaque` of paraglob) : :zeek:type:`bool`
@@ -2181,7 +2191,7 @@ Functions
 
    :returns: True if reading traffic from a network interface.
    
-   .. zeek:see:: reading_traces
+   .. zeek:see:: reading_traces packet_sources
 
 .. zeek:id:: reading_traces
 
@@ -2193,7 +2203,7 @@ Functions
 
    :returns: True if reading traffic from a network trace.
    
-   .. zeek:see:: reading_live_traffic
+   .. zeek:see:: reading_live_traffic packet_sources
 
 .. zeek:id:: record_fields
 

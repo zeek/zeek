@@ -432,6 +432,8 @@ Types
 :zeek:type:`PE::FileHeader`: :zeek:type:`record`                              
 :zeek:type:`PE::OptionalHeader`: :zeek:type:`record`                          
 :zeek:type:`PE::SectionHeader`: :zeek:type:`record`                           Record for Portable Executable (PE) section headers.
+:zeek:type:`PacketSource`: :zeek:type:`record`                                Properties of an I/O packet source being read by Zeek.
+:zeek:type:`PacketSourceList`: :zeek:type:`vector`                            A list of packet sources being read by Zeek.
 :zeek:type:`PcapFilterID`: :zeek:type:`enum`                                  Enum type identifying dynamic BPF filters.
 :zeek:type:`ProcStats`: :zeek:type:`record`                                   Statistics about Zeek's process.
 :zeek:type:`RADIUS::AttributeList`: :zeek:type:`vector`                       
@@ -4975,6 +4977,31 @@ Types
          Bit-flags that describe the characteristics of the section.
 
    Record for Portable Executable (PE) section headers.
+
+.. zeek:type:: PacketSource
+
+   :Type: :zeek:type:`record`
+
+      live: :zeek:type:`bool`
+         Whether the packet source is a live interface or offline pcap file.
+
+      path: :zeek:type:`string`
+         The interface name for a live interface or filesystem path of
+         an offline pcap file.
+
+      link_type: :zeek:type:`int`
+         The data link-layer type of the packet source.
+
+      netmask: :zeek:type:`count`
+         The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
+
+   Properties of an I/O packet source being read by Zeek.
+
+.. zeek:type:: PacketSourceList
+
+   :Type: :zeek:type:`vector` of :zeek:type:`PacketSource`
+
+   A list of packet sources being read by Zeek.
 
 .. zeek:type:: PcapFilterID
 

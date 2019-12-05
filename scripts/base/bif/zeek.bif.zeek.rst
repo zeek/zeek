@@ -225,6 +225,7 @@ Functions
 :zeek:id:`uuid_to_string`: :zeek:type:`function`                                      Converts a bytes representation of a UUID into its string form.
 :zeek:id:`val_size`: :zeek:type:`function`                                            Returns the number of bytes that a value occupies in memory.
 :zeek:id:`write_file`: :zeek:type:`function`                                          Writes data to an open file.
+:zeek:id:`zeek_args`: :zeek:type:`function`                                           Returns: list of command-line arguments (``argv``) used to run Zeek.
 :zeek:id:`zeek_is_terminating`: :zeek:type:`function`                                 Checks if Zeek is terminating.
 :zeek:id:`zeek_version`: :zeek:type:`function`                                        Returns the Zeek version string.
 ===================================================================================== ===============================================================================
@@ -3154,6 +3155,13 @@ Functions
    .. zeek:see:: active_file open open_for_append close
                 get_file_name set_buf flush_all mkdir enable_raw_output
                 rmdir unlink rename
+
+.. zeek:id:: zeek_args
+
+   :Type: :zeek:type:`function` () : :zeek:type:`string_vec`
+
+
+   :returns: list of command-line arguments (``argv``) used to run Zeek.
 
 .. zeek:id:: zeek_is_terminating
 

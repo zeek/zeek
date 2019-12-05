@@ -1878,6 +1878,18 @@ function type_name%(t: any%): string
 	return new StringVal(s);
 	%}
 
+## Returns: list of command-line arguments (``argv``) used to run Zeek.
+function zeek_args%(%): string_vec
+	%{
+	auto sv = internal_type("string_vec")->AsVectorType();
+	auto rval = make_intrusive<VectorVal>(sv);
+
+	for ( auto i = 0; i < bro_argc; ++i )
+		rval->Assign(rval->Size(), new StringVal(bro_argv[i]));
+
+	return rval.detach();
+	%}
+
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
 ## opposed to from a network trace in a file). Note that this function returns
 ## true even after Zeek has stopped reading network traffic, for example due to

@@ -198,12 +198,12 @@ static int dbg_backtrace_internal(unsigned int start, unsigned int end)
 
 	if ( start < end )
 		{
-		int temp = start;
+		unsigned int temp = start;
 		start = end;
 		end = temp;
 		}
 
-	for ( int i = start; i >= end; --i )
+	for ( unsigned int i = start; i >= end; --i )
 		{
 		const Frame* f = g_frame_stack[i];
 		const Stmt* stmt = f ? f->GetNextStmt() : 0;
@@ -667,10 +667,10 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		pre_offset = 0;
 		}
 
-	if ( (int) pre_offset +
-	     (int) g_debugger_state.last_loc.first_line -
-	     (int) CENTER_IDX < 0 )
-		pre_offset = CENTER_IDX - g_debugger_state.last_loc.first_line;
+	if ( static_cast<int> (pre_offset) +
+	     g_debugger_state.last_loc.first_line -
+	     static_cast<int> (CENTER_IDX) < 0 )
+		pre_offset = static_cast<int> (CENTER_IDX) - g_debugger_state.last_loc.first_line;
 
 	g_debugger_state.last_loc.first_line += pre_offset;
 

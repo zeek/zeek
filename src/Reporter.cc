@@ -434,7 +434,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		va_end(aq);
 
 		if ( postfix )
-			n += strlen(postfix) + 10; // Add a bit of slack.
+			n += static_cast<int>(strlen(postfix)) + 10; // Add a bit of slack.
 
 		if ( n > -1 && n < size )
 			// We had enough space;
@@ -478,7 +478,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		val_list vl(vl_size);
 
 		if ( time )
-			vl.push_back(new Val(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.push_back(new Val(network_time != 0.0 ? network_time : current_time(), TYPE_TIME));
 
 		vl.push_back(new StringVal(buffer));
 

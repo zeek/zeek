@@ -66,7 +66,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 	int is_tcp = (proto == IPPROTO_TCP);
 	int is_udp = (proto == IPPROTO_UDP);
-	int min_hdr_len = is_tcp ?
+	size_t min_hdr_len = is_tcp ?
 		sizeof(struct tcphdr) :
 		(is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
 

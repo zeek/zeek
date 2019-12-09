@@ -592,7 +592,7 @@ void Dictionary::FinishChangeSize()
 
 unsigned int Dictionary::MemoryAllocation() const
 	{
-	int size = padded_sizeof(*this);
+	size_t size = padded_sizeof(*this);
 
 	if ( ! tbl )
 		return size;
@@ -625,7 +625,7 @@ unsigned int Dictionary::MemoryAllocation() const
 		size += pad_size(num_buckets2 * sizeof(PList<DictEntry>*));
 		}
 
-	return size;
+	return static_cast<unsigned int> (size);
 	}
 
 void generic_delete_func(void* v)

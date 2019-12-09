@@ -78,7 +78,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 		{
 		// Add a marker saying whether the optional field is set.
 		char* kp = AlignAndPadType<char>(kp0);
-		*kp = ( v ? '1' : '0');
+		*kp = ( v ? 1 : 0);
 		kp0 = reinterpret_cast<char*>(kp+1);
 
 		if ( ! v )

@@ -854,7 +854,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 		else
 			len = strlen(desc);
 
-		g_trace_state.LogTrace("%*s\n", len, desc);
+		g_trace_state.LogTrace("%*s\n", static_cast<int>(len), desc);
 		}
 
 	bool should_break = false;
@@ -947,7 +947,7 @@ Val* dbg_eval_expr(const char* expr)
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
 	//       while the array index goes in the opposite direction
-	size_t frame_idx;
+	size_t frame_idx = 0;
 
 	if ( g_frame_stack.size() > g_debugger_state.curr_frame_idx && g_debugger_state.curr_frame_idx >= 0 )
 		reporter->InternalError("g_frame_stack.size() > g_debugger_state.curr_frame_idx && g_debugger_state.curr_frame_idx >= 0");

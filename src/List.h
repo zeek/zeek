@@ -123,7 +123,7 @@ public:
 		}
 
 	// Return nth ent of list (do not remove).
-	T& operator[](int i) const
+	T& operator[](unsigned int i) const
 		{
 		return entries[i];
 		}

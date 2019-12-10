@@ -11,7 +11,7 @@
 
 redirects:
   # Moved coding style doc when re-organizing maintainer/contributor guides.
-  "/devel/style_guide.html": "/devel/contributors/coding-style.rst"
+  "/devel/style_guide.html": "/devel/contributors/coding-style.html"
   # All the following are needed due to the .bro -> .zeek file suffix renaming.
   "/scripts/test-all-policy.bro.html": "/scripts/test-all-policy.zeek.html"
   "/scripts/broxygen/__load__.bro.html": "/scripts/zeekygen/__load__.zeek.html"

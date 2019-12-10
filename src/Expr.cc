@@ -2659,7 +2659,7 @@ Val* IndexExpr::Eval(Frame* f) const
 	return result;
 	}
 
-static int get_slice_index(int idx, size_t len)
+static size_t get_slice_index(int idx, size_t len)
 	{
 	if ( abs(idx) > len )
 		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
@@ -2689,13 +2689,12 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 			size_t len = vect->Size();
 			VectorVal* result = new VectorVal(vect->Type()->AsVectorType());
 
-			int first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			int last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			int sub_length = last - first;
+			size_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			size_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
 
-			if ( sub_length >= 0 )
+			if ( last >= first )
 				{
-				result->Resize(sub_length);
+				result->Resize(last - first);
 
 				for ( int idx = first; idx < last; idx++ )
 					result->Assign(idx - first, vect->Lookup(idx)->Ref());

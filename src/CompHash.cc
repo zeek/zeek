@@ -416,7 +416,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 	}
 
-int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
+unsigned int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				     int type_check, unsigned int sz, bool optional,
 				     bool calc_static_size) const
 	{
@@ -586,7 +586,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
+unsigned int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
 	const val_list* vl = 0;
@@ -600,7 +600,7 @@ int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static
 			return 0;
 		}
 
-	int sz = 0;
+	unsigned int sz = 0;
 	loop_over_list(*tl, i)
 		{
 		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : 0,
@@ -652,7 +652,7 @@ void* CompositeHash::AlignAndPad(char* ptr, unsigned int size) const
 	return reinterpret_cast<void *>(ptr);
 	}
 
-int CompositeHash::SizeAlign(unsigned offset, unsigned int size) const
+unsigned int CompositeHash::SizeAlign(unsigned int offset, unsigned int size) const
 	{
 	if ( ! size )
 		return offset;

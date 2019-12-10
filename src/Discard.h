@@ -24,7 +24,7 @@ public:
 	int NextPacket(const IP_Hdr* ip, int len, int caplen);
 
 protected:
-	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);
+	Val* BuildData(const u_char* data, unsigned int hdrlen, int len, int caplen);
 
 	Func* check_ip;
 	Func* check_tcp;

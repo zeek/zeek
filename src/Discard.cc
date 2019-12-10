@@ -83,7 +83,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 		if ( check_tcp )
 			{
 			const struct tcphdr* tp = (const struct tcphdr*) data;
-			int th_len = tp->th_off * 4;
+			unsigned int th_len = tp->th_off * 4;
 
 			val_list args{
 				ip->BuildPktHdrVal(),
@@ -149,7 +149,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	return discard_packet;
 	}
 
-Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
+Val* Discarder::BuildData(const u_char* data, unsigned int hdrlen, int len, int caplen)
 	{
 	len -= hdrlen;
 	caplen -= hdrlen;

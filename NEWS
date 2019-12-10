@@ -6,7 +6,34 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.0.1
 ==========
 
-TODO
+This release addresses a performance regression in JSON logging along with
+various other bug fixes:
+
+- ``to_json()`` now works with ``set`` types that have composite keys
+
+- Fix compilation for external plugins that use ``OpaqueVal``
+
+- Improve printing of sub-microsecond ``interval`` descriptions
+
+- Reduce Xcode compiler warnings
+
+- Fix use of ``set[enum]`` as ``option`` variables
+
+- Fix ambiguous JSON format for ``vector`` with null elements
+
+- Fix memory leak in JSON formatting of ``record`` type via ``to_json()``
+
+- Fix using ``redef`` on a ``table`` to switch its ``&default`` value
+
+- Fix potential libc++ mismatch between CAF and Broker
+
+- Fix signature matching for payload-caryying TCP SYN packets
+
+- Fix ``ZEEK_PROFILER_FILE``
+
+- Fix RPC call parsing
+
+- Fix builds on OpenBSD
 
 Zeek 3.0.0
 ==========

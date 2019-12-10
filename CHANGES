@@ -1,4 +1,10 @@
 
+3.0.1 | 2019-12-10 12:37:54 -0800
+
+  * Release 3.0.1
+
+  * Update NEWS with 3.0.1 release notes (Jon Siwek, Corelight)
+
 3.0.1-dev.24 | 2019-11-26 09:30:21 -0800
 
   * Update embedded CAF to 0.16.5 for OpenBSD fixes (Jon Siwek, Corelight)

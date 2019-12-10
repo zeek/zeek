@@ -40,8 +40,7 @@ Development
 .. toctree::
    :maxdepth: 2
 
-   devel/plugins.rst
-   devel/style_guide
+   devel/index.rst
 
 Related Tools/Software
 ======================

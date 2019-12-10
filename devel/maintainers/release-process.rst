@@ -117,8 +117,8 @@ get everything organized and pushed out, but with familiarity it's more like a
 
     $ gpg --clear-sign -a -u F8CB8019 --openpgp -o <output name>.asc.txt <input file>
 
-Release Candiates
------------------
+Release Candidates
+------------------
 
 Releasing a beta version is roughly the same process as above for the real
 release, with the following tweaks:

@@ -112,6 +112,10 @@ get everything organized and pushed out, but with familiarity it's more like a
   * Some other notable sub-projects may also upload release files to GitHub.
     For example, Broker does, too: https://github.com/zeek/broker/releases
 
+* Close the GitHub release milestone: https://github.com/zeek/zeek/milestones
+
+* Close the GitHub release project: https://github.com/zeek/zeek/projects
+
 * Send an announcement email to zeek@zeek.org and zeek-announce@zeek.org.
   Signing the mail can be done like::
 

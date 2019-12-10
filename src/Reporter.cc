@@ -21,6 +21,8 @@
 #include "input.h"
 #include "file_analysis/File.h"
 
+//#include "3rdparty/fmt/include/fmt/format.h"
+
 #ifdef SYSLOG_INT
 extern "C" {
 int openlog(const char* ident, int logopt, int facility);
@@ -84,152 +86,15 @@ void Reporter::InitOptions()
 		}
 	}
 
-void Reporter::Info(const char* fmt, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(info_to_stderr) ? stderr : 0;
-	DoLog("", reporter_info, out, 0, 0, true, true, 0, fmt, ap);
-	va_end(ap);
-	}
-
-void Reporter::Warning(const char* fmt, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
-	DoLog("warning", reporter_warning, out, 0, 0, true, true, 0, fmt, ap);
-	va_end(ap);
-	}
-
-void Reporter::Error(const char* fmt, ...)
-	{
-	++errors;
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("error", reporter_error, out, 0, 0, true, true, 0, fmt, ap);
-	va_end(ap);
-	}
-
-void Reporter::FatalError(const char* fmt, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt);
-
-	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
-
-	va_end(ap);
-
-	set_processing_status("TERMINATED", "fatal_error");
-	fflush(stderr);
-	fflush(stdout);
-	_exit(1);
-	}
-
-void Reporter::FatalErrorWithCore(const char* fmt, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt);
-
-	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
-
-	va_end(ap);
-
-	set_processing_status("TERMINATED", "fatal_error");
-	abort();
-	}
-
-void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
-	{
-	++errors;
-
-	ODesc d;
-	expr->Describe(&d);
-
-	PushLocation(expr->GetLocationInfo());
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("expression error", reporter_error, out, 0, 0, true, true,
-	      d.Description(), fmt, ap);
-	va_end(ap);
-	PopLocation();
-	throw InterpreterException();
-	}
-
-void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
-	{
-	++errors;
-	PushLocation(location);
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
-	va_end(ap);
-	PopLocation();
-	throw InterpreterException();
-	}
-
-void Reporter::InternalError(const char* fmt, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt);
-
-	// Always log to stderr.
-	DoLog("internal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
-
-	va_end(ap);
-
-	set_processing_status("TERMINATED", "internal_error");
-	abort();
-	}
-
-void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
-                                     ...)
+void Reporter::SetAnalyzerSkip(analyzer::Analyzer* a)
 	{
 	if ( a )
 		a->SetSkip(true);
-
-	va_list ap;
-	va_start(ap, fmt);
-	// Always log to stderr.
-	// TODO: would be nice to also log a call stack.
-	DoLog("analyzer error", reporter_error, stderr, 0, 0, true, true, 0, fmt,
-	      ap);
-	va_end(ap);
 	}
 
-void Reporter::InternalWarning(const char* fmt, ...)
+void Reporter::DoSyslog(const char* msg)
 	{
-	va_list ap;
-	va_start(ap, fmt);
-	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
-	// TODO: would be nice to also log a call stack.
-	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
-	      ap);
-	va_end(ap);
-	}
-
-void Reporter::Syslog(const char* fmt, ...)
-	{
-	if ( reading_traces )
-		return;
-
-	va_list ap;
-	va_start(ap, fmt);
-	vsyslog(LOG_NOTICE, fmt, ap);
-	va_end(ap);
-	}
-
-void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
-	{
-	va_list ap;
-	va_start(ap, fmt_name);
-	DoLog("weird", event, 0, 0, &vl, false, false, 0, fmt_name, ap);
-	va_end(ap);
+	syslog(LOG_NOTICE, "%s", msg);
 	}
 
 void Reporter::UpdateWeirdStats(const char* name)
@@ -374,18 +239,9 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 	            "%s", name);
 	}
 
-void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
-                     Connection* conn, val_list* addl, bool location, bool time,
-                     const char* postfix, const char* fmt, va_list ap)
+string Reporter::BuildLogLocationString(bool location)
 	{
-	static char tmp[512];
-
-	int size = sizeof(tmp);
-	char* buffer  = tmp;
-	char* alloced = 0;
-
 	string loc_str;
-
 	if ( location )
 		{
 		string loc_file = "";
@@ -431,33 +287,13 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			}
 		}
 
-	while ( true )
-		{
-		va_list aq;
-		va_copy(aq, ap);
-		int n = vsnprintf(buffer, size, fmt, aq);
-		va_end(aq);
+	return loc_str;
+	}
 
-		if ( postfix )
-			n += strlen(postfix) + 10; // Add a bit of slack.
-
-		if ( n > -1 && n < size )
-			// We had enough space;
-			break;
-
-		// Enlarge buffer;
-		size *= 2;
-		buffer = alloced = (char *)realloc(alloced, size);
-
-		if ( ! buffer )
-			FatalError("out of memory in Reporter");
-		}
-
-	if ( postfix && *postfix )
-		// Note, if you change this fmt string, adjust the additional
-		// buffer size above.
-		snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
-
+void Reporter::DoLogEvents(const char* prefix, EventHandlerPtr event, Connection* conn,
+                           val_list* addl, bool location, bool time, char* buffer,
+                           const string& loc_str)
+	{
 	bool raise_event = true;
 
 	if ( via_events && ! in_error_handler )
@@ -467,7 +303,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			auto locs = locations.back();
 			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
 							      HookReporter(prefix, event, conn, addl, location,
-									   locs.first, locs.second, time, buffer), true);
+									  locs.first, locs.second, time, buffer), true);
 			}
 		else
 			raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
@@ -488,7 +324,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.push_back(new StringVal(buffer));
 
 		if ( location )
-			vl.push_back(new StringVal(loc_str.c_str()));
+			vl.push_back(new StringVal(loc_str));
 
 		if ( conn )
 			vl.push_back(conn->BuildConnVal());
@@ -510,38 +346,4 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			}
 		}
 
-	if ( out )
-		{
-		string s = "";
-
-		if ( bro_start_network_time != 0.0 )
-			{
-			char tmp[32];
-			snprintf(tmp, 32, "%.6f", network_time);
-			s += string(tmp) + " ";
-			}
-
-		if ( prefix && *prefix )
-			{
-			if ( loc_str != "" )
-				s += string(prefix) + " in " + loc_str + ": ";
-			else
-				s += string(prefix) + ": ";
-			}
-
-		else
-			{
-			if ( loc_str != "" )
-				s += loc_str + ": ";
-			}
-
-		s += buffer;
-		s += "\n";
-
-		if ( out )
-			fprintf(out, "%s", s.c_str());
-		}
-
-	if ( alloced )
-		free(alloced);
 	}

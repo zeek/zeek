@@ -57,29 +57,6 @@ static void input_hash_delete_func(void* val)
 	delete h;
 	}
 
-/**
- * Base stuff that every stream can do.
- */
-class Manager::Stream {
-public:
-	string name;
-	bool removed;
-
-	StreamType stream_type; // to distinguish between event and table streams
-
-	EnumVal* type;
-	ReaderFrontend* reader;
-	TableVal* config;
-	EventHandlerPtr error_event;
-
-	RecordVal* description;
-
-	virtual ~Stream();
-
-protected:
-	Stream(StreamType t);
-};
-
 Manager::Stream::Stream(StreamType t)
     : name(), removed(), stream_type(t), type(), reader(), config(),
       error_event(), description()
@@ -1832,28 +1809,6 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	return success;
 	}
 
-bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
-	{
-	bool result = false;
-	val_list vl(numvals);
-
-	va_list lP;
-	va_start(lP, numvals);
-	for ( int i = 0; i < numvals; i++ )
-		vl.push_back( va_arg(lP, Val*) );
-
-	va_end(lP);
-
-	Val* v = pred_func->Call(&vl);
-	if ( v )
-		{
-		result = v->AsBool();
-		Unref(v);
-		}
-
-	return result;
-	}
-
 // Raise everything in here as warnings so it is passed to scriptland without
 // looking "fatal". In addition to these warnings, ReaderBackend will queue
 // one reporter message.
@@ -1918,25 +1873,6 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	return true;
 }
-
-void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
-	{
-	val_list vl(numvals);
-
-#ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
-		numvals);
-#endif
-
-	va_list lP;
-	va_start(lP, numvals);
-	for ( int i = 0; i < numvals; i++ )
-		vl.push_back( va_arg(lP, Val*) );
-
-	va_end(lP);
-
-	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
-	}
 
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 	{
@@ -2723,49 +2659,8 @@ void Manager::Error(ReaderFrontend* reader, const char* msg) const
 	ErrorHandler(i, ErrorType::ERROR, false, "%s", msg);
 	}
 
-void Manager::Info(const Stream* i, const char* fmt, ...) const
+void Manager::DoErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* buf) const
 	{
-	va_list ap;
-	va_start(ap, fmt);
-	ErrorHandler(i, ErrorType::INFO, true, fmt, ap);
-	va_end(ap);
-	}
-
-void Manager::Warning(const Stream* i, const char* fmt, ...) const
-	{
-	va_list ap;
-	va_start(ap, fmt);
-	ErrorHandler(i, ErrorType::WARNING, true, fmt, ap);
-	va_end(ap);
-	}
-
-void Manager::Error(const Stream* i, const char* fmt, ...) const
-	{
-	va_list ap;
-	va_start(ap, fmt);
-	ErrorHandler(i, ErrorType::ERROR, true, fmt, ap);
-	va_end(ap);
-	}
-
-void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
-	{
-	va_list ap;
-	va_start(ap, fmt);
-	ErrorHandler(i, et, reporter_send, fmt, ap);
-	va_end(ap);
-	}
-
-void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const
-	{
-	char* buf;
-
-	int n = vasprintf(&buf, fmt, ap);
-	if ( n < 0 || buf == nullptr )
-		{
-		reporter->InternalError("Could not format error message %s for stream %s", fmt, i->name.c_str());
-		return;
-		}
-
 	// send our script level error event
 	if ( i->error_event )
 		{
@@ -2785,7 +2680,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 				break;
 
 			default:
-				reporter->InternalError("Unknown error type while trying to report input error %s", fmt);
+				reporter->InternalError("Unknown error type while trying to report input error %s", buf);
 				__builtin_unreachable();
 			}
 
@@ -2810,9 +2705,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 				break;
 
 			default:
-				reporter->InternalError("Unknown error type while trying to report input error %s", fmt);
+				reporter->InternalError("Unknown error type while trying to report input error %s", buf);
 			}
 		}
-
-	free(buf);
 	}

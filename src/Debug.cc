@@ -71,21 +71,6 @@ bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2)
 		 loc.first_column > m2->loc.first_column);
 	}
 
-
-// Generic debug message output.
-int debug_msg(const char* fmt, ...)
-	{
-	va_list args;
-	int retval;
-
-	va_start(args, fmt);
-	retval = vfprintf(stderr, fmt, args);
-	va_end(args);
-
-	return retval;
-	}
-
-
 // Trace message output
 
 FILE* TraceState::SetTraceFile(const char* filename)
@@ -123,23 +108,17 @@ void TraceState::TraceOff()
 	dbgtrace = false;
 	}
 
-int TraceState::LogTrace(const char* fmt, ...)
+void TraceState::LogTraceHelper()
 	{
-	va_list args;
-	int retval;
-
-	va_start(args, fmt);
-
 	// Prefix includes timestamp and file/line info.
 	fprintf(trace_file, "%.6f ", network_time);
 
-	const Stmt* stmt;
 	Location loc;
 	loc.filename = 0;
 
 	if ( g_frame_stack.size() > 0 && g_frame_stack.back() )
 		{
-		stmt = g_frame_stack.back()->GetNextStmt();
+		const Stmt* stmt = g_frame_stack.back()->GetNextStmt();
 		if ( stmt )
 			loc = *stmt->GetLocationInfo();
 		else
@@ -161,13 +140,6 @@ int TraceState::LogTrace(const char* fmt, ...)
 	// Each stack frame is indented.
 	for ( int i = 0; i < int(g_frame_stack.size()); ++i )
 		fprintf(trace_file, "\t");
-
-	retval = vfprintf(trace_file, fmt, args);
-
-	fflush(trace_file);
-	va_end(args);
-
-	return retval;
 	}
 
 

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <iosfwd>
@@ -6,11 +5,13 @@
 
 #include <stdint.h>
 
-using namespace std;
+#include "util.h"
 
 namespace threading {
 
 class Manager;
+
+static const int STD_FMT_BUF_LEN = 2048;
 
 /**
  * Base class for all threads.
@@ -118,7 +119,37 @@ public:
 	 * This is safe to call from Run() but must not be used from any
 	 * other thread than the current one.
 	 */
-	const char* Fmt(const char* format, ...)  __attribute__((format(printf, 2, 3)));;
+	template <typename... Args>
+	const char* Fmt(const char* format, Args&&... args)
+		{
+		if ( buf_len > 10 * STD_FMT_BUF_LEN )
+			{
+			// Shrink back to normal.
+			buf = (char*) safe_realloc(buf, STD_FMT_BUF_LEN);
+			buf_len = STD_FMT_BUF_LEN;
+			}
+
+		int n;
+		if constexpr ( sizeof...(args) > 0 )
+			n = snprintf(buf, buf_len, format, std::forward<Args>(args)...);
+		else
+			n = snprintf(buf, buf_len, "%s", format);
+
+		if ( (unsigned int) n >= buf_len )
+			{
+			// Not enough room, grow the buffer.
+			buf_len = n + 32;
+			buf = (char*) safe_realloc(buf, buf_len);
+
+			// Is it portable to restart?
+			if constexpr ( sizeof...(args) > 0 )
+				n = snprintf(buf, buf_len, format, std::forward<Args>(args)...);
+			else
+				n = snprintf(buf, buf_len, "%s", format);
+			}
+
+		return buf;
+	}
 
 	/**
 	 * A version of strerror() that the thread can safely use. This is

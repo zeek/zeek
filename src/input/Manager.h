@@ -4,13 +4,17 @@
 
 #pragma once
 
-#include "Component.h"
-#include "EventHandler.h"
-#include "plugin/ComponentManager.h"
-#include "threading/SerialTypes.h"
-#include "Tag.h"
-
+#include <stdio.h>
 #include <map>
+#include <utility>
+
+#include "BroString.h"
+#include "EventHandler.h"
+#include "Val.h"
+#include "Scope.h"
+#include "Tag.h"
+#include "plugin/ComponentManager.h"
+#include "Func.h"
 
 class RecordVal;
 
@@ -24,6 +28,7 @@ class ReaderBackend;
  */
 class Manager : public plugin::ComponentManager<Tag, Component> {
 public:
+
 	/**
 	 * Constructor.
 	 */
@@ -208,14 +213,35 @@ private:
 	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func) const;
 
 	// Send events
-	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
 	void SendEvent(EventHandlerPtr ev, list<Val*> events) const;
+
+	// Variadiac version of SendEvents. The numvals argument is intentionally not used to maintain
+	// the API from when this used stdargs.
+	template<typename... Args>
+	void SendEvent(EventHandlerPtr ev, const int numvals, Args&&... args) const
+		{
+		list<Val*> vals({args...});
+		SendEvent(ev, vals);
+		}
 
 	// Implementation of SendEndOfData (send end_of_data event).
 	void SendEndOfData(const Stream *i);
 
 	// Call predicate function and return result.
-	bool CallPred(Func* pred_func, const int numvals, ...) const;
+	template<typename... Args>
+	bool CallPred(Func* pred_func, const int numvals, Args&&... args) const
+		{
+		bool result = false;
+		val_list vl({args...});
+
+		if ( Val* v = pred_func->Call(&vl) )
+			{
+			result = v->AsBool();
+			Unref(v);
+			}
+
+		return result;
+		}
 
 	// Get a hashkey for a set of threading::Values.
 	HashKey* HashValues(const int num_elements, const threading::Value* const *vals) const;
@@ -247,20 +273,78 @@ private:
 	// Converts a Bro ListVal to a RecordVal given the record type.
 	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const;
 
+	enum class ErrorType { INFO, WARNING, ERROR };
+
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log
-	void Info(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
-	void Warning(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
-	void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
+	template<typename... Args>
+	void Info(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::INFO, true, fmt, args...);
+		}
 
-	enum class ErrorType { INFO, WARNING, ERROR };
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const __attribute__((format(printf, 5, 6)));
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const __attribute__((format(printf, 5, 0)));
+	template<typename... Args>
+	void Warning(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::WARNING, true, fmt, args...);
+		}
+
+	template<typename... Args>
+	void Error(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::ERROR, true, fmt, args...);
+		}
+
+	template<typename... Args>
+	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, Args&&... args) const
+		{
+		char* buf;
+		int n;
+
+		if constexpr ( sizeof...(args) > 0 )
+			n = asprintf(&buf, fmt, std::forward<Args>(args)...);
+		else
+			n = asprintf(&buf, "%s", fmt);
+
+		if ( n < 0 || buf == nullptr )
+			{
+			reporter->InternalError("Could not format error message %s for stream %s", fmt, i->name.c_str());
+			return;
+			}
+
+		DoErrorHandler(i, et, reporter_send, buf);
+		free(buf);
+		}
+
+	void DoErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* buf) const;
 
 	Stream* FindStream(const string &name) const;
 	Stream* FindStream(ReaderFrontend* reader) const;
 
 	enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
+
+	/**
+	 * Base stuff that every stream can do.
+	 */
+	class Stream {
+	public:
+		string name;
+		bool removed;
+
+		StreamType stream_type; // to distinguish between event and table streams
+
+		EnumVal* type;
+		ReaderFrontend* reader;
+		TableVal* config;
+		EventHandlerPtr error_event;
+
+		RecordVal* description;
+
+		virtual ~Stream();
+
+	protected:
+		Stream(StreamType t);
+	};
 
 	map<ReaderFrontend*, Stream*> readers;
 
@@ -271,4 +355,3 @@ private:
 }
 
 extern input::Manager* input_mgr;
-

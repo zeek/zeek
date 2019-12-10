@@ -343,8 +343,20 @@ private:
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
 
-	void Error(const char* format, ...)
-		__attribute__((format (printf, 2, 3)));
+	template <typename... Args>
+	void Error(const char* format, Args&&... args)
+		{
+		const char* msg;
+		if constexpr ( sizeof...(args) > 0 )
+			msg = fmt(format, args...);
+		else
+			msg = fmt("%s", format);
+
+		if ( script_scope )
+			builtin_error(msg);
+		else
+			reporter->Error("%s", msg);
+		}
 
 	// IOSource interface overrides:
 	void Process() override;

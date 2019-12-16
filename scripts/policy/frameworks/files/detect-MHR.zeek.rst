@@ -5,7 +5,7 @@ policy/frameworks/files/detect-MHR.zeek
 .. zeek:namespace:: TeamCymruMalwareHashRegistry
 
 Detect file downloads that have hash values matching files in Team
-Cymru's Malware Hash Registry (http://www.team-cymru.org/Services/MHR/).
+Cymru's Malware Hash Registry (https://www.team-cymru.com/mhr.html).
 
 :Namespace: TeamCymruMalwareHashRegistry
 :Imports: :doc:`base/frameworks/files </scripts/base/frameworks/files/index>`, :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`, :doc:`policy/frameworks/files/hash-all-files.zeek </scripts/policy/frameworks/files/hash-all-files.zeek>`

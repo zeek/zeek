@@ -348,7 +348,7 @@ public:
 
 	TableVal* GetRecordFields();
 
-	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"));
+	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
 
 protected:
 

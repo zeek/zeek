@@ -429,7 +429,7 @@ TableVal* Val::GetRecordFields()
 	}
 
 // This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
-static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"))
+static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nullptr)
 	{
 	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
 	if ( ! val )
@@ -562,7 +562,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				auto field_name = rt->FieldName(i);
 				std::string key_string;
 
-				if ( re->MatchAnywhere(field_name) != 0 )
+				if ( re && re->MatchAnywhere(field_name) != 0 )
 					{
 					StringVal blank("");
 					StringVal fn_val(field_name);

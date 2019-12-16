@@ -1,4 +1,8 @@
 
+3.1.0-dev.309 | 2019-12-16 09:40:01 -0800
+
+  * GHI-599: avoid memory leak with default pattern matching and json formatting (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.307 | 2019-12-16 08:20:58 -0800
 
   * Update URL for Malware Hash Registry website (Jon Siwek, Corelight)

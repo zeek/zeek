@@ -5,7 +5,7 @@
 # @TEST-GROUP: leaks
 #
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 90
 
 redef test_file_analysis_source = "HTTP";
 

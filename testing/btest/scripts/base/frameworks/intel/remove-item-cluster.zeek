@@ -3,7 +3,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait -k 13
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
@@ -36,20 +36,23 @@ event test_worker()
 	Intel::seen([$host=10.10.10.10, $where=Intel::IN_ANYWHERE]);
 	}
 
-event Cluster::node_up(name: string, id: string)
+event ready()
 	{
 	# Insert the data once all workers are connected.
-	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 1 )
-		{
-		Intel::insert([$indicator="192.168.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
-		Intel::insert([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
-		Intel::insert([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source2"]]);
-		Intel::insert([$indicator="192.168.1.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
-		Intel::insert([$indicator="192.168.1.2", $indicator_type=Intel::ADDR, $meta=[$source="source2"]]);
-		Intel::insert([$indicator="10.10.10.10", $indicator_type=Intel::ADDR, $meta=[$source="end"]]);
+	Intel::insert([$indicator="192.168.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
+	Intel::insert([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
+	Intel::insert([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source2"]]);
+	Intel::insert([$indicator="192.168.1.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
+	Intel::insert([$indicator="192.168.1.2", $indicator_type=Intel::ADDR, $meta=[$source="source2"]]);
+	Intel::insert([$indicator="10.10.10.10", $indicator_type=Intel::ADDR, $meta=[$source="end"]]);
 
-		event test_manager();
-		}
+	event test_manager();
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	if ( Cluster::node == "worker-1" )
+		Broker::publish(Cluster::manager_topic, ready);
 	}
 
 global worker_data = 0;
@@ -74,19 +77,13 @@ event remove_indicator(item: Item)
 	print fmt("Purging %s.", item$indicator);
 	}
 
-event die()
-	{
-	terminate();
-	}
-
 event Intel::log_intel(rec: Intel::Info)
 	{
 	print "Logging intel hit!";
-	schedule 2sec { die() };
+	terminate();
 	}
 
 event Cluster::node_down(name: string, id: string)
 	{
-	# Cascading termination
-	schedule 2sec { die() };
+	terminate();
 	}

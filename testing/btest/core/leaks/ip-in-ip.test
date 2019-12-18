@@ -7,7 +7,7 @@
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek1 zeek -m -b -r $TRACES/tunnels/6in6.pcap %INPUT
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek2 zeek -m -b -r $TRACES/tunnels/6in6in6.pcap %INPUT
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek3 zeek -m -b -r $TRACES/tunnels/6in6-tunnel-change.pcap %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 120
 
 event new_connection(c: connection)
 	{

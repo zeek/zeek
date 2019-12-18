@@ -6,11 +6,11 @@
 #
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b %INPUT 
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 60 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 90 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input2.log >> input.log
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got6 15 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got6 30 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input3.log >> input.log
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 120
 
 redef exit_only_after_terminate = T;
 

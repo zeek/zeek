@@ -1096,7 +1096,7 @@ function hexdump%(data_str: string%) : string
 		if ( x == 0 )
 			{
 			char offset[5];
-			safe_snprintf(offset, sizeof(offset),
+			snprintf(offset, sizeof(offset),
 					"%.4x", data_ptr - data);
 			memcpy(hex_data_ptr, offset, 4);
 			hex_data_ptr += 6;
@@ -1104,7 +1104,7 @@ function hexdump%(data_str: string%) : string
 			}
 
 		char hex_byte[3];
-		safe_snprintf(hex_byte, sizeof(hex_byte),
+		snprintf(hex_byte, sizeof(hex_byte),
 				"%.2x", (u_char) *data_ptr);
 
 		int val = (u_char) *data_ptr;

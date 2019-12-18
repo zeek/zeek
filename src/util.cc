@@ -752,14 +752,14 @@ const char* fmt(const char* format, va_list al)
 
 	va_list alc;
 	va_copy(alc, al);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
+	int n = vsnprintf(buf, buf_len, format, al);
 
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*) safe_realloc(buf, buf_len);
 
-		n = safe_vsnprintf(buf, buf_len, format, alc);
+		n = vsnprintf(buf, buf_len, format, alc);
 
 		if ( (unsigned int) n >= buf_len )
 			reporter->InternalError("confusion reformatting in fmt()");
@@ -1638,7 +1638,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 
 	char newname[buflen], tmpname[buflen+4];
 
-	safe_snprintf(newname, buflen, "%s.%d.%.06f.tmp",
+	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
 			name, getpid(), network_time);
 	newname[buflen-1] = '\0';
 	strcpy(tmpname, newname);

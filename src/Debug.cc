@@ -717,7 +717,7 @@ static char* get_prompt(bool reset_counter = false)
 	if ( reset_counter )
 		counter = 0;
 
-	safe_snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
+	snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
 
 	return prompt;
 	}
@@ -743,7 +743,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 
 	size_t buf_size = strlen(d.Description()) + strlen(loc.filename) + 1024;
 	char* buf = new char[buf_size];
-	safe_snprintf(buf, buf_size, "In %s at %s:%d",
+	snprintf(buf, buf_size, "In %s at %s:%d",
 		      d.Description(), loc.filename, loc.last_line);
 
 	string retval(buf);

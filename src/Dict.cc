@@ -625,7 +625,7 @@ unsigned int Dictionary::MemoryAllocation() const
 		size += pad_size(num_buckets2 * sizeof(PList<DictEntry>*));
 		}
 
-	return static_cast<unsigned int> (size);
+	return static_cast<unsigned int>(size);
 	}
 
 void generic_delete_func(void* v)

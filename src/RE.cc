@@ -286,7 +286,7 @@ int Specific_RE_Matcher::Match(const u_char* bv, size_t n)
 		{
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 		if ( d && d->Accept() )
-			return n > 0 ? static_cast<int> (n) : 1;	// we can't return 0 here for match...
+			return n > 0 ? static_cast<int>(n) : 1;	// we can't return 0 here for match...
 		}
 
 	return 0;

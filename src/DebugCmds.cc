@@ -318,7 +318,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 		++g_debugger_state.curr_frame_idx;
 		}
 
-	unsigned user_frame_number =
+	unsigned int user_frame_number =
 		g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
 	// Set the current location to the new frame being looked at
@@ -359,7 +359,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	if ( args.size() == 0 || args[0] == "if" )
 		{ // break on next stmt
-		unsigned user_frame_number =
+		unsigned int user_frame_number =
 			g_frame_stack.size() - 1 -
 				g_debugger_state.curr_frame_idx;
 
@@ -667,10 +667,10 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		pre_offset = 0;
 		}
 
-	if ( static_cast<int> (pre_offset) +
+	if ( static_cast<int>(pre_offset) +
 	     g_debugger_state.last_loc.first_line -
-	     static_cast<int> (CENTER_IDX) < 0 )
-		pre_offset = static_cast<int> (CENTER_IDX) - g_debugger_state.last_loc.first_line;
+	     static_cast<int>(CENTER_IDX) < 0 )
+		pre_offset = static_cast<int>(CENTER_IDX) - g_debugger_state.last_loc.first_line;
 
 	g_debugger_state.last_loc.first_line += pre_offset;
 

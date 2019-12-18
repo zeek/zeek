@@ -3037,7 +3037,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExpr* constructor_list)
 	// record-field-assign expressions, and build up a
 	// record type to associate with this constructor.
 	const expr_list& exprs = constructor_list->Exprs();
-	type_decl_list* record_types = new type_decl_list(exprs.length());
+	type_decl_list* record_types = new type_decl_list(static_cast<int>(exprs.length()));
 
 	for ( const auto& e : exprs )
 		{

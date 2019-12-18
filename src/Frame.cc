@@ -528,7 +528,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 			}
 
 		ID* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
-		id->SetOffset( static_cast<int> (*has_offset));
+		id->SetOffset(static_cast<int>(*has_offset));
 		rval.push_back(id);
 		std::advance(where, 1);
 		}

@@ -1056,11 +1056,10 @@ embedded matching and the ``in`` operator to check for the existence
 of the pattern within the string.  If the statement resolves to true,
 :zeek:id:`split_string` is called to break the string into separate pieces.
 :zeek:id:`split_string` takes a string and a pattern as its arguments and returns a
-vector of strings.  Each element of the table will
-be the segments before and after any matches against the pattern but
+vector of strings.  Each element of the vector represents
+segments before and after any matches against the pattern but
 excluding the actual matches.  In this case, our pattern matches
-twice, and results in a table with three entries.  The ``print`` statements
-in the script will print the contents of the table in order.  
+twice resulting in a vector with three elements.
 
 .. sourcecode:: console
 
@@ -1280,16 +1279,15 @@ that we are going to be adding another Log Stream by adding a value to
 the :zeek:type:`Log::ID` enumerable.  In this script, we append the
 value ``LOG`` to the ``Log::ID`` enumerable, however due to this being in
 an export block the value appended to ``Log::ID`` is actually
-``Factor::Log``.  Next, we need to define the name and value pairs
+``Factor::LOG``.  Next, we define the fields
 that make up the data of our logs and dictate its format.  This script
 defines a new record datatype called ``Info`` (actually,
 ``Factor::Info``) with two fields, both unsigned integers. Each of the
-fields in the ``Factor::Log`` record type include the ``&log``
+fields in the ``Factor::Info`` record type include the ``&log``
 attribute, indicating that these fields should be passed to the
-Logging Framework when ``Log::write`` is called.  Were there to be
-any name value pairs without the ``&log`` attribute, those fields
-would simply be ignored during logging but remain available for the
-lifespan of the variable.  The next step is to create the logging
+Logging Framework when ``Log::write`` is called.
+Any record fields without the ``&log`` attribute are ignored by the
+Logging Framework. The next step is to create the logging
 stream with :zeek:id:`Log::create_stream` which takes a ``Log::ID`` and a
 record as its arguments.  In this example, we call the
 ``Log::create_stream`` method and pass ``Factor::LOG`` and the
@@ -1406,14 +1404,10 @@ log stream in Zeek generates a custom event that can be handled by
 anyone wishing to act upon the data being sent to the stream.  By
 convention these events are usually in the format ``log_x`` where x is
 the name of the logging stream; as such the event raised for every log
-sent to the Logging Framework by the HTTP parser would be
-``log_http``.  In fact, we've already seen a script handle the
-``log_http`` event when we broke down how the ``detect-MHR.zeek``
-script worked.  In that example, as each log entry was sent to the
-logging framework, post-processing was taking place in the
-``log_http`` event.  Instead of using an external script to parse the
-``http.log`` file and do post-processing for the entry,
-post-processing can be done in real time in Zeek.  
+sent to the Logging Framework by the HTTP parser would be ``log_http``.
+Instead of using an external script to parse the ``http.log`` file and
+do post-processing for each entry, this can be done in real time inside
+Zeek by defining an event handler for the ``log_http`` event.
 
 Telling Zeek to raise an event in your own Logging stream is as simple
 as exporting that event name and then adding that event in the call to

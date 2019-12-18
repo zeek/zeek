@@ -2584,7 +2584,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 				continue;
 
 			char buf[512];
-			safe_snprintf(buf, sizeof(buf),
+			snprintf(buf, sizeof(buf),
 					"orphan field \"%s\" in initialization",
 					rv_t->FieldName(i));
 			Error(buf);
@@ -2614,7 +2614,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 			{
 			char buf[512];
-			safe_snprintf(buf, sizeof(buf),
+			snprintf(buf, sizeof(buf),
 					"non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
 			Error(buf);
 			}

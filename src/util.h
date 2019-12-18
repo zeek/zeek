@@ -510,6 +510,7 @@ inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	return result;
 	}
 
+ZEEK_DEPRECATED("Remove in v4.1: Use system snprintf instead")
 inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	{
 	va_list al;
@@ -521,6 +522,7 @@ inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	return result;
 	}
 
+ZEEK_DEPRECATED("Remove in v4.1: Use system vsnprintf instead")
 inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
 	int result = vsnprintf(str, size, format, al);

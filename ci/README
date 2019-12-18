@@ -30,3 +30,20 @@ purpose SSH key with read-only permissions.  Here's how it can be set up:
 5. Delete the local key: ``rm cirrus-key*``
 
 6. Commit/push the changes.
+
+Email Notifications
+-------------------
+
+Cirrus CI doesn't feature any way to perform email notifications on failures,
+so that is instead handled by a separate GitHub Action:
+
+  https://github.com/jsiwek/ci-email-action
+
+The configuration of that GitHub Action is typical: it's just the
+``.github/workflows/ci-notification.yml`` file, which set SMTP/mail info
+via secrets stored in GitHub for the Zeek repository:
+
+  https://github.com/zeek/zeek/settings/secrets
+
+The particular values used for those are currently from the Zeek project's AWS
+Simple Email Service configuration.

@@ -1,4 +1,8 @@
 
+3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
+
+  * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)
+
 3.1.0-dev.313 | 2019-12-18 13:23:51 -0800
 
   * Add Cirrus CI config (Jon Siwek, Corelight)

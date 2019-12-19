@@ -294,8 +294,29 @@ void finish_alternative_mode()
 		}
 	}
 
+// GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature
+#if defined(__SANITIZE_ADDRESS__)
+	#define USING_ASAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(address_sanitizer)
+		#define USING_ASAN
+	#endif
+#endif
+
+#if defined(USING_ASAN)
+	#include <sanitizer/lsan_interface.h>
+#endif
+
 int main(int argc, char* argv[])
 	{
+	#if defined(USING_ASAN)
+	// We generally do not care at all if bifcl is leaking and the default
+	// behavior of LSAN to treat leaks as errors only trips up Zeek's build.
+	__lsan_disable();
+	#endif
+
 	int opt;
 
 	while ( (opt = getopt(argc, argv, "p:s")) != -1 )

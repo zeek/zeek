@@ -209,8 +209,30 @@ void usage()
 	exit(1);
 	}
 
+// GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature
+#if defined(__SANITIZE_ADDRESS__)
+	#define USING_ASAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(address_sanitizer)
+		#define USING_ASAN
+	#endif
+#endif
+
+#if defined(USING_ASAN)
+	#include <sanitizer/lsan_interface.h>
+#endif
+
 int main(int argc, char* argv[])
 	{
+	#if defined(USING_ASAN)
+	// We generally do not care at all if binpac is leaking and other
+	// projects that use it, like Zeek, only have their build tripped up
+	// by the default behavior of LSAN to treat leaks as errors.
+	__lsan_disable();
+	#endif
+
 #ifdef HAVE_MALLOC_OPTIONS
 	extern char *malloc_options;
 #endif

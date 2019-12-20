@@ -121,10 +121,30 @@ if ( NOT BINARY_PACKAGING_MODE )
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
 endif ()
 
-if ( SANITIZERS )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+if ( ZEEK_SANITIZERS )
+    # Check the thread library info early as setting compiler flags seems to
+    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not
+    # include -lpthread when it should.
+    find_package(Threads)
+    set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
+
+    if ( NOT DEFINED ENV{NO_OPTIMIZATIONS} )
+      # Using -O1 is generally the suggestion to get more reasonable
+      # performance.  The one downside is it that the compiler may optimize out
+      # code that otherwise generates an error/leak in a -O0 build, but that
+      # should be rare and users mostly will not be running unoptimized builds
+      # in production anyway.
+      set(_sanitizer_flags "${_sanitizer_flags} -O1")
+    endif ()
+
+    # Technically, the we also need to use the compiler to drive linking and
+    # give the sanitizer flags there, too.  However, CMake, by default, uses
+    # the compiler for linking and so the automatically flags get used.  See
+    # https://cmake.org/pipermail/cmake/2014-August/058268.html
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
 endif()
 
 ########################################################################
@@ -205,6 +225,10 @@ if ( BROKER_ROOT_DIR )
   set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
   set(broker_includes ${BROKER_INCLUDE_DIR})
 else ()
+  if ( ZEEK_SANITIZERS )
+    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+  endif ()
+
   set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 
   if ( BUILD_STATIC_BROKER )

@@ -18,6 +18,10 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
+namespace file_analysis {
+std::map<Val*, X509_STORE*> X509::x509_stores;
+}
+
 using namespace file_analysis;
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
@@ -211,6 +215,47 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 
 
 	return pX509Cert;
+	}
+
+X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
+	{
+	// If this certificate store was built previously, just reuse the old one.
+	if ( x509_stores.count(root_certs) > 0 )
+		return x509_stores[root_certs];
+
+	X509_STORE* ctx = X509_STORE_new();
+	ListVal* idxs = root_certs->ConvertToPureList();
+
+	// Build the validation store
+	for ( int i = 0; i < idxs->Length(); ++i )
+		{
+		Val* key = idxs->Index(i);
+		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
+		assert(sv);
+		const uint8_t* data = sv->Bytes();
+		::X509* x = d2i_X509(NULL, &data, sv->Len());
+		if ( ! x )
+			{
+			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
+			return 0;
+			}
+
+		X509_STORE_add_cert(ctx, x);
+		X509_free(x);
+		}
+
+	delete idxs;
+
+	// Save the newly constructed certificate store into the cacheing map.
+	x509_stores[root_certs] = ctx;
+
+	return ctx;
+	}
+
+void file_analysis::X509::FreeRootStore()
+	{
+	for ( const auto& e : x509_stores )
+		X509_STORE_free(e.second);
 	}
 
 void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)

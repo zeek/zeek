@@ -10,9 +10,6 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
-// This is the indexed map of X509 certificate stores.
-static map<Val*, X509_STORE*> x509_stores;
-
 // construct an error record
 RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = 0)
 	{
@@ -24,41 +21,6 @@ RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector
 		rrecord->Assign(2, chainVector);
 
 	return rrecord;
-	}
-
-X509_STORE* x509_get_root_store(TableVal* root_certs)
-	{
-	// If this certificate store was built previously, just reuse the old one.
-	if ( x509_stores.count(root_certs) > 0 )
-		return x509_stores[root_certs];
-
-	X509_STORE* ctx = X509_STORE_new();
-	ListVal* idxs = root_certs->ConvertToPureList();
-
-	// Build the validation store
-	for ( int i = 0; i < idxs->Length(); ++i )
-		{
-		Val* key = idxs->Index(i);
-		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
-		assert(sv);
-		const uint8_t* data = sv->Bytes();
-		X509* x = d2i_X509(NULL, &data, sv->Len());
-		if ( ! x )
-			{
-			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
-			return 0;
-			}
-
-		X509_STORE_add_cert(ctx, x);
-		X509_free(x);
-		}
-
-	delete idxs;
-
-	// Save the newly constructed certificate store into the cacheing map.
-	x509_stores[root_certs] = ctx;
-
-	return ctx;
 	}
 
 // get all cretificates starting at the second one (assuming the first one is the host certificate)
@@ -254,7 +216,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	RecordVal* rval = 0;
-	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
+	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
@@ -540,7 +502,7 @@ x509_ocsp_cleanup:
 ##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
+	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 

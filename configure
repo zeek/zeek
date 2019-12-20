@@ -27,6 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            ccache installation and CMake 3.10+)
     --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
                            (useful for cross-compiling)
+    --sanitizers=LIST      comma-separated list of sanitizer names to enable
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -57,7 +58,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
-    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -154,7 +154,7 @@ append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry SANITIZERS           STRING ""
+append_cache_entry ZEEK_SANITIZERS      STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -240,7 +240,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --sanitizers=*)
-            append_cache_entry SANITIZERS    STRING    $optarg
+            append_cache_entry ZEEK_SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true

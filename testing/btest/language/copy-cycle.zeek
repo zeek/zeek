@@ -1,4 +1,6 @@
-# @TEST-EXEC: zeek -b %INPUT >out
+# TODO: There's explicitly a reference cycle being created in this test that
+# causes a memory leak, so just disable leak checking.
+# @TEST-EXEC: ASAN_OPTIONS="detect_leaks=0" zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 type B: record {

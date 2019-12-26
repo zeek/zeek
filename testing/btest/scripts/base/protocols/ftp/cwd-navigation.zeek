@@ -6,6 +6,9 @@
 # Make sure we're tracking the CWD correctly.
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=10
 	{
+	if ( ! c?$ftp )
+		return;
+
 	print "CWD", c$ftp$cwd;
 	}
 

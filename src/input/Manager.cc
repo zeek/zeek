@@ -1285,7 +1285,8 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	if ( predidx != 0 )
 		Unref(predidx);
 
-	stream->currDict->Insert(idxhash, ih);
+	auto prev = stream->currDict->Insert(idxhash, ih);
+	delete prev;
 	delete idxhash;
 
 	if ( stream->event )

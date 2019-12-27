@@ -176,6 +176,7 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	cnt_sent_in = cnt_sent_out = 0;
 	main_finished = false;
 	child_finished = false;
+	child_sent_finish = false;
 	failed = false;
 	thread_mgr->AddMsgThread(this);
 	}
@@ -185,9 +186,10 @@ extern int signal_val;
 
 void MsgThread::OnSignalStop()
 	{
-	if ( main_finished || Killed() )
+	if ( main_finished || Killed() || child_sent_finish )
 		return;
 
+	child_sent_finish = true;
 	// Signal thread to terminate.
 	SendIn(new FinishMessage(this, network_time), true);
 	}

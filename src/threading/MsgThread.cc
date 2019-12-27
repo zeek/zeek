@@ -260,6 +260,9 @@ void MsgThread::OnKill()
 
 void MsgThread::Heartbeat()
 	{
+	if ( child_sent_finish )
+		return;
+
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
 	}
 

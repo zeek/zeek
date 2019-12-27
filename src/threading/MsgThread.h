@@ -306,6 +306,7 @@ private:
 
 	bool main_finished;	// Main thread is finished, meaning child_finished propagated back through message queue.
 	bool child_finished;	// Child thread is finished.
+	bool child_sent_finish; // Child thread asked to be finished.
 	bool failed;	// Set to true when a command failed.
 };
 

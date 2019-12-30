@@ -343,6 +343,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	notifier::registry.Terminate();
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();

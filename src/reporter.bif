@@ -156,7 +156,8 @@ function Reporter::get_weird_sampling_whitelist%(%): string_set
 	TableVal* set = new TableVal(string_set);
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
-		set->Assign(new StringVal(el), nullptr);
+		auto idx = make_intrusive<StringVal>(el);
+		set->Assign(idx.get(), nullptr);
 		}
 	return set;
 	%}

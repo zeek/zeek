@@ -444,6 +444,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -453,6 +454,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( ! res )
 		{
 		delete stream;
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -667,6 +669,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( (valfields > 1) && (want_record->InternalInt() != 1) )
 		{
 		reporter->Error("Input stream %s: Stream does not want a record (want_record=F), but has more then one value field.", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -676,6 +679,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -685,6 +689,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		if ( ! res )
 			{
 			delete stream;
+			for ( auto& f : fieldsV ) delete f;
 			return false;
 			}
 		}

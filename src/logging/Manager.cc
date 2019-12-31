@@ -98,6 +98,7 @@ Manager::Filter::~Filter()
 	free(fields);
 
 	Unref(path_val);
+	Unref(config);
 	}
 
 Manager::Stream::~Stream()

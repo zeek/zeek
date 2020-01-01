@@ -38,13 +38,13 @@ public:
 	void IncIgnoreDepth() { ignoring++; }
 	void DecIgnoreDepth() { ignoring--; }
 
-	void AddStmt(const Stmt* s) { if ( ignoring == 0 ) stmts.push_back(s); }
+	void AddStmt(Stmt* s);
 
 private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	list<const Stmt*> stmts;
+	list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of

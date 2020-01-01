@@ -115,6 +115,12 @@ public:
 	bool UpdateClosure(const broker::vector& data);
 
 	/**
+	 * If the function's closure is a weak reference to the given frame,
+	 * upgrade to a strong reference of a shallow clone of that frame.
+	 */
+	bool StrengthenClosureReference(Frame* f);
+
+	/**
 	 * Serializes this function's closure.
 	 *
 	 * @return a serialized version of the function's closure.
@@ -154,6 +160,7 @@ private:
 	id_list outer_ids;
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
+	bool weak_closure_ref = false;
 };
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
@@ -192,13 +199,20 @@ struct CallInfo {
 // Struct that collects all the specifics defining a Func. Used for BroFuncs
 // with closures.
 struct function_ingredients {
+
+	// Gathers all of the information from a scope and a function body needed
+	// to build a function.
+	function_ingredients(Scope* scope, Stmt* body);
+
+	~function_ingredients();
+
 	ID* id;
 	Stmt* body;
 	id_list* inits;
 	int frame_size;
 	int priority;
 	Scope* scope;
-	};
+};
 
 extern vector<CallInfo> call_stack;
 

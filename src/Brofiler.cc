@@ -15,6 +15,17 @@ Brofiler::Brofiler()
 
 Brofiler::~Brofiler()
 	{
+	for ( auto& s : stmts )
+		Unref(s);
+	}
+
+void Brofiler::AddStmt(Stmt* s)
+	{
+	if ( ignoring != 0 )
+		return;
+
+	::Ref(s);
+	stmts.push_back(s);
 	}
 
 bool Brofiler::ReadStats()
@@ -109,7 +120,7 @@ bool Brofiler::WriteStats()
 		return false;
 		}
 
-	for ( list<const Stmt*>::const_iterator it = stmts.begin();
+	for ( list<Stmt*>::const_iterator it = stmts.begin();
 	      it != stmts.end(); ++it )
 		{
 		ODesc location_info;

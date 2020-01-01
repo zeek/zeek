@@ -120,7 +120,12 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			return new Val(AsFunc()->DoClone());
+			{
+			auto c = AsFunc()->DoClone();
+			auto rval = new Val(c);
+			Unref(c);
+			return rval;
+			}
 
 		if ( type->Tag() == TYPE_FILE )
 			{

@@ -45,8 +45,11 @@ public:
 	 *
 	 * @param n the index to set
 	 * @param v the value to set it to
+	 * @param weak_ref whether the frame owns the value and should unref
+	 * it upon destruction.  Used to break circular references between
+	 * lambda functions and closure frames.
 	 */
-	void SetElement(int n, Val* v);
+	void SetElement(int n, Val* v, bool weak_ref = false);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -150,7 +153,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection) const;
+	Frame* SelectiveClone(const id_list& selection, BroFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
@@ -216,8 +219,28 @@ public:
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
 
+	/**
+	 * Track a new function that refers to this frame for use as a closure.
+	 * This frame's destructor will then upgrade that functions reference
+	 * from weak to strong (by making a copy).  The initial use of
+	 * weak references prevents unbreakable circular references that
+	 * otherwise cause memory leaks.
+	 */
+	void AddFunctionWithClosureRef(BroFunc* func);
 
 private:
+
+	/**
+	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
+	 */
+	void UnrefElement(int n)
+		{
+		if ( weak_refs && weak_refs[n] )
+			return;
+
+		Unref(frame[n]);
+		}
+
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
 
@@ -243,8 +266,13 @@ private:
 	/** Associates ID's offsets with values. */
 	Val** frame;
 
+	/** Values that are weakly referenced by the frame.  Used to
+	 * prevent circular reference memory leaks in lambda/closures */
+	bool* weak_refs = nullptr;
+
 	/** The enclosing frame of this frame. */
 	Frame* closure;
+	bool weak_closure_ref = false;
 
 	/** ID's used in this frame from the enclosing frame. */
 	id_list outer_ids;
@@ -269,6 +297,8 @@ private:
 	Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
+
+	std::vector<BroFunc*> functions_with_closure_frame_reference;
 };
 
 /**

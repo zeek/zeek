@@ -132,6 +132,7 @@ Func* Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
+	::Ref(this);
 	return this;
 	}
 
@@ -286,7 +287,9 @@ BroFunc::~BroFunc()
 	{
 	std::for_each(bodies.begin(), bodies.end(),
 		[](Body& b) { Unref(b.stmts); });
-	Unref(closure);
+
+	if ( ! weak_closure_ref )
+		Unref(closure);
 	}
 
 int BroFunc::IsPure() const
@@ -490,14 +493,35 @@ void BroFunc::AddClosure(id_list ids, Frame* f)
 	SetClosureFrame(f);
 	}
 
+bool BroFunc::StrengthenClosureReference(Frame* f)
+	{
+	if ( closure != f )
+		return false;
+
+	if ( ! weak_closure_ref )
+		return false;
+
+	closure = closure->SelectiveClone(outer_ids, this);
+	weak_closure_ref = false;
+	return true;
+	}
+
 void BroFunc::SetClosureFrame(Frame* f)
 	{
 	if ( closure )
 		reporter->InternalError("Tried to override closure for BroFunc %s.",
 					Name());
 
+	// Have to use weak references initially because otherwise Ref'ing the
+	// original frame creates a circular reference: the function holds a
+	// reference to the frame and the frame contains a reference to this
+	// function value.  And we can't just do a shallow clone of the frame
+	// up front because the closure semantics in Zeek allow mutating
+	// the outer frame.
+
 	closure = f;
-	Ref(closure);
+	weak_closure_ref = true;
+	f->AddFunctionWithClosureRef(this);
 	}
 
 bool BroFunc::UpdateClosure(const broker::vector& data)
@@ -510,9 +534,10 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	if ( new_closure )
 		new_closure->SetFunction(this);
 
-	if ( closure )
+	if ( ! weak_closure_ref )
 		Unref(closure);
 
+	weak_closure_ref = false;
 	closure = new_closure;
 
 	return true;
@@ -528,7 +553,8 @@ Func* BroFunc::DoClone()
 	CopyStateInto(other);
 
 	other->frame_size = frame_size;
-	other->closure = closure ? closure->SelectiveClone(outer_ids) : nullptr;
+	other->closure = closure ? closure->SelectiveClone(outer_ids, this) : nullptr;
+	other->weak_closure_ref = false;
 	other->outer_ids = outer_ids;
 
 	return other;
@@ -810,4 +836,69 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 		}
 
 	return true;
+	}
+
+// Gets a function's priority from its Scope's attributes. Errors if it sees any
+// problems.
+static int get_func_priority(const attr_list& attrs)
+	{
+	int priority = 0;
+
+	for ( const auto& a : attrs )
+		{
+		if ( a->Tag() == ATTR_DEPRECATED )
+			continue;
+
+		if ( a->Tag() != ATTR_PRIORITY )
+			{
+			a->Error("illegal attribute for function body");
+			continue;
+			}
+
+		Val* v = a->AttrExpr()->Eval(0);
+		if ( ! v )
+			{
+			a->Error("cannot evaluate attribute expression");
+			continue;
+			}
+
+		if ( ! IsIntegral(v->Type()->Tag()) )
+			{
+			a->Error("expression is not of integral type");
+			continue;
+			}
+
+		priority = v->InternalInt();
+		}
+
+	return priority;
+	}
+
+function_ingredients::function_ingredients(Scope* scope, Stmt* body)
+	{
+	frame_size = scope->Length();
+	inits = scope->GetInits();
+
+	this->scope = scope;
+	::Ref(this->scope);
+	id = scope->ScopeID();
+	::Ref(id);
+
+	auto attrs = scope->Attrs();
+
+	priority = (attrs ? get_func_priority(*attrs) : 0);
+	this->body = body;
+	::Ref(this->body);
+	}
+
+function_ingredients::~function_ingredients()
+	{
+	Unref(id);
+	Unref(body);
+	Unref(scope);
+
+	for ( const auto& i : *inits )
+		Unref(i);
+
+	delete inits;
 	}

@@ -1,4 +1,14 @@
 
+3.0.2-dev.30 | 2020-02-22 16:37:51 -0800
+
+  * Fix reference counting issues related to lambdas/closures (Jon Siwek, Corelight)
+
+    For example, circular references between a lambda function the frame
+    it's stored within and/or its closure could cause memory leaks.
+
+    This also fixes other various reference-count ownership issues that
+    could lead to memory errors.
+
 3.0.2-dev.29 | 2020-02-22 16:16:59 -0800
 
   * fix NTLM field value access (Justin Azoff)

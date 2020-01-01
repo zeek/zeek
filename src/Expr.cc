@@ -4327,6 +4327,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
+	::Ref(ingredients->body);
 	BroFunc* dummy_func = new BroFunc(
 		ingredients->id,
 		ingredients->body,
@@ -4366,6 +4367,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	dummy_func->SetName(my_name.c_str());
 
 	Val* v = new Val(dummy_func);
+	Unref(dummy_func);
 	id->SetVal(v); // id will unref v when its done.
 	id->SetType(ingredients->id->Type()->Ref());
 	id->SetConst();
@@ -4373,6 +4375,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 Val* LambdaExpr::Eval(Frame* f) const
 	{
+	::Ref(ingredients->body);
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,
@@ -4386,7 +4389,9 @@ Val* LambdaExpr::Eval(Frame* f) const
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
-	return new Val(lamb);
+	auto rval = new Val(lamb);
+	Unref(lamb);
+	return rval;
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const

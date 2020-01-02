@@ -1,9 +1,11 @@
 //
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <string>
-#include <string.h>
 #include "module_util.h"
+
+#include <string.h>
+#include <iostream>
+#include <string>
 
 #include "3rdparty/doctest.h"
 
@@ -22,6 +24,7 @@ TEST_CASE("module_util streq")
 
 TEST_CASE("module_util extract_module_name")
 	{
+	// TODO: the following CHECK causes the linker to fail looking for a
 	CHECK(extract_module_name("mod") == GLOBAL_MODULE_NAME);
 	CHECK(extract_module_name("mod::") == "mod");
 	CHECK(extract_module_name("mod::var") == "mod");

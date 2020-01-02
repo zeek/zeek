@@ -3,7 +3,7 @@ btest_jobs: &BTEST_JOBS 8
 memory: &MEMORY 8GB
 
 config: &CONFIG --build-type=release --enable-cpp-tests
-leak_config: &LEAK_CONFIG --build-type=debug --enable-perftools-debug
+memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -16,8 +16,7 @@ ci_template: &CI_TEMPLATE
     $CIRRUS_BRANCH =~ 'release/.*'
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
-  # tasks.  This leakcheck one can tend to run long, but see no downside
-  # to universally asking for the maximum.
+  # tasks, so may as well ask for full time.
   timeout_in: 120m
 
   sync_submodules_script: git submodule update --recursive --init
@@ -114,13 +113,11 @@ freebsd_task:
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
 
-leakcheck_task:
+memcheck_task:
   container:
-    # Just uses a recent/common distro to run leak checks.
+    # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   env:
-    ZEEK_CI_LEAK_CHECK: true
-    ZEEK_CI_CONFIGURE_FLAGS: *LEAK_CONFIG
-    ZEEK_CI_BTEST_JOBS: 7
+    ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG

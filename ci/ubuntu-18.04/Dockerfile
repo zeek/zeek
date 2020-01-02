@@ -20,9 +20,6 @@ RUN apt-get update && apt-get -y install \
     sqlite3 \
     curl \
     wget \
-    google-perftools \
-    libgoogle-perftools4 \
-    libgoogle-perftools-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Many distros adhere to PEP 394's recommendation for `python` = `python2` so

@@ -23,7 +23,7 @@ export {
 		## Syslog severity for the message.
 		severity:  string          &log;
 		## The plain text message.
-		message:   string          &log;
+		orig_message:   string          &log;
 	};
 }
 
@@ -49,7 +49,7 @@ event syslog_message(c: connection, facility: count, severity: count, msg: strin
 	info$proto=get_port_transport_proto(c$id$resp_p);
 	info$facility=facility_codes[facility];
 	info$severity=severity_codes[severity];
-	info$message=msg;
+	info$orig_message=msg;
 	
 	c$syslog = info;
 	}

@@ -7,3 +7,4 @@ Contributor's Guide
    :maxdepth: 2
 
    coding-style.rst
+   memory-checks.rst

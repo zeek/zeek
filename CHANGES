@@ -1,4 +1,8 @@
 
+3.1.0-dev.357 | 2020-01-06 14:10:54 -0800
+
+  * GH-412: Enable Patterns as Table index (Dev Bali, Corelight)
+
 3.1.0-dev.354 | 2020-01-06 14:16:29 -0700
 
   * Fix snprintf compiler warning in hexdump BIF (Jon Siwek, Corelight)

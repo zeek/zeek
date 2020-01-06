@@ -62,7 +62,7 @@ void PcapSource::OpenLive()
 
 		if ( pcap_findalldevs(&devs, tmp_errbuf) < 0 )
 			{
-			safe_snprintf(errbuf, sizeof(errbuf),
+			snprintf(errbuf, sizeof(errbuf),
 			             "pcap_findalldevs: %s", tmp_errbuf);
 			Error(errbuf);
 			return;
@@ -75,7 +75,7 @@ void PcapSource::OpenLive()
 
 			if ( props.path.empty() )
 				{
-				safe_snprintf(errbuf, sizeof(errbuf),
+				snprintf(errbuf, sizeof(errbuf),
 				              "pcap_findalldevs: empty device name");
 				Error(errbuf);
 				return;
@@ -83,7 +83,7 @@ void PcapSource::OpenLive()
 			}
 		else
 			{
-			safe_snprintf(errbuf, sizeof(errbuf),
+			snprintf(errbuf, sizeof(errbuf),
 			              "pcap_findalldevs: no devices found");
 			Error(errbuf);
 			return;
@@ -263,7 +263,7 @@ bool PcapSource::SetFilter(int index)
 
 	if ( ! code )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
+		snprintf(errbuf, sizeof(errbuf),
 			      "No precompiled pcap filter for index %d",
 			      index);
 		Error(errbuf);

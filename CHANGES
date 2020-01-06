@@ -1,4 +1,10 @@
 
+3.1.0-dev.319 | 2020-01-06 09:44:11 -0800
+
+  * Mark safe_snprintf and safe_vsnprintf as deprecated, remove uses of them (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
 
   * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)

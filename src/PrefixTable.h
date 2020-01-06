@@ -18,8 +18,8 @@ private:
 	};
 
 public:
-	PrefixTable()	{ tree = New_Patricia(128); }
-	~PrefixTable()	{ Destroy_Patricia(tree, 0); }
+	PrefixTable()	{ tree = New_Patricia(128); delete_function = nullptr; }
+	~PrefixTable()	{ Destroy_Patricia(tree, delete_function); }
 
 	// Addr in network byte order. If data is zero, acts like a set.
 	// Returns ptr to old data if already existing.
@@ -43,7 +43,10 @@ public:
 	void* Remove(const IPAddr& addr, int width);
 	void* Remove(const Val* value);
 
-	void Clear()	{ Clear_Patricia(tree, 0); }
+	void Clear()	{ Clear_Patricia(tree, delete_function); }
+
+	// Sets a function to call for each node when table is cleared/destroyed.
+	void SetDeleteFunction(data_fn_t del_fn)	{ delete_function = del_fn; }
 
 	iterator InitIterator();
 	void* GetNext(iterator* i);
@@ -53,4 +56,5 @@ private:
 	static IPPrefix PrefixToIPPrefix(prefix_t* p);
 
 	patricia_tree_t* tree;
+	data_fn_t delete_function;
 };

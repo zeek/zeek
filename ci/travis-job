@@ -100,7 +100,7 @@ install_in_docker() {
         distro_cmds="apt-get update; apt-get -y install wget xz-utils gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         ;;
         ${LEAK_TEST_DISTRO})
-        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils google-perftools libgoogle-perftools4 libgoogle-perftools-dev; ln -s /usr/bin/python3 /usr/local/bin/python"
+        distro_cmds="apt-get update; apt-get -y install gdb cmake make gcc g++ flex bison python3 libpcap-dev libssl-dev zlib1g-dev libkrb5-dev git sqlite3 curl bsdmainutils; ln -s /usr/bin/python3 /usr/local/bin/python"
         local_distro="ubuntu_18.04"
         ;;
         *)
@@ -168,7 +168,7 @@ build() {
         ./configure --build-type=Release --disable-broker-tests --enable-cpp-tests --disable-python --disable-zeekctl && make -j 2
     else
         echo "Configuring zeek to build for leak testing"
-        ./configure --build-type=Debug --disable-broker-tests --disable-python --disable-zeekctl --enable-perftools --enable-perftools-debug && make -j 2
+        ./configure --build-type=Debug --disable-broker-tests --enable-cpp-tests --disable-python --disable-zeekctl --sanitizers=address && make -j 2
     fi
 }
 
@@ -209,20 +209,18 @@ run() {
     ulimit -a
     ret=0
 
-    if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-        echo
-        echo "Running unit tests ##################################################"
-        echo
+    echo
+    echo "Running unit tests ##################################################"
+    echo
 
-        set +e
-        ( cd build && . ./zeek-path-dev.sh && zeek --test )
+    set +e
+    ( cd build && . ./zeek-path-dev.sh && zeek --test )
 
-        if [ $? -ne 0 ]; then
-            ret=1
-        fi
-
-        set -e
+    if [ $? -ne 0 ]; then
+        ret=1
     fi
+
+    set -e
 
     echo
     echo "Running baseline tests ##############################################"
@@ -231,11 +229,7 @@ run() {
 
     set +e
     # Must specify a value for "-j" option, otherwise Travis uses a huge value.
-    if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-        ../../aux/btest/btest -j 4 -d
-    else
-        ../../aux/btest/btest -j 4 -d -g leaks
-    fi
+    ../../aux/btest/btest -j 4 -d
 
     if [ $? -ne 0 ]; then
         ret=1
@@ -278,11 +272,7 @@ run() {
 
     if [ -d zeek-testing ]; then
         cd zeek-testing
-        if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-            make
-        else
-            make leaks
-        fi
+        make
 
         if [ $? -ne 0 ]; then
             showdiag
@@ -294,11 +284,7 @@ run() {
 
     if [ -d zeek-testing-private ]; then
         cd zeek-testing-private
-        if [ "${BUILD_DISTRO}" != "${LEAK_TEST_DISTRO}" ]; then
-            make
-        else
-            make leaks
-        fi
+        make
 
         if [ $? -ne 0 ]; then
             showdiag

@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run zeek zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff zeek/weird_stats.log
 
 @load misc/weird-stats

@@ -308,6 +308,8 @@ void done_with_network()
 			abort();
 			}
 #endif
+
+	ZEEK_LSAN_DISABLE();
 	}
 
 void terminate_bro()
@@ -341,6 +343,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	notifier::registry.Terminate();
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
@@ -406,6 +409,7 @@ static void bro_new_handler()
 
 int main(int argc, char** argv)
 	{
+	ZEEK_LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
 
 	// When running unit tests, the first argument on the command line must be
@@ -1051,6 +1055,13 @@ int main(int argc, char** argv)
 		for ( const string& handler : dead_handlers )
 			reporter->Warning("event handler never invoked: %s", handler.c_str());
 		}
+
+	// Enable LeakSanitizer before zeek_init() and even before executing
+	// top-level statements.  Even though it's not bad if a leak happens only
+	// once at initialization, we have to assume that script-layer code causing
+	// such a leak can be placed in any arbitrary event handler and potentially
+	// cause more severe problems.
+	ZEEK_LSAN_ENABLE();
 
 	if ( stmts )
 		{

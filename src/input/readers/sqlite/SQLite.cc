@@ -49,6 +49,9 @@ SQLite::~SQLite()
 
 void SQLite::DoClose()
 	{
+	sqlite3_finalize(st);
+	st = nullptr;
+
 	if ( db != 0 )
 		{
 		sqlite3_close(db);

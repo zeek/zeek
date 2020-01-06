@@ -1,4 +1,5 @@
-# @TEST-EXEC: zeek -b %INPUT
+# TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
+# @TEST-EXEC: ASAN_OPTIONS="detect_leaks=0" zeek -b %INPUT
 # @TEST-EXEC: cp .stderr output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 

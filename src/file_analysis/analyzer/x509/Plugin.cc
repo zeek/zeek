@@ -22,6 +22,12 @@ public:
 		config.description = "X509 and OCSP analyzer";
 		return config;
 		}
+
+	void Done() override
+		{
+		plugin::Plugin::Done();
+		::file_analysis::X509::FreeRootStore();
+		}
 } plugin;
 
 }

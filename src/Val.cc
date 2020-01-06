@@ -120,7 +120,12 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			return new Val(AsFunc()->DoClone());
+			{
+			auto c = AsFunc()->DoClone();
+			auto rval = new Val(c);
+			Unref(c);
+			return rval;
+			}
 
 		if ( type->Tag() == TYPE_FILE )
 			{
@@ -479,11 +484,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-
-			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
-			j = string((char*)bs->Bytes(), bs->Len());
-
-			delete bs;
+			j = string(reinterpret_cast<const char*>(d.Bytes()), d.Len());
 			break;
 			}
 
@@ -495,11 +496,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-
-			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
-			j = json_escape_utf8(string((char*)bs->Bytes(), bs->Len()));
-
-			delete bs;
+			j = json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len()));
 			break;
 			}
 

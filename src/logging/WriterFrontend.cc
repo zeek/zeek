@@ -133,6 +133,11 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
 WriterFrontend::~WriterFrontend()
 	{
+	for ( auto i = 0; i < num_fields; ++i )
+		delete fields[i];
+
+	delete [] fields;
+
 	Unref(stream);
 	Unref(writer);
 	delete info;
@@ -165,7 +170,14 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 	initialized = true;
 
 	if ( backend )
-		backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
+		{
+		auto fs = new Field*[num_fields];
+
+		for ( auto i = 0; i < num_fields; ++i )
+			fs[i] = new Field(*fields[i]);
+
+		backend->SendIn(new InitMessage(backend, arg_num_fields, fs));
+		}
 
 	if ( remote )
 		{

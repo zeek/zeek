@@ -53,13 +53,11 @@ GeoLite2-City Database Installation
 Zeek can use the city or country database.  The city database includes cities
 and regions in addition to countries.
 
-`Download <http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz>`__
-the GeoLite2 city binary database:
-
-.. sourcecode:: console
-
-    wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
-    tar zxf GeoLite2-City.tar.gz
+First, `signup <https://www.maxmind.com/en/geolite2/signup>`__ for a MaxMind
+account, which is now required to download even free/public GeoIP databases.
+Then, you can
+`download <https://www.maxmind.com/en/accounts/current/geoip/downloads>`__
+databases.  For example, download the GeoLite2-City database and decompress it.
 
 Next, the file "GeoLite2-City_YYYYMMDD/GeoLite2-City.mmdb" needs to be moved
 to the GeoIP database directory.  This directory might already exist

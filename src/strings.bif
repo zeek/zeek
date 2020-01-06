@@ -1097,7 +1097,7 @@ function hexdump%(data_str: string%) : string
 			{
 			char offset[5];
 			snprintf(offset, sizeof(offset),
-					"%.4x", data_ptr - data);
+					"%.4tx", data_ptr - data);
 			memcpy(hex_data_ptr, offset, 4);
 			hex_data_ptr += 6;
 			ascii_ptr = hex_data_ptr + 50;

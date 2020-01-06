@@ -1,3 +1,7 @@
+3.1.0-dev.351 | 2020-01-06 11:20:09 -0800
+
+  * Increase a timeout for a btest (Jon Siwek, Corelight)
+
 3.1.0-dev.350 | 2020-01-06 10:51:07 -0800
 
   * Fix Cirrus CI FreeBSD python dependencies installation (Jon Siwek, Corelight)

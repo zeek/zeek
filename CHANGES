@@ -1,4 +1,152 @@
+3.1.0-dev.350 | 2020-01-06 10:51:07 -0800
 
+  * Fix Cirrus CI FreeBSD python dependencies installation (Jon Siwek, Corelight)
+
+3.1.0-dev.348 | 2020-01-06 11:19:36 -0700
+
+  * Increase timeout for a btest
+
+    May be more timing-sensitive with slower ASAN/LSAN configuration in
+    addition to already-slower CI environment. (Jon Siwek, Corelight)
+
+  * Switch CI scripts to use ASAN/LSAN instead of gperftools
+
+    Using AddressSanitizer/LeakSanitizer is better.  It covers the full
+    unit/baseline test suite by default without requiring one to write
+    specific memory leak tests.  It also covers other types of memory errors
+    besides just leaks. (Jon Siwek, Corelight)
+
+  * Remove redundant memory leak btests
+
+    Or otherwise convert into a regular btest if it didn't already seem to
+    be covered.
+
+    There's no need for a separate memory leak test group since compiling
+    with LeakSanitizer now covers leak checking for the full btest suite. (Jon Siwek, Corelight)
+
+  * Fix reference counting issues related to lambdas/closures
+
+    For example, circular references between a lambda function the frame
+    it's stored within and/or its closure could cause memory leaks.
+
+    This also fixes other various reference-count ownership issues that
+    could lead to memory errors.
+
+    There may still be some potential/undiscovered issues because the "outer
+    ID" finding logic doesn't look quite right as the AST traversal descends
+    within nested lambdas and considers their locals as "outer", but
+    possibly the other logic for locating values in closures or cloning
+    closures just works around that behavior. (Jon Siwek, Corelight)
+
+  * Disable LeakSanitizer for btests that have known leaks
+
+    E.g. ones that throw interpreter exceptions,  as those are currently
+    known to potentially cause leaks.  Fixing the underlying leaks involves
+    the larger task of more IntrusivePtr usage.
+
+    Reference cycles may also cause leaks. (Jon Siwek, Corelight)
+
+  * Rewrite the btest for when-statement timeouts
+
+    To avoid a memory leak in DNS lookups that's hard to work around and
+    does not otherwise effect typical operation when Zeek is allowed to
+    continue to run after zeek_init(). (Jon Siwek, Corelight)
+
+  * Fix memory leak when a logging plugin hook prevents a write (Jon Siwek, Corelight)
+
+  * Fix memory leaks in various input framework error-handling cases (Jon Siwek, Corelight)
+
+  * Fix memory leak in Reporter::get_weird_sampling_whitelist() BIF (Jon Siwek, Corelight)
+
+  * Fix reference counting of Log::Filter "config" field
+
+    Which can potentially be a minor memory leak if there's a lot of dynamic
+    adding/removing of logging filters. (Jon Siwek, Corelight)
+
+  * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)
+
+  * Clean up triggers awaiting global state modification at shutdown
+
+    Otherwise they can be reported as memory leaks since no more global
+    state modifications will take place to notify the trigger to clean
+    itself up. (Jon Siwek, Corelight)
+
+  * Fix memory leak in initializing log writers with no local backend (Jon Siwek, Corelight)
+
+  * Fix packet filter memory leaks (Jon Siwek, Corelight)
+
+  * Skip sending thread heartbeat if it alread asked to be finished
+
+    Otherwise the heartbeat message may fail to be processed and show up as
+    leaked memory. (Jon Siwek, Corelight)
+
+  * Fix memory leak of sqlite input reader prepared statement (Jon Siwek, Corelight)
+
+  * Prevent duplicate "finish" threading messages
+
+    As they don't get processed and may show up as a memory leak. (Jon Siwek, Corelight)
+
+  * Fix memory leak when table-based input stream overwrites old entries (Jon Siwek, Corelight)
+
+  * Fix scripting error in a DHCP btest (Jon Siwek, Corelight)
+
+  * Fix memory leaks in Kerberos ticket decryption
+
+    Memory allocated to the decrypted ticket data as well as the server
+    principal were not freed.
+
+    Also fixed potential leaks in error cases that called
+    krb5_get_error_message() without freeing the returned value. (Jon Siwek, Corelight)
+
+  * Fix scripting error in an ftp btest (Jon Siwek, Corelight)
+
+  * Update paraglob submodule (Jon Siwek, Corelight)
+
+  * Fix malloc/delete mismatch in JSON formatting
+
+    ODesc allocated with malloc() and BroString deallocated with delete[],
+    but really the intermediate BroString wasn't even needed when copying
+    into std::string. (Jon Siwek, Corelight)
+
+  * Delete/timeout pending DNS requests during shutdown
+
+    Primarily, this change prevents the pending requests showing up as
+    memory leaks. (Jon Siwek, Corelight)
+
+  * Fix memory leak in OCSP parsing functions
+
+    Various OCSP parsing functions used in presence of OpenSSL 1.1 used
+    "d2i_ASN1_SEQUENCE_ANY" which returns a "STACK_OF(ASN1_TYPE)", but used
+    "sk_ASN1_TYPE_free" instead of "sk_ASN1_TYPE_pop_free" to free it.  The
+    former only frees the stack structure while the later frees both the
+    structure and the elements. (Jon Siwek, Corelight)
+
+  * Free the global X509 certificate root store on shutdown
+
+    Otherwise LeakSanitizer reports its contents as leaked. (Jon Siwek, Corelight)
+
+  * Add general LeakSanitizer macros/instrumentation (Jon Siwek, Corelight)
+
+  * Improve --sanitizers configure option
+
+    * Rename SANITIZERS CMake variable to ZEEK_SANITIZERS for clarity
+
+    * Use -O1 by default to improve speed (set NO_OPTIMIZATIONS env. var.
+      to override and use -O0).  Uses -fno-optimize-sibling-calls with -O1
+      to still get "perfect stack traces".
+
+    * Updates various sub-projects with sanitizer improvements:
+      binpac and bifcl, by default, now ignore leaks reported by LeakSanitizer
+      so that it doesn't interfere with the Zeek build (Jon Siwek, Corelight)
+
+
+3.1.0-dev.319 | 2020-01-06 09:44:11 -0800
+
+  * Mark safe_snprintf and safe_vsnprintf as deprecated, remove uses of them (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
+
+>>>>>>> Fix Cirrus CI FreeBSD python dependencies installation
 3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
 
   * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)

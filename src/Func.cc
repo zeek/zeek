@@ -115,6 +115,9 @@ FuncImpl::FuncImpl(ID* id)
 	::Ref(type);
 	}
 
+FuncImpl::FuncImpl(ID* id, int i) : FuncImpl::FuncImpl(id)
+	{ SetOverloadIndex(i); }
+
 FuncImpl::FuncImpl(const char* arg_name)
 	{
 	auto name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
@@ -136,8 +139,9 @@ FuncImpl::FuncImpl(const char* arg_name)
 	auto& os = func->Overloads();
 	assert( os.empty() ); // for the moment
 	func->AddOverload(this);
+	overload_idx = 0;
 
-	id->SetVal(new Val(func));
+	id->SetVal(new Val(func, overload_idx));
 	Unref(id);
 	}
 
@@ -192,7 +196,9 @@ int Func::AddOverload(FuncImpl* impl)
 		::Ref(impl);
 
 	overloads.push_back(impl);
-	return overloads.size() - 1;
+	int index = overloads.size() - 1;
+	impl->SetOverloadIndex(index);
+	return index;
 	}
 
 void Func::SetOverload(int idx, FuncImpl* impl)
@@ -207,6 +213,7 @@ void Func::SetOverload(int idx, FuncImpl* impl)
 			overloads.push_back(nullptr);
 
 	Unref(overloads[idx]);
+	impl->SetOverloadIndex(idx);
 	overloads[idx] = impl;
 	}
 
@@ -273,10 +280,10 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 	return nullptr;
 	}
 
-void Func::AddOverload(FuncOverload* fo)
-	{
-	overloads.emplace_back(fo);
-	}
+//void Func::AddOverload(FuncOverload* fo)
+//	{
+//	overloads.emplace_back(fo);
+//	}
 
 Func* Func::DoClone()
 	{
@@ -379,20 +386,20 @@ TraversalCode BroFunc::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-void Func::CopyStateInto(Func* other) const
+void BroFunc::CopyStateInto(BroFunc* other) const
 	{
-	std::for_each(bodies.begin(), bodies.end(), [](const Body& b) { Ref(b.stmts); });
+	std::for_each(bodies.begin(), bodies.end(), [](const FuncBody& b) { Ref(b.stmts); });
 
 	other->bodies = bodies;
 	other->scope = scope;
-	other->kind = kind;
-
+	/*
 	Ref(type);
-	other->type = type;
-
-	other->name = name;
-	other->unique_id = unique_id;
+	other->func->type = func->type;
+	other->func->name = func->name;
+	other->func->unique_id = func->unique_id;
+	*/
 	}
+
 TraversalCode BuiltinFunc::Traverse(TraversalCallback* cb) const
 	{
 	Scope* old_scope = cb->current_scope;
@@ -478,7 +485,7 @@ static std::pair<bool, Val*> HandlePluginResult(const FuncImpl* func, std::pair<
 	}
 
 BroFunc::BroFunc(ID* id, Stmt* arg_body,
-                 id_list* aggr_inits, int arg_frame_size, int priority,
+                 id_list* aggr_inits, size_t arg_frame_size, int priority,
                  Scope* arg_scope)
 : FuncImpl(id)
 	{
@@ -497,16 +504,17 @@ BroFunc::BroFunc(ID* id, Stmt* arg_body,
 BroFunc::~BroFunc()
 	{
 	std::for_each(bodies.begin(), bodies.end(),
-		[](Body& b) { Unref(b.stmts); });
+		[](FuncBody& b) { Unref(b.stmts); });
 
 	if ( ! weak_closure_ref )
 		Unref(closure);
+
 	}
 
 int BroFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
-		[](const Body& b) { return b.stmts->IsPure(); });
+		[](const FuncBody& b) { return b.stmts->IsPure(); });
 	}
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
@@ -755,12 +763,12 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	return true;
 	}
 
-
-Func* BroFunc::DoClone()
+BroFunc* BroFunc::DoClone()
 	{
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	BroFunc* other = new BroFunc();
+	Func* parent = func->DoClone();
+	BroFunc* other = new FuncImpl(parent->GetUniqueFuncID);
 
 	CopyStateInto(other);
 

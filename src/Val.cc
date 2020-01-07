@@ -120,7 +120,12 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			return new Val(AsFunc()->DoClone());
+			{
+			auto c = AsFunc()->DoClone();
+			auto rval = new Val(c);
+			Unref(c);
+			return rval;
+			}
 
 		if ( type->Tag() == TYPE_FILE )
 			{
@@ -396,14 +401,12 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 
 TableVal* Val::GetRecordFields()
 	{
-	TableVal* fields = new TableVal(internal_type("record_field_table")->AsTableType());
-
 	auto t = Type();
 
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return fields;
+		return new TableVal(internal_type("record_field_table")->AsTableType());
 		}
 
 	RecordType* rt = nullptr;
@@ -421,47 +424,17 @@ TableVal* Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return fields;
+			return new TableVal(internal_type("record_field_table")->AsTableType());
 			}
 
 		rt = t->AsRecordType();
 		}
 
-	for ( int i = 0; i < rt->NumFields(); ++i )
-		{
-		BroType* ft = rt->FieldType(i);
-		TypeDecl* fd = rt->FieldDecl(i);
-		Val* fv = nullptr;
-
-		if ( rv )
-			fv = rv->Lookup(i);
-
-		if ( fv )
-			::Ref(fv);
-
-		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
-
-		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
-
-		if ( ft->Tag() == TYPE_RECORD )
-			nr->Assign(0, new StringVal("record " + ft->GetName()));
-		else
-			nr->Assign(0, new StringVal(type_name(ft->Tag())));
-
-		nr->Assign(1, val_mgr->GetBool(logged));
-		nr->Assign(2, fv);
-		nr->Assign(3, rt->FieldDefault(i));
-
-		Val* field_name = new StringVal(rt->FieldName(i));
-		fields->Assign(field_name, nr);
-		Unref(field_name);
-		}
-
-	return fields;
+	return rt->GetRecordFieldsVal(rv);
 	}
 
 // This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
-static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"))
+static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nullptr)
 	{
 	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
 	if ( ! val )
@@ -511,11 +484,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-
-			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
-			j = string((char*)bs->Bytes(), bs->Len());
-
-			delete bs;
+			j = string(reinterpret_cast<const char*>(d.Bytes()), d.Len());
 			break;
 			}
 
@@ -527,11 +496,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-
-			auto* bs = new BroString(1, d.TakeBytes(), d.Len());
-			j = json_escape_utf8(string((char*)bs->Bytes(), bs->Len()));
-
-			delete bs;
+			j = json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len()));
 			break;
 			}
 
@@ -594,7 +559,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=new
 				auto field_name = rt->FieldName(i);
 				std::string key_string;
 
-				if ( re->MatchAnywhere(field_name) != 0 )
+				if ( re && re->MatchAnywhere(field_name) != 0 )
 					{
 					StringVal blank("");
 					StringVal fn_val(field_name);
@@ -2616,7 +2581,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 				continue;
 
 			char buf[512];
-			safe_snprintf(buf, sizeof(buf),
+			snprintf(buf, sizeof(buf),
 					"orphan field \"%s\" in initialization",
 					rv_t->FieldName(i));
 			Error(buf);
@@ -2646,7 +2611,7 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 			{
 			char buf[512];
-			safe_snprintf(buf, sizeof(buf),
+			snprintf(buf, sizeof(buf),
 					"non-optional field \"%s\" missing in initialization", ar_t->FieldName(i));
 			Error(buf);
 			}
@@ -2663,6 +2628,11 @@ RecordVal* RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 		}
 
 	return CoerceTo(t, 0, allow_orphaning);
+	}
+
+TableVal* RecordVal::GetRecordFieldsVal() const
+	{
+	return Type()->AsRecordType()->GetRecordFieldsVal(this);
 	}
 
 void RecordVal::Describe(ODesc* d) const

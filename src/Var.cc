@@ -416,13 +416,30 @@ public:
 		: scope(s) { }
 
 	virtual TraversalCode PreExpr(const Expr*);
+	virtual TraversalCode PostExpr(const Expr*);
 
 	Scope* scope;
 	vector<const NameExpr*> outer_id_references;
+	int lambda_depth = 0;
+	// Note: think we really ought to toggle this to false to prevent
+	// considering locals within inner-lambdas as "outer", but other logic
+	// for "selective cloning" and locating IDs in the closure chain may
+	// depend on current behavior and also needs to be changed.
+	bool search_inner_lambdas = true;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
+	if ( expr->Tag() == EXPR_LAMBDA )
+		++lambda_depth;
+
+	if ( lambda_depth > 0 && ! search_inner_lambdas )
+		// Don't inspect the bodies of inner lambdas as they will have their
+		// own traversal to find outer IDs and we don't want to detect
+		// references to local IDs inside and accidentally treat them as
+		// "outer" since they can't be found in current scope.
+		return TC_CONTINUE;
+
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
 
@@ -438,45 +455,20 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-// Gets a function's priority from its Scope's attributes. Errors if it sees any
-// problems.
-static int get_func_priotity(const attr_list& attrs)
+TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	{
-	int priority = 0;
-
-	for ( const auto& a : attrs )
+	if ( expr->Tag() == EXPR_LAMBDA )
 		{
-		if ( a->Tag() == ATTR_DEPRECATED )
-			continue;
-
-		if ( a->Tag() != ATTR_PRIORITY )
-			{
-			a->Error("illegal attribute for function body");
-			continue;
-			}
-
-		Val* v = a->AttrExpr()->Eval(0);
-		if ( ! v )
-			{
-			a->Error("cannot evaluate attribute expression");
-			continue;
-			}
-
-		if ( ! IsIntegral(v->Type()->Tag()) )
-			{
-			a->Error("expression is not of integral type");
-			continue;
-			}
-
-		priority = v->InternalInt();
+		--lambda_depth;
+		assert(lambda_depth >= 0);
 		}
 
-	return priority;
+	return TC_CONTINUE;
 	}
 
 void end_func(Stmt* body)
 	{
-	std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(pop_scope(), body);
+	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), body);
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
@@ -508,24 +500,10 @@ void end_func(Stmt* body)
 		}
 
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
-	}
-
-std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body)
-	{
-	auto ingredients = std::make_unique<function_ingredients>();
-
-	ingredients->frame_size = scope->Length();
-	ingredients->inits = scope->GetInits();
-
-	ingredients->scope = scope;
-	ingredients->id = scope->ScopeID();
-
-	auto attrs = scope->Attrs();
-
-	ingredients->priority = (attrs ? get_func_priotity(*attrs) : 0);
-	ingredients->body = body;
-
-	return ingredients;
+	// Note: ideally, something would take ownership of this memory until the
+	// end of script execution, but that's essentially the same as the
+	// lifetime of the process at the moment, so ok to "leak" it.
+	ingredients.release();
 	}
 
 Val* internal_val(const char* name)
@@ -548,7 +526,14 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 	id_list idl ( cb.outer_id_references.size() );
 
 	for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-	        idl.append(cb.outer_id_references[i]->Id());
+		{
+		auto id = cb.outer_id_references[i]->Id();
+
+		if ( idl.is_member(id) )
+			continue;
+
+		idl.append(id);
+		}
 
 	return idl;
 	}

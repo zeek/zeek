@@ -2,6 +2,11 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 set -e
+
+trap '[ $? -eq 0 ] && exit 0 ||
+echo "Also, before re-running configure, consider cleaning the cache \
+(removing the build directory) via \`make distclean\`"' EXIT
+
 command="$0 $*"
 
 usage="\
@@ -22,6 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            ccache installation and CMake 3.10+)
     --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
                            (useful for cross-compiling)
+    --sanitizers=LIST      comma-separated list of sanitizer names to enable
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -47,11 +53,11 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
+    --enable-cpp-tests     build Zeek's C++ unit tests
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
-    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -148,7 +154,7 @@ append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry SANITIZERS           STRING ""
+append_cache_entry ZEEK_SANITIZERS      STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -234,7 +240,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --sanitizers=*)
-            append_cache_entry SANITIZERS    STRING    $optarg
+            append_cache_entry ZEEK_SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
@@ -244,6 +250,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL       BOOL   false

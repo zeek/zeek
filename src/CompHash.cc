@@ -146,6 +146,30 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			break;
 			}
 
+		case TYPE_PATTERN:
+			{
+			const char* texts[2] = {
+				v->AsPattern()->PatternText(),
+				v->AsPattern()->AnywherePatternText()
+			};
+
+			size_t* kp;
+			for ( int i = 0; i < 2; i++ )
+				{
+				kp = AlignAndPadType<size_t>(kp0+i);
+				*kp = strlen(texts[i]) + 1;
+				}
+
+			kp1 = reinterpret_cast<char*>(kp+1);
+			for ( int i = 0; i < 2; i++ )
+				{
+				memcpy(kp1, texts[i], strlen(texts[i]) + 1);
+				kp1 += strlen(texts[i]) + 1;
+				}
+
+			break;
+			}
+
 		case TYPE_RECORD:
 			{
 			char* kp = kp0;
@@ -401,6 +425,19 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 		if ( v->Type()->Tag() == TYPE_FUNC )
 			return new HashKey(v->AsFunc()->GetUniqueFuncID());
 
+		if ( v->Type()->Tag() == TYPE_PATTERN )
+			{
+			const char* texts[2] = {
+				v->AsPattern()->PatternText(),
+				v->AsPattern()->AnywherePatternText()
+			};
+			int n = strlen(texts[0]) + strlen(texts[1]) + 2; // 2 for null
+			char* key = new char[n];
+			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
+			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
+			return new HashKey(false, key, n);
+			}
+
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return 0;
 
@@ -459,6 +496,17 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		case TYPE_FUNC:
 			{
 			sz = SizeAlign(sz, sizeof(uint32_t));
+			break;
+			}
+
+		case TYPE_PATTERN:
+			{
+			if ( ! v )
+				return (optional && ! calc_static_size) ? sz : 0;
+
+			sz = SizeAlign(sz, 2 * sizeof(size_t));
+			sz += strlen(v->AsPattern()->PatternText())
+				+ strlen(v->AsPattern()->AnywherePatternText()) + 2; // 2 for null terminators
 			break;
 			}
 
@@ -828,6 +876,28 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			else if ( t->Tag() == TYPE_FUNC &&
 				  pval->Type()->Tag() != TYPE_FUNC )
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+			}
+			break;
+
+		case TYPE_PATTERN:
+			{
+			RE_Matcher* re = nullptr;
+			if ( is_singleton )
+				{
+				kp1 = kp0;
+				int divider = strlen(kp0) + 1;
+				re = new RE_Matcher(kp1, kp1 + divider);
+				kp1 += k->Size();
+				}
+			else
+				{
+				const size_t* const len = AlignType<size_t>(kp0);
+
+				kp1 = reinterpret_cast<const char*>(len+2);
+				re = new RE_Matcher(kp1, kp1 + len[0]);
+				kp1 += len[0] + len[1];
+				}
+			pval = new PatternVal(re);
 			}
 			break;
 

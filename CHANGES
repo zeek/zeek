@@ -1,4 +1,284 @@
 
+3.1.0-dev.359 | 2020-01-06 16:40:55 -0800
+
+  * Fix build warning in X509 plugin (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.357 | 2020-01-06 14:10:54 -0800
+
+  * GH-412: Enable Patterns as Table index (Dev Bali, Corelight)
+
+3.1.0-dev.354 | 2020-01-06 14:16:29 -0700
+
+  * Fix snprintf compiler warning in hexdump BIF (Jon Siwek, Corelight)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.1.0-dev.351 | 2020-01-06 11:20:09 -0800
+
+  * Increase a timeout for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.350 | 2020-01-06 10:51:07 -0800
+
+  * Fix Cirrus CI FreeBSD python dependencies installation (Jon Siwek, Corelight)
+
+3.1.0-dev.348 | 2020-01-06 11:19:36 -0700
+
+  * Increase timeout for a btest
+
+    May be more timing-sensitive with slower ASAN/LSAN configuration in
+    addition to already-slower CI environment. (Jon Siwek, Corelight)
+
+  * Switch CI scripts to use ASAN/LSAN instead of gperftools
+
+    Using AddressSanitizer/LeakSanitizer is better.  It covers the full
+    unit/baseline test suite by default without requiring one to write
+    specific memory leak tests.  It also covers other types of memory errors
+    besides just leaks. (Jon Siwek, Corelight)
+
+  * Remove redundant memory leak btests
+
+    Or otherwise convert into a regular btest if it didn't already seem to
+    be covered.
+
+    There's no need for a separate memory leak test group since compiling
+    with LeakSanitizer now covers leak checking for the full btest suite. (Jon Siwek, Corelight)
+
+  * Fix reference counting issues related to lambdas/closures
+
+    For example, circular references between a lambda function the frame
+    it's stored within and/or its closure could cause memory leaks.
+
+    This also fixes other various reference-count ownership issues that
+    could lead to memory errors.
+
+    There may still be some potential/undiscovered issues because the "outer
+    ID" finding logic doesn't look quite right as the AST traversal descends
+    within nested lambdas and considers their locals as "outer", but
+    possibly the other logic for locating values in closures or cloning
+    closures just works around that behavior. (Jon Siwek, Corelight)
+
+  * Disable LeakSanitizer for btests that have known leaks
+
+    E.g. ones that throw interpreter exceptions,  as those are currently
+    known to potentially cause leaks.  Fixing the underlying leaks involves
+    the larger task of more IntrusivePtr usage.
+
+    Reference cycles may also cause leaks. (Jon Siwek, Corelight)
+
+  * Rewrite the btest for when-statement timeouts
+
+    To avoid a memory leak in DNS lookups that's hard to work around and
+    does not otherwise effect typical operation when Zeek is allowed to
+    continue to run after zeek_init(). (Jon Siwek, Corelight)
+
+  * Fix memory leak when a logging plugin hook prevents a write (Jon Siwek, Corelight)
+
+  * Fix memory leaks in various input framework error-handling cases (Jon Siwek, Corelight)
+
+  * Fix memory leak in Reporter::get_weird_sampling_whitelist() BIF (Jon Siwek, Corelight)
+
+  * Fix reference counting of Log::Filter "config" field
+
+    Which can potentially be a minor memory leak if there's a lot of dynamic
+    adding/removing of logging filters. (Jon Siwek, Corelight)
+
+  * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)
+
+  * Clean up triggers awaiting global state modification at shutdown
+
+    Otherwise they can be reported as memory leaks since no more global
+    state modifications will take place to notify the trigger to clean
+    itself up. (Jon Siwek, Corelight)
+
+  * Fix memory leak in initializing log writers with no local backend (Jon Siwek, Corelight)
+
+  * Fix packet filter memory leaks (Jon Siwek, Corelight)
+
+  * Skip sending thread heartbeat if it alread asked to be finished
+
+    Otherwise the heartbeat message may fail to be processed and show up as
+    leaked memory. (Jon Siwek, Corelight)
+
+  * Fix memory leak of sqlite input reader prepared statement (Jon Siwek, Corelight)
+
+  * Prevent duplicate "finish" threading messages
+
+    As they don't get processed and may show up as a memory leak. (Jon Siwek, Corelight)
+
+  * Fix memory leak when table-based input stream overwrites old entries (Jon Siwek, Corelight)
+
+  * Fix scripting error in a DHCP btest (Jon Siwek, Corelight)
+
+  * Fix memory leaks in Kerberos ticket decryption
+
+    Memory allocated to the decrypted ticket data as well as the server
+    principal were not freed.
+
+    Also fixed potential leaks in error cases that called
+    krb5_get_error_message() without freeing the returned value. (Jon Siwek, Corelight)
+
+  * Fix scripting error in an ftp btest (Jon Siwek, Corelight)
+
+  * Update paraglob submodule (Jon Siwek, Corelight)
+
+  * Fix malloc/delete mismatch in JSON formatting
+
+    ODesc allocated with malloc() and BroString deallocated with delete[],
+    but really the intermediate BroString wasn't even needed when copying
+    into std::string. (Jon Siwek, Corelight)
+
+  * Delete/timeout pending DNS requests during shutdown
+
+    Primarily, this change prevents the pending requests showing up as
+    memory leaks. (Jon Siwek, Corelight)
+
+  * Fix memory leak in OCSP parsing functions
+
+    Various OCSP parsing functions used in presence of OpenSSL 1.1 used
+    "d2i_ASN1_SEQUENCE_ANY" which returns a "STACK_OF(ASN1_TYPE)", but used
+    "sk_ASN1_TYPE_free" instead of "sk_ASN1_TYPE_pop_free" to free it.  The
+    former only frees the stack structure while the later frees both the
+    structure and the elements. (Jon Siwek, Corelight)
+
+  * Free the global X509 certificate root store on shutdown
+
+    Otherwise LeakSanitizer reports its contents as leaked. (Jon Siwek, Corelight)
+
+  * Add general LeakSanitizer macros/instrumentation (Jon Siwek, Corelight)
+
+  * Improve --sanitizers configure option
+
+    * Rename SANITIZERS CMake variable to ZEEK_SANITIZERS for clarity
+
+    * Use -O1 by default to improve speed (set NO_OPTIMIZATIONS env. var.
+      to override and use -O0).  Uses -fno-optimize-sibling-calls with -O1
+      to still get "perfect stack traces".
+
+    * Updates various sub-projects with sanitizer improvements:
+      binpac and bifcl, by default, now ignore leaks reported by LeakSanitizer
+      so that it doesn't interfere with the Zeek build (Jon Siwek, Corelight)
+
+
+3.1.0-dev.319 | 2020-01-06 09:44:11 -0800
+
+  * Mark safe_snprintf and safe_vsnprintf as deprecated, remove uses of them (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
+
+  * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)
+
+3.1.0-dev.313 | 2019-12-18 13:23:51 -0800
+
+  * Add Cirrus CI config (Jon Siwek, Corelight)
+
+3.1.0-dev.309 | 2019-12-16 09:40:01 -0800
+
+  * GHI-599: avoid memory leak with default pattern matching and json formatting (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.307 | 2019-12-16 08:20:58 -0800
+
+  * Update URL for Malware Hash Registry website (Jon Siwek, Corelight)
+
+3.1.0-dev.300 | 2019-12-05 12:34:41 -0700
+
+  * GH-700: add zeek_args() BIF
+
+    Provides access to all zeek command-line arguments ("argv"). (Jon Siwek, Corelight)
+
+3.1.0-dev.297 | 2019-12-05 11:57:12 -0700
+
+  * GH-700: add packet_sources() BIF
+
+    Provides access to properties of packet sources, like interface or pcap
+    file name. (Jon Siwek, Corelight)
+
+3.1.0-dev.295 | 2019-12-04 14:43:27 -0700
+
+  * Use new Zeek Logo instead of Bro Eyes on README.md (Dev Bali, Corelight)
+
+3.1.0-dev.292 | 2019-12-02 13:37:19 -0800
+
+  * GH-619: Allow "print" statements to be redirected to a Log (Dev Bali, Corelight)
+
+3.1.0-dev.286 | 2019-11-21 08:47:32 -0800
+
+  * GH-684: Fix parsing of RPC calls with non-AUTH_UNIX flavors
+
+    The parsing logic that should be specific to the AUTH_UNIX credential
+    flavor was previously applied unconditionally to other flavors. (Jon Siwek, Corelight)
+
+3.1.0-dev.284 | 2019-11-21 08:29:36 -0800
+
+  * Fix ZEEK_PROFILER_FILE file format/parsing
+
+    Some Zeek script statement descriptions were exceeding the hardcoded
+    maximum length and also could contain tab characters which were
+    supposed to be reserved for use as a delimiter in the file format. (Jon Siwek, Corelight)
+
+3.1.0-dev.282 | 2019-11-18 12:06:13 +0000
+
+  * GH-646: Add new "successful_connection_remove" event. (Jon Siwek, Corelight)
+
+    Includes:
+
+        - Switch Zeek's base scripts over to using it in place of
+          "connection_state_remove". The difference between the two is
+          that "connection_state_remove" is raised for all events
+          while "successful_connection_remove" excludes TCP
+          connections that were never established (just SYN packets).
+          There can be performance benefits to this change for some
+          use-cases.
+
+        - Add new event called ``connection_successful`` and a new
+          ``connection`` record field named "successful" to help
+          indicate this new property of connections.
+
+3.1.0-dev.280 | 2019-11-15 18:27:27 -0800
+
+  * Run doctest unit tests in Travis CI (Jon Siwek, Corelight)
+
+  * Fix indents/whitespace in Travis CI script (Jon Siwek, Corelight)
+
+  * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)
+
+  * Convert pcapng test suite files to pcap format for OpenBSD compat (Jon Siwek, Corelight)
+
+  * Fix undefined symbols loading libbroker on OpenBSD (Jon Siwek, Corelight)
+
+  * Fix compile warnings on OpenBSD (Jon Siwek, Corelight)
+
+3.1.0-dev.271 | 2019-11-14 19:16:31 -0800
+
+  * Add initial scaffold for unit testing via doctest (Dominik Charousset, Corelight)
+
+3.1.0-dev.266 | 2019-11-14 17:29:00 -0800
+
+  * Add hint to run `make distclean` if configure fails (Simon Hardy-Francis, Corelight)
+
+3.1.0-dev.264 | 2019-11-14 16:57:13 -0800
+
+  * Install test-all-policy.zeek script (Jon Siwek, Corelight)
+
+    The zeekygen script, which is already installed, refers to it, and
+    could also generally be useful for "test everything" type scenarios.
+
+3.1.0-dev.263 | 2019-11-13 13:43:16 -0800
+
+  * Improve record_fields() BIF to recursively give full container type names (Henri DF)
+
+3.1.0-dev.257 | 2019-11-11 13:40:11 -0800
+
+  * Update embedded CAF to 0.17.3 (Jon Siwek, Corelight)
+
+3.1.0-dev.256 | 2019-11-07 13:42:11 -0800
+
+  * Allow record_fields() string arguments that name a record type (Jon Siwek, Corelight)
+
 3.1.0-dev.253 | 2019-11-05 09:54:01 -0800
 
   * Add and use new IntrusivePtr type (Dominik Charousset, Corelight)

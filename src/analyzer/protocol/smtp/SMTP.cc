@@ -889,7 +889,7 @@ void SMTP_Analyzer::UnexpectedCommand(const int cmd_code, const int reply_code)
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.
 	static char buf[512];
-	int len = safe_snprintf(buf, sizeof(buf),
+	int len = snprintf(buf, sizeof(buf),
 				"%s reply = %d state = %d",
 				SMTP_CMD_WORD(cmd_code), reply_code, state);
 	if ( len > (int) sizeof(buf) )
@@ -902,7 +902,7 @@ void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.
 	static char buf[512];
-	int len = safe_snprintf(buf, sizeof(buf),
+	int len = snprintf(buf, sizeof(buf),
 				"%d state = %d, last command = %s",
 				reply_code, state, SMTP_CMD_WORD(cmd_code));
 	Unexpected (1, "unexpected reply", len, buf);

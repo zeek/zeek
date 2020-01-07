@@ -19,6 +19,14 @@ include(cmake/FindClangTidy.cmake)
 ########################################################################
 ## Project/Build Configuration
 
+
+if (ENABLE_ZEEK_UNIT_TESTS)
+    enable_testing()
+    add_definitions(-DDOCTEST_CONFIG_SUPER_FAST_ASSERTS)
+else ()
+    add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif ()
+
 if ( ENABLE_CCACHE )
     find_program(CCACHE_PROGRAM ccache)
 
@@ -113,10 +121,30 @@ if ( NOT BINARY_PACKAGING_MODE )
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
 endif ()
 
-if ( SANITIZERS )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+if ( ZEEK_SANITIZERS )
+    # Check the thread library info early as setting compiler flags seems to
+    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not
+    # include -lpthread when it should.
+    find_package(Threads)
+    set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
+
+    if ( NOT DEFINED ENV{NO_OPTIMIZATIONS} )
+      # Using -O1 is generally the suggestion to get more reasonable
+      # performance.  The one downside is it that the compiler may optimize out
+      # code that otherwise generates an error/leak in a -O0 build, but that
+      # should be rare and users mostly will not be running unoptimized builds
+      # in production anyway.
+      set(_sanitizer_flags "${_sanitizer_flags} -O1")
+    endif ()
+
+    # Technically, the we also need to use the compiler to drive linking and
+    # give the sanitizer flags there, too.  However, CMake, by default, uses
+    # the compiler for linking and so the automatically flags get used.  See
+    # https://cmake.org/pipermail/cmake/2014-August/058268.html
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
 endif()
 
 ########################################################################
@@ -181,6 +209,50 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+if ( CAF_ROOT_DIR )
+  find_package(CAF COMPONENTS core io openssl REQUIRED)
+endif ()
+
+add_subdirectory(aux/paraglob)
+set(zeekdeps ${zeekdeps} paraglob)
+
+if ( BROKER_ROOT_DIR )
+  # Avoid calling find_package(CAF) twice.
+  if ( NOT CAF_ROOT_DIR )
+    find_package(CAF COMPONENTS core io openssl REQUIRED)
+  endif ()
+  find_package(Broker REQUIRED)
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
+  set(broker_includes ${BROKER_INCLUDE_DIR})
+else ()
+  if ( ZEEK_SANITIZERS )
+    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+  endif ()
+
+  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
+  if ( BUILD_STATIC_BROKER )
+    set(ENABLE_STATIC_ONLY true)
+  endif()
+
+  add_subdirectory(aux/broker)
+  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+  if ( BUILD_STATIC_BROKER )
+    set(zeekdeps ${zeekdeps} broker_static)
+  else()
+    set(zeekdeps ${zeekdeps} broker)
+  endif()
+  set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker/include ${CMAKE_CURRENT_BINARY_DIR}/aux/broker/include)
+endif ()
+
+# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
+# find_package(CAF) or by calling add_subdirectory(aux/broker). In either case,
+# we have to care about CAF here because Broker headers can pull in CAF
+# headers.
+set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
+include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -254,7 +326,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
     endif ()
 endif ()
 
-set(zeekdeps
+set(zeekdeps ${zeekdeps}
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
     ${OPENSSL_LIBRARIES}
@@ -339,48 +411,6 @@ InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFI
 ########################################################################
 ## Recurse on sub-directories
 
-if ( CAF_ROOT_DIR )
-  find_package(CAF COMPONENTS core io openssl REQUIRED)
-endif ()
-
-if ( BROKER_ROOT_DIR )
-  # Avoid calling find_package(CAF) twice.
-  if ( NOT CAF_ROOT_DIR )
-    find_package(CAF COMPONENTS core io openssl REQUIRED)
-  endif ()
-  find_package(Broker REQUIRED)
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
-  include_directories(BEFORE ${BROKER_INCLUDE_DIR})
-else ()
-  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-
-  if ( BUILD_STATIC_BROKER )
-    set(ENABLE_STATIC_ONLY true)
-  endif()
-
-  add_subdirectory(aux/broker)
-  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-  if ( BUILD_STATIC_BROKER )
-    set(zeekdeps ${zeekdeps} broker_static)
-  else()
-    set(zeekdeps ${zeekdeps} broker)
-  endif()
-  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker/include
-                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker/include)
-endif ()
-
-# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
-# find_package(CAF) or by calling add_subdirectory(aux/broker). In either case,
-# we have to care about CAF here because Broker headers can pull in CAF
-# headers.
-set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
-include_directories(BEFORE ${CAF_INCLUDE_DIRS})
-
-add_subdirectory(aux/paraglob)
-set(zeekdeps ${zeekdeps} paraglob)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
-
 add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(man)
@@ -421,6 +451,7 @@ message(
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

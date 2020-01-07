@@ -98,6 +98,7 @@ Manager::Filter::~Filter()
 	free(fields);
 
 	Unref(path_val);
+	Unref(config);
 	}
 
 Manager::Stream::~Stream()
@@ -919,6 +920,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		                                            filter->fields, vals),
 		                               true) )
 			{
+			Unref(columns);
 			DeleteVals(filter->num_fields, vals);
 
 #ifdef DEBUG

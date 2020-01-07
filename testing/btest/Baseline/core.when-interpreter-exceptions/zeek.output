@@ -1,7 +1,7 @@
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 47: field value missing (myrecord$notset)
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 91: field value missing (myrecord$notset)
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 72: field value missing (myrecord$notset)
-expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 103: field value missing (myrecord$notset)
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 48: field value missing (myrecord$notset)
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 92: field value missing (myrecord$notset)
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 73: field value missing (myrecord$notset)
+expression error in /Users/jon/Projects/bro/bro/testing/btest/.tmp/core.when-interpreter-exceptions/when-interpreter-exceptions.zeek, line 104: field value missing (myrecord$notset)
 received termination signal
 [f(F)]
 f() done, no exception, T

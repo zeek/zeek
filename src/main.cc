@@ -63,6 +63,9 @@ extern "C" {
 
 #include "3rdparty/sqlite3.h"
 
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "3rdparty/doctest.h"
+
 Brofiler brofiler;
 
 #ifndef HAVE_STRSEP
@@ -153,7 +156,9 @@ static bool zeek_dns_fake()
 static void usage(const char* prog, int code = 1)
 	{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
+
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
+	fprintf(stderr, "usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
 	fprintf(stderr, "    <file>                         | Zeek script file, or read stdin\n");
 	fprintf(stderr, "    -a|--parse-only                | exit immediately after parsing scripts\n");
 	fprintf(stderr, "    -b|--bare-mode                 | don't load scripts from the base/ directory\n");
@@ -196,6 +201,7 @@ static void usage(const char* prog, int code = 1)
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
 #endif
 
+	fprintf(stderr, "    --test                         | run unit tests ('--test -h' for help, only when compiling with ENABLE_ZEEK_UNIT_TESTS)\n");
 	fprintf(stderr, "    $ZEEKPATH                      | file search path (%s)\n", bro_path().c_str());
 	fprintf(stderr, "    $ZEEK_PLUGIN_PATH              | plugin search path (%s)\n", bro_plugin_path());
 	fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE          | plugins to always activate (%s)\n", bro_plugin_activate());
@@ -240,6 +246,9 @@ struct zeek_options {
 	bool perftools_check_leaks = false;
 	bool perftools_profile = false;
 
+	bool run_unit_tests = false;
+	std::vector<std::string> doctest_args;
+
 	std::optional<std::string> pcap_filter;
 	std::vector<std::string> interfaces;
 	std::vector<std::string> pcap_files;
@@ -257,9 +266,66 @@ struct zeek_options {
 	std::vector<std::string> script_options_to_set;
 };
 
+static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
+	{
+	std::vector<const char*> rval;
+	rval.reserve(args.size());
+
+	for ( const auto& arg : args )
+		rval.emplace_back(arg.data());
+
+	return rval;
+	}
+
 static zeek_options parse_cmdline(int argc, char** argv)
 	{
 	zeek_options rval = {};
+
+	// When running unit tests, the first argument on the command line must be
+	// --test, followed by doctest options. Optionally, users can use "--" as
+	// separator to pass Zeek options afterwards:
+	//
+	//     zeek --test [doctest-options] -- [zeek-options]
+
+	// Just locally filtering out the args for Zeek usage from doctest args.
+	std::vector<std::string> zeek_args;
+
+	if ( argc > 1 && strcmp(argv[1], "--test") == 0 )
+		{
+		#ifdef DOCTEST_CONFIG_DISABLE
+		fprintf(stderr, "ERROR: C++ unit tests are disabled for this build.\n"
+		                "       Please re-compile with ENABLE_ZEEK_UNIT_TESTS "
+		                       "to run the C++ unit tests.\n");
+		usage(argv[0], 1);
+		#endif
+
+		auto is_separator = [](const char* cstr)
+			{
+			return strcmp(cstr, "--") == 0;
+			};
+		auto first = argv;
+		auto last = argv + argc;
+		auto separator = std::find_if(first, last, is_separator);
+		zeek_args.emplace_back(argv[0]);
+
+		if ( separator != last )
+			{
+			auto first_zeek_arg = std::next(separator);
+
+			for ( auto i = first_zeek_arg; i != last; ++i )
+				zeek_args.emplace_back(*i);
+			}
+
+		rval.run_unit_tests = true;
+
+		for ( auto i = 0; i < std::distance(first, separator); ++i )
+			rval.doctest_args.emplace_back(argv[i]);
+		}
+	else
+		{
+		for ( auto i = 0; i < argc; ++i )
+			zeek_args.emplace_back(argv[i]);
+		}
 
 	constexpr struct option long_opts[] = {
 		{"parse-only",	no_argument,		0,	'a'},
@@ -302,6 +368,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 
 		{"pseudo-realtime",	optional_argument, 0,	'E'},
 		{"jobs",	optional_argument, 0,	'j'},
+		{"test",		no_argument,		0,	'#'},
 
 		{0,			0,			0,	0},
 	};
@@ -318,7 +385,13 @@ static zeek_options parse_cmdline(int argc, char** argv)
 	int long_optsind;
 	opterr = 0;
 
-	while ( (op = getopt_long(argc, argv, opts, long_opts, &long_optsind)) != EOF )
+	// getopt may permute the array, so need yet another array
+	auto zargs = std::make_unique<char*[]>(zeek_args.size());
+
+	for ( auto i = 0; i < zeek_args.size(); ++i )
+		zargs[i] = zeek_args[i].data();
+
+	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) != EOF )
 		switch ( op ) {
 		case 'a':
 			rval.parse_only = true;
@@ -387,7 +460,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			break;
 		case 'F':
 			if ( rval.dns_mode != DNS_DEFAULT )
-				usage(argv[0], 1);
+				usage(zargs[0], 1);
 			rval.dns_mode = DNS_FORCE;
 			break;
 		case 'G':
@@ -404,7 +477,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			break;
 		case 'P':
 			if ( rval.dns_mode != DNS_DEFAULT )
-				usage(argv[0], 1);
+				usage(zargs[0], 1);
 			rval.dns_mode = DNS_PRIME;
 			break;
 		case 'Q':
@@ -441,6 +514,11 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			break;
 #endif
 
+		case '#':
+			fprintf(stderr, "ERROR: --test only allowed as first argument.\n");
+			usage(zargs[0], 1);
+			break;
+
 		case 0:
 			// This happens for long options that don't have
 			// a short-option equivalent.
@@ -448,21 +526,21 @@ static zeek_options parse_cmdline(int argc, char** argv)
 
 		case '?':
 		default:
-			usage(argv[0], 1);
+			usage(zargs[0], 1);
 			break;
 		}
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
 	// activate/query. The remainder are treated as scripts to load.
-	while ( optind < argc )
+	while ( optind < zeek_args.size() )
 		{
-		if ( strchr(argv[optind], '=') )
-			rval.script_options_to_set.emplace_back(argv[optind++]);
-		else if ( strstr(argv[optind], "::") )
-			rval.plugins_to_load.emplace(argv[optind++]);
+		if ( strchr(zargs[optind], '=') )
+			rval.script_options_to_set.emplace_back(zargs[optind++]);
+		else if ( strstr(zargs[optind], "::") )
+			rval.plugins_to_load.emplace(zargs[optind++]);
 		else
-			rval.scripts_to_load.emplace_back(argv[optind++]);
+			rval.scripts_to_load.emplace_back(zargs[optind++]);
 		}
 
 	return rval;
@@ -561,6 +639,8 @@ void done_with_network()
 			abort();
 			}
 #endif
+
+	ZEEK_LSAN_DISABLE();
 	}
 
 void terminate_bro()
@@ -594,6 +674,7 @@ void terminate_bro()
 
 	mgr.Drain();
 
+	notifier::registry.Terminate();
 	log_mgr->Terminate();
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
@@ -711,6 +792,9 @@ static std::string get_exe_path(const std::string& invocation)
 
 int main(int argc, char** argv)
 	{
+	ZEEK_LSAN_DISABLE();
+	std::set_new_handler(bro_new_handler);
+
 	auto zeek_exe_path = get_exe_path(argv[0]);
 
 	if ( zeek_exe_path.empty() )
@@ -734,6 +818,14 @@ int main(int argc, char** argv)
 		{
 		fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
 		exit(0);
+		}
+
+	if ( options.run_unit_tests )
+		{
+		doctest::Context context;
+		auto dargs = to_cargs(options.doctest_args);
+		context.applyCommandLine(dargs.size(), dargs.data());
+		return context.run();
 		}
 
 	auto use_supervisor = [&]() -> bool { return options.supervised_workers > 0; };
@@ -813,8 +905,6 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-
-	std::set_new_handler(bro_new_handler);
 
 	double time_start = current_time(true);
 
@@ -1213,6 +1303,13 @@ int main(int argc, char** argv)
 		for ( const string& handler : dead_handlers )
 			reporter->Warning("event handler never invoked: %s", handler.c_str());
 		}
+
+	// Enable LeakSanitizer before zeek_init() and even before executing
+	// top-level statements.  Even though it's not bad if a leak happens only
+	// once at initialization, we have to assume that script-layer code causing
+	// such a leak can be placed in any arbitrary event handler and potentially
+	// cause more severe problems.
+	ZEEK_LSAN_ENABLE();
 
 	if ( stmts )
 		{

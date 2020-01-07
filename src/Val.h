@@ -348,7 +348,7 @@ public:
 
 	TableVal* GetRecordFields();
 
-	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"));
+	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
 
 protected:
 
@@ -959,6 +959,11 @@ public:
 	Val* Lookup(const char* field, bool with_default = false) const;
 
 	void Describe(ODesc* d) const override;
+
+	/**
+	 * Returns a "record_field_table" value for introspection purposes.
+	 */
+	TableVal* GetRecordFieldsVal() const;
 
 	// This is an experiment to associate a BroObj within the
 	// event engine to a record value in bro script.

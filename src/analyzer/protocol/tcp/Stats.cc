@@ -71,7 +71,7 @@ void TCPStateStats::PrintStats(BroFile* file, const char* prefix)
 			if ( n > 0 )
 				{
 				char buf[32];
-				safe_snprintf(buf, sizeof(buf), "%-8d", state_cnt[i][j]);
+				snprintf(buf, sizeof(buf), "%-8d", state_cnt[i][j]);
 				file->Write(buf);
 				}
 			else

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "OpaqueVal.h"
 #include "X509Common.h"
@@ -89,6 +90,28 @@ public:
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
 
+	/**
+	 * Retrieves OpenSSL's representation of an X509 certificate store
+	 * associated with a script-layer certificate root table variable/value.
+	 * The underlying X509 store will be created if it has not been already,
+	 * else the previously allocated one for the same table will be returned.
+	 *
+	 * @param root_certs  The script-layer certificate root table value.
+	 *
+	 * @return OpenSSL's X509 store associated with the table value.
+	 */
+	static X509_STORE* GetRootStore(TableVal* root_certs);
+
+	/**
+	 * Frees memory obtained from OpenSSL that is associated with the global
+	 * X509 certificate store used by the Zeek scripting-layer.  This primarily
+	 * exists so leak checkers like LeakSanitizer don't count the
+	 * globally-allocated mapping as a leak.  Would be easy to suppress/ignore
+	 * it, but that could accidentally silence cases where some new code
+	 * mistakenly overwrites a table element without freeing it.
+	 */
+	static void FreeRootStore();
+
 protected:
 	X509(RecordVal* args, File* file);
 
@@ -102,6 +125,8 @@ private:
 	// Helpers for ParseCertificate.
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
+	/** X509 stores associated with global script-layer values */
+	static std::map<Val*, X509_STORE*> x509_stores;
 };
 
 /**

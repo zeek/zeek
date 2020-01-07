@@ -65,6 +65,17 @@ void notifier::Registry::Modified(Modifiable* m)
 		i->second->Modified(m);
 	}
 
+void notifier::Registry::Terminate()
+	{
+	std::set<Receiver*> receivers;
+
+	for ( auto& r : registrations )
+		receivers.emplace(r.second);
+
+	for ( auto& r : receivers )
+		r->Terminate();
+	}
+
 notifier::Modifiable::~Modifiable()
 	{
 	if ( num_receivers )

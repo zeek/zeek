@@ -329,13 +329,13 @@ event ssl_established(c: connection) &priority=-5
 	finish(c, T);
 	}
 
-event connection_state_remove(c: connection) &priority=20
+event successful_connection_remove(c: connection) &priority=20
 	{
 	if ( c?$ssl && ! c$ssl$logged )
 		hook ssl_finishing(c);
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c?$ssl )
 		# called in case a SSL connection that has not been established terminates

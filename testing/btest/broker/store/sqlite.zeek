@@ -6,7 +6,7 @@ global RUN = 0 &redef;
 
 redef exit_only_after_terminate = T;
 
-global query_timeout = 1sec;
+global query_timeout = 10sec;
 
 global h: opaque of Broker::Store;
 
@@ -32,8 +32,8 @@ event zeek_init()
 	h = Broker::create_master("master", Broker::SQLITE);
 
 	print "Run", RUN;
-	
-	if ( RUN == 1 ) 
+
+	if ( RUN == 1 )
 		{
 		print "Inserting";
 		Broker::put(h, "one", "110");
@@ -55,5 +55,5 @@ event zeek_init()
 		print_index(set("x", "y"));
 		}
 
-        schedule 2secs { done() };
+	schedule 2secs { done() };
 	}

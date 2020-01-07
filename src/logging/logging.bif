@@ -10,6 +10,12 @@ type Filter: record;
 type Stream: record;
 type RotationInfo: record;
 
+enum PrintLogType %{
+	REDIRECT_NONE,
+	REDIRECT_STDOUT,
+	REDIRECT_ALL,
+%}
+
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
 	%{
 	bool result = log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());

@@ -22,6 +22,10 @@ New Functionality
 - There is now a new ``tcp_options`` event that is raised for each TCP header
   that contains options.
 
+- Added a new option, ``Log::print_to_log`` that can be set to automatically
+  redirect the output from "print" statements to a real log stream (e.g.
+  instead of writing to stdout).
+
 Changed Functionality
 ---------------------
 
@@ -40,6 +44,24 @@ Changed Functionality
 
 - The tcp_option event is now correctly raised.
 
+'- The base scripts shipped with Zeek now use the new
+  ``successful_connection_remove`` event instead of
+  ``connection_state_remove`` where possible (when the logic doesn't
+  pertain to unestablished TCP connections). There's a performance
+  benefit to this switch, but it may potentially break custom scripts
+  that depended on accessing or modifying state via specific
+  ``&priority`` ordering of ``connection_state_remove`` event
+  handlers. However, since most of Zeek's base scripts previously just
+  used that event with the intention of writing a finalized log as the
+  last thing executed for a given connection, and the new
+  ``successful_connection_remove`` event handlers all run after
+  ``connection_state_remove``, it's not likely this change to the base
+  scripts causes any incompatibility with user scripts.
+
+  There's also a new event called ``connection_successful`` and a new
+  ``connection`` record field named "successful" to help indicate this
+  new property of connections.
+
 Removed Functionality
 ---------------------
 
@@ -49,6 +71,9 @@ Deprecated Functionality
 - The C++ API typedefs for int{8,16,32,64} and uint{8,16,32,64} are deprecated
   in favor of the real <cstdint> types they alias.  E.g. use int8_t instead of
   int8.
+
+- The C++ API functions "safe_snprintf" and "safe_vsnprintf" are deprecated.
+  Use "snprintf" and "vsnprintf" instead.
 
 Zeek 3.0.0
 ==========

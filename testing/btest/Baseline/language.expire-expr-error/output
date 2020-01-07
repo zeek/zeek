@@ -1,2 +1,2 @@
-expression error in /home/robin/bro/master/testing/btest/.tmp/language.expire-expr-error/expire-expr-error.zeek, line 8: no such index (x[kaputt])
+expression error in /home/robin/bro/master/testing/btest/.tmp/language.expire-expr-error/expire-expr-error.zeek, line 9: no such index (x[kaputt])
 received termination signal

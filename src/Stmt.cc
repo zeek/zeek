@@ -14,6 +14,9 @@
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "IntrusivePtr.h"
+#include "logging/Manager.h"
+#include "logging/logging.bif.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -184,6 +187,40 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 
 static BroFile* print_stdout = 0;
 
+static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
+	{
+	ID* id = lookup_ID(name, module_name);
+	assert(id);
+	assert(id->IsEnumConst());
+
+	EnumType* et = id->Type()->AsEnumType();
+
+	int index = et->Lookup(module_name, name);
+	assert(index >= 0);
+	IntrusivePtr<EnumVal> rval{et->GetVal(index), false};
+
+	return rval;
+	}
+
+static Val* print_log(val_list* vals)
+	{
+	auto plval = lookup_enum_val("Log", "PRINTLOG");
+	auto record = make_intrusive<RecordVal>(internal_type("Log::PrintLogInfo")->AsRecordType());
+	auto vec = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+
+	for ( const auto& val : *vals )
+		{
+		ODesc d(DESC_READABLE);
+		val->Describe(&d);
+		vec->Assign(vec->Size(), new StringVal(d.Description()));
+		}
+
+	record->Assign(0, new Val(current_time(), TYPE_TIME));
+	record->Assign(1, vec.detach());
+	log_mgr->Write(plval.get(), record.get());
+	return nullptr;
+	}
+
 Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
@@ -202,6 +239,26 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 
 		++offset;
 		}
+
+	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
+	        internal_val("Log::print_to_log")->AsEnum());
+
+	switch ( print_log_type ) {
+	case BifEnum::Log::REDIRECT_NONE:
+		break;
+	case BifEnum::Log::REDIRECT_ALL:
+		return print_log(vals);
+	case BifEnum::Log::REDIRECT_STDOUT:
+		if ( f->File() == stdout )
+			// Should catch even printing to a "manually opened" stdout file,
+			// like "/dev/stdout" or "-".
+			return print_log(vals);
+		break;
+	default:
+		reporter->InternalError("unknown Log::PrintLogType value: %d",
+		                        print_log_type);
+		break;
+	}
 
 	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 

@@ -21,17 +21,17 @@ ContentLine_Analyzer::ContentLine_Analyzer(const char* name, Connection* conn, b
 
 void ContentLine_Analyzer::InitState()
 	{
-	flag_NULs = 0;
+	flag_NULs = false;
 	CR_LF_as_EOL = (CR_as_EOL | LF_as_EOL);
-	skip_deliveries = 0;
-	skip_partial = 0;
+	skip_deliveries = false;
+	skip_partial = false;
 	buf = 0;
 	seq_delivered_in_lines = 0;
 	skip_pending = 0;
 	seq = 0;
 	seq_to_skip = 0;
 	plain_delivery_length = 0;
-	is_plain = 0;
+	is_plain = false;
 	suppress_weirds = false;
 
 	InitBuffer(0);
@@ -70,7 +70,7 @@ ContentLine_Analyzer::~ContentLine_Analyzer()
 	delete [] buf;
 	}
 
-int ContentLine_Analyzer::HasPartialLine() const
+bool ContentLine_Analyzer::HasPartialLine() const
 	{
 	return buf && offset > 0;
 	}
@@ -150,11 +150,11 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 			last_char = 0; // clear last_char
 			plain_delivery_length -= deliver_plain;
-			is_plain = 1;
+			is_plain = true;
 
 			ForwardStream(deliver_plain, data, IsOrig());
 
-			is_plain = 0;
+			is_plain = false;
 
 			data += deliver_plain;
 			len -= deliver_plain;
@@ -339,4 +339,3 @@ void ContentLine_Analyzer::SkipBytes(int64_t length)
 	skip_pending = 0;
 	seq_to_skip = SeqDelivered() + length;
 	}
-

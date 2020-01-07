@@ -2,9 +2,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <csignal>
 #include <fcntl.h>
 #include <poll.h>
+
+#include <csignal>
+#include <sstream>
 
 #include "Supervisor.h"
 #include "Reporter.h"
@@ -753,7 +755,7 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	return rval;
 	}
 
-Supervisor::Node Supervisor::Node::FromJSON(const std::string& json)
+Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
 	{
 	Supervisor::Node rval;
 	auto j = nlohmann::json::parse(json);
@@ -901,7 +903,7 @@ void Supervisor::Node::InitCluster()
 	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
 	}
 
-RecordVal* Supervisor::Status(const std::string& node_name)
+RecordVal* Supervisor::Status(std::string_view node_name)
 	{
 	// TODO: handle node classes
 	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
@@ -950,26 +952,34 @@ std::string Supervisor::Create(const Supervisor::Node& node)
 	return "";
 	}
 
-bool Supervisor::Destroy(const std::string& node_name)
+bool Supervisor::Destroy(std::string_view node_name)
 	{
 	// TODO: handle node classes
 
-	if ( ! nodes.erase(node_name) )
+	auto it = nodes.find(node_name);
+
+	if ( it == nodes.end() )
 		return false;
 
-	std::string msg = fmt("destroy %s", node_name.data());
+	nodes.erase(it);
+
+	std::stringstream ss;
+	ss << "destroy " << node_name;
+	std::string msg = ss.str();
 	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 	return true;
 	}
 
-bool Supervisor::Restart(const std::string& node_name)
+bool Supervisor::Restart(std::string_view node_name)
 	{
 	// TODO: handle node classes
 
 	if ( nodes.find(node_name) == nodes.end() )
 		return false;
 
-	std::string msg = fmt("restart %s", node_name.data());
+	std::stringstream ss;
+	ss << "restart " << node_name;
+	std::string msg = ss.str();
 	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 	return true;
 	}

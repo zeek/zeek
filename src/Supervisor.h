@@ -4,6 +4,7 @@
 #include <optional>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <utility>
 #include <memory>
@@ -36,7 +37,7 @@ public:
 
 	struct Node {
 		static Node FromRecord(const RecordVal* node_val);
-		static Node FromJSON(const std::string& json);
+		static Node FromJSON(std::string_view json);
 
 		static void InitCluster();
 
@@ -67,11 +68,11 @@ public:
 
 	void ObserveChildSignal();
 
-	RecordVal* Status(const std::string& node_name);
+	RecordVal* Status(std::string_view node_name);
 	std::string Create(const RecordVal* node);
 	std::string Create(const Supervisor::Node& node);
-	bool Destroy(const std::string& node_name);
-	bool Restart(const std::string& node_name);
+	bool Destroy(std::string_view node_name);
+	bool Restart(std::string_view node_name);
 
 private:
 
@@ -94,7 +95,7 @@ private:
 	pid_t stem_pid;
 	std::unique_ptr<bro::PipePair> stem_pipe;
 	bro::Flare signal_flare;
-	std::map<std::string, Node> nodes;
+	std::map<std::string, Node, std::less<>> nodes;
 	std::string msg_buffer;
 };
 

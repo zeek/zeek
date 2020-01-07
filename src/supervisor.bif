@@ -75,3 +75,8 @@ function Supervisor::__init_cluster%(%): bool
 
 	return val_mgr->GetBool(false);
 	%}
+
+function Supervisor::__is_supervised%(%): bool
+	%{
+	return val_mgr->GetBool(zeek::supervised_node != nullptr);
+	%}

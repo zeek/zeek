@@ -39,6 +39,8 @@ export {
 	global destroy: function(nodes: string): bool;
 	global restart: function(nodes: string &default="all"): bool;
 
+	global is_supervised: function(): bool;
+
 	global Supervisor::stop_request: event();
 
 	global Supervisor::status_request: event(reqid: string, nodes: string);

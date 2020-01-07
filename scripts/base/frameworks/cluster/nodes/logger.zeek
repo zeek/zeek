@@ -23,4 +23,7 @@ redef Log::default_rotation_interval = 1 hrs;
 redef Log::default_mail_alarms_interval = 24 hrs;
 
 ## Use the cluster's archive logging script.
+
+@if ( ! Supervisor::is_supervised() )
 redef Log::default_rotation_postprocessor_cmd = "archive-log";
+@endif

@@ -4425,7 +4425,7 @@ Val* CallExpr::Eval(Frame* f) const
 			f->SetCall(this);
 
 		// TODO: statically cache overload index when directly using name
-		ret = fv.func->Call(v, f, fv.overload_idx);
+		ret = fv->GetFunc()->Call(v, f, fv->GetOverloadIndex());
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4485,7 +4485,8 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,
-		ingredients->priority);
+		ingredients->priority,
+		ingredients->scope);
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4516,7 +4517,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	dummy_func->GetFunc()->SetName(my_name.c_str());
 
 	Val* v = new Val(dummy_func);
 	Unref(dummy_func);
@@ -4533,13 +4534,14 @@ Val* LambdaExpr::Eval(Frame* f) const
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,
-		ingredients->priority);
+		ingredients->priority,
+		ingredients->scope);
 
 	lamb->AddClosure(outer_ids, f);
 
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
-	lamb->SetName(my_name.c_str());
+	lamb->GetFunc()->SetName(my_name.c_str());
 
 	auto rval = new Val(lamb);
 	Unref(lamb);

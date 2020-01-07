@@ -10,8 +10,11 @@
 
 #include "BroList.h"
 #include "Obj.h"
-#include "Debug.h"
+//#include "Debug.h"
 #include "Frame.h"
+#include "Type.h"
+#include "Scope.h"
+//#include "Stmt.h"
 
 class Val;
 class ListExpr;
@@ -21,7 +24,6 @@ class Frame;
 class ID;
 class CallExpr;
 class Func;
-class FuncOverload;
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
 
@@ -36,6 +38,7 @@ class FuncImpl : public BroObj {
 public:
 
 	FuncImpl(ID* id);
+	FuncImpl(ID* id, int i);
 	FuncImpl(const char* name);
 
 	virtual ~FuncImpl();
@@ -47,6 +50,12 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 	virtual void Describe(ODesc* d) const = 0;
+
+	void SetOverloadIndex (int i)
+		{ overload_idx = i; }
+
+	int GetOverloadIndex()
+		{ return overload_idx; }
 
 	Func* GetFunc() const
 		{ return func; }
@@ -61,6 +70,7 @@ public:
 protected:
 
 	Func* func;
+	int overload_idx = -1;
 	FuncType* type;
 };
 
@@ -71,11 +81,8 @@ public:
 
 	~Func() override;
 
-	const char* Name() const
-		{ return name.c_str(); }
-
-	FuncType* FType() const
-		{ return type; }
+	const char* Name() const { return name.c_str(); }
+	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	function_flavor Flavor() const
 		{ return type->Flavor(); }
@@ -92,7 +99,7 @@ public:
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(Stmt* new_body, id_list* new_inits,
 			     size_t new_frame_size, int priority = 0);
-	Val* Call(val_list* args, Frame* parent = 0) const;
+	Val* Call(val_list* args, Frame* parent = 0, int overload_idx = -1) const;
 
 	// TODO: get rid of this ?
 	const std::vector<FuncBody>& GetBodies() const;
@@ -114,36 +121,25 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
-	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static Func* GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
 	// TODO: could we change hashing to use the function name ?
-	uint32 GetUniqueFuncID() const
+	uint32_t GetUniqueFuncID() const
 		{ return unique_id; }
 
-	// TODO: could we change hashing to use the function name ?
-	static Func* GetFuncPtrByID(uint32 id)		
-
 	void Describe(ODesc* d) const override;
-
-	// Copies this function's state into other.
-	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
 
 	void DescribeDebug(ODesc* d, const val_list* args) const;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
-
 protected:
 
 	FuncType* type;
-	string name;
+	std::string name;
 	uint32_t unique_id;
-	static vector<Func*> unique_ids;
-	uint32 unique_id;
 	std::vector<FuncImpl*> overloads;
 	static std::vector<Func*> unique_ids;
 };
@@ -151,7 +147,6 @@ protected:
 class BroFunc : public FuncImpl {
 public:
 	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority, Scope* scope);
-	BroFunc(Func* f, BroType* type, Stmt* body, id_list* inits, int frame_size, int priority, Scope* scope);     
 	~BroFunc() override;
 
 	int IsPure() const override;
@@ -186,7 +181,7 @@ public:
 	broker::expected<broker::data> SerializeClosure() const;
 
 	void AddBody(Stmt* new_body, id_list* new_inits,
-		     size_t new_frame_size, int priority) override;
+		     size_t new_frame_size, int priority);
 
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)
@@ -202,6 +197,9 @@ public:
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 	             int priority, Scope* scope);
 
+	// Copies this function's state into other.
+	void CopyStateInto(BroFunc* other) const;
+
 	Scope* GetScope() const
 		{ return scope; }
 
@@ -214,7 +212,7 @@ private:
 	/**
 	 * Clones this function along with its closures.
 	 */
-	Func* DoClone() override;
+	BroFunc* DoClone();
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -233,7 +231,6 @@ private:
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
 	Scope* scope;
-	int frame_size;
 	std::vector<FuncBody> bodies;
 
 	static Stmt* AddInits(Stmt* body, id_list* inits);
@@ -290,7 +287,6 @@ struct function_ingredients {
 	Scope* scope;
 };
 
-extern vector<CallInfo> call_stack;
 extern std::vector<CallInfo> call_stack;
 extern std::string render_call_stack();
 

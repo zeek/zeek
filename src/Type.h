@@ -430,9 +430,6 @@ public:
 	void ClearYieldType(function_flavor arg_flav)
 		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
-	function_flavor Flavor() const { return flavor; }
-	string FlavorString() const;
-
 	// TODO: audit usages
 	int MatchesIndex(ListExpr*& index) const override;
 

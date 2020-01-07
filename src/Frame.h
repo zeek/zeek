@@ -9,10 +9,11 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
+//#include "Val.h"
 
 class Trigger;
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:
@@ -149,7 +150,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection) const;
+	Frame* SelectiveClone(const id_list& selection, BroFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.

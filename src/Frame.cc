@@ -145,7 +145,7 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-Frame* Frame::SelectiveClone(const id_list& selection) const
+Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 	{
 	if ( selection.length() == 0 )
 		return nullptr;
@@ -171,7 +171,7 @@ Frame* Frame::SelectiveClone(const id_list& selection) const
 			auto where = offset_map.find(std::string(id->Name()));
 			if ( where != offset_map.end() )
 				{
-				other->frame[where->second] = frame[where->second]->Clone();
+				clone_if_not_func(frame, where->second, func, other);
 				continue;
 				}
 			}
@@ -179,7 +179,7 @@ Frame* Frame::SelectiveClone(const id_list& selection) const
 		if ( ! frame[id->Offset()] )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
-		other->frame[id->Offset()] = frame[id->Offset()]->Clone();
+		clone_if_not_func(frame, id->Offset(), func, other);
 		}
 
 	/**

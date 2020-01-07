@@ -568,7 +568,7 @@ void end_func(Stmt* body)
 		{
 		auto bf = new BroFunc(id, body, inits, frame_size, priority, scope);
 		f->SetOverload(overload_idx, bf);
-		Func* f = new BroFunc(
+		BroFunc* f = new BroFunc(
 			ingredients->id,
 			ingredients->body,
 			ingredients->inits,

@@ -42,12 +42,23 @@ using ordered_map = tsl::ordered_map<Key, T, Hash, KeyEqual, AllocatorPair, Valu
 
 using ZeekJson = nlohmann::basic_json<ordered_map>;
 
+/*
 Val::Val(Func* f)
 	{
-	// TODO: audit usages to see if we can actually get an overload idx ?
 	val.func_val = {f, -1};
 	::Ref(val.func_val.func);
-	type = f->FType()->Ref();
+	type = f->GetType()->Ref();
+#ifdef DEBUG
+	bound_id = 0;
+#endif
+	}
+*/
+
+Val::Val(FuncImpl* f)
+	{
+	val.func_val = f;
+	::Ref(val.func_val);
+	type = val.func_val->type->Ref();
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -56,9 +67,9 @@ Val::Val(Func* f)
 Val::Val(Func* f, int overload_idx)
 	{
 	assert(overload_idx >= 0);
-	val.func_val = {f, overload_idx};
-	::Ref(val.func_val.func);
-	type = f->FType()->GetOverload(overload_idx)->type->Ref();
+	val.func_val = f->FType()->GetOverload(overload_idx);
+	::Ref(val.func_val->GetFunc());
+	type = val.func_val->type->Ref();
 #ifdef DEBUG
 	bound_id = 0;
 #endif

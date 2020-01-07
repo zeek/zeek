@@ -6,6 +6,7 @@
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "Val.h"
+#include "Var.h"
 #include "UID.h"
 #include <vector>
 

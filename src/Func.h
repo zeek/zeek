@@ -10,8 +10,11 @@
 
 #include "BroList.h"
 #include "Obj.h"
-#include "Debug.h"
-#include "Frame.h"
+//#include "Debug.h"
+//#include "Frame.h"
+#include "Type.h"
+#include "Scope.h"
+//#include "Stmt.h"
 
 class Val;
 class ListExpr;
@@ -21,7 +24,6 @@ class Frame;
 class ID;
 class CallExpr;
 class Func;
-class FuncOverload;
 
 typedef Val* (*built_in_func)(Frame* frame, val_list* args);
 
@@ -36,6 +38,7 @@ class FuncImpl : public BroObj {
 public:
 
 	FuncImpl(ID* id);
+	FuncImpl(ID* id, int i);
 	FuncImpl(const char* name);
 
 	virtual ~FuncImpl();
@@ -48,9 +51,20 @@ public:
 
 	virtual void Describe(ODesc* d) const = 0;
 
+	bool HasFunc ()
+		{ return func != nullptr; }
+
+	void SetOverloadIndex (int i)
+		{ overload_idx = i; }
+
+	int GetOverloadIndex() const
+		{ return overload_idx; }
+
+	void SetFunc(Func* f);
+	void SetType(FuncType* t);
+
 	Func* GetFunc() const
 		{ return func; }
-
 	FuncType* GetType() const
 		{ return type; }
 
@@ -59,8 +73,9 @@ public:
 	function_flavor Flavor() const;
 
 protected:
-
-	Func* func;
+	FuncImpl(Func* f, FuncType* t);
+	Func* func = nullptr;
+	int overload_idx = -1;
 	FuncType* type;
 };
 
@@ -71,11 +86,8 @@ public:
 
 	~Func() override;
 
-	const char* Name() const
-		{ return name.c_str(); }
-
-	FuncType* FType() const
-		{ return type; }
+	const char* Name() const { return name.c_str(); }
+	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	function_flavor Flavor() const
 		{ return type->Flavor(); }
@@ -90,9 +102,9 @@ public:
 	void SetOverload(int idx, FuncImpl* impl);
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(Stmt* new_body, id_list* new_inits,
-			     size_t new_frame_size, int priority = 0);
-	Val* Call(val_list* args, Frame* parent = 0) const;
+	//virtual void AddBody(Stmt* new_body, id_list* new_inits,
+	//		     size_t new_frame_size, int priority = 0);
+	Val* Call(val_list* args, Frame* parent = 0, int overload_idx = -1) const;
 
 	// TODO: get rid of this ?
 	const std::vector<FuncBody>& GetBodies() const;
@@ -106,44 +118,33 @@ public:
 	// TODO: get rid of this ? mark deprecated
 	FuncType* FType() const
 		{
-		assert(overloads.size() == 1);
-		return overloads[0]->GetType();
+		//assert(overloads.size() == 1);
+		return type;
 		}
 
 	virtual Func* DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
-	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static Func* GetFuncPtrByID(uint32_t id)
 		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
 
 	// TODO: could we change hashing to use the function name ?
-	uint32 GetUniqueFuncID() const
+	uint32_t GetUniqueFuncID() const
 		{ return unique_id; }
 
-	// TODO: could we change hashing to use the function name ?
-	static Func* GetFuncPtrByID(uint32 id)		
-
 	void Describe(ODesc* d) const override;
-
-	// Copies this function's state into other.
-	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
 
 	void DescribeDebug(ODesc* d, const val_list* args) const;
 
-	TraversalCode Traverse(TraversalCallback* cb) const;
-
 protected:
-
+	Func(std::string n, FuncType* t);
 	FuncType* type;
-	string name;
+	std::string name;
 	uint32_t unique_id;
-	static vector<Func*> unique_ids;
-	uint32 unique_id;
 	std::vector<FuncImpl*> overloads;
 	static std::vector<Func*> unique_ids;
 };
@@ -151,7 +152,6 @@ protected:
 class BroFunc : public FuncImpl {
 public:
 	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority, Scope* scope);
-	BroFunc(Func* f, BroType* type, Stmt* body, id_list* inits, int frame_size, int priority, Scope* scope);     
 	~BroFunc() override;
 
 	int IsPure() const override;
@@ -185,9 +185,6 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(Stmt* new_body, id_list* new_inits,
-		     size_t new_frame_size, int priority) override;
-
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)
 		{ outer_ids = std::move(ids); }
@@ -202,19 +199,25 @@ public:
 	void AddBody(Stmt* new_body, id_list* new_inits, int new_frame_size,
 	             int priority, Scope* scope);
 
+	// Copies this function's state into other.
+	void CopyStateInto(BroFunc* other) const;
+
 	Scope* GetScope() const
 		{ return scope; }
+
+	void SetScope (Scope* s)
+		{ scope = s; }
 
 	const std::vector<FuncBody>& GetBodies() const
 		{ return bodies; }
 
-private:
-	friend class Func;
-
+	// TODO: Get this function on the FuncImpl level
 	/**
 	 * Clones this function along with its closures.
 	 */
-	Func* DoClone() override;
+	BroFunc* DoClone();
+private:
+	friend class Func;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -223,8 +226,6 @@ private:
 	 * @param f the frame to be cloned.
 	 */
 	void SetClosureFrame(Frame* f);
-
-private:
 	size_t frame_size;
 
 	// List of the outer IDs used in the function.
@@ -233,10 +234,12 @@ private:
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
 	Scope* scope;
-	int frame_size;
 	std::vector<FuncBody> bodies;
 
 	static Stmt* AddInits(Stmt* body, id_list* inits);
+
+protected:
+	BroFunc (Func* f, FuncType* t);
 };
 
 class BuiltinFunc : public FuncImpl {
@@ -290,7 +293,6 @@ struct function_ingredients {
 	Scope* scope;
 };
 
-extern vector<CallInfo> call_stack;
 extern std::vector<CallInfo> call_stack;
 extern std::string render_call_stack();
 

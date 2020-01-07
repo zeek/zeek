@@ -64,6 +64,11 @@ hook myhook3(i: count)
 	print "myhook3", i;
 	}
 
+hook myhook3()
+	{
+	print "myhook3 overload with no parameters";
+	}
+
 hook myhook4() &priority=1
 	{
 	print "myhook4", 1;
@@ -78,6 +83,10 @@ hook myhook5(s: string)
 	{
 	print "myhook5", s;
 	}
+
+# The no parameeter overload of myhook5 should be initialized with that of
+# my hook3
+global myhook5: hook() = myhook3; # hook5 with no arguments declared as an overload
 
 hook myhook6(s: string)
 	{
@@ -99,6 +108,10 @@ event zeek_init()
 	print hook myhook2("nope");
 
 	print hook myhook3(8);
+
+	# Calling hook3 overload with no arguments
+	print hook myhook3();
+
 	print hook myhook4();
 	if ( hook myhook4() )
 		{
@@ -109,6 +122,9 @@ event zeek_init()
 	# invoked directly by name.
 	local h = myhook;
 	print hook h([$a=2, $b="it works"]);
+
+	# Calling the no parameter overload of myhook5
+	print hook myhook5();
 
 	if ( hook myhook5("test") && printMe("second part ran") )
 		print "myhook5 ran";

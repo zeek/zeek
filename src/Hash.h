@@ -21,7 +21,7 @@ class HashKey {
 public:
 	explicit HashKey(bro_int_t i);
 	explicit HashKey(bro_uint_t u);
-	explicit HashKey(uint32_t u);
+	explicit HashKey(uint32_t u, int i);
 	HashKey(const uint32_t u[], int n);
 	explicit HashKey(double d);
 	explicit HashKey(const void* p);
@@ -73,7 +73,10 @@ protected:
 
 	union {
 		bro_int_t i;
-		uint32_t u32;
+		struct {
+			uint32_t u32;
+			int i;
+		} u32;
 		double d;
 		const void* p;
 	} key_u;

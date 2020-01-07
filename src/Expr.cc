@@ -31,9 +31,9 @@ const char* expr_name(BroExprTag t)
 		"=", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
-		"()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]=", "func_ref"
+		"()", "function()", "event", "schedule",
+		"coerce", "record_coerce", "table_coerce",
+		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -85,6 +85,43 @@ void Expr::Delete(Frame* /* f */)
 	Internal("Expr::Delete called");
 	}
 
+int Expr::IsUnary() const
+	{
+	switch ( tag )
+		{
+		case EXPR_CLONE:
+		case EXPR_INCR:
+		case EXPR_DECR:
+		case EXPR_NOT: 
+		case EXPR_COMPLEMENT:
+		case EXPR_POSITIVE: 
+		case EXPR_NEGATE:
+
+		case EXPR_SIZE:
+		case EXPR_REF:
+		case EXPR_FUNC_REF:
+		case EXPR_FIELD:
+		case EXPR_HAS_FIELD:
+			
+		case EXPR_RECORD_CONSTRUCTOR:
+		case EXPR_TABLE_CONSTRUCTOR:
+		case EXPR_SET_CONSTRUCTOR:
+		case EXPR_VECTOR_CONSTRUCTOR:
+		case EXPR_FIELD_ASSIGN:
+
+		case EXPR_ARITH_COERCE:
+		case EXPR_RECORD_COERCE:
+		case EXPR_TABLE_COERCE:
+		case EXPR_VECTOR_COERCE:
+
+		case EXPR_FLATTEN:
+		case EXPR_CAST:
+			return true;
+
+		default:
+			return false;
+		}
+	}
 Expr* Expr::MakeLvalue()
 	{
 	if ( ! IsError() )
@@ -202,6 +239,34 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 		}
 	}
 
+static bool check_allowed_uninitialized_usage (ID* id) {
+	// This function exists to allow certain types
+	// to escape error checking when Eval is called but
+	// the variable is uninitialized
+	// Specifically, it is to allow event and hook flavored functions
+	// to be called even when they are uninitialized
+	return id->Type() && id->Type()->Tag() == TYPE_FUNC && 
+		(id->Type()->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK || id->Type()->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT);
+
+}
+
+static bool check_allowed_uninitialized_usage (Expr* e) {
+	// This function exists to allow certain types
+	// to escape error checking when Eval is called but
+	// the variable is uninitialized
+	// Specifically, it is to allow event and hook flavored functions
+	// to be called even when they are uninitialized
+	if ( e->Tag() == EXPR_NAME )
+		return check_allowed_uninitialized_usage(e->AsNameExpr()->Id());
+	else if ( e->IsUnary() )
+		{
+		UnaryExpr* eu = dynamic_cast<UnaryExpr*>(e);
+		return eu->Op() && check_allowed_uninitialized_usage(eu->Op());
+		}
+
+	return false;
+}
+
 NameExpr::NameExpr(ID* arg_id, bool const_init) : Expr(EXPR_NAME)
 	{
 	id = arg_id;
@@ -225,7 +290,6 @@ NameExpr::~NameExpr()
 Val* NameExpr::Eval(Frame* f) const
 	{
 	Val* v;
-
 	if ( id->AsType() )
 		return new Val(id->AsType(), true);
 
@@ -265,7 +329,27 @@ Expr* NameExpr::MakeLvalue()
 void NameExpr::Assign(Frame* f, Val* v)
 	{
 	if ( id->IsGlobal() )
+		{
+		if ( id->Type()->Tag() == TYPE_FUNC )
+			{
+			BroFunc* fv = dynamic_cast<BroFunc*>(v->AsFuncVal());
+			FuncType* ft = fv->GetType();
+			FuncType* idt = id->Type()->AsFuncType();
+			FuncOverload* o = ft->GetOverload(fv->GetOverloadIndex());
+			FuncOverload* to_add = idt->GetOverload(o->decl->args);
+			int overload_idx = to_add->index;
+
+			BroFunc* bf = fv->DoClone();
+			Func* func;
+			if ( !id->HasVal() )
+				func = new Func(id);
+			else
+				func = id->ID_Val()->AsFunc();
+			func->SetOverload(overload_idx, bf);
+			return;
+			}
 		id->SetVal(v);
+		}
 	else
 		f->SetElement(id, v);
 	}
@@ -2086,12 +2170,12 @@ static bool resolve_func_overload_expr(Expr*& e, BroType* t)
 	if ( ! same_type(tft->YieldType(), eft->YieldType()) )
 		return false;
 
-	auto overload_idx = eft->GetOverloadIndex(tft->Args());
+	int overload_idx = tft->GetOverloadIndex(eft->Args());
 
 	if ( overload_idx < 0 )
 		return false;
 
-	auto o = eft->GetOverload(overload_idx);
+	FuncOverload* o = tft->GetOverload(overload_idx);
 
 	if ( e->Tag() != EXPR_NAME )
 		{
@@ -2138,17 +2222,17 @@ FuncRefExpr::FuncRefExpr(Expr* arg_op, FuncType* target, int arg_overload_idx)
 
 Val* FuncRefExpr::Eval(Frame* f) const
 	{
-	auto fv = op->Eval(f);
+	Val* fv = op->Eval(f);
 
 	if ( ! fv )
 		return nullptr;
 
-	auto func = fv->AsFunc();
+	Func* func = fv->AsFunc();
 
 	if ( func->GetOverload(overload_idx) )
 		{
 		// TODO: pre-allocate all possible Vals for each overload ?
-		auto rval = new Val(func, overload_idx);
+		Val* rval = new Val(func, overload_idx);
 		Unref(fv);
 		return rval;
 		}
@@ -4418,14 +4502,15 @@ Val* CallExpr::Eval(Frame* f) const
 
 	if ( func_val && v )
 		{
-		const FuncVal& fv = func_val->AsFuncVal();
+		const FuncImpl* fv = func_val->AsFuncVal();
 		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )
 			f->SetCall(this);
 
 		// TODO: statically cache overload index when directly using name
-		ret = fv.func->Call(v, f, fv.overload_idx);
+		ret = fv->GetFunc()->Call(v,f);
+		//fv->GetFunc()->Call(v, f, fv->GetOverloadIndex());
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4480,13 +4565,16 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
 	::Ref(ingredients->body);
+
+	Func* f = new Func(ingredients->id);
 	BroFunc* dummy_func = new BroFunc(
 		ingredients->id,
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,
-		ingredients->priority);
-
+		ingredients->priority,
+		ingredients->scope);
+	f->AddOverload(dummy_func);
 	dummy_func->SetOuterIDs(outer_ids);
 
 	// Get the body's "string" representation.
@@ -4516,10 +4604,10 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	f->SetName(my_name.c_str());
 
 	Val* v = new Val(dummy_func);
-	Unref(dummy_func);
+	Unref(f);
 	id->SetVal(v); // id will unref v when its done.
 	id->SetType(ingredients->id->Type()->Ref());
 	id->SetConst();
@@ -4528,21 +4616,24 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 Val* LambdaExpr::Eval(Frame* f) const
 	{
 	::Ref(ingredients->body);
+	Func* func = new Func(ingredients->id);
 	BroFunc* lamb = new BroFunc(
 		ingredients->id,
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,
-		ingredients->priority);
+		ingredients->priority,
+		ingredients->scope);
+	func->AddOverload(lamb);
 
 	lamb->AddClosure(outer_ids, f);
 
 	// Set name to corresponding dummy func.
 	// Allows for lookups by the receiver.
-	lamb->SetName(my_name.c_str());
+	lamb->GetFunc()->SetName(my_name.c_str());
 
 	auto rval = new Val(lamb);
-	Unref(lamb);
+ 	Unref(func);
 	return rval;
 	}
 
@@ -4699,8 +4790,11 @@ Val* ListExpr::Eval(Frame* f) const
 		Val* ev = expr->Eval(f);
 		if ( ! ev )
 			{
-			RuntimeError("uninitialized list value");
-			Unref(v);
+			if ( !(expr->Type()->Tag() == TYPE_FUNC && check_allowed_uninitialized_usage(expr)) )
+				{
+				RuntimeError("uninitialized list value");
+				Unref(v);
+				}
 			return 0;
 			}
 

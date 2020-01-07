@@ -47,11 +47,12 @@ HashKey::HashKey(bro_uint_t u)
 	is_our_dynamic = 0;
 	}
 
-HashKey::HashKey(uint32_t u)
+HashKey::HashKey(uint32_t u, int i)
 	{
-	key_u.u32 = u;
+	key_u.u32.u32 = u;
+	key_u.u32.i = i;
 	key = (void*) &key_u;
-	size = sizeof(u);
+	size = sizeof(key_u);
 	hash = HashBytes(key, size);
 	is_our_dynamic = 0;
 	}

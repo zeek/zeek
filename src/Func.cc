@@ -106,14 +106,31 @@ std::string render_call_stack()
 	return rval;
 	}
 
-FuncImpl::FuncImpl(ID* id)
+FuncImpl::FuncImpl(Func* f, FuncType* t)
 	{
-	func = id->ID_Val()->AsFunc();
-	type = id->Type()->AsFuncType();
-
+	func = f;
+	type = t;
 	::Ref(func);
 	::Ref(type);
 	}
+
+FuncImpl::FuncImpl(ID* id)
+	{
+	if ( id && id->HasVal() ) 
+		{
+		func = id->ID_Val()->AsFunc();
+		::Ref(func);
+		}
+
+	if ( id && id->Type() )
+		{
+		type = id->Type()->AsFuncType();
+		::Ref(type);
+		}
+	}
+
+FuncImpl::FuncImpl(ID* id, int i) : FuncImpl::FuncImpl(id)
+	{ SetOverloadIndex(i); }
 
 FuncImpl::FuncImpl(const char* arg_name)
 	{
@@ -131,14 +148,32 @@ FuncImpl::FuncImpl(const char* arg_name)
 	func = new Func(id);
 	type = id->Type()->AsFuncType();
 	::Ref(type);
+	::Ref(func);
 
 	// TODO: can assume order of impl follows same order as decls ?
 	auto& os = func->Overloads();
 	assert( os.empty() ); // for the moment
 	func->AddOverload(this);
+	overload_idx = 0;
 
-	id->SetVal(new Val(func));
+	id->SetVal(new Val(func, overload_idx));
 	Unref(id);
+	}
+
+void FuncImpl::SetFunc (Func* f)
+	{
+	if ( HasFunc() )
+		Unref(func);
+	func = f;
+	::Ref(func);
+	}
+
+void FuncImpl::SetType (FuncType* t)
+	{
+	if ( type )
+		Unref(type);
+	type = t;
+	::Ref(type);
 	}
 
 FuncImpl::~FuncImpl()
@@ -167,6 +202,15 @@ Func::Func(ID* id)
 	::Ref(type);
 	}
 
+Func::Func(string n, FuncType* t)
+	{
+	type = t;
+	name = n;
+	unique_id = unique_ids.size();
+	unique_ids.emplace_back(this);
+
+	::Ref(type);
+	}
 Func::~Func()
 	{
 	Unref(type);
@@ -186,28 +230,40 @@ FuncImpl* Func::GetOverload(int idx) const
 	return overloads[idx];
 	}
 
-int Func::AddOverload(FuncImpl* impl)
-	{
-	if ( impl )
-		::Ref(impl);
-
-	overloads.push_back(impl);
-	return overloads.size() - 1;
-	}
-
 void Func::SetOverload(int idx, FuncImpl* impl)
 	{
 	if ( impl )
 		::Ref(impl);
+	else
+		return;
 
-	auto size = static_cast<int>(overloads.size());
+	impl->SetOverloadIndex(idx);
+	impl->SetFunc(this);
+
+	//type->GetOverload(idx)->type->SetInit(true);
+
+	int size = static_cast<int>(overloads.size());
 
 	if ( idx >= size )
 		for ( auto i = size; i <= idx; ++i )
 			overloads.push_back(nullptr);
+	else if ( idx < 0 )
+		reporter->InternalError("Index under 0 in Func::SetOverload");
+	else if ( overloads[idx] && overloads[idx]->GetOverloadIndex() != idx )
+		{
+		SetOverload(overloads[idx]->GetOverloadIndex(),overloads[idx]);
+		Unref(overloads[idx]);
+		}
 
-	Unref(overloads[idx]);
 	overloads[idx] = impl;
+	}
+
+int Func::AddOverload(FuncImpl* impl)
+	{
+	int index = overloads.size();
+	SetOverload(index, impl);
+
+	return index;
 	}
 
 Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
@@ -273,15 +329,17 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 	return nullptr;
 	}
 
-void Func::AddOverload(FuncOverload* fo)
+/*void Func::AddOverload(FuncOverload* fo)
 	{
 	overloads.emplace_back(fo);
 	}
-
+*/
 Func* Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
+
+	return new Func(Name(),FType()->ShallowClone());
 	::Ref(this);
 	return this;
 	}
@@ -379,20 +437,20 @@ TraversalCode BroFunc::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-void Func::CopyStateInto(Func* other) const
+void BroFunc::CopyStateInto(BroFunc* other) const
 	{
-	std::for_each(bodies.begin(), bodies.end(), [](const Body& b) { Ref(b.stmts); });
+	std::for_each(bodies.begin(), bodies.end(), [](const FuncBody& b) { Ref(b.stmts); });
 
 	other->bodies = bodies;
 	other->scope = scope;
-	other->kind = kind;
-
+	/*
 	Ref(type);
-	other->type = type;
-
-	other->name = name;
-	other->unique_id = unique_id;
+	other->func->type = func->type;
+	other->func->name = func->name;
+	other->func->unique_id = func->unique_id;
+	*/
 	}
+
 TraversalCode BuiltinFunc::Traverse(TraversalCallback* cb) const
 	{
 	Scope* old_scope = cb->current_scope;
@@ -478,7 +536,7 @@ static std::pair<bool, Val*> HandlePluginResult(const FuncImpl* func, std::pair<
 	}
 
 BroFunc::BroFunc(ID* id, Stmt* arg_body,
-                 id_list* aggr_inits, int arg_frame_size, int priority,
+                 id_list* aggr_inits, size_t arg_frame_size, int priority,
                  Scope* arg_scope)
 : FuncImpl(id)
 	{
@@ -494,19 +552,22 @@ BroFunc::BroFunc(ID* id, Stmt* arg_body,
 		}
 	}
 
+BroFunc::BroFunc (Func* f, FuncType* t) : FuncImpl(f,t) {}
+
 BroFunc::~BroFunc()
 	{
 	std::for_each(bodies.begin(), bodies.end(),
-		[](Body& b) { Unref(b.stmts); });
+		[](FuncBody& b) { Unref(b.stmts); });
 
 	if ( ! weak_closure_ref )
 		Unref(closure);
+
 	}
 
 int BroFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
-		[](const Body& b) { return b.stmts->IsPure(); });
+		[](const FuncBody& b) { return b.stmts->IsPure(); });
 	}
 
 Val* BroFunc::Call(val_list* args, Frame* parent) const
@@ -755,13 +816,14 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	return true;
 	}
 
-
-Func* BroFunc::DoClone()
+BroFunc* BroFunc::DoClone()
 	{
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	BroFunc* other = new BroFunc();
-
+	//printf("Cloning Func %s\n",func->Name());
+	Func* f = func->DoClone();
+	BroFunc* other = new BroFunc(f,type);
+	f->AddOverload(other);
 	CopyStateInto(other);
 
 	other->frame_size = frame_size;

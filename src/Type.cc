@@ -50,7 +50,10 @@ const char* type_name(TypeTag t)
 	};
 
 	if ( int(t) >= NUM_TYPES )
+	{
+		printf("fhewoihfiwehfwehfjksdhfjsdafhsd\n");
 		return "type_name(): not a type tag";
+	}
 
 	return type_names[int(t)];
 	}
@@ -526,6 +529,16 @@ int FuncType::AddOverload(RecordType* args)
 
 int FuncType::AddOverload(RecordType* args, bool solitary)
 	{
+	return SetOverload(overloads.size(), args, solitary);
+	}
+
+int FuncType::SetOverload(int overload_idx, RecordType* args)
+	{
+	return SetOverload(overload_idx, args, false);
+	}
+
+int FuncType::SetOverload(int overload_idx, RecordType* args, bool solitary)
+	{
 	auto odecl = new FuncDecl();
 	odecl->args = args;
 	odecl->arg_types = new TypeList();
@@ -595,7 +608,10 @@ int FuncType::AddOverload(RecordType* args, bool solitary)
 				}
 			}
 
-		if ( ! have_unique_param )
+		if ( ! have_unique_param && o->index == overload_idx )
+			return -1;
+
+		else if ( ! have_unique_param )
 			{
 			args->Error("function parameters would create ambiguous overload",
 			            o->decl->args);
@@ -603,13 +619,10 @@ int FuncType::AddOverload(RecordType* args, bool solitary)
 			}
 		}
 
-	auto rval = -1;
-
 	if ( added )
 		{
-		rval = overloads.size();
 		auto o = new FuncOverload();
-		o->index = rval;
+		o->index = overload_idx;
 
 		if ( solitary )
 			o->type = this->Ref()->AsFuncType();
@@ -619,16 +632,27 @@ int FuncType::AddOverload(RecordType* args, bool solitary)
 			                       flavor, true);
 
 		o->decl = odecl;
-		overloads.emplace_back(o);
+		if ( overload_idx >= overloads.size() )
+			overloads.emplace_back(o);
+		else
+			{
+			assert(overload_idx >= 0);
+			FuncOverload* del_o = overloads[overload_idx];
+			Unref(del_o->decl->args);
+			Unref(del_o->decl->arg_types);
+			delete del_o->decl;
+			delete del_o;
+			overloads[overload_idx] = o;
+			}
+		return overload_idx;
 		}
 	else
 		{
 		Unref(odecl->args);
 		Unref(odecl->arg_types);
 		delete odecl;
+		return -1;
 		}
-
-	return rval;
 	}
 
 int FuncType::GetOverloadIndex(RecordType* matching_args) const
@@ -657,13 +681,14 @@ FuncOverload* FuncType::GetOverload(int idx) const
 FuncType* FuncType::ShallowClone()
 	{
 	auto f = new FuncType();
-	f->yield = yield->Ref();
+	if ( flavor == FUNC_FLAVOR_FUNCTION )
+		f->yield = yield->Ref();
 	f->flavor = flavor;
 
-	for ( auto& o : overloads )
+	for ( FuncOverload* o : overloads )
 		{
 		auto co = new FuncOverload();
-		auto codecl = new FuncDecl();
+		co->decl = new FuncDecl();
 		co->index = o->index;
 		co->type = o->type->Ref()->AsFuncType();
 		co->decl->args = o->decl->args->Ref()->AsRecordType();
@@ -760,6 +785,7 @@ int FuncType::MatchesIndex(ListExpr*& index) const
 
 int FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
+	return true;
 	// TODO: implement for overloads
 	assert(overloads.size() == 1);
 	auto arg_types = overloads[0]->decl->arg_types;

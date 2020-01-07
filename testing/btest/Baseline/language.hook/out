@@ -6,6 +6,8 @@ F
 T
 myhook3, 8
 T
+myhook3 overload with no parameters
+T
 myhook4, 2
 myhook4, 1
 T
@@ -17,6 +19,8 @@ myhook return F
 myhook return T
 myhook, &priority=5, [a=37, b=goobye world]
 F
+myhook3 overload with no parameters
+T
 myhook5, test
 second part ran
 myhook5 ran

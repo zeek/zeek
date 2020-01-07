@@ -13,6 +13,7 @@
 
 class Trigger;
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:

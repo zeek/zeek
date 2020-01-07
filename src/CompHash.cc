@@ -142,7 +142,9 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			{
 			uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
 			*kp = v->AsFunc()->GetUniqueFuncID();
-			kp1 = reinterpret_cast<char*>(kp+1);
+			int* kp2 = reinterpret_cast<int*>(kp+1);
+			*kp2 = v->AsFuncVal()->GetOverloadIndex();
+			kp1 = reinterpret_cast<char*>(kp2+1);
 			break;
 			}
 
@@ -422,8 +424,9 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
+
 		if ( v->Type()->Tag() == TYPE_FUNC )
-			return new HashKey(v->AsFunc()->GetUniqueFuncID());
+			return new HashKey(v->AsFunc()->GetUniqueFuncID(), v->AsFuncVal()->GetOverloadIndex());
 
 		if ( v->Type()->Tag() == TYPE_PATTERN )
 			{
@@ -495,7 +498,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 		switch ( bt->Tag() ) {
 		case TYPE_FUNC:
 			{
-			sz = SizeAlign(sz, sizeof(uint32_t));
+			sz = SizeAlign(sz, sizeof(uint32_t)+sizeof(int));
 			break;
 			}
 
@@ -854,14 +857,12 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		case TYPE_FUNC:
 			{
 			const uint32_t* const kp = AlignType<uint32_t>(kp0);
-			kp1 = reinterpret_cast<const char*>(kp+1);
+			
 
 			Func* f = Func::GetFuncPtrByID(*kp);
 
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
-
-			pval = new Val(f);
 
 			if ( ! pval->Type() )
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
@@ -876,7 +877,19 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			else if ( t->Tag() == TYPE_FUNC &&
 				  pval->Type()->Tag() != TYPE_FUNC )
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
+
+
+			const int* kp2 = reinterpret_cast<const int*>(kp+1);
+			FuncImpl* bf = f->GetOverload(*kp2);
+			pval = new Val(bf);
+
+			if ( !bf )
+				reporter->InternalError("failed to look up function overload index %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp2);
+
+			kp1 = reinterpret_cast<const char*>(kp2+1);
+
 			}
+
 			break;
 
 		case TYPE_PATTERN:

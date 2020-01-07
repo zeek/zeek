@@ -120,6 +120,9 @@ public:
 	// True if the expression is in error (to alleviate error propagation).
 	int IsError() const	{ return type && type->Tag() == TYPE_ERROR; }
 
+	// True if the expression is a Unary Expression
+	int IsUnary() const;
+
 	// Mark expression as in error.
 	void SetError()		{ SetType(error_type()); }
 	void SetError(const char* msg);

@@ -193,7 +193,7 @@ void push_existing_scope(Scope* scope)
 
 void push_scope(ID* id, attr_list* attrs, int overload_idx)
 	{
-	top_scope = new Scope(id, attrs);
+	top_scope = new Scope(id, attrs, overload_idx);
 	scopes.push_back(top_scope);
 	}
 

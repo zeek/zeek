@@ -1,1 +1,1 @@
-1362692527.080972 warning: non-void function returning without a value: add_extension
+1362692527.080972 warning: non-void function returning without a value: Log::default_ext_func

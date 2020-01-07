@@ -20,6 +20,7 @@
 #include "IPAddr.h"
 #include "DebugLogger.h"
 #include "RE.h"
+#include "Func.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -32,8 +33,6 @@
 #define ICMP_PORT_MASK	0x30000
 
 class Val;
-class BroFunc;
-class Func;
 class BroFile;
 class PrefixTable;
 
@@ -56,11 +55,6 @@ class VectorVal;
 
 class TableEntryVal;
 
-struct FuncVal {
-	Func* func;
-	int overload_idx;
-};
-
 typedef union {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -78,7 +72,7 @@ typedef union {
 	double double_val;
 
 	BroString* string_val;
-	FuncVal func_val;
+	FuncImpl* func_val;
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
@@ -149,7 +143,7 @@ public:
 #endif
 		}
 
-	explicit Val(Func* f);
+	explicit Val(FuncImpl* f);
 
 	Val(Func* f, int overload_idx);
 
@@ -233,12 +227,8 @@ public:
 	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
 	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
-<<<<<<< HEAD
-	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
+	//CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-=======
-	CONST_ACCESSOR(TYPE_TABLE, PDict(TableEntryVal)*, table_val, AsTable)
->>>>>>> Add first-class support for overloaded functions
 	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
@@ -248,10 +238,10 @@ public:
 		{
 		// TODO: audit usages
 		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name);
-		return val.func_val.func;
+		return val.func_val->GetFunc();
 		}
 
-	const FuncVal& AsFuncVal() const
+	const FuncImpl* AsFuncVal() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::FuncVal", type_name);
 		return val.func_val;
@@ -290,11 +280,17 @@ public:
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
 
+	FuncImpl* AsFuncVal()
+		{
+		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::FuncVal", type_name);
+		return val.func_val;
+		}
+
 	Func* AsFunc()
 		{
 		// TODO: audit usages
 		CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
-		return val.func_val.func;
+		return val.func_val->GetFunc();
 		}
 
 	const IPPrefix& AsSubNet()

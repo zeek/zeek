@@ -165,8 +165,7 @@ export {
 	## a record with all of the fields to be included in the log. The
 	## default function included here does not return a value, which indicates
 	## that no extensions are added.
-	const Log::default_ext_func: function(path: string): any =
-		function(path: string) { } &redef;
+	const Log::default_ext_func: function(path: string): any &redef;
 
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
@@ -258,7 +257,7 @@ export {
 		## Function to collect a log extension value.  If not specified,
 		## no log extension will be provided for the log.
 		## The return value from the function *must* be a record.
-		ext_func: function(path: string): any &default=default_ext_func;
+		ext_func: function(path: string): any &optional;
 
 		## Rotation interval. Zero disables rotation.
 		interv: interval &default=default_rotation_interval;

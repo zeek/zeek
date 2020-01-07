@@ -533,6 +533,17 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		return false;
 		}
 
+	static ID* default_ext_func;
+
+	if ( ! default_ext_func )
+		{
+		ID* func_id = global_scope()->Lookup("Log::default_ext_func");
+		default_ext_func = func_id;
+		if ( !func_id )
+			reporter->Error("No Log::default_ext_func found");
+		}
+
+
 	Stream* stream = FindStream(id);
 	if ( ! stream )
 		return false;
@@ -570,7 +581,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->field_name_map = field_name_map->Ref()->AsTableVal();
 	filter->scope_sep = scope_sep->AsString()->CheckString();
 	filter->ext_prefix = ext_prefix->AsString()->CheckString();
-	filter->ext_func = ext_func ? ext_func->AsFunc() : 0;
+	filter->ext_func = ext_func ? ext_func->AsFunc() : default_ext_func ? default_ext_func->HasVal() ? default_ext_func->ID_Val()->AsFunc() : 0 : 0;
 
 	Unref(name);
 	Unref(pred);
@@ -599,11 +610,6 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		if ( yt->Tag() == TYPE_RECORD )
 			{
 			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
-			}
-		else if ( yt->Tag() == TYPE_VOID )
-			{
-			// This is a special marker for the default no-implementation
-			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{

@@ -2,7 +2,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <signal.h>
+#include <csignal>
 #include <fcntl.h>
 #include <poll.h>
 
@@ -720,6 +720,11 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	if ( iface_val )
 		rval.interface = iface_val->AsString()->CheckString();
 
+	auto directory_val = node->Lookup("directory");
+
+	if ( directory_val )
+		rval.directory = directory_val->AsString()->CheckString();
+
 	auto cluster_table_val = node->Lookup("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
 	auto c = cluster_table->InitForIteration();
@@ -754,10 +759,11 @@ Supervisor::Node Supervisor::Node::FromJSON(const std::string& json)
 	auto j = nlohmann::json::parse(json);
 	rval.name = j["name"];
 
-	auto it = j.find("interface");
-
-	if ( it != j.end() )
+	if ( auto it = j.find("interface"); it != j.end() )
 		rval.interface = *it;
+
+	if ( auto it = j.find("directory"); it != j.end() )
+		rval.directory= *it;
 
 	auto cluster = j["cluster"];
 
@@ -802,6 +808,9 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 	if ( interface )
 		rval->Assign(rt->FieldOffset("interface"), new StringVal(*interface));
+
+	if ( directory )
+		rval->Assign(rt->FieldOffset("directory"), new StringVal(*directory));
 
 	auto tt = BifType::Record::Supervisor::Node->FieldType("cluster");
 	auto cluster_val = new TableVal(tt->AsTableType());
@@ -925,6 +934,15 @@ std::string Supervisor::Create(const Supervisor::Node& node)
 
 	if ( nodes.find(node.name) != nodes.end() )
 		return fmt("node with name '%s' already exists", node.name.data());
+
+	if ( node.directory )
+		{
+		auto res = ensure_intermediate_dirs(node.directory->data());
+
+		if ( ! res )
+			return fmt("failed to create working directory %s\n",
+			           node.directory->data());
+		}
 
 	auto msg = make_create_message(node);
 	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);

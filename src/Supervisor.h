@@ -45,6 +45,7 @@ public:
 
 		std::string name;
 		std::optional<std::string> interface;
+		std::optional<std::string> directory;
 		std::map<std::string, ClusterEndpoint> cluster;
 
 		pid_t pid = 0;

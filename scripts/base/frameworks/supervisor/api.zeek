@@ -22,6 +22,7 @@ export {
 	type Node: record {
 		name: string;
 		interface: string &optional;
+		directory: string &optional;
 		cluster: table[string] of ClusterEndpoint &default=table();
 
 		# TODO: separate node config fields from status fields ?

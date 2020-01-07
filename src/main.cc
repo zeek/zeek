@@ -800,6 +800,18 @@ int main(int argc, char** argv)
 				exit(1);
 				}
 			}
+
+		if ( zeek::supervised_node->directory )
+			{
+			if ( chdir(zeek::supervised_node->directory->data()) )
+				{
+				fprintf(stderr, "supervised node %s failed to chdir to %s: %s\n",
+				        node_name.data(),
+				        zeek::supervised_node->directory->data(),
+				        strerror(errno));
+				exit(1);
+				}
+			}
 		}
 
 	std::set_new_handler(bro_new_handler);

@@ -69,6 +69,11 @@ function Supervisor::restart(nodes: string): bool
 	return Supervisor::__restart(nodes);
 	}
 
+function is_supervisor(): bool
+	{
+	return Supervisor::__is_supervisor();
+	}
+
 function is_supervised(): bool
 	{
 	return Supervisor::__is_supervised();

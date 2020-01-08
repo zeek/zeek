@@ -80,3 +80,8 @@ function Supervisor::__is_supervised%(%): bool
 	%{
 	return val_mgr->GetBool(zeek::supervised_node != nullptr);
 	%}
+
+function Supervisor::__is_supervisor%(%): bool
+	%{
+	return val_mgr->GetBool(zeek::supervisor != nullptr);
+	%}

@@ -264,6 +264,65 @@ struct zeek_options {
 	std::set<std::string> plugins_to_load;
 	std::vector<std::string> scripts_to_load;
 	std::vector<std::string> script_options_to_set;
+
+	/**
+	 * Unset options that aren't meant to be used by the supervisor, but may
+	 * make sense for supervised nodes to inherit (as opposed to flagging
+	 * as an error an exiting outright if used in supervisor-mode).
+	 */
+	void filter_supervisor_options()
+		{
+		pcap_filter = {};
+		interfaces = {};
+		pcap_files = {};
+		signature_files = {};
+		pcap_output_file = {};
+		}
+
+	/**
+	 * Inherit certain options set in the original supervisor parent process
+	 * and discard the rest.
+	 * @param node  the supervised-node whose Zeek options are to be modified.
+	 */
+	void filter_supervised_node_options(zeek::Supervisor::Node* node)
+		{
+		auto og = *this;
+		*this = {};
+
+		debug_log_streams = og.debug_log_streams;
+		debug_script_tracing_file = og.debug_script_tracing_file;
+		script_code_to_exec = og.script_code_to_exec;
+		script_prefixes = og.script_prefixes;
+
+		signature_re_level = og.signature_re_level;
+		ignore_checksums = og.ignore_checksums;
+		use_watchdog = og.use_watchdog;
+		pseudo_realtime = og.pseudo_realtime;
+		dns_mode = og.dns_mode;
+
+		bare_mode = og.bare_mode;
+		perftools_check_leaks = og.perftools_check_leaks;
+		perftools_profile = og.perftools_profile;
+
+		pcap_filter = og.pcap_filter;
+		signature_files = og.signature_files;
+
+		// TODO: These are likely to be handled in a node-specific or
+		// use-case-specific way.  e.g. interfaces is already handled for the
+		// "cluster" use-case, but don't have supervised-pcap-reading
+		// functionality yet.
+		/* interfaces = og.interfaces; */
+		/* pcap_files = og.pcap_files; */
+
+		pcap_output_file = og.pcap_output_file;
+		random_seed_input_file = og.random_seed_input_file;
+		random_seed_output_file = og.random_seed_output_file;
+		process_status_file = og.process_status_file;
+
+		plugins_to_load = og.plugins_to_load;
+		scripts_to_load = og.scripts_to_load;
+		script_options_to_set = og.script_options_to_set;
+		}
 };
 
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
@@ -828,28 +887,11 @@ int main(int argc, char** argv)
 		return context.run();
 		}
 
-	auto use_supervisor = [&]() -> bool { return options.supervised_workers > 0; };
 	pid_t stem_pid = 0;
 	std::unique_ptr<bro::PipePair> supervisor_pipe;
-
-	if ( use_supervisor() )
-		{
-		// TODO: the SIGCHLD handler should be set before fork()
-		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
-		stem_pid = fork();
-
-		if ( stem_pid == -1 )
-			{
-			fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
-			        strerror(errno));
-			exit(1);
-			}
-
-		if ( stem_pid == 0 )
-			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
-		}
-
 	auto zeek_stem_env = getenv("ZEEK_STEM");
+	auto is_supervisor = [](const zeek_options& os) -> bool
+		{ return os.supervised_workers > 0; };
 
 	if ( zeek_stem_env )
 		{
@@ -871,13 +913,28 @@ int main(int argc, char** argv)
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
 		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
+	else if ( is_supervisor(options) )
+		{
+		// TODO: the SIGCHLD handler should be set before fork()
+		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
+		stem_pid = fork();
+
+		if ( stem_pid == -1 )
+			{
+			fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		if ( stem_pid == 0 )
+			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		}
 
 	if ( zeek::supervised_node )
 		{
-		// TODO: possibly can inherit some command-line options?
-		// In case stem gets revived via exec(), would need to pass along
-		// original arguments to it.
-		options = {};
+		// TODO: probably all of this block could move to a new
+		// zeek::supervised_node->Init(options) method
+		options.filter_supervised_node_options(zeek::supervised_node);
 		const auto& node_name = zeek::supervised_node->name;
 
 		if ( zeek::supervised_node->interface )
@@ -967,7 +1024,7 @@ int main(int argc, char** argv)
 
 		if ( ! getenv("ZEEK_DEBUG_LOG_STDERR") )
 			{
-			if ( use_supervisor() )
+			if ( is_supervisor(options) )
 				debug_log_name = "debug-supervisor";
 			else
 				debug_log_name = "debug";
@@ -977,19 +1034,16 @@ int main(int argc, char** argv)
 		}
 #endif
 
-	if ( use_supervisor() )
+	if ( is_supervisor(options) )
 		{
 		zeek::Supervisor::Config cfg = {};
 		cfg.pcaps = options.pcap_files;
 		cfg.num_workers = options.supervised_workers;
 		cfg.zeek_exe_path = zeek_exe_path;
+		options.filter_supervisor_options();
 		zeek::supervisor = new zeek::Supervisor(std::move(cfg),
 		                                        std::move(supervisor_pipe),
 		                                        stem_pid);
-
-		// TODO: what options actually apply to the supervisor ?
-		options.pcap_files = {};
-		options.interfaces = {};
 		}
 
 	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
@@ -1044,7 +1098,7 @@ int main(int argc, char** argv)
 	     options.interfaces.size() == 0 &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
-	     ! use_supervisor() && ! zeek::supervised_node )
+	     ! is_supervisor(options) && ! zeek::supervised_node )
 		add_input_file("-");
 
 	for ( const auto& script_option : options.script_options_to_set )

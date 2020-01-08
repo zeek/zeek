@@ -1,4 +1,12 @@
 
+3.1.0-dev.361 | 2020-01-08 10:29:59 -0800
+
+  * Increase timeout for a few btests (Jon Siwek, Corelight)
+
+3.1.0-dev.360 | 2020-01-07 20:58:19 -0800
+
+  * Preserve optimization setting for sanitizer build (Jon Siwek, Corelight)
+
 3.1.0-dev.359 | 2020-01-06 16:40:55 -0800
 
   * Fix build warning in X509 plugin (Tim Wojtulewicz, Corelight)

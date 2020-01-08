@@ -961,6 +961,9 @@ int main(int argc, char** argv)
 				exit(1);
 				}
 			}
+
+		for ( const auto& s : zeek::supervised_node->scripts )
+			options.scripts_to_load.emplace_back(s);
 		}
 
 	double time_start = current_time(true);

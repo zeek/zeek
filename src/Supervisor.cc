@@ -732,6 +732,14 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	if ( directory_val )
 		rval.directory = directory_val->AsString()->CheckString();
 
+	auto scripts_val = node->Lookup("scripts")->AsVectorVal();
+
+	for ( auto i = 0; i < scripts_val->Size(); ++i )
+		{
+		auto script = scripts_val->Lookup(i)->AsStringVal()->ToStdString();
+		rval.scripts.emplace_back(std::move(script));
+		}
+
 	auto cluster_table_val = node->Lookup("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
 	auto c = cluster_table->InitForIteration();
@@ -772,6 +780,11 @@ Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
 
 	if ( auto it = j.find("directory"); it != j.end() )
 		rval.directory= *it;
+
+	auto scripts = j["scripts"];
+
+	for ( auto& s : scripts )
+		rval.scripts.emplace_back(std::move(s));
 
 	auto cluster = j["cluster"];
 
@@ -819,6 +832,13 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 	if ( directory )
 		rval->Assign(rt->FieldOffset("directory"), new StringVal(*directory));
+
+	auto st = BifType::Record::Supervisor::Node->FieldType("scripts");
+	auto scripts_val = new VectorVal(st->AsVectorType());
+	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
+
+	for ( const auto& s : scripts )
+		scripts_val->Assign(scripts_val->Size(), new StringVal(s));
 
 	auto tt = BifType::Record::Supervisor::Node->FieldType("cluster");
 	auto cluster_val = new TableVal(tt->AsTableType());

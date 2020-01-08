@@ -10,8 +10,11 @@ memory errors and/or leaks.  Simply configure like::
 
   ./configure --build-type=debug --sanitizers=address
 
-Any execution of the Zeek binary then checks for memory-related errors and
-leaks automatically.  This includes any runs of regression test suite(s).
+Any execution of the Zeek binary then checks for memory-related errors
+automatically.  This includes any runs of regression test suite(s).  On Linux,
+leak checking is also enabled by default.  To enable leak checking for macOS,
+make sure to set environment variable ``ASAN_OPTIONS=detect_leaks=1`` as
+AddressSanitizer may not enable it by default like it does on Linux.
 
 Either GCC or Clang compilers support address/leak sanitizers, except Apple's
 clang may not implement the leak sanitizer.  For the CI infrastructure, GCC

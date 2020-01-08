@@ -1,4 +1,11 @@
 
+3.0.2-dev.29 | 2020-02-22 16:16:59 -0800
+
+  * fix NTLM field value access (Justin Azoff)
+
+    The fields being checked for existence were not the same as the fields
+    being accessed.
+
 3.0.2-dev.28 | 2020-02-22 16:10:01 -0800
 
   * Update Paraglob and Broker submodules (Jon Siwek, Corelight)

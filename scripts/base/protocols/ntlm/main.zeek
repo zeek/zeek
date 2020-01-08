@@ -65,9 +65,9 @@ event ntlm_challenge(c: connection, challenge: NTLM::Challenge) &priority=5
 	if ( challenge?$target_info )
 		{
 		local ti = challenge$target_info;
-		if ( ti?$nb_domain_name )
+		if ( ti?$nb_computer_name )
 			c$ntlm$server_nb_computer_name = ti$nb_computer_name;
-		if ( ti?$dns_domain_name )
+		if ( ti?$dns_computer_name )
 			c$ntlm$server_dns_computer_name = ti$dns_computer_name;
 		if ( ti?$dns_tree_name )
 			c$ntlm$server_tree_name = ti$dns_tree_name;

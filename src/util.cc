@@ -2248,50 +2248,54 @@ TEST_CASE("util json_escape_utf8")
 
 string json_escape_utf8(const string& val)
 	{
-	string result;
-	result.reserve(val.length());
-
 	auto val_data = reinterpret_cast<const unsigned char*>(val.c_str());
+	auto val_size = val.length();
+
+	// Reserve at least the size of the existing string to avoid resizing the string in the best-case
+	// scenario where we don't have any multi-byte characters.
+	string result;
+	result.reserve(val_size);
 
 	size_t idx;
-	for ( idx = 0; idx < val.length(); )
+	for ( idx = 0; idx < val_size; )
 		{
-		// Normal ASCII characters plus a few of the control characters can be inserted directly. The rest of
-		// the control characters should be escaped as regular bytes.
-		if ( ( val[idx] >= 32 && val[idx] <= 127 ) ||
-		       val[idx] == '\b' || val[idx] == '\f' || val[idx] == '\n' || val[idx] == '\r' || val[idx] == '\t' )
+		char ch = val[idx];
+
+		// Normal ASCII characters plus a few of the control characters can be inserted directly. The
+		// rest of the control characters should be escaped as regular bytes.
+		if ( ( ch >= 32 && ch <= 127 ) ||
+		       ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' )
 			{
-			result.push_back(val[idx]);
+			result.push_back(ch);
 			++idx;
 			continue;
 			}
-		else if ( val[idx] >= 0 && val[idx] < 32 )
+		else if ( ch >= 0 && ch < 32 )
 			{
-			result.append(json_escape_byte(val[idx]));
+			result.append(json_escape_byte(ch));
 			++idx;
 			continue;
 			}
 
 		// Find out how long the next character should be.
-		unsigned int char_size = getNumBytesForUTF8(val[idx]);
+		unsigned int char_size = getNumBytesForUTF8(ch);
 
-		// If it says that it's a single character or it's not an invalid string UTF8 sequence, insert the one
-		// escaped byte into the string, step forward one, and go to the next character.
-		if ( char_size == 0 || idx+char_size > val.length() || isLegalUTF8Sequence(val_data+idx, val_data+idx+char_size) == 0 )
+		// If it says that it's a single character or it's not an valid string UTF8 sequence, insert
+		// the one escaped byte into the string, step forward one, and go to the next character.
+		if ( char_size == 0 || idx+char_size > val_size || isLegalUTF8Sequence(val_data+idx, val_data+idx+char_size) == 0 )
 			{
-			result.append(json_escape_byte(val[idx]));
+			result.append(json_escape_byte(ch));
 			++idx;
 			continue;
 			}
 
-		for ( size_t step = 0; step < char_size; step++, idx++ )
-			result.push_back(val[idx]);
+		result.append(val, idx, char_size);
+		idx += char_size;
 		}
 
 	// Insert any of the remaining bytes into the string as escaped bytes
-	if ( idx != val.length() )
-		for ( ; idx < val.length(); ++idx )
-			result.append(json_escape_byte(val[idx]));
+	for ( ; idx < val_size; ++idx )
+		result.append(json_escape_byte(val[idx]));
 
 	return result;
 	}

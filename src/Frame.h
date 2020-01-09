@@ -9,7 +9,7 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-//#include "Val.h"
+#include "Val.h"
 
 class Trigger;
 class CallExpr;

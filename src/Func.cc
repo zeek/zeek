@@ -280,11 +280,11 @@ Val* Func::Call(val_list* args, Frame* parent, int overload_idx) const
 	return nullptr;
 	}
 
-//void Func::AddOverload(FuncOverload* fo)
-//	{
-//	overloads.emplace_back(fo);
-//	}
-
+/*void Func::AddOverload(FuncOverload* fo)
+	{
+	overloads.emplace_back(fo);
+	}
+*/
 Func* Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
@@ -500,6 +500,8 @@ BroFunc::BroFunc(ID* id, Stmt* arg_body,
 		bodies.push_back(b);
 		}
 	}
+
+BroFunc::BroFunc (ID* id) : FuncImpl(id) {}
 
 BroFunc::~BroFunc()
 	{
@@ -768,7 +770,11 @@ BroFunc* BroFunc::DoClone()
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
 	Func* parent = func->DoClone();
-	BroFunc* other = new FuncImpl(parent->GetUniqueFuncID);
+	ID* parent_id = lookup_ID(parent->Name(), GLOBAL_MODULE_NAME, false);
+	BroFunc* other = new BroFunc(parent_id);
+
+	Unref(parent);
+	Unref(parent_id);
 
 	CopyStateInto(other);
 

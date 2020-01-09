@@ -191,7 +191,7 @@ static bool val_is_func(Val* v, BroFunc* func)
 	if ( v->Type()->Tag() != TYPE_FUNC )
 		return false;
 
-	return v->AsFunc() == func;
+	return v->AsFuncVal() == func;
 	}
 
 static Val* clone_if_not_func(Val** frame, int offset, BroFunc* func,

@@ -243,11 +243,11 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// we can later access the ID even if no implementations have been
 		// defined.
 		auto f = new Func(id);
-		id->SetVal(new Val(f));
 
 		// TODO: probably need to adapt to support overloads
 		auto o = new BroFunc(id, 0, 0, 0, 0, 0);
 		f->AddOverload(o);
+		id->SetVal(new Val(o));
 		}
 	}
 
@@ -537,41 +537,34 @@ void end_func(Stmt* body)
 						"referencing outer function IDs not supported");
 		}
 
-	if ( ingredients->id->HasVal() )
-		{
-		ingredients->id->ID_Val()->AsFunc()->AddBody(
-			ingredients->body,
-			ingredients->inits,
-			ingredients->frame_size,
-			ingredients->priority);
-
-		auto overload_idx = scope->OverloadIndex();
-		auto f = id->ID_Val()->AsFunc();
-		auto& os = f->GetOverloads();
-		}
-
-	auto overload_idx = scope->OverloadIndex();
-	auto f = id->ID_Val()->AsFunc();
+	auto overload_idx = ingredients->scope->OverloadIndex();
+	auto f = ingredients->id->ID_Val()->AsFunc();
 	auto o = f->GetOverload(overload_idx);
 
 	if ( o )
-		dynamic_cast<BroFunc*>(o)->AddBody(body, inits, frame_size, priority, scope);
+		dynamic_cast<BroFunc*>(o)->AddBody(
+			ingredients->body,
+			ingredients->inits,
+			ingredients->frame_size,
+			ingredients->priority,
+			ingredients->scope);
+		
 	else
 		{
-		auto bf = new BroFunc(id, body, inits, frame_size, priority, scope);
-		f->SetOverload(overload_idx, bf);
 		BroFunc* f = new BroFunc(
 			ingredients->id,
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
-			ingredients->priority);
+			ingredients->priority,
+			ingredients->scope);
 
 		ingredients->id->SetVal(new Val(f));
 		ingredients->id->SetConst();
+		f->GetFunc()->SetOverload(overload_idx, f);
 		}
 
-	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	dynamic_cast<BroFunc*>(ingredients->id->ID_Val()->AsFuncVal())->SetScope(ingredients->scope);
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.

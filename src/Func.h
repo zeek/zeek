@@ -11,7 +11,7 @@
 #include "BroList.h"
 #include "Obj.h"
 //#include "Debug.h"
-#include "Frame.h"
+//#include "Frame.h"
 #include "Type.h"
 #include "Scope.h"
 //#include "Stmt.h"
@@ -97,8 +97,8 @@ public:
 	void SetOverload(int idx, FuncImpl* impl);
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(Stmt* new_body, id_list* new_inits,
-			     size_t new_frame_size, int priority = 0);
+	//virtual void AddBody(Stmt* new_body, id_list* new_inits,
+	//		     size_t new_frame_size, int priority = 0);
 	Val* Call(val_list* args, Frame* parent = 0, int overload_idx = -1) const;
 
 	// TODO: get rid of this ?
@@ -180,9 +180,6 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(Stmt* new_body, id_list* new_inits,
-		     size_t new_frame_size, int priority);
-
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)
 		{ outer_ids = std::move(ids); }
@@ -203,16 +200,25 @@ public:
 	Scope* GetScope() const
 		{ return scope; }
 
+	void SetScope (Scope* s)
+		{ scope = s; }
+
+	int GetOverloadIndex()
+		{ return overload_idx; }
+
+	void SetOverloadIndex(int i)
+		{ overload_idx = i; }
+
 	const std::vector<FuncBody>& GetBodies() const
 		{ return bodies; }
 
-private:
-	friend class Func;
-
+	// TODO: Get this function on the FuncImpl level
 	/**
 	 * Clones this function along with its closures.
 	 */
 	BroFunc* DoClone();
+private:
+	friend class Func;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -221,8 +227,6 @@ private:
 	 * @param f the frame to be cloned.
 	 */
 	void SetClosureFrame(Frame* f);
-
-private:
 	size_t frame_size;
 
 	// List of the outer IDs used in the function.
@@ -232,8 +236,12 @@ private:
 	bool weak_closure_ref = false;
 	Scope* scope;
 	std::vector<FuncBody> bodies;
+	int overload_idx = -1;
 
 	static Stmt* AddInits(Stmt* body, id_list* inits);
+
+protected:
+	BroFunc(ID* id);
 };
 
 class BuiltinFunc : public FuncImpl {

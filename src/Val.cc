@@ -58,7 +58,7 @@ Val::Val(FuncImpl* f)
 	{
 	val.func_val = f;
 	::Ref(val.func_val);
-	type = val.func_val->type->Ref();
+	type = val.func_val->GetType()->Ref();
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -67,9 +67,9 @@ Val::Val(FuncImpl* f)
 Val::Val(Func* f, int overload_idx)
 	{
 	assert(overload_idx >= 0);
-	val.func_val = f->FType()->GetOverload(overload_idx);
+	val.func_val = f->GetOverload(overload_idx);
 	::Ref(val.func_val->GetFunc());
-	type = val.func_val->type->Ref();
+	type = val.func_val->GetType()->Ref();
 #ifdef DEBUG
 	bound_id = 0;
 #endif
@@ -97,7 +97,7 @@ Val::~Val()
 		delete val.string_val;
 
 	else if ( type->Tag() == TYPE_FUNC )
-		Unref(val.func_val.func);
+		Unref(val.func_val->GetFunc());
 
 	else if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);
@@ -144,7 +144,7 @@ Val* Val::DoClone(CloneState* state)
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
 			{
-			auto c = AsFunc()->DoClone();
+			auto c = dynamic_cast<BroFunc*>(AsFuncVal())->DoClone();
 			auto rval = new Val(c);
 			Unref(c);
 			return rval;
@@ -291,7 +291,7 @@ Val* Val::SizeVal() const
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->GetCount(val.func_val.func->FType()->ArgTypes()->Types()->length());
+			return val_mgr->GetCount(val.func_val->GetFunc()->FType()->ArgTypes()->Types()->length());
 
 		if ( type->Tag() == TYPE_FILE )
 			return new Val(val.file_val->Size(), TYPE_DOUBLE);
@@ -2971,15 +2971,15 @@ static Val* check_func_overload(Val* v, const BroType* t)
 
 	auto& fv = v->AsFuncVal();
 
-	if ( fv.overload_idx < 0 )
+	if ( fv->GetOverloadIndex() < 0 )
 		{
 		for ( const auto& vo : vft->Overloads() )
 			if ( tft->GetOverload(vo->decl->args) )
-				return new Val(fv.func, vo->index);
+				return new Val(fv->GetFunc(), vo->index);
 		}
 	else
 		{
-		auto o = fv.func->FType()->GetOverload(fv.overload_idx);
+		auto o = fv->GetFunc()->FType()->GetOverload(fv->GetOverloadIndex());
 
 		if ( tft->GetOverload(o->decl->args) )
 			return v->Ref();

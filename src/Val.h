@@ -55,7 +55,7 @@ class VectorVal;
 
 class TableEntryVal;
 
-typedef BroFunc* FuncVal;
+typedef FuncImpl* FuncVal;
 //struct FuncVal {
 //	Func* func;
 //	int overload_idx;

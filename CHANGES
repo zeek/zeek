@@ -1,4 +1,8 @@
 
+3.1.0-dev.365 | 2020-01-09 11:38:06 -0800
+
+  * Enable LeakSanitizer for unit tests run via doctest (Jon Siwek, Corelight)
+
 3.1.0-dev.363 | 2020-01-09 10:25:24 -0800
 
   * fix NTLM field value access

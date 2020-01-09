@@ -167,6 +167,7 @@ TEST_CASE("util get_escaped_string")
 		{
 		ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
 		CHECK(strcmp(d->Description(), "a\\x20bcd\\x0a") == 0);
+		delete d;
 		}
 
 	SUBCASE("provided ODesc")

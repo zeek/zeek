@@ -243,3 +243,29 @@ extern const char* BRO_VERSION_FUNCTION();
 #ifdef __cplusplus
 }
 #endif
+
+// GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature
+#if defined(__SANITIZE_ADDRESS__)
+	#define ZEEK_ASAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(address_sanitizer)
+		#define ZEEK_ASAN
+	#endif
+#endif
+
+#if defined(ZEEK_ASAN)
+	#include <sanitizer/lsan_interface.h>
+	#define ZEEK_LSAN_CHECK(x) __lsan_do_leak_check(x)
+	#define ZEEK_LSAN_ENABLE(x) __lsan_enable(x)
+	#define ZEEK_LSAN_IGNORE(x) __lsan_ignore_object(x)
+	#define ZEEK_LSAN_DISABLE(x) __lsan_disable(x)
+	#define ZEEK_LSAN_DISABLE_SCOPE(x) __lsan::ScopedDisabler x
+#else
+	#define ZEEK_LSAN_CHECK(x)
+	#define ZEEK_LSAN_ENABLE(x)
+	#define ZEEK_LSAN_IGNORE(x)
+	#define ZEEK_LSAN_DISABLE(x)
+	#define ZEEK_LSAN_DISABLE_SCOPE(x)
+#endif

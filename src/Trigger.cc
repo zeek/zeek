@@ -171,6 +171,27 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	Unref(this);
 	}
 
+void Trigger::Terminate()
+	{
+	if ( is_return )
+		{
+		auto parent = frame->GetTrigger();
+
+		if ( ! parent->Disabled() )
+			{
+			// If the trigger was already disabled due to interpreter
+			// exception, an Unref already happened at that point.
+			parent->Disable();
+			Unref(parent);
+			}
+
+		frame->ClearTrigger();
+		}
+
+	Disable();
+	Unref(this);
+	}
+
 Trigger::~Trigger()
 	{
 	DBG_LOG(DBG_NOTIFIERS, "%s: deleting", Name());

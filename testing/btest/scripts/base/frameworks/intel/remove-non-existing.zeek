@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
-# @TEST-EXEC: btest-bg-wait -k 5
+# @TEST-EXEC: btest-bg-wait -k 10
 # @TEST-EXEC: cat zeekproc/reporter.log > output
 # @TEST-EXEC: cat zeekproc/.stdout >> output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff output

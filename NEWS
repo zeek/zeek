@@ -72,6 +72,9 @@ Deprecated Functionality
   in favor of the real <cstdint> types they alias.  E.g. use int8_t instead of
   int8.
 
+- The C++ API functions "safe_snprintf" and "safe_vsnprintf" are deprecated.
+  Use "snprintf" and "vsnprintf" instead.
+
 Zeek 3.0.0
 ==========
 

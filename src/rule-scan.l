@@ -197,7 +197,7 @@ finger	{ rules_lval.val = Rule::FINGER; return TOK_PATTERN_TYPE; }
 		const char fmt[] = "(?i:%s)";
 		int n = len + strlen(fmt);
 		char* s = new char[n + 5 /* slop */];
-		safe_snprintf(s, n + 5, fmt, yytext + 1);
+		snprintf(s, n + 5, fmt, yytext + 1);
 		rules_lval.str = s;
 		}
 	else

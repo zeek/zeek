@@ -391,7 +391,7 @@ TableType::TableType(TypeList* ind, BroType* yield)
 		// Allow functions, since they can be compared
 		// for Func* pointer equality.
 		if ( t == TYPE_INTERNAL_OTHER && tli->Tag() != TYPE_FUNC &&
-		     tli->Tag() != TYPE_RECORD )
+		     tli->Tag() != TYPE_RECORD && tli->Tag() != TYPE_PATTERN )
 			{
 			tli->Error("bad index type");
 			SetError();

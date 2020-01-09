@@ -1,17 +1,12 @@
-# Needs perftools support.
-#
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
-# @TEST-GROUP: leaks
 #
-# @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
-#
-# @TEST-EXEC: zeek -m %INPUT>out
-# @TEST-EXEC: btest-bg-run manager-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -m %INPUT
-# @TEST-EXEC: btest-bg-run worker-1 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -m runnumber=1 %INPUT
-# @TEST-EXEC: btest-bg-run worker-2 HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -m runnumber=2 %INPUT
-# @TEST-EXEC: btest-bg-wait 120
+# @TEST-EXEC: zeek %INPUT>out
+# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
+# @TEST-EXEC: btest-bg-run worker-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek runnumber=1 %INPUT
+# @TEST-EXEC: btest-bg-run worker-2 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek runnumber=2 %INPUT
+# @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout

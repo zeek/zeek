@@ -1404,7 +1404,7 @@ void DNS_Mgr::DoProcess()
 		{
 		AsyncRequest* req = asyncs_timeouts.top();
 
-		if ( req->time + DNS_TIMEOUT > current_time() )
+		if ( req->time + DNS_TIMEOUT > current_time() && ! terminating )
 			break;
 
 		if ( ! req->processed )

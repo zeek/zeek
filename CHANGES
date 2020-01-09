@@ -1,4 +1,8 @@
 
+3.1.0-dev.366 | 2020-01-09 12:28:32 -0800
+
+  * Update external test repo commit hash (Jon Siwek, Corelight)
+
 3.1.0-dev.365 | 2020-01-09 11:38:06 -0800
 
   * Enable LeakSanitizer for unit tests run via doctest (Jon Siwek, Corelight)

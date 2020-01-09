@@ -1,4 +1,11 @@
 
+3.1.0-dev.363 | 2020-01-09 10:25:24 -0800
+
+  * fix NTLM field value access
+
+    The fields being checked for existence were not the same as the fields
+    being accessed. (Justin Azoff, Corelight)
+
 3.1.0-dev.361 | 2020-01-08 10:29:59 -0800
 
   * Increase timeout for a few btests (Jon Siwek, Corelight)

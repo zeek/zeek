@@ -4385,6 +4385,11 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	id->SetConst();
 	}
 
+Scope* LambdaExpr::GetScope() const
+	{
+	return ingredients->scope;
+	}
+
 Val* LambdaExpr::Eval(Frame* f) const
 	{
 	::Ref(ingredients->body);

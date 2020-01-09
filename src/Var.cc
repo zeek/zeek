@@ -413,32 +413,25 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 class OuterIDBindingFinder : public TraversalCallback {
 public:
 	OuterIDBindingFinder(Scope* s)
-		: scope(s) { }
+		{
+		scopes.emplace_back(s);
+		}
 
 	virtual TraversalCode PreExpr(const Expr*);
 	virtual TraversalCode PostExpr(const Expr*);
 
-	Scope* scope;
+	std::vector<Scope*> scopes;
 	vector<const NameExpr*> outer_id_references;
-	int lambda_depth = 0;
-	// Note: think we really ought to toggle this to false to prevent
-	// considering locals within inner-lambdas as "outer", but other logic
-	// for "selective cloning" and locating IDs in the closure chain may
-	// depend on current behavior and also needs to be changed.
-	bool search_inner_lambdas = true;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_LAMBDA )
-		++lambda_depth;
-
-	if ( lambda_depth > 0 && ! search_inner_lambdas )
-		// Don't inspect the bodies of inner lambdas as they will have their
-		// own traversal to find outer IDs and we don't want to detect
-		// references to local IDs inside and accidentally treat them as
-		// "outer" since they can't be found in current scope.
+		{
+		auto le = static_cast<const LambdaExpr*>(expr);
+		scopes.emplace_back(le->GetScope());
 		return TC_CONTINUE;
+		}
 
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
@@ -448,8 +441,13 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
 
-	if ( scope->Lookup(e->Id()->Name()) )
-		return TC_CONTINUE;
+	for ( auto it = scopes.rbegin(); it != scopes.rend(); ++it )
+		{
+		auto scope = *it;
+
+		if ( scope->Lookup(e->Id()->Name()) )
+			return TC_CONTINUE;
+		}
 
 	outer_id_references.push_back(e);
 	return TC_CONTINUE;
@@ -458,10 +456,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_LAMBDA )
-		{
-		--lambda_depth;
-		assert(lambda_depth >= 0);
-		}
+		scopes.pop_back();
 
 	return TC_CONTINUE;
 	}

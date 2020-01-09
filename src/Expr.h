@@ -963,6 +963,8 @@ public:
 	Val* Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
+	Scope* GetScope() const;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 

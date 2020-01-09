@@ -1340,6 +1340,7 @@ TableVal::~TableVal()
 	Unref(def_val);
 	Unref(expire_func);
 	Unref(expire_time);
+	Unref(change_func);
 	}
 
 void TableVal::RemoveAll()
@@ -1390,6 +1391,12 @@ void TableVal::SetAttrs(Attributes* a)
 		{
 		expire_func = ef->AttrExpr();
 		expire_func->Ref();
+		}
+	auto cf = attrs->FindAttr(ATTR_ON_CHANGE);
+	if ( cf )
+		{
+		change_func = cf->AttrExpr();
+		change_func->Ref();
 		}
 	}
 
@@ -1926,6 +1933,13 @@ ListVal* TableVal::RecoverIndex(const HashKey* k) const
 Val* TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
+	if ( k && change_func )
+		{
+		auto el = AsTable()->Lookup(k);
+		if ( el )
+			{
+			}
+		}
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : 0;
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 

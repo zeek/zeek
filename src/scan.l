@@ -298,6 +298,7 @@ when	return TOK_WHEN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
+&on_change  return TOK_ATTR_ON_CHANGE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();

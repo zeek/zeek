@@ -482,6 +482,71 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
+	case ATTR_ON_CHANGE:
+		{
+		if ( type->Tag() != TYPE_TABLE )
+			{
+			Error("&on_change only applicable to tables");
+			break;
+			}
+
+		const Expr *change_func = a->AttrExpr();
+
+		if ( change_func->Type()->Tag() != TYPE_FUNC || change_func->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+			Error("&on_change attribute is not a function");
+
+		const FuncType *c_ft = change_func->Type()->AsFuncType();
+
+		if ( c_ft->YieldType()->Tag() != TYPE_BOOL )
+			{
+			Error("&on_change must yield a value of type bool");
+			break;
+			}
+
+		const TableType *the_table = type->AsTableType();
+
+		if (the_table->IsUnspecifiedTable())
+			break;
+
+		const type_list* args = c_ft->ArgTypes()->Types();
+		const type_list* t_indexes = the_table->IndexTypes();
+		if ( args->length() != 3 + t_indexes->length() )
+			{
+			Error("&on_change function has incorrect number of arguments");
+			break;
+			}
+
+		if ( ! same_type((*args)[0], the_table->AsTableType()) )
+			{
+			Error("&on_change: first argument must be of same type as table");
+			break;
+			}
+
+		// can't check exact type here yet - the data structures don't exist yet.
+		if ( (*args)[1]->Tag() != TYPE_ENUM )
+			{
+			Error("&on_change: second argument must be a TableChange enum");
+			break;
+			}
+
+		bool indexmatch = true;
+		for ( int i = 0; i < t_indexes->length(); i++ )
+			{
+			if ( ! same_type((*args)[2+i], (*t_indexes)[i]) )
+				{
+				Error("&on_change: index types do not match table");
+				break;
+				}
+			}
+
+		if ( ! same_type((*args)[2+t_indexes->length()], the_table->YieldType()) )
+			{
+			Error("&on_change: value type does not match table");
+			break;
+			}
+		}
+		break;
+
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;

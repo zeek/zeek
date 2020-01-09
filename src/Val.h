@@ -933,6 +933,7 @@ protected:
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
 	Val* def_val;
+	Expr* change_func = nullptr;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {

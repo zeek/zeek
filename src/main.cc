@@ -454,6 +454,7 @@ int main(int argc, char** argv)
 #else
 		doctest::Context context;
 		context.applyCommandLine(std::distance(first, separator), argv);
+		ZEEK_LSAN_ENABLE();
 		return context.run();
 #endif
 		}

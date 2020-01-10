@@ -44,7 +44,9 @@ Here is a more detailed explanation of each attribute:
 
     Allows use of a :zeek:keyword:`redef` to redefine initial values of
     global variables (i.e., variables declared either :zeek:keyword:`global`
-    or :zeek:keyword:`const`).  Example::
+    or :zeek:keyword:`const`).  Example:
+
+    .. sourcecode:: zeek
 
         const clever = T &redef;
         global cache_size = 256 &redef;
@@ -57,12 +59,14 @@ Here is a more detailed explanation of each attribute:
 
     Specifies the execution priority (as a signed integer) of a hook or
     event handler. Higher values are executed before lower ones. The
-    default value is 0.  Example::
+    default value is 0.  Example:
+
+    .. sourcecode:: zeek
 
         event zeek_init() &priority=10
-        {
+            {
             print "high priority";
-        }
+            }
 
 .. zeek:attr:: &log
 
@@ -74,7 +78,9 @@ Here is a more detailed explanation of each attribute:
     ever assigned a value).
 
     In this example, the record could be instantiated with either
-    "myrec($a=127.0.0.1)" or "myrec($a=127.0.0.1, $b=80/tcp)"::
+    "myrec($a=127.0.0.1)" or "myrec($a=127.0.0.1, $b=80/tcp)":
+
+    .. sourcecode:: zeek
 
         type myrec: record { a: addr; b: port &optional; };
 
@@ -88,24 +94,30 @@ Here is a more detailed explanation of each attribute:
     function/hook/event parameter.
 
     In this example, the record could be instantiated with either
-    "myrec($a=5, $c=3.14)" or "myrec($a=5, $b=53/udp, $c=3.14)"::
+    "myrec($a=5, $c=3.14)" or "myrec($a=5, $b=53/udp, $c=3.14)":
+
+    .. sourcecode:: zeek
 
         type myrec: record { a: count; b: port &default=80/tcp; c: double; };
 
     In this example, the table will return the string ``"foo"`` for any
-    attempted access to a non-existing index::
+    attempted access to a non-existing index:
+
+    .. sourcecode:: zeek
 
         global mytable: table[count] of string &default="foo";
 
     When used with function/hook/event parameters, all of the parameters
     with the "&default" attribute must come after all other parameters.
     For example, the following function could be called either as "myfunc(5)"
-    or as "myfunc(5, 53/udp)"::
+    or as "myfunc(5, 53/udp)":
+
+    .. sourcecode:: zeek
 
         function myfunc(a: count, b: port &default=80/tcp)
-        {
+            {
             print a, b;
-        }
+            }
 
 .. zeek:attr:: &add_func
 
@@ -178,7 +190,9 @@ Here is a more detailed explanation of each attribute:
     the input file which specifies the protocol of the port (tcp/udp/icmp).
 
     In the following example, the input file would contain four columns
-    named "ip", "srcp", "proto", and "msg"::
+    named "ip", "srcp", "proto", and "msg":
+
+    .. sourcecode:: zeek
 
         type Idx: record {
             ip: addr;
@@ -198,6 +212,8 @@ Here is a more detailed explanation of each attribute:
     This attribute can be assigned an optional string literal value to
     print along with the deprecation warning. The preferred format of
     this warning message should include the version number in which
-    the identifier will be removed::
+    the identifier will be removed:
+
+    .. sourcecode:: zeek
 
         type warned: string &deprecated="This type is deprecated. Removed in x.y.z.";

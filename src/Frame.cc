@@ -31,10 +31,38 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 
 Frame::~Frame()
 	{
+	auto contains_func_ref = [this](Func* f) -> bool
+		{
+		for ( auto i = 0; i < size; ++i )
+			{
+			auto v = frame[i];
+
+			if ( v && v->Type()->Tag() == TYPE_FUNC && v->AsFunc() == f )
+				{
+				if ( ! weak_refs )
+					return false;
+
+				return weak_refs[i];
+				}
+			}
+		return false;
+		};
+
 	for ( auto& func : functions_with_closure_frame_reference )
 		{
-		func->StrengthenClosureReference(this);
-		Unref(func);
+		if ( func->RefCnt() == 1 ||
+		     (func->RefCnt() == 2 && contains_func_ref(func)) )
+			{
+			// We hold the only relevant ref(s) to the function and are about
+			// to release it, so no point in strengthening its reference to
+			// this Frame anymore.
+			Unref(func);
+			}
+		else
+			{
+			func->StrengthenClosureReference(this);
+			Unref(func);
+			}
 		}
 
 	// Deleting a Frame that is a view is a no-op.

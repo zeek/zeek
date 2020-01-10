@@ -465,16 +465,6 @@ void end_func(Stmt* body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), body);
 
-	if ( streq(ingredients->id->Name(), "anonymous-function") )
-		{
-		OuterIDBindingFinder cb(ingredients->scope);
-		ingredients->body->Traverse(&cb);
-
-		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-			cb.outer_id_references[i]->Error(
-						"referencing outer function IDs not supported");
-		}
-
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,

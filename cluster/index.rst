@@ -82,20 +82,6 @@ There are no particular requirements for the disks in workers since almost all
 logging is done remotely to the manager, and normally very little is written
 to disk.
 
-The rule of thumb we have followed recently is to allocate approximately 1
-core for every 250Mbps of traffic that is being analyzed. However, this
-estimate could be extremely traffic mix-specific.  It has generally worked
-for mixed traffic with many users and servers.  For example, if your traffic
-peaks around 2Gbps (combined) and you want to handle traffic at peak load,
-you may want to have 8 cores available (2048 / 250 == 8.2).  If the 250Mbps
-estimate works for your traffic, this could be handled by 2 physical hosts
-dedicated to being workers with each one containing a quad-core processor.
-
-Once a flow-based load balancer is put into place this model is extremely
-easy to scale. It is recommended that you estimate the amount of
-hardware you will need to fully analyze your traffic.  If more is needed it's
-relatively easy to increase the size of the cluster in most cases.
-
 Frontend Options
 ----------------
 

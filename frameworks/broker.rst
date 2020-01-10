@@ -9,7 +9,7 @@ Broker-Enabled Communication/Cluster Framework
 .. rst-class:: opening
 
     Zeek now uses the `Broker Library
-    <../components/broker/README.html>`_ to exchange information with
+    <https://docs.zeek.org/projects/broker>`_ to exchange information with
     other Zeek processes.  Broker itself uses CAF_ (C++ Actor Framework)
     internally for connecting nodes and exchanging arbitrary data over
     networks.  Broker then introduces, on top of CAF, a topic-based

@@ -1,4 +1,8 @@
 
+3.1.0-dev.370 | 2020-01-09 19:04:59 -0800
+
+  * Update timeouts for a btest (Jon Siwek, Corelight)
+
 3.1.0-dev.368 | 2020-01-09 13:39:38 -0800
 
   * Extend ASAN_OPTIONS in btests instead of overwrite (Jon Siwek, Corelight)

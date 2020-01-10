@@ -38,6 +38,32 @@ The Zeek scripting language supports the following attributes.
 | :zeek:attr:`&deprecated`     |Marks an identifier as deprecated.             |
 +------------------------------+-----------------------------------------------+
 
+.. _attribute-propagation-pitfalls:
+
+.. warning::
+
+    A confusing pitfall can be mistaking that attributes bind to a *variable*
+    or a *type*, where in reality they bind to a *value*.  Example:
+
+    .. sourcecode:: zeek
+
+        global my_table: table[count] of string &create_expire=1sec;
+
+        event zeek_init()
+            {
+            my_table = table();
+            my_table[1] = "foo";
+            }
+
+    In the above, the re-assignment of ``my_table`` will also drop the original
+    *value*'s :zeek:attr:`&create_expire` and no entries will ever be expired
+    from ``my_table``.  The alternate way of re-assignment that creates a new
+    table *value* with the expected attribute would be:
+
+    .. sourcecode:: zeek
+
+        my_table = table() &create_expire=1sec;
+
 Here is a more detailed explanation of each attribute:
 
 .. zeek:attr:: &redef

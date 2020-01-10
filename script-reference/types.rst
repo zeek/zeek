@@ -468,6 +468,12 @@ Here is a more detailed description of each type:
     See the :zeek:keyword:`for` statement for info on how to iterate over
     the elements in a table.
 
+    It's common to extend the behavior of table lookup and membership lifetimes
+    via :doc:`attributes <attributes>` but note that it's also a :ref:`confusing
+    pitfall <attribute-propagation-pitfalls>` that attributes bind to initial
+    *values* instead of *type* or *variable* and do not currently propagate to
+    any new *value* subsequently re-assigned to the table *variable*.
+
 .. zeek:type:: set
 
     A set is like a :zeek:type:`table`, but it is a collection of indices

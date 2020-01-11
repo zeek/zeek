@@ -936,21 +936,7 @@ int main(int argc, char** argv)
 		{
 		// TODO: probably all of this block could move to a new
 		// zeek::supervised_node->Init(options) method
-		options.filter_supervised_node_options(zeek::supervised_node);
 		const auto& node_name = zeek::supervised_node->name;
-
-		if ( zeek::supervised_node->interface )
-			options.interfaces.emplace_back(*zeek::supervised_node->interface);
-
-		if ( ! zeek::supervised_node->cluster.empty() )
-			{
-			if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
-				{
-				fprintf(stderr, "node '%s' failed to setenv: %s\n",
-				        node_name.data(), strerror(errno));
-				exit(1);
-				}
-			}
 
 		if ( zeek::supervised_node->directory )
 			{
@@ -964,6 +950,38 @@ int main(int argc, char** argv)
 				}
 			}
 
+		if ( zeek::supervised_node->stderr_file )
+			{
+			auto fd = open(zeek::supervised_node->stderr_file->data(),
+			               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+			               0600);
+
+			if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
+				{
+				fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
+				        node_name.data(),
+				        zeek::supervised_node->stderr_file->data(),
+				        strerror(errno));
+				exit(1);
+				}
+			}
+
+		if ( zeek::supervised_node->stdout_file )
+			{
+			auto fd = open(zeek::supervised_node->stdout_file->data(),
+			               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+			               0600);
+
+			if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
+				{
+				fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
+				        node_name.data(),
+				        zeek::supervised_node->stdout_file->data(),
+				        strerror(errno));
+				exit(1);
+				}
+			}
+
 		if ( zeek::supervised_node->cpu_affinity )
 			{
 			auto res = zeek::set_affinity(*zeek::supervised_node->cpu_affinity);
@@ -971,6 +989,21 @@ int main(int argc, char** argv)
 			if ( ! res )
 				fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
 				        node_name.data(), strerror(errno));
+			}
+
+		options.filter_supervised_node_options(zeek::supervised_node);
+
+		if ( zeek::supervised_node->interface )
+			options.interfaces.emplace_back(*zeek::supervised_node->interface);
+
+		if ( ! zeek::supervised_node->cluster.empty() )
+			{
+			if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
+				{
+				fprintf(stderr, "node '%s' failed to setenv: %s\n",
+				        node_name.data(), strerror(errno));
+				exit(1);
+				}
 			}
 
 		for ( const auto& s : zeek::supervised_node->scripts )

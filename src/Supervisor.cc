@@ -732,6 +732,16 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	if ( directory_val )
 		rval.directory = directory_val->AsString()->CheckString();
 
+	auto stdout_val = node->Lookup("stdout_file");
+
+	if ( stdout_val )
+		rval.stdout_file = stdout_val->AsString()->CheckString();
+
+	auto stderr_val = node->Lookup("stderr_file");
+
+	if ( stderr_val )
+		rval.stderr_file = stderr_val->AsString()->CheckString();
+
 	auto affinity_val = node->Lookup("cpu_affinity");
 
 	if ( affinity_val )
@@ -785,6 +795,12 @@ Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
 
 	if ( auto it = j.find("directory"); it != j.end() )
 		rval.directory = *it;
+
+	if ( auto it = j.find("stdout_file"); it != j.end() )
+		rval.stdout_file= *it;
+
+	if ( auto it = j.find("stderr_file"); it != j.end() )
+		rval.stderr_file= *it;
 
 	if ( auto it = j.find("cpu_affinity"); it != j.end() )
 		rval.cpu_affinity = *it;
@@ -840,6 +856,12 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 	if ( directory )
 		rval->Assign(rt->FieldOffset("directory"), new StringVal(*directory));
+
+	if ( stdout_file )
+		rval->Assign(rt->FieldOffset("stdout_file"), new StringVal(*stdout_file));
+
+	if ( stderr_file )
+		rval->Assign(rt->FieldOffset("stderr_file"), new StringVal(*stderr_file));
 
 	if ( cpu_affinity )
 		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));

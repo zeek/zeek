@@ -47,6 +47,8 @@ public:
 		std::string name;
 		std::optional<std::string> interface;
 		std::optional<std::string> directory;
+		std::optional<std::string> stdout_file;
+		std::optional<std::string> stderr_file;
 		std::optional<int> cpu_affinity;
 		std::vector<std::string> scripts;
 		std::map<std::string, ClusterEndpoint> cluster;

@@ -23,6 +23,8 @@ export {
 		name: string;
 		interface: string &optional;
 		directory: string &optional;
+		stdout_file: string &optional;
+		stderr_file: string &optional;
 		scripts: vector of string &default = vector();
 		cpu_affinity: int &optional;
 		cluster: table[string] of ClusterEndpoint &default=table();

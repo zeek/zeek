@@ -24,6 +24,7 @@ export {
 		interface: string &optional;
 		directory: string &optional;
 		scripts: vector of string &default = vector();
+		cpu_affinity: int &optional;
 		cluster: table[string] of ClusterEndpoint &default=table();
 
 		# TODO: separate node config fields from status fields ?

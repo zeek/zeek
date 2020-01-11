@@ -732,6 +732,11 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	if ( directory_val )
 		rval.directory = directory_val->AsString()->CheckString();
 
+	auto affinity_val = node->Lookup("cpu_affinity");
+
+	if ( affinity_val )
+		rval.cpu_affinity = affinity_val->AsInt();
+
 	auto scripts_val = node->Lookup("scripts")->AsVectorVal();
 
 	for ( auto i = 0; i < scripts_val->Size(); ++i )
@@ -779,7 +784,10 @@ Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
 		rval.interface = *it;
 
 	if ( auto it = j.find("directory"); it != j.end() )
-		rval.directory= *it;
+		rval.directory = *it;
+
+	if ( auto it = j.find("cpu_affinity"); it != j.end() )
+		rval.cpu_affinity = *it;
 
 	auto scripts = j["scripts"];
 
@@ -832,6 +840,9 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 	if ( directory )
 		rval->Assign(rt->FieldOffset("directory"), new StringVal(*directory));
+
+	if ( cpu_affinity )
+		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));
 
 	auto st = BifType::Record::Supervisor::Node->FieldType("scripts");
 	auto scripts_val = new VectorVal(st->AsVectorType());

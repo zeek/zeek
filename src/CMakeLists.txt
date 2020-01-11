@@ -204,6 +204,7 @@ set(MAIN_SRCS
     net_util.cc
     util.cc
     module_util.cc
+    zeek-affinity.cc
     Anon.cc
     Attr.cc
     Base64.cc

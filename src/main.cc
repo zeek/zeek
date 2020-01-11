@@ -78,6 +78,8 @@ extern "C" {
 #include "setsignal.h"
 };
 
+#include "zeek-affinity.h"
+
 #ifdef USE_PERFTOOLS_DEBUG
 HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
@@ -944,7 +946,7 @@ int main(int argc, char** argv)
 			{
 			if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
 				{
-				fprintf(stderr, "cluster node %s failed to setenv: %s\n",
+				fprintf(stderr, "node '%s' failed to setenv: %s\n",
 				        node_name.data(), strerror(errno));
 				exit(1);
 				}
@@ -954,12 +956,21 @@ int main(int argc, char** argv)
 			{
 			if ( chdir(zeek::supervised_node->directory->data()) )
 				{
-				fprintf(stderr, "supervised node %s failed to chdir to %s: %s\n",
+				fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
 				        node_name.data(),
 				        zeek::supervised_node->directory->data(),
 				        strerror(errno));
 				exit(1);
 				}
+			}
+
+		if ( zeek::supervised_node->cpu_affinity )
+			{
+			auto res = zeek::set_affinity(*zeek::supervised_node->cpu_affinity);
+
+			if ( ! res )
+				fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
+				        node_name.data(), strerror(errno));
 			}
 
 		for ( const auto& s : zeek::supervised_node->scripts )

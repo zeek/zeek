@@ -1,4 +1,9 @@
 
+3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
+
+  * Fix method returning a reference to a temporary. Found by
+    cppcheck, via by Arthur Wong. (Robin Sommer, Corelight)
+
 3.1.0-dev.370 | 2020-01-09 19:04:59 -0800
 
   * Update timeouts for a btest (Jon Siwek, Corelight)

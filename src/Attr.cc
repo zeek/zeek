@@ -497,9 +497,9 @@ void Attributes::CheckAttr(Attr* a)
 
 		const FuncType *c_ft = change_func->Type()->AsFuncType();
 
-		if ( c_ft->YieldType()->Tag() != TYPE_BOOL )
+		if ( c_ft->YieldType()->Tag() != TYPE_VOID )
 			{
-			Error("&on_change must yield a value of type bool");
+			Error("&on_change must not return a value");
 			break;
 			}
 

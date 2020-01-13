@@ -1,4 +1,32 @@
 
+3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
+
+  * Fix method returning a reference to a temporary. Found by
+    cppcheck, via by Arthur Wong. (Robin Sommer, Corelight)
+
+3.1.0-dev.370 | 2020-01-09 19:04:59 -0800
+
+  * Update timeouts for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.368 | 2020-01-09 13:39:38 -0800
+
+  * Extend ASAN_OPTIONS in btests instead of overwrite (Jon Siwek, Corelight)
+
+3.1.0-dev.366 | 2020-01-09 12:28:32 -0800
+
+  * Update external test repo commit hash (Jon Siwek, Corelight)
+
+3.1.0-dev.365 | 2020-01-09 11:38:06 -0800
+
+  * Enable LeakSanitizer for unit tests run via doctest (Jon Siwek, Corelight)
+
+3.1.0-dev.363 | 2020-01-09 10:25:24 -0800
+
+  * fix NTLM field value access
+
+    The fields being checked for existence were not the same as the fields
+    being accessed. (Justin Azoff, Corelight)
+
 3.1.0-dev.361 | 2020-01-08 10:29:59 -0800
 
   * Increase timeout for a few btests (Jon Siwek, Corelight)

@@ -140,7 +140,7 @@ ComponentManager<T, C>::ComponentManager(const string& arg_module, const string&
 template <class T, class C>
 const std::string& ComponentManager<T, C>::GetModule() const
 	{
-	return module.c_str();
+	return module;
 	}
 
 template <class T, class C>

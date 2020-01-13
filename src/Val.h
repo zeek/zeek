@@ -879,10 +879,10 @@ public:
 	void InitTimer(double delay);
 	void DoExpire(double t);
 
-        // If the &default attribute is not a function, or the functon has
-        // already been initialized, this does nothing. Otherwise, evaluates
-        // the function in the frame allowing it to capture its closure.
-        void InitDefaultFunc(Frame* f);
+	// If the &default attribute is not a function, or the functon has
+	// already been initialized, this does nothing. Otherwise, evaluates
+	// the function in the frame allowing it to capture its closure.
+	void InitDefaultFunc(Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 
@@ -921,6 +921,12 @@ protected:
 	// Calls &expire_func and returns its return interval;
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
+
+	// Enum for the different kinds of changes an &on_change handler can see
+	enum OnChangeType { element_new, element_changed, element_removed };
+
+	// Calls &change_func. Takes ownership of old_value.
+	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
 
 	Val* DoClone(CloneState* state) override;
 

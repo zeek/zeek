@@ -1927,16 +1927,61 @@ ListVal* TableVal::RecoverIndex(const HashKey* k) const
 	return table_hash->RecoverVals(k);
 	}
 
+void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
+	{
+	if ( ! change_func )
+		{
+		Unref(old_value);
+		return;
+		}
+
+	try
+		{
+		Val* thefunc = change_func->Eval(0);
+
+		if ( ! thefunc )
+			{
+			return;
+			}
+
+		if ( thefunc->Type()->Tag() != TYPE_FUNC )
+			{
+			thefunc->Error("not a function");
+			Unref(thefunc);
+			Unref(old_value);
+			return;
+			}
+
+		const Func* f = thefunc->AsFunc();
+		val_list vl { Ref() };
+		EnumVal* type;
+		switch ( tpe )
+			{
+			case element_new:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
+			case element_changed:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
+			case element_removed:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
+			}
+		vl.append(type);
+
+		for ( const auto& v : *index->AsListVal()->Vals() )
+			vl.append(v->Ref());
+
+		vl.append(old_value);
+
+		f->Call(&vl);
+		Unref(thefunc);
+		}
+	catch ( InterpreterException& e )
+		{
+		}
+	}
+
 Val* TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
-	if ( k && change_func )
-		{
-		auto el = AsTable()->Lookup(k);
-		if ( el )
-			{
-			}
-		}
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : 0;
 	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
 
@@ -1947,6 +1992,10 @@ Val* TableVal::Delete(const Val* index)
 	delete v;
 
 	Modified();
+
+	if ( change_func )
+		CallChangeFunc(index, va->Ref(), element_removed);
+
 	return va;
 	}
 
@@ -1966,6 +2015,13 @@ Val* TableVal::Delete(const HashKey* k)
 	delete v;
 
 	Modified();
+
+	if ( change_func )
+		{
+		auto index = table_hash->RecoverVals(k);
+		CallChangeFunc(index, va->Ref(), element_removed);
+		}
+
 	return va;
 	}
 

@@ -16,7 +16,8 @@ enum ClusterRole %{
 
 type Supervisor::ClusterEndpoint: record;
 type Supervisor::Status: record;
-type Supervisor::Node: record;
+type Supervisor::NodeConfig: record;
+type Supervisor::NodeStatus: record;
 
 function Supervisor::__status%(nodes: string%): Supervisor::Status
 	%{
@@ -29,7 +30,7 @@ function Supervisor::__status%(nodes: string%): Supervisor::Status
 	return zeek::supervisor->Status(nodes->CheckString());
 	%}
 
-function Supervisor::__create%(node: Supervisor::Node%): string
+function Supervisor::__create%(node: Supervisor::NodeConfig%): string
 	%{
 	if ( ! zeek::supervisor )
 		{
@@ -78,7 +79,7 @@ function Supervisor::__init_cluster%(%): bool
 
 function Supervisor::__is_supervised%(%): bool
 	%{
-	return val_mgr->GetBool(zeek::supervised_node != nullptr);
+	return val_mgr->GetBool(zeek::supervised_node.has_value());
 	%}
 
 function Supervisor::__is_supervisor%(%): bool

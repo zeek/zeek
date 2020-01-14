@@ -19,7 +19,7 @@ export {
 		interface: string &optional;
 	};
 
-	type Node: record {
+	type NodeConfig: record {
 		name: string;
 		interface: string &optional;
 		directory: string &optional;
@@ -28,18 +28,19 @@ export {
 		scripts: vector of string &default = vector();
 		cpu_affinity: int &optional;
 		cluster: table[string] of ClusterEndpoint &default=table();
+	};
 
-		# TODO: separate node config fields from status fields ?
-		# TODO: add more status fields ?
-		pid: count &optional;
+	type NodeStatus: record {
+		node: NodeConfig;
+		pid: count;
 	};
 
 	type Status: record {
-		nodes: table[string] of Node;
+		nodes: table[string] of NodeStatus;
 	};
 
 	global status: function(nodes: string &default="all"): Status;
-	global create: function(node: Node): string;
+	global create: function(node: NodeConfig): string;
 	global destroy: function(nodes: string): bool;
 	global restart: function(nodes: string &default="all"): bool;
 
@@ -51,7 +52,7 @@ export {
 	global Supervisor::status_request: event(reqid: string, nodes: string);
 	global Supervisor::status_response: event(reqid: string, result: Status);
 
-	global Supervisor::create_request: event(reqid: string, node: Node);
+	global Supervisor::create_request: event(reqid: string, node: NodeConfig);
 	global Supervisor::create_response: event(reqid: string, result: string);
 
 	global Supervisor::destroy_request: event(reqid: string, nodes: string);

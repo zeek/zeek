@@ -30,11 +30,11 @@ struct Stem {
 
 	~Stem();
 
-	Supervisor::Node* Run();
+	std::optional<Supervisor::NodeConfig> Run();
 
-	Supervisor::Node* Poll();
+	std::optional<Supervisor::NodeConfig> Poll();
 
-	Supervisor::Node* Revive();
+	std::optional<Supervisor::NodeConfig> Revive();
 
 	void Reap();
 
@@ -108,7 +108,7 @@ static std::vector<std::string> extract_messages(std::string* buffer)
 	return rval;
 	}
 
-static std::string make_create_message(const Supervisor::Node& node)
+static std::string make_create_message(const Supervisor::NodeConfig& node)
 	{
 	auto json_str = node.ToJSON();
 	return fmt("create %s %s", node.name.data(), json_str.data());
@@ -274,13 +274,13 @@ void Supervisor::HandleChildSignal()
 	for ( const auto& n : nodes )
 		{
 		const auto& node = n.second;
-		auto msg = make_create_message(node);
+		auto msg = make_create_message(node.config);
 		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
 		}
 	}
 
 void Supervisor::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                              iosource::FD_Set* except)
+                        iosource::FD_Set* except)
 	{
 	read->Insert(signal_flare.FD());
 	read->Insert(stem_pipe->InFD());
@@ -378,7 +378,7 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 	if ( res == -1 )
 		{
 		fprintf(stderr, "Stem failed to get node exit status %s (%d): %s\n",
-			    node->name.data(), node->pid, strerror(errno));
+			    node->Name().data(), node->pid, strerror(errno));
 		return false;
 		}
 
@@ -387,17 +387,17 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 		node->exit_status = WEXITSTATUS(status);
 		// TODO: may be some cases where the node is intended to exit
 		printf("node '%s' exited with status %d\n",
-			   node->name.data(), node->exit_status);
+			   node->Name().data(), node->exit_status);
 		}
 	else if ( WIFSIGNALED(status) )
 		{
 		node->signal_number = WTERMSIG(status);
 		printf("node '%s' terminated by signal %d\n",
-			   node->name.data(), node->signal_number);
+			   node->Name().data(), node->signal_number);
 		}
 	else
 		fprintf(stderr, "Stem failed to get node exit status %s (%d)\n",
-			    node->name.data(), node->pid);
+			    node->Name().data(), node->pid);
 
 	node->pid = 0;
 	return true;
@@ -409,7 +409,7 @@ void Stem::KillNode(const Supervisor::Node& node, int signal) const
 
 	if ( kill_res == -1 )
 		fprintf(stderr, "Failed to send signal to node %s: %s",
-		        node.name.data(), strerror(errno));
+		        node.Name().data(), strerror(errno));
 	}
 
 void Stem::Destroy(Supervisor::Node* node) const
@@ -428,12 +428,12 @@ void Stem::Destroy(Supervisor::Node* node) const
 			break;
 
 		printf("Stem waiting to destroy node: %s (%d)\n",
-		       node->name.data(), node->pid);
+		       node->Name().data(), node->pid);
 		sleep(kill_delay);
 		}
 	}
 
-Supervisor::Node* Stem::Revive()
+std::optional<Supervisor::NodeConfig> Stem::Revive()
 	{
 	constexpr auto attempts_before_delay_increase = 3;
 	constexpr auto delay_increase_factor = 2;
@@ -468,7 +468,7 @@ Supervisor::Node* Stem::Revive()
 			node.revival_delay *= delay_increase_factor;
 
 		if ( Spawn(&node) )
-			return new Supervisor::Node(node);
+			return node.config;
 
 		ReportStatus(node);
 		}
@@ -483,19 +483,19 @@ bool Stem::Spawn(Supervisor::Node* node)
 	if ( node_pid == -1 )
 		{
 		fprintf(stderr, "failed to fork Zeek node '%s': %s\n",
-		        node->name.data(), strerror(errno));
+		        node->Name().data(), strerror(errno));
 		return false;
 		}
 
 	if ( node_pid == 0 )
 		{
-		zeek::set_thread_name(fmt("zeek.%s", node->name.data()));
+		zeek::set_thread_name(fmt("zeek.%s", node->Name().data()));
 		return true;
 		}
 
 	node->pid = node_pid;
 	node->spawn_time = std::chrono::steady_clock::now();
-	printf("Stem spawned node: %s (%d)\n", node->name.data(), node->pid);
+	printf("Stem spawned node: %s (%d)\n", node->Name().data(), node->pid);
 	return false;
 	}
 
@@ -563,11 +563,11 @@ void Stem::Shutdown(int exit_code)
 
 void Stem::ReportStatus(const Supervisor::Node& node) const
 	{
-	std::string msg = fmt("status %s %d", node.name.data(), node.pid);
+	std::string msg = fmt("status %s %d", node.Name().data(), node.pid);
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
 	}
 
-Supervisor::Node* Stem::Run()
+std::optional<Supervisor::NodeConfig> Stem::Run()
 	{
 	for ( ; ; )
 		{
@@ -580,7 +580,7 @@ Supervisor::Node* Stem::Run()
 	return {};
 	}
 
-Supervisor::Node* Stem::Poll()
+std::optional<Supervisor::NodeConfig> Stem::Poll()
 	{
 	pollfd fds[2] = { { pipe->InFD(), POLLIN, 0 },
 	                  { signal_flare->FD(), POLLIN, 0} };
@@ -659,15 +659,16 @@ Supervisor::Node* Stem::Poll()
 			{
 			const auto& node_json = msg_tokens[2];
 			assert(nodes.find(node_name) == nodes.end());
-			auto node = Supervisor::Node::FromJSON(node_json);
+			auto node_config = Supervisor::NodeConfig::FromJSON(node_json);
+			auto it = nodes.emplace(node_name, std::move(node_config)).first;
+			auto& node = it->second;
 
 			if ( Spawn(&node) )
-				return new Supervisor::Node(node);
+				return node.config;
 
 			// TODO: get stem printfs going through standard Zeek debug.log
-			printf("Stem created node: %s (%d)\n", node.name.data(), node.pid);
-			auto it = nodes.emplace(node_name, std::move(node)).first;
-			ReportStatus(it->second);
+			printf("Stem created node: %s (%d)\n", node.Name().data(), node.pid);
+			ReportStatus(node);
 			}
 		else if ( cmd == "destroy" )
 			{
@@ -687,7 +688,7 @@ Supervisor::Node* Stem::Poll()
 			Destroy(&node);
 
 			if ( Spawn(&node) )
-				return new Supervisor::Node(node);
+				return node.config;
 
 			ReportStatus(node);
 			}
@@ -698,7 +699,7 @@ Supervisor::Node* Stem::Poll()
 	return {};
 	}
 
-Supervisor::Node* Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
+std::optional<Supervisor::NodeConfig> Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
 	{
 	Stem s(std::move(pipe));
 	return s.Run();
@@ -718,9 +719,9 @@ static BifEnum::Supervisor::ClusterRole role_str_to_enum(const std::string& r)
 	return BifEnum::Supervisor::NONE;
 	}
 
-Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
+Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	{
-	Supervisor::Node rval;
+	Supervisor::NodeConfig rval;
 	rval.name = node->Lookup("name")->AsString()->CheckString();
 	auto iface_val = node->Lookup("interface");
 
@@ -784,9 +785,9 @@ Supervisor::Node Supervisor::Node::FromRecord(const RecordVal* node)
 	return rval;
 	}
 
-Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
+Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	{
-	Supervisor::Node rval;
+	Supervisor::NodeConfig rval;
 	auto j = nlohmann::json::parse(json);
 	rval.name = j["name"];
 
@@ -836,7 +837,7 @@ Supervisor::Node Supervisor::Node::FromJSON(std::string_view json)
 	return rval;
 	}
 
-std::string Supervisor::Node::ToJSON() const
+std::string Supervisor::NodeConfig::ToJSON() const
 	{
 	auto re = std::make_unique<RE_Matcher>("^_");
 	auto node_val = ToRecord();
@@ -845,9 +846,9 @@ std::string Supervisor::Node::ToJSON() const
 	return rval;
 	}
 
-IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
+IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	{
-	auto rt = BifType::Record::Supervisor::Node;
+	auto rt = BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
 	rval->Assign(rt->FieldOffset("name"), new StringVal(name));
 
@@ -866,14 +867,14 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	if ( cpu_affinity )
 		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));
 
-	auto st = BifType::Record::Supervisor::Node->FieldType("scripts");
+	auto st = BifType::Record::Supervisor::NodeConfig->FieldType("scripts");
 	auto scripts_val = new VectorVal(st->AsVectorType());
 	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
 
 	for ( const auto& s : scripts )
 		scripts_val->Assign(scripts_val->Size(), new StringVal(s));
 
-	auto tt = BifType::Record::Supervisor::Node->FieldType("cluster");
+	auto tt = BifType::Record::Supervisor::NodeConfig->FieldType("cluster");
 	auto cluster_val = new TableVal(tt->AsTableType());
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
@@ -895,11 +896,22 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 		cluster_val->Assign(key.get(), val.detach());
 		}
 
+	return rval;
+	}
+
+IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
+	{
+	auto rt = BifType::Record::Supervisor::NodeStatus;
+	auto rval = make_intrusive<RecordVal>(rt);
+
+	rval->Assign(rt->FieldOffset("node"), config.ToRecord().detach());
+
 	if ( pid )
 		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetCount(pid));
 
 	return rval;
 	}
+
 
 static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
@@ -919,7 +931,7 @@ static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRol
 	}
 	}
 
-void Supervisor::Node::InitCluster()
+void Supervisor::NodeConfig::InitCluster()
 	{
 	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->AsType()->AsRecordType();
 	auto cluster_nodes_id = global_scope()->Lookup("Cluster::nodes");
@@ -972,8 +984,9 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 
 	for ( const auto& n : nodes )
 		{
+		const auto& name = n.first;
 		const auto& node = n.second;
-		auto key = make_intrusive<StringVal>(node.name);
+		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
 		node_table_val->Assign(key.get(), val.detach());
 		}
@@ -983,11 +996,11 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 
 std::string Supervisor::Create(const RecordVal* node_val)
 	{
-	auto node = Supervisor::Node::FromRecord(node_val);
+	auto node = Supervisor::NodeConfig::FromRecord(node_val);
 	return Create(node);
 	}
 
-std::string Supervisor::Create(const Supervisor::Node& node)
+std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 	{
 	if ( node.name.find(' ') != std::string::npos )
 		return fmt("node names must not contain spaces: '%s'",

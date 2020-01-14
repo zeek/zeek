@@ -100,7 +100,7 @@ zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
 zeek::Supervisor* zeek::supervisor = 0;
-zeek::Supervisor::Node* zeek::supervised_node = 0;
+std::optional<zeek::Supervisor::NodeConfig> zeek::supervised_node;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
@@ -286,7 +286,7 @@ struct zeek_options {
 	 * and discard the rest.
 	 * @param node  the supervised-node whose Zeek options are to be modified.
 	 */
-	void filter_supervised_node_options(zeek::Supervisor::Node* node)
+	void filter_supervised_node_options(const zeek::Supervisor::NodeConfig& node)
 		{
 		auto og = *this;
 		*this = {};
@@ -752,7 +752,6 @@ void terminate_bro()
 	delete file_mgr;
 	// broker_mgr is deleted via iosource_mgr
 	// supervisor is deleted via iosource_mgr
-	delete zeek::supervised_node;
 	delete iosource_mgr;
 	delete log_mgr;
 	delete reporter;
@@ -992,7 +991,7 @@ int main(int argc, char** argv)
 				        node_name.data(), strerror(errno));
 			}
 
-		options.filter_supervised_node_options(zeek::supervised_node);
+		options.filter_supervised_node_options(*zeek::supervised_node);
 
 		if ( zeek::supervised_node->interface )
 			options.interfaces.emplace_back(*zeek::supervised_node->interface);

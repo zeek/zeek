@@ -35,11 +35,10 @@ public:
 		std::optional<std::string> interface;
 	};
 
-	struct Node {
-		static Node FromRecord(const RecordVal* node_val);
-		static Node FromJSON(std::string_view json);
-
+	struct NodeConfig {
 		static void InitCluster();
+		static NodeConfig FromRecord(const RecordVal* node_val);
+		static NodeConfig FromJSON(std::string_view json);
 
 		std::string ToJSON() const;
 		IntrusivePtr<RecordVal> ToRecord() const;
@@ -52,7 +51,18 @@ public:
 		std::optional<int> cpu_affinity;
 		std::vector<std::string> scripts;
 		std::map<std::string, ClusterEndpoint> cluster;
+	};
 
+	struct Node {
+		IntrusivePtr<RecordVal> ToRecord() const;
+
+		const std::string& Name() const
+			{ return config.name; }
+
+		Node(NodeConfig arg_config) : config(std::move(arg_config))
+			{ }
+
+		NodeConfig config;
 		pid_t pid = 0;
 		int exit_status = 0;
 		int signal_number = 0;
@@ -61,7 +71,9 @@ public:
 		std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	};
 
-	static Node* RunStem(std::unique_ptr<bro::PipePair> pipe);
+	static std::optional<NodeConfig> RunStem(std::unique_ptr<bro::PipePair> pipe);
+
+	using NodeMap = std::map<std::string, Node, std::less<>>;
 
 	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);
 
@@ -74,9 +86,12 @@ public:
 
 	RecordVal* Status(std::string_view node_name);
 	std::string Create(const RecordVal* node);
-	std::string Create(const Supervisor::Node& node);
+	std::string Create(const Supervisor::NodeConfig& node);
 	bool Destroy(std::string_view node_name);
 	bool Restart(std::string_view node_name);
+
+	const NodeMap& Nodes()
+		{ return nodes; }
 
 private:
 
@@ -99,11 +114,11 @@ private:
 	pid_t stem_pid;
 	std::unique_ptr<bro::PipePair> stem_pipe;
 	bro::Flare signal_flare;
-	std::map<std::string, Node, std::less<>> nodes;
+	NodeMap nodes;
 	std::string msg_buffer;
 };
 
 extern Supervisor* supervisor;
-extern Supervisor::Node* supervised_node;
+extern std::optional<Supervisor::NodeConfig> supervised_node;
 
 } // namespace zeek

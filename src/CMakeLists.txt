@@ -438,9 +438,8 @@ create_clang_tidy_target()
 
 # Scan all .cc files for TEST_CASE macros and generate CTest targets.
 if (ENABLE_ZEEK_UNIT_TESTS)
-    file(GLOB_RECURSE all_cc_files "*.cc")
     set(test_cases "")
-    foreach (cc_file ${all_cc_files})
+    foreach (cc_file ${TIDY_SRCS})
         file (STRINGS ${cc_file} test_case_lines REGEX "TEST_CASE")
         foreach (line ${test_case_lines})
             string(REGEX REPLACE "TEST_CASE\\(\"(.+)\"\\)" "\\1" test_case "${line}")

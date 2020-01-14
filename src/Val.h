@@ -925,7 +925,7 @@ protected:
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { element_new, element_changed, element_removed };
 
-	// Calls &change_func. Takes ownership of old_value.
+	// Calls &change_func. Does not take ownership of values. (Refs if needed).
 	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
 
 	Val* DoClone(CloneState* state) override;

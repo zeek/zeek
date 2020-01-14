@@ -1470,13 +1470,24 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	if ( old_entry_val && attrs && attrs->FindAttr(ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
 
+	Modified();
+
+	if ( change_func )
+		{
+		auto change_index = index->Ref();
+		if ( ! change_index )
+			RecoverIndex(&k_copy);
+		Val *v = old_entry_val ? old_entry_val->Value() : new_val;
+		CallChangeFunc(change_index, v, old_entry_val ? element_changed : element_new);
+		Unref(change_index);
+		}
+
 	if ( old_entry_val )
 		{
 		old_entry_val->Unref();
 		delete old_entry_val;
 		}
 
-	Modified();
 	return 1;
 	}
 
@@ -1929,11 +1940,11 @@ ListVal* TableVal::RecoverIndex(const HashKey* k) const
 
 void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
 	{
-	if ( ! change_func )
-		{
-		Unref(old_value);
+	if ( ! change_func || ! index )
 		return;
-		}
+
+	if ( ! table_type->IsSet() && ! old_value )
+		return;
 
 	try
 		{
@@ -1948,7 +1959,6 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			{
 			thefunc->Error("not a function");
 			Unref(thefunc);
-			Unref(old_value);
 			return;
 			}
 
@@ -1959,17 +1969,21 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			{
 			case element_new:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
+				break;
 			case element_changed:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
+				break;
 			case element_removed:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
+				break;
 			}
 		vl.append(type);
 
 		for ( const auto& v : *index->AsListVal()->Vals() )
 			vl.append(v->Ref());
 
-		vl.append(old_value);
+		if ( ! table_type->IsSet() )
+			vl.append(old_value->Ref());
 
 		f->Call(&vl);
 		Unref(thefunc);
@@ -1994,7 +2008,7 @@ Val* TableVal::Delete(const Val* index)
 	Modified();
 
 	if ( change_func )
-		CallChangeFunc(index, va->Ref(), element_removed);
+		CallChangeFunc(index, va, element_removed);
 
 	return va;
 	}
@@ -2020,6 +2034,7 @@ Val* TableVal::Delete(const HashKey* k)
 		{
 		auto index = table_hash->RecoverVals(k);
 		CallChangeFunc(index, va->Ref(), element_removed);
+		Unref(index);
 		}
 
 	return va;

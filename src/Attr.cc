@@ -510,7 +510,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		const type_list* args = c_ft->ArgTypes()->Types();
 		const type_list* t_indexes = the_table->IndexTypes();
-		if ( args->length() != 3 + t_indexes->length() )
+		if ( args->length() != ( type->IsSet() ? 2 : 3 ) + t_indexes->length() )
 			{
 			Error("&on_change function has incorrect number of arguments");
 			break;
@@ -539,11 +539,12 @@ void Attributes::CheckAttr(Attr* a)
 				}
 			}
 
-		if ( ! same_type((*args)[2+t_indexes->length()], the_table->YieldType()) )
-			{
-			Error("&on_change: value type does not match table");
-			break;
-			}
+		if ( ! type->IsSet() )
+			if ( ! same_type((*args)[2+t_indexes->length()], the_table->YieldType()) )
+				{
+				Error("&on_change: value type does not match table");
+				break;
+				}
 		}
 		break;
 

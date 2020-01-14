@@ -1067,17 +1067,11 @@ int main(int argc, char** argv)
 	if ( options.debug_log_streams )
 		{
 		debug_logger.EnableStreams(options.debug_log_streams->data());
-		const char* debug_log_name = nullptr;
 
-		if ( ! getenv("ZEEK_DEBUG_LOG_STDERR") )
-			{
-			if ( is_supervisor(options) )
-				debug_log_name = "debug-supervisor";
-			else
-				debug_log_name = "debug";
-			}
-
-		debug_logger.OpenDebugLog(debug_log_name);
+		if ( getenv("ZEEK_DEBUG_LOG_STDERR") )
+			debug_logger.OpenDebugLog(nullptr);
+		else
+			debug_logger.OpenDebugLog("debug");
 		}
 #endif
 

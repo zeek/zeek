@@ -6,6 +6,7 @@
 #include <poll.h>
 
 #include <csignal>
+#include <cstdarg>
 #include <sstream>
 
 #include "Supervisor.h"
@@ -21,6 +22,12 @@
 extern "C" {
 #include "setsignal.h"
 }
+
+#ifdef DEBUG
+#define DBG_STEM(args...) stem->LogDebug(args);
+#else
+#define DBG_STEM
+#endif
 
 using namespace zeek;
 
@@ -54,6 +61,10 @@ struct Stem {
 
 	void ReportStatus(const Supervisor::Node& node) const;
 
+	void LogDebug(const char* format, ...) const __attribute__((format(printf, 2, 3)));
+
+	void LogError(const char* format, ...) const __attribute__((format(printf, 2, 3)));
+
 	std::unique_ptr<bro::Flare> signal_flare;
 	std::unique_ptr<bro::PipePair> pipe;
 	std::map<std::string, Supervisor::Node> nodes;
@@ -67,7 +78,7 @@ static Stem* stem = nullptr;
 static RETSIGTYPE stem_sig_handler(int signo)
 	{
 	// TODO: signal safety
-	printf("Stem received signal: %d\n", signo);
+	DBG_STEM("Stem received signal: %d", signo);
 
 	if ( stem->shutting_down )
 		return RETSIGVAL;
@@ -158,6 +169,8 @@ Supervisor::~Supervisor()
 			reporter->Error("Failed to wait for stem process to exit: %s", tmp);
 			}
 		}
+
+	while ( ProcessMessages() != 0 );
 	}
 
 void Supervisor::ObserveChildSignal()
@@ -294,7 +307,11 @@ double Supervisor::NextTimestamp(double* local_network_time)
 void Supervisor::Process()
 	{
 	HandleChildSignal();
+	ProcessMessages();
+	}
 
+size_t Supervisor::ProcessMessages()
+	{
 	char buf[256];
 	int bytes_read = read(stem_pipe->InFD(), buf, 256);
 
@@ -318,9 +335,15 @@ void Supervisor::Process()
 			if ( it != nodes.end() )
 				it->second.pid = std::stoi(msg_tokens[2]);
 			}
+		else if ( type == "debug" )
+			{
+			// Already logged the unparsed message above.
+			}
 		else
 			reporter->Error("Supervisor got unknown msg: %s", msg.data());
 		}
+
+	return msgs.size();
 	}
 
 Stem::Stem(std::unique_ptr<bro::PipePair> p)
@@ -343,8 +366,7 @@ Stem::Stem(std::unique_ptr<bro::PipePair> p)
 	auto res = setpgid(0, 0);
 
 	if ( res == -1 )
-		fprintf(stderr, "failed to set stem process group: %s\n",
-				strerror(errno));
+		LogError("failed to set stem process group: %s", strerror(errno));
 	}
 
 Stem::~Stem()
@@ -377,8 +399,8 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 
 	if ( res == -1 )
 		{
-		fprintf(stderr, "Stem failed to get node exit status %s (%d): %s\n",
-			    node->Name().data(), node->pid, strerror(errno));
+		LogError("Stem failed to get node exit status %s (%d): %s",
+		         node->Name().data(), node->pid, strerror(errno));
 		return false;
 		}
 
@@ -386,18 +408,18 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 		{
 		node->exit_status = WEXITSTATUS(status);
 		// TODO: may be some cases where the node is intended to exit
-		printf("node '%s' exited with status %d\n",
-			   node->Name().data(), node->exit_status);
+		DBG_STEM("node '%s' exited with status %d",
+		         node->Name().data(), node->exit_status);
 		}
 	else if ( WIFSIGNALED(status) )
 		{
 		node->signal_number = WTERMSIG(status);
-		printf("node '%s' terminated by signal %d\n",
-			   node->Name().data(), node->signal_number);
+		DBG_STEM("node '%s' terminated by signal %d",
+		         node->Name().data(), node->signal_number);
 		}
 	else
-		fprintf(stderr, "Stem failed to get node exit status %s (%d)\n",
-			    node->Name().data(), node->pid);
+		LogError("Stem failed to get node exit status %s (%d)",
+		         node->Name().data(), node->pid);
 
 	node->pid = 0;
 	return true;
@@ -408,8 +430,8 @@ void Stem::KillNode(const Supervisor::Node& node, int signal) const
 	auto kill_res = kill(node.pid, signal);
 
 	if ( kill_res == -1 )
-		fprintf(stderr, "Failed to send signal to node %s: %s",
-		        node.Name().data(), strerror(errno));
+		LogError("Failed to send signal to node %s: %s",
+		         node.Name().data(), strerror(errno));
 	}
 
 void Stem::Destroy(Supervisor::Node* node) const
@@ -427,8 +449,8 @@ void Stem::Destroy(Supervisor::Node* node) const
 		if ( Wait(node, WNOHANG) )
 			break;
 
-		printf("Stem waiting to destroy node: %s (%d)\n",
-		       node->Name().data(), node->pid);
+		DBG_STEM("Stem waiting to destroy node: %s (%d)",
+		         node->Name().data(), node->pid);
 		sleep(kill_delay);
 		}
 	}
@@ -482,8 +504,8 @@ bool Stem::Spawn(Supervisor::Node* node)
 
 	if ( node_pid == -1 )
 		{
-		fprintf(stderr, "failed to fork Zeek node '%s': %s\n",
-		        node->Name().data(), strerror(errno));
+		LogError("failed to fork Zeek node '%s': %s",
+		         node->Name().data(), strerror(errno));
 		return false;
 		}
 
@@ -495,7 +517,7 @@ bool Stem::Spawn(Supervisor::Node* node)
 
 	node->pid = node_pid;
 	node->spawn_time = std::chrono::steady_clock::now();
-	printf("Stem spawned node: %s (%d)\n", node->Name().data(), node->pid);
+	DBG_STEM("Stem spawned node: %s (%d)", node->Name().data(), node->pid);
 	return false;
 	}
 
@@ -529,7 +551,7 @@ void Stem::Shutdown(int exit_code)
 		if ( ! nodes.empty() )
 			{
 			KillNodes(sig);
-			printf("Stem killed nodes with signal %d\n", sig);
+			DBG_STEM("Stem killed nodes with signal %d", sig);
 			usleep(10);
 			Reap();
 			}
@@ -539,8 +561,8 @@ void Stem::Shutdown(int exit_code)
 		if ( nodes_alive == 0 )
 			exit(exit_code);
 
-		printf("Stem nodes still alive %d, sleeping for %d seconds\n",
-		       nodes_alive, kill_delay);
+		DBG_STEM("Stem nodes still alive %d, sleeping for %d seconds",
+		         nodes_alive, kill_delay);
 
 		auto sleep_time_left = kill_delay;
 
@@ -567,6 +589,44 @@ void Stem::ReportStatus(const Supervisor::Node& node) const
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
 	}
 
+void Stem::LogDebug(const char* format, ...) const
+	{
+	va_list args;
+	va_start(args, format);
+	auto raw_msg = fmt(format, args);
+	va_end(args);
+
+	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
+		{
+		// Useful when debugging a breaking change to the IPC mechanism itself.
+		fprintf(stderr, "%s\n", raw_msg);
+		return;
+		}
+
+	std::string msg = "debug ";
+	msg += raw_msg;
+	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
+	}
+
+void Stem::LogError(const char* format, ...) const
+	{
+	va_list args;
+	va_start(args, format);
+	std::string msg = fmt(format, args);
+	va_end(args);
+
+	fprintf(stderr, "%s\n", msg.data());
+
+	#ifdef DEBUG
+	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
+		// Essentially already emitted above.
+		return;
+
+	// Useful to also insert the error message into the debug log.
+	LogDebug("%s", msg.data());
+	#endif
+	}
+
 std::optional<Supervisor::NodeConfig> Stem::Run()
 	{
 	for ( ; ; )
@@ -591,7 +651,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 		{
 		if ( errno != EINTR )
 			{
-			fprintf(stderr, "Stem poll() failed: %s\n", strerror(errno));
+			LogError("Stem poll() failed: %s", strerror(errno));
 			return {};
 			}
 		}
@@ -601,7 +661,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 		// TODO: better way to detect loss of parent than polling ?
 		// e.g. prctl(PR_SET_PDEATHSIG, ...) on Linux
 		// or procctl(PROC_PDEATHSIG_CTL) on FreeBSD
-		printf("Stem suicide\n");
+		DBG_STEM("Stem suicide");
 		Shutdown(13);
 		}
 
@@ -634,13 +694,13 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 	if ( bytes_read == 0 )
 		{
 		// EOF, supervisor must have exited
-		printf("Stem EOF\n");
+		DBG_STEM("Stem EOF");
 		Shutdown(14);
 		}
 
 	if ( bytes_read < 0 )
 		{
-		fprintf(stderr, "Stem read() failed: %s\n", strerror(errno));
+		LogError("Stem read() failed: %s", strerror(errno));
 		return {};
 		}
 
@@ -666,8 +726,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			if ( Spawn(&node) )
 				return node.config;
 
-			// TODO: get stem printfs going through standard Zeek debug.log
-			printf("Stem created node: %s (%d)\n", node.Name().data(), node.pid);
+			DBG_STEM("Stem created node: %s (%d)", node.Name().data(), node.pid);
 			ReportStatus(node);
 			}
 		else if ( cmd == "destroy" )
@@ -675,7 +734,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			auto it = nodes.find(node_name);
 			assert(it != nodes.end());
 			auto& node = it->second;
-			printf("Stem destroying node: %s\n", node_name.data());
+			DBG_STEM("Stem destroying node: %s", node_name.data());
 			Destroy(&node);
 			nodes.erase(it);
 			}
@@ -684,7 +743,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			auto it = nodes.find(node_name);
 			assert(it != nodes.end());
 			auto& node = it->second;
-			printf("Stem restarting node: %s\n", node_name.data());
+			DBG_STEM("Stem restarting node: %s", node_name.data());
 			Destroy(&node);
 
 			if ( Spawn(&node) )
@@ -693,7 +752,7 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			ReportStatus(node);
 			}
 		else
-			fprintf(stderr, "unknown supervisor message: %s", cmd.data());
+			LogError("Stem got unknown supervisor message: %s", cmd.data());
 		}
 
 	return {};

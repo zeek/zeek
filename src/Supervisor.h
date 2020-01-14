@@ -103,6 +103,8 @@ private:
 
 	void Process() override;
 
+	size_t ProcessMessages();
+
 	void HandleChildSignal();
 
 	void ReapStem();

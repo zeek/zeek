@@ -21,9 +21,9 @@ event Supervisor::stop_request()
 	terminate();
 	}
 
-event Supervisor::status_request(reqid: string, nodes: string)
+event Supervisor::status_request(reqid: string, node: string)
 	{
-	local res = Supervisor::status(nodes);
+	local res = Supervisor::status(node);
 	local topic = Supervisor::topic_prefix + fmt("/status_response/%s", reqid);
 	Broker::publish(topic, Supervisor::status_response, reqid, res);
 	}
@@ -35,23 +35,23 @@ event Supervisor::create_request(reqid: string, node: NodeConfig)
 	Broker::publish(topic, Supervisor::create_response, reqid, res);
 	}
 
-event Supervisor::destroy_request(reqid: string, nodes: string)
+event Supervisor::destroy_request(reqid: string, node: string)
 	{
-	local res = Supervisor::destroy(nodes);
+	local res = Supervisor::destroy(node);
 	local topic = Supervisor::topic_prefix + fmt("/destroy_response/%s", reqid);
 	Broker::publish(topic, Supervisor::destroy_response, reqid, res);
 	}
 
-event Supervisor::restart_request(reqid: string, nodes: string)
+event Supervisor::restart_request(reqid: string, node: string)
 	{
-	local res = Supervisor::restart(nodes);
+	local res = Supervisor::restart(node);
 	local topic = Supervisor::topic_prefix + fmt("/restart_response/%s", reqid);
 	Broker::publish(topic, Supervisor::restart_response, reqid, res);
 	}
 
-function Supervisor::status(nodes: string): Status
+function Supervisor::status(node: string): Status
 	{
-	return Supervisor::__status(nodes);
+	return Supervisor::__status(node);
 	}
 
 function Supervisor::create(node: NodeConfig): string
@@ -59,14 +59,14 @@ function Supervisor::create(node: NodeConfig): string
 	return Supervisor::__create(node);
 	}
 
-function Supervisor::destroy(nodes: string): bool
+function Supervisor::destroy(node: string): bool
 	{
-	return Supervisor::__destroy(nodes);
+	return Supervisor::__destroy(node);
 	}
 
-function Supervisor::restart(nodes: string): bool
+function Supervisor::restart(node: string): bool
 	{
-	return Supervisor::__restart(nodes);
+	return Supervisor::__restart(node);
 	}
 
 function is_supervisor(): bool

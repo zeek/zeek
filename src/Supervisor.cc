@@ -148,7 +148,6 @@ Supervisor::~Supervisor()
 
 	DBG_LOG(DBG_SUPERVISOR, "shutdown, killing stem process %d", stem_pid);
 
-	// TODO: is signal the best way to trigger shutdown of decendent processes?
 	auto kill_res = kill(stem_pid, SIGTERM);
 
 	if ( kill_res == -1 )
@@ -232,7 +231,6 @@ void Supervisor::HandleChildSignal()
 		return;
 
 	// Revive the Stem process
-	// TODO: Stem process needs a way to inform Supervisor not to revive
 	stem_pid = fork();
 
 	if ( stem_pid == -1 )
@@ -280,10 +278,13 @@ void Supervisor::HandleChildSignal()
 	DBG_LOG(DBG_SUPERVISOR, "stem process revived, new pid: %d", stem_pid);
 
 	// Parent supervisor process resends node configurations to recreate
-	// the desired process hierarchy
+	// the desired process hierarchy.
 
-	// TODO: probably a preferred order in which to create nodes
-	// e.g. logger, manager, proxy, worker
+	// Note: there's probably a preferred order in which to create nodes.
+	// E.g. logger, manager, proxy, worker.  However, fully synchronizing
+	// a startup order like that is slow and complicated: essentially have
+	// to wait for each process to start up and reach the point just after
+	// it starts listening (and maybe that never happens for some error case).
 	for ( const auto& n : nodes )
 		{
 		const auto& node = n.second;
@@ -355,14 +356,16 @@ Stem::Stem(std::unique_ptr<bro::PipePair> p)
 	setsignal(SIGCHLD, stem_sig_handler);
 	setsignal(SIGTERM, stem_sig_handler);
 
-	// TODO: changing the process group here so that SIGINT to the
-	// supervisor doesn't also get passed to the children.  i.e. supervisor
-	// should be in charge of initiating orderly shutdown.  But calling
-	// just setpgid() like this is technically a race-condition -- need
-	// to do more work of blocking SIGINT before fork(), unblocking after,
-	// then also calling setpgid() from parent.  And just not doing that
-	// until more is known whether that's the right SIGINT behavior in
-	// the first place.
+	// Note: changing the process group here so that SIGINT to the supervisor
+	// doesn't also get passed to the children.  I.e. the supervisor should be
+	// in charge of initiating orderly shutdown of the process tree.
+	// Technically calling setpgid() like this is a race-condition (if we get a
+	// SIGINT in between the fork() and setpgid() calls), but can treat that as
+	// mostly be harmless since the only affected node in the process tree at
+	// the point will be this Stem process and the Supervisor *should* do the
+	// right thing if it also sees SIGINT with the Stem already having exited
+	// (since that same type of situation with the Stem dying prematurely can
+	// happen for any arbitrary reason, not just for SIGINT).
 	auto res = setpgid(0, 0);
 
 	if ( res == -1 )
@@ -407,7 +410,6 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 	if ( WIFEXITED(status) )
 		{
 		node->exit_status = WEXITSTATUS(status);
-		// TODO: may be some cases where the node is intended to exit
 		DBG_STEM("node '%s' exited with status %d",
 		         node->Name().data(), node->exit_status);
 		}
@@ -709,7 +711,6 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 
 	for ( auto& msg : msgs )
 		{
-		// TODO: improve message format ...
 		std::vector<std::string> msg_tokens;
 		tokenize_string(std::move(msg), " ", &msg_tokens, 2);
 		const auto& cmd = msg_tokens[0];
@@ -1035,16 +1036,31 @@ void Supervisor::NodeConfig::InitCluster()
 
 RecordVal* Supervisor::Status(std::string_view node_name)
 	{
-	// TODO: handle node classes
 	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
 	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
 	auto node_table_val = new TableVal(tt->AsTableType());
 	rval->Assign(0, node_table_val);
 
-	for ( const auto& n : nodes )
+	if ( node_name.empty() )
 		{
-		const auto& name = n.first;
-		const auto& node = n.second;
+		for ( const auto& n : nodes )
+			{
+			const auto& name = n.first;
+			const auto& node = n.second;
+			auto key = make_intrusive<StringVal>(name);
+			auto val = node.ToRecord();
+			node_table_val->Assign(key.get(), val.detach());
+			}
+		}
+	else
+		{
+		auto it = nodes.find(node_name);
+
+		if ( it == nodes.end() )
+			return rval;
+
+		const auto& name = it->first;
+		const auto& node = it->second;
 		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
 		node_table_val->Assign(key.get(), val.detach());
@@ -1061,6 +1077,9 @@ std::string Supervisor::Create(const RecordVal* node_val)
 
 std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 	{
+	if ( node.name.empty() )
+		return "node names must not be an empty string";
+
 	if ( node.name.find(' ') != std::string::npos )
 		return fmt("node names must not contain spaces: '%s'",
 		           node.name.data());
@@ -1085,7 +1104,22 @@ std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 
 bool Supervisor::Destroy(std::string_view node_name)
 	{
-	// TODO: handle node classes
+	auto send_destroy_msg = [this](std::string_view name)
+		{
+		std::stringstream ss;
+		ss << "destroy " << name;
+		std::string msg = ss.str();
+		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		};
+
+	if ( node_name.empty() )
+		{
+		for ( const auto& n : nodes )
+			send_destroy_msg(n.first);
+
+		nodes.clear();
+		return true;
+		}
 
 	auto it = nodes.find(node_name);
 
@@ -1093,24 +1127,31 @@ bool Supervisor::Destroy(std::string_view node_name)
 		return false;
 
 	nodes.erase(it);
-
-	std::stringstream ss;
-	ss << "destroy " << node_name;
-	std::string msg = ss.str();
-	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+	send_destroy_msg(node_name);
 	return true;
 	}
 
 bool Supervisor::Restart(std::string_view node_name)
 	{
-	// TODO: handle node classes
+	auto send_restart_msg = [this](std::string_view name)
+		{
+		std::stringstream ss;
+		ss << "restart " << name;
+		std::string msg = ss.str();
+		safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+		};
+
+	if ( node_name.empty() )
+		{
+		for ( const auto& n : nodes )
+			send_restart_msg(n.first);
+
+		return true;
+		}
 
 	if ( nodes.find(node_name) == nodes.end() )
 		return false;
 
-	std::stringstream ss;
-	ss << "restart " << node_name;
-	std::string msg = ss.str();
-	safe_write(stem_pipe->OutFD(), msg.data(), msg.size() + 1);
+	send_restart_msg(node_name);
 	return true;
 	}

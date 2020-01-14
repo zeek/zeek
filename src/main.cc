@@ -284,9 +284,8 @@ struct zeek_options {
 	/**
 	 * Inherit certain options set in the original supervisor parent process
 	 * and discard the rest.
-	 * @param node  the supervised-node whose Zeek options are to be modified.
 	 */
-	void filter_supervised_node_options(const zeek::Supervisor::NodeConfig& node)
+	void filter_supervised_node_options()
 		{
 		auto og = *this;
 		*this = {};
@@ -326,6 +325,82 @@ struct zeek_options {
 		script_options_to_set = og.script_options_to_set;
 		}
 };
+
+static void init_supervised_node(zeek_options* options)
+	{
+	const auto& node_name = zeek::supervised_node->name;
+
+	if ( zeek::supervised_node->directory )
+		{
+		if ( chdir(zeek::supervised_node->directory->data()) )
+			{
+			fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
+			        node_name.data(),
+			        zeek::supervised_node->directory->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( zeek::supervised_node->stderr_file )
+		{
+		auto fd = open(zeek::supervised_node->stderr_file->data(),
+			           O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+			           0600);
+
+		if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
+			        node_name.data(),
+			        zeek::supervised_node->stderr_file->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( zeek::supervised_node->stdout_file )
+		{
+		auto fd = open(zeek::supervised_node->stdout_file->data(),
+		               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+		               0600);
+
+		if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
+			        node_name.data(),
+			        zeek::supervised_node->stdout_file->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( zeek::supervised_node->cpu_affinity )
+		{
+		auto res = zeek::set_affinity(*zeek::supervised_node->cpu_affinity);
+
+		if ( ! res )
+			fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
+			        node_name.data(), strerror(errno));
+		}
+
+	options->filter_supervised_node_options();
+
+	if ( zeek::supervised_node->interface )
+		options->interfaces.emplace_back(*zeek::supervised_node->interface);
+
+	if ( ! zeek::supervised_node->cluster.empty() )
+		{
+		if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to setenv: %s\n",
+			        node_name.data(), strerror(errno));
+			exit(1);
+			}
+		}
+
+	for ( const auto& s : zeek::supervised_node->scripts )
+		options->scripts_to_load.emplace_back(s);
+	}
 
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 	{
@@ -933,82 +1008,7 @@ int main(int argc, char** argv)
 		}
 
 	if ( zeek::supervised_node )
-		{
-		// TODO: probably all of this block could move to a new
-		// zeek::supervised_node->Init(options) method
-		const auto& node_name = zeek::supervised_node->name;
-
-		if ( zeek::supervised_node->directory )
-			{
-			if ( chdir(zeek::supervised_node->directory->data()) )
-				{
-				fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
-				        node_name.data(),
-				        zeek::supervised_node->directory->data(),
-				        strerror(errno));
-				exit(1);
-				}
-			}
-
-		if ( zeek::supervised_node->stderr_file )
-			{
-			auto fd = open(zeek::supervised_node->stderr_file->data(),
-			               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
-			               0600);
-
-			if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
-				{
-				fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
-				        node_name.data(),
-				        zeek::supervised_node->stderr_file->data(),
-				        strerror(errno));
-				exit(1);
-				}
-			}
-
-		if ( zeek::supervised_node->stdout_file )
-			{
-			auto fd = open(zeek::supervised_node->stdout_file->data(),
-			               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
-			               0600);
-
-			if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
-				{
-				fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
-				        node_name.data(),
-				        zeek::supervised_node->stdout_file->data(),
-				        strerror(errno));
-				exit(1);
-				}
-			}
-
-		if ( zeek::supervised_node->cpu_affinity )
-			{
-			auto res = zeek::set_affinity(*zeek::supervised_node->cpu_affinity);
-
-			if ( ! res )
-				fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
-				        node_name.data(), strerror(errno));
-			}
-
-		options.filter_supervised_node_options(*zeek::supervised_node);
-
-		if ( zeek::supervised_node->interface )
-			options.interfaces.emplace_back(*zeek::supervised_node->interface);
-
-		if ( ! zeek::supervised_node->cluster.empty() )
-			{
-			if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
-				{
-				fprintf(stderr, "node '%s' failed to setenv: %s\n",
-				        node_name.data(), strerror(errno));
-				exit(1);
-				}
-			}
-
-		for ( const auto& s : zeek::supervised_node->scripts )
-			options.scripts_to_load.emplace_back(s);
-		}
+		init_supervised_node(&options);
 
 	double time_start = current_time(true);
 

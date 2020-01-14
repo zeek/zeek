@@ -19,7 +19,7 @@ type Supervisor::Status: record;
 type Supervisor::NodeConfig: record;
 type Supervisor::NodeStatus: record;
 
-function Supervisor::__status%(nodes: string%): Supervisor::Status
+function Supervisor::__status%(node: string%): Supervisor::Status
 	%{
 	if ( ! zeek::supervisor )
 		{
@@ -27,7 +27,7 @@ function Supervisor::__status%(nodes: string%): Supervisor::Status
 		return new RecordVal(BifType::Record::Supervisor::Status);
 		}
 
-	return zeek::supervisor->Status(nodes->CheckString());
+	return zeek::supervisor->Status(node->CheckString());
 	%}
 
 function Supervisor::__create%(node: Supervisor::NodeConfig%): string
@@ -42,7 +42,7 @@ function Supervisor::__create%(node: Supervisor::NodeConfig%): string
 	return new StringVal(rval);
 	%}
 
-function Supervisor::__destroy%(nodes: string%): bool
+function Supervisor::__destroy%(node: string%): bool
 	%{
 	if ( ! zeek::supervisor )
 		{
@@ -50,11 +50,11 @@ function Supervisor::__destroy%(nodes: string%): bool
 		return val_mgr->GetBool(false);
 		}
 
-	auto rval = zeek::supervisor->Destroy(nodes->CheckString());
+	auto rval = zeek::supervisor->Destroy(node->CheckString());
 	return val_mgr->GetBool(rval);
 	%}
 
-function Supervisor::__restart%(nodes: string%): bool
+function Supervisor::__restart%(node: string%): bool
 	%{
 	if ( ! zeek::supervisor )
 		{
@@ -62,7 +62,7 @@ function Supervisor::__restart%(nodes: string%): bool
 		return val_mgr->GetBool(false);
 		}
 
-	auto rval = zeek::supervisor->Restart(nodes->CheckString());
+	auto rval = zeek::supervisor->Restart(node->CheckString());
 	return val_mgr->GetBool(rval);
 	%}
 

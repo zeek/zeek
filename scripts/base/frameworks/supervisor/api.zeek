@@ -39,25 +39,25 @@ export {
 		nodes: table[string] of NodeStatus;
 	};
 
-	global status: function(nodes: string &default="all"): Status;
 	global create: function(node: NodeConfig): string;
-	global destroy: function(nodes: string): bool;
-	global restart: function(nodes: string &default="all"): bool;
+	global status: function(node: string &default=""): Status;
+	global restart: function(node: string &default=""): bool;
+	global destroy: function(node: string &default=""): bool;
 
 	global is_supervisor: function(): bool;
 	global is_supervised: function(): bool;
 
-	global Supervisor::stop_request: event();
-
-	global Supervisor::status_request: event(reqid: string, nodes: string);
-	global Supervisor::status_response: event(reqid: string, result: Status);
-
 	global Supervisor::create_request: event(reqid: string, node: NodeConfig);
 	global Supervisor::create_response: event(reqid: string, result: string);
 
-	global Supervisor::destroy_request: event(reqid: string, nodes: string);
+	global Supervisor::status_request: event(reqid: string, node: string);
+	global Supervisor::status_response: event(reqid: string, result: Status);
+
+	global Supervisor::restart_request: event(reqid: string, node: string);
+	global Supervisor::restart_response: event(reqid: string, result: bool);
+
+	global Supervisor::destroy_request: event(reqid: string, node: string);
 	global Supervisor::destroy_response: event(reqid: string, result: bool);
 
-	global Supervisor::restart_request: event(reqid: string, nodes: string);
-	global Supervisor::restart_response: event(reqid: string, result: bool);
+	global Supervisor::stop_request: event();
 }

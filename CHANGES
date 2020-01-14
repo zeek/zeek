@@ -1,4 +1,11 @@
 
+3.1.0-dev.376 | 2020-01-14 09:45:45 -0800
+
+  * Fix warning when reading files from non-network sources (Seth Hall, Corelight)
+
+    If files are being read from non-network sources, there was a warning in
+    the SSL base scripts about missing the f$conns field.
+
 3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
 
   * Fix method returning a reference to a temporary. Found by

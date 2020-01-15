@@ -12,12 +12,25 @@
 #include <map>
 
 #include "iosource/IOSource.h"
+#include "Timer.h"
 #include "Pipe.h"
 #include "Flare.h"
 #include "NetVar.h"
 #include "IntrusivePtr.h"
 
 namespace zeek {
+
+class ParentProcessCheckTimer : public Timer {
+public:
+
+	ParentProcessCheckTimer(double t, double arg_interval);
+
+	void Dispatch(double t, int is_expire) override;
+
+protected:
+
+	double interval;
+};
 
 class Supervisor : public iosource::IOSource {
 public:

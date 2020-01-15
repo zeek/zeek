@@ -290,17 +290,6 @@ void net_run()
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		// Note: only simple + portable way of detecting loss of parent
-		// process seems to be polling for change in PPID.  There's platform
-		// specific ways if we do end up needing something more responsive
-		// and/or have to avoid overhead of polling, but maybe not worth
-		// the additional complexity:
-		//   Linux:   prctl(PR_SET_PDEATHSIG, ...)
-		//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
-		// TODO: make this a proper timer
-		if ( zeek::supervised_node && zeek::supervised_node->parent_pid != getppid() )
-			zeek_terminate_loop("supervised cluster node was orphaned");
-
 		double ts;
 		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
 

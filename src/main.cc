@@ -1481,6 +1481,9 @@ int main(int argc, char** argv)
 
 #endif
 
+		if ( zeek::supervised_node )
+			timer_mgr->Add(new zeek::ParentProcessCheckTimer(1, 1));
+
 		double time_net_start = current_time(true);;
 
 		uint64_t mem_net_start_total;

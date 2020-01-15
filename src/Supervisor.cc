@@ -13,6 +13,7 @@
 #include "Reporter.h"
 #include "DebugLogger.h"
 #include "Val.h"
+#include "Net.h"
 #include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
@@ -122,6 +123,29 @@ static std::string make_create_message(const Supervisor::NodeConfig& node)
 	{
 	auto json_str = node.ToJSON();
 	return fmt("create %s %s", node.name.data(), json_str.data());
+	}
+
+ParentProcessCheckTimer::ParentProcessCheckTimer(double t, double arg_interval)
+	: Timer(t, TIMER_PPID_CHECK), interval(arg_interval)
+	{
+	}
+
+void ParentProcessCheckTimer::Dispatch(double t, int is_expire)
+	{
+	// Note: only simple + portable way of detecting loss of parent
+	// process seems to be polling for change in PPID.  There's platform
+	// specific ways if we do end up needing something more responsive
+	// and/or have to avoid overhead of polling, but maybe not worth
+	// the additional complexity:
+	//   Linux:   prctl(PR_SET_PDEATHSIG, ...)
+	//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
+	// Also note the Stem process has its own polling loop with similar logic.
+	if ( zeek::supervised_node->parent_pid != getppid() )
+		zeek_terminate_loop("supervised node was orphaned");
+
+	if ( ! is_expire )
+		timer_mgr->Add(new ParentProcessCheckTimer(network_time + interval,
+		                                           interval));
 	}
 
 Supervisor::Supervisor(Supervisor::Config cfg,
@@ -714,6 +738,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 		// the additional complexity:
 		//   Linux:   prctl(PR_SET_PDEATHSIG, ...)
 		//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
+		// Also note the similar polling methodology in ParentProcessCheckTimer.
 		DBG_STEM("Stem suicide");
 		Shutdown(13);
 		}

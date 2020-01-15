@@ -72,7 +72,7 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 		FuncOverload* vo = nullptr;
 
 		if ( fv->GetOverloadIndex() >= 0 )
-			vo = fv->GetFunc()->FType()->GetOverload(fv->GetOverloadIndex());
+			vo = fv->GetType()->GetOverload(fv->GetOverloadIndex());
 		else
 			{
 			auto vt = v->Type()->AsFuncType();
@@ -96,11 +96,11 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 			                       "invalid assignment to function ID");
 
 		if ( val )
-			val->AsFunc()->SetOverload(o->index, fv->GetFunc()->GetOverload(vo->index));
+			val->AsFunc()->SetOverload(o->index, fv);
 		else
 			{
 			auto nf = new Func(this);
-			nf->SetOverload(o->index, fv->GetFunc()->GetOverload(vo->index));
+			nf->SetOverload(o->index, fv);
 			val = new Val(nf, o->index);
 
 			if ( ! arg_weak_ref )

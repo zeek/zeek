@@ -2979,7 +2979,7 @@ static Val* check_func_overload(Val* v, const BroType* t)
 		}
 	else
 		{
-		auto o = fv->GetFunc()->FType()->GetOverload(fv->GetOverloadIndex());
+		auto o = fv->GetType()->GetOverload(fv->GetOverloadIndex());
 
 		if ( tft->GetOverload(o->decl->args) )
 			return v->Ref();

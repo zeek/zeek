@@ -108,11 +108,13 @@ std::string render_call_stack()
 
 FuncImpl::FuncImpl(ID* id)
 	{
-	func = id->ID_Val()->AsFunc();
-	type = id->Type()->AsFuncType();
-
-	::Ref(func);
-	::Ref(type);
+	if ( id->HasVal() ) 
+		{
+		func = id->ID_Val()->AsFunc();
+		type = id->Type()->AsFuncType();
+		::Ref(func);
+		::Ref(type);
+		}
 	}
 
 FuncImpl::FuncImpl(ID* id, int i) : FuncImpl::FuncImpl(id)
@@ -134,6 +136,7 @@ FuncImpl::FuncImpl(const char* arg_name)
 	func = new Func(id);
 	type = id->Type()->AsFuncType();
 	::Ref(type);
+	::Ref(func);
 
 	// TODO: can assume order of impl follows same order as decls ?
 	auto& os = func->Overloads();
@@ -143,6 +146,19 @@ FuncImpl::FuncImpl(const char* arg_name)
 
 	id->SetVal(new Val(func, overload_idx));
 	Unref(id);
+	}
+
+void FuncImpl::SetFuncAndType (Func* f, FuncType* t)
+	{
+	if ( HasFunc() )
+		{
+		Unref(func);
+		Unref(type);
+		}
+	func = f;
+	type = t;
+	::Ref(func);
+	::Ref(type);
 	}
 
 FuncImpl::~FuncImpl()
@@ -198,6 +214,7 @@ int Func::AddOverload(FuncImpl* impl)
 	overloads.push_back(impl);
 	int index = overloads.size() - 1;
 	impl->SetOverloadIndex(index);
+	impl->SetFuncAndType(this, type);
 	return index;
 	}
 
@@ -214,6 +231,7 @@ void Func::SetOverload(int idx, FuncImpl* impl)
 
 	Unref(overloads[idx]);
 	impl->SetOverloadIndex(idx);
+	impl->SetFuncAndType(this, type);
 	overloads[idx] = impl;
 	}
 

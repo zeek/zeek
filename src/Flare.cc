@@ -13,8 +13,11 @@ Flare::Flare()
 	{
 	}
 
-static void bad_pipe_op(const char* which)
+static void bad_pipe_op(const char* which, bool signal_safe)
 	{
+	if ( signal_safe )
+		abort();
+
 	char buf[256];
 	bro_strerror_r(errno, buf, sizeof(buf));
 
@@ -27,7 +30,7 @@ static void bad_pipe_op(const char* which)
 		}
 	}
 
-void Flare::Fire()
+void Flare::Fire(bool signal_safe)
 	{
 	char tmp = 0;
 
@@ -49,14 +52,14 @@ void Flare::Fire()
 				// Interrupted: try again.
 				continue;
 
-			bad_pipe_op("write");
+			bad_pipe_op("write", signal_safe);
 			}
 
 		// No error, but didn't write a byte: try again.
 		}
 	}
 
-int Flare::Extinguish()
+int Flare::Extinguish(bool signal_safe)
 	{
 	int rval = 0;
 	char tmp[256];
@@ -80,7 +83,7 @@ int Flare::Extinguish()
 			// Interrupted: try again.
 			continue;
 
-		bad_pipe_op("read");
+		bad_pipe_op("read", signal_safe);
 		}
 
 	return rval;

@@ -80,7 +80,7 @@ public:
 	pid_t StemPID() const
 		{ return stem_pid; }
 
-	void ObserveChildSignal();
+	void ObserveChildSignal(int signo);
 
 	RecordVal* Status(std::string_view node_name);
 	std::string Create(const RecordVal* node);
@@ -113,6 +113,7 @@ private:
 	Config config;
 	pid_t stem_pid;
 	std::unique_ptr<bro::PipePair> stem_pipe;
+	int last_signal = -1;
 	bro::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;

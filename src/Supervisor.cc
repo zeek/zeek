@@ -65,6 +65,7 @@ struct Stem {
 
 	void LogError(const char* format, ...) const __attribute__((format(printf, 2, 3)));
 
+	int last_signal = -1;
 	std::unique_ptr<bro::Flare> signal_flare;
 	std::unique_ptr<bro::PipePair> pipe;
 	std::map<std::string, Supervisor::Node> nodes;
@@ -77,13 +78,12 @@ static Stem* stem = nullptr;
 
 static RETSIGTYPE stem_sig_handler(int signo)
 	{
-	// TODO: signal safety
-	DBG_STEM("Stem received signal: %d", signo);
+	stem->last_signal = signo;
 
 	if ( stem->shutting_down )
 		return RETSIGVAL;
 
-	stem->signal_flare->Fire();
+	stem->signal_flare->Fire(true);
 
 	if ( signo == SIGTERM )
 		stem->shutting_down = true;
@@ -93,9 +93,7 @@ static RETSIGTYPE stem_sig_handler(int signo)
 
 static RETSIGTYPE supervisor_sig_handler(int signo)
 	{
-	// TODO: signal safety
-	DBG_LOG(DBG_SUPERVISOR, "received signal: %d", signo);
-	supervisor->ObserveChildSignal();
+	supervisor->ObserveChildSignal(signo);
 	return RETSIGVAL;
 	}
 
@@ -126,8 +124,8 @@ static std::string make_create_message(const Supervisor::NodeConfig& node)
 	}
 
 Supervisor::Supervisor(Supervisor::Config cfg,
-							 std::unique_ptr<bro::PipePair> pipe,
-                             pid_t arg_stem_pid)
+                       std::unique_ptr<bro::PipePair> pipe,
+                       pid_t arg_stem_pid)
 	: config(std::move(cfg)), stem_pid(arg_stem_pid), stem_pipe(std::move(pipe))
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
@@ -171,9 +169,10 @@ Supervisor::~Supervisor()
 	while ( ProcessMessages() != 0 );
 	}
 
-void Supervisor::ObserveChildSignal()
+void Supervisor::ObserveChildSignal(int signo)
 	{
-	signal_flare.Fire();
+	last_signal = signo;
+	signal_flare.Fire(true);
 	}
 
 void Supervisor::ReapStem()
@@ -216,13 +215,19 @@ void Supervisor::ReapStem()
 
 void Supervisor::HandleChildSignal()
 	{
+	if ( last_signal >= 0 )
+		{
+		DBG_LOG(DBG_SUPERVISOR, "Supervisor received signal %d", last_signal);
+		last_signal = -1;
+		}
+
 	bool had_child_signal = signal_flare.Extinguish();
 
 	if ( had_child_signal )
 		{
 		ReapStem();
 
-		DBG_LOG(DBG_SUPERVISOR, "processed SIGCHLD %s",
+		DBG_LOG(DBG_SUPERVISOR, "Supervisor processed child signal %s",
 		        stem_pid ? "(spurious)" : "");
 		}
 
@@ -655,6 +660,12 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			LogError("Stem poll() failed: %s", strerror(errno));
 			return {};
 			}
+		}
+
+	if ( last_signal >= 0 )
+		{
+		DBG_STEM("Stem received signal: %d", last_signal);
+		last_signal = -1;
 		}
 
 	if ( getppid() == 1 )

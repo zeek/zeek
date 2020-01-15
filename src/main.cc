@@ -235,13 +235,13 @@ struct zeek_options {
 	std::optional<std::string> script_code_to_exec;
 	std::vector<std::string> script_prefixes = { "" }; // "" = "no prefix"
 
-	int supervised_workers = 0;
 	int signature_re_level = 4;
 	bool ignore_checksums = false;
 	bool use_watchdog = false;
 	double pseudo_realtime = 0;
 	DNS_MgrMode dns_mode = DNS_DEFAULT;
 
+	bool supervisor_mode = false;
 	bool parse_only = false;
 	bool bare_mode = false;
 	bool debug_scripts = false;
@@ -556,9 +556,13 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			rval.interfaces.emplace_back(optarg);
 			break;
 		case 'j':
-			rval.supervised_workers = 1;
+			rval.supervisor_mode = true;
 			if ( optarg )
-				rval.supervised_workers = atoi(optarg);
+				{
+				// TODO: for supervised offline pcap reading, the argument is
+				// expected to be number of workers like "-j 4" or possibly a
+				// list of worker/proxy/logger counts like "-j 4,2,1"
+				}
 			break;
 		case 'p':
 			rval.script_prefixes.emplace_back(optarg);
@@ -967,8 +971,6 @@ int main(int argc, char** argv)
 	pid_t stem_pid = 0;
 	std::unique_ptr<bro::PipePair> supervisor_pipe;
 	auto zeek_stem_env = getenv("ZEEK_STEM");
-	auto is_supervisor = [](const zeek_options& os) -> bool
-		{ return os.supervised_workers > 0; };
 
 	if ( zeek_stem_env )
 		{
@@ -990,7 +992,7 @@ int main(int argc, char** argv)
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
 		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
 		}
-	else if ( is_supervisor(options) )
+	else if ( options.supervisor_mode )
 		{
 		// TODO: the SIGCHLD handler should be set before fork()
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
@@ -1075,11 +1077,9 @@ int main(int argc, char** argv)
 		}
 #endif
 
-	if ( is_supervisor(options) )
+	if ( options.supervisor_mode )
 		{
 		zeek::Supervisor::Config cfg = {};
-		cfg.pcaps = options.pcap_files;
-		cfg.num_workers = options.supervised_workers;
 		cfg.zeek_exe_path = zeek_exe_path;
 		options.filter_supervisor_options();
 		zeek::supervisor = new zeek::Supervisor(std::move(cfg),
@@ -1139,7 +1139,7 @@ int main(int argc, char** argv)
 	     options.interfaces.size() == 0 &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
-	     ! is_supervisor(options) && ! zeek::supervised_node )
+	     ! options.supervisor_mode && ! zeek::supervised_node )
 		add_input_file("-");
 
 	for ( const auto& script_option : options.script_options_to_set )

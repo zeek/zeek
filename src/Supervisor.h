@@ -23,8 +23,6 @@ class Supervisor : public iosource::IOSource {
 public:
 
 	struct Config {
-		int num_workers = 1;
-		std::vector<std::string> pcaps;
 		std::string zeek_exe_path;
 	};
 

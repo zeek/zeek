@@ -131,7 +131,6 @@ Supervisor::Supervisor(Supervisor::Config cfg,
 	: config(std::move(cfg)), stem_pid(arg_stem_pid), stem_pipe(std::move(pipe))
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
-	DBG_LOG(DBG_SUPERVISOR, "using %d workers", config.num_workers);
 	setsignal(SIGCHLD, supervisor_sig_handler);
 	SetIdle(true);
 	}

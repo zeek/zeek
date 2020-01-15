@@ -100,7 +100,7 @@ zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
 zeek::Supervisor* zeek::supervisor = 0;
-std::optional<zeek::Supervisor::NodeConfig> zeek::supervised_node;
+std::optional<zeek::Supervisor::SupervisedNode> zeek::supervised_node;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
@@ -328,55 +328,53 @@ struct zeek_options {
 
 static void init_supervised_node(zeek_options* options)
 	{
-	const auto& node_name = zeek::supervised_node->name;
+	const auto& config = zeek::supervised_node->config;
+	const auto& node_name = config.name;
 
-	if ( zeek::supervised_node->directory )
+	if ( config.directory )
 		{
-		if ( chdir(zeek::supervised_node->directory->data()) )
+		if ( chdir(config.directory->data()) )
 			{
 			fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
-			        node_name.data(),
-			        zeek::supervised_node->directory->data(),
+			        node_name.data(), config.directory->data(),
 			        strerror(errno));
 			exit(1);
 			}
 		}
 
-	if ( zeek::supervised_node->stderr_file )
+	if ( config.stderr_file )
 		{
-		auto fd = open(zeek::supervised_node->stderr_file->data(),
+		auto fd = open(config.stderr_file->data(),
 			           O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
 			           0600);
 
 		if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
 			{
 			fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
-			        node_name.data(),
-			        zeek::supervised_node->stderr_file->data(),
+			        node_name.data(), config.stderr_file->data(),
 			        strerror(errno));
 			exit(1);
 			}
 		}
 
-	if ( zeek::supervised_node->stdout_file )
+	if ( config.stdout_file )
 		{
-		auto fd = open(zeek::supervised_node->stdout_file->data(),
+		auto fd = open(config.stdout_file->data(),
 		               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
 		               0600);
 
 		if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
 			{
 			fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
-			        node_name.data(),
-			        zeek::supervised_node->stdout_file->data(),
+			        node_name.data(), config.stdout_file->data(),
 			        strerror(errno));
 			exit(1);
 			}
 		}
 
-	if ( zeek::supervised_node->cpu_affinity )
+	if ( config.cpu_affinity )
 		{
-		auto res = zeek::set_affinity(*zeek::supervised_node->cpu_affinity);
+		auto res = zeek::set_affinity(*config.cpu_affinity);
 
 		if ( ! res )
 			fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
@@ -385,10 +383,10 @@ static void init_supervised_node(zeek_options* options)
 
 	options->filter_supervised_node_options();
 
-	if ( zeek::supervised_node->interface )
-		options->interfaces.emplace_back(*zeek::supervised_node->interface);
+	if ( config.interface )
+		options->interfaces.emplace_back(*config.interface);
 
-	if ( ! zeek::supervised_node->cluster.empty() )
+	if ( ! config.cluster.empty() )
 		{
 		if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
 			{
@@ -398,7 +396,7 @@ static void init_supervised_node(zeek_options* options)
 			}
 		}
 
-	for ( const auto& s : zeek::supervised_node->scripts )
+	for ( const auto& s : config.scripts )
 		options->scripts_to_load.emplace_back(s);
 	}
 
@@ -974,27 +972,30 @@ int main(int argc, char** argv)
 
 	if ( zeek_stem_env )
 		{
-		std::vector<std::string> fd_strings;
-		tokenize_string(zeek_stem_env, ",", &fd_strings);
+		std::vector<std::string> zeek_stem_nums;
+		tokenize_string(zeek_stem_env, ",", &zeek_stem_nums);
 
-		if ( fd_strings.size() != 4 )
+		if ( zeek_stem_nums.size() != 5 )
 			{
 			fprintf(stderr, "invalid ZEEK_STEM environment variable value: '%s'\n",
 			        zeek_stem_env);
 			exit(1);
 			}
 
+		pid_t stem_ppid = std::stoi(zeek_stem_nums[0]);
 		int fds[4];
 
 		for ( auto i = 0; i < 4; ++i )
-			fds[i] = std::stoi(fd_strings[i]);
+			fds[i] = std::stoi(zeek_stem_nums[i + 1]);
 
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
-		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe),
+		                                                  stem_ppid);
 		}
 	else if ( options.supervisor_mode )
 		{
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
+		auto stem_ppid = getpid();
 		stem_pid = fork();
 
 		if ( stem_pid == -1 )
@@ -1005,7 +1006,8 @@ int main(int argc, char** argv)
 			}
 
 		if ( stem_pid == 0 )
-			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe));
+			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe),
+			                                                  stem_ppid);
 		}
 
 	if ( zeek::supervised_node )

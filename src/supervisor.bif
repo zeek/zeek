@@ -68,11 +68,8 @@ function Supervisor::__restart%(node: string%): bool
 
 function Supervisor::__init_cluster%(%): bool
 	%{
-	if ( zeek::supervised_node && ! zeek::supervised_node->cluster.empty() )
-		{
-		zeek::supervised_node->InitCluster();
-		return val_mgr->GetBool(true);
-		}
+	if ( zeek::supervised_node )
+		return val_mgr->GetBool(zeek::supervised_node->InitCluster());
 
 	return val_mgr->GetBool(false);
 	%}

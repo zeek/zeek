@@ -33,19 +33,19 @@ using namespace zeek;
 
 namespace {
 struct Stem {
-	Stem(std::unique_ptr<bro::PipePair> p);
+	Stem(std::unique_ptr<bro::PipePair> p, pid_t parent_pid);
 
 	~Stem();
 
-	std::optional<Supervisor::NodeConfig> Run();
+	std::optional<Supervisor::SupervisedNode> Run();
 
-	std::optional<Supervisor::NodeConfig> Poll();
+	std::optional<Supervisor::SupervisedNode> Poll();
 
-	std::optional<Supervisor::NodeConfig> Revive();
+	std::optional<Supervisor::SupervisedNode> Revive();
 
 	void Reap();
 
-	bool Spawn(Supervisor::Node* node);
+	std::optional<Supervisor::SupervisedNode> Spawn(Supervisor::Node* node);
 
 	int AliveNodeCount() const;
 
@@ -65,6 +65,7 @@ struct Stem {
 
 	void LogError(const char* format, ...) const __attribute__((format(printf, 2, 3)));
 
+	pid_t parent_pid;
 	int last_signal = -1;
 	std::unique_ptr<bro::Flare> signal_flare;
 	std::unique_ptr<bro::PipePair> pipe;
@@ -260,6 +261,7 @@ void Supervisor::HandleChildSignal()
 		return;
 
 	// Revive the Stem process
+	auto stem_ppid = getpid();
 	stem_pid = fork();
 
 	if ( stem_pid == -1 )
@@ -277,7 +279,7 @@ void Supervisor::HandleChildSignal()
 	if ( stem_pid == 0 )
 		{
 		// Child stem process needs to exec()
-		auto stem_env = fmt("%d,%d,%d,%d",
+		auto stem_env = fmt("%d,%d,%d,%d,%d", stem_ppid,
 		              stem_pipe->In().ReadFD(), stem_pipe->In().WriteFD(),
 		              stem_pipe->Out().ReadFD(), stem_pipe->Out().WriteFD());
 
@@ -376,8 +378,8 @@ size_t Supervisor::ProcessMessages()
 	return msgs.size();
 	}
 
-Stem::Stem(std::unique_ptr<bro::PipePair> p)
-	: signal_flare(new bro::Flare()), pipe(std::move(p))
+Stem::Stem(std::unique_ptr<bro::PipePair> p, pid_t ppid)
+	: parent_pid(ppid), signal_flare(new bro::Flare()), pipe(std::move(p))
 	{
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
@@ -486,7 +488,7 @@ void Stem::Destroy(Supervisor::Node* node) const
 		}
 	}
 
-std::optional<Supervisor::NodeConfig> Stem::Revive()
+std::optional<Supervisor::SupervisedNode> Stem::Revive()
 	{
 	constexpr auto attempts_before_delay_increase = 3;
 	constexpr auto delay_increase_factor = 2;
@@ -520,8 +522,10 @@ std::optional<Supervisor::NodeConfig> Stem::Revive()
 		if ( node.revival_attempts % attempts_before_delay_increase == 0 )
 			node.revival_delay *= delay_increase_factor;
 
-		if ( Spawn(&node) )
-			return node.config;
+		auto sn = Spawn(&node);
+
+		if ( sn )
+			return sn;
 
 		ReportStatus(node);
 		}
@@ -529,15 +533,16 @@ std::optional<Supervisor::NodeConfig> Stem::Revive()
 	return {};
 	}
 
-bool Stem::Spawn(Supervisor::Node* node)
+std::optional<Supervisor::SupervisedNode> Stem::Spawn(Supervisor::Node* node)
 	{
+	auto ppid = getpid();
 	auto node_pid = fork();
 
 	if ( node_pid == -1 )
 		{
 		LogError("failed to fork Zeek node '%s': %s",
 		         node->Name().data(), strerror(errno));
-		return false;
+		return {};
 		}
 
 	if ( node_pid == 0 )
@@ -545,13 +550,16 @@ bool Stem::Spawn(Supervisor::Node* node)
 		setsignal(SIGCHLD, SIG_DFL);
 		setsignal(SIGTERM, SIG_DFL);
 		zeek::set_thread_name(fmt("zeek.%s", node->Name().data()));
-		return true;
+		Supervisor::SupervisedNode rval;
+		rval.config = node->config;
+		rval.parent_pid = ppid;
+		return rval;
 		}
 
 	node->pid = node_pid;
 	node->spawn_time = std::chrono::steady_clock::now();
 	DBG_STEM("Stem spawned node: %s (%d)", node->Name().data(), node->pid);
-	return false;
+	return {};
 	}
 
 int Stem::AliveNodeCount() const
@@ -660,7 +668,7 @@ void Stem::LogError(const char* format, ...) const
 	#endif
 	}
 
-std::optional<Supervisor::NodeConfig> Stem::Run()
+std::optional<Supervisor::SupervisedNode> Stem::Run()
 	{
 	for ( ; ; )
 		{
@@ -673,10 +681,12 @@ std::optional<Supervisor::NodeConfig> Stem::Run()
 	return {};
 	}
 
-std::optional<Supervisor::NodeConfig> Stem::Poll()
+std::optional<Supervisor::SupervisedNode> Stem::Poll()
 	{
 	pollfd fds[2] = { { pipe->InFD(), POLLIN, 0 },
 	                  { signal_flare->FD(), POLLIN, 0} };
+	// Note: the poll timeout here is for periodically checking if the parent
+	// process died (see below).
 	constexpr auto poll_timeout_ms = 1000;
 	auto res = poll(fds, 2, poll_timeout_ms);
 
@@ -695,11 +705,15 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 		last_signal = -1;
 		}
 
-	if ( getppid() == 1 )
+	if ( getppid() != parent_pid )
 		{
-		// TODO: better way to detect loss of parent than polling ?
-		// e.g. prctl(PR_SET_PDEATHSIG, ...) on Linux
-		// or procctl(PROC_PDEATHSIG_CTL) on FreeBSD
+		// Note: only simple + portable way of detecting loss of parent
+		// process seems to be polling for change in PPID.  There's platform
+		// specific ways if we do end up needing something more responsive
+		// and/or have to avoid overhead of polling, but maybe not worth
+		// the additional complexity:
+		//   Linux:   prctl(PR_SET_PDEATHSIG, ...)
+		//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
 		DBG_STEM("Stem suicide");
 		Shutdown(13);
 		}
@@ -761,8 +775,10 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			auto it = nodes.emplace(node_name, std::move(node_config)).first;
 			auto& node = it->second;
 
-			if ( Spawn(&node) )
-				return node.config;
+			auto sn = Spawn(&node);
+
+			if ( sn )
+				return sn;
 
 			DBG_STEM("Stem created node: %s (%d)", node.Name().data(), node.pid);
 			ReportStatus(node);
@@ -784,8 +800,10 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 			DBG_STEM("Stem restarting node: %s", node_name.data());
 			Destroy(&node);
 
-			if ( Spawn(&node) )
-				return node.config;
+			auto sn = Spawn(&node);
+
+			if ( sn )
+				 return sn;
 
 			ReportStatus(node);
 			}
@@ -796,9 +814,9 @@ std::optional<Supervisor::NodeConfig> Stem::Poll()
 	return {};
 	}
 
-std::optional<Supervisor::NodeConfig> Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe)
+std::optional<Supervisor::SupervisedNode> Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe, pid_t parent_pid)
 	{
-	Stem s(std::move(pipe));
+	Stem s(std::move(pipe), parent_pid);
 	return s.Run();
 	}
 
@@ -1028,8 +1046,11 @@ static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRol
 	}
 	}
 
-void Supervisor::NodeConfig::InitCluster()
+bool Supervisor::SupervisedNode::InitCluster()
 	{
+	if ( supervised_node->config.cluster.empty() )
+		return false;
+
 	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->AsType()->AsRecordType();
 	auto cluster_nodes_id = global_scope()->Lookup("Cluster::nodes");
 	auto cluster_manager_is_logger_id = global_scope()->Lookup("Cluster::manager_is_logger");
@@ -1037,7 +1058,7 @@ void Supervisor::NodeConfig::InitCluster()
 	auto has_logger = false;
 	std::optional<std::string> manager_name;
 
-	for ( const auto& e : supervised_node->cluster )
+	for ( const auto& e : supervised_node->config.cluster )
 		{
 		if ( e.second.role == BifEnum::Supervisor::MANAGER )
 			manager_name = e.first;
@@ -1045,7 +1066,7 @@ void Supervisor::NodeConfig::InitCluster()
 			has_logger = true;
 		}
 
-	for ( const auto& e : supervised_node->cluster )
+	for ( const auto& e : supervised_node->config.cluster )
 		{
 		const auto& node_name = e.first;
 		const auto& ep = e.second;
@@ -1069,6 +1090,7 @@ void Supervisor::NodeConfig::InitCluster()
 		}
 
 	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
+	return true;
 	}
 
 RecordVal* Supervisor::Status(std::string_view node_name)

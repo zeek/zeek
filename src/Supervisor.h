@@ -34,7 +34,6 @@ public:
 	};
 
 	struct NodeConfig {
-		static void InitCluster();
 		static NodeConfig FromRecord(const RecordVal* node_val);
 		static NodeConfig FromJSON(std::string_view json);
 
@@ -49,6 +48,13 @@ public:
 		std::optional<int> cpu_affinity;
 		std::vector<std::string> scripts;
 		std::map<std::string, ClusterEndpoint> cluster;
+	};
+
+	struct SupervisedNode {
+		static bool InitCluster();
+
+		NodeConfig config;
+		pid_t parent_pid;
 	};
 
 	struct Node {
@@ -69,7 +75,8 @@ public:
 		std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	};
 
-	static std::optional<NodeConfig> RunStem(std::unique_ptr<bro::PipePair> pipe);
+	static std::optional<SupervisedNode> RunStem(std::unique_ptr<bro::PipePair> pipe,
+	                                             pid_t parent_pid);
 
 	using NodeMap = std::map<std::string, Node, std::less<>>;
 
@@ -120,6 +127,6 @@ private:
 };
 
 extern Supervisor* supervisor;
-extern std::optional<Supervisor::NodeConfig> supervised_node;
+extern std::optional<Supervisor::SupervisedNode> supervised_node;
 
 } // namespace zeek

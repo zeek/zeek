@@ -51,15 +51,19 @@ public:
 
 	virtual void Describe(ODesc* d) const = 0;
 
+	bool HasFunc ()
+		{ return func != nullptr; }
+
 	void SetOverloadIndex (int i)
 		{ overload_idx = i; }
 
 	int GetOverloadIndex()
 		{ return overload_idx; }
 
+	void SetFuncAndType(Func* f, FuncType* t);
+
 	Func* GetFunc() const
 		{ return func; }
-
 	FuncType* GetType() const
 		{ return type; }
 
@@ -68,8 +72,7 @@ public:
 	function_flavor Flavor() const;
 
 protected:
-
-	Func* func;
+	Func* func = nullptr;
 	int overload_idx = -1;
 	FuncType* type;
 };
@@ -203,12 +206,6 @@ public:
 	void SetScope (Scope* s)
 		{ scope = s; }
 
-	int GetOverloadIndex()
-		{ return overload_idx; }
-
-	void SetOverloadIndex(int i)
-		{ overload_idx = i; }
-
 	const std::vector<FuncBody>& GetBodies() const
 		{ return bodies; }
 
@@ -236,7 +233,6 @@ private:
 	bool weak_closure_ref = false;
 	Scope* scope;
 	std::vector<FuncBody> bodies;
-	int overload_idx = -1;
 
 	static Stmt* AddInits(Stmt* body, id_list* inits);
 

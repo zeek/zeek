@@ -537,21 +537,24 @@ void end_func(Stmt* body)
 						"referencing outer function IDs not supported");
 		}
 
-	auto overload_idx = ingredients->scope->OverloadIndex();
-	auto f = ingredients->id->ID_Val()->AsFunc();
-	auto o = f->GetOverload(overload_idx);
+	int overload_idx = ingredients->scope->OverloadIndex();
 
-	if ( o )
+	if ( overload_idx >= 0 )
+		{
+		auto f = ingredients->id->ID_Val()->AsFunc();
+		auto o = f->GetOverload(overload_idx);
 		dynamic_cast<BroFunc*>(o)->AddBody(
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority,
 			ingredients->scope);
+		}
 		
 	else
 		{
-		BroFunc* f = new BroFunc(
+		Func* f = new Func(ingredients->id);
+		BroFunc* bf = new BroFunc(
 			ingredients->id,
 			ingredients->body,
 			ingredients->inits,
@@ -559,9 +562,10 @@ void end_func(Stmt* body)
 			ingredients->priority,
 			ingredients->scope);
 
-		ingredients->id->SetVal(new Val(f));
+		f->AddOverload(bf);
+
+		ingredients->id->SetVal(new Val(bf));
 		ingredients->id->SetConst();
-		f->GetFunc()->SetOverload(overload_idx, f);
 		}
 
 	dynamic_cast<BroFunc*>(ingredients->id->ID_Val()->AsFuncVal())->SetScope(ingredients->scope);

@@ -660,10 +660,10 @@ FuncType* FuncType::ShallowClone()
 	f->yield = yield->Ref();
 	f->flavor = flavor;
 
-	for ( auto& o : overloads )
+	for ( FuncOverload* o : overloads )
 		{
 		auto co = new FuncOverload();
-		auto codecl = new FuncDecl();
+		co->decl = new FuncDecl();
 		co->index = o->index;
 		co->type = o->type->Ref()->AsFuncType();
 		co->decl->args = o->decl->args->Ref()->AsRecordType();

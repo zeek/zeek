@@ -76,7 +76,7 @@ struct Stem {
 
 static Stem* stem = nullptr;
 
-static RETSIGTYPE stem_sig_handler(int signo)
+static RETSIGTYPE stem_signal_handler(int signo)
 	{
 	stem->last_signal = signo;
 
@@ -91,7 +91,7 @@ static RETSIGTYPE stem_sig_handler(int signo)
 	return RETSIGVAL;
 	}
 
-static RETSIGTYPE supervisor_sig_handler(int signo)
+static RETSIGTYPE supervisor_signal_handler(int signo)
 	{
 	supervisor->ObserveChildSignal(signo);
 	return RETSIGVAL;
@@ -129,8 +129,33 @@ Supervisor::Supervisor(Supervisor::Config cfg,
 	: config(std::move(cfg)), stem_pid(arg_stem_pid), stem_pipe(std::move(pipe))
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
-	setsignal(SIGCHLD, supervisor_sig_handler);
+	setsignal(SIGCHLD, supervisor_signal_handler);
 	SetIdle(true);
+
+	int status;
+	auto res = waitpid(stem_pid, &status, WNOHANG);
+
+	if ( res == 0 )
+		// Good, stem process is alive and the SIGCHLD handler will keep it so.
+		return;
+
+	if ( res == -1 )
+		fprintf(stderr, "Supervisor failed to get status of stem process: %s\n",
+		        strerror(errno));
+	else
+		{
+		if ( WIFEXITED(status) )
+			fprintf(stderr, "Supervisor stem died early with exit code %d\n",
+			        WEXITSTATUS(status));
+		else if ( WIFSIGNALED(status) )
+			fprintf(stderr, "Supervisor stem died early by signal %d\n",
+			        WTERMSIG(status));
+		else
+			fprintf(stderr, "Supervisor stem died early for unknown reason\n",
+			        WTERMSIG(status));
+		}
+
+	exit(1);
 	}
 
 Supervisor::~Supervisor()
@@ -357,8 +382,8 @@ Stem::Stem(std::unique_ptr<bro::PipePair> p)
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
 	stem = this;
-	setsignal(SIGCHLD, stem_sig_handler);
-	setsignal(SIGTERM, stem_sig_handler);
+	setsignal(SIGCHLD, stem_signal_handler);
+	setsignal(SIGTERM, stem_signal_handler);
 
 	// Note: changing the process group here so that SIGINT to the supervisor
 	// doesn't also get passed to the children.  I.e. the supervisor should be
@@ -517,6 +542,8 @@ bool Stem::Spawn(Supervisor::Node* node)
 
 	if ( node_pid == 0 )
 		{
+		setsignal(SIGCHLD, SIG_DFL);
+		setsignal(SIGTERM, SIG_DFL);
 		zeek::set_thread_name(fmt("zeek.%s", node->Name().data()));
 		return true;
 		}

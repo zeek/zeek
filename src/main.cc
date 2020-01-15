@@ -994,7 +994,6 @@ int main(int argc, char** argv)
 		}
 	else if ( options.supervisor_mode )
 		{
-		// TODO: the SIGCHLD handler should be set before fork()
 		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
 		stem_pid = fork();
 

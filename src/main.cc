@@ -681,6 +681,57 @@ static zeek_options parse_cmdline(int argc, char** argv)
 			rval.scripts_to_load.emplace_back(zargs[optind++]);
 		}
 
+	auto canonify_script_path = [](std::string* path)
+		{
+		if ( path->empty() )
+			return;
+
+		*path = normalize_path(*path);
+
+		if ( (*path)[0] == '/' || (*path)[0] == '~' )
+			// Absolute path
+			return;
+
+		if ( (*path)[0] != '.' )
+			{
+			// Look up file in ZEEKPATH
+			auto res = find_script_file(*path, bro_path());
+
+			if ( res.empty() )
+				{
+				fprintf(stderr, "failed to locate script: %s\n", path->data());
+				exit(1);
+				}
+
+			*path = res;
+
+			if ( (*path)[0] == '/' || (*path)[0] == '~' )
+				// Now an absolute path
+				return;
+			}
+
+		// Need to translate relative path to absolute.
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		*path = std::string(cwd) + "/" + *path;
+		};
+
+	if ( rval.supervisor_mode )
+		{
+		// Translate any relative paths supplied to supervisor into absolute
+		// paths for use by supervised nodes since they have the option to
+		// operate out of a different working directory.
+		for ( auto& s : rval.scripts_to_load )
+			canonify_script_path(&s);
+		}
+
 	return rval;
 	}
 
@@ -900,7 +951,7 @@ static std::string get_exe_path(const std::string& invocation)
 	if ( invocation.empty() )
 		return "";
 
-	if ( invocation[0] == '/' )
+	if ( invocation[0] == '/' || invocation[0] == '~' )
 		// Absolute path
 		return invocation;
 

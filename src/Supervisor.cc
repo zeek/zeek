@@ -62,6 +62,8 @@ struct Stem {
 
 	void ReportStatus(const Supervisor::Node& node) const;
 
+	void Log(std::string_view type, const char* format, va_list args) const;
+
 	void LogDebug(const char* format, ...) const __attribute__((format(printf, 2, 3)));
 
 	void LogError(const char* format, ...) const __attribute__((format(printf, 2, 3)));
@@ -395,6 +397,12 @@ size_t Supervisor::ProcessMessages()
 			{
 			// Already logged the unparsed message above.
 			}
+		else if ( type == "error" )
+			{
+			msg_tokens.erase(msg_tokens.begin());
+			auto err_msg = implode_string_vector(msg_tokens, " ");
+			reporter->Error("%s", err_msg.data());
+			}
 		else
 			reporter->Error("Supervisor got unknown msg: %s", msg.data());
 		}
@@ -457,7 +465,7 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 
 	if ( res == -1 )
 		{
-		LogError("Stem failed to get node exit status %s (%d): %s",
+		LogError("Stem failed to get node exit status '%s' (PID %d): %s",
 		         node->Name().data(), node->pid, strerror(errno));
 		return false;
 		}
@@ -465,17 +473,25 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 	if ( WIFEXITED(status) )
 		{
 		node->exit_status = WEXITSTATUS(status);
-		DBG_STEM("node '%s' exited with status %d",
-		         node->Name().data(), node->exit_status);
+		DBG_STEM("node '%s' (PID %d) exited with status %d",
+		         node->Name().data(), node->pid, node->exit_status);
+
+		if ( ! shutting_down )
+			LogError("Supervised node '%s' (PID %d) exited prematurely with status %d",
+			         node->Name().data(), node->pid, node->exit_status);
 		}
 	else if ( WIFSIGNALED(status) )
 		{
 		node->signal_number = WTERMSIG(status);
-		DBG_STEM("node '%s' terminated by signal %d",
-		         node->Name().data(), node->signal_number);
+		DBG_STEM("node '%s' (PID %d) terminated by signal %d",
+		         node->Name().data(), node->pid, node->signal_number);
+
+		if ( ! shutting_down )
+			LogError("Supervised node '%s' (PID %d) terminated prematurely by signal %d",
+			         node->Name().data(), node->pid, node->signal_number);
 		}
 	else
-		LogError("Stem failed to get node exit status %s (%d)",
+		LogError("Stem failed to get node exit status '%s' (PID %d)",
 		         node->Name().data(), node->pid);
 
 	node->pid = 0;
@@ -487,8 +503,8 @@ void Stem::KillNode(const Supervisor::Node& node, int signal) const
 	auto kill_res = kill(node.pid, signal);
 
 	if ( kill_res == -1 )
-		LogError("Failed to send signal to node %s: %s",
-		         node.Name().data(), strerror(errno));
+		LogError("Failed to send signal to node '%s' (PID %d): %s",
+		         node.Name().data(), node.pid, strerror(errno));
 	}
 
 void Stem::Destroy(Supervisor::Node* node) const
@@ -506,7 +522,7 @@ void Stem::Destroy(Supervisor::Node* node) const
 		if ( Wait(node, WNOHANG) )
 			break;
 
-		DBG_STEM("Stem waiting to destroy node: %s (%d)",
+		DBG_STEM("Stem waiting to destroy node: %s (PID %d)",
 		         node->Name().data(), node->pid);
 		sleep(kill_delay);
 		}
@@ -551,6 +567,8 @@ std::optional<Supervisor::SupervisedNode> Stem::Revive()
 		if ( sn )
 			return sn;
 
+		LogError("Supervised node '%s' (PID %d) revived after premature exit",
+		         node.Name().data(), node.pid);
 		ReportStatus(node);
 		}
 
@@ -582,7 +600,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Spawn(Supervisor::Node* node)
 
 	node->pid = node_pid;
 	node->spawn_time = std::chrono::steady_clock::now();
-	DBG_STEM("Stem spawned node: %s (%d)", node->Name().data(), node->pid);
+	DBG_STEM("Stem spawned node: %s (PID %d)", node->Name().data(), node->pid);
 	return {};
 	}
 
@@ -605,6 +623,7 @@ void Stem::KillNodes(int signal) const
 
 void Stem::Shutdown(int exit_code)
 	{
+	shutting_down = true;
 	constexpr auto max_term_attempts = 13;
 	constexpr auto kill_delay = 2;
 	auto kill_attempts = 0;
@@ -654,12 +673,9 @@ void Stem::ReportStatus(const Supervisor::Node& node) const
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
 	}
 
-void Stem::LogDebug(const char* format, ...) const
+void Stem::Log(std::string_view type, const char* format, va_list args) const
 	{
-	va_list args;
-	va_start(args, format);
 	auto raw_msg = fmt(format, args);
-	va_end(args);
 
 	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
 		{
@@ -668,28 +684,26 @@ void Stem::LogDebug(const char* format, ...) const
 		return;
 		}
 
-	std::string msg = "debug ";
+	std::string msg{type.data(), type.size()};
+	msg += " ";
 	msg += raw_msg;
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
+	}
+
+void Stem::LogDebug(const char* format, ...) const
+	{
+	va_list args;
+	va_start(args, format);
+	Log("debug", format, args);
+	va_end(args);
 	}
 
 void Stem::LogError(const char* format, ...) const
 	{
 	va_list args;
 	va_start(args, format);
-	std::string msg = fmt(format, args);
+	Log("error", format, args);
 	va_end(args);
-
-	fprintf(stderr, "%s\n", msg.data());
-
-	#ifdef DEBUG
-	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
-		// Essentially already emitted above.
-		return;
-
-	// Useful to also insert the error message into the debug log.
-	LogDebug("%s", msg.data());
-	#endif
 	}
 
 std::optional<Supervisor::SupervisedNode> Stem::Run()
@@ -805,7 +819,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 			if ( sn )
 				return sn;
 
-			DBG_STEM("Stem created node: %s (%d)", node.Name().data(), node.pid);
+			DBG_STEM("Stem created node: %s (PID %d)", node.Name().data(), node.pid);
 			ReportStatus(node);
 			}
 		else if ( cmd == "destroy" )

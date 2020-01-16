@@ -1,4 +1,9 @@
 
+3.1.0-dev.378 | 2020-01-16 13:18:13 +0000
+
+  * Handle invalid Base64 encodings in FTP ADAT analyzer (Jon Siwek,
+    Corelight)
+
 3.1.0-dev.376 | 2020-01-14 09:45:45 -0800
 
   * Fix warning when reading files from non-network sources (Seth Hall, Corelight)

@@ -1472,6 +1472,25 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
 	CHECK(normalize_path("/1/2/../3") == "/1/3");
 	CHECK(normalize_path("1/2/3/") == "1/2/3");
+	CHECK(normalize_path("1/2//3///") == "1/2/3");
+	CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
+	CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
+	CHECK(normalize_path("./zeek") == "./zeek");
+	CHECK(normalize_path("../zeek") == "../zeek");
+	CHECK(normalize_path("../zeek/testing/..") == "../zeek");
+	CHECK(normalize_path("./zeek/..") == ".");
+	CHECK(normalize_path("./zeek/../..") == "..");
+	CHECK(normalize_path("./zeek/../../..") == "../..");
+	CHECK(normalize_path("./..") == "..");
+	CHECK(normalize_path("../..") == "../..");
+	CHECK(normalize_path("/..") == "/..");
+	CHECK(normalize_path("~/..") == "~/..");
+	CHECK(normalize_path("/../..") == "/../..");
+	CHECK(normalize_path("~/../..") == "~/../..");
+	CHECK(normalize_path("zeek/..") == "");
+	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
 string normalize_path(const string& path)
@@ -1493,10 +1512,30 @@ string normalize_path(const string& path)
 
 		if ( *it == "." && it != components.begin() )
 			final_components.pop_back();
-		else if ( *it == ".." && final_components[0] != ".." )
+		else if ( *it == ".." )
 			{
-			final_components.pop_back();
-			final_components.pop_back();
+			auto cur_idx = final_components.size() - 1;
+
+			if ( cur_idx != 0 )
+				{
+				auto last_idx = cur_idx - 1;
+				auto& last_component = final_components[last_idx];
+
+				if ( last_component == "/" || last_component == "~" ||
+				     last_component == ".." )
+					continue;
+
+				if ( last_component == "." )
+					{
+					last_component = "..";
+					final_components.pop_back();
+					}
+				else
+					{
+					final_components.pop_back();
+					final_components.pop_back();
+					}
+				}
 			}
 		}
 

@@ -2,22 +2,20 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 set -e
-command="$0 $*"
 
-# check for `cmake` command
-type cmake > /dev/null 2>&1 || {
-    echo "\
-This package requires CMake, please install it first, then you may
-use this configure script to access CMake equivalent functionality.\
-" >&2;
-    exit 1;
-}
+trap '[ $? -eq 0 ] && exit 0 ||
+echo "Also, before re-running configure, consider cleaning the cache \
+(removing the build directory) via \`make distclean\`"' EXIT
+
+command="$0 $*"
 
 usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
+    --cmake=PATH           custom path to a CMake binary
     --builddir=DIR         place build files in directory [build]
+    --build-dir=DIR        alias for --builddir
     --build-type=TYPE      set CMake build type [RelWithDebInfo]:
                              - Debug: optimizations off, debug symbols + flags
                              - MinSizeRel: size optimizations, debugging off
@@ -29,6 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            ccache installation and CMake 3.10+)
     --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
                            (useful for cross-compiling)
+    --sanitizers=LIST      comma-separated list of sanitizer names to enable
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -41,6 +40,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            [PREFIX/spool]
     --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
+    --libdir=PATH          installation directory for library files [PREFIX/lib]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
     --mandir=PATH          installation path for man pages [PREFIX/share/man]
 
@@ -53,11 +53,11 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
+    --enable-cpp-tests     build Zeek's C++ unit tests
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
-    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -154,7 +154,7 @@ append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry SANITIZERS           STRING ""
+append_cache_entry ZEEK_SANITIZERS      STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -168,7 +168,13 @@ while [ $# -ne 0 ]; do
             echo "${usage}" 1>&2
             exit 1
             ;;
+        --cmake=*)
+            CMakeCommand=$optarg
+            ;;
         --builddir=*)
+            builddir=$optarg
+            ;;
+        --build-dir=*)
             builddir=$optarg
             ;;
         --build-type=*)
@@ -192,6 +198,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
             append_cache_entry ZEEK_ROOT_DIR        PATH   $optarg
             append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/zeekctl
+            ;;
+        --libdir=*)
+            append_cache_entry CMAKE_INSTALL_LIBDIR PATH   $optarg
             ;;
         --scriptdir=*)
             append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $optarg
@@ -231,7 +240,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --sanitizers=*)
-            append_cache_entry SANITIZERS    STRING    $optarg
+            append_cache_entry ZEEK_SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
@@ -241,6 +250,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL       BOOL   false
@@ -334,6 +346,20 @@ while [ $# -ne 0 ]; do
     shift
 done
 
+if [ -z "$CMakeCommand" ]; then
+    # prefer cmake3 over "regular" cmake (cmake == cmake2 on RHEL)
+    if command -v cmake3 >/dev/null 2>&1 ; then
+        CMakeCommand="cmake3"
+    elif command -v cmake >/dev/null 2>&1 ; then
+        CMakeCommand="cmake"
+    else
+        echo "This package requires CMake, please install it first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
+        exit 1;
+    fi
+fi
+
 if [ "$user_set_scriptdir" != "true" ]; then
     append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 fi
@@ -359,9 +385,9 @@ echo "Source Directory: $sourcedir"
 cd $builddir
 
 if [ -n "$CMakeGenerator" ]; then
-    cmake -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
 else
-    cmake $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" $CMakeCacheEntries $sourcedir
 fi
 
 echo "# This is the command used to configure this build" > config.status

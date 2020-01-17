@@ -2,8 +2,7 @@
 //
 // Class for managing input streams.
 
-#ifndef INPUT_MANAGER_H
-#define INPUT_MANAGER_H
+#pragma once
 
 #include "BroString.h"
 #include "EventHandler.h"
@@ -271,5 +270,3 @@ private:
 
 extern input::Manager* input_mgr;
 
-
-#endif /* INPUT_MANAGER_H */

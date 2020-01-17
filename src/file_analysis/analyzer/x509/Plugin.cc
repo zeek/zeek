@@ -11,7 +11,7 @@ namespace Zeek_X509 {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("X509", ::file_analysis::X509::Instantiate));
 		AddComponent(new ::file_analysis::Component("OCSP_REQUEST", ::file_analysis::OCSP::InstantiateRequest));
@@ -21,6 +21,12 @@ public:
 		config.name = "Zeek::X509";
 		config.description = "X509 and OCSP analyzer";
 		return config;
+		}
+
+	void Done() override
+		{
+		plugin::Plugin::Done();
+		::file_analysis::X509::FreeRootStore();
 		}
 } plugin;
 

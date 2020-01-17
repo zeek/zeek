@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
-#ifndef ANALYZER_PROTOCOL_CONN_SIZE_CONNSIZE_H
-#define ANALYZER_PROTOCOL_CONN_SIZE_CONNSIZE_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
@@ -52,5 +51,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

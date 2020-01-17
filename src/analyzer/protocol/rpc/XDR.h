@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_XDR_H
-#define ANALYZER_PROTOCOL_RPC_XDR_H
+#pragma once
 
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -19,5 +18,3 @@ extern const u_char* extract_XDR_opaque_fixed(const u_char*& buf, int& len, int 
 extern uint32_t skip_XDR_opaque_auth(const u_char*& buf, int& len);
 
 } } // namespace analyzer::* 
-
-#endif

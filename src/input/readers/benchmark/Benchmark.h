@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_BENCHMARK_H
-#define INPUT_READERS_BENCHMARK_H
+#pragma once
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -46,5 +45,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_BENCHMARK_H */

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef obj_h
-#define obj_h
+#pragma once
 
 #include <limits.h>
 
@@ -212,5 +211,3 @@ inline void Unref(BroObj* o)
 
 // A dict_delete_func that knows to Unref() dictionary entries.
 extern void bro_obj_delete_func(void* v);
-
-#endif

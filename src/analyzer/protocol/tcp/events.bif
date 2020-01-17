@@ -27,6 +27,7 @@ event new_connection_contents%(c: connection%);
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
+##    connection_successful successful_connection_remove
 event connection_attempt%(c: connection%);
 
 ## Generated when seeing a SYN-ACK packet from the responder in a TCP
@@ -45,6 +46,7 @@ event connection_attempt%(c: connection%);
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
+##    connection_successful successful_connection_remove
 event connection_established%(c: connection%);
 
 ## Generated for a new active TCP connection if Zeek did not see the initial
@@ -250,10 +252,22 @@ event tcp_packet%(c: connection, is_orig: bool, flags: string, seq: count, ack: 
 ##
 ## optlen: The length of the options value.
 ##
-## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit
+## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_options
 ##
-## .. note:: There is currently no way to get the actual option value, if any.
+## .. note:: To inspect the actual option values, if any, use :zeek:see:`tcp_options`.
 event tcp_option%(c: connection, is_orig: bool, opt: count, optlen: count%);
+
+## Generated for each TCP header that contains TCP options.  This is a very
+## low-level event and potentially expensive as it may be raised very often.
+##
+## c: The connection the packet is part of.
+##
+## is_orig: True if the packet was sent by the connection's originator.
+##
+## options: The list of options parsed out of the TCP header.
+##
+## .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_option
+event tcp_options%(c: connection, is_orig: bool, options: TCP::OptionList%);
 
 ## Generated for each chunk of reassembled TCP payload. When content delivery is
 ## enabled for a TCP connection (via :zeek:id:`tcp_content_delivery_ports_orig`,

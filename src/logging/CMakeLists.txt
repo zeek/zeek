@@ -6,8 +6,7 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
+include_directories(BEFORE ${CAF_INCLUDE_DIRS})
 
 add_subdirectory(writers)
 
@@ -21,6 +20,6 @@ set(logging_SRCS
 
 bif_target(logging.bif)
 
-bro_add_subdir_library(logging ${logging_SRCS} ${BIF_OUTPUT_CC})
+bro_add_subdir_library(logging ${logging_SRCS})
 add_dependencies(bro_logging generate_outputs)
 

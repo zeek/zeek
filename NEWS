@@ -9,6 +9,23 @@ Zeek 3.1.0
 New Functionality
 -----------------
 
+- Add a new option, ``dpd_late_match_stop``, which can be used in conjuction
+  with the option ``dpd_match_only_beginning`` and the new event
+  ``protocol_late_match`` to help annotate the conn.log with a field
+  to speculate on the protocol/service in cases where the DPD buffer
+  was already exhausted and can't analyze the full connection anymore,
+  but where there was still a late signature match.  A new script,
+  ``policy/protocols/conn/speculative-service.zeek``, was added as an
+  example of how to perform this tuning and add a "speculative_service"
+  field to conn.log, but it's not loaded by default.
+
+- There is now a new ``tcp_options`` event that is raised for each TCP header
+  that contains options.
+
+- Added a new option, ``Log::print_to_log`` that can be set to automatically
+  redirect the output from "print" statements to a real log stream (e.g.
+  instead of writing to stdout).
+
 Changed Functionality
 ---------------------
 
@@ -22,6 +39,29 @@ Changed Functionality
   script logic that inspects the ``qclass`` field of ``DNS::Info``
   after a ``dns_request`` event.
 
+- The configuration input reader now ignores trailing spaces at the end of
+  configuration lines.
+
+- The tcp_option event is now correctly raised.
+
+'- The base scripts shipped with Zeek now use the new
+  ``successful_connection_remove`` event instead of
+  ``connection_state_remove`` where possible (when the logic doesn't
+  pertain to unestablished TCP connections). There's a performance
+  benefit to this switch, but it may potentially break custom scripts
+  that depended on accessing or modifying state via specific
+  ``&priority`` ordering of ``connection_state_remove`` event
+  handlers. However, since most of Zeek's base scripts previously just
+  used that event with the intention of writing a finalized log as the
+  last thing executed for a given connection, and the new
+  ``successful_connection_remove`` event handlers all run after
+  ``connection_state_remove``, it's not likely this change to the base
+  scripts causes any incompatibility with user scripts.
+
+  There's also a new event called ``connection_successful`` and a new
+  ``connection`` record field named "successful" to help indicate this
+  new property of connections.
+
 Removed Functionality
 ---------------------
 
@@ -31,6 +71,9 @@ Deprecated Functionality
 - The C++ API typedefs for int{8,16,32,64} and uint{8,16,32,64} are deprecated
   in favor of the real <cstdint> types they alias.  E.g. use int8_t instead of
   int8.
+
+- The C++ API functions "safe_snprintf" and "safe_vsnprintf" are deprecated.
+  Use "snprintf" and "vsnprintf" instead.
 
 Zeek 3.0.0
 ==========
@@ -484,6 +527,9 @@ Changed Functionality
 - There now is a maximum number of protocol violations that can be raised by an analyzer
   before it is disabled; the default is set to 5. This behavior is customizable using
   ``DPD::max_violations`` and ``DPD::ignore_violations``.
+
+- The scan detection script, ``policy/misc/scan``, is no longer loaded by
+  default in ``site/local.zeek`` due to it frequenty causing performance issues.
 
 Removed Functionality
 ---------------------

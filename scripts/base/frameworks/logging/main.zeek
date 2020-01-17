@@ -12,7 +12,9 @@ export {
 	## file.
 	type Log::ID: enum {
 		## Dummy place-holder.
-		UNKNOWN
+		UNKNOWN,
+		## Print statements that have been redirected to a log stream.
+		PRINTLOG
 	};
 
 	## If true, local logging is by default enabled for all filters.
@@ -74,6 +76,36 @@ export {
 	##
 	## Returns: The path to be used for the filter.
 	global default_path_func: function(id: ID, path: string, rec: any) : string &redef;
+
+	## If :zeek:see:`Log::print_to_log` is set to redirect, ``print`` statements will
+	## automatically populate log entries with the fields contained in this record.
+	type PrintLogInfo: record {
+		## Current timestamp.
+		ts:                  time              &log;
+		## Set of strings passed to the print statement.
+		vals:                string_vec        &log;
+	};
+
+	## Configurations for :zeek:see:`Log::print_to_log`
+	type PrintLogType: enum {
+		## No redirection of ``print`` statements.
+		REDIRECT_NONE,
+		## Redirection of those ``print`` statements that were being logged to stdout,
+		## leaving behind those set to go to other specific files.
+		REDIRECT_STDOUT,
+		## Redirection of all ``print`` statements.
+		REDIRECT_ALL
+	};
+
+	## Event for accessing logged print records.
+	global log_print: event(rec: PrintLogInfo);
+
+	## Set configuration for ``print`` statements redirected to logs.
+	const print_to_log: PrintLogType = REDIRECT_NONE &redef;
+
+	## If :zeek:see:`Log::print_to_log` is enabled to write to a print log,
+	## this is the path to which the print Log Stream writes to
+	const print_log_path = "print" &redef;
 
 	# Log rotation support.
 
@@ -642,4 +674,10 @@ function add_default_filter(id: ID) : bool
 function remove_default_filter(id: ID) : bool
 	{
 	return remove_filter(id, "default");
+	}
+
+event zeek_init() &priority=5
+	{
+	if ( print_to_log != REDIRECT_NONE )
+		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $ev=log_print, $path=print_log_path]);
 	}

@@ -2,8 +2,7 @@
 //
 // Log writer for delimiter-separated ASCII logs.
 
-#ifndef LOGGING_WRITER_ASCII_H
-#define LOGGING_WRITER_ASCII_H
+#pragma once
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -76,5 +75,3 @@ private:
 }
 }
 
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef __PriorityQueue__
-#define __PriorityQueue__
+#pragma once
 
 #include <math.h>
 #include "util.h"
@@ -96,5 +95,3 @@ protected:
 	int max_heap_size;
 	uint64_t cumulative_num;
 };
-
-#endif

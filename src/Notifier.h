@@ -5,8 +5,7 @@
 // from notifier::Receiver and register the interesting objects with the
 // notification::Registry.
 
-#ifndef NOTIFIER_H
-#define NOTIFIER_H
+#pragma once
 
 #include <set>
 #include <unordered_map>
@@ -31,6 +30,12 @@ public:
 	 * @param m object that was modified
 	 */
 	virtual void Modified(Modifiable* m) = 0;
+
+	/**
+	 * Callback executed when notification registry is terminating and
+	 * no further modifications can possibly occur.
+	 */
+	virtual void Terminate() { }
 };
 
 /** Singleton class tracking all notification requests globally. */
@@ -69,6 +74,12 @@ public:
 	 * @param m object to no loger track.
 	 */
 	void Unregister(Modifiable* m);
+
+	/**
+	 * Notifies all receivers that no further modifications will occur
+	 * as the registry is shutting down.
+	 */
+	void Terminate();
 
 private:
 	friend class Modifiable;
@@ -112,5 +123,3 @@ protected:
 };
 
 }
-
-#endif

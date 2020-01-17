@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NTLM_NTLM_H
-#define ANALYZER_PROTOCOL_NTLM_NTLM_H
+#pragma once
 
 #include "events.bif.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -35,5 +34,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

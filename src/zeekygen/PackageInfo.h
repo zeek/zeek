@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_PACKAGEINFO_H
-#define ZEEKYGEN_PACKAGEINFO_H
+#pragma once
 
 #include "Info.h"
 
@@ -46,5 +45,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

@@ -31,20 +31,54 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 
 Frame::~Frame()
 	{
+	for ( auto& func : functions_with_closure_frame_reference )
+		{
+		func->StrengthenClosureReference(this);
+		Unref(func);
+		}
+
 	// Deleting a Frame that is a view is a no-op.
 	Unref(trigger);
-	Unref(closure);
+
+	if ( ! weak_closure_ref )
+		Unref(closure);
 
 	for ( auto& i : outer_ids )
 		Unref(i);
 
 	Release();
+
+	delete [] weak_refs;
 	}
 
-void Frame::SetElement(int n, Val* v)
+void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	{
-	Unref(frame[n]);
+	::Ref(func);
+	functions_with_closure_frame_reference.emplace_back(func);
+	}
+
+void Frame::SetElement(int n, Val* v, bool weak_ref)
+	{
+	UnrefElement(n);
 	frame[n] = v;
+
+	if ( weak_ref )
+		{
+		if ( ! weak_refs )
+			{
+			weak_refs = new bool[size];
+
+			for ( auto i = 0; i < size; ++i )
+				weak_refs[i] = false;
+			}
+
+		weak_refs[n] = true;
+		}
+	else
+		{
+		if ( weak_refs )
+			weak_refs[n] = false;
+		}
 	}
 
 void Frame::SetElement(const ID* id, Val* v)
@@ -62,8 +96,15 @@ void Frame::SetElement(const ID* id, Val* v)
 	if ( offset_map.size() )
 		{
 		auto where = offset_map.find(std::string(id->Name()));
+
 		if ( where != offset_map.end() )
-			SetElement(where->second, v);
+			{
+			// Need to add a Ref to 'v' since the SetElement() for
+			// id->Offset() below is otherwise responsible for keeping track
+			// of the implied reference count of the passed-in 'v' argument.
+			// i.e. if we end up storing it twice, we need an addition Ref.
+			SetElement(where->second, v->Ref());
+			}
 		}
 
 	SetElement(id->Offset(), v);
@@ -92,7 +133,7 @@ void Frame::Reset(int startIdx)
 	{
 	for ( int i = startIdx; i < size; ++i )
 		{
-		Unref(frame[i]);
+		UnrefElement(i);
 		frame[i] = 0;
 		}
 	}
@@ -100,7 +141,7 @@ void Frame::Reset(int startIdx)
 void Frame::Release()
 	{
 	for ( int i = 0; i < size; ++i )
-		Unref(frame[i]);
+		UnrefElement(i);
 
 	delete [] frame;
 	}
@@ -145,7 +186,34 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
-Frame* Frame::SelectiveClone(const id_list& selection) const
+static bool val_is_func(Val* v, BroFunc* func)
+	{
+	if ( v->Type()->Tag() != TYPE_FUNC )
+		return false;
+
+	return v->AsFunc() == func;
+	}
+
+static Val* clone_if_not_func(Val** frame, int offset, BroFunc* func,
+                              Frame* other)
+	{
+	auto v = frame[offset];
+
+	if ( ! v )
+		return nullptr;
+
+	if ( val_is_func(v, func) )
+		{
+		other->SetElement(offset, v, true);
+		return v;
+		}
+
+	auto rval = v->Clone();
+	other->SetElement(offset, rval);
+	return rval;
+	}
+
+Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 	{
 	if ( selection.length() == 0 )
 		return nullptr;
@@ -171,7 +239,7 @@ Frame* Frame::SelectiveClone(const id_list& selection) const
 			auto where = offset_map.find(std::string(id->Name()));
 			if ( where != offset_map.end() )
 				{
-				other->frame[where->second] = frame[where->second]->Clone();
+				clone_if_not_func(frame, where->second, func, other);
 				continue;
 				}
 			}
@@ -179,7 +247,7 @@ Frame* Frame::SelectiveClone(const id_list& selection) const
 		if ( ! frame[id->Offset()] )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
-		other->frame[id->Offset()] = frame[id->Offset()]->Clone();
+		clone_if_not_func(frame, id->Offset(), func, other);
 		}
 
 	/**
@@ -379,6 +447,7 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 	// Frame takes ownership of unref'ing elements in outer_ids
 	rf->outer_ids = std::move(outer_ids);
 	rf->closure = closure;
+	rf->weak_closure_ref = false;
 
 	for ( int i = 0; i < frame_size; ++i )
 		{
@@ -403,14 +472,14 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 		broker::integer g = *has_type;
 		BroType t( static_cast<TypeTag>(g) );
 
-		Val* val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
+		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
 			{
 			Unref(rf);
 			return std::make_pair(false, nullptr);
 			}
 
-		rf->frame[i] = val;
+		rf->frame[i] = val.detach();
 		}
 
 	return std::make_pair(true, rf);
@@ -437,7 +506,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 
 	closure = c;
 	if ( closure )
-		Ref(closure);
+		weak_closure_ref = true;
 
 	/**
 	 * Want to capture closures by copy?

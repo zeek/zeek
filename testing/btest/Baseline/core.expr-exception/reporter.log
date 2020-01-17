@@ -6,13 +6,13 @@
 #open	2011-03-18-19-06-08
 #fields	ts	level	message	location
 #types	time	enum	string	string
-1300475168.783842	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.915940	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.916118	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.918295	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.952193	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.952228	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.954761	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475168.962628	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
-1300475169.780331	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 10
+1300475168.783842	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.915940	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.916118	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.918295	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.952193	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.952228	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.954761	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475168.962628	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
+1300475169.780331	Reporter::ERROR	field value missing (c$ftp)	/da/home/robin/bro/master/testing/btest/.tmp/core.expr-exception/expr-exception.zeek, line 11
 #close	2011-03-18-19-06-13

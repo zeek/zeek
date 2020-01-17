@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_KRB_KRB_H
-#define ANALYZER_PROTOCOL_KRB_KRB_H
+#pragma once
 
 #include "krb_pac.h"
 
@@ -43,5 +42,3 @@ private:
 };
 
 } } // namespace analyzer::*
-
-#endif

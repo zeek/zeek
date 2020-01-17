@@ -1,5 +1,4 @@
-#ifndef binpac_bro_h
-#define binpac_bro_h
+#pragma once
 
 class Connection;
 class Val;
@@ -36,5 +35,3 @@ inline StringVal* bytestring_to_val(const_bytestring const &str)
 	}
 
 } // namespace binpac
-
-#endif

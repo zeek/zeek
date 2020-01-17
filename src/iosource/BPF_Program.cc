@@ -85,7 +85,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask,
 	if ( pcap_compile(pcap, &m_program, (char *) filter, optimize, netmask) < 0 )
 		{
 		if ( errbuf )
-			safe_snprintf(errbuf, errbuf_len,
+			snprintf(errbuf, errbuf_len,
 				      "pcap_compile(%s): %s", filter,
 				      pcap_geterr(pcap));
 

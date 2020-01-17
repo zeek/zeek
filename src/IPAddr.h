@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IPADDR_H
-#define IPADDR_H
+#pragma once
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -736,5 +735,3 @@ private:
 	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
 	uint8_t length;	// The bit length of the prefix relative to full IPv6 addr.
 };
-
-#endif

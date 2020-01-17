@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_MANAGER_H
-#define IOSOURCE_MANAGER_H
+#pragma once
 
 #include <string>
 #include <list>
@@ -144,6 +143,3 @@ private:
 }
 
 extern iosource::Manager* iosource_mgr;
-
-#endif
-

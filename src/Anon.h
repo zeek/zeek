@@ -8,13 +8,11 @@
 //
 //	http://ita.ee.lbl.gov/html/contrib/tcpdpriv.html
 
-#ifndef anon_h
-#define anon_h
+#pragma once
 
 #include <vector>
 #include <set>
 #include <map>
-using namespace std;
 
 #include "Reporter.h"
 #include "net_util.h"
@@ -136,5 +134,3 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl);
 
 #define LOG_ANONYMIZATION_MAPPING
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output);
-
-#endif

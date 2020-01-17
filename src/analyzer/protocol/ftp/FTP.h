@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_FTP_FTP_H
-#define ANALYZER_PROTOCOL_FTP_FTP_H
+#pragma once
 
 #include "analyzer/protocol/login/NVT.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -50,5 +49,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

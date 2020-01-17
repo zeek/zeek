@@ -37,7 +37,7 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 			if ( new_entry.is_null() )
 				return false;
 
-			j[fields[i]->name] = new_entry;
+			j.emplace(fields[i]->name, new_entry);
 			}
 		}
 
@@ -73,6 +73,10 @@ threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag 
 
 ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 	{
+	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
+	if ( ! val->present )
+		return nullptr;
+
 	ZeekJson j;
 	switch ( val->type )
 		{
@@ -182,11 +186,7 @@ ZeekJson JSON::BuildJSON(Value* val, const string& name) const
 		}
 
 	if ( ! name.empty() && ! j.is_null() )
-		{
-		ZeekJson j2 = ZeekJson::object();
-		j2[name] = j;
-		return j2;
-		}
+		return { { name, j } };
 
 	return j;
 	}

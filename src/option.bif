@@ -90,13 +90,24 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			return val_mgr->GetBool(0);
 			}
 
-		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data, location);
-		Unref(val_from_data);
+		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data.get(), location);
 		return val_mgr->GetBool(rval);
 		}
 
 	if ( ! same_type(i->Type(), val->Type()) )
 		{
+		if ( i->Type()->Tag() == TYPE_TABLE &&
+		     val->Type()->Tag() == TYPE_TABLE &&
+		     val->Type()->AsTableType()->IsUnspecifiedTable() )
+			{
+			// Just coerce an empty/unspecified table to the right type.
+			auto tv = new TableVal(i->Type()->AsTableType(),
+			                       i->ID_Val()->AsTableVal()->Attrs());
+			auto rval = call_option_handlers_and_set_value(ID, i, tv, location);
+			Unref(tv);
+			return val_mgr->GetBool(rval);
+			}
+
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
 			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
 		return val_mgr->GetBool(0);

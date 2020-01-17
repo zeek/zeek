@@ -1,5 +1,4 @@
-#ifndef PLUGIN_COMPONENT_MANAGER_H
-#define PLUGIN_COMPONENT_MANAGER_H
+#pragma once
 
 #include <map>
 #include <list>
@@ -140,7 +139,7 @@ ComponentManager<T, C>::ComponentManager(const string& arg_module, const string&
 template <class T, class C>
 const std::string& ComponentManager<T, C>::GetModule() const
 	{
-	return module.c_str();
+	return module;
 	}
 
 template <class T, class C>
@@ -248,5 +247,3 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	}
 
 } // namespace plugin
-
-#endif

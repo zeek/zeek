@@ -1,3 +1,5 @@
+dist: trusty
+
 language: cpp
 
 services:
@@ -24,13 +26,13 @@ notifications:
 env:
   - distro: centos_7
   - distro: debian_9
-  - distro: fedora_28
+  - distro: fedora_30
   - distro: ubuntu_16.04
   - distro: ubuntu_18.04
   - distro: ubuntu_18.04_leaktest
 
-install: sh testing/scripts/travis-job install $distro
+install: sh ci/travis-job install $distro
 
-before_script: sh testing/scripts/travis-job build $distro
+before_script: sh ci/travis-job build $distro
 
-script: sh testing/scripts/travis-job run $distro
+script: sh ci/travis-job run $distro

@@ -79,7 +79,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
+	int n = vsnprintf(buf, buf_len, format, al);
 	va_end(al);
 
 	if ( (unsigned int) n >= buf_len )
@@ -89,7 +89,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 		// Is it portable to restart?
 		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
+		n = vsnprintf(buf, buf_len, format, al);
 		va_end(al);
 		}
 

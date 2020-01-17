@@ -1,8 +1,5 @@
-#ifndef BRO_CONFIG_H
-#define BRO_CONFIG_H
+#pragma once
 
 #pragma message("Warning: bro-config.h is deprecated, use zeek-config.h instead")
 
 #include "zeek-config.h"
-
-#endif // BRO_CONFIG_H

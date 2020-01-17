@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef timer_h
-#define timer_h
+#pragma once
 
 #include <string>
 
@@ -175,5 +174,3 @@ protected:
 };
 
 extern TimerMgr* timer_mgr;
-
-#endif

@@ -1,10 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //Clustered Hashing, a variation of Robinhood Hashing/Open Addressing Hashing.
-//Ref following post links to help understand the implementation
-//https://jasonlue.github.io/algo/2019/08/20/clustered-hashing.html
-//https://jasonlue.github.io/algo/2019/08/27/clustered-hashing-basic-operations.html
-//https://jasonlue.github.io/algo/2019/09/03/clustered-hashing-incremental-resize.html
-//https://jasonlue.github.io/algo/2019/09/10/clustered-hashing-modify-on-iteration.html
 
 #ifndef odict_h
 #define odict_h

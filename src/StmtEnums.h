@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#ifndef stmt_enums_h
-#define stmt_enums_h
+#pragma once
 
 // These are in a separate file to break circular dependences 
 typedef enum {
@@ -31,5 +30,3 @@ typedef enum {
 } stmt_flow_type;
 
 extern const char* stmt_name(BroStmtTag t);
-
-#endif

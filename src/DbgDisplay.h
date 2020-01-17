@@ -1,7 +1,6 @@
 // Structures and methods for implementing watches in the Bro debugger.
 
-#ifndef dbg_display_h
-#define dbg_display_h
+#pragma once
 
 #include "Debug.h"
 
@@ -24,5 +23,3 @@ protected:
 	bool enabled;
 	Expr* expression;
 	};
-
-#endif

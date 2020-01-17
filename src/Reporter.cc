@@ -430,7 +430,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		va_list aq;
 		va_copy(aq, ap);
-		int n = safe_vsnprintf(buffer, size, fmt, aq);
+		int n = vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
 		if ( postfix )
@@ -451,7 +451,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
-		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
+		snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
 
 	bool raise_event = true;
 

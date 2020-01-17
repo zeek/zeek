@@ -1,5 +1,6 @@
 #include "Data.h"
 #include "File.h"
+#include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
 
 #include <broker/error.hh>
@@ -35,6 +36,16 @@ static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	}
 	}
 
+TEST_CASE("converting Zeek to Broker protocol constants")
+	{
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_TCP), broker::port::protocol::tcp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UDP), broker::port::protocol::udp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_ICMP),
+	         broker::port::protocol::icmp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN),
+	         broker::port::protocol::unknown);
+	}
+
 TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	{
 	switch ( tp ) {
@@ -48,6 +59,16 @@ TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	default:
 		return TRANSPORT_UNKNOWN;
 	}
+	}
+
+TEST_CASE("converting Broker to Zeek protocol constants")
+	{
+	using bro_broker::to_bro_port_proto;
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::tcp), TRANSPORT_TCP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::udp), TRANSPORT_UDP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::icmp), TRANSPORT_ICMP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::unknown),
+	         TRANSPORT_UNKNOWN);
 	}
 
 struct val_converter {
@@ -181,7 +202,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = make_intrusive<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -213,12 +234,9 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
-				Unref(rval);
 				return nullptr;
-				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -226,21 +244,16 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
-					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.detach());
 				}
 
 
-			rval->Assign(list_val, nullptr);
-			Unref(list_val);
+			rval->Assign(list_val.get(), nullptr);
 			}
 
-		return rval;
+		return rval.detach();
 		}
 
 	result_type operator()(broker::table& a)
@@ -249,7 +262,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = make_intrusive<TableVal>(tt);
 
 		for ( auto& item : a )
 			{
@@ -281,12 +294,9 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
-				Unref(rval);
 				return nullptr;
-				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -294,30 +304,21 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
-					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.detach());
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
 			                                         tt->YieldType());
 
 			if ( ! value_val )
-				{
-				Unref(rval);
-				Unref(list_val);
 				return nullptr;
-				}
 
-			rval->Assign(list_val, value_val);
-			Unref(list_val);
+			rval->Assign(list_val.get(), value_val.detach());
 			}
 
-		return rval;
+		return rval.detach();
 		}
 
 	result_type operator()(broker::vector& a)
@@ -325,22 +326,19 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = new VectorVal(vt);
+			auto rval = make_intrusive<VectorVal>(vt);
 
 			for ( auto& item : a )
 				{
 				auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
 
 				if ( ! item_val )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
-				rval->Assign(rval->Size(), item_val);
+				rval->Assign(rval->Size(), item_val.detach());
 				}
 
-			return rval;
+			return rval.detach();
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -385,16 +383,13 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = new RecordVal(rt);
+			auto rval = make_intrusive<RecordVal>(rt);
 			auto idx = 0u;
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
 				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
@@ -404,19 +399,16 @@ struct val_converter {
 					}
 
 				auto item_val = bro_broker::data_to_val(move(a[idx]),
-																								rt->FieldType(i));
+				                                        rt->FieldType(i));
 
 				if ( ! item_val )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
-				rval->Assign(i, item_val);
+				rval->Assign(i, item_val.detach());
 				++idx;
 				}
 
-			return rval;
+			return rval.detach();
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{
@@ -791,12 +783,12 @@ static bool data_type_check(const broker::data& d, BroType* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type)
+IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return bro_broker::make_data_val(move(d));
+		return {bro_broker::make_data_val(move(d)), false};
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return {caf::visit(val_converter{type}, std::move(d)), false};
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(Val* v)
@@ -1161,7 +1153,7 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 	return data_type_check(data, t);
 	}
 
-Val* bro_broker::DataVal::castTo(BroType* t)
+IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
 	}

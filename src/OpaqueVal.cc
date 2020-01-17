@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <memory>
+
 #include "OpaqueVal.h"
 #include "NetVar.h"
 #include "Reporter.h"
@@ -1073,7 +1075,7 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 
 	try
 		{
-		this->internal_paraglob = build_unique<paraglob::Paraglob>(std::move(iv));
+		this->internal_paraglob = std::make_unique<paraglob::Paraglob>(std::move(iv));
 		}
 	catch (const paraglob::underflow_error& e)
 		{
@@ -1093,7 +1095,7 @@ Val* ParaglobVal::DoClone(CloneState* state)
 	{
 	try {
 		return new ParaglobVal
-			(build_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
+			(std::make_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
 		}
 	catch (const paraglob::underflow_error& e)
 		{

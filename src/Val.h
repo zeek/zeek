@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef val_h
-#define val_h
+#pragma once
 
 #include <vector>
 #include <list>
@@ -349,7 +348,7 @@ public:
 
 	TableVal* GetRecordFields();
 
-	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=new RE_Matcher("^_"));
+	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
 
 protected:
 
@@ -961,6 +960,11 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	/**
+	 * Returns a "record_field_table" value for introspection purposes.
+	 */
+	TableVal* GetRecordFieldsVal() const;
+
 	// This is an experiment to associate a BroObj within the
 	// event engine to a record value in bro script.
 	void SetOrigin(BroObj* o)	{ origin = o; }
@@ -1133,5 +1137,3 @@ extern bool can_cast_value_to_type(const Val* v, BroType* t);
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
 extern bool can_cast_value_to_type(const BroType* s, BroType* t);
-
-#endif

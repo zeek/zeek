@@ -1,11 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTERS_JSON_H
-#define THREADING_FORMATTERS_JSON_H
+#pragma once
 
 #include "../Formatter.h"
 #include "3rdparty/json.hpp"
-#include "3rdparty/fifo_map.hpp"
+#include "3rdparty/tsl-ordered-map/ordered_map.h"
 
 
 namespace threading { namespace formatter {
@@ -13,9 +12,13 @@ namespace threading { namespace formatter {
 // Define a class for use with the json library that orders the keys in the same order that
 // they were inserted. By default, the json library orders them alphabetically and we don't
 // want it like that.
-template<class K, class V, class compare, class A>
-using json_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
-using ZeekJson = nlohmann::basic_json<json_fifo_map>;
+template<class Key, class T, class Ignore, class Allocator,
+         class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
+         class AllocatorPair = typename std::allocator_traits<Allocator>::template rebind_alloc<std::pair<Key, T>>,
+         class ValueTypeContainer = std::vector<std::pair<Key, T>, AllocatorPair>>
+using ordered_map = tsl::ordered_map<Key, T, Hash, KeyEqual, AllocatorPair, ValueTypeContainer>;
+
+using ZeekJson = nlohmann::basic_json<ordered_map>;
 
 /**
   * A thread-safe class for converting values into a JSON representation
@@ -46,5 +49,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTERS_JSON_H */

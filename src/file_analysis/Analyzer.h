@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_ANALYZER_H
-#define FILE_ANALYSIS_ANALYZER_H
+#pragma once
 
 #include "Val.h"
 #include "NetVar.h"
@@ -40,7 +39,7 @@ public:
 		{ }
 
 	/**
-	 * Subclasses may override this metod to receive file data non-sequentially.
+	 * Subclasses may override this method to receive file data non-sequentially.
 	 * @param data points to start of a chunk of file data.
 	 * @param len length in bytes of the chunk of data pointed to by \a data.
 	 * @param offset the byte offset within full file that data chunk starts.
@@ -189,5 +188,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

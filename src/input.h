@@ -1,11 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef input_h
-#define input_h
+#pragma once
 
 #include <vector>
 #include <string>
-using namespace std;
 
 #include "BroList.h"
 
@@ -41,9 +39,7 @@ extern const char* prog;
 
 extern name_list prefixes;	// -p flag
 extern char* command_line_policy;	// -e flag
-extern vector<string> params;
+extern std::vector<std::string> params;
 
 class Stmt;
 extern Stmt* stmts;	// global statements
-
-#endif

@@ -93,11 +93,15 @@ event zeek_init()
 	local ve3: vector of addr = vector(1.2.3.4);
 	local ve4: vector of set[bool] = vector(set(T, F));
 	local ve5: vector of myrec1 = vector(myrec1($s="test", $c=2));
+	local ve6: vector of count;
+	ve6[0] = 0;
+	ve6[2] = 2;
 	print to_json(ve1);
 	print to_json(ve2);
 	print to_json(ve3);
 	print to_json(ve4);
 	print to_json(ve5, T);
+	print to_json(ve6);
 
 	# Sets
 	local st1: set[count] = set();
@@ -105,11 +109,13 @@ event zeek_init()
 	local st3: set[addr] = set(1.2.3.4);
 	local st4: set[myrec1] = set(myrec1($s="test"));
 	local st5: set[myrec1] = set(myrec1($s="test", $c=2));
+	local st6: set[string, count] = { ["one", 1], ["two", 2], ["three", 3] };
 	print to_json(st1);
 	print to_json(st2);
 	print to_json(st3);
 	print to_json(st4);
 	print to_json(st5, T);
+	print to_json(st6);
 
 	# Tables
 	local ta1: table[count] of addr = table();
@@ -122,4 +128,8 @@ event zeek_init()
 	print to_json(ta3);
 	print to_json(ta4);
 	print to_json(ta5, T);
+
+	# Opaque
+	local o1: opaque of topk = topk_init(5);
+	print to_json(o1);
 	}

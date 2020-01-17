@@ -23,6 +23,7 @@
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
 #include "iosource/Packet.h"
+#include "IntrusivePtr.h"
 
 using namespace std;
 
@@ -396,7 +397,7 @@ function terminate%(%): bool
 // is false).
 static bool prepare_environment(TableVal* tbl, bool set)
 	{
-	ListVal* idxs = tbl->ConvertToPureList();
+	IntrusivePtr<ListVal> idxs{tbl->ConvertToPureList(), false};
 
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
@@ -1689,6 +1690,22 @@ function fmt%(...%): string
 	return new StringVal(s);
 	%}
 
+## Renders a sequence of values to a string of bytes and outputs them directly
+## to ``stdout`` with no additional escape sequences added.  No additional
+## newline is added to the end either.
+##
+## Returns: Always true.
+##
+## .. zeek:see:: fmt cat cat_sep string_cat to_json
+function print_raw%(...%): bool
+	%{
+	ODesc d(DESC_READABLE);
+	d.SetStyle(RAW_STYLE);
+	describe_vals(&@ARG@, &d, 0);
+	printf("%.*s", d.Len(), d.Description());
+	return val_mgr->GetBool(true);
+	%}
+
 # ===========================================================================
 #
 #                                    Math
@@ -1861,6 +1878,18 @@ function type_name%(t: any%): string
 	return new StringVal(s);
 	%}
 
+## Returns: list of command-line arguments (``argv``) used to run Zeek.
+function zeek_args%(%): string_vec
+	%{
+	auto sv = internal_type("string_vec")->AsVectorType();
+	auto rval = make_intrusive<VectorVal>(sv);
+
+	for ( auto i = 0; i < bro_argc; ++i )
+		rval->Assign(rval->Size(), new StringVal(bro_argv[i]));
+
+	return rval.detach();
+	%}
+
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
 ## opposed to from a network trace in a file). Note that this function returns
 ## true even after Zeek has stopped reading network traffic, for example due to
@@ -1868,7 +1897,7 @@ function type_name%(t: any%): string
 ##
 ## Returns: True if reading traffic from a network interface.
 ##
-## .. zeek:see:: reading_traces
+## .. zeek:see:: reading_traces packet_sources
 function reading_live_traffic%(%): bool
 	%{
 	return val_mgr->GetBool(reading_live);
@@ -1879,12 +1908,33 @@ function reading_live_traffic%(%): bool
 ##
 ## Returns: True if reading traffic from a network trace.
 ##
-## .. zeek:see:: reading_live_traffic
+## .. zeek:see:: reading_live_traffic packet_sources
 function reading_traces%(%): bool
 	%{
 	return val_mgr->GetBool(reading_traces);
 	%}
 
+## Returns: a list of packet sources being read by Zeek.
+##
+## .. zeek:see:: reading_live_traffic reading_traces
+function packet_sources%(%): PacketSourceList
+	%{
+	auto ps_type = internal_type("PacketSource")->AsRecordType();
+	auto psl_type = internal_type("PacketSourceList")->AsVectorType();
+	auto rval = make_intrusive<VectorVal>(psl_type);
+
+	for ( const auto& ps : iosource_mgr->GetPktSrcs() )
+		{
+		auto r = make_intrusive<RecordVal>(ps_type);
+		r->Assign(0, val_mgr->GetBool(ps->IsLive()));
+		r->Assign(1, new StringVal(ps->Path()));
+		r->Assign(2, val_mgr->GetInt(ps->LinkType()));
+		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
+		rval->Assign(rval->Size(), r.detach());
+		}
+
+	return rval.detach();
+	%}
 
 ## Generates a table of the size of all global variables. The table index is
 ## the variable name and the value is the variable size in bytes.
@@ -1978,6 +2028,19 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
+	if ( rec->Type()->Tag() == TYPE_STRING )
+		{
+		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
+
+		if ( ! id || ! id->AsType() || id->AsType()->Tag() != TYPE_RECORD )
+			{
+			reporter->Error("record_fields string argument does not name a record type");
+			return new TableVal(internal_type("record_field_table")->AsTableType());
+			}
+
+		return id->AsType()->AsRecordType()->GetRecordFieldsVal();
+		}
+
 	return rec->GetRecordFields();
 	%}
 
@@ -5065,6 +5128,8 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ##                fields with the &log attribute to be included in the JSON.
 ##
 ## returns: a JSON formatted string.
+##
+## .. zeek:see:: fmt cat cat_sep string_cat print_raw
 function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
 	%{
 	return val->ToJSON(only_loggable, field_escape_pattern);

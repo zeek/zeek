@@ -1,0 +1,27 @@
+rpc call, 54790/udp, 969813001, 100000, 2, 3, 48
+rpc reply, 54790/udp, 969813001, RPC_SUCCESS, 4
+portmap request getport, 54790/udp, [program=100232, version=10, is_tcp=F], 32773/udp
+rpc call, 54793/udp, 969415438, 100000, 2, 3, 48
+rpc call, 55484/udp, 969226799, 100000, 2, 3, 48
+rpc reply, 55484/udp, 969226799, RPC_SUCCESS, 4
+portmap request getport, 55484/udp, [program=100232, version=10, is_tcp=F], 0/udp
+rpc call, 55485/udp, 969242290, 100000, 2, 3, 48
+rpc call, 55884/udp, 969348923, 100000, 2, 3, 48
+rpc call, 56254/udp, 968935221, 100000, 2, 3, 48
+rpc reply, 56254/udp, 968935221, RPC_SUCCESS, 4
+portmap request getport, 56254/udp, [program=100232, version=10, is_tcp=F], 32774/udp
+rpc call, 56260/udp, 969018689, 100000, 2, 3, 48
+rpc reply, 56260/udp, 969018689, RPC_SUCCESS, 4
+portmap request getport, 56260/udp, [program=100232, version=10, is_tcp=F], 32773/udp
+rpc call, 56263/udp, 969775534, 100000, 2, 3, 48
+rpc call, 56413/udp, 969901294, 100000, 2, 3, 48
+rpc call, 56577/udp, 969518193, 100000, 2, 3, 48
+rpc call, 60249/udp, 969663490, 100000, 2, 3, 48
+rpc reply, 60249/udp, 969663490, RPC_SUCCESS, 4
+portmap request getport, 60249/udp, [program=100232, version=10, is_tcp=F], 32773/udp
+rpc call, 60253/udp, 969228065, 100000, 2, 3, 48
+rpc reply, 60253/udp, 969228065, RPC_SUCCESS, 4
+portmap request getport, 60253/udp, [program=100232, version=10, is_tcp=F], 32773/udp
+rpc call, 60267/udp, 969321731, 100000, 2, 3, 48
+rpc reply, 60267/udp, 969321731, RPC_SUCCESS, 4
+portmap request getport, 60267/udp, [program=100232, version=10, is_tcp=F], 32773/udp

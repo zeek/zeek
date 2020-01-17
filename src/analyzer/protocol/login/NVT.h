@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_NVT_H
-#define ANALYZER_PROTOCOL_LOGIN_NVT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/ContentLine.h"
 
@@ -171,5 +170,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

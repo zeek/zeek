@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef attr_h
-#define attr_h
+#pragma once
 
 #include "Obj.h"
 
@@ -46,9 +45,6 @@ public:
 	// like SetAttrExpr(coerce(AttrExpr())) must not completely unref the
 	// previous expr as the new expr depends on it.
 	void SetAttrExpr(Expr* e) { expr = e; }
-
-	int RedundantAttrOkay() const
-		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -103,5 +99,3 @@ protected:
 	bool in_record;
 	bool global_var;
 };
-
-#endif

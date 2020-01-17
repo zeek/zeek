@@ -391,7 +391,7 @@ TableType::TableType(TypeList* ind, BroType* yield)
 		// Allow functions, since they can be compared
 		// for Func* pointer equality.
 		if ( t == TYPE_INTERNAL_OTHER && tli->Tag() != TYPE_FUNC &&
-		     tli->Tag() != TYPE_RECORD )
+		     tli->Tag() != TYPE_RECORD && tli->Tag() != TYPE_PATTERN )
 			{
 			tli->Error("bad index type");
 			SetError();
@@ -822,6 +822,71 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	d->NL();
 	DescribeFieldsReST(d, false);
 	d->PopType(this);
+	}
+
+static string container_type_name(const BroType* ft)
+	{
+	string s;
+	if ( ft->Tag() == TYPE_RECORD )
+		s = "record " + ft->GetName();
+	else if ( ft->Tag() == TYPE_VECTOR )
+		s = "vector of " + container_type_name(ft->YieldType());
+	else if ( ft->Tag() == TYPE_TABLE )
+		{
+		if ( ft->IsSet() )
+			s = "set[";
+		else
+			s = "table[";
+		const type_list* tl = ((const IndexType*) ft)->IndexTypes();
+		loop_over_list(*tl, i)
+			{
+			if ( i > 0 )
+				s += ",";
+			s += container_type_name((*tl)[i]);
+			}
+		s += "]";
+		if ( ft->YieldType() )
+			{
+			s += " of ";
+			s += container_type_name(ft->YieldType());
+			}
+		}
+	else
+		s = type_name(ft->Tag());
+	return s;
+	}
+
+TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
+	{
+	auto rval = new TableVal(internal_type("record_field_table")->AsTableType());
+
+	for ( int i = 0; i < NumFields(); ++i )
+		{
+		const BroType* ft = FieldType(i);
+		const TypeDecl* fd = FieldDecl(i);
+		Val* fv = nullptr;
+
+		if ( rv )
+			fv = rv->Lookup(i);
+
+		if ( fv )
+			::Ref(fv);
+
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+
+		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+
+		string s = container_type_name(ft);
+		nr->Assign(0, new StringVal(s));
+		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(2, fv);
+		nr->Assign(3, FieldDefault(i));
+		Val* field_name = new StringVal(FieldName(i));
+		rval->Assign(field_name, nr);
+		Unref(field_name);
+		}
+
+	return rval;
 	}
 
 const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)

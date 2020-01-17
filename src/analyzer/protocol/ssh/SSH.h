@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SSH_SSH_H
-#define ANALYZER_PROTOCOL_SSH_SSH_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -31,18 +30,18 @@ namespace analyzer {
 			binpac::SSH::SSH_Conn* interp;
 
 			void ProcessEncrypted(int len, bool orig);
+			void ProcessEncryptedSegment(int len, bool orig);
 
 			bool had_gap;
 
 			// Packet analysis stuff
 			bool auth_decision_made;
 			bool skipped_banner;
+			bool saw_encrypted_client_data;
 
 			int service_accept_size;
 			int userauth_failure_size;
 
-			};
-
-		}
+		};
 	}
-#endif
+}

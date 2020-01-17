@@ -1,13 +1,10 @@
 // Debugging support for Bro policy files.
 
-#ifndef debug_h
-#define debug_h
+#pragma once
 
 #include <vector>
 #include <map>
 #include <string>
-using namespace std;
-
 
 class Stmt;
 
@@ -36,10 +33,10 @@ class DbgWatch;
 class DbgDisplay;
 class StmtHashFn;
 
-typedef map<int, DbgBreakpoint*> BPIDMapType;
-typedef multimap<const Stmt*, DbgBreakpoint*> BPMapType;
+typedef std::map<int, DbgBreakpoint*> BPIDMapType;
+typedef std::multimap<const Stmt*, DbgBreakpoint*> BPMapType;
 
-extern string current_module;
+extern std::string current_module;
 
 class TraceState {
 public:
@@ -89,8 +86,8 @@ public:
 	Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
-	vector<DbgWatch*> watches;
-	vector<DbgDisplay*> displays;
+	std::vector<DbgWatch*> watches;
+	std::vector<DbgDisplay*> displays;
 	BPMapType breakpoint_map;	// maps Stmt -> Breakpoints on it
 
 protected:
@@ -136,7 +133,7 @@ extern DebuggerState g_debugger_state;
 // Multiple results can be returned depending on the input, but always
 // at least 1.
 
-vector<ParseLocationRec> parse_location_string(const string& s);
+std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 
 // ### TODO: Add a bunch of hook functions for various events
 //   e.g. variable changed, breakpoint hit, etc.
@@ -172,13 +169,11 @@ Val* dbg_eval_expr(const char* expr);
 int dbg_read_internal_state();
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-string get_context_description(const Stmt* stmt, const Frame* frame);
+std::string get_context_description(const Stmt* stmt, const Frame* frame);
 
 extern Frame* g_dbg_locals;	// variables created within debugger context
 
-extern std::map<string, Filemap*> g_dbgfilemaps; // filename => filemap
+extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
-
-#endif

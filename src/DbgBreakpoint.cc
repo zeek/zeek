@@ -135,7 +135,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string loc_str)
 			}
 
 		at_stmt = plr.stmt;
-		safe_snprintf(description, sizeof(description), "%s:%d",
+		snprintf(description, sizeof(description), "%s:%d",
 			      source_filename, source_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
@@ -148,7 +148,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string loc_str)
 							loc_str.c_str());
 		at_stmt = plr.stmt;
 		const Location* loc = at_stmt->GetLocationInfo();
-		safe_snprintf(description, sizeof(description), "%s at %s:%d",
+		snprintf(description, sizeof(description), "%s at %s:%d",
 			      function_name.c_str(), loc->filename, loc->last_line);
 
 		debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
@@ -171,7 +171,7 @@ bool DbgBreakpoint::SetLocation(Stmt* stmt)
 	AddToGlobalMap();
 
 	const Location* loc = stmt->GetLocationInfo();
-	safe_snprintf(description, sizeof(description), "%s:%d",
+	snprintf(description, sizeof(description), "%s:%d",
 		      loc->filename, loc->last_line);
 
 	debug_msg("Breakpoint %d set at %s\n", GetID(), Description());

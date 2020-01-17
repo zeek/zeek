@@ -159,18 +159,14 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		return false;
 		}
 
-	if ( m->second == "" )
-		// Already activated.
-		return true;
-
-	std::string dir = m->second + "/";
-
-	if ( dir.empty() )
+	if ( m->second.empty() )
 		{
 		// That's our marker that we have already activated this
 		// plugin. Silently ignore the new request.
 		return true;
 		}
+
+	std::string dir = m->second + "/";
 
 	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
@@ -275,6 +271,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
+
+		globfree(&gl);
 		}
 
 	else

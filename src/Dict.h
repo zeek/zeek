@@ -5,8 +5,7 @@
 
 #else//USE_OPEN_DICT
 
-#ifndef dict_h
-#define dict_h
+#pragma once
 
 #include "List.h"
 #include "Hash.h"
@@ -224,7 +223,5 @@ public:
 	T* RemoveEntry(const HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
 };
-
-#endif
 
 #endif//USE_OPEN_DICT

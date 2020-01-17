@@ -1,5 +1,4 @@
-#ifndef packet_h
-#define packet_h
+#pragma once
 
 #include "Desc.h"
 #include "IP.h"
@@ -212,5 +211,3 @@ private:
 	// True if L2 processing succeeded.
 	bool l2_valid;
 };
-
-#endif // packet_h

@@ -289,7 +289,7 @@ event sip_end_entity(c: connection, is_request: bool) &priority = -5
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c?$sip_state )
 		{

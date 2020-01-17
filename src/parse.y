@@ -1058,7 +1058,7 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4);
+			$$ = new TypeDecl($3, $1, $4, true);
 			}
 	;
 
@@ -1234,7 +1234,7 @@ anonymous_function:
 			// a lambda expression.
 
 			// Gather the ingredients for a BroFunc from the current scope
-			std::unique_ptr<function_ingredients> ingredients = gather_function_ingredients(current_scope(), $5);
+			auto ingredients = std::make_unique<function_ingredients>(current_scope(), $5);
 			id_list outer_ids = gather_outer_ids(pop_scope(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));

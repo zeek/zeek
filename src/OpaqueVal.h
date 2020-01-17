@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef OPAQUEVAL_H
-#define OPAQUEVAL_H
+#pragma once
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -9,7 +8,7 @@
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
-#include "src/paraglob.h"
+#include "paraglob/paraglob.h"
 
 class OpaqueVal;
 
@@ -335,5 +334,3 @@ protected:
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
 };
-
-#endif

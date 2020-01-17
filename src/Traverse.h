@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef traverse_h
-#define traverse_h
+#pragma once
 
 #include "Obj.h"
 #include "Stmt.h"
@@ -38,5 +37,3 @@ public:
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);
-
-#endif

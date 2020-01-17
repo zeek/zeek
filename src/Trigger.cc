@@ -171,6 +171,27 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	Unref(this);
 	}
 
+void Trigger::Terminate()
+	{
+	if ( is_return )
+		{
+		auto parent = frame->GetTrigger();
+
+		if ( ! parent->Disabled() )
+			{
+			// If the trigger was already disabled due to interpreter
+			// exception, an Unref already happened at that point.
+			parent->Disable();
+			Unref(parent);
+			}
+
+		frame->ClearTrigger();
+		}
+
+	Disable();
+	Unref(this);
+	}
+
 Trigger::~Trigger()
 	{
 	DBG_LOG(DBG_NOTIFIERS, "%s: deleting", Name());
@@ -218,7 +239,22 @@ bool Trigger::Eval()
 	// An alternative approach to copying the frame would be to deep-copy
 	// the expression itself, replacing all references to locals with
 	// constants.
-	Frame* f = frame->Clone();
+
+	Frame* f = nullptr;
+
+	try
+		{
+		f = frame->Clone();
+		}
+	catch ( InterpreterException& )
+		{
+		// Frame contains values that couldn't be cloned. It's
+		// already been reported, disable trigger.
+		Disable();
+		Unref(this);
+		return false;
+		}
+
 	f->SetTrigger(this);
 
 	Val* v = nullptr;

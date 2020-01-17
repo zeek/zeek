@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
-#define ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
+#pragma once
 
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -34,5 +33,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif /* dce_rpc_h */

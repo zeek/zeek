@@ -120,6 +120,22 @@ type mime_match: record {
 ## :zeek:see:`file_magic`
 type mime_matches: vector of mime_match;
 
+## Properties of an I/O packet source being read by Zeek.
+type PacketSource: record {
+	## Whether the packet source is a live interface or offline pcap file.
+	live: bool;
+	## The interface name for a live interface or filesystem path of
+	## an offline pcap file.
+	path: string;
+	## The data link-layer type of the packet source.
+	link_type: int;
+	## The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
+	netmask: count;
+};
+
+## A list of packet sources being read by Zeek.
+type PacketSourceList: vector of PacketSource;
+
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {
@@ -296,6 +312,39 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
+module TCP;
+export {
+	## A TCP Option field parsed from a TCP header.
+	type Option: record {
+		## The kind number associated with the option.  Other optional fields
+		## of this record may be set depending on this value.
+		kind: count;
+		## The total length of the option in bytes, including the kind byte and
+		## length byte (if present).
+		length: count;
+		## This field is set to the raw option bytes if the kind is not
+		## otherwise known/parsed.  It's also set for known kinds whose length
+		## was invalid.
+		data: string &optional;
+		## Kind 2: Maximum Segment Size.
+		mss: count &optional;
+		## Kind 3: Window scale.
+		window_scale: count &optional;
+		## Kind 5: Selective ACKnowledgement (SACK).  This is a list of 2, 4,
+		## 6, or 8 numbers with each consecutive pair being a 32-bit
+		## begin-pointer and 32-bit end pointer.
+		sack: index_vec &optional;
+		## Kind 8: 4-byte sender timestamp value.
+		send_timestamp: count &optional;
+		## Kind 8: 4-byte echo reply timestamp value.
+		echo_timestamp: count &optional;
+	};
+
+	## The full list of TCP Option fields parsed from a TCP header.
+	type OptionList: vector of Option;
+}
+module GLOBAL;
+
 module Tunnel;
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
@@ -386,6 +435,11 @@ type connection: record {
 
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
+
+        ## Flag that will be true if :zeek:see:`connection_successful` has
+        ## already been generated for the connection. See the documentation of
+        ## that event for a definition of what makes a connection "succesful".
+	successful: bool;
 };
 
 ## Default amount of time a file can be inactive before the file analysis
@@ -2546,7 +2600,7 @@ export {
 		negotiate_lm_key       : bool;
 		## If set, requests connectionless authentication
 		negotiate_datagram     : bool;
-		## If set, requests session key negotiation for message 
+		## If set, requests session key negotiation for message
 		## confidentiality
 		negotiate_seal         : bool;
 		## If set, requests session key negotiation for message
@@ -2734,7 +2788,7 @@ export {
 		## The server supports compressed data transfer. Requires bulk_transfer.
 		## Note: No known implementations support this
 		compressed_data	   : bool;
-		## The server supports extended security exchanges	
+		## The server supports extended security exchanges
 		extended_security  : bool;
 	};
 
@@ -2827,7 +2881,7 @@ export {
 	};
 
 	type SMB1::NegotiateResponse: record {
-		## If the server does not understand any of the dialect strings, or if 
+		## If the server does not understand any of the dialect strings, or if
 		## PC NETWORK PROGRAM 1.0 is the chosen dialect.
 		core	: SMB1::NegotiateResponseCore 	&optional;
 		## If the chosen dialect is greater than core up to and including
@@ -2878,7 +2932,7 @@ export {
 		## If challenge/response auth is not being used, this is the password.
 		## Otherwise, it's the response to the server's challenge.
 		## Note: Only set for pre NT LM 0.12
-		account_password	  : string &optional;		
+		account_password	  : string &optional;
 		## Client's primary domain, if known
 		## Note: not set for NT LM 0.12 with extended security
 		primary_domain		  : string &optional;
@@ -2896,7 +2950,7 @@ export {
 		## Note: only set for NT LM 0.12
 		capabilities		  : SMB1::SessionSetupAndXCapabilities &optional;
 	};
-	
+
 	type SMB1::SessionSetupAndXResponse: record {
 		## Count of parameter words (should be 3 for pre NT LM 0.12 and 4 for NT LM 0.12)
 		word_count	: count;
@@ -3961,7 +4015,7 @@ type bt_tracker_headers: table[string] of string;
 ## for a range of modbus coils.
 type ModbusCoils: vector of bool;
 
-## A vector of count values that represent 16bit modbus 
+## A vector of count values that represent 16bit modbus
 ## register values.
 type ModbusRegisters: vector of count;
 
@@ -4683,6 +4737,18 @@ const dpd_buffer_size = 1024 &redef;
 ## .. note:: Despite the name, this option affects *all* signature matching, not
 ##    only signatures used for dynamic protocol detection.
 const dpd_match_only_beginning = T &redef;
+
+## If true, stops signature matching after a late match. A late match may occur
+## in case the DPD buffer is exhausted but a protocol signature matched. To
+## allow late matching, :zeek:see:`dpd_match_only_beginning` must be disabled.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+##    dpd_match_only_beginning
+##
+## .. note:: Despite the name, this option stops *all* signature matching, not
+##    only signatures used for dynamic protocol detection but is triggered by
+##    DPD signatures only.
+const dpd_late_match_stop = F &redef;
 
 ## If true, don't consider any ports for deciding which protocol analyzer to
 ## use.

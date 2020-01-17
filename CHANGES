@@ -1,4 +1,671 @@
 
+3.1.0-dev.376 | 2020-01-14 09:45:45 -0800
+
+  * Fix warning when reading files from non-network sources (Seth Hall, Corelight)
+
+    If files are being read from non-network sources, there was a warning in
+    the SSL base scripts about missing the f$conns field.
+
+3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
+
+  * Fix method returning a reference to a temporary. Found by
+    cppcheck, via by Arthur Wong. (Robin Sommer, Corelight)
+
+3.1.0-dev.370 | 2020-01-09 19:04:59 -0800
+
+  * Update timeouts for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.368 | 2020-01-09 13:39:38 -0800
+
+  * Extend ASAN_OPTIONS in btests instead of overwrite (Jon Siwek, Corelight)
+
+3.1.0-dev.366 | 2020-01-09 12:28:32 -0800
+
+  * Update external test repo commit hash (Jon Siwek, Corelight)
+
+3.1.0-dev.365 | 2020-01-09 11:38:06 -0800
+
+  * Enable LeakSanitizer for unit tests run via doctest (Jon Siwek, Corelight)
+
+3.1.0-dev.363 | 2020-01-09 10:25:24 -0800
+
+  * fix NTLM field value access
+
+    The fields being checked for existence were not the same as the fields
+    being accessed. (Justin Azoff, Corelight)
+
+3.1.0-dev.361 | 2020-01-08 10:29:59 -0800
+
+  * Increase timeout for a few btests (Jon Siwek, Corelight)
+
+3.1.0-dev.360 | 2020-01-07 20:58:19 -0800
+
+  * Preserve optimization setting for sanitizer build (Jon Siwek, Corelight)
+
+3.1.0-dev.359 | 2020-01-06 16:40:55 -0800
+
+  * Fix build warning in X509 plugin (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.357 | 2020-01-06 14:10:54 -0800
+
+  * GH-412: Enable Patterns as Table index (Dev Bali, Corelight)
+
+3.1.0-dev.354 | 2020-01-06 14:16:29 -0700
+
+  * Fix snprintf compiler warning in hexdump BIF (Jon Siwek, Corelight)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.1.0-dev.351 | 2020-01-06 11:20:09 -0800
+
+  * Increase a timeout for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.350 | 2020-01-06 10:51:07 -0800
+
+  * Fix Cirrus CI FreeBSD python dependencies installation (Jon Siwek, Corelight)
+
+3.1.0-dev.348 | 2020-01-06 11:19:36 -0700
+
+  * Increase timeout for a btest
+
+    May be more timing-sensitive with slower ASAN/LSAN configuration in
+    addition to already-slower CI environment. (Jon Siwek, Corelight)
+
+  * Switch CI scripts to use ASAN/LSAN instead of gperftools
+
+    Using AddressSanitizer/LeakSanitizer is better.  It covers the full
+    unit/baseline test suite by default without requiring one to write
+    specific memory leak tests.  It also covers other types of memory errors
+    besides just leaks. (Jon Siwek, Corelight)
+
+  * Remove redundant memory leak btests
+
+    Or otherwise convert into a regular btest if it didn't already seem to
+    be covered.
+
+    There's no need for a separate memory leak test group since compiling
+    with LeakSanitizer now covers leak checking for the full btest suite. (Jon Siwek, Corelight)
+
+  * Fix reference counting issues related to lambdas/closures
+
+    For example, circular references between a lambda function the frame
+    it's stored within and/or its closure could cause memory leaks.
+
+    This also fixes other various reference-count ownership issues that
+    could lead to memory errors.
+
+    There may still be some potential/undiscovered issues because the "outer
+    ID" finding logic doesn't look quite right as the AST traversal descends
+    within nested lambdas and considers their locals as "outer", but
+    possibly the other logic for locating values in closures or cloning
+    closures just works around that behavior. (Jon Siwek, Corelight)
+
+  * Disable LeakSanitizer for btests that have known leaks
+
+    E.g. ones that throw interpreter exceptions,  as those are currently
+    known to potentially cause leaks.  Fixing the underlying leaks involves
+    the larger task of more IntrusivePtr usage.
+
+    Reference cycles may also cause leaks. (Jon Siwek, Corelight)
+
+  * Rewrite the btest for when-statement timeouts
+
+    To avoid a memory leak in DNS lookups that's hard to work around and
+    does not otherwise effect typical operation when Zeek is allowed to
+    continue to run after zeek_init(). (Jon Siwek, Corelight)
+
+  * Fix memory leak when a logging plugin hook prevents a write (Jon Siwek, Corelight)
+
+  * Fix memory leaks in various input framework error-handling cases (Jon Siwek, Corelight)
+
+  * Fix memory leak in Reporter::get_weird_sampling_whitelist() BIF (Jon Siwek, Corelight)
+
+  * Fix reference counting of Log::Filter "config" field
+
+    Which can potentially be a minor memory leak if there's a lot of dynamic
+    adding/removing of logging filters. (Jon Siwek, Corelight)
+
+  * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)
+
+  * Clean up triggers awaiting global state modification at shutdown
+
+    Otherwise they can be reported as memory leaks since no more global
+    state modifications will take place to notify the trigger to clean
+    itself up. (Jon Siwek, Corelight)
+
+  * Fix memory leak in initializing log writers with no local backend (Jon Siwek, Corelight)
+
+  * Fix packet filter memory leaks (Jon Siwek, Corelight)
+
+  * Skip sending thread heartbeat if it alread asked to be finished
+
+    Otherwise the heartbeat message may fail to be processed and show up as
+    leaked memory. (Jon Siwek, Corelight)
+
+  * Fix memory leak of sqlite input reader prepared statement (Jon Siwek, Corelight)
+
+  * Prevent duplicate "finish" threading messages
+
+    As they don't get processed and may show up as a memory leak. (Jon Siwek, Corelight)
+
+  * Fix memory leak when table-based input stream overwrites old entries (Jon Siwek, Corelight)
+
+  * Fix scripting error in a DHCP btest (Jon Siwek, Corelight)
+
+  * Fix memory leaks in Kerberos ticket decryption
+
+    Memory allocated to the decrypted ticket data as well as the server
+    principal were not freed.
+
+    Also fixed potential leaks in error cases that called
+    krb5_get_error_message() without freeing the returned value. (Jon Siwek, Corelight)
+
+  * Fix scripting error in an ftp btest (Jon Siwek, Corelight)
+
+  * Update paraglob submodule (Jon Siwek, Corelight)
+
+  * Fix malloc/delete mismatch in JSON formatting
+
+    ODesc allocated with malloc() and BroString deallocated with delete[],
+    but really the intermediate BroString wasn't even needed when copying
+    into std::string. (Jon Siwek, Corelight)
+
+  * Delete/timeout pending DNS requests during shutdown
+
+    Primarily, this change prevents the pending requests showing up as
+    memory leaks. (Jon Siwek, Corelight)
+
+  * Fix memory leak in OCSP parsing functions
+
+    Various OCSP parsing functions used in presence of OpenSSL 1.1 used
+    "d2i_ASN1_SEQUENCE_ANY" which returns a "STACK_OF(ASN1_TYPE)", but used
+    "sk_ASN1_TYPE_free" instead of "sk_ASN1_TYPE_pop_free" to free it.  The
+    former only frees the stack structure while the later frees both the
+    structure and the elements. (Jon Siwek, Corelight)
+
+  * Free the global X509 certificate root store on shutdown
+
+    Otherwise LeakSanitizer reports its contents as leaked. (Jon Siwek, Corelight)
+
+  * Add general LeakSanitizer macros/instrumentation (Jon Siwek, Corelight)
+
+  * Improve --sanitizers configure option
+
+    * Rename SANITIZERS CMake variable to ZEEK_SANITIZERS for clarity
+
+    * Use -O1 by default to improve speed (set NO_OPTIMIZATIONS env. var.
+      to override and use -O0).  Uses -fno-optimize-sibling-calls with -O1
+      to still get "perfect stack traces".
+
+    * Updates various sub-projects with sanitizer improvements:
+      binpac and bifcl, by default, now ignore leaks reported by LeakSanitizer
+      so that it doesn't interfere with the Zeek build (Jon Siwek, Corelight)
+
+
+3.1.0-dev.319 | 2020-01-06 09:44:11 -0800
+
+  * Mark safe_snprintf and safe_vsnprintf as deprecated, remove uses of them (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
+
+  * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)
+
+3.1.0-dev.313 | 2019-12-18 13:23:51 -0800
+
+  * Add Cirrus CI config (Jon Siwek, Corelight)
+
+3.1.0-dev.309 | 2019-12-16 09:40:01 -0800
+
+  * GHI-599: avoid memory leak with default pattern matching and json formatting (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.307 | 2019-12-16 08:20:58 -0800
+
+  * Update URL for Malware Hash Registry website (Jon Siwek, Corelight)
+
+3.1.0-dev.300 | 2019-12-05 12:34:41 -0700
+
+  * GH-700: add zeek_args() BIF
+
+    Provides access to all zeek command-line arguments ("argv"). (Jon Siwek, Corelight)
+
+3.1.0-dev.297 | 2019-12-05 11:57:12 -0700
+
+  * GH-700: add packet_sources() BIF
+
+    Provides access to properties of packet sources, like interface or pcap
+    file name. (Jon Siwek, Corelight)
+
+3.1.0-dev.295 | 2019-12-04 14:43:27 -0700
+
+  * Use new Zeek Logo instead of Bro Eyes on README.md (Dev Bali, Corelight)
+
+3.1.0-dev.292 | 2019-12-02 13:37:19 -0800
+
+  * GH-619: Allow "print" statements to be redirected to a Log (Dev Bali, Corelight)
+
+3.1.0-dev.286 | 2019-11-21 08:47:32 -0800
+
+  * GH-684: Fix parsing of RPC calls with non-AUTH_UNIX flavors
+
+    The parsing logic that should be specific to the AUTH_UNIX credential
+    flavor was previously applied unconditionally to other flavors. (Jon Siwek, Corelight)
+
+3.1.0-dev.284 | 2019-11-21 08:29:36 -0800
+
+  * Fix ZEEK_PROFILER_FILE file format/parsing
+
+    Some Zeek script statement descriptions were exceeding the hardcoded
+    maximum length and also could contain tab characters which were
+    supposed to be reserved for use as a delimiter in the file format. (Jon Siwek, Corelight)
+
+3.1.0-dev.282 | 2019-11-18 12:06:13 +0000
+
+  * GH-646: Add new "successful_connection_remove" event. (Jon Siwek, Corelight)
+
+    Includes:
+
+        - Switch Zeek's base scripts over to using it in place of
+          "connection_state_remove". The difference between the two is
+          that "connection_state_remove" is raised for all events
+          while "successful_connection_remove" excludes TCP
+          connections that were never established (just SYN packets).
+          There can be performance benefits to this change for some
+          use-cases.
+
+        - Add new event called ``connection_successful`` and a new
+          ``connection`` record field named "successful" to help
+          indicate this new property of connections.
+
+3.1.0-dev.280 | 2019-11-15 18:27:27 -0800
+
+  * Run doctest unit tests in Travis CI (Jon Siwek, Corelight)
+
+  * Fix indents/whitespace in Travis CI script (Jon Siwek, Corelight)
+
+  * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)
+
+  * Convert pcapng test suite files to pcap format for OpenBSD compat (Jon Siwek, Corelight)
+
+  * Fix undefined symbols loading libbroker on OpenBSD (Jon Siwek, Corelight)
+
+  * Fix compile warnings on OpenBSD (Jon Siwek, Corelight)
+
+3.1.0-dev.271 | 2019-11-14 19:16:31 -0800
+
+  * Add initial scaffold for unit testing via doctest (Dominik Charousset, Corelight)
+
+3.1.0-dev.266 | 2019-11-14 17:29:00 -0800
+
+  * Add hint to run `make distclean` if configure fails (Simon Hardy-Francis, Corelight)
+
+3.1.0-dev.264 | 2019-11-14 16:57:13 -0800
+
+  * Install test-all-policy.zeek script (Jon Siwek, Corelight)
+
+    The zeekygen script, which is already installed, refers to it, and
+    could also generally be useful for "test everything" type scenarios.
+
+3.1.0-dev.263 | 2019-11-13 13:43:16 -0800
+
+  * Improve record_fields() BIF to recursively give full container type names (Henri DF)
+
+3.1.0-dev.257 | 2019-11-11 13:40:11 -0800
+
+  * Update embedded CAF to 0.17.3 (Jon Siwek, Corelight)
+
+3.1.0-dev.256 | 2019-11-07 13:42:11 -0800
+
+  * Allow record_fields() string arguments that name a record type (Jon Siwek, Corelight)
+
+3.1.0-dev.253 | 2019-11-05 09:54:01 -0800
+
+  * Add and use new IntrusivePtr type (Dominik Charousset, Corelight)
+
+    Manual memory management via Ref/Unref is verbose and prone to error. An
+    intrusive smart pointer automates the reference counting, makes code
+    more robust (in particular w.r.t. to exceptions) and reduces boilerplate
+    code. A big benefit of the intrusive smart pointers for Zeek is that
+    they can co-exist with the manual memory management. Rather than having
+    to port the entire code base at once, we can migrate components
+    one-by-one. In this first step, we add the new template
+    `IntrusivePtr<T>` and start using it in the Broker Manager. This makes
+    the previous `unref_guard` obsolete.
+
+3.1.0-dev.247 | 2019-11-04 17:26:32 -0800
+
+  * Cluster-ize FTP data channel analysis (Jeff Barber)
+
+    The ftp_data_expected table is now synchronized across Zeek
+    worker nodes.  Note there's still a possible race condition where
+    the traffic for the ftp-data connection proceeds before the Zeek
+    cluster has a change to inform workers to expect it.
+
+3.1.0-dev.245 | 2019-11-04 16:57:11 -0800
+
+  * Use CMake object libraries for subdir libs and plugins (Dominik Charousset, Corelight)
+
+3.1.0-dev.242 | 2019-11-04 09:58:53 -0800
+
+  * Fix error handling in decode_base64() (Jon Siwek, Corelight)
+
+3.1.0-dev.241 | 2019-11-04 09:44:20 -0800
+
+  * Revert recent changes to Base64.h API. (Jon Siwek, Corelight)
+
+    This reverts commit 705210a035d4128ecdf249c7db98607c570bfcd2.
+    The original changes broke the Base64.h API which may be used by
+    external plugins.
+
+3.1.0-dev.240 | 2019-11-01 15:58:55 -0700
+
+  * Use #pragma once in Base64.h (Jon Siwek, Corelight)
+
+3.1.0-dev.239 | 2019-10-31 12:18:16 -0700
+
+  * Fix Travis CI script to run Coverity build in container (Jon Siwek, Corelight)
+
+3.1.0-dev.237 | 2019-10-31 06:37:23 +0100
+
+  * Remove "using namespace std" from header files (Jon Siwek, Corelight)
+
+3.1.0-dev.235 | 2019-10-30 15:04:13 -0700
+
+  * GH-649: define missing DLT_NFLOG to support OpenBSD (Jon Siwek, Corelight)
+
+3.1.0-dev.234 | 2019-10-30 13:33:08 -0700
+
+  * Add --libdir convenience flag to configure. (Johanna Amann, Corelight)
+
+3.1.0-dev.231 | 2019-10-30 11:02:28 -0700
+
+  * Add missing ipv6 support in patricia.c local_inet_pton() (Tim Shelton)
+
+3.1.0-dev.229 | 2019-10-30 07:57:19 +0000
+
+  * GH-664: fix signature matching for cases where the first TCP
+    packet seen contained payload data, regardless of its TCP flags.
+    (Jon Siwek, Corelight)
+
+3.1.0-dev.227 | 2019-10-29 09:39:10 -0700
+
+  * Replace build_unique with make_unique (Johanna Amann, Corelight)
+
+    This was a rarely used convenience function from when we did not yet
+    have c++17 support.
+
+  * GH-626: Revert "Fix compilation on OS-X." (Johanna Amann, Corelight)
+
+    Reverts workaround in cde28074a169212aa8f38fdac225ecbeac4e642d
+    which depended on C++14 features at a time when we used only C++11.
+
+3.1.0-dev.222 | 2019-10-28 20:18:15 -0700
+
+  * Install cmake3 from EPEL on CentOS CI system (Jon Siwek, Corelight)
+
+3.1.0-dev.221 | 2019-10-28 18:30:24 -0700
+
+  * Require CMake 3.0+ (Dominik Charousset, Corelight)
+
+  * Move CMake project() after cmake_minimum_required() (Dominik Charousset, Corelight)
+
+    The call to `project` must come after `cmake_minimum_required` in CMake
+    in order to get the correct policy settings.
+
+3.1.0-dev.219 | 2019-10-28 20:59:12 +0100
+
+  * GH-654: allow table() in function &default expressions
+
+    Table parameters of functions previously did not coerce unspecified
+    tables used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * GH-654: allow table() in record &default expressions
+
+    Table fields of records previously did not coerce unspecified tables
+    used in their &default attribute to the correct type. (Jon Siwek, Corelight)
+
+  * Fix up some documentation. (Keith J. Jones)
+
+3.1.0-dev.214 | 2019-10-28 10:58:43 +0000
+
+  * GH-585: Require C++17 (Jon Siwek, Corelight)
+
+  * Update Travis CI config for C++17 (Jon Siwek, Corelight)
+
+3.1.0-dev.209 | 2019-10-28 09:17:15 +0000
+
+  * Fix HTTP::build_url. (Alexey Mokeev)
+
+  * Free memory allocated by glob() in plugin manager. (Arne Welzel)
+
+  * Remove always-false condition in plugin manager. (Arne Welzel)
+
+3.1.0-dev.203 | 2019-10-25 10:41:10 -0700
+
+  * Change usage of old bro:see directive to zeek:see (Jon Siwek, Corelight)
+
+  * Use explicit path name for NTP log stream (Jon Siwek, Corelight)
+
+    For consistency (we do this for all other logs) and just to avoid
+    the extra path function calls.
+
+3.1.0-dev.201 | 2019-10-25 10:12:49 -0700
+
+  * Fixed typo. (Keith J. Jones)
+
+3.1.0-dev.197 | 2019-10-21 09:34:18 -0700
+
+  * Update embedded CAF in Broker to 0.17.2 (Jon Siwek, Corelight)
+
+3.1.0-dev.195 | 2019-10-21 11:42:18 +0200
+
+  * Prefer cmake3 command, add --cmake=PATH option (Dominik Charousset, Corelight)
+
+3.1.0-dev.192 | 2019-10-17 16:32:16 -0700
+
+   * Zeekctl: change gzip compression level from 9 to default #614 (JC Connell)
+
+3.1.0-dev.191 | 2019-10-16 10:02:45 -0700
+
+  * Update broker submodule to use pybind11 v2.4.3 (Jon Siwek, Corelight)
+
+  * Improve &default validation for global vars: exclude sets (Jon Siwek, Corelight)
+
+  * Remove unnecessary &optional from a Config::set_value() parameter (Jon Siwek, Corelight)
+
+  * Remove check for redundant attributes (Jon Siwek, Corelight)
+
+3.1.0-dev.185 | 2019-10-15 16:46:22 -0700
+
+  * Add weirds for invalid TCP option lengths (Jon Siwek, Corelight)
+
+  * GH-618: add "tcp_options" event containing TCP option values (Jon Siwek, Corelight)
+
+  * Fix tcp_option event
+
+    It was not being raised in all the cases it should have been due to
+    an incorrect/unnecessary truncation check. (Jon Siwek, Corelight)
+
+3.1.0-dev.181 | 2019-10-14 22:05:01 -0700
+
+  * Fix redef'ing a table with a new &default attribute (Jon Siwek, Corelight)
+
+3.1.0-dev.179 | 2019-10-14 21:33:15 -0700
+
+  * Support whitespace at end of line for config reader (Seth Hall, Corelight)
+
+3.1.0-dev.177 | 2019-10-14 20:13:24 -0700
+
+  * Proof of Concept on Bugprone Narrowing Conversions: Base64 (Dev Bali, Corelight)
+
+3.1.0-dev.175 | 2019-10-12 10:39:49 -0700
+
+  * Use Ubuntu 14.04 for Travis CI environment (Jon Siwek, Corelight)
+
+3.1.0-dev.172 | 2019-10-08 15:14:35 -0700
+
+  * Add new BIF: print_raw()
+
+    This is a convenience function to make it easier to print literal byte
+    sequences to stdout without additional escaping like what may be added
+    by the default `print` statement behavior.
+
+    For example, related to GH-596, `print` currently escapes even valid
+    UTF-8 byte sequences and makes it difficult to output valid JSON strings
+    containing such. (Jon Siwek, Corelight)
+
+  * Fix compilation on OS-X. (Johanna Amann)
+
+3.1.0-dev.169 | 2019-10-07 10:50:35 -0700
+
+  * GH-589: improve printing of sub-microsecond intervals (Jon Siwek, Corelight)
+
+3.1.0-dev.167 | 2019-10-07 10:42:15 -0700
+
+  * GH-591: allow Config::set_value() to use empty/unspecified table/sets (Jon Siwek, Corelight)
+
+  * GH-591: fix reading set[enum] values from input files (Jon Siwek, Corelight)
+
+3.1.0-dev.164 | 2019-10-02 11:04:13 -0700
+
+  * Fix build with external CAF but bundled Broker (Dominik Charousset)
+
+3.1.0-dev.161 | 2019-10-01 16:41:35 -0700
+
+  * Update COPYING.3rdparty (Tim Wojtulewicz, Corelight)
+
+  * Use json::emplace to avoid some extra calls to operator[] (Tim Wojtulewicz, Corelight)
+
+  * Use tessil/unordered-map instead of nlohmann/fifo-map to improve JSON
+    logging performance (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.156 | 2019-10-01 09:05:49 +0000
+
+  * Improve RecordVal JSON formatting to no longer create a record
+    introspection table each time when all the required information
+    can be obtained directly in the RecordVal and RecordType objects.
+    (Jon Siwek, Corelight)
+
+3.1.0-dev.153 | 2019-09-30 21:09:55 -0700
+
+  * GH-602: fix paraglob header inclusion, installation, and search paths (Jon Siwek, Corelight)
+
+3.1.0-dev.151 | 2019-09-30 17:39:50 -0700
+
+  * GH-606: Output nulls into json data if a field isn't set (Tim Wojtulewicz, Corelight)
+
+  * GH-598: handle multi-key sets correctly when outputting json (Tim Wojtulewicz, Corelight)
+
+  * Fix Xcode deprecation warning for std::ptr_fun (Jon Siwek, Corelight)
+
+3.1.0-dev.143 | 2019-09-24 10:23:24 -0700
+
+  * Simplify reassembly code using DataBlockList::LastBlock() (Jon Siwek, Corelight)
+
+  * Fix DataBlockList::DataSize() (Jon Siwek, Corelight)
+
+    Parameters got filled opposite to what they were supposed to be and
+    also didn't consider cutoffs that land in the middle of a block.
+
+3.1.0-dev.141 | 2019-09-24 10:31:50 +0000
+
+  * Reorganize reassembly data structures. This replaces the previous
+    linked list-based implementation with std::map to avoid O(n) worst
+    case performance. (Jon Siwek, Corelight)
+
+3.1.0-dev.131 | 2019-09-23 13:07:09 -0700
+
+  * Add --build-dir as alias for --builddir (Dominik Charousset, Corelight)
+
+  * Fix overly specific include_directories usage in CMake script (Dominik Charousset, Corelight)
+
+3.1.0-dev.127 | 2019-09-20 10:40:54 -0700
+
+  * Fix uncaught InterpreterException in Frame cloning (Robin Sommer, Corelight)
+
+    Fix for CIDs 1402823 and 1394050.
+
+3.1.0-dev.125 | 2019-09-19 16:40:10 -0700
+
+  * Update header include guard in zeek-config.h/bro-config.h (Jon Siwek, Corelight)
+
+3.1.0-dev.124 | 2019-09-17 11:16:47 -0700
+
+  * Add speculative service script. (Jan Grashoefer)
+
+    The speculative service script handles dpd_late_match events to extend
+    conn.log with infos about potential protocol identifications.
+
+  * Allow to handle late DPD matches. (Jan Grashoefer)
+
+    If "dpd_match_only_beginning" is disabled, matches of protocol signatures
+    can be handeld using protocol_late_match. To prevent further matching in
+    this case, the new option "dpd_late_match_stop" may be activated.
+
+3.1.0-dev.118 | 2019-09-17 17:21:58 +0000
+
+  * GH-566: Fix cases where ssh_encrypted_packet event wasn't raised.
+    When encrypted data was bundled within the same segment as the
+    NewKeys message, it wasn't not reported via a
+    ssh_encrypted_package event as it should have been. (Jon Siwek,
+    Corelight)
+
+3.1.0-dev.116 | 2019-09-17 10:08:38 -0700
+
+  * Switch from header guards to pragma once (Dominik Charousset, Corelight)
+
+3.1.0-dev.114 | 2019-09-17 09:32:34 -0700
+
+  * GH-580: Add additional 3rd party headers to includes (Derek Ditch)
+
+    Adds FIFO Map and JSON headers to include distribution
+
+3.1.0-dev.112 | 2019-09-16 17:11:41 -0700
+
+  * Add move assignment operator to logging::Tag (Tim Wojtulewicz, Corelight)
+
+    Coverity 1357732
+
+  * Throw an error during input::Manager::CreateTableStream if val is null (Tim Wojtulewicz, Corelight)
+
+    Coverity 1402730
+
+  * Use ntohl instead of manually swapping bytes in extract_XDR_uint32 (Tim Wojtulewicz, Corelight)
+
+    Coverity 1375796 and others
+
+  * Add check for null init variable during make_var. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1403419
+
+  * Remove dead check in Val::check_and_promote. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1401810
+
+  * Handle failure of fcntl in Pipe. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1241934, 1241935
+
+  * Initialize missing field in File. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1057851, 1057852, 1057853
+
+  * Add null check for results of dynamic_cast in AssignExpr::TypeCheck. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1403416 and 1403417
+
+  * Add null check when getting key size for List types. (Tim Wojtulewicz, Corelight)
+
+    Coverity 1058242
+
+3.1.0-dev.102 | 2019-09-16 10:50:47 -0700
+
+  * Stop loading scan detection in local.zeek by default (Jon Siwek, Corelight)
+
 3.1.0-dev.98 | 2019-09-04 16:28:01 -0700
 
   * Update Broker include dir search path (Jon Siwek, Corelight)

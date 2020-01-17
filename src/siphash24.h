@@ -1,6 +1,5 @@
 
-#ifndef SIPHASH24_H
-#define SIPHASH24_H
+#pragma once
 
 #define SIPHASH_KEYLEN 16
 #define SIPHASH_HASHLEN 8
@@ -14,5 +13,3 @@ inline void siphash(uint64_t* digest, const uint8_t *in, uint64_t inlen, const u
 	{
 	_siphash((uint8_t*)digest, in, inlen, key);
 	}
-
-#endif

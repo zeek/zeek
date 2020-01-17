@@ -1,7 +1,6 @@
 // Classes that collect and report statistics.
 
-#ifndef STATS_H
-#define STATS_H
+#pragma once
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -131,5 +130,3 @@ protected:
 	uint64_t pkt_cnt;
 	uint64_t byte_cnt;
 };
-
-#endif

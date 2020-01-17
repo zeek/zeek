@@ -1,7 +1,6 @@
 // Capsulates local and remote event handlers.
 
-#ifndef EVENTHANDLER
-#define EVENTHANDLER
+#pragma once
 
 #include <assert.h>
 #include <unordered_set>
@@ -90,5 +89,3 @@ public:
 private:
 	EventHandler* handler;
 };
-
-#endif

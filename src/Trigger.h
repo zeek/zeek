@@ -1,5 +1,4 @@
-#ifndef TRIGGER_H
-#define TRIGGER_H
+#pragma once
 
 #include <list>
 #include <map>
@@ -63,6 +62,10 @@ public:
 	// later to avoid race conditions.
 	void Modified(notifier::Modifiable* m) override
 		{ QueueTrigger(this); }
+	// Overridden from notifer::Receiver.  If we're still waiting
+	// on an ID/Val to be modified at termination time, we can't hope
+	// for any further progress to be made, so just Unref ourselves.
+	void Terminate() override;
 
 	const char* Name() const;
 
@@ -112,5 +115,3 @@ private:
 
 	static unsigned long total_triggers;
 };
-
-#endif

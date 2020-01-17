@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef type_h
-#define type_h
+#pragma once
 
 #include <string>
 #include <set>
@@ -76,6 +75,7 @@ class VectorType;
 class TypeType;
 class OpaqueType;
 class EnumVal;
+class TableVal;
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -263,8 +263,8 @@ public:
 
 	virtual unsigned MemoryAllocation() const;
 
-	void SetName(const string& arg_name) { name = arg_name; }
-	const string& GetName() const { return name; }
+	void SetName(const std::string& arg_name) { name = arg_name; }
+	const std::string& GetName() const { return name; }
 
 	typedef std::map<std::string, std::set<BroType*> > TypeAliasMap;
 
@@ -284,7 +284,7 @@ private:
 	InternalTypeTag internal_tag;
 	bool is_network_order;
 	bool base_type;
-	string name;
+	std::string name;
 
 	static TypeAliasMap type_aliases;
 };
@@ -403,7 +403,7 @@ public:
 	const BroType* YieldType() const override;
 	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
 	function_flavor Flavor() const { return flavor; }
-	string FlavorString() const;
+	std::string FlavorString() const;
 
 	// Used to convert a function type to an event or hook type.
 	void ClearYieldType(function_flavor arg_flav)
@@ -484,6 +484,13 @@ public:
 
 	int NumFields() const			{ return num_fields; }
 
+	/**
+	 * Returns a "record_field_table" value for introspection purposes.
+	 * @param rv  an optional record value, if given the values of
+	 * all fields will be provided in the returned table.
+	 */
+	TableVal* GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
+
 	// Returns 0 if all is ok, otherwise a pointer to an error message.
 	// Takes ownership of list.
 	const char* AddFields(type_decl_list* types, attr_list* attr);
@@ -499,7 +506,13 @@ public:
 		return decl && decl->FindAttr(ATTR_DEPRECATED) != 0;
 		}
 
-	string GetFieldDeprecationWarning(int field, bool has_check) const;
+	bool FieldHasAttr(int field, attr_tag at) const
+		{
+		const TypeDecl* decl = FieldDecl(field);
+		return decl && decl->FindAttr(at) != 0;
+		}
+
+	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
 protected:
 	RecordType() { types = 0; }
@@ -532,11 +545,11 @@ protected:
 
 class OpaqueType : public BroType {
 public:
-	explicit OpaqueType(const string& name);
+	explicit OpaqueType(const std::string& name);
 	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
 	~OpaqueType() override { };
 
-	const string& Name() const { return name; }
+	const std::string& Name() const { return name; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -544,29 +557,29 @@ public:
 protected:
 	OpaqueType() { }
 
-	string name;
+	std::string name;
 };
 
 class EnumType : public BroType {
 public:
-	typedef std::list<std::pair<string, bro_int_t> > enum_name_list;
+	typedef std::list<std::pair<std::string, bro_int_t> > enum_name_list;
 
 	explicit EnumType(const EnumType* e);
-	explicit EnumType(const string& arg_name);
+	explicit EnumType(const std::string& arg_name);
 	EnumType* ShallowClone() override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const string& module_name, const char* name, bool is_export, Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bool is_export, Expr* deprecation = nullptr);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation = nullptr);
 
 	// -1 indicates not found.
-	bro_int_t Lookup(const string& module_name, const char* name) const;
+	bro_int_t Lookup(const std::string& module_name, const char* name) const;
 	const char* Lookup(bro_int_t value) const; // Returns 0 if not found
 
 	// Returns the list of defined names with their values. The names
@@ -580,10 +593,10 @@ public:
 protected:
 	EnumType() { counter = 0; }
 
-	void AddNameInternal(const string& module_name,
+	void AddNameInternal(const std::string& module_name,
 			const char* name, bro_int_t val, bool is_export);
 
-	void CheckAndAddName(const string& module_name,
+	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
 	                     Expr* deprecation = nullptr);
 
@@ -735,5 +748,3 @@ extern int is_assignable(BroType* t);
 
 // True if either tag is the error type.
 #define EitherError(t1, t2) (IsErrorType(t1) || IsErrorType(t2))
-
-#endif

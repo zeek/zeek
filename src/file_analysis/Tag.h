@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYZER_TAG_H
-#define FILE_ANALYZER_TAG_H
+#pragma once
 
 #include "zeek-config.h"
 #include "util.h"
@@ -108,5 +107,3 @@ protected:
 };
 
 }
-
-#endif

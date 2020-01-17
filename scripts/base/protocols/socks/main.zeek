@@ -111,7 +111,7 @@ event socks_login_userpass_reply(c: connection, code: count) &priority=5
 	c$socks$status = v5_status[code];
 	}
 
-event connection_state_remove(c: connection)
+event successful_connection_remove(c: connection)
 	{
 	# This will handle the case where the analyzer failed in some way and was
 	# removed.  We probably  don't want to log these connections.

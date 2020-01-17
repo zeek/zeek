@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PLUGIN_MANAGER_H
-#define PLUGIN_MANAGER_H
+#pragma once
 
 #include <utility>
 #include <map>
@@ -493,5 +492,3 @@ public:
  * The global plugin manager singleton.
  */
 extern plugin::Manager* plugin_mgr;
-
-#endif

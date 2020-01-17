@@ -109,7 +109,7 @@ void Specific_RE_Matcher::MakeCaseInsensitive()
 
 	char* s = new char[n + 5 /* slop */];
 
-	safe_snprintf(s, n + 5, fmt, pattern_text);
+	snprintf(s, n + 5, fmt, pattern_text);
 
 	delete [] pattern_text;
 	pattern_text = s;
@@ -493,7 +493,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
 
 	char* merge_text = new char[n];
-	safe_snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
+	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
 
 	RE_Matcher* merge = new RE_Matcher(merge_text);
 	delete [] merge_text;

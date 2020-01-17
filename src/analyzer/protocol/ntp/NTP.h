@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_NTP_NTP_H
-#define ANALYZER_PROTOCOL_NTP_NTP_H
+#pragma once
 
 #include "events.bif.h"
 #include "types.bif.h"
@@ -28,5 +27,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

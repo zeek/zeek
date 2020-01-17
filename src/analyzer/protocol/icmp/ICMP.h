@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_ICMP_ICMP_H
-#define ANALYZER_PROTOCOL_ICMP_ICMP_H
+#pragma once
 
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"
@@ -91,5 +90,3 @@ extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
 } } // namespace analyzer::* 
-
-#endif

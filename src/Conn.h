@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef conn_h
-#define conn_h
+#pragma once
 
 #include <sys/types.h>
 
@@ -115,6 +114,9 @@ public:
 
 	TransportProto ConnTransport() const { return proto; }
 
+	bool IsSuccessful() const	{ return is_successful; };
+	void SetSuccessful()	{ is_successful = true; }
+
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
@@ -162,6 +164,11 @@ public:
 
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
+
+	/**
+	 * Generates connection removal event(s).
+	 */
+	void RemovalEvent();
 
 	// If a handler exists for 'f', an event will be generated.  If 'name' is
 	// given that event's first argument will be it, and it's second will be
@@ -340,6 +347,7 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int record_current_packet:1, record_current_content:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
+	unsigned int is_successful:1;
 
 	// Count number of connections.
 	static uint64_t total_connections;
@@ -378,5 +386,3 @@ protected:
 
 #define ADD_TIMER(timer, t, do_expire, type) \
 	AddTimer(timer_func(timer), (t), (do_expire), (type))
-
-#endif

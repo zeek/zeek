@@ -1,5 +1,4 @@
-#ifndef ruleaction_h
-#define ruleaction_h
+#pragma once
 
 #include "BroString.h"
 #include "List.h"
@@ -98,5 +97,3 @@ public:
 
 	void PrintDebug() override;
 };
-
-#endif

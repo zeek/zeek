@@ -4,8 +4,7 @@
  * Wrapper and helper functions for MD5/SHA digest algorithms.
  */
 
-#ifndef bro_digest_h
-#define bro_digest_h
+#pragma once
 
 #include <openssl/md5.h>
 #include <openssl/sha.h>
@@ -113,5 +112,3 @@ inline unsigned char* internal_md5(const unsigned char* data, unsigned long len,
 	hash_final(c, out);
 	return out;
 	}
-
-#endif //bro_digest_h

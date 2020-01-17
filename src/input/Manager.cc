@@ -444,6 +444,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -453,6 +454,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	if ( ! res )
 		{
 		delete stream;
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -621,7 +623,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( want_record->InternalInt() == 1 && ! same_type((*args)[3], val) )
+		if ( want_record->InternalInt() == 1 && val && ! same_type((*args)[3], val) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -632,7 +634,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
-		           && !same_type((*args)[3], val->FieldType(0) ) )
+		           && val && !same_type((*args)[3], val->FieldType(0) ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -641,6 +643,10 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
 			return false;
+			}
+		else if ( ! val )
+			{
+			reporter->Error("Encountered a null value when creating a table stream");
 			}
 
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
@@ -667,6 +673,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( (valfields > 1) && (want_record->InternalInt() != 1) )
 		{
 		reporter->Error("Input stream %s: Stream does not want a record (want_record=F), but has more then one value field.", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -676,6 +683,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( status )
 		{
 		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
 
@@ -685,6 +693,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		if ( ! res )
 			{
 			delete stream;
+			for ( auto& f : fieldsV ) delete f;
 			return false;
 			}
 		}
@@ -1285,7 +1294,8 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	if ( predidx != 0 )
 		Unref(predidx);
 
-	stream->currDict->Insert(idxhash, ih);
+	auto prev = stream->currDict->Insert(idxhash, ih);
+	delete prev;
 	delete idxhash;
 
 	if ( stream->event )
@@ -2532,8 +2542,31 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			if ( stag == TYPE_VOID )
 				TypeTag stag = val->val.set_val.vals[0]->type;
 
-			set_index = new TypeList(base_type(stag)->Ref());
-			set_index->Append(base_type(stag)->Ref());
+			BroType* index_type;
+
+			if ( stag == TYPE_ENUM )
+				{
+				// Enums are not a base-type, so need to look it up.
+				const auto& sv = val->val.set_val.vals[0]->val.string_val;
+				std::string enum_name(sv.data, sv.length);
+				auto enum_id = global_scope()->Lookup(enum_name);
+
+				if ( ! enum_id )
+					{
+					Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
+					        enum_name.data(), i->name.c_str());
+
+					have_error = true;
+					return nullptr;
+					}
+
+				index_type = enum_id->Type()->AsEnumType();
+				}
+			else
+				index_type = base_type_no_ref(stag);
+
+			set_index = new TypeList(index_type);
+			set_index->Append(index_type->Ref());
 			}
 
 		SetType* s = new SetType(set_index, 0);

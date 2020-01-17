@@ -1,5 +1,4 @@
-#ifndef BRO_COMM_DATA_H
-#define BRO_COMM_DATA_H
+#pragma once
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -8,6 +7,7 @@
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
+#include "IntrusivePtr.h"
 
 namespace bro_broker {
 
@@ -59,7 +59,7 @@ broker::expected<broker::data> val_to_data(Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-Val* data_to_val(broker::data d, BroType* type);
+IntrusivePtr<Val> data_to_val(broker::data d, BroType* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -108,7 +108,7 @@ public:
 		d->Add("}");
 		}
 
-	Val* castTo(BroType* t);
+	IntrusivePtr<Val> castTo(BroType* t);
 	bool canCastTo(BroType* t) const;
 
 	// Returns the Bro type that scripts use to represent a Broker data
@@ -182,9 +182,9 @@ struct type_name_getter {
 		{ return "table"; }
 
 	result_type operator()(const broker::vector&)
-		{ 
+		{
 		assert(tag == TYPE_VECTOR || tag == TYPE_RECORD);
-	 	return tag == TYPE_VECTOR ? "vector" : "record";
+		return tag == TYPE_VECTOR ? "vector" : "record";
 		}
 
 	TypeTag tag;
@@ -302,5 +302,3 @@ protected:
 };
 
 } // namespace bro_broker
-
-#endif // BRO_COMM_DATA_H

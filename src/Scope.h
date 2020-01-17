@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef scope_h
-#define scope_h
+#pragma once
 
 #include <string>
 #include <map>
@@ -48,7 +47,7 @@ public:
 	BroType* ReturnType() const	{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
-	std::map<string, ID*>& Vars()	{ return local; }
+	std::map<std::string, ID*>& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 
@@ -67,7 +66,7 @@ protected:
 	ID* scope_id;
 	attr_list* attrs;
 	BroType* return_type;
-	std::map<string, ID*> local;
+	std::map<std::string, ID*> local;
 	id_list* inits;
 };
 
@@ -91,6 +90,4 @@ extern Scope* current_scope();
 extern Scope* global_scope();
 
 // Current module (identified by its name).
-extern string current_module;
-
-#endif
+extern std::string current_module;

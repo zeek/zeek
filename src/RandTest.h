@@ -1,5 +1,4 @@
-#ifndef RANDTEST_H
-#define RANDTEST_H
+#pragma once
 
 #include "util.h"
 
@@ -29,5 +28,3 @@ class RandTest {
 		double cexp, montex, montey, montepi,
 		       sccu0, scclast, scct1, scct2, scct3;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ZEEK_CONFIG_H
-#define ZEEK_CONFIG_H
+#pragma once
 
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
@@ -164,11 +163,16 @@
 /* Define u_int8_t */
 #cmakedefine u_int8_t @u_int8_t@
 
-/* OpenBSD's bpf.h may not declare this data link type, but it's supposed to be
+/* OpenBSD's bpf.h may not declare some data link types, but they're
    used consistently for the same purpose on all platforms. */
 #cmakedefine HAVE_DLT_PPP_SERIAL
 #ifndef HAVE_DLT_PPP_SERIAL
 #define DLT_PPP_SERIAL @DLT_PPP_SERIAL@
+#endif
+
+#cmakedefine HAVE_DLT_NFLOG
+#ifndef HAVE_DLT_NFLOG
+#define DLT_NFLOG @DLT_NFLOG@
 #endif
 
 /* IPv6 Next Header values defined by RFC 3542 */
@@ -240,4 +244,28 @@ extern const char* BRO_VERSION_FUNCTION();
 }
 #endif
 
-#endif // ZEEK_CONFIG_H
+// GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature
+#if defined(__SANITIZE_ADDRESS__)
+	#define ZEEK_ASAN
+#endif
+
+#if defined(__has_feature)
+	#if __has_feature(address_sanitizer)
+		#define ZEEK_ASAN
+	#endif
+#endif
+
+#if defined(ZEEK_ASAN)
+	#include <sanitizer/lsan_interface.h>
+	#define ZEEK_LSAN_CHECK(x) __lsan_do_leak_check(x)
+	#define ZEEK_LSAN_ENABLE(x) __lsan_enable(x)
+	#define ZEEK_LSAN_IGNORE(x) __lsan_ignore_object(x)
+	#define ZEEK_LSAN_DISABLE(x) __lsan_disable(x)
+	#define ZEEK_LSAN_DISABLE_SCOPE(x) __lsan::ScopedDisabler x
+#else
+	#define ZEEK_LSAN_CHECK(x)
+	#define ZEEK_LSAN_ENABLE(x)
+	#define ZEEK_LSAN_IGNORE(x)
+	#define ZEEK_LSAN_DISABLE(x)
+	#define ZEEK_LSAN_DISABLE_SCOPE(x)
+#endif

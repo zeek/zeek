@@ -1,10 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 
-#ifndef dfa_h
-#define dfa_h
+#pragma once
 
 #include <assert.h>
+#include <string>
 
 class DFA_State;
 
@@ -67,7 +67,7 @@ protected:
 	static unsigned int transition_counter;	// see Xtion()
 };
 
-using DigestStr = basic_string<u_char>;
+using DigestStr = std::basic_string<u_char>;
 
 class DFA_State_Cache {
 public:
@@ -146,5 +146,3 @@ inline DFA_State* DFA_State::Xtion(int sym, DFA_Machine* machine)
 	else
 		return xtions[sym];
 	}
-
-#endif

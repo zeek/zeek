@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTER_H
-#define THREADING_FORMATTER_H
+#pragma once
 
 #include "../Desc.h"
 #include "MsgThread.h"
@@ -160,5 +159,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTER_H */

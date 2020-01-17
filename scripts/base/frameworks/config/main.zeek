@@ -41,7 +41,7 @@ export {
 	## location: Optional parameter detailing where this change originated from.
 	##
 	## Returns: true on success, false when an error occurs.
-	global set_value: function(ID: string, val: any, location: string &default = "" &optional): bool;
+	global set_value: function(ID: string, val: any, location: string &default = ""): bool;
 }
 
 @if ( Cluster::is_enabled() )
@@ -76,7 +76,7 @@ event Config::cluster_set_option(ID: string, val: any, location: string)
 	Option::set(ID, val, location);
 	}
 
-function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+function set_value(ID: string, val: any, location: string &default = ""): bool
 	{
 	# Always copy the value to break references -- if caller mutates their
 	# value afterwards, we still guarantee the option has not changed.  If
@@ -99,7 +99,7 @@ function set_value(ID: string, val: any, location: string &default = "" &optiona
 	return T;
 	}
 @else # Standalone implementation
-function set_value(ID: string, val: any, location: string &default = "" &optional): bool
+function set_value(ID: string, val: any, location: string &default = ""): bool
 	{
 	return Option::set(ID, val, location);
 	}

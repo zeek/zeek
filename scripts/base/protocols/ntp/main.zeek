@@ -59,7 +59,7 @@ redef likely_server_ports += { ports };
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_NTP, ports);
-	Log::create_stream(NTP::LOG, [$columns = Info, $ev = log_ntp]);
+	Log::create_stream(NTP::LOG, [$columns = Info, $ev = log_ntp, $path="ntp"]);
 	}
 
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5

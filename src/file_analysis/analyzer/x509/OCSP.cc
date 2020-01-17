@@ -183,6 +183,23 @@ bool file_analysis::OCSP::EndOfFile()
 }
 
 #if ( OPENSSL_VERSION_NUMBER >= 0x10100000L )
+
+struct ASN1Seq {
+	ASN1Seq(const unsigned char** der_in, long length)
+		{ decoded = d2i_ASN1_SEQUENCE_ANY(nullptr, der_in, length); }
+
+	~ASN1Seq()
+		{ sk_ASN1_TYPE_pop_free(decoded, ASN1_TYPE_free); }
+
+	explicit operator bool() const
+		{ return decoded; }
+
+	operator ASN1_SEQUENCE_ANY*() const
+		{ return decoded; }
+
+	ASN1_SEQUENCE_ANY* decoded;
+};
+
 // Re-encode and then parse out ASN1 structures to get at what we need...
 /*-  BasicOCSPResponse       ::= SEQUENCE {
  *      tbsResponseData      ResponseData,
@@ -209,8 +226,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	auto bseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_basic_resp_dat,
-	                                  der_basic_resp_len);
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
@@ -220,7 +236,6 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
@@ -230,7 +245,6 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	if ( ASN1_TYPE_get(aseq_type) != V_ASN1_SEQUENCE )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
@@ -239,19 +253,16 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	auto aseq_len = ASN1_STRING_length(aseq_str);
 	auto aseq_dat = ASN1_STRING_get0_data(aseq_str);
 
-	auto aseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &aseq_dat, aseq_len);
+	ASN1Seq aseq{&aseq_dat, aseq_len};
 
 	if ( ! aseq )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(aseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(aseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
@@ -261,8 +272,6 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	if ( ASN1_TYPE_get(alg_obj_type) != V_ASN1_OBJECT )
 		{
-		sk_ASN1_TYPE_free(aseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
@@ -273,8 +282,6 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	auto rval = new StringVal(alg_len, buf);
 	BIO_reset(bio);
 
-	sk_ASN1_TYPE_free(aseq);
-	sk_ASN1_TYPE_free(bseq);
 	OPENSSL_free(der_basic_resp_dat);
 	return rval;
 	}
@@ -291,8 +298,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	auto bseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_basic_resp_dat,
-	                                  der_basic_resp_len);
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
@@ -302,7 +308,6 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetCount(-1);
 		}
@@ -312,7 +317,6 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	if ( ASN1_TYPE_get(dseq_type) != V_ASN1_SEQUENCE )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetCount(-1);
 		}
@@ -321,19 +325,16 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	auto dseq_len = ASN1_STRING_length(dseq_str);
 	auto dseq_dat = ASN1_STRING_get0_data(dseq_str);
 
-	auto dseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &dseq_dat, dseq_len);
+	ASN1Seq dseq{&dseq_dat, dseq_len};
 
 	if ( ! dseq )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(dseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(dseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		return val_mgr->GetEmptyString();
 		}
@@ -351,16 +352,12 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	if ( ASN1_TYPE_get(version_type) != V_ASN1_INTEGER )
 		{
-		sk_ASN1_TYPE_free(dseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		// Not present, use default value.
 		return val_mgr->GetCount(0);
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
-	sk_ASN1_TYPE_free(dseq);
-	sk_ASN1_TYPE_free(bseq);
 	OPENSSL_free(der_basic_resp_dat);
 	return val_mgr->GetCount(asn1_int);
 	}
@@ -375,8 +372,7 @@ static uint64_t parse_request_version(OCSP_REQUEST* req)
 	if ( ! der_req_dat )
 		return -1;
 
-	auto rseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_req_dat,
-	                                  der_req_len);
+	ASN1Seq rseq{&const_der_req_dat, der_req_len};
 
 	if ( ! rseq )
 		{
@@ -386,7 +382,6 @@ static uint64_t parse_request_version(OCSP_REQUEST* req)
 
 	if ( sk_ASN1_TYPE_num(rseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(rseq);
 		OPENSSL_free(der_req_dat);
 		return -1;
 		}
@@ -396,14 +391,12 @@ static uint64_t parse_request_version(OCSP_REQUEST* req)
 
 	if ( ASN1_TYPE_get(version_type) != V_ASN1_INTEGER )
 		{
-		sk_ASN1_TYPE_free(rseq);
 		OPENSSL_free(der_req_dat);
 		// Not present, use default value.
 		return 0;
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
-	sk_ASN1_TYPE_free(rseq);
 	OPENSSL_free(der_req_dat);
 	return asn1_int;
 	}

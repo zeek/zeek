@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERBACKEND_H
-#define INPUT_READERBACKEND_H
+#pragma once
 
 #include "BroString.h"
 
@@ -352,5 +351,3 @@ private:
 };
 
 }
-
-#endif /* INPUT_READERBACKEND_H */

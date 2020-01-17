@@ -2,8 +2,7 @@
 //
 // A class managing log writers and filters.
 
-#ifndef LOGGING_MANAGER_H
-#define LOGGING_MANAGER_H
+#pragma once
 
 #include <broker/endpoint_info.hh>
 
@@ -279,5 +278,3 @@ private:
 }
 
 extern logging::Manager* log_mgr;
-
-#endif

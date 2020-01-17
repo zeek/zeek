@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef LOGGING_TAG_H
-#define LOGGING_TAG_H
+#pragma once
 
 #include "zeek-config.h"
 #include "util.h"
@@ -49,6 +48,11 @@ public:
 	 * Assignment operator.
 	 */
 	Tag& operator=(const Tag& other);
+
+	/**
+	 * Move assignment operator.
+	 */
+	Tag& operator=(const Tag&& other);
 
 	/**
 	 * Compares two tags for equality.
@@ -109,5 +113,3 @@ protected:
 };
 
 }
-
-#endif

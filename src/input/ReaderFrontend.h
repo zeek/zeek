@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERFRONTEND_H
-#define INPUT_READERFRONTEND_H
+#pragma once
 
 #include "ReaderBackend.h"
 #include "threading/MsgThread.h"
@@ -134,8 +133,3 @@ private:
 };
 
 }
-
-
-#endif /* INPUT_READERFRONTEND_H */
-
-

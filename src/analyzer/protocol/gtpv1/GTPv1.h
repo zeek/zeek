@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_GTPV1_GTPV1_H
-#define ANALYZER_PROTOCOL_GTPV1_GTPV1_H
+#pragma once
 
 #include "gtpv1_pac.h"
 
@@ -22,5 +21,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

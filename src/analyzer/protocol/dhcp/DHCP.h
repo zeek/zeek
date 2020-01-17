@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_DHCP_DHCP_H
-#define ANALYZER_PROTOCOL_DHCP_DHCP_H
+#pragma once
 
 #include "analyzer/protocol/udp/UDP.h"
 
@@ -24,5 +23,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

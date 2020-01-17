@@ -1,14 +1,13 @@
 // Provides some very limited but fast packet filter mechanisms
 
-#ifndef PACKETFILTER_H
-#define PACKETFILTER_H
+#pragma once
 
 #include "IP.h"
 #include "PrefixTable.h"
 
 class PacketFilter {
 public:
-	explicit PacketFilter(bool arg_default)	{ default_match = arg_default; }
+	explicit PacketFilter(bool arg_default);
 	~PacketFilter()	{}
 
 	// Drops all packets from a particular source (which may be given
@@ -35,11 +34,11 @@ private:
 		uint32_t probability;
 	};
 
+	static void DeleteFilter(void* data);
+
 	bool MatchFilter(const Filter& f, const IP_Hdr& ip, int len, int caplen);
 
 	bool default_match;
 	PrefixTable src_filter;
 	PrefixTable dst_filter;
 };
-
-#endif

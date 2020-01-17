@@ -505,14 +505,14 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
 			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
-			Val* val = bro_broker::data_to_val((*v)[idx++], type);
+			auto val = bro_broker::data_to_val((*v)[idx++], type);
 
 			if ( ! (epsilon && val) )
 				return false;
 
 			Element* e = new Element();
 			e->epsilon = *epsilon;
-			e->value = val;
+			e->value = val.detach();
 			e->parent = b;
 
 			b->elements.insert(b->elements.end(), e);

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_RESTTABLE_H
-#define ZEEKYGEN_RESTTABLE_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -49,5 +48,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

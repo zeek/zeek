@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_IDENT_IDENT_H
-#define ANALYZER_PROTOCOL_IDENT_IDENT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -35,5 +34,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

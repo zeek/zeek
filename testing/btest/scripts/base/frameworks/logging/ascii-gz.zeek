@@ -1,6 +1,7 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: gunzip -S .gzip ssh.log.gzip
+# @TEST-EXEC: mv ssh.log.gzip ssh.log.gz
+# @TEST-EXEC: gunzip ssh.log.gz
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff ssh-uncompressed.log
 #

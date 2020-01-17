@@ -1,0 +1,1 @@
+signature_match [orig_h=10.99.99.1, orig_p=55534/tcp, resp_h=10.99.99.45, resp_p=80/tcp] - payload of dst-port=80/tcp contains 'passwd'

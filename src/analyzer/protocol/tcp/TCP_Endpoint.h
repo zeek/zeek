@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
-#define ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
+#pragma once
 
 #include "IPAddr.h"
 
@@ -162,6 +161,8 @@ public:
 	//
 	// If we're not processing contents, then naturally each of
 	// these is empty.
+	//
+	// WARNING: this is an O(n) operation and potentially very slow.
 	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack);
 
 	int ValidChecksum(const struct tcphdr* tp, int len) const;
@@ -252,5 +253,3 @@ protected:
 #define ENDIAN_CONFUSED 3
 
 } } // namespace analyzer::* 
-
-#endif

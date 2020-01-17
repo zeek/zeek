@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_TELNET_H
-#define ANALYZER_PROTOCOL_LOGIN_TELNET_H
+#pragma once
 
 #include "Login.h"
 
@@ -17,5 +16,3 @@ public:
 };
 
 } } // namespace analyzer::* 
-
-#endif

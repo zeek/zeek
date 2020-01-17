@@ -6,6 +6,7 @@
 @load frameworks/control/controller.zeek
 @load frameworks/files/extract-all-files.zeek
 @load policy/misc/dump-events.zeek
+@load policy/protocols/conn/speculative-service.zeek
 
 @load ./example.zeek
 

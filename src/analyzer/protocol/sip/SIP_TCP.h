@@ -3,8 +3,7 @@
 // TODO: This is preliminary code that's not yet functional and not
 // activated. We don't yet support SIP-over-TCP.
 
-#ifndef ANALYZER_PROTOCOL_SIP_SIP_TCP_H
-#define ANALYZER_PROTOCOL_SIP_SIP_TCP_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -33,5 +32,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

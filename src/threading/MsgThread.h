@@ -1,6 +1,5 @@
 
-#ifndef THREADING_MSGTHREAD_H
-#define THREADING_MSGTHREAD_H
+#pragma once
 
 #include "DebugLogger.h"
 
@@ -307,6 +306,7 @@ private:
 
 	bool main_finished;	// Main thread is finished, meaning child_finished propagated back through message queue.
 	bool child_finished;	// Child thread is finished.
+	bool child_sent_finish; // Child thread asked to be finished.
 	bool failed;	// Set to true when a command failed.
 };
 
@@ -436,6 +436,3 @@ private:
 };
 
 }
-
-
-#endif

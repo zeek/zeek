@@ -44,7 +44,7 @@ Changed Functionality
 
 - The tcp_option event is now correctly raised.
 
-'- The base scripts shipped with Zeek now use the new
+- The base scripts shipped with Zeek now use the new
   ``successful_connection_remove`` event instead of
   ``connection_state_remove`` where possible (when the logic doesn't
   pertain to unestablished TCP connections). There's a performance
@@ -61,6 +61,11 @@ Changed Functionality
   There's also a new event called ``connection_successful`` and a new
   ``connection`` record field named "successful" to help indicate this
   new property of connections.
+
+- The JSON output formatters now use the RapidJSON library. This
+  improves their performance considerably over the library that was
+  previously used. Output from the formatters remains nearly
+  identical.
 
 Removed Functionality
 ---------------------

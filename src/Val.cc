@@ -27,20 +27,7 @@
 
 #include "broker/Data.h"
 
-#include "3rdparty/json.hpp"
-#include "3rdparty/tsl-ordered-map/ordered_map.h"
-
-
-// Define a class for use with the json library that orders the keys in the same order that
-// they were inserted. By default, the json library orders them alphabetically and we don't
-// want it like that.
-template<class Key, class T, class Ignore, class Allocator,
-         class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
-         class AllocatorPair = typename std::allocator_traits<Allocator>::template rebind_alloc<std::pair<Key, T>>,
-         class ValueTypeContainer = std::vector<std::pair<Key, T>, AllocatorPair>>
-using ordered_map = tsl::ordered_map<Key, T, Hash, KeyEqual, AllocatorPair, ValueTypeContainer>;
-
-using ZeekJson = nlohmann::basic_json<ordered_map>;
+#include "threading/formatters/JSON.h"
 
 Val::Val(Func* f)
 	{
@@ -433,46 +420,56 @@ TableVal* Val::GetRecordFields()
 	return rt->GetRecordFieldsVal(rv);
 	}
 
-// This is a static method in this file to avoid including json.hpp in Val.h since it's huge.
-static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nullptr)
+// This is a static method in this file to avoid including rapidjson's headers in Val.h because they're huge.
+static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val* val, bool only_loggable=false, RE_Matcher* re=nullptr, const string& key="")
 	{
-	// If the value wasn't set, return a nullptr. This will get turned into a 'null' in the json output.
-	if ( ! val )
-		return nullptr;
+	if ( !key.empty() )
+		writer.Key(key);
 
-	ZeekJson j;
+	// If the value wasn't set, write a null into the stream and return.
+	if ( ! val )
+		{
+		writer.Null();
+		return;
+		}
+
+	rapidjson::Value j;
 	BroType* type = val->Type();
 	switch ( type->Tag() )
 		{
 		case TYPE_BOOL:
-			j = val->AsBool();
+			writer.Bool(val->AsBool());
 			break;
 
 		case TYPE_INT:
-			j = val->AsInt();
+			writer.Int64(val->AsInt());
 			break;
 
 		case TYPE_COUNT:
-			j = val->AsCount();
+			writer.Uint64(val->AsCount());
 			break;
 
 		case TYPE_COUNTER:
-			j = val->AsCounter();
+			writer.Uint64(val->AsCounter());
 			break;
 
 		case TYPE_TIME:
-			j = val->AsTime();
+			writer.Double(val->AsTime());
 			break;
 
 		case TYPE_DOUBLE:
-			j = val->AsDouble();
+			writer.Double(val->AsDouble());
 			break;
 
 		case TYPE_PORT:
 			{
 			auto* pval = val->AsPortVal();
-			j.emplace("port", pval->Port());
-			j.emplace("proto", pval->Protocol());
+			writer.StartObject();
+			writer.Key("port");
+			writer.Int64(pval->Port());
+			writer.Key("proto");
+			writer.String(pval->Protocol());
+			writer.EndObject();
 			break;
 			}
 
@@ -484,7 +481,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			j = string(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+			writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
 			break;
 			}
 
@@ -496,7 +493,7 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 			ODesc d;
 			d.SetStyle(RAW_STYLE);
 			val->Describe(&d);
-			j = json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len()));
+			writer.String(json_escape_utf8(string(reinterpret_cast<const char*>(d.Bytes()), d.Len())));
 			break;
 			}
 
@@ -506,9 +503,9 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 			auto* tval = val->AsTableVal();
 
 			if ( tval->Type()->IsSet() )
-				j = ZeekJson::array();
+				writer.StartArray();
 			else
-				j = ZeekJson::object();
+				writer.StartObject();
 
 			HashKey* k;
 			TableEntryVal* entry;
@@ -524,102 +521,125 @@ static ZeekJson BuildJSON(Val* val, bool only_loggable=false, RE_Matcher* re=nul
 				else
 					entry_key = lv->Ref();
 
-				ZeekJson key_json = BuildJSON(entry_key, only_loggable, re);
-
 				if ( tval->Type()->IsSet() )
-					j.emplace_back(std::move(key_json));
+					BuildJSON(writer, entry_key, only_loggable, re);
 				else
 					{
-					Val* entry_value = entry->Value();
+					rapidjson::StringBuffer buffer;
+					threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
+					BuildJSON(key_writer, entry_key, only_loggable, re);
+					string key_str = buffer.GetString();
 
-					string key_string;
-					if ( key_json.is_string() )
-						key_string = key_json;
-					else
-						key_string = key_json.dump();
+					if ( key_str.length() >= 2 &&
+					     key_str[0] == '"' &&
+					     key_str[key_str.length() - 1] == '"' )
+						// Strip quotes.
+						key_str = key_str.substr(1, key_str.length() - 2);
 
-					j.emplace(key_string, BuildJSON(entry_value, only_loggable, re));
+					BuildJSON(writer, entry->Value(), only_loggable, re, key_str);
 					}
 
 				Unref(entry_key);
 				Unref(lv);
 				}
 
+			if ( tval->Type()->IsSet() )
+				writer.EndArray();
+			else
+				writer.EndObject();
+
 			break;
 			}
 
 		case TYPE_RECORD:
 			{
-			j = ZeekJson::object();
+			writer.StartObject();
+
 			auto* rval = val->AsRecordVal();
 			auto rt = rval->Type()->AsRecordType();
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				auto field_name = rt->FieldName(i);
-				std::string key_string;
-
-				if ( re && re->MatchAnywhere(field_name) != 0 )
-					{
-					StringVal blank("");
-					StringVal fn_val(field_name);
-					auto key_val = fn_val.Substitute(re, &blank, 0)->AsStringVal();
-					key_string = key_val->ToStdString();
-					Unref(key_val);
-					}
-				else
-					key_string = field_name;
-
 				Val* value = rval->LookupWithDefault(i);
 
 				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
-					j.emplace(key_string, BuildJSON(value, only_loggable, re));
+					{
+					string key_str;
+					auto field_name = rt->FieldName(i);
+
+					if ( re && re->MatchAnywhere(field_name) != 0 )
+						{
+						auto blank = make_intrusive<StringVal>("");
+						auto fn_val = make_intrusive<StringVal>(field_name);
+						auto key_val = fn_val->Substitute(re, blank.get(), 0)->AsStringVal();
+						key_str = key_val->ToStdString();
+						Unref(key_val);
+						}
+					else
+						key_str = field_name;
+
+					BuildJSON(writer, value, only_loggable, re, key_str);
+					}
 
 				Unref(value);
 				}
 
+			writer.EndObject();
 			break;
 			}
 
 		case TYPE_LIST:
 			{
-			j = ZeekJson::array();
+			writer.StartArray();
+
 			auto* lval = val->AsListVal();
 			size_t size = lval->Length();
 			for (size_t i = 0; i < size; i++)
-				j.push_back(BuildJSON(lval->Index(i), only_loggable, re));
+				BuildJSON(writer, lval->Index(i), only_loggable, re);
 
+			writer.EndArray();
 			break;
 			}
 
 		case TYPE_VECTOR:
 			{
-			j = ZeekJson::array();
+			writer.StartArray();
+
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				j.push_back(BuildJSON(vval->Lookup(i), only_loggable, re));
+				BuildJSON(writer, vval->Lookup(i), only_loggable, re);
 
+			writer.EndArray();
 			break;
 			}
 
 		case TYPE_OPAQUE:
 			{
+			writer.StartObject();
+
+			writer.Key("opaque_type");
 			auto* oval = val->AsOpaqueVal();
-			j = { { "opaque_type", OpaqueMgr::mgr()->TypeID(oval) } };
+			writer.String(OpaqueMgr::mgr()->TypeID(oval));
+
+			writer.EndObject();
 			break;
 			}
 
-		default: break;
+		default:
+		  writer.Null();
+		  break;
 		}
-
-	return j;
 	}
 
 StringVal* Val::ToJSON(bool only_loggable, RE_Matcher* re)
 	{
-	ZeekJson j = BuildJSON(this, only_loggable, re);
-	return new StringVal(j.dump());
+	rapidjson::StringBuffer buffer;
+	threading::formatter::JSON::NullDoubleWriter writer(buffer);
+
+	BuildJSON(writer, this, only_loggable, re, "");
+
+	return new StringVal(buffer.GetString());
 	}
 
 IntervalVal::IntervalVal(double quantity, double units) :

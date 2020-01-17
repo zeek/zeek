@@ -29,8 +29,8 @@ protected:
 	tcp::ContentLine_Analyzer* orig_ident;
 	tcp::ContentLine_Analyzer* resp_ident;
 
-	unsigned int did_deliver:1;
-	unsigned int did_bad_reply:1;
+	bool did_deliver;
+	bool did_bad_reply;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

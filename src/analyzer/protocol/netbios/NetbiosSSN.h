@@ -32,9 +32,9 @@ typedef enum {
 struct NetbiosSSN_RawMsgHdr {
 	NetbiosSSN_RawMsgHdr(const u_char*& data, int& len);
 
-	unsigned int type:8;
-	unsigned int flags:8;
-	unsigned int length:16;
+	uint8_t type;
+	uint8_t flags;
+	uint16_t length;
 };
 
 //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -51,13 +51,13 @@ struct NetbiosSSN_RawMsgHdr {
 struct NetbiosDGM_RawMsgHdr {
 	NetbiosDGM_RawMsgHdr(const u_char*& data, int& len);
 
-	unsigned int type:8;
-	unsigned int flags:8;
-	unsigned int id:16;
-	unsigned int srcip:32;
-	unsigned int srcport:16;
-	unsigned int length:16;
-	unsigned int offset:16;
+	uint8_t type;
+	uint8_t flags;
+	uint16_t id;
+	uint32_t srcip;
+	uint16_t srcport;
+	uint16_t length;
+	uint16_t offset;
 };
 
 

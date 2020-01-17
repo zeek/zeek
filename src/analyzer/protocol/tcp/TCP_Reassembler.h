@@ -96,10 +96,10 @@ private:
 
 	TCP_Endpoint* endp;
 
-	unsigned int deliver_tcp_contents:1;
-	unsigned int had_gap:1;
-	unsigned int did_EOF:1;
-	unsigned int skip_deliveries:1;
+	bool deliver_tcp_contents;
+	bool had_gap;
+	bool did_EOF;
+	bool skip_deliveries;
 
 	uint64_t seq_to_skip;
 
@@ -114,4 +114,4 @@ private:
 	Type type;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

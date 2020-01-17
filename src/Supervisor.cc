@@ -50,9 +50,9 @@ struct Stem {
 
 	int AliveNodeCount() const;
 
-	void KillNodes(int signal) const;
+	void KillNodes(int signal);
 
-	void KillNode(const Supervisor::Node& node, int signal) const;
+	void KillNode(Supervisor::Node* node, int signal) const;
 
 	void Destroy(Supervisor::Node* node) const;
 
@@ -476,7 +476,7 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 		DBG_STEM("node '%s' (PID %d) exited with status %d",
 		         node->Name().data(), node->pid, node->exit_status);
 
-		if ( ! shutting_down )
+		if ( ! node->killed )
 			LogError("Supervised node '%s' (PID %d) exited prematurely with status %d",
 			         node->Name().data(), node->pid, node->exit_status);
 		}
@@ -486,7 +486,7 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 		DBG_STEM("node '%s' (PID %d) terminated by signal %d",
 		         node->Name().data(), node->pid, node->signal_number);
 
-		if ( ! shutting_down )
+		if ( ! node->killed )
 			LogError("Supervised node '%s' (PID %d) terminated prematurely by signal %d",
 			         node->Name().data(), node->pid, node->signal_number);
 		}
@@ -498,13 +498,14 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 	return true;
 	}
 
-void Stem::KillNode(const Supervisor::Node& node, int signal) const
+void Stem::KillNode(Supervisor::Node* node, int signal) const
 	{
-	auto kill_res = kill(node.pid, signal);
+	node->killed = true;
+	auto kill_res = kill(node->pid, signal);
 
 	if ( kill_res == -1 )
 		LogError("Failed to send signal to node '%s' (PID %d): %s",
-		         node.Name().data(), node.pid, strerror(errno));
+		         node->Name().data(), node->pid, strerror(errno));
 	}
 
 void Stem::Destroy(Supervisor::Node* node) const
@@ -516,7 +517,7 @@ void Stem::Destroy(Supervisor::Node* node) const
 	for ( ; ; )
 		{
 		auto sig = kill_attempts++ < max_term_attempts ? SIGTERM : SIGKILL;
-		KillNode(*node, sig);
+		KillNode(node, sig);
 		usleep(10);
 
 		if ( Wait(node, WNOHANG) )
@@ -615,10 +616,10 @@ int Stem::AliveNodeCount() const
 	return rval;
 	}
 
-void Stem::KillNodes(int signal) const
+void Stem::KillNodes(int signal)
 	{
-	for ( const auto& n : nodes )
-		KillNode(n.second, signal);
+	for ( auto& n : nodes )
+		KillNode(&n.second, signal);
 	}
 
 void Stem::Shutdown(int exit_code)
@@ -1061,7 +1062,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord().detach());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetCount(pid));
+		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetInt(pid));
 
 	return rval;
 	}

@@ -1,0 +1,2 @@
+supervised node zeek_init(), logger-1, Cluster::LOGGER
+supervised node zeek_done(), logger-1

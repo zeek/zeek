@@ -81,6 +81,7 @@ public:
 
 		NodeConfig config;
 		pid_t pid = 0;
+		bool killed = false;
 		int exit_status = 0;
 		int signal_number = 0;
 		int revival_attempts = 0;

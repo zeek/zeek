@@ -1,0 +1,2 @@
+supervised node zeek_init(), proxy-1, Cluster::PROXY
+supervised node zeek_done(), proxy-1

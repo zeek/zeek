@@ -32,7 +32,7 @@ export {
 
 	type NodeStatus: record {
 		node: NodeConfig;
-		pid: count;
+		pid: int &optional;
 	};
 
 	type Status: record {

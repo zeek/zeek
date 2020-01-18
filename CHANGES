@@ -1,4 +1,18 @@
 
+3.1.0-dev.389 | 2020-01-18 10:49:15 +0000
+
+  * GHI-595: Convert from nlohmann/json to RapidJSON for performance
+    reasons. (Tim Wojtulewicz, Corelight)
+
+  * Optimize json_escape_utf8() and expand its unit tests. (Tim
+    Wojtulewicz, Corelight)
+
+  * Convert type-checking macros to actual functions. (Tim
+    Wojtulewicz, Corelight)
+
+  * Use the list of files from clang-tidy when searching for unit
+    tests. (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.383 | 2020-01-17 11:51:01 +0000
 
   * Various code modernization cleanup. (Tim Wojtulewicz, Corelight)

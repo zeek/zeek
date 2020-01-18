@@ -1,6 +1,5 @@
 ##! Implements Zeek process supervision configuration options and default
 ##! behavior.
-# TODO: add proper docs
 
 @load ./api
 @load base/frameworks/broker
@@ -8,6 +7,10 @@
 module Supervisor;
 
 export {
+	## The Broker topic prefix to use when subscribing to Supervisor API
+	## requests and when publishing Supervisor API responses.  If you are
+	## publishing Supervisor requests, this is also the prefix string to use
+	## for their topic names.
 	const topic_prefix = "zeek/supervisor" &redef;
 }
 
@@ -77,4 +80,9 @@ function is_supervisor(): bool
 function is_supervised(): bool
 	{
 	return Supervisor::__is_supervised();
+	}
+
+function node(): NodeConfig
+	{
+	return Supervisor::__node();
 	}

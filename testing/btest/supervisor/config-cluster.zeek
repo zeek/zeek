@@ -83,7 +83,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 event zeek_done()
 	{
 	if ( Supervisor::is_supervised() )
-		print "supervised node zeek_done()", Cluster::node;
+		print "supervised node zeek_done()", Cluster::node, Supervisor::node()$name;
 	else
 		print supervisor_output_file, "supervisor zeek_done()";
 	}

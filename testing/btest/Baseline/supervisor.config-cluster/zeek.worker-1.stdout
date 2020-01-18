@@ -1,2 +1,2 @@
 supervised node zeek_init(), worker-1, Cluster::WORKER
-supervised node zeek_done(), worker-1
+supervised node zeek_done(), worker-1, worker-1

@@ -38,7 +38,7 @@ struct Stem {
 
 	~Stem();
 
-	std::optional<Supervisor::SupervisedNode> Run();
+	Supervisor::SupervisedNode Run();
 
 	std::optional<Supervisor::SupervisedNode> Poll();
 
@@ -707,16 +707,18 @@ void Stem::LogError(const char* format, ...) const
 	va_end(args);
 	}
 
-std::optional<Supervisor::SupervisedNode> Stem::Run()
+Supervisor::SupervisedNode Stem::Run()
 	{
 	for ( ; ; )
 		{
 		auto new_node = Poll();
 
 		if ( new_node )
-			return new_node;
+			return *new_node;
 		}
 
+	// Shouldn't be reached.
+	assert(false);
 	return {};
 	}
 
@@ -854,7 +856,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 	return {};
 	}
 
-std::optional<Supervisor::SupervisedNode> Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe, pid_t parent_pid)
+Supervisor::SupervisedNode Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe, pid_t parent_pid)
 	{
 	Stem s(std::move(pipe), parent_pid);
 	return s.Run();

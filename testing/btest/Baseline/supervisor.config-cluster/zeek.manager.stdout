@@ -1,2 +1,2 @@
 supervised node zeek_init(), manager, Cluster::MANAGER
-supervised node zeek_done(), manager
+supervised node zeek_done(), manager, manager

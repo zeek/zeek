@@ -396,6 +396,7 @@ for a single connection.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Again, we start with ``@load``, this time importing the
 :doc:`/scripts/base/protocols/conn/index` scripts which supply the tracking
@@ -446,6 +447,7 @@ brackets, which would correspond to the ``$``-delimiter in a Zeek script.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -492,6 +494,7 @@ use is likely to be dictated by personal preference and readability.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Global Variables
 ~~~~~~~~~~~~~~~~
@@ -536,6 +539,7 @@ excerpt from :doc:`/scripts/base/protocols/http/main.zeek` below.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
@@ -545,6 +549,7 @@ following line to our ``site/local.zeek`` file before firing up Zeek.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 While the idea of a re-definable constant might be odd, the constraint
 that constants can only be altered at parse-time remains even with the
@@ -559,6 +564,7 @@ would fail.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -584,6 +590,7 @@ visible ones, an example of which is illustrated below.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 The script executes the event handler :zeek:id:`zeek_init` which in turn calls
 the function ``add_two(i: count)`` with an argument of ``10``.  Once Zeek
@@ -661,6 +668,7 @@ declaration of a locally scoped set.
    :language: zeek
    :linenos:
    :lines: 1-4,22
+   :tab-width: 4
 
 As you can see, sets are declared using the format ``SCOPE var_name:
 set[TYPE]``.  Adding and removing elements in a set is achieved using
@@ -677,6 +685,7 @@ process each element of the set as seen below.
    :linenos:
    :lines: 17-21
    :lineno-start: 17
+   :tab-width: 4
 
 Here, the ``for`` statement loops over the contents of the set storing
 each element in the temporary variable ``i``.  With each iteration of
@@ -701,6 +710,7 @@ which will aid in the readability of your script.
    :linenos:
    :lines: 13-15
    :lineno-start: 13
+   :tab-width: 4
 
 You can see the full script and its output below.
 
@@ -708,6 +718,7 @@ You can see the full script and its output below.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -732,6 +743,7 @@ to preserve a one-to-one mapping of keys to values.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -768,6 +780,7 @@ security platform.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -821,6 +834,7 @@ lengths.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -843,6 +857,7 @@ current item in the vector with ``addr_vector[i]``.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -906,6 +921,7 @@ using a 20 bit subnet mask.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Because this is a script that doesn't use any kind of network
 analysis, we can handle the event :zeek:id:`zeek_init` which is always
@@ -953,6 +969,7 @@ produce a common date time formatted time stamp.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 When the script is executed we get an output showing the details of
 established connections.  
@@ -1002,6 +1019,7 @@ establishment report.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 This time, when we execute the script we see an additional line in the
 output to display the time delta since the last fully established
@@ -1047,6 +1065,7 @@ string against which it will be tested to be on the right.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 In the sample above, two local variables are declared to hold our
 sample sentence and regular expression.  Our regular expression in
@@ -1080,6 +1099,7 @@ on the result of the comparison between the pattern and the string.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -1109,6 +1129,7 @@ example of the ``record`` data type in the earlier sections, the
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Looking at the structure of the definition, a new collection of data
 types is being defined as a type called ``Info``.  Since this type
@@ -1125,6 +1146,7 @@ field is unique.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -1155,6 +1177,7 @@ record.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -1242,6 +1265,7 @@ into the Logging Framework.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -1269,6 +1293,7 @@ to integrate the Logging Framework.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 As mentioned above we have to perform a few steps before we can
 issue the :zeek:id:`Log::write` method and produce a logfile.
@@ -1353,6 +1378,7 @@ remaining logs to factor.log.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 To dynamically alter the file in which a stream writes its logs, a
 filter can specify a function that returns a string to be used as the
@@ -1421,6 +1447,7 @@ the ``$ev`` field in the call to ``Log::create_stream``
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 
 Raising Notices
@@ -1566,6 +1593,7 @@ action based on the answer.  The hook below adds the
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 In the example above we've added ``Notice::ACTION_EMAIL`` to the
 ``n$actions`` set.  This set, defined in the Notice Framework scripts,
@@ -1644,6 +1672,7 @@ variable to a shorter time.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 While ``Notice::policy`` hooks allow you to build custom
 predicate-based policies for a deployment, there are bound to be times
@@ -1694,6 +1723,7 @@ in the call to ``NOTICE``.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 The Notice Policy shortcut above adds the ``Notice::Type`` of
 ``SSH::Interesting_Hostname_Login`` to the
@@ -1704,3 +1734,4 @@ of time for which those notices will be suppressed.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4

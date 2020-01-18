@@ -38,6 +38,7 @@ Here's a simple example:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -85,6 +86,7 @@ calculate the MD5 of plain text files:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -128,6 +130,7 @@ a network interface it's monitoring.  It only requires a call to
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Note that the "source" field of :zeek:see:`fa_file` corresponds to the
 "name" field of :zeek:see:`Input::AnalysisDescription` since that is what

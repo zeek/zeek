@@ -39,6 +39,7 @@ The following example code adds SQLite as a filter for the connection log:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Zeek will create the database file ``/var/db/conn.sqlite``, if it does not
 already exist.  It will also create a table with the name ``conn`` (if it
@@ -114,6 +115,7 @@ read the resulting table into Zeek:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Afterwards, that table can be used to check logins into hosts against
 the available userlist.
@@ -161,6 +163,7 @@ against our malware-database and output the matching hash.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 If you run this script against the trace in
 ``testing/btest/Traces/ftp/ipv4.trace``, you will get one hit.

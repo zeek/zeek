@@ -43,6 +43,7 @@ observers for the other two values.
    :linenos:
    :lines: 6-29
    :lineno-start: 6
+   :tab-width: 4
 
 .. literalinclude:: mimestats.zeek
    :caption:
@@ -50,6 +51,7 @@ observers for the other two values.
    :linenos:
    :lines: 54-64
    :lineno-start: 54
+   :tab-width: 4
 
 Next, we create the reducers. The first will accumulate file sizes
 and the second will make sure we only store a host ID once. Below is
@@ -61,6 +63,7 @@ the partial code from a :zeek:see:`zeek_init` handler.
    :linenos:
    :lines: 34-37
    :lineno-start: 34
+   :tab-width: 4
 
 In our final step, we create the SumStats where we check for the
 observation interval.  Once it expires, we populate the record
@@ -72,6 +75,7 @@ observation interval.  Once it expires, we populate the record
    :linenos:
    :lines: 38-51
    :lineno-start: 38
+   :tab-width: 4
 
 After putting the three pieces together we end up with the following
 final code for our script.
@@ -80,6 +84,7 @@ final code for our script.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 

@@ -257,6 +257,7 @@ In ``local.zeek``, let's define a new ``policy`` hook handler body:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 

@@ -93,6 +93,7 @@ the server at 192.168.56.103:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 

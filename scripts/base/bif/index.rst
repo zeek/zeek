@@ -49,6 +49,10 @@ Package: base/bif
    Definitions of built-in functions that allow the scripting layer to
    change the value of options and to be notified when option values change.
 
+:doc:`/scripts/base/bif/supervisor.bif.zeek`
+
+   The BIFs that define the Zeek supervisor control interface.
+
 :doc:`/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek`
 
 

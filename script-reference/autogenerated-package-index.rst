@@ -11,6 +11,9 @@
    The Broker communication framework facilitates connecting to remote Zeek
    instances to share state and transfer events.
 
+:doc:`base/frameworks/supervisor </scripts/base/frameworks/supervisor/index>`
+
+
 :doc:`base/frameworks/input </scripts/base/frameworks/input/index>`
 
    The input framework provides a way to read previously stored data either as

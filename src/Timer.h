@@ -12,7 +12,7 @@ extern "C" {
 }
 
 // If you add a timer here, adjust TimerNames in Timer.cc.
-enum TimerType {
+enum TimerType : uint8_t {
 	TIMER_BACKDOOR,
 	TIMER_BREAKPOINT,
 	TIMER_CONN_DELETE,
@@ -52,8 +52,7 @@ class ODesc;
 
 class Timer : public PQ_Element {
 public:
-	Timer(double t, TimerType arg_type) : PQ_Element(t)
-		{ type = (char) arg_type; }
+	Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) { }
 	~Timer() override { }
 
 	TimerType Type() const	{ return (TimerType) type; }
@@ -67,8 +66,7 @@ public:
 
 protected:
 	Timer()	{}
-
-	unsigned int type:8;
+	TimerType type;
 };
 
 class TimerMgr {

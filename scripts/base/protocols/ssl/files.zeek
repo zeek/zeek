@@ -92,7 +92,7 @@ event zeek_init() &priority=5
 
 event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 	{
-	if ( |f$conns| != 1 )
+	if ( ! f?$conns || |f$conns| != 1 )
 		return;
 
 	if ( ! f?$info || ! f$info?$mime_type )

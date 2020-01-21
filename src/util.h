@@ -127,7 +127,7 @@ std::string extract_ip_and_len(const std::string& i, int* len);
 
 inline void bytetohex(unsigned char byte, char* hex_out)
 	{
-	static const char hex_chars[] = "0123456789abcdef";
+	static constexpr char hex_chars[] = "0123456789abcdef";
 	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
 	hex_out[1] = hex_chars[byte & 0x0f];
 	}

@@ -303,7 +303,7 @@ protected:
 	// Add the given timer to expire at time t.  If do_expire
 	// is true, then the timer is also evaluated when Bro terminates,
 	// otherwise not.
-	void AddTimer(timer_func timer, double t, int do_expire,
+	void AddTimer(timer_func timer, double t, bool do_expire,
 			TimerType type);
 
 	void RemoveTimer(Timer* t);
@@ -367,7 +367,7 @@ protected:
 class ConnectionTimer : public Timer {
 public:
 	ConnectionTimer(Connection* arg_conn, timer_func arg_timer,
-			double arg_t, int arg_do_expire, TimerType arg_type)
+			double arg_t, bool arg_do_expire, TimerType arg_type)
 		: Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	~ConnectionTimer() override;
@@ -377,11 +377,11 @@ public:
 protected:
 	ConnectionTimer()	{}
 
-	void Init(Connection* conn, timer_func timer, int do_expire);
+	void Init(Connection* conn, timer_func timer, bool do_expire);
 
 	Connection* conn;
 	timer_func timer;
-	int do_expire;
+	bool do_expire;
 };
 
 #define ADD_TIMER(timer, t, do_expire, type) \

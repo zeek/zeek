@@ -33,13 +33,13 @@ public:
 	typedef IdxVec::const_iterator IdxVecCIt;
 
 	// Constructors creating internal copies of the data passed in.
-	BroString(const u_char* str, int arg_n, int add_NUL);
+	BroString(const u_char* str, int arg_n, bool add_NUL);
 	explicit BroString(const char* str);
 	explicit BroString(const std::string& str);
 	BroString(const BroString& bs);
 
 	// Constructor that takes owernship of the vector passed in.
-	BroString(int arg_final_NUL, byte_vec str, int arg_n);
+	BroString(bool arg_final_NUL, byte_vec str, int arg_n);
 
 	BroString();
 	~BroString()	{ Reset(); }
@@ -61,7 +61,7 @@ public:
 	// current contents, if any, and then set the string's
 	// contents to a copy of the string given by the arguments.
 	//
-	void Set(const u_char* str, int len, int add_NUL=1);
+	void Set(const u_char* str, int len, bool add_NUL=true);
 	void Set(const char* str);
 	void Set(const std::string& str);
 	void Set(const BroString &str);
@@ -146,8 +146,8 @@ protected:
 
 	byte_vec b;
 	int n;
-	unsigned int final_NUL:1;	// whether we have added a final NUL
-	unsigned int use_free_to_delete:1;	// free() vs. operator delete
+	bool final_NUL;	// whether we have added a final NUL
+	bool use_free_to_delete;	// free() vs. operator delete
 };
 
 // A comparison class that sorts pointers to BroString's according to

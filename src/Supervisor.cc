@@ -18,7 +18,8 @@
 #include "zeek-config.h"
 #include "util.h"
 
-#include "3rdparty/json.hpp"
+#define RAPIDJSON_HAS_STDSTRING 1
+#include "3rdparty/rapidjson/include/rapidjson/document.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -862,7 +863,7 @@ Supervisor::SupervisedNode Supervisor::RunStem(std::unique_ptr<bro::PipePair> pi
 	return s.Run();
 	}
 
-static BifEnum::Supervisor::ClusterRole role_str_to_enum(const std::string& r)
+static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
 	{
 	if ( r == "Supervisor::LOGGER" )
 		return BifEnum::Supervisor::LOGGER;
@@ -945,48 +946,47 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	{
 	Supervisor::NodeConfig rval;
-	auto j = nlohmann::json::parse(json);
-	rval.name = j["name"];
+	rapidjson::Document j;
+	j.Parse(json.data(), json.size());
+	rval.name = j["name"].GetString();
 
-	if ( auto it = j.find("interface"); it != j.end() )
-		rval.interface = *it;
+	if ( auto it = j.FindMember("interface"); it != j.MemberEnd() )
+		rval.interface = it->value.GetString();
 
-	if ( auto it = j.find("directory"); it != j.end() )
-		rval.directory = *it;
+	if ( auto it = j.FindMember("directory"); it != j.MemberEnd() )
+		rval.directory = it->value.GetString();
 
-	if ( auto it = j.find("stdout_file"); it != j.end() )
-		rval.stdout_file= *it;
+	if ( auto it = j.FindMember("stdout_file"); it != j.MemberEnd() )
+		rval.stdout_file= it->value.GetString();
 
-	if ( auto it = j.find("stderr_file"); it != j.end() )
-		rval.stderr_file= *it;
+	if ( auto it = j.FindMember("stderr_file"); it != j.MemberEnd() )
+		rval.stderr_file= it->value.GetString();
 
-	if ( auto it = j.find("cpu_affinity"); it != j.end() )
-		rval.cpu_affinity = *it;
+	if ( auto it = j.FindMember("cpu_affinity"); it != j.MemberEnd() )
+		rval.cpu_affinity = it->value.GetInt();
 
-	auto scripts = j["scripts"];
+	auto& scripts = j["scripts"];
 
-	for ( auto& s : scripts )
-		rval.scripts.emplace_back(std::move(s));
+	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
+		rval.scripts.emplace_back(it->GetString());
 
-	auto cluster = j["cluster"];
+	auto& cluster = j["cluster"];
 
-	for ( const auto& e : cluster.items() )
+	for ( auto it = cluster.MemberBegin(); it != cluster.MemberEnd(); ++it )
 		{
 		Supervisor::ClusterEndpoint ep;
 
-		auto& key = e.key();
-		auto& val = e.value();
+		auto key = it->name.GetString();
+		auto& val = it->value;
 
-		auto role_str = val["role"];
-		ep.role = role_str_to_enum(role_str);
+		auto& role_str = val["role"];
+		ep.role = role_str_to_enum(role_str.GetString());
 
-		ep.host = val["host"];
-		ep.port = val["p"]["port"];
+		ep.host = val["host"].GetString();
+		ep.port = val["p"]["port"].GetInt();
 
-		auto it = val.find("interface");
-
-		if ( it != val.end() )
-			ep.interface = *it;
+		if ( auto it = val.FindMember("interface"); it != val.MemberEnd() )
+			ep.interface = it->value.GetString();
 
 		rval.cluster.emplace(key, std::move(ep));
 		}

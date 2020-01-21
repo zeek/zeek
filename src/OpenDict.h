@@ -1,135 +1,158 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-//Clustered Hashing, a variation of Robinhood Hashing/Open Addressing Hashing.
-//Ref following post links to help understand the implementation
-//https://jasonlue.github.io/algo/2019/08/20/clustered-hashing.html
-//https://jasonlue.github.io/algo/2019/08/27/clustered-hashing-basic-operations.html
-//https://jasonlue.github.io/algo/2019/09/03/clustered-hashing-incremental-resize.html
-//https://jasonlue.github.io/algo/2019/09/10/clustered-hashing-modify-on-iteration.html
 
-#ifndef odict_h
-#define odict_h
+#pragma once
 
+#include <cstdint>
 #include <vector>
+
 #include "Hash.h"
-#include <climits>
+
 class Dictionary;
-class DictEntry;
 class IterCookie;
+
+// Default number of hash buckets in dictionary.  The dictionary will increase the size
+// of the hash table as needed.
+constexpr uint32_t HASH_MASK = 0xFFFFFFFF; //only lower 32 bits.
+
+// These four variables can be used to build different targets with -Dxxx for performance
+// or for debugging purposes.
+
+// When incrementally resizing and remapping, it remaps DICT_REMAP_ENTRIES each step. Use
+// 2 for debug. 16 is best for a release build.
+#ifndef DICT_REMAP_ENTRIES
+constexpr uint8_t DICT_REMAP_ENTRIES = 16;
+#endif
+
+// Load factor = 1 - 0.5 ^ LOAD_FACTOR_BITS. 0.75 is the optimal value for release builds.
+#ifndef DICT_LOAD_FACTOR_BITS
+constexpr uint8_t DICT_LOAD_FACTOR_BITS = 2;
+#endif
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
-#define HASH_MASK 0xFFFFffff //only lower 32 bits.
-
-//micros here are used to build different targets with -Dxxx to compare for performance or for debug purposes.
-//when incremental resizing, remapping, it remaps DICT_REMAP_ENTRIES at step.
-#ifndef DICT_REMAP_ENTRIES
-#define DICT_REMAP_ENTRIES 16 //2 for debug. 16 is best for release. move how many at a time when remapping.
-#endif//DICT_REMAP_ENTRIES
-
-#ifndef DICT_LOAD_FACTOR_BITS //give option to define it at command line
-#define DICT_LOAD_FACTOR_BITS  2//LOAD_FACTOR = 1 - 1/2^LOAD_FACTOR_BITS .75 is the optimal load factor.
-#endif //LOAD_FACTOR_BITS
-
-//when log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
-//basicly it means if dict size < 2^DICT_THRESHOLD_BITS+n, size up only if necessary (the last entry can't hold new key).
-#ifndef DICT_THRESHOLD_BITS
-#define DICT_THRESHOLD_BITS 3
+#ifndef DEFAULT_DICT_SIZE
+constexpr uint8_t DEFAULT_DICT_SIZE = 0;
 #endif
 
-// of insertions.
-typedef enum { ORDERED, UNORDERED } dict_order;
+// When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
+// Basically if dict size < 2^DICT_THRESHOLD_BITS + n, we size up only if necessary.
+#ifndef DICT_THRESHOLD_BITS
+constexpr uint8_t DICT_THRESHOLD_BITS = 3;
+#endif
+
+// The value of an iteration cookie is the bucket and offset within the
+// bucket at which to start looking for the next value to return.
+constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
+constexpr uint16_t MAX_KEY_SIZE = 0xFFFF;
+
+enum dict_order { ORDERED, UNORDERED };
 
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);
-// The value of an iteration cookie is the bucket and offset within the
-// bucket at which to start looking for the next value to return.
-#define TOO_FAR_TO_REACH 0xFFFF
-#define MAX_KEY_SIZE 0XFFFF
-struct DictEntry{//24 bytes. perfectly alligned. always own the key. but not the value.
-	#ifdef DEBUG
-	int bucket;//for easy debugging
-	#endif//DEBUG
-	uint16_t distance; //<from expected position. all 1's means empty. max distance 64K-2
-	uint16_t key_size; //the length of the key. <=8 will be embedded directly. otherwise a pointer 8K max enough?
-	uint32_t hash; //lower 4-byte of the 8-byte long hash. the part to calculate position in the table.
 
-	void* value; //for Bro, value is always a pointer. 
+/**
+ * An entry stored in the dictionary.
+ */
+class DictEntry{
+public:
+
+#ifdef DEBUG
+	int bucket = 0;
+#endif
+
+	// Distance from the expected position in the table. 0xFFFF means that the entry is empty.
+	uint16_t distance = TOO_FAR_TO_REACH;
+
+	// The size of the key. Less than 8 bytes we'll store directly in the entry, otherwise we'll
+	// store it as a pointer. This avoids extra allocations if we can help it.
+	uint16_t key_size = 0;
+
+	// Lower 4 bytes of the 8-byte hash, which is used to calculate the position in the table.
+	uint32_t hash = 0;
+
+	void* value = nullptr;
 	union{
 		char key_here[8]; //hold key len<=8. when over 8, it's a pointer to real keys.
 		char* key;
 	};
 
-	DictEntry(void* arg_key, int key_size=0, hash_t hash=0, void* value=0, int16_t d=TOO_FAR_TO_REACH, int copy_key=0) 
-	: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
+	DictEntry(void* arg_key, int key_size = 0, hash_t hash = 0, void* value = nullptr,
+	          int16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
+		: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
 		{
-		#ifdef DEBUG
-		bucket = 0;
-		#endif//DEBUG
-		if( key_size <= 8)
-		{				
-			memcpy(key_here, arg_key, key_size);
-			if(!copy_key)
-				delete (char*)arg_key; //own the arg_key, now don't need it.
-		}
-		else
-		{
-			if( copy_key )
+		if ( key_size <= 8 )
 			{
+			memcpy(key_here, arg_key, key_size);
+			if ( ! copy_key )
+				delete (char*)arg_key; //own the arg_key, now don't need it.
+			}
+		else
+			{
+			if ( copy_key )
+				{
 				key = new char[key_size];
 				memcpy(key, arg_key, key_size);
-			}
+				}
 			else
-			{
+				{
 				key = (char*)arg_key;
+				}
 			}
 		}
-		}
-	bool Empty() {return distance == TOO_FAR_TO_REACH;}
+
+	bool Empty() const	{ return distance == TOO_FAR_TO_REACH; }
 	void SetEmpty()
 		{
 		distance = TOO_FAR_TO_REACH;
-		#ifdef DEBUG
+#ifdef DEBUG
+
 		hash = 0;
-		key = NULL;
-		value = NULL;
+		key = nullptr;
+		value = nullptr;
 		key_size = 0;
 		bucket = 0;
-		#endif//DEBUG
+#endif//DEBUG
 		}
 
-	//if with no intent to release key memory, call SetEmpty instead. key pointer is shared when moving around.
-	void Clear() 
-	{//SetEmpty & release memory if allocated.
-		if(key_size > 8)
+	void Clear()
+		{
+		if( key_size > 8 )
 			delete key;
 		SetEmpty();
-	}
-	const char* GetKey() const {return key_size <= 8? key_here : key;}
+		}
+
+	const char* GetKey() const { return key_size <= 8? key_here : key; }
+
 	bool Equal(const char* arg_key, int arg_key_size, hash_t arg_hash) const
-	{//only 40-bit hash comparison.
-		return (0 == ((hash ^ arg_hash) & HASH_MASK)) 
+		{//only 40-bit hash comparison.
+		return ( 0 == ((hash ^ arg_hash) & HASH_MASK) )
 			&& key_size == arg_key_size && 0 == memcmp(GetKey(), arg_key, key_size);
-	}
+		}
 	bool operator==(const DictEntry& r) const
-	{
+		{
 		return Equal(r.GetKey(), r.key_size, r.hash);
-	}
+		}
 	bool operator!=(const DictEntry& r) const
-	{
-		return !Equal(r.GetKey(), r.key_size, r.hash);
-	}
+		{
+		return ! Equal(r.GetKey(), r.key_size, r.hash);
+		}
 };
 
-struct IterCookie;
-
-// Default number of hash buckets in dictionary.  The dictionary will
-// increase the size of the hash table as needed.
-#ifndef DEFAULT_DICT_SIZE
-#define DEFAULT_DICT_SIZE 0
-#endif//DEFAULT_DICT_SIZE
+/**
+ * A dictionary type that uses clustered hashing, a variation of Robinhood/Open Addressing
+ * hashing. The following posts help to understand the implementation:
+ * - https://jasonlue.github.io/algo/2019/08/20/clustered-hashing.html
+ * - https://jasonlue.github.io/algo/2019/08/27/clustered-hashing-basic-operations.html
+ * - https://jasonlue.github.io/algo/2019/09/03/clustered-hashing-incremental-resize.html
+ * - https://jasonlue.github.io/algo/2019/09/10/clustered-hashing-modify-on-iteration.html
+ *
+ * The dictionary is effectively a hashmap from hashed keys to values. The dictionary owns
+ * the keys but not the values. The dictionary size will be bounded at around 100K. 1M
+ * entries is the absolute limit. Only Connections use that many entries, and that is rare.
+ */
 class Dictionary{
 public:
 	explicit Dictionary(dict_order ordering = UNORDERED, int initial_size = DEFAULT_DICT_SIZE);
@@ -145,11 +168,12 @@ public:
 
 	// Returns previous value, or 0 if none.
 	void* Insert(HashKey* key, void* val)
-		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, 0);}
+		{ return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false); }
+
 	// If copy_key is true, then the key is copied, otherwise it's assumed
 	// that it's a heap pointer that now belongs to the Dictionary to
-	// manage as needed. 
-	void* Insert(void* key, int key_size, hash_t hash, void* val, int copy_key);
+	// manage as needed.
+	void* Insert(void* key, int key_size, hash_t hash, void* val, bool copy_key);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
@@ -171,7 +195,7 @@ public:
 		{ return cum_entries; }
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const		{ return order != 0; }
+	int IsOrdered() const	{ return order != nullptr; }
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -201,7 +225,7 @@ public:
 	// If return_hash is true, a HashKey for the entry is returned in h,
 	// which should be delete'd when no longer needed.
 	IterCookie* InitForIteration() const;
-	void* NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) const;
+	void* NextEntry(HashKey*& h, IterCookie*& cookie, bool return_hash) const;
 	void StopIteration(IterCookie* cookie) const;
 
 	void SetDeleteFunc(dict_delete_func f)		{ delete_func = f; }
@@ -213,104 +237,16 @@ public:
 	// removed. (We don't get this for free, so only use it if
 	// necessary.)
 	void MakeRobustCookie(IterCookie* cookie);
+
 	// Remove all entries.
 	void Clear();
 
 	unsigned int MemoryAllocation() const;
-	float GetThreshold() const { return 1.0 - 1.0 / (1<<DICT_LOAD_FACTOR_BITS);} 
+	constexpr float GetThreshold() const { return 1.0 - 1.0 / (1<<DICT_LOAD_FACTOR_BITS);}
 
-	/// Buckets of the table, not including overflow size.
-	int Buckets(bool expected=false) const;
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected=false) const;
-/////////////////////////////////////////////////////////////////////////////
-private:
-	friend IterCookie;
-	//bucket math
-	int Log2(int num) const;
-	int ThresholdEntries() const; 
 
-	hash_t FibHash(hash_t h) const; //to improve the distribution of original hash.
-	///map h to n-bit table bucket.
-	int BucketByHash(hash_t h, int bit) const;
-	//given position of non-empty item in the table, find my bucket.
-	int BucketByPosition(int position) const;
-
-	///given position of an non-empty item in the table, find the head of cluster, 
-	///if not found, return -1 and set expected_position to be the position it's supposed to be if expected_position is not NULL. 
-	int HeadOfClusterByBucket(int bucket) const;
-	///given position of an non-empty item in the table, find the tail of its cluster
-	int TailOfClusterByBucket(int bucket) const;
-	///given position of an non-empty item in the table. find the end of its cluster. 
-	///end = tail + 1 if tail exists. otherwise the tail of just smaller cluster + 1.
-	int EndOfClusterByBucket(int bucket) const;
-
-	///given position of an non-empty item in the table, find the head of its cluster
-	int HeadOfClusterByPosition(int position) const;
-	///given position of an non-empty item in the table, find the tail of its cluster
-	int TailOfClusterByPosition(int position) const;
-	///given position of an non-empty item in the table. find the end of its cluster. 
-	///end = tail + 1 if tail exists. otherwise the tail of just smaller cluster + 1.
-	int EndOfClusterByPosition(int position) const;
-	///given position of an non-empty item in the table, find the offset of me in its cluster
-	int OffsetInClusterByPosition(int position) const;
-
-	///Next non-empty item position
-	int Next(int i) const;
-
-	void Init();
-
-	//Iteration
-	IterCookie* InitForIterationNonConst();
-	void* NextEntryNonConst(HashKey*& h, IterCookie*& cookie, int return_hash);
-	void StopIterationNonConst(IterCookie* cookie);
-	//Lookup
-	int LinearLookupIndex(const void* key, int key_size, hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position = NULL, int* insert_distance = NULL);
-	int LookupIndex(const void* key, int key_size, hash_t hash, int begin, int end, int* insert_position = NULL, int* insert_distance  = NULL);
-
-	/// Insert entry, Adjust cookies when necessary.
-	void InsertRelocateAndAdjust(DictEntry& entry, int insert_position);
-	/// insert entry into position, relocate other entries when necessary.
-	void InsertAndRelocate(DictEntry& entry, int insert_position, int* last_affected_position = NULL);
-	/// Adjust Cookies on Insert.
-	void AdjustOnInsert(IterCookie* c, const DictEntry& entry, int insert_position, int last_affected_position);
-
-	///Remove, Relocate & Adjust cookies.
-	DictEntry RemoveRelocateAndAdjust(int position);
-	///Remove & Relocate
-	DictEntry RemoveAndRelocate(int position, int* last_affected_position = NULL);
-	///Adjust safe cookies after Removal of entry at position.
-	void AdjustOnRemove(IterCookie* c, const DictEntry& entry, int position, int last_affected_position);
-
-	bool Remapping() const { return remap_end >= 0;} //remap in reverse order.
-	///One round of remap.
-	void Remap(); 
-
-	///Remap item in [position]
-	///Returns true if actual relocation happend. false on noop.
-	bool Remap(int position, int* new_position = NULL);
-	void SizeUp();
-
-	//the dictionary size will be bounded at around 100K. 1M is absolute limit. only Connections use so many entries.
-	//alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
-
-	//when sizeup but the current mapping is in progress. the current mapping will be ignored as it will be remapped to new dict size anyway. 
-	//however, the missed count is recorded for lookup. if position not found for a key in the position of dict of current size, it still could be in the position of dict of previous N sizes.
-	unsigned char remaps; 
-	unsigned char log2_buckets; 
-	unsigned short num_iterators; //pending iterators on the dict. including robust and non-rubust. to avoid remap when any iterators active.
-	int remap_end;//the last index to be remapped
-
-	int num_entries;
-	int max_entries;
-
-	uint64_t cum_entries;
-	dict_delete_func delete_func;
-	DictEntry* table;
-	vector<IterCookie*>* cookies;
-	vector<DictEntry>* order;//order means the order of insertion. means no deletion until exit. will be inefficient. 
-public:
 	//Debugging
 #ifdef DEBUG
 	void AssertValid() const;
@@ -318,8 +254,132 @@ public:
 	void Dump(int level=0) const;
 	void DistanceStats(int& max_distance, int* distances=0, int num_distances=0) const;
 	void DumpKeys() const;
+
+private:
+	friend IterCookie;
+
+	/// Buckets of the table, not including overflow size.
+	int Buckets(bool expected=false) const;
+
+	//bucket math
+	int Log2(int num) const;
+	int ThresholdEntries() const;
+
+	// Used to improve the distribution of the original hash.
+	hash_t FibHash(hash_t h) const;
+
+	// Maps a hash to the appropriate n-bit table bucket.
+	int BucketByHash(hash_t h, int bit) const;
+
+	// Given a position of a non-empty item in the table, find the related bucket.
+	int BucketByPosition(int position) const;
+
+	// Given a bucket of a non-empty item in the table,. find the head of its cluster
+	// for that position. If not found, return -1 and correct expected_position to the
+	// value it's supposed to be, if expected_position isn't a nullptr..
+	int HeadOfClusterByBucket(int bucket) const;
+
+	// Given a bucket of a non-empty item in the table, find the tail of its cluster
+	int TailOfClusterByBucket(int bucket) const;
+
+	// Given a bucket of a non-empty item in the table, find the end of its cluster.
+	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
+	// the just-smaller cluster + 1.
+	int EndOfClusterByBucket(int bucket) const;
+
+	// Given a position of a non-empty item in the table, find the head of its cluster.
+	int HeadOfClusterByPosition(int position) const;
+
+	// Given a position of a non-empty item in the table, find the tail of its cluster.
+	int TailOfClusterByPosition(int position) const;
+
+	// Given a position of a non-empty item in the table, find the end of its cluster.
+	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
+	// the just-smaller cluster + 1.
+	int EndOfClusterByPosition(int position) const;
+
+	// Given a position of a non-empty item in the table, find the offset of it within
+	// its cluster.
+	int OffsetInClusterByPosition(int position) const;
+
+	// Next non-empty item position in the table.
+	int Next(int i) const;
+
+	void Init();
+
+	//Iteration
+	IterCookie* InitForIterationNonConst();
+	void* NextEntryNonConst(HashKey*& h, IterCookie*& cookie, bool return_hash);
+	void StopIterationNonConst(IterCookie* cookie);
+
+	//Lookup
+	int LinearLookupIndex(const void* key, int key_size, hash_t hash) const;
+	int LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position = nullptr,
+		int* insert_distance = nullptr);
+	int LookupIndex(const void* key, int key_size, hash_t hash, int begin, int end,
+		int* insert_position = nullptr, int* insert_distance  = nullptr);
+
+	/// Insert entry, Adjust cookies when necessary.
+	void InsertRelocateAndAdjust(DictEntry& entry, int insert_position);
+
+	/// insert entry into position, relocate other entries when necessary.
+	void InsertAndRelocate(DictEntry& entry, int insert_position, int* last_affected_position = nullptr);
+
+	/// Adjust Cookies on Insert.
+	void AdjustOnInsert(IterCookie* c, const DictEntry& entry, int insert_position, int last_affected_position);
+
+	///Remove, Relocate & Adjust cookies.
+	DictEntry RemoveRelocateAndAdjust(int position);
+
+	///Remove & Relocate
+	DictEntry RemoveAndRelocate(int position, int* last_affected_position = nullptr);
+
+	///Adjust safe cookies after Removal of entry at position.
+	void AdjustOnRemove(IterCookie* c, const DictEntry& entry, int position, int last_affected_position);
+
+	bool Remapping() const { return remap_end >= 0;} //remap in reverse order.
+
+	///One round of remap.
+	void Remap();
+
+	// Remap an item in position to a new position. Returns true if the relocation was
+	// successful, false otherwise. new_position will be set to the new position if a
+	// pointer is provided to store the new value.
+	bool Remap(int position, int* new_position = nullptr);
+
+	void SizeUp();
+
+	//alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
+
+	// when sizeup but the current mapping is in progress. the current mapping will be ignored
+	// as it will be remapped to new dict size anyway. however, the missed count is recorded
+	// for lookup. if position not found for a key in the position of dict of current size, it
+	// still could be in the position of dict of previous N sizes.
+	unsigned char remaps = 0;
+	unsigned char log2_buckets = 0;
+
+	// Pending number of iterators on the Dict, including both robust and non-robust.
+	// This is used to avoid remapping if there are any active iterators.
+	unsigned short num_iterators = 0;
+
+	// The last index to be remapped.
+	int remap_end = -1;
+
+	int num_entries = 0;
+	int max_entries = 0;
+
+	uint64_t cum_entries = 0;
+	dict_delete_func delete_func = nullptr;
+	DictEntry* table = nullptr;
+	std::vector<IterCookie*>* cookies = nullptr;
+
+	// Order means the order of insertion. means no deletion until exit. will be inefficient.
+	std::vector<DictEntry>* order = nullptr;
 };
 
+/*
+ * Template specialization of Dictionary that stores pointers for values.
+ */
 template<typename T>
 class PDict : public Dictionary {
 public:
@@ -349,12 +409,10 @@ public:
 	T* NextEntry(IterCookie*& cookie) const
 		{
 		HashKey* h;
-		return (T*) Dictionary::NextEntry(h, cookie, 0);
+		return (T*) Dictionary::NextEntry(h, cookie, false);
 		}
 	T* NextEntry(HashKey*& h, IterCookie*& cookie) const
-		{ return (T*) Dictionary::NextEntry(h, cookie, 1); }
+		{ return (T*) Dictionary::NextEntry(h, cookie, true); }
 	T* RemoveEntry(const HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
 };
-
-#endif//odict_h

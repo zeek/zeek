@@ -14,7 +14,7 @@
 #include "util.h"
 
 #ifdef DEBUG
-#define ASSERT_VALID(o) 0->AssertValid()
+#define ASSERT_VALID(o)	o->AssertValid()
 #else
 #define ASSERT_VALID(o)
 #endif//DEBUG
@@ -41,18 +41,18 @@ struct IterCookie {
 	void AssertValid() const
 		{
 		ASSERT(d && -1 <= next && next <= d->Capacity());
-		ASSERT((!robust && !inserted && !visited) || (robust && inserted && visited));
+		ASSERT(( ! robust && !inserted && !visited) || ( robust && inserted && visited ));
 		}
 
 	~IterCookie()
 		{
-			ASSERT_VALID(this);
-			if( robust)
-				{
-				d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this));
-				delete inserted;
-				delete visited;
-				}
+		ASSERT_VALID(this);
+		if( robust )
+			{
+			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this));
+			delete inserted;
+			delete visited;
+			}
 		}
 };
 
@@ -68,7 +68,7 @@ int Dictionary::Log2(int num) const
 
 int Dictionary::Buckets(bool expected) const 
 	{ 
-	int buckets = (1 << log2_buckets); 
+	int buckets = ( 1 << log2_buckets ); 
 	if( expected)
 		return buckets;
 	return table ? buckets : 0;
@@ -76,7 +76,7 @@ int Dictionary::Buckets(bool expected) const
 
 int Dictionary::Capacity(bool expected) const 
 	{ 
-	int capacity = (1 << log2_buckets) + (log2_buckets+0); 
+	int capacity = ( 1 << log2_buckets ) + ( log2_buckets+0 ); 
 	if( expected)
 		return capacity;
 	return table ? capacity : 0;
@@ -89,17 +89,15 @@ int Dictionary::ThresholdEntries() const
 	//the dict will always SizeUp when the last entry is occupied after current insertion.
 	//the idea is the current insertion is always successful.
 	int capacity = Capacity();
-	if( log2_buckets <= DICT_THRESHOLD_BITS)
+	if( log2_buckets <= DICT_THRESHOLD_BITS )
 		return capacity; //20 or less elements, 1.0, only size up when necessary.
-	return capacity - (capacity>>DICT_LOAD_FACTOR_BITS); 
+	return capacity - ( capacity>>DICT_LOAD_FACTOR_BITS ); 
 	}
 
 hash_t Dictionary::FibHash(hash_t h) const
 	{
-	//refer for details: https://probablydance.com/2018/06/16/fibonacci-hashing-the-optimization-that-the-world-forgot-or-a-better-alternative-to-integer-modulo/
 	//GoldenRatio phi = (sqrt(5)+1)/2 = 1.6180339887...
 	//1/phi = phi - 1
-
 	h &= HASH_MASK;
 	h *= 11400714819323198485llu; //2^64/phi
 	return h;
@@ -109,7 +107,7 @@ hash_t Dictionary::FibHash(hash_t h) const
 int Dictionary::BucketByHash(hash_t h, int log2_table_size) const //map h to n-bit
 	{
 	ASSERT(log2_table_size>=0);
-	if( !log2_table_size )
+	if( ! log2_table_size )
 		return 0; //<< >> breaks on  64.
 	int m = 64 - log2_table_size;
 	#ifdef DICT_NO_FIB_HASH
@@ -126,7 +124,7 @@ int Dictionary::BucketByHash(hash_t h, int log2_table_size) const //map h to n-b
 //given entry at index i, return it's perfect bucket position.
 int Dictionary::BucketByPosition(int position) const
 	{
-	ASSERT( table && position>=0 && position < Capacity() && !table[position].Empty() );
+	ASSERT(table && position>=0 && position < Capacity() && !table[position].Empty());
 	return position - table[position].distance;
 	}
 
@@ -134,36 +132,36 @@ int Dictionary::BucketByPosition(int position) const
 //Cluster Math
 ////////////////////////////////////////////////////////////////////////////////////////////////
 int Dictionary::HeadOfClusterByBucket(int bucket) const
-{
+	{
     ASSERT(bucket>=0 && bucket < Buckets());
     int i = bucket;
 	for(; i < Capacity() && !table[i].Empty() && BucketByPosition(i) < bucket; i++)
-        if( BucketByPosition(i) == bucket)
+        if( BucketByPosition(i) == bucket )
 			return i; //found.
 	//not found.
 	return -1; 
-}
+	}
 
 int Dictionary::TailOfClusterByBucket(int bucket) const
-{
+	{
 	int end = EndOfClusterByBucket(bucket);
-	if( end - 1 >= 0 && !table[end-1].Empty() && BucketByPosition(end - 1) == bucket )
+	if( end - 1 >= 0 && ! table[end-1].Empty() && BucketByPosition(end - 1) == bucket )
 		return end - 1;
 	return -1;
-}
+	}
 
 int Dictionary::EndOfClusterByBucket(int bucket) const
 {
     ASSERT(bucket>=0 && bucket < Buckets());
     int i = bucket;
-    while( i < Capacity() && !table[i].Empty() && BucketByPosition(i) <= bucket)
+    while( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) <= bucket)
         i++;
     return i;
 }
 
 int Dictionary::HeadOfClusterByPosition( int position) const
 	{//the first entry in bucket chain.
-	ASSERT( 0 <= position && position < Capacity() && !table[position].Empty());
+	ASSERT( 0 <= position && position < Capacity() && ! table[position].Empty());
 	//look backward for the first item with the same bucket as myself.
 	int bucket = BucketByPosition(position);
 	int i = position;
@@ -174,22 +172,22 @@ int Dictionary::HeadOfClusterByPosition( int position) const
 
 int Dictionary::TailOfClusterByPosition(int position) const
 	{
-	ASSERT( 0 <= position && position < Capacity() && !table[position].Empty());
+	ASSERT(0 <= position && position < Capacity() && !table[position].Empty());
 	int bucket = BucketByPosition(position);
 	int i = position;
-	while( i < Capacity() && !table[i].Empty() && BucketByPosition(i) == bucket )
+	while( i < Capacity() && ! table[i].Empty() && BucketByPosition(i) == bucket )
 		i++; //stop just over the tail.
 	return i - 1; 
 	}
 
 int Dictionary::EndOfClusterByPosition(int position) const
-{
+	{
 	return TailOfClusterByPosition(position)+1;
-}
+	}
 
 int Dictionary::OffsetInClusterByPosition(int position) const
 	{
-	ASSERT( 0 <= position && position < Capacity() && !table[position].Empty() );
+	ASSERT(0 <= position && position < Capacity() && !table[position].Empty());
 	int head = HeadOfClusterByPosition(position);
 	return position - head;
 	}
@@ -201,7 +199,7 @@ int Dictionary::Next(int position) const
 	do
 		{
 		position++;
-		} while (position < Capacity() && table[position].Empty());
+		} while ( position < Capacity() && table[position].Empty() );
 	return position;
 	}
 
@@ -217,35 +215,35 @@ void Dictionary::AssertValid() const
 	for(int i=Capacity()-1; i>=0; i--)
 		if( table && !table[i].Empty())
 			n--;
-	ASSERT( (valid = (n==0)) );
-	DUMPIF(!valid);
+	ASSERT((valid = (n==0)));
+	DUMPIF(! valid);
 
 	//entries must clustered together 
-	for(int i=1; i<Capacity(); i++)
+	for( int i=1; i<Capacity(); i++ )
 		{
-			if(table[i].Empty() )
-				continue;
+		if(table[i].Empty() )
+			continue;
 
-			if(table[i-1].Empty())
+		if(table[i-1].Empty())
+			{
+			ASSERT((valid=(table[i].distance == 0)));
+			DUMPIF(! valid);
+			}
+		else 
+			{
+			ASSERT((valid=(table[i].bucket >= table[i-1].bucket)));
+			DUMPIF(! valid);
+			if(table[i].bucket == table[i-1].bucket )
 				{
-				ASSERT( (valid=(table[i].distance == 0)));
-				DUMPIF(!valid);
+				ASSERT((valid=(table[i].distance == table[i-1].distance+1)));
+				DUMPIF(! valid);
 				}
-			else 
+			else
 				{
-				ASSERT((valid=(table[i].bucket >= table[i-1].bucket)));
-				DUMPIF(!valid);
-				if(table[i].bucket == table[i-1].bucket )
-					{
-					ASSERT((valid=(table[i].distance == table[i-1].distance+1)));
-					DUMPIF(!valid);
-					}
-				else
-					{
-					ASSERT((valid=(table[i].distance <= table[i-1].distance)));
-					DUMPIF(!valid);
-					}
+				ASSERT((valid=(table[i].distance <= table[i-1].distance)));
+				DUMPIF(! valid);
 				}
+			}
 		}
 	}
 #endif//DEBUG
@@ -253,11 +251,11 @@ void Dictionary::AssertValid() const
 unsigned int Dictionary::MemoryAllocation() const
 	{
 	int size = padded_sizeof(*this);
-	if( table)
+	if( table )
 		{
  		size += pad_size(Capacity() * sizeof(DictEntry));
 		for ( int i = Capacity()-1; i>=0; i-- )
-			if ( !table[i].Empty() && table[i].key_size > 8)
+			if ( ! table[i].Empty() && table[i].key_size > 8)
 					size += pad_size(table[i].key_size);
 		}
 	if(order)
@@ -267,36 +265,36 @@ unsigned int Dictionary::MemoryAllocation() const
 
 void Dictionary::DumpKeys() const
 	{
-	if(!table)
+	if( ! table )
 		return;
 	char key_file[100];
 	//detect string or binary from first key.
 	int i=0; 
-	while(table[i].Empty() && i<Capacity())
+	while( table[i].Empty() && i < Capacity() )
 		i++;
 
 	bool binary = false;
 	const char* key = table[i].GetKey();
-	for(int j=0; j<table[i].key_size; j++)
+	for( int j=0; j < table[i].key_size; j++ )
 		if( !isprint(key[j]))
-		{
+			{
 			binary = true;
 			break;
-		}
+			}
 	int max_distance = 0;
 
 	DistanceStats(max_distance);
-	if	( binary)
+	if	( binary )
 		{
 		sprintf(key_file, "%d.%d.%d-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
 		ofstream f(key_file, ios::binary|ios::out|ios::trunc);
 		for(int i=0; i<Capacity(); i++)
 			if( !table[i].Empty())
-			{
+				{
 				int key_size = table[i].key_size;
 				f.write((const char*)&key_size, sizeof(int));
 				f.write(table[i].GetKey(), table[i].key_size);
-			}
+				}
 		}
 	else
 		{
@@ -305,8 +303,8 @@ void Dictionary::DumpKeys() const
 		for(int i=0; i<Capacity(); i++)
 			if( !table[i].Empty())
 			{
-				string s((char*)table[i].GetKey(), table[i].key_size);
-				f << s << endl;
+			string s((char*)table[i].GetKey(), table[i].key_size);
+			f << s << endl;
 			}
 		}
 	}
@@ -318,13 +316,13 @@ void Dictionary::DistanceStats(int& max_distance, int* distances, int num_distan
 		distances[i] = 0;
 	for(int i=0; i<Capacity(); i++)
 		{
-		if( table[i].Empty())
+		if( table[i].Empty() )
 			continue;
-		if( table[i].distance > max_distance)
+		if( table[i].distance > max_distance )
 			max_distance = table[i].distance;
-		if( num_distances <= 0 || !distances)
+		if( num_distances <= 0 || ! distances )
 			continue;
-		if(table[i].distance >= num_distances-1)
+		if( table[i].distance >= num_distances-1 )
 			distances[num_distances-1]++;
 		else
 			distances[table[i].distance]++;
@@ -350,10 +348,10 @@ void Dictionary::Dump(int level) const
 	int max_distance = 0;
 	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
 	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %'10d mem/ent %3d key/ent %3d lg %2d remaps %1d remap_end %4d ",
-		Capacity(), Length(), MaxLength(), (float)Length()/(table? Capacity() : 1), 
-		max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
-		log2_buckets, remaps, remap_end);
-	if( Length() > 0)
+		   Capacity(), Length(), MaxLength(), (float)Length()/(table? Capacity() : 1), 
+		   max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
+		   log2_buckets, remaps, remap_end);
+	if( Length() > 0 )
 		{
 		for(int i=0; i<DICT_NUM_DISTANCES-1; i++)
 			printf("[%d]%2d%% ", i, 100*distances[i]/Length());
@@ -363,11 +361,11 @@ void Dictionary::Dump(int level) const
 		printf("\n");
 		
 	printf("\n");
-	if( level >= 1)
+	if( level >= 1 )
 		{
 		printf("%-10s %1s %-10s %-4s %-4s %-10s %-18s %-2s\n", "Index", "*","Bucket", "Dist", "Off", "Hash", "FibHash", "KeySize");
-		for(int i=0; i<Capacity(); i++)
-			if( table[i].Empty())
+		for( int i=0; i<Capacity(); i++ )
+			if( table[i].Empty() )
 				printf("%'10d \n", i);
 			else
 				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016lx(%3d) %2d\n", 
@@ -388,7 +386,7 @@ Dictionary::Dictionary(dict_order ordering, int initial_size)
 	int psz = padded_sizeof(*this);
 	int dsz = sizeof(DictEntry);
 #endif//DEBUG
-	if(initial_size > 0)
+	if( initial_size > 0 )
 		{//if initial is specified, init the table right away, otherwise wait until the first insert to init. 
 		log2_buckets = Log2(initial_size);
 		Init();
@@ -404,7 +402,7 @@ Dictionary::~Dictionary()
 
 void Dictionary::Clear()
 	{
-	if(table)
+	if( table )
 		{
 		for ( int i = Capacity() - 1; i >= 0; i-- )
 			{
@@ -494,17 +492,17 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int* ins
 		return position;
 		}
 
-	for(int i=1; i<=remaps; i++)
+	for( int i=1; i<=remaps; i++ )
 		{
 		int prev_bucket = BucketByHash(hash,log2_buckets - i);
-		if( prev_bucket <= remap_end)
+		if( prev_bucket <= remap_end )
 			{ //possibly here. insert_position & insert_distance returned on failed lookup is not valid in previous table_sizes.
 			position = LookupIndex(key, key_size, hash, prev_bucket, remap_end+1); 
 			if(position >= 0)
 				{
 				ASSERT(position == linear_position);//same as linearLookup
 				//remap immediately if no iteration is on.
-				if( !num_iterators)
+				if( !num_iterators )
 					{
 					Remap(position, &position);
 					ASSERT(position == LookupIndex(key, key_size, hash));
@@ -515,7 +513,7 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int* ins
 		}
 	//not found
 #ifdef DEBUG
-	if( linear_position >= 0)
+	if( linear_position >= 0 )
 		{//different. stop and try to see whats happending.
 		ASSERT(false);
 		//rerun the function in debugger to track down the bug.
@@ -532,8 +530,8 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int buck
 	{
     ASSERT(bucket>=0 && bucket < Buckets());
 	int i = bucket;
-	for(; i < end && !table[i].Empty() && BucketByPosition(i) <= bucket; i++)
-		if( BucketByPosition(i) == bucket && table[i].Equal((char*)key, key_size, hash))
+	for( ; i < end && ! table[i].Empty() && BucketByPosition(i) <= bucket; i++ )
+		if( BucketByPosition(i) == bucket && table[i].Equal((char*)key, key_size, hash) )
 			return i;
 	//no such cluster, or not found in the cluster.			
     if(insert_position)
@@ -551,10 +549,10 @@ int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int buck
 ///If key exists, return its value, 
 ///If key doesn't exist, return NULL
 void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, int copy_key)
-{ 	
+	{ 	
 	ASSERT_VALID(this);
 	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators)); //only robust iterators exist.
-	if( !table )
+	if( ! table )
 		Init();//create table on first Insert to save memory on empty dicts.
 	void* v = NULL;
 	//if found. i is the position
@@ -565,7 +563,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, int co
 		{
 		v = table[position].value;
 		table[position].value = val;
-		if( !copy_key)
+		if( ! copy_key )
 			delete (char*)key;
 		
 		if( order )
@@ -581,7 +579,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, int co
 				ASSERT_VALID(c);
 				//ASSERT(false);
 				auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
-				if( it != c->inserted->end())
+				if( it != c->inserted->end() )
 					it->value = val;
 				}
 		}
@@ -604,7 +602,7 @@ void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val, int co
 
 	//Remap after insert can adjust asap to shorten period of mixed table.
 	//however, if remap happens right after size up, then it consumes more cpu for this cycle, a possible hickup point.
-	if( Remapping())
+	if( Remapping() )
 		Remap(); 
 	ASSERT_VALID(this);
 	return v; 
@@ -624,31 +622,30 @@ void Dictionary::InsertRelocateAndAdjust(DictEntry& entry, int insert_position)
 		remap_end = last_affected_position; //adjust to j on the conservative side.
 		}
 
-	if(cookies && !cookies->empty())
-		for(auto c: *cookies)
+	if( cookies && !cookies->empty() )
+		for( auto c: *cookies )
 			AdjustOnInsert(c, entry, insert_position, last_affected_position);			
-}
+	}
 
 /// insert entry into position, relocate other entries when necessary.
 void Dictionary::InsertAndRelocate(DictEntry& entry, int insert_position, int* last_affected_position)
 	{///take out the head of cluster and append to the end of the cluster.
-    while(true)
+    while( true )
     	{   
-        if(insert_position >= Capacity())
+        if( insert_position >= Capacity() )
         {
             ASSERT(insert_position == Capacity());
             SizeUp(); //copied all the items to new table. as it's just copying without remapping, insert_position is now empty.
             table[insert_position] = entry;
-			if(last_affected_position)
+			if( last_affected_position )
             	*last_affected_position = insert_position;
             return;
         }
-        if(table[insert_position].Empty())
+        if( table[insert_position].Empty() )
         {   //the condition to end the loop.
             table[insert_position] = entry;
 			if(last_affected_position)
             	*last_affected_position = insert_position;
-			
             return;
         }
         //the to-be-swapped-out item appends to the end of its original cluster.
@@ -667,9 +664,9 @@ void Dictionary::AdjustOnInsert(IterCookie* c, const DictEntry& entry, int inser
 	{
 	ASSERT(c);
 	ASSERT_VALID(c);
-	if(insert_position < c->next)
+	if( insert_position < c->next )
 		c->inserted->push_back(entry);
-	if( insert_position < c->next && c->next <= last_affected_position)
+	if( insert_position < c->next && c->next <= last_affected_position )
 		{	
 		int k = TailOfClusterByPosition(c->next);
 		ASSERT(k >= 0 && k < Capacity());
@@ -683,7 +680,7 @@ void Dictionary::SizeUp()
 	log2_buckets++;
 	int capacity = Capacity();
 	table = (DictEntry*)realloc(table, capacity*sizeof(DictEntry));
-	for(int i=prev_capacity; i<capacity; i++)
+	for( int i = prev_capacity; i < capacity; i++ )
 		table[i].SetEmpty();
 	
 	//Remap from last to first in reverse order. 
@@ -703,9 +700,9 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash, bool dont_d
 	{//cookie adjustment: maintain inserts here. maintain next in lower level version.
 	ASSERT_VALID(this);
 	ASSERT(num_iterators == 0 || (cookies && cookies->size() == num_iterators)); //only robust iterators exist.
-	ASSERT(!dont_delete); //this is a poorly designed flag. if on, the internal has nowhere to return and memory is lost.
+	ASSERT(! dont_delete); //this is a poorly designed flag. if on, the internal has nowhere to return and memory is lost.
 	int position = LookupIndex(key, key_size, hash);
-	if(position < 0)
+	if( position < 0 )
 		return NULL;
 		
 	DictEntry entry = RemoveRelocateAndAdjust(position);
@@ -729,7 +726,7 @@ DictEntry Dictionary::RemoveRelocateAndAdjust(int position)
 	for(int k=position; k<last_affected_position; k++)
 		ASSERT(!table[k].Empty());
 #endif//DEBUG	
-	if(cookies && !cookies->empty())
+	if( cookies && !cookies->empty() )
 		for(auto c: *cookies)
 			AdjustOnRemove(c, entry, position, last_affected_position);
 
@@ -740,12 +737,12 @@ DictEntry Dictionary::RemoveAndRelocate(int position, int* last_affected_positio
 	{//fill the empty position with the tail of the cluster of position+1.
 	ASSERT(position >= 0 && position < Capacity() && !table[position].Empty());
 	DictEntry entry = table[position];
-    while(true)
+    while( true )
     	{
-        if( position == Capacity() - 1 || table[position+1].Empty() || table[position+1].distance == 0)
+        if( position == Capacity() - 1 || table[position+1].Empty() || table[position+1].distance == 0 )
         	{//no next cluster to fill, or next position is empty or next position is already in perfect bucket.
             table[position].SetEmpty();
-			if(last_affected_position)
+			if( last_affected_position )
             	*last_affected_position = position;
             return entry;
         	}
@@ -761,7 +758,7 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const DictEntry& entry, int posit
 	{
 	ASSERT_VALID(c);
 	c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry), c->inserted->end());
-	if( position < c->next && c->next <= last_affected_position)
+	if( position < c->next && c->next <= last_affected_position )
 		{
 		int moved = HeadOfClusterByPosition(c->next-1);
 		if( moved < position )
@@ -770,7 +767,7 @@ void Dictionary::AdjustOnRemove(IterCookie* c, const DictEntry& entry, int posit
 		}
 
 	//if not already the end of the dictionary, adjust next to a valid one.	
-	if( c->next < Capacity() && table[c->next].Empty())
+	if( c->next < Capacity() && table[c->next].Empty() )
 		c->next = Next(c->next); 
 	}
 
@@ -785,18 +782,18 @@ void Dictionary::Remap()
 	///remap from bottom up.
 	///remap creates two parts of the dict: [0,remap_end] (remap_end, ...]. the former is mixed with old/new entries; the latter contains all new entries.
 	///
- 	if(num_iterators)
+ 	if( num_iterators )
 	 	return; 
 
 	int left = DICT_REMAP_ENTRIES;
-	while(remap_end >= 0 && left > 0)
+	while( remap_end >= 0 && left > 0 )
 		{	
-		if(!table[remap_end].Empty() && Remap(remap_end))
+		if( ! table[remap_end].Empty() && Remap(remap_end) )
 			left--;
 		else//< successful Remap may increase remap_end in the case of SizeUp due to insert. if so, remap_end need to be worked on again.
 			remap_end--;
 		}
-	if(remap_end < 0)
+	if( remap_end < 0 )
 		remaps = 0; //done remapping. 
 	}
 
@@ -804,7 +801,7 @@ bool Dictionary::Remap(int position, int* new_position)
 	{
 	ASSERT_VALID(this);
 	///Remap changes item positions by remove() and insert(). to avoid excessive operation. avoid it when safe iteration is in progress.
- 	ASSERT(!cookies || cookies->empty());
+ 	ASSERT(! cookies || cookies->empty());
 	int current = BucketByPosition(position);//current bucket
 	int expected = BucketByHash(table[position].hash, log2_buckets); //expected bucket in new table.
 	//equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as old. 50% of old items act this way due to fibhash.
@@ -841,7 +838,7 @@ void* Dictionary::NthEntry(int n, const void*& key, int& key_size) const
 
 void Dictionary::MakeRobustCookie(IterCookie* cookie)
 	{ //make sure c->next >= 0.
-	if( !cookies)
+	if( ! cookies )
 		cookies = new std::vector<IterCookie*>;
 	cookie->MakeRobust();
 	ASSERT_VALID(cookie);
@@ -856,7 +853,7 @@ IterCookie* Dictionary::InitForIterationNonConst() //const
 void Dictionary::StopIterationNonConst(IterCookie* cookie) //const
 	{
 	ASSERT(num_iterators > 0);
-	if(num_iterators > 0)
+	if( num_iterators > 0 )
 		num_iterators--;
 	delete cookie;
 	}
@@ -868,9 +865,9 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, int return_hash
 	// a large list when deleting an entry.
 	ASSERT(c);
 	ASSERT_VALID(c);
-	if(!table)
+	if( ! table )
 		{
-		if(num_iterators > 0)
+		if( num_iterators > 0 )
 			num_iterators--;
 		delete c;
 		c = NULL;
@@ -888,7 +885,7 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, int return_hash
 		return v;
 		}
 
-	if( c->next < 0)
+	if( c->next < 0 )
 		c->next = Next(-1);
 	int capacity = Capacity();
 	// if resize happens during iteration. before sizeup, c->next points to Capacity(),
@@ -898,19 +895,19 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, int return_hash
 	// before sizeup, we use c->next >= Capacity() to indicate the end of the iteration.
 	// now this guard is invalid, we may face c->next is valid but empty now.F
 	//fix it here.
-	if( c->next < capacity && table[c->next].Empty())
+	if( c->next < capacity && table[c->next].Empty() )
 		{
 		ASSERT(false); //stop to check the condition here. why it's happening.
 		c->next = Next(c->next);
 		}
 	//filter out visited keys.
-	if( c->visited && !c->visited->empty())
+	if( c->visited && !c->visited->empty() )
 		//filter out visited entries.
-		while(c->next < capacity )
+		while( c->next < capacity )
 			{
 			ASSERT(!table[c->next].Empty());
 			auto it = std::find(c->visited->begin(), c->visited->end(), table[c->next]);
-			if( it == c->visited->end())
+			if( it == c->visited->end() )
 				break;
 			c->visited->erase(it);
 			c->next = Next(c->next);
@@ -918,14 +915,14 @@ void* Dictionary::NextEntryNonConst(HashKey*& h, IterCookie*& c, int return_hash
 
 	if( c->next >= capacity )
 		{//end.
-		if(num_iterators > 0)
+		if( num_iterators > 0 )
 			num_iterators--;
 		delete c;
 		c = NULL;
 		return NULL; //end of iteration.
 		}
 
-	ASSERT(!table[c->next].Empty());
+	ASSERT(! table[c->next].Empty());
 	void* v = table[c->next].value;
 	if ( return_hash )
 		h = new HashKey(table[c->next].GetKey(), table[c->next].key_size, table[c->next].hash);

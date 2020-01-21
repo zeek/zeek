@@ -1,4 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
+#include "buffersplitter.h"
+#include "analyzer/Analyzer.h"
+#include "analyzer/protocol/pia/PIA.h"
+#include "analyzer/protocol/tcp/TCP.h"
+#include "iosource/pcap/Source.h"
 
 #include "zeek-config.h"
 
@@ -787,11 +792,13 @@ int main(int argc, char** argv)
 
 	plugin_mgr->SearchDynamicPlugins(bro_plugin_path());
 
+	/*
 	if ( optind == bro_argc &&
 	     read_files.length() == 0 &&
 	     interfaces.length() == 0 &&
 	     ! id_name && ! command_line_policy && ! print_plugins )
 		add_input_file("-");
+	*/
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
@@ -1081,7 +1088,6 @@ int main(int argc, char** argv)
 
 		g_frame_stack.pop_back();
 		}
-
 	if ( override_ignore_checksums )
 		ignore_checksums = 1;
 
@@ -1150,6 +1156,70 @@ int main(int argc, char** argv)
 				mem_net_start_total / 1024 / 1024,
 				mem_net_start_malloced / 1024 / 1024);
 			}
+
+		const unsigned char * some_data = (unsigned char*) malloc(8192);
+		size_t size;
+		iosource::pcap::PcapSource ios("Doesn't matter", false);
+		current_iosrc = &ios;
+		int iter = 0;
+		bool is_orig = false;
+		while (__AFL_LOOP(5000)) {
+			//FILE *f = fopen("/tmp/log.txt", "a"); fprintf(f, "Iteration %d\n", iter++); fclose(f);
+			memset((void*)some_data, 0, 8192);
+			size = read(0, (char*)some_data, 8192);
+			if(0 != buffer_splitter_validate(some_data, size))
+				continue;
+
+			Packet p;
+			ConnID conn_id;
+			conn_id.src_addr = IPAddr("1.2.3.4");
+			conn_id.dst_addr = IPAddr("5.6.7.8");
+			conn_id.src_port = htons(23132);
+			conn_id.dst_port = htons(445);
+			ConnIDKey key = BuildConnIDKey(conn_id);
+			sessions = new NetSessions(); // normally done in net_init
+			Connection* conn = new Connection(sessions, key, 1439471031, &conn_id, 1, &p, 0);
+			conn->SetTransport(TRANSPORT_TCP);
+			sessions->Insert(conn);
+
+			analyzer::tcp::TCP_Analyzer *tcpa = new analyzer::tcp::TCP_Analyzer(conn);
+			analyzer::pia::PIA* pia = new analyzer::pia::PIA_TCP(conn);
+			auto ana = analyzer_mgr->InstantiateAnalyzer("ssl", conn);
+			tcpa->AddChildAnalyzer(ana);
+			conn->SetRootAnalyzer(tcpa, pia);
+			//root->Init();
+			//root->InitChildren();
+
+			buffer_splitter *pp = buffer_splitter_init(some_data, size);
+			if(pp == NULL)
+				return 1;
+			int err;
+			unsigned char *chunk;
+			size_t chunk_size;
+			bool is_orig;
+
+			while(true) {
+				err = buffer_splitter_next(pp, &chunk, &chunk_size, &is_orig);
+				if (err)
+					break;
+				if (chunk_size==0)
+					break;
+				printf("Got chunk of length=%d, is_orig=%d\n", chunk_size, is_orig);
+				try {
+					ana->DeliverStream(chunk_size, chunk, is_orig);
+				} catch ( binpac::Exception const &e ) {
+				}
+				mgr.Drain();
+			}
+			buffer_splitter_delete(pp);
+			//delete ana;
+			//delete tcpa;
+			//delete pia;
+			//delete conn; sessions does this for me?
+			sessions->Drain();
+			delete sessions;
+		}
+		exit(0);
 
 		net_run();
 

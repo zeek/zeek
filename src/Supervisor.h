@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
 #include <sys/types.h>
@@ -17,6 +19,7 @@
 #include "Flare.h"
 #include "NetVar.h"
 #include "IntrusivePtr.h"
+#include "Options.h"
 
 namespace zeek {
 
@@ -149,8 +152,17 @@ public:
 		 * that otherwise is expected to be populated by a
 		 * "cluster-layout.zeek" script in other context (e.g. ZeekCtl
 		 * generates that cluster layout).
+		 * @return  true if the supervised node is using the Cluster Framework
+		 * else false.
 		 */
-		static bool InitCluster();
+		bool InitCluster() const;
+
+		/**
+		 * Initialize the Supervised node.
+		 * @param options  the Zeek options to extend/modify as appropriate
+		 * for the node's configuration.
+		 */
+		void Init(zeek::Options* options) const;
 
 		/**
 		 * The node's configuration options.
@@ -223,28 +235,50 @@ public:
 	};
 
 	/**
-	 * Run the Stem process.  The Stem process will receive instructions from
-	 * the Supervisor to manipulate the process hierarchy and it's in charge
-	 * of directly monitoring for whether any nodes die premature and need
-	 * to be revived.
-	 * @param pipe  bidirectional pipes that allow the Supervisor and Stem
-	 * process to communicate.
-	 * @param pid  the Stem's parent process ID (i.e. the PID of the Supervisor)
-	 * @return  state which describes what a supervised node should know about
-	 * itself.  I.e. this function only returns from a fork()'d child process.
+	 * State used to initalialize the Stem process.
 	 */
-	static SupervisedNode RunStem(std::unique_ptr<bro::PipePair> pipe,
-	                              pid_t parent_pid);
+	struct StemState {
+		/**
+		 * Bidirectional pipes that allow the Supervisor and Stem to talk.
+		 */
+		std::unique_ptr<bro::PipePair> pipe;
+		/**
+		 * The Stem's parent process ID (i.e. PID of the Supervisor).
+		 */
+		pid_t parent_pid = 0;
+		/**
+		 * The Stem's process ID.
+		 */
+		pid_t pid = 0;
+	};
+
+	/**
+	 * Create and run the Stem process if necessary.
+	 * @param supervisor_mode  whether Zeek was invoked with the supervisor
+	 * mode specified as command-line argument/option.
+	 * @return  state that defines the Stem process if called from the
+	 * Supervisor process.  The Stem process itself will not return from this,
+	 * function but a node it spawns via fork() will return from it and
+	 * information about it is available in ThisNode().
+	 */
+	static std::optional<StemState> CreateStem(bool supervisor_mode);
+
+	/**
+	 * @return  the state which describes what a supervised node should know
+	 * about itself if this is a supervised process.  If called from a process
+	 * that is not supervised, this returns an "empty" object.
+	 */
+	static const std::optional<SupervisedNode>& ThisNode()
+		{ return supervised_node; }
 
 	using NodeMap = std::map<std::string, Node, std::less<>>;
 
 	/**
 	 * Create a new Supervisor object.
-	 * @param stem_pipe  bidirectional pipe that allow the Supervisor and Stem
-	 * process to communicate.
-	 * @param stem_pid  the Stem's process ID.
+	 * @param stem_state  information about the Stem process that was already
+	 * created via CreateStem()
 	 */
-	Supervisor(Config cfg, std::unique_ptr<bro::PipePair> stem_pipe, pid_t stem_pid);
+	Supervisor(Config cfg, StemState stem_state);
 
 	/**
 	 * Destruction also cleanly shuts down the entire supervised process tree.
@@ -329,6 +363,21 @@ private:
 	const char* Tag() override
 		{ return "zeek::Supervisor"; }
 
+	/**
+	 * Run the Stem process.  The Stem process will receive instructions from
+	 * the Supervisor to manipulate the process hierarchy and it's in charge
+	 * of directly monitoring for whether any nodes die premature and need
+	 * to be revived.
+	 * @param pipe  bidirectional pipes that allow the Supervisor and Stem
+	 * process to communicate.
+	 * @param pid  the Stem's parent process ID (i.e. the PID of the Supervisor)
+	 * @return  state which describes what a supervised node should know about
+	 * itself.  I.e. this function only returns from a fork()'d child process.
+	 */
+	static SupervisedNode RunStem(StemState stem_state);
+
+	static std::optional<SupervisedNode> supervised_node;
+
 	Config config;
 	pid_t stem_pid;
 	std::unique_ptr<bro::PipePair> stem_pipe;
@@ -360,7 +409,6 @@ protected:
 	double interval;
 };
 
-extern Supervisor* supervisor;
-extern std::optional<Supervisor::SupervisedNode> supervised_node;
+extern Supervisor* supervisor_mgr;
 
 } // namespace zeek

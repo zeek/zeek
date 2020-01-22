@@ -23,6 +23,7 @@ extern "C" {
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#include "Options.h"
 #include "bsd-getopt-long.h"
 #include "input.h"
 #include "DNS_Mgr.h"
@@ -78,8 +79,6 @@ extern "C" {
 #include "setsignal.h"
 };
 
-#include "zeek-affinity.h"
-
 #ifdef USE_PERFTOOLS_DEBUG
 HeapLeakChecker* heap_checker = 0;
 int perftools_leaks = 0;
@@ -99,8 +98,7 @@ file_analysis::Manager* file_mgr = 0;
 zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
-zeek::Supervisor* zeek::supervisor = 0;
-std::optional<zeek::Supervisor::SupervisedNode> zeek::supervised_node;
+zeek::Supervisor* zeek::supervisor_mgr = 0;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
@@ -197,7 +195,7 @@ static void usage(const char* prog, int code = 1)
 	fprintf(stderr, "    -M|--mem-profile               | record heap [perftools]\n");
 #endif
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]  | enable pseudo-realtime for performance evaluation (default 1)\n");
-	fprintf(stderr, "    -j|--jobs[=<worker count>]     | enable supervisor mode with N workers (default 1)\n");
+	fprintf(stderr, "    -j|--jobs                      | enable supervisor mode\n");
 
 #ifdef USE_IDMEF
 	fprintf(stderr, "    -n|--idmef-dtd <idmef-msg.dtd> | specify path to IDMEF DTD file\n");
@@ -221,185 +219,6 @@ static void usage(const char* prog, int code = 1)
 	exit(code);
 	}
 
-struct zeek_options {
-	bool print_version = false;
-	bool print_usage = false;
-	bool print_execution_time = false;
-	bool print_signature_debug_info = false;
-	int print_plugins = 0;
-
-	std::optional<std::string> debug_log_streams;
-	std::optional<std::string> debug_script_tracing_file;
-
-	std::optional<std::string> identifier_to_print;
-	std::optional<std::string> script_code_to_exec;
-	std::vector<std::string> script_prefixes = { "" }; // "" = "no prefix"
-
-	int signature_re_level = 4;
-	bool ignore_checksums = false;
-	bool use_watchdog = false;
-	double pseudo_realtime = 0;
-	DNS_MgrMode dns_mode = DNS_DEFAULT;
-
-	bool supervisor_mode = false;
-	bool parse_only = false;
-	bool bare_mode = false;
-	bool debug_scripts = false;
-	bool perftools_check_leaks = false;
-	bool perftools_profile = false;
-
-	bool run_unit_tests = false;
-	std::vector<std::string> doctest_args;
-
-	std::optional<std::string> pcap_filter;
-	std::vector<std::string> interfaces;
-	std::vector<std::string> pcap_files;
-	std::vector<std::string> signature_files;
-
-	std::optional<std::string> pcap_output_file;
-	std::optional<std::string> random_seed_input_file;
-	std::optional<std::string> random_seed_output_file;
-	std::optional<std::string> process_status_file;
-	std::optional<std::string> zeekygen_config_file;
-	std::string libidmef_dtd_file = "idmef-message.dtd";
-
-	std::set<std::string> plugins_to_load;
-	std::vector<std::string> scripts_to_load;
-	std::vector<std::string> script_options_to_set;
-
-	/**
-	 * Unset options that aren't meant to be used by the supervisor, but may
-	 * make sense for supervised nodes to inherit (as opposed to flagging
-	 * as an error an exiting outright if used in supervisor-mode).
-	 */
-	void filter_supervisor_options()
-		{
-		pcap_filter = {};
-		interfaces = {};
-		pcap_files = {};
-		signature_files = {};
-		pcap_output_file = {};
-		}
-
-	/**
-	 * Inherit certain options set in the original supervisor parent process
-	 * and discard the rest.
-	 */
-	void filter_supervised_node_options()
-		{
-		auto og = *this;
-		*this = {};
-
-		debug_log_streams = og.debug_log_streams;
-		debug_script_tracing_file = og.debug_script_tracing_file;
-		script_code_to_exec = og.script_code_to_exec;
-		script_prefixes = og.script_prefixes;
-
-		signature_re_level = og.signature_re_level;
-		ignore_checksums = og.ignore_checksums;
-		use_watchdog = og.use_watchdog;
-		pseudo_realtime = og.pseudo_realtime;
-		dns_mode = og.dns_mode;
-
-		bare_mode = og.bare_mode;
-		perftools_check_leaks = og.perftools_check_leaks;
-		perftools_profile = og.perftools_profile;
-
-		pcap_filter = og.pcap_filter;
-		signature_files = og.signature_files;
-
-		// TODO: These are likely to be handled in a node-specific or
-		// use-case-specific way.  e.g. interfaces is already handled for the
-		// "cluster" use-case, but don't have supervised-pcap-reading
-		// functionality yet.
-		/* interfaces = og.interfaces; */
-		/* pcap_files = og.pcap_files; */
-
-		pcap_output_file = og.pcap_output_file;
-		random_seed_input_file = og.random_seed_input_file;
-		random_seed_output_file = og.random_seed_output_file;
-		process_status_file = og.process_status_file;
-
-		plugins_to_load = og.plugins_to_load;
-		scripts_to_load = og.scripts_to_load;
-		script_options_to_set = og.script_options_to_set;
-		}
-};
-
-static void init_supervised_node(zeek_options* options)
-	{
-	const auto& config = zeek::supervised_node->config;
-	const auto& node_name = config.name;
-
-	if ( config.directory )
-		{
-		if ( chdir(config.directory->data()) )
-			{
-			fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
-			        node_name.data(), config.directory->data(),
-			        strerror(errno));
-			exit(1);
-			}
-		}
-
-	if ( config.stderr_file )
-		{
-		auto fd = open(config.stderr_file->data(),
-			           O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
-			           0600);
-
-		if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
-			{
-			fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
-			        node_name.data(), config.stderr_file->data(),
-			        strerror(errno));
-			exit(1);
-			}
-		}
-
-	if ( config.stdout_file )
-		{
-		auto fd = open(config.stdout_file->data(),
-		               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
-		               0600);
-
-		if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
-			{
-			fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
-			        node_name.data(), config.stdout_file->data(),
-			        strerror(errno));
-			exit(1);
-			}
-		}
-
-	if ( config.cpu_affinity )
-		{
-		auto res = zeek::set_affinity(*config.cpu_affinity);
-
-		if ( ! res )
-			fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
-			        node_name.data(), strerror(errno));
-		}
-
-	options->filter_supervised_node_options();
-
-	if ( config.interface )
-		options->interfaces.emplace_back(*config.interface);
-
-	if ( ! config.cluster.empty() )
-		{
-		if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
-			{
-			fprintf(stderr, "node '%s' failed to setenv: %s\n",
-			        node_name.data(), strerror(errno));
-			exit(1);
-			}
-		}
-
-	for ( const auto& s : config.scripts )
-		options->scripts_to_load.emplace_back(s);
-	}
-
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 	{
 	std::vector<const char*> rval;
@@ -411,9 +230,9 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 	return rval;
 	}
 
-static zeek_options parse_cmdline(int argc, char** argv)
+static zeek::Options parse_cmdline(int argc, char** argv)
 	{
-	zeek_options rval = {};
+	zeek::Options rval;
 
 	// When running unit tests, the first argument on the command line must be
 	// --test, followed by doctest options. Optionally, users can use "--" as
@@ -522,7 +341,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 	// getopt may permute the array, so need yet another array
 	auto zargs = std::make_unique<char*[]>(zeek_args.size());
 
-	for ( auto i = 0; i < zeek_args.size(); ++i )
+	for ( auto i = 0u; i < zeek_args.size(); ++i )
 		zargs[i] = zeek_args[i].data();
 
 	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) != EOF )
@@ -671,7 +490,7 @@ static zeek_options parse_cmdline(int argc, char** argv)
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
 	// activate/query. The remainder are treated as scripts to load.
-	while ( optind < zeek_args.size() )
+	while ( optind < static_cast<int>(zeek_args.size()) )
 		{
 		if ( strchr(zargs[optind], '=') )
 			rval.script_options_to_set.emplace_back(zargs[optind++]);
@@ -1017,52 +836,10 @@ int main(int argc, char** argv)
 		return context.run();
 		}
 
-	pid_t stem_pid = 0;
-	std::unique_ptr<bro::PipePair> supervisor_pipe;
-	auto zeek_stem_env = getenv("ZEEK_STEM");
+	auto stem_state = zeek::Supervisor::CreateStem(options.supervisor_mode);
 
-	if ( zeek_stem_env )
-		{
-		std::vector<std::string> zeek_stem_nums;
-		tokenize_string(zeek_stem_env, ",", &zeek_stem_nums);
-
-		if ( zeek_stem_nums.size() != 5 )
-			{
-			fprintf(stderr, "invalid ZEEK_STEM environment variable value: '%s'\n",
-			        zeek_stem_env);
-			exit(1);
-			}
-
-		pid_t stem_ppid = std::stoi(zeek_stem_nums[0]);
-		int fds[4];
-
-		for ( auto i = 0; i < 4; ++i )
-			fds[i] = std::stoi(zeek_stem_nums[i + 1]);
-
-		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK, fds});
-		zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe),
-		                                                  stem_ppid);
-		}
-	else if ( options.supervisor_mode )
-		{
-		supervisor_pipe.reset(new bro::PipePair{FD_CLOEXEC, O_NONBLOCK});
-		auto stem_ppid = getpid();
-		stem_pid = fork();
-
-		if ( stem_pid == -1 )
-			{
-			fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
-			        strerror(errno));
-			exit(1);
-			}
-
-		if ( stem_pid == 0 )
-			zeek::supervised_node = zeek::Supervisor::RunStem(std::move(supervisor_pipe),
-			                                                  stem_ppid);
-		}
-
-	if ( zeek::supervised_node )
-		init_supervised_node(&options);
+	if ( zeek::Supervisor::ThisNode() )
+		zeek::Supervisor::ThisNode()->Init(&options);
 
 	double time_start = current_time(true);
 
@@ -1134,9 +911,8 @@ int main(int argc, char** argv)
 		zeek::Supervisor::Config cfg = {};
 		cfg.zeek_exe_path = zeek_exe_path;
 		options.filter_supervisor_options();
-		zeek::supervisor = new zeek::Supervisor(std::move(cfg),
-		                                        std::move(supervisor_pipe),
-		                                        stem_pid);
+		zeek::supervisor_mgr = new zeek::Supervisor(std::move(cfg),
+		                                            std::move(*stem_state));
 		}
 
 	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");
@@ -1191,7 +967,7 @@ int main(int argc, char** argv)
 	     options.interfaces.size() == 0 &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
-	     ! options.supervisor_mode && ! zeek::supervised_node )
+	     ! options.supervisor_mode && ! zeek::Supervisor::ThisNode() )
 		add_input_file("-");
 
 	for ( const auto& script_option : options.script_options_to_set )
@@ -1510,8 +1286,8 @@ int main(int argc, char** argv)
 
 	iosource_mgr->Register(thread_mgr, true);
 
-	if ( zeek::supervisor )
-		iosource_mgr->Register(zeek::supervisor);
+	if ( zeek::supervisor_mgr )
+		iosource_mgr->Register(zeek::supervisor_mgr);
 
 	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||
@@ -1532,7 +1308,7 @@ int main(int argc, char** argv)
 
 #endif
 
-		if ( zeek::supervised_node )
+		if ( zeek::Supervisor::ThisNode() )
 			timer_mgr->Add(new zeek::ParentProcessCheckTimer(1, 1));
 
 		double time_net_start = current_time(true);;

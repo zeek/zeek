@@ -1,3 +1,4 @@
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -17,6 +18,7 @@
 #include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
+#include "zeek-affinity.h"
 
 #define RAPIDJSON_HAS_STDSTRING 1
 #include "3rdparty/rapidjson/include/rapidjson/document.h"
@@ -33,9 +35,11 @@ extern "C" {
 
 using namespace zeek;
 
+std::optional<Supervisor::SupervisedNode> Supervisor::supervised_node;
+
 namespace {
 struct Stem {
-	Stem(std::unique_ptr<bro::PipePair> p, pid_t parent_pid);
+	Stem(Supervisor::StemState stem_state);
 
 	~Stem();
 
@@ -98,7 +102,7 @@ static RETSIGTYPE stem_signal_handler(int signo)
 
 static RETSIGTYPE supervisor_signal_handler(int signo)
 	{
-	supervisor->ObserveChildSignal(signo);
+	supervisor_mgr->ObserveChildSignal(signo);
 	return RETSIGVAL;
 	}
 
@@ -143,7 +147,7 @@ void ParentProcessCheckTimer::Dispatch(double t, int is_expire)
 	//   Linux:   prctl(PR_SET_PDEATHSIG, ...)
 	//   FreeBSD: procctl(PROC_PDEATHSIG_CTL)
 	// Also note the Stem process has its own polling loop with similar logic.
-	if ( zeek::supervised_node->parent_pid != getppid() )
+	if ( zeek::Supervisor::ThisNode()->parent_pid != getppid() )
 		zeek_terminate_loop("supervised node was orphaned");
 
 	if ( ! is_expire )
@@ -151,10 +155,8 @@ void ParentProcessCheckTimer::Dispatch(double t, int is_expire)
 		                                           interval));
 	}
 
-Supervisor::Supervisor(Supervisor::Config cfg,
-                       std::unique_ptr<bro::PipePair> pipe,
-                       pid_t arg_stem_pid)
-	: config(std::move(cfg)), stem_pid(arg_stem_pid), stem_pipe(std::move(pipe))
+Supervisor::Supervisor(Supervisor::Config cfg, StemState ss)
+	: config(std::move(cfg)), stem_pid(ss.pid), stem_pipe(std::move(ss.pipe))
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
 	setsignal(SIGCHLD, supervisor_signal_handler);
@@ -179,8 +181,7 @@ Supervisor::Supervisor(Supervisor::Config cfg,
 			fprintf(stderr, "Supervisor stem died early by signal %d\n",
 			        WTERMSIG(status));
 		else
-			fprintf(stderr, "Supervisor stem died early for unknown reason\n",
-			        WTERMSIG(status));
+			fprintf(stderr, "Supervisor stem died early for unknown reason\n");
 		}
 
 	exit(1);
@@ -411,8 +412,8 @@ size_t Supervisor::ProcessMessages()
 	return msgs.size();
 	}
 
-Stem::Stem(std::unique_ptr<bro::PipePair> p, pid_t ppid)
-	: parent_pid(ppid), signal_flare(new bro::Flare()), pipe(std::move(p))
+Stem::Stem(Supervisor::StemState ss)
+	: parent_pid(ss.parent_pid), signal_flare(new bro::Flare()), pipe(std::move(ss.pipe))
 	{
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
@@ -857,10 +858,66 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 	return {};
 	}
 
-Supervisor::SupervisedNode Supervisor::RunStem(std::unique_ptr<bro::PipePair> pipe, pid_t parent_pid)
+std::optional<Supervisor::StemState> Supervisor::CreateStem(bool supervisor_mode)
 	{
-	Stem s(std::move(pipe), parent_pid);
-	return s.Run();
+	// If the Stem needs to be re-created via fork()/exec(), then the necessary
+	// state information is communicated via ZEEK_STEM env. var.
+	auto zeek_stem_env = getenv("ZEEK_STEM");
+
+	if ( zeek_stem_env )
+		{
+		std::vector<std::string> zeek_stem_nums;
+		tokenize_string(zeek_stem_env, ",", &zeek_stem_nums);
+
+		if ( zeek_stem_nums.size() != 5 )
+			{
+			fprintf(stderr, "invalid ZEEK_STEM environment variable value: '%s'\n",
+			        zeek_stem_env);
+			exit(1);
+			}
+
+		pid_t stem_ppid = std::stoi(zeek_stem_nums[0]);
+		int fds[4];
+
+		for ( auto i = 0; i < 4; ++i )
+			fds[i] = std::stoi(zeek_stem_nums[i + 1]);
+
+		StemState ss;
+		ss.pipe = std::make_unique<bro::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
+		ss.parent_pid = stem_ppid;
+		zeek::Supervisor::RunStem(std::move(ss));
+		return {};
+		}
+
+	if ( ! supervisor_mode )
+		return {};
+
+	StemState ss;
+	ss.pipe = std::make_unique<bro::PipePair>(FD_CLOEXEC, O_NONBLOCK);
+	ss.parent_pid = getpid();
+	ss.pid = fork();
+
+	if ( ss.pid == -1 )
+		{
+		fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
+			    strerror(errno));
+		exit(1);
+		}
+
+	if ( ss.pid == 0 )
+		{
+		zeek::Supervisor::RunStem(std::move(ss));
+		return {};
+		}
+
+	return std::optional<Supervisor::StemState>(std::move(ss));
+	}
+
+Supervisor::SupervisedNode Supervisor::RunStem(StemState stem_state)
+	{
+	Stem s(std::move(stem_state));
+	supervised_node = s.Run();
+	return *supervised_node;
 	}
 
 static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
@@ -908,7 +965,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	auto scripts_val = node->Lookup("scripts")->AsVectorVal();
 
-	for ( auto i = 0; i < scripts_val->Size(); ++i )
+	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
 		auto script = scripts_val->Lookup(i)->AsStringVal()->ToStdString();
 		rval.scripts.emplace_back(std::move(script));
@@ -1088,9 +1145,9 @@ static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRol
 	}
 	}
 
-bool Supervisor::SupervisedNode::InitCluster()
+bool Supervisor::SupervisedNode::InitCluster() const
 	{
-	if ( supervised_node->config.cluster.empty() )
+	if ( config.cluster.empty() )
 		return false;
 
 	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->AsType()->AsRecordType();
@@ -1100,7 +1157,7 @@ bool Supervisor::SupervisedNode::InitCluster()
 	auto has_logger = false;
 	std::optional<std::string> manager_name;
 
-	for ( const auto& e : supervised_node->config.cluster )
+	for ( const auto& e : config.cluster )
 		{
 		if ( e.second.role == BifEnum::Supervisor::MANAGER )
 			manager_name = e.first;
@@ -1108,7 +1165,7 @@ bool Supervisor::SupervisedNode::InitCluster()
 			has_logger = true;
 		}
 
-	for ( const auto& e : supervised_node->config.cluster )
+	for ( const auto& e : config.cluster )
 		{
 		const auto& node_name = e.first;
 		const auto& ep = e.second;
@@ -1133,6 +1190,79 @@ bool Supervisor::SupervisedNode::InitCluster()
 
 	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
 	return true;
+	}
+
+void Supervisor::SupervisedNode::Init(zeek::Options* options) const
+	{
+	const auto& node_name = config.name;
+
+	if ( config.directory )
+		{
+		if ( chdir(config.directory->data()) )
+			{
+			fprintf(stderr, "node '%s' failed to chdir to %s: %s\n",
+			        node_name.data(), config.directory->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( config.stderr_file )
+		{
+		auto fd = open(config.stderr_file->data(),
+			           O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+			           0600);
+
+		if ( fd == -1 || dup2(fd, STDERR_FILENO) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to create stderr file %s: %s\n",
+			        node_name.data(), config.stderr_file->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( config.stdout_file )
+		{
+		auto fd = open(config.stdout_file->data(),
+		               O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC,
+		               0600);
+
+		if ( fd == -1 || dup2(fd, STDOUT_FILENO) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to create stdout file %s: %s\n",
+			        node_name.data(), config.stdout_file->data(),
+			        strerror(errno));
+			exit(1);
+			}
+		}
+
+	if ( config.cpu_affinity )
+		{
+		auto res = zeek::set_affinity(*config.cpu_affinity);
+
+		if ( ! res )
+			fprintf(stderr, "node '%s' failed to set CPU affinity: %s\n",
+			        node_name.data(), strerror(errno));
+		}
+
+	if ( ! config.cluster.empty() )
+		{
+		if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 )
+			{
+			fprintf(stderr, "node '%s' failed to setenv: %s\n",
+			        node_name.data(), strerror(errno));
+			exit(1);
+			}
+		}
+
+	options->filter_supervised_node_options();
+
+	if ( config.interface )
+		options->interfaces.emplace_back(*config.interface);
+
+	for ( const auto& s : config.scripts )
+		options->scripts_to_load.emplace_back(s);
 	}
 
 RecordVal* Supervisor::Status(std::string_view node_name)

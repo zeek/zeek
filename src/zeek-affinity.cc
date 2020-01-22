@@ -1,5 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+// This is all in its own source file primarily because the Linux
+// implementation uses the _GNU_SOURCE feature test macro which must be
+// defined before including any header file and lumping this together with
+// other util functions makes that requirement less apparent and less
+// self-contained.
+
 #if defined(__linux__)
 
 #if !defined(_GNU_SOURCE)

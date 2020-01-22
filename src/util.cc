@@ -612,7 +612,7 @@ TEST_CASE("util uitoa_n")
 
 char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	{
-	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static constexpr char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	assert(n);
 

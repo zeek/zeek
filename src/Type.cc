@@ -19,7 +19,7 @@ BroType::TypeAliasMap BroType::type_aliases;
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t)
 	{
-	static const char* type_names[int(NUM_TYPES)] = {
+	static constexpr const char* type_names[int(NUM_TYPES)] = {
 		"void",      // 0
 		"bool",      // 1
 		"int",       // 2

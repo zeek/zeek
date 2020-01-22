@@ -623,7 +623,7 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 
 	if ( prefix )
 		{
-		strncpy(str, prefix, n);
+		strncpy(str, prefix, n-1);
 		str[n-1] = '\0';
 		i += strlen(prefix);
 		}

@@ -234,7 +234,10 @@
 #define ZEEK_PLUGIN_INTERNAL_BUILD @ZEEK_PLUGIN_INTERNAL_BUILD@
 #endif
 
-/* A C function that has the Zeek version encoded into its name. */
+/* A C function that has the Zeek version encoded into its name. Note
+that this is part of the plugin API and hence retains the "Bro" name
+for now. */
+
 #define BRO_VERSION_FUNCTION bro_version_@VERSION_C_IDENT@
 #ifdef __cplusplus
 extern "C" {

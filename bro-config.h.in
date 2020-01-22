@@ -1,5 +1,0 @@
-#pragma once
-
-#pragma message("Warning: bro-config.h is deprecated, use zeek-config.h instead")
-
-#include "zeek-config.h"

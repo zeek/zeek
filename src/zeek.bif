@@ -413,20 +413,13 @@ static bool prepare_environment(TableVal* tbl, bool set)
 
 		char* tmp = copy_string(key->AsString()->CheckString());
 		to_upper(tmp);
-		std::string var1 = fmt("ZEEK_ARG_%s", tmp);
-		std::string var2 = fmt("BRO_ARG_%s", tmp); // legacy support
+		std::string var = fmt("ZEEK_ARG_%s", tmp);
 		delete [] tmp;
 
 		if ( set )
-			{
-			setenv(var1.data(), val->AsString()->CheckString(), 1);
-			setenv(var2.data(), val->AsString()->CheckString(), 1);
-			}
+			setenv(var.data(), val->AsString()->CheckString(), 1);
 		else
-			{
-			unsetenv(var1.data());
-			unsetenv(var2.data());
-			}
+			unsetenv(var.data());
 		}
 
 	return true;
@@ -1820,15 +1813,6 @@ function getpid%(%) : count
 extern const char* zeek_version();
 %%}
 
-## Returns the Zeek version string.  This function is deprecated, use
-## :zeek:see:`zeek_version` instead.
-##
-## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
-function bro_version%(%): string &deprecated="Remove in v3.1: use zeek_version"
-	%{
-	return new StringVal(zeek_version());
-	%}
-
 ## Returns the Zeek version string.
 ##
 ## Returns: Zeek's version, e.g., 2.0-beta-47-debug.
@@ -2128,17 +2112,6 @@ function dump_rule_stats%(f: file%): bool
 		rule_matcher->DumpStats(f);
 
 	return val_mgr->GetBool(1);
-	%}
-
-## Checks if Zeek is terminating.  This function is deprecated, use
-## :zeek:see:`zeek_is_terminating` instead.
-##
-## Returns: True if Zeek is in the process of shutting down.
-##
-## .. zeek:see:: terminate
-function bro_is_terminating%(%): bool &deprecated="Remove in v3.1: use zeek_is_terminating"
-	%{
-	return val_mgr->GetBool(terminating);
 	%}
 
 ## Checks if Zeek is terminating.

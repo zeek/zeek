@@ -1232,19 +1232,10 @@ TEST_CASE("util is_package_loader")
 	CHECK(is_package_loader("/some/path/notload.zeek") == false);
 	}
 
-const array<string, 2> script_extensions = {".zeek", ".bro"};
-
 bool is_package_loader(const string& path)
 	{
 	string filename(std::move(SafeBasename(path).result));
-
-	for ( const string& ext : script_extensions )
-		{
-		if ( filename == "__load__" + ext )
-			return true;
-		}
-
-	return false;
+	return (filename == "__load__.zeek");
 	}
 
 FILE* open_file(const string& path, const string& mode)
@@ -1272,23 +1263,13 @@ static bool can_read(const string& path)
 FILE* open_package(string& path, const string& mode)
 	{
 	string arg_path = path;
-	path.append("/__load__");
+	path.append("/__load__.zeek");
 
-	for ( const string& ext : script_extensions )
-		{
-		string p = path + ext;
-		if ( can_read(p) )
-			{
-			path.append(ext);
-			return open_file(path, mode);
-			}
-		}
+	if ( ! can_read(path) )
+		reporter->Error("Failed to open package '%s': missing '__load__.zeek' file",
+				arg_path.c_str());
 
-	path.append(script_extensions[0]);
-	string package_loader = "__load__" + script_extensions[0];
-	reporter->Error("Failed to open package '%s': missing '%s' file",
-	                arg_path.c_str(), package_loader.c_str());
-	return 0;
+	return open_file(path, mode);
 	}
 
 TEST_CASE("util path ops")
@@ -1609,22 +1590,12 @@ string find_script_file(const string& filename, const string& path_set)
 	vector<string> paths;
 	tokenize_string(path_set, ":", &paths);
 
-	vector<string> ext(script_extensions.begin(), script_extensions.end());
-
 	for ( size_t n = 0; n < paths.size(); ++n )
 		{
-		string f = find_file_in_path(filename, paths[n], ext);
+		string f = find_file_in_path(filename, paths[n], {".zeek"});
 
 		if ( ! f.empty() )
 			return f;
-		}
-
-	if ( ends_with(filename, ".bro") )
-		{
-		// We were looking for a file explicitly ending in .bro and didn't
-		// find it, so fall back to one ending in .zeek, if it exists.
-		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
-		return find_script_file(fallback, path_set);
 		}
 
 	return string();
@@ -2144,19 +2115,9 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen)
 	}
 
 static const std::map<const char*, const char*, CompareString> legacy_vars = {
-	{ "ZEEKPATH", "BROPATH" },
-	{ "ZEEK_PLUGIN_PATH", "BRO_PLUGIN_PATH" },
-	{ "ZEEK_PLUGIN_ACTIVATE", "BRO_PLUGIN_ACTIVATE" },
-	{ "ZEEK_PREFIXES", "BRO_PREFIXES" },
-	{ "ZEEK_DNS_FAKE", "BRO_DNS_FAKE" },
-	{ "ZEEK_SEED_FILE", "BRO_SEED_FILE" },
-	{ "ZEEK_LOG_SUFFIX", "BRO_LOG_SUFFIX" },
-	{ "ZEEK_PROFILER_FILE", "BRO_PROFILER_FILE" },
-	{ "ZEEK_DISABLE_ZEEKYGEN", "BRO_DISABLE_BROXYGEN" },
-	{ "ZEEK_DEFAULT_CONNECT_RETRY", "BRO_DEFAULT_CONNECT_RETRY" },
-	{ "ZEEK_BROKER_MAX_THREADS", "BRO_BROKER_MAX_THREADS" },
-	{ "ZEEK_DEFAULT_LISTEN_ADDRESS", "BRO_DEFAULT_LISTEN_ADDRESS" },
-	{ "ZEEK_DEFAULT_LISTEN_RETRY", "BRO_DEFAULT_LISTEN_RETRY" },
+        /* Currently empty, but may be useful in the future. Add entries like:
+	      { "ZEEKPATH", "BROPATH" },
+	*/
 };
 
 char* zeekenv(const char* name)

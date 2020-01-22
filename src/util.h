@@ -263,8 +263,6 @@ extern const char* bro_plugin_path();
 extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
 
-extern const std::array<std::string, 2> script_extensions;
-
 bool is_package_loader(const std::string& path);
 
 extern void add_to_bro_path(const std::string& dir);

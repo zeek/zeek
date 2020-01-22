@@ -61,14 +61,8 @@ while [ $# -ne 0 ]; do
     --include_dir)
       echo $include_dir
       ;;
-    --bropath)   # For compatibility with legacy Bro plugins.
-      echo $zeekpath
-      ;;
     --zeekpath)
       echo $zeekpath
-      ;;
-    --bro_dist)  # For compatibility with legacy Bro plugins.
-      echo $zeek_dist
       ;;
     --zeek_dist)
       echo $zeek_dist

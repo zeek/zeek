@@ -365,14 +365,8 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 		if ( ! info )
 			{
-			for (const string& ext : script_extensions)
-				{
-				string pkg_name = *it + "/__load__" + ext;
-				info = zeekygen_mgr->GetScriptInfo(pkg_name);
-				if ( info )
-					break;
-				}
-
+			string pkg_name = *it + "/__load__.zeek";
+			info = zeekygen_mgr->GetScriptInfo(pkg_name);
 			if ( ! info )
 				reporter->InternalWarning("Zeekygen failed to get mtime of %s",
 				                          it->c_str());

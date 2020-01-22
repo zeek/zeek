@@ -1,4 +1,2 @@
-loaded lcl2.base.utils.site.zeek
 loaded lcl.base.utils.site.zeek
-loaded lcl2.base.protocols.http.bro
 loaded lcl.base.protocols.http.zeek

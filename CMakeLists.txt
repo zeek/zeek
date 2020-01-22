@@ -58,9 +58,6 @@ get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
 set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_ROOT_DIR}/lib/zeek/plugins CACHE STRING "Installation path for plugins" FORCE)
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                "${CMAKE_CURRENT_BINARY_DIR}/zeek-wrapper.in"
-                "${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
      "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
@@ -92,34 +89,6 @@ string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
 if(${ENABLE_DEBUG})
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
 endif()
-
-if ( NOT BINARY_PACKAGING_MODE )
-    macro(_make_install_dir_symlink _target _link)
-      install(CODE "
-        if ( \"\$ENV{DESTDIR}\" STREQUAL \"\" )
-          if ( EXISTS \"${_target}\" AND NOT EXISTS \"${_link}\" )
-            message(STATUS \"WARNING: installed ${_link} as symlink to ${_target}\")
-            execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink
-              \"${_target}\" \"${_link}\")
-          endif ()
-        endif ()
-      ")
-    endmacro()
-
-    if ( "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/zeek" )
-        # If we're installing into the default prefix, check if the
-        # old default prefix already exists and symlink to it.
-        # This is done to help keep custom user configuration/installation
-        # if they're upgrading from a version before Zeek 3.0.
-        _make_install_dir_symlink("/usr/local/bro" "/usr/local/zeek")
-    endif ()
-
-    # Check whether we need to symlink directories used by versions
-    # before Zeek 3.0.
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/include/bro" "${CMAKE_INSTALL_PREFIX}/include/zeek")
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/share/bro" "${CMAKE_INSTALL_PREFIX}/share/zeek")
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
-endif ()
 
 if ( ZEEK_SANITIZERS )
     # Check the thread library info early as setting compiler flags seems to
@@ -379,11 +348,8 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/zeek)
 
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
@@ -409,12 +375,6 @@ install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
         USE_SOURCE_PERMISSIONS)
-
-# Install wrapper script for Bro-to-Zeek renaming.
-include(InstallShellScript)
-include(InstallSymlink)
-InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
-InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
 
 ########################################################################
 ## Recurse on sub-directories

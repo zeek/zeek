@@ -70,6 +70,27 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- We have removed all the renaming-related checks, hooks,
+  wrappers, and other work-arounds that Zeek 3.0 introduced for backwards
+  compatibility with 2.x versions. In particular, script must have
+  ".zeek" extensions now (".bro" is no longer accepted), and the
+  the events "zeek_init()" and "zeek_done()" no longer alias to
+  "bro_init()" and "bro_done()". ZeekControl also no longer accepts
+  any legacy Bro-named options; use their Zeek equivalents. (Note
+  that everything plugin-related remains untouched as that API hasn't
+  been updated yet.)
+
+- The built-in function ``str_shell_escape`` has been removed, use ``safe_shell_quote``
+  instead.
+
+- The event rfb_event() has been removed (without replacement).
+
+- The C++ API has removed a set a previously deprecated methods in the
+  "Val" and "List" classes.
+
+- The script base/utils/json.zeek has been removed (it was empty
+  already). Use the to_json() function instead.
+
 Deprecated Functionality
 ------------------------
 

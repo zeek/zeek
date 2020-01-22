@@ -39,7 +39,7 @@ export {
 	global log_ocsp: event(rec: Info);
 }
 
-event zeek_init()
+event zeek_init() &priority=5
 	{
 	Log::create_stream(LOG, [$columns=Info, $ev=log_ocsp, $path="ocsp"]);
 	Files::register_for_mime_type(Files::ANALYZER_OCSP_REPLY, "application/ocsp-response");

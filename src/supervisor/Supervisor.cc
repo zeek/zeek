@@ -458,6 +458,13 @@ void Stem::Reap()
 
 bool Stem::Wait(Supervisor::Node* node, int options) const
 	{
+	if ( node->pid <= 0 )
+		{
+		DBG_STEM("Stem skip waiting for node '%s' (PID %d) to terminate: already dead",
+		         node->Name().data(), node->pid);
+		return true;
+		}
+
 	int status;
 	auto res = waitpid(node->pid, &status, options);
 
@@ -502,6 +509,13 @@ bool Stem::Wait(Supervisor::Node* node, int options) const
 
 void Stem::KillNode(Supervisor::Node* node, int signal) const
 	{
+	if ( node->pid <= 0 )
+		{
+		DBG_STEM("Stem skip killing node '%s' (PID %d): already dead",
+		         node->Name().data(), node->pid);
+		return;
+		}
+
 	node->killed = true;
 	auto kill_res = kill(node->pid, signal);
 
@@ -515,6 +529,13 @@ void Stem::Destroy(Supervisor::Node* node) const
 	constexpr auto max_term_attempts = 13;
 	constexpr auto kill_delay = 2;
 	auto kill_attempts = 0;
+
+	if ( node->pid <= 0 )
+		{
+		DBG_STEM("Stem skip killing/waiting node '%s' (PID %d): already dead",
+		         node->Name().data(), node->pid);
+		return;
+		}
 
 	for ( ; ; )
 		{
@@ -626,6 +647,7 @@ void Stem::KillNodes(int signal)
 
 void Stem::Shutdown(int exit_code)
 	{
+	DBG_STEM("Stem shutting down with exit code %d", exit_code);
 	shutting_down = true;
 	constexpr auto max_term_attempts = 13;
 	constexpr auto kill_delay = 2;
@@ -830,9 +852,8 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 		else if ( cmd == "destroy" )
 			{
 			auto it = nodes.find(node_name);
-			assert(it != nodes.end());
 			auto& node = it->second;
-			DBG_STEM("Stem destroying node: %s", node_name.data());
+			DBG_STEM("Stem destroying node: %s (PID %d)", node_name.data(), node.pid);
 			Destroy(&node);
 			nodes.erase(it);
 			}
@@ -841,7 +862,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 			auto it = nodes.find(node_name);
 			assert(it != nodes.end());
 			auto& node = it->second;
-			DBG_STEM("Stem restarting node: %s", node_name.data());
+			DBG_STEM("Stem restarting node: %s (PID %d)", node_name.data(), node.pid);
 			Destroy(&node);
 
 			auto sn = Spawn(&node);

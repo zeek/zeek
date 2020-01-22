@@ -107,7 +107,11 @@ set(BIF_SRCS
     strings.bif
     reporter.bif
     option.bif
-    supervisor.bif
+    # Note: the supervisor BIF file is treated like other top-level BIFs
+    # instead of contained in its own subdirectory CMake logic because
+    # subdirectory BIFs are treated differently and don't support being called
+    # *during* parsing (e.g. within an @if directive).
+    supervisor/supervisor.bif
 )
 
 foreach (bift ${BIF_SRCS})
@@ -267,7 +271,6 @@ set(MAIN_SRCS
     Notifier.cc
     Stats.cc
     Stmt.cc
-    Supervisor.cc
     Tag.cc
     Timer.cc
     Traverse.cc
@@ -287,6 +290,8 @@ set(MAIN_SRCS
     strsep.c
     modp_numtoa.c
     siphash24.c
+
+    supervisor/Supervisor.cc
 
     threading/BasicThread.cc
     threading/Formatter.cc

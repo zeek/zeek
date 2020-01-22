@@ -1,7 +1,7 @@
 ##! The BIFs that define the Zeek supervisor control interface.
 
 %%{
-#include "Supervisor.h"
+#include "supervisor/Supervisor.h"
 %%}
 
 module Supervisor;

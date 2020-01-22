@@ -33,7 +33,6 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 #include "broker/Manager.h"
-#include "Supervisor.h"
 
 extern "C" {
 #include "setsignal.h"

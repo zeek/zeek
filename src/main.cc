@@ -46,7 +46,7 @@ extern "C" {
 #include "Brofiler.h"
 #include "Traverse.h"
 
-#include "Supervisor.h"
+#include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
 #include "input/Manager.h"
 #include "logging/Manager.h"

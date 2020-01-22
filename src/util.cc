@@ -98,10 +98,8 @@ TEST_CASE("util extract_ip_and_len")
 	CHECK(out == "");
 	CHECK(len == 0);
 
-	len = 12345;
 	out = extract_ip_and_len("[]/16", nullptr);
 	CHECK(out == "");
-	CHECK(len == 12345);
 	}
 
 /**
@@ -1427,7 +1425,8 @@ string flatten_script_name(const string& name, const string& prefix)
 	return rval;
 	}
 
-TEST_CASE("tuil tokenize_string")
+
+TEST_CASE("util tokenize_string")
 	{
 	auto v = tokenize_string("/this/is/a/path", "/", nullptr);
 	CHECK(v->size() == 5);

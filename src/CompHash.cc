@@ -156,14 +156,16 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			};
 
 			size_t* kp;
-			for (int i = 0; i < 2; i++)
+
+			for ( int i = 0; i < 2; i++ )
 				{
 				kp = AlignAndPadType<size_t>(kp0+i);
 				*kp = strlen(texts[i]) + 1;
 				}
 
 			kp1 = reinterpret_cast<char*>(kp+1);
-			for (int i = 0; i < 2; i++)
+
+			for ( int i = 0; i < 2; i++ )
 				{
 				memcpy(kp1, texts[i], strlen(texts[i]) + 1);
 				kp1 += strlen(texts[i]) + 1;
@@ -427,7 +429,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 		if ( v->Type()->Tag() == TYPE_FUNC )
 			return new HashKey(v->AsFunc()->GetUniqueFuncID(), v->AsFuncVal()->GetOverloadIndex());
 
-		if (v->Type()->Tag() == TYPE_PATTERN) 
+		if ( v->Type()->Tag() == TYPE_PATTERN )
 			{
 			const char* texts[2] = {
 				v->AsPattern()->PatternText(),
@@ -437,8 +439,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 			char* key = new char[n];
 			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
 			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
-			//std::cout << "Singleton key of " << v->AsPattern()->PatternText() << "; " << key << std::endl;
-			return new HashKey(reinterpret_cast<void*>(key), n);
+			return new HashKey(false, key, n);
 			}
 
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");

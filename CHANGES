@@ -1,3 +1,20 @@
+3.1.0-dev.359 | 2020-01-06 16:40:55 -0800
+
+  * Fix build warning in X509 plugin (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.357 | 2020-01-06 14:10:54 -0800
+
+  * GH-412: Enable Patterns as Table index (Dev Bali, Corelight)
+
+3.1.0-dev.354 | 2020-01-06 14:16:29 -0700
+
+  * Fix snprintf compiler warning in hexdump BIF (Jon Siwek, Corelight)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
 3.1.0-dev.351 | 2020-01-06 11:20:09 -0800
 
   * Increase a timeout for a btest (Jon Siwek, Corelight)
@@ -150,7 +167,10 @@
 
   * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
 
+<<<<<<< HEAD
 >>>>>>> Fix Cirrus CI FreeBSD python dependencies installation
+=======
+>>>>>>> fb77351c6c1ecb3ea6821acb399e602ab8c7b0cf
 3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
 
   * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)

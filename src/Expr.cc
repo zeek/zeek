@@ -31,9 +31,9 @@ const char* expr_name(BroExprTag t)
 		"=", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
-		"()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]=", "func_ref"
+		"()", "function()", "event", "schedule",
+		"coerce", "record_coerce", "table_coerce",
+		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -4425,7 +4425,8 @@ Val* CallExpr::Eval(Frame* f) const
 			f->SetCall(this);
 
 		// TODO: statically cache overload index when directly using name
-		ret = fv->GetFunc()->Call(v, f, fv->GetOverloadIndex());
+		ret = fv->Call(v,f);
+		//fv->GetFunc()->Call(v, f, fv->GetOverloadIndex());
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4490,7 +4491,6 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 		ingredients->priority,
 		ingredients->scope);
 	f->AddOverload(dummy_func);
-
 	dummy_func->SetOuterIDs(outer_ids);
 
 	// Get the body's "string" representation.
@@ -4520,10 +4520,9 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->GetFunc()->SetName(my_name.c_str());
+	f->SetName(my_name.c_str());
 
 	Val* v = new Val(dummy_func);
-	Unref(dummy_func);
 	Unref(f);
 	id->SetVal(v); // id will unref v when its done.
 	id->SetType(ingredients->id->Type()->Ref());
@@ -4550,8 +4549,7 @@ Val* LambdaExpr::Eval(Frame* f) const
 	lamb->GetFunc()->SetName(my_name.c_str());
 
 	auto rval = new Val(lamb);
-	Unref(lamb);
-	Unref(func);
+ 	Unref(func);
 	return rval;
 	}
 

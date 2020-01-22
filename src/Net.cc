@@ -455,8 +455,6 @@ void net_delete()
 
 int _processing_suspended = 0;
 
-static double suspend_start = 0;
-
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )

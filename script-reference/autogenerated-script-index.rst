@@ -33,6 +33,7 @@
    base/bif/store.bif.zeek </scripts/base/bif/store.bif.zeek>
    base/frameworks/broker/log.zeek </scripts/base/frameworks/broker/log.zeek>
    base/frameworks/supervisor/__load__.zeek </scripts/base/frameworks/supervisor/__load__.zeek>
+   base/frameworks/supervisor/control.zeek </scripts/base/frameworks/supervisor/control.zeek>
    base/frameworks/supervisor/main.zeek </scripts/base/frameworks/supervisor/main.zeek>
    base/frameworks/input/__load__.zeek </scripts/base/frameworks/input/__load__.zeek>
    base/frameworks/input/main.zeek </scripts/base/frameworks/input/main.zeek>

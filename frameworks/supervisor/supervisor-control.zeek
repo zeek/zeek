@@ -5,10 +5,10 @@ event zeek_init()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	Broker::publish(Supervisor::topic_prefix, Supervisor::restart_request, "", "");
+	Broker::publish(SupervisorControl::topic_prefix, SupervisorControl::restart_request, "", "");
 	}
 
-event Supervisor::restart_response(reqid: string, result: bool)
+event SupervisorControl::restart_response(reqid: string, result: bool)
 	{
 	print fmt("got result of supervisor restart request: %s", result);
 	terminate();

@@ -539,10 +539,10 @@ void end_func(Stmt* body)
 
 	int overload_idx = ingredients->scope->OverloadIndex();
 
-	if ( overload_idx >= 0 )
+	if ( ingredients->id->HasVal() )
 		{
 		auto f = ingredients->id->ID_Val()->AsFunc();
-		auto o = f->GetOverload(overload_idx);
+		auto o = f->GetOverload(std::max(overload_idx,0));
 		dynamic_cast<BroFunc*>(o)->AddBody(
 			ingredients->body,
 			ingredients->inits,

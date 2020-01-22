@@ -72,6 +72,7 @@ public:
 	function_flavor Flavor() const;
 
 protected:
+	FuncImpl(Func* f, FuncType* t);
 	Func* func = nullptr;
 	int overload_idx = -1;
 	FuncType* type;
@@ -237,7 +238,7 @@ private:
 	static Stmt* AddInits(Stmt* body, id_list* inits);
 
 protected:
-	BroFunc(ID* id);
+	BroFunc (Func* f, FuncType* t);
 };
 
 class BuiltinFunc : public FuncImpl {

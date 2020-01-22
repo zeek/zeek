@@ -61,7 +61,7 @@ void ID::ClearVal()
 
 void ID::SetVal(Val* v, bool arg_weak_ref)
 	{
-	if ( type && type->Tag() == TYPE_FUNC &&
+	/*if ( type && type->Tag() == TYPE_FUNC &&
 	     type->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		// To correctly handle overloads, don't assign the new
@@ -111,13 +111,12 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 
 		}
 	else
-		{
-		if ( ! weak_ref )
-			Unref(val);
+		{*/
+		ClearVal();
 
 		val = v;
 		weak_ref = arg_weak_ref;
-		}
+		//}
 
 	Modified();
 

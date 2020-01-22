@@ -106,9 +106,17 @@ std::string render_call_stack()
 	return rval;
 	}
 
+FuncImpl::FuncImpl(Func* f, FuncType* t)
+	{
+	func = f;
+	type = t;
+	::Ref(func);
+	::Ref(type);
+	}
+
 FuncImpl::FuncImpl(ID* id)
 	{
-	if ( id->HasVal() ) 
+	if ( !id && id->HasVal() ) 
 		{
 		func = id->ID_Val()->AsFunc();
 		type = id->Type()->AsFuncType();
@@ -519,7 +527,7 @@ BroFunc::BroFunc(ID* id, Stmt* arg_body,
 		}
 	}
 
-BroFunc::BroFunc (ID* id) : FuncImpl(id) {}
+BroFunc::BroFunc (Func* f, FuncType* t) : FuncImpl(f,t) {}
 
 BroFunc::~BroFunc()
 	{
@@ -788,12 +796,10 @@ BroFunc* BroFunc::DoClone()
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
 	Func* parent = func->DoClone();
-	ID* parent_id = lookup_ID(parent->Name(), GLOBAL_MODULE_NAME, false);
-	BroFunc* other = new BroFunc(parent_id);
+	//ID* parent_id = lookup_ID(parent->Name(), GLOBAL_MODULE_NAME, false);
+	BroFunc* other = new BroFunc(parent,type);
 
 	Unref(parent);
-	Unref(parent_id);
-
 	CopyStateInto(other);
 
 	other->frame_size = frame_size;

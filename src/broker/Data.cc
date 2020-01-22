@@ -370,7 +370,7 @@ struct val_converter {
 				if ( ! frame )
 					return nullptr;
 
-				BroFunc* b = dynamic_cast<BroFunc*>(rval->AsFunc());
+				BroFunc* b = dynamic_cast<BroFunc*>(rval->AsFuncVal());
 				if ( ! b )
 					return nullptr;
 
@@ -856,8 +856,8 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
 		{
-		Func* f = v->AsFunc();
-		std::string name(f->Name());
+		FuncImpl* f = v->AsFuncVal();
+		std::string name(f->GetFunc()->Name());
 
 		broker::vector rval;
 		rval.push_back(name);

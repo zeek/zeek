@@ -1,63 +1,16 @@
-##! Implements Zeek process supervision configuration options and default
-##! behavior.
+##! Implements Zeek process supervision API and default behavior for its
+##! associated (remote) control events.
 
 @load ./api
+@load ./control
 @load base/frameworks/broker
 
-module Supervisor;
-
-export {
-	## The Broker topic prefix to use when subscribing to Supervisor API
-	## requests and when publishing Supervisor API responses.  If you are
-	## publishing Supervisor requests, this is also the prefix string to use
-	## for their topic names.
-	const topic_prefix = "zeek/supervisor" &redef;
-}
-
-event zeek_init() &priority=10
-	{
-	Broker::subscribe(Supervisor::topic_prefix);
-	}
-
-event Supervisor::stop_request()
-	{
-	terminate();
-	}
-
-event Supervisor::status_request(reqid: string, node: string)
-	{
-	local res = Supervisor::status(node);
-	local topic = Supervisor::topic_prefix + fmt("/status_response/%s", reqid);
-	Broker::publish(topic, Supervisor::status_response, reqid, res);
-	}
-
-event Supervisor::create_request(reqid: string, node: NodeConfig)
-	{
-	local res = Supervisor::create(node);
-	local topic = Supervisor::topic_prefix + fmt("/create_response/%s", reqid);
-	Broker::publish(topic, Supervisor::create_response, reqid, res);
-	}
-
-event Supervisor::destroy_request(reqid: string, node: string)
-	{
-	local res = Supervisor::destroy(node);
-	local topic = Supervisor::topic_prefix + fmt("/destroy_response/%s", reqid);
-	Broker::publish(topic, Supervisor::destroy_response, reqid, res);
-	}
-
-event Supervisor::restart_request(reqid: string, node: string)
-	{
-	local res = Supervisor::restart(node);
-	local topic = Supervisor::topic_prefix + fmt("/restart_response/%s", reqid);
-	Broker::publish(topic, Supervisor::restart_response, reqid, res);
-	}
-
-function Supervisor::status(node: string): Status
+function Supervisor::status(node: string): Supervisor::Status
 	{
 	return Supervisor::__status(node);
 	}
 
-function Supervisor::create(node: NodeConfig): string
+function Supervisor::create(node: Supervisor::NodeConfig): string
 	{
 	return Supervisor::__create(node);
 	}
@@ -72,17 +25,70 @@ function Supervisor::restart(node: string): bool
 	return Supervisor::__restart(node);
 	}
 
-function is_supervisor(): bool
+function Supervisor::is_supervisor(): bool
 	{
 	return Supervisor::__is_supervisor();
 	}
 
-function is_supervised(): bool
+function Supervisor::is_supervised(): bool
 	{
 	return Supervisor::__is_supervised();
 	}
 
-function node(): NodeConfig
+function Supervisor::node(): Supervisor::NodeConfig
 	{
 	return Supervisor::__node();
+	}
+
+event zeek_init() &priority=10
+	{
+	Broker::subscribe(SupervisorControl::topic_prefix);
+	}
+
+event SupervisorControl::stop_request()
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	terminate();
+	}
+
+event SupervisorControl::status_request(reqid: string, node: string)
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	local res = Supervisor::status(node);
+	local topic = SupervisorControl::topic_prefix + fmt("/status_response/%s", reqid);
+	Broker::publish(topic, SupervisorControl::status_response, reqid, res);
+	}
+
+event SupervisorControl::create_request(reqid: string, node: Supervisor::NodeConfig)
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	local res = Supervisor::create(node);
+	local topic = SupervisorControl::topic_prefix + fmt("/create_response/%s", reqid);
+	Broker::publish(topic, SupervisorControl::create_response, reqid, res);
+	}
+
+event SupervisorControl::destroy_request(reqid: string, node: string)
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	local res = Supervisor::destroy(node);
+	local topic = SupervisorControl::topic_prefix + fmt("/destroy_response/%s", reqid);
+	Broker::publish(topic, SupervisorControl::destroy_response, reqid, res);
+	}
+
+event SupervisorControl::restart_request(reqid: string, node: string)
+	{
+	if ( ! Supervisor::is_supervisor() )
+		return;
+
+	local res = Supervisor::restart(node);
+	local topic = SupervisorControl::topic_prefix + fmt("/restart_response/%s", reqid);
+	Broker::publish(topic, SupervisorControl::restart_response, reqid, res);
 	}

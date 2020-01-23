@@ -14,7 +14,8 @@ const char* attr_name(attr_tag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&deprecated",
+		"(&tracked)", "&on_change", "&broker_store",
+		"&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -486,7 +487,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		if ( type->Tag() != TYPE_TABLE )
 			{
-			Error("&on_change only applicable to tables");
+			Error("&on_change only applicable to sets/tables");
 			break;
 			}
 
@@ -547,6 +548,27 @@ void Attributes::CheckAttr(Attr* a)
 				}
 		}
 		break;
+
+	case ATTR_BROKER_STORE:
+		{
+		if ( type->Tag() != TYPE_TABLE )
+			{
+			Error("&broker_store only applicable to sets/tables");
+			break;
+			}
+
+		const Expr *broker_store = a->AttrExpr();
+		if ( broker_store->Type()->Tag() != TYPE_OPAQUE || broker_store->Type()->AsOpaqueType()->Name() != "Broker::Store" )
+			Error("&broker_store must take an opaque of Broker::Store");
+
+
+		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
+		if ( type->AsTableType()->IndexTypes()->length() != 1 )
+			{
+			Error("&broker_store only supports one-element set/table indexes");
+			}
+
+		}
 
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?

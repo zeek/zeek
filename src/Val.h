@@ -928,6 +928,9 @@ protected:
 	// Calls &change_func. Does not take ownership of values. (Refs if needed).
 	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
 
+	// Sends data on to backing Broker Store
+	void SendToStore(const Val* index, const Val* new_value, OnChangeType tpe);
+
 	Val* DoClone(CloneState* state) override;
 
 	TableType* table_type;
@@ -940,6 +943,7 @@ protected:
 	PrefixTable* subnets;
 	Val* def_val;
 	Expr* change_func = nullptr;
+	Expr* broker_store = nullptr;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {

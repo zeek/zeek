@@ -1,0 +1,24 @@
+# @TEST-EXEC: zeek %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+module TestModule;
+
+global tablestore: opaque of Broker::Store;
+global setstore: opaque of Broker::Store;
+
+global t: table[string] of count &broker_store=tablestore;
+global s: set[string] &broker_store=setstore;
+
+event zeek_init()
+	{
+	tablestore = Broker::create_master("table");
+	setstore = Broker::create_master("set");
+	print "inserting";
+	t["a"] = 5;
+	add s["hi"];
+	print "changing";
+	t["a"] = 2;
+	print "deleting";
+	delete t["a"];
+	delete s["hi"];
+	}

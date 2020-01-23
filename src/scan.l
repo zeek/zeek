@@ -299,6 +299,7 @@ when	return TOK_WHEN;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 &on_change  return TOK_ATTR_ON_CHANGE;
+&broker_store	return TOK_ATTR_BROKER_STORE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();

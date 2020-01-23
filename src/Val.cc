@@ -26,6 +26,7 @@
 #include "IPAddr.h"
 
 #include "broker/Data.h"
+#include "broker/Store.h"
 
 #include "threading/formatters/JSON.h"
 
@@ -1415,6 +1416,12 @@ void TableVal::SetAttrs(Attributes* a)
 		change_func = cf->AttrExpr();
 		change_func->Ref();
 		}
+	auto bs = attrs->FindAttr(ATTR_BROKER_STORE);
+	if ( bs )
+		{
+		broker_store = bs->AttrExpr();
+		broker_store->Ref();
+		}
 	}
 
 void TableVal::CheckExpireAttr(attr_tag at)
@@ -1492,13 +1499,18 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 
 	Modified();
 
-	if ( change_func )
+	if ( change_func || broker_store )
 		{
 		auto change_index = index->Ref();
 		if ( ! change_index )
 			RecoverIndex(&k_copy);
-		Val *v = old_entry_val ? old_entry_val->Value() : new_val;
-		CallChangeFunc(change_index, v, old_entry_val ? element_changed : element_new);
+		if ( broker_store )
+			SendToStore(change_index, new_val, old_entry_val ? element_changed : element_new);
+		if ( change_func )
+			{
+			Val *v = old_entry_val ? old_entry_val->Value() : new_val;
+			CallChangeFunc(change_index, v, old_entry_val ? element_changed : element_new);
+			}
 		Unref(change_index);
 		}
 
@@ -1971,9 +1983,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 		Val* thefunc = change_func->Eval(0);
 
 		if ( ! thefunc )
-			{
 			return;
-			}
 
 		if ( thefunc->Type()->Tag() != TYPE_FUNC )
 			{
@@ -2013,6 +2023,82 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 		}
 	}
 
+void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType tpe)
+	{
+	if ( ! broker_store || ! index )
+		return;
+
+	try
+		{
+		Val* thestore = broker_store->Eval(0);
+
+		if ( ! thestore )
+			return;
+
+		if ( thestore->Type()->Tag() != TYPE_OPAQUE || broker_store->Type()->AsOpaqueType()->Name() != "Broker::Store" )
+			{
+			thestore->Error("not a Broker::Store");
+			Unref(thestore);
+			return;
+			}
+
+		auto handle = static_cast<bro_broker::StoreHandleVal*>(thestore);
+		if ( index->AsListVal()->Length() != 1 )
+			{
+			builtin_error("table with complex index not supported for &broker_store");
+			return;
+			}
+
+		const auto index_val = index->AsListVal()->Index(0);
+		auto key_val = new StringVal("test");
+		auto broker_key = bro_broker::val_to_data(key_val);
+		auto broker_index = bro_broker::val_to_data(index_val);
+		Unref(key_val);
+
+		if ( ! broker_key )
+			{
+			builtin_error("invalid Broker data conversion for &broker_store_key");
+			return;
+			}
+		if ( ! broker_index )
+			{
+			builtin_error("invalid Broker data conversation for table index");
+			return;
+			}
+
+		switch ( tpe )
+			{
+			case element_new:
+			case element_changed:
+				if ( table_type->IsSet() )
+					handle->store.insert_into(std::move(*broker_key), std::move(*broker_index));
+				else
+					{
+					if ( ! new_value )
+						{
+						builtin_error("did not receive new value for broker-store send operation");
+						return;
+						}
+					auto broker_val = bro_broker::val_to_data(new_value);
+					if ( ! broker_val )
+						{
+						builtin_error("invalid Broker data conversation for table value");
+						return;
+						}
+					handle->store.insert_into(std::move(*broker_key), std::move(*broker_index), std::move(*broker_val));
+					}
+				break;
+			case element_removed:
+				handle->store.remove_from(std::move(*broker_key), std::move(*broker_index));
+				break;
+			}
+		}
+	catch ( InterpreterException& e )
+		{
+		builtin_error("The previous error was encountered while trying to resolve the &broker_store attribute of the set/table. Potentially the Broker::Store has not been initialized before being used.");
+		}
+	}
+
 Val* TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
@@ -2027,6 +2113,8 @@ Val* TableVal::Delete(const Val* index)
 
 	Modified();
 
+	if ( broker_store )
+		SendToStore(index, nullptr, element_removed);
 	if ( change_func )
 		CallChangeFunc(index, va, element_removed);
 
@@ -2050,10 +2138,13 @@ Val* TableVal::Delete(const HashKey* k)
 
 	Modified();
 
-	if ( change_func )
+	if ( change_func || broker_store )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index, va->Ref(), element_removed);
+		if ( broker_store )
+			SendToStore(index, nullptr, element_removed);
+		if ( change_func )
+			CallChangeFunc(index, va->Ref(), element_removed);
 		Unref(index);
 		}
 

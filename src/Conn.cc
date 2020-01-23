@@ -18,7 +18,7 @@
 #include "analyzer/Manager.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
-				int arg_do_expire)
+				bool arg_do_expire)
 	{
 	conn = arg_conn;
 	timer = arg_timer;
@@ -87,8 +87,8 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	conn_val = 0;
-	login_conn = 0;
+	conn_val = nullptr;
+	login_conn = nullptr;
 
 	is_active = 1;
 	skip = 0;
@@ -108,8 +108,8 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	hist_seen = 0;
 	history = "";
 
-	root_analyzer = 0;
-	primary_PIA = 0;
+	root_analyzer = nullptr;
+	primary_PIA = nullptr;
 
 	++current_connections;
 	++total_connections;
@@ -172,7 +172,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		EncapsulationStack empty;
 		Event(tunnel_changed, 0, empty.GetVectorVal());
 		delete encapsulation;
-		encapsulation = 0;
+		encapsulation = nullptr;
 		}
 
 	else if ( arg_encap )
@@ -222,7 +222,7 @@ void Connection::NextPacket(double t, int is_orig,
 		last_time = t;
 
 	current_timestamp = 0;
-	current_pkt = 0;
+	current_pkt = nullptr;
 	}
 
 void Connection::SetLifetime(double lifetime)
@@ -533,7 +533,7 @@ void Connection::Weird(const char* name, const char* addl)
 	reporter->Weird(this, name, addl ? addl : "");
 	}
 
-void Connection::AddTimer(timer_func timer, double t, int do_expire,
+void Connection::AddTimer(timer_func timer, double t, bool do_expire,
 		TimerType type)
 	{
 	if ( timers_canceled )
@@ -609,7 +609,7 @@ void Connection::FlipRoles()
 	orig_flow_label = tmp_flow;
 
 	Unref(conn_val);
-	conn_val = 0;
+	conn_val = nullptr;
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();

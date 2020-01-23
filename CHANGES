@@ -1,4 +1,34 @@
 
+3.1.0-dev.389 | 2020-01-18 10:49:15 +0000
+
+  * GHI-595: Convert from nlohmann/json to RapidJSON for performance
+    reasons. (Tim Wojtulewicz, Corelight)
+
+  * Optimize json_escape_utf8() and expand its unit tests. (Tim
+    Wojtulewicz, Corelight)
+
+  * Convert type-checking macros to actual functions. (Tim
+    Wojtulewicz, Corelight)
+
+  * Use the list of files from clang-tidy when searching for unit
+    tests. (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.383 | 2020-01-17 11:51:01 +0000
+
+  * Various code modernization cleanup. (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.378 | 2020-01-16 13:18:13 +0000
+
+  * Handle invalid Base64 encodings in FTP ADAT analyzer (Jon Siwek,
+    Corelight)
+
+3.1.0-dev.376 | 2020-01-14 09:45:45 -0800
+
+  * Fix warning when reading files from non-network sources (Seth Hall, Corelight)
+
+    If files are being read from non-network sources, there was a warning in
+    the SSL base scripts about missing the f$conns field.
+
 3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
 
   * Fix method returning a reference to a temporary. Found by

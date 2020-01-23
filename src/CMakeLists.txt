@@ -413,15 +413,14 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
 )
 
 install(FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/json.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
         DESTINATION include/zeek/3rdparty
 )
 
 install(FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tsl-ordered-map/ordered_map.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/tsl-ordered-map/ordered_hash.h
-        DESTINATION include/zeek/3rdparty/tsl-ordered-map
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rapidjson/include/rapidjson/document.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rapidjson/include/rapidjson/writer.h
+        DESTINATION include/zeek/3rdparty/rapidjson/include/rapidjson
 )
 
 ########################################################################
@@ -439,9 +438,8 @@ create_clang_tidy_target()
 
 # Scan all .cc files for TEST_CASE macros and generate CTest targets.
 if (ENABLE_ZEEK_UNIT_TESTS)
-    file(GLOB_RECURSE all_cc_files "*.cc")
     set(test_cases "")
-    foreach (cc_file ${all_cc_files})
+    foreach (cc_file ${TIDY_SRCS})
         file (STRINGS ${cc_file} test_case_lines REGEX "TEST_CASE")
         foreach (line ${test_case_lines})
             string(REGEX REPLACE "TEST_CASE\\(\"(.+)\"\\)" "\\1" test_case "${line}")

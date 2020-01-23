@@ -791,7 +791,7 @@ IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	return {caf::visit(val_converter{type}, std::move(d)), false};
 	}
 
-broker::expected<broker::data> bro_broker::val_to_data(Val* v)
+broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	{
 	switch ( v->Type()->Tag() ) {
 	case TYPE_BOOL:
@@ -856,7 +856,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
 		{
-		Func* f = v->AsFunc();
+		const Func* f = v->AsFunc();
 		std::string name(f->Name());
 
 		broker::vector rval;
@@ -865,7 +865,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		if ( name.find("lambda_<") == 0 )
 			{
 			// Only BroFuncs have closures.
-			if ( auto b = dynamic_cast<BroFunc*>(f) )
+			if ( auto b = dynamic_cast<const BroFunc*>(f) )
 				{
 				auto bc = b->SerializeClosure();
 				if ( ! bc )
@@ -1006,7 +1006,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		}
 	case TYPE_PATTERN:
 		{
-		RE_Matcher* p = v->AsPattern();
+		const RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}

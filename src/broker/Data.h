@@ -50,7 +50,7 @@ EnumVal* get_data_type(RecordVal* v, Frame* frame);
  * @param v a Bro value.
  * @return a Broker data value if the Bro value could be converted to one.
  */
-broker::expected<broker::data> val_to_data(Val* v);
+broker::expected<broker::data> val_to_data(const Val* v);
 
 /**
  * Convert a Broker data value to a Bro value.

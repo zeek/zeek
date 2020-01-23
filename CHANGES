@@ -1,4 +1,9 @@
 
+3.1.0-dev.394 | 2020-01-23 13:18:54 +0000
+
+  * Improve creation of SMB transaction data strings. (Jon Siwek,
+    Corelight)
+
 3.1.0-dev.392 | 2020-01-23 13:14:28 +0000
 
   * Improve FTP word/whitespace handling. (Jon Siwek, Corelight)

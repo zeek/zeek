@@ -1,4 +1,28 @@
 
+3.0.2-dev.15 | 2020-02-22 13:56:47 -0800
+
+  * Improve FTP word/whitespace handling (Jon Siwek, Corelight)
+
+  * Use consistent zeek_init priority for Log::create_stream calls(Jon Siwek, Corelight)
+
+  * Fix warning when reading files from non-network sources (Seth Hall, Corelight)
+
+    If files are being read from non-network sources, there was a warning in
+    the SSL base scripts about missing the f$conns field.
+
+  * Fix method returning a reference to a temporary. (Arthur Wong)
+
+  * Fix memory leak when a logging plugin hook prevents a write (Jon Siwek, Corelight)
+
+  * Fix memory leaks in various input framework error-handling cases (Jon Siwek, Corelight)
+
+  * Fix memory leak in Reporter::get_weird_sampling_whitelist() BIF (Jon Siwek, Corelight)
+
+  * Fix reference counting of Log::Filter "config" field (Jon Siwek, Corelight)
+
+    Which can potentially be a minor memory leak if there's a lot of dynamic
+    adding/removing of logging filters.
+
 3.0.2-dev.7 | 2020-02-22 12:20:24 -0800
 
   * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)

@@ -83,7 +83,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		StringVal* cmd_str;
 
 		line = skip_whitespace(line, end_of_line);
-		get_word(length, line, cmd_len, cmd);
+		get_word(end_of_line - line, line, cmd_len, cmd);
 		line = skip_whitespace(line + cmd_len, end_of_line);
 
 		if ( cmd_len == 0 )

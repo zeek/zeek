@@ -1,4 +1,12 @@
 
+3.1.0-dev.397 | 2020-01-23 15:30:33 -0800
+
+  * Use consistent zeek_init priority for Log::create_stream calls
+
+    Typically in base scripts, Log::create_stream() is called in zeek_init()
+    handler with &priority=5 such that it will have already been created
+    in the default zeek_init() &priority=0. (Jon Siwek, Corelight)
+
 3.1.0-dev.395 | 2020-01-23 13:50:42 +0000
 
   * Update Broker submodule.

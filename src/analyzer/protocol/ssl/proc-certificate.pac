@@ -16,6 +16,9 @@
 			{
 			const bytestring& cert = (*certificates)[i];
 
+			if ( cert.length() <= 0 )
+				continue;
+
 			ODesc file_handle;
 			file_handle.Add(common.Description());
 			file_handle.Add(i);

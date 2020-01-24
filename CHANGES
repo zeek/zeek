@@ -1,4 +1,8 @@
 
+3.1.0-dev.403 | 2020-01-24 15:15:04 -0800
+
+  * Fixed decompose_uri() errors on URIs with empty port component (Frerich Raabe)
+
 3.1.0-dev.398 | 2020-01-23 18:08:43 -0800
 
   * Skip check for outdated docs in Cirrus CI for PRs (Jon Siwek, Corelight)

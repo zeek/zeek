@@ -67,6 +67,11 @@ Changed Functionality
   previously used. Output from the formatters remains nearly
   identical.
 
+- The ``decompose_uri`` function no longer raises an error when parsing
+  URIs with an empty port number (e.g. ``http://example.org:/``). Instead,
+  the ``portnum`` component of the returned ``URI`` value is left
+  uninitialized.
+
 Removed Functionality
 ---------------------
 

@@ -1,4 +1,8 @@
 
+3.1.0-dev.398 | 2020-01-23 18:08:43 -0800
+
+  * Skip check for outdated docs in Cirrus CI for PRs (Jon Siwek, Corelight)
+
 3.1.0-dev.397 | 2020-01-23 15:30:33 -0800
 
   * Use consistent zeek_init priority for Log::create_stream calls

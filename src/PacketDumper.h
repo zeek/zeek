@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include <queue>
-#include <set>
-
 #include <pcap.h>
 
 class PacketDumper {
@@ -20,18 +17,3 @@ protected:
 
 	void SortTimeStamp(struct timeval* timestamp);
 };
-
-struct IP_ID {
-	uint32_t ip, id;
-};
-
-struct ltipid {
-	bool operator()(IP_ID id1, IP_ID id2) const
-		{
-		return id1.ip != id2.ip ? (id1.ip < id2.ip) :
-					  (id1.id < id2.id);
-		}
-};
-
-typedef std::set<IP_ID, ltipid> IP_IDSet;
-uint16_t NextIP_ID(const uint32_t src_addr, const uint16_t id);

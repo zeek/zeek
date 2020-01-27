@@ -62,6 +62,36 @@
 #endif
 #endif
 
+static bool starts_with(const std::string_view& s, const std::string& beginning)
+	{
+	if ( beginning.size() > s.size() )
+		return false;
+
+	return std::equal(beginning.begin(), beginning.end(), s.begin());
+	}
+
+TEST_CASE("util starts_with")
+	{
+	CHECK(starts_with("abcde", "ab") == true);
+	CHECK(starts_with("abcde", "de") == false);
+	CHECK(starts_with("abcde", "abcedf") == false);
+	}
+
+static bool ends_with(const std::string_view& s, const std::string& ending)
+	{
+	if ( ending.size() > s.size() )
+		return false;
+
+	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
+	}
+
+TEST_CASE("util ends_with")
+	{
+	CHECK(ends_with("abcde", "de") == true);
+	CHECK(ends_with("abcde", "fg") == false);
+	CHECK(ends_with("abcde", "abcedf") == false);
+	}
+
 TEST_CASE("util extract_ip")
 	{
 	CHECK(extract_ip("[1.2.3.4]") == "1.2.3.4");
@@ -1249,6 +1279,15 @@ TEST_CASE("util is_package_loader")
 
 const array<string, 2> script_extensions = {".zeek", ".bro"};
 
+void warn_if_legacy_script(const std::string_view& filename)
+	{
+	if ( ends_with(filename, ".bro") )
+		{
+		std::string x(filename);
+		reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
+		}
+	}
+
 bool is_package_loader(const string& path)
 	{
 	string filename(std::move(SafeBasename(path).result));
@@ -1256,7 +1295,10 @@ bool is_package_loader(const string& path)
 	for ( const string& ext : script_extensions )
 		{
 		if ( filename == "__load__" + ext )
+			{
+			warn_if_legacy_script(filename);
 			return true;
+			}
 		}
 
 	return false;
@@ -1294,6 +1336,7 @@ FILE* open_package(string& path, const string& mode)
 		string p = path + ext;
 		if ( can_read(p) )
 			{
+			warn_if_legacy_script(path);
 			path.append(ext);
 			return open_file(path, mode);
 			}
@@ -1604,21 +1647,6 @@ string find_file(const string& filename, const string& path_set,
 	return string();
 	}
 
-static bool ends_with(const std::string& s, const std::string& ending)
-	{
-	if ( ending.size() > s.size() )
-		return false;
-
-	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
-	}
-
-TEST_CASE("util ends_with")
-	{
-	CHECK(ends_with("abcde", "de") == true);
-	CHECK(ends_with("abcde", "fg") == false);
-	CHECK(ends_with("abcde", "abcedf") == false);
-	}
-
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
@@ -1631,11 +1659,16 @@ string find_script_file(const string& filename, const string& path_set)
 		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
+			{
+			warn_if_legacy_script(f);
 			return f;
+			}
 		}
 
 	if ( ends_with(filename, ".bro") )
 		{
+		warn_if_legacy_script(filename);
+
 		// We were looking for a file explicitly ending in .bro and didn't
 		// find it, so fall back to one ending in .zeek, if it exists.
 		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
@@ -2186,7 +2219,12 @@ char* zeekenv(const char* name)
 	if ( it == legacy_vars.end() )
 		return rval;
 
-	return getenv(it->second);
+	auto val = getenv(it->second);
+
+	if ( val && starts_with(it->second, "BRO_") )
+		reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+
+	return val;
 	}
 
 static string json_escape_byte(char c)

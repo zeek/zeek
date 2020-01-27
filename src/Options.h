@@ -74,4 +74,24 @@ struct Options {
 	std::vector<std::string> script_options_to_set;
 };
 
+/**
+ * Parse Zeek command-line arguments.
+ * @param argc  argument count (same semantics as arguments to main())
+ * @param argv  argument strings (same semantics as arguments to main())
+ * @return  the parsed command-line options
+ */
+zeek::Options parse_cmdline(int argc, char** argv);
+
+/**
+ * Print command-line Zeek usage information and exit.
+ * @param prog  the name/path of the Zeek command-line invocation
+ * @code  the exit code to use
+ */
+void usage(const char* prog, int code = 1);
+
+/**
+ * @return  true if zeek is running a "fake" DNS resolver, else false.
+ */
+bool fake_dns();
+
 } // namespace zeek

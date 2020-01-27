@@ -142,8 +142,6 @@ Redefinable Options
 :zeek:id:`mmdb_dir`: :zeek:type:`string` :zeek:attr:`&redef`                               The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 :zeek:id:`non_analyzed_lifetime`: :zeek:type:`interval` :zeek:attr:`&redef`                If a connection belongs to an application that we don't analyze,
                                                                                            time it out after this interval.
-:zeek:id:`old_comm_usage_is_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                     Whether usage of the old communication system is considered an error or
-                                                                                           not.
 :zeek:id:`packet_filter_default`: :zeek:type:`bool` :zeek:attr:`&redef`                    Default mode for Zeek's user-space dynamic packet filter.
 :zeek:id:`partial_connection_ok`: :zeek:type:`bool` :zeek:attr:`&redef`                    If true, instantiate connection state when a partial connection
                                                                                            (one missing its initial establishment negotiation) is seen.
@@ -1515,18 +1513,6 @@ Redefinable Options
    time it out after this interval.  If 0 secs, then don't time it out (but
    :zeek:see:`tcp_inactivity_timeout`, :zeek:see:`udp_inactivity_timeout`, and
    :zeek:see:`icmp_inactivity_timeout` still apply).
-
-.. zeek:id:: old_comm_usage_is_ok
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   Whether usage of the old communication system is considered an error or
-   not.  The default Zeek configuration no longer works with the non-Broker
-   communication system unless you have manually taken action to initialize
-   and set up the old comm. system.  Deprecation warnings are still emitted
-   when setting this flag, but they will not result in a fatal error.
 
 .. zeek:id:: packet_filter_default
 

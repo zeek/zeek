@@ -8853,16 +8853,6 @@ Components
 Events
 ++++++
 
-.. zeek:id:: rfb_event
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v3.1: This event never served a real purpose and will be removed. Please use the other rfb events instead."*
-
-   Generated for RFB event
-   
-
-   :c: The connection record for the underlying transport-layer session/flow.
-
 .. zeek:id:: rfb_authentication_type
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authtype: :zeek:type:`count`)

@@ -17,86 +17,83 @@ Summary
 ~~~~~~~
 Events
 ######
-====================================================================================================== =============================================================================
-:zeek:id:`anonymization_mapping`: :zeek:type:`event`                                                   Shows an IP address anonymization mapping.
-:zeek:id:`bro_done`: :zeek:type:`event` :zeek:attr:`&deprecated` = ``"Remove in v3.1: use zeek_done"`` Deprecated synonym for :zeek:see:`zeek_done`.
-:zeek:id:`bro_init`: :zeek:type:`event` :zeek:attr:`&deprecated` = ``"Remove in v3.1: use zeek_init"`` Deprecated synonym for :zeek:see:`zeek_init`.
-:zeek:id:`bro_script_loaded`: :zeek:type:`event` :zeek:attr:`&deprecated` = *...*                      Deprecated synonym for :zeek:see:`zeek_script_loaded`.
-:zeek:id:`conn_stats`: :zeek:type:`event`                                                              Generated when a TCP connection terminated, passing on statistics about the
-                                                                                                       two endpoints.
-:zeek:id:`conn_weird`: :zeek:type:`event`                                                              Generated for unexpected activity related to a specific connection.
-:zeek:id:`connection_external`: :zeek:type:`event`                                                     Generated for a new connection received from the communication subsystem.
-:zeek:id:`connection_flow_label_changed`: :zeek:type:`event`                                           Generated for a connection over IPv6 when one direction has changed
-                                                                                                       the flow label that it's using.
-:zeek:id:`connection_reused`: :zeek:type:`event`                                                       Generated when a connection 4-tuple is reused.
-:zeek:id:`connection_state_remove`: :zeek:type:`event`                                                 Generated when a connection's internal state is about to be removed from
-                                                                                                       memory.
-:zeek:id:`connection_status_update`: :zeek:type:`event`                                                Generated in regular intervals during the lifetime of a connection.
-:zeek:id:`connection_successful`: :zeek:type:`event`                                                   Generated for every new connection that is deemed "successful" according to
-                                                                                                       transport-layer-dependent criteria.
-:zeek:id:`connection_timeout`: :zeek:type:`event`                                                      Generated when a TCP connection timed out.
-:zeek:id:`content_gap`: :zeek:type:`event`                                                             Generated when Zeek detects a gap in a reassembled TCP payload stream.
-:zeek:id:`dns_mapping_altered`: :zeek:type:`event`                                                     Generated when an internal DNS lookup produced a different result than in
-                                                                                                       the past.
-:zeek:id:`dns_mapping_lost_name`: :zeek:type:`event`                                                   Generated when an internal DNS lookup returned zero answers even though it
-                                                                                                       had succeeded in the past.
-:zeek:id:`dns_mapping_new_name`: :zeek:type:`event`                                                    Generated when an internal DNS lookup succeeded but an earlier attempt
-                                                                                                       did not.
-:zeek:id:`dns_mapping_unverified`: :zeek:type:`event`                                                  Generated when an internal DNS lookup got no answer even though it had
-                                                                                                       succeeded in the past.
-:zeek:id:`dns_mapping_valid`: :zeek:type:`event`                                                       Generated when an internal DNS lookup produces the same result as last time.
-:zeek:id:`esp_packet`: :zeek:type:`event`                                                              Generated for any packets using the IPv6 Encapsulating Security Payload (ESP)
-                                                                                                       extension header.
-:zeek:id:`event_queue_flush_point`: :zeek:type:`event`                                                 Marks a point in the event stream at which the event queue started flushing.
-:zeek:id:`file_gap`: :zeek:type:`event`                                                                Indicates that a chunk of the file is missing.
-:zeek:id:`file_new`: :zeek:type:`event`                                                                Indicates that an analysis of a new file has begun.
-:zeek:id:`file_opened`: :zeek:type:`event`                                                             Generated each time Zeek's script interpreter opens a file.
-:zeek:id:`file_over_new_connection`: :zeek:type:`event`                                                Indicates that a file has been seen being transferred over a connection
-                                                                                                       different from the original.
-:zeek:id:`file_reassembly_overflow`: :zeek:type:`event`                                                Indicates that the file had an overflow of the reassembly buffer.
-:zeek:id:`file_sniff`: :zeek:type:`event`                                                              Provide all metadata that has been inferred about a particular file
-                                                                                                       from inspection of the initial content that been seen at the beginning
-                                                                                                       of the file.
-:zeek:id:`file_state_remove`: :zeek:type:`event`                                                       This event is generated each time file analysis is ending for a given file.
-:zeek:id:`file_timeout`: :zeek:type:`event`                                                            Indicates that file analysis has timed out because no activity was seen
-                                                                                                       for the file in a while.
-:zeek:id:`file_weird`: :zeek:type:`event`                                                              Generated for unexpected activity that is tied to a file.
-:zeek:id:`flow_weird`: :zeek:type:`event`                                                              Generated for unexpected activity related to a pair of hosts, but independent
-                                                                                                       of a specific connection.
-:zeek:id:`get_file_handle`: :zeek:type:`event`                                                         This event is handled to provide feedback to the file analysis framework
-                                                                                                       about how to identify the logical "file" to which some data/input
-                                                                                                       belongs.
-:zeek:id:`ipv6_ext_headers`: :zeek:type:`event`                                                        Generated for every IPv6 packet that contains extension headers.
-:zeek:id:`load_sample`: :zeek:type:`event`                                                             Generated regularly for the purpose of profiling Zeek's processing.
-:zeek:id:`mobile_ipv6_message`: :zeek:type:`event`                                                     Generated for any packet using a Mobile IPv6 Mobility Header.
-:zeek:id:`net_weird`: :zeek:type:`event`                                                               Generated for unexpected activity that is not tied to a specific connection
-                                                                                                       or pair of hosts.
-:zeek:id:`new_connection`: :zeek:type:`event`                                                          Generated for every new connection.
-:zeek:id:`new_event`: :zeek:type:`event`                                                               A meta event generated for events that Zeek raises.
-:zeek:id:`new_packet`: :zeek:type:`event`                                                              Generated for all packets that make it into Zeek's connection processing.
-:zeek:id:`packet_contents`: :zeek:type:`event`                                                         Generated for every packet that has a non-empty transport-layer payload.
-:zeek:id:`profiling_update`: :zeek:type:`event`                                                        Generated each time Zeek's internal profiling log is updated.
-:zeek:id:`protocol_confirmation`: :zeek:type:`event`                                                   Generated when a protocol analyzer confirms that a connection is indeed
-                                                                                                       using that protocol.
-:zeek:id:`protocol_late_match`: :zeek:type:`event`                                                     Generated if a DPD signature matched but the DPD buffer is already exhausted
-                                                                                                       and thus the analyzer could not be attached.
-:zeek:id:`protocol_violation`: :zeek:type:`event`                                                      Generated when a protocol analyzer determines that a connection it is parsing
-                                                                                                       is not conforming to the protocol it expects.
-:zeek:id:`raw_packet`: :zeek:type:`event`                                                              Generated for every packet Zeek sees that have a valid link-layer header.
-:zeek:id:`reporter_error`: :zeek:type:`event` :zeek:attr:`&error_handler`                              Raised for errors reported via Zeek's reporter framework.
-:zeek:id:`reporter_info`: :zeek:type:`event` :zeek:attr:`&error_handler`                               Raised for informational messages reported via Zeek's reporter framework.
-:zeek:id:`reporter_warning`: :zeek:type:`event` :zeek:attr:`&error_handler`                            Raised for warnings reported via Zeek's reporter framework.
-:zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                                                    Generated when Zeek detects a TCP retransmission inconsistency.
-:zeek:id:`scheduled_analyzer_applied`: :zeek:type:`event`                                              Generated when a connection is seen that is marked as being expected.
-:zeek:id:`signature_match`: :zeek:type:`event`                                                         Generated when a signature matches.
-:zeek:id:`successful_connection_remove`: :zeek:type:`event`                                            Like :zeek:see:`connection_state_remove`, but raised only for "successful"
-                                                                                                       connections, as defined by :zeek:see:`connection_successful`.
-:zeek:id:`tunnel_changed`: :zeek:type:`event`                                                          Generated for a connection whose tunneling has changed.
-:zeek:id:`udp_session_done`: :zeek:type:`event`                                                        Generated when a UDP session for a supported protocol has finished.
-:zeek:id:`zeek_done`: :zeek:type:`event`                                                               Generated at Zeek termination time.
-:zeek:id:`zeek_init`: :zeek:type:`event`                                                               Generated at Zeek initialization time.
-:zeek:id:`zeek_script_loaded`: :zeek:type:`event`                                                      Raised for each policy script loaded by the script interpreter.
-====================================================================================================== =============================================================================
+=========================================================================== =============================================================================
+:zeek:id:`anonymization_mapping`: :zeek:type:`event`                        Shows an IP address anonymization mapping.
+:zeek:id:`conn_stats`: :zeek:type:`event`                                   Generated when a TCP connection terminated, passing on statistics about the
+                                                                            two endpoints.
+:zeek:id:`conn_weird`: :zeek:type:`event`                                   Generated for unexpected activity related to a specific connection.
+:zeek:id:`connection_external`: :zeek:type:`event`                          Generated for a new connection received from the communication subsystem.
+:zeek:id:`connection_flow_label_changed`: :zeek:type:`event`                Generated for a connection over IPv6 when one direction has changed
+                                                                            the flow label that it's using.
+:zeek:id:`connection_reused`: :zeek:type:`event`                            Generated when a connection 4-tuple is reused.
+:zeek:id:`connection_state_remove`: :zeek:type:`event`                      Generated when a connection's internal state is about to be removed from
+                                                                            memory.
+:zeek:id:`connection_status_update`: :zeek:type:`event`                     Generated in regular intervals during the lifetime of a connection.
+:zeek:id:`connection_successful`: :zeek:type:`event`                        Generated for every new connection that is deemed "successful" according to
+                                                                            transport-layer-dependent criteria.
+:zeek:id:`connection_timeout`: :zeek:type:`event`                           Generated when a TCP connection timed out.
+:zeek:id:`content_gap`: :zeek:type:`event`                                  Generated when Zeek detects a gap in a reassembled TCP payload stream.
+:zeek:id:`dns_mapping_altered`: :zeek:type:`event`                          Generated when an internal DNS lookup produced a different result than in
+                                                                            the past.
+:zeek:id:`dns_mapping_lost_name`: :zeek:type:`event`                        Generated when an internal DNS lookup returned zero answers even though it
+                                                                            had succeeded in the past.
+:zeek:id:`dns_mapping_new_name`: :zeek:type:`event`                         Generated when an internal DNS lookup succeeded but an earlier attempt
+                                                                            did not.
+:zeek:id:`dns_mapping_unverified`: :zeek:type:`event`                       Generated when an internal DNS lookup got no answer even though it had
+                                                                            succeeded in the past.
+:zeek:id:`dns_mapping_valid`: :zeek:type:`event`                            Generated when an internal DNS lookup produces the same result as last time.
+:zeek:id:`esp_packet`: :zeek:type:`event`                                   Generated for any packets using the IPv6 Encapsulating Security Payload (ESP)
+                                                                            extension header.
+:zeek:id:`event_queue_flush_point`: :zeek:type:`event`                      Marks a point in the event stream at which the event queue started flushing.
+:zeek:id:`file_gap`: :zeek:type:`event`                                     Indicates that a chunk of the file is missing.
+:zeek:id:`file_new`: :zeek:type:`event`                                     Indicates that an analysis of a new file has begun.
+:zeek:id:`file_opened`: :zeek:type:`event`                                  Generated each time Zeek's script interpreter opens a file.
+:zeek:id:`file_over_new_connection`: :zeek:type:`event`                     Indicates that a file has been seen being transferred over a connection
+                                                                            different from the original.
+:zeek:id:`file_reassembly_overflow`: :zeek:type:`event`                     Indicates that the file had an overflow of the reassembly buffer.
+:zeek:id:`file_sniff`: :zeek:type:`event`                                   Provide all metadata that has been inferred about a particular file
+                                                                            from inspection of the initial content that been seen at the beginning
+                                                                            of the file.
+:zeek:id:`file_state_remove`: :zeek:type:`event`                            This event is generated each time file analysis is ending for a given file.
+:zeek:id:`file_timeout`: :zeek:type:`event`                                 Indicates that file analysis has timed out because no activity was seen
+                                                                            for the file in a while.
+:zeek:id:`file_weird`: :zeek:type:`event`                                   Generated for unexpected activity that is tied to a file.
+:zeek:id:`flow_weird`: :zeek:type:`event`                                   Generated for unexpected activity related to a pair of hosts, but independent
+                                                                            of a specific connection.
+:zeek:id:`get_file_handle`: :zeek:type:`event`                              This event is handled to provide feedback to the file analysis framework
+                                                                            about how to identify the logical "file" to which some data/input
+                                                                            belongs.
+:zeek:id:`ipv6_ext_headers`: :zeek:type:`event`                             Generated for every IPv6 packet that contains extension headers.
+:zeek:id:`load_sample`: :zeek:type:`event`                                  Generated regularly for the purpose of profiling Zeek's processing.
+:zeek:id:`mobile_ipv6_message`: :zeek:type:`event`                          Generated for any packet using a Mobile IPv6 Mobility Header.
+:zeek:id:`net_weird`: :zeek:type:`event`                                    Generated for unexpected activity that is not tied to a specific connection
+                                                                            or pair of hosts.
+:zeek:id:`new_connection`: :zeek:type:`event`                               Generated for every new connection.
+:zeek:id:`new_event`: :zeek:type:`event`                                    A meta event generated for events that Zeek raises.
+:zeek:id:`new_packet`: :zeek:type:`event`                                   Generated for all packets that make it into Zeek's connection processing.
+:zeek:id:`packet_contents`: :zeek:type:`event`                              Generated for every packet that has a non-empty transport-layer payload.
+:zeek:id:`profiling_update`: :zeek:type:`event`                             Generated each time Zeek's internal profiling log is updated.
+:zeek:id:`protocol_confirmation`: :zeek:type:`event`                        Generated when a protocol analyzer confirms that a connection is indeed
+                                                                            using that protocol.
+:zeek:id:`protocol_late_match`: :zeek:type:`event`                          Generated if a DPD signature matched but the DPD buffer is already exhausted
+                                                                            and thus the analyzer could not be attached.
+:zeek:id:`protocol_violation`: :zeek:type:`event`                           Generated when a protocol analyzer determines that a connection it is parsing
+                                                                            is not conforming to the protocol it expects.
+:zeek:id:`raw_packet`: :zeek:type:`event`                                   Generated for every packet Zeek sees that have a valid link-layer header.
+:zeek:id:`reporter_error`: :zeek:type:`event` :zeek:attr:`&error_handler`   Raised for errors reported via Zeek's reporter framework.
+:zeek:id:`reporter_info`: :zeek:type:`event` :zeek:attr:`&error_handler`    Raised for informational messages reported via Zeek's reporter framework.
+:zeek:id:`reporter_warning`: :zeek:type:`event` :zeek:attr:`&error_handler` Raised for warnings reported via Zeek's reporter framework.
+:zeek:id:`rexmit_inconsistency`: :zeek:type:`event`                         Generated when Zeek detects a TCP retransmission inconsistency.
+:zeek:id:`scheduled_analyzer_applied`: :zeek:type:`event`                   Generated when a connection is seen that is marked as being expected.
+:zeek:id:`signature_match`: :zeek:type:`event`                              Generated when a signature matches.
+:zeek:id:`successful_connection_remove`: :zeek:type:`event`                 Like :zeek:see:`connection_state_remove`, but raised only for "successful"
+                                                                            connections, as defined by :zeek:see:`connection_successful`.
+:zeek:id:`tunnel_changed`: :zeek:type:`event`                               Generated for a connection whose tunneling has changed.
+:zeek:id:`udp_session_done`: :zeek:type:`event`                             Generated when a UDP session for a supported protocol has finished.
+:zeek:id:`zeek_done`: :zeek:type:`event`                                    Generated at Zeek termination time.
+:zeek:id:`zeek_init`: :zeek:type:`event`                                    Generated at Zeek initialization time.
+:zeek:id:`zeek_script_loaded`: :zeek:type:`event`                           Raised for each policy script loaded by the script interpreter.
+=========================================================================== =============================================================================
 
 
 Detailed Interface
@@ -108,27 +105,6 @@ Events
    :Type: :zeek:type:`event` (orig: :zeek:type:`addr`, mapped: :zeek:type:`addr`)
 
    Shows an IP address anonymization mapping.
-
-.. zeek:id:: bro_done
-
-   :Type: :zeek:type:`event` ()
-   :Attributes: :zeek:attr:`&deprecated` = ``"Remove in v3.1: use zeek_done"``
-
-   Deprecated synonym for :zeek:see:`zeek_done`.
-
-.. zeek:id:: bro_init
-
-   :Type: :zeek:type:`event` ()
-   :Attributes: :zeek:attr:`&deprecated` = ``"Remove in v3.1: use zeek_init"``
-
-   Deprecated synonym for :zeek:see:`zeek_init`.
-
-.. zeek:id:: bro_script_loaded
-
-   :Type: :zeek:type:`event` (path: :zeek:type:`string`, level: :zeek:type:`count`)
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v3.1: use zeek_script_loaded"*
-
-   Deprecated synonym for :zeek:see:`zeek_script_loaded`.
 
 .. zeek:id:: conn_stats
 

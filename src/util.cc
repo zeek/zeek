@@ -55,6 +55,14 @@
 
 #include "3rdparty/doctest.h"
 
+#if defined(__linux__) && __cplusplus >= 201703L
+/* need C++17 for __has_include() */
+#if __has_include(<sys/random.h>)
+#define HAVE_GETRANDOM
+#include <sys/random.h>
+#endif
+#endif
+
 TEST_CASE("util extract_ip")
 	{
 	CHECK(extract_ip("[1.2.3.4]") == "1.2.3.4");
@@ -1034,6 +1042,14 @@ void init_random_seed(const char* read_file, const char* write_file)
 		else
 			seeds_done = true;
 		}
+
+#ifdef HAVE_GETRANDOM
+	if ( ! seeds_done )
+		{
+		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
+		seeds_done = nbytes == ssize_t(sizeof(buf));
+		}
+#endif
 
 	if ( ! seeds_done )
 		{

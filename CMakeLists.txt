@@ -379,11 +379,8 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/zeek)
 
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})

@@ -1,8 +1,8 @@
 #! /usr/bin/env bash
 #
 # Wrapper to continue reporting usage old names of executables.
-# This will print an error warning to stderr if stdin/stdout/stderr
-# are all connected to a tty. In any case, it will abort with error
+# This will print an error to stderr if stdin/stdout/stderr
+# are all connected to a tty. It will then abort with an error
 # exit code.
 
 function deprecated {

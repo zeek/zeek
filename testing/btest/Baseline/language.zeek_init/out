@@ -1,8 +1,4 @@
-zeek_init at priority 10!
-bro_init at priority 5!
-zeek_init at priority 0!
-bro_init at priority -10!
-zeek_done at priority 10!
-bro_done at priority 5!
-zeek_done at priority 0!
-bro_done at priority -10!
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_init/zeek_init.zeek, line 10: event bro_init() is no longer available, use zeek_init() instead
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_init/zeek_init.zeek, line 20: event bro_init() is no longer available, use zeek_init() instead
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_init/zeek_init.zeek, line 31: event bro_done() is no longer available, use zeek_done() instead
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_init/zeek_init.zeek, line 41: event bro_done() is no longer available, use zeek_done() instead

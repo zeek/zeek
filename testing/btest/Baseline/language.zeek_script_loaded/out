@@ -1,4 +1,2 @@
-zeek_script_loaded priority 10
-bro_script_loaded priority 5
-zeek_script_loaded priority 0
-bro_script_loaded priority -10
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_script_loaded/zeek_script_loaded.zeek, line 11: event bro_script_loaded() is no longer available, use zeek_script_loaded() instead
+error in /home/robin/bro/master/testing/btest/.tmp/language.zeek_script_loaded/zeek_script_loaded.zeek, line 23: event bro_script_loaded() is no longer available, use zeek_script_loaded() instead

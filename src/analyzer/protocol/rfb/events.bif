@@ -1,8 +1,3 @@
-## Generated for RFB event
-##
-## c: The connection record for the underlying transport-layer session/flow.
-event rfb_event%(c: connection%) &deprecated="Remove in v3.1: This event never served a real purpose and will be removed. Please use the other rfb events instead.";
-
 ## Generated for RFB event authentication mechanism selection
 ##
 ## c: The connection record for the underlying transport-layer session/flow.

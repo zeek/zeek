@@ -1,11 +1,4 @@
 refine flow RFB_Flow += {
-	function proc_rfb_message(msg: RFB_PDU): bool
-		%{
-		if ( rfb_event )
-			BifEvent::generate_rfb_event(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
-		return true;
-		%}
-
 	function proc_rfb_version(client: bool, major: bytestring, minor: bytestring) : bool
 		%{
 		if (client)
@@ -370,8 +363,4 @@ refine connection RFB_Conn += {
 		%{
 		return true;
 		%}
-};
-
-refine typeattr RFB_PDU += &let {
-	proc: bool = $context.flow.proc_rfb_message(this);
 };

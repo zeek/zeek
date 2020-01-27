@@ -1,0 +1,8 @@
+bifs.str_shell_escape
+core.load-explicit-bro-suffix-fallback
+coverage.init-default
+language.zeek_init
+language.zeek_script_loaded
+plugins.legacy
+coverage.sphinx-zeekygen-docs
+coverage.bare-mode-errors

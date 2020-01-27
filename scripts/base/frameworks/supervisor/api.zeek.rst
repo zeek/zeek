@@ -5,6 +5,9 @@ base/frameworks/supervisor/api.zeek
 .. zeek:namespace:: Supervisor
 
 The Zeek process supervision API.
+This API was introduced in Zeek 3.1.0 and considered unstable until 4.0.0.
+That is, it may change in various incompatible ways without warning or
+deprecation until the stable 4.0.0 release.
 
 :Namespace: Supervisor
 

@@ -22,6 +22,7 @@ Functions
 :zeek:id:`Supervisor::__node`: :zeek:type:`function`          
 :zeek:id:`Supervisor::__restart`: :zeek:type:`function`       
 :zeek:id:`Supervisor::__status`: :zeek:type:`function`        
+:zeek:id:`Supervisor::__stem_pid`: :zeek:type:`function`      
 ============================================================= =
 
 
@@ -67,6 +68,11 @@ Functions
 .. zeek:id:: Supervisor::__status
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string`) : :zeek:type:`Supervisor::Status`
+
+
+.. zeek:id:: Supervisor::__stem_pid
+
+   :Type: :zeek:type:`function` () : :zeek:type:`int`
 
 
 

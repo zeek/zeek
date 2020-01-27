@@ -98,5 +98,46 @@ you've changed in the meantime:
 Any Supervisor instruction you can perform via an API call in a local script
 can also be triggered via an associated external event.
 
-For further details, consult the API at
-:doc:`/scripts/base/frameworks/supervisor/api.zeek`.
+For further details, consult the ``Supervisor`` API at
+:doc:`/scripts/base/frameworks/supervisor/api.zeek` and
+``SupervisorControl`` API (for remote management) at
+:doc:`/scripts/base/frameworks/supervisor/control.zeek`.
+
+Internal Architecture
+=====================
+
+The following details aren't necessarily important for most users, but instead
+aim to give developers a high-level overview of how the process supervision
+framework is implemented.  The process tree in "supervisor" mode looks like:
+
+.. figure:: supervisor/zeek-supervisor-architecture.png
+
+The top-level "Supervisor" process does not directly manage any of the
+supervised nodes that are created.  Instead, it spawns in intermediate process,
+called "Stem", to manage the lifetime of supervised nodes.  This is done for
+two reasons:
+
+1. Avoids the need to ``exec()`` the supervised processes which requires
+   executing whatever version of the ``zeek`` binary happens to exist on
+   the filesystem at the time of call and it may have changed in the meantime.
+   This can help avoid potential incompatibility or race-condition pitfalls
+   associated with system maintenance/upgrades.  The one situation that does
+   still require an ``exec()`` is if the Stem process dies prematurely, but
+   that is expected to be a rare scenario.
+2. Zeek run-time operation generally taints global state, so creating an early
+   ``fork()`` for use as the Stem process provides a pure baseline image to use
+   for supervised processes.
+
+Ultimately, there are two tiers of process supervision happening: the
+Supervisor will revive the Stem process if needed and the Stem process will
+revive any of its children when needed.
+
+Also, either the Stem or any of its supervised children processes will
+automatically detect if they are orphaned from their parent process and
+self-terminate.  The Stem checks for orphaning simply by waking up every second
+from its ``poll()`` loop to look if its parent PID changed.  A supervised node
+checks for orphaning similarly, but instead does so from a recurring ``Timer``.
+Other than the orphaning-check and how it establishes the desired
+configuration from a combination of inheriting command-line arguments and
+inspecting Supervisor-specific options, a supervised node does not operate
+differently at run-time from a traditional Zeek process.

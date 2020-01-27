@@ -81,8 +81,8 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	while ( output_pos + count > output_size )
 		{
 		output_size *= GROWTH_FACTOR;
-		output = (char*)safe_realloc(output, output_size);
 		}
+	output = (char*)safe_realloc(output, output_size);
 
 	memcpy(output + output_pos, b, count);
 	output_pos += count;

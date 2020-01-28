@@ -21,6 +21,7 @@ extern "C" {
 #include <openssl/err.h>
 
 #include "Options.h"
+#include "DropPrivileges.h"
 #include "input.h"
 #include "DNS_Mgr.h"
 #include "Frame.h"
@@ -351,6 +352,7 @@ static void bro_new_handler()
 	{
 	out_of_memory("new");
 	}
+
 
 static std::vector<std::string> get_script_signature_files()
 	{
@@ -887,6 +889,9 @@ int main(int argc, char** argv)
 	broker_mgr->ZeekInitDone();
 	reporter->ZeekInitDone();
 	analyzer_mgr->DumpDebug();
+
+	if ( options.drop_privileges )
+		DropPrivileges();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
 

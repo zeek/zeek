@@ -104,6 +104,7 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "    -T|--re-level <level>          | set 'RE_level' for rules\n");
 	fprintf(stderr, "    -U|--status-file <file>        | Record process status in file\n");
 	fprintf(stderr, "    -W|--watchdog                  | activate watchdog timer\n");
+	fprintf(stderr, "    -D|--drop-privileges           | drop privileges after initialization\n");
 	fprintf(stderr, "    -X|--zeekygen <cfgfile>        | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -210,6 +211,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		{"debug-rules",		no_argument,		0,	'S'},
 		{"re-level",		required_argument,	0,	'T'},
 		{"watchdog",		no_argument,		0,	'W'},
+		{"drop-privileges",	no_argument,		0,	'D'},
 		{"print-id",		required_argument,	0,	'I'},
 		{"status-file",		required_argument,	0,	'U'},
 
@@ -232,7 +234,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CFNPQSWDabdhv",
 	             sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -370,6 +372,9 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			break;
 		case 'W':
 			rval.use_watchdog = true;
+			break;
+		case 'D':
+			rval.drop_privileges = true;
 			break;
 		case 'X':
 			rval.zeekygen_config_file = optarg;

@@ -44,6 +44,7 @@ struct Options {
 	int signature_re_level = 4;
 	bool ignore_checksums = false;
 	bool use_watchdog = false;
+	bool drop_privileges = false;
 	double pseudo_realtime = 0;
 	DNS_MgrMode dns_mode = DNS_DEFAULT;
 

@@ -230,6 +230,7 @@ set(MAIN_SRCS
     Dict.cc
     Discard.cc
     DNS_Mgr.cc
+    DropPrivileges.cc
     EquivClass.cc
     Event.cc
     EventHandler.cc

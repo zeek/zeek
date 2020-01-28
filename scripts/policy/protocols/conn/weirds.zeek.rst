@@ -4,7 +4,7 @@ policy/protocols/conn/weirds.zeek
 =================================
 .. zeek:namespace:: Conn
 
-This script handles core generated connection related "weird" events to 
+This script handles core generated connection related "weird" events to
 push weird information about connections into the weird framework.
 For live operational deployments, this can frequently cause load issues
 due to large numbers of these events and quite possibly shouldn't be

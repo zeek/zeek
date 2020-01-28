@@ -431,7 +431,6 @@ Types
 :zeek:type:`PE::OptionalHeader`: :zeek:type:`record`                          
 :zeek:type:`PE::SectionHeader`: :zeek:type:`record`                           Record for Portable Executable (PE) section headers.
 :zeek:type:`PacketSource`: :zeek:type:`record`                                Properties of an I/O packet source being read by Zeek.
-:zeek:type:`PacketSourceList`: :zeek:type:`vector`                            A list of packet sources being read by Zeek.
 :zeek:type:`PcapFilterID`: :zeek:type:`enum`                                  Enum type identifying dynamic BPF filters.
 :zeek:type:`ProcStats`: :zeek:type:`record`                                   Statistics about Zeek's process.
 :zeek:type:`RADIUS::AttributeList`: :zeek:type:`vector`                       
@@ -2923,9 +2922,6 @@ Types
       current_conns: :zeek:type:`count`
          
 
-      current_conns_extern: :zeek:type:`count`
-         
-
       sess_current_conns: :zeek:type:`count`
          
 
@@ -4982,12 +4978,6 @@ Types
          The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
 
    Properties of an I/O packet source being read by Zeek.
-
-.. zeek:type:: PacketSourceList
-
-   :Type: :zeek:type:`vector` of :zeek:type:`PacketSource`
-
-   A list of packet sources being read by Zeek.
 
 .. zeek:type:: PcapFilterID
 

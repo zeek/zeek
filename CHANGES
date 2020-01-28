@@ -1,4 +1,12 @@
 
+3.1.0-dev.406 | 2020-01-28 12:42:25 -0800
+
+  * util: use getrandom() on Linux if available (Max Kellermann)
+
+    Unlike /dev/urandom, getrandom() doesn't need a file descriptor and
+    works when there is no /dev.  It requires Linux 3.17 and glibc 2.25,
+    but there is a fallback to the old code.
+
 3.1.0-dev.403 | 2020-01-24 15:15:04 -0800
 
   * Fixed decompose_uri() errors on URIs with empty port component (Frerich Raabe)

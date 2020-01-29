@@ -1,4 +1,19 @@
 
+3.1.0-dev.465 | 2020-01-29 11:45:15 -0800
+
+  * Scope: fix memory leak by removing duplicate copy_string() call (Max Kellermann)
+
+    Note this is a parse-time memory leak, not a run-time leak.
+
+  * util, nb_dns: fix off-by-one bugs in strncpy() calls (Max Kellermann)
+
+    Fortunately, these bugs had no effect because the following lines
+    overwrote the last character with a null byte.
+
+  * Type, util: add `constexpr` to static variables (Max Kellermann)
+
+  * Net: remove unused variable (Max Kellermann)
+
 3.1.0-dev.460 | 2020-01-29 11:16:15 -0800
 
   * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)

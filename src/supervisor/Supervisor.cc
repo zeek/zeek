@@ -10,6 +10,7 @@
 #include <cstdarg>
 #include <sstream>
 
+#include "iosource/Manager.h"
 #include "Supervisor.h"
 #include "Reporter.h"
 #include "DebugLogger.h"
@@ -160,7 +161,6 @@ Supervisor::Supervisor(Supervisor::Config cfg, StemState ss)
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
 	setsignal(SIGCHLD, supervisor_signal_handler);
-	SetIdle(true);
 
 	int status;
 	auto res = waitpid(stem_pid, &status, WNOHANG);
@@ -196,6 +196,9 @@ Supervisor::~Supervisor()
 		DBG_LOG(DBG_SUPERVISOR, "shutdown, stem process already exited");
 		return;
 		}
+
+	iosource_mgr->UnregisterFd(signal_flare.FD(), this);
+	iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
 
 	DBG_LOG(DBG_SUPERVISOR, "shutdown, killing stem process %d", stem_pid);
 
@@ -352,16 +355,16 @@ void Supervisor::HandleChildSignal()
 		}
 	}
 
-void Supervisor::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                        iosource::FD_Set* except)
+void Supervisor::InitPostScript()
 	{
-	read->Insert(signal_flare.FD());
-	read->Insert(stem_pipe->InFD());
+	iosource_mgr->Register(this);
+	iosource_mgr->RegisterFd(signal_flare.FD(), this);
+	iosource_mgr->RegisterFd(stem_pipe->InFD(), this);
 	}
 
-double Supervisor::NextTimestamp(double* local_network_time)
+double Supervisor::GetNextTimeout()
 	{
-	return timer_mgr->Time();
+	return -1;
 	}
 
 void Supervisor::Process()

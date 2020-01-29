@@ -674,6 +674,9 @@ int main(int argc, char** argv)
 	broker_mgr->InitPostScript();
 	timer_mgr->InitPostScript();
 
+	if ( zeek::supervisor_mgr )
+		zeek::supervisor_mgr->InitPostScript();
+
 	if ( options.print_plugins )
 		{
 		bool success = show_plugins(options.print_plugins);

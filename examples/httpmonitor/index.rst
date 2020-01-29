@@ -88,6 +88,7 @@ detect a reply for a ``GET http://`` request.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -103,6 +104,7 @@ will extend our basic script to also consider the additional codes.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -116,6 +118,7 @@ network.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -139,6 +142,7 @@ Below is the complete script.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -176,6 +180,7 @@ using the :ref:`File Analysis Framework <file-analysis-framework>`:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 

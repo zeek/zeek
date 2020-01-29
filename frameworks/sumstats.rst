@@ -75,6 +75,7 @@ inline documentation that does this with the Sumstats framework:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 When run on a sample PCAP file from the Zeek test suite, the following output
 is created:
@@ -97,6 +98,7 @@ real-world functional example, that is left to the
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Let's see if there are any hosts that crossed the threshold in a PCAP file
 containing a host running nmap:

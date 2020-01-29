@@ -9,6 +9,8 @@
    base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>
    base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>
    base/bif/option.bif.zeek </scripts/base/bif/option.bif.zeek>
+   base/frameworks/supervisor/api.zeek </scripts/base/frameworks/supervisor/api.zeek>
+   base/bif/supervisor.bif.zeek </scripts/base/bif/supervisor.bif.zeek>
    base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>
    base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>
    base/bif/event.bif.zeek </scripts/base/bif/event.bif.zeek>
@@ -30,6 +32,9 @@
    base/bif/data.bif.zeek </scripts/base/bif/data.bif.zeek>
    base/bif/store.bif.zeek </scripts/base/bif/store.bif.zeek>
    base/frameworks/broker/log.zeek </scripts/base/frameworks/broker/log.zeek>
+   base/frameworks/supervisor/__load__.zeek </scripts/base/frameworks/supervisor/__load__.zeek>
+   base/frameworks/supervisor/control.zeek </scripts/base/frameworks/supervisor/control.zeek>
+   base/frameworks/supervisor/main.zeek </scripts/base/frameworks/supervisor/main.zeek>
    base/frameworks/input/__load__.zeek </scripts/base/frameworks/input/__load__.zeek>
    base/frameworks/input/main.zeek </scripts/base/frameworks/input/main.zeek>
    base/bif/input.bif.zeek </scripts/base/bif/input.bif.zeek>

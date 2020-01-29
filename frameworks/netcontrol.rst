@@ -135,6 +135,7 @@ sees being established:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Running this script on a file containing one connection will cause the debug
 plugin to print one line to the standard output, which contains information
@@ -200,6 +201,7 @@ following code automatically blocks a recognized SSH guesser:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -230,6 +232,7 @@ the :zeek:see:`Notice::ACTION_DROP` action of the notice framework:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -323,6 +326,7 @@ drops all connections on the network:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -383,6 +387,7 @@ originating from the 192.168.* network:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -462,6 +467,7 @@ address is already blocked in the second connection.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -516,6 +522,7 @@ Using catch and release in your scripts is easy; just use
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -661,6 +668,7 @@ plugin. We manually block a few addresses in the
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 
@@ -776,6 +784,7 @@ when a rule was added and removed successfully.
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 This example is already fully functional and we can use it with a script similar
 to our very first example:
@@ -784,6 +793,7 @@ to our very first example:
    :caption:
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. sourcecode:: console
 

@@ -226,6 +226,7 @@ Zeek can accept incoming connections by calling :zeek:see:`Broker::listen`.
    :caption: connecting-listener.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Zeek can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
 
@@ -233,6 +234,7 @@ Zeek can initiate outgoing connections by calling :zeek:see:`Broker::peer`.
    :caption: connecting-connector.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 In either case, connection status updates are monitored via the
 :zeek:see:`Broker::peer_added` and :zeek:see:`Broker::peer_lost` events.
@@ -253,6 +255,7 @@ define any event handlers for events that peers will send.
    :caption: events-listener.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 There are two different ways to send events.
 
@@ -272,6 +275,7 @@ in addition to sending the event to any subscribed peers.
    :caption: events-connector.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Note that the subscription model is prefix-based, meaning that if you subscribe
 to the "zeek/events" topic prefix you would receive events that are published
@@ -284,6 +288,7 @@ Remote Logging
    :caption: testlog.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 To toggle remote logs, redef :zeek:see:`Log::enable_remote_logging`.
 Use the :zeek:see:`Broker::subscribe` function to advertise interest
@@ -294,11 +299,13 @@ in logs written by peers.  The topic names that Zeek uses are determined by
    :caption: logs-listener.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. literalinclude:: broker/logs-connector.zeek
    :caption: logs-connector.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Note that logging events are only raised locally on the node that performs
 the :zeek:see:`Log::write` and not automatically published to peers.
@@ -330,11 +337,13 @@ time relative to the entry's last modification time.
    :caption: stores-listener.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 .. literalinclude:: broker/stores-connector.zeek
    :caption: stores-connector.zeek
    :language: zeek
    :linenos:
+   :tab-width: 4
 
 Note that all data store queries must be made within Zeek's asynchronous
 ``when`` statements and must specify a timeout block.
@@ -489,7 +498,7 @@ connected to all workers.  The manager or a proxy satisfies that requirement:
     event worker_to_workers(worker_name: string)
         {
     @if ( Cluster::local_node_type() == Cluster::MANAGER ||
-              Cluster::local_node_type() == Cluster::PROXY )
+          Cluster::local_node_type() == Cluster::PROXY )
             Broker::publish(Cluster::worker_topic, worker_to_workers,
                             worker_name)
     @else

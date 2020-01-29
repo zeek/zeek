@@ -17,3 +17,4 @@ Frameworks
    signatures
    sumstats
    broker
+   supervisor

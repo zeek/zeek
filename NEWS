@@ -29,6 +29,15 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The naming-related backwards-compability wrappers & work-arounds
+  introduced in 3.0 have either changed their operation, or in some
+  cases been removed. Generally, anything that reported a
+  naming-related warning in 3.0 now aborts with a corresponding error
+  message. In cases where 3.0 silently continued to accept old names,
+  3.1 now reports warnings. Most importantly, that's loading of
+  scripts with ".bro" endings, which are now flagged and should be
+  renamed.
+
 - The key type of ``Known::service_store`` has changed to
   ``Known::AddrPortServTriplet`` and ``Known::services`` is now a table
   instead of just a set.

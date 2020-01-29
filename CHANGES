@@ -1,4 +1,8 @@
 
+3.1.0-dev.460 | 2020-01-29 11:16:15 -0800
+
+  * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)
+
 3.1.0-dev.458 | 2020-01-29 12:53:32 +0000
 
   * Add a new supervisor framework that enables Zeek to operate

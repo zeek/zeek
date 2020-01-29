@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+#include <optional>
+
 #include "net_util.h"
 #include "util.h"
 #include "List.h"
@@ -10,8 +14,10 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 
-extern void net_init(name_list& interfaces, name_list& readfiles,
-		const char* writefile, int do_watchdog);
+extern void net_init(const std::vector<std::string>& interfaces,
+                     const std::vector<std::string>& pcap_input_files,
+                     const std::optional<std::string>& pcap_output_file,
+                     bool do_watchdog);
 extern void net_run();
 extern void net_get_final_stats();
 extern void net_finish(int drain_events);
@@ -20,7 +26,7 @@ extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const Packet* pkt,
 			iosource::PktSrc* src_ps);
 extern void expire_timers(iosource::PktSrc* src_ps = 0);
-extern void termination_signal();
+extern void zeek_terminate_loop(const char* reason);
 
 // Functions to temporarily suspend processing of live input (network packets
 // and remote events/state). Turning this is on is sure to lead to data loss!
@@ -75,8 +81,6 @@ extern iosource::PktSrc* current_pktsrc;
 extern iosource::IOSource* current_iosrc;
 
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
-
-extern char* writefile;
 
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by inode number.

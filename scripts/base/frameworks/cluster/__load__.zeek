@@ -18,7 +18,12 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 # Loading the cluster framework requires that a script by this name exists
 # somewhere in the ZEEKPATH.  The only thing in the file should be the
 # cluster definition in the :zeek:id:`Cluster::nodes` variable.
+
+@if ( ! Supervisor::__init_cluster() )
+# When running a supervised cluster, Cluster::nodes is instead populated
+# from the internal C++-layer directly via the above BIF.
 @load cluster-layout
+@endif
 
 @if ( Cluster::node in Cluster::nodes )
 

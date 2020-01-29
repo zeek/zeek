@@ -221,7 +221,7 @@ public:
 	~RuleMatcher();
 
 	// Parse the given files and built up data structures.
-	bool ReadFiles(const name_list& files);
+	bool ReadFiles(const std::vector<std::string>& files);
 
 	/**
 	 * Inititialize a state object for matching file magic signatures.

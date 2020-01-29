@@ -1,0 +1,7 @@
+supervisor zeek_init()
+supervisor connected to peer
+supervisor lost peer
+supervisor connected to peer
+supervisor lost peer
+supervisor connected to peer
+supervisor zeek_done()

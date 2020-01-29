@@ -9,6 +9,27 @@ Zeek 3.1.0
 New Functionality
 -----------------
 
+- Add a new supervisor framework that enables Zeek to operate clusters
+  of processes itself without any external help.
+
+  The Supervisor framework provides an entirely new deployment mode
+  for Zeek, one that supervises a set of Zeek processes that are meant
+  to be persistent. A Supervisor automatically revives any process
+  that dies or exits prematurely and also arranges for an ordered
+  shutdown of the entire process tree upon its own termination. This
+  Supervisor mode for Zeek provides the basic foundation for process
+  configuration/management that could be used to deploy a Zeek cluster
+  similar to what ZeekControl does, but is also simpler to integrate
+  as a standard system service.
+
+  This mode is still experimental and will evolve over time. The
+  command-line argument of ``-j`` toggles Zeek to run in "Supervisor
+  mode" to allow for creation and management of child processes. If
+  you're going to test this, please note that you will need some
+  custom script code to configure the processes you want Zeek to run.
+  See the documentation for more information:
+  https://docs.zeek.org/en/stable/frameworks/supervisor.html
+
 - Add a new option, ``dpd_late_match_stop``, which can be used in conjuction
   with the option ``dpd_match_only_beginning`` and the new event
   ``protocol_late_match`` to help annotate the conn.log with a field

@@ -440,9 +440,14 @@ void DNS_Mgr::InitSource()
 		}
 
 	if ( nb_dns )
-		iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this);
+		{
+		if ( ! iosource_mgr->RegisterFd(nb_dns_fd(nb_dns), this) )
+			reporter->FatalError("Failed to register nb_dns file descriptor with iosource_mgr");
+		}
 	else
+		{
 		reporter->Warning("problem initializing NB-DNS: %s", err);
+		}
 
 	did_init = true;
 	}
@@ -1490,5 +1495,5 @@ void DNS_Mgr::GetStats(Stats* stats)
 void DNS_Mgr::Terminate()
 	{
 	if ( nb_dns )
-		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns));
+		iosource_mgr->UnregisterFd(nb_dns_fd(nb_dns), this);
 	}

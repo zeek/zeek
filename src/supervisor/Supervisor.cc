@@ -358,8 +358,11 @@ void Supervisor::HandleChildSignal()
 void Supervisor::InitPostScript()
 	{
 	iosource_mgr->Register(this);
-	iosource_mgr->RegisterFd(signal_flare.FD(), this);
-	iosource_mgr->RegisterFd(stem_pipe->InFD(), this);
+
+	if ( ! iosource_mgr->RegisterFd(signal_flare.FD(), this) )
+		reporter->FatalError("Failed registration for signal_flare with iosource_mgr");
+	if ( ! iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
+		reporter->FatalError("Failed registration for stem_pipe with iosource_mgr");
 	}
 
 double Supervisor::GetNextTimeout()

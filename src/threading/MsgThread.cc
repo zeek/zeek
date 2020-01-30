@@ -181,7 +181,8 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
 	failed = false;
 	thread_mgr->AddMsgThread(this);
 
-	iosource_mgr->RegisterFd(flare.FD(), this);
+	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+		reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
 
 	SetClosed(false);
 	}
@@ -190,7 +191,7 @@ MsgThread::~MsgThread()
 	{
 	// Unregister this thread from the iosource manager so it doesn't wake
 	// up the main poll anymore.
-	iosource_mgr->UnregisterFd(flare.FD());
+	iosource_mgr->UnregisterFd(flare.FD(), this);
 	}
 
 // Set by Bro's main signal handler.

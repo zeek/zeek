@@ -207,16 +207,18 @@ void Manager::InitPostScript()
 	auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
 	bstate = std::make_shared<BrokerState>(std::move(config), cqs);
 
-	iosource_mgr->RegisterFd(bstate->subscriber.fd(), this);
-	iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this);
+	if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
+		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
+	if ( ! iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
+		reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
 	}
 
 void Manager::Terminate()
 	{
 	FlushLogBuffers();
 
-	iosource_mgr->UnregisterFd(bstate->subscriber.fd());
-	iosource_mgr->UnregisterFd(bstate->status_subscriber.fd());
+	iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
+	iosource_mgr->UnregisterFd(bstate->status_subscriber.fd(), this);
 
 	vector<string> stores_to_close;
 
@@ -1503,7 +1505,7 @@ bool Manager::CloseStore(const string& name)
 	if ( s == data_stores.end() )
 		return false;
 
-	iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor());
+	iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
 
 	for ( auto i = pending_queries.begin(); i != pending_queries.end(); )
 		if ( i->second->Store().name() == name )

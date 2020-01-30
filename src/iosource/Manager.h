@@ -113,12 +113,12 @@ public:
 	 * checked for readiness.
 	 * @param src The IOSource that owns the file descriptor.
 	 */
-	void RegisterFd(int fd, IOSource* src);
+	bool RegisterFd(int fd, IOSource* src);
 
 	/**
 	 * Unregisters a file descriptor from the FindReadySources checks.
 	 */
-	void UnregisterFd(int fd);
+	bool UnregisterFd(int fd, IOSource* src);
 
 	/**
 	 * Forces the poll in FindReadySources to wake up immediately. This method

@@ -22,12 +22,13 @@ using namespace iosource;
 
 Manager::WakeupHandler::WakeupHandler()
 	{
-	iosource_mgr->RegisterFd(flare.FD(), this);
+	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+		reporter->FatalError("Failed to register WakeupHandler's fd with iosource_mgr");
 	}
 
 Manager::WakeupHandler::~WakeupHandler()
 	{
-	iosource_mgr->UnregisterFd(flare.FD());
+	iosource_mgr->UnregisterFd(flare.FD(), this);
 	}
 
 void Manager::WakeupHandler::Process()
@@ -207,7 +208,7 @@ void Manager::ConvertTimeout(double timeout, struct timespec& spec)
 		}
 	}
 
-void Manager::RegisterFd(int fd, IOSource* src)
+bool Manager::RegisterFd(int fd, IOSource* src)
 	{
 	struct kevent event;
 	EV_SET(&event, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -219,14 +220,16 @@ void Manager::RegisterFd(int fd, IOSource* src)
 		fd_map[fd] = src;
 
 		Wakeup("RegisterFd");
+		return true;
 		}
 	else
 		{
-		DBG_LOG(DBG_MAINLOOP, "Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		return false;
 		}
 	}
 
-void Manager::UnregisterFd(int fd)
+bool Manager::UnregisterFd(int fd, IOSource* src)
 	{
 	if ( fd_map.find(fd) != fd_map.end() )
 		{
@@ -234,11 +237,17 @@ void Manager::UnregisterFd(int fd)
 		EV_SET(&event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 		int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
 		if ( ret != -1 )
-			DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d", fd);
+			DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
 
 		fd_map.erase(fd);
 
 		Wakeup("UnregisterFd");
+		return true;
+		}
+	else
+		{
+		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
+		return false;
 		}
 	}
 

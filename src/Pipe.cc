@@ -24,6 +24,9 @@ static int set_flags(int fd, int flags)
 	{
 	auto rval = fcntl(fd, F_GETFD);
 
+	if ( rval == -1 )
+		pipe_fail(errno);
+
 	if ( flags )
 		{
 		rval |= flags;
@@ -39,6 +42,9 @@ static int unset_flags(int fd, int flags)
 	{
 	auto rval = fcntl(fd, F_GETFD);
 
+	if ( rval == -1 )
+		pipe_fail(errno);
+
 	if ( flags )
 		{
 		rval &= ~flags;
@@ -53,6 +59,9 @@ static int unset_flags(int fd, int flags)
 static int set_status_flags(int fd, int flags)
 	{
 	auto rval = fcntl(fd, F_GETFL);
+
+	if ( rval == -1 )
+		pipe_fail(errno);
 
 	if ( flags )
 		{

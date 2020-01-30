@@ -1,1 +1,1 @@
-sender error: code=Broker::PEER_UNAVAILABLE msg=(invalid-node, *<endpoint addr:port>, "remote endpoint unavailable")
+sender error: code=Broker::PEER_UNAVAILABLE msg=(invalid-node, *<endpoint addr:port>, "remote endpoint unavailable: system_error(disconnect_during_handshake)")

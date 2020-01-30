@@ -1,3 +1,94 @@
+3.1.0-dev.469 | 2020-01-30 08:44:15 -0700
+
+  * Fix leaked FDs in redirecting supervised node stdout/stderr (Jon Siwek, Corelight)
+
+  * Add checks for failed fcntl calls (Jon Siwek, Corelight)
+
+  * Set Pipe file descriptor flags correctly (Jon Siwek, Corelight)
+
+3.1.0-dev.465 | 2020-01-29 11:45:15 -0800
+
+  * Scope: fix memory leak by removing duplicate copy_string() call (Max Kellermann)
+
+    Note this is a parse-time memory leak, not a run-time leak.
+
+  * util, nb_dns: fix off-by-one bugs in strncpy() calls (Max Kellermann)
+
+    Fortunately, these bugs had no effect because the following lines
+    overwrote the last character with a null byte.
+
+  * Type, util: add `constexpr` to static variables (Max Kellermann)
+
+  * Net: remove unused variable (Max Kellermann)
+
+3.1.0-dev.460 | 2020-01-29 11:16:15 -0800
+
+  * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)
+
+3.1.0-dev.458 | 2020-01-29 12:53:32 +0000
+
+  * Add a new supervisor framework that enables Zeek to operate
+    clusters of processes itself without any external help. (Jon
+    Siwek, Corelight)
+
+    The Supervisor framework provides an entirely new deployment mode
+    for Zeek, one that supervises a set of Zeek processes that are
+    meant to be persistent. A Supervisor automatically revives any
+    process that dies or exits prematurely and also arranges for an
+    ordered shutdown of the entire process tree upon its own
+    termination. This Supervisor mode for Zeek provides the basic
+    foundation for process configuration/management that could be used
+    to deploy a Zeek cluster similar to what ZeekControl does, but is
+    also simpler to integrate as a standard system service.
+
+    This mode is still experimental and will evolve over time. The
+    command-line argument of ``-j`` toggles Zeek to run in "Supervisor
+    mode" to allow for creation and management of child processes. If
+    you're going to test this, please note that you will need some
+    custom script code to configure the processes you want Zeek to
+    run. See the documentation for more information:
+    https://docs.zeek.org/en/stable/frameworks/supervisor.html
+
+3.1.0-dev.408 | 2020-01-28 17:56:02 -0800
+
+  * Update Cirrus CI config to use macOS Catalina (Jon Siwek, Corelight)
+
+3.1.0-dev.406 | 2020-01-28 12:42:25 -0800
+
+  * util: use getrandom() on Linux if available (Max Kellermann)
+
+    Unlike /dev/urandom, getrandom() doesn't need a file descriptor and
+    works when there is no /dev.  It requires Linux 3.17 and glibc 2.25,
+    but there is a fallback to the old code.
+
+3.1.0-dev.403 | 2020-01-24 15:15:04 -0800
+
+  * Fixed decompose_uri() errors on URIs with empty port component (Frerich Raabe)
+
+3.1.0-dev.398 | 2020-01-23 18:08:43 -0800
+
+  * Skip check for outdated docs in Cirrus CI for PRs (Jon Siwek, Corelight)
+
+3.1.0-dev.397 | 2020-01-23 15:30:33 -0800
+
+  * Use consistent zeek_init priority for Log::create_stream calls
+
+    Typically in base scripts, Log::create_stream() is called in zeek_init()
+    handler with &priority=5 such that it will have already been created
+    in the default zeek_init() &priority=0. (Jon Siwek, Corelight)
+
+3.1.0-dev.395 | 2020-01-23 13:50:42 +0000
+
+  * Update Broker submodule.
+
+3.1.0-dev.394 | 2020-01-23 13:18:54 +0000
+
+  * Improve creation of SMB transaction data strings. (Jon Siwek,
+    Corelight)
+
+3.1.0-dev.392 | 2020-01-23 13:14:28 +0000
+
+  * Improve FTP word/whitespace handling. (Jon Siwek, Corelight)
 
 3.1.0-dev.389 | 2020-01-18 10:49:15 +0000
 

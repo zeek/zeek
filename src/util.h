@@ -60,6 +60,15 @@ extern HeapLeakChecker* heap_checker;
 #endif
 
 #include <stdint.h>
+#include <pthread.h>
+
+#ifdef HAVE_LINUX
+#include <sys/prctl.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
 
 ZEEK_DEPRECATED("Remove in v4.1. Use uint64_t instead.")
 typedef uint64_t uint64;
@@ -138,7 +147,7 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 
 std::vector<std::string>* tokenize_string(std::string input,
 					  const std::string& delim,
-					  std::vector<std::string>* rval = 0);
+					  std::vector<std::string>* rval = 0, int limit = 0);
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -402,9 +411,7 @@ void terminate_processing();
 // Sets the current status of the Bro process to the given string.
 // If the option --status-file has been set, this is written into
 // the the corresponding file.  Otherwise, the function is a no-op.
-#define set_processing_status(status, location) \
-	_set_processing_status(status " [" location "]\n");
-void _set_processing_status(const char* status);
+void set_processing_status(const char* status, const char* reason);
 
 // Current timestamp, from a networking perspective, not a wall-clock
 // perspective.  In particular, if we're reading from a savefile this
@@ -505,7 +512,7 @@ inline void* safe_malloc(size_t size)
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	{
-	char* result = strncpy(dest, src, n);
+	char* result = strncpy(dest, src, n-1);
 	dest[n-1] = '\0';
 	return result;
 	}
@@ -572,3 +579,14 @@ char* zeekenv(const char* name);
  * @return the escaped string
  */
 std::string json_escape_utf8(const std::string& val);
+
+namespace zeek {
+/**
+ * Set the process/thread name.  May not be supported on all OSs.
+ * @param name  new name for the process/thread.  OS limitations typically
+ * truncate the name to 15 bytes maximum.
+ * @param tid  handle of thread whose name shall change
+ */
+void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+} // namespace zeek

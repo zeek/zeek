@@ -37,8 +37,8 @@ extern int bro_argc;
 extern char** bro_argv;
 extern const char* prog;
 
-extern name_list prefixes;	// -p flag
-extern char* command_line_policy;	// -e flag
+extern std::vector<std::string> zeek_script_prefixes;	// -p flag
+extern const char* command_line_policy;	// -e flag
 extern std::vector<std::string> params;
 
 class Stmt;

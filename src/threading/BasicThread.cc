@@ -1,18 +1,11 @@
 
 #include <signal.h>
+#include <pthread.h>
 
 #include "zeek-config.h"
 #include "BasicThread.h"
 #include "Manager.h"
-#include "pthread.h"
-
-#ifdef HAVE_LINUX
-#include <sys/prctl.h>
-#endif
-
-#ifdef __FreeBSD__
-#include <pthread_np.h>
-#endif
+#include "util.h"
 
 using namespace threading;
 
@@ -54,18 +47,7 @@ void BasicThread::SetName(const char* arg_name)
 void BasicThread::SetOSName(const char* arg_name)
 	{
 	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-
-#ifdef HAVE_LINUX
-	prctl(PR_SET_NAME, arg_name, 0, 0, 0);
-#endif
-
-#ifdef __APPLE__
-	pthread_setname_np(arg_name);
-#endif
-
-#ifdef __FreeBSD__
-	pthread_set_name_np(thread.native_handle(), arg_name);
-#endif
+	zeek::set_thread_name(arg_name, thread.native_handle());
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)

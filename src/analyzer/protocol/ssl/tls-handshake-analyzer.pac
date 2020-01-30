@@ -303,7 +303,7 @@ refine connection Handshake_Conn += {
 		common.AddRaw("F");
 		bro_analyzer()->Conn()->IDString(&common);
 
-		if ( status_type == 1 ) // ocsp
+		if ( status_type == 1 && response.length() > 0 ) // ocsp
 			{
 			ODesc file_handle;
 			file_handle.Add(common.Description());
@@ -322,6 +322,10 @@ refine connection Handshake_Conn += {
 				        new StringVal(response.length(), (const char*) response.data()));
 
 			file_mgr->EndOfFile(file_id);
+			}
+		else if ( response.length() == 0 )
+			{
+			reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
 			}
 
 		return true;

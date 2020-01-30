@@ -55,6 +55,13 @@
 
 #include "3rdparty/doctest.h"
 
+#ifdef __linux__
+#if __has_include(<sys/random.h>)
+#define HAVE_GETRANDOM
+#include <sys/random.h>
+#endif
+#endif
+
 TEST_CASE("util extract_ip")
 	{
 	CHECK(extract_ip("[1.2.3.4]") == "1.2.3.4");
@@ -605,7 +612,7 @@ TEST_CASE("util uitoa_n")
 
 char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	{
-	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static constexpr char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	assert(n);
 
@@ -616,7 +623,7 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 
 	if ( prefix )
 		{
-		strncpy(str, prefix, n);
+		strncpy(str, prefix, n-1);
 		str[n-1] = '\0';
 		i += strlen(prefix);
 		}
@@ -1035,6 +1042,14 @@ void init_random_seed(const char* read_file, const char* write_file)
 			seeds_done = true;
 		}
 
+#ifdef HAVE_GETRANDOM
+	if ( ! seeds_done )
+		{
+		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
+		seeds_done = nbytes == ssize_t(sizeof(buf));
+		}
+#endif
+
 	if ( ! seeds_done )
 		{
 		// Gather up some entropy.
@@ -1216,7 +1231,7 @@ string bro_prefixes()
 	{
 	string rval;
 
-	for ( const auto& prefix : prefixes )
+	for ( const auto& prefix : zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
 			rval.append(":");
@@ -1444,17 +1459,22 @@ TEST_CASE("util tokenize_string")
 	}
 
 vector<string>* tokenize_string(string input, const string& delim,
-                                vector<string>* rval)
+                                vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
 	size_t n;
+	auto found = 0;
 
 	while ( (n = input.find(delim)) != string::npos )
 		{
+		++found;
 		rval->push_back(input.substr(0, n));
 		input.erase(0, n + 1);
+
+		if ( limit && found == limit )
+			break;
 		}
 
 	rval->push_back(input);
@@ -1467,6 +1487,25 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
 	CHECK(normalize_path("/1/2/../3") == "/1/3");
 	CHECK(normalize_path("1/2/3/") == "1/2/3");
+	CHECK(normalize_path("1/2//3///") == "1/2/3");
+	CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
+	CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
+	CHECK(normalize_path("./zeek") == "./zeek");
+	CHECK(normalize_path("../zeek") == "../zeek");
+	CHECK(normalize_path("../zeek/testing/..") == "../zeek");
+	CHECK(normalize_path("./zeek/..") == ".");
+	CHECK(normalize_path("./zeek/../..") == "..");
+	CHECK(normalize_path("./zeek/../../..") == "../..");
+	CHECK(normalize_path("./..") == "..");
+	CHECK(normalize_path("../..") == "../..");
+	CHECK(normalize_path("/..") == "/..");
+	CHECK(normalize_path("~/..") == "~/..");
+	CHECK(normalize_path("/../..") == "/../..");
+	CHECK(normalize_path("~/../..") == "~/../..");
+	CHECK(normalize_path("zeek/..") == "");
+	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
 string normalize_path(const string& path)
@@ -1488,10 +1527,30 @@ string normalize_path(const string& path)
 
 		if ( *it == "." && it != components.begin() )
 			final_components.pop_back();
-		else if ( *it == ".." && final_components[0] != ".." )
+		else if ( *it == ".." )
 			{
-			final_components.pop_back();
-			final_components.pop_back();
+			auto cur_idx = final_components.size() - 1;
+
+			if ( cur_idx != 0 )
+				{
+				auto last_idx = cur_idx - 1;
+				auto& last_component = final_components[last_idx];
+
+				if ( last_component == "/" || last_component == "~" ||
+				     last_component == ".." )
+					continue;
+
+				if ( last_component == "." )
+					{
+					last_component = "..";
+					final_components.pop_back();
+					}
+				else
+					{
+					final_components.pop_back();
+					final_components.pop_back();
+					}
+				}
 			}
 		}
 
@@ -1749,7 +1808,7 @@ void terminate_processing()
 	}
 
 extern const char* proc_status_file;
-void _set_processing_status(const char* status)
+void set_processing_status(const char* status, const char* reason)
 	{
 	if ( ! proc_status_file )
 		return;
@@ -1776,20 +1835,27 @@ void _set_processing_status(const char* status)
 		return;
 		}
 
-	int len = strlen(status);
-	while ( len )
+	auto write_str = [](int fd, const char* s)
 		{
-		int n = write(fd, status, len);
+		int len = strlen(s);
+		while ( len )
+			{
+			int n = write(fd, s, len);
 
-		if ( n < 0 && errno != EINTR && errno != EAGAIN )
-			// Ignore errors, as they're too difficult to
-			// safely report here.
-			break;
+			if ( n < 0 && errno != EINTR && errno != EAGAIN )
+				// Ignore errors, as they're too difficult to
+				// safely report here.
+				break;
 
-		status += n;
-		len -= n;
-		}
+			s += n;
+			len -= n;
+			}
+		};
 
+	write_str(fd, status);
+	write_str(fd, " [");
+	write_str(fd, reason);
+	write_str(fd, "]\n");
 	safe_close(fd);
 
 	errno = old_errno;
@@ -2298,4 +2364,19 @@ string json_escape_utf8(const string& val)
 		result.append(json_escape_byte(val[idx]));
 
 	return result;
+	}
+
+void zeek::set_thread_name(const char* name, pthread_t tid)
+	{
+#ifdef HAVE_LINUX
+	prctl(PR_SET_NAME, name, 0, 0, 0);
+#endif
+
+#ifdef __APPLE__
+	pthread_setname_np(name);
+#endif
+
+#ifdef __FreeBSD__
+	pthread_set_name_np(tid, name);
+#endif
 	}

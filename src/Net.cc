@@ -145,40 +145,40 @@ void net_update_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
-void net_init(name_list& interfaces, name_list& readfiles,
-	      const char* writefile, int do_watchdog)
+void net_init(const std::vector<std::string>& interfaces,
+              const std::vector<std::string>& pcap_input_files,
+              const std::optional<std::string>& pcap_output_file,
+              bool do_watchdog)
 	{
-	if ( readfiles.length() > 0 )
+	if ( ! pcap_input_files.empty() )
 		{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = 1;
 
-		for ( int i = 0; i < readfiles.length(); ++i )
+		for ( const auto& pif : pcap_input_files )
 			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], false);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(pif, false);
 			assert(ps);
 
 			if ( ! ps->IsOpen() )
 				reporter->FatalError("problem with trace file %s (%s)",
-						     readfiles[i],
-						     ps->ErrorMsg());
+				                     pif.data(), ps->ErrorMsg());
 			}
 		}
 
-	else if ( interfaces.length() > 0 )
+	else if ( ! interfaces.empty() )
 		{
 		reading_live = 1;
 		reading_traces = 0;
 
-		for ( int i = 0; i < interfaces.length(); ++i )
+		for ( const auto& iface : interfaces )
 			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], true);
+			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(iface, true);
 			assert(ps);
 
 			if ( ! ps->IsOpen() )
 				reporter->FatalError("problem with interface %s (%s)",
-						     interfaces[i],
-						     ps->ErrorMsg());
+				                     iface.data(), ps->ErrorMsg());
 			}
 		}
 
@@ -189,8 +189,9 @@ void net_init(name_list& interfaces, name_list& readfiles,
 		// a timer.
 		reading_traces = reading_live = 0;
 
-	if ( writefile )
+	if ( pcap_output_file )
 		{
+		const char* writefile = pcap_output_file->data();
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 
@@ -361,13 +362,11 @@ void net_run()
 		current_dispatched = 0;
 		current_iosrc = 0;
 
-		// Should we put the signal handling into an IOSource?
-		extern void termination_signal();
-
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			// We received a signal while processing the
 			// current packet and its related events.
-			termination_signal();
+			// Should we put the signal handling into an IOSource?
+			zeek_terminate_loop("received termination signal");
 
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for
@@ -455,8 +454,6 @@ void net_delete()
 	}
 
 int _processing_suspended = 0;
-
-static double suspend_start = 0;
 
 void net_suspend_processing()
 	{

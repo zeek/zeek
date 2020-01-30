@@ -1,3 +1,10 @@
+3.1.0-dev.469 | 2020-01-30 08:44:15 -0700
+
+  * Fix leaked FDs in redirecting supervised node stdout/stderr (Jon Siwek, Corelight)
+
+  * Add checks for failed fcntl calls (Jon Siwek, Corelight)
+
+  * Set Pipe file descriptor flags correctly (Jon Siwek, Corelight)
 
 3.1.0-dev.465 | 2020-01-29 11:45:15 -0800
 

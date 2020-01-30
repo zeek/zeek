@@ -1241,6 +1241,8 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 			        strerror(errno));
 			exit(1);
 			}
+
+		safe_close(fd);
 		}
 
 	if ( config.stdout_file )
@@ -1256,6 +1258,8 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 			        strerror(errno));
 			exit(1);
 			}
+
+		safe_close(fd);
 		}
 
 	if ( config.cpu_affinity )

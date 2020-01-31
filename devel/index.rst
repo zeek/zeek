@@ -1,6 +1,6 @@
 
 ================
-Development Docs
+Developer Guides
 ================
 
 .. toctree::

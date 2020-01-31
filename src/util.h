@@ -150,6 +150,8 @@ std::vector<std::string>* tokenize_string(std::string_view input,
 					  std::string_view delim,
 					  std::vector<std::string>* rval = 0, int limit = 0);
 
+std::vector<std::string_view> tokenize_string(const std::string_view input, const char delim) noexcept;
+
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
 

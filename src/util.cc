@@ -1555,7 +1555,8 @@ TEST_CASE("util normalize_path")
 string normalize_path(const std::string_view path)
 	{
 	size_t n;
-	vector<string> components, final_components;
+	vector<string> components;
+	vector<std::string_view> final_components;
 	string new_path;
 	new_path.reserve(path.size());
 

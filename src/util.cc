@@ -1565,8 +1565,7 @@ string normalize_path(const std::string_view path)
 	tokenize_string(path, "/", &components);
 	final_components.reserve(components.size());
 
-	vector<string>::const_iterator it;
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( auto it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
 		if ( *it == "." && it != components.begin() ) continue;
@@ -1600,7 +1599,7 @@ string normalize_path(const std::string_view path)
 			}
 		}
 
-	for ( it = final_components.begin(); it != final_components.end(); ++it )
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
 		{
 		new_path.append(*it);
 		new_path.append("/");

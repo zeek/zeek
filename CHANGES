@@ -1,4 +1,11 @@
 
+3.1.0-dev.521 | 2020-01-31 14:18:17 -0800
+
+  * util: optimize expand_escape() by avoiding sscanf() (Max Kellermann)
+
+    sscanf() is notoriously slow, and the default scripts have lots of hex
+    escapes.  This patch can reduce Zeek's startup time by 3-9%.
+
 3.1.0-dev.519 | 2020-01-31 13:19:09 -0800
 
   * util: optimize tokenize_string() and normalize_path() (Max Kellermann)

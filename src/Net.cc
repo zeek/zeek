@@ -145,34 +145,34 @@ void net_update_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
-void net_init(const std::string& interface,
-              const std::string& pcap_input_file,
+void net_init(const std::optional<std::string>& interface,
+              const std::optional<std::string>& pcap_input_file,
               const std::optional<std::string>& pcap_output_file,
               bool do_watchdog)
 	{
-	if ( ! pcap_input_file.empty() )
+	if ( pcap_input_file )
 		{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = true;
 
-		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(pcap_input_file, false);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*pcap_input_file, false);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
 			reporter->FatalError("problem with trace file %s (%s)",
-				pcap_input_file.c_str(), ps->ErrorMsg());
+				pcap_input_file->c_str(), ps->ErrorMsg());
 		}
-	else if ( ! interface.empty() )
+	else if ( interface )
 		{
 		reading_live = true;
 		reading_traces = false;
 
-		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interface, true);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*interface, true);
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
 			reporter->FatalError("problem with interface %s (%s)",
-				interface.c_str(), ps->ErrorMsg());
+				interface->c_str(), ps->ErrorMsg());
 		}
 
 	else

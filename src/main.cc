@@ -565,8 +565,7 @@ int main(int argc, char** argv)
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() &&
-		 options.pcap_file.empty() &&
-		 options.interface.empty() &&
+		 ! options.pcap_file && ! options.interface &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
 	     ! options.supervisor_mode && ! zeek::Supervisor::ThisNode() )
@@ -596,7 +595,7 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	broker_mgr = new bro_broker::Manager(! options.pcap_file.empty());
+	broker_mgr = new bro_broker::Manager(options.pcap_file.has_value());
 	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();
@@ -745,7 +744,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	if ( options.pcap_file.empty() && options.interface.empty() )
+	if ( ! options.pcap_file && ! options.interface )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )

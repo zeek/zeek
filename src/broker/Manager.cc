@@ -1074,14 +1074,6 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 		return false;
 		}
 
-	auto path = caf::get_if<std::string>(&lw.path());
-
-	if ( ! path )
-		{
-		reporter->Warning("failed to unpack remote log values (bad path variant) for stream: %s", stream_id_name.data());
-		return false;
-		}
-
 	auto& values= lw.values();
 	auto num_values = values.size();
 	auto deleter = [num_values](threading::Value** ptr)

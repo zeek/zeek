@@ -1567,11 +1567,11 @@ string normalize_path(const std::string_view path)
 	for ( it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
 		final_components.push_back(*it);
 
-		if ( *it == "." && it != components.begin() )
-			final_components.pop_back();
-		else if ( *it == ".." )
+		if ( *it == ".." )
 			{
 			auto cur_idx = final_components.size() - 1;
 

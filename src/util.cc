@@ -1501,26 +1501,27 @@ TEST_CASE("util tokenize_string")
 	CHECK(v2.size() == 1);
 	}
 
-vector<string>* tokenize_string(string input, const string& delim,
+vector<string>* tokenize_string(const string &input, const string& delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
+	size_t pos = 0;
 	size_t n;
 	auto found = 0;
 
-	while ( (n = input.find(delim)) != string::npos )
+	while ( (n = input.find(delim, pos)) != string::npos )
 		{
 		++found;
-		rval->push_back(input.substr(0, n));
-		input.erase(0, n + 1);
+		rval->emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
 
 		if ( limit && found == limit )
 			break;
 		}
 
-	rval->push_back(input);
+	rval->emplace_back(input.substr(pos));
 	return rval;
 	}
 

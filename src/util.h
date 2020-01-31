@@ -145,7 +145,7 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 	return get_escaped_string(str.data(), str.length(), escape_all);
 	}
 
-std::vector<std::string>* tokenize_string(std::string input,
+std::vector<std::string>* tokenize_string(const std::string &input,
 					  const std::string& delim,
 					  std::vector<std::string>* rval = 0, int limit = 0);
 

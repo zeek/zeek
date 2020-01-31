@@ -1168,7 +1168,7 @@ func_hdr:
 			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
-				reporter->Error(fmt("event %s() is no longer available, use zeek_%s() instead", name, base.c_str()));
+				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
 			begin_func($2, current_module.c_str(),

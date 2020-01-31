@@ -1,4 +1,24 @@
 
+3.1.0-dev.510 | 2020-01-31 11:20:28 -0800
+
+  * Remove extra fmt() in a reporter->Error() call (Jon Siwek, Corelight)
+
+  * parse.y: Properly set location info for functions (Arne Welzel)
+
+    When defining a function, remember the location where the function header
+    was and restore it before calling `end_func()`. Inside `end_func()`, a
+    `BroFunc` object is created using the current global location information.
+
+    This came up while experimenting with zeek script profiling and wondering
+    why the locations set for `BroFunc` were "somewhere" in the middle of
+    functions instead of spanning them.
+
+  * Desc: move realloc() call out of the loop (Max Kellermann)
+
+  * SerializationFormat: move realloc() call out of the loop (Max Kellermann)
+
+  * PacketDumper: remove unused types (Max Kellermann)
+
 3.1.0-dev.503 | 2020-01-31 11:00:32 -0800
 
   * Show percentage of packets dropped in the final process output (Tim Wojtulewicz, Corelight)

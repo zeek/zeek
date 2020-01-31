@@ -1501,7 +1501,7 @@ TEST_CASE("util tokenize_string")
 	CHECK(v2.size() == 1);
 	}
 
-vector<string>* tokenize_string(const string &input, const string& delim,
+vector<string>* tokenize_string(const std::string_view input, const std::string_view delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )

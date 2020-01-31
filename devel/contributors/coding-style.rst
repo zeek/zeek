@@ -29,6 +29,7 @@ below.
 
 .. sourcecode:: c++
 
+  class MyClass {
   >   void FunctionWithALongName(int argument1,
   >   ...........................int argument2)
   >   >   {
@@ -39,7 +40,7 @@ below.
   >   >   >   DoSomethingMore();
   >   >   >   }
   >   >   }
-  }
+  };
 
 Tabs (represented by ``>``) are used to match indentation levels, and then then
 spaces (represented by ``.`` in the cases where they're used for alignment) are
@@ -119,7 +120,7 @@ Function and Variable Naming
 - Class/struct methods should be ``CamelCase``, though some exceptions are
   made.  For example, Zeek classes that are similar enough to another class
   provided by the standard library, ``snake_case`` may be used so they
-  feel more familiar.
+  feel more familiar.  Non-member functions tend to use ``snake_case``.
 - Variable names, including member variables, should always be ``snake_case``.
 - Prefer using more descriptive variable names, except for counter variables.
 

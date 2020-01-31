@@ -91,6 +91,8 @@ public:
 
 	void GetStats(Stats* stats);
 
+	void Terminate();
+
 protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
@@ -127,16 +129,11 @@ protected:
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
-	// Process outstanding requests.
-	void DoProcess();
-
 	// IOSource interface.
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* network_time) override;
 	void Process() override;
-	void Init() override;
-	const char* Tag() override { return "DNS_Mgr"; }
+	void InitSource() override;
+	const char* Tag() override	{ return "DNS_Mgr"; }
+	double GetNextTimeout() override;
 
 	DNS_MgrMode mode;
 
@@ -241,7 +238,6 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
-	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

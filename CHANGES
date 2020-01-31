@@ -1,4 +1,98 @@
 
+3.1.0-dev.503 | 2020-01-31 11:00:32 -0800
+
+  * Show percentage of packets dropped in the final process output (Tim Wojtulewicz, Corelight)
+
+  * Remove concept of multiple timer managers (Tim Wojtulewicz, Corelight)
+
+    - All timers are now handled by a single global timer manager, which
+      simplifies how they handled by the IOSource manager.
+
+    - This change flows down a number of changes to other parts of the code.
+      The timer manager tag field is removed, which means that matching
+      connections to a timer manager is also removed. This removes the ability to
+      tag a connection as internal or external, since that's how the connections
+      where differentiated. This in turn removes the `current_conns_extern` field
+      from the `ConnStats` record type in the script layer.
+
+  * Have terminate_processing() raise SIGTERM instead of calling the signal handler directly (Tim Wojtulewicz, Corelight)
+
+  * PktSrc iosource changes to match the new IOSource API (Tim Wojtulewicz, Corelight)
+
+  * Broker manager changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * Threading changes for the new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - threading::Manager is no longer an IOSource.
+
+    - threading::MsgThread is now an IOSource. This allows threads themselves
+      to signal when they have data to process instead of continually checking
+      each of the threads on every loop pass.
+
+    - Make the thread heartbeat timer an actual timer and let it fire as
+      necessary instead of checking to see if it should fire
+
+  * Add Trigger manager for managing triggers created by things like 'when' statements
+
+    - Adds new trigger namespace (Tim Wojtulewicz, Corelight)
+
+    - Adds trigger::Manager class as a new IOSource for keeping track of
+      triggers and integrating them into the loop. Previously the loop relied on
+      the event manager Drain() method to process all triggers on every loop, but
+      now that the loop actively waits for events to occur, triggers would not
+      fire when they needed to. Adding them as part of the loop ensures they're
+      checked.
+
+  * Make TimerMgr an IOSource (Tim Wojtulewicz, Corelight)
+
+    - This allows the loop to check what the next timeout is and use that as
+      the basis for the timeout of the poll
+
+    - This commit also removes the TimerMgr::Tag type, since it causes a name
+      clash with other code in IOSource
+
+  * Modify IOSource Manager to implement new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removes entire FindSoonest method that includes all of the calls to select() for checking for ready sources
+
+    - Removes FD_Set checking against IOSources
+
+    - Adds system for registering and unregistering file descriptors from
+      IOSources. This allows individual sources to mark themselves as ready to be
+      checked by the loop as they become available.
+
+    - Adds entirely new loop architecture based on checking the IOSources for
+      when their next timeout is, and then waiting for either that timeout or
+      when the next source is ready. This also implements the polling based on
+      what the OS supports, instead of just calling select() on all platforms.
+      Currently it supports kqueue, epoll, and plain poll.
+
+    - Adds system for pinging the loop to force it to wake up
+
+  * Minor amount of code cleanup in Pcap IO source (Tim Wojtulewicz, Corelight)
+
+  * IOSource API changes for new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removed GetFD and NextTimestamp methods
+
+    - Removed concept of idle sources
+
+    - Renamed Init to InitSource to avoid a name clash with the thread code
+
+    - Added GetNextTimeout method
+
+    This commit also removes the FD_Set file since it's no longer used
+
+  * Type and variable usage cleanup in Net.h (Tim Wojtulewicz, Corelight)
+
+  * Remove #include of some iosource files from Net.h (Tim Wojtulewicz, Corelight)
+
+  * Only allow a single trace file (-r) or interface (-i) option on the command-line (Tim Wojtulewicz, Corelight)
+
+  * Remove CQ_TimerMgr in favor of PQ_TimerMgr (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.482 | 2020-01-30 19:16:03 -0800
 
   * Update NEWS for naming changes. (Robin Sommer, Corelight)

@@ -2,9 +2,14 @@
 
 #include "Trigger.h"
 #include "Traverse.h"
+#include "iosource/Manager.h"
+
+using namespace trigger;
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
+
+namespace trigger {
 
 class TriggerTraversalCallback : public TraversalCallback {
 public:
@@ -19,6 +24,8 @@ public:
 private:
 	Trigger* trigger;
 };
+
+}
 
 TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	{
@@ -67,6 +74,8 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
+namespace trigger {
+
 class TriggerTimer : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
@@ -102,13 +111,12 @@ protected:
 	double time;
 };
 
+}
+
 Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 			Expr* arg_timeout, Frame* arg_frame,
 			bool arg_is_return, const Location* arg_location)
 	{
-	if ( ! pending )
-		pending = new list<Trigger*>;
-
 	cond = arg_cond;
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
@@ -121,8 +129,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	is_return = arg_is_return;
 	location = arg_location;
 	timeout_value = -1;
-
-	++total_triggers;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
@@ -214,9 +220,6 @@ void Trigger::Init()
 	TriggerTraversalCallback cb(this);
 	cond->Traverse(&cb);
 	}
-
-Trigger::TriggerList* Trigger::pending = 0;
-unsigned long Trigger::total_triggers = 0;
 
 bool Trigger::Eval()
 	{
@@ -328,47 +331,6 @@ bool Trigger::Eval()
 	Unref(this);
 
 	return true;
-	}
-
-void Trigger::QueueTrigger(Trigger* trigger)
-	{
-	assert(! trigger->disabled);
-	assert(pending);
-	if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() )
-		{
-		Ref(trigger);
-		pending->push_back(trigger);
-		}
-	}
-
-void Trigger::EvaluatePending()
-	{
-	DBG_LOG(DBG_NOTIFIERS, "evaluating all pending triggers");
-
-	if ( ! pending )
-		return;
-
-	// While we iterate over the list, executing statements, we may
-	// in fact trigger new triggers and thereby modify the list.
-	// Therefore, we create a new temporary list which will receive
-	// triggers triggered during this time.
-	TriggerList* orig = pending;
-	TriggerList tmp;
-	pending = &tmp;
-
-	for ( TriggerList::iterator i = orig->begin(); i != orig->end(); ++i )
-		{
-		Trigger* t = *i;
-		(*i)->Eval();
-		Unref(t);
-		}
-
-	pending = orig;
-	orig->clear();
-
-	// Sigh... Is this really better than a for-loop?
-	std::copy(tmp.begin(), tmp.end(),
-		insert_iterator<TriggerList>(*pending, pending->begin()));
 	}
 
 void Trigger::Timeout()
@@ -484,7 +446,7 @@ void Trigger::Cache(const CallExpr* expr, Val* v)
 
 	Ref(v);
 
-	QueueTrigger(this);
+	trigger_mgr->Queue(this);
 	}
 
 
@@ -502,6 +464,11 @@ void Trigger::Disable()
 	disabled = true;
 	}
 
+void Trigger::Modified(notifier::Modifiable* m)
+	{
+	trigger_mgr->Queue(this);
+	}
+
 const char* Trigger::Name() const
 	{
 	assert(location);
@@ -509,8 +476,62 @@ const char* Trigger::Name() const
 			location->first_line, location->last_line);
 	}
 
-void Trigger::GetStats(Stats* stats)
+
+
+Manager::Manager() : IOSource()
+	{
+	pending = new TriggerList();
+	iosource_mgr->Register(this, true);
+	}
+
+Manager::~Manager()
+	{
+	delete pending;
+	}
+
+double Manager::GetNextTimeout()
+	{
+	return pending->empty() ? -1 : network_time + 0.100;
+	}
+
+void Manager::Process()
+	{
+	DBG_LOG(DBG_NOTIFIERS, "evaluating all pending triggers");
+
+	// While we iterate over the list, executing statements, we may
+	// in fact trigger new triggers and thereby modify the list.
+	// Therefore, we create a new temporary list which will receive
+	// triggers triggered during this time.
+	TriggerList* orig = pending;
+	TriggerList tmp;
+	pending = &tmp;
+
+	for ( TriggerList::iterator i = orig->begin(); i != orig->end(); ++i )
+		{
+		Trigger* t = *i;
+		(*i)->Eval();
+		Unref(t);
+		}
+
+	pending = orig;
+	orig->clear();
+
+	std::swap(tmp, *pending);
+	}
+
+void Manager::Queue(Trigger* trigger)
+	{
+	if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() )
+		{
+		Ref(trigger);
+		pending->push_back(trigger);
+		total_triggers++;
+		iosource_mgr->Wakeup(Tag());
+		}
+	}
+
+void Manager::GetStats(Stats* stats)
 	{
 	stats->total = total_triggers;
-	stats->pending = pending ? pending->size() : 0;
+	stats->pending = pending->size();
 	}

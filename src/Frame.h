@@ -11,7 +11,7 @@
 
 #include "Val.h"
 
-class Trigger;
+namespace trigger { class Trigger; }
 class CallExpr;
 
 class Frame :  public BroObj {
@@ -207,9 +207,9 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(Trigger* arg_trigger);
+	void SetTrigger(trigger::Trigger* arg_trigger);
 	void ClearTrigger();
-	Trigger* GetTrigger() const		{ return trigger; }
+	trigger::Trigger* GetTrigger() const		{ return trigger; }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = 0; }
@@ -293,7 +293,7 @@ private:
 	bool break_before_next_stmt;
 	bool break_on_return;
 
-	Trigger* trigger;
+	trigger::Trigger* trigger;
 	const CallExpr* call;
 	bool delayed;
 

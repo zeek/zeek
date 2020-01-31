@@ -117,12 +117,11 @@ void ProfileLogger::Log()
 
 	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
-	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " ext=%" PRIu64 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
+	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
 		sessions->CurrentConnections(),
-		Connection::CurrentExternalConnections(),
 		conn_mem_use,
 		expensive ? (conn_mem_use / double(sessions->CurrentConnections())) : 0,
 		expensive ? sessions->MemoryAllocation() / 1024 : 0,
@@ -175,11 +174,9 @@ void ProfileLogger::Log()
 			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
-	file->Write(fmt("%.06f Timers: current=%d max=%d mem=%dK lag=%.2fs\n",
+	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
 		network_time,
 		timer_mgr->Size(), timer_mgr->PeakSize(),
-		int(cq_memory_allocation() +
-		    (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
 		network_time - timer_mgr->LastTimestamp()));
 
 	DNS_Mgr::Stats dstats;
@@ -190,8 +187,8 @@ void ProfileLogger::Log()
 					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
 					dstats.cached_hosts, dstats.cached_addresses));
 
-	Trigger::Stats tstats;
-	Trigger::GetStats(&tstats);
+	trigger::Manager::Stats tstats;
+	trigger_mgr->GetStats(&tstats);
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 
@@ -208,7 +205,7 @@ void ProfileLogger::Log()
 
 	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
 	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
-	      i != thread_stats.end(); ++i ) 
+	      i != thread_stats.end(); ++i )
 		{
 		threading::MsgThread::Stats s = i->second;
 		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64

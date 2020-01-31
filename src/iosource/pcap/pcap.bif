@@ -35,17 +35,9 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 
 	bool success = true;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ! ps->PrecompileFilter(id->ForceAsInt(),
-							s->CheckString()) )
-			success = false;
-		}
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ! ps->PrecompileFilter(id->ForceAsInt(), s->CheckString()) )
+		success = false;
 
 	return val_mgr->GetBool(success);
 	%}
@@ -72,16 +64,9 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	%{
 	bool success = true;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ! ps->SetFilter(id->ForceAsInt()) )
-			success = false;
-		}
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ! ps->SetFilter(id->ForceAsInt()) )
+		success = false;
 
 	return val_mgr->GetBool(success);
 	%}
@@ -102,13 +87,9 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 ##              uninstall_dst_net_filter
 function error%(%): string
 	%{
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps )
 		{
-		iosource::PktSrc* ps = *i;
-
 		const char* err = ps->ErrorMsg();
 		if ( *err )
 			return new StringVal(err);

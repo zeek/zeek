@@ -731,7 +731,7 @@ void Analyzer::AddTimer(analyzer_timer_func timer, double t,
 	Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
 
-	Conn()->GetTimerMgr()->Add(analyzer_timer);
+	timer_mgr->Add(analyzer_timer);
 	timers.push_back(analyzer_timer);
 	}
 
@@ -751,7 +751,7 @@ void Analyzer::CancelTimers()
 
 	// TODO: could be a for_each
 	for ( auto timer : tmp )
-		Conn()->GetTimerMgr()->Cancel(timer);
+		timer_mgr->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();
@@ -923,4 +923,3 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 		Event(packet_contents, contents);
 		}
 	}
-

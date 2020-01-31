@@ -18,6 +18,7 @@
 #include "Rule.h"
 #include "RuleAction.h"
 #include "RuleCondition.h"
+#include "iosource/Packet.h"
 
 //#define MATCHER_PRINT_STATS
 

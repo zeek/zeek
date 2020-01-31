@@ -51,6 +51,7 @@
 #include "Net.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
 
 #include "3rdparty/doctest.h"
@@ -1837,7 +1838,7 @@ RETSIGTYPE sig_handler(int signo);
 void terminate_processing()
 	{
 	if ( ! terminating )
-		sig_handler(SIGTERM);
+		raise(SIGTERM);
 	}
 
 extern const char* proc_status_file;
@@ -1902,11 +1903,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();

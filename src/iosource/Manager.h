@@ -2,30 +2,41 @@
 
 #pragma once
 
+#include "zeek-config.h"
+
 #include <string>
-#include <list>
-#include "iosource/FD_Set.h"
+#include <vector>
+#include <map>
+
+#include "IOSource.h"
+#include "Flare.h"
 
 namespace iosource {
 
-class IOSource;
 class PktSrc;
 class PktDumper;
 
 /**
- * Singleton class managing all IOSources.
+ * Manager class for IO sources. This handles all of the polling of sources
+ * in the main loop.
  */
 class Manager {
 public:
 	/**
 	 * Constructor.
 	 */
-	Manager()	{ call_count = 0; dont_counts = 0; }
+	Manager();
 
 	/**
 	 * Destructor.
 	 */
-	~Manager();
+	virtual ~Manager();
+
+	/**
+	 * Initializes some extra fields that can't be done during the
+	 * due to dependencies on other objects being initialized first.
+	 */
+	void InitPostScript();
 
 	/**
 	 * Registers an IOSource with the manager. If the source is already
@@ -42,29 +53,21 @@ public:
 	void Register(IOSource* src, bool dont_count = false);
 
 	/**
-	 * Returns the packet source with the soonest available input. This
-	 * may block for a little while if all are dry.
-	 *
-	 * @param ts A pointer where to store the timestamp of the input that
-	 * the soonest source has available next.
-	 *
-	 * @return The source, or null if no source has input.
-	 */
-	IOSource* FindSoonest(double* ts);
-
-	/**
 	 * Returns the number of registered and still active sources,
-	 * excluding those that are registered as \a dont_cont.
+	 * excluding those that are registered as \a dont_count.
 	 */
 	int Size() const	{ return sources.size() - dont_counts; }
 
-	typedef std::list<PktSrc *> PktSrcList;
+	/**
+	 * Returns total number of sources including dont_counts;
+	 */
+	int TotalSize() const	{ return sources.size(); }
 
 	/**
-	 * Returns a list of all registered PktSrc instances. This is a
-	 * subset of all registered IOSource instances.
+	 * Returns the registered PktSrc. If not source is registered yet,
+	 * returns a nullptr.
 	 */
-	const PktSrcList& GetPktSrcs() const	{ return pkt_srcs; }
+	PktSrc* GetPktSrc() const	{ return pkt_src; }
 
 	/**
 	 * Terminate all processing immediately by removing all sources (and
@@ -95,49 +98,111 @@ public:
 	 */
 	PktDumper* OpenPktDumper(const std::string& path, bool append);
 
+	/**
+	 * Finds the sources that have data ready to be processed.
+	 *
+	 * @param ready A vector used to return the set of sources that are ready.
+	 */
+	void FindReadySources(std::vector<IOSource*>* ready);
+
+	/**
+	 * Registers a file descriptor and associated IOSource with the manager
+	 * to be checked during FindReadySources.
+	 *
+	 * @param fd A file descriptor pointing at some resource that should be
+	 * checked for readiness.
+	 * @param src The IOSource that owns the file descriptor.
+	 */
+	bool RegisterFd(int fd, IOSource* src);
+
+	/**
+	 * Unregisters a file descriptor from the FindReadySources checks.
+	 */
+	bool UnregisterFd(int fd, IOSource* src);
+
+	/**
+	 * Forces the poll in FindReadySources to wake up immediately. This method
+	 * is called during RegisterFd and UnregisterFd since those methods cause
+	 * changes to the active set of file descriptors.
+	 */
+	void Wakeup(const std::string& where);
+
 private:
-	/**
-	 * When looking for a source with something to process, every
-	 * SELECT_FREQUENCY calls we will go ahead and block on a select().
-	 */
-	static const int SELECT_FREQUENCY = 25;
 
 	/**
-	 * Microseconds to wait in an empty select if no source is ready.
+	 * Calls the appropriate poll method to gather a set of IOSources that are
+	 * ready for processing.
+	 *
+	 * @param ready a vector used to return the ready sources.
+	 * @param timeout the value to be used for the timeout of the poll. This
+	 * should be a value relative to the current network time, not an
+	 * absolute time value. This may be zero to cause an infinite timeout or
+	 * -1 to force a very short timeout.
+	 * @param timeout_src The source associated with the current timeout value.
+	 * This is typically a timer manager object.
 	 */
-	static const int SELECT_TIMEOUT = 50;
+	void Poll(std::vector<IOSource*>* ready, double timeout, IOSource* timeout_src);
 
+	/**
+	 * Converts a double timeout value into a timespec struct used for calls
+	 * to kevent().
+	 */
+	void ConvertTimeout(double timeout, struct timespec& spec);
+
+	/**
+	 * Specialized registration method for packet sources.
+	 */
 	void Register(PktSrc* src);
+
 	void RemoveAll();
 
-	unsigned int call_count;
-	int dont_counts;
+	class WakeupHandler : public IOSource {
+	public:
+		WakeupHandler();
+		~WakeupHandler();
+
+		/**
+		 * Tells the handler to wake up the loop by firing the flare.
+		 *
+		 * @param where a string denoting where this ping was called from. Used
+		 * for debugging output.
+		 */
+		void Ping(const std::string& where);
+
+		// IOSource API methods
+		void Process() override;
+		const char* Tag() override	{ return "WakeupHandler"; }
+		double GetNextTimeout() override	{ return -1; }
+
+	private:
+		bro::Flare flare;
+		};
 
 	struct Source {
 		IOSource* src;
-		FD_Set fd_read;
-		FD_Set fd_write;
-		FD_Set fd_except;
 		bool dont_count;
-
-		bool Ready(fd_set* read, fd_set* write, fd_set* except) const
-			{ return fd_read.Ready(read) || fd_write.Ready(write) ||
-			         fd_except.Ready(except); }
-
-		void SetFds(fd_set* read, fd_set* write, fd_set* except,
-		            int* maxx) const;
-
-		void Clear()
-			{ fd_read.Clear(); fd_write.Clear(); fd_except.Clear(); }
 	};
 
-	typedef std::list<Source*> SourceList;
+	using SourceList = std::vector<Source*>;
 	SourceList sources;
 
-	typedef std::list<PktDumper *> PktDumperList;
-
-	PktSrcList pkt_srcs;
+	using PktDumperList = std::vector<PktDumper*>;
 	PktDumperList pkt_dumpers;
+
+	PktSrc* pkt_src = nullptr;
+
+	int dont_counts = 0;
+	int zero_timeout_count = 0;
+	WakeupHandler* wakeup = nullptr;
+	int poll_counter = 0;
+	int poll_interval = 100;
+
+	int event_queue = -1;
+	std::map<int, IOSource*> fd_map;
+
+	// This is only used for the output of the call to kqueue in FindReadySources().
+	// The actual events are stored as part of the queue.
+	std::vector<struct kevent> events;
 };
 
 }

@@ -4258,7 +4258,7 @@ Val* CallExpr::Eval(Frame* f) const
 	// Check for that.
 	if ( f )
 		{
-		Trigger* trigger = f->GetTrigger();
+		trigger::Trigger* trigger = f->GetTrigger();
 
 		if ( trigger )
 			{

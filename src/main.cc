@@ -41,6 +41,7 @@ extern "C" {
 #include "Stats.h"
 #include "Brofiler.h"
 #include "Traverse.h"
+#include "Trigger.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
@@ -93,6 +94,7 @@ zeekygen::Manager* zeekygen_mgr = 0;
 iosource::Manager* iosource_mgr = 0;
 bro_broker::Manager* broker_mgr = 0;
 zeek::Supervisor* zeek::supervisor_mgr = 0;
+trigger::Manager* trigger_mgr = 0;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
@@ -234,17 +236,17 @@ void done_with_network()
 
 #ifdef USE_PERFTOOLS_DEBUG
 
-		if ( perftools_profile )
-			{
-			HeapProfilerDump("post net_run");
-			HeapProfilerStop();
-			}
+	if ( perftools_profile )
+		{
+		HeapProfilerDump("post net_run");
+		HeapProfilerStop();
+		}
 
-		if ( heap_checker && ! heap_checker->NoLeaks() )
-			{
-			fprintf(stderr, "Memory leaks - aborting.\n");
-			abort();
-			}
+	if ( heap_checker && ! heap_checker->NoLeaks() )
+		{
+		fprintf(stderr, "Memory leaks - aborting.\n");
+		abort();
+		}
 #endif
 
 	ZEEK_LSAN_DISABLE();
@@ -255,6 +257,8 @@ void terminate_bro()
 	set_processing_status("TERMINATING", "terminate_bro");
 
 	terminating = true;
+
+	iosource_mgr->Wakeup("terminate_bro");
 
 	// File analysis termination may produce events, so do it early on in
 	// the termination process.
@@ -286,18 +290,17 @@ void terminate_bro()
 	input_mgr->Terminate();
 	thread_mgr->Terminate();
 	broker_mgr->Terminate();
+	dns_mgr->Terminate();
 
 	mgr.Drain();
 
 	plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete timer_mgr;
 	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
-	// broker_mgr is deleted via iosource_mgr
-	// supervisor is deleted via iosource_mgr
+	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
 	delete log_mgr;
 	delete reporter;
@@ -331,6 +334,9 @@ RETSIGTYPE sig_handler(int signo)
 	{
 	set_processing_status("TERMINATING", "sig_handler");
 	signal_val = signo;
+
+	if ( ! terminating )
+		iosource_mgr->Wakeup("sig_handler");
 
 	return RETSIGVAL;
 	}
@@ -544,8 +550,7 @@ int main(int argc, char** argv)
 	createCurrentDoc("1.0");		// Set a global XML document
 #endif
 
-	timer_mgr = new PQ_TimerMgr("<GLOBAL>");
-	// timer_mgr = new CQ_TimerMgr();
+	timer_mgr = new PQ_TimerMgr();
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::Manager(zeekygen_cfg, bro_argv[0]);
@@ -560,8 +565,8 @@ int main(int argc, char** argv)
 
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() &&
-	     options.pcap_files.size() == 0 &&
-	     options.interfaces.size() == 0 &&
+		 options.pcap_file.empty() &&
+		 options.interface.empty() &&
 	     ! options.identifier_to_print &&
 	     ! command_line_policy && ! options.print_plugins &&
 	     ! options.supervisor_mode && ! zeek::Supervisor::ThisNode() )
@@ -591,7 +596,8 @@ int main(int argc, char** argv)
 	log_mgr = new logging::Manager();
 	input_mgr = new input::Manager();
 	file_mgr = new file_analysis::Manager();
-	broker_mgr = new bro_broker::Manager(! options.pcap_files.empty());
+	broker_mgr = new bro_broker::Manager(! options.pcap_file.empty());
+	trigger_mgr = new trigger::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -662,9 +668,14 @@ int main(int argc, char** argv)
 	if ( reporter->Errors() > 0 )
 		exit(1);
 
+	iosource_mgr->InitPostScript();
 	plugin_mgr->InitPostScript();
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
+	timer_mgr->InitPostScript();
+
+	if ( zeek::supervisor_mgr )
+		zeek::supervisor_mgr->InitPostScript();
 
 	if ( options.print_plugins )
 		{
@@ -734,9 +745,7 @@ int main(int argc, char** argv)
 		// ### Add support for debug command file.
 		dbg_init_debugger(0);
 
-	auto all_interfaces = options.interfaces;
-
-	if ( options.pcap_files.empty() && options.interfaces.empty() )
+	if ( options.pcap_file.empty() && options.interface.empty() )
 		{
 		Val* interfaces_val = internal_val("interfaces");
 		if ( interfaces_val )
@@ -745,15 +754,14 @@ int main(int argc, char** argv)
 				interfaces_val->AsString()->Render();
 
 			if ( interfaces_str[0] != '\0' )
-				tokenize_string(interfaces_str, " ", &all_interfaces);
+				options.interface = interfaces_str;
 
 			delete [] interfaces_str;
 			}
 		}
 
 	if ( dns_type != DNS_PRIME )
-		net_init(all_interfaces, options.pcap_files,
-		         options.pcap_output_file, options.use_watchdog);
+		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
 	net_done = internal_handler("net_done");
 
@@ -880,11 +888,6 @@ int main(int argc, char** argv)
 	analyzer_mgr->DumpDebug();
 
 	have_pending_timers = ! reading_traces && timer_mgr->Size() > 0;
-
-	iosource_mgr->Register(thread_mgr, true);
-
-	if ( zeek::supervisor_mgr )
-		iosource_mgr->Register(zeek::supervisor_mgr);
 
 	if ( iosource_mgr->Size() > 0 ||
 	     have_pending_timers ||

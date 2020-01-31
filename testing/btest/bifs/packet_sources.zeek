@@ -3,5 +3,5 @@
 
 event zeek_init()
 	{
-	print packet_sources();
+	print packet_source();
 	}

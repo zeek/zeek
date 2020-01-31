@@ -43,20 +43,20 @@ public:
 	// is empty.
 	PQ_Element* Remove();
 
-	// Removes element e.  Returns e, or nil if e wasn't in the queue.
+	// Removes element e.  Returns e, or nullptr if e wasn't in the queue.
 	// Note that e will be modified via MinimizeTime().
 	PQ_Element* Remove(PQ_Element* e);
 
-	// Add a new element to the queue.  Returns 0 on failure (not enough
-	// memory to add the element), 1 on success.
-	int Add(PQ_Element* e);
+	// Add a new element to the queue.  Returns false on failure (not enough
+	// memory to add the element), true on success.
+	bool Add(PQ_Element* e);
 
 	int Size() const	{ return heap_size; }
 	int PeakSize() const	{ return peak_heap_size; }
 	uint64_t CumulativeNum() const { return cumulative_num; }
 
 protected:
-	int Resize(int new_size);
+	bool Resize(int new_size);
 
 	void BubbleUp(int bin);
 	void BubbleDown(int bin);

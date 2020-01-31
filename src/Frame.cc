@@ -515,7 +515,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(Trigger* arg_trigger)
+void Frame::SetTrigger(trigger::Trigger* arg_trigger)
 	{
 	ClearTrigger();
 

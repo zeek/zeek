@@ -21,7 +21,7 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
-#redef exit_only_after_terminate = T;
+redef exit_only_after_terminate = T;
 
 @load base/frameworks/netcontrol
 
@@ -75,5 +75,9 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 event NetControl::rule_destroyed(r: NetControl::Rule)
 	{
 	if ( r$entity?$ip )
+		{
 		print "Rule destroyed", r$id, r$cid, |NetControl::find_rules_subnet(r$entity$ip)|;
+		if ( Cluster::local_node_type() == Cluster::WORKER )
+			schedule 2sec { terminate_me() };
+		}
 	}

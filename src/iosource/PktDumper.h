@@ -87,6 +87,7 @@ public:
 
 protected:
 	friend class Manager;
+	friend class ManagerBase;
 
 	/**
 	 * Structure to pass back information about the packet dumper to the

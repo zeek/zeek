@@ -1164,14 +1164,12 @@ func_hdr:
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
-			// Gracefully handle the deprecation of bro_init, bro_done,
-			// and bro_script_loaded
-			if ( streq("bro_init", $2->Name()) )
-				$2 = global_scope()->Lookup("zeek_init");
-			else if ( streq("bro_done", $2->Name()) )
-				$2 = global_scope()->Lookup("zeek_done");
-			else if ( streq("bro_script_loaded", $2->Name()) )
-				$2 = global_scope()->Lookup("zeek_script_loaded");
+			const char* name = $2->Name();
+			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
+				{
+				auto base = std::string(name).substr(4);
+				reporter->Error(fmt("event %s() is no longer available, use zeek_%s() instead", name, base.c_str()));
+				}
 
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, $3, $4);

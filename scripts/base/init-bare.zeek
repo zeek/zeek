@@ -5230,10 +5230,3 @@ const global_hash_seed: string = "" &redef;
 ## files.  The larger the value, the more confidence in UID uniqueness.
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
-
-## Whether usage of the old communication system is considered an error or
-## not.  The default Zeek configuration no longer works with the non-Broker
-## communication system unless you have manually taken action to initialize
-## and set up the old comm. system.  Deprecation warnings are still emitted
-## when setting this flag, but they will not result in a fatal error.
-const old_comm_usage_is_ok: bool = F &redef;

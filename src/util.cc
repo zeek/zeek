@@ -1557,11 +1557,13 @@ string normalize_path(const std::string_view path)
 	size_t n;
 	vector<string> components, final_components;
 	string new_path;
+	new_path.reserve(path.size());
 
 	if ( !path.empty() && path[0] == '/' )
 		new_path = "/";
 
 	tokenize_string(path, "/", &components);
+	final_components.reserve(components.size());
 
 	vector<string>::const_iterator it;
 	for ( it = components.begin(); it != components.end(); ++it )

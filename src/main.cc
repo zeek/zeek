@@ -83,7 +83,6 @@ int perftools_profile = 0;
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
 ValManager* val_mgr = 0;
-PortManager* port_mgr = 0;
 logging::Manager* log_mgr = 0;
 threading::Manager* thread_mgr = 0;
 input::Manager* input_mgr = 0;
@@ -304,7 +303,6 @@ void terminate_bro()
 	delete reporter;
 	delete plugin_mgr;
 	delete val_mgr;
-	delete port_mgr;
 
 	reporter = 0;
 	}
@@ -489,7 +487,6 @@ int main(int argc, char** argv)
 	bro_start_time = current_time(true);
 
 	val_mgr = new ValManager();
-	port_mgr = new PortManager();
 	reporter = new Reporter();
 	thread_mgr = new threading::Manager();
 	plugin_mgr = new plugin::Manager();

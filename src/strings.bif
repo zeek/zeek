@@ -935,47 +935,6 @@ function safe_shell_quote%(source: string%): string
 	return new StringVal(new BroString(1, dst, j));
 	%}
 
-## Takes a string and escapes characters that would allow execution of
-## commands at the shell level. Must be used before including strings in
-## :zeek:id:`system` or similar calls.  This function is deprecated, use
-## :zeek:see:`safe_shell_quote` as a replacement.  The difference is that
-## :zeek:see:`safe_shell_quote` automatically returns a value that is
-## wrapped in double-quotes, which is required to correctly and fully
-## escape any characters that might be interpreted by the shell.
-##
-## source: The string to escape.
-##
-## Returns: A shell-escaped version of *source*.
-##
-## .. zeek:see:: system safe_shell_quote
-function str_shell_escape%(source: string%): string &deprecated="Remove in v3.1: use safe_shell_quote"
-	%{
-	unsigned j = 0;
-	const u_char* src = source->Bytes();
-	unsigned n = source->Len();
-	byte_vec dst = new u_char[n * 2 + 1];
-
-	for ( unsigned i = 0; i < n; ++i )
-		{
-		switch ( src[i] ) {
-		case '`': case '"': case '\\': case '$':
-
-		// case '|': case '&': case ';': case '(': case ')': case '<':
-		// case '>': case '\'': case '*': case '?': case '[': case ']':
-		// case '!': case '#': case '{': case '}':
-			dst[j++] = '\\';
-			break;
-		default:
-			break;
-		}
-
-		dst[j++] = src[i];
-		}
-
-	dst[j] = '\0';
-	return new StringVal(new BroString(1, dst, j));
-	%}
-
 ## Finds all occurrences of a pattern in a string.
 ##
 ## str: The string to inspect.

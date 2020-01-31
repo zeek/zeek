@@ -274,6 +274,9 @@ extern std::string bro_prefixes();
 
 extern const std::array<std::string, 2> script_extensions;
 
+/** Prints a warning if the filename ends in .bro. */
+void warn_if_legacy_script(const std::string_view& filename);
+
 bool is_package_loader(const std::string& path);
 
 extern void add_to_bro_path(const std::string& dir);

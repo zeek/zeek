@@ -1,3 +1,36 @@
+
+3.1.0-dev.482 | 2020-01-30 19:16:03 -0800
+
+  * Update NEWS for naming changes. (Robin Sommer, Corelight)
+
+  * Remove test for legacy plugin. (Robin Sommer, Corelight)
+
+    We no longer support creating new plugins using the old naming
+    scheme.
+
+  * Remove legancy symlinks in aux/. (Robin Sommer, Corelight)
+
+    That's aux/bro-aux and aux/broctl.
+
+  * Add warnings when loading scripts ending in ".bro", or using legacy environment variables. (Robin Sommer, Corelight)
+
+  * Fix missing rename to .zeek-dns-cache. (Robin Sommer, Corelight)
+
+  * No longer symlink local.zeek to local.bro. (Robin Sommer, Corelight)
+
+  * Update notice user agent. (Robin Sommer, Corelight)
+
+  * Remove old_comm_usage_is_ok. (Robin Sommer, Corelight)
+
+  * Remove bro-config.h.in and bro-path-dev.in. (Robin Sommer, Corelight)
+
+  * Change Bro wrapper script to now abort when old executable names are still used. (Robin Sommer, Corelight)
+
+  * Remove APIs that were explicitly deprecated to be removed in 3.1. (Robin Sommer, Corelight)
+
+    Special handling for bro_{init,done,script_loaded} events: if still
+    used, they cause Zeek to abort at startup.
+
 3.1.0-dev.469 | 2020-01-30 08:44:15 -0700
 
   * Fix leaked FDs in redirecting supervised node stdout/stderr (Jon Siwek, Corelight)

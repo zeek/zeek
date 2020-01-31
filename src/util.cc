@@ -292,6 +292,26 @@ int streq(const char* s1, const char* s2)
 	return ! strcmp(s1, s2);
 	}
 
+static constexpr int ParseOctDigit(char ch) noexcept
+	{
+	if (ch >= '0' && ch <= '7')
+		return ch - '0';
+	else
+		return -1;
+	}
+
+static constexpr int ParseHexDigit(char ch) noexcept
+	{
+	if (ch >= '0' && ch <= '9')
+		return ch - '0';
+	else if (ch >= 'a' && ch <= 'f')
+		return 0xa + ch - 'a';
+	else if (ch >= 'A' && ch <= 'F')
+		return 0xa + ch - 'A';
+	else
+		return -1;
+	}
+
 int expand_escape(const char*& s)
 	{
 	switch ( *(s++) ) {
@@ -309,23 +329,29 @@ int expand_escape(const char*& s)
 		--s;	// put back the first octal digit
 		const char* start = s;
 
-		// Don't increment inside loop control
-		// because if isdigit() is a macro it might
-		// expand into multiple increments ...
+		// require at least one octal digit and parse at most three
 
-		// Here we define a maximum length for escape sequence
-		// to allow easy handling of string like: "^H0" as
-		// "\0100".
-
-		for ( int len = 0; len < 3 && isascii(*s) && isdigit(*s);
-		      ++s, ++len)
-			;
-
-		int result;
-		if ( sscanf(start, "%3o", &result) != 1 )
+		int result = ParseOctDigit(*s++);
+		if (result < 0)
 			{
-			reporter->Warning("bad octal escape: %s ", start);
-			result = 0;
+			reporter->Warning("bad octal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = ParseOctDigit(*s);
+		if (digit >= 0)
+			{
+			result = (result << 3) | digit;
+			++s;
+
+			// third digit?
+			digit = ParseOctDigit(*s);
+			if (digit >= 0)
+				{
+				result = (result << 3) | digit;
+				++s;
+				}
 			}
 
 		return result;
@@ -336,15 +362,20 @@ int expand_escape(const char*& s)
 		const char* start = s;
 
 		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
-		for ( int len = 0; len < 2 && isascii(*s) && isxdigit(*s);
-		      ++s, ++len)
-			;
 
-		int result;
-		if ( sscanf(start, "%2x", &result) != 1 )
+		int result = ParseHexDigit(*s++);
+		if (result < 0)
 			{
 			reporter->Warning("bad hexadecimal escape: %s", start);
-			result = 0;
+			return 0;
+			}
+
+		// second digit?
+		int digit = ParseHexDigit(*s);
+		if (digit >= 0)
+			{
+			result = (result << 4) | digit;
+			++s;
 			}
 
 		return result;

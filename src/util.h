@@ -344,7 +344,7 @@ std::string flatten_script_name(const std::string& name,
  * @param path A filesystem path.
  * @return A canonical/shortened version of \a path.
  */
-std::string normalize_path(const std::string& path);
+std::string normalize_path(std::string_view path);
 
 /**
  * Strip the ZEEKPATH component from a path.

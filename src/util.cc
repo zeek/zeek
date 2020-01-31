@@ -1552,13 +1552,13 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
-string normalize_path(const string& path)
+string normalize_path(const std::string_view path)
 	{
 	size_t n;
 	vector<string> components, final_components;
 	string new_path;
 
-	if ( path[0] == '/' )
+	if ( !path.empty() && path[0] == '/' )
 		new_path = "/";
 
 	tokenize_string(path, "/", &components);

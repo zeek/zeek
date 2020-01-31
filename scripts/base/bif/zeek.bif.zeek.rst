@@ -105,7 +105,6 @@ Functions
                                                             a certain probability if none of a given set of TCP flags are set.
 :zeek:id:`int_to_count`: :zeek:type:`function`              Converts a (positive) :zeek:type:`int` to a :zeek:type:`count`.
 :zeek:id:`interval_to_double`: :zeek:type:`function`        Converts an :zeek:type:`interval` to a :zeek:type:`double`.
-:zeek:id:`is_external_connection`: :zeek:type:`function`    Determines whether a connection has been received externally.
 :zeek:id:`is_icmp_port`: :zeek:type:`function`              Checks whether a given :zeek:type:`port` has ICMP as transport protocol.
 :zeek:id:`is_local_interface`: :zeek:type:`function`        Checks whether a given IP address belongs to a local interface.
 :zeek:id:`is_remote_event`: :zeek:type:`function`           Checks whether the last raised event came from a remote peer.
@@ -141,7 +140,7 @@ Functions
 :zeek:id:`open_for_append`: :zeek:type:`function`           Opens a file for writing or appending.
 :zeek:id:`order`: :zeek:type:`function`                     Returns the order of the elements in a vector according to some
                                                             comparison function.
-:zeek:id:`packet_sources`: :zeek:type:`function`            Returns: a list of packet sources being read by Zeek.
+:zeek:id:`packet_source`: :zeek:type:`function`             Returns: the packet source being read by Zeek.
 :zeek:id:`paraglob_equals`: :zeek:type:`function`           Compares two paraglobs for equality.
 :zeek:id:`paraglob_init`: :zeek:type:`function`             Initializes and returns a new paraglob.
 :zeek:id:`paraglob_match`: :zeek:type:`function`            Gets all the patterns inside the handle associated with an input string.
@@ -1452,21 +1451,6 @@ Functions
    
    .. zeek:see:: double_to_interval
 
-.. zeek:id:: is_external_connection
-
-   :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`bool`
-
-   Determines whether a connection has been received externally. For example,
-   Broccoli or the Time Machine can send packets to Zeek via a mechanism that is
-   one step lower than sending events. This function checks whether the packets
-   of a connection stem from one of these external *packet sources*.
-   
-
-   :c: The connection to test.
-   
-
-   :returns: True if *c* has been received externally.
-
 .. zeek:id:: is_icmp_port
 
    :Type: :zeek:type:`function` (p: :zeek:type:`port`) : :zeek:type:`bool`
@@ -1973,12 +1957,12 @@ Functions
    
    .. zeek:see:: sort
 
-.. zeek:id:: packet_sources
+.. zeek:id:: packet_source
 
-   :Type: :zeek:type:`function` () : :zeek:type:`PacketSourceList`
+   :Type: :zeek:type:`function` () : :zeek:type:`PacketSource`
 
 
-   :returns: a list of packet sources being read by Zeek.
+   :returns: the packet source being read by Zeek.
    
    .. zeek:see:: reading_live_traffic reading_traces
 

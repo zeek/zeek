@@ -1,4 +1,14 @@
 
+3.1.0-dev.519 | 2020-01-31 13:19:09 -0800
+
+  * util: optimize tokenize_string() and normalize_path() (Max Kellermann)
+
+    This patch can speed up Zeek startup by 10-25%.
+
+    Adds a new tokenize_string() overload which returns string_views and
+    changes existing tokenize_string() and normalize_path() to use string_view
+    arguments.
+
 3.1.0-dev.510 | 2020-01-31 11:20:28 -0800
 
   * Remove extra fmt() in a reporter->Error() call (Jon Siwek, Corelight)

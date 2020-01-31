@@ -838,8 +838,7 @@ bool ensure_intermediate_dirs(const char* dirname)
 	bool absolute = dirname[0] == '/';
 	string path = normalize_path(dirname);
 
-	vector<string> path_components;
-	tokenize_string(path, "/", &path_components);
+	const auto path_components = tokenize_string(path, '/');
 
 	string current_dir;
 
@@ -1500,28 +1499,50 @@ TEST_CASE("util tokenize_string")
 	v2.clear();
 	tokenize_string("/wrong/delim", ",", &v2);
 	CHECK(v2.size() == 1);
+
+	auto svs = tokenize_string("one,two,three,four,", ',');
+	std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
+	CHECK(svs == expect);
 	}
 
-vector<string>* tokenize_string(string input, const string& delim,
+vector<string>* tokenize_string(const std::string_view input, const std::string_view delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
+	size_t pos = 0;
 	size_t n;
 	auto found = 0;
 
-	while ( (n = input.find(delim)) != string::npos )
+	while ( (n = input.find(delim, pos)) != string::npos )
 		{
 		++found;
-		rval->push_back(input.substr(0, n));
-		input.erase(0, n + 1);
+		rval->emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
 
 		if ( limit && found == limit )
 			break;
 		}
 
-	rval->push_back(input);
+	rval->emplace_back(input.substr(pos));
+	return rval;
+	}
+
+vector<std::string_view> tokenize_string(const std::string_view input, const char delim) noexcept
+	{
+	vector<std::string_view> rval;
+
+	size_t pos = 0;
+	size_t n;
+
+	while ( (n = input.find(delim, pos)) != string::npos )
+		{
+		rval.emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
+		}
+
+	rval.emplace_back(input.substr(pos));
 	return rval;
 	}
 
@@ -1552,26 +1573,27 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
-string normalize_path(const string& path)
+string normalize_path(const std::string_view path)
 	{
 	size_t n;
-	vector<string> components, final_components;
+	vector<std::string_view> final_components;
 	string new_path;
+	new_path.reserve(path.size());
 
-	if ( path[0] == '/' )
+	if ( ! path.empty() && path[0] == '/' )
 		new_path = "/";
 
-	tokenize_string(path, "/", &components);
+	const auto components = tokenize_string(path, '/');
+	final_components.reserve(components.size());
 
-	vector<string>::const_iterator it;
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( auto it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
 		final_components.push_back(*it);
 
-		if ( *it == "." && it != components.begin() )
-			final_components.pop_back();
-		else if ( *it == ".." )
+		if ( *it == ".." )
 			{
 			auto cur_idx = final_components.size() - 1;
 
@@ -1598,7 +1620,7 @@ string normalize_path(const string& path)
 			}
 		}
 
-	for ( it = final_components.begin(); it != final_components.end(); ++it )
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
 		{
 		new_path.append(*it);
 		new_path.append("/");
@@ -1614,8 +1636,7 @@ string without_bropath_component(const string& path)
 	{
 	string rval = normalize_path(path);
 
-	vector<string> paths;
-	tokenize_string(bro_path(), ":", &paths);
+	const auto paths = tokenize_string(bro_path(), ':');
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{

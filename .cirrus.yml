@@ -94,7 +94,7 @@ ubuntu16_task:
 # image is available.
 macos_task:
   osx_instance:
-    image: mojave-base
+    image: catalina-base
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   env:

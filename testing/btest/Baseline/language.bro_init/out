@@ -1,0 +1,2 @@
+error in /Users/jsiwek/pro/zeek/zeek/testing/btest/.tmp/language.bro_init/bro_init.zeek, line 5: event bro_init() is no longer available, use zeek_init() instead
+error in /Users/jsiwek/pro/zeek/zeek/testing/btest/.tmp/language.bro_init/bro_init.zeek, line 10: event bro_done() is no longer available, use zeek_done() instead

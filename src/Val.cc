@@ -719,16 +719,6 @@ void IntervalVal::ValDescribe(ODesc* d) const
 		}
 	}
 
-PortVal* PortManager::Get(uint32_t port_num) const
-	{
-	return val_mgr->GetPort(port_num);
-	}
-
-PortVal* PortManager::Get(uint32_t port_num, TransportProto port_type) const
-	{
-	return val_mgr->GetPort(port_num, port_type);
-	}
-
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	{
 	// Note, for ICMP one-way connections:
@@ -760,25 +750,8 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p, TransportProto port_type) : Val(TYPE_PORT)
-	{
-	auto port_num = PortVal::Mask(p, port_type);
-	val.uint_val = static_cast<bro_uint_t>(port_num);
-	}
-
-PortVal::PortVal(uint32_t p, bool unused) : Val(TYPE_PORT)
-	{
-	val.uint_val = static_cast<bro_uint_t>(p);
-	}
-
 PortVal::PortVal(uint32_t p) : Val(TYPE_PORT)
 	{
-	if ( p >= 65536 * NUM_PORT_SPACES )
-		{
-		InternalWarning("bad port number");
-		p = 0;
-		}
-
 	val.uint_val = static_cast<bro_uint_t>(p);
 	}
 
@@ -3305,7 +3278,7 @@ ValManager::ValManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = new PortVal(PortVal::Mask(j, port_type), true);
+			arr[j] = new PortVal(PortVal::Mask(j, port_type));
 		}
 	}
 

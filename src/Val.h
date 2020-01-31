@@ -85,56 +85,6 @@ typedef union {
 
 class Val : public BroObj {
 public:
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(bool b, TypeTag t)
-		{
-		val.int_val = b;
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(int32_t i, TypeTag t)
-		{
-		val.int_val = bro_int_t(i);
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(uint32_t u, TypeTag t)
-		{
-		val.uint_val = bro_uint_t(u);
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(int64_t i, TypeTag t)
-		{
-		val.int_val = i;
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetBool, GetFalse/GetTrue, GetInt, or GetCount instead")
-	Val(uint64_t u, TypeTag t)
-		{
-		val.uint_val = u;
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
-		}
-
 	Val(double d, TypeTag t)
 		{
 		val.double_val = d;
@@ -429,23 +379,6 @@ protected:
 
 };
 
-class PortManager {
-public:
-	// Port number given in host order.
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal* Get(uint32_t port_num, TransportProto port_type) const;
-
-	// Host-order port number already masked with port space protocol mask.
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal* Get(uint32_t port_num) const;
-
-	// Returns a masked port number
-	ZEEK_DEPRECATED("Remove in v3.1: use PortVal::Mask() instead")
-	uint32_t Mask(uint32_t port_num, TransportProto port_type) const;
-};
-
-extern PortManager* port_mgr;
-
 // Holds pre-allocated Val objects for those where it's more optimal to
 // re-use existing ones rather than allocate anew.
 class ValManager {
@@ -521,14 +454,6 @@ protected:
 
 class PortVal : public Val {
 public:
-	// Port number given in host order.
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	PortVal(uint32_t p, TransportProto port_type);
-
-	// Host-order port number already masked with port space protocol mask.
-	ZEEK_DEPRECATED("Remove in v3.1: use val_mgr->GetPort() instead")
-	explicit PortVal(uint32_t p);
-
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
 
 	// Returns the port number in host order (not including the mask).
@@ -559,7 +484,7 @@ protected:
 	friend class Val;
 	friend class ValManager;
 	PortVal()	{}
-	PortVal(uint32_t p, bool unused);
+	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
@@ -1014,13 +939,6 @@ protected:
 
 class EnumVal : public Val {
 public:
-
-	ZEEK_DEPRECATED("Remove in v3.1: use t->GetVal(i) instead")
-	EnumVal(int i, EnumType* t) : Val(t)
-		{
-		val.int_val = i;
-		}
-
 	Val* SizeVal() const override	{ return val_mgr->GetInt(val.int_val); }
 
 protected:

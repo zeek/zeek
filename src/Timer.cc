@@ -37,6 +37,7 @@ const char* TimerNames[] = {
 	"TCPConnectionPartialClose",
 	"TCPConnectionResetTimer",
 	"TriggerTimer",
+	"ParentProcessIDCheck",
 	"TimerMgrExpireTimer",
 };
 

@@ -8,6 +8,7 @@ print decompose_uri("https://www.example.com/");
 print decompose_uri("http://example.com:99/test//?foo=bar");
 print decompose_uri("ftp://1.2.3.4/pub/files/something.exe");
 print decompose_uri("http://hyphen-example.com/index.asp?q=123");
+print decompose_uri("git://git.kernel.org:/pub/scm/linux/");
 
 # This is mostly undefined behavior but it doesn't give any 
 # reporter messages at least.

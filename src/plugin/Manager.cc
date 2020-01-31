@@ -189,6 +189,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -202,6 +203,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -214,6 +216,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}

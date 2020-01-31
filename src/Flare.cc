@@ -13,14 +13,24 @@ Flare::Flare()
 	{
 	}
 
-static void bad_pipe_op(const char* which)
+static void bad_pipe_op(const char* which, bool signal_safe)
 	{
+	if ( signal_safe )
+		abort();
+
 	char buf[256];
 	bro_strerror_r(errno, buf, sizeof(buf));
-	reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+
+	if ( reporter )
+		reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
+	else
+		{
+		fprintf(stderr, "unexpected pipe %s failure: %s", which, buf);
+		abort();
+		}
 	}
 
-void Flare::Fire()
+void Flare::Fire(bool signal_safe)
 	{
 	char tmp = 0;
 
@@ -42,15 +52,16 @@ void Flare::Fire()
 				// Interrupted: try again.
 				continue;
 
-			bad_pipe_op("write");
+			bad_pipe_op("write", signal_safe);
 			}
 
 		// No error, but didn't write a byte: try again.
 		}
 	}
 
-void Flare::Extinguish()
+int Flare::Extinguish(bool signal_safe)
 	{
+	int rval = 0;
 	char tmp[256];
 
 	for ( ; ; )
@@ -58,8 +69,11 @@ void Flare::Extinguish()
 		int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
 
 		if ( n >= 0 )
+			{
+			rval += n;
 			// Pipe may not be empty yet: try again.
 			continue;
+			}
 
 		if ( errno == EAGAIN )
 			// Success: pipe is now empty.
@@ -69,6 +83,8 @@ void Flare::Extinguish()
 			// Interrupted: try again.
 			continue;
 
-		bad_pipe_op("read");
+		bad_pipe_op("read", signal_safe);
 		}
+
+	return rval;
 	}

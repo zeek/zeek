@@ -435,10 +435,9 @@ when	return TOK_WHEN;
 	pref = skip_whitespace(pref + 1);	// Skip over '='.
 
 	if ( ! append )
-		while ( prefixes.length() > 1 )	// don't delete "" prefix
-			delete prefixes.remove_nth(1);
+		zeek_script_prefixes = { "" }; // don't delete the "" prefix
 
-	add_to_name_list(pref, ':', prefixes);
+	tokenize_string(pref, ":", &zeek_script_prefixes);
 	}
 
 @if	return TOK_ATIF;
@@ -943,14 +942,14 @@ int yywrap()
 
 		it->prefixes_checked = true;
 		// Prefixes are pushed onto a stack, so iterate backwards.
-		for ( int i = prefixes.length() - 1; i >= 0; --i )
+		for ( int i = zeek_script_prefixes.size() - 1; i >= 0; --i )
 			{
 			// Don't look at empty prefixes.
-			if ( ! prefixes[i][0] )
+			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
 			string canon = without_bropath_component(it->name);
-			string flat = flatten_script_name(canon, prefixes[i]);
+			string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
 			string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )

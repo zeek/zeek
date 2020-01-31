@@ -467,7 +467,7 @@ void DNS_Mgr::InitPostScript()
 
 	const char* cache_dir = dir ? dir : ".";
 	cache_name = new char[strlen(cache_dir) + 64];
-	sprintf(cache_name, "%s/%s", cache_dir, ".bro-dns-cache");
+	sprintf(cache_name, "%s/%s", cache_dir, ".zeek-dns-cache");
 	LoadCache(fopen(cache_name, "r"));
 	}
 

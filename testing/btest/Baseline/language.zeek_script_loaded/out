@@ -1,4 +1,2 @@
 zeek_script_loaded priority 10
-bro_script_loaded priority 5
 zeek_script_loaded priority 0
-bro_script_loaded priority -10

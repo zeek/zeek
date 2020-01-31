@@ -59,7 +59,7 @@ Scope::~Scope()
 
 ID* Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(copy_string(name), SCOPE_FUNCTION, false);
+	return new ID(name, SCOPE_FUNCTION, false);
 	}
 
 id_list* Scope::GetInits()

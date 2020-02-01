@@ -1,4 +1,11 @@
 
+3.1.0-dev.527 | 2020-02-03 10:11:00 -0800
+
+  * Change requested memory in Cirrus CI config (Jon Siwek, Corelight)
+
+    The ASan build does require quite a bit more, but also the default
+    release builds should do ok with slightly less.
+
 3.1.0-dev.526 | 2020-02-03 10:04:00 -0800
 
   * Increase timeout value for live interfaces without file descriptors (Tim Wojtulewicz, Corelight)

@@ -178,8 +178,7 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-if (NOT BINPAC_EXE_PATH AND
-    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 

@@ -29,7 +29,8 @@ env:
   - distro: fedora_30
   - distro: ubuntu_16.04
   - distro: ubuntu_18.04
-  - distro: ubuntu_18.04_leaktest
+# Travis environment doesn't have enough memory to support ASan well.
+#  - distro: ubuntu_18.04_leaktest
 
 install: sh ci/travis-job install $distro
 

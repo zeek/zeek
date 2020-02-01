@@ -1,4 +1,11 @@
 
+3.1.0-dev.530 | 2020-02-03 13:21:16 -0800
+
+  * Disable Travis leak test (Jon Siwek, Corelight)
+
+    Travis environment doesn't offer enough memory for running ASan very
+    well, but Cirrus has it covered anyway.
+
 3.1.0-dev.529 | 2020-02-03 13:04:30 -0800
 
   * CMakeLists.txt: fix cross-compilation with binpac (Fabrice Fontaine)

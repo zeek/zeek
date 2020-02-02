@@ -255,11 +255,11 @@ void Manager::Register(IOSource* src, bool dont_count)
 	{
 	// First see if we already have registered that source. If so, just
 	// adjust dont_count.
-	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+	for ( const auto& iosrc : sources )
 		{
-		if ( (*i)->src == src )
+		if ( iosrc->src == src )
 			{
-			if ( (*i)->dont_count != dont_count )
+			if ( iosrc->dont_count != dont_count )
 				// Adjust the global counter.
 				dont_counts += (dont_count ? 1 : -1);
 
@@ -323,12 +323,8 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	PktSrcComponent* component = 0;
 
 	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
-
-	for ( std::list<PktSrcComponent*>::const_iterator i = all_components.begin();
-	      i != all_components.end(); i++ )
+	for ( const auto& c : all_components )
 		{
-		PktSrcComponent* c = *i;
-
 		if ( c->HandlesPrefix(prefix) &&
 		     ((  is_live && c->DoesLive() ) ||
 		      (! is_live && c->DoesTrace())) )
@@ -369,13 +365,11 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	PktDumperComponent* component = 0;
 
 	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
-
-	for ( std::list<PktDumperComponent*>::const_iterator i = all_components.begin();
-	      i != all_components.end(); i++ )
+	for ( const auto& c : all_components )
 		{
-		if ( (*i)->HandlesPrefix(prefix) )
+		if ( c->HandlesPrefix(prefix) )
 			{
-			component = (*i);
+			component = c;
 			break;
 			}
 		}

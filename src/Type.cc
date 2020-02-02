@@ -273,6 +273,13 @@ void TypeList::Describe(ODesc* d) const
 		}
 	}
 
+unsigned int TypeList::MemoryAllocation() const
+	{
+	return BroType::MemoryAllocation()
+		+ padded_sizeof(*this) - padded_sizeof(BroType)
+		+ types.MemoryAllocation() - padded_sizeof(types);
+	}
+
 IndexType::~IndexType()
 	{
 	Unref(indices);

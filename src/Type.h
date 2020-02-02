@@ -318,12 +318,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	unsigned int MemoryAllocation() const override
-		{
-		return BroType::MemoryAllocation()
-			+ padded_sizeof(*this) - padded_sizeof(BroType)
-			+ types.MemoryAllocation() - padded_sizeof(types);
-		}
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	BroType* pure_type;

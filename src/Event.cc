@@ -7,6 +7,7 @@
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
+#include "Val.h"
 #include "plugin/Manager.h"
 
 EventMgr mgr;
@@ -102,6 +103,19 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
+			  SourceID src, analyzer::ID aid,
+			  TimerMgr* mgr, BroObj* obj)
+	{
+	if ( h )
+		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+	else
+		{
+		for ( const auto& v : vl )
+			Unref(v);
+		}
+	}
+
 void EventMgr::QueueEvent(Event* event)
 	{
 	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
@@ -118,6 +132,13 @@ void EventMgr::QueueEvent(Event* event)
 		}
 
 	++num_events_queued;
+	}
+
+void EventMgr::Dispatch(Event* event, bool no_remote)
+	{
+	current_src = event->Source();
+	event->Dispatch(no_remote);
+	Unref(event);
 	}
 
 void EventMgr::Drain()

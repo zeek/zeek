@@ -25,8 +25,7 @@ public:
 	void ReplaceSyms(int_list* new_syms)
 				{ delete syms; syms = new_syms; }
 
-	unsigned int MemoryAllocation() const
-		{ return padded_sizeof(*this) + padded_sizeof(*syms) + pad_size(syms->size() * sizeof(int_list::value_type)); }
+	unsigned int MemoryAllocation() const;
 
 protected:
 	int_list* syms;

@@ -13,11 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Attr.h"
 #include "Net.h"
 #include "File.h"
 #include "Func.h"
 #include "Desc.h"
 #include "IntrusivePtr.h"
+#include "ID.h"
 #include "RE.h"
 #include "Scope.h"
 #include "NetVar.h"
@@ -359,6 +361,14 @@ void Val::ValDescribeReST(ODesc* d) const
 	}
 	}
 
+
+#ifdef DEBUG
+void Val::SetID(ID* id)
+	{
+	delete [] bound_id;
+	bound_id = id ? copy_string(id->Name()) : 0;
+	}
+#endif
 
 bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val)
 	{
@@ -1991,6 +2001,11 @@ ListVal* TableVal::ConvertToPureList() const
 		}
 
 	return ConvertToList((*tl)[0]->Tag());
+	}
+
+Attr* TableVal::FindAttr(attr_tag t) const
+	{
+	return attrs ? attrs->FindAttr(t) : 0;
 	}
 
 void TableVal::Describe(ODesc* d) const

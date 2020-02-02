@@ -180,3 +180,8 @@ IdentifierInfo::Redefinition::~Redefinition()
 	{
 	Unref(init_expr);
 	}
+
+IdentifierInfo::RecordField::~RecordField()
+	{
+	delete field;
+	}

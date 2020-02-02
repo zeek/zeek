@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "util.h"
-
 #include <vector>
 #include <string>
 #include <iosfwd>
@@ -114,8 +112,7 @@ public:
 	// XXX and to_upper; the latter doesn't use BroString::ToUpper().
 	void ToUpper();
 
-	unsigned int MemoryAllocation() const
-		{ return padded_sizeof(*this) + pad_size(n + final_NUL); }
+	unsigned int MemoryAllocation() const;
 
 	// Returns new string containing the substring of this string,
 	// starting at @start >= 0 for going up to @length elements,

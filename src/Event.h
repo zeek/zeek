@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include "BroList.h"
 #include "analyzer/Analyzer.h"
-#include "Val.h"
 
 class EventMgr;
 
@@ -77,16 +77,7 @@ public:
 	// existence check.
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0)
-		{
-		if ( h )
-			QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
-		else
-			{
-			for ( const auto& v : vl )
-				Unref(v);
-			}
-		}
+			TimerMgr* mgr = 0, BroObj* obj = 0);
 
 	// Same as QueueEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -100,12 +91,7 @@ public:
 		delete vl;
 		}
 
-	void Dispatch(Event* event, bool no_remote = false)
-		{
-		current_src = event->Source();
-		event->Dispatch(no_remote);
-		Unref(event);
-		}
+	void Dispatch(Event* event, bool no_remote = false);
 
 	void Drain();
 	bool IsDraining() const	{ return draining; }

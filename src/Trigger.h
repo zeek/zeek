@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Obj.h"
-#include "Desc.h"
 #include "Notifier.h"
 #include "iosource/IOSource.h"
 
@@ -15,6 +14,7 @@ class Stmt;
 class Frame;
 class Val;
 class ID;
+class ODesc;
 
 namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
@@ -69,8 +69,7 @@ public:
 
 	bool Disabled() const { return disabled; }
 
-	void Describe(ODesc* d) const override
-		{ d->Add("<trigger>"); }
+	void Describe(ODesc* d) const override;
 
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.

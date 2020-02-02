@@ -6,9 +6,7 @@
 #include "Dict.h"
 #include "CompHash.h"
 #include "BroString.h"
-#include "Attr.h"
 #include "Timer.h"
-#include "ID.h"
 #include "Scope.h"
 #include "Notifier.h"
 #include "RE.h"
@@ -293,11 +291,7 @@ public:
 		return bound_id ? global_scope()->Lookup(bound_id) : 0;
 		}
 
-	void SetID(ID* id)
-		{
-		delete [] bound_id;
-		bound_id = id ? copy_string(id->Name()) : 0;
-		}
+	void SetID(ID* id);
 #endif
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
@@ -792,8 +786,7 @@ public:
 	ListVal* ConvertToPureList() const;	// must be single index type
 
 	void SetAttrs(Attributes* attrs);
-	Attr* FindAttr(attr_tag t) const
-		{ return attrs ? attrs->FindAttr(t) : 0; }
+	Attr* FindAttr(attr_tag t) const;
 	Attributes* Attrs()	{ return attrs; }
 
 	// Returns the size of the table.

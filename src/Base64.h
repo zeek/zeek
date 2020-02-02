@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Reporter.h"
-#include "Conn.h"
+#include <string>
+
+using std::string;
 
 class BroString;
+class Connection;
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {
@@ -36,14 +38,7 @@ public:
 	int Errored() const	{ return errored; }
 
 	const char* ErrorMsg() const	{ return error_msg; }
-	void IllegalEncoding(const char* msg)
-		{
-		// strncpy(error_msg, msg, sizeof(error_msg));
-		if ( conn )
-			conn->Weird("base64_illegal_encoding", msg);
-		else
-			reporter->Error("%s", msg);
-		}
+	void IllegalEncoding(const char* msg);
 
 protected:
 	char error_msg[256];

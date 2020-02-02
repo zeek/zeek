@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Reporter.h"
 #include "util.h" // for bro_int_t
 
 #include <string>
@@ -97,18 +96,6 @@ inline UID& UID::operator=(const UID& other)
 	memmove(uid, other.uid, sizeof(uid));
 	initialized = other.initialized;
 	return *this;
-	}
-
-inline std::string UID::Base62(std::string prefix) const
-	{
-	if ( ! initialized )
-		reporter->InternalError("use of uninitialized UID");
-
-	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
-	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		prefix.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
-
-	return prefix;
 	}
 
 } // namespace Bro

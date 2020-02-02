@@ -9,6 +9,7 @@
 #include "Desc.h"
 #include "IntrusivePtr.h"
 #include "Trigger.h"
+#include "Val.h"
 
 vector<Frame*> g_frame_stack;
 
@@ -533,6 +534,14 @@ void Frame::ClearTrigger()
 	{
 	Unref(trigger);
 	trigger = nullptr;
+	}
+
+void Frame::UnrefElement(int n)
+	{
+	if ( weak_refs && weak_refs[n] )
+		return;
+
+	Unref(frame[n]);
 	}
 
 bool Frame::IsOuterID(const ID* in) const

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BroList.h" // for typedef val_list
-#include "Val.h"
+#include "Obj.h"
 
 #include <unordered_map>
 #include <string>
@@ -235,13 +235,7 @@ private:
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
-	void UnrefElement(int n)
-		{
-		if ( weak_refs && weak_refs[n] )
-			return;
-
-		Unref(frame[n]);
-		}
+	void UnrefElement(int n);
 
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;

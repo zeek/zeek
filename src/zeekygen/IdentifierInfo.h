@@ -4,7 +4,6 @@
 
 #include "Info.h"
 #include "ID.h"
-#include "Type.h"
 
 #include <string>
 #include <vector>
@@ -167,8 +166,7 @@ private:
 	std::string DoReStructuredText(bool roles_only) const override;
 
 	struct RecordField {
-		~RecordField()
-			{ delete field; }
+		~RecordField();
 
 		TypeDecl* field;
 		std::string from_script;

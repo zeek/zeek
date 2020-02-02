@@ -1,6 +1,8 @@
 #include "zeek-config.h"
 #include "Base64.h"
 #include "BroString.h"
+#include "Reporter.h"
+#include "Conn.h"
 
 #include <math.h>
 
@@ -217,6 +219,14 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	return 0;
 	}
 
+void Base64Converter::IllegalEncoding(const char* msg)
+		{
+		// strncpy(error_msg, msg, sizeof(error_msg));
+		if ( conn )
+			conn->Weird("base64_illegal_encoding", msg);
+		else
+			reporter->Error("%s", msg);
+		}
 
 BroString* decode_base64(const BroString* s, const BroString* a, Connection* conn)
 	{
@@ -268,4 +278,3 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 
 	return new BroString(1, (u_char*)outbuf, outlen);
 	}
-

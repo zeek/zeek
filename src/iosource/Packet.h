@@ -1,7 +1,5 @@
 #pragma once
 
-#include "IP.h"
-
 #include <string>
 
 #include <stdint.h>
@@ -16,6 +14,8 @@ typedef struct timeval pkt_timeval;
 
 class Val;
 class ODesc;
+class IP_Hdr;
+class RecordVal;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -119,8 +119,7 @@ public:
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * correspondign object.
 	 */
-	const IP_Hdr IP() const
-		{ return IP_Hdr((struct ip *) (data + hdr_size), false); }
+	const IP_Hdr IP() const;
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and

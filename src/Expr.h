@@ -7,7 +7,6 @@
 #include "BroList.h"
 #include "Timer.h"
 #include "Type.h"
-#include "Val.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
 
@@ -119,10 +118,10 @@ public:
 	int IsConst() const	{ return tag == EXPR_CONST; }
 
 	// True if the expression is in error (to alleviate error propagation).
-	int IsError() const	{ return type && type->Tag() == TYPE_ERROR; }
+	int IsError() const;
 
 	// Mark expression as in error.
-	void SetError()		{ SetType(error_type()); }
+	void SetError();
 	void SetError(const char* msg);
 
 	// Returns the expression's constant value, or complains
@@ -130,16 +129,10 @@ public:
 	inline Val* ExprVal() const;
 
 	// True if the expression is a constant zero, false otherwise.
-	int IsZero() const
-		{
-		return IsConst() && ExprVal()->IsZero();
-		}
+	int IsZero() const;
 
 	// True if the expression is a constant one, false otherwise.
-	int IsOne() const
-		{
-		return IsConst() && ExprVal()->IsOne();
-		}
+	int IsOne() const;
 
 	// True if the expression supports the "add" or "delete" operations,
 	// false otherwise.
@@ -605,7 +598,7 @@ public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
 	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
-	~AssignExpr() override { Unref(val); }
+	~AssignExpr() override;
 
 	Val* Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;

@@ -475,6 +475,11 @@ void Trigger::Disable()
 	disabled = true;
 	}
 
+void Trigger::Describe(ODesc* d) const
+	{
+	d->Add("<trigger>");
+	}
+
 void Trigger::Modified(notifier::Modifiable* m)
 	{
 	trigger_mgr->Queue(this);

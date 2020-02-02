@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "Packet.h"
-#include "IOSource.h"
+#include <string>
+
+class Packet;
 
 namespace iosource {
 

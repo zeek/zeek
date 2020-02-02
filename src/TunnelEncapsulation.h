@@ -5,10 +5,12 @@
 #include "zeek-config.h"
 #include "NetVar.h"
 #include "IPAddr.h"
-#include "Val.h"
+#include "Var.h" // for internal_type()
 #include "UID.h"
+
 #include <vector>
 
+using std::vector;
 class Connection;
 
 /**

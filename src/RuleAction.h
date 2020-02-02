@@ -1,10 +1,14 @@
 #pragma once
 
-#include "BroString.h"
-#include "List.h"
 #include "util.h"
 
 #include "analyzer/Tag.h"
+
+#include <string>
+
+#include <sys/types.h> // for u_char
+
+using std::string;
 
 class Rule;
 class RuleEndpointState;

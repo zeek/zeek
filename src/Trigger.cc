@@ -1,7 +1,18 @@
+#include "Trigger.h"
+
 #include <algorithm>
 
-#include "Trigger.h"
+#include <assert.h>
+
 #include "Traverse.h"
+#include "Expr.h"
+#include "Frame.h"
+#include "ID.h"
+#include "Val.h"
+#include "Stmt.h"
+#include "Reporter.h"
+#include "Desc.h"
+#include "DebugLogger.h"
 #include "iosource/Manager.h"
 
 using namespace trigger;

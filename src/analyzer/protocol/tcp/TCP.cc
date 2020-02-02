@@ -1,14 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
+#include "analyzer/protocol/tcp/TCP.h"
 
+#include <vector>
+
+#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "analyzer/protocol/pia/PIA.h"
+
+#include "IP.h"
+#include "Net.h"
 #include "NetVar.h"
 #include "File.h"
 #include "Event.h"
-
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "Reporter.h"
+#include "Sessions.h"
+#include "DebugLogger.h"
 
 #include "events.bif.h"
 #include "types.bif.h"

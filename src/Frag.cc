@@ -2,11 +2,12 @@
 
 #include "zeek-config.h"
 
-#include "util.h"
-#include "Hash.h"
 #include "Frag.h"
+#include "Hash.h"
+#include "IP.h"
 #include "NetVar.h"
 #include "Sessions.h"
+#include "Reporter.h"
 
 #define MIN_ACCEPTABLE_FRAG_SIZE 64
 #define MAX_ACCEPTABLE_FRAG_SIZE 64000

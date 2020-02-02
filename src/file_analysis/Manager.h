@@ -6,25 +6,29 @@
 #include <set>
 #include <map>
 
-#include "Dict.h"
+#include "Component.h"
 #include "Net.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Analyzer.h"
-#include "Timer.h"
-#include "EventHandler.h"
 #include "RuleMatcher.h"
 
-#include "File.h"
-#include "FileTimer.h"
-#include "Component.h"
-#include "Tag.h"
 #include "plugin/ComponentManager.h"
-#include "analyzer/Tag.h"
 
 #include "file_analysis/file_analysis.bif.h"
 
+using std::map;
+using std::set;
+
+class TableVal;
+class VectorVal;
+
+namespace analyzer {
+class Analyzer;
+class Tag;
+}
+
 namespace file_analysis {
+
+class File;
+class Tag;
 
 /**
  * Main entry point for interacting with file analysis.

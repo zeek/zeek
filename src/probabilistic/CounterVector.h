@@ -4,9 +4,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
-#include <broker/data.hh>
 #include <broker/expected.hh>
+
+namespace broker { class data; }
 
 namespace probabilistic {
 

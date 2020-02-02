@@ -4,6 +4,7 @@
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "RuleMatcher.h"
 
 class RuleEndpointState;
 

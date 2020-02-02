@@ -11,6 +11,9 @@
 #include "IOSource.h"
 #include "Flare.h"
 
+struct timespec;
+struct kevent;
+
 namespace iosource {
 
 class PktSrc;

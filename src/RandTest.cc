@@ -12,8 +12,9 @@
 	Modified for Bro by Seth Hall - July 2010
 */
 
-#include <math.h>
 #include "RandTest.h"
+
+#include <math.h>
 
 #define log2of10 3.32192809488736234787
 /*  RT_LOG2  --  Calculate log to the base 2  */

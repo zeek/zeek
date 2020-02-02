@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "ID.h"
+#include "Desc.h"
 #include "Expr.h"
 #include "Dict.h"
 #include "EventRegistry.h"
@@ -11,7 +12,11 @@
 #include "File.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "Val.h"
 #include "zeekygen/Manager.h"
+#include "zeekygen/IdentifierInfo.h"
+#include "zeekygen/ScriptInfo.h"
+#include "module_util.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{

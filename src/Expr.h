@@ -5,15 +5,17 @@
 // BRO expressions.
 
 #include "BroList.h"
-#include "ID.h"
 #include "Timer.h"
+#include "Type.h"
 #include "Val.h"
-#include "Debug.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
 
 #include <memory>
+#include <string>
 #include <utility>
+
+using std::string;
 
 typedef enum {
 	EXPR_ANY = -1,
@@ -872,8 +874,6 @@ protected:
 
 	int num_fields;
 };
-
-class EventHandler;
 
 class ScheduleTimer : public Timer {
 public:

@@ -4,6 +4,7 @@
 #include "Conn.h"
 #include "IP.h"
 #include "Reporter.h"
+#include "Sessions.h"
 
 #include "events.bif.h"
 

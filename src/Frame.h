@@ -2,17 +2,20 @@
 
 #pragma once
 
+#include "BroList.h" // for typedef val_list
+#include "Val.h"
+
 #include <unordered_map>
-#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
-
 namespace trigger { class Trigger; }
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:

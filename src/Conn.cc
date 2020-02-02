@@ -2,15 +2,18 @@
 
 #include "zeek-config.h"
 
+#include "Conn.h"
+
 #include <ctype.h>
 
+#include "Desc.h"
 #include "Net.h"
 #include "NetVar.h"
-#include "Conn.h"
 #include "Event.h"
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
+#include "iosource/IOSource.h"
 #include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
 #include "TunnelEncapsulation.h"

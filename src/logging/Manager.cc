@@ -1,6 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
+#include "Manager.h"
+
+#include <utility>
 
 #include "Event.h"
 #include "EventHandler.h"
@@ -8,17 +10,20 @@
 #include "Net.h"
 #include "Type.h"
 #include "File.h"
+#include "input.h"
 
 #include "broker/Manager.h"
 #include "threading/Manager.h"
 #include "threading/SerialTypes.h"
 
-#include "Manager.h"
+#include "Desc.h"
 #include "WriterFrontend.h"
 #include "WriterBackend.h"
 #include "logging.bif.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
+
+#include <broker/endpoint_info.hh>
 
 using namespace logging;
 

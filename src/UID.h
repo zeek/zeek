@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include "Reporter.h"
+#include "util.h" // for bro_int_t
+
 #include <string>
 
-#include "Reporter.h"
-#include "util.h"
+#include <string.h>
 
 #define BRO_UID_LEN 2
 

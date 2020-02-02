@@ -3,14 +3,15 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "net_util.h"
 #include "IPAddr.h"
 #include "Reporter.h"
-#include "Val.h"
-#include "Type.h"
 #include <vector>
+
+#include <sys/types.h> // for u_char
 #include <netinet/in.h>
 #include <netinet/ip.h>
+
+using std::vector;
 
 #ifdef ENABLE_MOBILE_IPV6
 

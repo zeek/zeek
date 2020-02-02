@@ -2,8 +2,8 @@
 
 #include "broker/store.bif.h"
 #include "broker/data.bif.h"
-#include "Reporter.h"
 #include "Type.h"
+#include "Var.h" // for internal_type()
 #include "OpaqueVal.h"
 #include "Trigger.h"
 

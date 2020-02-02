@@ -1,5 +1,7 @@
 
 #include "Foo.h"
+#include "file_analysis/File.h"
+
 #include <events.bif.h>
 #include <file_analysis/Manager.h>
 

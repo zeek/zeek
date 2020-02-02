@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include <assert.h>
+#include "BroList.h"
+
 #include <unordered_set>
 #include <string>
-#include "List.h"
-#include "BroList.h"
 
 class Func;
 class FuncType;

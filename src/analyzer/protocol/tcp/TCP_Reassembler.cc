@@ -1,12 +1,14 @@
-#include <algorithm>
-
+#include "TCP_Reassembler.h"
+#include "TCP_Endpoint.h"
 #include "File.h"
 #include "analyzer/Analyzer.h"
-#include "TCP_Reassembler.h"
 #include "analyzer/protocol/tcp/TCP.h"
-#include "TCP_Endpoint.h"
+#include "Reporter.h"
+#include "RuleMatcher.h"
 
 #include "events.bif.h"
+
+#include <algorithm>
 
 using namespace analyzer::tcp;
 

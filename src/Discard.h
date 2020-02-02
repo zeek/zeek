@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "IP.h"
-#include "Func.h"
+#include <sys/types.h> // for u_char
 
 struct ip;
 struct tcphdr;
 struct udphdr;
 struct icmp;
 
+class IP_Hdr;
 class Val;
 class RecordType;
 class Func;

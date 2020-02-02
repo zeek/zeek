@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "RuleMatcher.h"
+#include "RuleCondition.h"
 #include "IPAddr.h"
 #include "util.h"
 #include "rule-parse.h"

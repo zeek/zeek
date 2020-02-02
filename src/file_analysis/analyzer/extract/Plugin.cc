@@ -1,8 +1,8 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
 #include "Extract.h"
+#include "plugin/Plugin.h"
+#include "file_analysis/Component.h"
 
 namespace plugin {
 namespace Zeek_FileExtract {

@@ -2,12 +2,6 @@
 
 #pragma once
 
-extern "C" {
-#include <pcap.h>
-}
-
-#include <string>
-
 namespace iosource {
 
 /**

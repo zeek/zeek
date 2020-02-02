@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "BroString.h"
 
 #include <algorithm>
+#include <iostream>
 #include <ctype.h>
 
-#include <algorithm>
-
-#include "BroString.h"
+#include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
 

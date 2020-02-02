@@ -1,5 +1,7 @@
 #include "zeek-config.h"
 #include "Base64.h"
+#include "BroString.h"
+
 #include <math.h>
 
 int Base64Converter::default_base64_table[256];

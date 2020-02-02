@@ -5,9 +5,12 @@
 #include "OpaqueVal.h"
 #include "NetVar.h"
 #include "Reporter.h"
+#include "Desc.h"
+#include "Var.h"
 #include "probabilistic/BloomFilter.h"
 #include "probabilistic/CardinalityCounter.h"
 
+#include <broker/data.hh>
 #include <broker/error.hh>
 
 // Helper to retrieve a broker value out of a broker::vector at a specified

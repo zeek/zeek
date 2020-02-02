@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include "EventRegistry.h"
-
-#include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
+#include "Val.h"
 
 class EventMgr;
 

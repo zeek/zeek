@@ -3,10 +3,13 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "util.h"
-#include "Type.h"
+
+#include <string>
+
+#include <stdint.h>
 
 class EnumVal;
+class EnumType;
 
 /**
  * Class to identify an analyzer type.

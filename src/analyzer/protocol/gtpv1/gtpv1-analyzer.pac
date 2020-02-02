@@ -1,3 +1,6 @@
+%extern{
+#include "Sessions.h"
+%}
 
 %code{
 RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)

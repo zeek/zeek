@@ -4,6 +4,7 @@
 
 #include "Expr.h"
 #include "Event.h"
+#include "Desc.h"
 #include "Frame.h"
 #include "Func.h"
 #include "RE.h"
@@ -15,6 +16,8 @@
 #include "Trigger.h"
 #include "IPAddr.h"
 #include "digest.h"
+#include "module_util.h"
+#include "DebugLogger.h"
 
 #include "broker/Data.h"
 

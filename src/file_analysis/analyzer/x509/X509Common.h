@@ -11,6 +11,8 @@
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
 
+class Reporter;
+
 namespace file_analysis {
 
 class X509Common : public file_analysis::Analyzer {

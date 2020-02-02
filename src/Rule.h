@@ -1,17 +1,17 @@
 #pragma once
 
-#include <limits.h>
-#include <map>
-
-#include "Obj.h"
 #include "List.h"
-#include "Dict.h"
-#include "util.h"
+#include "Obj.h"
+
+#include <map>
+#include <string>
+
+#include <limits.h>
+#include <stdint.h>
 
 class RuleCondition;
 class RuleAction;
 class RuleHdrTest;
-
 class Rule;
 
 typedef PList<Rule> rule_list;

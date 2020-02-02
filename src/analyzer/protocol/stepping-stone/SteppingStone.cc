@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "SteppingStone.h"
 
 #include <stdlib.h>
 
@@ -8,9 +9,8 @@
 #include "Net.h"
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
-#include "SteppingStone.h"
+#include "Sessions.h"
 #include "util.h"
-
 #include "events.bif.h"
 
 using namespace analyzer::stepping_stone;

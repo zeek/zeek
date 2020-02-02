@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "File.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -20,13 +21,14 @@
 
 #include <algorithm>
 
-#include "File.h"
+#include "Attr.h"
 #include "Type.h"
 #include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "Desc.h"
 
 std::list<std::pair<std::string, BroFile*>> BroFile::open_files;
 

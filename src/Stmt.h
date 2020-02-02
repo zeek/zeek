@@ -5,8 +5,9 @@
 // BRO statements.
 
 #include "BroList.h"
+#include "Dict.h"
+#include "ID.h"
 #include "Obj.h"
-#include "Expr.h"
 #include "Reporter.h"
 
 #include "StmtEnums.h"
@@ -14,7 +15,11 @@
 #include "TraverseTypes.h"
 
 class StmtList;
+class CompositeHash;
+class EventExpr;
+class ListExpr;
 class ForStmt;
+class Frame;
 
 class Stmt : public BroObj {
 public:

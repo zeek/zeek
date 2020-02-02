@@ -3,6 +3,8 @@
 #include <netinet/in.h>
 #include <vector>
 #include "zeek-config.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 #include "Reporter.h"
 #include "IPAddr.h"

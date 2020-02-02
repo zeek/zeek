@@ -1,9 +1,11 @@
 
 #include "Packet.h"
 #include "Sessions.h"
+#include "Desc.h"
 #include "iosource/Manager.h"
 
 extern "C" {
+#include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)

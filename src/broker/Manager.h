@@ -12,20 +12,21 @@
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
 #include <broker/zeek.hh>
+
 #include <memory>
 #include <string>
-#include <map>
-#include <set>
 #include <unordered_map>
-#include <unordered_set>
-#include "broker/Store.h"
-#include "Reporter.h"
+
+#include "NetVar.h"
 #include "iosource/IOSource.h"
-#include "Val.h"
 #include "logging/WriterBackend.h"
+
+class Frame;
 
 namespace bro_broker {
 
+class StoreHandleVal;
+class StoreQueryCallback;
 class BrokerState;
 
 /**

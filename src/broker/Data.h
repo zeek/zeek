@@ -1,13 +1,14 @@
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
-#include "IntrusivePtr.h"
+#include "Desc.h"
+#include "Var.h" // for internal_type()
+
+template <class T>
+class IntrusivePtr;
 
 namespace bro_broker {
 

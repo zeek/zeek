@@ -4,8 +4,7 @@
 
 #include <limits.h>
 
-#include "input.h"
-#include "Desc.h"
+class ODesc;
 
 class Location {
 public:

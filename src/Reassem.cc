@@ -1,10 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+#include "Reassem.h"
+
 #include <algorithm>
 
-#include "zeek-config.h"
+#include "Desc.h"
 
-#include "Reassem.h"
+using std::min;
 
 uint64_t Reassembler::total_size = 0;
 uint64_t Reassembler::sizes[REASSEM_NUM];

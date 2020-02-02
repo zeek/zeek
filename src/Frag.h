@@ -2,16 +2,18 @@
 
 #pragma once
 
-#include <tuple>
-
-#include "util.h"
-#include "IP.h"
-#include "Net.h"
+#include "util.h" // for bro_uint_t
+#include "IPAddr.h"
 #include "Reassem.h"
 #include "Timer.h"
 
+#include <tuple>
+
+#include <sys/types.h> // for u_char
+
 class HashKey;
 class NetSessions;
+class IP_Hdr;
 
 class FragReassembler;
 class FragTimer;

@@ -2,26 +2,25 @@
 
 #pragma once
 
+#include "Frag.h"
+#include "PacketFilter.h"
+#include "NetVar.h"
+#include "analyzer/protocol/tcp/Stats.h"
+
 #include <map>
 #include <utility>
 
-#include "Dict.h"
-#include "CompHash.h"
-#include "IP.h"
-#include "Frag.h"
-#include "PacketFilter.h"
-#include "Stats.h"
-#include "NetVar.h"
-#include "TunnelEncapsulation.h"
-#include "analyzer/protocol/tcp/Stats.h"
+#include <sys/types.h> // for u_char
 
 class EncapsulationStack;
+class EncapsulatingConn;
+class Packet;
+class PacketProfiler;
 class Connection;
 class ConnCompressor;
 struct ConnID;
 
 class Discarder;
-class PacketFilter;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }

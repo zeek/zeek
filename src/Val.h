@@ -2,12 +2,6 @@
 
 #pragma once
 
-#include <vector>
-#include <list>
-#include <array>
-#include <unordered_map>
-
-#include "net_util.h"
 #include "Type.h"
 #include "Dict.h"
 #include "CompHash.h"
@@ -17,9 +11,18 @@
 #include "ID.h"
 #include "Scope.h"
 #include "Notifier.h"
-#include "IPAddr.h"
-#include "DebugLogger.h"
 #include "RE.h"
+#include "net_util.h"
+
+#include <vector>
+#include <list>
+#include <array>
+#include <unordered_map>
+
+#include <sys/types.h> // for u_char
+
+using std::vector;
+using std::string;
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -49,6 +52,9 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class OpaqueVal;
+
+class IPAddr;
+class IPPrefix;
 
 class StateAccess;
 

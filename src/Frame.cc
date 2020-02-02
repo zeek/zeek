@@ -1,9 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Frame.h"
+
 #include <broker/error.hh>
 #include "broker/Data.h"
 
-#include "Frame.h"
+#include "Func.h"
+#include "Desc.h"
+#include "IntrusivePtr.h"
 #include "Trigger.h"
 
 vector<Frame*> g_frame_stack;

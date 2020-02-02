@@ -1,15 +1,23 @@
+
+#include "zeek-config.h"
+#include "RuleMatcher.h"
+
 #include <algorithm>
 #include <functional>
 
-#include "zeek-config.h"
-
+#include "RuleAction.h"
+#include "RuleCondition.h"
+#include "ID.h"
+#include "IntSet.h"
+#include "IP.h"
 #include "analyzer/Analyzer.h"
-#include "RuleMatcher.h"
 #include "DFA.h"
+#include "DebugLogger.h"
 #include "NetVar.h"
 #include "Scope.h"
 #include "File.h"
 #include "Reporter.h"
+#include "module_util.h"
 
 // FIXME: Things that are not fully implemented/working yet:
 //

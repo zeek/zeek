@@ -33,6 +33,7 @@ extern "C" {
 #include "Var.h"
 #include "Timer.h"
 #include "Stmt.h"
+#include "Desc.h"
 #include "Debug.h"
 #include "DFA.h"
 #include "RuleMatcher.h"

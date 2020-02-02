@@ -2,13 +2,13 @@
 
 #pragma once
 
+#include "util.h"
+
 #include <vector>
 #include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <sys/types.h>
+#include <iosfwd>
 
-#include "util.h"
+#include <sys/types.h>
 
 typedef u_char* byte_vec;
 

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <iterator>
+
 // Queue.h --
 //	Interface for class Queue, current implementation is as an
 //	array of ent's.  This implementation was chosen to optimize

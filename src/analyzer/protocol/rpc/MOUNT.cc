@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+#include "MOUNT.h"
+
 #include <algorithm>
 #include <vector>
 
-#include "zeek-config.h"
-
 #include "NetVar.h"
 #include "XDR.h"
-#include "MOUNT.h"
 #include "Event.h"
 
 #include "events.bif.h"

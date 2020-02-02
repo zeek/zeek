@@ -97,6 +97,7 @@
 //                                            Binpac DNP3 Analyzer
 
 #include "DNP3.h"
+#include "Reporter.h"
 #include "events.bif.h"
 
 using namespace analyzer::dnp3;

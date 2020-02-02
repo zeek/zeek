@@ -11,6 +11,7 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Var.h"
+#include "Desc.h"
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"

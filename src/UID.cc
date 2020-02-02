@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <cstdlib>
-
 #include "UID.h"
+
+#include <cstdlib>
 
 using namespace Bro;
 using namespace std;

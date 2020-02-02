@@ -2,13 +2,16 @@
 
 #pragma once
 
-#include "Info.h"
 #include "Target.h"
 
 #include <string>
 #include <vector>
 
+#include <time.h> // for time_t
+
 namespace zeekygen {
+
+class Info;
 
 /**
  * Manages the generation of reStructuredText documents corresponding to

@@ -3,15 +3,9 @@
 #pragma once
 
 #include "Configuration.h"
-#include "Info.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
 
 #include "Reporter.h"
 #include "ID.h"
-#include "Type.h"
-#include "Val.h"
 
 #include <string>
 #include <vector>
@@ -20,7 +14,12 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+class TypeDecl;
+
 namespace zeekygen {
+
+class PackageInfo;
+class ScriptInfo;
 
 /**
  * Map of info objects.  Just a wrapper around std::map to improve code

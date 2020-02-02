@@ -1,7 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "DebugLogger.h"
 #include "Notifier.h"
+#include "DebugLogger.h"
+
+#include <set>
 
 notifier::Registry notifier::registry;
 

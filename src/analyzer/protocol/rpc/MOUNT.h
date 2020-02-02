@@ -3,8 +3,6 @@
 #pragma once
 
 #include "RPC.h"
-#include "XDR.h"
-#include "Event.h"
 
 namespace analyzer { namespace rpc {
 

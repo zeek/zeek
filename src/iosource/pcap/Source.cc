@@ -1,11 +1,10 @@
 // See the file  in the main distribution directory for copyright.
 
-#include <assert.h>
-
 #include "zeek-config.h"
 
 #include "Source.h"
 #include "iosource/Packet.h"
+#include "iosource/BPF_Program.h"
 
 #include "pcap.bif.h"
 

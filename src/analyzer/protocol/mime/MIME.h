@@ -7,9 +7,12 @@
 #include <queue>
 using namespace std;
 
-#include "Base64.h"
 #include "BroString.h"
+#include "Reporter.h"
 #include "analyzer/Analyzer.h"
+
+class StringVal;
+class Base64Converter;
 
 namespace analyzer { namespace mime {
 

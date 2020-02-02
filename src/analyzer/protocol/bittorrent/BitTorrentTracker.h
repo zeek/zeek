@@ -6,6 +6,8 @@
 
 #define BTTRACKER_BUF 2048
 
+class StringVal;
+
 namespace analyzer { namespace bittorrent {
 
 // If the following is defined, then the analyzer will store all of

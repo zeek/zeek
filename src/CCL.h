@@ -2,8 +2,9 @@
 
 #pragma once
 
+#include "util.h" // for ptr_compat_int
+
 #include <vector>
-#include "List.h"
 
 typedef std::vector<ptr_compat_int> int_list;
 

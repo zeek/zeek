@@ -1,4 +1,5 @@
 #include "EventRegistry.h"
+#include "EventHandler.h"
 #include "RE.h"
 #include "Reporter.h"
 

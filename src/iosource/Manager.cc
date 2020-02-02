@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <sys/types.h>
+
 #include <sys/event.h>
+#include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
 
 #include "Manager.h"
+#include "Component.h"
 #include "IOSource.h"
 #include "Net.h"
 #include "PktSrc.h"

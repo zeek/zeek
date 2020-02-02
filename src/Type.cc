@@ -4,11 +4,17 @@
 
 #include "Type.h"
 #include "Attr.h"
+#include "Desc.h"
 #include "Expr.h"
 #include "Scope.h"
+#include "Val.h"
+#include "Var.h"
 #include "Reporter.h"
 #include "zeekygen/Manager.h"
+#include "zeekygen/IdentifierInfo.h"
+#include "zeekygen/ScriptInfo.h"
 #include "zeekygen/utils.h"
+#include "module_util.h"
 
 #include <string>
 #include <list>

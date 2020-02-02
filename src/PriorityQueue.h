@@ -3,7 +3,7 @@
 #pragma once
 
 #include <math.h>
-#include "util.h"
+#include <stdint.h>
 
 class PriorityQueue;
 

@@ -78,8 +78,12 @@
 #include <assert.h>
 
 #include "input.h"
+#include "BroList.h"
+#include "Desc.h"
 #include "Expr.h"
+#include "Func.h"
 #include "Stmt.h"
+#include "Val.h"
 #include "Var.h"
 /* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
@@ -87,6 +91,7 @@
 #include "Reporter.h"
 #include "Brofiler.h"
 #include "zeekygen/Manager.h"
+#include "module_util.h"
 
 #include <set>
 #include <string>

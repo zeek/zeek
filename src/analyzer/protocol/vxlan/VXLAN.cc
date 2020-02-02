@@ -6,9 +6,15 @@
 #include "TunnelEncapsulation.h"
 #include "Conn.h"
 #include "IP.h"
+#include "Net.h"
+#include "Sessions.h"
 #include "Reporter.h"
 
 #include "events.bif.h"
+
+extern "C" {
+#include <pcap.h>
+}
 
 using namespace analyzer::vxlan;
 

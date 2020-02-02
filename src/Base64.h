@@ -1,13 +1,9 @@
 #pragma once
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "util.h"
-#include "BroString.h"
 #include "Reporter.h"
 #include "Conn.h"
+
+class BroString;
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {

@@ -9,6 +9,7 @@
 %include bro.pac
 
 %extern{
+#include "Desc.h"
 #include "events.bif.h"
 
 namespace analyzer { namespace ssl { class SSL_Analyzer; } }

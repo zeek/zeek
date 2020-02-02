@@ -4,8 +4,6 @@
 #include "ReaderFrontend.h"
 #include "ReaderBackend.h"
 
-#include "threading/MsgThread.h"
-
 namespace input {
 
 class InitMessage : public threading::InputMessage<ReaderBackend>

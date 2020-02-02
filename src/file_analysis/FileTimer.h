@@ -2,8 +2,11 @@
 
 #pragma once
 
-#include <string>
 #include "Timer.h"
+
+#include <string>
+
+using std::string;
 
 namespace file_analysis {
 

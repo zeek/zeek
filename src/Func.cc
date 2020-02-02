@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Func.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,12 +33,14 @@
 #include <broker/error.hh>
 
 #include "Base64.h"
+#include "Debug.h"
+#include "Desc.h"
+#include "Expr.h"
 #include "Stmt.h"
 #include "Scope.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "File.h"
-#include "Func.h"
 #include "Frame.h"
 #include "Var.h"
 #include "analyzer/protocol/login/Login.h"
@@ -47,6 +50,9 @@
 #include "Traverse.h"
 #include "Reporter.h"
 #include "plugin/Manager.h"
+#include "module_util.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 

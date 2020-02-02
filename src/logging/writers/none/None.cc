@@ -4,6 +4,8 @@
 #include "None.h"
 #include "none.bif.h"
 
+#include <iostream>
+
 using namespace logging;
 using namespace writer;
 

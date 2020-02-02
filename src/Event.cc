@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "Event.h"
+#include "Desc.h"
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"

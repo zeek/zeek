@@ -2,6 +2,7 @@
 
 
 #include "zeek-config.h"
+#include "Sessions.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -9,11 +10,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "Desc.h"
 #include "Net.h"
 #include "Event.h"
 #include "Timer.h"
 #include "NetVar.h"
-#include "Sessions.h"
 #include "Reporter.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"

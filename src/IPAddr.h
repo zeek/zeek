@@ -2,17 +2,16 @@
 
 #pragma once
 
+#include "BroString.h"
+#include "Hash.h"
+#include "threading/SerialTypes.h"
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
 
-#include "BroString.h"
-#include "Hash.h"
-#include "util.h"
-#include "Type.h"
-#include "threading/SerialTypes.h"
-
+using std::string;
 struct ConnID;
 namespace analyzer { class ExpectedConn; }
 

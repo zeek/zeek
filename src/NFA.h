@@ -2,9 +2,11 @@
 
 #pragma once
 
-#include "RE.h"
-#include "IntSet.h"
+#include "Obj.h"
+#include "List.h"
 
+class CCL;
+class Func;
 class NFA_State;
 class EquivClass;
 

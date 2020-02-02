@@ -3,8 +3,6 @@
 #pragma once
 
 #include "Info.h"
-#include "ScriptInfo.h"
-
 #include "ID.h"
 #include "Type.h"
 
@@ -12,6 +10,10 @@
 #include <vector>
 #include <list>
 #include <map>
+
+#include <time.h> // for time_t
+
+class TypeDecl;
 
 namespace zeekygen {
 

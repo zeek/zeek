@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Val.h"
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -12,10 +13,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Val.h"
 #include "Net.h"
 #include "File.h"
 #include "Func.h"
+#include "Desc.h"
+#include "IntrusivePtr.h"
 #include "RE.h"
 #include "Scope.h"
 #include "NetVar.h"

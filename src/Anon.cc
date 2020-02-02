@@ -1,3 +1,5 @@
+#include "Anon.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -5,7 +7,6 @@
 
 #include "util.h"
 #include "net_util.h"
-#include "Anon.h"
 #include "Val.h"
 #include "NetVar.h"
 

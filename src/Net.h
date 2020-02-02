@@ -2,14 +2,14 @@
 
 #pragma once
 
+#include <list>
 #include <vector>
 #include <string>
 #include <optional>
 
-#include "net_util.h"
-#include "util.h"
-#include "List.h"
-#include "Func.h"
+#include <sys/stat.h> // for ino_t
+
+using std::string;
 
 namespace iosource {
 	class IOSource;

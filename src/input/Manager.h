@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include "BroString.h"
-#include "EventHandler.h"
-#include "Val.h"
-
 #include "Component.h"
+#include "EventHandler.h"
+#include "plugin/ComponentManager.h"
+#include "threading/SerialTypes.h"
+#include "Tag.h"
 
 #include <map>
+
+class RecordVal;
 
 namespace input {
 

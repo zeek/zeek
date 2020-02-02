@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "IdentifierInfo.h"
+#include "ScriptInfo.h"
 #include "utils.h"
 
 #include "Desc.h"

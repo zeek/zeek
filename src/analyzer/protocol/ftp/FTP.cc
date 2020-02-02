@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "FTP.h"
 
 #include <stdlib.h>
 
 #include "NetVar.h"
-#include "FTP.h"
 #include "Event.h"
 #include "Base64.h"
 #include "analyzer/Manager.h"
 #include "analyzer/protocol/login/NVT.h"
+#include "RuleMatcher.h"
 
 #include "events.bif.h"
 

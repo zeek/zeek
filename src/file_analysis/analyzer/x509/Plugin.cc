@@ -1,10 +1,9 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "X509.h"
 #include "OCSP.h"
+#include "plugin/Plugin.h"
+#include "file_analysis/Component.h"
 
 namespace plugin {
 namespace Zeek_X509 {

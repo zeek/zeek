@@ -1,11 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Formatter.h"
 
-#include <sstream>
 #include <errno.h>
 
-#include "Formatter.h"
+#include "MsgThread.h"
 #include "bro_inet_ntop.h"
 
 using namespace threading;

@@ -1,8 +1,11 @@
 #pragma once
 
-#include "Desc.h"
 #include "IP.h"
-#include "NetVar.h"
+
+#include <string>
+
+#include <stdint.h>
+#include <sys/types.h> // for u_char
 
 #if defined(__OpenBSD__)
 #include <net/bpf.h>
@@ -10,6 +13,9 @@ typedef struct bpf_timeval pkt_timeval;
 #else
 typedef struct timeval pkt_timeval;
 #endif
+
+class Val;
+class ODesc;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.

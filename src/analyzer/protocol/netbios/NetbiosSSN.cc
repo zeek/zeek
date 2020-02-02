@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "NetbiosSSN.h"
 
 #include <ctype.h>
 
 #include "NetVar.h"
-#include "NetbiosSSN.h"
 #include "Sessions.h"
 #include "Event.h"
+#include "Net.h"
 
 #include "events.bif.h"
 

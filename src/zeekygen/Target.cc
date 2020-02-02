@@ -2,6 +2,9 @@
 
 #include "Target.h"
 #include "Manager.h"
+#include "IdentifierInfo.h"
+#include "PackageInfo.h"
+#include "ScriptInfo.h"
 
 #include "util.h"
 #include "Reporter.h"

@@ -4,6 +4,9 @@
 
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"
+#include "net_util.h"
+
+class VectorVal;
 
 namespace analyzer { namespace icmp {
 

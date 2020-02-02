@@ -2,19 +2,15 @@
 // Robin Sommer.
 
 #include "zeek-config.h"
+#include "POP3.h"
 
-#include <stdlib.h>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <ctype.h>
 
-#include "NetVar.h"
-#include "POP3.h"
-#include "Event.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "analyzer/Manager.h"
-#include "analyzer/protocol/login/NVT.h"
 
 #include "events.bif.h"
 

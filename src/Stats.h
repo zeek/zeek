@@ -5,6 +5,12 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <stdint.h>
+
+class Func;
+class TableVal;
+class Location;
+class BroFile;
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.

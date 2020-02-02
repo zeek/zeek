@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <typeinfo>
+#include "BloomFilter.h"
+
 #include <cmath>
 #include <limits>
 
+#include <broker/data.hh>
 #include <broker/error.hh>
-
-#include "BloomFilter.h"
 
 #include "CounterVector.h"
 

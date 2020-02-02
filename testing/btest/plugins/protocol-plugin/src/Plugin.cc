@@ -1,5 +1,6 @@
 
 #include "Plugin.h"
+#include "analyzer/Component.h"
 
 #include "Foo.h"
 

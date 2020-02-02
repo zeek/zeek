@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#include "CCL.h"
+class CCL;
 
 class EquivClass {
 public:

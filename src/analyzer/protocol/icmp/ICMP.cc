@@ -1,14 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "ICMP.h"
+
 #include <algorithm>
 
 #include "zeek-config.h"
 
+#include "IP.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "ICMP.h"
 #include "Conn.h"
+#include "Desc.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 

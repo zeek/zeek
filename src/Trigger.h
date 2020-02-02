@@ -1,15 +1,26 @@
 #pragma once
 
+#include "Obj.h"
+#include "Desc.h"
+#include "Notifier.h"
+#include "iosource/IOSource.h"
+
 #include <list>
+#include <vector>
 #include <map>
 
-#include "Notifier.h"
-#include "Traverse.h"
-#include "iosource/IOSource.h"
+class CallExpr;
+class Expr;
+class Stmt;
+class Frame;
+class Val;
+class ID;
 
 namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
+
+using std::map;
 
 class TriggerTimer;
 class TriggerTraversalCallback;

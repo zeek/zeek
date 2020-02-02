@@ -11,11 +11,11 @@
 #pragma once
 
 #include <vector>
-#include <set>
 #include <map>
 
 #include "Reporter.h"
-#include "net_util.h"
+
+using std::map;
 
 // TODO: Anon.h may not be the right place to put these functions ...
 

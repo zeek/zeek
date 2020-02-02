@@ -1,5 +1,7 @@
 #include "Data.h"
 #include "File.h"
+#include "IntrusivePtr.h"
+#include "module_util.h"
 #include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
 

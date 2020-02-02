@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "IP.h"
+
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
 
-#include "IP.h"
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"

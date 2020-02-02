@@ -335,10 +335,10 @@ double PktSrc::GetNextTimeout()
 	// If there's no file descriptor for the source, which is the case for some interfaces like
 	// myricom, we can't rely on the polling mechanism to wait for data to be available. As gross
 	// as it is, just spin with a short timeout here so that it will continually poll the
-	// interface. The old IOSource code had a 20ns timeout between calls to select() so just
-	// use that.
+	// interface. The old IOSource code had a 20 microsecond timeout between calls to select()
+	// so just use that.
 	if ( props.selectable_fd == -1 )
-		return 0.00000002;
+		return 0.00002;
 
 	// If we're live we want poll to do what it has to with the file descriptor. If we're not live
 	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're

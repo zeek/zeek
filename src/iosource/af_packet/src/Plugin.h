@@ -1,11 +1,11 @@
 
-#ifndef BRO_PLUGIN_BRO_AF_PACKET
-#define BRO_PLUGIN_BRO_AF_PACKET
+#ifndef ZEEK_PLUGIN_ZEEK_AF_PACKET
+#define ZEEK_PLUGIN_ZEEK_AF_PACKET
 
 #include <plugin/Plugin.h>
 
 namespace plugin {
-namespace Bro_AF_Packet {
+namespace Zeek_AF_Packet {
 
 class Plugin : public ::plugin::Plugin
 {

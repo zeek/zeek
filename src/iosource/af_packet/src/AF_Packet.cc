@@ -1,5 +1,5 @@
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "AF_Packet.h"
 #include "RX_Ring.h"
@@ -287,4 +287,3 @@ iosource::PktSrc* AF_PacketSource::InstantiateAF_Packet(const std::string& path,
 	{
 	return new AF_PacketSource(path, is_live);
 	}
-

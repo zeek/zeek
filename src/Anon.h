@@ -40,7 +40,7 @@ typedef uint32_t ipaddr32_t;
 
 class AnonymizeIPAddr {
 public:
-	virtual ~AnonymizeIPAddr()	{ mapping.clear(); }
+	virtual ~AnonymizeIPAddr() = default;
 
 	ipaddr32_t Anonymize(ipaddr32_t addr);
 

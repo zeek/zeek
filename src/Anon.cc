@@ -144,8 +144,6 @@ AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
 	for ( unsigned int i = 0; i < blocks.size(); ++i )
 		delete [] blocks[i];
-
-	blocks.clear();
 	}
 
 void AnonymizeIPAddr_A50::init()

@@ -1,4 +1,12 @@
 
+3.1.0-dev.526 | 2020-02-03 10:04:00 -0800
+
+  * Increase timeout value for live interfaces without file descriptors (Tim Wojtulewicz, Corelight)
+
+  * Use ranged-for loops in a few places in iosource Manager (Tim Wojtulewicz, Corelight)
+
+  * Change order of includes in iosource Manager, fixes build on FreeBSD 11 (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.521 | 2020-01-31 14:18:17 -0800
 
   * util: optimize expand_escape() by avoiding sscanf() (Max Kellermann)

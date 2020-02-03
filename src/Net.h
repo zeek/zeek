@@ -19,8 +19,8 @@ namespace iosource {
 
 class Packet;
 
-extern void net_init(const std::string& interfaces,
-                     const std::string& pcap_input_file,
+extern void net_init(const std::optional<std::string>& interfaces,
+                     const std::optional<std::string>& pcap_input_file,
                      const std::optional<std::string>& pcap_output_file,
                      bool do_watchdog);
 extern void net_run();

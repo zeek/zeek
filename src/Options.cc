@@ -268,12 +268,13 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			rval.print_usage = true;
 			break;
 		case 'i':
-			if ( ! rval.interface.empty() )
+			if ( rval.interface )
 				{
 				fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
 				exit(1);
 				}
-			else if ( ! rval.pcap_file.empty() )
+
+			if ( rval.pcap_file )
 				{
 				fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
 				exit(1);
@@ -294,16 +295,18 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			rval.script_prefixes.emplace_back(optarg);
 			break;
 		case 'r':
-			if ( ! rval.pcap_file.empty() )
+			if ( rval.pcap_file )
 				{
 				fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
 				exit(1);
 				}
-			else if ( ! rval.interface.empty() )
+
+			if ( rval.interface )
 				{
 				fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
 				exit(1);
 				}
+
 			rval.pcap_file = optarg;
 			break;
 		case 's':

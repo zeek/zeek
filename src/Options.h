@@ -58,8 +58,8 @@ struct Options {
 	std::vector<std::string> doctest_args;
 
 	std::optional<std::string> pcap_filter;
-	std::string interface;
-	std::string pcap_file;
+	std::optional<std::string> interface;
+	std::optional<std::string> pcap_file;
 	std::vector<std::string> signature_files;
 
 	std::optional<std::string> pcap_output_file;

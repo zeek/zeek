@@ -1,4 +1,8 @@
 
+3.1.0-dev.529 | 2020-02-03 13:04:30 -0800
+
+  * CMakeLists.txt: fix cross-compilation with binpac (Fabrice Fontaine)
+
 3.1.0-dev.527 | 2020-02-03 10:11:00 -0800
 
   * Change requested memory in Cirrus CI config (Jon Siwek, Corelight)

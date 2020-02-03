@@ -279,7 +279,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-binpac=*)
             append_cache_entry BINPAC_EXE_PATH     PATH $optarg
-            append_cache_entry BinPAC_ROOT_DIR     PATH "$(dirname $optarg)/.."
             ;;
         --with-bifcl=*)
             append_cache_entry BIFCL_EXE_PATH      PATH   $optarg

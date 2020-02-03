@@ -27,9 +27,9 @@
 //
 // Helper routines
 //
-bool string_is_regex(string s)
+bool string_is_regex(string_view s)
 	{
-	return strpbrk(s.c_str(), "?*\\+");
+	return strpbrk(s.data(), "?*\\+");
 	}
 
 void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,

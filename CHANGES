@@ -1,4 +1,8 @@
 
+3.1.0-dev.536 | 2020-02-03 15:44:10 -0700
+
+  * Change various functions to by-value std::string_view args (Jon Siwek, Corelight)
+
 3.1.0-dev.534 | 2020-02-03 15:42:24 -0700
 
   * Change packet source fields of Options to std::optional (Jon Siwek, Corelight)

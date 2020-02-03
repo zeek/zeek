@@ -63,7 +63,7 @@
 #endif
 #endif
 
-static bool starts_with(const std::string_view& s, const std::string& beginning)
+static bool starts_with(std::string_view s, std::string_view beginning)
 	{
 	if ( beginning.size() > s.size() )
 		return false;
@@ -78,7 +78,7 @@ TEST_CASE("util starts_with")
 	CHECK(starts_with("abcde", "abcedf") == false);
 	}
 
-static bool ends_with(const std::string_view& s, const std::string& ending)
+static bool ends_with(std::string_view s, std::string_view ending)
 	{
 	if ( ending.size() > s.size() )
 		return false;
@@ -1315,7 +1315,7 @@ TEST_CASE("util is_package_loader")
 
 const array<string, 2> script_extensions = {".zeek", ".bro"};
 
-void warn_if_legacy_script(const std::string_view& filename)
+void warn_if_legacy_script(std::string_view filename)
 	{
 	if ( ends_with(filename, ".bro") )
 		{
@@ -1541,7 +1541,7 @@ TEST_CASE("util tokenize_string")
 	CHECK(svs == expect);
 	}
 
-vector<string>* tokenize_string(const std::string_view input, const std::string_view delim,
+vector<string>* tokenize_string(std::string_view input, std::string_view delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )
@@ -1565,7 +1565,7 @@ vector<string>* tokenize_string(const std::string_view input, const std::string_
 	return rval;
 	}
 
-vector<std::string_view> tokenize_string(const std::string_view input, const char delim) noexcept
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept
 	{
 	vector<std::string_view> rval;
 
@@ -1609,7 +1609,7 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
-string normalize_path(const std::string_view path)
+string normalize_path(std::string_view path)
 	{
 	size_t n;
 	vector<std::string_view> final_components;

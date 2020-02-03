@@ -150,7 +150,7 @@ std::vector<std::string>* tokenize_string(std::string_view input,
 					  std::string_view delim,
 					  std::vector<std::string>* rval = 0, int limit = 0);
 
-std::vector<std::string_view> tokenize_string(const std::string_view input, const char delim) noexcept;
+std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -278,7 +278,7 @@ extern std::string bro_prefixes();
 extern const std::array<std::string, 2> script_extensions;
 
 /** Prints a warning if the filename ends in .bro. */
-void warn_if_legacy_script(const std::string_view& filename);
+void warn_if_legacy_script(std::string_view filename);
 
 bool is_package_loader(const std::string& path);
 

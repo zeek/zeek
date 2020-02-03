@@ -865,6 +865,8 @@ protected:
 	PrefixTable* subnets;
 	Val* def_val;
 	Expr* change_func = nullptr;
+	// prevent recursion of change functions
+	bool in_change_func = false;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {

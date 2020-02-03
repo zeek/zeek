@@ -1933,7 +1933,7 @@ ListVal* TableVal::RecoverIndex(const HashKey* k) const
 
 void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
 	{
-	if ( ! change_func || ! index )
+	if ( ! change_func || ! index || in_change_func )
 		return;
 
 	if ( ! table_type->IsSet() && ! old_value )
@@ -1978,12 +1978,15 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 		if ( ! table_type->IsSet() )
 			vl.append(old_value->Ref());
 
+		in_change_func = true;
 		f->Call(&vl);
 		Unref(thefunc);
 		}
 	catch ( InterpreterException& e )
 		{
 		}
+
+	in_change_func = false;
 	}
 
 Val* TableVal::Delete(const Val* index)

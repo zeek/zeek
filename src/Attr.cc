@@ -14,7 +14,7 @@ const char* attr_name(attr_tag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&deprecated",
+		"(&tracked)", "&on_change", "&deprecated",
 	};
 
 	return attr_names[int(t)];
@@ -405,7 +405,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		if ( type->Tag() != TYPE_TABLE )
 			{
-			Error("expiration only applicable to tables");
+			Error("expiration only applicable to sets/tables");
 			break;
 			}
 

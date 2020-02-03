@@ -394,7 +394,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
-	return PublishEvent(topic, event_name, std::move(xs));
+	return PublishEvent(std::move(topic), event_name, std::move(xs));
 	}
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)

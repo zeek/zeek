@@ -62,7 +62,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	size = 0;
 	comp = arg_comp;
 	vals = new maskedvalue_list;
-	prefix_vals = arg_v;
+	prefix_vals = std::move(arg_v);
 	sibling = 0;
 	child = 0;
 	pattern_rules = 0;

@@ -255,7 +255,7 @@ public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-	: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(p)
+		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
 		{}
 
 	void Dispatch(double t, int is_expire) override

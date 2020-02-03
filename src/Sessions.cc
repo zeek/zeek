@@ -120,7 +120,7 @@ void NetSessions::Done()
 
 void NetSessions::NextPacket(double t, const Packet* pkt)
 	{
-	SegmentProfiler(segment_logger, "dispatching-packet");
+	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
 		mgr.QueueEventFast(raw_packet, {pkt->BuildPktHdrVal()});

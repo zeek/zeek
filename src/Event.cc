@@ -152,7 +152,7 @@ void EventMgr::Drain()
 	if ( event_queue_flush_point )
 		QueueEventFast(event_queue_flush_point, val_list{});
 
-	SegmentProfiler(segment_logger, "draining-events");
+	SegmentProfiler prof(segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 

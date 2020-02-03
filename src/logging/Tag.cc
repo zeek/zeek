@@ -16,7 +16,7 @@ logging::Tag& logging::Tag::operator=(const logging::Tag& other)
 	return *this;
 	}
 
-logging::Tag& logging::Tag::operator=(const logging::Tag&& other)
+logging::Tag& logging::Tag::operator=(const logging::Tag&& other) noexcept
 	{
 	::Tag::operator=(other);
 	return *this;

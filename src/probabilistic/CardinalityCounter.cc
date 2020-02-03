@@ -76,7 +76,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
 	p = other.p;
 	}
 
-CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
+CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 	{
 	V = o.V;
 	alpha_m = o.alpha_m;

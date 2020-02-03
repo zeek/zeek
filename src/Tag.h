@@ -82,7 +82,7 @@ protected:
 	/**
 	 * Move assignment operator.
 	 */
-	Tag& operator=(const Tag&& other);
+	Tag& operator=(const Tag&& other) noexcept;
 
 	/**
 	 * Compares two tags for equality.

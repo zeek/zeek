@@ -210,7 +210,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		string s(text, sqlite3_column_bytes(st, pos));
-		int pos = s.find("/");
+		int pos = s.find('/');
 		int width = atoi(s.substr(pos+1).c_str());
 		string addr = s.substr(0, pos);
 

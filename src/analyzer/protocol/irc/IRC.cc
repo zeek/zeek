@@ -34,7 +34,7 @@ void IRC_Analyzer::Done()
 
 inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 	{
-	const auto first_char = str.find_first_not_of(" ");
+	const auto first_char = str.find_first_not_of(' ');
 	if ( first_char == string::npos )
 		str = "";
 	else

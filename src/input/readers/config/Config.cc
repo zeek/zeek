@@ -176,7 +176,7 @@ bool Config::DoUpdate()
 	// keep a list of options to remove because they were no longer in the input file.
 	// Start out with all element and removes while going along
 	std::unordered_set<std::string> unseen_options;
-	for ( auto i : option_values )
+	for ( const auto& i : option_values )
 		{
 		unseen_options.insert(i.first);
 		}
@@ -282,7 +282,7 @@ bool Config::DoUpdate()
 		EndCurrentSend();
 
 	// clean up all options we did not see
-	for ( auto i : unseen_options )
+	for ( const auto& i : unseen_options )
 		option_values.erase(i);
 
 	return true;

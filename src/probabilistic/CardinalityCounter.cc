@@ -173,7 +173,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	if ( m != c->GetM() )
 		return false;
 
-	const vector<uint8_t> temp = c->GetBuckets();
+	const vector<uint8_t>& temp = c->GetBuckets();
 
 	V = 0;
 

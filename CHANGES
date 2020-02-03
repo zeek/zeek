@@ -1,4 +1,10 @@
 
+3.1.0-dev.531 | 2020-02-03 13:23:22 -0800
+
+  * Update sqlite to 3.31.1 (Johanna Amann, Corelight)
+
+	* Update certificate list to state of NSS 3.49.2. (Johanna Amann, Corelight)
+
 3.1.0-dev.530 | 2020-02-03 13:21:16 -0800
 
   * Disable Travis leak test (Jon Siwek, Corelight)

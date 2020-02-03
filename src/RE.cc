@@ -436,7 +436,7 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
 		+ padded_sizeof(*any_ccl)
-		+ padded_sizeof(*accepted)
+		+ padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
 		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 

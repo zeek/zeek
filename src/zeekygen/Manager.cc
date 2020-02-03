@@ -90,6 +90,8 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
 		                        path_to_bro.c_str(), strerror(errno));
 
+	// Internal error will abort above in the case that stat isn't initialized
+	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
 	bro_mtime = s.st_mtime;
 	}
 

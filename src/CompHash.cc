@@ -918,6 +918,10 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 				kp = RecoverOneVal(k, kp, k_end,
 				                   rt->FieldType(i), v, optional);
+
+				// An earlier call to reporter->InternalError would have called abort() and broken the
+				// call tree that clang-tidy is relying on to get the error described.
+				// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Branch)
 				if ( ! (v || optional) )
 					{
 					reporter->InternalError("didn't recover expected number of fields from HashKey");

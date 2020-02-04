@@ -9,6 +9,9 @@
 #include "Trigger.h"
 #include "Val.h"
 #include "plugin/Manager.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
+#include "Net.h"
 
 EventMgr mgr;
 
@@ -124,7 +127,10 @@ void EventMgr::QueueEvent(Event* event)
 		return;
 
 	if ( ! head )
+		{
 		head = tail = event;
+		queue_flare.Fire();
+		}
 	else
 		{
 		tail->SetNext(event);
@@ -203,4 +209,30 @@ void EventMgr::Describe(ODesc* d) const
 		e->Describe(d);
 		d->NL();
 		}
+	}
+
+void EventMgr::Process()
+	{
+	// If we don't have a source, or the source is closed, or we're
+	// reading live (which includes pseudo-realtime), advance the time
+	// here to the current time since otherwise it won't move forward.
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
+		net_update_time(current_time());
+
+	queue_flare.Extinguish();
+
+	// While it semes like the most logical thing to do, we dont want
+	// to call Drain() as part of this method. It will get called at
+	// the end of net_run after all of the sources have been processed
+	// and had the opportunity to spawn new events. We could use
+	// iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
+	// but then we couldn't update the time above and nothing would
+	// drive it forward.
+	}
+
+void EventMgr::InitPostScript()
+	{
+	iosource_mgr->Register(this, true, false);
+	iosource_mgr->RegisterFd(queue_flare.FD(), this);
 	}

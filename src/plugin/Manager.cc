@@ -478,9 +478,9 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 	return bifs;
 	}
 
-Plugin* Manager::LookupPluginByPath(std::string path)
+Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	path = normalize_path(path);
+	auto path = normalize_path(_path);
 
 	if ( is_file(path) )
 		path = SafeDirname(path).result;

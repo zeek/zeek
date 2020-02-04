@@ -15,7 +15,6 @@ public:
 		last_line = line_l;
 		first_column = col_f;
 		last_column = col_l;
-		delete_data = false;
 
 		timestamp = 0;
 		text = 0;
@@ -25,15 +24,8 @@ public:
 		{
 		filename = 0;
 		first_line = last_line = first_column = last_column = 0;
-		delete_data = false;
 		timestamp = 0;
 		text = 0;
-		}
-
-	~Location()
-		{
-		if ( delete_data )
-			delete [] filename;
 		}
 
 	void Describe(ODesc* d) const;
@@ -45,7 +37,6 @@ public:
 	const char* filename;
 	int first_line, last_line;
 	int first_column, last_column;
-	bool delete_data;
 
 	// Timestamp and text for compatibility with Bison's default yyltype.
 	int timestamp;

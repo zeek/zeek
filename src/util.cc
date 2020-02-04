@@ -1612,6 +1612,15 @@ TEST_CASE("util normalize_path")
 
 string normalize_path(std::string_view path)
 	{
+	if ( path.find("/.") == std::string_view::npos &&
+	     path.find("//") == std::string_view::npos )
+		{
+		// no need to normalize anything
+		if ( path.size() > 1 && path.back() == '/' )
+			path.remove_suffix(1);
+		return std::string(path);
+		}
+
 	size_t n;
 	vector<std::string_view> final_components;
 	string new_path;

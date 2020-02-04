@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <utility>
 #include <string>
 #include <map>
 
@@ -18,18 +19,23 @@ public:
 	explicit Scope(ID* id, attr_list* al);
 	~Scope() override;
 
-	ID* Lookup(const std::string& name) const
+	template<typename N>
+	ID* Lookup(N &&name) const
 		{
-		const auto& entry = local.find(name);
+		const auto& entry = local.find(std::forward<N>(name));
 		if ( entry != local.end() )
 			return entry->second;
 
 		return nullptr;
 		}
-	void Insert(const std::string& name, ID* id)	{ local[name] = id; }
-	ID* Remove(const std::string& name)
+
+	template<typename N>
+	void Insert(N &&name, ID* id) { local[std::forward<N>(name)] = id; }
+
+	template<typename N>
+	ID* Remove(N &&name)
 		{
-		const auto& entry = local.find(name);
+		const auto& entry = local.find(std::forward<N>(name));
 		if ( entry != local.end() )
 			{
 			ID* id = entry->second;

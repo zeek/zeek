@@ -177,11 +177,11 @@ ID* install_ID(const char* name, const char* module_name,
 
 	ID* id = new ID(full_name.data(), scope, is_export);
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(full_name, id);
+		global_scope()->Insert(std::move(full_name), id);
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(full_name, id);
+		top_scope->Insert(std::move(full_name), id);
 		}
 
 	return id;

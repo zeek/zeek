@@ -15,17 +15,12 @@ public:
 		last_line = line_l;
 		first_column = col_f;
 		last_column = col_l;
-
-		timestamp = 0;
-		text = 0;
 		}
 
 	Location()
 		{
 		filename = 0;
 		first_line = last_line = first_column = last_column = 0;
-		timestamp = 0;
-		text = 0;
 		}
 
 	void Describe(ODesc* d) const;
@@ -37,10 +32,6 @@ public:
 	const char* filename;
 	int first_line, last_line;
 	int first_column, last_column;
-
-	// Timestamp and text for compatibility with Bison's default yyltype.
-	int timestamp;
-	char* text;
 };
 
 #define YYLTYPE yyltype

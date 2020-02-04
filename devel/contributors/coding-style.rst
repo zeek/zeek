@@ -130,6 +130,7 @@ Including Files
 Include files in both headers and implementation files should be ordered as
 follows:
 
+- In source (``.cc`` files), the corresponding header for the source file
 - C includes such as ``<unistd.h>``
 - C++ includes such as ``<string>`` and ``<vector>``
 - Local include headers from Zeek

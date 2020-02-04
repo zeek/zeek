@@ -1,4 +1,8 @@
 
+3.1.0-dev.538 | 2020-02-04 11:57:35 +0000
+
+  * Updating submodules.
+
 3.1.0-dev.536 | 2020-02-03 15:44:10 -0700
 
   * Change various functions to by-value std::string_view args (Jon Siwek, Corelight)

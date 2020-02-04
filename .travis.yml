@@ -32,8 +32,16 @@ env:
 # Travis environment doesn't have enough memory to support ASan well.
 #  - distro: ubuntu_18.04_leaktest
 
+cache:
+  apt: true
+  ccache: true
+
 install: sh ci/travis-job install $distro
 
-before_script: sh ci/travis-job build $distro
+before_script:
+  - ccache -s
+  - sh ci/travis-job build $distro
 
-script: sh ci/travis-job run $distro
+script:
+  - sh ci/travis-job run $distro
+  - ccache -s

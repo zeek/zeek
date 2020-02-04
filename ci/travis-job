@@ -57,7 +57,7 @@ build_coverity() {
     # outside of Travis).
     make distclean > /dev/null
 
-    ./configure --prefix=`pwd`/build/root --enable-debug --disable-broker-tests --disable-python --disable-zeekctl
+    ./configure --prefix=`pwd`/build/root --ccache --enable-debug --disable-broker-tests --disable-python --disable-zeekctl
 
     export PATH=`pwd`/coverity-tools/bin:$PATH
     cd build

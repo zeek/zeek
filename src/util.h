@@ -353,7 +353,7 @@ std::string normalize_path(std::string_view path);
  * @param path A file/directory path that may be within a ZEEKPATH component.
  * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
-std::string without_bropath_component(const std::string& path);
+std::string without_bropath_component(std::string_view path);
 
 /**
  * Locate a file within a given search path.

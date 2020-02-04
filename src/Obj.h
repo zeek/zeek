@@ -8,20 +8,12 @@ class ODesc;
 
 class Location final {
 public:
-	Location(const char* fname, int line_f, int line_l, int col_f, int col_l)
-		{
-		filename = fname;
-		first_line = line_f;
-		last_line = line_l;
-		first_column = col_f;
-		last_column = col_l;
-		}
+	constexpr Location(const char* fname, int line_f, int line_l,
+			   int col_f, int col_l) noexcept
+		:filename(fname), first_line(line_f), last_line(line_l),
+		 first_column(col_f), last_column(col_l) {}
 
-	Location()
-		{
-		filename = 0;
-		first_line = last_line = first_column = last_column = 0;
-		}
+	Location() = default;
 
 	void Describe(ODesc* d) const;
 
@@ -29,9 +21,9 @@ public:
 	bool operator!=(const Location& l) const
 		{ return ! (*this == l); }
 
-	const char* filename;
-	int first_line, last_line;
-	int first_column, last_column;
+	const char* filename = nullptr;
+	int first_line = 0, last_line = 0;
+	int first_column = 0, last_column = 0;
 };
 
 #define YYLTYPE yyltype

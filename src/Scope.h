@@ -45,7 +45,7 @@ public:
 	BroType* ReturnType() const	{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
-	std::map<std::string, ID*>& Vars()	{ return local; }
+	const std::map<std::string, ID*>& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 

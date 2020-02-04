@@ -4,8 +4,6 @@
 
 #include "WriterBackend.h"
 
-#include "threading/MsgThread.h"
-
 namespace logging  {
 
 class Manager;

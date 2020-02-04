@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include "util.h" // for bro_int_t
+
 #include <stdlib.h>
 
-#include "BroString.h"
-
 #define UHASH_KEY_SIZE 36
+
+class BroString;
 
 typedef uint64_t hash_t;
 

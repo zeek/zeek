@@ -2,9 +2,10 @@
 
 #include "zeek-config.h"
 
+#include "Rlogin.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "Rlogin.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 

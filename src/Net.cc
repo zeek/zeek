@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Net.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -19,13 +20,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+extern "C" {
+#include "setsignal.h"
+};
+
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
 #include "Timer.h"
 #include "Var.h"
 #include "Reporter.h"
-#include "Net.h"
 #include "Anon.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"
@@ -33,10 +37,6 @@
 #include "iosource/PktDumper.h"
 #include "plugin/Manager.h"
 #include "broker/Manager.h"
-
-extern "C" {
-#include "setsignal.h"
-};
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);

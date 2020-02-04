@@ -1,10 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "CardinalityCounter.h"
+
 #include <math.h>
 #include <stdint.h>
-#include <iostream>
+#include <utility>
 
-#include "CardinalityCounter.h"
+#include <broker/data.hh>
+
 #include "Reporter.h"
 
 using namespace probabilistic;

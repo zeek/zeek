@@ -2,12 +2,14 @@
 
 #pragma once
 
-#include <stdio.h>
+#include "BroString.h" // for byte_vec
+#include "util.h" // for bro_int_t
+
 #include <set>
 #include <utility>
 #include <string>
 
-#include "BroString.h"
+#include <sys/types.h> // for u_char
 
 typedef enum {
 	DESC_READABLE,

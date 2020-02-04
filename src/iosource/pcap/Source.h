@@ -4,6 +4,12 @@
 
 #include "../PktSrc.h"
 
+extern "C" {
+#include <pcap.h>
+}
+
+#include <sys/types.h> // for u_char
+
 namespace iosource {
 namespace pcap {
 

@@ -1,3 +1,5 @@
+#include "Brofiler.h"
+
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -5,7 +7,10 @@
 #include <utility>
 #include <algorithm>
 #include <sys/stat.h>
-#include "Brofiler.h"
+
+#include "Stmt.h"
+#include "Desc.h"
+#include "Reporter.h"
 #include "util.h"
 
 Brofiler::Brofiler()

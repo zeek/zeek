@@ -7,17 +7,15 @@
 #include <string>
 
 #include "Dict.h"
-#include "Val.h"
 #include "Timer.h"
-#include "RuleMatcher.h"
+#include "Rule.h"
 #include "IPAddr.h"
-#include "TunnelEncapsulation.h"
 #include "UID.h"
 #include "WeirdState.h"
+#include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
-#include "iosource/Packet.h"
 
 class Connection;
 class ConnectionTimer;
@@ -26,6 +24,9 @@ class LoginConn;
 class RuleHdrTest;
 class Specific_RE_Matcher;
 class RuleEndpointState;
+class EncapsulationStack;
+class Val;
+class RecordVal;
 
 namespace analyzer { class TransportLayerAnalyzer; }
 

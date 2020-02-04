@@ -2,19 +2,21 @@
 
 #pragma once
 
-#include <fcntl.h>
-#include "util.h"
 #include "Obj.h"
-#include "Attr.h"
 
 #include <list>
+#include <string>
 #include <utility>
+
+#include <fcntl.h>
 
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
 
+class Attributes;
 class BroType;
+class RecordVal;
 
 class BroFile : public BroObj {
 public:

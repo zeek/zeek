@@ -1,9 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <string>
-#include <algorithm>
-
 #include "File.h"
+
+#include <utility>
+
+#include "FileReassembler.h"
 #include "FileTimer.h"
 #include "Analyzer.h"
 #include "Manager.h"

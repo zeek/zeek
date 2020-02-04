@@ -3,6 +3,7 @@
 
 %extern{
 #include "file_analysis/Manager.h"
+#include "Desc.h"
 %}
 
 %header{

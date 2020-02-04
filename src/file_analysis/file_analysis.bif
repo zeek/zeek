@@ -4,6 +4,8 @@ module Files;
 
 %%{
 #include "file_analysis/Manager.h"
+#include "file_analysis/File.h"
+#include "Reporter.h"
 %%}
 
 type AnalyzerArgs: record;

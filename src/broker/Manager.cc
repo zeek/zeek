@@ -1,3 +1,4 @@
+#include "Manager.h"
 
 #include <broker/broker.hh>
 #include <broker/zeek.hh>
@@ -5,12 +6,13 @@
 #include <cstring>
 #include <unistd.h>
 
-#include "Manager.h"
 #include "Data.h"
 #include "Store.h"
 #include "util.h"
 #include "Var.h"
+#include "Desc.h"
 #include "Reporter.h"
+#include "IntrusivePtr.h"
 #include "broker/comm.bif.h"
 #include "broker/data.bif.h"
 #include "broker/messaging.bif.h"
@@ -19,6 +21,7 @@
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
 #include "SerializationFormat.h"
+#include "Net.h"
 
 using namespace std;
 

@@ -1,8 +1,8 @@
 #include "zeek-config.h"
 
-#include "NetVar.h"
 #include "MIME.h"
-#include "Event.h"
+#include "NetVar.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "digest.h"
 #include "file_analysis/Manager.h"

@@ -1,4 +1,5 @@
 #include "Store.h"
+#include "Desc.h"
 #include "broker/Manager.h"
 
 namespace bro_broker {

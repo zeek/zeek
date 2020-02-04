@@ -1,15 +1,19 @@
+#include "Stats.h"
+#include "RuleMatcher.h"
 #include "Conn.h"
 #include "File.h"
 #include "Event.h"
+#include "Net.h"
 #include "NetVar.h"
+#include "Var.h" // for internal_type()
 #include "Sessions.h"
-#include "Stats.h"
 #include "Scope.h"
 #include "cq.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 #include "threading/Manager.h"
 #include "broker/Manager.h"
+#include "input.h"
 
 uint64_t killed_by_inactivity = 0;
 

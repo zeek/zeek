@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "util.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -42,9 +43,9 @@
 # include <malloc.h>
 #endif
 
+#include "Desc.h"
 #include "digest.h"
 #include "input.h"
-#include "util.h"
 #include "Obj.h"
 #include "Val.h"
 #include "NetVar.h"

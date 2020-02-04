@@ -2,10 +2,12 @@
 
 #include "zeek-config.h"
 
+#include "Ascii.h"
+#include "Desc.h"
+#include "threading/MsgThread.h"
+
 #include <sstream>
 #include <errno.h>
-
-#include "./Ascii.h"
 
 using namespace threading::formatter;
 

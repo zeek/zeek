@@ -11,6 +11,7 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Var.h"
+#include "Desc.h"
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
@@ -90,6 +91,14 @@ void Stmt::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
 		AddTag(d);
+	}
+
+void Stmt::DecrBPCount()
+	{
+	if ( breakpoint_count )
+		--breakpoint_count;
+	else
+		reporter->InternalError("breakpoint count decremented below 0");
 	}
 
 void Stmt::AddTag(ODesc* d) const
@@ -1640,6 +1649,13 @@ void EventBodyList::Describe(ODesc* d) const
 
 	else
 		StmtList::Describe(d);
+	}
+
+InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
+	{
+	inits = arg_inits;
+	if ( arg_inits && arg_inits->length() )
+		SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
 	}
 
 InitStmt::~InitStmt()

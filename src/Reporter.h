@@ -11,8 +11,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "util.h"
-#include "EventHandler.h"
 #include "IPAddr.h"
 
 namespace analyzer { class Analyzer; }
@@ -20,6 +18,7 @@ namespace file_analysis { class File; }
 class Connection;
 class Location;
 class Reporter;
+class EventHandlerPtr;
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.

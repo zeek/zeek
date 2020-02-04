@@ -4,11 +4,14 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
-#include "Func.h"
-#include "List.h"
-#include "Dict.h"
-#include "EventHandler.h"
+using std::string;
+using std::vector;
+
+class EventHandler;
+class EventHandlerPtr;
+class RE_Matcher;
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {

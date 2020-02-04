@@ -5,6 +5,8 @@
 #include "ReStructuredTextTable.h"
 #include "utils.h"
 #include "Manager.h"
+#include "Scope.h"
+#include "DebugLogger.h"
 
 #include "Reporter.h"
 #include "Desc.h"

@@ -1,7 +1,6 @@
-#include <algorithm>
-
 #include "ContentLine.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "TCP.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 

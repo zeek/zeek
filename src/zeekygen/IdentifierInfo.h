@@ -3,15 +3,16 @@
 #pragma once
 
 #include "Info.h"
-#include "ScriptInfo.h"
-
 #include "ID.h"
-#include "Type.h"
 
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
+
+#include <time.h> // for time_t
+
+class TypeDecl;
 
 namespace zeekygen {
 
@@ -165,8 +166,7 @@ private:
 	std::string DoReStructuredText(bool roles_only) const override;
 
 	struct RecordField {
-		~RecordField()
-			{ delete field; }
+		~RecordField();
 
 		TypeDecl* field;
 		std::string from_script;

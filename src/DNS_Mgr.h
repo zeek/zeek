@@ -7,9 +7,7 @@
 #include <queue>
 #include <utility>
 
-#include "util.h"
 #include "List.h"
-#include "Dict.h"
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
 #include "IPAddr.h"

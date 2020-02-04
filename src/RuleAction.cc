@@ -12,6 +12,11 @@ using std::string;
 
 #include "analyzer/Manager.h"
 
+RuleActionEvent::RuleActionEvent(const char* arg_msg)
+	{
+	msg = copy_string(arg_msg);
+	}
+
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
 	{
@@ -28,6 +33,12 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 void RuleActionEvent::PrintDebug()
 	{
 	fprintf(stderr, "	RuleActionEvent: |%s|\n", msg);
+	}
+
+RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength)
+	{
+	mime = copy_string(arg_mime);
+	strength = arg_strength;
 	}
 
 void RuleActionMIME::PrintDebug()

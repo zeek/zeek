@@ -3,6 +3,7 @@
 #include "ARP.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "Desc.h"
 
 #include "events.bif.h"
 

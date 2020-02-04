@@ -1,12 +1,11 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "Login.h"
 #include "Telnet.h"
 #include "RSH.h"
 #include "Rlogin.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_Login {

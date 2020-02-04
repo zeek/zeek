@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include "DNS_Mgr.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -29,9 +31,9 @@
 
 #include <algorithm>
 
-#include "DNS_Mgr.h"
 #include "Event.h"
 #include "Net.h"
+#include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"

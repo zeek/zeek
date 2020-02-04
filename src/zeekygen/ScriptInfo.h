@@ -3,13 +3,14 @@
 #pragma once
 
 #include "Info.h"
-#include "IdentifierInfo.h"
 
 #include <set>
 #include <list>
 #include <string>
 #include <vector>
 #include <map>
+
+#include <time.h> // for time_t
 
 namespace zeekygen {
 

@@ -2,7 +2,12 @@
 
 #pragma once
 
-#include "Debug.h"
+#include <string>
+
+using std::string;
+
+struct ParseLocationRec;
+class Stmt;
 
 enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
 class DbgBreakpoint {

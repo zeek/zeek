@@ -2,10 +2,18 @@
 
 #pragma once
 
-#include "../Desc.h"
-#include "MsgThread.h"
+#include "Type.h"
+#include "SerialTypes.h"
 
-namespace threading { namespace formatter {
+#include <string>
+
+using std::string;
+
+namespace threading {
+
+class MsgThread;
+
+namespace formatter {
 
 /**
   * A thread-safe class for converting values into some textual format. This

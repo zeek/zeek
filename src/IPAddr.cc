@@ -5,7 +5,9 @@
 #include <vector>
 #include "IPAddr.h"
 #include "Reporter.h"
+#include "BroString.h"
 #include "Conn.h"
+#include "Hash.h"
 #include "bro_inet_ntop.h"
 
 #include "analyzer/Manager.h"
@@ -43,6 +45,16 @@ ConnIDKey BuildConnIDKey(const ConnID& id)
 		}
 
 	return key;
+	}
+
+IPAddr::IPAddr(const BroString& s)
+	{
+	Init(s.CheckString());
+	}
+
+HashKey* IPAddr::GetHashKey() const
+	{
+	return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -288,6 +300,19 @@ string IPPrefix::AsString() const
 		modp_uitoa10(length, l);
 
 	return prefix.AsString() +"/" + l;
+	}
+
+HashKey* IPPrefix::GetHashKey() const
+	{
+	struct {
+		in6_addr ip;
+		uint32_t len;
+	} key;
+
+	key.ip = prefix.in6;
+	key.len = Length();
+
+	return new HashKey(&key, sizeof(key));
 	}
 
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)

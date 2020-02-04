@@ -7,6 +7,7 @@
 %include bro.pac
 
 %extern{
+#include "Reporter.h"
 #include "events.bif.h"
 
 namespace analyzer { namespace imap { class IMAP_Analyzer; } }

@@ -2,6 +2,7 @@
 
 #include "SNMP.h"
 #include "Func.h"
+#include "Reporter.h"
 #include "types.bif.h"
 #include "events.bif.h"
 

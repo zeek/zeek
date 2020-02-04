@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include "plugin/Component.h"
+
 #include <string>
 #include <vector>
-
-#include "plugin/Component.h"
 
 namespace iosource {
 

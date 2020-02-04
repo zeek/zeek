@@ -1,4 +1,56 @@
 
+3.1.0-dev.542 | 2020-02-04 14:05:19 -0700
+
+  * UID, ..: un-inline methods to reduce header dependencies
+
+    Only 1% build time speedup, but still, it declutters the headers a bit.
+
+    Before this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps
+
+    After this patch:
+
+     2537.19user 142.94system 2:26.90elapsed 1824%CPU (0avgtext+0avgdata 1434268maxresident)k
+     16240inputs+8887152outputs (1931major+48728888minor)pagefaults 0swaps (Max Kellermann)
+
+  * include cleanup
+
+    The Zeek code base has very inconsistent #includes.  Many sources
+    included a few headers, and those headers included other headers, and
+    in the end, nearly everything is included everywhere, so missing
+    #includes were never noticed.  Another side effect was a lot of header
+    bloat which slows down the build.
+
+    First step to fix it: in each source file, its own header should be
+    included first to verify that each header's includes are correct, and
+    none is missing.
+
+    After adding the missing #includes, I replaced lots of #includes
+    inside headers with class forward declarations.  In most headers,
+    object pointers are never referenced, so declaring the function
+    prototypes with forward-declared classes is just fine.
+
+    This patch speeds up the build by 19%, because each compilation unit
+    gets smaller.  Here are the "time" numbers for a fresh build (with a
+    warm page cache but without ccache):
+
+    Before this patch:
+
+     3144.94user 161.63system 3:02.87elapsed 1808%CPU (0avgtext+0avgdata 2168608maxresident)k
+     760inputs+12008400outputs (1511major+57747204minor)pagefaults 0swaps
+
+    After this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps (Max Kellermann)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
 3.1.0-dev.538 | 2020-02-04 11:57:35 +0000
 
   * Updating submodules.

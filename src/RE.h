@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "Dict.h"
-#include "BroString.h"
+#include "List.h"
 #include "CCL.h"
 #include "EquivClass.h"
 
@@ -12,6 +10,7 @@
 #include <map>
 #include <string>
 
+#include <sys/types.h> // for u_char
 #include <ctype.h>
 typedef int (*cce_func)(int);
 
@@ -21,6 +20,7 @@ class DFA_Machine;
 class Specific_RE_Matcher;
 class RE_Matcher;
 class DFA_State;
+class BroString;
 
 extern int case_insensitive;
 extern CCL* curr_ccl;

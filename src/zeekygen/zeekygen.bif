@@ -4,6 +4,9 @@
 
 %%{
 #include "zeekygen/Manager.h"
+#include "zeekygen/IdentifierInfo.h"
+#include "zeekygen/PackageInfo.h"
+#include "zeekygen/ScriptInfo.h"
 #include "util.h"
 
 static StringVal* comments_to_val(const vector<string>& comments)

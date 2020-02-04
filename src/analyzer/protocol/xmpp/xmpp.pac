@@ -8,6 +8,7 @@
 
 
 %extern{
+#include "Reporter.h"
 #include "events.bif.h"
 
 namespace analyzer { namespace xmpp { class XMPP_Analyzer; } }

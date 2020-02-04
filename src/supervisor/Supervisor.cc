@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Supervisor.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -11,14 +13,15 @@
 #include <sstream>
 
 #include "iosource/Manager.h"
-#include "Supervisor.h"
 #include "Reporter.h"
 #include "DebugLogger.h"
+#include "ID.h"
 #include "Val.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
+#include "input.h"
 #include "zeek-affinity.h"
 
 #define RAPIDJSON_HAS_STDSTRING 1

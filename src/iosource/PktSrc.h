@@ -5,9 +5,12 @@
 #include <vector>
 
 #include "IOSource.h"
-#include "BPF_Program.h"
-#include "Dict.h"
 #include "Packet.h"
+
+#include <sys/types.h> // for u_char
+
+struct pcap_pkthdr;
+class BPF_Program;
 
 namespace iosource {
 

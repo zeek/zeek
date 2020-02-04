@@ -5,6 +5,7 @@
 #include "OCSP.h"
 #include "X509.h"
 #include "Event.h"
+#include "Reporter.h"
 
 #include "types.bif.h"
 #include "ocsp_events.bif.h"

@@ -2,14 +2,20 @@
 
 #pragma once
 
-#include "Type.h"
+#include "Obj.h"
 #include "Attr.h"
 #include "Notifier.h"
 #include "TraverseTypes.h"
+
+#include <map>
 #include <string>
+#include <vector>
 
 class Val;
+class Expr;
 class Func;
+class BroType;
+class Attributes;
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
@@ -29,7 +35,7 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(BroType* t)	{ Unref(type); type = t; }
+	void SetType(BroType* t);
 	BroType* Type()			{ return type; }
 	const BroType* Type() const	{ return type; }
 
@@ -67,7 +73,7 @@ public:
 	void SetOffset(int arg_offset)	{ offset = arg_offset; }
 	int Offset() const		{ return offset; }
 
-	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
+	bool IsRedefinable() const;
 
 	void SetAttrs(Attributes* attr);
 	void AddAttrs(Attributes* attr);
@@ -75,11 +81,9 @@ public:
 	void UpdateValAttrs();
 	Attributes* Attrs() const	{ return attrs; }
 
-	Attr* FindAttr(attr_tag t) const
-		{ return attrs ? attrs->FindAttr(t) : 0; }
+	Attr* FindAttr(attr_tag t) const;
 
-	bool IsDeprecated() const
-		{ return FindAttr(ATTR_DEPRECATED) != 0; }
+	bool IsDeprecated() const;
 
 	void MakeDeprecated(Expr* deprecation);
 

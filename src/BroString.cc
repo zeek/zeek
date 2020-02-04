@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "BroString.h"
 
 #include <algorithm>
+#include <iostream>
 #include <ctype.h>
 
-#include <algorithm>
-
-#include "BroString.h"
+#include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "util.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -272,6 +273,11 @@ void BroString::ToUpper()
 	for ( int i = 0; i < n; ++i )
 		if ( islower(b[i]) )
 			b[i] = toupper(b[i]);
+	}
+
+unsigned int BroString::MemoryAllocation() const
+	{
+	return padded_sizeof(*this) + pad_size(n + final_NUL);
 	}
 
 BroString* BroString::GetSubstring(int start, int len) const

@@ -4,6 +4,7 @@
 
 #include "IPAddr.h"
 
+class BroFile;
 class Connection;
 class IP_Hdr;
 

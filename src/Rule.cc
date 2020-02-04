@@ -1,6 +1,8 @@
 #include "zeek-config.h"
 
 #include "Rule.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 
 // Start at one as we want search for this within a list,

@@ -4,6 +4,8 @@
 
 #include "Attr.h"
 #include "Expr.h"
+#include "Desc.h"
+#include "Val.h"
 #include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)

@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Desc.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <math.h>
 
-#include "Desc.h"
 #include "File.h"
 #include "Reporter.h"
-
 #include "ConvertUTF.h"
 
 #define DEFAULT_SIZE 128

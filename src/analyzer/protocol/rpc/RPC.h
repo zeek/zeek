@@ -3,7 +3,7 @@
 #pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "NetVar.h"
 
 namespace analyzer { namespace rpc {
 

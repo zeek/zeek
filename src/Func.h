@@ -2,16 +2,21 @@
 
 #pragma once
 
+#include "BroList.h"
+#include "Obj.h"
+#include "Type.h" /* for function_flavor */
+#include "TraverseTypes.h"
+
 #include <utility>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "BroList.h"
-#include "Obj.h"
-#include "Debug.h"
-#include "Frame.h"
+using std::string;
+using std::vector;
 
 class Val;
 class ListExpr;
@@ -20,6 +25,7 @@ class Stmt;
 class Frame;
 class ID;
 class CallExpr;
+class Scope;
 
 class Func : public BroObj {
 public:

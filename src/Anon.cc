@@ -1,3 +1,5 @@
+#include "Anon.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -5,9 +7,9 @@
 
 #include "util.h"
 #include "net_util.h"
-#include "Anon.h"
 #include "Val.h"
 #include "NetVar.h"
+#include "Reporter.h"
 
 
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {0};
@@ -64,6 +66,13 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 
 		return new_addr;
 		}
+	}
+
+// Keep the specified prefix unchanged.
+int AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
+	{
+	reporter->InternalError("prefix preserving is not supported for the anonymizer");
+	return 0;
 	}
 
 int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)

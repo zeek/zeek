@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include <list>
-
-#include "BasicThread.h"
 #include "MsgThread.h"
 #include "Timer.h"
+
+#include <list>
+#include <utility>
 
 namespace threading {
 

@@ -2,17 +2,20 @@
 
 #pragma once
 
+#include "BroList.h" // for typedef val_list
+#include "Obj.h"
+
 #include <unordered_map>
-#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
-
 namespace trigger { class Trigger; }
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:
@@ -232,13 +235,7 @@ private:
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
-	void UnrefElement(int n)
-		{
-		if ( weak_refs && weak_refs[n] )
-			return;
-
-		Unref(frame[n]);
-		}
+	void UnrefElement(int n);
 
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;

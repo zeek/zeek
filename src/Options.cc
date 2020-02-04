@@ -1,8 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <unistd.h>
-
 #include "zeek-config.h"
+
+#include "Options.h"
+
+#include <algorithm>
+
+#include <unistd.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -10,8 +14,6 @@
 
 #include "bsd-getopt-long.h"
 #include "logging/writers/ascii/Ascii.h"
-
-#include "Options.h"
 
 void zeek::Options::filter_supervisor_options()
 	{

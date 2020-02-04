@@ -1,5 +1,7 @@
 %%{
 #include "analyzer/protocol/conn-size/ConnSize.h"
+#include "Reporter.h"
+#include "Sessions.h"
 
 static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 	{

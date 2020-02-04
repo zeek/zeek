@@ -2,18 +2,17 @@
 
 #pragma once
 
+#include "threading/SerialTypes.h"
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
 
-#include "BroString.h"
-#include "Hash.h"
-#include "util.h"
-#include "Type.h"
-#include "threading/SerialTypes.h"
-
+using std::string;
 struct ConnID;
+class BroString;
+class HashKey;
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
@@ -113,10 +112,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	explicit IPAddr(const BroString& s)
-		{
-		Init(s.CheckString());
-		}
+	explicit IPAddr(const BroString& s);
 
 	/**
 	 * Constructs an address instance from a raw byte representation.
@@ -255,10 +251,7 @@ public:
 	 * Returns a key that can be used to lookup the IP Address in a hash
 	 * table. Passes ownership to caller.
 	 */
-	HashKey* GetHashKey() const
-		{
-		return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
-		}
+	HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -640,18 +633,7 @@ public:
 	 * Returns a key that can be used to lookup the IP Prefix in a hash
 	 * table. Passes ownership to caller.
 	 */
-	HashKey* GetHashKey() const
-		{
-		struct {
-			in6_addr ip;
-			uint32_t len;
-		} key;
-
-		key.ip = prefix.in6;
-		key.len = Length();
-
-		return new HashKey(&key, sizeof(key));
-		}
+	HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
 	  * inter-thread communication.

@@ -11,11 +11,9 @@
 #pragma once
 
 #include <vector>
-#include <set>
 #include <map>
 
-#include "Reporter.h"
-#include "net_util.h"
+using std::map;
 
 // TODO: Anon.h may not be the right place to put these functions ...
 
@@ -46,12 +44,7 @@ public:
 
 	ipaddr32_t Anonymize(ipaddr32_t addr);
 
-	// Keep the specified prefix unchanged.
-	virtual int PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
-		{
-		reporter->InternalError("prefix preserving is not supported for the anonymizer");
-		return 0;
-		}
+	virtual int PreservePrefix(ipaddr32_t input, int num_bits);
 
 	virtual ipaddr32_t anonymize(ipaddr32_t addr) = 0;
 	

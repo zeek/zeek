@@ -2,6 +2,11 @@
 
 #include "zeek-config.h"
 
+#include "JSON.h"
+#include "3rdparty/rapidjson/include/rapidjson/internal/ieee754.h"
+#include "Desc.h"
+#include "threading/MsgThread.h"
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -10,9 +15,6 @@
 #include <errno.h>
 #include <math.h>
 #include <stdint.h>
-
-#include "JSON.h"
-#include "3rdparty/rapidjson/include/rapidjson/internal/ieee754.h"
 
 using namespace threading::formatter;
 

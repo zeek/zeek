@@ -2,17 +2,22 @@
 
 #include "zeek-config.h"
 
+#include "DbgBreakpoint.h"
+
 #include <assert.h>
 
+#include "Desc.h"
 #include "ID.h"
 #include "Queue.h"
 #include "Debug.h"
 #include "Scope.h"
+#include "Frame.h"
 #include "Func.h"
+#include "Val.h"
 #include "Stmt.h"
-#include "DbgBreakpoint.h"
 #include "Timer.h"
-
+#include "Reporter.h"
+#include "module_util.h"
 
 // BreakpointTimer used for time-based breakpoints
 class BreakpointTimer : public Timer {

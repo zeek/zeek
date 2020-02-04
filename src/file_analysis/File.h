@@ -4,19 +4,20 @@
 
 #include <string>
 #include <utility>
-#include <vector>
 
-#include "FileReassembler.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
 #include "WeirdState.h"
 
+using std::string;
+
+class Connection;
+class RecordVal;
+
 namespace file_analysis {
 
 class FileReassembler;
+class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.

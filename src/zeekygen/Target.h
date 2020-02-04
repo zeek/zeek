@@ -2,17 +2,17 @@
 
 #pragma once
 
-#include "Info.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
-
 #include <map>
 #include <string>
 #include <vector>
 #include <cstdio>
 
 namespace zeekygen {
+
+class Info;
+class PackageInfo;
+class ScriptInfo;
+class IdentifierInfo;
 
 /**
  * Helper class to create files in arbitrary file paths and automatically

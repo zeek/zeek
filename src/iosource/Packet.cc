@@ -1,9 +1,11 @@
-
 #include "Packet.h"
 #include "Sessions.h"
+#include "Desc.h"
+#include "IP.h"
 #include "iosource/Manager.h"
 
 extern "C" {
+#include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)
@@ -58,6 +60,11 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	if ( data )
 		ProcessLayer2();
+	}
+
+const IP_Hdr Packet::IP() const
+	{
+	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)

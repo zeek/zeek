@@ -1,7 +1,8 @@
+#include "Manager.h"
+
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "Manager.h"
 #include "NetVar.h"
 #include "iosource/Manager.h"
 

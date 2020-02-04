@@ -1,17 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <stdlib.h>
-
-#include <algorithm>
-
 #include "zeek-config.h"
+#include "RPC.h"
+
+#include <string>
 
 #include "NetVar.h"
 #include "XDR.h"
-#include "RPC.h"
+#include "Reporter.h"
 #include "Sessions.h"
 
 #include "events.bif.h"
+
+#include <stdlib.h>
 
 using namespace analyzer::rpc;
 

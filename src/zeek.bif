@@ -26,6 +26,7 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 #include "IntrusivePtr.h"
+#include "input.h"
 
 using namespace std;
 

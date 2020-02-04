@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <vector>
-#include <string>
-#include <openssl/md5.h>
-
 #include "Manager.h"
 #include "File.h"
 #include "Analyzer.h"
@@ -14,6 +10,8 @@
 
 #include "plugin/Manager.h"
 #include "analyzer/Manager.h"
+
+#include <openssl/md5.h>
 
 using namespace file_analysis;
 

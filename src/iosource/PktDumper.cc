@@ -1,12 +1,10 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-
 #include "zeek-config.h"
 
 #include "PktDumper.h"
+#include "DebugLogger.h"
 
 using namespace iosource;
 

@@ -3,8 +3,6 @@
 #pragma once
 
 #include "analyzer/Analyzer.h"
-#include "NetVar.h"
-#include "Reporter.h"
 
 namespace analyzer { namespace vxlan {
 

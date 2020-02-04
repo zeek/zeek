@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "Stmt.h"
-#include "Expr.h"
-#include "ID.h"
-#include "Scope.h"
-
 #include "TraverseTypes.h"
+
+class Func;
+class Scope;
+class Stmt;
+class Expr;
+class ID;
 
 class TraversalCallback {
 public:

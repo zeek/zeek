@@ -19,6 +19,7 @@
 
 #include "Hash.h"
 #include "Reporter.h"
+#include "BroString.h"
 
 #include "siphash24.h"
 

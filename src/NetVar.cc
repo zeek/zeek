@@ -2,8 +2,10 @@
 
 #include "zeek-config.h"
 
-#include "Var.h"
 #include "NetVar.h"
+#include "Var.h"
+#include "EventHandler.h"
+#include "Val.h"
 
 RecordType* conn_id;
 RecordType* endpoint;

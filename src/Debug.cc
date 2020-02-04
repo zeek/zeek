@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include "Debug.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -11,13 +13,20 @@
 using namespace std;
 
 #include "util.h"
-#include "Debug.h"
 #include "DebugCmds.h"
 #include "DbgBreakpoint.h"
+#include "ID.h"
+#include "Expr.h"
 #include "Stmt.h"
+#include "Frame.h"
 #include "Func.h"
 #include "Scope.h"
 #include "PolicyFile.h"
+#include "Desc.h"
+#include "Reporter.h"
+#include "Val.h"
+#include "module_util.h"
+#include "input.h"
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>

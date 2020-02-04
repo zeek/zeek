@@ -2,8 +2,9 @@
 
 #include "zeek-config.h"
 
-#include "EquivClass.h"
 #include "DFA.h"
+#include "EquivClass.h"
+#include "Desc.h"
 #include "digest.h"
 
 unsigned int DFA_State::transition_counter = 0;

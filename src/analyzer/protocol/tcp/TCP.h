@@ -3,7 +3,6 @@
 #pragma once
 
 #include "analyzer/Analyzer.h"
-#include "PacketDumper.h"
 #include "IPAddr.h"
 #include "TCP_Endpoint.h"
 #include "TCP_Flags.h"

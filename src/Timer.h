@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include <string>
 #include "PriorityQueue.h"
 #include "iosource/IOSource.h"
+
+#include <stdint.h>
 
 // If you add a timer here, adjust TimerNames in Timer.cc.
 enum TimerType : uint8_t {

@@ -1,8 +1,9 @@
 //See the file in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
 #include "KRB.h"
 #include "KRB_TCP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 	namespace Zeek_KRB {

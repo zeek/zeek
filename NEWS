@@ -118,6 +118,12 @@ Changed Functionality
     packet sources, which should remain functional with little to no
     changes, since the entirety of the changes should be in ``PktSrc``.
 
+- Remove a large number of headers from being included by various files across
+  the entire code base, which leads to a sizeable build time improvement. This
+  set of changes has the potential to cause plugins to not build anymore. The
+  fixes for this potential breakage should just be a matter of including the
+  necessary headers in the plugin code.
+
 Removed Functionality
 ---------------------
 

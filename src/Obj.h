@@ -6,7 +6,7 @@
 
 class ODesc;
 
-class Location {
+class Location final {
 public:
 	Location(const char* fname, int line_f, int line_l, int col_f, int col_l)
 		{
@@ -30,7 +30,7 @@ public:
 		text = 0;
 		}
 
-	virtual ~Location()
+	~Location()
 		{
 		if ( delete_data )
 			delete [] filename;

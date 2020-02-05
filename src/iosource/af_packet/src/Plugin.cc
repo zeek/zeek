@@ -1,6 +1,7 @@
 
 #include "Plugin.h"
 #include "AF_Packet.h"
+#include "iosource/Component.h"
 
 namespace plugin { namespace Zeek_AF_Packet { Plugin plugin; } }
 

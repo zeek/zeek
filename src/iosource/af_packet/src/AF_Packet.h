@@ -17,6 +17,7 @@ extern "C" {
 #include <linux/if_packet.h>   // AF_PACKET, etc.
 #include <linux/sockios.h>     // SIOCSHWTSTAMP
 #include <linux/net_tstamp.h>  // hwtstamp_config
+#include <pcap.h>
 }
 
 #include "iosource/PktSrc.h"

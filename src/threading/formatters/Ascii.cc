@@ -2,10 +2,12 @@
 
 #include "zeek-config.h"
 
+#include "Ascii.h"
+#include "Desc.h"
+#include "threading/MsgThread.h"
+
 #include <sstream>
 #include <errno.h>
-
-#include "./Ascii.h"
 
 using namespace threading::formatter;
 
@@ -197,7 +199,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		}
 
 	default:
-		GetThread()->Error(GetThread()->Fmt("Ascii writer unsupported field format %d", val->type));
+		GetThread()->Warning(GetThread()->Fmt("Ascii writer unsupported field format %d", val->type));
 		return false;
 	}
 
@@ -344,7 +346,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 				}
 			}
 
-		GetThread()->Error(GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
+		GetThread()->Warning(GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
 		goto parse_error;
 		}
 

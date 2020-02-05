@@ -2,14 +2,16 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <string>
 
-#include <broker/data.hh>
 #include <broker/expected.hh>
 
 #include "BitVector.h"
 #include "Hasher.h"
+
+namespace broker { class data; }
 
 namespace probabilistic {
 

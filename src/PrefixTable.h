@@ -1,12 +1,18 @@
 #pragma once
 
-#include "Val.h"
-#include "net_util.h"
 #include "IPAddr.h"
 
 extern "C" {
 	#include "patricia.h"
 }
+
+#include <list>
+
+using std::list;
+using std::tuple;
+
+class Val;
+class SubNetVal;
 
 class PrefixTable {
 private:

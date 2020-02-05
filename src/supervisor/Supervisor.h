@@ -286,6 +286,12 @@ public:
 	~Supervisor();
 
 	/**
+	 * Perform some initialization that needs to happen after scripts are loaded
+	 * and the IOSource manager is created.
+	 */
+	void InitPostScript();
+
+	/**
 	 * @return the process ID of the Stem.
 	 */
 	pid_t StemPID() const
@@ -347,11 +353,7 @@ public:
 private:
 
 	// IOSource interface overrides:
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	            iosource::FD_Set* except) override;
-
-	double NextTimestamp(double* local_network_time) override;
-
+	double GetNextTimeout() override;
 	void Process() override;
 
 	size_t ProcessMessages();

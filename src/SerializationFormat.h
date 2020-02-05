@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "util.h"
+#include <stdint.h>
 
 class IPAddr;
 class IPPrefix;

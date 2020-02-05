@@ -9,10 +9,8 @@ namespace analyzer { class Analyzer; }
 #include "util.h"
 #include "Val.h"
 #include "event.bif.func_h"
-#include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
-#include "Conn.h"
 
 #include "binpac.h"
 

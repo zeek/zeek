@@ -1,6 +1,6 @@
-#include "plugin/Plugin.h"
-
 #include "RDP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_RDP {

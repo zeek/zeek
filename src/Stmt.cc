@@ -11,6 +11,7 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Var.h"
+#include "Desc.h"
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
@@ -90,6 +91,14 @@ void Stmt::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
 		AddTag(d);
+	}
+
+void Stmt::DecrBPCount()
+	{
+	if ( breakpoint_count )
+		--breakpoint_count;
+	else
+		reporter->InternalError("breakpoint count decremented below 0");
 	}
 
 void Stmt::AddTag(ODesc* d) const
@@ -1642,6 +1651,13 @@ void EventBodyList::Describe(ODesc* d) const
 		StmtList::Describe(d);
 	}
 
+InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
+	{
+	inits = arg_inits;
+	if ( arg_inits && arg_inits->length() )
+		SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
+	}
+
 InitStmt::~InitStmt()
 	{
 	for ( const auto& init : *inits )
@@ -1790,7 +1806,7 @@ Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		::Ref(timeout);
 
 	// The new trigger object will take care of its own deletion.
-	new Trigger(cond, s1, s2, timeout, f, is_return, location);
+	new trigger::Trigger(cond, s1, s2, timeout, f, is_return, location);
 
 	return 0;
 	}
@@ -1857,4 +1873,3 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}
-

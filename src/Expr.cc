@@ -4,6 +4,7 @@
 
 #include "Expr.h"
 #include "Event.h"
+#include "Desc.h"
 #include "Frame.h"
 #include "Func.h"
 #include "RE.h"
@@ -15,6 +16,8 @@
 #include "Trigger.h"
 #include "IPAddr.h"
 #include "digest.h"
+#include "module_util.h"
+#include "DebugLogger.h"
 
 #include "broker/Data.h"
 
@@ -132,10 +135,30 @@ Val* Expr::InitVal(const BroType* t, Val* aggr) const
 	return check_and_promote(Eval(0), t, 1);
 	}
 
+int Expr::IsError() const
+	{
+	return type && type->Tag() == TYPE_ERROR;
+	}
+
+void Expr::SetError()
+	{
+	SetType(error_type());
+	}
+
 void Expr::SetError(const char* msg)
 	{
 	Error(msg);
 	SetError();
+	}
+
+int Expr::IsZero() const
+	{
+	return IsConst() && ExprVal()->IsZero();
+	}
+
+int Expr::IsOne() const
+	{
+	return IsConst() && ExprVal()->IsOne();
 	}
 
 void Expr::Describe(ODesc* d) const
@@ -2074,6 +2097,11 @@ AssignExpr::AssignExpr(Expr* arg_op1, Expr* arg_op2, int arg_is_init,
 	val = arg_val ? arg_val->Ref() : 0;
 
 	SetLocationInfo(arg_op1->GetLocationInfo(), arg_op2->GetLocationInfo());
+	}
+
+AssignExpr::~AssignExpr()
+	{
+	Unref(val);
 	}
 
 bool AssignExpr::TypeCheck(attr_list* attrs)
@@ -4258,7 +4286,7 @@ Val* CallExpr::Eval(Frame* f) const
 	// Check for that.
 	if ( f )
 		{
-		Trigger* trigger = f->GetTrigger();
+		trigger::Trigger* trigger = f->GetTrigger();
 
 		if ( trigger )
 			{

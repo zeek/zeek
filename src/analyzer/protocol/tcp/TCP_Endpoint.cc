@@ -4,6 +4,7 @@
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
 #include "TCP_Reassembler.h"
+#include "Reporter.h"
 #include "Sessions.h"
 #include "Event.h"
 #include "File.h"

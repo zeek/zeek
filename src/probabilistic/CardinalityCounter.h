@@ -2,12 +2,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <broker/expected.hh>
+
 #include <memory>
 #include <vector>
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
+#include <stdint.h>
+
+namespace broker { class data; }
 
 namespace probabilistic {
 

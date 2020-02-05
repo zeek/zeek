@@ -7,7 +7,11 @@
 class BroFile;
 class Connection;
 
-namespace analyzer { namespace tcp {
+namespace analyzer {
+
+class Analyzer;
+
+namespace tcp {
 
 class TCP_Analyzer;
 

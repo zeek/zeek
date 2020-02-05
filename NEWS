@@ -102,8 +102,35 @@ Changed Functionality
   the ``portnum`` component of the returned ``URI`` value is left
   uninitialized.
 
+- Replace old ``select``-based IO loop with a new architecture that doesn't
+  spin checking for active IO sources. The new architecture now waits for the
+  the sources to actively notify it when activity occurs and only processes
+  data once it's ready. This helps heavily reduce the CPU usage on idle
+  network connections. This includes a couple of breaking changes:
+
+  - Only a single packet source is allowed to be specified from the
+    command-line now. If you pass combinations of multiple ``-r`` and/or
+    ``-i`` flags, Zeek will return an error at startup.
+  - The IOSource API changed fairly wildly. The ``GetFds()`` and
+    ``NextTimestamp`` methods no longer exist. If you had previously
+    implemented a custom IOSource, you will need to look at the new API
+    and make changes to your code to accomodate it. This does not include
+    packet sources, which should remain functional with little to no
+    changes, since the entirety of the changes should be in ``PktSrc``.
+
+- Remove a large number of headers from being included by various files across
+  the entire code base, which leads to a sizeable build time improvement. This
+  set of changes has the potential to cause plugins to not build anymore. The
+  fixes for this potential breakage should just be a matter of including the
+  necessary headers in the plugin code.
+
 Removed Functionality
 ---------------------
+
+- Removed the ``current_conns_extern`` field from the ConnStats record
+  type. Zeek only maintains a single timer manager now, and without the
+  manager tags that came with multiple tiemr managers, we don't track
+  whether a connection is external anymore.
 
 Deprecated Functionality
 ------------------------

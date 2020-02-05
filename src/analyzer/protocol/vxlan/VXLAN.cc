@@ -1,12 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
+#include <pcap.h>	// for the DLT_EN10MB constant definition
+
 #include "VXLAN.h"
 #include "TunnelEncapsulation.h"
 #include "Conn.h"
 #include "IP.h"
+#include "Net.h"
+#include "Sessions.h"
 #include "Reporter.h"
 
 #include "events.bif.h"
+
+extern "C" {
+#include <pcap.h>
+}
 
 using namespace analyzer::vxlan;
 

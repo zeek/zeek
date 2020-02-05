@@ -78,8 +78,12 @@
 #include <assert.h>
 
 #include "input.h"
+#include "BroList.h"
+#include "Desc.h"
 #include "Expr.h"
+#include "Func.h"
 #include "Stmt.h"
+#include "Val.h"
 #include "Var.h"
 /* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
@@ -87,6 +91,7 @@
 #include "Reporter.h"
 #include "Brofiler.h"
 #include "zeekygen/Manager.h"
+#include "module_util.h"
 
 #include <set>
 #include <string>
@@ -128,6 +133,7 @@ bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
 ID* func_id = 0;
+static Location func_hdr_location;
 EnumType *cur_enum_type = 0;
 static ID* cur_decl_type_id = 0;
 
@@ -497,6 +503,7 @@ expr:
 
 	|       '$' TOK_ID func_params '='
 			{
+			func_hdr_location = @1;
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(func_id,
@@ -1128,11 +1135,9 @@ decl:
 			zeekygen_mgr->Identifier($2);
 			}
 
-	|	func_hdr func_body
-			{ }
+	|	func_hdr { func_hdr_location = @1; } func_body
 
-	|	func_hdr conditional_list func_body
-			{ }
+	|	func_hdr { func_hdr_location = @1; } conditional_list func_body
 
 	|	conditional
 	;
@@ -1168,7 +1173,7 @@ func_hdr:
 			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
-				reporter->Error(fmt("event %s() is no longer available, use zeek_%s() instead", name, base.c_str()));
+				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
 			begin_func($2, current_module.c_str(),
@@ -1206,6 +1211,7 @@ func_body:
 
 		'}'
 			{
+			set_location(func_hdr_location, @5);
 			end_func($3);
 			}
 	;
@@ -1227,6 +1233,8 @@ anonymous_function:
 
 		'}'
 			{
+			set_location(@1, @7);
+
 			// Code duplication here is sad but needed. end_func actually instantiates the function
 			// and associates it with an ID. We perform that association later and need to return
 			// a lambda expression.

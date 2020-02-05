@@ -2,15 +2,21 @@
 
 #pragma once
 
-#include <list>
-#include <vector>
-
 #include "Tag.h"
 
 #include "../Obj.h"
 #include "../EventHandler.h"
 #include "../Timer.h"
 
+#include <list>
+#include <vector>
+
+#include <sys/types.h> // for u_char
+
+using std::list;
+using std::string;
+
+class BroFile;
 class Rule;
 class Connection;
 class IP_Hdr;

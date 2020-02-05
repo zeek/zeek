@@ -14,6 +14,7 @@
 #include "../Func.h"
 #include "../Event.h"
 #include "../util.h"
+#include "../input.h"
 
 using namespace plugin;
 

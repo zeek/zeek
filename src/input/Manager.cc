@@ -1,12 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
-
 #include "Manager.h"
+
+#include <string>
+#include <utility>
+
 #include "ReaderFrontend.h"
 #include "ReaderBackend.h"
+#include "Desc.h"
+#include "module_util.h"
 #include "input.bif.h"
 
+#include "Expr.h"
 #include "Event.h"
 #include "EventHandler.h"
 #include "NetVar.h"

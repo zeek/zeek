@@ -2,6 +2,7 @@
 
 #include "X509Common.h"
 #include "x509-extension_pac.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 #include "ocsp_events.bif.h"

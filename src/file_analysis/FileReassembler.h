@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Reassem.h"
-#include "File.h"
 
 class BroFile;
 class Connection;

@@ -1,13 +1,26 @@
 #pragma once
 
+#include "Obj.h"
+#include "Notifier.h"
+#include "iosource/IOSource.h"
+
 #include <list>
+#include <vector>
 #include <map>
 
-#include "Notifier.h"
-#include "Traverse.h"
+class CallExpr;
+class Expr;
+class Stmt;
+class Frame;
+class Val;
+class ID;
+class ODesc;
 
+namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
+
+using std::map;
 
 class TriggerTimer;
 class TriggerTraversalCallback;
@@ -56,30 +69,18 @@ public:
 
 	bool Disabled() const { return disabled; }
 
-	void Describe(ODesc* d) const override
-		{ d->Add("<trigger>"); }
+	void Describe(ODesc* d) const override;
+
 	// Overidden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
-	void Modified(notifier::Modifiable* m) override
-		{ QueueTrigger(this); }
+	void Modified(notifier::Modifiable* m) override;
+
 	// Overridden from notifer::Receiver.  If we're still waiting
 	// on an ID/Val to be modified at termination time, we can't hope
 	// for any further progress to be made, so just Unref ourselves.
 	void Terminate() override;
 
 	const char* Name() const;
-
-	static void QueueTrigger(Trigger* trigger);
-
-	// Evaluates all queued Triggers.
-	static void EvaluatePending();
-
-	struct Stats {
-		unsigned long total;
-		unsigned long pending;
-	};
-
-	static void GetStats(Stats* stats);
 
 private:
 	friend class TriggerTraversalCallback;
@@ -107,11 +108,36 @@ private:
 
 	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
 
-	typedef map<const CallExpr*, Val*> ValCache;
+	using ValCache = map<const CallExpr*, Val*>;
 	ValCache cache;
-
-	typedef list<Trigger*> TriggerList;
-	static TriggerList* pending;
-
-	static unsigned long total_triggers;
 };
+
+class Manager : public iosource::IOSource {
+public:
+
+	Manager();
+	~Manager();
+
+	double GetNextTimeout() override;
+	void Process() override;
+	const char* Tag() override { return "TriggerMgr"; }
+
+	void Queue(Trigger* trigger);
+
+	struct Stats {
+		unsigned long total;
+		unsigned long pending;
+	};
+
+	void GetStats(Stats* stats);
+
+private:
+
+	using TriggerList = std::list<Trigger*>;
+	TriggerList* pending;
+	unsigned long total_triggers = 0;
+	};
+
+}
+
+extern trigger::Manager* trigger_mgr;

@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "analyzer/protocol/login/NVT.h"
 #include "analyzer/protocol/tcp/TCP.h"
+
+namespace analyzer { namespace login { class NVT_Analyzer; }}
 
 namespace analyzer { namespace ftp {
 

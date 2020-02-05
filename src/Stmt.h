@@ -5,16 +5,20 @@
 // BRO statements.
 
 #include "BroList.h"
+#include "Dict.h"
+#include "ID.h"
 #include "Obj.h"
-#include "Expr.h"
-#include "Reporter.h"
 
 #include "StmtEnums.h"
 
 #include "TraverseTypes.h"
 
 class StmtList;
+class CompositeHash;
+class EventExpr;
+class ListExpr;
 class ForStmt;
+class Frame;
 
 class Stmt : public BroObj {
 public:
@@ -58,13 +62,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }
-	virtual void DecrBPCount()
-		{
-		if ( breakpoint_count )
-			--breakpoint_count;
-		else
-			reporter->InternalError("breakpoint count decremented below 0");
-		}
+	virtual void DecrBPCount();
 
 	virtual unsigned int BPCount() const	{ return breakpoint_count; }
 
@@ -431,12 +429,7 @@ protected:
 
 class InitStmt : public Stmt {
 public:
-	explicit InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
-		{
-		inits = arg_inits;
-		if ( arg_inits && arg_inits->length() )
-			SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
-		}
+	explicit InitStmt(id_list* arg_inits);
 
 	~InitStmt() override;
 

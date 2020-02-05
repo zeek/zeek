@@ -1,8 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <unistd.h>
-
 #include "zeek-config.h"
+
+#include "Options.h"
+
+#include <algorithm>
+
+#include <unistd.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -11,13 +15,9 @@
 #include "bsd-getopt-long.h"
 #include "logging/writers/ascii/Ascii.h"
 
-#include "Options.h"
-
 void zeek::Options::filter_supervisor_options()
 	{
 	pcap_filter = {};
-	interfaces = {};
-	pcap_files = {};
 	signature_files = {};
 	pcap_output_file = {};
 	}
@@ -49,8 +49,8 @@ void zeek::Options::filter_supervised_node_options()
 	// use-case-specific way.  e.g. interfaces is already handled for the
 	// "cluster" use-case, but don't have supervised-pcap-reading
 	// functionality yet.
-	/* interfaces = og.interfaces; */
-	/* pcap_files = og.pcap_files; */
+	/* interface = og.interface; */
+	/* pcap_file = og.pcap_file; */
 
 	pcap_output_file = og.pcap_output_file;
 	random_seed_input_file = og.random_seed_input_file;
@@ -82,9 +82,9 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "    -e|--exec <zeek code>          | augment loaded scripts by given code\n");
 	fprintf(stderr, "    -f|--filter <filter>           | tcpdump filter\n");
 	fprintf(stderr, "    -h|--help                      | command line help\n");
-	fprintf(stderr, "    -i|--iface <interface>         | read from given interface\n");
+	fprintf(stderr, "    -i|--iface <interface>         | read from given interface (only one allowed)\n");
 	fprintf(stderr, "    -p|--prefix <prefix>           | add given prefix to Zeek script file resolution\n");
-	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file\n");
+	fprintf(stderr, "    -r|--readfile <readfile>       | read from given tcpdump file (only one allowed, pass '-' as the filename to read from stdin)\n");
 	fprintf(stderr, "    -s|--rulefile <rulefile>       | read rules from given file\n");
 	fprintf(stderr, "    -t|--tracefile <tracefile>     | activate execution tracing\n");
 	fprintf(stderr, "    -v|--version                   | print version and exit\n");
@@ -270,12 +270,19 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			rval.print_usage = true;
 			break;
 		case 'i':
-			if ( ! rval.pcap_files.empty() )
+			if ( rval.interface )
 				{
-				fprintf(stderr, "Using -i is not allowed when reading pcap files");
+				fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
 				exit(1);
 				}
-			rval.interfaces.emplace_back(optarg);
+
+			if ( rval.pcap_file )
+				{
+				fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
+				exit(1);
+				}
+
+			rval.interface = optarg;
 			break;
 		case 'j':
 			rval.supervisor_mode = true;
@@ -290,12 +297,19 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 			rval.script_prefixes.emplace_back(optarg);
 			break;
 		case 'r':
-			if ( ! rval.interfaces.empty() )
+			if ( rval.pcap_file )
 				{
-				fprintf(stderr, "Using -r is not allowed when reading a live interface");
+				fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
 				exit(1);
 				}
-			rval.pcap_files.emplace_back(optarg);
+
+			if ( rval.interface )
+				{
+				fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
+				exit(1);
+				}
+
+			rval.pcap_file = optarg;
 			break;
 		case 's':
 			rval.signature_files.emplace_back(optarg);

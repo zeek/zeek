@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "RE.h"
 
 #include <stdlib.h>
 #include <utility>
 
-#include "RE.h"
 #include "DFA.h"
 #include "CCL.h"
 #include "EquivClass.h"
 #include "Reporter.h"
+#include "BroString.h"
 
 CCL* curr_ccl = 0;
 

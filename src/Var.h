@@ -2,15 +2,17 @@
 
 #pragma once
 
-#include <memory> // std::unique_ptr
-
 #include "ID.h"
-#include "Expr.h"
 #include "Type.h"
-#include "Func.h" // function_ingredients
 
-class Func;
+class Expr;
+class FuncType;
+class Stmt;
+class Scope;
 class EventHandlerPtr;
+class StringVal;
+class TableVal;
+class ListVal;
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 

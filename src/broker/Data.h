@@ -1,13 +1,15 @@
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
-#include "IntrusivePtr.h"
+#include "Var.h" // for internal_type()
+
+template <class T>
+class IntrusivePtr;
+
+class ODesc;
 
 namespace bro_broker {
 
@@ -101,12 +103,7 @@ public:
 		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
-	void ValDescribe(ODesc* d) const override
-		{
-		d->Add("broker::data{");
-		d->Add(broker::to_string(data));
-		d->Add("}");
-		}
+	void ValDescribe(ODesc* d) const override;
 
 	IntrusivePtr<Val> castTo(BroType* t);
 	bool canCastTo(BroType* t) const;

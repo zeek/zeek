@@ -2,8 +2,11 @@
 
 #pragma once
 
-#include "IP.h"
+#include "IPAddr.h"
 #include "PrefixTable.h"
+
+class IP_Hdr;
+class Val;
 
 class PacketFilter {
 public:

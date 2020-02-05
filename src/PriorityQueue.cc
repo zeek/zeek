@@ -27,7 +27,7 @@ PriorityQueue::~PriorityQueue()
 PQ_Element* PriorityQueue::Remove()
 	{
 	if ( heap_size == 0 )
-		return 0;
+		return nullptr;
 
 	PQ_Element* top = heap[0];
 
@@ -43,7 +43,7 @@ PQ_Element* PriorityQueue::Remove(PQ_Element* e)
 	{
 	if ( e->Offset() < 0 || e->Offset() >= heap_size ||
 	     heap[e->Offset()] != e )
-		return 0;	// not in heap
+		return nullptr;	// not in heap
 
 	e->MinimizeTime();
 	BubbleUp(e->Offset());
@@ -56,7 +56,7 @@ PQ_Element* PriorityQueue::Remove(PQ_Element* e)
 	return e2;
 	}
 
-int PriorityQueue::Add(PQ_Element* e)
+bool PriorityQueue::Add(PQ_Element* e)
 	{
 	SetElement(heap_size, e);
 
@@ -70,10 +70,10 @@ int PriorityQueue::Add(PQ_Element* e)
 	if ( heap_size >= max_heap_size )
 		return Resize(max_heap_size * 2);
 	else
-		return 1;
+		return true;
 	}
 
-int PriorityQueue::Resize(int new_size)
+bool PriorityQueue::Resize(int new_size)
 	{
 	PQ_Element** tmp = new PQ_Element*[new_size];
 	for ( int i = 0; i < max_heap_size; ++i )
@@ -84,7 +84,7 @@ int PriorityQueue::Resize(int new_size)
 
 	max_heap_size = new_size;
 
-	return heap != 0;
+	return heap != nullptr;
 	}
 
 void PriorityQueue::BubbleUp(int bin)

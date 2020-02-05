@@ -1,7 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "FileTimer.h"
 #include "File.h"
+#include "Manager.h"
 
 using namespace file_analysis;
 

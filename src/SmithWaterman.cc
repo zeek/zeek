@@ -9,6 +9,7 @@
 #include "Var.h"
 #include "util.h"
 #include "Reporter.h"
+#include "Val.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
 : BroString((const BroString&) bst), _num(), _new(bst._new)

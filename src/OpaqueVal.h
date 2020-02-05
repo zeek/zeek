@@ -2,14 +2,16 @@
 
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
 #include "paraglob/paraglob.h"
 
+#include <broker/expected.hh>
+
+#include <sys/types.h> // for u_char
+
+namespace broker { class data; }
 class OpaqueVal;
 
 /**

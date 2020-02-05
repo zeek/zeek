@@ -1,10 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "BitVector.h"
+
+#include <broker/data.hh>
+
 #include <openssl/sha.h>
 #include <cassert>
 #include <limits>
 
-#include "BitVector.h"
 #include "digest.h"
 
 using namespace probabilistic;

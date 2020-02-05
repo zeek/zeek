@@ -7,6 +7,7 @@
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "threading/formatters/JSON.h"
+#include "Desc.h"
 #include "zlib.h"
 
 namespace logging { namespace writer {

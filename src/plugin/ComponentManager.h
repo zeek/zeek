@@ -5,11 +5,11 @@
 #include <string>
 
 #include "Type.h"
-#include "ID.h"
-#include "Var.h"
+#include "Var.h" // for add_type()
 #include "Val.h"
 #include "Reporter.h"
 #include "zeekygen/Manager.h"
+#include "DebugLogger.h"
 
 namespace plugin {
 

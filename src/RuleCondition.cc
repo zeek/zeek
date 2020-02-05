@@ -1,8 +1,13 @@
 #include "zeek-config.h"
 
 #include "RuleCondition.h"
+#include "RuleMatcher.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "Reporter.h"
 #include "Scope.h"
+#include "Func.h"
+#include "Val.h"
+#include "Var.h" // for internal_type()
 
 static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	{

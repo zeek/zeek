@@ -6,7 +6,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "util.h"
+#include <stdint.h>
 
 // BPF_Programs are an abstraction around struct bpf_program,
 // to create a clean facility for creating, compiling, and

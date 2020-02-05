@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Obj.h"
+#include "BroList.h"
 
 class Expr;
 

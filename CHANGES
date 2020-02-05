@@ -1,4 +1,252 @@
 
+3.1.0-dev.546 | 2020-02-05 10:51:35 -0800
+
+  * Change threading formatter errors to warnings. (Johanna Amann, Corelight)
+
+    This change standardizes threading formatter error handling and moves
+    the remaining error calls to be warnings instead.
+
+    This is in line with already existing code - in most cases warnings were
+    raised, only a few cases raised errors. These cases do not differ
+    significantly from other cases in which warnings are raised.
+
+    This also fixes GH-692, in which misformatted lines prevent future file
+    parsing.
+
+    This commit also moves the FailWarn method that is used by both the
+    config and the ascii reader up to the ReaderBackend. Furthermore it
+    makes the Warning method of ReaderBackend respect the warning
+    suppression that is introduced by the FailWarn method.
+
+  * Update NEWS about plugin breakage from the include-file changes (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.542 | 2020-02-04 14:05:19 -0700
+
+  * UID, ..: un-inline methods to reduce header dependencies
+
+    Only 1% build time speedup, but still, it declutters the headers a bit.
+
+    Before this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps
+
+    After this patch:
+
+     2537.19user 142.94system 2:26.90elapsed 1824%CPU (0avgtext+0avgdata 1434268maxresident)k
+     16240inputs+8887152outputs (1931major+48728888minor)pagefaults 0swaps (Max Kellermann)
+
+  * include cleanup
+
+    The Zeek code base has very inconsistent #includes.  Many sources
+    included a few headers, and those headers included other headers, and
+    in the end, nearly everything is included everywhere, so missing
+    #includes were never noticed.  Another side effect was a lot of header
+    bloat which slows down the build.
+
+    First step to fix it: in each source file, its own header should be
+    included first to verify that each header's includes are correct, and
+    none is missing.
+
+    After adding the missing #includes, I replaced lots of #includes
+    inside headers with class forward declarations.  In most headers,
+    object pointers are never referenced, so declaring the function
+    prototypes with forward-declared classes is just fine.
+
+    This patch speeds up the build by 19%, because each compilation unit
+    gets smaller.  Here are the "time" numbers for a fresh build (with a
+    warm page cache but without ccache):
+
+    Before this patch:
+
+     3144.94user 161.63system 3:02.87elapsed 1808%CPU (0avgtext+0avgdata 2168608maxresident)k
+     760inputs+12008400outputs (1511major+57747204minor)pagefaults 0swaps
+
+    After this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps (Max Kellermann)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.1.0-dev.538 | 2020-02-04 11:57:35 +0000
+
+  * Updating submodules.
+
+3.1.0-dev.536 | 2020-02-03 15:44:10 -0700
+
+  * Change various functions to by-value std::string_view args (Jon Siwek, Corelight)
+
+3.1.0-dev.534 | 2020-02-03 15:42:24 -0700
+
+  * Change packet source fields of Options to std::optional (Jon Siwek, Corelight)
+
+3.1.0-dev.531 | 2020-02-03 13:23:22 -0800
+
+  * Update sqlite to 3.31.1 (Johanna Amann, Corelight)
+
+	* Update certificate list to state of NSS 3.49.2. (Johanna Amann, Corelight)
+
+3.1.0-dev.530 | 2020-02-03 13:21:16 -0800
+
+  * Disable Travis leak test (Jon Siwek, Corelight)
+
+    Travis environment doesn't offer enough memory for running ASan very
+    well, but Cirrus has it covered anyway.
+
+3.1.0-dev.529 | 2020-02-03 13:04:30 -0800
+
+  * CMakeLists.txt: fix cross-compilation with binpac (Fabrice Fontaine)
+
+3.1.0-dev.527 | 2020-02-03 10:11:00 -0800
+
+  * Change requested memory in Cirrus CI config (Jon Siwek, Corelight)
+
+    The ASan build does require quite a bit more, but also the default
+    release builds should do ok with slightly less.
+
+3.1.0-dev.526 | 2020-02-03 10:04:00 -0800
+
+  * Increase timeout value for live interfaces without file descriptors (Tim Wojtulewicz, Corelight)
+
+  * Use ranged-for loops in a few places in iosource Manager (Tim Wojtulewicz, Corelight)
+
+  * Change order of includes in iosource Manager, fixes build on FreeBSD 11 (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.521 | 2020-01-31 14:18:17 -0800
+
+  * util: optimize expand_escape() by avoiding sscanf() (Max Kellermann)
+
+    sscanf() is notoriously slow, and the default scripts have lots of hex
+    escapes.  This patch can reduce Zeek's startup time by 3-9%.
+
+3.1.0-dev.519 | 2020-01-31 13:19:09 -0800
+
+  * util: optimize tokenize_string() and normalize_path() (Max Kellermann)
+
+    This patch can speed up Zeek startup by 10-25%.
+
+    Adds a new tokenize_string() overload which returns string_views and
+    changes existing tokenize_string() and normalize_path() to use string_view
+    arguments.
+
+3.1.0-dev.510 | 2020-01-31 11:20:28 -0800
+
+  * Remove extra fmt() in a reporter->Error() call (Jon Siwek, Corelight)
+
+  * parse.y: Properly set location info for functions (Arne Welzel)
+
+    When defining a function, remember the location where the function header
+    was and restore it before calling `end_func()`. Inside `end_func()`, a
+    `BroFunc` object is created using the current global location information.
+
+    This came up while experimenting with zeek script profiling and wondering
+    why the locations set for `BroFunc` were "somewhere" in the middle of
+    functions instead of spanning them.
+
+  * Desc: move realloc() call out of the loop (Max Kellermann)
+
+  * SerializationFormat: move realloc() call out of the loop (Max Kellermann)
+
+  * PacketDumper: remove unused types (Max Kellermann)
+
+3.1.0-dev.503 | 2020-01-31 11:00:32 -0800
+
+  * Show percentage of packets dropped in the final process output (Tim Wojtulewicz, Corelight)
+
+  * Remove concept of multiple timer managers (Tim Wojtulewicz, Corelight)
+
+    - All timers are now handled by a single global timer manager, which
+      simplifies how they handled by the IOSource manager.
+
+    - This change flows down a number of changes to other parts of the code.
+      The timer manager tag field is removed, which means that matching
+      connections to a timer manager is also removed. This removes the ability to
+      tag a connection as internal or external, since that's how the connections
+      where differentiated. This in turn removes the `current_conns_extern` field
+      from the `ConnStats` record type in the script layer.
+
+  * Have terminate_processing() raise SIGTERM instead of calling the signal handler directly (Tim Wojtulewicz, Corelight)
+
+  * PktSrc iosource changes to match the new IOSource API (Tim Wojtulewicz, Corelight)
+
+  * Broker manager changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * Threading changes for the new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - threading::Manager is no longer an IOSource.
+
+    - threading::MsgThread is now an IOSource. This allows threads themselves
+      to signal when they have data to process instead of continually checking
+      each of the threads on every loop pass.
+
+    - Make the thread heartbeat timer an actual timer and let it fire as
+      necessary instead of checking to see if it should fire
+
+  * Add Trigger manager for managing triggers created by things like 'when' statements
+
+    - Adds new trigger namespace (Tim Wojtulewicz, Corelight)
+
+    - Adds trigger::Manager class as a new IOSource for keeping track of
+      triggers and integrating them into the loop. Previously the loop relied on
+      the event manager Drain() method to process all triggers on every loop, but
+      now that the loop actively waits for events to occur, triggers would not
+      fire when they needed to. Adding them as part of the loop ensures they're
+      checked.
+
+  * Make TimerMgr an IOSource (Tim Wojtulewicz, Corelight)
+
+    - This allows the loop to check what the next timeout is and use that as
+      the basis for the timeout of the poll
+
+    - This commit also removes the TimerMgr::Tag type, since it causes a name
+      clash with other code in IOSource
+
+  * Modify IOSource Manager to implement new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removes entire FindSoonest method that includes all of the calls to select() for checking for ready sources
+
+    - Removes FD_Set checking against IOSources
+
+    - Adds system for registering and unregistering file descriptors from
+      IOSources. This allows individual sources to mark themselves as ready to be
+      checked by the loop as they become available.
+
+    - Adds entirely new loop architecture based on checking the IOSources for
+      when their next timeout is, and then waiting for either that timeout or
+      when the next source is ready. This also implements the polling based on
+      what the OS supports, instead of just calling select() on all platforms.
+      Currently it supports kqueue, epoll, and plain poll.
+
+    - Adds system for pinging the loop to force it to wake up
+
+  * Minor amount of code cleanup in Pcap IO source (Tim Wojtulewicz, Corelight)
+
+  * IOSource API changes for new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removed GetFD and NextTimestamp methods
+
+    - Removed concept of idle sources
+
+    - Renamed Init to InitSource to avoid a name clash with the thread code
+
+    - Added GetNextTimeout method
+
+    This commit also removes the FD_Set file since it's no longer used
+
+  * Type and variable usage cleanup in Net.h (Tim Wojtulewicz, Corelight)
+
+  * Remove #include of some iosource files from Net.h (Tim Wojtulewicz, Corelight)
+
+  * Only allow a single trace file (-r) or interface (-i) option on the command-line (Tim Wojtulewicz, Corelight)
+
+  * Remove CQ_TimerMgr in favor of PQ_TimerMgr (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.482 | 2020-01-30 19:16:03 -0800
 
   * Update NEWS for naming changes. (Robin Sommer, Corelight)

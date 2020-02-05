@@ -3,15 +3,22 @@
 #include "zeek-config.h"
 
 #include "ID.h"
+#include "Attr.h"
+#include "Desc.h"
 #include "Expr.h"
 #include "Dict.h"
 #include "EventRegistry.h"
 #include "Func.h"
 #include "Scope.h"
+#include "Type.h"
 #include "File.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "Val.h"
 #include "zeekygen/Manager.h"
+#include "zeekygen/IdentifierInfo.h"
+#include "zeekygen/ScriptInfo.h"
+#include "module_util.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -49,6 +56,11 @@ ID::~ID()
 string ID::ModuleName() const
 	{
 	return extract_module_name(name);
+	}
+
+void ID::SetType(BroType* t)
+	{
+	Unref(type); type = t;
 	}
 
 void ID::ClearVal()
@@ -143,6 +155,11 @@ void ID::SetVal(Expr* ev, init_class c)
 	EvalFunc(a->AttrExpr(), ev);
 	}
 
+bool ID::IsRedefinable() const
+	{
+	return FindAttr(ATTR_REDEF) != 0;
+	}
+
 void ID::SetAttrs(Attributes* a)
 	{
 	Unref(attrs);
@@ -187,6 +204,16 @@ void ID::UpdateValAttrs()
 				}
 			}
 		}
+	}
+
+Attr* ID::FindAttr(attr_tag t) const
+	{
+	return attrs ? attrs->FindAttr(t) : 0;
+	}
+
+bool ID::IsDeprecated() const
+	{
+	return FindAttr(ATTR_DEPRECATED) != 0;
 	}
 
 void ID::MakeDeprecated(Expr* deprecation)

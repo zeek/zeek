@@ -178,8 +178,7 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-if (NOT BINPAC_EXE_PATH AND
-    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 
@@ -362,6 +361,7 @@ include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX17)
+include(FindKqueue)
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)

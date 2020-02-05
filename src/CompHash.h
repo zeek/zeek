@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "Hash.h"
 #include "Type.h"
 
 class ListVal;
+class HashKey;
 
 class CompositeHash {
 public:

@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "NVT.h"
 
 #include <stdlib.h>
 
-#include "NVT.h"
 #include "NetVar.h"
 #include "Event.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "events.bif.h"

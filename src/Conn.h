@@ -7,13 +7,12 @@
 #include <string>
 
 #include "Dict.h"
-#include "Val.h"
 #include "Timer.h"
-#include "RuleMatcher.h"
+#include "Rule.h"
 #include "IPAddr.h"
-#include "TunnelEncapsulation.h"
 #include "UID.h"
 #include "WeirdState.h"
+#include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
@@ -25,6 +24,9 @@ class LoginConn;
 class RuleHdrTest;
 class Specific_RE_Matcher;
 class RuleEndpointState;
+class EncapsulationStack;
+class Val;
+class RecordVal;
 
 namespace analyzer { class TransportLayerAnalyzer; }
 
@@ -227,11 +229,6 @@ public:
 	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
 
-	TimerMgr* GetTimerMgr() const;
-
-	// Returns true if connection has been received externally.
-	bool IsExternal() const	{ return conn_timer_mgr != 0; }
-
 	// Statistics.
 
 	// Just a lower bound.
@@ -242,8 +239,6 @@ public:
 		{ return total_connections; }
 	static uint64_t CurrentConnections()
 		{ return current_connections; }
-	static uint64_t CurrentExternalConnections()
-		{ return external_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
 	int CheckHistory(uint32_t mask, char code)
@@ -319,8 +314,6 @@ protected:
 	ConnIDKey key;
 	bool key_valid;
 
-	// Timer manager to use for this conn (or nil).
-	TimerMgr::Tag* conn_timer_mgr;
 	timer_list timers;
 
 	IPAddr orig_addr;
@@ -352,7 +345,6 @@ protected:
 	// Count number of connections.
 	static uint64_t total_connections;
 	static uint64_t current_connections;
-	static uint64_t external_connections;
 
 	string history;
 	uint32_t hist_seen;

@@ -2,6 +2,7 @@
 type ftp_port: record;
 
 %%{
+#include "Reporter.h"
 
 static Val* parse_port(const char* line)
 	{

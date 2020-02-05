@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <broker/endpoint_info.hh>
-
 #include "../Val.h"
 #include "../Tag.h"
 #include "../EventHandler.h"
@@ -14,6 +12,7 @@
 #include "Component.h"
 #include "WriterBackend.h"
 
+namespace broker { struct endpoint_info; }
 class SerializationFormat;
 class RotationTimer;
 

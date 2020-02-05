@@ -1,5 +1,8 @@
 #include "Data.h"
 #include "File.h"
+#include "Desc.h"
+#include "IntrusivePtr.h"
+#include "module_util.h"
 #include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
 
@@ -1146,6 +1149,13 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 		                       "Broker::Data's opaque field is not set");
 
 	return static_cast<DataVal*>(d)->data;
+	}
+
+void bro_broker::DataVal::ValDescribe(ODesc* d) const
+	{
+	d->Add("broker::data{");
+	d->Add(broker::to_string(data));
+	d->Add("}");
 	}
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const

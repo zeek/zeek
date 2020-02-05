@@ -3,6 +3,7 @@
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
+#include "Desc.h"
 
 namespace logging { namespace writer {
 

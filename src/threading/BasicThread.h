@@ -1,9 +1,10 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <thread>
 
-#include "util.h"
+#include <stdint.h>
 
 using namespace std;
 

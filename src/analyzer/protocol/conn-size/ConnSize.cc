@@ -5,6 +5,8 @@
 
 #include "ConnSize.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "IP.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 

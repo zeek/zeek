@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "EquivClass.h"
+#include "CCL.h"
 
 EquivClass::EquivClass(int arg_size)
 	{

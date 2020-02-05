@@ -1,4 +1,5 @@
 #include "PacketFilter.h"
+#include "IP.h"
 
 void PacketFilter::DeleteFilter(void* data)
 	{

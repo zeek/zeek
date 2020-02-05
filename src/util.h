@@ -25,6 +25,7 @@
 #include <cstdint>
 
 #include <string>
+#include <string_view>
 #include <array>
 #include <vector>
 #include <stdio.h>
@@ -145,9 +146,11 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 	return get_escaped_string(str.data(), str.length(), escape_all);
 	}
 
-std::vector<std::string>* tokenize_string(std::string input,
-					  const std::string& delim,
+std::vector<std::string>* tokenize_string(std::string_view input,
+					  std::string_view delim,
 					  std::vector<std::string>* rval = 0, int limit = 0);
+
+std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -275,7 +278,7 @@ extern std::string bro_prefixes();
 extern const std::array<std::string, 2> script_extensions;
 
 /** Prints a warning if the filename ends in .bro. */
-void warn_if_legacy_script(const std::string_view& filename);
+void warn_if_legacy_script(std::string_view filename);
 
 bool is_package_loader(const std::string& path);
 
@@ -343,7 +346,7 @@ std::string flatten_script_name(const std::string& name,
  * @param path A filesystem path.
  * @return A canonical/shortened version of \a path.
  */
-std::string normalize_path(const std::string& path);
+std::string normalize_path(std::string_view path);
 
 /**
  * Strip the ZEEKPATH component from a path.

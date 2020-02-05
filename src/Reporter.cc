@@ -2,18 +2,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
+#include "zeek-config.h"
+#include "Reporter.h"
+
 #include <unistd.h>
 #include <syslog.h>
 
-#include "zeek-config.h"
-#include "Reporter.h"
+#include "Desc.h"
 #include "Event.h"
+#include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
+#include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
+#include "input.h"
 #include "file_analysis/File.h"
 
 #ifdef SYSLOG_INT

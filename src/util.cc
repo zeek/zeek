@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "util.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -42,15 +43,16 @@
 # include <malloc.h>
 #endif
 
+#include "Desc.h"
 #include "digest.h"
 #include "input.h"
-#include "util.h"
 #include "Obj.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
 
 #include "3rdparty/doctest.h"
@@ -62,7 +64,7 @@
 #endif
 #endif
 
-static bool starts_with(const std::string_view& s, const std::string& beginning)
+static bool starts_with(std::string_view s, std::string_view beginning)
 	{
 	if ( beginning.size() > s.size() )
 		return false;
@@ -77,7 +79,7 @@ TEST_CASE("util starts_with")
 	CHECK(starts_with("abcde", "abcedf") == false);
 	}
 
-static bool ends_with(const std::string_view& s, const std::string& ending)
+static bool ends_with(std::string_view s, std::string_view ending)
 	{
 	if ( ending.size() > s.size() )
 		return false;
@@ -292,6 +294,26 @@ int streq(const char* s1, const char* s2)
 	return ! strcmp(s1, s2);
 	}
 
+static constexpr int parse_octal_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '7' )
+		return ch - '0';
+	else
+		return -1;
+	}
+
+static constexpr int parse_hex_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '9' )
+		return ch - '0';
+	else if ( ch >= 'a' && ch <= 'f' )
+		return 10 + ch - 'a';
+	else if ( ch >= 'A' && ch <= 'F' )
+		return 10 + ch - 'A';
+	else
+		return -1;
+	}
+
 int expand_escape(const char*& s)
 	{
 	switch ( *(s++) ) {
@@ -309,23 +331,32 @@ int expand_escape(const char*& s)
 		--s;	// put back the first octal digit
 		const char* start = s;
 
-		// Don't increment inside loop control
-		// because if isdigit() is a macro it might
-		// expand into multiple increments ...
+		// require at least one octal digit and parse at most three
 
-		// Here we define a maximum length for escape sequence
-		// to allow easy handling of string like: "^H0" as
-		// "\0100".
+		int result = parse_octal_digit(*s++);
 
-		for ( int len = 0; len < 3 && isascii(*s) && isdigit(*s);
-		      ++s, ++len)
-			;
-
-		int result;
-		if ( sscanf(start, "%3o", &result) != 1 )
+		if ( result < 0 )
 			{
-			reporter->Warning("bad octal escape: %s ", start);
-			result = 0;
+			reporter->Error("bad octal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_octal_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 3) | digit;
+			++s;
+
+			// third digit?
+			digit = parse_octal_digit(*s);
+
+			if ( digit >= 0 )
+				{
+				result = (result << 3) | digit;
+				++s;
+				}
 			}
 
 		return result;
@@ -336,15 +367,22 @@ int expand_escape(const char*& s)
 		const char* start = s;
 
 		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
-		for ( int len = 0; len < 2 && isascii(*s) && isxdigit(*s);
-		      ++s, ++len)
-			;
 
-		int result;
-		if ( sscanf(start, "%2x", &result) != 1 )
+		int result = parse_hex_digit(*s++);
+
+		if ( result < 0 )
 			{
-			reporter->Warning("bad hexadecimal escape: %s", start);
-			result = 0;
+			reporter->Error("bad hexadecimal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_hex_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 4) | digit;
+			++s;
 			}
 
 		return result;
@@ -837,8 +875,7 @@ bool ensure_intermediate_dirs(const char* dirname)
 	bool absolute = dirname[0] == '/';
 	string path = normalize_path(dirname);
 
-	vector<string> path_components;
-	tokenize_string(path, "/", &path_components);
+	const auto path_components = tokenize_string(path, '/');
 
 	string current_dir;
 
@@ -1279,7 +1316,7 @@ TEST_CASE("util is_package_loader")
 
 const array<string, 2> script_extensions = {".zeek", ".bro"};
 
-void warn_if_legacy_script(const std::string_view& filename)
+void warn_if_legacy_script(std::string_view filename)
 	{
 	if ( ends_with(filename, ".bro") )
 		{
@@ -1499,28 +1536,50 @@ TEST_CASE("util tokenize_string")
 	v2.clear();
 	tokenize_string("/wrong/delim", ",", &v2);
 	CHECK(v2.size() == 1);
+
+	auto svs = tokenize_string("one,two,three,four,", ',');
+	std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
+	CHECK(svs == expect);
 	}
 
-vector<string>* tokenize_string(string input, const string& delim,
+vector<string>* tokenize_string(std::string_view input, std::string_view delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
+	size_t pos = 0;
 	size_t n;
 	auto found = 0;
 
-	while ( (n = input.find(delim)) != string::npos )
+	while ( (n = input.find(delim, pos)) != string::npos )
 		{
 		++found;
-		rval->push_back(input.substr(0, n));
-		input.erase(0, n + 1);
+		rval->emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
 
 		if ( limit && found == limit )
 			break;
 		}
 
-	rval->push_back(input);
+	rval->emplace_back(input.substr(pos));
+	return rval;
+	}
+
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept
+	{
+	vector<std::string_view> rval;
+
+	size_t pos = 0;
+	size_t n;
+
+	while ( (n = input.find(delim, pos)) != string::npos )
+		{
+		rval.emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
+		}
+
+	rval.emplace_back(input.substr(pos));
 	return rval;
 	}
 
@@ -1551,26 +1610,27 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
-string normalize_path(const string& path)
+string normalize_path(std::string_view path)
 	{
 	size_t n;
-	vector<string> components, final_components;
+	vector<std::string_view> final_components;
 	string new_path;
+	new_path.reserve(path.size());
 
-	if ( path[0] == '/' )
+	if ( ! path.empty() && path[0] == '/' )
 		new_path = "/";
 
-	tokenize_string(path, "/", &components);
+	const auto components = tokenize_string(path, '/');
+	final_components.reserve(components.size());
 
-	vector<string>::const_iterator it;
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( auto it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
 		final_components.push_back(*it);
 
-		if ( *it == "." && it != components.begin() )
-			final_components.pop_back();
-		else if ( *it == ".." )
+		if ( *it == ".." )
 			{
 			auto cur_idx = final_components.size() - 1;
 
@@ -1597,7 +1657,7 @@ string normalize_path(const string& path)
 			}
 		}
 
-	for ( it = final_components.begin(); it != final_components.end(); ++it )
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
 		{
 		new_path.append(*it);
 		new_path.append("/");
@@ -1613,8 +1673,7 @@ string without_bropath_component(const string& path)
 	{
 	string rval = normalize_path(path);
 
-	vector<string> paths;
-	tokenize_string(bro_path(), ":", &paths);
+	const auto paths = tokenize_string(bro_path(), ':');
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{
@@ -1837,7 +1896,7 @@ RETSIGTYPE sig_handler(int signo);
 void terminate_processing()
 	{
 	if ( ! terminating )
-		sig_handler(SIGTERM);
+		raise(SIGTERM);
 	}
 
 extern const char* proc_status_file;
@@ -1902,11 +1961,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();

@@ -1,9 +1,10 @@
+#include "SerializationFormat.h"
+
 #include <ctype.h>
 
-#include "net_util.h"
-#include "SerializationFormat.h"
 #include "DebugLogger.h"
 #include "Reporter.h"
+#include "net_util.h"
 
 const float SerializationFormat::GROWTH_FACTOR = 2.5;
 
@@ -79,10 +80,9 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	{
 	// Increase buffer if necessary.
 	while ( output_pos + count > output_size )
-		{
 		output_size *= GROWTH_FACTOR;
-		output = (char*)safe_realloc(output, output_size);
-		}
+
+	output = (char*)safe_realloc(output, output_size);
 
 	memcpy(output + output_pos, b, count);
 	output_pos += count;

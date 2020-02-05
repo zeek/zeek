@@ -1,6 +1,10 @@
 #include "PIA.h"
 #include "RuleMatcher.h"
 #include "Event.h"
+#include "NetVar.h"
+#include "IP.h"
+#include "DebugLogger.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 

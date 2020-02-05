@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "DNS.h"
 
 #include <ctype.h>
 #include <sys/types.h>
@@ -9,9 +10,9 @@
 #include <arpa/inet.h>
 
 #include "NetVar.h"
-#include "DNS.h"
 #include "Sessions.h"
 #include "Event.h"
+#include "Net.h"
 
 #include "events.bif.h"
 

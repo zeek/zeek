@@ -2,24 +2,25 @@
 
 #pragma once
 
+#include "Type.h"
+#include "Dict.h"
+#include "CompHash.h"
+#include "BroString.h"
+#include "Timer.h"
+#include "Scope.h"
+#include "Notifier.h"
+#include "RE.h"
+#include "net_util.h"
+
 #include <vector>
 #include <list>
 #include <array>
 #include <unordered_map>
 
-#include "net_util.h"
-#include "Type.h"
-#include "Dict.h"
-#include "CompHash.h"
-#include "BroString.h"
-#include "Attr.h"
-#include "Timer.h"
-#include "ID.h"
-#include "Scope.h"
-#include "Notifier.h"
-#include "IPAddr.h"
-#include "DebugLogger.h"
-#include "RE.h"
+#include <sys/types.h> // for u_char
+
+using std::vector;
+using std::string;
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
@@ -49,6 +50,9 @@ class ListVal;
 class StringVal;
 class EnumVal;
 class OpaqueVal;
+
+class IPAddr;
+class IPPrefix;
 
 class StateAccess;
 
@@ -287,11 +291,7 @@ public:
 		return bound_id ? global_scope()->Lookup(bound_id) : 0;
 		}
 
-	void SetID(ID* id)
-		{
-		delete [] bound_id;
-		bound_id = id ? copy_string(id->Name()) : 0;
-		}
+	void SetID(ID* id);
 #endif
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
@@ -786,8 +786,7 @@ public:
 	ListVal* ConvertToPureList() const;	// must be single index type
 
 	void SetAttrs(Attributes* attrs);
-	Attr* FindAttr(attr_tag t) const
-		{ return attrs ? attrs->FindAttr(t) : 0; }
+	Attr* FindAttr(attr_tag t) const;
 	Attributes* Attrs()	{ return attrs; }
 
 	// Returns the size of the table.

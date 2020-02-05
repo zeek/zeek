@@ -1,23 +1,17 @@
 #pragma once
 
-#include <limits.h>
+#include "Rule.h"
+#include "RE.h"
+#include "CCL.h"
+
 #include <vector>
 #include <map>
 #include <functional>
 #include <set>
 #include <string>
 
-#include "IPAddr.h"
-#include "BroString.h"
-#include "List.h"
-#include "RE.h"
-#include "Net.h"
-#include "Sessions.h"
-#include "IntSet.h"
-#include "util.h"
-#include "Rule.h"
-#include "RuleAction.h"
-#include "RuleCondition.h"
+#include <sys/types.h> // for u_char
+#include <limits.h>
 
 //#define MATCHER_PRINT_STATS
 
@@ -33,6 +27,18 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
+using std::vector;
+using std::map;
+using std::set;
+using std::string;
+
+class Val;
+class BroFile;
+class IntSet;
+class IP_Hdr;
+class IPPrefix;
+class RE_Match_State;
+class Specific_RE_Matcher;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 

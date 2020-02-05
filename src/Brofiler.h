@@ -3,8 +3,14 @@
 #include <map>
 #include <utility>
 #include <list>
-#include <Stmt.h>
+#include <string>
 
+using std::list;
+using std::map;
+using std::pair;
+using std::string;
+
+class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.

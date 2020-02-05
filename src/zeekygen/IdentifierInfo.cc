@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "IdentifierInfo.h"
+#include "ScriptInfo.h"
 #include "utils.h"
 
 #include "Desc.h"
@@ -178,4 +179,9 @@ IdentifierInfo::Redefinition::operator=(const IdentifierInfo::Redefinition& othe
 IdentifierInfo::Redefinition::~Redefinition()
 	{
 	Unref(init_expr);
+	}
+
+IdentifierInfo::RecordField::~RecordField()
+	{
+	delete field;
 	}

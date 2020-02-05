@@ -3,6 +3,7 @@
 %{
 #include <stdlib.h>
 
+#include "RE.h"
 #include "CCL.h"
 #include "NFA.h"
 #include "EquivClass.h"

@@ -3,6 +3,10 @@
 #include "Manager.h"
 #include "plugin/Manager.h"
 #include "util.h"
+#include "Info.h"
+#include "PackageInfo.h"
+#include "ScriptInfo.h"
+#include "IdentifierInfo.h"
 
 #include <utility>
 #include <cstdlib>

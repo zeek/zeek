@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Debug.h"
+class Expr;
 
 // Automatic displays: display these at each stoppage.
 class DbgDisplay {

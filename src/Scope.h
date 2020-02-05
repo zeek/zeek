@@ -5,11 +5,9 @@
 #include <string>
 #include <map>
 
-#include "Dict.h"
 #include "Obj.h"
 #include "BroList.h"
 #include "TraverseTypes.h"
-#include "module_util.h"
 
 class ID;
 class BroType;

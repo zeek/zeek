@@ -1,15 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+#include "Var.h"
+
 #include <memory>
 
-#include "zeek-config.h"
-
-#include "Var.h"
+#include "Val.h"
+#include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
 #include "Scope.h"
+#include "Reporter.h"
 #include "EventRegistry.h"
 #include "Traverse.h"
+#include "module_util.h"
 
 static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 	{

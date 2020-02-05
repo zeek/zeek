@@ -2,16 +2,15 @@
 
 #pragma once
 
+#include "Obj.h"
+#include "Attr.h"
+#include "BroList.h"
+
 #include <string>
 #include <set>
 #include <unordered_map>
 #include <map>
 #include <list>
-
-#include "Obj.h"
-#include "Attr.h"
-#include "BroList.h"
-#include "Dict.h"
 
 // BRO types.
 
@@ -319,12 +318,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	unsigned int MemoryAllocation() const override
-		{
-		return BroType::MemoryAllocation()
-			+ padded_sizeof(*this) - padded_sizeof(BroType)
-			+ types.MemoryAllocation() - padded_sizeof(types);
-		}
+	unsigned int MemoryAllocation() const override;
 
 protected:
 	BroType* pure_type;

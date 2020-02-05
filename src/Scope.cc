@@ -2,10 +2,12 @@
 
 #include "zeek-config.h"
 
+#include "Scope.h"
+#include "Desc.h"
 #include "ID.h"
 #include "Val.h"
-#include "Scope.h"
 #include "Reporter.h"
+#include "module_util.h"
 
 typedef PList<Scope> scope_list;
 

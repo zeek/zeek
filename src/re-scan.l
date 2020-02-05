@@ -5,6 +5,7 @@
  */
 
 %{
+#include "RE.h"
 #include "CCL.h"
 #include "NFA.h"
 #include "util.h"

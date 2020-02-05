@@ -274,7 +274,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -455,7 +455,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -1169,7 +1169,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1350,7 +1350,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -2063,7 +2063,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2244,7 +2244,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2678,27 +2678,35 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1569285011.394497, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1582410989.721085, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()
 1362692526.869344   MetaHookPost  BroObjDtor(<void ptr>) -> <void>
+1362692526.869344   MetaHookPost  CallFunction(Broker::__flush_logs, <frame>, ()) -> <no result>
+1362692526.869344   MetaHookPost  CallFunction(Broker::flush_logs, <frame>, ()) -> <no result>
+1362692526.869344   MetaHookPost  CallFunction(Broker::log_flush, <null>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(ChecksumOffloading::check, <null>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(get_net_stats, <frame>, ()) -> <no result>
 1362692526.869344   MetaHookPost  CallFunction(new_connection, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> <no result>
 1362692526.869344   MetaHookPost  DrainEvents() -> <void>
+1362692526.869344   MetaHookPost  QueueEvent(Broker::log_flush()) -> false
 1362692526.869344   MetaHookPost  QueueEvent(ChecksumOffloading::check()) -> false
 1362692526.869344   MetaHookPost  QueueEvent(filter_change_tracking()) -> false
 1362692526.869344   MetaHookPost  QueueEvent(new_connection([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> false
 1362692526.869344   MetaHookPost  SetupAnalyzerTree(1362692526.869344(1362692526.869344) TCP 141.142.228.5:59856 -> 192.150.187.43:80) -> <void>
 1362692526.869344   MetaHookPost  UpdateNetworkTime(1362692526.869344) -> <void>
 1362692526.869344   MetaHookPre   BroObjDtor(<void ptr>)
+1362692526.869344   MetaHookPre   CallFunction(Broker::__flush_logs, <frame>, ())
+1362692526.869344   MetaHookPre   CallFunction(Broker::flush_logs, <frame>, ())
+1362692526.869344   MetaHookPre   CallFunction(Broker::log_flush, <null>, ())
 1362692526.869344   MetaHookPre   CallFunction(ChecksumOffloading::check, <null>, ())
 1362692526.869344   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 1362692526.869344   MetaHookPre   CallFunction(get_net_stats, <frame>, ())
 1362692526.869344   MetaHookPre   CallFunction(new_connection, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
 1362692526.869344   MetaHookPre   DrainEvents()
+1362692526.869344   MetaHookPre   QueueEvent(Broker::log_flush())
 1362692526.869344   MetaHookPre   QueueEvent(ChecksumOffloading::check())
 1362692526.869344   MetaHookPre   QueueEvent(filter_change_tracking())
 1362692526.869344   MetaHookPre   QueueEvent(new_connection([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
@@ -2706,16 +2714,20 @@
 1362692526.869344   MetaHookPre   UpdateNetworkTime(1362692526.869344)
 1362692526.869344  | HookBroObjDtor
 1362692526.869344  | HookUpdateNetworkTime 1362692526.869344
+1362692526.869344 | HookCallFunction Broker::__flush_logs()
+1362692526.869344 | HookCallFunction Broker::flush_logs()
+1362692526.869344 | HookCallFunction Broker::log_flush()
 1362692526.869344 | HookCallFunction ChecksumOffloading::check()
 1362692526.869344 | HookCallFunction filter_change_tracking()
 1362692526.869344 | HookCallFunction get_net_stats()
 1362692526.869344 | HookCallFunction new_connection([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
 1362692526.869344 | HookDrainEvents
+1362692526.869344 | HookQueueEvent Broker::log_flush()
 1362692526.869344 | HookQueueEvent ChecksumOffloading::check()
 1362692526.869344 | HookQueueEvent filter_change_tracking()
 1362692526.869344 | HookQueueEvent new_connection([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=0, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.0, service={}, history=, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
 1362692526.869344 | HookSetupAnalyzerTree 1362692526.869344(1362692526.869344) TCP 141.142.228.5:59856 -> 192.150.187.43:80
-1362692526.869344 | RequestObjDtor ChecksumOffloading::check()
+1362692526.869344 | RequestObjDtor Broker::log_flush()
 1362692526.939084   MetaHookPost  CallFunction(connection_established, <null>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=4, num_pkts=1, num_bytes_ip=64, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=4, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.06974, service={}, history=Sh, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> <no result>
 1362692526.939084   MetaHookPost  DrainEvents() -> <void>
 1362692526.939084   MetaHookPost  QueueEvent(connection_established([id=[orig_h=141.142.228.5, orig_p=59856<...>/tcp], orig=[size=0, state=4, num_pkts=1, num_bytes_ip=64, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=0, state=4, num_pkts=0, num_bytes_ip=0, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=0.06974, service={}, history=Sh, uid=CHhAvVGS1DHFjwGM9, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, dpd=<uninitialized>, dpd_state=<uninitialized>, conn=<uninitialized>, extract_orig=F, extract_resp=F, thresholds=<uninitialized>, dce_rpc=<uninitialized>, dce_rpc_state=<uninitialized>, dce_rpc_backing=<uninitialized>, dhcp=<uninitialized>, dnp3=<uninitialized>, dns=<uninitialized>, dns_state=<uninitialized>, ftp=<uninitialized>, ftp_data_reuse=F, ssl=<uninitialized>, http=<uninitialized>, http_state=<uninitialized>, irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> false
@@ -3112,6 +3124,9 @@
 1362692527.080828   MetaHookPre   UpdateNetworkTime(1362692527.080828)
 1362692527.080828  | HookUpdateNetworkTime 1362692527.080828
 1362692527.080828 | HookDrainEvents
+1362692527.080972   MetaHookPost  CallFunction(Broker::__flush_logs, <frame>, ()) -> <no result>
+1362692527.080972   MetaHookPost  CallFunction(Broker::flush_logs, <frame>, ()) -> <no result>
+1362692527.080972   MetaHookPost  CallFunction(Broker::log_flush, <null>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(ChecksumOffloading::check, <null>, ()) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(Conn::conn_state, <frame>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], tcp)) -> <no result>
 1362692527.080972   MetaHookPost  CallFunction(Conn::determine_service, <frame>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> <no result>
@@ -3139,12 +3154,16 @@
 1362692527.080972   MetaHookPost  DrainEvents() -> <void>
 1362692527.080972   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, conn(1362692527.080972,0.0,0.0), 21, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), proto (enum), service (string), duration (interval), orig_bytes (count), resp_bytes (count), conn_state (string), local_orig (bool), local_resp (bool), missed_bytes (count), history (string), orig_pkts (count), orig_ip_bytes (count), resp_pkts (count), resp_ip_bytes (count), tunnel_parents (set[string])}) -> <void>
 1362692527.080972   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, conn(1362692527.080972,0.0,0.0), 21, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), proto (enum), service (string), duration (interval), orig_bytes (count), resp_bytes (count), conn_state (string), local_orig (bool), local_resp (bool), missed_bytes (count), history (string), orig_pkts (count), orig_ip_bytes (count), resp_pkts (count), resp_ip_bytes (count), tunnel_parents (set[string])}, <void ptr>) -> true
+1362692527.080972   MetaHookPost  QueueEvent(Broker::log_flush()) -> false
 1362692527.080972   MetaHookPost  QueueEvent(ChecksumOffloading::check()) -> false
 1362692527.080972   MetaHookPost  QueueEvent(connection_state_remove([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])) -> false
 1362692527.080972   MetaHookPost  QueueEvent(filter_change_tracking()) -> false
 1362692527.080972   MetaHookPost  QueueEvent(get_file_handle(Analyzer::ANALYZER_HTTP, [id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], T)) -> false
 1362692527.080972   MetaHookPost  QueueEvent(zeek_done()) -> false
 1362692527.080972   MetaHookPost  UpdateNetworkTime(1362692527.080972) -> <void>
+1362692527.080972   MetaHookPre   CallFunction(Broker::__flush_logs, <frame>, ())
+1362692527.080972   MetaHookPre   CallFunction(Broker::flush_logs, <frame>, ())
+1362692527.080972   MetaHookPre   CallFunction(Broker::log_flush, <null>, ())
 1362692527.080972   MetaHookPre   CallFunction(ChecksumOffloading::check, <null>, ())
 1362692527.080972   MetaHookPre   CallFunction(Conn::conn_state, <frame>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], tcp))
 1362692527.080972   MetaHookPre   CallFunction(Conn::determine_service, <frame>, ([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
@@ -3172,6 +3191,7 @@
 1362692527.080972   MetaHookPre   DrainEvents()
 1362692527.080972   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, conn(1362692527.080972,0.0,0.0), 21, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), proto (enum), service (string), duration (interval), orig_bytes (count), resp_bytes (count), conn_state (string), local_orig (bool), local_resp (bool), missed_bytes (count), history (string), orig_pkts (count), orig_ip_bytes (count), resp_pkts (count), resp_ip_bytes (count), tunnel_parents (set[string])})
 1362692527.080972   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, conn(1362692527.080972,0.0,0.0), 21, {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), proto (enum), service (string), duration (interval), orig_bytes (count), resp_bytes (count), conn_state (string), local_orig (bool), local_resp (bool), missed_bytes (count), history (string), orig_pkts (count), orig_ip_bytes (count), resp_pkts (count), resp_ip_bytes (count), tunnel_parents (set[string])}, <void ptr>)
+1362692527.080972   MetaHookPre   QueueEvent(Broker::log_flush())
 1362692527.080972   MetaHookPre   QueueEvent(ChecksumOffloading::check())
 1362692527.080972   MetaHookPre   QueueEvent(connection_state_remove([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>]))
 1362692527.080972   MetaHookPre   QueueEvent(filter_change_tracking())
@@ -3179,6 +3199,9 @@
 1362692527.080972   MetaHookPre   QueueEvent(zeek_done())
 1362692527.080972   MetaHookPre   UpdateNetworkTime(1362692527.080972)
 1362692527.080972  | HookUpdateNetworkTime 1362692527.080972
+1362692527.080972 | HookCallFunction Broker::__flush_logs()
+1362692527.080972 | HookCallFunction Broker::flush_logs()
+1362692527.080972 | HookCallFunction Broker::log_flush()
 1362692527.080972 | HookCallFunction ChecksumOffloading::check()
 1362692527.080972 | HookCallFunction Conn::conn_state([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>], tcp)
 1362692527.080972 | HookCallFunction Conn::determine_service([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
@@ -3206,6 +3229,7 @@
 1362692527.080972 | HookDrainEvents
 1362692527.080972 | HookLogInit   conn 1/1 {ts (time), uid (string), id.orig_h (addr), id.orig_p (port), id.resp_h (addr), id.resp_p (port), proto (enum), service (string), duration (interval), orig_bytes (count), resp_bytes (count), conn_state (string), local_orig (bool), local_resp (bool), missed_bytes (count), history (string), orig_pkts (count), orig_ip_bytes (count), resp_pkts (count), resp_ip_bytes (count), tunnel_parents (set[string])}
 1362692527.080972 | HookLogWrite  conn [ts=1362692526.869344, uid=CHhAvVGS1DHFjwGM9, id.orig_h=141.142.228.5, id.orig_p=59856, id.resp_h=192.150.187.43, id.resp_p=80, proto=tcp, service=http, duration=0.211484, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=<uninitialized>, local_resp=<uninitialized>, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>]
+1362692527.080972 | HookQueueEvent Broker::log_flush()
 1362692527.080972 | HookQueueEvent ChecksumOffloading::check()
 1362692527.080972 | HookQueueEvent connection_state_remove([id=[orig_h=141.142.228.5, orig_p=59856<...>/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={}, current_request=1, current_response=1, trans_depth=1], irc=<uninitialized>, krb=<uninitialized>, modbus=<uninitialized>, mysql=<uninitialized>, ntlm=<uninitialized>, ntp=<uninitialized>, radius=<uninitialized>, rdp=<uninitialized>, rfb=<uninitialized>, sip=<uninitialized>, sip_state=<uninitialized>, snmp=<uninitialized>, smb_state=<uninitialized>, smtp=<uninitialized>, smtp_state=<uninitialized>, socks=<uninitialized>, ssh=<uninitialized>, syslog=<uninitialized>])
 1362692527.080972 | HookQueueEvent filter_change_tracking()

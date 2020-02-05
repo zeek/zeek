@@ -336,8 +336,26 @@ void ReaderBackend::Info(const char* msg)
 	MsgThread::Info(msg);
 	}
 
+void ReaderBackend::FailWarn(bool is_error, const char *msg, bool suppress_future)
+	{
+	if ( is_error )
+		Error(msg);
+	else
+		{
+		// suppress error message when we are already in error mode.
+		// There is no reason to repeat it every second.
+		if ( ! suppress_warnings )
+			Warning(msg);
+
+		if ( suppress_future )
+			suppress_warnings = true;
+		}
+	}
 void ReaderBackend::Warning(const char* msg)
 	{
+	if ( suppress_warnings )
+		return;
+
 	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::WARNING, msg));
 	MsgThread::Warning(msg);
 	}

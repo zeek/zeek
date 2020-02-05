@@ -1,4 +1,25 @@
 
+3.1.0-dev.546 | 2020-02-05 10:51:35 -0800
+
+  * Change threading formatter errors to warnings. (Johanna Amann, Corelight)
+
+    This change standardizes threading formatter error handling and moves
+    the remaining error calls to be warnings instead.
+
+    This is in line with already existing code - in most cases warnings were
+    raised, only a few cases raised errors. These cases do not differ
+    significantly from other cases in which warnings are raised.
+
+    This also fixes GH-692, in which misformatted lines prevent future file
+    parsing.
+
+    This commit also moves the FailWarn method that is used by both the
+    config and the ascii reader up to the ReaderBackend. Furthermore it
+    makes the Warning method of ReaderBackend respect the warning
+    suppression that is introduced by the FailWarn method.
+
+  * Update NEWS about plugin breakage from the include-file changes (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.542 | 2020-02-04 14:05:19 -0700
 
   * UID, ..: un-inline methods to reduce header dependencies

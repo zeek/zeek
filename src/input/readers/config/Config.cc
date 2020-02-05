@@ -24,7 +24,6 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
-	suppress_warnings = false;
 	fail_on_file_problem = false;
 
 	// find all option names and their types.
@@ -91,24 +90,8 @@ bool Config::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
-	suppress_warnings = false;
+	StopWarningSuppression();
 	return true;
-	}
-
-void Config::FailWarn(bool is_error, const char *msg, bool suppress_future)
-	{
-	if ( is_error )
-		Error(msg);
-	else
-		{
-		// suppress error message when we are already in error mode.
-		// There is no reason to repeat it every second.
-		if ( ! suppress_warnings )
-			Warning(msg);
-
-		if ( suppress_future )
-			suppress_warnings = true;
-		}
 	}
 
 bool Config::GetLine(string& str)
@@ -155,7 +138,7 @@ bool Config::DoUpdate()
 			// is to suppress an extra warning that we'd otherwise get on the initial
 			// inode assignment.
 			if ( ino != 0 )
-				suppress_warnings = false;
+				StopWarningSuppression();
 
 			mtime = sb.st_mtime;
 			ino = sb.st_ino;

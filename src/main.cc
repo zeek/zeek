@@ -673,6 +673,7 @@ int main(int argc, char** argv)
 	zeekygen_mgr->InitPostScript();
 	broker_mgr->InitPostScript();
 	timer_mgr->InitPostScript();
+	mgr.InitPostScript();
 
 	if ( zeek::supervisor_mgr )
 		zeek::supervisor_mgr->InitPostScript();

@@ -53,7 +53,7 @@ public:
 	 * sources except for the non-counting ones have gone dry, processing
 	 * will shut down.
 	 */
-	void Register(IOSource* src, bool dont_count = false);
+	void Register(IOSource* src, bool dont_count = false, bool manage_lifetime = true);
 
 	/**
 	 * Returns the number of registered and still active sources,
@@ -182,8 +182,9 @@ private:
 		};
 
 	struct Source {
-		IOSource* src;
-		bool dont_count;
+		IOSource* src = nullptr;
+		bool dont_count = false;
+		bool manage_lifetime = false;
 	};
 
 	using SourceList = std::vector<Source*>;

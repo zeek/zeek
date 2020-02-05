@@ -58,9 +58,13 @@ Manager::~Manager()
 
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
-		(*i)->src->Done();
-		delete (*i)->src;
-		delete *i;
+		auto src = *i;
+		src->src->Done();
+
+		if ( src->manage_lifetime )
+			delete src->src;
+
+		delete src;
 		}
 
 	sources.clear();
@@ -151,6 +155,9 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 				ready->push_back(pkt_src);
 			}
 		}
+
+	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %ld   time_to_poll: %d\n",
+		timeout, ready->size(), time_to_poll);
 
 	// If we didn't find any IOSources with zero timeouts or it's time to
 	// force a poll, do that and return. Otherwise return the set of ready
@@ -253,7 +260,7 @@ bool Manager::UnregisterFd(int fd, IOSource* src)
 		}
 	}
 
-void Manager::Register(IOSource* src, bool dont_count)
+void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime)
 	{
 	// First see if we already have registered that source. If so, just
 	// adjust dont_count.
@@ -273,6 +280,7 @@ void Manager::Register(IOSource* src, bool dont_count)
 	Source* s = new Source;
 	s->src = src;
 	s->dont_count = dont_count;
+	s->manage_lifetime = manage_lifetime;
 	if ( dont_count )
 		++dont_counts;
 

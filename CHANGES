@@ -1,4 +1,8 @@
 
+3.1.0-dev.548 | 2020-02-05 14:57:08 -0800
+
+  * GH-773: Make EventMgr an IOSource so that events interrupt kevent waits (Tim Wojtulewicz, Corelight)
+
 3.1.0-dev.546 | 2020-02-05 10:51:35 -0800
 
   * Change threading formatter errors to warnings. (Johanna Amann, Corelight)

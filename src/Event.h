@@ -4,6 +4,8 @@
 
 #include "BroList.h"
 #include "analyzer/Analyzer.h"
+#include "iosource/IOSource.h"
+#include "Flare.h"
 
 class EventMgr;
 
@@ -49,7 +51,7 @@ protected:
 extern uint64_t num_events_queued;
 extern uint64_t num_events_dispatched;
 
-class EventMgr : public BroObj {
+class EventMgr : public BroObj, public iosource::IOSource {
 public:
 	EventMgr();
 	~EventMgr() override;
@@ -113,6 +115,11 @@ public:
 
 	void Describe(ODesc* d) const override;
 
+	double GetNextTimeout() override { return -1; }
+	void Process() override;
+	const char* Tag() override { return "EventManager"; }
+	void InitPostScript();
+
 protected:
 	void QueueEvent(Event* event);
 
@@ -123,6 +130,7 @@ protected:
 	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;
+	bro::Flare queue_flare;
 };
 
 extern EventMgr mgr;

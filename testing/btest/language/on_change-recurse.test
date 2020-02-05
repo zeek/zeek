@@ -6,7 +6,7 @@ module TestModule;
 function change_function(t: table[string, int] of count, tpe: TableChange, idxa: string, idxb: int, val: count)
 	{
 	print "change_function", idxa, idxb, val, tpe;
-	t[idxa, idxb] = val;
+	t[idxa, idxb] = val+1;
 	}
 
 function set_change(t: set[string], tpe: TableChange, idx: string)
@@ -27,4 +27,5 @@ event zeek_init()
 	print "deleting";
 	delete t["a", 1];
 	delete s["hi"];
+	print t;
 	}

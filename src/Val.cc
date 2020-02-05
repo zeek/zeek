@@ -1969,7 +1969,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 		const Func* f = thefunc->AsFunc();
 		val_list vl { Ref() };
-		EnumVal* type;
+		EnumVal* type = nullptr;
 		switch ( tpe )
 			{
 			case element_new:

@@ -27,6 +27,7 @@ Types
 :zeek:type:`NFS3::status_t`: :zeek:type:`enum`        
 :zeek:type:`NFS3::time_how_t`: :zeek:type:`enum`      
 :zeek:type:`Reporter::Level`: :zeek:type:`enum`       
+:zeek:type:`TableChange`: :zeek:type:`enum`           
 :zeek:type:`Tunnel::Type`: :zeek:type:`enum`          
 :zeek:type:`layer3_proto`: :zeek:type:`enum`          
 :zeek:type:`link_encap`: :zeek:type:`enum`            
@@ -274,6 +275,19 @@ Types
       .. zeek:enum:: Reporter::WARNING Reporter::Level
 
       .. zeek:enum:: Reporter::ERROR Reporter::Level
+
+
+.. zeek:type:: TableChange
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: TABLE_ELEMENT_NEW TableChange
+
+      .. zeek:enum:: TABLE_ELEMENT_CHANGED TableChange
+
+      .. zeek:enum:: TABLE_ELEMENT_REMOVED TableChange
+
+      .. zeek:enum:: TABLE_ELEMENT_EXPIRED TableChange
 
 
 .. zeek:type:: Tunnel::Type

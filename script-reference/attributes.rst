@@ -29,6 +29,8 @@ The Zeek scripting language supports the following attributes.
 +------------------------------+-----------------------------------------------+
 | :zeek:attr:`&create_expire`  |Specify a creation timeout interval.           |
 +------------------------------+-----------------------------------------------+
+| :zeek:attr:`&on_change`      |Specify a function to call on set/table changes|
++------------------------------+-----------------------------------------------+
 | :zeek:attr:`&raw_output`     |Open file in raw mode (chars. are not escaped).|
 +------------------------------+-----------------------------------------------+
 | :zeek:attr:`&error_handler`  |Used internally for reporter framework events. |
@@ -192,7 +194,60 @@ Here is a more detailed explanation of each attribute:
 
     Specifies a creation expiration timeout for container elements. That
     is, the element expires after the given amount of time since it has
-    been inserted into the container, regardless of any reads or writes.
+
+.. zeek:attr:: &on_change
+
+    Called right after a change has been applied to a container. The
+    function's first argument is of the same type as the container it is
+    associated with, followed by a :zeek:see:`TableChange` record which specifies the
+    type of change that happened. The function then takes a variable number
+    of arguments equal to the number of indexes in the container, followed by an
+    argument for the value of the container (if the container has a value)
+    For example, for a ``table[string,string] of count`` the on_change
+    function signature is:
+
+    .. sourcecode:: zeek
+
+        function(t: table[string, string] of count, tpe: TableChange, s: string, s2: string, val: count)
+
+    For a ``set[count]`` the function signature is:
+
+    .. sourcecode:: zeek
+
+        function(s: set[count], tpe: TableChange, c: count)
+
+    The passed value specifies the state of a value before the change, where this makes
+    sense. In case a element is changed, removed, or expired, the passed value will be
+    the value before the change, removal, or expiration. When an element is added, the
+    passed value will be the value of the added element (since no old element existed).
+
+    Note that the on_change function is only changed when the container itself
+    is modified (due to an assignment, delete operation, or expiry). When
+    a container contains a complex element (like a record, set, or vector),
+    changes to these complex elements are not propagated back to the parent.
+    For example, in this example the ``change_function`` for the table will only
+    be called once, when ``s`` is inserted - but it will not be called when ``s`` is
+    changed:
+
+    .. sourcecode:: zeek
+
+        local t: table[string] of set[string] &on_change=change_function;
+        local s: set[string] = set();
+        t["s"] = s; # change_function of t is called
+        add s["a"]; # change_function of t is _not_ called.
+
+    Also note that the on_change function of a container will not be called
+    when the container is already handling on_change_function. Thus, writing
+    a on_change function like this is supported and will not lead to a infinite
+    loop :
+
+    .. sourcecode:: zeek
+
+        local t: table[string] of set[string] &on_change=hange_function;
+        function change_function(t: table[string, int] of count, tpe: TableChange, idxa: string, idxb: int, val: count)
+          {
+          t[idxa, idxb] = val+1;
+          }
 
 .. zeek:attr:: &raw_output
 

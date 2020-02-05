@@ -379,6 +379,17 @@ export {
 
 module Broker;
 
+event Broker::log_flush() &priority=10
+	{
+	Broker::flush_logs();
+	schedule Broker::log_batch_interval { Broker::log_flush() };
+	}
+
+event zeek_init()
+	{
+	schedule Broker::log_batch_interval { Broker::log_flush() };
+	}
+
 event retry_listen(a: string, p: port, retry: interval)
 	{
 	listen(a, p, retry);

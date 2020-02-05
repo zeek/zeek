@@ -1,6 +1,8 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stderrwithoutfirstline
 
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_invalid_lines = F;
@@ -8,11 +10,12 @@ redef InputAscii::fail_on_invalid_lines = F;
 @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
-#fields	b	i	e	c	p	sn	a	d	t	iv	s	sc	ss	se	vc	ve	ns
-#types	bool	int	enum	count	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector	string
-T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30
-T	-42	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
-T	-43	SSH::LOG	21	123	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242 HOHOHO
+#fields	b	i	e	c	p	pt	sn	a	d	t	iv	s	sc	ss	se	vc	ve	ns
+#types	bool	int	enum	count	port	string	subnet	addr	double	time	interval	string	table	table	table	vector	vector	string
+T	-41	SSH::LOG	21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30
+T	-42	SSH::LOG	21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
+T	-43	SSH::LOG	21	123	whatever	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242 HOHOHO
+T	-44	SSH::LOG	21	123	udp	10.0.0.0/24	342.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242 HOHOHO
 T	-41
 @TEST-END-FILE
 
@@ -32,7 +35,7 @@ type Val: record {
 	b: bool;
 	e: Log::ID;
 	c: count;
-	p: port;
+	p: port &type_column="pt";
 	sn: subnet;
 	a: addr;
 	d: double;

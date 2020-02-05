@@ -55,7 +55,7 @@ TransportProto Formatter::ParseProto(const string &proto) const
 	else if ( proto == "icmp" )
 		return TRANSPORT_ICMP;
 
-	thread->Error(thread->Fmt("Tried to parse invalid/unknown protocol: %s", proto.c_str()));
+	thread->Warning(thread->Fmt("Tried to parse invalid/unknown protocol: %s", proto.c_str()));
 
 	return TRANSPORT_UNKNOWN;
 	}
@@ -72,7 +72,7 @@ threading::Value::addr_t Formatter::ParseAddr(const string &s) const
 
 		if ( inet_aton(s.c_str(), &(val.in.in4)) <= 0 )
 			{
-			thread->Error(thread->Fmt("Bad address: %s", s.c_str()));
+			thread->Warning(thread->Fmt("Bad address: %s", s.c_str()));
 			memset(&val.in.in4.s_addr, 0, sizeof(val.in.in4.s_addr));
 			}
 		}
@@ -82,7 +82,7 @@ threading::Value::addr_t Formatter::ParseAddr(const string &s) const
 		val.family = IPv6;
 		if ( inet_pton(AF_INET6, s.c_str(), val.in.in6.s6_addr) <=0 )
 			{
-			thread->Error(thread->Fmt("Bad address: %s", s.c_str()));
+			thread->Warning(thread->Fmt("Bad address: %s", s.c_str()));
 			memset(val.in.in6.s6_addr, 0, sizeof(val.in.in6.s6_addr));
 			}
 		}

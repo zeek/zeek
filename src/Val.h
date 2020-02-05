@@ -848,7 +848,7 @@ protected:
 	double CallExpireFunc(Val *idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
-	enum OnChangeType { element_new, element_changed, element_removed };
+	enum OnChangeType { element_new, element_changed, element_removed, element_expired };
 
 	// Calls &change_func. Does not take ownership of values. (Refs if needed).
 	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);

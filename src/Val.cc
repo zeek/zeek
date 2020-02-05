@@ -1969,6 +1969,8 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			case element_removed:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
 				break;
+			case element_expired:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED);
 			}
 		vl.append(type);
 
@@ -2262,9 +2264,9 @@ void TableVal::DoExpire(double t)
 		tbl->MakeRobustCookie(expire_cookie);
 		}
 
-	HashKey* k = 0;
-	TableEntryVal* v = 0;
-	TableEntryVal* v_saved = 0;
+	HashKey* k = nullptr;
+	TableEntryVal* v = nullptr;
+	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
 	for ( int i = 0; i < table_incremental_step &&
@@ -2281,10 +2283,11 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
+			Val* idx = nullptr;
 			if ( expire_func )
 				{
-				Val* idx = RecoverIndex(k);
-				double secs = CallExpireFunc(idx);
+				idx = RecoverIndex(k);
+				double secs = CallExpireFunc(idx->Ref());
 
 				// It's possible that the user-provided
 				// function modified or deleted the table
@@ -2295,6 +2298,7 @@ void TableVal::DoExpire(double t)
 				if ( ! v )
 					{ // user-provided function deleted it
 					v = v_saved;
+					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2304,6 +2308,7 @@ void TableVal::DoExpire(double t)
 					// User doesn't want us to expire
 					// this now.
 					v->SetExpireAccess(network_time - timeout + secs);
+					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2312,13 +2317,20 @@ void TableVal::DoExpire(double t)
 
 			if ( subnets )
 				{
-				Val* index = RecoverIndex(k);
-				if ( ! subnets->Remove(index) )
+				if ( ! idx )
+					idx = RecoverIndex(k);
+				if ( ! subnets->Remove(idx) )
 					reporter->InternalWarning("index not in prefix table");
-				Unref(index);
 				}
 
 			tbl->RemoveEntry(k);
+			if ( change_func )
+				{
+				if ( ! idx )
+					idx = RecoverIndex(k);
+				CallChangeFunc(idx, v->Value(), element_expired);
+				}
+			Unref(idx);
 			Unref(v->Value());
 			delete v;
 			modified = true;

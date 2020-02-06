@@ -507,7 +507,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		const TableType* the_table = type->AsTableType();
 
-		if (the_table->IsUnspecifiedTable())
+		if ( the_table->IsUnspecifiedTable() )
 			break;
 
 		const type_list* args = c_ft->ArgTypes()->Types();
@@ -531,7 +531,6 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		bool indexmatch = true;
 		for ( int i = 0; i < t_indexes->length(); i++ )
 			{
 			if ( ! same_type((*args)[2+i], (*t_indexes)[i]) )

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send CI Email Notification
-        uses: jsiwek/ci-email-action@master
+        uses: zeek/ci-email-action@master
         env:
           CI_APP_NAME: "Cirrus CI"
           SMTP_HOST: ${{ secrets.SMTP_HOST }}

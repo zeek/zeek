@@ -1479,11 +1479,9 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 
 	if ( change_func )
 		{
-		auto change_index = index->Ref();
-		if ( ! change_index )
-			RecoverIndex(&k_copy);
-		Val *v = old_entry_val ? old_entry_val->Value() : new_val;
-		CallChangeFunc(change_index, v, old_entry_val ? element_changed : element_new);
+		Val* change_index = index ? index->Ref() : RecoverIndex(&k_copy);
+		Val* v = old_entry_val ? old_entry_val->Value() : new_val;
+		CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		Unref(change_index);
 		}
 
@@ -1953,7 +1951,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 	try
 		{
-		Val* thefunc = change_func->Eval(0);
+		IntrusivePtr<Val> thefunc{change_func->Eval(nullptr), false};
 
 		if ( ! thefunc )
 			{
@@ -1963,7 +1961,6 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 		if ( thefunc->Type()->Tag() != TYPE_FUNC )
 			{
 			thefunc->Error("not a function");
-			Unref(thefunc);
 			return;
 			}
 
@@ -1972,16 +1969,16 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 		EnumVal* type = nullptr;
 		switch ( tpe )
 			{
-			case element_new:
+			case ELEMENT_NEW:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
 				break;
-			case element_changed:
+			case ELEMENT_CHANGED:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
 				break;
-			case element_removed:
+			case ELEMENT_REMOVED:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
 				break;
-			case element_expired:
+			case ELEMENT_EXPIRED:
 				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED);
 			}
 		vl.append(type);
@@ -1994,7 +1991,6 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 		in_change_func = true;
 		f->Call(&vl);
-		Unref(thefunc);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2018,7 +2014,7 @@ Val* TableVal::Delete(const Val* index)
 	Modified();
 
 	if ( change_func )
-		CallChangeFunc(index, va, element_removed);
+		CallChangeFunc(index, va, ELEMENT_REMOVED);
 
 	return va;
 	}
@@ -2040,10 +2036,10 @@ Val* TableVal::Delete(const HashKey* k)
 
 	Modified();
 
-	if ( change_func )
+	if ( change_func && va )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index, va->Ref(), element_removed);
+		CallChangeFunc(index, va->Ref(), ELEMENT_REMOVED);
 		Unref(index);
 		}
 
@@ -2345,7 +2341,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				CallChangeFunc(idx, v->Value(), element_expired);
+				CallChangeFunc(idx, v->Value(), ELEMENT_EXPIRED);
 				}
 			Unref(idx);
 			Unref(v->Value());

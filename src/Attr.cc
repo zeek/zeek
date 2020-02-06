@@ -492,12 +492,12 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const Expr *change_func = a->AttrExpr();
+		const Expr* change_func = a->AttrExpr();
 
 		if ( change_func->Type()->Tag() != TYPE_FUNC || change_func->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 			Error("&on_change attribute is not a function");
 
-		const FuncType *c_ft = change_func->Type()->AsFuncType();
+		const FuncType* c_ft = change_func->Type()->AsFuncType();
 
 		if ( c_ft->YieldType()->Tag() != TYPE_VOID )
 			{
@@ -505,7 +505,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const TableType *the_table = type->AsTableType();
+		const TableType* the_table = type->AsTableType();
 
 		if (the_table->IsUnspecifiedTable())
 			break;

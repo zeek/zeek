@@ -64,7 +64,7 @@ public:
 	// Returns nil if this was an address request.
 	const char* ReqHost() const	{ return host; }
 	const IPAddr& ReqAddr() const		{ return addr; }
-	const bool ReqIsTxt() const	{ return qtype == 16; }
+	bool ReqIsTxt() const	{ return qtype == 16; }
 
 	int MakeRequest(nb_dns_info* nb_dns);
 	int RequestPending() const	{ return request_pending; }

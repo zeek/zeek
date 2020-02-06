@@ -19,7 +19,6 @@ public:
 protected:
 
 	void Init();
-	int do_expire;
 };
 
 /**

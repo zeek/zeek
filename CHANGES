@@ -1,4 +1,20 @@
 
+3.1.0-dev.551 | 2020-02-05 17:50:56 -0800
+
+  * Remove presumed ownership of HeartbeatTimer (Jon Siwek, Corelight)
+
+    threading::Manager is currently never deleted, but if that ever changes,
+    deleting the stored HeartbeatTimer pointer would be a double-free
+    since TimerMgr owns it.
+
+  * Set threading::Manager terminating state (Jon Siwek, Corelight)
+
+    Coverity CID 1417429
+
+  * Remove unused HeartbeatTimer member: do_expire (Jon Siwek, Corelight)
+
+    Coverity CID 1417434
+
 3.1.0-dev.548 | 2020-02-05 14:57:08 -0800
 
   * GH-773: Make EventMgr an IOSource so that events interrupt kevent waits (Tim Wojtulewicz, Corelight)

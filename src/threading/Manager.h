@@ -136,7 +136,7 @@ private:
 
 	msg_stats_list stats;
 
-	HeartbeatTimer* heartbeat_timer = nullptr;
+	bool heartbeat_timer_running = false;
 };
 
 }

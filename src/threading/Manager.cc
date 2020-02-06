@@ -30,9 +30,6 @@ Manager::~Manager()
 	{
 	if ( all_threads.size() )
 		Terminate();
-
-	if ( heartbeat_timer )
-		delete heartbeat_timer;
 	}
 
 void Manager::Terminate()
@@ -68,7 +65,7 @@ void Manager::AddThread(BasicThread* thread)
 	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
 	all_threads.push_back(thread);
 
-	if ( ! heartbeat_timer )
+	if ( ! heartbeat_timer_running )
 		StartHeartbeatTimer();
 	}
 
@@ -127,8 +124,8 @@ void Manager::SendHeartbeats()
 
 void Manager::StartHeartbeatTimer()
 	{
-	heartbeat_timer = new HeartbeatTimer(network_time + BifConst::Threading::heartbeat_interval);
-	timer_mgr->Add(heartbeat_timer);
+	heartbeat_timer_running = true;
+	timer_mgr->Add(new HeartbeatTimer(network_time + BifConst::Threading::heartbeat_interval));
 	}
 
 void Manager::Flush()

@@ -21,7 +21,7 @@ public:
 	void SetID(int newID)	{ BPID = newID; }
 
 	// True if breakpoint could be set; false otherwise
-	bool SetLocation(ParseLocationRec plr, string_view loc_str);
+	bool SetLocation(ParseLocationRec plr, std::string_view loc_str);
 	bool SetLocation(Stmt* stmt);
 	bool SetLocation(double time);
 

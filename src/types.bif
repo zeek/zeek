@@ -225,6 +225,13 @@ type gtp_qos_profile: record;
 type gtp_private_extension: record;
 type gtp_gsn_addr: record;
 
+enum TableChange %{
+	TABLE_ELEMENT_NEW,
+	TABLE_ELEMENT_CHANGED,
+	TABLE_ELEMENT_REMOVED,
+	TABLE_ELEMENT_EXPIRED,
+%}
+
 module Reporter;
 
 enum Level %{

@@ -803,10 +803,10 @@ public:
 	void InitTimer(double delay);
 	void DoExpire(double t);
 
-        // If the &default attribute is not a function, or the functon has
-        // already been initialized, this does nothing. Otherwise, evaluates
-        // the function in the frame allowing it to capture its closure.
-        void InitDefaultFunc(Frame* f);
+	// If the &default attribute is not a function, or the functon has
+	// already been initialized, this does nothing. Otherwise, evaluates
+	// the function in the frame allowing it to capture its closure.
+	void InitDefaultFunc(Frame* f);
 
 	unsigned int MemoryAllocation() const override;
 
@@ -846,6 +846,12 @@ protected:
 	// takes ownership of the reference.
 	double CallExpireFunc(Val *idx);
 
+	// Enum for the different kinds of changes an &on_change handler can see
+	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
+
+	// Calls &change_func. Does not take ownership of values. (Refs if needed).
+	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
+
 	Val* DoClone(CloneState* state) override;
 
 	TableType* table_type;
@@ -857,6 +863,9 @@ protected:
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
 	Val* def_val;
+	Expr* change_func = nullptr;
+	// prevent recursion of change functions
+	bool in_change_func = false;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {

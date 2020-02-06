@@ -1,0 +1,11 @@
+inserting
+change_function, a, 1, 5, TABLE_ELEMENT_NEW
+set_change, hi, TABLE_ELEMENT_NEW
+changing
+change_function, a, 1, 6, TABLE_ELEMENT_CHANGED
+deleting
+change_function, a, 1, 7, TABLE_ELEMENT_REMOVED
+set_change, hi, TABLE_ELEMENT_REMOVED
+{
+[a, 1] = 8
+}

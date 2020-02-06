@@ -47,6 +47,9 @@ New Functionality
   redirect the output from "print" statements to a real log stream (e.g.
   instead of writing to stdout).
 
+- There is now a new ``&on_change`` attribute that can be used to be notified
+  of changes to tables and sets.
+
 Changed Functionality
 ---------------------
 

@@ -1342,6 +1342,7 @@ TableVal::~TableVal()
 	Unref(def_val);
 	Unref(expire_func);
 	Unref(expire_time);
+	Unref(change_func);
 	}
 
 void TableVal::RemoveAll()
@@ -1392,6 +1393,12 @@ void TableVal::SetAttrs(Attributes* a)
 		{
 		expire_func = ef->AttrExpr();
 		expire_func->Ref();
+		}
+	auto cf = attrs->FindAttr(ATTR_ON_CHANGE);
+	if ( cf )
+		{
+		change_func = cf->AttrExpr();
+		change_func->Ref();
 		}
 	}
 
@@ -1468,13 +1475,22 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	if ( old_entry_val && attrs && attrs->FindAttr(ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
 
+	Modified();
+
+	if ( change_func )
+		{
+		Val* change_index = index ? index->Ref() : RecoverIndex(&k_copy);
+		Val* v = old_entry_val ? old_entry_val->Value() : new_val;
+		CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+		Unref(change_index);
+		}
+
 	if ( old_entry_val )
 		{
 		old_entry_val->Unref();
 		delete old_entry_val;
 		}
 
-	Modified();
 	return 1;
 	}
 
@@ -1925,6 +1941,64 @@ ListVal* TableVal::RecoverIndex(const HashKey* k) const
 	return table_hash->RecoverVals(k);
 	}
 
+void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
+	{
+	if ( ! change_func || ! index || in_change_func )
+		return;
+
+	if ( ! table_type->IsSet() && ! old_value )
+		return;
+
+	try
+		{
+		IntrusivePtr<Val> thefunc{change_func->Eval(nullptr), false};
+
+		if ( ! thefunc )
+			{
+			return;
+			}
+
+		if ( thefunc->Type()->Tag() != TYPE_FUNC )
+			{
+			thefunc->Error("not a function");
+			return;
+			}
+
+		const Func* f = thefunc->AsFunc();
+		val_list vl { Ref() };
+		EnumVal* type = nullptr;
+		switch ( tpe )
+			{
+			case ELEMENT_NEW:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
+				break;
+			case ELEMENT_CHANGED:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
+				break;
+			case ELEMENT_REMOVED:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
+				break;
+			case ELEMENT_EXPIRED:
+				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED);
+			}
+		vl.append(type);
+
+		for ( const auto& v : *index->AsListVal()->Vals() )
+			vl.append(v->Ref());
+
+		if ( ! table_type->IsSet() )
+			vl.append(old_value->Ref());
+
+		in_change_func = true;
+		f->Call(&vl);
+		}
+	catch ( InterpreterException& e )
+		{
+		}
+
+	in_change_func = false;
+	}
+
 Val* TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
@@ -1938,6 +2012,10 @@ Val* TableVal::Delete(const Val* index)
 	delete v;
 
 	Modified();
+
+	if ( change_func )
+		CallChangeFunc(index, va, ELEMENT_REMOVED);
+
 	return va;
 	}
 
@@ -1957,6 +2035,14 @@ Val* TableVal::Delete(const HashKey* k)
 	delete v;
 
 	Modified();
+
+	if ( change_func && va )
+		{
+		auto index = table_hash->RecoverVals(k);
+		CallChangeFunc(index, va->Ref(), ELEMENT_REMOVED);
+		Unref(index);
+		}
+
 	return va;
 	}
 
@@ -2191,9 +2277,9 @@ void TableVal::DoExpire(double t)
 		tbl->MakeRobustCookie(expire_cookie);
 		}
 
-	HashKey* k = 0;
-	TableEntryVal* v = 0;
-	TableEntryVal* v_saved = 0;
+	HashKey* k = nullptr;
+	TableEntryVal* v = nullptr;
+	TableEntryVal* v_saved = nullptr;
 	bool modified = false;
 
 	for ( int i = 0; i < table_incremental_step &&
@@ -2210,10 +2296,11 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
+			Val* idx = nullptr;
 			if ( expire_func )
 				{
-				Val* idx = RecoverIndex(k);
-				double secs = CallExpireFunc(idx);
+				idx = RecoverIndex(k);
+				double secs = CallExpireFunc(idx->Ref());
 
 				// It's possible that the user-provided
 				// function modified or deleted the table
@@ -2224,6 +2311,7 @@ void TableVal::DoExpire(double t)
 				if ( ! v )
 					{ // user-provided function deleted it
 					v = v_saved;
+					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2233,6 +2321,7 @@ void TableVal::DoExpire(double t)
 					// User doesn't want us to expire
 					// this now.
 					v->SetExpireAccess(network_time - timeout + secs);
+					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2241,13 +2330,20 @@ void TableVal::DoExpire(double t)
 
 			if ( subnets )
 				{
-				Val* index = RecoverIndex(k);
-				if ( ! subnets->Remove(index) )
+				if ( ! idx )
+					idx = RecoverIndex(k);
+				if ( ! subnets->Remove(idx) )
 					reporter->InternalWarning("index not in prefix table");
-				Unref(index);
 				}
 
 			tbl->RemoveEntry(k);
+			if ( change_func )
+				{
+				if ( ! idx )
+					idx = RecoverIndex(k);
+				CallChangeFunc(idx, v->Value(), ELEMENT_EXPIRED);
+				}
+			Unref(idx);
 			Unref(v->Value());
 			delete v;
 			modified = true;

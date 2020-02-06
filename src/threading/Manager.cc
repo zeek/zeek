@@ -23,6 +23,7 @@ Manager::Manager()
 
 	did_process = true;
 	next_beat = 0;
+	terminating = false;
 	}
 
 Manager::~Manager()
@@ -37,6 +38,7 @@ Manager::~Manager()
 void Manager::Terminate()
 	{
 	DBG_LOG(DBG_THREADING, "Terminating thread manager ...");
+	terminating = true;
 
 	// First process remaining thread output for the message threads.
 	do Flush(); while ( did_process );
@@ -58,6 +60,7 @@ void Manager::Terminate()
 
 	all_threads.clear();
 	msg_threads.clear();
+	terminating = false;
 	}
 
 void Manager::AddThread(BasicThread* thread)

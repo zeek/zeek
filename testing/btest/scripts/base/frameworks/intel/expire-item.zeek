@@ -1,5 +1,5 @@
 # @TEST-EXEC: btest-bg-run zeekproc zeek %INPUT
-# @TEST-EXEC: btest-bg-wait -k 21
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: cat zeekproc/intel.log > output
 # @TEST-EXEC: cat zeekproc/.stdout >> output
 # @TEST-EXEC: btest-diff output

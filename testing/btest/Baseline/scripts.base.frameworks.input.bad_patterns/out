@@ -6,4 +6,3 @@ warning: input.log/Input::READER_ASCII: String 'this is not a pattern' contained
 warning: input.log/Input::READER_ASCII: Could not convert line '4	this is not a pattern' of input.log to Val. Ignoring line.
 warning: input.log/Input::READER_ASCII: String '/5' contained no parseable pattern.
 warning: input.log/Input::READER_ASCII: Could not convert line '5	/5' of input.log to Val. Ignoring line.
-received termination signal

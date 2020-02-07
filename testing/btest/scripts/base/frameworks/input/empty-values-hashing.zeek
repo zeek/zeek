@@ -1,8 +1,8 @@
 # @TEST-EXEC: mv input1.log input.log
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 15|| (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv input2.log input.log
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff out
 
 @TEST-START-FILE input1.log

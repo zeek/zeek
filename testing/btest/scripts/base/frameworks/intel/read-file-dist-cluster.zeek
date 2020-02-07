@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait -k 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff manager-1/intel.log
 # @TEST-EXEC: btest-diff worker-1/.stdout
@@ -53,6 +53,11 @@ event zeek_init()
 		schedule 2sec { do_it() };
 	}
 
+event do_terminate()
+	{
+	terminate();
+	}
+
 global intel_hits=0;
 event Intel::log_intel(rec: Intel::Info)
 	{
@@ -62,6 +67,11 @@ event Intel::log_intel(rec: Intel::Info)
 		{
 		# We're delaying shutdown for a second here to make sure that no other
 		# matches happen (which would be wrong!).
-		schedule 1sec { Control::shutdown_request() };
+		schedule 1sec { do_terminate() };
 		}
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
 	}

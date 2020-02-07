@@ -1,4 +1,28 @@
 
+3.1.0-dev.582 | 2020-02-07 09:46:00 -0800
+
+  * Add environment variable to disable supervisor SIGKILL
+
+    For use in btests since SIGKILL can otherwise bypass the usual
+    btest-bg-wait timeout mechanism and make reason for test failures less
+    obvious. (Jon Siwek, Corelight)
+
+  * Fix a btest's race condition by handling Pcap::file_done (Jon Siwek, Corelight)
+
+  * Add Pcap::file_done event
+
+    It signals when a pcap file is done being processed. (Jon Siwek, Corelight)
+
+  * Improve btest timeouts
+
+    * Generally increase timeouts for tests that have recent transient
+      failures
+
+    * Change any test that relied on `btest-bg-wait -k` since that's never
+      going to play with with CI systems.  Instead, we always need to have
+      a well-defined termination condition in the test itself (and most
+      already did, so didn't really need the `-k` flag anyway). (Jon Siwek, Corelight)
+
 3.1.0-dev.577 | 2020-02-07 09:43:48 -0800
 
   * Use 2 btest retries for CI (Jon Siwek, Corelight)

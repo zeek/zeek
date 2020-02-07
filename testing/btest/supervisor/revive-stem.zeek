@@ -1,6 +1,6 @@
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff zeek/supervisor.out
 # @TEST-EXEC: btest-diff zeek/node.out
 

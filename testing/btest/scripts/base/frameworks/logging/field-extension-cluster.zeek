@@ -3,7 +3,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/http.log
 
 
@@ -44,31 +44,20 @@ event die()
 	terminate();
 	}
 
-event slow_death()
+event Pcap::file_done(path: string)
 	{
 	Broker::flush_logs();
 	schedule 2sec { die() };
 	}
 
-event kill_worker()
-	{
-	Broker::publish("death", slow_death);
-	}
-
 event zeek_init()
 	{
 	if ( Cluster::node == "worker-1" )
-		{
 		suspend_processing();
-		Broker::subscribe("death");
-		}
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	if ( Cluster::node == "manager-1" )
-		schedule 2sec { kill_worker() };
-
 	if ( Cluster::node == "worker-1" )
 		continue_processing();
 	}

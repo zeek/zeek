@@ -1,4 +1,13 @@
 
+3.1.0-dev.584 | 2020-02-07 14:12:17 -0800
+
+  * Improve kerberos analyzer address and event handling
+
+    Adds a weird, "invalid_kerberos_addr_len", for invalid kerberos host
+    address lengths and also fixes a memory leak when processing KRB_KDC_REQ
+    and KRB_KDC_REP messages for message types that do not match a
+    known/expected type. (Jon Siwek, Corelight)
+
 3.1.0-dev.582 | 2020-02-07 09:46:00 -0800
 
   * Add environment variable to disable supervisor SIGKILL

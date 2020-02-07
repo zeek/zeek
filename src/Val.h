@@ -61,7 +61,7 @@ class TableEntryVal;
 
 class RE_Matcher;
 
-typedef union {
+union BroValUnion {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
 
@@ -86,7 +86,7 @@ typedef union {
 
 	vector<Val*>* vector_val;
 
-} BroValUnion;
+};
 
 class Val : public BroObj {
 public:

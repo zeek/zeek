@@ -44,6 +44,11 @@ typedef enum {
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 } TypeTag;
 
+constexpr bool is_network_order(TypeTag tag) noexcept
+	{
+	return tag == TYPE_PORT;
+	}
+
 typedef enum {
 	FUNC_FLAVOR_FUNCTION,
 	FUNC_FLAVOR_EVENT,
@@ -56,6 +61,60 @@ typedef enum {
 	TYPE_INTERNAL_STRING, TYPE_INTERNAL_ADDR, TYPE_INTERNAL_SUBNET,
 	TYPE_INTERNAL_OTHER, TYPE_INTERNAL_ERROR
 } InternalTypeTag;
+
+constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
+	{
+	switch ( tag ) {
+	case TYPE_VOID:
+		return TYPE_INTERNAL_VOID;
+
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		return TYPE_INTERNAL_INT;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		return TYPE_INTERNAL_UNSIGNED;
+
+	case TYPE_PORT:
+		return TYPE_INTERNAL_UNSIGNED;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return TYPE_INTERNAL_DOUBLE;
+
+	case TYPE_STRING:
+		return TYPE_INTERNAL_STRING;
+
+	case TYPE_ADDR:
+		return TYPE_INTERNAL_ADDR;
+
+	case TYPE_SUBNET:
+		return TYPE_INTERNAL_SUBNET;
+
+	case TYPE_PATTERN:
+	case TYPE_TIMER:
+	case TYPE_ANY:
+	case TYPE_TABLE:
+	case TYPE_UNION:
+	case TYPE_RECORD:
+	case TYPE_LIST:
+	case TYPE_FUNC:
+	case TYPE_FILE:
+	case TYPE_OPAQUE:
+	case TYPE_VECTOR:
+	case TYPE_TYPE:
+		return TYPE_INTERNAL_OTHER;
+
+	case TYPE_ERROR:
+		return TYPE_INTERNAL_ERROR;
+	}
+
+	/* this should be unreachable */
+	return TYPE_INTERNAL_VOID;
+	}
 
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);

@@ -62,6 +62,14 @@ Changed Functionality
   scripts with ".bro" endings, which are now flagged and should be
   renamed.
 
+- Broker has switched versions for the underlying CAF communication
+  library from 0.16 to 0.17. CAF has changed its wireformat between
+  those versions, which means that previous Broker and Zeek versions
+  won't be able to connect to the new ones. In other words, all Zeek
+  instances, as well as other Broker clients, need to upgrade at the
+  same time. In case of version mismatches, Broker now reports better
+  error messages to point out the problem.
+
 - The key type of ``Known::service_store`` has changed to
   ``Known::AddrPortServTriplet`` and ``Known::services`` is now a table
   instead of just a set.

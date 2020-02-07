@@ -10,6 +10,7 @@
 
 LEAK_TEST_DISTRO="ubuntu_18.04_leaktest"
 COVERITY_DISTRO="ubuntu_18.04"
+BTEST_RETRIES=2
 
 usage() {
     echo "usage: $0 CMD DISTRO"
@@ -229,7 +230,7 @@ run() {
 
     set +e
     # Must specify a value for "-j" option, otherwise Travis uses a huge value.
-    ../../aux/btest/btest -j 4 -d
+    ../../aux/btest/btest -z ${BTEST_RETRIES} -j 4 -d
 
     if [ $? -ne 0 ]; then
         ret=1

@@ -13,6 +13,7 @@ if [[ -z "${CIRRUS_CI}" ]]; then
     [[ $(which nproc) ]] && ZEEK_CI_CPUS=$(nproc)
     [[ -n "${1}" ]] && ZEEK_CI_CPUS=${1}
     ZEEK_CI_BTEST_JOBS=${ZEEK_CI_CPUS}
+    ZEEK_CI_BTEST_RETRIES=2
 fi
 
 function pushd
@@ -56,7 +57,7 @@ function run_btests
     banner "Running baseline tests: zeek"
 
     pushd testing/btest
-    ${BTEST} -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
+    ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
     make coverage
     prep_artifacts
     popd

@@ -1,4 +1,8 @@
 
+3.1.0-dev.577 | 2020-02-07 09:43:48 -0800
+
+  * Use 2 btest retries for CI (Jon Siwek, Corelight)
+
 3.1.0-dev.575 | 2020-02-07 09:31:50 -0800
 
   * GH-780: Prevent log batches from indefinite buffering

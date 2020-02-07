@@ -6,44 +6,22 @@
 
 3.1.0-dev.570 | 2020-02-06 14:58:34 -0800
 
-  * &on_change wrapup: documentation, tests, whitespacing
+  * add &on_change attribute for sets/tables
 
-    Adds documentation, fixes a whitespace issues, fixes compiler warning on
-    some Linux system, extends test. (Johanna Amann, Corelight)
+    The &on_change attribute allows users to specify a function that is
+    called when a set or table is changed via a direct insertion/delete/change
+    or element expiry.
 
-  * Table expiry now raises &on_change handlers
+    Example:
 
-    Expiry is remprted as ELEMENT_EXPIRED (which was newly introduced), to
-    allow distinction from table deletion. (Johanna Amann, Corelight)
+    function set_change(t: set[string], tpe: TableChange, idx: string)
+        {
+        print "set_change", idx, tpe;
+        }
 
-  * Prevent recursion of &on_change handlers.
+    global s: set[string] &on_change=set_change;
 
-    This change prevents &on_change handlers for a table from running if an
-    &on_change handler for the same table is already running. (Johanna Amann, Corelight)
-
-  * Make bro_broker::val_to_data take a const Val* instead of a Val (Johanna Amann, Corelight)
-
-  * &on_change: add insertion/change notifications.
-
-    Also - work with sets in addition to tables. (Johanna Amann, Corelight)
-
-  * &on_change working for removals from tables.
-
-    Insertions and changes are still noops. (Johanna Amann, Corelight)
-
-  * Change signature of &on_change handler
-
-    After thinking about this for quite a while (and starting
-    implementation) - for now I think it is much easier to not allow the
-    table &on_change handler to change the result of a change - but to only
-    be notified that a change happened.
-
-    I might re-think this lateron - the reasoning is that this makes
-    development easier, and that I am not quite sure about potential
-    side-effects for things that assume that a table change does take
-    effect. (Johanna Amann, Corelight)
-
-  * Beginning implementation of &on_change for tables. (Johanna Amann, Corelight)
+    (Johanna Amann, Corelight)
 
 3.1.0-dev.554 | 2020-02-06 13:05:39 -0800
 

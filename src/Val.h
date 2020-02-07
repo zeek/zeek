@@ -86,13 +86,50 @@ union BroValUnion {
 
 	vector<Val*>* vector_val;
 
+	BroValUnion() = default;
+
+	constexpr BroValUnion(bro_int_t value) noexcept
+		:int_val(value) {}
+
+	constexpr BroValUnion(bro_uint_t value) noexcept
+		:uint_val(value) {}
+
+	constexpr BroValUnion(IPAddr* value) noexcept
+		:addr_val(value) {}
+
+	constexpr BroValUnion(IPPrefix* value) noexcept
+		:subnet_val(value) {}
+
+	constexpr BroValUnion(double value) noexcept
+		:double_val(value) {}
+
+	constexpr BroValUnion(BroString* value) noexcept
+		:string_val(value) {}
+
+	constexpr BroValUnion(Func* value) noexcept
+		:func_val(value) {}
+
+	constexpr BroValUnion(BroFile* value) noexcept
+		:file_val(value) {}
+
+	constexpr BroValUnion(RE_Matcher* value) noexcept
+		:re_val(value) {}
+
+	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
+		:table_val(value) {}
+
+	constexpr BroValUnion(val_list* value) noexcept
+		:val_list_val(value) {}
+
+	constexpr BroValUnion(vector<Val*> *value) noexcept
+		:vector_val(value) {}
 };
 
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
+		:val(d)
 		{
-		val.double_val = d;
 		type = base_type(t);
 #ifdef DEBUG
 		bound_id = 0;
@@ -114,8 +151,8 @@ public:
 		}
 
 	Val()
+		:val(bro_int_t(0))
 		{
-		val.int_val = 0;
 		type = base_type(TYPE_ERROR);
 #ifdef DEBUG
 		bound_id = 0;
@@ -312,28 +349,34 @@ protected:
 
 	static Val* MakeBool(bool b)
 		{
-		auto rval = new Val(TYPE_BOOL);
-		rval->val.int_val = b;
-		return rval;
+		return new Val(bro_int_t(b), TYPE_BOOL);
 		}
 
 	static Val* MakeInt(bro_int_t i)
 		{
-		auto rval = new Val(TYPE_INT);
-		rval->val.int_val = i;
-		return rval;
+		return new Val(i, TYPE_INT);
 		}
 
 	static Val* MakeCount(bro_uint_t u)
 		{
-		auto rval = new Val(TYPE_COUNT);
-		rval->val.uint_val = u;
-		return rval;
+		return new Val(u, TYPE_COUNT);
 		}
 
-	explicit Val(TypeTag t)
+	template<typename V>
+	Val(V &&v, TypeTag t) noexcept
+		:val(std::forward<V>(v))
 		{
 		type = base_type(t);
+#ifdef DEBUG
+		bound_id = 0;
+#endif
+		}
+
+	template<typename V>
+	Val(V &&v, BroType* t) noexcept
+		:val(std::forward<V>(v))
+		{
+		type = t->Ref();
 #ifdef DEBUG
 		bound_id = 0;
 #endif
@@ -918,9 +961,8 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	EnumVal(EnumType* t, int i) : Val(t)
+	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
 		{
-		val.int_val = i;
 		}
 
 	void ValDescribe(ODesc* d) const override;

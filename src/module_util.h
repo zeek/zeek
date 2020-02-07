@@ -6,7 +6,7 @@
 
 #include <string>
 
-static const char* GLOBAL_MODULE_NAME = "GLOBAL";
+static constexpr const char* GLOBAL_MODULE_NAME = "GLOBAL";
 
 extern std::string extract_module_name(const char* name);
 extern std::string extract_var_name(const char* name);

@@ -1,4 +1,53 @@
 
+3.1.0-dev.597 | 2020-02-07 15:25:56 -0700
+
+  * plugin/Manager: migrate to std::string_view (Max Kellermann)
+
+  * util: optimize the normal_path() common case
+
+    Speeds up Zeek startup by 2%. (Max Kellermann)
+
+  * util: pass string_view to without_bropath_component() (Max Kellermann)
+
+  * module_util: make GLOBAL_MODULE_NAME constexpr
+
+    This allows the compiler to hard-code pointers to the string without
+    looking up a global variable at runtime. (Max Kellermann)
+
+  * Scope: convert Scope::Lookup() and others to template
+
+    Allows passing rvalue references which eliminates unnecessary
+    std::string copies.
+
+    This speeds up Zeek startup by 1-2%. (Max Kellermann)
+
+  * Scope: Vars() returns const reference
+
+    No caller wants to modify the container. (Max Kellermann)
+
+  * Anon: remove unnecessary {map,vector}::clear() calls
+
+    The destructor will do this automatically. (Max Kellermann)
+
+  * Dict: make the destructor non-virtual (Max Kellermann)
+
+  * Obj: make the Location constructors `constexpr` (Max Kellermann)
+
+  * Obj: remove unused fields Location::{timestamp,text} (Max Kellermann)
+
+  * Obj: remove Location::delete_data, nobody ever sets it
+
+    This allows removing the destructor completely, making the class
+    trivially-destructible. (Max Kellermann)
+
+  * Obj: make the Location destructor non-virtual
+
+    Nobody ever derives from this class.  This removes an indirect call
+    and allows inlining the destructor.
+
+    This speeds up Zeek startup by 1-2%. (Max Kellermann)
+
+
 3.1.0-dev.584 | 2020-02-07 14:12:17 -0800
 
   * Improve kerberos analyzer address and event handling

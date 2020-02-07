@@ -6,35 +6,14 @@
 
 class ODesc;
 
-class Location {
+class Location final {
 public:
-	Location(const char* fname, int line_f, int line_l, int col_f, int col_l)
-		{
-		filename = fname;
-		first_line = line_f;
-		last_line = line_l;
-		first_column = col_f;
-		last_column = col_l;
-		delete_data = false;
+	constexpr Location(const char* fname, int line_f, int line_l,
+			   int col_f, int col_l) noexcept
+		:filename(fname), first_line(line_f), last_line(line_l),
+		 first_column(col_f), last_column(col_l) {}
 
-		timestamp = 0;
-		text = 0;
-		}
-
-	Location()
-		{
-		filename = 0;
-		first_line = last_line = first_column = last_column = 0;
-		delete_data = false;
-		timestamp = 0;
-		text = 0;
-		}
-
-	virtual ~Location()
-		{
-		if ( delete_data )
-			delete [] filename;
-		}
+	Location() = default;
 
 	void Describe(ODesc* d) const;
 
@@ -42,14 +21,9 @@ public:
 	bool operator!=(const Location& l) const
 		{ return ! (*this == l); }
 
-	const char* filename;
-	int first_line, last_line;
-	int first_column, last_column;
-	bool delete_data;
-
-	// Timestamp and text for compatibility with Bison's default yyltype.
-	int timestamp;
-	char* text;
+	const char* filename = nullptr;
+	int first_line = 0, last_line = 0;
+	int first_column = 0, last_column = 0;
 };
 
 #define YYLTYPE yyltype

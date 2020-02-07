@@ -23,7 +23,7 @@ class Dictionary {
 public:
 	explicit Dictionary(dict_order ordering = UNORDERED,
 			int initial_size = 0);
-	virtual ~Dictionary();
+	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one

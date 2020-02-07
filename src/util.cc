@@ -1612,6 +1612,15 @@ TEST_CASE("util normalize_path")
 
 string normalize_path(std::string_view path)
 	{
+	if ( path.find("/.") == std::string_view::npos &&
+	     path.find("//") == std::string_view::npos )
+		{
+		// no need to normalize anything
+		if ( path.size() > 1 && path.back() == '/' )
+			path.remove_suffix(1);
+		return std::string(path);
+		}
+
 	size_t n;
 	vector<std::string_view> final_components;
 	string new_path;
@@ -1669,7 +1678,7 @@ string normalize_path(std::string_view path)
 	return new_path;
 	}
 
-string without_bropath_component(const string& path)
+string without_bropath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
@@ -1683,13 +1692,14 @@ string without_bropath_component(const string& path)
 			continue;
 
 		// Found the containing directory.
-		rval.erase(0, common.size());
+		std::string_view v(rval);
+		v.remove_prefix(common.size());
 
 		// Remove leading path separators.
-		while ( rval.size() && rval[0] == '/' )
-			rval.erase(0, 1);
+		while ( !v.empty() && v.front() == '/' )
+			v.remove_prefix(1);
 
-		return rval;
+		return std::string(v);
 		}
 
 	return rval;

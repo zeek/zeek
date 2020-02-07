@@ -1,4 +1,16 @@
 
+3.1.0-dev.575 | 2020-02-07 09:31:50 -0800
+
+  * GH-780: Prevent log batches from indefinite buffering
+
+    Logs that got sent sparsely or burstily would get buffered for long
+    periods of time since the logic to flush them only does so on the next
+    log write.  In the worst case, a subsequent log write could never happen
+    and cause a log entry to be indefinitely buffered.
+
+    This fix introduces a recurring event/timer to simply flush all pending
+    logs at frequency of Broker::log_batch_interval. (Jon Siwek, Corelight)
+
 3.1.0-dev.571 | 2020-02-07 10:33:16 +0000
 
   * Update NEWS to point out Broker wireformat change. (Robin Sommer,

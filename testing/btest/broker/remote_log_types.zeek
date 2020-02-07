@@ -91,6 +91,8 @@ function foo(i : count) : string
 		return "Bar";
 	}
 
+global done = F;
+
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "Broker::peer_added", endpoint$network$address;
@@ -118,7 +120,15 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		$f=foo
 		]);
 
-	Broker::publish("zeek/", quit_receiver);
+	done = T;
+	}
+
+module Broker;
+
+event Broker::log_flush()
+	{
+	if ( done )
+		Broker::publish("zeek/", quit_receiver);
 	}
 
 @TEST-END-FILE

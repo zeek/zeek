@@ -73,6 +73,10 @@ public:
 
 	virtual ~BroObj();
 
+	/* disallow copying */
+	BroObj(const BroObj &) = delete;
+	BroObj &operator=(const BroObj &) = delete;
+
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
 	// then obj2 is only used to pinpoint the location.

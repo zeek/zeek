@@ -1,4 +1,8 @@
 
+3.1.0-dev.598 | 2020-02-07 15:06:56 -0800
+
+  * Improve stability of a &expire_func btest (Jon Siwek, Corelight)
+
 3.1.0-dev.597 | 2020-02-07 15:25:56 -0700
 
   * plugin/Manager: migrate to std::string_view (Max Kellermann)

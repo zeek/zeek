@@ -31,7 +31,7 @@ typedef Location yyltype;
 YYLTYPE GetCurrentLocation();
 
 // Used to mean "no location associated with this object".
-extern Location no_location;
+inline constexpr Location no_location("<no location>", 0, 0, 0, 0);
 
 // Current start/end location.
 extern Location start_location;

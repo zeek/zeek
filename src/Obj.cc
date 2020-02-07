@@ -10,7 +10,6 @@
 #include "File.h"
 #include "plugin/Manager.h"
 
-Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 

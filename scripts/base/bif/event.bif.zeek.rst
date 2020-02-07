@@ -18,6 +18,7 @@ Summary
 Events
 ######
 =========================================================================== =============================================================================
+:zeek:id:`Pcap::file_done`: :zeek:type:`event`                              An event that signals a pcap file is done being processed.
 :zeek:id:`anonymization_mapping`: :zeek:type:`event`                        Shows an IP address anonymization mapping.
 :zeek:id:`conn_stats`: :zeek:type:`event`                                   Generated when a TCP connection terminated, passing on statistics about the
                                                                             two endpoints.
@@ -100,6 +101,15 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
+.. zeek:id:: Pcap::file_done
+
+   :Type: :zeek:type:`event` (path: :zeek:type:`string`)
+
+   An event that signals a pcap file is done being processed.
+   
+
+   :path: the filesystem path of the pcap file
+
 .. zeek:id:: anonymization_mapping
 
    :Type: :zeek:type:`event` (orig: :zeek:type:`addr`, mapped: :zeek:type:`addr`)

@@ -38,28 +38,23 @@
 #include "threading/formatters/JSON.h"
 
 Val::Val(Func* f)
-	:val(f)
+	:val(f), type(f->FType()->Ref())
 	{
 	::Ref(val.func_val);
-	type = f->FType()->Ref();
-#ifdef DEBUG
-	bound_id = 0;
-#endif
 	}
 
-Val::Val(BroFile* f)
-	:val(f)
+static FileType *GetStringFileType() noexcept
 	{
 	static FileType* string_file_type = 0;
 	if ( ! string_file_type )
 		string_file_type = new FileType(base_type(TYPE_STRING));
+	return string_file_type;
+	}
 
+Val::Val(BroFile* f)
+	:val(f), type(GetStringFileType()->Ref())
+	{
 	assert(f->FType()->Tag() == TYPE_STRING);
-	type = string_file_type->Ref();
-
-#ifdef DEBUG
-	bound_id = 0;
-#endif
 	}
 
 Val::~Val()

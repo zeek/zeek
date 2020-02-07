@@ -128,12 +128,8 @@ union BroValUnion {
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
-		:val(d)
+		:val(d), type(base_type(t))
 		{
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	explicit Val(Func* f);
@@ -143,20 +139,13 @@ public:
 	explicit Val(BroFile* f);
 
 	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
+		:type(new TypeType(t->Ref()))
 		{
-		type = new TypeType(t->Ref());
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	Val()
-		:val(bro_int_t(0))
+		:val(bro_int_t(0)), type(base_type(TYPE_ERROR))
 		{
-		type = base_type(TYPE_ERROR);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	~Val() override;
@@ -364,30 +353,19 @@ protected:
 
 	template<typename V>
 	Val(V &&v, TypeTag t) noexcept
-		:val(std::forward<V>(v))
+		:val(std::forward<V>(v)), type(base_type(t))
 		{
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	template<typename V>
 	Val(V &&v, BroType* t) noexcept
-		:val(std::forward<V>(v))
+		:val(std::forward<V>(v)), type(t->Ref())
 		{
-		type = t->Ref();
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	explicit Val(BroType* t)
+		:type(t->Ref())
 		{
-		type = t->Ref();
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
@@ -415,7 +393,7 @@ protected:
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
-	const char* bound_id;
+	const char* bound_id = nullptr;
 #endif
 
 };

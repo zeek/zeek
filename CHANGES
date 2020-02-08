@@ -1,4 +1,8 @@
 
+3.1.0-rc1 | 2020-02-08 15:48:11 -0800
+
+  * Release 3.1.0-rc1.
+
 3.1.0-dev.603 | 2020-02-08 15:47:48 -0800
 
   * Fix broken links in documentation (Jon Siwek, Corelight)

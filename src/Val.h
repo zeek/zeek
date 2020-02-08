@@ -479,9 +479,7 @@ public:
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
 protected:
-	friend class Val;
 	friend class ValManager;
-	PortVal()	{}
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
@@ -504,11 +502,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	AddrVal()	{}
-	explicit AddrVal(TypeTag t) : Val(t)	{ }
-	explicit AddrVal(BroType* t) : Val(t)	{ }
-
 	Val* DoClone(CloneState* state) override;
 };
 
@@ -533,9 +526,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	SubNetVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -566,9 +556,6 @@ public:
 	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
 
 protected:
-	friend class Val;
-	StringVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -585,9 +572,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	PatternVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -630,9 +614,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	ListVal()	{}
-
 	Val* DoClone(CloneState* state) override;
 
 	val_list vals;
@@ -819,9 +800,6 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 protected:
-	friend class Val;
-	TableVal()	{}
-
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
@@ -925,9 +903,6 @@ public:
 	static void ResizeParseTimeRecords();
 
 protected:
-	friend class Val;
-	RecordVal()	{}
-
 	Val* DoClone(CloneState* state) override;
 
 	BroObj* origin;
@@ -947,8 +922,6 @@ protected:
 		{
 		val.int_val = i;
 		}
-
-	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
@@ -1012,9 +985,6 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
-	friend class Val;
-	VectorVal()	{ }
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 

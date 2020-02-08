@@ -1,4 +1,10 @@
 
+3.0.2-dev.32 | 2020-02-22 17:30:03 -0800
+
+  * Improve an input framework test (Jon Siwek, Corelight)
+
+  * Improve stability of a &expire_func btest (Jon Siwek, Corelight)
+
 3.0.2-dev.30 | 2020-02-22 16:37:51 -0800
 
   * Fix reference counting issues related to lambdas/closures (Jon Siwek, Corelight)

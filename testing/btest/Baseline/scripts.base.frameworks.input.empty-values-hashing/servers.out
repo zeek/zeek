@@ -1,0 +1,11 @@
+==========SERVERS============
+{
+[2] = [s=<uninitialized>, ss=<uninitialized>],
+[1] = [s=<uninitialized>, ss=TEST]
+}
+==========SERVERS============
+{
+[2] = [s=TEST, ss=TEST],
+[1] = [s=TEST, ss=<uninitialized>]
+}
+done

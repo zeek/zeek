@@ -3,6 +3,15 @@
 Zeek Manual
 ===========
 
+.. note::
+
+    There's three primary versions of this manual that track latest
+    releases and development:
+
+    * Current Feature Release: https://docs.zeek.org/en/current
+    * Long-Term Support Release: https://docs.zeek.org/en/lts
+    * Git *master* Branch: https://docs.zeek.org/en/master
+
 Introduction
 ============
 

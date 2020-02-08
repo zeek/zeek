@@ -61,11 +61,10 @@ const char* type_name(TypeTag t)
 	}
 
 BroType::BroType(TypeTag t, bool arg_base_type)
+	:tag(t), internal_tag(to_internal_type_tag(tag)),
+	 is_network_order(::is_network_order(t)),
+	 base_type(arg_base_type)
 	{
-	tag = t;
-	is_network_order = ::is_network_order(t);
-	base_type = arg_base_type;
-	internal_tag = to_internal_type_tag(tag);
 	}
 
 BroType* BroType::ShallowClone()

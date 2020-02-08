@@ -1,4 +1,8 @@
 
+3.1.0-dev.603 | 2020-02-08 15:47:48 -0800
+
+  * Fix broken links in documentation (Jon Siwek, Corelight)
+
 3.1.0-dev.602 | 2020-02-08 12:44:40 -0800
 
   * Update submodules to release versions (Jon Siwek, Corelight)

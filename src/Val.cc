@@ -828,9 +828,8 @@ AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
 	val.addr_val = new IPAddr(text);
 	}
 
-AddrVal::AddrVal(const std::string& text) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str())
 	{
-	val.addr_val = new IPAddr(text);
 	}
 
 AddrVal::AddrVal(uint32_t addr) : Val(TYPE_ADDR)
@@ -886,16 +885,12 @@ SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
 	val.subnet_val = new IPPrefix(text, width);
 	}
 
-SubNetVal::SubNetVal(uint32_t addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(uint32_t addr, int width) : SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
 	{
-	IPAddr a(IPv4, &addr, IPAddr::Network);
-	val.subnet_val = new IPPrefix(a, width);
 	}
 
-SubNetVal::SubNetVal(const uint32_t* addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const uint32_t* addr, int width) : SubNetVal(IPAddr{IPv6, addr, IPAddr::Network}, width)
 	{
-	IPAddr a(IPv6, addr, IPAddr::Network);
-	val.subnet_val = new IPPrefix(a, width);
 	}
 
 SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
@@ -984,20 +979,17 @@ StringVal::StringVal(BroString* s) : Val(TYPE_STRING)
 	val.string_val = s;
 	}
 
-StringVal::StringVal(int length, const char* s) : Val(TYPE_STRING)
+// The following adds a NUL at the end.
+StringVal::StringVal(int length, const char* s) : StringVal(new BroString((const u_char*)  s, length, 1))
 	{
-	// The following adds a NUL at the end.
-	val.string_val = new BroString((const u_char*)  s, length, 1);
 	}
 
-StringVal::StringVal(const char* s) : Val(TYPE_STRING)
+StringVal::StringVal(const char* s) : StringVal(new BroString(s))
 	{
-	val.string_val = new BroString(s);
 	}
 
-StringVal::StringVal(const string& s) : Val(TYPE_STRING)
+StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 	{
-	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
 	}
 
 Val* StringVal::SizeVal() const

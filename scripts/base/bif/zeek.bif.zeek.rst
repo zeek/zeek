@@ -2150,7 +2150,7 @@ Functions
 
    :returns: True if reading traffic from a network interface.
    
-   .. zeek:see:: reading_traces packet_sources
+   .. zeek:see:: reading_traces packet_source
 
 .. zeek:id:: reading_traces
 
@@ -2162,7 +2162,7 @@ Functions
 
    :returns: True if reading traffic from a network trace.
    
-   .. zeek:see:: reading_live_traffic packet_sources
+   .. zeek:see:: reading_live_traffic packet_source
 
 .. zeek:id:: record_fields
 

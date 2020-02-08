@@ -83,7 +83,6 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	explicit BroType(TypeTag tag, bool base_type = false);
-	~BroType() override { }
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types

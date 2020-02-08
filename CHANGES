@@ -1,4 +1,8 @@
 
+3.1.0-dev.602 | 2020-02-08 12:44:40 -0800
+
+  * Update submodules to release versions (Jon Siwek, Corelight)
+
 3.1.0-dev.601 | 2020-02-08 09:40:15 -0800
 
   * Update embedded CAF to 0.17.4 (Jon Siwek, Corelight)

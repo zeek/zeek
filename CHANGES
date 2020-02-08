@@ -1,4 +1,8 @@
 
+3.1.0-dev.599 | 2020-02-07 19:58:35 -0800
+
+  * Improve an input framework test (Jon Siwek, Corelight)
+
 3.1.0-dev.598 | 2020-02-07 15:06:56 -0800
 
   * Improve stability of a &expire_func btest (Jon Siwek, Corelight)

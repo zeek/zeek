@@ -15,7 +15,7 @@
 # # simply update this test's TEST-START-FILE with the latest contents
 # site/local.zeek.
 
-@TEST-START-FILE local-3.1.zeek
+@TEST-START-FILE local-3.2.zeek
 ##! Local site policy. Customize as appropriate.
 ##!
 ##! This file will not be overwritten when upgrading or reinstalling!

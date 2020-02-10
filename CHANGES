@@ -1,4 +1,8 @@
 
+3.0.6-dev.6 | 2020-04-29 18:22:04 -0700
+
+  * Fix buffer over-read in Ident analyzer (Max Kellermann)
+
 3.0.6-dev.5 | 2020-04-29 18:09:39 -0700
 
   * Fix cloning of TypeType values (Vern Paxson, Corelight)

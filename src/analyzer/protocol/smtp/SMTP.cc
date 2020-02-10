@@ -180,8 +180,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			{
 			// Don't know whether it is a command line or
 			// a data line.
-			if ( line_after_gap )
-				delete line_after_gap;
+			delete line_after_gap;
 
 			line_after_gap =
 				new BroString((const u_char *) line, length, 1);

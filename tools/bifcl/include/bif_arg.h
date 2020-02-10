@@ -1,5 +1,4 @@
-#ifndef bif_arg_h
-#define bif_arg_h
+#pragma once
 
 #include <stdio.h>
 
@@ -47,5 +46,3 @@ protected:
 	const char* type_str;
 	const char* attr_str;
 };
-
-#endif

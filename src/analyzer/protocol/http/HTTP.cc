@@ -1264,13 +1264,13 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	if ( rest == end_of_method )
 		goto error;
 
-	request_method = new StringVal(end_of_method - line, line);
-
 	if ( ! ParseRequest(rest, end_of_line) )
 		{
 		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
 		return -1;
 		}
+
+	request_method = new StringVal(end_of_method - line, line);
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),

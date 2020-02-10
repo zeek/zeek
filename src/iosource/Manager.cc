@@ -324,8 +324,8 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	{
 	std::pair<std::string, std::string> t = split_prefix(path);
-	std::string prefix = t.first;
-	std::string npath = t.second;
+	const auto& prefix = t.first;
+	const auto& npath = t.second;
 
 	// Find the component providing packet sources of the requested prefix.
 

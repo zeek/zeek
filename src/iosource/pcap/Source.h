@@ -41,8 +41,6 @@ private:
 	pcap_t *pd;
 
 	struct pcap_pkthdr current_hdr;
-	struct pcap_pkthdr last_hdr;
-	const u_char* last_data;
 };
 
 }

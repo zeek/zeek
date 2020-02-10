@@ -70,9 +70,6 @@ Manager::~Manager()
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
 		delete i->second;
 
-	analyzers_by_port_udp.clear();
-	analyzers_by_port_tcp.clear();
-
 	// Clean up expected-connection table.
 	while ( conns_by_timeout.size() )
 		{

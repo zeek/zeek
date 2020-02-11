@@ -148,9 +148,10 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string_view loc_str)
 
 	else if ( plr.type == plrFunction )
 		{
+		std::string loc_s(loc_str);
 		kind = BP_FUNC;
 		function_name = make_full_var_name(current_module.c_str(),
-							loc_str.data());
+							loc_s.c_str());
 		at_stmt = plr.stmt;
 		const Location* loc = at_stmt->GetLocationInfo();
 		snprintf(description, sizeof(description), "%s at %s:%d",

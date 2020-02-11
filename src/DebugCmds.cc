@@ -27,7 +27,7 @@
 //
 // Helper routines
 //
-bool string_is_regex(string_view s)
+bool string_is_regex(const string& s)
 	{
 	return strpbrk(s.data(), "?*\\+");
 	}

@@ -1,5 +1,9 @@
 %include consts.pac
 
+%extern{
+#include "BroString.h"
+%}
+
 # Common constructs across SSH1 and SSH2
 ########################################
 

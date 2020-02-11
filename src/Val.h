@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Type.h"
-#include "BroString.h"
 #include "Timer.h"
 #include "Notifier.h"
 #include "RE.h"
@@ -33,6 +32,7 @@ template<typename T> class PDict;
 class IterCookie;
 
 class Val;
+class BroString;
 class BroFunc;
 class Func;
 class BroFile;
@@ -546,12 +546,11 @@ public:
 	explicit StringVal(const string& s);
 	StringVal(int length, const char* s);
 
-	Val* SizeVal() const override
-		{ return val_mgr->GetCount(val.string_val->Len()); }
+	Val* SizeVal() const override;
 
-	int Len()		{ return AsString()->Len(); }
-	const u_char* Bytes()	{ return AsString()->Bytes(); }
-	const char* CheckString() { return AsString()->CheckString(); }
+	int Len();
+	const u_char* Bytes();
+	const char* CheckString();
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.

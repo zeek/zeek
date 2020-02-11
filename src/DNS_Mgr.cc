@@ -31,6 +31,7 @@
 
 #include <algorithm>
 
+#include "BroString.h"
 #include "Event.h"
 #include "Net.h"
 #include "Val.h"

@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 
+#include "BroString.h"
 #include "NetVar.h"
 #include "Event.h"
 #include "Reporter.h"

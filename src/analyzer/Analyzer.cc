@@ -7,6 +7,7 @@
 #include "binpac.h"
 
 #include "analyzer/protocol/pia/PIA.h"
+#include "../BroString.h"
 #include "../Event.h"
 
 namespace analyzer {

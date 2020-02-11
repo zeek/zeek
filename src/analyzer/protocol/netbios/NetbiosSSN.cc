@@ -5,6 +5,7 @@
 
 #include <ctype.h>
 
+#include "BroString.h"
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"

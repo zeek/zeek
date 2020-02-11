@@ -10,6 +10,7 @@
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"
+#include "BroString.h"
 #include "Reporter.h"
 
 static RecordType* ip4_hdr_type = 0;

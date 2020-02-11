@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include "Attr.h"
+#include "BroString.h"
 #include "CompHash.h"
 #include "Dict.h"
 #include "Net.h"
@@ -996,6 +997,26 @@ StringVal::StringVal(const char* s) : Val(TYPE_STRING)
 StringVal::StringVal(const string& s) : Val(TYPE_STRING)
 	{
 	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
+	}
+
+Val* StringVal::SizeVal() const
+	{
+	return val_mgr->GetCount(val.string_val->Len());
+	}
+
+int StringVal::Len()
+	{
+	return AsString()->Len();
+	}
+
+const u_char* StringVal::Bytes()
+	{
+	return AsString()->Bytes();
+	}
+
+const char* StringVal::CheckString()
+	{
+	return AsString()->CheckString();
 	}
 
 string StringVal::ToStdString() const

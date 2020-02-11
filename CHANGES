@@ -1,4 +1,8 @@
 
+3.1.0-rc1.1 | 2020-02-12 00:23:31 -0800
+
+  * Fix SSH analyzer assertion/leak after duplicate KEX packet (Max Kellermann)
+
 3.1.0-rc1 | 2020-02-08 15:48:11 -0800
 
   * Release 3.1.0-rc1.

@@ -14,6 +14,7 @@
 
 #include "iosource/Manager.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "DebugLogger.h"
 #include "ID.h"
 #include "Val.h"

@@ -7,7 +7,6 @@
 #include "CompHash.h"
 #include "BroString.h"
 #include "Timer.h"
-#include "Scope.h"
 #include "Notifier.h"
 #include "RE.h"
 #include "net_util.h"
@@ -286,10 +285,7 @@ public:
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	ID* GetID() const
-		{
-		return bound_id ? global_scope()->Lookup(bound_id) : 0;
-		}
+	ID* GetID() const;
 
 	void SetID(ID* id);
 #endif

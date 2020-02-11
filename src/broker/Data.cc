@@ -2,6 +2,7 @@
 #include "File.h"
 #include "Desc.h"
 #include "IntrusivePtr.h"
+#include "Scope.h"
 #include "module_util.h"
 #include "3rdparty/doctest.h"
 #include "broker/data.bif.h"

@@ -363,6 +363,11 @@ void Val::ValDescribeReST(ODesc* d) const
 
 
 #ifdef DEBUG
+ID* Val::GetID() const
+	{
+	return bound_id ? global_scope()->Lookup(bound_id) : 0;
+	}
+
 void Val::SetID(ID* id)
 	{
 	delete [] bound_id;

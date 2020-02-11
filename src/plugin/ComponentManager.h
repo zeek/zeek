@@ -8,6 +8,7 @@
 #include "Var.h" // for add_type()
 #include "Val.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "zeekygen/Manager.h"
 #include "DebugLogger.h"
 

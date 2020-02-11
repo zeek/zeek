@@ -4,6 +4,7 @@
 
 #include "MQTT.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "mqtt_pac.h"
 
 using namespace analyzer::MQTT;

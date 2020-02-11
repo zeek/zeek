@@ -373,6 +373,7 @@ refine connection SSH_Conn += {
 				{
 				if ( *(client_list->Lookup(i)->AsStringVal()->AsString()) == *(server_list->Lookup(j)->AsStringVal()->AsString()) )
 					{
+					kex_algorithm_.free();
 					kex_algorithm_.init((const uint8 *) client_list->Lookup(i)->AsStringVal()->Bytes(),
 						client_list->Lookup(i)->AsStringVal()->Len());
 

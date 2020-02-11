@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Type.h"
-#include "Dict.h"
 #include "CompHash.h"
 #include "BroString.h"
 #include "Timer.h"
@@ -30,6 +29,9 @@ using std::string;
 #define TCP_PORT_MASK	0x10000
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
+
+template<typename T> class PDict;
+class IterCookie;
 
 class Val;
 class BroFunc;
@@ -786,7 +788,7 @@ public:
 	Attributes* Attrs()	{ return attrs; }
 
 	// Returns the size of the table.
-	int Size() const	{ return AsTable()->Length(); }
+	int Size() const;
 	int RecursiveSize() const;
 
 	// Returns the Prefix table used inside the table (if present).

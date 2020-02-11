@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include "iosource/Manager.h"
+#include "Dict.h"
 #include "Reporter.h"
 #include "Scope.h"
 #include "DebugLogger.h"

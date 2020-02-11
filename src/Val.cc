@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include "Attr.h"
+#include "Dict.h"
 #include "Net.h"
 #include "File.h"
 #include "Func.h"
@@ -1355,6 +1356,11 @@ void TableVal::RemoveAll()
 	delete AsTable();
 	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	}
+
+int TableVal::Size() const
+	{
+	return AsTable()->Length();
 	}
 
 int TableVal::RecursiveSize() const

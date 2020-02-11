@@ -5,7 +5,6 @@
 #include "Type.h"
 #include "Timer.h"
 #include "Notifier.h"
-#include "RE.h"
 #include "net_util.h"
 
 #include <vector>
@@ -59,6 +58,8 @@ class StateAccess;
 class VectorVal;
 
 class TableEntryVal;
+
+class RE_Matcher;
 
 typedef union {
 	// Used for bool, int, enum.

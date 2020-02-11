@@ -15,6 +15,7 @@
 #include "iosource/Manager.h"
 #include "BroString.h"
 #include "Dict.h"
+#include "RE.h"
 #include "Reporter.h"
 #include "Scope.h"
 #include "DebugLogger.h"

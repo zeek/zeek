@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include "Attr.h"
+#include "CompHash.h"
 #include "Dict.h"
 #include "Net.h"
 #include "File.h"
@@ -2553,6 +2554,11 @@ unsigned int TableVal::MemoryAllocation() const
 
 	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
+	}
+
+HashKey* TableVal::ComputeHash(const Val* index) const
+	{
+	return table_hash->ComputeHash(index, 1);
 	}
 
 vector<RecordVal*> RecordVal::parse_time_records;

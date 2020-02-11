@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "OpaqueVal.h"
+#include "CompHash.h"
 #include "NetVar.h"
 #include "Reporter.h"
 #include "Scope.h"

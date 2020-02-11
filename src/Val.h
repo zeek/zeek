@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Type.h"
-#include "CompHash.h"
 #include "BroString.h"
 #include "Timer.h"
 #include "Notifier.h"
@@ -698,6 +697,7 @@ protected:
 };
 
 class CompositeHash;
+class HashKey;
 class Frame;
 
 class TableVal : public Val, public notifier::Modifiable {
@@ -814,8 +814,7 @@ public:
 			timer = 0;
 		}
 
-	HashKey* ComputeHash(const Val* index) const
-		{ return table_hash->ComputeHash(index, 1); }
+	HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 

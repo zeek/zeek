@@ -5,12 +5,12 @@
 %}
 
 %header{
-VectorVal* name_list_to_vector(const bytestring nl);
+VectorVal* name_list_to_vector(const bytestring& nl);
 %}
 
 %code{
 // Copied from IRC_Analyzer::SplitWords
-VectorVal* name_list_to_vector(const bytestring nl)
+VectorVal* name_list_to_vector(const bytestring& nl)
 	{
 	VectorVal* vv = new VectorVal(internal_type("string_vec")->AsVectorType());
 

@@ -24,7 +24,7 @@ void ReStructuredTextTable::AddRow(const vector<string>& new_row)
 			longest_row_in_column[i] = new_row[i].size();
 	}
 
-string ReStructuredTextTable::MakeBorder(const vector<size_t> col_sizes,
+string ReStructuredTextTable::MakeBorder(const vector<size_t>& col_sizes,
                                          char border)
 	{
 	string rval;

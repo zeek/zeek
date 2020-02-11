@@ -27,7 +27,7 @@ static void DbgAndWarn(const char* msg)
 	}
 
 static void WarnMissingScript(const char* type, const ID* id,
-                              string script)
+                              const string& script)
 	{
 	if ( script == "<command line>" )
 		return;

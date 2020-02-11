@@ -405,7 +405,7 @@ analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	return root_analyzer ? root_analyzer->FindChild(id) : 0;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(analyzer::Tag tag)
+analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
 	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
 	}

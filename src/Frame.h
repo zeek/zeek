@@ -180,7 +180,7 @@ public:
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const id_list selection);
+	static broker::expected<broker::data> Serialize(const Frame* target, const id_list& selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.

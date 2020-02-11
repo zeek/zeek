@@ -735,7 +735,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	return true;
 	}
 
-bool Manager::CheckErrorEventTypes(std::string stream_name, const Func* ev, bool table) const
+bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* ev, bool table) const
 	{
 	if ( ev == nullptr )
 		return true;

@@ -62,11 +62,11 @@ private:
 	* \param split character which separates the words
 	* \return vector containing words
 	*/
-	vector<string> SplitWords(const string input, const char split);
+	vector<string> SplitWords(const string& input, char split);
 
 	tcp::ContentLine_Analyzer* cl_orig;
 	tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

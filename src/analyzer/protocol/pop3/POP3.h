@@ -99,7 +99,7 @@ protected:
 	void EndData();
 	void StartTLS();
 
-	vector<string> TokenizeLine(const string input, const char split);
+	vector<string> TokenizeLine(const string& input, char split);
 	int ParseCmd(string cmd);
 	void AuthSuccessfull();
 	void POP3Event(EventHandlerPtr event, bool is_orig,
@@ -114,4 +114,4 @@ private:
 	tcp::ContentLine_Analyzer* cl_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -403,7 +403,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	return true;
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(const Tag& analyzer)
 	{
 	if ( HasChildAnalyzer(analyzer) )
 		return nullptr;
@@ -605,7 +605,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(Tag tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(const Tag& tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )

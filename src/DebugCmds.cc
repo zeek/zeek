@@ -366,7 +366,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 
 	int cond_index = -1; // at which argument pos. does bp condition start?
 
-	if ( args.size() == 0 || args[0] == "if" )
+	if ( args.empty() || args[0] == "if" )
 		{ // break on next stmt
 		int user_frame_number =
 			g_frame_stack.size() - 1 -
@@ -431,7 +431,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 		}
 
 	// Is there a condition specified?
-	if ( cond_index >= 0 && bps.size() )
+	if ( cond_index >= 0 && ! bps.empty() )
 		{
 		// ### Implement conditions
 		string cond;
@@ -490,7 +490,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 		return 0;
 		}
 
-	if ( g_debugger_state.breakpoints.size() == 0 )
+	if ( g_debugger_state.breakpoints.empty() )
 		{
 		debug_msg ("No breakpoints currently set.\n");
 		return -1;
@@ -498,7 +498,7 @@ int dbg_cmd_break_set_state(DebugCmd cmd, const vector<string>& args)
 
 	vector<int> bps_to_change;
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		BPIDMapType::iterator iter;
 		for ( iter = g_debugger_state.breakpoints.begin();
@@ -587,7 +587,7 @@ int dbg_cmd_info(DebugCmd cmd, const vector<string>& args)
 	{
 	assert(cmd == dcInfo);
 
-	if ( ! args.size() )
+	if ( args.empty() )
 		{
 		debug_msg("Syntax: info info-command\n");
 		debug_msg("List of info-commands:\n");
@@ -635,7 +635,7 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args)
 		return 0;
 		}
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		// Special case: if we just hit a breakpoint, then show
 		// that line without advancing first.
@@ -700,7 +700,7 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args)
 	{
 	assert(cmd == dcTrace);
 
-	if ( args.size() == 0 )
+	if ( args.empty() )
 		{
 		debug_msg("Execution tracing is %s.\n",
 		g_trace_state.DoTrace() ? "on" : "off" );

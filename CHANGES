@@ -1,4 +1,8 @@
 
+3.2.0-dev.18 | 2020-02-12 00:04:40 -0800
+
+  * Fix SSH analyzer assertion/leak after duplicate KEX packet (Max Kellermann)
+
 3.2.0-dev.16 | 2020-02-11 23:44:06 -0800
 
   * Add missing #includes (clang-diagnostic-error) (Tim Wojtulewicz, Corelight)

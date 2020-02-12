@@ -155,7 +155,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 		desc->AddEscapeSequence(separators.set_separator);
 
-		for ( int j = 0; j < val->val.set_val.size; j++ )
+		for ( bro_int_t j = 0; j < val->val.set_val.size; j++ )
 			{
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
@@ -182,7 +182,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 		desc->AddEscapeSequence(separators.set_separator);
 
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
+		for ( bro_int_t j = 0; j < val->val.vector_val.size; j++ )
 			{
 			if ( j > 0 )
 				desc->AddRaw(separators.set_separator);
@@ -360,9 +360,9 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		{
 		// how many entries do we have...
 		unsigned int length = 1;
-		for ( unsigned int i = 0; i < s.size(); i++ )
+		for ( const auto& c : s )
 			{
-			if ( s[i] == separators.set_separator[0] )
+			if ( c == separators.set_separator[0] )
 				length++;
 			}
 

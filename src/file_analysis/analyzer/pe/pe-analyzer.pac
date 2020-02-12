@@ -14,7 +14,7 @@ zeek::VectorValPtr process_rvas(const RVAS* rva_table)
 	{
 	auto rvas = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
-	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
+	for ( size_t i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, zeek::val_mgr->Count((*rva_table->rvas())[i]->size()));
 
 	return rvas;

@@ -843,8 +843,8 @@ bool Manager::Subscribe(const string& topic_prefix)
 
 bool Manager::Forward(string topic_prefix)
 	{
-	for ( auto i = 0u; i < forwarded_prefixes.size(); ++i )
-		if ( forwarded_prefixes[i] == topic_prefix )
+	for ( const auto& prefix : forwarded_prefixes )
+		if ( prefix == topic_prefix )
 			return false;
 
 	DBG_LOG(DBG_BROKER, "Forwarding topic prefix %s", topic_prefix.c_str());
@@ -855,7 +855,7 @@ bool Manager::Forward(string topic_prefix)
 
 bool Manager::Unsubscribe(const string& topic_prefix)
 	{
-	for ( auto i = 0u; i < forwarded_prefixes.size(); ++i )
+	for ( size_t i = 0u; i < forwarded_prefixes.size(); ++i )
 		if ( forwarded_prefixes[i] == topic_prefix )
 			{
 			DBG_LOG(DBG_BROKER, "Unforwading topic prefix %s", topic_prefix.c_str());
@@ -1154,10 +1154,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 
 	auto& topic_string = topic.string();
 
-	for ( auto i = 0u; i < forwarded_prefixes.size(); ++i )
+	for ( const auto& p : forwarded_prefixes )
 		{
-		auto& p = forwarded_prefixes[i];
-
 		if ( p.size() > topic_string.size() )
 			continue;
 
@@ -1182,7 +1180,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	zeek::Args vl;
 	vl.reserve(args.size());
 
-	for ( auto i = 0u; i < args.size(); ++i )
+	for ( size_t i = 0u; i < args.size(); ++i )
 		{
 		auto got_type = args[i].get_type_name();
 		const auto& expected_type = arg_types[i];
@@ -1194,7 +1192,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			{
 			auto expected_name = zeek::type_name(expected_type->Tag());
 
-			reporter->Warning("failed to convert remote event '%s' arg #%d,"
+			reporter->Warning("failed to convert remote event '%s' arg #%lu,"
 					  " got %s, expected %s",
 					  name.data(), i, got_type,
 					  expected_name);
@@ -1257,13 +1255,13 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	auto num_fields = fields_data->size();
 	auto fields = new threading::Field* [num_fields];
 
-	for ( auto i = 0u; i < num_fields; ++i )
+	for ( size_t i = 0u; i < num_fields; ++i )
 		{
 		if ( auto field = data_to_threading_field(std::move((*fields_data)[i])) )
 			fields[i] = field;
 		else
 			{
-			reporter->Warning("failed to convert remote log field # %d", i);
+			reporter->Warning("failed to convert remote log field # %lu", i);
 			delete [] fields;
 			return false;
 			}

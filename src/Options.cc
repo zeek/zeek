@@ -179,7 +179,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 
 		rval.run_unit_tests = true;
 
-		for ( auto i = 0; i < std::distance(first, separator); ++i )
+		for ( size_t i = 0; i < std::distance(first, separator); ++i )
 			rval.doctest_args.emplace_back(argv[i]);
 		}
 	else
@@ -250,7 +250,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 	// getopt may permute the array, so need yet another array
 	auto zargs = std::make_unique<char*[]>(zeek_args.size());
 
-	for ( auto i = 0u; i < zeek_args.size(); ++i )
+	for ( size_t i = 0u; i < zeek_args.size(); ++i )
 		zargs[i] = zeek_args[i].data();
 
 	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) != EOF )

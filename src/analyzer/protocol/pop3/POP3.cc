@@ -870,7 +870,7 @@ int POP3_Analyzer::ParseCmd(std::string cmd)
 		if ( c == '+' || c == '-' )
 			cmd = cmd.substr(1);
 
-		for ( unsigned int i = 0; i < cmd.size(); ++i )
+		for ( size_t i = 0; i < cmd.size(); ++i )
 			cmd[i] = toupper(cmd[i]);
 
 		if ( ! cmd.compare(pop3_cmd_word[code]) )

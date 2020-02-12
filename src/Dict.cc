@@ -206,6 +206,7 @@ void Dictionary::Clear()
 	DeInit();
 	tbl = nullptr;
 	tbl2 = nullptr;
+	num_entries = 0;
 	}
 
 void Dictionary::DeInit()

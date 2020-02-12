@@ -166,13 +166,8 @@ protected:
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
 	Analyzer(RecordVal* arg_args, File* arg_file)
-	    : tag(),
-	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file),
-	      got_stream_delivery(false),
-	      skip(false)
+	    : Analyzer({}, arg_args, arg_file)
 		{
-		id = ++id_counter;
 		}
 
 private:

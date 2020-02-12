@@ -10,6 +10,7 @@
 #include "IntrusivePtr.h"
 #include "Trigger.h"
 #include "Val.h"
+#include "ID.h"
 
 vector<Frame*> g_frame_stack;
 

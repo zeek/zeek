@@ -31,6 +31,7 @@
 #include "Conn.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "Var.h" // for internal_type()
 
 #include "broker/Data.h"
 

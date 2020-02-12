@@ -1,10 +1,27 @@
 #include "Store.h"
 #include "Desc.h"
+#include "Var.h" // for internal_type()
 #include "broker/Manager.h"
 
 namespace bro_broker {
 
 OpaqueType* opaque_of_store_handle;
+
+EnumVal* query_status(bool success)
+	{
+	static EnumType* store_query_status = nullptr;
+	static int success_val;
+	static int failure_val;
+
+	if ( ! store_query_status )
+		{
+		store_query_status = internal_type("Broker::QueryStatus")->AsEnumType();
+		success_val = store_query_status->Lookup("Broker", "SUCCESS");
+		failure_val = store_query_status->Lookup("Broker", "FAILURE");
+		}
+
+	return store_query_status->GetVal(success ? success_val : failure_val);
+	}
 
 void StoreHandleVal::ValDescribe(ODesc* d) const
 	{

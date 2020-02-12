@@ -14,6 +14,7 @@
 #include "PktDumper.h"
 #include "plugin/Manager.h"
 #include "broker/Manager.h"
+#include "NetVar.h"
 
 #include "util.h"
 

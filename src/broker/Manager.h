@@ -17,11 +17,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "NetVar.h"
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
 class Frame;
+class Func;
 
 namespace bro_broker {
 

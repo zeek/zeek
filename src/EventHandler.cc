@@ -4,6 +4,7 @@
 #include "Func.h"
 #include "Scope.h"
 #include "NetVar.h"
+#include "ID.h"
 
 #include "broker/Manager.h"
 #include "broker/Data.h"

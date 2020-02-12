@@ -27,8 +27,7 @@ TEST_SUITE_BEGIN("Dict");
 
 class DictEntry {
 public:
-	DictEntry(void* k, int l, hash_t h, void* val)
-		{ key = k; len = l; hash = h; value = val; }
+	DictEntry(void* k, int l, hash_t h, void* val) : key(k), len(l), hash(h), value(val) {}
 
 	~DictEntry()
 		{
@@ -45,17 +44,11 @@ public:
 // bucket at which to start looking for the next value to return.
 class IterCookie {
 public:
-	IterCookie(int b, int o)
-		{
-		bucket = b;
-		offset = o;
-		ttbl = 0;
-		num_buckets_p = 0;
-		}
+	IterCookie(int b, int o) : bucket(b), offset(o) {}
 
 	int bucket, offset;
-	PList<DictEntry>** ttbl;
-	const int* num_buckets_p;
+	PList<DictEntry>** ttbl = nullptr;
+	const int* num_buckets_p = 0;
 	PList<DictEntry> inserted;	// inserted while iterating
 };
 
@@ -195,22 +188,8 @@ TEST_CASE("dict iteration")
 
 Dictionary::Dictionary(dict_order ordering, int initial_size)
 	{
-	tbl = 0;
-	tbl2 = 0;
-
 	if ( ordering == ORDERED )
 		order = new PList<DictEntry>;
-	else
-		order = 0;
-
-	delete_func = 0;
-	tbl_next_ind = 0;
-
-	cumulative_entries = 0;
-	num_buckets = num_entries = max_num_entries = thresh_entries = 0;
-	den_thresh = 0;
-	num_buckets2 = num_entries2 = max_num_entries2 = thresh_entries2 = 0;
-	den_thresh2 = 0;
 
 	if ( initial_size > 0 )
 		Init(initial_size);
@@ -225,8 +204,8 @@ Dictionary::~Dictionary()
 void Dictionary::Clear()
 	{
 	DeInit();
-	tbl = 0;
-	tbl2 = 0;
+	tbl = nullptr;
+	tbl2 = nullptr;
 	}
 
 void Dictionary::DeInit()
@@ -249,8 +228,9 @@ void Dictionary::DeInit()
 			}
 
 	delete [] tbl;
+	tbl = nullptr;
 
-	if ( tbl2 == 0 )
+	if ( ! tbl2 )
 		return;
 
 	for ( int i = 0; i < num_buckets2; ++i )
@@ -268,7 +248,7 @@ void Dictionary::DeInit()
 			}
 
 	delete [] tbl2;
-	tbl2 = 0;
+	tbl2 = nullptr;
 	}
 
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
@@ -524,7 +504,7 @@ void Dictionary::Init(int size)
 	tbl = new PList<DictEntry>*[num_buckets];
 
 	for ( int i = 0; i < num_buckets; ++i )
-		tbl[i] = 0;
+		tbl[i] = nullptr;
 
 	max_num_entries = num_entries = 0;
 	SetDensityThresh(DEFAULT_DENSITY_THRESH);
@@ -536,7 +516,7 @@ void Dictionary::Init2(int size)
 	tbl2 = new PList<DictEntry>*[num_buckets2];
 
 	for ( int i = 0; i < num_buckets2; ++i )
-		tbl2[i] = 0;
+		tbl2[i] = nullptr;
 
 	max_num_entries2 = num_entries2 = 0;
 	}
@@ -713,7 +693,7 @@ void Dictionary::FinishChangeSize()
 	delete [] tbl;
 
 	tbl = tbl2;
-	tbl2 = 0;
+	tbl2 = nullptr;
 
 	num_buckets = num_buckets2;
 	num_entries = num_entries2;

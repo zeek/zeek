@@ -1,4 +1,9 @@
 
+3.1.0-rc1.3 | 2020-02-13 19:37:49 -0800
+
+  * Reset the number of entries in a dict when calling Clear()
+    (Tim Wojtulewicz, Corelight)
+
 3.1.0-rc1.2 | 2020-02-13 17:21:07 -0800
 
   * Check for failure when registering event manager with iosource manager

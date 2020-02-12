@@ -1148,6 +1148,8 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
 		                       "Broker::Data's opaque field is not set");
 
+	// RuntimeError throws an exception which causes this line to never exceute.
+	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
 	return static_cast<DataVal*>(d)->data;
 	}
 

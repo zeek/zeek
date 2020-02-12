@@ -119,7 +119,7 @@ void DbgBreakpoint::RemoveFromStmt()
 	}
 
 
-bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string loc_str)
+bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string_view loc_str)
 	{
 	if ( plr.type == plrUnknown )
 		{
@@ -148,9 +148,10 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string loc_str)
 
 	else if ( plr.type == plrFunction )
 		{
+		std::string loc_s(loc_str);
 		kind = BP_FUNC;
 		function_name = make_full_var_name(current_module.c_str(),
-							loc_str.c_str());
+							loc_s.c_str());
 		at_stmt = plr.stmt;
 		const Location* loc = at_stmt->GetLocationInfo();
 		snprintf(description, sizeof(description), "%s at %s:%d",

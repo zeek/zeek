@@ -402,7 +402,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			return;
 			}
 
-		size_t p = byte_range.find("/");
+		size_t p = byte_range.find('/');
 		if ( p == string::npos )
 			{
 			http_message->Weird("HTTP_content_range_cannot_parse");
@@ -412,7 +412,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		string byte_range_resp_spec = byte_range.substr(0, p);
 		string instance_length_str = byte_range.substr(p + 1);
 
-		p = byte_range_resp_spec.find("-");
+		p = byte_range_resp_spec.find('-');
 		if ( p == string::npos )
 			{
 			http_message->Weird("HTTP_content_range_cannot_parse");

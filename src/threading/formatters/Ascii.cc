@@ -300,7 +300,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 	case TYPE_SUBNET:
 		{
 		string unescaped = strstrip(get_unescaped_string(s));
-		size_t pos = unescaped.find("/");
+		size_t pos = unescaped.find('/');
 		if ( pos == unescaped.npos )
 			{
 			GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));

@@ -4,6 +4,10 @@ module Pcap;
 const snaplen: count;
 const bufsize: count;
 
+%%{
+#include "iosource/Manager.h"
+%%}
+
 ## Precompiles a PCAP filter and binds it to a given identifier.
 ##
 ## id: The PCAP identifier to reference the filter *s* later on.

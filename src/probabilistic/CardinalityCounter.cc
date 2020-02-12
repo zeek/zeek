@@ -76,7 +76,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
 	p = other.p;
 	}
 
-CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
+CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 	{
 	V = o.V;
 	alpha_m = o.alpha_m;
@@ -173,7 +173,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	if ( m != c->GetM() )
 		return false;
 
-	const vector<uint8_t> temp = c->GetBuckets();
+	const vector<uint8_t>& temp = c->GetBuckets();
 
 	V = 0;
 

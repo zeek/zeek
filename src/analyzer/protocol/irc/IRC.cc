@@ -34,7 +34,7 @@ void IRC_Analyzer::Done()
 
 inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 	{
-	const auto first_char = str.find_first_not_of(" ");
+	const auto first_char = str.find_first_not_of(' ');
 	if ( first_char == string::npos )
 		str = "";
 	else
@@ -1206,11 +1206,11 @@ void IRC_Analyzer::StartTLS()
 		ConnectionEventFast(irc_starttls, {BuildConnVal()});
 	}
 
-vector<string> IRC_Analyzer::SplitWords(const string input, const char split)
+vector<string> IRC_Analyzer::SplitWords(const string& input, char split)
 	{
 	vector<string> words;
 
-	if ( input.size() < 1 )
+	if ( input.empty() )
 		return words;
 
 	unsigned int start = 0;

@@ -100,7 +100,7 @@ void Manager::SetHandle(const string& handle)
 	}
 
 string Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset,
-                       analyzer::Tag tag, Connection* conn, bool is_orig,
+                       const analyzer::Tag& tag, Connection* conn, bool is_orig,
                        const string& precomputed_id, const string& mime_type)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
@@ -129,7 +129,7 @@ string Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset,
 	return id;
 	}
 
-string Manager::DataIn(const u_char* data, uint64_t len, analyzer::Tag tag,
+string Manager::DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
 		       Connection* conn, bool is_orig, const string& precomputed_id,
 		       const string& mime_type)
 	{
@@ -170,13 +170,13 @@ void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id,
 		RemoveFile(file->GetID());
 	}
 
-void Manager::EndOfFile(analyzer::Tag tag, Connection* conn)
+void Manager::EndOfFile(const analyzer::Tag& tag, Connection* conn)
 	{
 	EndOfFile(tag, conn, true);
 	EndOfFile(tag, conn, false);
 	}
 
-void Manager::EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig)
+void Manager::EndOfFile(const analyzer::Tag& tag, Connection* conn, bool is_orig)
 	{
 	// Don't need to create a file if we're just going to remove it right away.
 	RemoveFile(GetFileID(tag, conn, is_orig));
@@ -187,7 +187,7 @@ void Manager::EndOfFile(const string& file_id)
 	RemoveFile(file_id);
 	}
 
-string Manager::Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
+string Manager::Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
                     Connection* conn, bool is_orig, const string& precomputed_id)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
@@ -200,7 +200,7 @@ string Manager::Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
 	return id;
 	}
 
-string Manager::SetSize(uint64_t size, analyzer::Tag tag, Connection* conn,
+string Manager::SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
                         bool is_orig, const string& precomputed_id)
 	{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
@@ -278,7 +278,7 @@ bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
 	return file->SetExtractionLimit(args, n);
 	}
 
-bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                           RecordVal* args) const
 	{
 	File* file = LookupFile(file_id);
@@ -289,7 +289,7 @@ bool Manager::AddAnalyzer(const string& file_id, file_analysis::Tag tag,
 	return file->AddAnalyzer(tag, args);
 	}
 
-bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                              RecordVal* args) const
 	{
 	File* file = LookupFile(file_id);
@@ -301,7 +301,7 @@ bool Manager::RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
-                       analyzer::Tag tag, bool is_orig, bool update_conn,
+                       const analyzer::Tag& tag, bool is_orig, bool update_conn,
                        const char* source_name)
 	{
 	if ( file_id.empty() )
@@ -417,7 +417,7 @@ bool Manager::IsIgnored(const string& file_id)
 	return ignored.find(file_id) != ignored.end();
 	}
 
-string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
+string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 	{
 	current_file_id.clear();
 
@@ -442,7 +442,7 @@ string Manager::GetFileID(analyzer::Tag tag, Connection* c, bool is_orig)
 	return current_file_id;
 	}
 
-bool Manager::IsDisabled(analyzer::Tag tag)
+bool Manager::IsDisabled(const analyzer::Tag& tag)
 	{
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
@@ -460,7 +460,7 @@ bool Manager::IsDisabled(analyzer::Tag tag)
 	return rval;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
 	{
 	Component* c = Lookup(tag);
 

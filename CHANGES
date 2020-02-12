@@ -1,4 +1,40 @@
 
+3.2.0-dev.16 | 2020-02-11 23:44:06 -0800
+
+  * Add missing #includes (clang-diagnostic-error) (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary const from a return value
+    (readability-const-return-type) (Tim Wojtulewicz, Corelight)
+
+  * Create SegmentProfiler objects with names (bugprone-unused-raii)
+    (Tim Wojtulewicz, Corelight)
+
+    The reason behind this one is that without a real variable name, the
+    profile objects are immediately desctructed and the profiling only happens
+    for the small window when they were valid. If the intention is to profile
+    the method where they were defined, this doesn't actually happen.
+
+  * Mark a few clang-tidy findings as false-positive (Tim Wojtulewicz, Corelight)
+
+  * Use std::move in a few places instead of copying argument
+    (performance-unnecessary-value-param) (Tim Wojtulewicz, Corelight)
+
+  * Use const-references in lots of places (preformance-unnecessary-value-param)
+    (Tim Wojtulewicz, Corelight)
+
+  * Use string_view for a couple of Dbg methods (Tim Wojtulewicz, Corelight)
+
+  * Use const references over copying variables
+    (performance-unnecessary-copy-initialization, performance-for-range-copy)
+    (Tim Wojtulewicz, Corelight)
+
+  * Use single-character version of string find() (performance-faster-string-find)
+    (Tim Wojtulewicz, Corelight)
+
+  * Move constructors/operators should be marked noexcept to avoid the compiler
+    picking the copy constructor instead (performance-noexcept-move-constructor)
+    (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.1 | 2020-02-08 16:20:20 -0800
 
   * Update Broker submodule (Jon Siwek, Corelight)

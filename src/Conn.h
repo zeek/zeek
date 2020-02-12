@@ -111,7 +111,7 @@ public:
 	void FlipRoles();
 
 	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
-	analyzer::Analyzer* FindAnalyzer(analyzer::Tag tag);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(const analyzer::Tag& tag);	// find first in tree.
 	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }

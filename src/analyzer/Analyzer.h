@@ -378,7 +378,7 @@ public:
 	 * @param tag The type of analyzer to add.
 	 * @return the new analyzer instance that was added.
 	 */
-	Analyzer* AddChildAnalyzer(Tag tag);
+	Analyzer* AddChildAnalyzer(const Tag& tag);
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
@@ -647,7 +647,7 @@ protected:
 	 *
 	 * @param orig True if asking about the originator side.
 	 */
-	bool HasSupportAnalyzer(Tag tag, bool orig);
+	bool HasSupportAnalyzer(const Tag& tag, bool orig);
 
 	/**
 	 * Returns the first still active support analyzer for the given

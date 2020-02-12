@@ -2,6 +2,7 @@
 
 %%{
 #include "probabilistic/CardinalityCounter.h"
+#include "OpaqueVal.h"
 
 using namespace probabilistic;
 %%}
@@ -132,4 +133,3 @@ function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardin
 
 	return out;
 	%}
-

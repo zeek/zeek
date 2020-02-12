@@ -884,7 +884,7 @@ int POP3_Analyzer::ParseCmd(string cmd)
 	return -1;
 	}
 
-vector<string> POP3_Analyzer::TokenizeLine(const string input, const char split)
+vector<string> POP3_Analyzer::TokenizeLine(const string& input, char split)
 	{
 	vector<string> tokens;
 

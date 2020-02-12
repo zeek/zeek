@@ -276,7 +276,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 	return other;
 	}
 
-broker::expected<broker::data> Frame::Serialize(const Frame* target, id_list selection)
+broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_list& selection)
 	{
 	broker::vector rval;
 

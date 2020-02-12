@@ -309,7 +309,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, location);
+	SegmentProfiler prof(segment_logger, location);
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
@@ -629,7 +629,7 @@ Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, Name());
+	SegmentProfiler prof(segment_logger, Name());
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);

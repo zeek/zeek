@@ -212,7 +212,7 @@ void net_init(const std::optional<std::string>& interface,
 
 void expire_timers(iosource::PktSrc* src_ps)
 	{
-	SegmentProfiler(segment_logger, "expiring-timers");
+	SegmentProfiler prof(segment_logger, "expiring-timers");
 
 	current_dispatched +=
 		timer_mgr->Advance(network_time,

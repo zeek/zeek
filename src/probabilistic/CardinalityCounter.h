@@ -43,7 +43,7 @@ public:
 	/**
 	 * Move-Constructor
 	 */
-	CardinalityCounter(CardinalityCounter&& o);
+	CardinalityCounter(CardinalityCounter&& o) noexcept;
 
 	/**
 	 * Constructor for a known number of buckets.

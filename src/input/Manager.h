@@ -191,7 +191,7 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(std::string stream_name, const Func* error_event, bool table) const;
+	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);

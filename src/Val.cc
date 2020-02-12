@@ -961,8 +961,7 @@ IPAddr SubNetVal::Mask() const
 
 bool SubNetVal::Contains(const IPAddr& addr) const
 	{
-	IPAddr a(addr);
-	return val.subnet_val->Contains(a);
+	return val.subnet_val->Contains(addr);
 	}
 
 Val* SubNetVal::DoClone(CloneState* state)

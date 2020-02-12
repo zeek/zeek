@@ -38,7 +38,7 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
-Analyzer* AnalyzerSet::Find(file_analysis::Tag tag, RecordVal* args)
+Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 	Analyzer* rval = analyzer_map.Lookup(key);
@@ -46,7 +46,7 @@ Analyzer* AnalyzerSet::Find(file_analysis::Tag tag, RecordVal* args)
 	return rval;
 	}
 
-bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 
@@ -73,7 +73,7 @@ bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 	return true;
 	}
 
-Analyzer* AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
+Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
@@ -106,12 +106,12 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	return true;
 	}
 
-bool AnalyzerSet::Remove(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	return Remove(tag, GetKey(tag, args));
 	}
 
-bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, HashKey* key)
 	{
 	file_analysis::Analyzer* a =
 	    (file_analysis::Analyzer*) analyzer_map.Remove(key);
@@ -139,7 +139,7 @@ bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
 	return true;
 	}
 
-bool AnalyzerSet::QueueRemove(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 
@@ -153,7 +153,7 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	return set->Remove(tag, key);
 	}
 
-HashKey* AnalyzerSet::GetKey(file_analysis::Tag t, RecordVal* args) const
+HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	{
 	ListVal* lv = new ListVal(TYPE_ANY);
 	lv->Append(t.AsEnumVal()->Ref());
@@ -166,7 +166,7 @@ HashKey* AnalyzerSet::GetKey(file_analysis::Tag t, RecordVal* args) const
 	return key;
 	}
 
-file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(Tag tag,
+file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
                                                           RecordVal* args) const
 	{
 	file_analysis::Analyzer* a = file_mgr->InstantiateAnalyzer(tag, args, file);

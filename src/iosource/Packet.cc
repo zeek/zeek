@@ -29,7 +29,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	ts = *arg_ts;
 	cap_len = arg_caplen;
 	len = arg_len;
-	tag = arg_tag;
+	tag = std::move(arg_tag);
 
 	copy = arg_copy;
 

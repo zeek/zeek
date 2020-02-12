@@ -110,7 +110,7 @@ public:
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
-	                   analyzer::Tag tag, Connection* conn, bool is_orig,
+	                   const analyzer::Tag& tag, Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -136,7 +136,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64_t len, analyzer::Tag tag,
+	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
 	                   Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
@@ -159,7 +159,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -167,7 +167,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
@@ -191,7 +191,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
+	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
 	                Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
@@ -210,7 +210,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64_t size, analyzer::Tag tag, Connection* conn,
+	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -276,7 +276,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	                 RecordVal* args) const;
 
 	/**
@@ -286,7 +286,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	                    RecordVal* args) const;
 
 	/**
@@ -303,7 +303,7 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -359,7 +359,7 @@ protected:
 	 *         connection-related fields.
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
-	              analyzer::Tag tag = analyzer::Tag::Error,
+	              const analyzer::Tag& tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
 	              const char* source_name = 0);
 
@@ -390,7 +390,7 @@ protected:
 	 * @return #current_file_id, which is a hash of a unique file handle string
 	 *         set by a \c get_file_handle event handler.
 	 */
-	std::string GetFileID(analyzer::Tag tag, Connection* c, bool is_orig);
+	std::string GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -400,7 +400,7 @@ protected:
 	 * @return whether file analysis is disabled for the analyzer given by
 	 *         \a tag.
 	 */
-	static bool IsDisabled(analyzer::Tag tag);
+	static bool IsDisabled(const analyzer::Tag& tag);
 
 private:
 	typedef set<Tag> TagSet;

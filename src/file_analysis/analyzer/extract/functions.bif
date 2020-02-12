@@ -4,6 +4,7 @@ module FileExtract;
 
 %%{
 #include "file_analysis/Manager.h"
+#include "file_analysis/file_analysis.bif.h"
 %%}
 
 ## :zeek:see:`FileExtract::set_limit`.

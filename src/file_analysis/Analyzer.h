@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "Val.h"
-#include "NetVar.h"
 #include "Tag.h"
 
-#include "file_analysis/file_analysis.bif.h"
+#include <sys/types.h> // for u_char
+
+class RecordVal;
 
 namespace file_analysis {
 
@@ -146,15 +146,7 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
-	    : tag(arg_tag),
-	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file),
-	      got_stream_delivery(false),
-	      skip(false)
-		{
-		id = ++id_counter;
-		}
+	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
 
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.

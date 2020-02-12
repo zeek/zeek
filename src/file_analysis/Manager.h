@@ -12,7 +12,7 @@
 
 #include "plugin/ComponentManager.h"
 
-#include "file_analysis/file_analysis.bif.h"
+#include "analyzer/Tag.h"
 
 using std::map;
 using std::set;

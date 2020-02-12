@@ -15,6 +15,7 @@
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
+#include "Var.h" // for internal_val()
 #include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"

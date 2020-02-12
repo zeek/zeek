@@ -10,6 +10,7 @@
 
 #include "plugin/Manager.h"
 #include "analyzer/Manager.h"
+#include "file_analysis/file_analysis.bif.h"
 
 #include <openssl/md5.h>
 

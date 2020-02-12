@@ -4,13 +4,13 @@
 
 #include <string>
 
-#include "../File.h"
-#include "Analyzer.h"
 #include "X509Common.h"
 
 #include <openssl/ocsp.h>
 
 namespace file_analysis {
+
+class File;
 
 class OCSP : public file_analysis::X509Common {
 public:

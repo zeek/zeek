@@ -205,6 +205,7 @@ set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
 
 set(MAIN_SRCS
     main.cc
+    digest.cc
     net_util.cc
     util.cc
     module_util.cc

@@ -89,6 +89,8 @@ void Dictionary::Clear()
 	DeInit();
 	tbl = 0;
 	tbl2 = 0;
+	num_entries = 0;
+	num_entries2 = 0;
 	}
 
 void Dictionary::DeInit()

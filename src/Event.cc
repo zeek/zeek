@@ -234,5 +234,6 @@ void EventMgr::Process()
 void EventMgr::InitPostScript()
 	{
 	iosource_mgr->Register(this, true, false);
-	iosource_mgr->RegisterFd(queue_flare.FD(), this);
+	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
+		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}

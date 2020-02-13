@@ -1,4 +1,9 @@
 
+3.1.0-rc1.2 | 2020-02-13 17:21:07 -0800
+
+  * Check for failure when registering event manager with iosource manager
+    (Tim Wojtulewicz, Corelight)
+
 3.1.0-rc1.1 | 2020-02-12 00:23:31 -0800
 
   * Fix SSH analyzer assertion/leak after duplicate KEX packet (Max Kellermann)

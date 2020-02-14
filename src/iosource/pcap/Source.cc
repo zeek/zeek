@@ -27,8 +27,6 @@ PcapSource::PcapSource(const std::string& path, bool is_live)
 	props.is_live = is_live;
 	pd = nullptr;
 	memset(&current_hdr, 0, sizeof(current_hdr));
-	memset(&last_hdr, 0, sizeof(last_hdr));
-	last_data = nullptr;
 	}
 
 void PcapSource::Open()
@@ -46,7 +44,6 @@ void PcapSource::Close()
 
 	pcap_close(pd);
 	pd = nullptr;
-	last_data = nullptr;
 
 	Closed();
 
@@ -213,7 +210,6 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	last_data = data;
 	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
@@ -222,8 +218,6 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	last_hdr = current_hdr;
-	last_data = data;
 	++stats.received;
 	stats.bytes_received += current_hdr.len;
 

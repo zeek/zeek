@@ -176,7 +176,6 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
-	virtual	~UncompressedOutput() { }
 	virtual void DeliverStream(int len, const u_char* data, bool orig)
 		{
 		entity->DeliverBodyClear(len, (char*) data, false);

@@ -1,4 +1,19 @@
 
+3.2.0-dev.44 | 2020-02-14 16:16:54 -0700
+
+  * RE: make the RE_Matcher destructor non-virtual (Max Kellermann)
+
+  * analyzer/protocol/smtp: remove unnecessary nullptr check (Max Kellermann)
+
+  * analyzer/Manager: remove unnecessary clear() calls from destructor (Max Kellermann)
+
+  * analyzer/protocol/http: remove unnecessary empty destructor (Max Kellermann)
+
+  * iosource/pcap/Source: remove unused fields `last_hdr`, `last_data` (Max Kellermann)
+
+  * iosource/Manager: eliminate two std::string copies (Max Kellermann)
+
+
 3.2.0-dev.37 | 2020-02-14 11:09:50 -0800
 
   * Fix various format specifiers (Jon Siwek, Corelight)

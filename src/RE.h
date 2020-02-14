@@ -174,12 +174,12 @@ protected:
 	int current_pos;
 };
 
-class RE_Matcher {
+class RE_Matcher final {
 public:
 	RE_Matcher();
 	explicit RE_Matcher(const char* pat);
 	RE_Matcher(const char* exact_pat, const char* anywhere_pat);
-	virtual ~RE_Matcher();
+	~RE_Matcher();
 
 	void AddPat(const char* pat);
 

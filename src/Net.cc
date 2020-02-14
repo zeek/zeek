@@ -289,7 +289,7 @@ void net_run()
 		// starting with the first.
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%ld",
+			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
 				current_time(), ready.size());
 
 			if ( ! ready.empty() )

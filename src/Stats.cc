@@ -135,7 +135,7 @@ void ProfileLogger::Log()
 	SessionStats s;
 	sessions->GetStats(s);
 
-	file->Write(fmt("%.06f Conns: tcp=%lu/%lu udp=%lu/%lu icmp=%lu/%lu\n",
+	file->Write(fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",
 		network_time,
 		s.num_TCP_conns, s.max_TCP_conns,
 		s.num_UDP_conns, s.max_UDP_conns,

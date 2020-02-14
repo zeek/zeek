@@ -156,7 +156,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 			}
 		}
 
-	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %ld   time_to_poll: %d\n",
+	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n",
 		timeout, ready->size(), time_to_poll);
 
 	// If we didn't find any IOSources with zero timeouts or it's time to

@@ -1,4 +1,8 @@
 
+3.2.0-dev.37 | 2020-02-14 11:09:50 -0800
+
+  * Fix various format specifiers (Jon Siwek, Corelight)
+
 3.2.0-dev.36 | 2020-02-14 10:29:36 -0700
 
   * broker: include cleanup (Max Kellermann)

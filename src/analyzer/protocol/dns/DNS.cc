@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "BroString.h"
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"

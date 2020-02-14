@@ -6,6 +6,7 @@
 
 #include <algorithm>
 
+#include "BroString.h"
 #include "Net.h"
 #include "Func.h"
 #include "Var.h"

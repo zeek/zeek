@@ -8,7 +8,7 @@
 #include "CompHash.h"
 #include "IntrusivePtr.h"
 #include "Reporter.h"
-#include "NetVar.h"
+#include "Dict.h"
 
 namespace probabilistic {
 

@@ -7,6 +7,7 @@
 
 #include "RuleAction.h"
 #include "RuleCondition.h"
+#include "BroString.h"
 #include "ID.h"
 #include "IntSet.h"
 #include "IP.h"

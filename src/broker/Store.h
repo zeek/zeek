@@ -2,8 +2,6 @@
 
 #include "broker/store.bif.h"
 #include "broker/data.bif.h"
-#include "Type.h"
-#include "Var.h" // for internal_type()
 #include "OpaqueVal.h"
 #include "Trigger.h"
 
@@ -20,21 +18,7 @@ extern OpaqueType* opaque_of_store_handle;
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-inline EnumVal* query_status(bool success)
-	{
-	static EnumType* store_query_status = nullptr;
-	static int success_val;
-	static int failure_val;
-
-	if ( ! store_query_status )
-		{
-		store_query_status = internal_type("Broker::QueryStatus")->AsEnumType();
-		success_val = store_query_status->Lookup("Broker", "SUCCESS");
-		failure_val = store_query_status->Lookup("Broker", "FAILURE");
-		}
-
-	return store_query_status->GetVal(success ? success_val : failure_val);
-	}
+EnumVal* query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating

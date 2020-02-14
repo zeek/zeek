@@ -2,6 +2,7 @@
 
 #include "zeek-config.h"
 
+#include "CompHash.h"
 #include "Expr.h"
 #include "Event.h"
 #include "Frame.h"

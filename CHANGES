@@ -1,4 +1,27 @@
 
+3.2.0-dev.36 | 2020-02-14 10:29:36 -0700
+
+  * broker: include cleanup (Max Kellermann)
+
+  * file_analysis: include cleanup (Max Kellermann)
+
+  * file_analysis/Analyzer: eliminate duplicate constructor (Max Kellermann)
+
+  * probabilistic/Topk: include cleanup (Max Kellermann)
+
+  * digest: eliminate the "Reporter.h" include (Max Kellermann)
+
+  * Val: eliminate the "RE.h" include (Max Kellermann)
+
+  * Val: eliminate the "BroString.h" include (Max Kellermann)
+
+  * Val: eliminate the "CompHash.h" include (Max Kellermann)
+
+  * Val: forward-declare class PDict, reduce includes (Max Kellermann)
+
+  * Val: eliminate the "Scope.h" include (Max Kellermann)
+
+
 3.2.0-dev.25 | 2020-02-13 19:05:56 -0800
 
   * Reset the number of entries in a dict when calling Clear() (Tim Wojtulewicz, Corelight)

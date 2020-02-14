@@ -4,7 +4,6 @@
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
-#include "Var.h" // for internal_type()
 
 template <class T>
 class IntrusivePtr;
@@ -111,13 +110,7 @@ public:
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType()
-		{
-		if ( ! script_data_type )
-			script_data_type = internal_type("Broker::Data");
-
-		return script_data_type;
-		}
+	static BroType* ScriptDataType();
 
 	broker::data data;
 

@@ -30,6 +30,7 @@ extern "C" {
 #include "Timer.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "Anon.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"

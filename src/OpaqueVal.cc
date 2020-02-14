@@ -3,8 +3,10 @@
 #include <memory>
 
 #include "OpaqueVal.h"
+#include "CompHash.h"
 #include "NetVar.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "Desc.h"
 #include "Var.h"
 #include "probabilistic/BloomFilter.h"

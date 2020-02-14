@@ -2,17 +2,22 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 #include <utility>
 
+#include "analyzer/Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
+#include "BroList.h" // for val_list
 #include "WeirdState.h"
 
 using std::string;
 
 class Connection;
+class RecordType;
 class RecordVal;
+class EventHandlerPtr;
 
 namespace file_analysis {
 

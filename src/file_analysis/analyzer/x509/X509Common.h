@@ -5,15 +5,19 @@
 
 #pragma once
 
-#include "file_analysis/File.h"
 #include "Analyzer.h"
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
 
+class EventHandlerPtr;
 class Reporter;
+class StringVal;
 
 namespace file_analysis {
+
+class Tag;
+class File;
 
 class X509Common : public file_analysis::Analyzer {
 public:

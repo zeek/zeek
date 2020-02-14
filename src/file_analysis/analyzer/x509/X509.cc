@@ -8,6 +8,7 @@
 #include "events.bif.h"
 #include "types.bif.h"
 
+#include "file_analysis/File.h"
 #include "file_analysis/Manager.h"
 
 #include <broker/error.hh>

@@ -3,13 +3,8 @@
 #pragma once
 
 #include "Type.h"
-#include "Dict.h"
-#include "CompHash.h"
-#include "BroString.h"
 #include "Timer.h"
-#include "Scope.h"
 #include "Notifier.h"
-#include "RE.h"
 #include "net_util.h"
 
 #include <vector>
@@ -32,7 +27,11 @@ using std::string;
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
+template<typename T> class PDict;
+class IterCookie;
+
 class Val;
+class BroString;
 class BroFunc;
 class Func;
 class BroFile;
@@ -59,6 +58,8 @@ class StateAccess;
 class VectorVal;
 
 class TableEntryVal;
+
+class RE_Matcher;
 
 typedef union {
 	// Used for bool, int, enum.
@@ -286,10 +287,7 @@ public:
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	ID* GetID() const
-		{
-		return bound_id ? global_scope()->Lookup(bound_id) : 0;
-		}
+	ID* GetID() const;
 
 	void SetID(ID* id);
 #endif
@@ -549,12 +547,11 @@ public:
 	explicit StringVal(const string& s);
 	StringVal(int length, const char* s);
 
-	Val* SizeVal() const override
-		{ return val_mgr->GetCount(val.string_val->Len()); }
+	Val* SizeVal() const override;
 
-	int Len()		{ return AsString()->Len(); }
-	const u_char* Bytes()	{ return AsString()->Bytes(); }
-	const char* CheckString() { return AsString()->CheckString(); }
+	int Len();
+	const u_char* Bytes();
+	const char* CheckString();
 
 	// Note that one needs to de-allocate the return value of
 	// ExpandedString() to avoid a memory leak.
@@ -700,6 +697,7 @@ protected:
 };
 
 class CompositeHash;
+class HashKey;
 class Frame;
 
 class TableVal : public Val, public notifier::Modifiable {
@@ -790,7 +788,7 @@ public:
 	Attributes* Attrs()	{ return attrs; }
 
 	// Returns the size of the table.
-	int Size() const	{ return AsTable()->Length(); }
+	int Size() const;
 	int RecursiveSize() const;
 
 	// Returns the Prefix table used inside the table (if present).
@@ -816,8 +814,7 @@ public:
 			timer = 0;
 		}
 
-	HashKey* ComputeHash(const Val* index) const
-		{ return table_hash->ComputeHash(index, 1); }
+	HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 

@@ -5,6 +5,7 @@
 #include "DataEvent.h"
 #include "EventRegistry.h"
 #include "Event.h"
+#include "Func.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
 

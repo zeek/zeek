@@ -4,6 +4,9 @@
 #include "File.h"
 #include "Analyzer.h"
 #include "Manager.h"
+#include "CompHash.h"
+#include "Val.h"
+#include "file_analysis/file_analysis.bif.h"
 
 using namespace file_analysis;
 
@@ -104,6 +107,12 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	set->Insert(a, key);
 
 	return true;
+	}
+
+void AnalyzerSet::AddMod::Abort()
+	{
+	delete a;
+	delete key;
 	}
 
 bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordVal* args)

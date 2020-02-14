@@ -10,6 +10,7 @@
 #include "types.bif.h"
 #include "ocsp_events.bif.h"
 
+#include "file_analysis/File.h"
 #include "file_analysis/Manager.h"
 
 #include <openssl/x509.h>

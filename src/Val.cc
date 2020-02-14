@@ -14,6 +14,9 @@
 #include <stdlib.h>
 
 #include "Attr.h"
+#include "BroString.h"
+#include "CompHash.h"
+#include "Dict.h"
 #include "Net.h"
 #include "File.h"
 #include "Func.h"
@@ -28,6 +31,7 @@
 #include "Conn.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "Var.h" // for internal_type()
 
 #include "broker/Data.h"
 
@@ -363,6 +367,11 @@ void Val::ValDescribeReST(ODesc* d) const
 
 
 #ifdef DEBUG
+ID* Val::GetID() const
+	{
+	return bound_id ? global_scope()->Lookup(bound_id) : 0;
+	}
+
 void Val::SetID(ID* id)
 	{
 	delete [] bound_id;
@@ -991,6 +1000,26 @@ StringVal::StringVal(const string& s) : Val(TYPE_STRING)
 	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
 	}
 
+Val* StringVal::SizeVal() const
+	{
+	return val_mgr->GetCount(val.string_val->Len());
+	}
+
+int StringVal::Len()
+	{
+	return AsString()->Len();
+	}
+
+const u_char* StringVal::Bytes()
+	{
+	return AsString()->Bytes();
+	}
+
+const char* StringVal::CheckString()
+	{
+	return AsString()->CheckString();
+	}
+
 string StringVal::ToStdString() const
 	{
 	auto* bs = AsString();
@@ -1350,6 +1379,11 @@ void TableVal::RemoveAll()
 	delete AsTable();
 	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
+	}
+
+int TableVal::Size() const
+	{
+	return AsTable()->Length();
 	}
 
 int TableVal::RecursiveSize() const
@@ -2542,6 +2576,11 @@ unsigned int TableVal::MemoryAllocation() const
 
 	return size + padded_sizeof(*this) + val.table_val->MemoryAllocation()
 		+ table_hash->MemoryAllocation();
+	}
+
+HashKey* TableVal::ComputeHash(const Val* index) const
+	{
+	return table_hash->ComputeHash(index, 1);
 	}
 
 vector<RecordVal*> RecordVal::parse_time_records;

@@ -4,14 +4,17 @@
 
 #include <queue>
 
-#include "Analyzer.h"
 #include "Dict.h"
-#include "CompHash.h"
-#include "Val.h"
 #include "Tag.h"
+
+using std::queue;
+
+class CompositeHash;
+class RecordVal;
 
 namespace file_analysis {
 
+class Analyzer;
 class File;
 
 /**
@@ -173,7 +176,7 @@ private:
 			: Modification(), a(arg_a), key(arg_key) {}
 		~AddMod() override {}
 		bool Perform(AnalyzerSet* set) override;
-		void Abort() override { delete a; delete key; }
+		void Abort() override;
 
 	protected:
 		file_analysis::Analyzer* a;

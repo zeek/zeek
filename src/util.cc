@@ -44,6 +44,7 @@
 #endif
 
 #include "Desc.h"
+#include "Dict.h"
 #include "digest.h"
 #include "input.h"
 #include "Obj.h"

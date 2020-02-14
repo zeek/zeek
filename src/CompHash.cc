@@ -3,7 +3,10 @@
 #include "zeek-config.h"
 
 #include "CompHash.h"
+#include "BroString.h"
+#include "Dict.h"
 #include "Val.h"
+#include "RE.h"
 #include "Reporter.h"
 #include "Func.h"
 

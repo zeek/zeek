@@ -2,6 +2,9 @@
 #include "File.h"
 #include "Desc.h"
 #include "IntrusivePtr.h"
+#include "RE.h"
+#include "Var.h" // for internal_type()
+#include "Scope.h"
 #include "module_util.h"
 #include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
@@ -1168,6 +1171,14 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
+	}
+
+BroType* bro_broker::DataVal::ScriptDataType()
+	{
+	if ( ! script_data_type )
+		script_data_type = internal_type("Broker::Data");
+
+	return script_data_type;
 	}
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::DataVal)

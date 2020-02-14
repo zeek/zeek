@@ -1,4 +1,12 @@
 
+3.2.0-dev.25 | 2020-02-13 19:05:56 -0800
+
+  * Reset the number of entries in a dict when calling Clear() (Tim Wojtulewicz, Corelight)
+
+  * Code cleanup in Dict.h (Tim Wojtulewicz, Corelight)
+
+  * Add unit testing for the public Dictionary API (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.21 | 2020-02-13 17:14:26 -0800
 
   * Check for failure when registering event manager with iosource manager

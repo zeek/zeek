@@ -11,7 +11,7 @@ class IterCookie;
 
 // Type indicating whether the dictionary should keep track of the order
 // of insertions.
-typedef enum { ORDERED, UNORDERED } dict_order;
+enum dict_order { ORDERED, UNORDERED };
 
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
@@ -70,7 +70,7 @@ public:
 		}
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const		{ return order != 0; }
+	bool IsOrdered() const		{ return order != 0; }
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -158,26 +158,26 @@ private:
 	// When we're resizing, we'll have tbl (old) and tbl2 (new)
 	// tbl_next_ind keeps track of how much we've moved to tbl2
 	// (it's the next index we're going to move).
-	PList<DictEntry>** tbl;
-	int num_buckets;
-	int num_entries;
-	int max_num_entries;
-	uint64_t cumulative_entries;
-	double den_thresh;
-	int thresh_entries;
+	PList<DictEntry>** tbl = nullptr;
+	int num_buckets = 0;
+	int num_entries = 0;
+	int max_num_entries = 0;
+	uint64_t cumulative_entries = 0;
+	double den_thresh = 0.0;
+	int thresh_entries = 0;
 
 	// Resizing table (replicates tbl above).
-	PList<DictEntry>** tbl2;
-	int num_buckets2;
-	int num_entries2;
-	int max_num_entries2;
-	double den_thresh2;
-	int thresh_entries2;
+	PList<DictEntry>** tbl2 = nullptr;
+	int num_buckets2 = 0;
+	int num_entries2 = 0;
+	int max_num_entries2 = 0;
+	double den_thresh2 = 0;
+	int thresh_entries2 = 0;
 
-	hash_t tbl_next_ind;
+	hash_t tbl_next_ind = 0;
 
-	PList<DictEntry>* order;
-	dict_delete_func delete_func;
+	PList<DictEntry>* order = nullptr;
+	dict_delete_func delete_func = nullptr;
 
 	PList<IterCookie> cookies;
 };

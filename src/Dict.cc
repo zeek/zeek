@@ -6,6 +6,8 @@
 #include <memory.h>
 #endif
 
+#include "3rdparty/doctest.h"
+
 #include "Dict.h"
 #include "Reporter.h"
 
@@ -21,10 +23,11 @@
 // increase the size of the hash table as needed.
 #define DEFAULT_DICT_SIZE 16
 
+TEST_SUITE_BEGIN("Dict");
+
 class DictEntry {
 public:
-	DictEntry(void* k, int l, hash_t h, void* val)
-		{ key = k; len = l; hash = h; value = val; }
+	DictEntry(void* k, int l, hash_t h, void* val) : key(k), len(l), hash(h), value(val) {}
 
 	~DictEntry()
 		{
@@ -41,38 +44,152 @@ public:
 // bucket at which to start looking for the next value to return.
 class IterCookie {
 public:
-	IterCookie(int b, int o)
-		{
-		bucket = b;
-		offset = o;
-		ttbl = 0;
-		num_buckets_p = 0;
-		}
+	IterCookie(int b, int o) : bucket(b), offset(o) {}
 
 	int bucket, offset;
-	PList<DictEntry>** ttbl;
-	const int* num_buckets_p;
+	PList<DictEntry>** ttbl = nullptr;
+	const int* num_buckets_p = nullptr;
 	PList<DictEntry> inserted;	// inserted while iterating
 };
 
+TEST_CASE("dict construction")
+	{
+	PDict<int> dict;
+	CHECK(dict.IsOrdered() == false);
+	CHECK(dict.Length() == 0);
+
+	PDict<int> dict2(ORDERED);
+	CHECK(dict2.IsOrdered() == true);
+	CHECK(dict2.Length() == 0);
+	}
+
+TEST_CASE("dict operation")
+	{
+	PDict<uint32_t> dict;
+
+	uint32_t val = 10;
+	uint32_t key_val = 5;
+
+	HashKey* key = new HashKey(key_val);
+	dict.Insert(key, &val);
+	CHECK(dict.Length() == 1);
+
+	HashKey* key2 = new HashKey(key_val);
+	uint32_t* lookup = dict.Lookup(key2);
+	CHECK(*lookup == val);
+
+	dict.Remove(key2);
+	CHECK(dict.Length() == 0);
+	uint32_t* lookup2 = dict.Lookup(key2);
+	CHECK(lookup2 == (uint32_t*)0);
+	delete key2;
+
+	CHECK(dict.MaxLength() == 1);
+	CHECK(dict.NumCumulativeInserts() == 1);
+
+	dict.Insert(key, &val);
+	dict.Remove(key);
+
+	CHECK(dict.MaxLength() == 1);
+	CHECK(dict.NumCumulativeInserts() == 2);
+
+	uint32_t val2 = 15;
+	uint32_t key_val2 = 25;
+	key2 = new HashKey(key_val2);
+
+	dict.Insert(key, &val);
+	dict.Insert(key2, &val2);
+	CHECK(dict.Length() == 2);
+	CHECK(dict.NumCumulativeInserts() == 4);
+
+	dict.Clear();
+	CHECK(dict.Length() == 0);
+
+	delete key;
+	delete key2;
+	}
+
+TEST_CASE("dict nthentry")
+	{
+	PDict<uint32_t> unordered(UNORDERED);
+	PDict<uint32_t> ordered(ORDERED);
+
+	uint32_t val = 15;
+	uint32_t key_val = 5;
+	HashKey* okey = new HashKey(key_val);
+	HashKey* ukey = new HashKey(key_val);
+
+	uint32_t val2 = 10;
+	uint32_t key_val2 = 25;
+	HashKey* okey2 = new HashKey(key_val2);
+	HashKey* ukey2 = new HashKey(key_val2);
+
+	unordered.Insert(ukey, &val);
+	unordered.Insert(ukey2, &val2);
+
+	ordered.Insert(okey, &val);
+	ordered.Insert(okey2, &val2);
+
+	// NthEntry returns null for unordered dicts
+	uint32_t* lookup = unordered.NthEntry(0);
+	CHECK(lookup == (uint32_t*)0);
+
+	// Ordered dicts are based on order of insertion, nothing about the
+	// data itself
+	lookup = ordered.NthEntry(0);
+	CHECK(*lookup == 15);
+
+	delete okey;
+	delete okey2;
+	delete ukey;
+	delete ukey2;
+	}
+
+TEST_CASE("dict iteration")
+	{
+	PDict<uint32_t> dict;
+
+	uint32_t val = 15;
+	uint32_t key_val = 5;
+	HashKey* key = new HashKey(key_val);
+
+	uint32_t val2 = 10;
+	uint32_t key_val2 = 25;
+	HashKey* key2 = new HashKey(key_val2);
+
+	dict.Insert(key, &val);
+	dict.Insert(key2, &val2);
+
+	HashKey* it_key;
+	IterCookie* it = dict.InitForIteration();
+	CHECK(it != nullptr);
+	int count = 0;
+
+	while ( uint32_t* entry = dict.NextEntry(it_key, it) )
+		{
+		if ( count == 0 )
+			{
+			CHECK(it_key->Hash() == key2->Hash());
+			CHECK(*entry == 10);
+			}
+		else
+			{
+			CHECK(it_key->Hash() == key->Hash());
+			CHECK(*entry == 15);
+			}
+		count++;
+
+		delete it_key;
+		}
+
+	delete key;
+	delete key2;
+	}
+
 Dictionary::Dictionary(dict_order ordering, int initial_size)
 	{
-	tbl = 0;
-	tbl2 = 0;
-
 	if ( ordering == ORDERED )
 		order = new PList<DictEntry>;
-	else
-		order = 0;
-
-	delete_func = 0;
-	tbl_next_ind = 0;
-
-	cumulative_entries = 0;
-	num_buckets = num_entries = max_num_entries = thresh_entries = 0;
-	den_thresh = 0;
-	num_buckets2 = num_entries2 = max_num_entries2 = thresh_entries2 = 0;
-	den_thresh2 = 0;
 
 	if ( initial_size > 0 )
 		Init(initial_size);
@@ -87,8 +204,10 @@ Dictionary::~Dictionary()
 void Dictionary::Clear()
 	{
 	DeInit();
-	tbl = 0;
-	tbl2 = 0;
+	tbl = nullptr;
+	tbl2 = nullptr;
+	num_entries = 0;
+	num_entries2 = 0;
 	}
 
 void Dictionary::DeInit()
@@ -111,8 +230,9 @@ void Dictionary::DeInit()
 			}
 
 	delete [] tbl;
+	tbl = nullptr;
 
-	if ( tbl2 == 0 )
+	if ( ! tbl2 )
 		return;
 
 	for ( int i = 0; i < num_buckets2; ++i )
@@ -130,7 +250,7 @@ void Dictionary::DeInit()
 			}
 
 	delete [] tbl2;
-	tbl2 = 0;
+	tbl2 = nullptr;
 	}
 
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
@@ -386,7 +506,7 @@ void Dictionary::Init(int size)
 	tbl = new PList<DictEntry>*[num_buckets];
 
 	for ( int i = 0; i < num_buckets; ++i )
-		tbl[i] = 0;
+		tbl[i] = nullptr;
 
 	max_num_entries = num_entries = 0;
 	SetDensityThresh(DEFAULT_DENSITY_THRESH);
@@ -398,7 +518,7 @@ void Dictionary::Init2(int size)
 	tbl2 = new PList<DictEntry>*[num_buckets2];
 
 	for ( int i = 0; i < num_buckets2; ++i )
-		tbl2[i] = 0;
+		tbl2[i] = nullptr;
 
 	max_num_entries2 = num_entries2 = 0;
 	}
@@ -575,7 +695,7 @@ void Dictionary::FinishChangeSize()
 	delete [] tbl;
 
 	tbl = tbl2;
-	tbl2 = 0;
+	tbl2 = nullptr;
 
 	num_buckets = num_buckets2;
 	num_entries = num_entries2;
@@ -632,3 +752,5 @@ void generic_delete_func(void* v)
 	{
 	free(v);
 	}
+
+TEST_SUITE_END();

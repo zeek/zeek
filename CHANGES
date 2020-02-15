@@ -1,4 +1,8 @@
 
+3.1.0-rc1.4 | 2020-02-15 10:00:25 -0800
+
+  * Update libkqueue for a linux bugfix (Jon Siwek, Corelight)
+
 3.1.0-rc1.3 | 2020-02-13 19:37:49 -0800
 
   * Reset the number of entries in a dict when calling Clear()

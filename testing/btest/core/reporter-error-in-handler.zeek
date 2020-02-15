@@ -3,7 +3,7 @@
 # than looping indefinitly, the error inside the handler should reported to stderr.
 #
 # TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek %INPUT >output 2>&1
+# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 global a: table[count] of count;
@@ -11,20 +11,20 @@ global a: table[count] of count;
 global c = 0;
 
 event reporter_error(t: time, msg: string, location: string)
-{
-    c += 1;
+	{
+	c += 1;
 
-    if ( c > 1 )
-        print "FAILED: 2nd error reported to script as well.";
-    
-    else
-    	{
-        print "1st error printed on script level";
-        print a[2];
-        }
-}
+	if ( c > 1 )
+		print "FAILED: 2nd error reported to script as well.";
+
+	else
+		{
+		print "1st error printed on script level";
+		print a[2];
+		}
+	}
 
 event zeek_init()
-{
-    print a[1];
-}
+	{
+	print a[1];
+	}

@@ -1,4 +1,8 @@
 
+3.2.0-dev.46 | 2020-02-14 22:02:50 -0800
+
+  * Fix code format of various reporter btests (Jon Siwek, Corelight)
+
 3.2.0-dev.45 | 2020-02-14 21:14:49 -0800
 
   * Update libkqueue for a linux bugfix (Jon Siwek, Corelight)

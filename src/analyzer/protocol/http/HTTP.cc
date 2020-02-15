@@ -472,14 +472,16 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 	else if ( mime::istrequal(h->get_name(), "transfer-encoding") )
 		{
-		double http_version = 0;
+		HTTP_Analyzer::HTTP_VersionNumber http_version;
+
 		if (http_message->analyzer->GetRequestOngoing())
-			http_version = http_message->analyzer->GetRequestVersion();
+			http_version = http_message->analyzer->GetRequestVersionNumber();
 		else // reply_ongoing
-			http_version = http_message->analyzer->GetReplyVersion();
+			http_version = http_message->analyzer->GetReplyVersionNumber();
 
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::istrequal(vt, "chunked") && http_version == 1.1 )
+		if ( mime::istrequal(vt, "chunked") &&
+		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
@@ -842,7 +844,6 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
-	request_version = reply_version = 0.0;	// unknown version
 	keep_alive = 0;
 	connection_close = 0;
 
@@ -1184,8 +1185,8 @@ void HTTP_Analyzer::GenStats()
 		RecordVal* r = new RecordVal(http_stats_rec);
 		r->Assign(0, val_mgr->GetCount(num_requests));
 		r->Assign(1, val_mgr->GetCount(num_replies));
-		r->Assign(2, new Val(request_version, TYPE_DOUBLE));
-		r->Assign(3, new Val(reply_version, TYPE_DOUBLE));
+		r->Assign(2, new Val(request_version.ToDouble(), TYPE_DOUBLE));
+		r->Assign(3, new Val(reply_version.ToDouble(), TYPE_DOUBLE));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		ConnectionEventFast(http_stats, {BuildConnVal(), r});
@@ -1318,14 +1319,14 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	if ( version_start >= end_of_line )
 		{
 		// If no version is found
-		SetVersion(request_version, 0.9);
+		SetVersion(&request_version, {0, 9});
 		}
 	else
 		{
 		if ( version_start + 8 <= end_of_line )
 			{
 			version_start += 5; // "HTTP/"
-			SetVersion(request_version,
+			SetVersion(&request_version,
 					HTTP_Version(end_of_line - version_start,
 							version_start));
 
@@ -1348,31 +1349,33 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	}
 
 // Only recognize [0-9][.][0-9].
-double HTTP_Analyzer::HTTP_Version(int len, const char* data)
+HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const char* data)
 	{
 	if ( len >= 3 &&
 	     data[0] >= '0' && data[0] <= '9' &&
 	     data[1] == '.' &&
 	     data[2] >= '0' && data[2] <= '9' )
 		{
-		return double(data[0] - '0') + 0.1 * double(data[2] - '0');
+		uint8_t major = data[0] - '0';
+		uint8_t minor = data[2] - '0';
+		return {major, minor};
 		}
 	else
 		{
 	        HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
-		return 0;
+		return {};
 		}
 	}
 
-void HTTP_Analyzer::SetVersion(double& version, double new_version)
+void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber new_version)
 	{
-	if ( version == 0.0 )
-		version = new_version;
+	if ( *version == HTTP_VersionNumber{} )
+		*version = new_version;
 
-	else if ( version != new_version )
+	else if ( *version != new_version )
 		Weird("HTTP_version_mismatch");
 
-	if ( version > 1.05 )
+	if ( version->major > 1 || (version->major == 1 && version->minor > 0) )
 		keep_alive = 1;
 	}
 
@@ -1434,7 +1437,7 @@ void HTTP_Analyzer::HTTP_Request()
 			request_method,
 			TruncateURI(request_URI->AsStringVal()),
 			TruncateURI(unescaped_URI->AsStringVal()),
-			new StringVal(fmt("%.1f", request_version)),
+			new StringVal(fmt("%.1f", request_version.ToDouble())),
 		});
 		}
 	}
@@ -1445,7 +1448,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		{
 		ConnectionEventFast(http_reply, {
 			BuildConnVal(),
-			new StringVal(fmt("%.1f", reply_version)),
+			new StringVal(fmt("%.1f", reply_version.ToDouble())),
 			val_mgr->GetCount(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase->Ref() :
@@ -1565,7 +1568,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		return 0;
 		}
 
-	SetVersion(reply_version, HTTP_Version(end_of_line - rest, rest));
+	SetVersion(&reply_version, HTTP_Version(end_of_line - rest, rest));
 
 	for ( ; rest < end_of_line; ++rest )
 		if ( mime::is_lws(*rest) )

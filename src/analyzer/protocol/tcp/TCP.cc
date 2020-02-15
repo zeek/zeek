@@ -3,6 +3,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include <vector>
+#include <cmath>
 
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "analyzer/protocol/pia/PIA.h"
@@ -1043,6 +1044,46 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	return delta_last;
 	}
 
+bool TCP_Analyzer::OutsideSkipWindow(bool is_orig, uint32_t seq, uint32_t ack, TCP_Flags flags)
+	{
+	if ( ! tcp_skip_window )
+		return false;
+
+	if ( is_orig && ! (first_packet_seen & ORIG) )
+		return false;
+
+	if ( ! is_orig && ! (first_packet_seen & RESP) )
+		return false;
+
+	auto ep = is_orig ? orig : resp;
+	auto sdelta = std::abs(seq_delta(seq, ep->LastSeq()));
+
+	if ( sdelta > tcp_skip_window )
+		{
+		Weird("TCP_skip_large_seq_delta");
+		return true;
+		}
+
+	if ( flags.RST() )
+		// ACK in RST is unreliable so don't bother looking further.
+		return false;
+
+	auto peer = ep->peer;
+
+	if ( peer->NoDataAcked() )
+		return false;
+
+	auto adelta = std::abs(seq_delta(ack, peer->AckSeq()));
+
+	if ( adelta > tcp_skip_window )
+		{
+		Weird("TCP_skip_large_ack_delta");
+		return true;
+		}
+
+	return false;
+	}
+
 void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
@@ -1069,6 +1110,9 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	uint32_t base_seq = ntohl(tp->th_seq);
 	uint32_t ack_seq = ntohl(tp->th_ack);
+
+	if ( OutsideSkipWindow(is_orig, base_seq, ack_seq, flags) )
+		return;
 
 	int seg_len = get_segment_len(len, flags);
 	uint32_t seq_one_past_segment = base_seq + seg_len;

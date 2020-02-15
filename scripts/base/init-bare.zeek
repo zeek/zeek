@@ -1040,6 +1040,12 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 ## .. zeek:see:: tcp_max_initial_window tcp_max_above_hole_without_any_acks
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
+## The number of bytes that controls how large a SEQ or ACK number delta may be
+## in a given packet before it is deemed too large for it to feasibly be a part
+## of the connection and so gets ignored.  A value of zero means "don't skip
+## anything".
+const tcp_skip_window = 0 &redef;
+
 ## Number of TCP segments to buffer beyond what's been acknowledged already
 ## to detect retransmission inconsistencies. Zero disables any additonal
 ## buffering.

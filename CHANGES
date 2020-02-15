@@ -1,4 +1,8 @@
 
+3.2.0-dev.45 | 2020-02-14 21:14:49 -0800
+
+  * Update libkqueue for a linux bugfix (Jon Siwek, Corelight)
+
 3.2.0-dev.44 | 2020-02-14 16:16:54 -0700
 
   * RE: make the RE_Matcher destructor non-virtual (Max Kellermann)

@@ -77,6 +77,13 @@ debian9_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+debian9_32bit_task:
+  container:
+    # Debian 9 EOL: June 2022
+    dockerfile: ci/debian-9-32bit/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu18_task:
   container:
     # Ubuntu 18.04 EOL: April 2023

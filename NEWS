@@ -15,6 +15,12 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- The fmt() function which takes a va_list argument is replaced, use
+  the new vfmt() function for equivalent functionality.  The former is
+  deprecated because overloading it with the variadic fmt() function
+  can cause the unintended overload to be chosen depending on how the
+  platform implements va_list.
+
 Deprecated Functionality
 ------------------------
 

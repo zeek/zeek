@@ -817,7 +817,7 @@ const char* fmt_bytes(const char* data, int len)
 	return buf;
 	}
 
-const char* fmt(const char* format, va_list al)
+const char* vfmt(const char* format, va_list al)
 	{
 	static char* buf = 0;
 	static unsigned int buf_len = 1024;
@@ -848,7 +848,7 @@ const char* fmt(const char* format, ...)
 	{
 	va_list al;
 	va_start(al, format);
-	auto rval = fmt(format, al);
+	auto rval = vfmt(format, al);
 	va_end(al);
 	return rval;
 	}

@@ -1415,14 +1415,15 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
 
-	if ( event )
-		analyzer->ConnectionEventFast(event, {
-			analyzer->BuildConnVal(),
-			msg->BuildHdrVal(),
-			new StringVal(question_name),
-			val_mgr->GetCount(qtype),
-			val_mgr->GetCount(qclass),
-		});
+	assert(event);
+
+	analyzer->ConnectionEventFast(event, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		new StringVal(question_name),
+		val_mgr->GetCount(qtype),
+		val_mgr->GetCount(qclass),
+	});
 	}
 
 

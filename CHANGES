@@ -1,4 +1,8 @@
 
+3.1.0-rc1.5 | 2020-02-18 12:27:13 -0800
+
+  * Fix memory leak when no dns_TSIG_addl event handler exists (Max Kellermann)
+
 3.1.0-rc1.4 | 2020-02-15 10:00:25 -0800
 
   * Update libkqueue for a linux bugfix (Jon Siwek, Corelight)

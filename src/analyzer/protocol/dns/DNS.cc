@@ -768,7 +768,7 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
 	BroString* request_MAC;
-	ExtractOctets(data, len, &request_MAC);
+	ExtractOctets(data, len, dns_TSIG_addl ? &request_MAC : nullptr);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
 	ExtractOctets(data, len, 0);  // Other Data

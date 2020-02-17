@@ -1129,6 +1129,8 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 			msg->BuildNSEC3_Val(&nsec3),
 		});
 		}
+	else
+		Unref(char_strings);
 
 	return 1;
 	}

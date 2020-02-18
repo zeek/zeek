@@ -442,7 +442,7 @@ struct val_converter {
 			return rval;
 			}
 		else if ( type->Tag() == TYPE_OPAQUE )
-			return OpaqueVal::Unserialize(a);
+			return OpaqueVal::Unserialize(a).release();
 
 		return nullptr;
 		}
@@ -772,9 +772,7 @@ struct type_checker {
 			// TODO: Could avoid doing the full unserialization here
 			// and just check if the type is a correct match.
 			auto ov = OpaqueVal::Unserialize(a);
-			auto rval = ov != nullptr;
-			Unref(ov);
-			return rval;
+			return ov != nullptr;
 			}
 
 		return false;

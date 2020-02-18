@@ -52,7 +52,7 @@ function Broker::__opaque_clone_through_serialization%(d: any%): any
         	return val_mgr->GetFalse();
 		}
 	
-	return OpaqueVal::Unserialize(std::move(*x));
+	return OpaqueVal::Unserialize(std::move(*x)).release();
 	%}
 
 function Broker::__set_create%(%): Broker::Data

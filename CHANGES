@@ -1,4 +1,17 @@
 
+3.2.0-dev.53 | 2020-02-18 12:12:28 -0800
+
+  * Make DNS NSEC3 parsing more resilient to introducing a memory leak
+    when no dns_NSEC3 handler exists (Max Kellermann)
+
+  * analyzer/protocol/dns: change runtime check to assert() (Max Kellermann)
+
+    If it were legal to call SendReplyOrRejectEvent() without an
+    EventHandlerPtr, then this would leak the `question_name` object.  But
+    this method has just one caller, and it verifies the EventHandlerPtr.
+
+  * Fix memory leak when no dns_TSIG_addl event handler exists (Max Kellermann)
+
 3.2.0-dev.46 | 2020-02-14 22:02:50 -0800
 
   * Fix code format of various reporter btests (Jon Siwek, Corelight)

@@ -769,7 +769,7 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
 	BroString* request_MAC;
-	ExtractOctets(data, len, &request_MAC);
+	ExtractOctets(data, len, dns_TSIG_addl ? &request_MAC : nullptr);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
 	ExtractOctets(data, len, 0);  // Other Data
@@ -1129,6 +1129,8 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 			msg->BuildNSEC3_Val(&nsec3),
 		});
 		}
+	else
+		Unref(char_strings);
 
 	return 1;
 	}
@@ -1415,14 +1417,15 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
 
-	if ( event )
-		analyzer->ConnectionEventFast(event, {
-			analyzer->BuildConnVal(),
-			msg->BuildHdrVal(),
-			new StringVal(question_name),
-			val_mgr->GetCount(qtype),
-			val_mgr->GetCount(qclass),
-		});
+	assert(event);
+
+	analyzer->ConnectionEventFast(event, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		new StringVal(question_name),
+		val_mgr->GetCount(qtype),
+		val_mgr->GetCount(qclass),
+	});
 	}
 
 

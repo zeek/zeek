@@ -160,10 +160,10 @@ namespace probabilistic {
 
 class HashVal : public OpaqueVal {
 public:
-	virtual bool IsValid() const;
-	virtual bool Init();
-	virtual bool Feed(const void* data, size_t size);
-	virtual StringVal* Get();
+	bool IsValid() const;
+	bool Init();
+	bool Feed(const void* data, size_t size);
+	StringVal* Get();
 
 protected:
 	HashVal()	{ valid = false; }

@@ -1,4 +1,11 @@
 
+3.1.0-rc1.6 | 2020-02-18 14:28:49 -0800
+
+  * Update paraglob to v0.4.1 (Jon Siwek, Corelight)
+
+    Fixes a non-standard variable-length-array usage resulting in
+    build failures.
+
 3.1.0-rc1.5 | 2020-02-18 12:27:13 -0800
 
   * Fix memory leak when no dns_TSIG_addl event handler exists (Max Kellermann)

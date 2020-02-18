@@ -3,13 +3,14 @@
 #pragma once
 
 #include "Type.h"
+#include "IntrusivePtr.h"
 
 class ListVal;
 class HashKey;
 
 class CompositeHash {
 public:
-	explicit CompositeHash(TypeList* composite_type);
+	explicit CompositeHash(IntrusivePtr<TypeList> composite_type);
 	~CompositeHash();
 
 	// Compute the hash corresponding to the given index val,
@@ -78,7 +79,7 @@ protected:
 			      int type_check, int sz, bool optional,
 			      bool calc_static_size) const;
 
-	TypeList* type;
+	IntrusivePtr<TypeList> type;
 	char* key;	// space for composite key
 	int size;
 	int is_singleton;	// if just one type in index

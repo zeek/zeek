@@ -27,10 +27,9 @@ void TopkVal::Typify(BroType* t)
 	{
 	assert(!hash && !type);
 	type = t->Ref();
-	TypeList* tl = new TypeList(t);
+	auto tl = make_intrusive<TypeList>(t);
 	tl->Append(t->Ref());
-	hash = new CompositeHash(tl);
-	Unref(tl);
+	hash = new CompositeHash(std::move(tl));
 	}
 
 HashKey* TopkVal::GetHash(Val* v) const

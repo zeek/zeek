@@ -602,10 +602,9 @@ static void int_del_func(void* v)
 
 void SwitchStmt::Init()
 	{
-	TypeList* t = new TypeList();
+	auto t = make_intrusive<TypeList>();
 	t->Append(e->Type()->Ref());
-	comp_hash = new CompositeHash(t);
-	Unref(t);
+	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
 	}

@@ -1352,7 +1352,8 @@ void TableVal::Init(TableType* t)
 	else
 		subnets = 0;
 
-	table_hash = new CompositeHash(table_type->Indices());
+	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
+							      table_type->Indices()));
 	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}

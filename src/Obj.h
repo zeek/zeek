@@ -93,6 +93,7 @@ public:
 		BadTag(text, tag_to_text_func(t1), tag_to_text_func(t2)); \
 	}
 
+	[[noreturn]]
 	void Internal(const char* msg) const;
 	void InternalWarning(const char* msg) const;
 
@@ -152,7 +153,7 @@ private:
 // Prints obj to stderr, primarily for debugging.
 extern void print(const BroObj* obj);
 
-extern void bad_ref(int type);
+[[noreturn]] extern void bad_ref(int type);
 
 // Sometimes useful when dealing with BroObj subclasses that have their
 // own (protected) versions of Error.

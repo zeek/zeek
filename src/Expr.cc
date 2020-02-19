@@ -101,8 +101,9 @@ void Expr::EvalIntoAggregate(const BroType* /* t */, Val* /* aggr */,
 	Internal("Expr::EvalIntoAggregate called");
 	}
 
-void Expr::Assign(Frame* /* f */, Val* /* v */)
+void Expr::Assign(Frame* /* f */, Val* v)
 	{
+	Unref(v);
 	Internal("Expr::Assign called");
 	}
 
@@ -2787,11 +2788,17 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 void IndexExpr::Assign(Frame* f, Val* v)
 	{
 	if ( IsError() )
+		{
+		Unref(v);
 		return;
+		}
 
 	Val* v1 = op1->Eval(f);
 	if ( ! v1 )
+		{
+		Unref(v);
 		return;
+		}
 
 	Val* v2 = op2->Eval(f);
 
@@ -2799,6 +2806,7 @@ void IndexExpr::Assign(Frame* f, Val* v)
 		{
 		Unref(v1);
 		Unref(v2);
+		Unref(v);
 		return;
 		}
 
@@ -2873,6 +2881,7 @@ void IndexExpr::Assign(Frame* f, Val* v)
 
 	Unref(v1);
 	Unref(v2);
+	Unref(v);
 	}
 
 void IndexExpr::ExprDescribe(ODesc* d) const
@@ -2949,7 +2958,10 @@ int FieldExpr::CanDel() const
 void FieldExpr::Assign(Frame* f, Val* v)
 	{
 	if ( IsError() )
+		{
+		Unref(v);
 		return;
+		}
 
 	Val* op_v = op->Eval(f);
 	if ( op_v )
@@ -2958,6 +2970,8 @@ void FieldExpr::Assign(Frame* f, Val* v)
 		r->Assign(field, v);
 		Unref(r);
 		}
+	else
+		Unref(v);
 	}
 
 void FieldExpr::Delete(Frame* f)
@@ -4889,6 +4903,7 @@ void ListExpr::Assign(Frame* f, Val* v)
 		exprs[i]->Assign(f, (*lv->Vals())[i]->Ref());
 
 	Unref(lv);
+	Unref(v);
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

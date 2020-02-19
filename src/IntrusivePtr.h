@@ -44,10 +44,7 @@ public:
 
 	// -- constructors, destructors, and assignment operators
 
-	constexpr IntrusivePtr() noexcept : ptr_(nullptr)
-		{
-		// nop
-		}
+	constexpr IntrusivePtr() noexcept = default;
 
 	constexpr IntrusivePtr(std::nullptr_t) noexcept : IntrusivePtr()
 		{
@@ -160,7 +157,7 @@ private:
 			Ref(raw_ptr);
 		}
 
-	pointer ptr_;
+	pointer ptr_ = nullptr;
 };
 
 /**

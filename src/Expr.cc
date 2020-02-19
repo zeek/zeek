@@ -3142,12 +3142,10 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		{
 		RecordVal* rv = v->AsRecordVal();
 		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+		Unref(rv);
 
 		if ( ar )
-			{
-			Unref(rv);
 			return ar;
-			}
 		}
 
 	Error("bad record initializer");

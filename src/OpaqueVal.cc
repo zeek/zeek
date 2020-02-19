@@ -855,6 +855,7 @@ BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
 
 	if ( ! copy->Merge(y->bloom_filter) )
 		{
+		delete copy;
 		reporter->Error("failed to merge Bloom filter");
 		return 0;
 		}
@@ -863,6 +864,7 @@ BloomFilterVal* BloomFilterVal::Merge(const BloomFilterVal* x,
 
 	if ( x->Type() && ! merged->Typify(x->Type()) )
 		{
+		Unref(merged);
 		reporter->Error("failed to set type on merged Bloom filter");
 		return 0;
 		}

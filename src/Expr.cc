@@ -494,6 +494,8 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		if ( v_op1->Size() != v_op2->Size() )
 			{
+			Unref(v1);
+			Unref(v2);
 			RuntimeError("vector operands are of different sizes");
 			return 0;
 			}

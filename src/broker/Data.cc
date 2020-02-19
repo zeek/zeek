@@ -792,9 +792,9 @@ static bool data_type_check(const broker::data& d, BroType* t)
 IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return {bro_broker::make_data_val(move(d)), false};
+		return {AdoptRef{}, bro_broker::make_data_val(move(d))};
 
-	return {caf::visit(val_converter{type}, std::move(d)), false};
+	return {AdoptRef{}, caf::visit(val_converter{type}, std::move(d))};
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(const Val* v)

@@ -2828,7 +2828,7 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 
 void IndexExpr::Assign(Frame* f, Val* arg_v)
 	{
-	IntrusivePtr v{arg_v, false};
+	IntrusivePtr v{AdoptRef{}, arg_v};
 
 	if ( IsError() )
 		return;
@@ -2849,7 +2849,7 @@ void IndexExpr::Assign(Frame* f, Val* arg_v)
 	// Hold an extra reference to 'arg_v' in case the ownership transfer to
 	// the table/vector goes wrong and we still want to obtain diagnostic info
 	// from the original value after the assignment already unref'd.
-	IntrusivePtr v_extra{arg_v, true};
+	IntrusivePtr v_extra{NewRef{}, arg_v};
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:

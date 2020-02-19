@@ -1024,7 +1024,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	while ( (v = cluster_table->NextEntry(k, c)) )
 		{
-		IntrusivePtr<ListVal> key{cluster_table_val->RecoverIndex(k), false};
+		IntrusivePtr<ListVal> key{AdoptRef{}, cluster_table_val->RecoverIndex(k)};
 		delete k;
 		auto name = key->Index(0)->AsStringVal()->ToStdString();
 		auto rv = v->Value()->AsRecordVal();
@@ -1100,7 +1100,7 @@ std::string Supervisor::NodeConfig::ToJSON() const
 	{
 	auto re = std::make_unique<RE_Matcher>("^_");
 	auto node_val = ToRecord();
-	IntrusivePtr<StringVal> json_val{node_val->ToJSON(false, re.get()), false};
+	IntrusivePtr<StringVal> json_val{AdoptRef{}, node_val->ToJSON(false, re.get())};
 	auto rval = json_val->ToStdString();
 	return rval;
 	}

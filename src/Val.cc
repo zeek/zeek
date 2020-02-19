@@ -1984,7 +1984,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 	try
 		{
-		IntrusivePtr<Val> thefunc{change_func->Eval(nullptr), false};
+		IntrusivePtr<Val> thefunc{AdoptRef{}, change_func->Eval(nullptr)};
 
 		if ( ! thefunc )
 			{

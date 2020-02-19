@@ -6,6 +6,18 @@
 #include <utility>
 
 /**
+ * A tag class for the #IntrusivePtr constructor which means: adopt
+ * the reference from the caller.
+ */
+struct AdoptRef {};
+
+/**
+ * A tag class for the #IntrusivePtr constructor which means: create a
+ * new reference to the object.
+ */
+struct NewRef {};
+
+/**
  * An intrusive, reference counting smart pointer implementation. Much like
  * @c std::shared_ptr, this smart pointer models shared ownership of an object
  * through a pointer. Several @c IntrusivePtr instances may point to the same
@@ -54,13 +66,27 @@ public:
 	/**
 	 * Constructs a new intrusive pointer for managing the lifetime of the object
 	 * pointed to by @c raw_ptr.
+	 *
+	 * This overload adopts the existing reference from the caller.
+	 *
 	 * @param raw_ptr Pointer to the shared object.
-	 * @param add_ref Denotes whether the reference count of the object shall be
-	 *                increased during construction.
 	 */
-	IntrusivePtr(pointer raw_ptr, bool add_ref) noexcept
+	IntrusivePtr(AdoptRef, pointer raw_ptr) noexcept
 		{
-		setPtr(raw_ptr, add_ref);
+		setPtr(raw_ptr, false);
+		}
+
+	/**
+	 * Constructs a new intrusive pointer for managing the lifetime of the object
+	 * pointed to by @c raw_ptr.
+	 *
+	 * This overload adds a new reference.
+	 *
+	 * @param raw_ptr Pointer to the shared object.
+	 */
+	IntrusivePtr(NewRef, pointer raw_ptr) noexcept
+		{
+		setPtr(raw_ptr, true);
 		}
 
 	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.release())
@@ -69,8 +95,8 @@ public:
 		}
 
 	IntrusivePtr(const IntrusivePtr& other) noexcept
+		: IntrusivePtr(NewRef{}, other.get())
 		{
-		setPtr(other.get(), true);
 		}
 
 	template <class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
@@ -157,7 +183,7 @@ template <class T, class... Ts>
 IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
 	// Assumes that objects start with a reference count of 1!
-	return {new T(std::forward<Ts>(args)...), false};
+	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
 	}
 
 // -- comparison to nullptr ----------------------------------------------------

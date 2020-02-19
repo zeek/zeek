@@ -207,7 +207,7 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
-	IntrusivePtr<EnumVal> rval{et->GetVal(index), false};
+	IntrusivePtr<EnumVal> rval{AdoptRef{}, et->GetVal(index)};
 
 	return rval;
 	}

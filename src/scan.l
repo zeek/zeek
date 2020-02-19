@@ -762,6 +762,8 @@ void do_atif(Expr* expr)
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
+
+	Unref(val);
 	}
 
 void do_atifdef(const char* id)

@@ -2404,7 +2404,11 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	Val* index = op1->Eval(f);
 	Val* v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
 	if ( ! index || ! v )
+		{
+		Unref(index);
+		Unref(v);
 		return;
+		}
 
 	if ( ! tv->Assign(index, v) )
 		RuntimeError("type clash in table assignment");

@@ -1995,11 +1995,18 @@ Val* CondExpr::Eval(Frame* f) const
 
 	Val* v2 = op2->Eval(f);
 	if ( ! v2 )
+		{
+		Unref(v1);
 		return 0;
+		}
 
 	Val* v3 = op3->Eval(f);
 	if ( ! v3 )
+		{
+		Unref(v1);
+		Unref(v2);
 		return 0;
+		}
 
 	VectorVal* cond = v1->AsVectorVal();
 	VectorVal* a = v2->AsVectorVal();
@@ -2007,6 +2014,9 @@ Val* CondExpr::Eval(Frame* f) const
 
 	if ( cond->Size() != a->Size() || a->Size() != b->Size() )
 		{
+		Unref(v1);
+		Unref(v2);
+		Unref(v3);
 		RuntimeError("vectors in conditional expression have different sizes");
 		return 0;
 		}
@@ -2018,12 +2028,18 @@ Val* CondExpr::Eval(Frame* f) const
 		{
 		Val* local_cond = cond->Lookup(i);
 		if ( local_cond )
-			result->Assign(i,
-				       local_cond->IsZero() ?
-					       b->Lookup(i) : a->Lookup(i));
+			{
+			Val *v = local_cond->IsZero() ? b->Lookup(i) : a->Lookup(i);
+			::Ref(v);
+			result->Assign(i, v);
+			}
 		else
 			result->Assign(i, 0);
 		}
+
+	Unref(v1);
+	Unref(v2);
+	Unref(v3);
 
 	return result;
 	}

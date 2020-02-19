@@ -570,6 +570,7 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 		{
 		ODesc d;
 		val->Describe(&d);
+		Unref(val);
 		debug_msg("%s\n", d.Description());
 		}
 	else

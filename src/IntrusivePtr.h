@@ -243,24 +243,6 @@ bool operator!=(const T* x, const IntrusivePtr<T>& y) {
   return x != y.get();
 }
 
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-bool operator<(const IntrusivePtr<T>& x, const T* y)
-	{
-	return x.get() < y;
-	}
-
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-bool operator<(const T* x, const IntrusivePtr<T>& y)
-	{
-	return x < y.get();
-	}
-
 // -- comparison to intrusive pointer ------------------------------------------
 
 // Using trailing return type and decltype() here removes this function from
@@ -284,15 +266,5 @@ auto operator!=(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 -> decltype(x.get() != y.get())
 	{
 	return x.get() != y.get();
-	}
-
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-auto operator<(const IntrusivePtr<T>& x, const IntrusivePtr<T>& y)
--> decltype(x.get() < y.get())
-	{
-	return x.get() < y.get();
 	}
 

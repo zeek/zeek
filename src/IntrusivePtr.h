@@ -103,21 +103,6 @@ public:
 		return result;
 		}
 
-	/**
-	 * Convenience function for assigning a new raw pointer. Equivalent to calling
-	 * @c operator= with an @c IntrusivePtr constructed from the arguments.
-	 * @param new_value Pointer to the new shared object.
-	 * @param add_ref Denotes whether the reference count of the new shared object
-	 *                shall be increased.
-	 */
-	void reset(pointer new_value = nullptr, bool add_ref = true) noexcept
-		{
-		auto old = ptr_;
-		setPtr(new_value, add_ref);
-		if ( old )
-			Unref(old);
-		}
-
 	IntrusivePtr& operator=(IntrusivePtr other) noexcept
 		{
 		swap(other);

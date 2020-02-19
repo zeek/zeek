@@ -1631,7 +1631,10 @@ Val* BoolExpr::Eval(Frame* f) const
 			}
 
 		if ( ! scalar_v || ! vector_v )
+			{
+			Unref(v1);
 			return 0;
+			}
 
 		VectorVal* result = 0;
 
@@ -1657,13 +1660,18 @@ Val* BoolExpr::Eval(Frame* f) const
 	// Only case remaining: both are vectors.
 	Val* v2 = op2->Eval(f);
 	if ( ! v2 )
+		{
+		Unref(v1);
 		return 0;
+		}
 
 	VectorVal* vec_v1 = v1->AsVectorVal();
 	VectorVal* vec_v2 = v2->AsVectorVal();
 
 	if ( vec_v1->Size() != vec_v2->Size() )
 		{
+		Unref(v1);
+		Unref(v2);
 		RuntimeError("vector operands have different sizes");
 		return 0;
 		}

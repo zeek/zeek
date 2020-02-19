@@ -1152,7 +1152,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		if ( ep.interface )
 			val->Assign(ept->FieldOffset("interface"), new StringVal(*ep.interface));
 
-		cluster_val->Assign(key.get(), val.detach());
+		cluster_val->Assign(key.get(), val.release());
 		}
 
 	return rval;
@@ -1163,7 +1163,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	auto rt = BifType::Record::Supervisor::NodeStatus;
 	auto rval = make_intrusive<RecordVal>(rt);
 
-	rval->Assign(rt->FieldOffset("node"), config.ToRecord().detach());
+	rval->Assign(rt->FieldOffset("node"), config.ToRecord().release());
 
 	if ( pid )
 		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetInt(pid));
@@ -1230,7 +1230,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 			val->Assign(cluster_node_type->FieldOffset("manager"),
 			            new StringVal(*manager_name));
 
-		cluster_nodes->Assign(key.get(), val.detach());
+		cluster_nodes->Assign(key.get(), val.release());
 		}
 
 	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
@@ -1329,7 +1329,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 			const auto& node = n.second;
 			auto key = make_intrusive<StringVal>(name);
 			auto val = node.ToRecord();
-			node_table_val->Assign(key.get(), val.detach());
+			node_table_val->Assign(key.get(), val.release());
 			}
 		}
 	else
@@ -1343,7 +1343,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 		const auto& node = it->second;
 		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
-		node_table_val->Assign(key.get(), val.detach());
+		node_table_val->Assign(key.get(), val.release());
 		}
 
 	return rval;

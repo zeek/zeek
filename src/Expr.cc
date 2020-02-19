@@ -2873,7 +2873,7 @@ void IndexExpr::Assign(Frame* f, Val* arg_v)
 			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
 				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
 			}
-		else if ( ! v1_vect->Assign(v2, v.detach()) )
+		else if ( ! v1_vect->Assign(v2, v.release()) )
 			{
 			v = v_extra;
 
@@ -2895,7 +2895,7 @@ void IndexExpr::Assign(Frame* f, Val* arg_v)
 		}
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2, v.detach()) )
+		if ( ! v1->AsTableVal()->Assign(v2, v.release()) )
 			{
 			v = v_extra;
 

@@ -514,7 +514,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 			Element* e = new Element();
 			e->epsilon = *epsilon;
-			e->value = val.detach();
+			e->value = val.release();
 			e->parent = b;
 
 			b->elements.insert(b->elements.end(), e);

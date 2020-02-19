@@ -998,7 +998,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl.push_back(val.detach());
+			vl.push_back(val.release());
 		else
 			{
 			auto expected_name = type_name(expected_type->Tag());
@@ -1210,7 +1210,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 		return false;
 		}
 
-	id->SetVal(val.detach());
+	id->SetVal(val.release());
 	return true;
 	}
 

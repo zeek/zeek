@@ -226,7 +226,7 @@ static Val* print_log(val_list* vals)
 		}
 
 	record->Assign(0, new Val(current_time(), TYPE_TIME));
-	record->Assign(1, vec.detach());
+	record->Assign(1, vec.release());
 	log_mgr->Write(plval.get(), record.get());
 	return nullptr;
 	}

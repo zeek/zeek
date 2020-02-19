@@ -3273,7 +3273,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 		if ( ! dv )
 			return 0;
 
-		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).detach();
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).release();
 		}
 
 	return 0;

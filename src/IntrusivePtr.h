@@ -63,7 +63,7 @@ public:
 		setPtr(raw_ptr, add_ref);
 		}
 
-	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.detach())
+	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.release())
 		{
 		// nop
 		}
@@ -74,7 +74,7 @@ public:
 		}
 
 	template <class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
-	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.detach())
+	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.release())
 		{
 		// nop
 		}
@@ -95,7 +95,7 @@ public:
 	 * intrusive pointer to @c nullptr.
 	 * @returns the raw pointer without modifying the reference count.
 	 */
-	pointer detach() noexcept
+	pointer release() noexcept
 		{
 		auto result = ptr_;
 		if ( result )

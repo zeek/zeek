@@ -1,4 +1,8 @@
 
+3.1.0-rc1.7 | 2020-02-21 11:43:38 -0800
+
+  * Fix memory leak in Input stream creation when using &type_column (Max Kellermann)
+
 3.1.0-rc1.6 | 2020-02-18 14:28:49 -0800
 
   * Update paraglob to v0.4.1 (Jon Siwek, Corelight)

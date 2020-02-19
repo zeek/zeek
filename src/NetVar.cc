@@ -55,6 +55,7 @@ int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 int tcp_max_old_segments;
 int tcp_skip_window;
+bool tcp_use_ack_offset;
 
 RecordType* socks_address;
 
@@ -291,6 +292,7 @@ void init_net_var()
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 	tcp_max_old_segments = opt_internal_int("tcp_max_old_segments");
 	tcp_skip_window = opt_internal_int("tcp_skip_window");
+	tcp_use_ack_offset = internal_val("tcp_use_ack_offset")->AsBool();
 
 	socks_address = internal_type("SOCKS::Address")->AsRecordType();
 

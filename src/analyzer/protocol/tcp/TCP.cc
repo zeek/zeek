@@ -1044,6 +1044,27 @@ static int32_t update_last_seq(TCP_Endpoint* endpoint, uint32_t last_seq,
 	return delta_last;
 	}
 
+uint32_t TCP_Analyzer::OffsetACK(bool is_orig, uint32_t ack, TCP_Flags flags)
+	{
+	if ( ! tcp_use_ack_offset )
+		return ack;
+
+	if ( is_orig )
+		{
+		if ( ! seen_first_ACK && flags.ACK() )
+			orig->SetAckOffset(resp->StartSeq() - ack);
+
+		return ack + orig->AckOffset();
+		}
+	else
+		{
+		if ( flags.SYN() && flags.ACK() )
+			resp->SetAckOffset(orig->StartSeq() - ack);
+
+		return ack + resp->AckOffset();
+		}
+	}
+
 bool TCP_Analyzer::OutsideSkipWindow(bool is_orig, uint32_t seq, uint32_t ack, TCP_Flags flags)
 	{
 	if ( ! tcp_skip_window )
@@ -1110,6 +1131,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	uint32_t base_seq = ntohl(tp->th_seq);
 	uint32_t ack_seq = ntohl(tp->th_ack);
+
+	ack_seq = OffsetACK(is_orig, ack_seq, flags);
 
 	if ( OutsideSkipWindow(is_orig, base_seq, ack_seq, flags) )
 		return;

@@ -87,6 +87,8 @@ protected:
 
 	bool OutsideSkipWindow(bool is_orig, uint32_t seq, uint32_t ack, TCP_Flags flags);
 
+	uint32_t OffsetACK(bool is_orig, uint32_t ack, TCP_Flags flags);
+
 	// Returns the TCP header pointed to by data (which we assume is
 	// aligned), updating data, len & caplen.  Returns nil if the header
 	// isn't fully present.

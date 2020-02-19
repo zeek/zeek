@@ -187,6 +187,12 @@ public:
 
 	void AckReceived(uint64_t seq);
 
+	void SetAckOffset(uint32_t off)
+		{ ack_offset = off; }
+
+	uint32_t AckOffset() const
+		{ return ack_offset; }
+
 	void SetContentsFile(BroFile* f);
 	BroFile* GetContentsFile() const	{ return contents_file; }
 
@@ -246,6 +252,7 @@ protected:
 	uint32_t rxmt_cnt, rxmt_thresh;
 	uint32_t win0_cnt, win0_thresh;
 	uint32_t gap_cnt, gap_thresh;
+	uint32_t ack_offset = 0;
 };
 
 #define ENDIAN_UNKNOWN 0

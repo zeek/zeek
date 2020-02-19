@@ -1046,6 +1046,14 @@ const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 ## anything".
 const tcp_skip_window = 0 &redef;
 
+## Whether to expect TCP ACK sequence numbers to be offset by some constant
+## constant value as trusted/established by whatever is seen in the handshake
+## packets.  This setting can be useful for some network configurations
+## that employ things like "TCP sequence randomization" that otherwise
+## cause Zeek to see a mismatch in TCP SEQ/ACK numbers between originator
+## and responder.
+const tcp_use_ack_offset = F &redef;
+
 ## Number of TCP segments to buffer beyond what's been acknowledged already
 ## to detect retransmission inconsistencies. Zero disables any additonal
 ## buffering.

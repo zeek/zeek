@@ -18,6 +18,7 @@
 #include "digest.h"
 #include "module_util.h"
 #include "DebugLogger.h"
+#include "IntrusivePtr.h"
 
 #include "broker/Data.h"
 
@@ -101,8 +102,9 @@ void Expr::EvalIntoAggregate(const BroType* /* t */, Val* /* aggr */,
 	Internal("Expr::EvalIntoAggregate called");
 	}
 
-void Expr::Assign(Frame* /* f */, Val* /* v */)
+void Expr::Assign(Frame* /* f */, Val* v)
 	{
+	Unref(v);
 	Internal("Expr::Assign called");
 	}
 
@@ -494,6 +496,8 @@ Val* BinaryExpr::Eval(Frame* f) const
 
 		if ( v_op1->Size() != v_op2->Size() )
 			{
+			Unref(v1);
+			Unref(v2);
 			RuntimeError("vector operands are of different sizes");
 			return 0;
 			}
@@ -1036,17 +1040,17 @@ Val* IncrExpr::Eval(Frame* f) const
 			else
 				v_vec->Assign(i, 0);
 			}
-		op->Assign(f, v_vec);
+		op->Assign(f, v_vec->Ref());
+		return v;
 		}
 
 	else
 		{
-		Val* old_v = v;
-		op->Assign(f, v = DoSingleEval(f, old_v));
-		Unref(old_v);
+		auto new_v = DoSingleEval(f, v);
+		Unref(v);
+		op->Assign(f, new_v->Ref());
+		return new_v;
 		}
-
-	return v->Ref();
 	}
 
 int IncrExpr::IsPure() const
@@ -1312,8 +1316,8 @@ Val* AddToExpr::Eval(Frame* f) const
 
 	if ( result )
 		{
-		op1->Assign(f, result);
-		return result->Ref();
+		op1->Assign(f, result->Ref());
+		return result;
 		}
 	else
 		return 0;
@@ -1407,8 +1411,8 @@ Val* RemoveFromExpr::Eval(Frame* f) const
 
 	if ( result )
 		{
-		op1->Assign(f, result);
-		return result->Ref();
+		op1->Assign(f, result->Ref());
+		return result;
 		}
 	else
 		return 0;
@@ -1628,7 +1632,10 @@ Val* BoolExpr::Eval(Frame* f) const
 			}
 
 		if ( ! scalar_v || ! vector_v )
+			{
+			Unref(v1);
 			return 0;
+			}
 
 		VectorVal* result = 0;
 
@@ -1654,13 +1661,18 @@ Val* BoolExpr::Eval(Frame* f) const
 	// Only case remaining: both are vectors.
 	Val* v2 = op2->Eval(f);
 	if ( ! v2 )
+		{
+		Unref(v1);
 		return 0;
+		}
 
 	VectorVal* vec_v1 = v1->AsVectorVal();
 	VectorVal* vec_v2 = v2->AsVectorVal();
 
 	if ( vec_v1->Size() != vec_v2->Size() )
 		{
+		Unref(v1);
+		Unref(v2);
 		RuntimeError("vector operands have different sizes");
 		return 0;
 		}
@@ -1984,11 +1996,18 @@ Val* CondExpr::Eval(Frame* f) const
 
 	Val* v2 = op2->Eval(f);
 	if ( ! v2 )
+		{
+		Unref(v1);
 		return 0;
+		}
 
 	Val* v3 = op3->Eval(f);
 	if ( ! v3 )
+		{
+		Unref(v1);
+		Unref(v2);
 		return 0;
+		}
 
 	VectorVal* cond = v1->AsVectorVal();
 	VectorVal* a = v2->AsVectorVal();
@@ -1996,6 +2015,9 @@ Val* CondExpr::Eval(Frame* f) const
 
 	if ( cond->Size() != a->Size() || a->Size() != b->Size() )
 		{
+		Unref(v1);
+		Unref(v2);
+		Unref(v3);
 		RuntimeError("vectors in conditional expression have different sizes");
 		return 0;
 		}
@@ -2007,12 +2029,17 @@ Val* CondExpr::Eval(Frame* f) const
 		{
 		Val* local_cond = cond->Lookup(i);
 		if ( local_cond )
-			result->Assign(i,
-				       local_cond->IsZero() ?
-					       b->Lookup(i) : a->Lookup(i));
+			{
+			Val* v = local_cond->IsZero() ? b->Lookup(i) : a->Lookup(i);
+			result->Assign(i, v ? v->Ref() : nullptr);
+			}
 		else
 			result->Assign(i, 0);
 		}
+
+	Unref(v1);
+	Unref(v2);
+	Unref(v3);
 
 	return result;
 	}
@@ -2315,8 +2342,15 @@ Val* AssignExpr::Eval(Frame* f) const
 
 	if ( v )
 		{
-		op1->Assign(f, v);
-		return val ? val->Ref() : v->Ref();
+		op1->Assign(f, v->Ref());
+
+		if ( val )
+			{
+			Unref(v);
+			return val->Ref();
+			}
+
+		return v;
 		}
 	else
 		return 0;
@@ -2377,7 +2411,11 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	Val* index = op1->Eval(f);
 	Val* v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
 	if ( ! index || ! v )
+		{
+		Unref(index);
+		Unref(v);
 		return;
+		}
 
 	if ( ! tv->Assign(index, v) )
 		RuntimeError("type clash in table assignment");
@@ -2500,10 +2538,7 @@ Val* IndexSliceAssignExpr::Eval(Frame* f) const
 	Val* v = op2->Eval(f);
 
 	if ( v )
-		{
 		op1->Assign(f, v);
-		Unref(v);
-		}
 
 	return 0;
 	}
@@ -2666,7 +2701,10 @@ Val* IndexExpr::Eval(Frame* f) const
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
 				if ( v_v2->Lookup(i)->AsBool() )
-					v_result->Assign(v_result->Size() + 1, v_v1->Lookup(i));
+					{
+					auto a = v_v1->Lookup(i);
+					v_result->Assign(v_result->Size() + 1, a ? a->Ref() : nullptr);
+					}
 				}
 			}
 		else
@@ -2676,7 +2714,10 @@ Val* IndexExpr::Eval(Frame* f) const
 			// Probably only do this if *all* are negative.
 			v_result->Resize(v_v2->Size());
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				v_result->Assign(i, v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt()));
+				{
+				auto a = v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt());
+				v_result->Assign(i, a ? a->Ref() : nullptr);
+				}
 			}
 		}
 	else
@@ -2726,7 +2767,10 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 				result->Resize(sub_length);
 
 				for ( int idx = first; idx < last; idx++ )
-					result->Assign(idx - first, vect->Lookup(idx)->Ref());
+					{
+					auto a = vect->Lookup(idx);
+					result->Assign(idx - first, a ? a->Ref() : nullptr);
+					}
 				}
 
 			return result;
@@ -2782,8 +2826,10 @@ Val* IndexExpr::Fold(Val* v1, Val* v2) const
 	return 0;
 	}
 
-void IndexExpr::Assign(Frame* f, Val* v)
+void IndexExpr::Assign(Frame* f, Val* arg_v)
 	{
+	IntrusivePtr v{arg_v, false};
+
 	if ( IsError() )
 		return;
 
@@ -2799,6 +2845,11 @@ void IndexExpr::Assign(Frame* f, Val* v)
 		Unref(v2);
 		return;
 		}
+
+	// Hold an extra reference to 'arg_v' in case the ownership transfer to
+	// the table/vector goes wrong and we still want to obtain diagnostic info
+	// from the original value after the assignment already unref'd.
+	IntrusivePtr v_extra{arg_v, true};
 
 	switch ( v1->Type()->Tag() ) {
 	case TYPE_VECTOR:
@@ -2822,8 +2873,10 @@ void IndexExpr::Assign(Frame* f, Val* v)
 			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
 				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
 			}
-		else if ( ! v1_vect->Assign(v2, v) )
+		else if ( ! v1_vect->Assign(v2, v.detach()) )
 			{
+			v = v_extra;
+
 			if ( v )
 				{
 				ODesc d;
@@ -2842,8 +2895,10 @@ void IndexExpr::Assign(Frame* f, Val* v)
 		}
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2, v) )
+		if ( ! v1->AsTableVal()->Assign(v2, v.detach()) )
 			{
+			v = v_extra;
+
 			if ( v )
 				{
 				ODesc d;
@@ -2947,7 +3002,10 @@ int FieldExpr::CanDel() const
 void FieldExpr::Assign(Frame* f, Val* v)
 	{
 	if ( IsError() )
+		{
+		Unref(v);
 		return;
+		}
 
 	Val* op_v = op->Eval(f);
 	if ( op_v )
@@ -2956,6 +3014,8 @@ void FieldExpr::Assign(Frame* f, Val* v)
 		r->Assign(field, v);
 		Unref(r);
 		}
+	else
+		Unref(v);
 	}
 
 void FieldExpr::Delete(Frame* f)
@@ -3098,12 +3158,10 @@ Val* RecordConstructorExpr::InitVal(const BroType* t, Val* aggr) const
 		{
 		RecordVal* rv = v->AsRecordVal();
 		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+		Unref(rv);
 
 		if ( ar )
-			{
-			Unref(rv);
 			return ar;
-			}
 		}
 
 	Error("bad record initializer");
@@ -4886,7 +4944,7 @@ void ListExpr::Assign(Frame* f, Val* v)
 	loop_over_list(exprs, i)
 		exprs[i]->Assign(f, (*lv->Vals())[i]->Ref());
 
-	Unref(lv);
+	Unref(v);
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

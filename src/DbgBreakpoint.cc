@@ -260,6 +260,7 @@ BreakCode DbgBreakpoint::HasHit()
 		if ( ! IsIntegral(yes->Type()->Tag()) &&
 		     ! IsBool(yes->Type()->Tag()) )
 			{
+			Unref(yes);
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");
 			return bcHitAndDelete;
@@ -267,7 +268,12 @@ BreakCode DbgBreakpoint::HasHit()
 
 		yes->CoerceToInt();
 		if ( yes->IsZero() )
+			{
+			Unref(yes);
 			return bcNoHit;
+			}
+
+		Unref(yes);
 		}
 
 	int repcount = GetRepeatCount();

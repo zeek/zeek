@@ -1,4 +1,36 @@
 
+3.2.0-dev.69 | 2020-02-19 18:40:58 -0800
+
+  * Fix various reference counting issues in Assign() implementations/callers (Jon Siwek, Corelight)
+
+  * Fix memory leak in Input stream creation when using &type_column (Max Kellermann)
+
+  * Fix two memory leaks in BloomFilterVal::Merge() (Max Kellermann)
+
+  * Fix memory leaks in script debugger (Max Kellermann)
+
+  * scan.l: fix missing Unref() in do_atif() (Max Kellermann)
+
+  * Fix parse-time memory leak in RecordConstructorExpr::InitVal() (Max Kellermann)
+
+  * Fix memory leaks in AssignExpr::EvalIntoAggregate() error conditions (Max Kellermann)
+
+  * Fix memory leaks in CondExpr::Eval() error conditions (Max Kellermann)
+
+    Also fixes reference counting issue for vector-based conditionals.
+
+  * Fix memory leaks in BoolExpr::Eval() error conditions (Max Kellermann)
+
+  * Fix various memory leaks in Assign() error conditions (Max Kellermann)
+
+  * Fix memory leaks in BinaryExpr::Eval() error conditions (Max Kellermann)
+
+  * Fix potential future memory leak in HTTP analyzer (Max Kellermann)
+
+    This isn't really a memory leak because ParseRequest() never fails,
+    but if it one day "learns" to fail, the `request_method` allocation
+    will leak.
+
 3.2.0-dev.53 | 2020-02-18 12:12:28 -0800
 
   * Make DNS NSEC3 parsing more resilient to introducing a memory leak

@@ -973,6 +973,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			{
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = 0;
+			Val* c = nullptr;
 			TypeTag ty = rec->FieldType(i)->Tag();
 			TypeTag st = TYPE_VOID;
 			bool optional = false;
@@ -988,7 +989,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				{
 				// we have an annotation for the second column
 
-				Val* c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->AttrExpr()->Eval(0);
+				c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->AttrExpr()->Eval(0);
 
 				assert(c);
 				assert(c->Type()->Tag() == TYPE_STRING);
@@ -1000,6 +1001,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				optional = true;
 
 			Field* field = new Field(name.c_str(), secondary, ty, st, optional);
+			Unref(c);
 			fields->push_back(field);
 			}
 		}

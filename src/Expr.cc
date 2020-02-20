@@ -2459,7 +2459,7 @@ Val* AssignExpr::InitVal(const BroType* t, Val* aggr) const
 		if ( ! v )
 			return 0;
 
-		aggr_r->Assign(field, v);
+		aggr_r->Assign(field, v->Ref());
 		return v;
 		}
 

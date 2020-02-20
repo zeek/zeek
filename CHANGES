@@ -1,4 +1,8 @@
 
+3.2.0-dev.71 | 2020-02-20 14:57:58 -0800
+
+  * Fix missing reference count incrment in AssignExpr::InitVal() (Max Kellermann)
+
 3.2.0-dev.69 | 2020-02-19 18:40:58 -0800
 
   * Fix various reference counting issues in Assign() implementations/callers (Jon Siwek, Corelight)

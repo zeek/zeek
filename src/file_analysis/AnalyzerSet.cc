@@ -20,11 +20,10 @@ static void analyzer_del_func(void* v)
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
-	TypeList* t = new TypeList();
+	auto t = make_intrusive<TypeList>();
 	t->Append(file_mgr->GetTagEnumType()->Ref());
 	t->Append(BifType::Record::Files::AnalyzerArgs->Ref());
-	analyzer_hash = new CompositeHash(t);
-	Unref(t);
+	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}
 

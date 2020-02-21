@@ -252,14 +252,14 @@ struct val_converter {
 				if ( ! index_val )
 					return nullptr;
 
-				list_val->Append(index_val.detach());
+				list_val->Append(index_val.release());
 				}
 
 
 			rval->Assign(list_val.get(), nullptr);
 			}
 
-		return rval.detach();
+		return rval.release();
 		}
 
 	result_type operator()(broker::table& a)
@@ -312,7 +312,7 @@ struct val_converter {
 				if ( ! index_val )
 					return nullptr;
 
-				list_val->Append(index_val.detach());
+				list_val->Append(index_val.release());
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
@@ -321,10 +321,10 @@ struct val_converter {
 			if ( ! value_val )
 				return nullptr;
 
-			rval->Assign(list_val.get(), value_val.detach());
+			rval->Assign(list_val.get(), value_val.release());
 			}
 
-		return rval.detach();
+		return rval.release();
 		}
 
 	result_type operator()(broker::vector& a)
@@ -341,10 +341,10 @@ struct val_converter {
 				if ( ! item_val )
 					return nullptr;
 
-				rval->Assign(rval->Size(), item_val.detach());
+				rval->Assign(rval->Size(), item_val.release());
 				}
 
-			return rval.detach();
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -410,11 +410,11 @@ struct val_converter {
 				if ( ! item_val )
 					return nullptr;
 
-				rval->Assign(i, item_val.detach());
+				rval->Assign(i, item_val.release());
 				++idx;
 				}
 
-			return rval.detach();
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{
@@ -792,9 +792,9 @@ static bool data_type_check(const broker::data& d, BroType* t)
 IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return {bro_broker::make_data_val(move(d)), false};
+		return {AdoptRef{}, bro_broker::make_data_val(move(d))};
 
-	return {caf::visit(val_converter{type}, std::move(d)), false};
+	return {AdoptRef{}, caf::visit(val_converter{type}, std::move(d))};
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(const Val* v)

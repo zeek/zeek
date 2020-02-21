@@ -1,4 +1,39 @@
 
+3.2.0-dev.80 | 2020-02-21 10:14:05 -0800
+
+  * OpaqueVal: remove misplaced `virtual` keywords (Max Kellermann)
+
+    These methods are not meant to be overridden.
+
+  * CompHash: use class IntrusivePtr for the `type` field (Max Kellermann)
+
+  * IntrusivePtr: replace the "add_ref" parameter with tag structs (Max Kellermann)
+
+    Using a runtime parameter is obscure and error-prone.  Avoiding
+    error-prone code and getting reference counting right is the whole
+    point of this class.
+
+  * IntrusivePtr: remove reset(), nobody uses it (Max Kellermann)
+
+    This method mimicks std::unique_ptr::reset(), but adds an obscure
+    "add_ref" parameter which is error prone.  Since nobody uses this
+    method, and this method is all about dealing with raw pointers which
+    we shouldn't be doing, let's remove it.
+
+  * IntrusivePtr: remove ordering operators (Max Kellermann)
+
+    These violate the C++ standard because comparing pointers to unrelated
+    objects is undefined behavior.
+
+  * IntrusivePtr: rename detach() to release() (Max Kellermann)
+
+    Follow the C++ standard library conventions (here: `std::unique_ptr`).
+
+  * IntrusivePtr: move nullptr initializer to field declaration (Max Kellermann)
+
+    This allows "defaulting" the default constructor, and guarantees that
+    all constructors really initialize the field to a legal value.
+
 3.2.0-dev.71 | 2020-02-20 14:57:58 -0800
 
   * Fix missing reference count incrment in AssignExpr::InitVal() (Max Kellermann)

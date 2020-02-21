@@ -1352,7 +1352,8 @@ void TableVal::Init(TableType* t)
 	else
 		subnets = 0;
 
-	table_hash = new CompositeHash(table_type->Indices());
+	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
+	                               table_type->Indices()));
 	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
@@ -1984,7 +1985,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 	try
 		{
-		IntrusivePtr<Val> thefunc{change_func->Eval(nullptr), false};
+		IntrusivePtr<Val> thefunc{AdoptRef{}, change_func->Eval(nullptr)};
 
 		if ( ! thefunc )
 			{
@@ -3273,7 +3274,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 		if ( ! dv )
 			return 0;
 
-		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).detach();
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).release();
 		}
 
 	return 0;

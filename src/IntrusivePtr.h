@@ -6,6 +6,18 @@
 #include <utility>
 
 /**
+ * A tag class for the #IntrusivePtr constructor which means: adopt
+ * the reference from the caller.
+ */
+struct AdoptRef {};
+
+/**
+ * A tag class for the #IntrusivePtr constructor which means: create a
+ * new reference to the object.
+ */
+struct NewRef {};
+
+/**
  * An intrusive, reference counting smart pointer implementation. Much like
  * @c std::shared_ptr, this smart pointer models shared ownership of an object
  * through a pointer. Several @c IntrusivePtr instances may point to the same
@@ -44,10 +56,7 @@ public:
 
 	// -- constructors, destructors, and assignment operators
 
-	constexpr IntrusivePtr() noexcept : ptr_(nullptr)
-		{
-		// nop
-		}
+	constexpr IntrusivePtr() noexcept = default;
 
 	constexpr IntrusivePtr(std::nullptr_t) noexcept : IntrusivePtr()
 		{
@@ -57,27 +66,41 @@ public:
 	/**
 	 * Constructs a new intrusive pointer for managing the lifetime of the object
 	 * pointed to by @c raw_ptr.
+	 *
+	 * This overload adopts the existing reference from the caller.
+	 *
 	 * @param raw_ptr Pointer to the shared object.
-	 * @param add_ref Denotes whether the reference count of the object shall be
-	 *                increased during construction.
 	 */
-	IntrusivePtr(pointer raw_ptr, bool add_ref) noexcept
+	IntrusivePtr(AdoptRef, pointer raw_ptr) noexcept
 		{
-		setPtr(raw_ptr, add_ref);
+		setPtr(raw_ptr, false);
 		}
 
-	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.detach())
+	/**
+	 * Constructs a new intrusive pointer for managing the lifetime of the object
+	 * pointed to by @c raw_ptr.
+	 *
+	 * This overload adds a new reference.
+	 *
+	 * @param raw_ptr Pointer to the shared object.
+	 */
+	IntrusivePtr(NewRef, pointer raw_ptr) noexcept
+		{
+		setPtr(raw_ptr, true);
+		}
+
+	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.release())
 		{
 		// nop
 		}
 
 	IntrusivePtr(const IntrusivePtr& other) noexcept
+		: IntrusivePtr(NewRef{}, other.get())
 		{
-		setPtr(other.get(), true);
 		}
 
 	template <class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
-	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.detach())
+	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.release())
 		{
 		// nop
 		}
@@ -98,27 +121,12 @@ public:
 	 * intrusive pointer to @c nullptr.
 	 * @returns the raw pointer without modifying the reference count.
 	 */
-	pointer detach() noexcept
+	pointer release() noexcept
 		{
 		auto result = ptr_;
 		if ( result )
 			ptr_ = nullptr;
 		return result;
-		}
-
-	/**
-	 * Convenience function for assigning a new raw pointer. Equivalent to calling
-	 * @c operator= with an @c IntrusivePtr constructed from the arguments.
-	 * @param new_value Pointer to the new shared object.
-	 * @param add_ref Denotes whether the reference count of the new shared object
-	 *                shall be increased.
-	 */
-	void reset(pointer new_value = nullptr, bool add_ref = true) noexcept
-		{
-		auto old = ptr_;
-		setPtr(new_value, add_ref);
-		if ( old )
-			Unref(old);
 		}
 
 	IntrusivePtr& operator=(IntrusivePtr other) noexcept
@@ -160,7 +168,7 @@ private:
 			Ref(raw_ptr);
 		}
 
-	pointer ptr_;
+	pointer ptr_ = nullptr;
 };
 
 /**
@@ -175,7 +183,7 @@ template <class T, class... Ts>
 IntrusivePtr<T> make_intrusive(Ts&&... args)
 	{
 	// Assumes that objects start with a reference count of 1!
-	return {new T(std::forward<Ts>(args)...), false};
+	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
 	}
 
 // -- comparison to nullptr ----------------------------------------------------
@@ -246,24 +254,6 @@ bool operator!=(const T* x, const IntrusivePtr<T>& y) {
   return x != y.get();
 }
 
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-bool operator<(const IntrusivePtr<T>& x, const T* y)
-	{
-	return x.get() < y;
-	}
-
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-bool operator<(const T* x, const IntrusivePtr<T>& y)
-	{
-	return x < y.get();
-	}
-
 // -- comparison to intrusive pointer ------------------------------------------
 
 // Using trailing return type and decltype() here removes this function from
@@ -287,15 +277,5 @@ auto operator!=(const IntrusivePtr<T>& x, const IntrusivePtr<U>& y)
 -> decltype(x.get() != y.get())
 	{
 	return x.get() != y.get();
-	}
-
-/**
- * @relates IntrusivePtr
- */
-template <class T>
-auto operator<(const IntrusivePtr<T>& x, const IntrusivePtr<T>& y)
--> decltype(x.get() < y.get())
-	{
-	return x.get() < y.get();
 	}
 

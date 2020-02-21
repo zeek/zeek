@@ -13,10 +13,9 @@
 #include <vector>
 #include <map>
 
-CompositeHash::CompositeHash(TypeList* composite_type)
+CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
+	: type(std::move(composite_type))
 	{
-	type = composite_type;
-	Ref(type);
 	singleton_tag = TYPE_INTERNAL_ERROR;
 
 	// If the only element is a record, don't treat it as a
@@ -66,7 +65,6 @@ CompositeHash::CompositeHash(TypeList* composite_type)
 
 CompositeHash::~CompositeHash()
 	{
-	Unref(type);
 	delete [] key;
 	}
 

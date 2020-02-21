@@ -400,7 +400,7 @@ function terminate%(%): bool
 // is false).
 static bool prepare_environment(TableVal* tbl, bool set)
 	{
-	IntrusivePtr<ListVal> idxs{tbl->ConvertToPureList(), false};
+	IntrusivePtr<ListVal> idxs{AdoptRef{}, tbl->ConvertToPureList()};
 
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
@@ -1868,7 +1868,7 @@ function zeek_args%(%): string_vec
 	for ( auto i = 0; i < bro_argc; ++i )
 		rval->Assign(rval->Size(), new StringVal(bro_argv[i]));
 
-	return rval.detach();
+	return rval.release();
 	%}
 
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
@@ -1912,7 +1912,7 @@ function packet_source%(%): PacketSource
 		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
 		}
 
-	return r.detach();
+	return r.release();
 	%}
 
 ## Generates a table of the size of all global variables. The table index is

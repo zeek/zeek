@@ -207,7 +207,7 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
-	IntrusivePtr<EnumVal> rval{et->GetVal(index), false};
+	IntrusivePtr<EnumVal> rval{AdoptRef{}, et->GetVal(index)};
 
 	return rval;
 	}
@@ -226,7 +226,7 @@ static Val* print_log(val_list* vals)
 		}
 
 	record->Assign(0, new Val(current_time(), TYPE_TIME));
-	record->Assign(1, vec.detach());
+	record->Assign(1, vec.release());
 	log_mgr->Write(plval.get(), record.get());
 	return nullptr;
 	}
@@ -602,10 +602,9 @@ static void int_del_func(void* v)
 
 void SwitchStmt::Init()
 	{
-	TypeList* t = new TypeList();
+	auto t = make_intrusive<TypeList>();
 	t->Append(e->Type()->Ref());
-	comp_hash = new CompositeHash(t);
-	Unref(t);
+	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
 	}

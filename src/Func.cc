@@ -876,11 +876,13 @@ static int get_func_priority(const attr_list& attrs)
 
 		if ( ! IsIntegral(v->Type()->Tag()) )
 			{
+			Unref(v);
 			a->Error("expression is not of integral type");
 			continue;
 			}
 
 		priority = v->InternalInt();
+		Unref(v);
 		}
 
 	return priority;

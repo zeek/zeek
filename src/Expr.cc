@@ -2480,7 +2480,11 @@ Val* AssignExpr::InitVal(const BroType* t, Val* aggr) const
 		Val* index = op1->InitVal(tt->Indices(), 0);
 		Val* v = op2->InitVal(yt, 0);
 		if ( ! index || ! v )
+			{
+			Unref(index);
+			Unref(tv);
 			return 0;
+			}
 
 		if ( ! tv->ExpandAndInit(index, v) )
 			{

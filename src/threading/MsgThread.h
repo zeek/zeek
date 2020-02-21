@@ -144,6 +144,7 @@ public:
 	 *
 	 * @param msg  The message. It will be prefixed with the thread's name.
 	 */
+	[[noreturn]]
 	void InternalError(const char* msg);
 
 #ifdef DEBUG

@@ -42,6 +42,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
 			id->Error("already defined", init);
+			Unref(init);
 			return;
 			}
 		}
@@ -51,6 +52,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! id->Type() )
 			{
 			id->Error("\"redef\" used but not previously defined");
+			Unref(init);
 			return;
 			}
 
@@ -64,6 +66,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		     (! init || ! do_init || (! t && ! (t = init_type(init)))) )
 			{
 			id->Error("already defined", init);
+			Unref(init);
 			return;
 			}
 
@@ -71,6 +74,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! same_type(t, id->Type()) )
 			{
 			id->Error("redefinition changes type", init);
+			Unref(init);
 			return;
 			}
 		}
@@ -85,6 +89,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			if ( init )
 				{
 				id->Error("double initialization", init);
+				Unref(init);
 				return;
 				}
 
@@ -98,6 +103,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! init )
 			{
 			id->Error("no type given");
+			Unref(init);
 			return;
 			}
 
@@ -105,6 +111,7 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! t )
 			{
 			id->SetType(error_type());
+			Unref(init);
 			return;
 			}
 		}
@@ -185,7 +192,10 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 				{
 				v = init_val(init, t, aggr);
 				if ( ! v )
+					{
+					Unref(init);
 					return;
+					}
 				}
 
 			if ( aggr )
@@ -210,6 +220,8 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 		id->SetOption();
 		}
+
+	Unref(init);
 
 	id->UpdateValAttrs();
 

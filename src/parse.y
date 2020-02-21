@@ -688,6 +688,7 @@ expr:
 					{
 					id->Error("undeclared variable");
 					id->SetType(error_type());
+					Ref(id);
 					$$ = new NameExpr(id);
 					}
 
@@ -701,10 +702,14 @@ expr:
 					$$ = new ConstExpr(t->GetVal(intval));
 					}
 				else
+					{
+					Ref(id);
 					$$ = new NameExpr(id);
+					}
 
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+				Unref(id);
 				}
 			}
 
@@ -1581,6 +1586,7 @@ event:
 					}
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+				Unref(id);
 				}
 
 			$$ = new EventExpr($1, $3);
@@ -1632,7 +1638,10 @@ case_type:
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
+				{
+				Unref(case_var);
 				case_var = install_ID(name, current_module.c_str(), false, false);
+				}
 
 			add_local(case_var, type, INIT_NONE, 0, 0, VAR_REGULAR);
 			$$ = case_var;
@@ -1656,8 +1665,11 @@ for_head:
 				}
 
 			else
+				{
+				Unref(loop_var);
 				loop_var = install_ID($3, current_module.c_str(),
 						      false, false);
+				}
 
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(loop_var);

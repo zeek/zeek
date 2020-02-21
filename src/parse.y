@@ -1363,6 +1363,7 @@ attr:
 				{
 				ODesc d;
 				$3->Describe(&d);
+				Unref($3);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
 				$$ = new Attr(ATTR_DEPRECATED);

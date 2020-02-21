@@ -1,4 +1,14 @@
 
+3.2.0-dev.85 | 2020-02-21 15:29:45 -0800
+
+  * threading/MsgThread: add [[noreturn]] to InternalError() (Max Kellermann)
+
+  * Flare: add [[noreturn]] to bad_pipe_op() (Max Kellermann)
+
+  * Obj: add [[noreturn]] attributes to Internal(),  bad_ref() (Max Kellermann)
+
+  * Reporter: add [[noreturn]] attribute to several methods (Max Kellermann)
+
 3.2.0-dev.80 | 2020-02-21 10:14:05 -0800
 
   * OpaqueVal: remove misplaced `virtual` keywords (Max Kellermann)

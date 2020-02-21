@@ -66,11 +66,11 @@ public:
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported.
-	void FatalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported and always generate a core dump.
-	void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
@@ -97,7 +97,7 @@ public:
 
 	// Report an internal program error. Bro will terminate with a core
 	// dump after the message has been reported.
-	void InternalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.

@@ -79,11 +79,14 @@ execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
 
-string(REPLACE "." " " version_numbers ${VERSION})
+string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
+list(GET version_numbers 2 VERSION_PATCH)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
+math(EXPR ZEEK_VERSION_NUMBER
+     "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH}")
 
 set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")

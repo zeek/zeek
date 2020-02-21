@@ -13,6 +13,7 @@ Flare::Flare()
 	{
 	}
 
+[[noreturn]]
 static void bad_pipe_op(const char* which, bool signal_safe)
 	{
 	if ( signal_safe )

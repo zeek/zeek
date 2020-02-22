@@ -230,7 +230,9 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 	char* rbuf2, *rbuf = new char[rlen];
 
 	Base64Converter dec(conn, a ? a->CheckString() : "");
-	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
+	dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf);
+
+	if ( dec.Errored() )
 		goto err;
 
 	rlen2 = buf_len - rlen;

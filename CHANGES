@@ -1,4 +1,8 @@
 
+3.1.0-rc1.9 | 2020-02-22 00:10:25 -0800
+
+  * Remove Travis CI config (Jon Siwek, Corelight)
+
 3.1.0-rc1.8 | 2020-02-21 23:01:08 -0800
 
   * Fix CI to checkout right commit of zeek-testing-private (Jon Siwek, Corelight)

@@ -1,4 +1,16 @@
 
+3.0.2-dev.7 | 2020-02-22 12:20:24 -0800
+
+  * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)
+
+  * Fix memory leak when table-based input stream overwrites old entries (Jon Siwek, Corelight)
+
+  * Fix memory leak in OCSP parsing functions (Jon Siwek, Corelight)
+
+  * Fix memory leaks in Kerberos ticket decryption (Jon Siwek, Corelight)
+
+  * Fix malloc/delete mismatch in JSON formatting (Jon Siwek, Corelight)
+
 3.0.2-dev.2 | 2020-02-22 00:05:28 -0800
 
   * Backport CI config (Jon Siwek, Corelight)

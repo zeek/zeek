@@ -407,6 +407,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 		     val->Type()->Tag() != TYPE_STRING )
 			{
 			builtin_error("system_env() needs a table[string] of string");
+			Unref(idxs);
 			return false;
 			}
 
@@ -428,6 +429,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 			}
 		}
 
+	Unref(idxs);
 	return true;
 	}
 

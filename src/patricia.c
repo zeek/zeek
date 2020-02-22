@@ -431,7 +431,7 @@ New_Patricia (int maxbits)
  */
 
 void
-Clear_Patricia (patricia_tree_t *patricia, void_fn_t func)
+Clear_Patricia (patricia_tree_t *patricia, data_fn_t func)
 {
     assert (patricia);
     if (patricia->head) {
@@ -475,7 +475,7 @@ Clear_Patricia (patricia_tree_t *patricia, void_fn_t func)
 
 
 void
-Destroy_Patricia (patricia_tree_t *patricia, void_fn_t func)
+Destroy_Patricia (patricia_tree_t *patricia, data_fn_t func)
 {
     Clear_Patricia (patricia, func);
     Delete (patricia);
@@ -488,7 +488,7 @@ Destroy_Patricia (patricia_tree_t *patricia, void_fn_t func)
  */
 
 void
-patricia_process (patricia_tree_t *patricia, void_fn_t func)
+patricia_process (patricia_tree_t *patricia, prefix_data_fn_t func)
 {
     patricia_node_t *node;
     assert (func);

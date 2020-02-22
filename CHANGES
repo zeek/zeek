@@ -1,4 +1,28 @@
 
+3.0.2-dev.27 | 2020-02-22 15:48:40 -0800
+
+  * Fix packet filter memory leaks (Jon Siwek, Corelight)
+
+  * Handle invalid Base64 encodings in FTP ADAT analyzer (Jon Siwek, Corelight)
+
+  * Fix error handling in decode_base64() (Jon Siwek, Corelight)
+
+  * CMakeLists.txt: fix cross-compilation with binpac (Jon Siwek, Corelight)
+
+    Also removed the setting of BinPAC_ROOT_DIR in the configure
+    script's --with-binpac= option as that breaks the cross-compilation
+    use-case
+
+  * GH-780: Prevent log batches from indefinite buffering (Jon Siwek, Corelight)
+
+    Logs that got sent sparsely or burstily would get buffered for long
+    periods of time since the logic to flush them only does so on the next
+    log write.  In the worst case, a subsequent log write could never happen
+    and cause a log entry to be indefinitely buffered.
+
+    This fix introduces a recurring event/timer to simply flush all pending
+    logs at frequency of Broker::log_batch_interval.
+
 3.0.2-dev.22 | 2020-02-22 14:28:41 -0800
 
   * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)

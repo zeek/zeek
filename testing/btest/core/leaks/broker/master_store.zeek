@@ -2,7 +2,7 @@
 # @TEST-GROUP: leaks
 
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/http/get.trace %INPUT
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 120
 
 redef exit_only_after_terminate = T;
 

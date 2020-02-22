@@ -5,7 +5,7 @@
 # @TEST-GROUP: leaks
 #
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 120
 
 # maps a function to a vector
 function map_1 (f: function(a: count): count, v: vector of count) : vector of count

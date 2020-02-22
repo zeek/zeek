@@ -1,4 +1,13 @@
 
+3.0.2-dev.2 | 2020-02-22 00:05:28 -0800
+
+  * Backport CI config (Jon Siwek, Corelight)
+
+    * Add Cirrus CI
+    * Remove Travis CI
+    * Update various btests for stability/timeouts
+    * Update btest to 0.61 for --retries option
+
 3.0.1 | 2019-12-10 12:37:54 -0800
 
   * Release 3.0.1

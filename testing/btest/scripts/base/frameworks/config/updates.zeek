@@ -1,11 +1,11 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 20 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile2 configfile
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got2 20 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile3 configfile
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got3 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got3 20 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv configfile4 configfile
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff zeek/config.log
 
 @load base/frameworks/config

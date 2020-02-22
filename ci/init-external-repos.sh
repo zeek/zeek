@@ -62,5 +62,6 @@ if [[ -d zeek-testing-private ]]; then
     # Note that we never cache private pcaps.
     banner "Update zeek-testing-private traces"
     cd zeek-testing-private
+    git checkout -q $(cat ../commit-hash.zeek-testing-private)
     make update-traces
 fi

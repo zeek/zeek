@@ -1,4 +1,8 @@
 
+3.1.0-rc1.8 | 2020-02-21 23:01:08 -0800
+
+  * Fix CI to checkout right commit of zeek-testing-private (Jon Siwek, Corelight)
+
 3.1.0-rc1.7 | 2020-02-21 11:43:38 -0800
 
   * Fix memory leak in Input stream creation when using &type_column (Max Kellermann)

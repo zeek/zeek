@@ -1676,20 +1676,19 @@ bool TableVal::IsSubsetOf(const TableVal* tv) const
 	return true;
 	}
 
-int TableVal::ExpandAndInit(Val* index, Val* new_val)
+int TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
 	BroType* index_type = index->Type();
 
 	if ( index_type->IsSet() )
 		{
-		Val* new_index = index->AsTableVal()->ConvertToList();
-		Unref(index);
-		return ExpandAndInit(new_index, new_val);
+		index = {AdoptRef{}, index->AsTableVal()->ConvertToList()};
+		return ExpandAndInit(std::move(index), std::move(new_val));
 		}
 
 	if ( index_type->Tag() != TYPE_LIST )
 		// Nothing to expand.
-		return CheckAndAssign(index, new_val);
+		return CheckAndAssign(index.get(), std::move(new_val));
 
 	ListVal* iv = index->AsListVal();
 	if ( iv->BaseTag() != TYPE_ANY )
@@ -1698,10 +1697,9 @@ int TableVal::ExpandAndInit(Val* index, Val* new_val)
 			reporter->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
-			if ( ! ExpandAndInit(iv->Index(i), new_val ? new_val->Ref() : 0) )
+			if ( ! ExpandAndInit({NewRef{}, iv->Index(i)}, new_val) )
 				return 0;
 
-		Unref(new_val);
 		return 1;
 		}
 
@@ -1720,13 +1718,9 @@ int TableVal::ExpandAndInit(Val* index, Val* new_val)
 
 		if ( i >= vl->length() )
 			// Nothing to expand.
-			return CheckAndAssign(index, new_val);
+			return CheckAndAssign(index.get(), std::move(new_val));
 		else
-			{
-			int result = ExpandCompoundAndInit(vl, i, new_val);
-			Unref(new_val);
-			return result;
-			}
+			return ExpandCompoundAndInit(vl, i, std::move(new_val));
 		}
 	}
 
@@ -2191,17 +2185,17 @@ void TableVal::Describe(ODesc* d) const
 		}
 	}
 
-int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
+int TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val)
 	{
 	Val* ind_k_v = (*vl)[k];
-	ListVal* ind_k = ind_k_v->Type()->IsSet() ?
-				ind_k_v->AsTableVal()->ConvertToList() :
-				ind_k_v->Ref()->AsListVal();
+	auto ind_k = ind_k_v->Type()->IsSet() ?
+				IntrusivePtr<ListVal>{AdoptRef{}, ind_k_v->AsTableVal()->ConvertToList()} :
+				IntrusivePtr<ListVal>{NewRef{}, ind_k_v->AsListVal()};
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
 		Val* ind_k_i = ind_k->Index(i);
-		ListVal* expd = new ListVal(TYPE_ANY);
+		auto expd = make_intrusive<ListVal>(TYPE_ANY);
 		loop_over_list(*vl, j)
 			{
 			if ( j == k )
@@ -2210,21 +2204,16 @@ int TableVal::ExpandCompoundAndInit(val_list* vl, int k, Val* new_val)
 				expd->Append((*vl)[j]->Ref());
 			}
 
-		int success = ExpandAndInit(expd, new_val ? new_val->Ref() : 0);
-		Unref(expd);
+		int success = ExpandAndInit(std::move(expd), new_val);
 
 		if ( ! success )
-			{
-			Unref(ind_k);
 			return 0;
-			}
 		}
 
-	Unref(ind_k);
 	return 1;
 	}
 
-int TableVal::CheckAndAssign(Val* index, Val* new_val)
+int TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
 	{
 	Val* v = 0;
 	if ( subnets )
@@ -2236,7 +2225,7 @@ int TableVal::CheckAndAssign(Val* index, Val* new_val)
 	if ( v )
 		index->Warn("multiple initializations for index");
 
-	return Assign(index, new_val);
+	return Assign(index, new_val.release());
 	}
 
 void TableVal::InitDefaultFunc(Frame* f)

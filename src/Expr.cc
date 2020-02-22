@@ -2477,19 +2477,17 @@ Val* AssignExpr::InitVal(const BroType* t, Val* aggr) const
 		TableVal* tv = aggr->AsTableVal();
 		const TableType* tt = tv->Type()->AsTableType();
 		const BroType* yt = tv->Type()->YieldType();
-		Val* index = op1->InitVal(tt->Indices(), 0);
-		Val* v = op2->InitVal(yt, 0);
+		IntrusivePtr<Val> index{AdoptRef{}, op1->InitVal(tt->Indices(), 0)};
+		IntrusivePtr<Val> v{AdoptRef{}, op2->InitVal(yt, 0)};
 		if ( ! index || ! v )
 			return 0;
 
-		if ( ! tv->ExpandAndInit(index, v) )
+		if ( ! tv->ExpandAndInit(std::move(index), std::move(v)) )
 			{
-			Unref(index);
 			Unref(tv);
 			return 0;
 			}
 
-		Unref(index);
 		return tv;
 		}
 
@@ -4899,14 +4897,12 @@ Val* ListExpr::AddSetInit(const BroType* t, Val* aggr) const
 		if ( ! element )
 			return 0;
 
-		if ( ! tv->ExpandAndInit(element, 0) )
+		if ( ! tv->ExpandAndInit({AdoptRef{}, element}, 0) )
 			{
-			Unref(element);
 			Unref(tv);
 			return 0;
 			}
 
-		Unref(element);
 		}
 
 	return tv;

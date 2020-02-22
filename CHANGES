@@ -1,4 +1,25 @@
 
+3.0.2-dev.22 | 2020-02-22 14:28:41 -0800
+
+  * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)
+
+  * Improve creation of SMB transaction data strings (Jon Siwek, Corelight)
+
+  * Fix SSH analyzer assertion/leak after duplicate KEX packet (Max Kellermann)
+
+  * Fix memory leak in Input stream creation when using &type_column (Max Kellermann)
+
+  * Fix memory leak when no dns_TSIG_addl event handler exists (Max Kellermann)
+
+  * Reset the number of entries in a dict when calling Clear() (Tim Wojtulewicz, Corelight)
+
+  * Improve kerberos analyzer address and event handling (Jon Siwek, Corelight)
+
+    Adds a weird, "invalid_kerberos_addr_len", for invalid kerberos host
+    address lengths and also fixes a memory leak when processing KRB_KDC_REQ
+    and KRB_KDC_REP messages for message types that do not match a
+    known/expected type.
+
 3.0.2-dev.15 | 2020-02-22 13:56:47 -0800
 
   * Improve FTP word/whitespace handling (Jon Siwek, Corelight)

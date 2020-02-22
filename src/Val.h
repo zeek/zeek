@@ -61,7 +61,7 @@ class TableEntryVal;
 
 class RE_Matcher;
 
-typedef union {
+union BroValUnion {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
 
@@ -86,17 +86,50 @@ typedef union {
 
 	vector<Val*>* vector_val;
 
-} BroValUnion;
+	BroValUnion() = default;
+
+	constexpr BroValUnion(bro_int_t value) noexcept
+		: int_val(value) {}
+
+	constexpr BroValUnion(bro_uint_t value) noexcept
+		: uint_val(value) {}
+
+	constexpr BroValUnion(IPAddr* value) noexcept
+		: addr_val(value) {}
+
+	constexpr BroValUnion(IPPrefix* value) noexcept
+		: subnet_val(value) {}
+
+	constexpr BroValUnion(double value) noexcept
+		: double_val(value) {}
+
+	constexpr BroValUnion(BroString* value) noexcept
+		: string_val(value) {}
+
+	constexpr BroValUnion(Func* value) noexcept
+		: func_val(value) {}
+
+	constexpr BroValUnion(BroFile* value) noexcept
+		: file_val(value) {}
+
+	constexpr BroValUnion(RE_Matcher* value) noexcept
+		: re_val(value) {}
+
+	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
+		: table_val(value) {}
+
+	constexpr BroValUnion(val_list* value) noexcept
+		: val_list_val(value) {}
+
+	constexpr BroValUnion(vector<Val*> *value) noexcept
+		: vector_val(value) {}
+};
 
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
+		: val(d), type(base_type(t))
 		{
-		val.double_val = d;
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	explicit Val(Func* f);
@@ -105,21 +138,15 @@ public:
 	// class has ref'd it.
 	explicit Val(BroFile* f);
 
-	Val(BroType* t, bool type_type) // Extra arg to differentiate from protected version.
+	// Extra arg to differentiate from protected version.
+	Val(BroType* t, bool type_type)
+		: type(new TypeType(t->Ref()))
 		{
-		type = new TypeType(t->Ref());
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	Val()
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
 		{
-		val.int_val = 0;
-		type = base_type(TYPE_ERROR);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	~Val() override;
@@ -312,39 +339,34 @@ protected:
 
 	static Val* MakeBool(bool b)
 		{
-		auto rval = new Val(TYPE_BOOL);
-		rval->val.int_val = b;
-		return rval;
+		return new Val(bro_int_t(b), TYPE_BOOL);
 		}
 
 	static Val* MakeInt(bro_int_t i)
 		{
-		auto rval = new Val(TYPE_INT);
-		rval->val.int_val = i;
-		return rval;
+		return new Val(i, TYPE_INT);
 		}
 
 	static Val* MakeCount(bro_uint_t u)
 		{
-		auto rval = new Val(TYPE_COUNT);
-		rval->val.uint_val = u;
-		return rval;
+		return new Val(u, TYPE_COUNT);
 		}
 
-	explicit Val(TypeTag t)
+	template<typename V>
+	Val(V &&v, TypeTag t) noexcept
+		: val(std::forward<V>(v)), type(base_type(t))
 		{
-		type = base_type(t);
-#ifdef DEBUG
-		bound_id = 0;
-#endif
+		}
+
+	template<typename V>
+	Val(V &&v, BroType* t) noexcept
+		: val(std::forward<V>(v)), type(t->Ref())
+		{
 		}
 
 	explicit Val(BroType* t)
+		: type(t->Ref())
 		{
-		type = t->Ref();
-#ifdef DEBUG
-		bound_id = 0;
-#endif
 		}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
@@ -372,7 +394,7 @@ protected:
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
-	const char* bound_id;
+	const char* bound_id = nullptr;
 #endif
 
 };
@@ -479,9 +501,7 @@ public:
 	static uint32_t Mask(uint32_t port_num, TransportProto port_type);
 
 protected:
-	friend class Val;
 	friend class ValManager;
-	PortVal()	{}
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
@@ -504,11 +524,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	AddrVal()	{}
-	explicit AddrVal(TypeTag t) : Val(t)	{ }
-	explicit AddrVal(BroType* t) : Val(t)	{ }
-
 	Val* DoClone(CloneState* state) override;
 };
 
@@ -533,9 +548,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	SubNetVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -566,9 +578,6 @@ public:
 	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
 
 protected:
-	friend class Val;
-	StringVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -585,9 +594,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	PatternVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 };
@@ -630,9 +636,6 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	friend class Val;
-	ListVal()	{}
-
 	Val* DoClone(CloneState* state) override;
 
 	val_list vals;
@@ -819,9 +822,6 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 protected:
-	friend class Val;
-	TableVal()	{}
-
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
@@ -925,9 +925,6 @@ public:
 	static void ResizeParseTimeRecords();
 
 protected:
-	friend class Val;
-	RecordVal()	{}
-
 	Val* DoClone(CloneState* state) override;
 
 	BroObj* origin;
@@ -943,12 +940,9 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	EnumVal(EnumType* t, int i) : Val(t)
+	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
 		{
-		val.int_val = i;
 		}
-
-	EnumVal()	{}
 
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
@@ -1012,9 +1006,6 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
-	friend class Val;
-	VectorVal()	{ }
-
 	void ValDescribe(ODesc* d) const override;
 	Val* DoClone(CloneState* state) override;
 

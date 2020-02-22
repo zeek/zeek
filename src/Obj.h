@@ -31,7 +31,7 @@ typedef Location yyltype;
 YYLTYPE GetCurrentLocation();
 
 // Used to mean "no location associated with this object".
-extern Location no_location;
+inline constexpr Location no_location("<no location>", 0, 0, 0, 0);
 
 // Current start/end location.
 extern Location start_location;
@@ -53,9 +53,6 @@ class BroObj {
 public:
 	BroObj()
 		{
-		ref_cnt = 1;
-		notify_plugins = false;
-
 		// A bit of a hack.  We'd like to associate location
 		// information with every object created when parsing,
 		// since for them, the location is generally well-defined.
@@ -75,6 +72,10 @@ public:
 		}
 
 	virtual ~BroObj();
+
+	/* disallow copying */
+	BroObj(const BroObj &) = delete;
+	BroObj &operator=(const BroObj &) = delete;
 
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
@@ -141,8 +142,8 @@ private:
 	friend inline void Ref(BroObj* o);
 	friend inline void Unref(BroObj* o);
 
-	bool notify_plugins;
-	int ref_cnt;
+	bool notify_plugins = false;
+	int ref_cnt = 1;
 
 	// If non-zero, do not print runtime errors.  Useful for
 	// speculative evaluation.

@@ -14,7 +14,7 @@
 
 // BRO types.
 
-typedef enum {
+enum TypeTag {
 	TYPE_VOID,      // 0
 	TYPE_BOOL,      // 1
 	TYPE_INT,       // 2
@@ -42,20 +42,77 @@ typedef enum {
 	TYPE_TYPE,      // 24
 	TYPE_ERROR      // 25
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
-} TypeTag;
+};
 
-typedef enum {
+constexpr bool is_network_order(TypeTag tag) noexcept
+	{
+	return tag == TYPE_PORT;
+	}
+
+enum function_flavor {
 	FUNC_FLAVOR_FUNCTION,
 	FUNC_FLAVOR_EVENT,
 	FUNC_FLAVOR_HOOK
-} function_flavor;
+};
 
-typedef enum {
+enum InternalTypeTag {
 	TYPE_INTERNAL_VOID,
 	TYPE_INTERNAL_INT, TYPE_INTERNAL_UNSIGNED, TYPE_INTERNAL_DOUBLE,
 	TYPE_INTERNAL_STRING, TYPE_INTERNAL_ADDR, TYPE_INTERNAL_SUBNET,
 	TYPE_INTERNAL_OTHER, TYPE_INTERNAL_ERROR
-} InternalTypeTag;
+};
+
+constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
+	{
+	switch ( tag ) {
+	case TYPE_VOID:
+		return TYPE_INTERNAL_VOID;
+
+	case TYPE_BOOL:
+	case TYPE_INT:
+	case TYPE_ENUM:
+		return TYPE_INTERNAL_INT;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+	case TYPE_PORT:
+		return TYPE_INTERNAL_UNSIGNED;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		return TYPE_INTERNAL_DOUBLE;
+
+	case TYPE_STRING:
+		return TYPE_INTERNAL_STRING;
+
+	case TYPE_ADDR:
+		return TYPE_INTERNAL_ADDR;
+
+	case TYPE_SUBNET:
+		return TYPE_INTERNAL_SUBNET;
+
+	case TYPE_PATTERN:
+	case TYPE_TIMER:
+	case TYPE_ANY:
+	case TYPE_TABLE:
+	case TYPE_UNION:
+	case TYPE_RECORD:
+	case TYPE_LIST:
+	case TYPE_FUNC:
+	case TYPE_FILE:
+	case TYPE_OPAQUE:
+	case TYPE_VECTOR:
+	case TYPE_TYPE:
+		return TYPE_INTERNAL_OTHER;
+
+	case TYPE_ERROR:
+		return TYPE_INTERNAL_ERROR;
+	}
+
+	/* this should be unreachable */
+	return TYPE_INTERNAL_VOID;
+	}
 
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
@@ -83,7 +140,6 @@ const int MATCHES_INDEX_VECTOR = 2;
 class BroType : public BroObj {
 public:
 	explicit BroType(TypeTag tag, bool base_type = false);
-	~BroType() override { }
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types

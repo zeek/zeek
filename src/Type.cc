@@ -61,70 +61,10 @@ const char* type_name(TypeTag t)
 	}
 
 BroType::BroType(TypeTag t, bool arg_base_type)
+	: tag(t), internal_tag(to_internal_type_tag(tag)),
+	  is_network_order(::is_network_order(t)),
+	  base_type(arg_base_type)
 	{
-	tag = t;
-	is_network_order = 0;
-	base_type = arg_base_type;
-
-	switch ( tag ) {
-	case TYPE_VOID:
-		internal_tag = TYPE_INTERNAL_VOID;
-		break;
-
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_ENUM:
-		internal_tag = TYPE_INTERNAL_INT;
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		internal_tag = TYPE_INTERNAL_UNSIGNED;
-		break;
-
-	case TYPE_PORT:
-		internal_tag = TYPE_INTERNAL_UNSIGNED;
-		is_network_order = 1;
-		break;
-
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		internal_tag = TYPE_INTERNAL_DOUBLE;
-		break;
-
-	case TYPE_STRING:
-		internal_tag = TYPE_INTERNAL_STRING;
-		break;
-
-	case TYPE_ADDR:
-		internal_tag = TYPE_INTERNAL_ADDR;
-		break;
-
-	case TYPE_SUBNET:
-		internal_tag = TYPE_INTERNAL_SUBNET;
-		break;
-
-	case TYPE_PATTERN:
-	case TYPE_TIMER:
-	case TYPE_ANY:
-	case TYPE_TABLE:
-	case TYPE_UNION:
-	case TYPE_RECORD:
-	case TYPE_LIST:
-	case TYPE_FUNC:
-	case TYPE_FILE:
-	case TYPE_OPAQUE:
-	case TYPE_VECTOR:
-	case TYPE_TYPE:
-		internal_tag = TYPE_INTERNAL_OTHER;
-		break;
-
-	case TYPE_ERROR:
-		internal_tag = TYPE_INTERNAL_ERROR;
-		break;
-	}
-
 	}
 
 BroType* BroType::ShallowClone()

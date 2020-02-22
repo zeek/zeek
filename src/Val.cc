@@ -38,29 +38,23 @@
 #include "threading/formatters/JSON.h"
 
 Val::Val(Func* f)
+	: val(f), type(f->FType()->Ref())
 	{
-	val.func_val = f;
 	::Ref(val.func_val);
-	type = f->FType()->Ref();
-#ifdef DEBUG
-	bound_id = 0;
-#endif
 	}
 
-Val::Val(BroFile* f)
+static FileType* GetStringFileType() noexcept
 	{
 	static FileType* string_file_type = 0;
 	if ( ! string_file_type )
 		string_file_type = new FileType(base_type(TYPE_STRING));
+	return string_file_type;
+	}
 
-	val.file_val = f;
-
+Val::Val(BroFile* f)
+	: val(f), type(GetStringFileType()->Ref())
+	{
 	assert(f->FType()->Tag() == TYPE_STRING);
-	type = string_file_type->Ref();
-
-#ifdef DEBUG
-	bound_id = 0;
-#endif
 	}
 
 Val::~Val()
@@ -771,9 +765,8 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
 	return port_num;
 	}
 
-PortVal::PortVal(uint32_t p) : Val(TYPE_PORT)
+PortVal::PortVal(uint32_t p) : Val(bro_uint_t(p), TYPE_PORT)
 	{
-	val.uint_val = static_cast<bro_uint_t>(p);
 	}
 
 uint32_t PortVal::Port() const
@@ -823,30 +816,25 @@ Val* PortVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-AddrVal::AddrVal(const char* text) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const char* text) : Val(new IPAddr(text), TYPE_ADDR)
 	{
-	val.addr_val = new IPAddr(text);
 	}
 
-AddrVal::AddrVal(const std::string& text) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const std::string& text) : AddrVal(text.c_str())
 	{
-	val.addr_val = new IPAddr(text);
 	}
 
-AddrVal::AddrVal(uint32_t addr) : Val(TYPE_ADDR)
+AddrVal::AddrVal(uint32_t addr) : Val(new IPAddr(IPv4, &addr, IPAddr::Network), TYPE_ADDR)
 	{
 	// ### perhaps do gethostbyaddr here?
-	val.addr_val = new IPAddr(IPv4, &addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const uint32_t addr[4]) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const uint32_t addr[4]) : Val(new IPAddr(IPv6, addr, IPAddr::Network), TYPE_ADDR)
 	{
-	val.addr_val = new IPAddr(IPv6, addr, IPAddr::Network);
 	}
 
-AddrVal::AddrVal(const IPAddr& addr) : Val(TYPE_ADDR)
+AddrVal::AddrVal(const IPAddr& addr) : Val(new IPAddr(addr), TYPE_ADDR)
 	{
-	val.addr_val = new IPAddr(addr);
 	}
 
 AddrVal::~AddrVal()
@@ -873,39 +861,30 @@ Val* AddrVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-SubNetVal::SubNetVal(const char* text) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text) : Val(new IPPrefix(), TYPE_SUBNET)
 	{
-	val.subnet_val = new IPPrefix();
-
 	if ( ! IPPrefix::ConvertString(text, val.subnet_val) )
 		reporter->Error("Bad string in SubNetVal ctor: %s", text);
 	}
 
-SubNetVal::SubNetVal(const char* text, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const char* text, int width) : Val(new IPPrefix(text, width), TYPE_SUBNET)
 	{
-	val.subnet_val = new IPPrefix(text, width);
 	}
 
-SubNetVal::SubNetVal(uint32_t addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(uint32_t addr, int width) : SubNetVal(IPAddr{IPv4, &addr, IPAddr::Network}, width)
 	{
-	IPAddr a(IPv4, &addr, IPAddr::Network);
-	val.subnet_val = new IPPrefix(a, width);
 	}
 
-SubNetVal::SubNetVal(const uint32_t* addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const uint32_t* addr, int width) : SubNetVal(IPAddr{IPv6, addr, IPAddr::Network}, width)
 	{
-	IPAddr a(IPv6, addr, IPAddr::Network);
-	val.subnet_val = new IPPrefix(a, width);
 	}
 
-SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPAddr& addr, int width) : Val(new IPPrefix(addr, width), TYPE_SUBNET)
 	{
-	val.subnet_val = new IPPrefix(addr, width);
 	}
 
-SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(TYPE_SUBNET)
+SubNetVal::SubNetVal(const IPPrefix& prefix) : Val(new IPPrefix(prefix), TYPE_SUBNET)
 	{
-	val.subnet_val = new IPPrefix(prefix);
 	}
 
 SubNetVal::~SubNetVal()
@@ -979,25 +958,22 @@ Val* SubNetVal::DoClone(CloneState* state)
 	return Ref();
 	}
 
-StringVal::StringVal(BroString* s) : Val(TYPE_STRING)
+StringVal::StringVal(BroString* s) : Val(s, TYPE_STRING)
 	{
-	val.string_val = s;
 	}
 
-StringVal::StringVal(int length, const char* s) : Val(TYPE_STRING)
+// The following adds a NUL at the end.
+StringVal::StringVal(int length, const char* s)
+	: StringVal(new BroString(reinterpret_cast<const u_char*>(s), length, 1))
 	{
-	// The following adds a NUL at the end.
-	val.string_val = new BroString((const u_char*)  s, length, 1);
 	}
 
-StringVal::StringVal(const char* s) : Val(TYPE_STRING)
+StringVal::StringVal(const char* s) : StringVal(new BroString(s))
 	{
-	val.string_val = new BroString(s);
 	}
 
-StringVal::StringVal(const string& s) : Val(TYPE_STRING)
+StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 	{
-	val.string_val = new BroString(reinterpret_cast<const u_char*>(s.data()), s.length(), 1);
 	}
 
 Val* StringVal::SizeVal() const

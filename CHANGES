@@ -1,4 +1,40 @@
 
+3.2.0-dev.98 | 2020-02-21 20:04:30 -0800
+
+  * Val: use C++ initializers (Max Kellermann)
+
+  * Val: add BroValUnion constructors (Max Kellermann)
+
+  * Val: reduce duplicate code by using delegating constructors (Max Kellermann)
+
+  * Val: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Val: remove the unnecessary BroValUnion typedef (Max Kellermann)
+
+  * Type: remove unnecessary enum typedefs (Max Kellermann)
+
+  * Type: use C++ initializers (Max Kellermann)
+
+  * Type: move code from BroType::BroType() to constexpr functions (Max Kellermann)
+
+    Prepare to inline the constructor, which will one day be `constexpr`
+    (requires moving the `std::string name` field somewhere else).
+
+  * Type: remove useless BroType destructor (Max Kellermann)
+
+  * Obj: disallow copying BroObj (Max Kellermann)
+
+    Copying a BroObj is dangerous, and should only be done with dedicated
+    (virtual) methods which are implemented by all derived classes.  This
+    commit avoids unintentional copies.
+
+  * Obj: use C++ initializers (Max Kellermann)
+
+  * Obj: make `no_location` constexpr (Max Kellermann)
+
+    This ensures that the variable is initialized at compile time and may
+    allow the compiler to apply more initializations.
+
 3.2.0-dev.85 | 2020-02-21 15:29:45 -0800
 
   * threading/MsgThread: add [[noreturn]] to InternalError() (Max Kellermann)

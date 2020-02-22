@@ -1,4 +1,8 @@
 
+3.2.0-dev.99 | 2020-02-21 21:23:52 -0800
+
+  * Update a URL in CI README (Jon Siwek, Corelight)
+
 3.2.0-dev.98 | 2020-02-21 20:04:30 -0800
 
   * Val: use C++ initializers (Max Kellermann)

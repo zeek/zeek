@@ -2,15 +2,6 @@
 
 #pragma once
 
-#ifdef __GNUC__
-    #define ZEEK_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
-#elif defined(_MSC_VER)
-    #define ZEEK_DEPRECATED(msg) __declspec(deprecated(msg)) func
-#else
-	#pragma message("Warning: ZEEK_DEPRECATED macro not implemented")
-	#define ZEEK_DEPRECATED(msg)
-#endif
-
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #ifndef __STDC_FORMAT_MACROS
@@ -71,22 +62,22 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
-ZEEK_DEPRECATED("Remove in v4.1. Use uint64_t instead.")
+[[deprecated("Remove in v4.1. Use uint64_t instead.")]]
 typedef uint64_t uint64;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint32_t instead.")
+[[deprecated("Remove in v4.1. Use uint32_t instead.")]]
 typedef uint32_t uint32;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint16_t instead.")
+[[deprecated("Remove in v4.1. Use uint16_t instead.")]]
 typedef uint16_t uint16;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint8_t instead.")
+[[deprecated("Remove in v4.1. Use uint8_t instead.")]]
 typedef uint8_t uint8;
 
-ZEEK_DEPRECATED("Remove in v4.1. Use int64_t instead.")
+[[deprecated("Remove in v4.1. Use int64_t instead.")]]
 typedef int64_t int64;
-ZEEK_DEPRECATED("Remove in v4.1. Use int32_t instead.")
+[[deprecated("Remove in v4.1. Use int32_t instead.")]]
 typedef int32_t int32;
-ZEEK_DEPRECATED("Remove in v4.1. Use int16_t instead.")
+[[deprecated("Remove in v4.1. Use int16_t instead.")]]
 typedef int16_t int16;
-ZEEK_DEPRECATED("Remove in v4.1. Use int8_t instead.")
+[[deprecated("Remove in v4.1. Use int8_t instead.")]]
 typedef int8_t int8;
 
 typedef int64_t bro_int_t;
@@ -523,7 +514,7 @@ inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	return result;
 	}
 
-ZEEK_DEPRECATED("Remove in v4.1: Use system snprintf instead")
+[[deprecated("Remove in v4.1: Use system snprintf instead")]]
 inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	{
 	va_list al;
@@ -535,7 +526,7 @@ inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	return result;
 	}
 
-ZEEK_DEPRECATED("Remove in v4.1: Use system vsnprintf instead")
+[[deprecated("Remove in v4.1: Use system vsnprintf instead")]]
 inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
 	int result = vsnprintf(str, size, format, al);

@@ -9,7 +9,7 @@
 # leaked that memeory.
 #
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run zeek zeek -m -b -r $TRACES/ftp/ipv4.trace %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 120
 
 function myfunc(aa: interval, bb: interval): int
     {

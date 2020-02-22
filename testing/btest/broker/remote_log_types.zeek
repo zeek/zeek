@@ -17,8 +17,6 @@
 redef exit_only_after_terminate = T;
 
 global quit_receiver: event();
-global quit_sender: event();
-
 
 module Test;
 
@@ -48,9 +46,14 @@ export {
 }
 
 event zeek_init() &priority=5
-        {
-        Log::create_stream(Test::LOG, [$columns=Test::Info]);
-        }
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info]);
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
 
 @TEST-END-FILE
 
@@ -80,11 +83,6 @@ event quit_receiver()
 event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
-	}
-
-event quit_sender()
-	{
-	terminate();
 	}
 
 function foo(i : count) : string
@@ -122,10 +120,8 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		$f=foo
 		]);
 
-	local e = Broker::make_event(quit_receiver);
-	Broker::publish("zeek/", e);
-	schedule 1sec { quit_sender() };
-        }
+	Broker::publish("zeek/", quit_receiver);
+	}
 
 
 @TEST-END-FILE

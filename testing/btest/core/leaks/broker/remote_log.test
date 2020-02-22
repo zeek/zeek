@@ -5,7 +5,7 @@
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run recv "zeek -m -b ../recv.zeek >recv.out"
 # @TEST-EXEC: HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local btest-bg-run send "zeek -m -b ../send.zeek >send.out"
 
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 120
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff recv/test.log
 # @TEST-EXEC: btest-diff send/send.out

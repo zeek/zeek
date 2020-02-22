@@ -5,7 +5,7 @@
 # @TEST-REQUIRES: zeek  --help 2>&1 | grep -q mem-leaks
 #
 # @TEST-EXEC: btest-bg-run zeek HEAP_CHECK_DUMP_DIRECTORY=. HEAPCHECK=local zeek -m -b %INPUT
-# @TEST-EXEC: btest-bg-wait 60
+# @TEST-EXEC: btest-bg-wait 120
 
 redef exit_only_after_terminate = T;
 

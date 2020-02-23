@@ -1,4 +1,8 @@
 
+3.0.2-dev.28 | 2020-02-22 16:10:01 -0800
+
+  * Update Paraglob and Broker submodules (Jon Siwek, Corelight)
+
 3.0.2-dev.27 | 2020-02-22 15:48:40 -0800
 
   * Fix packet filter memory leaks (Jon Siwek, Corelight)

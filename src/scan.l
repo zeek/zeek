@@ -91,7 +91,7 @@ static string find_relative_script_file(const string& filename)
 		return find_script_file(filename, bro_path());
 	}
 
-static ino_t get_inode_num(FILE* f, const string& path)
+static std::pair<dev_t, ino_t> get_inode(FILE* f, const string& path)
 	{
 	struct stat b;
 
@@ -99,20 +99,20 @@ static ino_t get_inode_num(FILE* f, const string& path)
 		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
 		                     strerror(errno));
 
-	return b.st_ino;
+	return std::pair<dev_t, ino_t>{b.st_dev, b.st_ino};
 	}
 
-static ino_t get_inode_num(const string& path)
+static std::pair<dev_t, ino_t> get_inode(const string& path)
 	{
 	FILE* f = open_file(path);
 
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	ino_t inum = get_inode_num(f, path);
+	auto inode = get_inode(f, path);
 	fclose(f);
 
-	return inum;
+	return inode;
 	}
 
 class FileInfo {
@@ -420,7 +420,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		auto i = get_inode(path);
+		ScannedFile sf(i.first, i.second, file_stack.length(), path, true);
 		files_scanned.push_back(sf);
 		}
 	}
@@ -587,13 +588,10 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-
-static bool already_scanned(ino_t i)
+static bool already_scanned(const std::pair<dev_t, ino_t>& i)
 	{
-	list<ScannedFile>::const_iterator it;
-
-	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-		if ( it->inode == i )
+	for ( auto it : files_scanned )
+		if ( it.dev == i.first && it.inode == i.second )
 			return true;
 
 	return false;
@@ -601,7 +599,7 @@ static bool already_scanned(ino_t i)
 
 static bool already_scanned(const string& path)
 	{
-	return already_scanned(get_inode_num(path));
+	return already_scanned(get_inode(path));
 	}
 
 static int load_files(const char* orig_file)
@@ -656,7 +654,7 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	ino_t i = get_inode_num(f, file_path);
+	auto i = get_inode(f, file_path);
 
 	if ( already_scanned(i) )
 		{
@@ -666,7 +664,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i, file_stack.length(), file_path);
+	ScannedFile sf(i.first, i.second, file_stack.length(), file_path);
 	files_scanned.push_back(sf);
 
 	if ( g_policy_debug && ! file_path.empty() )

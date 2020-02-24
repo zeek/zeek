@@ -2100,7 +2100,19 @@ BroType* init_type(Expr* init)
 
 	BroType* t = e0->InitType();
 	if ( t )
+		{
+		BroType *old_t = t;
 		t = reduce_type(t);
+		/* reduce_type() does not return a referenced pointer,
+		   but we want to own a reference, so create one
+		   here */
+		if (t)
+			Ref(t);
+		/* reduce_type() does not adopt our reference passed
+		   as parameter, so we need to release it (after the
+		   Ref() call above) */
+		Unref(old_t);
+		}
 	if ( ! t )
 		return 0;
 

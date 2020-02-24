@@ -165,6 +165,8 @@ IdentifierInfo::Redefinition::operator=(const IdentifierInfo::Redefinition& othe
 	if ( &other == this )
 		return *this;
 
+	Unref(init_expr);
+
 	from_script = other.from_script;
 	ic = other.ic;
 	init_expr = other.init_expr;

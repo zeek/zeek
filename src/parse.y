@@ -1099,8 +1099,11 @@ decl:
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
+			if ($5)
+				Ref($5);
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 			zeekygen_mgr->Redef($2, ::filename, $4, $5);
+			Unref($5);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'

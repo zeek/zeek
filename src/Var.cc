@@ -235,6 +235,8 @@ void add_global(ID* id, BroType* t, init_class c, Expr* init,
 Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 		attr_list* attr, decl_type dt)
 	{
+	if (init)
+		Ref(init);
 	make_var(id, t, c, init, attr, dt, 0);
 
 	if ( init )
@@ -262,6 +264,7 @@ Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
 
 extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
 	{
+	Ref(init);
 	make_var(id, 0, INIT_FULL, init, 0, VAR_REGULAR, 0);
 	Ref(id);
 	return new AssignExpr(new NameExpr(id), init, 0, val);

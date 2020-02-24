@@ -3804,8 +3804,7 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 				if ( def )
 					rhs = def->AttrExpr()->Eval(0);
 				}
-
-			if ( rhs )
+			else
 				rhs = rhs->Ref();
 
 			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));

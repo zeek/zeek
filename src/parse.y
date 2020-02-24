@@ -514,7 +514,8 @@ expr:
 			}
 		 func_body
 			{
-			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
+			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()->Ref()));
+			Unref(func_id);
 			}
 
 	|	expr TOK_IN expr

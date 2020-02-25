@@ -762,7 +762,7 @@ function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_finish%(handle: opaque of md5%): string
 	%{
-	return static_cast<HashVal*>(handle)->Get();
+	return static_cast<HashVal*>(handle)->Get().release();
 	%}
 
 ## Returns the final SHA1 digest of an incremental hash computation.
@@ -776,7 +776,7 @@ function md5_hash_finish%(handle: opaque of md5%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function sha1_hash_finish%(handle: opaque of sha1%): string
 	%{
-	return static_cast<HashVal*>(handle)->Get();
+	return static_cast<HashVal*>(handle)->Get().release();
 	%}
 
 ## Returns the final SHA256 digest of an incremental hash computation.
@@ -790,7 +790,7 @@ function sha1_hash_finish%(handle: opaque of sha1%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update
 function sha256_hash_finish%(handle: opaque of sha256%): string
 	%{
-	return static_cast<HashVal*>(handle)->Get();
+	return static_cast<HashVal*>(handle)->Get().release();
 	%}
 
 ## Initializes and returns a new paraglob.
@@ -842,7 +842,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 ## ## .. zeek:see::paraglob_add paraglob_equals paraglob_init
 function paraglob_match%(handle: opaque of paraglob, match: string%): string_vec
 	%{
-	return static_cast<ParaglobVal*>(handle)->Get(match);
+	return static_cast<ParaglobVal*>(handle)->Get(match).release();
 	%}
 
 ## Compares two paraglobs for equality.

@@ -54,6 +54,6 @@ void Hash::Finalize()
 	mgr.QueueEventFast(file_hash, {
 		GetFile()->GetVal()->Ref(),
 		new StringVal(kind),
-		hash->Get(),
+		hash->Get().release(),
 	});
 	}

@@ -12,6 +12,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Several C++ functions have been changed to pass smart pointers
+  (`class IntrusivePtr<>`) instead of raw pointers.  This makes the
+  code more robust.  External plugins may need to be updated to this
+  API change.
+
 Removed Functionality
 ---------------------
 

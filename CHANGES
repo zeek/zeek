@@ -1,4 +1,8 @@
 
+3.2.0-dev.108 | 2020-02-24 17:24:07 -0800
+
+  * Change OpaqueVal/HashVal APIs to use IntrusivePtr (Max Kellermann)
+
 3.2.0-dev.106 | 2020-02-24 17:07:10 -0800
 
   * ScannedFile: Identify already scanned files by device and inode (Arne Welzel)

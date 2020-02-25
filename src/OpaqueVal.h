@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "IntrusivePtr.h"
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
@@ -20,7 +21,7 @@ class OpaqueVal;
   */
 class OpaqueMgr {
 public:
-	using Factory = OpaqueVal* ();
+	using Factory = IntrusivePtr<OpaqueVal> ();
 
 	/**
 	 * Return's a unique ID for the type of an opaque value.
@@ -44,7 +45,7 @@ public:
 	 * is unknown, this will return null.
 	 *
 	 */
-	OpaqueVal* Instantiate(const std::string& id) const;
+	IntrusivePtr<OpaqueVal> Instantiate(const std::string& id) const;
 
 	/** Returns the global manager singleton object. */
 	static OpaqueMgr* mgr();
@@ -67,10 +68,11 @@ private:
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                            \
     friend class OpaqueMgr::Register<T>;                   \
+    friend IntrusivePtr<T> make_intrusive<T>();            \
     broker::expected<broker::data> DoSerialize() const override;             \
     bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
-    static OpaqueVal* OpaqueInstantiate() { return new T(); }
+    static IntrusivePtr<OpaqueVal> OpaqueInstantiate() { return make_intrusive<T>(); }
 
 #define __OPAQUE_MERGE(a, b) a ## b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
@@ -102,7 +104,7 @@ public:
 	 * @param data Broker representation as returned by *Serialize()*.
 	 * @return unserialized instances with reference count at +1
 	 */
-	static OpaqueVal* Unserialize(const broker::data& data);
+	static IntrusivePtr<OpaqueVal> Unserialize(const broker::data& data);
 
 protected:
 	friend class Val;
@@ -163,7 +165,7 @@ public:
 	bool IsValid() const;
 	bool Init();
 	bool Feed(const void* data, size_t size);
-	StringVal* Get();
+	IntrusivePtr<StringVal> Get();
 
 protected:
 	HashVal()	{ valid = false; }
@@ -171,7 +173,7 @@ protected:
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
-	virtual StringVal* DoGet();
+	virtual IntrusivePtr<StringVal> DoGet();
 
 private:
 	// This flag exists because Get() can only be called once.
@@ -196,7 +198,7 @@ protected:
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
@@ -217,7 +219,7 @@ protected:
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
@@ -238,7 +240,7 @@ protected:
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
@@ -277,8 +279,8 @@ public:
 	bool Empty() const;
 	string InternalState() const;
 
-	static BloomFilterVal* Merge(const BloomFilterVal* x,
-				     const BloomFilterVal* y);
+	static IntrusivePtr<BloomFilterVal> Merge(const BloomFilterVal* x,
+	                                          const BloomFilterVal* y);
 
 protected:
 	friend class Val;
@@ -324,7 +326,7 @@ private:
 class ParaglobVal : public OpaqueVal {
 public:
 	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
-	VectorVal* Get(StringVal* &pattern);
+	IntrusivePtr<VectorVal> Get(StringVal* &pattern);
 	Val* DoClone(CloneState* state) override;
 	bool operator==(const ParaglobVal& other) const;
 

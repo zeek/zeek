@@ -1,4 +1,44 @@
 
+3.2.0-dev.115 | 2020-02-24 18:48:50 -0700
+
+  * Improve formatting of doubles that are close to integers
+
+    Now checks for approximate floating point equality so that more doubles
+    get properly disambiguated from integers (Jon Siwek, Corelight)
+
+  * Improve HTTP version number comparisons
+
+    Previous use of floating point comparisons was not always stable. (Jon Siwek, Corelight)
+
+  * Add a 32-bit task to Cirrus CI config (Jon Siwek, Corelight)
+
+  * Replace va_list fmt() overload with vfmt()
+
+    Using an overload that takes a va_list argument potentially causes
+    accidental misuse on platforms (e.g. 32-bit) where va_list is
+    implemented as a type that may collide with commonly-used argument
+    types.
+
+    For example:
+
+        char* c = copy_string("hi");
+        fmt("%s", (const char*)c);
+        fmt("%s", c);
+
+    The first fmt() call correctly goes through fmt(const char*, ...) first,
+    but the second mistakenly goes through fmt(const char*, va_list) first
+    because variadic function overloads have lower priority during overload
+    resolution and va_list on a 32-bit system happens to be defined as a
+    pointer type that can match with "char*" but not "const char*". (Jon Siwek, Corelight)
+
+  * Format tables indexed by patterns consistently across 32-bit/64-bit
+
+    Uses a full 64 bit integer for length values regardless of actual size_t
+    to get consistent results between either 32-bit and 64-bit platforms. (Jon Siwek, Corelight)
+
+  * Format interval values consistently across 32-bit/64-bit platforms (Jon Siwek, Corelight)
+
+
 3.2.0-dev.108 | 2020-02-24 17:24:07 -0800
 
   * Change OpaqueVal/HashVal APIs to use IntrusivePtr (Max Kellermann)

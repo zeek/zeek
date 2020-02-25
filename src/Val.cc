@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cmath>
+
 #include "Attr.h"
 #include "BroString.h"
 #include "CompHash.h"
@@ -715,7 +717,8 @@ void IntervalVal::ValDescribe(ODesc* d) const
 			if ( ! (v >= unit || v <= -unit) )
 				continue;
 
-			double num = static_cast<double>(static_cast<int64_t>(v / unit));
+			double num = v / unit;
+			num = num < 0 ? std::ceil(num) : std::floor(num);
 			v -= num * unit;
 			to_print = num;
 			}

@@ -625,7 +625,7 @@ void Manager::Error(const char* format, ...)
 	{
 	va_list args;
 	va_start(args, format);
-	auto msg = fmt(format, args);
+	auto msg = vfmt(format, args);
 	va_end(args);
 
 	if ( script_scope )

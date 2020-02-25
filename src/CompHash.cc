@@ -154,10 +154,10 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 				v->AsPattern()->AnywherePatternText()
 			};
 
-			size_t* kp;
+			uint64_t* kp;
 			for ( int i = 0; i < 2; i++ )
 				{
-				kp = AlignAndPadType<size_t>(kp0+i);
+				kp = AlignAndPadType<uint64_t>(kp0+i);
 				*kp = strlen(texts[i]) + 1;
 				}
 
@@ -505,7 +505,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			if ( ! v )
 				return (optional && ! calc_static_size) ? sz : 0;
 
-			sz = SizeAlign(sz, 2 * sizeof(size_t));
+			sz = SizeAlign(sz, 2 * sizeof(uint64_t));
 			sz += strlen(v->AsPattern()->PatternText())
 				+ strlen(v->AsPattern()->AnywherePatternText()) + 2; // 2 for null terminators
 			break;
@@ -892,7 +892,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				}
 			else
 				{
-				const size_t* const len = AlignType<size_t>(kp0);
+				const uint64_t* const len = AlignType<uint64_t>(kp0);
 
 				kp1 = reinterpret_cast<const char*>(len+2);
 				re = new RE_Matcher(kp1, kp1 + len[0]);

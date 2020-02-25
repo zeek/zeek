@@ -188,7 +188,7 @@ extern std::string strtolower(const std::string& s);
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, va_list args);
+extern const char* vfmt(const char* format, va_list args);
 // Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));

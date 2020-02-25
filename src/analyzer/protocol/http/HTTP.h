@@ -175,8 +175,24 @@ public:
 	void ConnectionReset() override;
 	void PacketWithRST() override;
 
-	double GetRequestVersion() { return request_version; };
-	double GetReplyVersion() { return reply_version; };
+	struct HTTP_VersionNumber {
+		uint8_t major = 0;
+		uint8_t minor = 0;
+
+		bool operator==(const HTTP_VersionNumber& other) const
+			{ return minor == other.minor && major == other.major; }
+
+		bool operator!=(const HTTP_VersionNumber& other) const
+			{ return ! operator==(other); }
+
+		double ToDouble() const
+			{ return major + minor * 0.1; }
+	};
+
+	double GetRequestVersion() { return request_version.ToDouble(); };
+	double GetReplyVersion() { return reply_version.ToDouble(); };
+	HTTP_VersionNumber GetRequestVersionNumber() { return request_version; };
+	HTTP_VersionNumber GetReplyVersionNumber() { return reply_version; };
 	int GetRequestOngoing() { return request_ongoing; };
 	int GetReplyOngoing() { return reply_ongoing; };
 
@@ -204,9 +220,9 @@ protected:
 				const char* prefix);
 
 	int ParseRequest(const char* line, const char* end_of_line);
-	double HTTP_Version(int len, const char* data);
+	HTTP_VersionNumber HTTP_Version(int len, const char* data);
 
-	void SetVersion(double& version, double new_version);
+	void SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber new_version);
 
 	int RequestExpected() const { return num_requests == 0 || keep_alive; }
 
@@ -227,7 +243,7 @@ protected:
 	int request_state, reply_state;
 	int num_requests, num_replies;
 	int num_request_lines, num_reply_lines;
-	double request_version, reply_version;
+	HTTP_VersionNumber request_version, reply_version;
 	int keep_alive;
 	int connection_close;
 	int request_ongoing, reply_ongoing;

@@ -724,7 +724,7 @@ void Stem::ReportStatus(const Supervisor::Node& node) const
 
 void Stem::Log(std::string_view type, const char* format, va_list args) const
 	{
-	auto raw_msg = fmt(format, args);
+	auto raw_msg = vfmt(format, args);
 
 	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
 		{

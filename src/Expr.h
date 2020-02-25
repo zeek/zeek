@@ -1085,9 +1085,9 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
 //
 // Note, the type is not "const" because it can be ref'd.
 extern int check_and_promote_expr(Expr*& e, BroType* t);
-extern int check_and_promote_exprs(ListExpr*& elements, TypeList* types);
-extern int check_and_promote_args(ListExpr*& args, RecordType* types);
-extern int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type);
+extern int check_and_promote_exprs(ListExpr* elements, TypeList* types);
+extern int check_and_promote_args(ListExpr* args, RecordType* types);
+extern int check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
 
 // Returns a ListExpr simplified down to a list a values, or a nil
 // pointer if they couldn't all be reduced.

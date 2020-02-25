@@ -1,4 +1,10 @@
 
+3.0.2 | 2020-02-25 11:56:21 -0800
+
+  * Release 3.0.2
+
+  * Update NEWS for 3.0.2 (Jon Siwek, Corelight)
+
 3.0.2-dev.32 | 2020-02-22 17:30:03 -0800
 
   * Improve an input framework test (Jon Siwek, Corelight)

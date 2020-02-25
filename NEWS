@@ -6,7 +6,117 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.0.2
 ==========
 
-TODO
+This release addresses the following security issues:
+
+* Potential Denial of Service due to memory leak in DNS TSIG message
+  parsing.  Thanks to Max Kellermann for the report and patch.
+  See https://github.com/zeek/zeek/pull/799
+
+* Potential Denial of Service due to memory leak (or assertion when
+  compiling with assertions enabled) when receiving a second SSH KEX
+  message after a first.  Thanks to Max Kellermann for the report and patch.
+  See https://github.com/zeek/zeek/pull/792
+
+* Potential Denial of Service due to buffer read overflow and/or
+  memory leaks in Kerberos analyzer.  The buffer read overflow could occur when
+  the Kerberos message indicates it contains an IPv6 address, but does not send
+  enough data to parse out a full IPv6 address.  A memory leak could occur when
+  processing KRB_KDC_REQ KRB_KDC_REP messages for message types that do not
+  match a known/expected type.  See https://github.com/zeek/zeek/pull/753
+
+* Potential Denial of Service when sending many zero-length SSL/TLS certificate
+  data.  Such messages underwent the full Zeek file analysis treatment which
+  is expensive (and meaninguless here) compared to how cheaply one can "create"
+  or otherwise indicate many zero-length contained in an SSL message.
+  See https://github.com/zeek/zeek/pull/748
+
+* Potential Denial of Service due to buffer read overflow in SMB transaction
+  data string handling.  The length of strings being parsed from SMB messages
+  was trusted to be whatever the message claimed instead of the actual length
+  of data found in the message. See https://github.com/zeek/zeek/pull/747
+
+* Potential Denial of Service due to null pointer dereference in FTP ADAT
+  Base64 decoding. See https://github.com/zeek/zeek/pull/739
+
+* Potential Denial of Service due buffer read overflow in FTP analyzer
+  word/whitespace handling.  This typically won't be a problem in most default
+  deployments of Zeek since the FTP analyzer receives data from a ContentLine
+  (NVT) support analyzer which first null-terminates the buffer used for
+  further FTP parsing. See https://github.com/zeek/zeek/pull/749
+
+Also addressed are the following bug fixes:
+
+* Use-after-free in paraglob
+  https://github.com/zeek/paraglob/commit/d65dd0a
+
+* Invalid memory read in paraglob
+  https://github.com/zeek/paraglob/commit/ac86ce76ac86f0ca9cd43aad74bb7b6043319fb1
+
+* Improve Broker python binding Event validity checks
+  https://github.com/zeek/broker/commit/2d9f4742618116e8591a37fe6c16ea2eef7269cf
+
+* Misleading Broker debug/error output
+  https://github.com/zeek/broker/commit/0d136d187fef2b720ce3a85d7df34ab166f0edfd
+
+* malloc/delete mismatch in JSON formatting
+  https://github.com/zeek/zeek/commit/c0d6eb9efbc133c320a963729e99251d4b6952e3
+
+* Plugin API returning reference to temporary
+  https://github.com/zeek/zeek/commit/ae9e79969e9d2a9de659dbc1fc81a2c94c67f54c
+
+* Memory leak in OCSP parsing when using OpenSSL 1.1
+  https://github.com/zeek/zeek/commit/2fbcf23f767797d321d7239f5260d16a25b16eb1
+
+* Memory leak in Kerberos ticket decryption
+  https://github.com/zeek/zeek/commit/53fadb2bb0e9a165dac3899290282236f770be68
+
+* Memory leak when table-based input stream overwrites old entry
+  https://github.com/zeek/zeek/commit/3742e5601c7390aacd1f8ce59b054e0090d7524a
+
+* Memory leak in packet filter functions
+  https://github.com/zeek/zeek/commit/a961f0b4c4ad5a365d2078acbacaf6a380997013
+
+* Memory leak in system_env() BIF
+  https://github.com/zeek/zeek/commit/273eb19ff5780d8d823631f906fb2fcf2e81b312
+
+* Memory leak of Log::Filter "config" field
+  https://github.com/zeek/zeek/commit/bf05add5423cdeedddad21c07b08a3a65ce98431
+
+* Memory leak in Reporter::get_weird_sampling_whitelist() BIF
+  https://github.com/zeek/zeek/commit/3b6a2a5f4ebb04dda32f7f35fad4ed603d226a6d
+
+* Memory leaks in input framework error-handling cases
+  https://github.com/zeek/zeek/commit/6f5f7df9705e7eff95b88203b2b4ee95d52d55b8
+
+* Memory leak when a plugin prevents a log write operation
+  https://github.com/zeek/zeek/commit/09578c6176e5be2f794ebbfc323ef517e45131e9
+
+* Memory leaks due to reference-counting issues in lambdas/closures
+  https://github.com/zeek/zeek/commit/44d922c4b5e67c32cb8ca87d6f2be5c3e5abdacc
+
+* Memory leak when creating input streams which use &type_column
+  https://github.com/zeek/zeek/commit/51970c256b159a2bb16eb70b3200878533bf2bf9
+
+* NTLM field access scripting error: accessing uninitialized
+  https://github.com/zeek/zeek/commit/80469a1fde28ba4413843c43fb9a88c38e651a3c
+
+* File analysis scripting error: accessing of an uninitialized field
+  https://github.com/zeek/zeek/commit/d9ed76c90a899b852d9b33adc96cf1a6741b6dba
+
+* Inconsistent &priority for Log::create_stream() calls
+  https://github.com/zeek/zeek/commit/7a748526c05f473dd9a1f03db14421c88bf16cb4
+
+* Fix potential for indefinite buffering of logs (e.g. when they are sparse/bursty)
+  https://github.com/zeek/zeek/commit/43e54c7930a1286447d97a7f4696232b54d1491c
+
+* Dictionary::Clear() didn't reset number of entries
+  https://github.com/zeek/zeek/commit/1e499b08318ec87afd9956ad518c91c6390e0c21
+
+* Paraglob compile failure due to non-standard VLA usage
+  https://github.com/zeek/paraglob/commit/903b5cf852c6d92cd885fef838e92386d8ee58f2
+
+* Binpac cross-compilation configuration fix
+  https://github.com/zeek/zeek/commit/d33613c2a5e2c76412b2bd7be462a133432f24b9
 
 Zeek 3.0.1
 ==========

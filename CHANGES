@@ -1,4 +1,8 @@
 
+3.2.0-dev.117 | 2020-02-24 18:53:03 -0700
+
+  * Switch to using [[deprecated]] attribute (Jon Siwek, Corelight)
+
 3.2.0-dev.115 | 2020-02-24 18:48:50 -0700
 
   * Improve formatting of doubles that are close to integers
@@ -37,7 +41,6 @@
     to get consistent results between either 32-bit and 64-bit platforms. (Jon Siwek, Corelight)
 
   * Format interval values consistently across 32-bit/64-bit platforms (Jon Siwek, Corelight)
-
 
 3.2.0-dev.108 | 2020-02-24 17:24:07 -0800
 

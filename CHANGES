@@ -1,4 +1,22 @@
 
+3.2.0-dev.106 | 2020-02-24 17:07:10 -0800
+
+  * ScannedFile: Identify already scanned files by device and inode (Arne Welzel)
+
+    Zeek scripts located on separate filesystems, but sharing the same inode
+    number leads to scripts not being loaded. The reason is that a `ScannedFile`
+    is only identified by `st_ino` which is not enough to uniquely identify a
+    file in a system.
+
+  * GH-808: Add ZEEK_VERSION_NUMBER definition to zeek-config.h (Jon Siwek, Corelight)
+
+    This is the result of (major * 10000 + minor * 100 + patch), for example
+    3.1.2 becomes 30102.  This definition may be helpful for external code
+    that requires conditional compilation to support multiple Zeek
+    versions with differing APIs.
+
+  * Fix CI to checkout right commit of zeek-testing-private (Jon Siwek, Corelight)
+
 3.2.0-dev.99 | 2020-02-21 21:23:52 -0800
 
   * Update a URL in CI README (Jon Siwek, Corelight)

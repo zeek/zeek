@@ -1,4 +1,8 @@
 
+3.1.0 | 2020-02-24 13:31:24 -0800
+
+  * Release 3.1.0.
+
 3.1.0-rc1.10 | 2020-02-24 13:30:39 -0800
 
   * GH-808: Add ZEEK_VERSION_NUMBER definition to zeek-config.h (Jon Siwek, Corelight)

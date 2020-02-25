@@ -93,7 +93,7 @@ BroType* BroType::ShallowClone()
 	return nullptr;
 	}
 
-int BroType::MatchesIndex(ListExpr*& index) const
+int BroType::MatchesIndex(ListExpr*const index) const
 	{
 	if ( Tag() == TYPE_STRING )
 		{
@@ -226,7 +226,7 @@ IndexType::~IndexType()
 	Unref(yield_type);
 	}
 
-int IndexType::MatchesIndex(ListExpr*& index) const
+int IndexType::MatchesIndex(ListExpr*const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
 	const type_list* types = indices->Types();
@@ -529,7 +529,7 @@ const BroType* FuncType::YieldType() const
 	return yield;
 	}
 
-int FuncType::MatchesIndex(ListExpr*& index) const
+int FuncType::MatchesIndex(ListExpr*const index) const
 	{
 	return check_and_promote_args(index, args) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
@@ -1401,7 +1401,7 @@ const BroType* VectorType::YieldType() const
 	return yield_type;
 	}
 
-int VectorType::MatchesIndex(ListExpr*& index) const
+int VectorType::MatchesIndex(ListExpr*const index) const
 	{
 	expr_list& el = index->Exprs();
 

@@ -164,7 +164,7 @@ public:
 	// if it matches and produces a vector result; and
 	// DOES_NOT_MATCH_INDEX = 0 if it can't match (or the type
 	// is not an indexable type).
-	virtual int MatchesIndex(ListExpr*& index) const;
+	virtual int MatchesIndex(ListExpr* index) const;
 
 	// Returns the type yielded by this type.  For example, if
 	// this type is a table[string] of port, then returns the "port"
@@ -383,7 +383,7 @@ protected:
 
 class IndexType : public BroType {
 public:
-	int MatchesIndex(ListExpr*& index) const override;
+	int MatchesIndex(ListExpr* index) const override;
 
 	TypeList* Indices() const		{ return indices; }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
@@ -459,7 +459,7 @@ public:
 	void ClearYieldType(function_flavor arg_flav)
 		{ Unref(yield); yield = 0; flavor = arg_flav; }
 
-	int MatchesIndex(ListExpr*& index) const override;
+	int MatchesIndex(ListExpr* index) const override;
 	int CheckArgs(const type_list* args, bool is_init = false) const;
 
 	TypeList* ArgTypes() const	{ return arg_types; }
@@ -673,7 +673,7 @@ public:
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
 
-	int MatchesIndex(ListExpr*& index) const override;
+	int MatchesIndex(ListExpr* index) const override;
 
 	// Returns true if this table type is "unspecified", which is what one
 	// gets using an empty "vector()" constructor.

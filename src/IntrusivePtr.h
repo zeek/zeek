@@ -123,10 +123,7 @@ public:
 	 */
 	pointer release() noexcept
 		{
-		auto result = ptr_;
-		if ( result )
-			ptr_ = nullptr;
-		return result;
+		return std::exchange(ptr_, nullptr);
 		}
 
 	IntrusivePtr& operator=(IntrusivePtr other) noexcept

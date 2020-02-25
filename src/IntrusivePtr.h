@@ -118,6 +118,12 @@ public:
 		std::swap(ptr_, other.ptr_);
 		}
 
+	friend void swap(IntrusivePtr& a, IntrusivePtr &b) noexcept
+		{
+		using std::swap;
+		swap(a.ptr_, b.ptr_);
+		}
+
 	/**
 	 * Detaches an object from the automated lifetime management and sets this
 	 * intrusive pointer to @c nullptr.

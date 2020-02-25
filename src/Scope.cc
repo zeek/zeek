@@ -160,7 +160,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 ID* install_ID(const char* name, const char* module_name,
 		bool is_global, bool is_export)
 	{
-	if ( scopes.length() == 0 && ! is_global )
+	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
 
 	IDScope scope;
@@ -200,10 +200,9 @@ void push_scope(ID* id, attr_list* attrs)
 
 Scope* pop_scope()
 	{
-	int n = scopes.length() - 1;
-	if ( n < 0 )
+	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");
-	scopes.remove_nth(n);
+	scopes.pop_back();
 
 	Scope* old_top = top_scope;
 	// Don't delete the scope; keep it around for later name resolution
@@ -211,7 +210,7 @@ Scope* pop_scope()
 	// ### SERIOUS MEMORY LEAK!?
 	// delete top_scope;
 
-	top_scope = n == 0 ? 0 : scopes[n-1];
+	top_scope = scopes.empty() ? nullptr : scopes.back();
 
 	return old_top;
 	}
@@ -223,5 +222,5 @@ Scope* current_scope()
 
 Scope* global_scope()
 	{
-	return scopes.length() == 0 ? 0 : scopes[0];
+	return scopes.empty() ? 0 : scopes.front();
 	}

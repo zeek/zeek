@@ -113,8 +113,6 @@ public:
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }
-
 	void EvalFunc(Expr* ef, Expr* ev);
 
 #ifdef DEBUG

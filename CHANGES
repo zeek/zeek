@@ -1,4 +1,8 @@
 
+3.2.0-dev.119 | 2020-02-24 18:02:10 -0800
+
+  * Use IntrusivePtr in TableVal::ExpandAndInit() to clarify ownership (Max Kellermann)
+
 3.2.0-dev.117 | 2020-02-24 18:53:03 -0700
 
   * Switch to using [[deprecated]] attribute (Jon Siwek, Corelight)

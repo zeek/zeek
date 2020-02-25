@@ -27,6 +27,7 @@ using std::string;
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
+template <class T> class IntrusivePtr;
 template<typename T> class PDict;
 class IterCookie;
 
@@ -754,7 +755,7 @@ public:
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
-	int ExpandAndInit(Val* index, Val* new_val);
+	int ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
@@ -825,8 +826,8 @@ protected:
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
-	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
-	int CheckAndAssign(Val* index, Val* new_val);
+	int ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
+	int CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
 	Val* Default(Val* index);

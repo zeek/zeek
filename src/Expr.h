@@ -1029,8 +1029,6 @@ class RecordAssignExpr : public ListExpr {
 public:
 	RecordAssignExpr(Expr* record, Expr* init_list, int is_init);
 
-	Val* Eval(Frame* f) const override	{ return ListExpr::Eval(f); }
-
 protected:
 	friend class Expr;
 	RecordAssignExpr()	{ }

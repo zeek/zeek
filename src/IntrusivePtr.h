@@ -71,9 +71,9 @@ public:
 	 *
 	 * @param raw_ptr Pointer to the shared object.
 	 */
-	IntrusivePtr(AdoptRef, pointer raw_ptr) noexcept
+	constexpr IntrusivePtr(AdoptRef, pointer raw_ptr) noexcept
+		: ptr_(raw_ptr)
 		{
-		setPtr(raw_ptr, false);
 		}
 
 	/**
@@ -85,8 +85,10 @@ public:
 	 * @param raw_ptr Pointer to the shared object.
 	 */
 	IntrusivePtr(NewRef, pointer raw_ptr) noexcept
+		: ptr_(raw_ptr)
 		{
-		setPtr(raw_ptr, true);
+		if ( ptr_ )
+			Ref(ptr_);
 		}
 
 	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.release())
@@ -158,13 +160,6 @@ public:
 		}
 
 private:
-	void setPtr(pointer raw_ptr, bool add_ref) noexcept
-		{
-		ptr_ = raw_ptr;
-		if ( raw_ptr && add_ref )
-			Ref(raw_ptr);
-		}
-
 	pointer ptr_ = nullptr;
 };
 

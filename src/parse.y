@@ -92,6 +92,7 @@
 #include "Brofiler.h"
 #include "zeekygen/Manager.h"
 #include "module_util.h"
+#include "IntrusivePtr.h"
 
 #include <set>
 #include <string>
@@ -514,7 +515,8 @@ expr:
 			}
 		 func_body
 			{
-			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
+			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()->Ref()));
+			Unref(func_id);
 			}
 
 	|	expr TOK_IN expr
@@ -688,6 +690,7 @@ expr:
 					{
 					id->Error("undeclared variable");
 					id->SetType(error_type());
+					Ref(id);
 					$$ = new NameExpr(id);
 					}
 
@@ -701,10 +704,15 @@ expr:
 					$$ = new ConstExpr(t->GetVal(intval));
 					}
 				else
+					{
+					Ref(id);
 					$$ = new NameExpr(id);
+					}
 
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+
+				Unref(id);
 				}
 			}
 
@@ -1099,6 +1107,7 @@ decl:
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
+			IntrusivePtr<Expr> e{NewRef{}, $5};
 			add_global($2, $3, $4, $5, $6, VAR_REDEF);
 			zeekygen_mgr->Redef($2, ::filename, $4, $5);
 			}
@@ -1296,7 +1305,7 @@ index_slice:
 			{
 			set_location(@1, @6);
 			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
-			Expr* high = $5 ? $5 : new SizeExpr($1);
+			Expr* high = $5 ? $5 : new SizeExpr($1->Ref());
 
 			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
@@ -1363,6 +1372,7 @@ attr:
 				{
 				ODesc d;
 				$3->Describe(&d);
+				Unref($3);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
 				$$ = new Attr(ATTR_DEPRECATED);
@@ -1577,6 +1587,8 @@ event:
 					}
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+
+				Unref(id);
 				}
 
 			$$ = new EventExpr($1, $3);
@@ -1628,7 +1640,10 @@ case_type:
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
+				{
+				Unref(case_var);
 				case_var = install_ID(name, current_module.c_str(), false, false);
+				}
 
 			add_local(case_var, type, INIT_NONE, 0, 0, VAR_REGULAR);
 			$$ = case_var;
@@ -1652,8 +1667,11 @@ for_head:
 				}
 
 			else
+				{
+				Unref(loop_var);
 				loop_var = install_ID($3, current_module.c_str(),
 						      false, false);
+				}
 
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(loop_var);

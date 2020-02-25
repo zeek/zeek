@@ -130,7 +130,10 @@ RuleHdrTest::~RuleHdrTest()
 	for ( int i = 0; i < Rule::TYPES; ++i )
 		{
 		for ( auto pset : psets[i] )
+			{
 			delete pset->re;
+			delete pset;
+			}
 		}
 
 	delete ruleset;

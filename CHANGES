@@ -1,4 +1,38 @@
 
+3.2.0-dev.137 | 2020-02-24 20:41:43 -0800
+
+  * parse.y: fix memory leak in FieldAssignExpr call (Max Kellermann)
+
+  * parse.y: fix use-after-free bug in open-ended index_slice (Max Kellermann)
+
+  * Type: fix use-after-free bug in init_type() (Max Kellermann)
+
+  * Expr: fix potential memory leak in RecordCoerceExpr::Fold() (Max Kellermann)
+
+  * Expr: fix memory leak in RecordCoerceExpr::InitVal() (Max Kellermann)
+
+  * zeekygen/IdentifierInfo: fix memory leak in operator=() (Max Kellermann)
+
+  * Func: fix memory leaks in get_func_priority() (Max Kellermann)
+
+  * parse.y: fix several memory leaks after lookup_ID() (Max Kellermann)
+
+  * Func: fix memory leaks in check_built_in_call() (Max Kellermann)
+
+  * Var: fix memory leaks in add_global() and add_local() (Max Kellermann)
+
+  * Var: add missing references to `init` in add{,_and_assign}_local() (Max Kellermann)
+
+  * parse.y: hold reference on init_expr for zeekygen::Manager::Redef() (Max Kellermann)
+
+  * Expr: fix two memory leaks in AssignExpr::InitVal() (Max Kellermann)
+
+  * parse.y: fix memory leak after "&deprecated" without string (Max Kellermann)
+
+  * RuleMatcher: delete PatternSet instances in destructor (Max Kellermann)
+
+  * Fix reference counting in Option::set_change_handler() (Max Kellermann)
+
 3.2.0-dev.120 | 2020-02-24 18:13:04 -0800
 
   * Update zeek-testing commit (Jon Siwek, Corelight)

@@ -2479,6 +2479,7 @@ Val* AssignExpr::InitVal(const BroType* t, Val* aggr) const
 		const BroType* yt = tv->Type()->YieldType();
 		IntrusivePtr<Val> index{AdoptRef{}, op1->InitVal(tt->Indices(), 0)};
 		IntrusivePtr<Val> v{AdoptRef{}, op2->InitVal(yt, 0)};
+
 		if ( ! index || ! v )
 			return 0;
 
@@ -3770,12 +3771,10 @@ Val* RecordCoerceExpr::InitVal(const BroType* t, Val* aggr) const
 		{
 		RecordVal* rv = v->AsRecordVal();
 		RecordVal* ar = rv->CoerceTo(t->AsRecordType(), aggr);
+		Unref(rv);
 
 		if ( ar )
-			{
-			Unref(rv);
 			return ar;
-			}
 		}
 
 	Error("bad record initializer");
@@ -3800,8 +3799,7 @@ Val* RecordCoerceExpr::Fold(Val* v) const
 				if ( def )
 					rhs = def->AttrExpr()->Eval(0);
 				}
-
-			if ( rhs )
+			else
 				rhs = rhs->Ref();
 
 			assert(rhs || Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));

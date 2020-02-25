@@ -828,6 +828,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 			if ( ! *fmt_str )
 				{
+				Unref(fmt_str_val);
 				call->Error("format string ends with bare '%'");
 				return false;
 				}
@@ -839,11 +840,13 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 		if ( args.length() != num_fmt + 1 )
 			{
+			Unref(fmt_str_val);
 			call->Error("mismatch between format string to fmt() and number of arguments passed");
 			return false;
 			}
 		}
 
+	Unref(fmt_str_val);
 	return true;
 	}
 
@@ -873,11 +876,13 @@ static int get_func_priority(const attr_list& attrs)
 
 		if ( ! IsIntegral(v->Type()->Tag()) )
 			{
+			Unref(v);
 			a->Error("expression is not of integral type");
 			continue;
 			}
 
 		priority = v->InternalInt();
+		Unref(v);
 		}
 
 	return priority;

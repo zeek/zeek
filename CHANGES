@@ -1,4 +1,16 @@
 
+3.2.0-dev.144 | 2020-02-25 19:52:57 -0800
+
+  * Add a faster siphash24 implementation than the reference one (Tim Wojtulewicz, Corelight)
+
+    - Average of 10 runs of 2009-M57-day11-18.trace (release build at -O3):
+      - Master: 6.027s  93650 bytes max RSS
+      - Commit: 5.950s  93271 bytes max RSS
+
+    - Hashing a fixed 32-byte payload 10 million times with a fixed key:
+      - Master: 1.397411s
+      - Commit: 0.998211s
+
 3.2.0-dev.142 | 2020-02-25 19:27:28 -0800
 
   * Updates to Broker to build CAF as sub-project (Dominik Charousset, Corelight)

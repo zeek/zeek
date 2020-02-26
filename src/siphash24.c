@@ -1,166 +1,114 @@
-/*
-   SipHash reference C implementation
+/* <MIT License>
+ Copyright (c) 2013  Marek Majkowski <marek@popcount.org>
 
-   Copyright (c) 2012-2014 Jean-Philippe Aumasson
-   <jeanphilippe.aumasson@gmail.com>
-   Copyright (c) 2012-2014 Daniel J. Bernstein <djb@cr.yp.to>
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-   To the extent possible under law, the author(s) have dedicated all copyright
-   and related and neighboring rights to this software to the public domain
-   worldwide. This software is distributed without any warranty.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-   You should have received a copy of the CC0 Public Domain Dedication along
-   with
-   this software. If not, see
-   <http://creativecommons.org/publicdomain/zero/1.0/>.
- */
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ </MIT License>
+
+ Original location:
+    https://github.com/majek/csiphash/
+
+ Solution inspired by code from:
+    Samuel Neves (supercop/crypto_auth/siphash24/little)
+    djb (supercop/crypto_auth/siphash24/little2)
+    Jean-Philippe Aumasson (https://131002.net/siphash/siphash24.c)
+*/
+
 #include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
-/* default: SipHash-2-4 */
-#define cROUNDS 2
-#define dROUNDS 4
-
-#define ROTL(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
-
-#define U32TO8_LE(p, v)                                                        \
-  (p)[0] = (uint8_t)((v));                                                     \
-  (p)[1] = (uint8_t)((v) >> 8);                                                \
-  (p)[2] = (uint8_t)((v) >> 16);                                               \
-  (p)[3] = (uint8_t)((v) >> 24);
-
-#define U64TO8_LE(p, v)                                                        \
-  U32TO8_LE((p), (uint32_t)((v)));                                             \
-  U32TO8_LE((p) + 4, (uint32_t)((v) >> 32));
-
-#define U8TO64_LE(p)                                                           \
-  (((uint64_t)((p)[0])) | ((uint64_t)((p)[1]) << 8) |                          \
-   ((uint64_t)((p)[2]) << 16) | ((uint64_t)((p)[3]) << 24) |                   \
-   ((uint64_t)((p)[4]) << 32) | ((uint64_t)((p)[5]) << 40) |                   \
-   ((uint64_t)((p)[6]) << 48) | ((uint64_t)((p)[7]) << 56))
-
-#define SIPROUND                                                               \
-  do {                                                                         \
-    v0 += v1;                                                                  \
-    v1 = ROTL(v1, 13);                                                         \
-    v1 ^= v0;                                                                  \
-    v0 = ROTL(v0, 32);                                                         \
-    v2 += v3;                                                                  \
-    v3 = ROTL(v3, 16);                                                         \
-    v3 ^= v2;                                                                  \
-    v0 += v3;                                                                  \
-    v3 = ROTL(v3, 21);                                                         \
-    v3 ^= v0;                                                                  \
-    v2 += v1;                                                                  \
-    v1 = ROTL(v1, 17);                                                         \
-    v1 ^= v2;                                                                  \
-    v2 = ROTL(v2, 32);                                                         \
-  } while (0)
-
-#ifdef SIPHASHDEBUG
-#define TRACE                                                                  \
-  do {                                                                         \
-    printf("(%3d) v0 %08x %08x\n", (int)inlen, (uint32_t)(v0 >> 32),           \
-           (uint32_t)v0);                                                      \
-    printf("(%3d) v1 %08x %08x\n", (int)inlen, (uint32_t)(v1 >> 32),           \
-           (uint32_t)v1);                                                      \
-    printf("(%3d) v2 %08x %08x\n", (int)inlen, (uint32_t)(v2 >> 32),           \
-           (uint32_t)v2);                                                      \
-    printf("(%3d) v3 %08x %08x\n", (int)inlen, (uint32_t)(v3 >> 32),           \
-           (uint32_t)v3);                                                      \
-  } while (0)
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+	__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#  define _le64toh(x) ((uint64_t)(x))
+#elif defined(_WIN32)
+/* Windows is always little endian, unless you're on xbox360
+   http://msdn.microsoft.com/en-us/library/b0084kay(v=vs.80).aspx */
+#  define _le64toh(x) ((uint64_t)(x))
+#elif defined(__APPLE__)
+#  include <libkern/OSByteOrder.h>
+#  define _le64toh(x) OSSwapLittleToHostInt64(x)
 #else
-#define TRACE
+
+/* See: http://sourceforge.net/p/predef/wiki/Endianness/ */
+#  if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#    include <sys/endian.h>
+#  else
+#    include <endian.h>
+#  endif
+#  if defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && \
+	__BYTE_ORDER == __LITTLE_ENDIAN
+#    define _le64toh(x) ((uint64_t)(x))
+#  else
+#    define _le64toh(x) le64toh(x)
+#  endif
+
 #endif
 
-// [Bro] We turn this into an internal function. siphash.h defines a wrapper.
-int _siphash(uint8_t *out, const uint8_t *in, uint64_t inlen, const uint8_t *k) {
-  /* "somepseudorandomlygeneratedbytes" */
-  uint64_t v0 = 0x736f6d6570736575ULL;
-  uint64_t v1 = 0x646f72616e646f6dULL;
-  uint64_t v2 = 0x6c7967656e657261ULL;
-  uint64_t v3 = 0x7465646279746573ULL;
-  uint64_t b;
-  uint64_t k0 = U8TO64_LE(k);
-  uint64_t k1 = U8TO64_LE(k + 8);
-  uint64_t m;
-  int i;
-  const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
-  const int left = inlen & 7;
-  b = ((uint64_t)inlen) << 56;
-  v3 ^= k1;
-  v2 ^= k0;
-  v1 ^= k1;
-  v0 ^= k0;
 
-#ifdef DOUBLE
-  v1 ^= 0xee;
-#endif
+#define ROTATE(x, b) (uint64_t)( ((x) << (b)) | ( (x) >> (64 - (b))) )
 
-  for (; in != end; in += 8) {
-    m = U8TO64_LE(in);
-    v3 ^= m;
+#define HALF_ROUND(a,b,c,d,s,t)			\
+	a += b; c += d;				\
+	b = ROTATE(b, s) ^ a;			\
+	d = ROTATE(d, t) ^ c;			\
+	a = ROTATE(a, 32);
 
-    TRACE;
-    for (i = 0; i < cROUNDS; ++i)
-      SIPROUND;
+#define DOUBLE_ROUND(v0,v1,v2,v3)		\
+	HALF_ROUND(v0,v1,v2,v3,13,16);		\
+	HALF_ROUND(v2,v1,v0,v3,17,21);		\
+	HALF_ROUND(v0,v1,v2,v3,13,16);		\
+	HALF_ROUND(v2,v1,v0,v3,17,21);
 
-    v0 ^= m;
-  }
 
-  switch (left) {
-  case 7:
-    b |= ((uint64_t)in[6]) << 48;
-  case 6:
-    b |= ((uint64_t)in[5]) << 40;
-  case 5:
-    b |= ((uint64_t)in[4]) << 32;
-  case 4:
-    b |= ((uint64_t)in[3]) << 24;
-  case 3:
-    b |= ((uint64_t)in[2]) << 16;
-  case 2:
-    b |= ((uint64_t)in[1]) << 8;
-  case 1:
-    b |= ((uint64_t)in[0]);
-    break;
-  case 0:
-    break;
-  }
+uint64_t siphash24(const void *src, unsigned long src_sz, const uint64_t* key) {
+	uint64_t k0 = _le64toh(key[0]);
+	uint64_t k1 = _le64toh(key[1]);
+	uint64_t b = (uint64_t)src_sz << 56;
+	const uint64_t *in = (uint64_t*)src;
 
-  v3 ^= b;
+	uint64_t v0 = k0 ^ 0x736f6d6570736575ULL;
+	uint64_t v1 = k1 ^ 0x646f72616e646f6dULL;
+	uint64_t v2 = k0 ^ 0x6c7967656e657261ULL;
+	uint64_t v3 = k1 ^ 0x7465646279746573ULL;
 
-  TRACE;
-  for (i = 0; i < cROUNDS; ++i)
-    SIPROUND;
+	while (src_sz >= 8) {
+		uint64_t mi = _le64toh(*in);
+		in += 1; src_sz -= 8;
+		v3 ^= mi;
+		DOUBLE_ROUND(v0,v1,v2,v3);
+		v0 ^= mi;
+	}
 
-  v0 ^= b;
+	uint64_t t = 0; uint8_t *pt = (uint8_t *)&t; uint8_t *m = (uint8_t *)in;
+	switch (src_sz) {
+	case 7: pt[6] = m[6];
+	case 6: pt[5] = m[5];
+	case 5: pt[4] = m[4];
+	case 4: *((uint32_t*)&pt[0]) = *((uint32_t*)&m[0]); break;
+	case 3: pt[2] = m[2];
+	case 2: pt[1] = m[1];
+	case 1: pt[0] = m[0];
+	}
+	b |= _le64toh(t);
 
-#ifndef DOUBLE
-  v2 ^= 0xff;
-#else
-  v2 ^= 0xee;
-#endif
-
-  TRACE;
-  for (i = 0; i < dROUNDS; ++i)
-    SIPROUND;
-
-  b = v0 ^ v1 ^ v2 ^ v3;
-  U64TO8_LE(out, b);
-
-#ifdef DOUBLE
-  v1 ^= 0xdd;
-
-  TRACE;
-  for (i = 0; i < dROUNDS; ++i)
-    SIPROUND;
-
-  b = v0 ^ v1 ^ v2 ^ v3;
-  U64TO8_LE(out + 8, b);
-#endif
-
-  return 0;
+	v3 ^= b;
+	DOUBLE_ROUND(v0,v1,v2,v3);
+	v0 ^= b; v2 ^= 0xff;
+	DOUBLE_ROUND(v0,v1,v2,v3);
+	DOUBLE_ROUND(v0,v1,v2,v3);
+	return (v0 ^ v1) ^ (v2 ^ v3);
 }
-

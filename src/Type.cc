@@ -1357,6 +1357,9 @@ VectorType::VectorType(BroType* element_type)
 
 VectorType* VectorType::ShallowClone()
 	{
+	if ( yield_type )
+		yield_type->Ref();
+
 	return new VectorType(yield_type);
 	}
 

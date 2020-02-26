@@ -3037,7 +3037,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
-		return 0;
+		return nullptr;
 
 	BroType* vt = v->Type();
 
@@ -3060,7 +3060,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 
 		t->Error("type clash", v, 0, expr_location);
 		Unref(v);
-		return 0;
+		return nullptr;
 		}
 
 	if ( ! BothArithmetic(t_tag, v_tag) &&
@@ -3071,7 +3071,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		else
 			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
 		Unref(v);
-		return 0;
+		return nullptr;
 		}
 
 	if ( v_tag == t_tag )
@@ -3084,7 +3084,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			{
 			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
 			Unref(v);
-			return 0;
+			return nullptr;
 			}
 		}
 
@@ -3103,7 +3103,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			{
 			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
 			Unref(v);
-			return 0;
+			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
 			promoted_v = val_mgr->GetInt(v->CoerceToInt());
@@ -3111,7 +3111,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
 			Unref(v);
-			return 0;
+			return nullptr;
 			}
 
 		break;
@@ -3121,7 +3121,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			{
 			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
 			Unref(v);
-			return 0;
+			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
 			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
@@ -3129,7 +3129,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
 			Unref(v);
-			return 0;
+			return nullptr;
 			}
 
 		break;
@@ -3141,7 +3141,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 	default:
 		reporter->InternalError("bad internal type in check_and_promote()");
 		Unref(v);
-		return 0;
+		return nullptr;
 	}
 
 	Unref(v);
@@ -3221,7 +3221,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
 
 	if ( ! v )
-		return 0;
+		return nullptr;
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
@@ -3233,12 +3233,12 @@ Val* cast_value_to_type(Val* v, BroType* t)
 		auto dv = v->AsRecordVal()->Lookup(0);
 
 		if ( ! dv )
-			return 0;
+			return nullptr;
 
 		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).release();
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 bool can_cast_value_to_type(const Val* v, BroType* t)

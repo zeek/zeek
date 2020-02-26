@@ -308,6 +308,9 @@ void terminate_bro()
 	delete plugin_mgr;
 	delete val_mgr;
 
+	// free the global scope
+	pop_scope();
+
 	reporter = 0;
 	}
 

@@ -1,4 +1,37 @@
 
+3.2.0-dev.157 | 2020-02-26 10:04:32 -0800
+
+  * IntrusivePtr: overload std::swap() (Max Kellermann)
+
+  * IntrusivePtr: eliminate setPtr() (Max Kellermann)
+
+    There are only two call sites, and those hard-code the `add_ref`
+    parameter.
+
+  * IntrusivePtr: optimize release() using std::exchange() (Max Kellermann)
+
+  * Expr: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Remove useless override: RecordAssignExpr::Eval() (Max Kellermann)
+
+  * Type: don't pass reference to pointer to MatchesIndex() (Max Kellermann)
+
+    No implementation modifies the pointer value.  To guard against this,
+    this commit changes `&` to `const`.
+
+  * Expr: don't pass reference to pointer to check_and_promote*() (Max Kellermann)
+
+    The function never modifies the pointer value.
+
+    check_and_promote_expr() is left untouched because it really does
+    modify the pointer.
+
+  * ID: remove unused default constructor (Max Kellermann)
+
+  * Scope: simplify PList access, use pop_back() and back() (Max Kellermann)
+
+  * List: add method empty() (Max Kellermann)
+
 3.2.0-dev.146 | 2020-02-26 09:40:18 -0800
 
   * Type: fix double free bug in SetType::ShallowClone() (Max Kellermann)

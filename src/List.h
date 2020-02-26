@@ -135,6 +135,8 @@ public:
 		num_entries = max_entries = 0;
 		}
 
+	bool empty() const noexcept { return num_entries == 0; }
+
 	int length() const	{ return num_entries; }
 	int max() const		{ return max_entries; }
 	int resize(int new_size = 0)	// 0 => size to fit current number of entries

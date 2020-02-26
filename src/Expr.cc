@@ -5195,7 +5195,7 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 	return 1;
 	}
 
-int check_and_promote_exprs(ListExpr*& elements, TypeList* types)
+int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
 	expr_list& el = elements->Exprs();
 	const type_list* tl = types->Types();
@@ -5225,7 +5225,7 @@ int check_and_promote_exprs(ListExpr*& elements, TypeList* types)
 	return 1;
 	}
 
-int check_and_promote_args(ListExpr*& args, RecordType* types)
+int check_and_promote_args(ListExpr* const args, RecordType* types)
 	{
 	expr_list& el = args->Exprs();
 	int ntypes = types->NumFields();
@@ -5269,7 +5269,7 @@ int check_and_promote_args(ListExpr*& args, RecordType* types)
 	return rval;
 	}
 
-int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type)
+int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	{
 	expr_list& el = elements->Exprs();
 

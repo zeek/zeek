@@ -1,4 +1,8 @@
 
+3.2.0-dev.146 | 2020-02-26 09:40:18 -0800
+
+  * Type: fix double free bug in SetType::ShallowClone() (Max Kellermann)
+
 3.2.0-dev.144 | 2020-02-25 19:52:57 -0800
 
   * Add a faster siphash24 implementation than the reference one (Tim Wojtulewicz, Corelight)

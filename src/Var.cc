@@ -8,6 +8,7 @@
 #include "Val.h"
 #include "Expr.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Stmt.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -468,7 +469,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 void end_func(IntrusivePtr<Stmt> body)
 	{
-	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), body.release());
+	auto ingredients = std::make_unique<function_ingredients>(pop_scope().release(), body.release());
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{

@@ -10,6 +10,7 @@
 #include "BroList.h"
 #include "TraverseTypes.h"
 
+template <class T> class IntrusivePtr;
 class ID;
 class BroType;
 class ListVal;
@@ -89,7 +90,7 @@ extern void push_scope(ID* id, attr_list* attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off; it's not deleted.
-extern Scope* pop_scope();
+extern IntrusivePtr<Scope> pop_scope();
 extern Scope* current_scope();
 extern Scope* global_scope();
 

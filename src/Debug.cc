@@ -20,6 +20,7 @@ using namespace std;
 #include "Stmt.h"
 #include "Frame.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Scope.h"
 #include "PolicyFile.h"
 #include "Desc.h"
@@ -968,7 +969,10 @@ Val* dbg_eval_expr(const char* expr)
 
 	const BroFunc* func = frame->GetFunction();
 	if ( func )
+		{
+		Ref(func->GetScope());
 		push_existing_scope(func->GetScope());
+		}
 
 	// ### Possibly push a debugger-local scope?
 

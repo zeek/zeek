@@ -5,6 +5,7 @@
 #include "Scope.h"
 #include "Desc.h"
 #include "ID.h"
+#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Reporter.h"
 #include "module_util.h"
@@ -204,21 +205,17 @@ void push_scope(ID* id, attr_list* attrs)
 	scopes.push_back(top_scope);
 	}
 
-Scope* pop_scope()
+IntrusivePtr<Scope> pop_scope()
 	{
 	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");
 	scopes.pop_back();
 
 	Scope* old_top = top_scope;
-	// Don't delete the scope; keep it around for later name resolution
-	// in the debugger.
-	// ### SERIOUS MEMORY LEAK!?
-	// delete top_scope;
 
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return old_top;
+	return {AdoptRef{}, old_top};
 	}
 
 Scope* current_scope()

@@ -82,6 +82,7 @@
 #include "Desc.h"
 #include "Expr.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Stmt.h"
 #include "Val.h"
 #include "Var.h"
@@ -1250,7 +1251,7 @@ anonymous_function:
 
 			// Gather the ingredients for a BroFunc from the current scope
 			auto ingredients = std::make_unique<function_ingredients>(current_scope(), $5);
-			id_list outer_ids = gather_outer_ids(pop_scope(), $5);
+			id_list outer_ids = gather_outer_ids(pop_scope().get(), $5);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}

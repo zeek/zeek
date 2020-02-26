@@ -3,6 +3,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -16,8 +17,8 @@ class RE_Matcher;
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {
 public:
-	EventRegistry()		{ }
-	~EventRegistry()	{ }
+	EventRegistry();
+	~EventRegistry() noexcept;
 
 	void Register(EventHandlerPtr handler);
 
@@ -41,7 +42,7 @@ public:
 	void PrintDebug();
 
 private:
-	std::map<std::string, EventHandler*> handlers;
+	std::map<std::string, std::unique_ptr<EventHandler>> handlers;
 };
 
 extern EventRegistry* event_registry;

@@ -613,7 +613,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->Type()->Ref();
-	id->SetVal(new Val(this));
+	id->SetVal(make_intrusive<Val>(this));
 	}
 
 BuiltinFunc::~BuiltinFunc()

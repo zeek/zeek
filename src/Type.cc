@@ -1177,7 +1177,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	if ( ! id )
 		{
 		id = install_ID(name, module_name.c_str(), true, is_export);
-		id->SetType(this->Ref());
+		id->SetType({NewRef{}, this});
 		id->SetEnumConst();
 
 		if ( deprecation )

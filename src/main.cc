@@ -717,7 +717,7 @@ int main(int argc, char** argv)
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(new StringVal(*options.pcap_filter));
+		id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 		}
 
 	auto all_signature_files = options.signature_files;

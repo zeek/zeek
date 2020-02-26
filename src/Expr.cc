@@ -272,7 +272,7 @@ IntrusivePtr<Expr> NameExpr::MakeLvalue()
 void NameExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	{
 	if ( id->IsGlobal() )
-		id->SetVal(v.release());
+		id->SetVal(std::move(v));
 	else
 		f->SetElement(id.get(), v.release());
 	}
@@ -4241,10 +4241,10 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
-	Val* v = new Val(dummy_func);
+	auto v = make_intrusive<Val>(dummy_func);
 	Unref(dummy_func);
-	id->SetVal(v); // id will unref v when its done.
-	id->SetType(ingredients->id->Type()->Ref());
+	id->SetVal(std::move(v));
+	id->SetType({NewRef{}, ingredients->id->Type()});
 	id->SetConst();
 	}
 

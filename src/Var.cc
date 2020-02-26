@@ -104,15 +104,15 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 		t = {AdoptRef{}, init_type(init.get())};
 		if ( ! t )
 			{
-			id->SetType(error_type());
+			id->SetType({AdoptRef{}, error_type()});
 			return;
 			}
 		}
 
-	id->SetType(t->Ref());
+	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t.get(), false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(attr, t.get(), false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -121,10 +121,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 			{
 			TableConstructorExpr* ctor = (TableConstructorExpr*) init.get();
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs({NewRef{}, ctor->Attrs()});
 			}
 			break;
 
@@ -132,10 +129,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 			{
 			SetConstructorExpr* ctor = (SetConstructorExpr*) init.get();
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs({NewRef{}, ctor->Attrs()});
 			}
 			break;
 
@@ -155,7 +149,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 		if ( init && ((c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
 		              (c == INIT_REMOVE && id->FindAttr(ATTR_DEL_FUNC)) ))
 			// Just apply the function.
-			id->SetVal(init->Ref(), c);
+			id->SetVal(init, c);
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
@@ -184,9 +178,9 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 				}
 
 			if ( aggr )
-				id->SetVal(aggr.release(), c);
+				id->SetVal(std::move(aggr), c);
 			else if ( v )
-				id->SetVal(v.release(), c);
+				id->SetVal(std::move(v), c);
 			}
 		}
 
@@ -216,7 +210,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 		// we can later access the ID even if no implementations have been
 		// defined.
 		Func* f = new BroFunc(id, 0, 0, 0, 0);
-		id->SetVal(new Val(f));
+		id->SetVal(make_intrusive<Val>(f));
 		}
 	}
 
@@ -284,11 +278,11 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 
 	tnew->SetName(id->Name());
 
-	id->SetType(IntrusivePtr{tnew}.release());
+	id->SetType(tnew);
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, tnew.get(), false, false));
+		id->SetAttrs(make_intrusive<Attributes>(attr, tnew.get(), false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -386,7 +380,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		}
 		}
 	else
-		id->SetType(IntrusivePtr{t}.release());
+		id->SetType(t);
 
 	push_scope(id, attrs);
 
@@ -402,7 +396,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			arg_id->Error("argument name used twice");
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType(arg_i->type->Ref());
+		arg_id->SetType({NewRef{}, arg_i->type});
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
@@ -494,7 +488,7 @@ void end_func(IntrusivePtr<Stmt> body)
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(new Val(f));
+		ingredients->id->SetVal(make_intrusive<Val>(f));
 		ingredients->id->SetConst();
 		}
 

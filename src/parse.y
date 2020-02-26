@@ -693,7 +693,7 @@ expr:
 				if ( ! id->Type() )
 					{
 					id->Error("undeclared variable");
-					id->SetType(error_type());
+					id->SetType({AdoptRef{}, error_type()});
 					$$ = new NameExpr(std::move(id));
 					}
 
@@ -1623,7 +1623,7 @@ case_type:
 		TOK_TYPE type
 			{
 			$$ = new ID(0, SCOPE_FUNCTION, 0);
-			$$->SetType($2);
+			$$->SetType({AdoptRef{}, $2});
 			}
 
 	|	TOK_TYPE type TOK_AS TOK_ID

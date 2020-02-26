@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 
+#include "IntrusivePtr.h"
 #include "Type.h"
 #include "Var.h" // for add_type()
 #include "Val.h"
@@ -121,7 +122,7 @@ public:
 
 private:
 	string module; /**< Script layer module in which component tags live. */
-	EnumType* tag_enum_type; /**< Enum type of component tags. */
+	IntrusivePtr<EnumType> tag_enum_type; /**< Enum type of component tags. */
 	map<string, C*> components_by_name;
 	map<T, C*> components_by_tag;
 	map<int, C*> components_by_val;
@@ -129,11 +130,11 @@ private:
 
 template <class T, class C>
 ComponentManager<T, C>::ComponentManager(const string& arg_module, const string& local_id)
-	: module(arg_module)
+	: module(arg_module),
+	  tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
 	{
-	tag_enum_type = new EnumType(module + "::" + local_id);
 	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
-	add_type(id, tag_enum_type, 0);
+	add_type(id, tag_enum_type.get(), 0);
 	zeekygen_mgr->Identifier(id);
 	}
 
@@ -158,7 +159,7 @@ list<C*> ComponentManager<T, C>::GetComponents() const
 template <class T, class C>
 EnumType* ComponentManager<T, C>::GetTagEnumType() const
 	{
-	return tag_enum_type;
+	return tag_enum_type.get();
 	}
 
 template <class T, class C>

@@ -31,7 +31,15 @@ public:
 		}
 
 	template<typename N>
-	void Insert(N &&name, ID* id) { local[std::forward<N>(name)] = id; }
+	void Insert(N &&name, ID* id)
+		{
+		auto i = local.emplace(std::forward<N>(name), id);
+		if ( ! i.second )
+			{
+			Unref(i.first->second);
+			i.first->second = id;
+			}
+		}
 
 	template<typename N>
 	ID* Remove(N &&name)

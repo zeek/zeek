@@ -127,7 +127,7 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	if ( IsError() )
 		return 0;
 
-	return {AdoptRef{}, check_and_promote(Eval(0).release(), t, 1)};
+	return check_and_promote(Eval(0), t, 1);
 	}
 
 int Expr::IsError() const
@@ -2279,7 +2279,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	TableVal* tv = aggr->AsTableVal();
 
 	auto index = op1->Eval(f);
-	IntrusivePtr<Val> v{AdoptRef{}, check_and_promote(op2->Eval(f).release(), t->YieldType(), 1)};
+	auto v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
 	if ( ! index || ! v )
 		return;
 
@@ -3220,7 +3220,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 
 	for ( const auto& e : exprs )
 		{
-		IntrusivePtr<Val> element = {AdoptRef{}, check_and_promote(e->Eval(0).release(), index_type, 1)};
+		auto element = check_and_promote(e->Eval(0), index_type, 1);
 
 		if ( ! element || ! tval->Assign(element.get(), 0) )
 			{
@@ -3321,7 +3321,7 @@ IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		IntrusivePtr<Val> v{AdoptRef{}, check_and_promote(e->Eval(0).release(), t->YieldType(), 1)};
+		auto v = check_and_promote(e->Eval(0), t->YieldType(), 1);
 
 		if ( ! v || ! vec->Assign(i, v.release()) )
 			{
@@ -3640,9 +3640,9 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
 			          ! same_type(rhs_type, field_type) )
 				{
-				if ( Val* new_val = check_and_promote(rhs.release(), field_type, false, op->GetLocationInfo()) )
+				if ( auto new_val = check_and_promote(rhs, field_type, false, op->GetLocationInfo()) )
 					{
-					rhs = {AdoptRef{}, new_val};
+					rhs = std::move(new_val);
 					}
 				else
 					{
@@ -4653,9 +4653,9 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 			}
 
 		if ( expr->Type()->Tag() == TYPE_LIST )
-			element = {AdoptRef{}, check_and_promote(element.release(), it, 1)};
+			element = check_and_promote(std::move(element), it, 1);
 		else
-			element = {AdoptRef{}, check_and_promote(element.release(), (*it->Types())[0], 1)};
+			element = check_and_promote(std::move(element), (*it->Types())[0], 1);
 
 		if ( ! element )
 			return 0;

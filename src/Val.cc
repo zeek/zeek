@@ -3034,7 +3034,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
+IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t, int is_init, const Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;
@@ -3058,8 +3058,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v, 0, expr_location);
-		Unref(v);
+		t->Error("type clash", v.get(), 0, expr_location);
 		return nullptr;
 		}
 
@@ -3067,10 +3066,9 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 	     (! IsArithmetic(v_tag) || t_tag != TYPE_TIME || ! v->IsZero()) )
 		{
 		if ( t_tag == TYPE_LIST || v_tag == TYPE_LIST )
-			t->Error("list mixed with scalar", v, 0, expr_location);
+			t->Error("list mixed with scalar", v.get(), 0, expr_location);
 		else
-			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
-		Unref(v);
+			t->Error("arithmetic mixed with non-arithmetic", v.get(), 0, expr_location);
 		return nullptr;
 		}
 
@@ -3082,8 +3080,7 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
-			Unref(v);
+			t->Error("over-promotion of arithmetic value", v.get(), 0, expr_location);
 			return nullptr;
 			}
 		}
@@ -3096,55 +3093,49 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		// Already has the right internal type.
 		return v;
 
-	Val* promoted_v;
+	IntrusivePtr<Val> promoted_v;
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v) )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v.get()) )
 			{
-			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
-			Unref(v);
+			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v.get(), 0, expr_location);
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = val_mgr->GetInt(v->CoerceToInt());
+			promoted_v = {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
-			Unref(v);
 			return nullptr;
 			}
 
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v) )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v.get()) )
 			{
-			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
-			Unref(v);
+			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), 0, expr_location);
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
-			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
+			promoted_v = {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
-			Unref(v);
 			return nullptr;
 			}
 
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
-		promoted_v = new Val(v->CoerceToDouble(), t_tag);
+		promoted_v = make_intrusive<Val>(v->CoerceToDouble(), t_tag);
 		break;
 
 	default:
 		reporter->InternalError("bad internal type in check_and_promote()");
-		Unref(v);
 		return nullptr;
 	}
 
-	Unref(v);
 	return promoted_v;
 	}
 

@@ -29,6 +29,7 @@ using std::string;
 
 template <class T> class IntrusivePtr;
 template<typename T> class PDict;
+template <class T> class IntrusivePtr;
 class IterCookie;
 
 class Val;
@@ -1018,7 +1019,7 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
+extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
 // Given a pointer to where a Val's core (i.e., its BRO value) resides,
 // returns a corresponding newly-created or Ref()'d Val.  ptr must already

@@ -1,4 +1,11 @@
 
+3.2.0-dev.142 | 2020-02-25 19:27:28 -0800
+
+  * Updates to Broker to build CAF as sub-project (Dominik Charousset, Corelight)
+
+    The embedded CAF now builds directly as a CMake subdirectory rather
+    than an external project.
+
 3.2.0-dev.137 | 2020-02-24 20:41:43 -0800
 
   * parse.y: fix memory leak in FieldAssignExpr call (Max Kellermann)

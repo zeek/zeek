@@ -1183,7 +1183,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		if ( deprecation )
 			id->MakeDeprecated(deprecation);
 
-		zeekygen_mgr->Identifier(id.get());
+		zeekygen_mgr->Identifier(std::move(id));
 		}
 	else
 		{

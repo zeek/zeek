@@ -1086,27 +1086,31 @@ decl:
 
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_OPTION);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_OPTION);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
+			IntrusivePtr id{AdoptRef{}, $2};
 			IntrusivePtr<Expr> init{AdoptRef{}, $5};
-			add_global($2, {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
-			zeekygen_mgr->Redef($2, ::filename, $4, init.release());
+			add_global(id.get(), {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
+			zeekygen_mgr->Redef(id.get(), ::filename, $4, init.release());
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
@@ -1133,12 +1137,13 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeekygen_mgr->StartType($2);  }
+			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({NewRef{}, $2});  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
-			add_type($2, {AdoptRef{}, $5}, $6);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_type(id.get(), {AdoptRef{}, $5}, $6);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	func_hdr { func_hdr_location = @1; } func_body
@@ -1168,10 +1173,11 @@ conditional:
 func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
-			begin_func($2, current_module.c_str(),
+			IntrusivePtr id{AdoptRef{}, $2};
+			begin_func(id.get(), current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
-			zeekygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{

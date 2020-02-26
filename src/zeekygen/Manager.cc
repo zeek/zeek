@@ -215,7 +215,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script)
 	{
 	auto prev = identifiers.GetInfo(id->Name());
 	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(id, script);
@@ -245,7 +245,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 	return rval;
 	}
 
-void Manager::StartType(ID* id)
+void Manager::StartType(IntrusivePtr<ID> id)
 	{
 	if ( disabled )
 		return;
@@ -262,7 +262,7 @@ void Manager::StartType(ID* id)
 
 	if ( ! script_info )
 		{
-		WarnMissingScript("identifier", id, script);
+		WarnMissingScript("identifier", id.get(), script);
 		return;
 		}
 
@@ -276,7 +276,7 @@ static bool IsEnumType(ID* id)
 	return id->AsType() ? id->AsType()->Tag() == TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(ID* id)
+void Manager::Identifier(IntrusivePtr<ID> id)
 	{
 	if ( disabled )
 		return;
@@ -326,7 +326,7 @@ void Manager::Identifier(ID* id)
 
 	if ( ! script_info )
 		{
-		WarnMissingScript("identifier", id, script);
+		WarnMissingScript("identifier", id.get(), script);
 		return;
 		}
 

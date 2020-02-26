@@ -298,11 +298,11 @@ void terminate_bro()
 	plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
+	delete event_registry;
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;

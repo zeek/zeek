@@ -479,7 +479,7 @@ expr:
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
-			$$ = add_and_assign_local($2, $4, val_mgr->GetBool(1));
+			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4}, {AdoptRef{}, val_mgr->GetBool(1)}).release();
 			}
 
 	|	expr '[' expr_list ']'
@@ -511,7 +511,7 @@ expr:
 				   current_module.c_str(),
 				   FUNC_FLAVOR_FUNCTION,
 				   0,
-				   $3);
+				   {AdoptRef{}, $3});
 			}
 		 func_body
 			{
@@ -1089,27 +1089,27 @@ decl:
 
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
+			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR);
 			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_OPTION);
+			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_OPTION);
 			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_CONST);
+			add_global($2, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST);
 			zeekygen_mgr->Identifier($2);
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
-			IntrusivePtr<Expr> e{NewRef{}, $5};
-			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-			zeekygen_mgr->Redef($2, ::filename, $4, $5);
+			IntrusivePtr<Expr> init{AdoptRef{}, $5};
+			add_global($2, {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
+			zeekygen_mgr->Redef($2, ::filename, $4, init.release());
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
@@ -1140,7 +1140,7 @@ decl:
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
-			add_type($2, $5, $6);
+			add_type($2, {AdoptRef{}, $5}, $6);
 			zeekygen_mgr->Identifier($2);
 			}
 
@@ -1172,7 +1172,7 @@ func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
 			begin_func($2, current_module.c_str(),
-				FUNC_FLAVOR_FUNCTION, 0, $3, $4);
+				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
 			zeekygen_mgr->Identifier($2);
 			}
@@ -1186,7 +1186,7 @@ func_hdr:
 				}
 
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 0, $3, $4);
+				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
@@ -1194,13 +1194,13 @@ func_hdr:
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_HOOK, 0, $3, $4);
+				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func($3, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 1, $4, $5);
+				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4}, $5);
 			$$ = $4;
 			}
 	;
@@ -1221,7 +1221,7 @@ func_body:
 		'}'
 			{
 			set_location(func_hdr_location, @5);
-			end_func($3);
+			end_func({AdoptRef{}, $3});
 			}
 	;
 
@@ -1260,7 +1260,7 @@ begin_func:
 		func_params
 			{
 			$$ = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $1);
+			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
 			}
 	;
 
@@ -1492,7 +1492,7 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
-			$$ = add_local($2, $3, $4, $5, $6, VAR_REGULAR);
+			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1500,7 +1500,7 @@ stmt:
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
-			$$ = add_local($2, $3, $4, $5, $6, VAR_CONST);
+			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1634,19 +1634,18 @@ case_type:
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			BroType* type = $2;
-			ID* case_var = lookup_ID(name, current_module.c_str());
+			IntrusivePtr<BroType> type{AdoptRef{}, $2};
+			IntrusivePtr<ID> case_var{AdoptRef{}, lookup_ID(name, current_module.c_str())};
 
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
 				{
-				Unref(case_var);
-				case_var = install_ID(name, current_module.c_str(), false, false);
+				case_var = {NewRef{}, install_ID(name, current_module.c_str(), false, false)};
 				}
 
-			add_local(case_var, type, INIT_NONE, 0, 0, VAR_REGULAR);
-			$$ = case_var;
+			add_local(case_var, std::move(type), INIT_NONE, 0, 0, VAR_REGULAR);
+			$$ = case_var.release();
 			}
 
 for_head:

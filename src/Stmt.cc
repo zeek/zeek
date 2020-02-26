@@ -1119,8 +1119,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 			else
 				{
-				delete add_local((*loop_vars)[i],
-						ind_type->Ref(), INIT_NONE,
+				add_local({NewRef{}, (*loop_vars)[i]},
+						{NewRef{}, ind_type}, INIT_NONE,
 						0, 0, VAR_REGULAR);
 				}
 			}
@@ -1136,7 +1136,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			delete add_local((*loop_vars)[0], base_type(TYPE_COUNT),
+			add_local({NewRef{}, (*loop_vars)[0]}, {AdoptRef{}, base_type(TYPE_COUNT)},
 						INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1156,8 +1156,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			delete add_local((*loop_vars)[0],
-					base_type(TYPE_STRING),
+			add_local({NewRef{}, (*loop_vars)[0]},
+					{AdoptRef{}, base_type(TYPE_STRING)},
 					INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
@@ -1187,7 +1187,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr, ID* val_var)
 			}
 		else
 			{
-			delete add_local(value_var, yield_type->Ref(), INIT_NONE,
+			add_local({NewRef{}, value_var}, {NewRef{}, yield_type}, INIT_NONE,
 			                 0, 0, VAR_REGULAR);
 			}
 		}

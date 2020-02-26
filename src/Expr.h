@@ -5,6 +5,7 @@
 // BRO expressions.
 
 #include "BroList.h"
+#include "IntrusivePtr.h"
 #include "Timer.h"
 #include "Type.h"
 #include "EventHandler.h"
@@ -58,6 +59,7 @@ typedef enum {
 
 extern const char* expr_name(BroExprTag t);
 
+template <class T> class IntrusivePtr;
 class Stmt;
 class Frame;
 class ListExpr;
@@ -72,16 +74,14 @@ struct function_ingredients;
 
 class Expr : public BroObj {
 public:
-	BroType* Type() const		{ return type; }
+	BroType* Type() const		{ return type.get(); }
 	BroExprTag Tag() const	{ return tag; }
-
-	~Expr() override;
 
 	Expr* Ref()			{ ::Ref(this); return this; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
-	virtual Val* Eval(Frame* f) const = 0;
+	virtual IntrusivePtr<Val> Eval(Frame* f) const = 0;
 
 	// Same, but the context is that we are adding an element
 	// into the given aggregate of the given type.  Note that
@@ -91,12 +91,11 @@ public:
 			const;
 
 	// Assign to the given value, if appropriate.
-	virtual void Assign(Frame* f, Val* v);
+	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
 
 	// Returns the type corresponding to this expression interpreted
-	// as an initialization.  The type should be Unref()'d when done
-	// using it.  Returns nil if the initialization is illegal.
-	virtual BroType* InitType() const;
+	// as an initialization.  Returns nil if the initialization is illegal.
+	virtual IntrusivePtr<BroType> InitType() const;
 
 	// Returns true if this expression, interpreted as an initialization,
 	// constitutes a record element, false otherwise.  If the TypeDecl*
@@ -109,7 +108,7 @@ public:
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual Val* InitVal(const BroType* t, Val* aggr) const;
+	virtual IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
 	virtual int IsPure() const;
@@ -145,7 +144,7 @@ public:
 	// Return the expression converted to L-value form.  If expr
 	// cannot be used as an L-value, reports an error and returns
 	// the current value of expr (this is the default method).
-	virtual Expr* MakeLvalue();
+	virtual IntrusivePtr<Expr> MakeLvalue();
 
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
@@ -214,7 +213,7 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	void SetType(BroType* t);
+	void SetType(IntrusivePtr<BroType> t);
 
 	// Reports the given error and sets the expression's type to
 	// TYPE_ERROR.
@@ -225,21 +224,20 @@ protected:
 	void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 
 	int paren;
 };
 
 class NameExpr : public Expr {
 public:
-	explicit NameExpr(ID* id, bool const_init = false);
-	~NameExpr() override;
+	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);
 
-	ID* Id() const		{ return id; }
+	ID* Id() const		{ return id.get(); }
 
-	Val* Eval(Frame* f) const override;
-	void Assign(Frame* f, Val* v) override;
-	Expr* MakeLvalue() override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 	int IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -247,91 +245,88 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	ID* id;
+	IntrusivePtr<ID> id;
 	bool in_const_init;
 };
 
 class ConstExpr : public Expr {
 public:
-	explicit ConstExpr(Val* val);
-	~ConstExpr() override;
+	explicit ConstExpr(IntrusivePtr<Val> val);
 
-	Val* Value() const	{ return val; }
+	Val* Value() const	{ return val.get(); }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
-	Val* val;
+	IntrusivePtr<Val> val;
 };
 
 class UnaryExpr : public Expr {
 public:
-	Expr* Op() const	{ return op; }
+	Expr* Op() const	{ return op.get(); }
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	int IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	UnaryExpr(BroExprTag arg_tag, Expr* arg_op);
-	~UnaryExpr() override;
+	UnaryExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op);
 
 	void ExprDescribe(ODesc* d) const override;
 
 	// Returns the expression folded using the given constant.
-	virtual Val* Fold(Val* v) const;
+	virtual IntrusivePtr<Val> Fold(Val* v) const;
 
-	Expr* op;
+	IntrusivePtr<Expr> op;
 };
 
 class BinaryExpr : public Expr {
 public:
-	Expr* Op1() const	{ return op1; }
-	Expr* Op2() const	{ return op2; }
+	Expr* Op1() const	{ return op1.get(); }
+	Expr* Op2() const	{ return op2.get(); }
 
 	int IsPure() const override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	BinaryExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
-	    : Expr(arg_tag), op1(arg_op1), op2(arg_op2)
+	BinaryExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
+	    : Expr(arg_tag), op1(std::move(arg_op1)), op2(std::move(arg_op2))
 		{
-		if ( ! (arg_op1 && arg_op2) )
+		if ( ! (op1 && op2) )
 			return;
 		if ( op1->IsError() || op2->IsError() )
 			SetError();
 		}
-	~BinaryExpr() override;
 
 	// Returns the expression folded using the given constants.
-	virtual Val* Fold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> Fold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are strings.
-	virtual Val* StringFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> StringFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are patterns.
-	virtual Val* PatternFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> PatternFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are sets.
-	virtual Val* SetFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> SetFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are addresses or subnets.
-	virtual Val* AddrFold(Val* v1, Val* v2) const;
-	virtual Val* SubNetFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> SubNetFold(Val* v1, Val* v2) const;
 
 	int BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
 
@@ -347,149 +342,148 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	Expr* op1;
-	Expr* op2;
+	IntrusivePtr<Expr> op1;
+	IntrusivePtr<Expr> op2;
 };
 
 class CloneExpr : public UnaryExpr {
 public:
-	explicit CloneExpr(Expr* op);
-	Val* Eval(Frame* f) const override;
+	explicit CloneExpr(IntrusivePtr<Expr> op);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class IncrExpr : public UnaryExpr {
 public:
-	IncrExpr(BroExprTag tag, Expr* op);
+	IncrExpr(BroExprTag tag, IntrusivePtr<Expr> op);
 
-	Val* Eval(Frame* f) const override;
-	Val* DoSingleEval(Frame* f, Val* v) const;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
 	int IsPure() const override;
 };
 
 class ComplementExpr : public UnaryExpr {
 public:
-	explicit ComplementExpr(Expr* op);
+	explicit ComplementExpr(IntrusivePtr<Expr> op);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class NotExpr : public UnaryExpr {
 public:
-	explicit NotExpr(Expr* op);
+	explicit NotExpr(IntrusivePtr<Expr> op);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class PosExpr : public UnaryExpr {
 public:
-	explicit PosExpr(Expr* op);
+	explicit PosExpr(IntrusivePtr<Expr> op);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class NegExpr : public UnaryExpr {
 public:
-	explicit NegExpr(Expr* op);
+	explicit NegExpr(IntrusivePtr<Expr> op);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class SizeExpr : public UnaryExpr {
 public:
-	explicit SizeExpr(Expr* op);
-	Val* Eval(Frame* f) const override;
+	explicit SizeExpr(IntrusivePtr<Expr> op);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class AddExpr : public BinaryExpr {
 public:
-	AddExpr(Expr* op1, Expr* op2);
+	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class AddToExpr : public BinaryExpr {
 public:
-	AddToExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const override;
+	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class RemoveFromExpr : public BinaryExpr {
 public:
-	RemoveFromExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const override;
+	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class SubExpr : public BinaryExpr {
 public:
-	SubExpr(Expr* op1, Expr* op2);
+	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
 class TimesExpr : public BinaryExpr {
 public:
-	TimesExpr(Expr* op1, Expr* op2);
+	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class DivideExpr : public BinaryExpr {
 public:
-	DivideExpr(Expr* op1, Expr* op2);
+	DivideExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
 protected:
-	Val* AddrFold(Val* v1, Val* v2) const override;
+	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 };
 
 class ModExpr : public BinaryExpr {
 public:
-	ModExpr(Expr* op1, Expr* op2);
+	ModExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
 class BoolExpr : public BinaryExpr {
 public:
-	BoolExpr(BroExprTag tag, Expr* op1, Expr* op2);
+	BoolExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
-	Val* Eval(Frame* f) const override;
-	Val* DoSingleEval(Frame* f, Val* v1, Expr* op2) const;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 };
 
 class BitExpr : public BinaryExpr {
 public:
-	BitExpr(BroExprTag tag, Expr* op1, Expr* op2);
+	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
 class EqExpr : public BinaryExpr {
 public:
-	EqExpr(BroExprTag tag, Expr* op1, Expr* op2);
+	EqExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
 protected:
-	Val* Fold(Val* v1, Val* v2) const override;
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 };
 
 class RelExpr : public BinaryExpr {
 public:
-	RelExpr(BroExprTag tag, Expr* op1, Expr* op2);
+	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
 class CondExpr : public Expr {
 public:
-	CondExpr(Expr* op1, Expr* op2, Expr* op3);
-	~CondExpr() override;
+	CondExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, IntrusivePtr<Expr> op3);
 
-	const Expr* Op1() const	{ return op1; }
-	const Expr* Op2() const	{ return op2; }
-	const Expr* Op3() const	{ return op3; }
+	const Expr* Op1() const	{ return op1.get(); }
+	const Expr* Op2() const	{ return op2.get(); }
+	const Expr* Op3() const	{ return op3.get(); }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	int IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -497,31 +491,30 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	Expr* op1;
-	Expr* op2;
-	Expr* op3;
+	IntrusivePtr<Expr> op1;
+	IntrusivePtr<Expr> op2;
+	IntrusivePtr<Expr> op3;
 };
 
 class RefExpr : public UnaryExpr {
 public:
-	explicit RefExpr(Expr* op);
+	explicit RefExpr(IntrusivePtr<Expr> op);
 
-	void Assign(Frame* f, Val* v) override;
-	Expr* MakeLvalue() override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 };
 
 class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
-	~AssignExpr() override;
+	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, int is_init, IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	BroType* InitType() const override;
+	IntrusivePtr<BroType> InitType() const override;
 	int IsRecordElement(TypeDecl* td) const override;
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	int IsPure() const override;
 
 protected:
@@ -529,18 +522,18 @@ protected:
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	int is_init;
-	Val* val;	// optional
+	IntrusivePtr<Val> val;	// optional
 };
 
 class IndexSliceAssignExpr : public AssignExpr {
 public:
-	IndexSliceAssignExpr(Expr* op1, Expr* op2, int is_init);
-	Val* Eval(Frame* f) const override;
+	IndexSliceAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, int is_init);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class IndexExpr : public BinaryExpr {
 public:
-	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
+	IndexExpr(IntrusivePtr<Expr> op1, IntrusivePtr<ListExpr> op2, bool is_slice = false);
 
 	int CanAdd() const override;
 	int CanDel() const override;
@@ -548,19 +541,19 @@ public:
 	void Add(Frame* f) override;
 	void Delete(Frame* f) override;
 
-	void Assign(Frame* f, Val* v) override;
-	Expr* MakeLvalue() override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
 	// not necessarily return a vector.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	bool IsSlice() const { return is_slice; }
 
 protected:
-	Val* Fold(Val* v1, Val* v2) const override;
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -569,7 +562,7 @@ protected:
 
 class FieldExpr : public UnaryExpr {
 public:
-	FieldExpr(Expr* op, const char* field_name);
+	FieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~FieldExpr() override;
 
 	int Field() const	{ return field; }
@@ -577,13 +570,13 @@ public:
 
 	int CanDel() const override;
 
-	void Assign(Frame* f, Val* v) override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	void Delete(Frame* f) override;
 
-	Expr* MakeLvalue() override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -596,13 +589,13 @@ protected:
 // "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr : public UnaryExpr {
 public:
-	HasFieldExpr(Expr* op, const char* field_name);
+	HasFieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -612,28 +605,28 @@ protected:
 
 class RecordConstructorExpr : public UnaryExpr {
 public:
-	explicit RecordConstructorExpr(ListExpr* constructor_list);
+	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
 	~RecordConstructorExpr() override;
 
 protected:
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class TableConstructorExpr : public UnaryExpr {
 public:
-	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
-	                     BroType* arg_type = 0);
+	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	                     IntrusivePtr<BroType> arg_type = nullptr);
 	~TableConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -642,16 +635,16 @@ protected:
 
 class SetConstructorExpr : public UnaryExpr {
 public:
-	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
-	                   BroType* arg_type = 0);
+	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	                   IntrusivePtr<BroType> arg_type = nullptr);
 	~SetConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -660,19 +653,19 @@ protected:
 
 class VectorConstructorExpr : public UnaryExpr {
 public:
-	explicit VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	explicit VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list, IntrusivePtr<BroType> arg_type = nullptr);
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class FieldAssignExpr : public UnaryExpr {
 public:
-	FieldAssignExpr(const char* field_name, Expr* value);
+	FieldAssignExpr(const char* field_name, IntrusivePtr<Expr> value);
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
@@ -687,21 +680,21 @@ protected:
 
 class ArithCoerceExpr : public UnaryExpr {
 public:
-	ArithCoerceExpr(Expr* op, TypeTag t);
+	ArithCoerceExpr(IntrusivePtr<Expr> op, TypeTag t);
 
 protected:
-	Val* FoldSingleVal(Val* v, InternalTypeTag t) const;
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class RecordCoerceExpr : public UnaryExpr {
 public:
-	RecordCoerceExpr(Expr* op, RecordType* r);
+	RecordCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<RecordType> r);
 	~RecordCoerceExpr() override;
 
 protected:
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
@@ -711,30 +704,30 @@ protected:
 
 class TableCoerceExpr : public UnaryExpr {
 public:
-	TableCoerceExpr(Expr* op, TableType* r);
+	TableCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<TableType> r);
 	~TableCoerceExpr() override;
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 class VectorCoerceExpr : public UnaryExpr {
 public:
-	VectorCoerceExpr(Expr* op, VectorType* v);
+	VectorCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<VectorType> v);
 	~VectorCoerceExpr() override;
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 // An internal operator for flattening array indices that are records
 // into a list of individual values.
 class FlattenExpr : public UnaryExpr {
 public:
-	explicit FlattenExpr(Expr* op);
+	explicit FlattenExpr(IntrusivePtr<Expr> op);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	int num_fields;
 };
@@ -755,53 +748,51 @@ protected:
 
 class ScheduleExpr : public Expr {
 public:
-	ScheduleExpr(Expr* when, EventExpr* event);
-	~ScheduleExpr() override;
+	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
 
 	int IsPure() const override;
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	Expr* When() const	{ return when; }
-	EventExpr* Event() const	{ return event; }
+	Expr* When() const	{ return when.get(); }
+	EventExpr* Event() const	{ return event.get(); }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	Expr* when;
-	EventExpr* event;
+	IntrusivePtr<Expr> when;
+	IntrusivePtr<EventExpr> event;
 };
 
 class InExpr : public BinaryExpr {
 public:
-	InExpr(Expr* op1, Expr* op2);
+	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
 protected:
-	Val* Fold(Val* v1, Val* v2) const override;
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 };
 
 class CallExpr : public Expr {
 public:
-	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
-	~CallExpr() override;
+	CallExpr(IntrusivePtr<Expr> func, IntrusivePtr<ListExpr> args, bool in_hook = false);
 
-	Expr* Func() const	{ return func; }
-	ListExpr* Args() const	{ return args; }
+	Expr* Func() const	{ return func.get(); }
+	ListExpr* Args() const	{ return args.get(); }
 
 	int IsPure() const override;
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	Expr* func;
-	ListExpr* args;
+	IntrusivePtr<Expr> func;
+	IntrusivePtr<ListExpr> args;
 };
 
 
@@ -815,7 +806,7 @@ public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 		   id_list outer_ids);
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -830,14 +821,13 @@ private:
 
 class EventExpr : public Expr {
 public:
-	EventExpr(const char* name, ListExpr* args);
-	~EventExpr() override;
+	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
 
 	const char* Name() const	{ return name.c_str(); }
-	ListExpr* Args() const		{ return args; }
+	ListExpr* Args() const		{ return args.get(); }
 	EventHandlerPtr Handler()  const	{ return handler; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -846,16 +836,16 @@ protected:
 
 	string name;
 	EventHandlerPtr handler;
-	ListExpr* args;
+	IntrusivePtr<ListExpr> args;
 };
 
 class ListExpr : public Expr {
 public:
 	ListExpr();
-	explicit ListExpr(Expr* e);
+	explicit ListExpr(IntrusivePtr<Expr> e);
 	~ListExpr() override;
 
-	void Append(Expr* e);
+	void Append(IntrusivePtr<Expr> e);
 
 	const expr_list& Exprs() const	{ return exprs; }
 	expr_list& Exprs()		{ return exprs; }
@@ -866,17 +856,17 @@ public:
 	// True if the entire list represents constant values.
 	int AllConst() const;
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	BroType* InitType() const override;
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Expr* MakeLvalue() override;
-	void Assign(Frame* f, Val* v) override;
+	IntrusivePtr<BroType> InitType() const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Expr> MakeLvalue() override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	Val* AddSetInit(const BroType* t, Val* aggr) const;
+	IntrusivePtr<Val> AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -886,29 +876,28 @@ protected:
 
 class RecordAssignExpr : public ListExpr {
 public:
-	RecordAssignExpr(Expr* record, Expr* init_list, int is_init);
+	RecordAssignExpr(IntrusivePtr<Expr> record, IntrusivePtr<Expr> init_list, int is_init);
 };
 
 class CastExpr : public UnaryExpr {
 public:
-	CastExpr(Expr* op, BroType* t);
+	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 
 protected:
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void ExprDescribe(ODesc* d) const override;
 };
 
 class IsExpr : public UnaryExpr {
 public:
-	IsExpr(Expr* op, BroType* t);
-	virtual ~IsExpr();
+	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 
 protected:
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	BroType* t;
+	IntrusivePtr<BroType> t;
 };
 
 inline Val* Expr::ExprVal() const
@@ -919,7 +908,7 @@ inline Val* Expr::ExprVal() const
 	}
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
-Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
+IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, int is_init);
 
 // Type-check the given expression(s) against the given type(s).  Complain
 // if the expression cannot match the given type, returning 0.  If it can

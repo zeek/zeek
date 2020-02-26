@@ -705,7 +705,7 @@ Val* RecordType::FieldDefault(int field) const
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
-	return def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+	return def_attr ? def_attr->AttrExpr()->Eval(0).release() : 0;
 	}
 
 int RecordType::FieldOffset(const char* field) const
@@ -2065,7 +2065,7 @@ BroType* init_type(Expr* init)
 	{
 	if ( init->Tag() != EXPR_LIST )
 		{
-		BroType* t = init->InitType();
+		auto t = init->InitType();
 		if ( ! t )
 			return 0;
 
@@ -2073,11 +2073,10 @@ BroType* init_type(Expr* init)
 		     t->AsTypeList()->Types()->length() != 1 )
 			{
 			init->Error("list used in scalar initialization");
-			Unref(t);
 			return 0;
 			}
 
-		return t;
+		return t.release();
 		}
 
 	ListExpr* init_list = init->AsListExpr();
@@ -2094,47 +2093,25 @@ BroType* init_type(Expr* init)
 	if ( e0->IsRecordElement(0) )
 		// ListExpr's know how to build a record from their
 		// components.
-		return init_list->InitType();
+		return init_list->InitType().release();
 
-	BroType* t = e0->InitType();
+	auto t = e0->InitType();
 	if ( t )
-		{
-		BroType* old_t = t;
-		t = reduce_type(t);
-
-		if ( t )
-			// reduce_type() does not return a referenced pointer, but we want
-			// to own a reference, so create one here
-			Ref(t);
-
-		// reduce_type() does not adopt our reference passed as parameter, so
-		// we need to release it (after the Ref() call above)
-		Unref(old_t);
-		}
-
+		t = {NewRef{}, reduce_type(t.get())};
 	if ( ! t )
 		return 0;
 
 	for ( int i = 1; t && i < el.length(); ++i )
 		{
-		BroType* el_t = el[i]->InitType();
-		BroType* ti = el_t ? reduce_type(el_t) : 0;
+		auto el_t = el[i]->InitType();
+		BroType* ti = el_t ? reduce_type(el_t.get()) : 0;
 		if ( ! ti )
-			{
-			Unref(t);
 			return 0;
-			}
 
-		if ( same_type(t, ti) )
-			{
-			Unref(ti);
+		if ( same_type(t.get(), ti) )
 			continue;
-			}
 
-		BroType* t_merge = merge_types(t, ti);
-		Unref(t);
-		Unref(ti);
-		t = t_merge;
+		t = IntrusivePtr<BroType>{AdoptRef{}, merge_types(t.get(), ti)};
 		}
 
 	if ( ! t )
@@ -2145,18 +2122,18 @@ BroType* init_type(Expr* init)
 
 	if ( t->Tag() == TYPE_TABLE && ! t->AsTableType()->IsSet() )
 		// A list of table elements.
-		return t;
+		return t.release();
 
 	// A set.  If the index type isn't yet a type list, make
 	// it one, as that's what's required for creating a set type.
 	if ( t->Tag() != TYPE_LIST )
 		{
-		TypeList* tl = new TypeList(t);
-		tl->Append(t);
-		t = tl;
+		auto tl = make_intrusive<TypeList>(t.get()->Ref());
+		tl->Append(t.release());
+		t = std::move(tl);
 		}
 
-	return new SetType(t->AsTypeList(), 0);
+	return new SetType(t.release()->AsTypeList(), 0);
 	}
 
 bool is_atomic_type(const BroType* t)

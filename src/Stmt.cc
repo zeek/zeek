@@ -321,14 +321,10 @@ Val* ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	Val* v = e->Eval(f);
+	auto v = e->Eval(f);
 
 	if ( v )
-		{
-		Val* ret_val = DoExec(f, v, flow);
-		Unref(v);
-		return ret_val;
-		}
+		return DoExec(f, v.get(), flow);
 	else
 		return 0;
 	}
@@ -670,10 +666,10 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 						if ( ne->Id()->IsConst() )
 							{
-							Val* v = ne->Eval(0);
+							auto v = ne->Eval(0);
 
 							if ( v )
-								Unref(exprs.replace(j, new ConstExpr(v)));
+								Unref(exprs.replace(j, new ConstExpr(std::move(v))));
 							}
 						}
 						break;
@@ -1068,15 +1064,12 @@ Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 	for ( ; ; )
 		{
-		Val* cond = loop_condition->Eval(f);
+		auto cond = loop_condition->Eval(f);
 
 		if ( ! cond )
 			break;
 
-		bool cont = cond->AsBool();
-		Unref(cond);
-
-		if ( ! cont )
+		if ( ! cond->AsBool() )
 			break;
 
 		flow = FLOW_NEXT;
@@ -1481,7 +1474,7 @@ Val* ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	flow = FLOW_RETURN;
 
 	if ( e )
-		return e->Eval(f);
+		return e->Eval(f).release();
 	else
 		return 0;
 	}

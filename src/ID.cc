@@ -278,15 +278,14 @@ void ID::SetOption()
 
 void ID::EvalFunc(Expr* ef, Expr* ev)
 	{
-	Expr* arg1 = new ConstExpr(val->Ref());
-	ListExpr* args = new ListExpr();
-	args->Append(arg1);
-	args->Append(ev->Ref());
+	auto arg1 = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, val});
+	auto args = make_intrusive<ListExpr>();
+	args->Append(std::move(arg1));
+	args->Append({NewRef{}, ev});
 
-	CallExpr* ce = new CallExpr(ef->Ref(), args);
+	auto ce = make_intrusive<CallExpr>(IntrusivePtr{NewRef{}, ef}, std::move(args));
 
-	SetVal(ce->Eval(0));
-	Unref(ce);
+	SetVal(ce->Eval(0).release());
 	}
 
 #if 0

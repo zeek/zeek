@@ -16,11 +16,11 @@
 #include "Traverse.h"
 #include "module_util.h"
 
-static Val* init_val(Expr* init, const BroType* t, Val* aggr)
+static IntrusivePtr<Val> init_val(Expr* init, const BroType* t, IntrusivePtr<Val> aggr)
 	{
 	try
 		{
-		return init->InitVal(t, aggr);
+		return init->InitVal(t, std::move(aggr));
 		}
 	catch ( InterpreterException& e )
 		{
@@ -159,26 +159,23 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			Val* aggr;
+			IntrusivePtr<Val> aggr;
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				aggr = new RecordVal(t->AsRecordType());
+				aggr = make_intrusive<RecordVal>(t->AsRecordType());
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
-					init = make_intrusive<RecordCoerceExpr>(init.release(), t->AsRecordType());
+					init = make_intrusive<RecordCoerceExpr>(std::move(init), IntrusivePtr{NewRef{}, t->AsRecordType()});
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = new TableVal(t->AsTableType(), id->Attrs());
+				aggr = make_intrusive<TableVal>(t->AsTableType(), id->Attrs());
 
 			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = new VectorVal(t->AsVectorType());
+				aggr = make_intrusive<VectorVal>(t->AsVectorType());
 
-			else
-				aggr = 0;
-
-			Val* v = 0;
+			IntrusivePtr<Val> v;
 			if ( init )
 				{
 				v = init_val(init.get(), t.get(), aggr);
@@ -187,9 +184,9 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c, IntrusivePtr
 				}
 
 			if ( aggr )
-				id->SetVal(aggr, c);
+				id->SetVal(aggr.release(), c);
 			else if ( v )
-				id->SetVal(v, c);
+				id->SetVal(v.release(), c);
 			}
 		}
 
@@ -244,9 +241,9 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t, init_
 		// may free "init"
 		const Location location = init->GetLocationInfo() != nullptr ? *init->GetLocationInfo() : no_location;
 
-		Expr* name_expr = new NameExpr(IntrusivePtr{id}.release(), dt == VAR_CONST);
+		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
 		auto stmt =
-		    make_intrusive<ExprStmt>(new AssignExpr(name_expr, init.release(), 0, 0,
+		    make_intrusive<ExprStmt>(new AssignExpr(std::move(name_expr), std::move(init), 0, 0,
 		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
 		stmt->SetLocationInfo(&location);
 
@@ -262,8 +259,8 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t, init_
 
 extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id, IntrusivePtr<Expr> init, IntrusivePtr<Val> val)
 	{
-	make_var(id.get(), 0, INIT_FULL, IntrusivePtr{init}, 0, VAR_REGULAR, 0);
-	return make_intrusive<AssignExpr>(new NameExpr(id.release()), init.release(), 0, val.release());
+	make_var(id.get(), 0, INIT_FULL, init, 0, VAR_REGULAR, 0);
+	return make_intrusive<AssignExpr>(make_intrusive<NameExpr>(std::move(id)), std::move(init), 0, std::move(val));
 	}
 
 void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)

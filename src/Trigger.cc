@@ -63,13 +63,10 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 		try
 			{
-			Val* v = e->Eval(trigger->frame);
+			auto v = e->Eval(trigger->frame);
 
 			if ( v )
-				{
-				trigger->Register(v);
-				Unref(v);
-				}
+				trigger->Register(v.get());
 			}
 		catch ( InterpreterException& )
 			{ /* Already reported */ }
@@ -157,7 +154,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		arg_frame->SetDelayed();
 		}
 
-	Val* timeout_val = nullptr;
+	IntrusivePtr<Val> timeout_val;
 
 	if ( arg_timeout )
 		{
@@ -172,7 +169,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	if ( timeout_val )
 		{
 		timeout_value = timeout_val->AsInterval();
-		Unref(timeout_val);
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
@@ -271,7 +267,7 @@ bool Trigger::Eval()
 
 	f->SetTrigger(this);
 
-	Val* v = nullptr;
+	IntrusivePtr<Val> v;
 
 	try
 		{
@@ -294,7 +290,6 @@ bool Trigger::Eval()
 		{
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
-		Unref(v);
 		Unref(f);
 		Init();
 		return false;
@@ -303,13 +298,12 @@ bool Trigger::Eval()
 	DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is true, executing",
 			Name());
 
-	Unref(v);
-	v = 0;
+	v = nullptr;
 	stmt_flow_type flow;
 
 	try
 		{
-		v = body->Exec(f, flow);
+		v = {AdoptRef{}, body->Exec(f, flow)};
 		}
 	catch ( InterpreterException& e )
 		{ /* Already reported. */ }
@@ -327,12 +321,11 @@ bool Trigger::Eval()
 		delete [] pname;
 #endif
 
-		trigger->Cache(frame->GetCall(), v);
+		trigger->Cache(frame->GetCall(), v.get());
 		trigger->Release();
 		frame->ClearTrigger();
 		}
 
-	Unref(v);
 	Unref(f);
 
 	if ( timer )

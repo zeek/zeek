@@ -1745,14 +1745,14 @@ Val* TableVal::Default(Val* index)
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
-			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr()->Ref(),
-			                                    ytype->AsRecordType());
-			def_val = coerce->Eval(0);
+			Expr* coerce = new RecordCoerceExpr({NewRef{}, def_attr->AttrExpr()},
+			                                    {NewRef{}, ytype->AsRecordType()});
+			def_val = coerce->Eval(0).release();
 			Unref(coerce);
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(0);
+			def_val = def_attr->AttrExpr()->Eval(0).release();
 		}
 
 	if ( ! def_val )
@@ -1958,7 +1958,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 	try
 		{
-		IntrusivePtr<Val> thefunc{AdoptRef{}, change_func->Eval(nullptr)};
+		auto thefunc = change_func->Eval(nullptr);
 
 		if ( ! thefunc )
 			{
@@ -2250,7 +2250,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
 
-	def_val = def_attr->AttrExpr()->Eval(f);
+	def_val = def_attr->AttrExpr()->Eval(f).release();
 	}
 
 void TableVal::InitTimer(double delay)
@@ -2375,9 +2375,8 @@ double TableVal::GetExpireTime()
 
 	try
 		{
-		Val* timeout = expire_time->Eval(0);
+		auto timeout = expire_time->Eval(0);
 		interval = (timeout ? timeout->AsInterval() : -1);
-		Unref(timeout);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2407,7 +2406,7 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	try
 		{
-		Val* vf = expire_func->Eval(0);
+		auto vf = expire_func->Eval(0);
 
 		if ( ! vf )
 			{
@@ -2419,7 +2418,6 @@ double TableVal::CallExpireFunc(Val* idx)
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
 			vf->Error("not a function");
-			Unref(vf);
 			Unref(idx);
 			return 0;
 			}
@@ -2467,8 +2465,6 @@ double TableVal::CallExpireFunc(Val* idx)
 			secs = result->AsInterval();
 			Unref(result);
 			}
-
-		Unref(vf);
 		}
 
 	catch ( InterpreterException& e )
@@ -2575,7 +2571,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 		{
 		Attributes* a = t->FieldDecl(i)->attrs;
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : 0;
-		Val* def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+		auto def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
 		BroType* type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
@@ -2585,8 +2581,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 			Val* tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
 			if ( tmp )
 				{
-				Unref(def);
-				def = tmp;
+				def = {AdoptRef{}, tmp};
 				}
 			}
 
@@ -2595,18 +2590,16 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 			TypeTag tag = type->Tag();
 
 			if ( tag == TYPE_RECORD )
-				def = new RecordVal(type->AsRecordType());
+				def = make_intrusive<RecordVal>(type->AsRecordType());
 
 			else if ( tag == TYPE_TABLE )
-				def = new TableVal(type->AsTableType(), a);
+				def = make_intrusive<TableVal>(type->AsTableType(), a);
 
 			else if ( tag == TYPE_VECTOR )
-				def = new VectorVal(type->AsVectorType());
+				def = make_intrusive<VectorVal>(type->AsVectorType());
 			}
 
-		vl->push_back(def ? def->Ref() : 0);
-
-		Unref(def);
+		vl->push_back(def.release());
 		}
 	}
 
@@ -2710,9 +2703,9 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
 				&& ! same_type(ar_t->FieldType(t_i), v->Type()) )
 			{
-			Expr* rhs = new ConstExpr(v->Ref());
-			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
-			ar->Assign(t_i, e->Eval(0));
+			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
+			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs), IntrusivePtr{NewRef{}, ar_t->FieldType(t_i)->AsRecordType()});
+			ar->Assign(t_i, e->Eval(0).release());
 			continue;
 			}
 

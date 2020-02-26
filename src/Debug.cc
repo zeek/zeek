@@ -16,6 +16,7 @@ using namespace std;
 #include "DebugCmds.h"
 #include "DbgBreakpoint.h"
 #include "ID.h"
+#include "IntrusivePtr.h"
 #include "Expr.h"
 #include "Stmt.h"
 #include "Frame.h"
@@ -946,7 +947,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-Val* dbg_eval_expr(const char* expr)
+IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
@@ -981,7 +982,7 @@ Val* dbg_eval_expr(const char* expr)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Parse the thing into an expr.
-	Val* result = 0;
+	IntrusivePtr<Val> result;
 	if ( yyparse() )
 		{
 		if ( g_curr_debug_error )

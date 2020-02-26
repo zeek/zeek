@@ -15,6 +15,7 @@
 #include "Desc.h"
 #include "DbgBreakpoint.h"
 #include "ID.h"
+#include "IntrusivePtr.h"
 #include "Frame.h"
 #include "Func.h"
 #include "Stmt.h"
@@ -564,13 +565,12 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 			expr += " ";
 		}
 
-	Val* val = dbg_eval_expr(expr.c_str());
+	auto val = dbg_eval_expr(expr.c_str());
 
 	if ( val )
 		{
 		ODesc d;
 		val->Describe(&d);
-		Unref(val);
 		debug_msg("%s\n", d.Description());
 		}
 	else

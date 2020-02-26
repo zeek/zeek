@@ -88,10 +88,10 @@ extern bool in_debug;
 
 // If no_global is true, don't search in the default "global" namespace.
 // This passed ownership of a ref'ed ID to the caller.
-extern ID* lookup_ID(const char* name, const char* module,
+extern IntrusivePtr<ID> lookup_ID(const char* name, const char* module,
 		     bool no_global = false, bool same_module_only = false,
 		     bool check_export = true);
-extern ID* install_ID(const char* name, const char* module_name,
+extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
 			bool is_global, bool is_export);
 
 extern void push_scope(ID* id, attr_list* attrs);

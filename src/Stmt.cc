@@ -199,7 +199,7 @@ static BroFile* print_stdout = 0;
 
 static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
 	{
-	ID* id = lookup_ID(name, module_name);
+	auto id = lookup_ID(name, module_name);
 	assert(id);
 	assert(id->IsEnumConst());
 

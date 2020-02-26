@@ -666,7 +666,7 @@ expr:
 			{
 			set_location(@1);
 
-			ID* id = lookup_ID($1, current_module.c_str());
+			auto id = lookup_ID($1, current_module.c_str());
 			if ( ! id )
 				{
 				if ( ! in_debug )
@@ -687,12 +687,14 @@ expr:
 				}
 			else
 				{
+				if ( id->IsDeprecated() )
+					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+
 				if ( ! id->Type() )
 					{
 					id->Error("undeclared variable");
 					id->SetType(error_type());
-					Ref(id);
-					$$ = new NameExpr(id);
+					$$ = new NameExpr(id.release());
 					}
 
 				else if ( id->IsEnumConst() )
@@ -706,14 +708,8 @@ expr:
 					}
 				else
 					{
-					Ref(id);
-					$$ = new NameExpr(id);
+					$$ = new NameExpr(id.release());
 					}
-
-				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
-
-				Unref(id);
 				}
 			}
 
@@ -1578,7 +1574,7 @@ event:
 			{
 			set_location(@1, @4);
 
-			ID* id = lookup_ID($1, current_module.c_str());
+			auto id = lookup_ID($1, current_module.c_str());
 			if ( id )
 				{
 				if ( ! id->IsGlobal() )
@@ -1588,8 +1584,6 @@ event:
 					}
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
-
-				Unref(id);
 				}
 
 			$$ = new EventExpr($1, $3);
@@ -1636,13 +1630,13 @@ case_type:
 			{
 			const char* name = $4;
 			IntrusivePtr<BroType> type{AdoptRef{}, $2};
-			IntrusivePtr<ID> case_var{AdoptRef{}, lookup_ID(name, current_module.c_str())};
+			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
 				{
-				case_var = {NewRef{}, install_ID(name, current_module.c_str(), false, false)};
+				case_var = install_ID(name, current_module.c_str(), false, false);
 				}
 
 			add_local(case_var, std::move(type), INIT_NONE, 0, 0, VAR_REGULAR);
@@ -1658,7 +1652,7 @@ for_head:
 			// body so that we execute these actions - defining
 			// the local variable - prior to parsing the body,
 			// which might refer to the variable.
-			ID* loop_var = lookup_ID($3, current_module.c_str());
+			auto loop_var = lookup_ID($3, current_module.c_str());
 
 			if ( loop_var )
 				{
@@ -1668,13 +1662,12 @@ for_head:
 
 			else
 				{
-				Unref(loop_var);
 				loop_var = install_ID($3, current_module.c_str(),
 						      false, false);
 				}
 
 			id_list* loop_vars = new id_list;
-			loop_vars->push_back(loop_var);
+			loop_vars->push_back(loop_var.release());
 
 			$$ = new ForStmt(loop_vars, $5);
 			}
@@ -1691,8 +1684,8 @@ for_head:
 
 			// Check for previous definitions of key and
 			// value variables.
-			ID* key_var = lookup_ID($3, module);
-			ID* val_var = lookup_ID($5, module);
+			auto key_var = lookup_ID($3, module);
+			auto val_var = lookup_ID($5, module);
 
 			// Validate previous definitions as needed.
 			if ( key_var )
@@ -1712,9 +1705,9 @@ for_head:
 				val_var = install_ID($5, module, false, false);
 
 			id_list* loop_vars = new id_list;
-			loop_vars->push_back(key_var);
+			loop_vars->push_back(key_var.release());
 
-			$$ = new ForStmt(loop_vars, $7, val_var);
+			$$ = new ForStmt(loop_vars, $7, val_var.release());
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
@@ -1723,7 +1716,7 @@ for_head:
 			const char* module = current_module.c_str();
 
 			// Validate value variable
-			ID* val_var = lookup_ID($7, module);
+			auto val_var = lookup_ID($7, module);
 
 			if ( val_var )
 				{
@@ -1733,7 +1726,7 @@ for_head:
 			else
 				val_var = install_ID($7, module, false, false);
 
-			$$ = new ForStmt($4, $9, val_var);
+			$$ = new ForStmt($4, $9, val_var.release());
 			}
 	;
 
@@ -1752,7 +1745,7 @@ local_id:
 			{
 			set_location(@1);
 
-			$$ = lookup_ID($1, current_module.c_str());
+			$$ = lookup_ID($1, current_module.c_str()).release();
 			if ( $$ )
 				{
 				if ( $$->IsGlobal() )
@@ -1763,7 +1756,7 @@ local_id:
 			else
 				{
 				$$ = install_ID($1, current_module.c_str(),
-						false, is_export);
+						false, is_export).release();
 				}
 			}
 	;
@@ -1788,7 +1781,7 @@ global_or_event_id:
 			{
 			set_location(@1);
 
-			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID);
+			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID).release();
 			if ( $$ )
 				{
 				if ( ! $$->IsGlobal() )
@@ -1813,7 +1806,7 @@ global_or_event_id:
 						current_module.c_str() : 0;
 
 				$$ = install_ID($1, module_name,
-						true, is_export);
+						true, is_export).release();
 				}
 			}
 	;
@@ -1823,7 +1816,7 @@ resolve_id:
 		TOK_ID
 			{
 			set_location(@1);
-			$$ = lookup_ID($1, current_module.c_str());
+			$$ = lookup_ID($1, current_module.c_str()).release();
 
 			if ( ! $$ )
 				reporter->Error("identifier not defined: %s", $1);

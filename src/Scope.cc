@@ -126,7 +126,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
+IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module, bool no_global,
 	      bool same_module_only, bool check_export)
 	{
 	string fullname = make_full_var_name(curr_module, name);
@@ -144,8 +144,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
-			Ref(id);
-			return id;
+			return {NewRef{}, id};
 			}
 		}
 
@@ -155,16 +154,13 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname);
 		if ( id )
-			{
-			Ref(id);
-			return id;
-			}
+			return {NewRef{}, id};
 		}
 
 	return 0;
 	}
 
-ID* install_ID(const char* name, const char* module_name,
+IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
 		bool is_global, bool is_export)
 	{
 	if ( scopes.empty() && ! is_global )
@@ -182,13 +178,13 @@ ID* install_ID(const char* name, const char* module_name,
 
 	string full_name = make_full_var_name(module_name, name);
 
-	ID* id = new ID(full_name.data(), scope, is_export);
+	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(std::move(full_name), id);
+		global_scope()->Insert(std::move(full_name), IntrusivePtr{id}.release());
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(std::move(full_name), id);
+		top_scope->Insert(std::move(full_name), IntrusivePtr{id}.release());
 		}
 
 	return id;

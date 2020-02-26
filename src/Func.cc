@@ -606,7 +606,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	ID* id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
@@ -614,7 +614,6 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	type = id->Type()->Ref();
 	id->SetVal(new Val(this));
-	Unref(id);
 	}
 
 BuiltinFunc::~BuiltinFunc()

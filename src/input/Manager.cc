@@ -2622,7 +2622,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 		// let's try looking it up by global ID.
-		ID* id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+		auto id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
 		if ( ! id || ! id->IsEnumConst() )
 			{
 			Warning(i, "Value '%s' for stream '%s' is not a valid enum.",

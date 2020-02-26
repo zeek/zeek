@@ -775,30 +775,26 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( ! (i = lookup_ID(id, current_module.c_str())) )
+	if ( ! i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( (i = lookup_ID(id, current_module.c_str())) )
+	if ( i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atelse()

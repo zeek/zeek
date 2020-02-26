@@ -1172,7 +1172,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		return;
 		}
 
-	ID* id = lookup_ID(name, module_name.c_str());
+	auto id = lookup_ID(name, module_name.c_str());
 
 	if ( ! id )
 		{
@@ -1183,7 +1183,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		if ( deprecation )
 			id->MakeDeprecated(deprecation);
 
-		zeekygen_mgr->Identifier(id);
+		zeekygen_mgr->Identifier(id.get());
 		}
 	else
 		{
@@ -1195,13 +1195,10 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		     || (id->HasVal() && val != id->ID_Val()->AsEnum())
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
-			Unref(id);
 			reporter->Error("identifier or enumerator value in enumerated type definition already exists");
 			SetError();
 			return;
 			}
-
-		Unref(id);
 		}
 
 	AddNameInternal(module_name, name, val, is_export);

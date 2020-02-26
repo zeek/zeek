@@ -4455,7 +4455,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 		}
 
 	// Install that in the global_scope
-	ID* id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+	auto id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());

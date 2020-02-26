@@ -133,9 +133,9 @@ ComponentManager<T, C>::ComponentManager(const string& arg_module, const string&
 	: module(arg_module),
 	  tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
 	{
-	::ID* id = install_ID(local_id.c_str(), module.c_str(), true, true);
-	add_type(id, tag_enum_type, 0);
-	zeekygen_mgr->Identifier(id);
+	auto id = install_ID(local_id.c_str(), module.c_str(), true, true);
+	add_type(id.get(), tag_enum_type, 0);
+	zeekygen_mgr->Identifier(id.get());
 	}
 
 template <class T, class C>

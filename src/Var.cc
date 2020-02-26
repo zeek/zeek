@@ -396,12 +396,10 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	for ( int i = 0; i < num_args; ++i )
 		{
 		TypeDecl* arg_i = args->FieldDecl(i);
-		ID* arg_id = lookup_ID(arg_i->id, module_name);
+		auto arg_id = lookup_ID(arg_i->id, module_name);
 
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
-
-		Unref(arg_id);
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type->Ref());
@@ -509,14 +507,12 @@ void end_func(IntrusivePtr<Stmt> body)
 
 Val* internal_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-	return rval;
+	return id->ID_Val();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -541,24 +537,20 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 
 Val* internal_const_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-	return rval;
+	return id->ID_Val();
 	}
 
 Val* opt_internal_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	Val* rval = id ? id->ID_Val() : 0;
-	Unref(id);
-	return rval;
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	return id ? id->ID_Val() : 0;
 	}
 
 double opt_internal_double(const char* name)
@@ -593,12 +585,11 @@ TableVal* opt_internal_table(const char* name)
 
 ListVal* internal_list_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		return 0;
 
 	Val* v = id->ID_Val();
-	Unref(id);
 
 	if ( v )
 		{
@@ -621,13 +612,11 @@ ListVal* internal_list_val(const char* name)
 
 BroType* internal_type(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	BroType* rval = id->Type();
-	Unref(id);
-	return rval;
+	return id->Type();
 	}
 
 Func* internal_func(const char* name)

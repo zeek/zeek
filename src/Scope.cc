@@ -56,7 +56,13 @@ Scope::~Scope()
 
 	Unref(scope_id);
 	Unref(return_type);
-	delete inits;
+
+	if ( inits )
+		{
+		for ( const auto& i : *inits )
+			Unref(i);
+		delete inits;
+		}
 	}
 
 ID* Scope::GenerateTemporary(const char* name)

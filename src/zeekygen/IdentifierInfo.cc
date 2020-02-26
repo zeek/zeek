@@ -51,7 +51,14 @@ void IdentifierInfo::AddRecordField(const TypeDecl* field,
 	rf->field = new TypeDecl(*field);
 	rf->from_script = script;
 	rf->comments = comments;
-	fields[rf->field->id] = rf;
+
+	auto i = fields.emplace(rf->field->id, rf);
+	if ( ! i.second )
+		{
+		delete i.first->second;
+		i.first->second = rf;
+		}
+
 	last_field_seen = rf;
 	}
 

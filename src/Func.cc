@@ -387,7 +387,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		try
 			{
-			result = body.stmts->Exec(f, flow);
+			result = body.stmts->Exec(f, flow).release();
 			}
 
 		catch ( InterpreterException& e )

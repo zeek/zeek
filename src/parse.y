@@ -1395,7 +1395,7 @@ stmt:
 	|	TOK_PRINT expr_list ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new PrintStmt($2);
+			$$ = new PrintStmt(IntrusivePtr{AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1403,7 +1403,7 @@ stmt:
 	|	TOK_EVENT event ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new EventStmt($2);
+			$$ = new EventStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1411,29 +1411,29 @@ stmt:
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
-			$$ = new IfStmt($3, $5, new NullStmt());
+			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
-			$$ = new IfStmt($3, $5, $7);
+			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
-			$$ = new SwitchStmt($2, $4);
+			$$ = new SwitchStmt({AdoptRef{}, $2}, $4);
 			}
 
 	|	for_head stmt
 			{
-			$1->AsForStmt()->AddBody($2);
+			$1->AsForStmt()->AddBody({AdoptRef{}, $2});
 			}
 
 	|	TOK_WHILE '(' expr ')' stmt
 			{
-			$$ = new WhileStmt($3, $5);
+			$$ = new WhileStmt({AdoptRef{}, $3}, {AdoptRef{}, $5});
 			}
 
 	|	TOK_NEXT ';' opt_no_test
@@ -1471,7 +1471,7 @@ stmt:
 	|	TOK_RETURN expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new ReturnStmt($2);
+			$$ = new ReturnStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1479,7 +1479,7 @@ stmt:
 	|	TOK_ADD expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new AddStmt($2);
+			$$ = new AddStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1487,7 +1487,7 @@ stmt:
 	|	TOK_DELETE expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new DelStmt($2);
+			$$ = new DelStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1511,13 +1511,13 @@ stmt:
 	|	TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@3, @5);
-			$$ = new WhenStmt($3, $5, 0, 0, false);
+			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, nullptr, nullptr, false);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@3, @9);
-			$$ = new WhenStmt($3, $5, $10, $7, false);
+			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
 			if ( $9 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1526,13 +1526,13 @@ stmt:
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@4, @6);
-			$$ = new WhenStmt($4, $6, 0, 0, true);
+			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr, nullptr, true);
 			}
 
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@4, @10);
-			$$ = new WhenStmt($4, $6, $11, $8, true);
+			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
 			if ( $10 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1540,7 +1540,7 @@ stmt:
 	|	index_slice '=' expr ';' opt_no_test
 			{
 			set_location(@1, @4);
-			$$ = new ExprStmt(get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release());
+			$$ = new ExprStmt(get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init));
 
 			if ( ! $5 )
 				brofiler.AddStmt($$);
@@ -1549,7 +1549,7 @@ stmt:
 	|	expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new ExprStmt($1);
+			$$ = new ExprStmt({AdoptRef{}, $1});
 			if ( ! $3 )
 			    brofiler.AddStmt($$);
 			}
@@ -1605,13 +1605,13 @@ case_list:
 
 case:
 		TOK_CASE expr_list ':' stmt_list
-			{ $$ = new Case($2, 0, $4); }
+			{ $$ = new Case({AdoptRef{}, $2}, 0, {AdoptRef{}, $4}); }
 	|
 		TOK_CASE case_type_list ':' stmt_list
-			{ $$ = new Case(0, $2, $4); }
+			{ $$ = new Case(nullptr, $2, {AdoptRef{}, $4}); }
 	|
 		TOK_DEFAULT ':' stmt_list
-			{ $$ = new Case(0, 0, $3); }
+			{ $$ = new Case(nullptr, 0, {AdoptRef{}, $3}); }
 	;
 
 case_type_list:
@@ -1675,12 +1675,12 @@ for_head:
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(loop_var.release());
 
-			$$ = new ForStmt(loop_vars, $5);
+			$$ = new ForStmt(loop_vars, {AdoptRef{}, $5});
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' TOK_IN expr ')'
 			{
-			$$ = new ForStmt($4, $7);
+			$$ = new ForStmt($4, {AdoptRef{}, $7});
 			}
 	|
 		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
@@ -1713,7 +1713,7 @@ for_head:
 			id_list* loop_vars = new id_list;
 			loop_vars->push_back(key_var.release());
 
-			$$ = new ForStmt(loop_vars, $7, val_var.release());
+			$$ = new ForStmt(loop_vars, {AdoptRef{}, $7}, std::move(val_var));
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
@@ -1732,7 +1732,7 @@ for_head:
 			else
 				val_var = install_ID($7, module, false, false);
 
-			$$ = new ForStmt($4, $9, val_var.release());
+			$$ = new ForStmt($4, {AdoptRef{}, $9}, std::move(val_var));
 			}
 	;
 

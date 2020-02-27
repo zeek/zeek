@@ -130,11 +130,9 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-ExprListStmt::ExprListStmt(BroStmtTag t, ListExpr* arg_l)
-: Stmt(t)
+ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
+: Stmt(t), l(std::move(arg_l))
 	{
-	l = arg_l;
-
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
@@ -143,23 +141,20 @@ ExprListStmt::ExprListStmt(BroStmtTag t, ListExpr* arg_l)
 			Error("value of type void illegal");
 		}
 
-	SetLocationInfo(arg_l->GetLocationInfo());
+	SetLocationInfo(l->GetLocationInfo());
 	}
 
-ExprListStmt::~ExprListStmt()
-	{
-	Unref(l);
-	}
+ExprListStmt::~ExprListStmt() = default;
 
-Val* ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	last_access = network_time;
 	flow = FLOW_NEXT;
 
-	val_list* vals = eval_list(f, l);
+	val_list* vals = eval_list(f, l.get());
 	if ( vals )
 		{
-		Val* result = DoExec(vals, flow);
+		auto result = DoExec(vals, flow);
 		delete_vals(vals);
 		return result;
 		}
@@ -212,7 +207,7 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 	return rval;
 	}
 
-static Val* print_log(val_list* vals)
+static IntrusivePtr<Val> print_log(val_list* vals)
 	{
 	auto plval = lookup_enum_val("Log", "PRINTLOG");
 	auto record = make_intrusive<RecordVal>(internal_type("Log::PrintLogInfo")->AsRecordType());
@@ -231,7 +226,7 @@ static Val* print_log(val_list* vals)
 	return nullptr;
 	}
 
-Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
+IntrusivePtr<Val> PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
 
@@ -294,29 +289,23 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	return 0;
 	}
 
-ExprStmt::ExprStmt(Expr* arg_e) : Stmt(STMT_EXPR)
+ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
-	e = arg_e;
 	if ( e && e->IsPure() )
 		Warn("expression value ignored");
 
-	SetLocationInfo(arg_e->GetLocationInfo());
+	SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::ExprStmt(BroStmtTag t, Expr* arg_e) : Stmt(t)
+ExprStmt::ExprStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e) : Stmt(t), e(std::move(arg_e))
 	{
-	e = arg_e;
-
 	if ( e )
 		SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::~ExprStmt()
-	{
-	Unref(e);
-	}
+ExprStmt::~ExprStmt() = default;
 
-Val* ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -329,7 +318,7 @@ Val* ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return 0;
 	}
 
-Val* ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
+IntrusivePtr<Val> ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
 	{
 	return 0;
 	}
@@ -375,29 +364,23 @@ TraversalCode ExprStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IfStmt::IfStmt(Expr* test, Stmt* arg_s1, Stmt* arg_s2) : ExprStmt(STMT_IF, test)
+IfStmt::IfStmt(IntrusivePtr<Expr> test, IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2)
+: ExprStmt(STMT_IF, std::move(test)), s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
-	s1 = arg_s1;
-	s2 = arg_s2;
-
 	if ( ! e->IsError() && ! IsBool(e->Type()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
-	const Location* loc1 = arg_s1->GetLocationInfo();
-	const Location* loc2 = arg_s2->GetLocationInfo();
+	const Location* loc1 = s1->GetLocationInfo();
+	const Location* loc2 = s2->GetLocationInfo();
 	SetLocationInfo(loc1, loc2);
 	}
 
-IfStmt::~IfStmt()
-	{
-	Unref(s1);
-	Unref(s2);
-	}
+IfStmt::~IfStmt() = default;
 
-Val* IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	// Treat 0 as false, but don't require 1 for true.
-	Stmt* do_stmt = v->IsZero() ? s2 : s1;
+	Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
 
 	f->SetNextStmt(do_stmt);
 
@@ -405,9 +388,9 @@ Val* IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{ // ### Abort or something
 		}
 
-	Val* result = do_stmt->Exec(f, flow);
+	auto result = do_stmt->Exec(f, flow);
 
-	if ( ! post_execute_stmt(do_stmt, f, result, &flow) )
+	if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) )
 		{ // ### Abort or something
 		}
 
@@ -479,8 +462,8 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(ListExpr* arg_expr_cases, id_list* arg_type_cases, Stmt* arg_s)
-	: expr_cases(arg_expr_cases), type_cases(arg_type_cases), s(arg_s)
+Case::Case(IntrusivePtr<ListExpr> arg_expr_cases, id_list* arg_type_cases, IntrusivePtr<Stmt> arg_s)
+	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases), s(std::move(arg_s))
 	{
 	BroStmtTag t = get_last_stmt_tag(Body());
 
@@ -490,9 +473,6 @@ Case::Case(ListExpr* arg_expr_cases, id_list* arg_type_cases, Stmt* arg_s)
 
 Case::~Case()
 	{
-	Unref(expr_cases);
-	Unref(s);
-
 	for ( const auto& id : *type_cases )
 		Unref(id);
 
@@ -605,8 +585,8 @@ void SwitchStmt::Init()
 	case_label_value_map.SetDeleteFunc(int_del_func);
 	}
 
-SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
-	ExprStmt(STMT_SWITCH, index), cases(arg_cases), default_case_idx(-1)
+SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases) :
+	ExprStmt(STMT_SWITCH, std::move(index)), cases(arg_cases), default_case_idx(-1)
 	{
 	Init();
 
@@ -628,7 +608,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
 				{
-				le->Error("case expression type differs from switch type", e);
+				le->Error("case expression type differs from switch type", e.get());
 				continue;
 				}
 
@@ -816,9 +796,9 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		return std::make_pair(label_idx, label_id);
 	}
 
-Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
-	Val* rval = 0;
+	IntrusivePtr<Val> rval;
 
 	auto m = FindCaseLabelMatch(v);
 	int matching_label_idx = m.first;
@@ -901,7 +881,7 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-AddStmt::AddStmt(Expr* arg_e) : ExprStmt(STMT_ADD, arg_e)
+AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
 		Error("illegal add statement");
@@ -912,7 +892,7 @@ int AddStmt::IsPure() const
 	return 0;
 	}
 
-Val* AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -934,7 +914,7 @@ TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
+DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
 	{
 	if ( e->IsError() )
 		return;
@@ -948,7 +928,7 @@ int DelStmt::IsPure() const
 	return 0;
 	}
 
-Val* DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -969,12 +949,11 @@ TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-EventStmt::EventStmt(EventExpr* arg_e) : ExprStmt(STMT_EVENT, arg_e)
+EventStmt::EventStmt(IntrusivePtr<EventExpr> arg_e) : ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))
 	{
-	event_expr = arg_e;
 	}
 
-Val* EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	val_list* args = eval_list(f, event_expr->Args());
@@ -1003,19 +982,15 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhileStmt::WhileStmt(Expr* arg_loop_condition, Stmt* arg_body)
-	: loop_condition(arg_loop_condition), body(arg_body)
+WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition, IntrusivePtr<Stmt> arg_body)
+	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->Type()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 	}
 
-WhileStmt::~WhileStmt()
-	{
-	Unref(loop_condition);
-	Unref(body);
-	}
+WhileStmt::~WhileStmt() = default;
 
 int WhileStmt::IsPure() const
 	{
@@ -1056,11 +1031,11 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
-	Val* rval = 0;
+	IntrusivePtr<Val> rval;
 
 	for ( ; ; )
 		{
@@ -1085,8 +1060,8 @@ Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return rval;
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
-: ExprStmt(STMT_FOR, loop_expr)
+ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
+: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
 	body = 0;
@@ -1163,10 +1138,10 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
-ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr, ID* val_var)
-	: ForStmt(arg_loop_vars, loop_expr)
+ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr, IntrusivePtr<ID> val_var)
+	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{
-	value_var = val_var;
+	value_var = std::move(val_var);
 
 	if ( e->Type()->IsTable() )
 		{
@@ -1180,7 +1155,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr, ID* val_var)
 			}
 		else
 			{
-			add_local({NewRef{}, value_var}, {NewRef{}, yield_type}, INIT_NONE,
+			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
 			                 0, 0, VAR_REGULAR);
 			}
 		}
@@ -1193,14 +1168,11 @@ ForStmt::~ForStmt()
 	for ( const auto& var : *loop_vars )
 		Unref(var);
 	delete loop_vars;
-
-	Unref(value_var);
-	Unref(body);
 	}
 
-Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
-	Val* ret = 0;
+	IntrusivePtr<Val> ret;
 
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		{
@@ -1219,7 +1191,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var, current_tev->Value()->Ref());
+				f->SetElement(value_var.get(), current_tev->Value()->Ref());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
 				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
@@ -1349,7 +1321,7 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_LOOP;
@@ -1376,7 +1348,7 @@ TraversalCode NextStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_BREAK;
@@ -1403,7 +1375,7 @@ TraversalCode BreakStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_FALLTHROUGH;
@@ -1430,7 +1402,7 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
+ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
 	Scope* s = current_scope();
 
@@ -1465,16 +1437,20 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		}
 
 	else
-		(void) check_and_promote_expr(e, yt);
+		{
+		Expr *e_ = e.release();
+		(void) check_and_promote_expr(e_, yt);
+		e = {AdoptRef{}, e_};
+		}
 	}
 
-Val* ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_RETURN;
 
 	if ( e )
-		return e->Eval(f).release();
+		return e->Eval(f);
 	else
 		return 0;
 	}
@@ -1507,7 +1483,7 @@ StmtList::~StmtList()
 		Unref(stmt);
 	}
 
-Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1520,9 +1496,9 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 			{ // ### Abort or something
 			}
 
-		Val* result = stmt->Exec(f, flow);
+		auto result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmt, f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
 			{ // ### Abort or something
 			}
 
@@ -1586,7 +1562,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1603,9 +1579,9 @@ Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 			{ // ### Abort or something
 			}
 
-		Val* result = stmt->Exec(f, flow);
+		auto result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmt, f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
 			{ // ### Abort or something
 			}
 		}
@@ -1659,7 +1635,7 @@ InitStmt::~InitStmt()
 	delete inits;
 	}
 
-Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1723,7 +1699,7 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
@@ -1752,17 +1728,13 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
-			Expr* arg_timeout, bool arg_is_return)
-: Stmt(STMT_WHEN)
+WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond, IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2,
+			IntrusivePtr<Expr> arg_timeout, bool arg_is_return)
+: Stmt(STMT_WHEN), cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)), timeout(std::move(arg_timeout))
 	{
-	assert(arg_cond);
-	assert(arg_s1);
+	assert(cond);
+	assert(s1);
 
-	cond = arg_cond;
-	s1 = arg_s1;
-	s2 = arg_s2;
-	timeout = arg_timeout;
 	is_return = arg_is_return;
 
 	if ( ! cond->IsError() && ! IsBool(cond->Type()->Tag()) )
@@ -1779,27 +1751,15 @@ WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
 		}
 	}
 
-WhenStmt::~WhenStmt()
-	{
-	Unref(cond);
-	Unref(s1);
-	Unref(s2);
-	}
+WhenStmt::~WhenStmt() = default;
 
-Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	::Ref(cond);
-	::Ref(s1);
-	if ( s2 )
-		::Ref(s2);
-	if ( timeout )
-		::Ref(timeout);
-
 	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(cond, s1, s2, timeout, f, is_return, location);
+	new trigger::Trigger(IntrusivePtr{cond}.release(), IntrusivePtr{s1}.release(), IntrusivePtr{s2}.release(), IntrusivePtr{timeout}.release(), f, is_return, location);
 
 	return 0;
 	}

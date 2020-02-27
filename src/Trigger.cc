@@ -303,7 +303,7 @@ bool Trigger::Eval()
 
 	try
 		{
-		v = {AdoptRef{}, body->Exec(f, flow)};
+		v = body->Exec(f, flow);
 		}
 	catch ( InterpreterException& e )
 		{ /* Already reported. */ }
@@ -346,12 +346,12 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		stmt_flow_type flow;
-		Frame* f = frame->Clone();
-		Val* v = 0;
+		IntrusivePtr<Frame> f{AdoptRef{}, frame->Clone()};
+		IntrusivePtr<Val> v;
 
 		try
 			{
-			v = timeout_stmts->Exec(f, flow);
+			v = timeout_stmts->Exec(f.get(), flow);
 			}
 		catch ( InterpreterException& e )
 			{ /* Already reported. */ }
@@ -368,13 +368,10 @@ void Trigger::Timeout()
 			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
-			trigger->Cache(frame->GetCall(), v);
+			trigger->Cache(frame->GetCall(), v.get());
 			trigger->Release();
 			frame->ClearTrigger();
 			}
-
-		Unref(v);
-		Unref(f);
 		}
 
 	Disable();

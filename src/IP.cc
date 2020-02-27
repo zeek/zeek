@@ -766,7 +766,7 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
 		delete rval;
-		return 0;
+		return nullptr;
 		}
 
 	const u_char* new_data = (const u_char*)new_hdr;

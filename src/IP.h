@@ -148,11 +148,7 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len) :
-#ifdef ENABLE_MOBILE_IPV6
-		homeAddr(0),
-#endif
-		finalDst(0)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len)
 		{ Init(ip6, len, false); }
 
 	~IPv6_Hdr_Chain();
@@ -236,23 +232,13 @@ protected:
 	// point to a fragment
 	friend class FragReassembler;
 
-	IPv6_Hdr_Chain() :
-		length(0),
-#ifdef ENABLE_MOBILE_IPV6
-		homeAddr(0),
-#endif
-		finalDst(0)
-		{}
+	IPv6_Hdr_Chain() = default;
 
 	/**
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, int len) :
-#ifdef ENABLE_MOBILE_IPV6
-		homeAddr(0),
-#endif
-		finalDst(0)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, int len)
 		{ Init(ip6, len, true, next); }
 
 	/**
@@ -282,20 +268,20 @@ protected:
 	/**
 	 * The summation of all header lengths in the chain in bytes.
 	 */
-	uint16_t length;
+	uint16_t length = 0;
 
 #ifdef ENABLE_MOBILE_IPV6
 	/**
 	 * Home Address of the packet's source as defined by Mobile IPv6 (RFC 6275).
 	 */
-	IPAddr* homeAddr;
+	IPAddr* homeAddr = nullptr;
 #endif
 
 	/**
 	 * The final destination address in chain's first Routing header that has
 	 * non-zero segments left.
 	 */
-	IPAddr* finalDst;
+	IPAddr* finalDst = nullptr;
 };
 
 /**
@@ -311,7 +297,7 @@ public:
 	 * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
 	 */
 	IP_Hdr(const struct ip* arg_ip4, bool arg_del)
-		: ip4(arg_ip4), ip6(0), del(arg_del), ip6_hdrs(0)
+		: ip4(arg_ip4), del(arg_del)
 		{
 		}
 
@@ -327,9 +313,9 @@ public:
 	 * @param c an already-constructed header chain to take ownership of.
 	 */
 	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len,
-	       const IPv6_Hdr_Chain* c = 0)
-		: ip4(0), ip6(arg_ip6), del(arg_del),
-		  ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len))
+	       const IPv6_Hdr_Chain* c = nullptr)
+		: ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)),
+		  del(arg_del)
 		{
 		}
 
@@ -397,8 +383,8 @@ public:
 		{
 		if ( ip4 )
 			return ((const u_char*) ip4) + ip4->ip_hl * 4;
-		else
-			return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
+
+		return ((const u_char*) ip6) + ip6_hdrs->TotalLength();
 		}
 
 #ifdef ENABLE_MOBILE_IPV6
@@ -409,9 +395,9 @@ public:
 	const ip6_mobility* MobilityHeader() const
 		{
 		if ( ip4 )
-			return 0;
+			return nullptr;
 		else if ( (*ip6_hdrs)[ip6_hdrs->Size()-1]->Type() != IPPROTO_MOBILITY )
-			return 0;
+			return nullptr;
 		else
 			return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size()-1]->Data();
 		}
@@ -425,15 +411,20 @@ public:
 		{
 		if ( ip4 )
 			return ntohs(ip4->ip_len) - ip4->ip_hl * 4;
-		else
-			return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();
+
+		return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();
 		}
 
 	/**
 	 * Returns the length of the IP packet (length of headers and payload).
 	 */
 	uint32_t TotalLen() const
-		{ return ip4 ? ntohs(ip4->ip_len) : ntohs(ip6->ip6_plen) + 40; }
+		{
+		if ( ip4 )
+			return ntohs(ip4->ip_len);
+
+		return ntohs(ip6->ip6_plen) + 40;
+		}
 
 	/**
 	 * Returns length of IP packet header (includes extension headers for IPv6).
@@ -543,8 +534,8 @@ public:
 	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
 private:
-	const struct ip* ip4;
-	const struct ip6_hdr* ip6;
+	const struct ip* ip4 = nullptr;
+	const struct ip6_hdr* ip6 = nullptr;
+	const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
 	bool del;
-	const IPv6_Hdr_Chain* ip6_hdrs;
 };

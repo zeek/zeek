@@ -1,4 +1,24 @@
 
+3.2.0-dev.167 | 2020-02-27 14:24:55 -0800
+
+  * Expr: use fmt instead of sprintf (Tim Wojtulewicz, Corelight)
+
+  * Expr: other minor initialization cleanup (Tim Wojtulewicz, Corelight)
+
+  * Expr: use List::empty() (Tim Wojtulewicz, Corelight)
+
+  * Expr: Convert a bunch of methods returning ints to return bools (Tim Wojtulewicz, Corelight)
+
+  * IPAddr: minor cleanup (Tim Wojtulewicz, Corelight)
+
+    - Mark empty constructors/destructors as default
+    - Initialization cleanup
+    - Remove unnecessary elses from before returns
+
+  * PriorityQueue: initialization cleanup (Tim Wojtulewicz, Corelight)
+
+  * IP: Cleanup initialization, make a few functions consistent (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.159 | 2020-02-26 19:51:24 -0800
 
   * Pop global frame stack on exception. (Johanna Amann, Corelight)

@@ -9,8 +9,8 @@ class PriorityQueue;
 
 class PQ_Element {
 public:
-	explicit PQ_Element(double t)	{ time = t; offset = -1; }
-	virtual ~PQ_Element()	{ }
+	explicit PQ_Element(double t) : time(t) 	{}
+	virtual ~PQ_Element() = default;
 
 	double Time() const	{ return time; }
 
@@ -20,9 +20,9 @@ public:
 	void MinimizeTime()	{ time = -HUGE_VAL; }
 
 protected:
-	PQ_Element()		{ time = 0; offset = -1; }
-	double time;
-	int offset;
+	PQ_Element() = default;
+	double time = 0.0;
+	int offset = -1;
 };
 
 class PriorityQueue {
@@ -35,8 +35,8 @@ public:
 		{
 		if ( heap_size == 0 )
 			return 0;
-		else
-			return heap[0];
+
+		return heap[0];
 		}
 
 	// Removes (and returns) top of queue.  Returns nil if the queue
@@ -89,9 +89,9 @@ protected:
 		SetElement(bin2, t);
 		}
 
-	PQ_Element** heap;
-	int heap_size;
-	int peak_heap_size;
-	int max_heap_size;
-	uint64_t cumulative_num;
+	PQ_Element** heap = nullptr;
+	int heap_size = 0;
+	int peak_heap_size = 0;
+	int max_heap_size = 0;
+	uint64_t cumulative_num = 0;
 };

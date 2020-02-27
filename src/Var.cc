@@ -240,12 +240,15 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t, init_
 		if ( c != INIT_FULL )
 			id->Error("can't use += / -= for initializations of local variables");
 
-		const Location* location = init->GetLocationInfo();
+		// copy the Location to the stack, because AssignExpr
+		// may free "init"
+		const Location location = init->GetLocationInfo() != nullptr ? *init->GetLocationInfo() : no_location;
+
 		Expr* name_expr = new NameExpr(IntrusivePtr{id}.release(), dt == VAR_CONST);
 		auto stmt =
 		    make_intrusive<ExprStmt>(new AssignExpr(name_expr, init.release(), 0, 0,
 		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
-		stmt->SetLocationInfo(location);
+		stmt->SetLocationInfo(&location);
 
 		return stmt;
 		}

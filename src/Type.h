@@ -301,12 +301,12 @@ public:
 		return (TypeType*) this;
 		}
 
-	int IsSet() const
+	bool IsSet() const
 		{
 		return tag == TYPE_TABLE && (YieldType() == 0);
 		}
 
-	int IsTable() const
+	bool IsTable() const
 		{
 		return tag == TYPE_TABLE && (YieldType() != 0);
 		}

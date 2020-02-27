@@ -102,7 +102,7 @@ public:
 	// constitutes a record element, false otherwise.  If the TypeDecl*
 	// is non-nil and the expression is a record element, fills in the
 	// TypeDecl with a description of the element.
-	virtual int IsRecordElement(TypeDecl* td) const;
+	virtual bool IsRecordElement(TypeDecl* td) const;
 
 	// Returns a value corresponding to this expression interpreted
 	// as an initialization, or nil if the expression is inconsistent
@@ -112,13 +112,13 @@ public:
 	virtual Val* InitVal(const BroType* t, Val* aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
-	virtual int IsPure() const;
+	virtual bool IsPure() const;
 
 	// True if the expression is a constant, false otherwise.
-	int IsConst() const	{ return tag == EXPR_CONST; }
+	bool IsConst() const	{ return tag == EXPR_CONST; }
 
 	// True if the expression is in error (to alleviate error propagation).
-	int IsError() const;
+	bool IsError() const;
 
 	// Mark expression as in error.
 	void SetError();
@@ -129,15 +129,15 @@ public:
 	inline Val* ExprVal() const;
 
 	// True if the expression is a constant zero, false otherwise.
-	int IsZero() const;
+	bool IsZero() const;
 
 	// True if the expression is a constant one, false otherwise.
-	int IsOne() const;
+	bool IsOne() const;
 
 	// True if the expression supports the "add" or "delete" operations,
 	// false otherwise.
-	virtual int CanAdd() const;
-	virtual int CanDel() const;
+	virtual bool CanAdd() const;
+	virtual bool CanDel() const;
 
 	virtual void Add(Frame* f);	// perform add operation
 	virtual void Delete(Frame* f);	// perform delete operation
@@ -149,8 +149,8 @@ public:
 
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
-	void MarkParen()		{ paren = 1; }
-	int IsParen() const		{ return paren; }
+	void MarkParen()		{ paren = true; }
+	bool IsParen() const		{ return paren; }
 
 	const ListExpr* AsListExpr() const
 		{
@@ -227,7 +227,7 @@ protected:
 	BroExprTag tag;
 	BroType* type;
 
-	int paren;
+	bool paren;
 };
 
 class NameExpr : public Expr {
@@ -240,7 +240,7 @@ public:
 	Val* Eval(Frame* f) const override;
 	void Assign(Frame* f, Val* v) override;
 	Expr* MakeLvalue() override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -276,7 +276,7 @@ public:
 	// vectors correctly as necessary.
 	Val* Eval(Frame* f) const override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -297,7 +297,7 @@ public:
 	Expr* Op1() const	{ return op1; }
 	Expr* Op2() const	{ return op2; }
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -366,7 +366,7 @@ public:
 
 	Val* Eval(Frame* f) const override;
 	Val* DoSingleEval(Frame* f, Val* v) const;
-	int IsPure() const override;
+	bool IsPure() const override;
 };
 
 class ComplementExpr : public UnaryExpr {
@@ -490,7 +490,7 @@ public:
 	const Expr* Op3() const	{ return op3; }
 
 	Val* Eval(Frame* f) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -520,9 +520,9 @@ public:
 	Val* Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
 	BroType* InitType() const override;
-	int IsRecordElement(TypeDecl* td) const override;
+	bool IsRecordElement(TypeDecl* td) const override;
 	Val* InitVal(const BroType* t, Val* aggr) const override;
-	int IsPure() const override;
+	bool IsPure() const override;
 
 protected:
 	bool TypeCheck(attr_list* attrs = 0);
@@ -542,8 +542,8 @@ class IndexExpr : public BinaryExpr {
 public:
 	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
 
-	int CanAdd() const override;
-	int CanDel() const override;
+	bool CanAdd() const override;
+	bool CanDel() const override;
 
 	void Add(Frame* f) override;
 	void Delete(Frame* f) override;
@@ -575,7 +575,7 @@ public:
 	int Field() const	{ return field; }
 	const char* FieldName() const	{ return field_name; }
 
-	int CanDel() const override;
+	bool CanDel() const override;
 
 	void Assign(Frame* f, Val* v) override;
 	void Delete(Frame* f) override;
@@ -677,7 +677,7 @@ public:
 	const char* FieldName() const	{ return field_name.c_str(); }
 
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	int IsRecordElement(TypeDecl* td) const override;
+	bool IsRecordElement(TypeDecl* td) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -758,7 +758,7 @@ public:
 	ScheduleExpr(Expr* when, EventExpr* event);
 	~ScheduleExpr() override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	Val* Eval(Frame* f) const override;
 
@@ -791,7 +791,7 @@ public:
 	Expr* Func() const	{ return func; }
 	ListExpr* Args() const	{ return args; }
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	Val* Eval(Frame* f) const override;
 
@@ -861,10 +861,10 @@ public:
 	expr_list& Exprs()		{ return exprs; }
 
 	// True if the entire list represents pure values.
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	// True if the entire list represents constant values.
-	int AllConst() const;
+	bool AllConst() const;
 
 	Val* Eval(Frame* f) const override;
 
@@ -943,7 +943,7 @@ val_list* eval_list(Frame* f, const ListExpr* l);
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into
 // a canonical form.
-extern int expr_greater(const Expr* e1, const Expr* e2);
+extern bool expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Val* has a vector type
 inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }

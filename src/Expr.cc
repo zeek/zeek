@@ -69,14 +69,14 @@ Expr::~Expr()
 	Unref(type);
 	}
 
-int Expr::CanAdd() const
+bool Expr::CanAdd() const
 	{
-	return 0;
+	return false;
 	}
 
-int Expr::CanDel() const
+bool Expr::CanDel() const
 	{
-	return 0;
+	return false;
 	}
 
 void Expr::Add(Frame* /* f */)
@@ -113,14 +113,14 @@ BroType* Expr::InitType() const
 	return type->Ref();
 	}
 
-int Expr::IsRecordElement(TypeDecl* /* td */) const
+bool Expr::IsRecordElement(TypeDecl* /* td */) const
 	{
-	return 0;
+	return false;
 	}
 
-int Expr::IsPure() const
+bool Expr::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 Val* Expr::InitVal(const BroType* t, Val* aggr) const
@@ -137,7 +137,7 @@ Val* Expr::InitVal(const BroType* t, Val* aggr) const
 	return check_and_promote(Eval(0), t, 1);
 	}
 
-int Expr::IsError() const
+bool Expr::IsError() const
 	{
 	return type && type->Tag() == TYPE_ERROR;
 	}
@@ -153,12 +153,12 @@ void Expr::SetError(const char* msg)
 	SetError();
 	}
 
-int Expr::IsZero() const
+bool Expr::IsZero() const
 	{
 	return IsConst() && ExprVal()->IsZero();
 	}
 
-int Expr::IsOne() const
+bool Expr::IsOne() const
 	{
 	return IsConst() && ExprVal()->IsOne();
 	}
@@ -295,7 +295,7 @@ void NameExpr::Assign(Frame* f, Val* v)
 		f->SetElement(id, v);
 	}
 
-int NameExpr::IsPure() const
+bool NameExpr::IsPure() const
 	{
 	return id->IsConst();
 	}
@@ -414,7 +414,7 @@ Val* UnaryExpr::Eval(Frame* f) const
 		}
 	}
 
-int UnaryExpr::IsPure() const
+bool UnaryExpr::IsPure() const
 	{
 	return op->IsPure();
 	}
@@ -551,7 +551,7 @@ Val* BinaryExpr::Eval(Frame* f) const
 	return result;
 	}
 
-int BinaryExpr::IsPure() const
+bool BinaryExpr::IsPure() const
 	{
 	return op1->IsPure() && op2->IsPure();
 	}
@@ -604,20 +604,20 @@ Val* BinaryExpr::Fold(Val* v1, Val* v2) const
 	bro_int_t i1 = 0, i2 = 0, i3 = 0;
 	bro_uint_t u1 = 0, u2 = 0, u3 = 0;
 	double d1 = 0.0, d2 = 0.0, d3 = 0.0;
-	int is_integral = 0;
-	int is_unsigned = 0;
+	bool is_integral = false;
+	bool is_unsigned = false;
 
 	if ( it == TYPE_INTERNAL_INT )
 		{
 		i1 = v1->InternalInt();
 		i2 = v2->InternalInt();
-		++is_integral;
+		is_integral = true;
 		}
 	else if ( it == TYPE_INTERNAL_UNSIGNED )
 		{
 		u1 = v1->InternalUnsigned();
 		u2 = v2->InternalUnsigned();
-		++is_unsigned;
+		is_unsigned = true;
 		}
 	else if ( it == TYPE_INTERNAL_DOUBLE )
 		{
@@ -858,7 +858,7 @@ Val* BinaryExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	IPAddr a1 = v1->AsAddr();
 	IPAddr a2 = v2->AsAddr();
-	int result = 0;
+	bool result = false;
 
 	switch ( tag ) {
 
@@ -893,7 +893,7 @@ Val* BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	const IPPrefix& n1 = v1->AsSubNet();
 	const IPPrefix& n2 = v2->AsSubNet();
 
-	bool result = ( n1 == n2 ) ? true : false;
+	bool result = n1 == n2;
 
 	if ( tag == EXPR_NE )
 		result = ! result;
@@ -1053,9 +1053,9 @@ Val* IncrExpr::Eval(Frame* f) const
 		}
 	}
 
-int IncrExpr::IsPure() const
+bool IncrExpr::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 ComplementExpr::ComplementExpr(Expr* arg_op) : UnaryExpr(EXPR_COMPLEMENT, arg_op)
@@ -1605,8 +1605,8 @@ Val* BoolExpr::Eval(Frame* f) const
 	if ( ! v1 )
 		return 0;
 
-	int is_vec1 = is_vector(op1);
-	int is_vec2 = is_vector(op2);
+	bool is_vec1 = is_vector(op1);
+	bool is_vec2 = is_vector(op2);
 
 	// Handle scalar op scalar
 	if ( ! is_vec1 && ! is_vec2 )
@@ -2044,7 +2044,7 @@ Val* CondExpr::Eval(Frame* f) const
 	return result;
 	}
 
-int CondExpr::IsPure() const
+bool CondExpr::IsPure() const
 	{
 	return op1->IsPure() && op2->IsPure() && op3->IsPure();
 	}
@@ -2499,7 +2499,7 @@ Val* AssignExpr::InitVal(const BroType* t, Val* aggr) const
 		}
 	}
 
-int AssignExpr::IsRecordElement(TypeDecl* td) const
+bool AssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( op1->Tag() == EXPR_NAME )
 		{
@@ -2510,15 +2510,15 @@ int AssignExpr::IsRecordElement(TypeDecl* td) const
 			td->id = copy_string(n->Id()->Name());
 			}
 
-		return 1;
+		return true;
 		}
-	else
-		return 0;
+
+	return false;
 	}
 
-int AssignExpr::IsPure() const
+bool AssignExpr::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(Expr* op1, Expr* op2, int is_init)
@@ -2595,19 +2595,19 @@ IndexExpr::IndexExpr(Expr* arg_op1, ListExpr* arg_op2, bool arg_is_slice)
 
 	}
 
-int IndexExpr::CanAdd() const
+bool IndexExpr::CanAdd() const
 	{
 	if ( IsError() )
-		return 1;	// avoid cascading the error report
+		return true;	// avoid cascading the error report
 
 	// "add" only allowed if our type is "set".
 	return op1->Type()->IsSet();
 	}
 
-int IndexExpr::CanDel() const
+bool IndexExpr::CanDel() const
 	{
 	if ( IsError() )
-		return 1;	// avoid cascading the error report
+		return true;	// avoid cascading the error report
 
 	return op1->Type()->Tag() == TYPE_TABLE;
 	}
@@ -2993,7 +2993,7 @@ Expr* FieldExpr::MakeLvalue()
 	return new RefExpr(this);
 	}
 
-int FieldExpr::CanDel() const
+bool FieldExpr::CanDel() const
 	{
 	return td->FindAttr(ATTR_DEFAULT) || td->FindAttr(ATTR_OPTIONAL);
 	}
@@ -3553,7 +3553,7 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 		}
 	}
 
-int FieldAssignExpr::IsRecordElement(TypeDecl* td) const
+bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( td )
 		{
@@ -3561,7 +3561,7 @@ int FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 		td->id = copy_string(field_name.c_str());
 		}
 
-	return 1;
+	return true;
 	}
 
 void FieldAssignExpr::ExprDescribe(ODesc* d) const
@@ -4028,9 +4028,9 @@ ScheduleExpr::~ScheduleExpr()
 	Unref(event);
 	}
 
-int ScheduleExpr::IsPure() const
+bool ScheduleExpr::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 Val* ScheduleExpr::Eval(Frame* f) const
@@ -4304,7 +4304,7 @@ CallExpr::~CallExpr()
 	Unref(args);
 	}
 
-int CallExpr::IsPure() const
+bool CallExpr::IsPure() const
 	{
 	if ( IsError() )
 		return 1;
@@ -4614,22 +4614,22 @@ void ListExpr::Append(Expr* e)
 	((TypeList*) type)->Append(e->Type()->Ref());
 	}
 
-int ListExpr::IsPure() const
+bool ListExpr::IsPure() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsPure() )
-			return 0;
+			return false;
 
-	return 1;
+	return true;
 	}
 
-int ListExpr::AllConst() const
+bool ListExpr::AllConst() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsConst() )
-			return 0;
+			return false;
 
-	return 1;
+	return true;
 	}
 
 Val* ListExpr::Eval(Frame* f) const
@@ -5321,7 +5321,7 @@ val_list* eval_list(Frame* f, const ListExpr* l)
 		return v;
 	}
 
-int expr_greater(const Expr* e1, const Expr* e2)
+bool expr_greater(const Expr* e1, const Expr* e2)
 	{
-	return int(e1->Tag()) > int(e2->Tag());
+	return e1->Tag() > e2->Tag();
 	}

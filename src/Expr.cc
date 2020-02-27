@@ -2172,7 +2172,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 			std::copy(attrs->begin(), attrs->end(), std::back_inserter(*attr_copy));
 			}
 
-		bool empty_list_assignment = (op2->AsListExpr()->Exprs().length() == 0);
+		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
 
 		if ( op1->Type()->IsSet() )
 			op2 = new SetConstructorExpr(op2->AsListExpr(), attr_copy);
@@ -3212,7 +3212,7 @@ TableConstructorExpr::TableConstructorExpr(ListExpr* constructor_list,
 		}
 	else
 		{
-		if ( constructor_list->Exprs().length() == 0 )
+		if ( constructor_list->Exprs().empty() )
 			SetType(new TableType(new TypeList(base_type(TYPE_ANY)), 0));
 		else
 			{
@@ -3324,7 +3324,7 @@ SetConstructorExpr::SetConstructorExpr(ListExpr* constructor_list,
 		}
 	else
 		{
-		if ( constructor_list->Exprs().length() == 0 )
+		if ( constructor_list->Exprs().empty() )
 			SetType(new ::SetType(new TypeList(base_type(TYPE_ANY)), 0));
 		else
 			SetType(init_type(constructor_list));
@@ -3441,7 +3441,7 @@ VectorConstructorExpr::VectorConstructorExpr(ListExpr* constructor_list,
 		}
 	else
 		{
-		if ( constructor_list->Exprs().length() == 0 )
+		if ( constructor_list->Exprs().empty() )
 			{
 			// vector().
 			// By default, assign VOID type here. A vector with
@@ -4654,7 +4654,7 @@ Val* ListExpr::Eval(Frame* f) const
 
 BroType* ListExpr::InitType() const
 	{
-	if ( exprs.length() == 0 )
+	if ( exprs.empty() )
 		{
 		Error("empty list in untyped initialization");
 		return 0;

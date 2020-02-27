@@ -16,7 +16,7 @@
 
 using std::string;
 
-typedef enum {
+enum BroExprTag : int {
 	EXPR_ANY = -1,
 	EXPR_NAME, EXPR_CONST,
 	EXPR_CLONE,
@@ -54,7 +54,7 @@ typedef enum {
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
 #define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
-} BroExprTag;
+};
 
 extern const char* expr_name(BroExprTag t);
 
@@ -205,7 +205,7 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	Expr()	{ type = 0; }
+	Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
@@ -225,7 +225,7 @@ protected:
 	void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	BroType* type;
+	BroType* type = nullptr;
 
 	bool paren;
 };

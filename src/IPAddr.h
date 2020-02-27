@@ -136,7 +136,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~IPAddr() { };
+	~IPAddr() = default;
 
 	/**
 	 * Returns the address' family.
@@ -145,8 +145,8 @@ public:
 		{
 		if ( memcmp(in6.s6_addr, v4_mapped_prefix, 12) == 0 )
 			return IPv4;
-		else
-			return IPv6;
+
+		return IPv6;
 		}
 
 	/**
@@ -161,8 +161,8 @@ public:
 		{
 		if ( GetFamily() == IPv4 )
 			return in6.s6_addr[12] == 224;
-		else
-			return in6.s6_addr[0] == 0xff;
+
+		return in6.s6_addr[0] == 0xff;
 		}
 
 	/**
@@ -173,8 +173,8 @@ public:
 		if ( GetFamily() == IPv4 )
 			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff)
 				&& (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
-		else
-			return false;
+
+		return false;
 		}
 
 	/**
@@ -305,25 +305,25 @@ public:
 	 * will be returned in dotted representation, IPv6 addresses in
 	 * compressed hex.
 	 */
-	string AsString() const;
+	std::string AsString() const;
 
 	/**
 	 * Returns a string representation of the address suitable for inclusion
 	 * in an URI.  For IPv4 addresses, this is the same as AsString(), but
 	 * IPv6 addresses are encased in square brackets.
 	 */
-	string AsURIString() const
+	std::string AsURIString() const
 		{
 		if ( GetFamily() == IPv4 )
 			return AsString();
-		else
-			return string("[") + AsString() + "]";
+
+		return string("[") + AsString() + "]";
 		}
 
 	/**
 	 * Returns a host-order, plain hex string representation of the address.
 	 */
-	string AsHexString() const;
+	std::string AsHexString() const;
 
 	/**
 	 * Returns a string representation of the address. This returns the
@@ -335,7 +335,7 @@ public:
 	 * Returns a reverse pointer name associated with the IP address.
 	 * For example, 192.168.0.1's reverse pointer is 1.0.168.192.in-addr.arpa.
 	 */
-	string PtrName() const;
+	std::string PtrName() const;
 
 	/**
 	 * Comparison operator for IP address.
@@ -528,7 +528,7 @@ public:
 	/**
 	 * Constructs a prefix 0/0.
 	 */
-	IPPrefix() : length(0)	{}
+	IPPrefix() = default;
 
 	/**
 	 * Constructs a prefix instance from an IPv4 address and a prefix
@@ -575,7 +575,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~IPPrefix() { }
+	~IPPrefix() = default;
 
 	/**
 	 * Returns the prefix in the form of an IP address. The address will
@@ -625,7 +625,7 @@ public:
 	 * will be returned in dotted representation, IPv6 addresses in
 	 * compressed hex.
 	 */
-	string AsString() const;
+	std::string AsString() const;
 
 	operator std::string() const	{ return AsString(); }
 
@@ -715,5 +715,5 @@ public:
 
 private:
 	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
-	uint8_t length;	// The bit length of the prefix relative to full IPv6 addr.
+	uint8_t length = 0;	// The bit length of the prefix relative to full IPv6 addr.
 };

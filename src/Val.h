@@ -1021,12 +1021,6 @@ protected:
 // the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t, int is_init, const Location* expr_location = nullptr);
 
-// Given a pointer to where a Val's core (i.e., its BRO value) resides,
-// returns a corresponding newly-created or Ref()'d Val.  ptr must already
-// be properly aligned.  Returns the size of the core in bytes in 'n'.
-// If t corresponds to a variable-length type, n must give the size on entry.
-Val* recover_val(void* ptr, BroType* t, int& n);
-
 extern int same_val(const Val* v1, const Val* v2);
 extern int same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);

@@ -3206,7 +3206,7 @@ void delete_vals(val_list* vals)
 		}
 	}
 
-Val* cast_value_to_type(Val* v, BroType* t)
+IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3217,7 +3217,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
 	if ( same_type(v->Type(), t) )
-		return v->Ref();
+		return {NewRef{}, v};
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
@@ -3226,7 +3226,7 @@ Val* cast_value_to_type(Val* v, BroType* t)
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).release();
+		return static_cast<bro_broker::DataVal *>(dv)->castTo(t);
 		}
 
 	return nullptr;

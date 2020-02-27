@@ -4797,8 +4797,7 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 	if ( ! v )
 		return 0;
 
-	IntrusivePtr<Val> nv{AdoptRef{}, cast_value_to_type(v.get(), Type())};
-
+	auto nv = cast_value_to_type(v.get(), Type());
 	if ( nv )
 		return nv;
 

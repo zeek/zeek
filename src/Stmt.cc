@@ -834,7 +834,7 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		if ( matching_id )
 			{
 			auto cv = cast_value_to_type(v, matching_id->Type());
-			f->SetElement(matching_id, cv);
+			f->SetElement(matching_id, cv.release());
 			}
 
 		flow = FLOW_NEXT;

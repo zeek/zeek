@@ -1,4 +1,22 @@
 
+3.2.0-dev.159 | 2020-02-26 19:51:24 -0800
+
+  * Pop global frame stack on exception. (Johanna Amann, Corelight)
+
+    When changing this code for 3.0.0, the code-flow changed significantly.
+    One of the changes lead to exception being re-thrown from Call - which
+    leads to the function cleanup not always being run. While the Unref of
+    the framepointer was (correctly) moved into the catch block, the global
+    frame stack was not cleaned up - and contains an invalid pointer after
+    encountering an interpreter exception.
+
+    This small commit pops the stack and removes the framepointer that was
+    pushed onto it before re-throwing the exception.
+
+    I also think that this change (re-throwing the exception) breaks the
+    Zeek debugger in significant ways (you cannot debug a script that causes
+    a Runtime error anymore).
+
 3.2.0-dev.157 | 2020-02-26 10:04:32 -0800
 
   * IntrusivePtr: overload std::swap() (Max Kellermann)

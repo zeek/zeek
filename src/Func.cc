@@ -395,6 +395,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			// Already reported, but now determine whether to unwind further.
 			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 				{
+				g_frame_stack.pop_back();
+				call_stack.pop_back();
 				Unref(f);
 				// Result not set b/c exception was thrown
 				throw;

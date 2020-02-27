@@ -90,7 +90,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprListStmt()	{ l = 0; }
 	ExprListStmt(BroStmtTag t, ListExpr* arg_l);
 
 	~ExprListStmt() override;
@@ -109,9 +108,6 @@ public:
 	explicit PrintStmt(ListExpr* l) : ExprListStmt(STMT_PRINT, l)	{ }
 
 protected:
-	friend class Stmt;
-	PrintStmt()	{}
-
 	Val* DoExec(val_list* vals, stmt_flow_type& flow) const override;
 };
 
@@ -129,8 +125,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	ExprStmt()	{ e = 0; }
 	ExprStmt(BroStmtTag t, Expr* e);
 
 	virtual Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
@@ -153,9 +147,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	IfStmt()	{ s1 = s2 = 0; }
-
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	int IsPure() const override;
 
@@ -182,9 +173,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	friend class Stmt;
-	Case()	{ expr_cases = 0; type_cases = 0; s = 0; }
-
 	ListExpr* expr_cases;
 	id_list* type_cases;
 	Stmt* s;
@@ -204,9 +192,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	SwitchStmt()	{ cases = 0; default_case_idx = -1; comp_hash = 0; }
-
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	int IsPure() const override;
 
@@ -244,10 +229,6 @@ public:
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-	friend class Stmt;
-	AddStmt()	{}
 };
 
 class DelStmt : public ExprStmt {
@@ -258,10 +239,6 @@ public:
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-	friend class Stmt;
-	DelStmt()	{}
 };
 
 class EventStmt : public ExprStmt {
@@ -273,9 +250,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	EventStmt()	{ event_expr = 0; }
-
 	EventExpr* event_expr;
 };
 
@@ -292,11 +266,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-
-	WhileStmt()
-		{ loop_condition = 0; body = 0; }
-
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Expr* loop_condition;
@@ -323,9 +292,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	ForStmt()	{ loop_vars = 0; body = 0; }
-
 	Val* DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 
 	id_list* loop_vars;
@@ -384,10 +350,6 @@ public:
 	Val* Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	void Describe(ODesc* d) const override;
-
-protected:
-	friend class Stmt;
-	ReturnStmt()	{}
 };
 
 class StmtList : public Stmt {
@@ -442,9 +404,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Stmt;
-	InitStmt()	{ inits = 0; }
-
 	id_list* inits;
 };
 
@@ -479,8 +438,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	WhenStmt()	{ cond = 0; s1 = s2 = 0; timeout = 0; is_return = 0; }
-
 	Expr* cond;
 	Stmt* s1;
 	Stmt* s2;

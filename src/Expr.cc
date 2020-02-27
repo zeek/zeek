@@ -2285,11 +2285,8 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 	{
 	if ( ! IsArithmetic(bt2) )
 		{
-		char err[512];
-		snprintf(err, sizeof(err),
-			"assignment of non-arithmetic value to arithmetic (%s/%s)",
-			 type_name(bt1), type_name(bt2));
-		ExprError(err);
+		ExprError(fmt("assignment of non-arithmetic value to arithmetic (%s/%s)",
+				type_name(bt1), type_name(bt2)));
 		return false;
 		}
 

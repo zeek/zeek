@@ -364,11 +364,11 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		{
 		if ( ! same_type(id->Type(), t) )
 			id->Type()->Error("incompatible types", t);
-
-		// If a previous declaration of the function had &default params,
-		// automatically transfer any that are missing (convenience so that
-		// implementations don't need to specify the &default expression again).
-		transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
+		else
+			// If a previous declaration of the function had &default params,
+			// automatically transfer any that are missing (convenience so that
+			// implementations don't need to specify the &default expression again).
+			transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
 		}
 
 	else if ( is_redef )

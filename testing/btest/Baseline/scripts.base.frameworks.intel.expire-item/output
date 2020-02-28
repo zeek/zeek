@@ -3,18 +3,15 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2019-06-07-02-20-05
+#open	2020-07-06-18-47-48
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
-1559874005.130930	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
-1559874008.152069	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
-1559874011.172813	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
-1559874014.190374	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
-1559874017.207215	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
-#close	2019-06-07-02-20-20
+1594061268.125378	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
+1594061271.127050	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2,source1	-	-	-
+1594061274.130721	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2,source1	-	-	-
+#close	2020-07-06-18-48-00
 -- Run 1 --
 Trigger: 1.2.3.4
-Seen: 1.2.3.4
 -- Run 2 --
 Trigger: 1.2.3.4
 Reinsert: 1.2.3.4
@@ -26,9 +23,8 @@ Expired: 192.168.0.0/16
 -- Run 4 --
 Trigger: 1.2.3.4
 Seen: 1.2.3.4
+Expired: 1.2.3.4
 -- Run 5 --
 Trigger: 1.2.3.4
-Seen: 1.2.3.4
-Expired: 1.2.3.4
 -- Run 6 --
 Trigger: 1.2.3.4

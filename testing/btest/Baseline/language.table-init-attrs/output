@@ -1,9 +1,9 @@
 my_set_ctor_init
 {
 test4,
+test2,
 test3,
-test1,
-test2
+test1
 }
 
 my_table_ctor_init
@@ -17,17 +17,17 @@ nope
 my_set_init
 {
 test4,
+test2,
 test3,
-test1,
-test2
+test1
 }
 
 my_table_init
 {
-[2] = test2,
 [4] = test4,
-[1] = test1,
-[3] = test3
+[2] = test2,
+[3] = test3,
+[1] = test1
 }
 nope
 

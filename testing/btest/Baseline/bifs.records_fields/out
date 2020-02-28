@@ -1,32 +1,32 @@
 [a=42, b=Foo, c=<uninitialized>, d=Bar, e=tt]
 {
+[a] = [type_name=count, log=F, value=42, default_val=<uninitialized>],
+[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>],
 [b] = [type_name=string, log=F, value=Foo, default_val=Foo],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[e] = [type_name=any, log=F, value=tt, default_val=<uninitialized>],
-[a] = [type_name=count, log=F, value=42, default_val=<uninitialized>],
-[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>]
+[e] = [type_name=any, log=F, value=tt, default_val=<uninitialized>]
 }
 F
 {
-[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
-[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 {
-[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
-[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 {
+[a] = [type_name=count, log=F, value=42, default_val=<uninitialized>],
+[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>],
 [b] = [type_name=string, log=F, value=Foo, default_val=Foo],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[e] = [type_name=any, log=F, value=mystring, default_val=<uninitialized>],
-[a] = [type_name=count, log=F, value=42, default_val=<uninitialized>],
-[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>]
+[e] = [type_name=any, log=F, value=mystring, default_val=<uninitialized>]
 }
 {
 
@@ -35,23 +35,23 @@ F
 [myfield] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 {
-[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
-[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 {
+[a] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=Foo],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[e] = [type_name=any, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[a] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>]
+[e] = [type_name=any, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 {
+[a] = [type_name=set[double], log=F, value=<uninitialized>, default_val=<uninitialized>],
+[d] = [type_name=table[double,string] of table[string] of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [b] = [type_name=set[double,string], log=F, value=<uninitialized>, default_val=<uninitialized>],
 [c] = [type_name=set[double,record r], log=F, value=<uninitialized>, default_val=<uninitialized>],
-[e] = [type_name=vector of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[a] = [type_name=set[double], log=F, value=<uninitialized>, default_val=<uninitialized>],
-[d] = [type_name=table[double,string] of table[string] of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[e] = [type_name=vector of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }

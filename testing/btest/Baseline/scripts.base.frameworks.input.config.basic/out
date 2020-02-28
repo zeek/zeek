@@ -10,10 +10,10 @@ testaddr, 2607:f8b0:4005:801::200e
 testinterval, 1.0 min
 testtime, 1507321987.0
 test_set, {
-b,
-c,
 a,
 d,
+b,
+c,
 erdbeerschnitzel
 }
 test_vector, [1, 2, 3, 4, 5, 6]

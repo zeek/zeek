@@ -1,9 +1,9 @@
 {
 [2] = [b=T, notb=F],
+[5] = [b=F, notb=T],
+[3] = [b=F, notb=T],
+[7] = [b=T, notb=F],
 [6] = [b=F, notb=T],
 [4] = [b=F, notb=T],
-[1] = [b=T, notb=F],
-[7] = [b=T, notb=F],
-[5] = [b=F, notb=T],
-[3] = [b=F, notb=T]
+[1] = [b=T, notb=F]
 }

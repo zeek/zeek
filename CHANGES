@@ -1,4 +1,10 @@
 
+3.2.0-dev.192 | 2020-02-28 11:36:12 -0800
+
+  * threading::Queue::WakeUp(): lock mutex before notifying condition_variable (Max Kellermann)
+
+    Not locking the associated mutex can create race conditions and lockups.
+
 3.2.0-dev.190 | 2020-02-28 00:42:17 -0800
 
   * Stmt: use class IntrusivePtr (Max Kellermann)

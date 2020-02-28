@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	netcontrol_drop
-#open	2016-02-17-20-21-38
+#open	2020-07-06-18-50-16
 #fields	ts	rule_id	orig_h	orig_p	resp_h	resp_p	expire	location
 #types	time	string	addr	port	addr	port	interval	string
-1455740498.301865	3	1.1.2.2	-	-	-	15.000000	Hi there
-#close	2016-02-17-20-21-38
+1594061413.899119	3	1.1.2.2	-	-	-	15.000000	Hi there
+#close	2020-07-06-18-50-16

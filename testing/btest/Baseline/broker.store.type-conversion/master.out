@@ -33,13 +33,13 @@ hello
 Broker::BOOL
 {
 two,
-one,
-three
+three,
+one
 }
 {
 [two] = 2,
-[one] = 1,
-[three] = 3
+[three] = 3,
+[one] = 1
 }
 [zero, one, two]
 [s=abc]

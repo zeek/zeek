@@ -1,12 +1,12 @@
 [b=T, i=-42, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=1358376849.393854, iv=1.0 min 40.0 secs, s=hurz, sc={
-2,
 4,
+2,
 1,
 3
 }, ss={
-BB,
+CC,
 AA,
-CC
+BB
 }, se={
 
 }, vc=[10, 20, 30], vs=[], vn=<uninitialized>]

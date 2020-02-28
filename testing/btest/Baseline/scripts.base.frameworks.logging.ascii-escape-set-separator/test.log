@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	test
-#open	2016-07-13-16-15-14
+#open	2020-07-06-18-40-14
 #fields	ss
 #types	set[string]
-\x2c,AA,CC,\x2c\x2c
-#close	2016-07-13-16-15-14
+\x2c,CC,\x2c\x2c,AA
+#close	2020-07-06-18-40-14

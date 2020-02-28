@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#open	2020-04-30-00-45-53
+#open	2020-07-06-17-36-15
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
 #types	time	string	addr	port	addr	port	enum	enum
 1210953052.202579	CtPZjS20MLrsMUOJi2	192.168.2.16	3797	65.55.158.80	3544	Tunnel::TEREDO	Tunnel::DISCOVER
@@ -12,4 +12,4 @@
 1210953076.058333	CtPZjS20MLrsMUOJi2	192.168.2.16	3797	65.55.158.80	3544	Tunnel::TEREDO	Tunnel::CLOSE
 1210953076.058333	CmES5u32sYpV7JYN	192.168.2.16	3797	65.55.158.81	3544	Tunnel::TEREDO	Tunnel::CLOSE
 1210953076.058333	Ck51lg1bScffFj34Ri	192.168.2.16	3797	83.170.1.38	32900	Tunnel::TEREDO	Tunnel::CLOSE
-#close	2020-04-30-00-45-53
+#close	2020-07-06-17-36-15

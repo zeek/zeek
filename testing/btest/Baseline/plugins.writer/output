@@ -3,7 +3,7 @@ Demo::Foo - A Foo test logging writer (dynamic, version 1.0.0)
 
 ===
 [conn] 1340213005.165293|CHhAvVGS1DHFjwGM9|10.0.0.55|53994|60.190.189.214|8124|tcp|-|4.314406|0|0|S0|-|-|0|S|5|320|0|0|-
-[conn] 1340213010.582723|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|tcp|socks,http|13.839419|3860|2934|SF|-|-|0|ShADadfF|23|5080|20|3986|-
+[conn] 1340213010.582723|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|tcp|http,socks|13.839419|3860|2934|SF|-|-|0|ShADadfF|23|5080|20|3986|-
 [conn] 1340213048.780152|C4J4Th3PJpwUYZZ6gc|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
 [conn] 1340213097.272764|CtPZjS20MLrsMUOJi2|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
 [conn] 1340213162.160367|CUM0KZ3MLUfNB0cl11|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|-|-|0|F|1|52|0|0|-
@@ -17,6 +17,6 @@ Demo::Foo - A Foo test logging writer (dynamic, version 1.0.0)
 [http] 1340213020.732963|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|5|GET|www.osnews.com|/images/icons/17.gif|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-
 [http] 1340213021.300269|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|6|GET|www.osnews.com|/images/left.gif|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-
 [http] 1340213021.861584|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|7|GET|www.osnews.com|/images/icons/32.gif|http://www.osnews.com/|1.1|Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2|-|0|0|304|Not Modified|-|-||-|-|-|-|-|-|-|-|-
-[packet_filter] 1588207600.726061|zeek|ip or not ip|T|T
+[packet_filter] 1594057935.894949|zeek|ip or not ip|T|T
 [socks] 1340213015.276495|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|5|-|-|succeeded|-|www.osnews.com|80|192.168.0.31|-|2688
 [tunnel] 1340213015.276495|-|10.0.0.55|0|60.190.189.214|8124|Tunnel::SOCKS|Tunnel::DISCOVER

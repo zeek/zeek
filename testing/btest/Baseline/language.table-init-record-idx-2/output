@@ -16,10 +16,10 @@ F
 F
 now here's the foo table...
 {
-[[a=foo, b=1], 1] = 1,
-[[a=baz, b=5], 5] = 5,
-[[a=foo, b=2], 2] = 2,
 [[a=bar, b=3], 3] = 3,
 [[a=baz, b=6], 6] = 6,
+[[a=baz, b=5], 5] = 5,
+[[a=foo, b=2], 2] = 2,
+[[a=foo, b=1], 1] = 1,
 [[a=bar, b=4], 4] = 4
 }

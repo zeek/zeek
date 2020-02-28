@@ -13,6 +13,7 @@
 #include "Scope.h"
 #include "Frame.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Stmt.h"
 #include "Timer.h"
@@ -246,7 +247,7 @@ BreakCode DbgBreakpoint::HasHit()
 	if ( condition.size() )
 		{
 		// TODO: ### evaluate using debugger frame too
-		Val* yes = dbg_eval_expr(condition.c_str());
+		auto yes = dbg_eval_expr(condition.c_str());
 
 		if ( ! yes )
 			{
@@ -260,7 +261,6 @@ BreakCode DbgBreakpoint::HasHit()
 		if ( ! IsIntegral(yes->Type()->Tag()) &&
 		     ! IsBool(yes->Type()->Tag()) )
 			{
-			Unref(yes);
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");
 			return bcHitAndDelete;
@@ -269,11 +269,8 @@ BreakCode DbgBreakpoint::HasHit()
 		yes->CoerceToInt();
 		if ( yes->IsZero() )
 			{
-			Unref(yes);
 			return bcNoHit;
 			}
-
-		Unref(yes);
 		}
 
 	int repcount = GetRepeatCount();

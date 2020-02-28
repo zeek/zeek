@@ -33,7 +33,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 		}
 
 	// clone to prevent changes
-	i->SetVal(val->Clone());
+	i->SetVal({AdoptRef{}, val->Clone()});
 	Unref(val); // Either ref'd once or function call result.
 	return true;
 	}
@@ -206,7 +206,6 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		}
 
 	auto* func = on_change->AsFunc();
-	Ref(func);
-	i->AddOptionHandler(func, -priority);
+	i->AddOptionHandler({NewRef{}, func}, -priority);
 	return val_mgr->GetBool(1);
 	%}

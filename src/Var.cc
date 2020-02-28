@@ -8,6 +8,7 @@
 #include "Val.h"
 #include "Expr.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Stmt.h"
 #include "Scope.h"
 #include "Reporter.h"
@@ -15,11 +16,12 @@
 #include "Traverse.h"
 #include "module_util.h"
 
-static Val* init_val(Expr* init, const BroType* t, Val* aggr)
+static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
+                                  IntrusivePtr<Val> aggr)
 	{
 	try
 		{
-		return init->InitVal(t, aggr);
+		return init->InitVal(t, std::move(aggr));
 		}
 	catch ( InterpreterException& e )
 		{
@@ -27,22 +29,22 @@ static Val* init_val(Expr* init, const BroType* t, Val* aggr)
 		}
 	}
 
-static void make_var(ID* id, BroType* t, init_class c, Expr* init,
-			attr_list* attr, decl_type dt, int do_init)
+static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
+                     IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
+                     int do_init)
 	{
 	if ( id->Type() )
 		{
 		if ( id->IsRedefinable() || (! init && attr) )
 			{
-			BroObj* redef_obj = init ? (BroObj*) init : (BroObj*) t;
+			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
 			if ( dt != VAR_REDEF )
 				id->Warn("redefinition requires \"redef\"", redef_obj, 1);
 			}
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			id->Error("already defined", init);
-			Unref(init);
+			id->Error("already defined", init.get());
 			return;
 			}
 		}
@@ -52,29 +54,26 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! id->Type() )
 			{
 			id->Error("\"redef\" used but not previously defined");
-			Unref(init);
 			return;
 			}
 
 		if ( ! t )
-			t = id->Type();
+			t = {NewRef{}, id->Type()};
 		}
 
 	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
-		     (! init || ! do_init || (! t && ! (t = init_type(init)))) )
+		     (! init || ! do_init || (! t && ! (t = {AdoptRef{}, init_type(init.get())}))) )
 			{
-			id->Error("already defined", init);
-			Unref(init);
+			id->Error("already defined", init.get());
 			return;
 			}
 
 		// Allow redeclaration in order to initialize.
-		if ( ! same_type(t, id->Type()) )
+		if ( ! same_type(t.get(), id->Type()) )
 			{
-			id->Error("redefinition changes type", init);
-			Unref(init);
+			id->Error("redefinition changes type", init.get());
 			return;
 			}
 		}
@@ -88,13 +87,11 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 			{
 			if ( init )
 				{
-				id->Error("double initialization", init);
-				Unref(init);
+				id->Error("double initialization", init.get());
 				return;
 				}
 
-			Ref(elements);
-			init = elements;
+			init = {NewRef{}, elements};
 			}
 		}
 
@@ -103,48 +100,38 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		if ( ! init )
 			{
 			id->Error("no type given");
-			Unref(init);
 			return;
 			}
 
-		t = init_type(init);
+		t = {AdoptRef{}, init_type(init.get())};
 		if ( ! t )
 			{
-			id->SetType(error_type());
-			Unref(init);
+			id->SetType({AdoptRef{}, error_type()});
 			return;
 			}
 		}
-	else
-		Ref(t);
 
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(new Attributes(attr, t, false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(attr, t.get(), false, id->IsGlobal()));
 
 	if ( init )
 		{
 		switch ( init->Tag() ) {
 		case EXPR_TABLE_CONSTRUCTOR:
 			{
-			TableConstructorExpr* ctor = (TableConstructorExpr*) init;
+			TableConstructorExpr* ctor = (TableConstructorExpr*) init.get();
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs({NewRef{}, ctor->Attrs()});
 			}
 			break;
 
 		case EXPR_SET_CONSTRUCTOR:
 			{
-			SetConstructorExpr* ctor = (SetConstructorExpr*) init;
+			SetConstructorExpr* ctor = (SetConstructorExpr*) init.get();
 			if ( ctor->Attrs() )
-				{
-				::Ref(ctor->Attrs());
-				id->AddAttrs(ctor->Attrs());
-				}
+				id->AddAttrs({NewRef{}, ctor->Attrs()});
 			}
 			break;
 
@@ -168,40 +155,38 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			Val* aggr;
+			IntrusivePtr<Val> aggr;
+
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				aggr = new RecordVal(t->AsRecordType());
+				aggr = make_intrusive<RecordVal>(t->AsRecordType());
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
-					init = new RecordCoerceExpr(init, t->AsRecordType());
+					init = make_intrusive<RecordCoerceExpr>(std::move(init),
+					        IntrusivePtr{NewRef{}, t->AsRecordType()});
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = new TableVal(t->AsTableType(), id->Attrs());
+				aggr = make_intrusive<TableVal>(t->AsTableType(), id->Attrs());
 
 			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = new VectorVal(t->AsVectorType());
+				aggr = make_intrusive<VectorVal>(t->AsVectorType());
 
-			else
-				aggr = 0;
+			IntrusivePtr<Val> v;
 
-			Val* v = 0;
 			if ( init )
 				{
-				v = init_val(init, t, aggr);
+				v = init_val(init.get(), t.get(), aggr);
+
 				if ( ! v )
-					{
-					Unref(init);
 					return;
-					}
 				}
 
 			if ( aggr )
-				id->SetVal(aggr, c);
+				id->SetVal(std::move(aggr), c);
 			else if ( v )
-				id->SetVal(v, c);
+				id->SetVal(std::move(v), c);
 			}
 		}
 
@@ -221,8 +206,6 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		id->SetOption();
 		}
 
-	Unref(init);
-
 	id->UpdateValAttrs();
 
 	if ( t && t->Tag() == TYPE_FUNC &&
@@ -233,70 +216,77 @@ static void make_var(ID* id, BroType* t, init_class c, Expr* init,
 		// we can later access the ID even if no implementations have been
 		// defined.
 		Func* f = new BroFunc(id, 0, 0, 0, 0);
-		id->SetVal(new Val(f));
+		id->SetVal(make_intrusive<Val>(f));
 		}
 	}
 
 
-void add_global(ID* id, BroType* t, init_class c, Expr* init,
-		attr_list* attr, decl_type dt)
+void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
+                IntrusivePtr<Expr> init, attr_list* attr, decl_type dt)
 	{
-	make_var(id, t, c, init, attr, dt, 1);
+	make_var(id, std::move(t), c, std::move(init), attr, dt, 1);
 	}
 
-Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
-		attr_list* attr, decl_type dt)
+IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
+                             init_class c, IntrusivePtr<Expr> init,
+                             attr_list* attr, decl_type dt)
 	{
-	make_var(id, t, c, init ? init->Ref() : init, attr, dt, 0);
+	make_var(id.get(), std::move(t), c, init, attr, dt, 0);
 
 	if ( init )
 		{
 		if ( c != INIT_FULL )
 			id->Error("can't use += / -= for initializations of local variables");
 
-		Ref(id);
+		// copy Location to the stack, because AssignExpr may free "init"
+		const Location location = init->GetLocationInfo() ?
+		        *init->GetLocationInfo() : no_location;
 
-		Expr* name_expr = new NameExpr(id, dt == VAR_CONST);
-		Stmt* stmt =
-		    new ExprStmt(new AssignExpr(name_expr, init, 0, 0,
-		        id->Attrs() ? id->Attrs()->Attrs() : 0 ));
-		stmt->SetLocationInfo(init->GetLocationInfo());
-
+		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
+		auto attrs = id->Attrs() ? id->Attrs()->Attrs() : nullptr;
+		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
+		                                              std::move(init), 0,
+		                                              nullptr, attrs);
+		auto stmt = make_intrusive<ExprStmt>(std::move(assign_expr));
+		stmt->SetLocationInfo(&location);
 		return stmt;
 		}
 
 	else
 		{
-		current_scope()->AddInit(id);
-		return new NullStmt;
+		current_scope()->AddInit(id.release());
+		return make_intrusive<NullStmt>();
 		}
 	}
 
-extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val)
+extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
+                                               IntrusivePtr<Expr> init,
+                                               IntrusivePtr<Val> val)
 	{
-	make_var(id, 0, INIT_FULL, init->Ref(), 0, VAR_REGULAR, 0);
-	Ref(id);
-	return new AssignExpr(new NameExpr(id), init, 0, val);
+	make_var(id.get(), 0, INIT_FULL, init, 0, VAR_REGULAR, 0);
+	auto name_expr = make_intrusive<NameExpr>(std::move(id));
+	return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init),
+	                                  0, std::move(val));
 	}
 
-void add_type(ID* id, BroType* t, attr_list* attr)
+void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	{
 	string new_type_name = id->Name();
 	string old_type_name = t->GetName();
-	BroType* tnew = 0;
+	IntrusivePtr<BroType> tnew;
 
 	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
 	     old_type_name.empty() )
 		// An extensible type (record/enum) being declared for first time.
-		tnew = t;
+		tnew = std::move(t);
 	else
 		// Clone the type to preserve type name aliasing.
-		tnew = t->ShallowClone();
+		tnew = {AdoptRef{}, t->ShallowClone()};
 
-	BroType::AddAlias(new_type_name, tnew);
+	BroType::AddAlias(new_type_name, tnew.get());
 
 	if ( new_type_name != old_type_name && ! old_type_name.empty() )
-		BroType::AddAlias(old_type_name, tnew);
+		BroType::AddAlias(old_type_name, tnew.get());
 
 	tnew->SetName(id->Name());
 
@@ -304,7 +294,7 @@ void add_type(ID* id, BroType* t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(new Attributes(attr, tnew, false, false));
+		id->SetAttrs(make_intrusive<Attributes>(attr, tnew.get(), false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -348,27 +338,28 @@ static bool has_attr(const attr_list* al, attr_tag tag)
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
-		int is_redef, FuncType* t, attr_list* attrs)
+                int is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
 		const BroType* yt = t->YieldType();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
-			id->Error("event cannot yield a value", t);
+			id->Error("event cannot yield a value", t.get());
 
 		t->ClearYieldType(flavor);
 		}
 
 	if ( id->Type() )
 		{
-		if ( ! same_type(id->Type(), t) )
-			id->Type()->Error("incompatible types", t);
+		if ( ! same_type(id->Type(), t.get()) )
+			id->Type()->Error("incompatible types", t.get());
 
-		// If a previous declaration of the function had &default params,
-		// automatically transfer any that are missing (convenience so that
-		// implementations don't need to specify the &default expression again).
-		transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
+		else
+			// If a previous declaration of the function had &default params,
+			// automatically transfer any that are missing (convenience so that
+			// implementations don't need to specify the &default expression again).
+			transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
 		}
 
 	else if ( is_redef )
@@ -379,7 +370,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
 
 		if ( id_flavor != flavor )
-			id->Error("inconsistent function flavor", t);
+			id->Error("inconsistent function flavor", t.get());
 
 		switch ( id_flavor ) {
 
@@ -411,15 +402,13 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	for ( int i = 0; i < num_args; ++i )
 		{
 		TypeDecl* arg_i = args->FieldDecl(i);
-		ID* arg_id = lookup_ID(arg_i->id, module_name);
+		auto arg_id = lookup_ID(arg_i->id, module_name);
 
 		if ( arg_id && ! arg_id->IsGlobal() )
 			arg_id->Error("argument name used twice");
 
-		Unref(arg_id);
-
 		arg_id = install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType(arg_i->type->Ref());
+		arg_id->SetType({NewRef{}, arg_i->type});
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
@@ -482,9 +471,10 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(Stmt* body)
+void end_func(IntrusivePtr<Stmt> body)
 	{
-	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), body);
+	auto ingredients = std::make_unique<function_ingredients>(
+	        pop_scope().release(), body.release());
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
@@ -511,7 +501,7 @@ void end_func(Stmt* body)
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(new Val(f));
+		ingredients->id->SetVal(make_intrusive<Val>(f));
 		ingredients->id->SetConst();
 		}
 
@@ -524,14 +514,12 @@ void end_func(Stmt* body)
 
 Val* internal_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-	return rval;
+	return id->ID_Val();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -556,24 +544,20 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 
 Val* internal_const_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-	return rval;
+	return id->ID_Val();
 	}
 
 Val* opt_internal_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	Val* rval = id ? id->ID_Val() : 0;
-	Unref(id);
-	return rval;
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	return id ? id->ID_Val() : nullptr;
 	}
 
 double opt_internal_double(const char* name)
@@ -597,23 +581,22 @@ bro_uint_t opt_internal_unsigned(const char* name)
 StringVal* opt_internal_string(const char* name)
 	{
 	Val* v = opt_internal_val(name);
-	return v ? v->AsStringVal() : 0;
+	return v ? v->AsStringVal() : nullptr;
 	}
 
 TableVal* opt_internal_table(const char* name)
 	{
 	Val* v = opt_internal_val(name);
-	return v ? v->AsTableVal() : 0;
+	return v ? v->AsTableVal() : nullptr;
 	}
 
 ListVal* internal_list_val(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		return 0;
+		return nullptr;
 
 	Val* v = id->ID_Val();
-	Unref(id);
 
 	if ( v )
 		{
@@ -631,18 +614,16 @@ ListVal* internal_list_val(const char* name)
 			reporter->InternalError("internal variable %s is not a list", name);
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 BroType* internal_type(const char* name)
 	{
-	ID* id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	BroType* rval = id->Type();
-	Unref(id);
-	return rval;
+	return id->Type();
 	}
 
 Func* internal_func(const char* name)
@@ -651,7 +632,7 @@ Func* internal_func(const char* name)
 	if ( v )
 		return v->AsFunc();
 	else
-		return 0;
+		return nullptr;
 	}
 
 EventHandlerPtr internal_handler(const char* name)

@@ -1745,14 +1745,14 @@ Val* TableVal::Default(Val* index)
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
-			Expr* coerce = new RecordCoerceExpr(def_attr->AttrExpr()->Ref(),
-			                                    ytype->AsRecordType());
-			def_val = coerce->Eval(0);
-			Unref(coerce);
+			auto coerce = make_intrusive<RecordCoerceExpr>(
+			        IntrusivePtr{NewRef{}, def_attr->AttrExpr()},
+			        IntrusivePtr{NewRef{}, ytype->AsRecordType()});
+			def_val = coerce->Eval(0).release();
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(0);
+			def_val = def_attr->AttrExpr()->Eval(0).release();
 		}
 
 	if ( ! def_val )
@@ -1958,7 +1958,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 	try
 		{
-		IntrusivePtr<Val> thefunc{AdoptRef{}, change_func->Eval(nullptr)};
+		auto thefunc = change_func->Eval(nullptr);
 
 		if ( ! thefunc )
 			{
@@ -2250,7 +2250,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
 
-	def_val = def_attr->AttrExpr()->Eval(f);
+	def_val = def_attr->AttrExpr()->Eval(f).release();
 	}
 
 void TableVal::InitTimer(double delay)
@@ -2375,9 +2375,8 @@ double TableVal::GetExpireTime()
 
 	try
 		{
-		Val* timeout = expire_time->Eval(0);
+		auto timeout = expire_time->Eval(nullptr);
 		interval = (timeout ? timeout->AsInterval() : -1);
-		Unref(timeout);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2407,7 +2406,7 @@ double TableVal::CallExpireFunc(Val* idx)
 
 	try
 		{
-		Val* vf = expire_func->Eval(0);
+		auto vf = expire_func->Eval(nullptr);
 
 		if ( ! vf )
 			{
@@ -2419,7 +2418,6 @@ double TableVal::CallExpireFunc(Val* idx)
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
 			vf->Error("not a function");
-			Unref(vf);
 			Unref(idx);
 			return 0;
 			}
@@ -2467,8 +2465,6 @@ double TableVal::CallExpireFunc(Val* idx)
 			secs = result->AsInterval();
 			Unref(result);
 			}
-
-		Unref(vf);
 		}
 
 	catch ( InterpreterException& e )
@@ -2574,8 +2570,8 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	for ( int i = 0; i < n; ++i )
 		{
 		Attributes* a = t->FieldDecl(i)->attrs;
-		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : 0;
-		Val* def = def_attr ? def_attr->AttrExpr()->Eval(0) : 0;
+		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
+		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
 		BroType* type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
@@ -2585,8 +2581,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 			Val* tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
 			if ( tmp )
 				{
-				Unref(def);
-				def = tmp;
+				def = {AdoptRef{}, tmp};
 				}
 			}
 
@@ -2595,18 +2590,16 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 			TypeTag tag = type->Tag();
 
 			if ( tag == TYPE_RECORD )
-				def = new RecordVal(type->AsRecordType());
+				def = make_intrusive<RecordVal>(type->AsRecordType());
 
 			else if ( tag == TYPE_TABLE )
-				def = new TableVal(type->AsTableType(), a);
+				def = make_intrusive<TableVal>(type->AsTableType(), a);
 
 			else if ( tag == TYPE_VECTOR )
-				def = new VectorVal(type->AsVectorType());
+				def = make_intrusive<VectorVal>(type->AsVectorType());
 			}
 
-		vl->push_back(def ? def->Ref() : 0);
-
-		Unref(def);
+		vl->push_back(def.release());
 		}
 	}
 
@@ -2707,12 +2700,13 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			// Check for allowable optional fields is outside the loop, below.
 			continue;
 
-		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD
-				&& ! same_type(ar_t->FieldType(t_i), v->Type()) )
+		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD &&
+		     ! same_type(ar_t->FieldType(t_i), v->Type()) )
 			{
-			Expr* rhs = new ConstExpr(v->Ref());
-			Expr* e = new RecordCoerceExpr(rhs, ar_t->FieldType(t_i)->AsRecordType());
-			ar->Assign(t_i, e->Eval(0));
+			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
+			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
+			        IntrusivePtr{NewRef{}, ar_t->FieldType(t_i)->AsRecordType()});
+			ar->Assign(t_i, e->Eval(nullptr).release());
 			continue;
 			}
 
@@ -3041,10 +3035,12 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location)
+IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
+                                    int is_init,
+                                    const Location* expr_location)
 	{
 	if ( ! v )
-		return 0;
+		return nullptr;
 
 	BroType* vt = v->Type();
 
@@ -3065,20 +3061,18 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		if ( same_type(t, vt, is_init) )
 			return v;
 
-		t->Error("type clash", v, 0, expr_location);
-		Unref(v);
-		return 0;
+		t->Error("type clash", v.get(), 0, expr_location);
+		return nullptr;
 		}
 
 	if ( ! BothArithmetic(t_tag, v_tag) &&
 	     (! IsArithmetic(v_tag) || t_tag != TYPE_TIME || ! v->IsZero()) )
 		{
 		if ( t_tag == TYPE_LIST || v_tag == TYPE_LIST )
-			t->Error("list mixed with scalar", v, 0, expr_location);
+			t->Error("list mixed with scalar", v.get(), 0, expr_location);
 		else
-			t->Error("arithmetic mixed with non-arithmetic", v, 0, expr_location);
-		Unref(v);
-		return 0;
+			t->Error("arithmetic mixed with non-arithmetic", v.get(), 0, expr_location);
+		return nullptr;
 		}
 
 	if ( v_tag == t_tag )
@@ -3089,9 +3083,8 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		TypeTag mt = max_type(t_tag, v_tag);
 		if ( mt != t_tag )
 			{
-			t->Error("over-promotion of arithmetic value", v, 0, expr_location);
-			Unref(v);
-			return 0;
+			t->Error("over-promotion of arithmetic value", v.get(), 0, expr_location);
+			return nullptr;
 			}
 		}
 
@@ -3103,55 +3096,50 @@ Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* ex
 		// Already has the right internal type.
 		return v;
 
-	Val* promoted_v;
+	IntrusivePtr<Val> promoted_v;
+
 	switch ( it ) {
 	case TYPE_INTERNAL_INT:
-		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v) )
+		if ( ( vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE ) && Val::WouldOverflow(vt, t, v.get()) )
 			{
-			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v, 0, expr_location);
-			Unref(v);
-			return 0;
+			t->Error("overflow promoting from unsigned/double to signed arithmetic value", v.get(), 0, expr_location);
+			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = val_mgr->GetInt(v->CoerceToInt());
+			promoted_v = {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
-			Unref(v);
-			return 0;
+			return nullptr;
 			}
 
 		break;
 
 	case TYPE_INTERNAL_UNSIGNED:
-		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v) )
+		if ( ( vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) && Val::WouldOverflow(vt, t, v.get()) )
 			{
-			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v, 0, expr_location);
-			Unref(v);
-			return 0;
+			t->Error("overflow promoting from signed/double to unsigned arithmetic value", v.get(), 0, expr_location);
+			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
-			promoted_v = val_mgr->GetCount(v->CoerceToUnsigned());
+			promoted_v = {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
-			Unref(v);
-			return 0;
+			return nullptr;
 			}
 
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
-		promoted_v = new Val(v->CoerceToDouble(), t_tag);
+		promoted_v = make_intrusive<Val>(v->CoerceToDouble(), t_tag);
 		break;
 
 	default:
 		reporter->InternalError("bad internal type in check_and_promote()");
-		Unref(v);
-		return 0;
+		return nullptr;
 	}
 
-	Unref(v);
 	return promoted_v;
 	}
 
@@ -3222,30 +3210,30 @@ void delete_vals(val_list* vals)
 		}
 	}
 
-Val* cast_value_to_type(Val* v, BroType* t)
+IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
 
 	if ( ! v )
-		return 0;
+		return nullptr;
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
 	if ( same_type(v->Type(), t) )
-		return v->Ref();
+		return {NewRef{}, v};
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = v->AsRecordVal()->Lookup(0);
 
 		if ( ! dv )
-			return 0;
+			return nullptr;
 
-		return static_cast<bro_broker::DataVal *>(dv)->castTo(t).release();
+		return static_cast<bro_broker::DataVal*>(dv)->castTo(t);
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 bool can_cast_value_to_type(const Val* v, BroType* t)

@@ -387,7 +387,7 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 		try
 			{
-			result = body.stmts->Exec(f, flow);
+			result = body.stmts->Exec(f, flow).release();
 			}
 
 		catch ( InterpreterException& e )
@@ -606,15 +606,14 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	ID* id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->Type()->Ref();
-	id->SetVal(new Val(this));
-	Unref(id);
+	id->SetVal(make_intrusive<Val>(this));
 	}
 
 BuiltinFunc::~BuiltinFunc()
@@ -816,7 +815,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 		return false;
 		}
 
-	Val* fmt_str_val = fmt_str_arg->Eval(0);
+	auto fmt_str_val = fmt_str_arg->Eval(nullptr);
 
 	if ( fmt_str_val )
 		{
@@ -830,7 +829,6 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 			if ( ! *fmt_str )
 				{
-				Unref(fmt_str_val);
 				call->Error("format string ends with bare '%'");
 				return false;
 				}
@@ -842,13 +840,11 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 		if ( args.length() != num_fmt + 1 )
 			{
-			Unref(fmt_str_val);
 			call->Error("mismatch between format string to fmt() and number of arguments passed");
 			return false;
 			}
 		}
 
-	Unref(fmt_str_val);
 	return true;
 	}
 
@@ -869,7 +865,8 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		Val* v = a->AttrExpr()->Eval(0);
+		auto v = a->AttrExpr()->Eval(nullptr);
+
 		if ( ! v )
 			{
 			a->Error("cannot evaluate attribute expression");
@@ -878,13 +875,11 @@ static int get_func_priority(const attr_list& attrs)
 
 		if ( ! IsIntegral(v->Type()->Tag()) )
 			{
-			Unref(v);
 			a->Error("expression is not of integral type");
 			continue;
 			}
 
 		priority = v->InternalInt();
-		Unref(v);
 		}
 
 	return priority;

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "IntrusivePtr.h"
 #include "Obj.h"
 #include "Attr.h"
 #include "Notifier.h"
@@ -35,9 +36,9 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(BroType* t);
-	BroType* Type()			{ return type; }
-	const BroType* Type() const	{ return type; }
+	void SetType(IntrusivePtr<BroType> t);
+	BroType* Type()			{ return type.get(); }
+	const BroType* Type() const	{ return type.get(); }
 
 	void MakeType()			{ is_type = true; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }
@@ -51,10 +52,10 @@ public:
 	// reference to the Val, the Val will be destroyed (naturally,
 	// you have to take care that it will not be accessed via
 	// the ID afterwards).
-	void SetVal(Val* v, bool weak_ref = false);
+	void SetVal(IntrusivePtr<Val> v, bool weak_ref = false);
 
-	void SetVal(Val* v, init_class c);
-	void SetVal(Expr* ev, init_class c);
+	void SetVal(IntrusivePtr<Val> v, init_class c);
+	void SetVal(IntrusivePtr<Expr> ev, init_class c);
 
 	bool HasVal() const		{ return val != 0; }
 	Val* ID_Val()			{ return val; }
@@ -75,11 +76,11 @@ public:
 
 	bool IsRedefinable() const;
 
-	void SetAttrs(Attributes* attr);
-	void AddAttrs(Attributes* attr);
+	void SetAttrs(IntrusivePtr<Attributes> attr);
+	void AddAttrs(IntrusivePtr<Attributes> attr);
 	void RemoveAttr(attr_tag a);
 	void UpdateValAttrs();
-	Attributes* Attrs() const	{ return attrs; }
+	Attributes* Attrs() const	{ return attrs.get(); }
 
 	Attr* FindAttr(attr_tag t) const;
 
@@ -108,12 +109,11 @@ public:
 	bool HasOptionHandlers() const
 		{ return !option_handlers.empty(); }
 
-	// Takes ownership of callback.
-	void AddOptionHandler(Func* callback, int priority);
+	void AddOptionHandler(IntrusivePtr<Func> callback, int priority);
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	void EvalFunc(Expr* ef, Expr* ev);
+	void EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev);
 
 #ifdef DEBUG
 	void UpdateValID();
@@ -122,13 +122,13 @@ protected:
 	const char* name;
 	IDScope scope;
 	bool is_export;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
 	Val* val;
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 	// contains list of functions that are called when an option changes
-	std::multimap<int, Func*> option_handlers;
+	std::multimap<int, IntrusivePtr<Func>> option_handlers;
 
 	bool infer_return_type;
 	bool weak_ref;

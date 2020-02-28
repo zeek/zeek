@@ -298,15 +298,18 @@ void terminate_bro()
 	plugin_mgr->FinishPlugins();
 
 	delete zeekygen_mgr;
-	delete event_registry;
 	delete analyzer_mgr;
 	delete file_mgr;
 	// broker_mgr, timer_mgr, and supervisor are deleted via iosource_mgr
 	delete iosource_mgr;
+	delete event_registry;
 	delete log_mgr;
 	delete reporter;
 	delete plugin_mgr;
 	delete val_mgr;
+
+	// free the global scope
+	pop_scope();
 
 	reporter = 0;
 	}
@@ -714,7 +717,7 @@ int main(int argc, char** argv)
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-		id->SetVal(new StringVal(*options.pcap_filter));
+		id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 		}
 
 	auto all_signature_files = options.signature_files;

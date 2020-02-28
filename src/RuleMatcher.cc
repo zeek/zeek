@@ -9,6 +9,7 @@
 #include "RuleCondition.h"
 #include "BroString.h"
 #include "ID.h"
+#include "IntrusivePtr.h"
 #include "IntSet.h"
 #include "IP.h"
 #include "analyzer/Analyzer.h"
@@ -1268,17 +1269,14 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 
 static Val* get_bro_val(const char* label)
 	{
-	ID* id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);
 		return 0;
 		}
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-
-	return rval;
+	return id->ID_Val();
 	}
 
 

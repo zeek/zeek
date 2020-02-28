@@ -6,6 +6,7 @@
 #include "Expr.h"
 #include "Desc.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 #include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)
@@ -109,10 +110,8 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 
 		else
 			{
-			Val* v = expr->Eval(0);
 			ODesc dd;
-			v->Describe(&dd);
-			Unref(v);
+			expr->Eval(nullptr)->Describe(&dd);
 			string s = dd.Description();
 
 			for ( size_t i = 0; i < s.size(); ++i )

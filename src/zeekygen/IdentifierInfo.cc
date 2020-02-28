@@ -11,22 +11,17 @@
 using namespace std;
 using namespace zeekygen;
 
-IdentifierInfo::IdentifierInfo(ID* arg_id, ScriptInfo* script)
+IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
 	: Info(),
-	  comments(), id(arg_id), initial_val(), redefs(), fields(),
+	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script)
 	{
-	Ref(id);
-
 	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
-		initial_val = id->ID_Val()->Clone();
+		initial_val = {AdoptRef{}, id->ID_Val()->Clone()};
 	}
 
 IdentifierInfo::~IdentifierInfo()
 	{
-	Unref(id);
-	Unref(initial_val);
-
 	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
 	      ++it )
 		delete *it;
@@ -51,7 +46,15 @@ void IdentifierInfo::AddRecordField(const TypeDecl* field,
 	rf->field = new TypeDecl(*field);
 	rf->from_script = script;
 	rf->comments = comments;
-	fields[rf->field->id] = rf;
+
+	auto [it, inserted] = fields.emplace(rf->field->id, rf);
+
+	if ( ! inserted )
+		{
+		delete it->second;
+		it->second = rf;
+		}
+
 	last_field_seen = rf;
 	}
 

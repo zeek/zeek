@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 
+template <class T> class IntrusivePtr;
 class Val;
 class Stmt;
 
@@ -159,7 +160,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-Val* dbg_eval_expr(const char* expr);
+IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.

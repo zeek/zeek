@@ -29,6 +29,7 @@ using std::string;
 
 template <class T> class IntrusivePtr;
 template<typename T> class PDict;
+template <class T> class IntrusivePtr;
 class IterCookie;
 
 class Val;
@@ -1018,13 +1019,9 @@ protected:
 // Unref()'ing the original.  If not a match, generates an error message
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
-extern Val* check_and_promote(Val* v, const BroType* t, int is_init, const Location* expr_location = nullptr);
-
-// Given a pointer to where a Val's core (i.e., its BRO value) resides,
-// returns a corresponding newly-created or Ref()'d Val.  ptr must already
-// be properly aligned.  Returns the size of the core in bytes in 'n'.
-// If t corresponds to a variable-length type, n must give the size on entry.
-Val* recover_val(void* ptr, BroType* t, int& n);
+extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
+                                           const BroType* t, int is_init,
+                                           const Location* expr_location = nullptr);
 
 extern int same_val(const Val* v1, const Val* v2);
 extern int same_atomic_val(const Val* v1, const Val* v2);
@@ -1036,10 +1033,9 @@ extern void delete_vals(val_list* vals);
 inline bool is_vector(Val* v)	{ return  v->Type()->Tag() == TYPE_VECTOR; }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
-// The returned value will be ref'ed.
 //
 // Note: This implements the script-level cast operator.
-extern Val* cast_value_to_type(Val* v, BroType* t);
+extern IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t);
 
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.

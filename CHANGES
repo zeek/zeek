@@ -1,4 +1,58 @@
 
+3.2.0-dev.190 | 2020-02-28 00:42:17 -0800
+
+  * Stmt: use class IntrusivePtr (Max Kellermann)
+
+  * Stmt: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Val: remove unimplemented prototype recover_val() (Max Kellermann)
+
+  * Val: cast_value_to_type() returns IntrusivePtr (Max Kellermann)
+
+  * Val: use IntrusivePtr in check_and_promote() (Max Kellermann)
+
+  * Val: use nullptr instead of 0 (Max Kellermann)
+
+  * zeekygen: use class IntrusivePtr (Max Kellermann)
+
+  * ID: use class IntrusivePtr (Max Kellermann)
+
+  * Expr: use class IntrusivePtr (Max Kellermann)
+
+  * Var: copy Location to stack, to fix use-after-free crash bug (Max Kellermann)
+
+  * Scope: lookup_ID() and install_ID() return IntrusivePtr<ID> (Max Kellermann)
+
+  * Scope: delete duplicate locals (Max Kellermann)
+
+  * EventRegistry: automatically delete EventHandlers (Max Kellermann)
+
+  * main: destroy event_registry after iosource_mgr (Max Kellermann)
+
+    Fixes use-after-free bugs because PcapSource::Close() queues an event.
+
+  * zeekygen/IdentifierInfo: delete duplicate fields (Max Kellermann)
+
+  * main: free the global scope in terminate_bro() (Max Kellermann)
+
+    Make valgrind a bit happier.
+
+  * Scope: pop_scope() returns IntrusivePtr<> (Max Kellermann)
+
+  * Scope: unref all inits in destructor (Max Kellermann)
+
+  * Var: pass IntrusivePtr to add_global(), add_local() etc. (Max Kellermann)
+
+  * plugin/ComponentManager: hold a reference to the EnumType (Max Kellermann)
+
+    Use class IntrusivePtr<>.
+
+  * Type: fix use-after-free bug in VectorType::ShallowClone() (Max Kellermann)
+
+    The new VectorType instance needs a new reference to the `yield_type`.
+
+  * Var: fix crash when redeclaring a function with different args (Max Kellermann)
+
 3.2.0-dev.167 | 2020-02-27 14:24:55 -0800
 
   * Expr: use fmt instead of sprintf (Tim Wojtulewicz, Corelight)

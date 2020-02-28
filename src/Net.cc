@@ -194,7 +194,7 @@ void net_init(const std::optional<std::string>& interface,
 					     writefile, pkt_dumper->ErrorMsg());
 
 		if ( ID* id = global_scope()->Lookup("trace_output_file") )
-			id->SetVal(new StringVal(writefile));
+			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
 			reporter->Error("trace_output_file not defined in bro.init");
 		}

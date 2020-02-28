@@ -5,6 +5,7 @@
 #include "Scope.h"
 #include "Desc.h"
 #include "ID.h"
+#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Reporter.h"
 #include "module_util.h"
@@ -56,7 +57,14 @@ Scope::~Scope()
 
 	Unref(scope_id);
 	Unref(return_type);
-	delete inits;
+
+	if ( inits )
+		{
+		for ( const auto& i : *inits )
+			Unref(i);
+
+		delete inits;
+		}
 	}
 
 ID* Scope::GenerateTemporary(const char* name)
@@ -119,8 +127,9 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
-	      bool same_module_only, bool check_export)
+IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
+                           bool no_global, bool same_module_only,
+                           bool check_export)
 	{
 	string fullname = make_full_var_name(curr_module, name);
 
@@ -137,8 +146,7 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
-			Ref(id);
-			return id;
+			return {NewRef{}, id};
 			}
 		}
 
@@ -148,17 +156,14 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname);
 		if ( id )
-			{
-			Ref(id);
-			return id;
-			}
+			return {NewRef{}, id};
 		}
 
 	return 0;
 	}
 
-ID* install_ID(const char* name, const char* module_name,
-		bool is_global, bool is_export)
+IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
+                            bool is_global, bool is_export)
 	{
 	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
@@ -175,13 +180,14 @@ ID* install_ID(const char* name, const char* module_name,
 
 	string full_name = make_full_var_name(module_name, name);
 
-	ID* id = new ID(full_name.data(), scope, is_export);
+	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
+
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(std::move(full_name), id);
+		global_scope()->Insert(std::move(full_name), IntrusivePtr{id}.release());
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(std::move(full_name), id);
+		top_scope->Insert(std::move(full_name), IntrusivePtr{id}.release());
 		}
 
 	return id;
@@ -198,21 +204,17 @@ void push_scope(ID* id, attr_list* attrs)
 	scopes.push_back(top_scope);
 	}
 
-Scope* pop_scope()
+IntrusivePtr<Scope> pop_scope()
 	{
 	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");
 	scopes.pop_back();
 
 	Scope* old_top = top_scope;
-	// Don't delete the scope; keep it around for later name resolution
-	// in the debugger.
-	// ### SERIOUS MEMORY LEAK!?
-	// delete top_scope;
 
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return old_top;
+	return {AdoptRef{}, old_top};
 	}
 
 Scope* current_scope()

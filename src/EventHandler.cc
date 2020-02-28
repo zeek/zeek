@@ -38,8 +38,8 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( type )
 		return type;
 
-	ID* id = lookup_ID(name, current_module.c_str(), false, false,
-	                   check_export);
+	auto id = lookup_ID(name, current_module.c_str(), false, false,
+	                    check_export);
 
 	if ( ! id )
 		return 0;
@@ -48,8 +48,6 @@ FuncType* EventHandler::FType(bool check_export)
 		return 0;
 
 	type = id->Type()->AsFuncType();
-	Unref(id);
-
 	return type;
 	}
 

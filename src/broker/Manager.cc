@@ -1210,7 +1210,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 		return false;
 		}
 
-	id->SetVal(val.release());
+	id->SetVal(std::move(val));
 	return true;
 	}
 

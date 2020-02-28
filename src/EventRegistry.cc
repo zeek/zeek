@@ -3,16 +3,19 @@
 #include "RE.h"
 #include "Reporter.h"
 
+EventRegistry::EventRegistry() = default;
+EventRegistry::~EventRegistry() noexcept = default;
+
 void EventRegistry::Register(EventHandlerPtr handler)
 	{
-	handlers[string(handler->Name())] = handler.Ptr();
+	handlers[string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
 	}
 
 EventHandler* EventRegistry::Lookup(const string& name)
 	{
 	auto it = handlers.find(name);
 	if ( it != handlers.end() )
-		return it->second;
+		return it->second.get();
 
 	return nullptr;
 	}
@@ -23,7 +26,7 @@ EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)
 
 	for ( const auto& entry : handlers )
 		{
-		EventHandler* v = entry.second;
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && pattern->MatchExactly(v->Name()) )
 			names.push_back(entry.first);
 		}
@@ -37,7 +40,7 @@ EventRegistry::string_list EventRegistry::UnusedHandlers()
 
 	for ( const auto& entry : handlers )
 		{
-		EventHandler* v = entry.second;
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && ! v->Used() )
 			names.push_back(entry.first);
 		}
@@ -51,7 +54,7 @@ EventRegistry::string_list EventRegistry::UsedHandlers()
 
 	for ( const auto& entry : handlers )
 		{
-		EventHandler* v = entry.second;
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && v->Used() )
 			names.push_back(entry.first);
 		}
@@ -75,7 +78,7 @@ void EventRegistry::PrintDebug()
 	{
 	for ( const auto& entry : handlers )
 		{
-		EventHandler* v = entry.second;
+		EventHandler* v = entry.second.get();
 		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
 				v->LocalHandler()? "local" : "no",
 				*v ? "active" : "not active"

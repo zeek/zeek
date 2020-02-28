@@ -699,16 +699,16 @@ extern OpaqueType* x509_opaque_type;
 extern OpaqueType* ocsp_resp_opaque_type;
 extern OpaqueType* paraglob_type;
 
-// Returns the Bro basic (non-parameterized) type with the given type.
+// Returns the basic (non-parameterized) type with the given type.
 // The reference count of the type is not increased.
 BroType* base_type_no_ref(TypeTag tag);
 
-// Returns the BRO basic (non-parameterized) type with the given type.
+// Returns the basic (non-parameterized) type with the given type.
 // The caller assumes responsibility for a reference to the type.
 inline BroType* base_type(TypeTag tag)
 	{ return base_type_no_ref(tag)->Ref(); }
 
-// Returns the BRO basic error type.
+// Returns the basic error type.
 inline BroType* error_type()	{ return base_type(TYPE_ERROR); }
 
 // True if the two types are equivalent.  If is_init is true then the test is

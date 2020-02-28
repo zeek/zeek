@@ -973,7 +973,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			{
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = 0;
-			Val* c = nullptr;
+			IntrusivePtr<Val> c;
 			TypeTag ty = rec->FieldType(i)->Tag();
 			TypeTag st = TYPE_VOID;
 			bool optional = false;
@@ -1001,7 +1001,6 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				optional = true;
 
 			Field* field = new Field(name.c_str(), secondary, ty, st, optional);
-			Unref(c);
 			fields->push_back(field);
 			}
 		}
@@ -2622,7 +2621,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 		// let's try looking it up by global ID.
-		ID* id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+		auto id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
 		if ( ! id || ! id->IsEnumConst() )
 			{
 			Warning(i, "Value '%s' for stream '%s' is not a valid enum.",

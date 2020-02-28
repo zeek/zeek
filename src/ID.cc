@@ -26,9 +26,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	scope = arg_scope;
 	is_export = arg_is_export;
 	is_option = false;
-	type = 0;
 	val = 0;
-	attrs = 0;
 	is_const = false;
 	is_enum_const = false;
 	is_type = false;
@@ -43,11 +41,6 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 ID::~ID()
 	{
 	delete [] name;
-	Unref(type);
-	Unref(attrs);
-
-	for ( auto element : option_handlers )
-		Unref(element.second);
 
 	if ( ! weak_ref )
 		Unref(val);
@@ -58,9 +51,9 @@ string ID::ModuleName() const
 	return extract_module_name(name);
 	}
 
-void ID::SetType(BroType* t)
+void ID::SetType(IntrusivePtr<BroType> t)
 	{
-	Unref(type); type = t;
+	type = std::move(t);
 	}
 
 void ID::ClearVal()
@@ -71,12 +64,12 @@ void ID::ClearVal()
 	val = 0;
 	}
 
-void ID::SetVal(Val* v, bool arg_weak_ref)
+void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
 	{
 	if ( ! weak_ref )
 		Unref(val);
 
-	val = v;
+	val = v.release();
 	weak_ref = arg_weak_ref;
 	Modified();
 
@@ -104,11 +97,11 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 		}
 	}
 
-void ID::SetVal(Val* v, init_class c)
+void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 	{
 	if ( c == INIT_NONE || c == INIT_FULL )
 		{
-		SetVal(v);
+		SetVal(std::move(v));
 		return;
 		}
 
@@ -117,9 +110,9 @@ void ID::SetVal(Val* v, init_class c)
 	     (type->Tag() != TYPE_VECTOR  || c == INIT_REMOVE) )
 		{
 		if ( c == INIT_EXTRA )
-			Error("+= initializer only applies to tables, sets, vectors and patterns", v);
+			Error("+= initializer only applies to tables, sets, vectors and patterns", v.get());
 		else
-			Error("-= initializer only applies to tables and sets", v);
+			Error("-= initializer only applies to tables and sets", v.get());
 		}
 
 	else
@@ -128,7 +121,7 @@ void ID::SetVal(Val* v, init_class c)
 			{
 			if ( ! val )
 				{
-				SetVal(v);
+				SetVal(std::move(v));
 				return;
 				}
 			else
@@ -140,11 +133,9 @@ void ID::SetVal(Val* v, init_class c)
 				v->RemoveFrom(val);
 			}
 		}
-
-	Unref(v);
 	}
 
-void ID::SetVal(Expr* ev, init_class c)
+void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	{
 	Attr* a = attrs->FindAttr(c == INIT_EXTRA ?
 					ATTR_ADD_FUNC : ATTR_DEL_FUNC);
@@ -152,7 +143,7 @@ void ID::SetVal(Expr* ev, init_class c)
 	if ( ! a )
 		Internal("no add/delete function in ID::SetVal");
 
-	EvalFunc(a->AttrExpr(), ev);
+	EvalFunc({NewRef{}, a->AttrExpr()}, std::move(ev));
 	}
 
 bool ID::IsRedefinable() const
@@ -160,11 +151,10 @@ bool ID::IsRedefinable() const
 	return FindAttr(ATTR_REDEF) != 0;
 	}
 
-void ID::SetAttrs(Attributes* a)
+void ID::SetAttrs(IntrusivePtr<Attributes> a)
 	{
-	Unref(attrs);
 	attrs = 0;
-	AddAttrs(a);
+	AddAttrs(std::move(a));
 	}
 
 void ID::UpdateValAttrs()
@@ -173,10 +163,10 @@ void ID::UpdateValAttrs()
 		return;
 
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
-		val->AsTableVal()->SetAttrs(attrs);
+		val->AsTableVal()->SetAttrs(attrs.get());
 
 	if ( val && val->Type()->Tag() == TYPE_FILE )
-		val->AsFile()->SetAttrs(attrs);
+		val->AsFile()->SetAttrs(attrs.get());
 
 	if ( Type()->Tag() == TYPE_FUNC )
 		{
@@ -222,7 +212,7 @@ void ID::MakeDeprecated(Expr* deprecation)
 		return;
 
 	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
-	AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
+	AddAttrs(make_intrusive<Attributes>(attr, Type(), false, IsGlobal()));
 	}
 
 string ID::GetDeprecationWarning() const
@@ -245,12 +235,12 @@ string ID::GetDeprecationWarning() const
 		return fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
-void ID::AddAttrs(Attributes* a)
+void ID::AddAttrs(IntrusivePtr<Attributes> a)
 	{
 	if ( attrs )
-		attrs->AddAttrs(a);
+		attrs->AddAttrs(a.release());
 	else
-		attrs = a;
+		attrs = std::move(a);
 
 	UpdateValAttrs();
 	}
@@ -272,54 +262,19 @@ void ID::SetOption()
 	if ( ! IsRedefinable() )
 		{
 		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
+		AddAttrs(make_intrusive<Attributes>(attr, Type(), false, IsGlobal()));
 		}
 	}
 
-void ID::EvalFunc(Expr* ef, Expr* ev)
+void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
 	{
-	Expr* arg1 = new ConstExpr(val->Ref());
-	ListExpr* args = new ListExpr();
-	args->Append(arg1);
-	args->Append(ev->Ref());
-
-	CallExpr* ce = new CallExpr(ef->Ref(), args);
-
-	SetVal(ce->Eval(0));
-	Unref(ce);
+	auto arg1 = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, val});
+	auto args = make_intrusive<ListExpr>();
+	args->Append(std::move(arg1));
+	args->Append(std::move(ev));
+	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
+	SetVal(ce->Eval(nullptr));
 	}
-
-#if 0
-void ID::CopyFrom(const ID* id)
-	{
-	is_export = id->is_export;
-	is_const = id->is_const;
-	is_enum_const = id->is_enum_const;
-	is_type = id->is_type;
-	offset = id->offset ;
-	infer_return_type = id->infer_return_type;
-
-	if ( id->type )
-		Ref(id->type);
-	if ( id->val && ! id->weak_ref )
-		Ref(id->val);
-	if ( id->attrs )
-		Ref(id->attrs);
-
-	Unref(type);
-	Unref(attrs);
-	if ( ! weak_ref )
-		Unref(val);
-
-	type = id->type;
-	val = id->val;
-	attrs = id->attrs;
-	weak_ref = id->weak_ref;
-
-#ifdef DEBUG
-	UpdateValID();
-#endif
-#endif
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const
 	{
@@ -359,7 +314,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 void ID::Error(const char* msg, const BroObj* o2)
 	{
 	BroObj::Error(msg, o2, 1);
-	SetType(error_type());
+	SetType({AdoptRef{}, error_type()});
 	}
 
 void ID::Describe(ODesc* d) const
@@ -582,9 +537,9 @@ void ID::UpdateValID()
 	}
 #endif
 
-void ID::AddOptionHandler(Func* callback, int priority)
+void ID::AddOptionHandler(IntrusivePtr<Func> callback, int priority)
 	{
-	option_handlers.insert({priority, callback});
+	option_handlers.emplace(priority, std::move(callback));
 	}
 
 vector<Func*> ID::GetOptionHandlers() const
@@ -594,6 +549,6 @@ vector<Func*> ID::GetOptionHandlers() const
 	// a lot...
 	vector<Func*> v;
 	for ( auto& element : option_handlers )
-		v.push_back(element.second);
+		v.push_back(element.second.get());
 	return v;
 	}

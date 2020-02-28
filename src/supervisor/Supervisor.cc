@@ -1233,7 +1233,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		cluster_nodes->Assign(key.get(), val.release());
 		}
 
-	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
+	cluster_manager_is_logger_id->SetVal({AdoptRef{}, val_mgr->GetBool(! has_logger)});
 	return true;
 	}
 

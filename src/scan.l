@@ -20,6 +20,7 @@
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
+#include "IntrusivePtr.h"
 #include "Val.h"
 #include "Var.h"
 #include "Debug.h"
@@ -746,10 +747,10 @@ void do_atif(Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	Val* val = 0;
+	IntrusivePtr<Val> val;
 
 	if ( cb.local_names.empty() )
-		val = expr->Eval(0);
+		val = expr->Eval(nullptr);
 	else
 		{
 		for ( size_t i = 0; i < cb.local_names.size(); ++i )
@@ -767,38 +768,32 @@ void do_atif(Expr* expr)
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(val);
 	}
 
 void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( ! (i = lookup_ID(id, current_module.c_str())) )
+	if ( ! i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( (i = lookup_ID(id, current_module.c_str())) )
+	if ( i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atelse()

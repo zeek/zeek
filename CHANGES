@@ -1,4 +1,8 @@
 
+3.0.3-dev.3 | 2020-02-28 17:39:18 -0800
+
+  * Pop global frame stack on exception. (Johanna Amann, Corelight)
+
 3.0.3-dev.1 | 2020-02-25 12:16:01 -0800
 
   * Update documentation to release/3.0 branch (Jon Siwek, Corelight)

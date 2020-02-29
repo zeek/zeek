@@ -1,4 +1,20 @@
 
+3.1.1-dev.6 | 2020-03-09 13:22:16 -0700
+
+  * GH-831: Fix the "bro" symlink for binary packaging mode (Jon Siwek, Corelight)
+
+    Creating a "bro" symlink inside the build tree was just to support older
+    packages/plugins that depended on the build tree, but that's never
+    available to users in the context of binary packages anyway and also has
+    the negative effect of clobberring what a previous InstallSymlink() call
+    intended to use for that symlink in binary packaging mode.
+
+  * Update embedded Broker to v1.3.1 (Jon Siwek, Corelight)
+
+    Resolves a race condition in Broker data store operations that
+    ultimately results in the Zeek process having higher CPU load than it
+    should.
+
 3.1.1-dev.4 | 2020-03-05 20:08:46 -0800
 
   * Install full rapidjson include tree (Jon Siwek, Corelight)

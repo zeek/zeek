@@ -1,4 +1,20 @@
 
+3.0.3-dev.5 | 2020-03-09 13:22:11 -0700
+
+  * GH-831: Fix the "bro" symlink for binary packaging mode (Jon Siwek, Corelight)
+
+    Creating a "bro" symlink inside the build tree was just to support older
+    packages/plugins that depended on the build tree, but that's never
+    available to users in the context of binary packages anyway and also has
+    the negative effect of clobberring what a previous InstallSymlink() call
+    intended to use for that symlink in binary packaging mode.
+
+  * Update embedded Broker to v1.2.6 (Jon Siwek, Corelight)
+
+    Resolves a race condition in Broker data store operations that
+    ultimately results in the Zeek process having higher CPU load than it
+    should.
+
 3.0.3-dev.3 | 2020-02-28 17:39:18 -0800
 
   * Pop global frame stack on exception. (Johanna Amann, Corelight)

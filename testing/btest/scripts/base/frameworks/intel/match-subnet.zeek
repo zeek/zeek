@@ -31,7 +31,7 @@ event do_it()
 
 event zeek_init() &priority=-10
 	{
-	schedule 1sec { do_it() };
+	schedule 4sec { do_it() };
 	}
 
 global log_lines = 0;

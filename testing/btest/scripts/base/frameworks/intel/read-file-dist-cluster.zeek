@@ -50,7 +50,7 @@ event zeek_init()
 	# Delay the workers searching for hits briefly to allow for the data distribution
 	# mechanism to distribute the data to the workers.
 	if ( Cluster::local_node_type() == Cluster::WORKER )
-		schedule 2sec { do_it() };
+		schedule 4sec { do_it() };
 	}
 
 event do_terminate()

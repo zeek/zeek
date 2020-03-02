@@ -62,7 +62,7 @@ public:
 		ASSERT_VALID(this);
 		if( robust )
 			{
-			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this));
+			d->cookies->erase(std::remove(d->cookies->begin(), d->cookies->end(), this),d->cookies->end());
 			delete inserted;
 			delete visited;
 			}
@@ -146,24 +146,6 @@ int Dictionary::BucketByPosition(int position) const
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //Cluster Math
 ////////////////////////////////////////////////////////////////////////////////////////////////
-int Dictionary::HeadOfClusterByBucket(int bucket) const
-	{
-	ASSERT(bucket>=0 && bucket < Buckets());
-	int i = bucket;
-	for (; i < Capacity() && ! table[i].Empty() && BucketByPosition(i) < bucket; i++)
-		if ( BucketByPosition(i) == bucket )
-			return i;
-
-	return -1;
-	}
-
-int Dictionary::TailOfClusterByBucket(int bucket) const
-	{
-	int end = EndOfClusterByBucket(bucket);
-	if ( end - 1 >= 0 && ! table[end-1].Empty() && BucketByPosition(end - 1) == bucket )
-		return end - 1;
-	return -1;
-	}
 
 int Dictionary::EndOfClusterByBucket(int bucket) const
 	{
@@ -272,9 +254,9 @@ void Dictionary::AssertValid() const
 	}
 #endif//DEBUG
 
-unsigned int Dictionary::MemoryAllocation() const
+size_t Dictionary::MemoryAllocation() const
 	{
-	int size = padded_sizeof(*this);
+	size_t size = padded_sizeof(*this);
 	if ( table )
 		{
 		size += pad_size(Capacity() * sizeof(DictEntry));
@@ -313,25 +295,25 @@ void Dictionary::DumpKeys() const
 	DistanceStats(max_distance);
 	if( binary )
 		{
-		sprintf(key_file, "%d.%d.%d-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
-		ofstream f(key_file, ios::binary|ios::out|ios::trunc);
-		for (int i = 0; i < Capacity(); i++ )
-			if ( ! table[i].Empty() )
+		sprintf(key_file, "%d.%d.%lu-%c.key", Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		std::ofstream f(key_file, std::ios::binary|std::ios::out|std::ios::trunc);
+		for ( int idx = 0; idx < Capacity(); idx++ )
+			if ( ! table[idx].Empty() )
 				{
-				int key_size = table[i].key_size;
+				int key_size = table[idx].key_size;
 				f.write((const char*)&key_size, sizeof(int));
-				f.write(table[i].GetKey(), table[i].key_size);
+				f.write(table[idx].GetKey(), table[idx].key_size);
 				}
 		}
 	else
 		{
-		sprintf(key_file, "%d.%d.%d-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
-		ofstream f(key_file, ios::out|ios::trunc);
-		for ( int i = 0; i < Capacity(); i++ )
-			if ( ! table[i].Empty() )
+		sprintf(key_file, "%d.%d.%lu-%d.ckey",Length(), max_distance, MemoryAllocation()/Length(), rand()%26 + 'A');
+		std::ofstream f(key_file, std::ios::out|std::ios::trunc);
+		for ( int idx = 0; idx < Capacity(); idx++ )
+			if ( ! table[idx].Empty() )
 				{
-				string s((char*)table[i].GetKey(), table[i].key_size);
-				f << s << endl;
+				std::string s((char*)table[idx].GetKey(), table[idx].key_size);
+				f << s << std::endl;
 				}
 		}
 	}
@@ -360,8 +342,6 @@ void Dictionary::DistanceStats(int& max_distance, int* distances, int num_distan
 void Dictionary::Dump(int level) const
 	{
 	int key_size = 0;
-	uint64_t val_size = 0;
-	uint64_t connval_size = 0;
 	for (int i=0; i<Capacity(); i++)
 		{
 		if ( table[i].Empty() )
@@ -375,8 +355,8 @@ void Dictionary::Dump(int level) const
 	int distances[DICT_NUM_DISTANCES];
 	int max_distance = 0;
 	DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
-	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %'10d mem/ent %3d key/ent %3d lg %2d remaps %1d remap_end %4d ",
-		Capacity(), Length(), MaxLength(), (float)Length()/(table? Capacity() : 1),
+	printf("cap %'7d ent %'7d %'-7d load %.2f max_dist %2d mem %10zu mem/ent %3lu key/ent %3d lg %2d remaps %1d remap_end %4d ",
+		Capacity(), Length(), MaxLength(), (double)Length()/(table? Capacity() : 1),
 		max_distance, MemoryAllocation(), (MemoryAllocation())/(Length()?Length():1), key_size / (Length()?Length():1),
 		log2_buckets, remaps, remap_end);
 	if ( Length() > 0 )
@@ -396,7 +376,7 @@ void Dictionary::Dump(int level) const
 			if ( table[i].Empty() )
 				printf("%'10d \n", i);
 			else
-				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016lx(%3d) %2d\n",
+				printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016llx(%3d) %2d\n",
 					i, (i<=remap_end? "*":  ""), BucketByPosition(i), (int)table[i].distance, OffsetInClusterByPosition(i),
 					uint(table[i].hash), FibHash(table[i].hash), (int)FibHash(table[i].hash)&0xFF, (int)table[i].key_size);
 		}
@@ -407,12 +387,6 @@ void Dictionary::Dump(int level) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Dictionary::Dictionary(dict_order ordering, int initial_size)
 	{
-#ifdef DEBUG
-	int sz = sizeof(*this);
-	int psz = padded_sizeof(*this);
-	int dsz = sizeof(DictEntry);
-#endif
-
 	if ( initial_size > 0 )
 		{
 		// If an initial size is speicified, init the table right away. Otherwise wait until the
@@ -510,10 +484,10 @@ int Dictionary::LinearLookupIndex(const void* key, int key_size, hash_t hash) co
 int Dictionary::LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position, int* insert_distance)
 	{
 	ASSERT_VALID(this);
-	int bucket = BucketByHash(hash, log2_buckets);
-	int distance = 0;
 	if ( ! table)
 		return -1;
+
+	int bucket = BucketByHash(hash, log2_buckets);
 #ifdef DEBUG
 	int linear_position = LinearLookupIndex(key, key_size, hash);
 #endif//DEBUG
@@ -760,7 +734,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash, bool dont_d
 	ASSERT(num_entries >= 0);
 	//e is about to be invalid. remove it from all references.
 	if ( order )
-		order->erase(std::remove(order->begin(), order->end(), entry));
+		order->erase(std::remove(order->begin(), order->end(), entry), order->end());
 
 	void* v = entry.value;
 	entry.Clear();

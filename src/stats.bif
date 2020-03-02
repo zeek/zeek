@@ -470,7 +470,7 @@ function get_reporter_stats%(%): ReporterStats
 	RecordVal* r = new RecordVal(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal(internal_type("table_string_of_count")->AsTableType());
+	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{

@@ -1666,7 +1666,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			v = new VectorVal(t->AsVectorType());
 			break;
 		case TYPE_TABLE:
-			v = new TableVal(t->AsTableType(), aggr->Attrs());
+			v = new TableVal({NewRef{}, t->AsTableType()}, {NewRef{}, aggr->Attrs()});
 			break;
 		default:
 			break;

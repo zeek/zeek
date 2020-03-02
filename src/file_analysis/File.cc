@@ -25,10 +25,8 @@ static Val* empty_connection_table()
 	{
 	TypeList* tbl_index = new TypeList(conn_id);
 	tbl_index->Append(conn_id->Ref());
-	TableType* tbl_type = new TableType(tbl_index, connection_type->Ref());
-	Val* rval = new TableVal(tbl_type);
-	Unref(tbl_type);
-	return rval;
+	auto tbl_type = make_intrusive<TableType>(tbl_index, connection_type->Ref());
+	return new TableVal(std::move(tbl_type));
 	}
 
 static RecordVal* get_conn_id_val(const Connection* conn)

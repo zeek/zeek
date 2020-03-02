@@ -101,8 +101,8 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		     val->Type()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
-			auto tv = new TableVal(i->Type()->AsTableType(),
-			                       i->ID_Val()->AsTableVal()->Attrs());
+			auto tv = new TableVal({NewRef{}, i->Type()->AsTableType()},
+			                       {NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
 			auto rval = call_option_handlers_and_set_value(ID, i, tv, location);
 			Unref(tv);
 			return val_mgr->GetBool(rval);

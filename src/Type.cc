@@ -808,7 +808,7 @@ static string container_type_name(const BroType* ft)
 
 IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
-	auto rval = make_intrusive<TableVal>(internal_type("record_field_table")->AsTableType());
+	auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{

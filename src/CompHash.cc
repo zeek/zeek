@@ -952,7 +952,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			TableType* tt = t->AsTableType();
-			auto tv = make_intrusive<TableVal>(tt);
+			auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 			vector<Val*> keys, values;
 			for ( int i = 0; i < n; ++i )
 				{

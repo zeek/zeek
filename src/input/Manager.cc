@@ -2379,8 +2379,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		BroType* type = request_type->AsTableType()->Indices()->PureType();
 		TypeList* set_index = new TypeList(type->Ref());
 		set_index->Append(type->Ref());
-		SetType* s = new SetType(set_index, 0);
-		TableVal* t = new TableVal(s);
+		auto s = make_intrusive<SetType>(set_index, nullptr);
+		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type, have_error);
@@ -2389,7 +2389,6 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			Unref(assignval); // index is not consumed by assign.
 			}
 
-		Unref(s);
 		return t;
 		}
 
@@ -2562,8 +2561,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			set_index->Append(index_type->Ref());
 			}
 
-		SetType* s = new SetType(set_index, 0);
-		TableVal* t = new TableVal(s);
+		auto s = make_intrusive<SetType>(set_index, nullptr);
+		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], have_error);
@@ -2572,7 +2571,6 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			Unref(assignval); // index is not consumed by assign.
 			}
 
-		Unref(s);
 		return t;
 		}
 

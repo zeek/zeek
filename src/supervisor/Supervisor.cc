@@ -1131,7 +1131,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	auto tt = BifType::Record::Supervisor::NodeConfig->FieldType("cluster");
-	auto cluster_val = new TableVal(tt->AsTableType());
+	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
 	for ( const auto& e : cluster )
@@ -1315,7 +1315,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 	{
 	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
 	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
-	auto node_table_val = new TableVal(tt->AsTableType());
+	auto node_table_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )

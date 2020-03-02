@@ -270,7 +270,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			TableVal* set = new TableVal(string_set);
+			TableVal* set = new TableVal({NewRef{}, string_set});
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
@@ -463,7 +463,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			TableVal* set = new TableVal(string_set);
+			TableVal* set = new TableVal({NewRef{}, string_set});
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
@@ -841,7 +841,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		TableVal* list = new TableVal(irc_join_list);
+		TableVal* list = new TableVal({NewRef{}, irc_join_list});
 
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
@@ -886,7 +886,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-		TableVal* list = new TableVal(irc_join_list);
+		TableVal* list = new TableVal({NewRef{}, irc_join_list});
 
 		string empty_string = "";
 
@@ -957,7 +957,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(0, pos);
 
 		vector<string> channelList = SplitWords(channels, ',');
-		TableVal* set = new TableVal(string_set);
+		TableVal* set = new TableVal({NewRef{}, string_set});
 
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{

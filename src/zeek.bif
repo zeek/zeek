@@ -1919,7 +1919,7 @@ function packet_source%(%): PacketSource
 ## .. zeek:see:: global_ids
 function global_sizes%(%): var_sizes
 	%{
-	TableVal* sizes = new TableVal(var_sizes);
+	TableVal* sizes = new TableVal({NewRef{}, var_sizes});
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
@@ -1947,7 +1947,7 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	TableVal* ids = new TableVal(id_table);
+	TableVal* ids = new TableVal({NewRef{}, id_table});
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
@@ -2009,7 +2009,7 @@ function record_fields%(rec: any%): record_field_table
 		if ( ! id || ! id->AsType() || id->AsType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
-			return new TableVal(internal_type("record_field_table")->AsTableType());
+			return new TableVal({NewRef{}, internal_type("record_field_table")->AsTableType()});
 			}
 
 		return id->AsType()->AsRecordType()->GetRecordFieldsVal().release();
@@ -3327,7 +3327,7 @@ function lookup_connection%(cid: conn_id%): connection
 
 	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
 	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
-	c->Assign(5, make_intrusive<TableVal>(string_set));	// service
+	c->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
 	c->Assign(6, val_mgr->GetEmptyString());	// history
 
 	return c;

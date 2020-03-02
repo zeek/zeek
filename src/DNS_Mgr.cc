@@ -175,8 +175,8 @@ static TableVal* empty_addr_set()
 	BroType* addr_t = base_type(TYPE_ADDR);
 	TypeList* set_index = new TypeList(addr_t);
 	set_index->Append(addr_t);
-	SetType* s = new SetType(set_index, 0);
-	return new TableVal(s);
+	auto s = make_intrusive<SetType>(set_index, nullptr);
+	return new TableVal(std::move(s));
 	}
 
 DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)

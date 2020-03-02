@@ -168,7 +168,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(t->AsTableType(), id->Attrs());
+				aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, t->AsTableType()}, IntrusivePtr{NewRef{}, id->Attrs()});
 
 			else if ( t->Tag() == TYPE_VECTOR )
 				aggr = make_intrusive<VectorVal>(t->AsVectorType());

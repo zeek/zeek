@@ -208,7 +208,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(tt);
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{
@@ -268,7 +268,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = make_intrusive<TableVal>(tt);
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{

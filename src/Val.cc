@@ -410,7 +410,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return make_intrusive<TableVal>(internal_type("record_field_table")->AsTableType());
+		return make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
 		}
 
 	RecordType* rt = nullptr;
@@ -428,7 +428,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return make_intrusive<TableVal>(internal_type("record_field_table")->AsTableType());
+			return make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
 			}
 
 		rt = t->AsRecordType();
@@ -1236,13 +1236,12 @@ TableVal* ListVal::ConvertToSet() const
 
 	TypeList* set_index = new TypeList(type->AsTypeList()->PureType());
 	set_index->Append(base_type(tag));
-	SetType* s = new SetType(set_index, 0);
-	TableVal* t = new TableVal(s);
+	auto s = make_intrusive<SetType>(set_index, nullptr);
+	TableVal* t = new TableVal(std::move(s));
 
 	for ( const auto& val : vals )
 		t->Assign(val, 0);
 
-	Unref(s);
 	return t;
 	}
 
@@ -1326,23 +1325,22 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-TableVal::TableVal(TableType* t, Attributes* a) : Val(t)
+TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(t.get())
 	{
-	Init(t);
-	SetAttrs(a);
+	Init(std::move(t));
+	SetAttrs(std::move(a));
 	}
 
-void TableVal::Init(TableType* t)
+void TableVal::Init(IntrusivePtr<TableType> t)
 	{
-	::Ref(t);
-	table_type = t;
+	table_type = std::move(t);
 	expire_func = 0;
 	expire_time = 0;
 	expire_cookie = 0;
 	timer = 0;
 	def_val = 0;
 
-	if ( t->IsSubNetIndex() )
+	if ( table_type->IsSubNetIndex() )
 		subnets = new PrefixTable;
 	else
 		subnets = 0;
@@ -1358,15 +1356,9 @@ TableVal::~TableVal()
 	if ( timer )
 		timer_mgr->Cancel(timer);
 
-	Unref(table_type);
 	delete table_hash;
 	delete AsTable();
 	delete subnets;
-	Unref(attrs);
-	Unref(def_val);
-	Unref(expire_func);
-	Unref(expire_time);
-	Unref(change_func);
 	}
 
 void TableVal::RemoveAll()
@@ -1404,14 +1396,12 @@ int TableVal::RecursiveSize() const
 	return n;
 	}
 
-void TableVal::SetAttrs(Attributes* a)
+void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 	{
-	attrs = a;
+	attrs = std::move(a);
 
-	if ( ! a )
+	if ( ! attrs )
 		return;
-
-	::Ref(attrs);
 
 	CheckExpireAttr(ATTR_EXPIRE_READ);
 	CheckExpireAttr(ATTR_EXPIRE_WRITE);
@@ -1420,14 +1410,12 @@ void TableVal::SetAttrs(Attributes* a)
 	Attr* ef = attrs->FindAttr(ATTR_EXPIRE_FUNC);
 	if ( ef )
 		{
-		expire_func = ef->AttrExpr();
-		expire_func->Ref();
+		expire_func = {NewRef{}, ef->AttrExpr()};
 		}
 	auto cf = attrs->FindAttr(ATTR_ON_CHANGE);
 	if ( cf )
 		{
-		change_func = cf->AttrExpr();
-		change_func->Ref();
+		change_func = {NewRef{}, cf->AttrExpr()};
 		}
 	}
 
@@ -1437,8 +1425,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 	if ( a )
 		{
-		expire_time = a->AttrExpr();
-		expire_time->Ref();
+		expire_time = {NewRef{}, a->AttrExpr()};
 
 		if ( expire_time->Type()->Tag() != TYPE_INTERVAL )
 			{
@@ -1772,11 +1759,11 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 			auto coerce = make_intrusive<RecordCoerceExpr>(
 			        IntrusivePtr{NewRef{}, def_attr->AttrExpr()},
 			        IntrusivePtr{NewRef{}, ytype->AsRecordType()});
-			def_val = coerce->Eval(0).release();
+			def_val = coerce->Eval(0);
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(0).release();
+			def_val = def_attr->AttrExpr()->Eval(0);
 		}
 
 	if ( ! def_val )
@@ -1789,7 +1776,7 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 	     same_type(def_val->Type(), Type()->YieldType()) )
 		{
 		if ( def_attr->AttrExpr()->IsConst() )
-			return {NewRef{}, def_val};
+			return def_val;
 
 		try
 			{
@@ -1900,7 +1887,7 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnetValues called on wrong table type");
 
-	auto nt = make_intrusive<TableVal>(this->Type()->Ref()->AsTableType());
+	auto nt = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, this->Type()->AsTableType()});
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
@@ -2252,7 +2239,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
 
-	def_val = def_attr->AttrExpr()->Eval(f).release();
+	def_val = def_attr->AttrExpr()->Eval(f);
 	}
 
 void TableVal::InitTimer(double delay)
@@ -2497,15 +2484,11 @@ IntrusivePtr<Val> TableVal::DoClone(CloneState* state)
 		delete key;
 		}
 
-	if ( attrs )
-		{
-		::Ref(attrs);
-		tv->attrs = attrs;
-		}
+	tv->attrs = attrs;
 
 	if ( expire_time )
 		{
-		tv->expire_time = expire_time->Ref();
+		tv->expire_time = expire_time;
 
 		// As network_time is not necessarily initialized yet, we set
 		// a timer which fires immediately.
@@ -2514,10 +2497,10 @@ IntrusivePtr<Val> TableVal::DoClone(CloneState* state)
 		}
 
 	if ( expire_func )
-		tv->expire_func = expire_func->Ref();
+		tv->expire_func = expire_func;
 
 	if ( def_val )
-		tv->def_val = def_val->Clone().release();
+		tv->def_val = def_val->Clone();
 
 	return tv;
 	}
@@ -2591,7 +2574,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 				def = make_intrusive<RecordVal>(type->AsRecordType());
 
 			else if ( tag == TYPE_TABLE )
-				def = make_intrusive<TableVal>(type->AsTableType(), a);
+				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()}, IntrusivePtr{NewRef{}, a});
 
 			else if ( tag == TYPE_VECTOR )
 				def = make_intrusive<VectorVal>(type->AsVectorType());

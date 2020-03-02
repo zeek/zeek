@@ -25,7 +25,7 @@ refine flow File += {
 	function characteristics_to_bro(c: uint32, len: uint8): TableVal
 		%{
 		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal(internal_type("count_set")->AsTableType());
+		TableVal* char_set = new TableVal({NewRef{}, internal_type("count_set")->AsTableType()});
 		for ( uint16 i=0; i < len; ++i )
 			{
 			if ( ((c >> i) & 0x1) == 1 )

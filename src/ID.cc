@@ -163,7 +163,7 @@ void ID::UpdateValAttrs()
 		return;
 
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
-		val->AsTableVal()->SetAttrs(attrs.get());
+		val->AsTableVal()->SetAttrs(attrs);
 
 	if ( val && val->Type()->Tag() == TYPE_FILE )
 		val->AsFile()->SetAttrs(attrs.get());

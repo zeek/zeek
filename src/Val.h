@@ -693,7 +693,7 @@ class Frame;
 
 class TableVal : public Val, public notifier::Modifiable {
 public:
-	explicit TableVal(TableType* t, Attributes* attrs = 0);
+	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	~TableVal() override;
 
 	// Returns true if the assignment typechecked, false if not. The
@@ -776,9 +776,9 @@ public:
 	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
 	ListVal* ConvertToPureList() const;	// must be single index type
 
-	void SetAttrs(Attributes* attrs);
+	void SetAttrs(IntrusivePtr<Attributes> attrs);
 	Attr* FindAttr(attr_tag t) const;
-	Attributes* Attrs()	{ return attrs; }
+	Attributes* Attrs()	{ return attrs.get(); }
 
 	// Returns the size of the table.
 	int Size() const;
@@ -812,7 +812,7 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 protected:
-	void Init(TableType* t);
+	void Init(IntrusivePtr<TableType> t);
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
@@ -841,16 +841,16 @@ protected:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	TableType* table_type;
+	IntrusivePtr<TableType> table_type;
 	CompositeHash* table_hash;
-	Attributes* attrs;
-	Expr* expire_time;
-	Expr* expire_func;
+	IntrusivePtr<Attributes> attrs;
+	IntrusivePtr<Expr> expire_time;
+	IntrusivePtr<Expr> expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
-	Val* def_val;
-	Expr* change_func = nullptr;
+	IntrusivePtr<Val> def_val;
+	IntrusivePtr<Expr> change_func;
 	// prevent recursion of change functions
 	bool in_change_func = false;
 };

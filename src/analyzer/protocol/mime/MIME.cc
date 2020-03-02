@@ -1299,7 +1299,7 @@ RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{
-	TableVal* t = new TableVal(mime_header_list);
+	TableVal* t = new TableVal({NewRef{}, mime_header_list});
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{

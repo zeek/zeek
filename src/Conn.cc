@@ -366,7 +366,7 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(1, std::move(orig_endp));
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(string_set));	// service
+		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
 		conn_val->Assign(6, val_mgr->GetEmptyString());	// history
 
 		if ( ! uid )

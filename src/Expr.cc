@@ -3165,7 +3165,7 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(Type()->AsTableType(), attrs);
+	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, Type()->AsTableType()}, IntrusivePtr{NewRef{}, attrs});
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3184,7 +3184,7 @@ IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<V
 	TableType* tt = Type()->AsTableType();
 	auto tval = aggr ?
 	        IntrusivePtr<TableVal>{AdoptRef{}, aggr.release()->AsTableVal()} :
-	        make_intrusive<TableVal>(tt, attrs);
+	        make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt}, IntrusivePtr{NewRef{}, attrs});
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3273,7 +3273,7 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(type->AsTableType(), attrs);
+	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()}, IntrusivePtr{NewRef{}, attrs});
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3294,7 +3294,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 	TableType* tt = Type()->AsTableType();
 	auto tval = aggr ?
 	        IntrusivePtr<TableVal>{AdoptRef{}, aggr.release()->AsTableVal()} :
-	        make_intrusive<TableVal>(tt, attrs);
+	        make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt}, IntrusivePtr{NewRef{}, attrs});
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& e : exprs )
@@ -3790,7 +3790,7 @@ IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
 	if ( tv->Size() > 0 )
 		RuntimeErrorWithCallStack("coercion of non-empty table/set");
 
-	return make_intrusive<TableVal>(Type()->AsTableType(), tv->Attrs());
+	return make_intrusive<TableVal>(IntrusivePtr{NewRef{}, Type()->AsTableType()}, IntrusivePtr{NewRef{}, tv->Attrs()});
 	}
 
 VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,

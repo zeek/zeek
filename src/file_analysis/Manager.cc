@@ -449,16 +449,13 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 		disabled = internal_const_val("Files::disable")->AsTableVal();
 
 	Val* index = val_mgr->GetCount(bool(tag));
-	Val* yield = disabled->Lookup(index);
+	auto yield = disabled->Lookup(index);
 	Unref(index);
 
 	if ( ! yield )
 		return false;
 
-	bool rval = yield->AsBool();
-	Unref(yield);
-
-	return rval;
+	return yield->AsBool();
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const

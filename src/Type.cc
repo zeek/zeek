@@ -806,9 +806,9 @@ static string container_type_name(const BroType* ft)
 	return s;
 	}
 
-TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
+IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
-	auto rval = new TableVal(internal_type("record_field_table")->AsTableType());
+	auto rval = make_intrusive<TableVal>(internal_type("record_field_table")->AsTableType());
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
@@ -1252,7 +1252,7 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-EnumVal* EnumType::GetVal(bro_int_t i)
+IntrusivePtr<EnumVal> EnumType::GetVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
 	EnumVal* rval;
@@ -1265,8 +1265,7 @@ EnumVal* EnumType::GetVal(bro_int_t i)
 	else
 		rval = it->second;
 
-	::Ref(rval);
-	return rval;
+	return {NewRef{}, rval};
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

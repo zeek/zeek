@@ -47,7 +47,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		Val* result = ports->Lookup(dst_port_val);
+		auto result = ports->Lookup(dst_port_val);
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||

@@ -523,9 +523,9 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
-Val* X509Val::DoClone(CloneState* state)
+IntrusivePtr<Val> X509Val::DoClone(CloneState* state)
 	{
-	auto copy = new X509Val();
+	auto copy = make_intrusive<X509Val>();
 	if ( certificate )
 		copy->certificate = X509_dup(certificate);
 

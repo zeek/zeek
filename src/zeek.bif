@@ -405,7 +405,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
 		Val* key = idxs->Index(i);
-		Val* val = tbl->Lookup(key, false);
+		auto val = tbl->Lookup(key, false);
 
 		if ( key->Type()->Tag() != TYPE_STRING ||
 		     val->Type()->Tag() != TYPE_STRING )
@@ -1176,7 +1176,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 		return nullptr;
 		}
 
-	return t->AsTableVal()->LookupSubnets(search);
+	return t->AsTableVal()->LookupSubnets(search).release();
 	%}
 
 ## For a set[subnet]/table[subnet], create a new table that contains all entries
@@ -1195,7 +1195,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 		return nullptr;
 		}
 
-	return t->AsTableVal()->LookupSubnetValues(search);
+	return t->AsTableVal()->LookupSubnetValues(search).release();
 	%}
 
 ## Checks if a specific subnet is a member of a set/table[subnet].
@@ -2012,10 +2012,10 @@ function record_fields%(rec: any%): record_field_table
 			return new TableVal(internal_type("record_field_table")->AsTableType());
 			}
 
-		return id->AsType()->AsRecordType()->GetRecordFieldsVal();
+		return id->AsType()->AsRecordType()->GetRecordFieldsVal().release();
 		}
 
-	return rec->GetRecordFields();
+	return rec->GetRecordFields().release();
 	%}
 
 ## Enables detailed collection of profiling statistics. Statistics include
@@ -3218,20 +3218,16 @@ EnumVal* map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return transport_proto->GetVal(0);
-		break;
+		return transport_proto->GetVal(0).release();
 
 	case TRANSPORT_TCP:
-		return transport_proto->GetVal(1);
-		break;
+		return transport_proto->GetVal(1).release();
 
 	case TRANSPORT_UDP:
-		return transport_proto->GetVal(2);
-		break;
+		return transport_proto->GetVal(2).release();
 
 	case TRANSPORT_ICMP:
-		return transport_proto->GetVal(3);
-		break;
+		return transport_proto->GetVal(3).release();
 
 	default:
 		reporter->InternalError("bad connection type in map_conn_type()");
@@ -3257,7 +3253,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return transport_proto->GetVal(0);
+		return transport_proto->GetVal(0).release();
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -5095,5 +5091,5 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ## .. zeek:see:: fmt cat cat_sep string_cat print_raw
 function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
 	%{
-	return val->ToJSON(only_loggable, field_escape_pattern);
+	return val->ToJSON(only_loggable, field_escape_pattern).release();
 	%}

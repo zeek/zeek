@@ -713,7 +713,7 @@ expr:
 							       id->Name());
 					if ( intval < 0 )
 						reporter->InternalError("enum value not found for %s", id->Name());
-					$$ = new ConstExpr({AdoptRef{}, t->GetVal(intval)});
+					$$ = new ConstExpr(t->GetVal(intval));
 					}
 				else
 					{

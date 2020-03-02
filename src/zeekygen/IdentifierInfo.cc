@@ -17,7 +17,7 @@ IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
 	  last_field_seen(), declaring_script(script)
 	{
 	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
-		initial_val = {AdoptRef{}, id->ID_Val()->Clone()};
+		initial_val = id->ID_Val()->Clone();
 	}
 
 IdentifierInfo::~IdentifierInfo()

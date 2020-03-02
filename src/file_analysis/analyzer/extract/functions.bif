@@ -11,9 +11,8 @@ module FileExtract;
 function FileExtract::__set_limit%(file_id: string, args: any, n: count%): bool
     %{
 	using BifType::Record::Files::AnalyzerArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-    bool result = file_mgr->SetExtractionLimit(file_id->CheckString(), rv, n);
-	Unref(rv);
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+    bool result = file_mgr->SetExtractionLimit(file_id->CheckString(), rv.get(), n);
     return val_mgr->GetBool(result);
     %}
 

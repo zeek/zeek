@@ -20,7 +20,7 @@ refine flow RADIUS_Flow += {
 				Val* index = val_mgr->GetCount(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
-                Val* current = attributes->Lookup(index);
+                auto current = attributes->Lookup(index);
 				Val* val = bytestring_to_val(${msg.attributes[i].value});
 
 				if ( current )

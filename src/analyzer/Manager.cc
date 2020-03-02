@@ -4,6 +4,7 @@
 
 #include "Hash.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 
 #include "protocol/conn-size/ConnSize.h"
 #include "protocol/icmp/ICMP.h"
@@ -440,13 +441,12 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		if ( tcp_contents && ! reass )
 			{
 			auto dport = val_mgr->GetPort(ntohs(conn->RespPort()), TRANSPORT_TCP);
-			Val* result;
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_orig->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport);
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_resp->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport);
 
 			Unref(dport);
 			}

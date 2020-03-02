@@ -33,7 +33,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 		}
 
 	// clone to prevent changes
-	i->SetVal({AdoptRef{}, val->Clone()});
+	i->SetVal(val->Clone());
 	Unref(val); // Either ref'd once or function call result.
 	return true;
 	}

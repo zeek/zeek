@@ -1099,10 +1099,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 std::string Supervisor::NodeConfig::ToJSON() const
 	{
 	auto re = std::make_unique<RE_Matcher>("^_");
-	auto node_val = ToRecord();
-	IntrusivePtr<StringVal> json_val{AdoptRef{}, node_val->ToJSON(false, re.get())};
-	auto rval = json_val->ToStdString();
-	return rval;
+	return ToRecord()->ToJSON(false, re.get())->ToStdString();
 	}
 
 IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
@@ -1172,7 +1169,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	}
 
 
-static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
+static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
 	static auto node_type = global_scope()->Lookup("Cluster::NodeType")->AsType()->AsEnumType();
 
@@ -1218,7 +1215,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		auto val = make_intrusive<RecordVal>(cluster_node_type);
 
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
-		val->Assign(cluster_node_type->FieldOffset("node_type"), node_type);
+		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
 		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
 		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
 

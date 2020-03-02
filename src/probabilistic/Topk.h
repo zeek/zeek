@@ -127,7 +127,7 @@ public:
 	 *
 	 * @returns cloned TopkVal
 	 */
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	DECLARE_OPAQUE_VALUE(TopkVal)
 

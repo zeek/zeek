@@ -180,7 +180,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				Val* rv_i = rv->Lookup(i);
+				auto rv_i = rv->Lookup(i);
 
 				Attributes* a = rt->FieldDecl(i)->attrs;
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
@@ -249,9 +249,9 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 				if ( ! v->Type()->IsSet() )
 					{
-					Val* val = tv->Lookup(key);
+					auto val = tv->Lookup(key);
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
-								    val, false)) )
+								    val.get(), false)) )
 						{
 						Unref(lv);
 						return 0;
@@ -554,8 +554,8 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 				if ( ! bt->IsSet() )
 					{
-					Val* val = tv->Lookup(key);
-					sz = SingleTypeKeySize(val->Type(), val, type_check, sz,
+					auto val = tv->Lookup(key);
+					sz = SingleTypeKeySize(val->Type(), val.get(), type_check, sz,
 					                       false, calc_static_size);
 					if ( ! sz )
 						{
@@ -772,7 +772,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == TYPE_ENUM )
-			pval = t->AsEnumType()->GetVal(*kp);
+			pval = t->AsEnumType()->GetVal(*kp).release();
 		else if ( tag == TYPE_BOOL )
 			pval = val_mgr->GetBool(*kp);
 		else if ( tag == TYPE_INT )

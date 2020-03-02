@@ -1352,7 +1352,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	mgr.QueueEventFast(Broker::error, {
-		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		BifType::Enum::Broker::ErrorCode->GetVal(ec).release(),
 		new StringVal(msg),
 	});
 	}

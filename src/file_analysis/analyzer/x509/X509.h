@@ -154,7 +154,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	/**
 	 * Destructor.

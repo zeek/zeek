@@ -117,6 +117,7 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
 
+template <class T> class IntrusivePtr;
 class Expr;
 class Attributes;
 class TypeList;
@@ -539,7 +540,7 @@ public:
 	 * @param rv  an optional record value, if given the values of
 	 * all fields will be provided in the returned table.
 	 */
-	TableVal* GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
+	IntrusivePtr<TableVal> GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
 	// Returns 0 if all is ok, otherwise a pointer to an error message.
 	// Takes ownership of list.
@@ -638,7 +639,7 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	EnumVal* GetVal(bro_int_t i);
+	IntrusivePtr<EnumVal> GetVal(bro_int_t i);
 
 protected:
 	EnumType() { counter = 0; }

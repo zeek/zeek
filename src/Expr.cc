@@ -755,14 +755,14 @@ IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
 		return {AdoptRef{}, tv1->Intersect(tv2)};
 
 	case EXPR_OR:
-		result = v1->Clone()->AsTableVal();
+		result = v1->Clone().release()->AsTableVal();
 
 		if ( ! tv2->AddTo(result, false, false) )
 			reporter->InternalError("set union failed to type check");
 		return {AdoptRef{}, result};
 
 	case EXPR_SUB:
-		result = v1->Clone()->AsTableVal();
+		result = v1->Clone().release()->AsTableVal();
 
 		if ( ! tv2->RemoveFrom(result) )
 			reporter->InternalError("set difference failed to type check");
@@ -909,7 +909,7 @@ IntrusivePtr<Val> CloneExpr::Eval(Frame* f) const
 
 IntrusivePtr<Val> CloneExpr::Fold(Val* v) const
 	{
-	return {AdoptRef{}, v->Clone()};
+	return v->Clone();
 	}
 
 IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
@@ -1143,7 +1143,7 @@ IntrusivePtr<Val> SizeExpr::Eval(Frame* f) const
 
 IntrusivePtr<Val> SizeExpr::Fold(Val* v) const
 	{
-	return {AdoptRef{}, v->SizeVal()};
+	return v->SizeVal();
 	}
 
 AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
@@ -2700,7 +2700,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = {NewRef{}, v1->AsTableVal()->Lookup(v2)}; // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
 		break;
 
 	case TYPE_STRING:
@@ -3053,8 +3053,7 @@ IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 	if ( v )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		IntrusivePtr<RecordVal> ar{AdoptRef{},
-		                           rv->CoerceTo(t->AsRecordType(), aggr.get())};
+		auto ar = rv->CoerceTo(t->AsRecordType(), aggr.get());
 
 		if ( ar )
 			return ar;
@@ -3669,9 +3668,7 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 	if ( v )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		IntrusivePtr<Val> ar{AdoptRef{},
-		                     rv->CoerceTo(t->AsRecordType(), aggr.release())};
-
+		auto ar = rv->CoerceTo(t->AsRecordType(), aggr.release());
 		if ( ar )
 			return ar;
 		}
@@ -3717,8 +3714,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			     field_type->Tag() == TYPE_RECORD &&
 			     ! same_type(rhs_type, field_type) )
 				{
-				IntrusivePtr<Val> new_val{AdoptRef{},
-				                          rhs->AsRecordVal()->CoerceTo(field_type->AsRecordType())};
+				auto new_val = rhs->AsRecordVal()->CoerceTo(field_type->AsRecordType());
 
 				if ( new_val )
 					rhs = std::move(new_val);
@@ -3749,11 +3745,11 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				     field_type->Tag() == TYPE_RECORD &&
 				     ! same_type(def_type, field_type) )
 					{
-					Val* tmp = def_val->AsRecordVal()->CoerceTo(
+					auto tmp = def_val->AsRecordVal()->CoerceTo(
 					        field_type->AsRecordType());
 
 					if ( tmp )
-						def_val = {AdoptRef{}, tmp};
+						def_val = std::move(tmp);
 					}
 
 				val->Assign(i, std::move(def_val));
@@ -4083,12 +4079,12 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	     v2->Type()->Tag() == TYPE_SUBNET )
 		return {AdoptRef{}, val_mgr->GetBool(v2->AsSubNetVal()->Contains(v1->AsAddr()))};
 
-	Val* res;
+	bool res;
 
 	if ( is_vector(v2) )
-		res = v2->AsVectorVal()->Lookup(v1);
+		res = (bool)v2->AsVectorVal()->Lookup(v1);
 	else
-		res = v2->AsTableVal()->Lookup(v1, false);
+		res = (bool)v2->AsTableVal()->Lookup(v1, false);
 
 	return {AdoptRef{}, val_mgr->GetBool(res)};
 	}

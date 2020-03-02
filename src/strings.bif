@@ -86,10 +86,10 @@ int string_array_to_vs(TableVal* tbl, int start, int end,
 	for ( int i = start; i <= end; ++i )
 		{
 		Val* ind = val_mgr->GetCount(i);
-		Val* v = tbl->Lookup(ind);
+		auto v = tbl->Lookup(ind);
 		if ( ! v )
 			return 0;
-		vs.push_back(v->AsString());
+		vs.push_back(v.release()->AsString());
 #if 0
 		char* str = v->AsString()->Render();
 		DEBUG_MSG("string_array[%d] = \"%s\"\n", i, str);

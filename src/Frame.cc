@@ -187,7 +187,7 @@ Frame* Frame::Clone() const
 		Ref(trigger);
 
 	for (int i = 0; i < size; i++)
-		other->frame[i] = frame[i] ? frame[i]->Clone() : nullptr;
+		other->frame[i] = frame[i] ? frame[i]->Clone().release() : nullptr;
 
 	return other;
 	}
@@ -215,8 +215,8 @@ static Val* clone_if_not_func(Val** frame, int offset, BroFunc* func,
 		}
 
 	auto rval = v->Clone();
-	other->SetElement(offset, rval);
-	return rval;
+	other->SetElement(offset, rval.get());
+	return rval.release();
 	}
 
 Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const

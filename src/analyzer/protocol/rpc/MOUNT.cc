@@ -139,7 +139,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
+			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -220,7 +220,7 @@ val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)

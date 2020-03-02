@@ -196,7 +196,7 @@ struct val_converter {
 			if ( i == -1 )
 				return nullptr;
 
-			return etype->GetVal(i);
+			return etype->GetVal(i).release();
 			}
 
 		return nullptr;
@@ -1059,72 +1059,72 @@ struct data_type_getter {
 
 	result_type operator()(broker::none)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE).release();
 		}
 
 	result_type operator()(bool)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL).release();
 		}
 
 	result_type operator()(uint64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT).release();
 		}
 
 	result_type operator()(int64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT).release();
 		}
 
 	result_type operator()(double)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE).release();
 		}
 
 	result_type operator()(const std::string&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING).release();
 		}
 
 	result_type operator()(const broker::address&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR).release();
 		}
 
 	result_type operator()(const broker::subnet&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET).release();
 		}
 
 	result_type operator()(const broker::port&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT).release();
 		}
 
 	result_type operator()(const broker::timestamp&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME).release();
 		}
 
 	result_type operator()(const broker::timespan&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL).release();
 		}
 
 	result_type operator()(const broker::enum_value&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM).release();
 		}
 
 	result_type operator()(const broker::set&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET).release();
 		}
 
 	result_type operator()(const broker::table&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE).release();
 		}
 
 	result_type operator()(const broker::vector&)
@@ -1132,7 +1132,7 @@ struct data_type_getter {
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
 		// with a Bro record.
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR).release();
 		}
 };
 

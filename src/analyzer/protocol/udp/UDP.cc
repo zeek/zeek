@@ -135,12 +135,11 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( udp_contents )
 		{
 		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
-		Val* result = 0;
 		bool do_udp_contents = false;
 
 		if ( is_orig )
 			{
-			result = udp_content_delivery_ports_orig->Lookup(
+			auto result = udp_content_delivery_ports_orig->Lookup(
 								port_val);
 			if ( udp_content_deliver_all_orig ||
 			     (result && result->AsBool()) )
@@ -148,7 +147,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			}
 		else
 			{
-			result = udp_content_delivery_ports_resp->Lookup(
+			auto result = udp_content_delivery_ports_resp->Lookup(
 								port_val);
 			if ( udp_content_deliver_all_resp ||
 			     (result && result->AsBool()) )

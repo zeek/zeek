@@ -11,6 +11,7 @@
 #include "Type.h"
 #include "File.h"
 #include "input.h"
+#include "IntrusivePtr.h"
 
 #include "broker/Manager.h"
 #include "threading/Manager.h"
@@ -476,7 +477,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( include )
 			{
 			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = include->Lookup(new_path_val);
+			bool result = (bool)include->Lookup(new_path_val);
 
 			Unref(new_path_val);
 
@@ -488,7 +489,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( exclude )
 			{
 			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = exclude->Lookup(new_path_val);
+			bool result = (bool)exclude->Lookup(new_path_val);
 
 			Unref(new_path_val);
 
@@ -712,7 +713,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 	if ( ! stream->enabled )
 		return true;
 
-	columns = columns->CoerceTo(stream->columns);
+	columns = columns->CoerceTo(stream->columns).release();
 
 	if ( ! columns )
 		{
@@ -759,7 +760,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
-				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
+				rec_arg = columns->CoerceTo(rt->AsRecordType(), true).release();
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns->Ref();
@@ -865,8 +866,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 					{
 					const char* name = filter->fields[j]->name;
 					StringVal *fn = new StringVal(name);
-					Val *val = 0;
-					if ( (val = filter->field_name_map->Lookup(fn, false)) != 0 )
+					if ( auto val = filter->field_name_map->Lookup(fn, false) )
 						{
 						delete [] filter->fields[j]->name;
 						filter->fields[j]->name = copy_string(val->AsStringVal()->CheckString());
@@ -1319,12 +1319,11 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 			WriterFrontend* writer = i->second->writer;
 			auto writer_val = et->GetVal(i->first.first);
 			broker_mgr->PublishLogCreate((*s)->id,
-						     writer_val,
+						     writer_val.get(),
 						     *i->second->info,
 						     writer->NumFields(),
 						     writer->Fields(),
 						     ei);
-			Unref(writer_val);
 			}
 		}
 	}

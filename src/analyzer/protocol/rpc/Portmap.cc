@@ -295,7 +295,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		}
 	else
 		{
-		vl.push_back(BifType::Enum::rpc_status->GetVal(status));
+		vl.push_back(BifType::Enum::rpc_status->GetVal(status).release());
 		if ( request )
 			vl.push_back(request);
 		}

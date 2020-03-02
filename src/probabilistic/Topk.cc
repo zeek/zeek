@@ -184,11 +184,11 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-Val* TopkVal::DoClone(CloneState* state)
+IntrusivePtr<Val> TopkVal::DoClone(CloneState* state)
 	{
-	auto clone = new TopkVal(size);
+	auto clone = make_intrusive<TopkVal>(size);
 	clone->Merge(this);
-	return state->NewClone(this, clone);
+	return state->NewClone(this, std::move(clone));
 	}
 
 VectorVal* TopkVal::GetTopK(int k) const // returns vector

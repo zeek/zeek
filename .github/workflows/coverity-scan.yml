@@ -6,7 +6,9 @@ on:
 
 jobs:
   scan:
+    if: github.repository == 'zeek/zeek'
     runs-on: ubuntu-18.04
+
     steps:
       - uses: actions/checkout@v2
 

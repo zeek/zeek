@@ -4,6 +4,7 @@ on:
     types: [completed]
 jobs:
   notify:
+    if: github.repository == 'zeek/zeek'
     runs-on: ubuntu-latest
     steps:
       - name: Send CI Email Notification

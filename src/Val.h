@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "IntrusivePtr.h"
 #include "Type.h"
 #include "Timer.h"
 #include "Notifier.h"
@@ -27,9 +28,7 @@ using std::string;
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
-template <class T> class IntrusivePtr;
 template<typename T> class PDict;
-template <class T> class IntrusivePtr;
 class IterCookie;
 
 class Val;
@@ -644,9 +643,10 @@ extern double bro_start_network_time;
 
 class TableEntryVal {
 public:
-	explicit TableEntryVal(Val* v)
+	template<typename V>
+	explicit TableEntryVal(V&& v)
+		: val(std::forward<V>(v))
 		{
-		val = v;
 		last_access_time = network_time;
 		expire_access_time =
 			int(network_time - bro_start_network_time);
@@ -654,11 +654,7 @@ public:
 
 	TableEntryVal* Clone(Val::CloneState* state);
 
-	~TableEntryVal()	{ }
-
-	Val* Value()	{ return val; }
-	void Ref()	{ val->Ref(); }
-	void Unref()	{ ::Unref(val); }
+	Val* Value()	{ return val.get(); }
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
@@ -669,7 +665,7 @@ public:
 protected:
 	friend class TableVal;
 
-	Val* val;
+	IntrusivePtr<Val> val;
 	double last_access_time;
 
 	// The next entry stores seconds since Bro's start.  We use ints here

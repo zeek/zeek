@@ -1295,7 +1295,7 @@ unsigned int ListVal::MemoryAllocation() const
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
 	{
-	auto rval = new TableEntryVal(val ? val->Clone(state).release() : nullptr);
+	auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
 	rval->last_access_time = last_access_time;
 	rval->expire_access_time = expire_access_time;
 	return rval;
@@ -1323,7 +1323,6 @@ void TableValTimer::Dispatch(double t, int is_expire)
 static void table_entry_val_delete_func(void* val)
 	{
 	TableEntryVal* tv = (TableEntryVal*) val;
-	tv->Unref();
 	delete tv;
 	}
 
@@ -1483,7 +1482,7 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 	if ( (is_set && new_val) || (! is_set && ! new_val) )
 		InternalWarning("bad set/table in TableVal::Assign");
 
-	TableEntryVal* new_entry_val = new TableEntryVal(IntrusivePtr{new_val}.release());
+	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
 	HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k, new_entry_val);
 
@@ -1519,11 +1518,7 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 		Unref(change_index);
 		}
 
-	if ( old_entry_val )
-		{
-		old_entry_val->Unref();
-		delete old_entry_val;
-		}
+	delete old_entry_val;
 
 	return 1;
 	}
@@ -1581,8 +1576,7 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 			}
 		else
 			{
-			v->Ref();
-			if ( ! t->Assign(0, k, v->Value()) )
+			if ( ! t->Assign(0, k, {NewRef{}, v->Value()}) )
 				 return 0;
 			}
 		}
@@ -1647,7 +1641,7 @@ TableVal* TableVal::Intersect(const TableVal* tv) const
 		// Here we leverage the same assumption about consistent
 		// hashes as in TableVal::RemoveFrom above.
 		if ( t0->Lookup(k) )
-			t2->Insert(k, new TableEntryVal(0));
+			t2->Insert(k, new TableEntryVal(nullptr));
 
 		delete k;
 		}
@@ -2023,7 +2017,7 @@ Val* TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : 0;
-	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
+	IntrusivePtr<Val> va{NewRef{}, v ? (v->Value() ? v->Value() : this) : nullptr};
 
 	if ( subnets && ! subnets->Remove(index) )
 		reporter->InternalWarning("index not in prefix table");
@@ -2034,15 +2028,15 @@ Val* TableVal::Delete(const Val* index)
 	Modified();
 
 	if ( change_func )
-		CallChangeFunc(index, va, ELEMENT_REMOVED);
+		CallChangeFunc(index, va.get(), ELEMENT_REMOVED);
 
-	return va;
+	return va.release();
 	}
 
 Val* TableVal::Delete(const HashKey* k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
-	Val* va = v ? (v->Value() ? v->Value() : this->Ref()) : 0;
+	IntrusivePtr<Val> va{NewRef{}, v ? (v->Value() ? v->Value() : this) : nullptr};
 
 	if ( subnets )
 		{
@@ -2058,10 +2052,10 @@ Val* TableVal::Delete(const HashKey* k)
 	if ( change_func && va )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index.get(), va->Ref(), ELEMENT_REMOVED);
+		CallChangeFunc(index.get(), va.get(), ELEMENT_REMOVED);
 		}
 
-	return va;
+	return va.release();
 	}
 
 ListVal* TableVal::ConvertToList(TypeTag t) const
@@ -2354,7 +2348,6 @@ void TableVal::DoExpire(double t)
 				CallChangeFunc(idx, v->Value(), ELEMENT_EXPIRED);
 				}
 			Unref(idx);
-			Unref(v->Value());
 			delete v;
 			modified = true;
 			}

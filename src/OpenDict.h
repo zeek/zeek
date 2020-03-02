@@ -43,7 +43,6 @@ constexpr uint8_t DICT_THRESHOLD_BITS = 3;
 // The value of an iteration cookie is the bucket and offset within the
 // bucket at which to start looking for the next value to return.
 constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
-constexpr uint16_t MAX_KEY_SIZE = 0xFFFF;
 
 enum dict_order { ORDERED, UNORDERED };
 
@@ -241,8 +240,7 @@ public:
 	// Remove all entries.
 	void Clear();
 
-	unsigned int MemoryAllocation() const;
-	constexpr float GetThreshold() const { return 1.0 - 1.0 / (1<<DICT_LOAD_FACTOR_BITS);}
+	size_t MemoryAllocation() const;
 
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity(bool expected=false) const;
@@ -273,14 +271,6 @@ private:
 
 	// Given a position of a non-empty item in the table, find the related bucket.
 	int BucketByPosition(int position) const;
-
-	// Given a bucket of a non-empty item in the table,. find the head of its cluster
-	// for that position. If not found, return -1 and correct expected_position to the
-	// value it's supposed to be, if expected_position isn't a nullptr..
-	int HeadOfClusterByBucket(int bucket) const;
-
-	// Given a bucket of a non-empty item in the table, find the tail of its cluster
-	int TailOfClusterByBucket(int bucket) const;
 
 	// Given a bucket of a non-empty item in the table, find the end of its cluster.
 	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of

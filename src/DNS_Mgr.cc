@@ -32,6 +32,7 @@
 #include <algorithm>
 
 #include "BroString.h"
+#include "Expr.h"
 #include "Event.h"
 #include "Net.h"
 #include "Val.h"
@@ -173,9 +174,9 @@ void DNS_Mgr_mapping_delete_func(void* v)
 static TableVal* empty_addr_set()
 	{
 	BroType* addr_t = base_type(TYPE_ADDR);
-	TypeList* set_index = new TypeList(addr_t);
+	auto set_index = make_intrusive<TypeList>(addr_t);
 	set_index->Append(addr_t);
-	auto s = make_intrusive<SetType>(set_index, nullptr);
+	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 	return new TableVal(std::move(s));
 	}
 

@@ -1234,9 +1234,9 @@ TableVal* ListVal::ConvertToSet() const
 	if ( tag == TYPE_ANY )
 		Internal("conversion of heterogeneous list to set");
 
-	TypeList* set_index = new TypeList(type->AsTypeList()->PureType());
+	auto set_index = make_intrusive<TypeList>(type->AsTypeList()->PureType());
 	set_index->Append(base_type(tag));
-	auto s = make_intrusive<SetType>(set_index, nullptr);
+	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 	TableVal* t = new TableVal(std::move(s));
 
 	for ( const auto& val : vals )

@@ -23,9 +23,9 @@ using namespace file_analysis;
 
 static Val* empty_connection_table()
 	{
-	TypeList* tbl_index = new TypeList(conn_id);
+	auto tbl_index = make_intrusive<TypeList>(conn_id);
 	tbl_index->Append(conn_id->Ref());
-	auto tbl_type = make_intrusive<TableType>(tbl_index, connection_type->Ref());
+	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index), IntrusivePtr{NewRef{}, connection_type});
 	return new TableVal(std::move(tbl_type));
 	}
 

@@ -2300,7 +2300,7 @@ IntrusivePtr<BroType> AssignExpr::InitType() const
 	if ( tl->Tag() != TYPE_LIST )
 		Internal("inconsistent list expr in AssignExpr::InitType");
 
-	return make_intrusive<TableType>(tl->Ref()->AsTypeList(), op2->Type()->Ref());
+	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()}, IntrusivePtr{NewRef{}, op2->Type()});
 	}
 
 void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
@@ -3109,7 +3109,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<TableType>(new TypeList(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			{
 			SetType({AdoptRef{}, init_type(op.get())});
@@ -3223,7 +3223,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<::SetType>(new TypeList(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			SetType({AdoptRef{}, init_type(op.get())});
 		}

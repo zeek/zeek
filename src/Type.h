@@ -5,6 +5,7 @@
 #include "Obj.h"
 #include "Attr.h"
 #include "BroList.h"
+#include "IntrusivePtr.h"
 
 #include <string>
 #include <set>
@@ -117,7 +118,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
 
-template <class T> class IntrusivePtr;
 class Expr;
 class Attributes;
 class TypeList;
@@ -386,7 +386,7 @@ class IndexType : public BroType {
 public:
 	int MatchesIndex(ListExpr* index) const override;
 
-	TypeList* Indices() const		{ return indices; }
+	TypeList* Indices() const		{ return indices.get(); }
 	const type_list* IndexTypes() const	{ return indices->Types(); }
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
@@ -398,22 +398,19 @@ public:
 	bool IsSubNetIndex() const;
 
 protected:
-	IndexType(){ indices = 0; yield_type = 0; }
-	IndexType(TypeTag t, TypeList* arg_indices, BroType* arg_yield_type) :
-		BroType(t)
+	IndexType(TypeTag t, IntrusivePtr<TypeList> arg_indices, IntrusivePtr<BroType> arg_yield_type) :
+		BroType(t), indices(std::move(arg_indices)), yield_type(std::move(arg_yield_type))
 		{
-		indices = arg_indices;
-		yield_type = arg_yield_type;
 		}
 	~IndexType() override;
 
-	TypeList* indices;
-	BroType* yield_type;
+	IntrusivePtr<TypeList> indices;
+	IntrusivePtr<BroType> yield_type;
 };
 
 class TableType : public IndexType {
 public:
-	TableType(TypeList* ind, BroType* yield);
+	TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield);
 
 	TableType* ShallowClone() override;
 
@@ -422,24 +419,20 @@ public:
 	bool IsUnspecifiedTable() const;
 
 protected:
-	TableType()	{}
-
 	TypeList* ExpandRecordIndex(RecordType* rt) const;
 };
 
 class SetType : public TableType {
 public:
-	SetType(TypeList* ind, ListExpr* arg_elements);
+	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements);
 	~SetType() override;
 
 	SetType* ShallowClone() override;
 
-	ListExpr* SetElements() const	{ return elements; }
+	ListExpr* SetElements() const	{ return elements.get(); }
 
 protected:
-	SetType()	{}
-
-	ListExpr* elements;
+	IntrusivePtr<ListExpr> elements;
 };
 
 class FuncType : public BroType {

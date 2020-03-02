@@ -2377,9 +2377,9 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		{
 		// all entries have to have the same type...
 		BroType* type = request_type->AsTableType()->Indices()->PureType();
-		TypeList* set_index = new TypeList(type->Ref());
+		auto set_index = make_intrusive<TypeList>(type->Ref());
 		set_index->Append(type->Ref());
-		auto s = make_intrusive<SetType>(set_index, nullptr);
+		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
@@ -2523,10 +2523,10 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 
 	case TYPE_TABLE:
 		{
-		TypeList* set_index;
+		IntrusivePtr<TypeList> set_index;
 		if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
 			// don't know type - unspecified table.
-			set_index = new TypeList();
+			set_index = make_intrusive<TypeList>();
 		else
 			{
 			// all entries have to have the same type...
@@ -2557,11 +2557,11 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			else
 				index_type = base_type_no_ref(stag);
 
-			set_index = new TypeList(index_type);
+			set_index = make_intrusive<TypeList>(index_type);
 			set_index->Append(index_type->Ref());
 			}
 
-		auto s = make_intrusive<SetType>(set_index, nullptr);
+		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{

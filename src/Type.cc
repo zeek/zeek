@@ -220,11 +220,7 @@ unsigned int TypeList::MemoryAllocation() const
 		+ types.MemoryAllocation() - padded_sizeof(types);
 	}
 
-IndexType::~IndexType()
-	{
-	Unref(indices);
-	Unref(yield_type);
-	}
+IndexType::~IndexType() = default;
 
 int IndexType::MatchesIndex(ListExpr* const index) const
 	{
@@ -242,12 +238,12 @@ int IndexType::MatchesIndex(ListExpr* const index) const
 
 BroType* IndexType::YieldType()
 	{
-	return yield_type;
+	return yield_type.get();
 	}
 
 const BroType* IndexType::YieldType() const
 	{
-	return yield_type;
+	return yield_type.get();
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -326,8 +322,8 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
-TableType::TableType(TypeList* ind, BroType* yield)
-: IndexType(TYPE_TABLE, ind, yield)
+TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
+: IndexType(TYPE_TABLE, std::move(ind), std::move(yield))
 	{
 	if ( ! indices )
 		return;
@@ -355,11 +351,6 @@ TableType::TableType(TypeList* ind, BroType* yield)
 
 TableType* TableType::ShallowClone()
 	{
-	if ( indices )
-		indices->Ref();
-	if ( yield_type )
-		yield_type->Ref();
-
 	return new TableType(indices, yield_type);
 	}
 
@@ -383,14 +374,13 @@ TypeList* TableType::ExpandRecordIndex(RecordType* rt) const
 	return tl;
 	}
 
-SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
+SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements) : TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{
-	elements = arg_elements;
 	if ( elements )
 		{
 		if ( indices )
 			{ // We already have a type.
-			if ( ! check_and_promote_exprs(elements, indices) )
+			if ( ! check_and_promote_exprs(elements.get(), indices.get()) )
 				SetError();
 			}
 		else
@@ -407,7 +397,7 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 			else if ( tl->length() == 1 )
 				{
 				BroType* t = flatten_type((*tl)[0]->Ref());
-				indices = new TypeList(t);
+				indices = make_intrusive<TypeList>(t);
 				indices->Append(t->Ref());
 				}
 
@@ -428,7 +418,7 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 					return;
 					}
 
-				indices = new TypeList(t);
+				indices = make_intrusive<TypeList>(t);
 				indices->Append(t);
 				}
 			}
@@ -437,19 +427,10 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 
 SetType* SetType::ShallowClone()
 	{
-	if ( elements )
-		elements->Ref();
-
-	if ( indices )
-		indices->Ref();
-
 	return new SetType(indices, elements);
 	}
 
-SetType::~SetType()
-	{
-	Unref(elements);
-	}
+SetType::~SetType() = default;
 
 FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
 : BroType(TYPE_FUNC)
@@ -1837,7 +1818,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		const type_list* tl1 = it1->IndexTypes();
 		const type_list* tl2 = it2->IndexTypes();
-		TypeList* tl3 = 0;
+		IntrusivePtr<TypeList> tl3;
 
 		if ( tl1 || tl2 )
 			{
@@ -1847,16 +1828,13 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 				return 0;
 				}
 
-			tl3 = new TypeList();
+			tl3 = make_intrusive<TypeList>();
 
 			loop_over_list(*tl1, i)
 				{
 				BroType* tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
 				if ( ! tl3_i )
-					{
-					Unref(tl3);
 					return 0;
-					}
 
 				tl3->Append(tl3_i);
 				}
@@ -1864,29 +1842,25 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		const BroType* y1 = t1->YieldType();
 		const BroType* y2 = t2->YieldType();
-		BroType* y3 = 0;
+		IntrusivePtr<BroType> y3;
 
 		if ( y1 || y2 )
 			{
 			if ( ! y1 || ! y2 )
 				{
 				t1->Error("incompatible types", t2);
-				Unref(tl3);
 				return 0;
 				}
 
-			y3 = merge_types(y1, y2);
+			y3 = {AdoptRef{}, merge_types(y1, y2)};
 			if ( ! y3 )
-				{
-				Unref(tl3);
 				return 0;
-				}
 			}
 
 		if ( t1->IsSet() )
-			return new SetType(tl3, 0);
+			return new SetType(std::move(tl3), nullptr);
 		else
-			return new TableType(tl3, y3);
+			return new TableType(std::move(tl3), std::move(y3));
 		}
 
 	case TYPE_FUNC:
@@ -2136,7 +2110,7 @@ BroType* init_type(Expr* init)
 		t = std::move(tl);
 		}
 
-	return new SetType(t.release()->AsTypeList(), 0);
+	return new SetType({AdoptRef{}, t.release()->AsTypeList()}, nullptr);
 	}
 
 bool is_atomic_type(const BroType* t)

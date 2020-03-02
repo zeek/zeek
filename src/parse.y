@@ -915,13 +915,13 @@ type:
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
 				{
 				set_location(@1, @6);
-				$$ = new TableType($3, $6);
+				$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
 				}
 
 	|	TOK_SET '[' type_list ']'
 				{
 				set_location(@1, @4);
-				$$ = new SetType($3, 0);
+				$$ = new SetType({AdoptRef{}, $3}, nullptr);
 				}
 
 	|	TOK_RECORD '{'

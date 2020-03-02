@@ -733,7 +733,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			rval->Assign(0, new StringVal(func->Name()));
+			rval->Assign(0, make_intrusive<StringVal>(func->Name()));
 			continue;
 			}
 
@@ -1251,24 +1251,24 @@ void Manager::ProcessStatus(broker::status stat)
 
 	if ( ctx )
 		{
-		endpoint_info->Assign(0, new StringVal(to_string(ctx->node)));
+		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
 		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
-		auto network_info = new RecordVal(ni);
+		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
 			{
-			network_info->Assign(0, new StringVal(ctx->network->address.data()));
+			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
 			network_info->Assign(1, val_mgr->GetPort(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
-			network_info->Assign(0, new StringVal("<unknown>"));
+			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
 			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 			}
 
-		endpoint_info->Assign(1, network_info);
+		endpoint_info->Assign(1, std::move(network_info));
 		}
 
 	auto str = stat.message();

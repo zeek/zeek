@@ -335,16 +335,16 @@ val_list NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_st
 	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, BifType::Enum::NFS3::status_t->GetVal(nfs_status));
-	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
-	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
+	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
+	info->Assign(3, make_intrusive<Val>(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
-	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
-	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
+	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
+	info->Assign(6, make_intrusive<Val>(rep_last_time-rep_start_time, TYPE_INTERVAL));
 	info->Assign(7, val_mgr->GetCount(reply_len));
 	info->Assign(8, val_mgr->GetCount(c->Uid()));
 	info->Assign(9, val_mgr->GetCount(c->Gid()));
 	info->Assign(10, val_mgr->GetCount(c->Stamp()));
-	info->Assign(11, new StringVal(c->MachineName()));
+	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
 	info->Assign(12, auxgids);
 
 	vl.push_back(info);

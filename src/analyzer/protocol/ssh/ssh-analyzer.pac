@@ -32,7 +32,7 @@ VectorVal* name_list_to_vector(const bytestring& nl)
 		{
 		word = name_list.substr(start, split_pos - start);
 		if ( word.size() > 0 && word[0] != ',' )
-			vv->Assign(vv->Size(), new StringVal(word));
+			vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
 
 		start = split_pos + 1;
 		}
@@ -41,7 +41,7 @@ VectorVal* name_list_to_vector(const bytestring& nl)
 	if ( start < name_list.size() )
 		{
 		word = name_list.substr(start, name_list.size() - start);
-		vv->Assign(vv->Size(), new StringVal(word));
+		vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
 		}
 	return vv;
 	}

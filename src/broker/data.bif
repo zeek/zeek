@@ -154,7 +154,7 @@ function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Brok
 		return rval;
 		}
 
-	rval->Assign(0, new bro_broker::DataVal(*set_it->it));
+	rval->Assign(0, make_intrusive<bro_broker::DataVal>(*set_it->it));
 	return rval;
 	%}
 
@@ -312,8 +312,8 @@ function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): 
 		return rval;
 		}
 
-	key_val->Assign(0, new bro_broker::DataVal(ti->it->first));
-	val_val->Assign(0, new bro_broker::DataVal(ti->it->second));
+	key_val->Assign(0, make_intrusive<bro_broker::DataVal>(ti->it->first));
+	val_val->Assign(0, make_intrusive<bro_broker::DataVal>(ti->it->second));
 	return rval;
 	%}
 
@@ -431,7 +431,7 @@ function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%)
 		return rval;
 		}
 
-	rval->Assign(0, new bro_broker::DataVal(*vi->it));
+	rval->Assign(0, make_intrusive<bro_broker::DataVal>(*vi->it));
 	return rval;
 	%}
 
@@ -513,6 +513,6 @@ function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%)
 	if ( caf::get_if<broker::none>(&(*ri->it)) )
 		return rval; // field isn't set
 
-	rval->Assign(0, new bro_broker::DataVal(*ri->it));
+	rval->Assign(0, make_intrusive<bro_broker::DataVal>(*ri->it));
 	return rval;
 	%}

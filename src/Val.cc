@@ -1437,27 +1437,31 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-int TableVal::Assign(Val* index, Val* new_val)
+int TableVal::Assign(Val* index, IntrusivePtr<Val> new_val)
 	{
 	HashKey* k = ComputeHash(index);
 	if ( ! k )
 		{
-		Unref(new_val);
 		index->Error("index type doesn't match table", table_type->Indices());
 		return 0;
 		}
 
-	return Assign(index, k, new_val);
+	return Assign(index, k, std::move(new_val));
 	}
 
-int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
+int TableVal::Assign(Val* index, Val* new_val)
+	{
+	return Assign(index, {AdoptRef{}, new_val});
+	}
+
+int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 	{
 	int is_set = table_type->IsSet();
 
 	if ( (is_set && new_val) || (! is_set && ! new_val) )
 		InternalWarning("bad set/table in TableVal::Assign");
 
-	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
+	TableEntryVal* new_entry_val = new TableEntryVal(IntrusivePtr{new_val}.release());
 	HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k, new_entry_val);
 
@@ -1488,7 +1492,7 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	if ( change_func )
 		{
 		Val* change_index = index ? index->Ref() : RecoverIndex(&k_copy);
-		Val* v = old_entry_val ? old_entry_val->Value() : new_val;
+		Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
 		CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		Unref(change_index);
 		}
@@ -1500,6 +1504,11 @@ int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 		}
 
 	return 1;
+	}
+
+int TableVal::Assign(Val* index, HashKey* k, Val* new_val)
+	{
+	return Assign(index, k, {AdoptRef{}, new_val});
 	}
 
 int TableVal::AddTo(Val* val, int is_first_init) const
@@ -1875,10 +1884,7 @@ VectorVal* TableVal::LookupSubnets(const SubNetVal* search)
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
-		{
-		SubNetVal* s = new SubNetVal(get<0>(element));
-		result->Assign(result->Size(), s);
-		}
+		result->Assign(result->Size(), make_intrusive<SubNetVal>(get<0>(element)));
 
 	return result;
 	}
@@ -1897,7 +1903,7 @@ TableVal* TableVal::LookupSubnetValues(const SubNetVal* search)
 		TableEntryVal* entry = reinterpret_cast<TableEntryVal*>(get<1>(element));
 
 		if ( entry && entry->Value() )
-			nt->Assign(s, entry->Value()->Ref());
+			nt->Assign(s, {NewRef{}, entry->Value()});
 		else
 			nt->Assign(s, 0); // set
 
@@ -2223,7 +2229,7 @@ int TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
 	if ( v )
 		index->Warn("multiple initializations for index");
 
-	return Assign(index, new_val.release());
+	return Assign(index, std::move(new_val));
 	}
 
 void TableVal::InitDefaultFunc(Frame* f)
@@ -2600,11 +2606,16 @@ RecordVal::~RecordVal()
 	delete_vals(AsNonConstRecord());
 	}
 
-void RecordVal::Assign(int field, Val* new_val)
+void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
-	Val* old_val = AsNonConstRecord()->replace(field, new_val);
+	Val* old_val = AsNonConstRecord()->replace(field, new_val.release());
 	Unref(old_val);
 	Modified();
+	}
+
+void RecordVal::Assign(int field, Val* new_val)
+	{
+	Assign(field, {AdoptRef{}, new_val});
 	}
 
 Val* RecordVal::Lookup(int field) const
@@ -2698,11 +2709,11 @@ RecordVal* RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphan
 			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
 			        IntrusivePtr{NewRef{}, ar_t->FieldType(t_i)->AsRecordType()});
-			ar->Assign(t_i, e->Eval(nullptr).release());
+			ar->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}
 
-		ar->Assign(t_i, v->Ref());
+		ar->Assign(t_i, {NewRef{}, v});
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
@@ -2866,14 +2877,11 @@ VectorVal::~VectorVal()
 	delete val.vector_val;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element)
+bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
 	     ! same_type(element->Type(), vector_type->YieldType(), 0) )
-		{
-		Unref(element);
 		return false;
-		}
 
 	Val* val_at_index = 0;
 
@@ -2887,10 +2895,15 @@ bool VectorVal::Assign(unsigned int index, Val* element)
 	// Note: we do *not* Ref() the element, if any, at this point.
 	// AssignExpr::Eval() already does this; other callers must remember
 	// to do it similarly.
-	(*val.vector_val)[index] = element;
+	(*val.vector_val)[index] = element.release();
 
 	Modified();
 	return true;
+	}
+
+bool VectorVal::Assign(unsigned int index, Val* element)
+	{
+	return Assign(index, {AdoptRef{}, element});
 	}
 
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
@@ -2899,7 +2912,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, element->Ref() ) )
+		if ( ! Assign(i, {NewRef{}, element}) )
 			return false;
 
 	return true;
@@ -2963,7 +2976,7 @@ int VectorVal::AddTo(Val* val, int /* is_first_init */) const
 	auto last_idx = v->Size();
 
 	for ( auto i = 0u; i < Size(); ++i )
-		v->Assign(last_idx++, Lookup(i)->Ref());
+		v->Assign(last_idx++, {NewRef{}, Lookup(i)});
 
 	return 1;
 	}

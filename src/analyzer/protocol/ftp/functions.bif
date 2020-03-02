@@ -33,13 +33,13 @@ static Val* parse_port(const char* line)
 			good = 0;
 			}
 
-		r->Assign(0, new AddrVal(htonl(addr)));
+		r->Assign(0, make_intrusive<AddrVal>(htonl(addr)));
 		r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
 		r->Assign(2, val_mgr->GetBool(good));
 		}
 	else
 		{
-		r->Assign(0, new AddrVal(uint32_t(0)));
+		r->Assign(0, make_intrusive<AddrVal>(uint32_t(0)));
 		r->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 		r->Assign(2, val_mgr->GetBool(0));
 		}
@@ -109,7 +109,7 @@ static Val* parse_eftp(const char* line)
 
 		}
 
-	r->Assign(0, new AddrVal(addr));
+	r->Assign(0, make_intrusive<AddrVal>(addr));
 	r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
 	r->Assign(2, val_mgr->GetBool(good));
 

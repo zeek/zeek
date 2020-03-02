@@ -65,7 +65,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			// PadN or other option
 			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(1, val_mgr->GetCount(opt->ip6o_len));
-			rv->Assign(2, new StringVal(
+			rv->Assign(2, make_intrusive<StringVal>(
 			        new BroString(data + off, opt->ip6o_len, 1)));
 			data += opt->ip6o_len + off;
 			len -= opt->ip6o_len + off;
@@ -91,8 +91,8 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, val_mgr->GetCount(ntohs(ip6->ip6_plen)));
 		rv->Assign(3, val_mgr->GetCount(ip6->ip6_nxt));
 		rv->Assign(4, val_mgr->GetCount(ip6->ip6_hlim));
-		rv->Assign(5, new AddrVal(IPAddr(ip6->ip6_src)));
-		rv->Assign(6, new AddrVal(IPAddr(ip6->ip6_dst)));
+		rv->Assign(5, make_intrusive<AddrVal>(IPAddr(ip6->ip6_src)));
+		rv->Assign(6, make_intrusive<AddrVal>(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = new VectorVal(
 			    internal_type("ip6_ext_hdr_chain")->AsVectorType());
@@ -132,7 +132,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, val_mgr->GetCount(rt->ip6r_type));
 		rv->Assign(3, val_mgr->GetCount(rt->ip6r_segleft));
 		uint16_t off = 4 * sizeof(uint8_t);
-		rv->Assign(4, new StringVal(new BroString(data + off, Length() - off, 1)));
+		rv->Assign(4, make_intrusive<StringVal>(new BroString(data + off, Length() - off, 1)));
 		}
 		break;
 
@@ -163,7 +163,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			// Payload Len was non-zero for this header.
 			rv->Assign(4, val_mgr->GetCount(ntohl(((uint32_t*)data)[2])));
 			uint16_t off = 3 * sizeof(uint32_t);
-			rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+			rv->Assign(5, make_intrusive<StringVal>(new BroString(data + off, Length() - off, 1)));
 			}
 		}
 		break;
@@ -284,7 +284,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_be"));
 			m->Assign(0, val_mgr->GetCount(*((uint8_t*)msg_data)));
 			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16_t));
-			m->Assign(1, new AddrVal(IPAddr(*hoa)));
+			m->Assign(1, make_intrusive<AddrVal>(IPAddr(*hoa)));
 			off += sizeof(uint16_t) + sizeof(in6_addr);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(8, m);
@@ -341,8 +341,8 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 		rval->Assign(3, val_mgr->GetCount(ntohs(ip4->ip_id)));
 		rval->Assign(4, val_mgr->GetCount(ip4->ip_ttl));
 		rval->Assign(5, val_mgr->GetCount(ip4->ip_p));
-		rval->Assign(6, new AddrVal(ip4->ip_src.s_addr));
-		rval->Assign(7, new AddrVal(ip4->ip_dst.s_addr));
+		rval->Assign(6, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
+		rval->Assign(7, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
 		}
 	else
 		{

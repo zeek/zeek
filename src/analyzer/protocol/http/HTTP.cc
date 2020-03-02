@@ -617,9 +617,9 @@ Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
 	{
 	RecordVal* stat = new RecordVal(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, new Val(start_time, TYPE_TIME));
+	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
 	stat->Assign(field++, val_mgr->GetBool(interrupted));
-	stat->Assign(field++, new StringVal(msg));
+	stat->Assign(field++, make_intrusive<StringVal>(msg));
 	stat->Assign(field++, val_mgr->GetCount(body_length));
 	stat->Assign(field++, val_mgr->GetCount(content_gap_length));
 	stat->Assign(field++, val_mgr->GetCount(header_length));
@@ -1185,8 +1185,8 @@ void HTTP_Analyzer::GenStats()
 		RecordVal* r = new RecordVal(http_stats_rec);
 		r->Assign(0, val_mgr->GetCount(num_requests));
 		r->Assign(1, val_mgr->GetCount(num_replies));
-		r->Assign(2, new Val(request_version.ToDouble(), TYPE_DOUBLE));
-		r->Assign(3, new Val(reply_version.ToDouble(), TYPE_DOUBLE));
+		r->Assign(2, make_intrusive<Val>(request_version.ToDouble(), TYPE_DOUBLE));
+		r->Assign(3, make_intrusive<Val>(reply_version.ToDouble(), TYPE_DOUBLE));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		ConnectionEventFast(http_stats, {BuildConnVal(), r});

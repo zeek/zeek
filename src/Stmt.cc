@@ -217,11 +217,11 @@ static void print_log(val_list* vals)
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
-		vec->Assign(vec->Size(), new StringVal(d.Description()));
+		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, new Val(current_time(), TYPE_TIME));
-	record->Assign(1, vec.release());
+	record->Assign(0, make_intrusive<Val>(current_time(), TYPE_TIME));
+	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
 

@@ -824,15 +824,15 @@ TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
 
-		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+		auto nr = make_intrusive<RecordVal>(internal_type("record_field")->AsRecordType());
 
 		string s = container_type_name(ft);
-		nr->Assign(0, new StringVal(s));
+		nr->Assign(0, make_intrusive<StringVal>(s));
 		nr->Assign(1, val_mgr->GetBool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));
-		rval->Assign(field_name, nr);
+		rval->Assign(field_name, std::move(nr));
 		Unref(field_name);
 		}
 

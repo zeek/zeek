@@ -715,7 +715,9 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
+	int Assign(Val* index, IntrusivePtr<Val> new_val);
 	int Assign(Val* index, Val* new_val);
+	int Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
 	int Assign(Val* index, HashKey* k, Val* new_val);
 
 	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
@@ -875,6 +877,7 @@ public:
 	Val* SizeVal() const override
 		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
 
+	void Assign(int field, IntrusivePtr<Val> new_val);
 	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	Val* LookupWithDefault(int field) const;	// Does Ref() value.
@@ -965,11 +968,14 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
+	bool Assign(unsigned int index, IntrusivePtr<Val> element);
 	bool Assign(unsigned int index, Val* element);
-	bool Assign(Val* index, Val* element)
+
+	template<typename E>
+	bool Assign(Val* index, E&& element)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element);
+		              std::forward<E>(element));
 		}
 
 	// Assigns the value to how_many locations starting at index.

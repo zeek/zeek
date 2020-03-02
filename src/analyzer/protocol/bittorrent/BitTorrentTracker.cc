@@ -481,7 +481,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
 			RecordVal* peer = new RecordVal(bittorrent_peer);
-			peer->Assign(0, new AddrVal(ad));
+			peer->Assign(0, make_intrusive<AddrVal>(ad));
 			peer->Assign(1, val_mgr->GetPort(pt, TRANSPORT_TCP));
 			res_val_peers->Assign(peer, 0);
 
@@ -491,9 +491,9 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	else
 		{
 		StringVal* name_ = new StringVal(name_len, name);
-		RecordVal* benc_value = new RecordVal(bittorrent_benc_value);
-		benc_value->Assign(type, new StringVal(value_len, value));
-		res_val_benc->Assign(name_, benc_value);
+		auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
+		benc_value->Assign(type, make_intrusive<StringVal>(value_len, value));
+		res_val_benc->Assign(name_, std::move(benc_value));
 
 		Unref(name_);
 		}

@@ -69,7 +69,7 @@ refine flow Flow += {
 			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
-			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
 			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
@@ -97,7 +97,7 @@ refine flow Flow += {
 			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
-			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
 			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
@@ -131,7 +131,7 @@ refine flow Flow += {
 			packet->Assign(0, val_mgr->GetCount(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->GetCount(${pkt.event_id}));
 			packet->Assign(2, val_mgr->GetCount(${pkt.event_second}));
-			packet->Assign(3, new Val(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
+			packet->Assign(3, make_intrusive<Val>(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
 			packet->Assign(4, val_mgr->GetCount(${pkt.link_type}));
 			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
 

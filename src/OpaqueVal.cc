@@ -1043,7 +1043,7 @@ IntrusivePtr<VectorVal> ParaglobVal::Get(StringVal* &pattern)
 
 	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
 	for (unsigned int i = 0; i < matches.size(); i++)
-		rval->Assign(i, new StringVal(matches.at(i)));
+		rval->Assign(i, make_intrusive<StringVal>(matches.at(i)));
 
 	return rval;
 	}

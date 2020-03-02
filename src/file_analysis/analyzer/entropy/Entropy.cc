@@ -61,11 +61,11 @@ void Entropy::Finalize()
 	entropy->Get(&ent, &chisq, &mean, &montepi, &scc);
 
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
 
 	mgr.QueueEventFast(file_entropy, {
 		GetFile()->GetVal()->Ref(),

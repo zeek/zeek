@@ -286,7 +286,7 @@ RecordVal* BroFile::Rotate()
 		return 0;
 		}
 
-	info->Assign(2, new Val(open_time, TYPE_TIME));
+	info->Assign(2, make_intrusive<Val>(open_time, TYPE_TIME));
 
 	Unlink();
 

@@ -106,7 +106,7 @@ int vs_to_string_array(vector<const BroString*>& vs, TableVal* tbl,
 	for ( int i = start, j = 0; i <= end; ++i, ++j )
 		{
 		Val* ind = val_mgr->GetCount(i);
-		tbl->Assign(ind, new StringVal(vs[j]->Len(),
+		tbl->Assign(ind, make_intrusive<StringVal>(vs[j]->Len(),
 						(const char *)vs[j]->Bytes()));
 		Unref(ind);
 		}
@@ -266,7 +266,7 @@ VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
 			n=0;
 			}
 
-		rval->Assign(num++, new StringVal(offset, (const char*) s));
+		rval->Assign(num++, make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -274,7 +274,7 @@ VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			rval->Assign(num++, new StringVal(end_of_match, (const char*) s+offset));
+			rval->Assign(num++, make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -322,7 +322,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			}
 
 		Val* ind = val_mgr->GetCount(++num);
-		a->Assign(ind, new StringVal(offset, (const char*) s));
+		a->Assign(ind, make_intrusive<StringVal>(offset, (const char*) s));
 		Unref(ind);
 
 		// No more separators will be needed if this is the end of string.
@@ -332,7 +332,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 		if ( incl_sep )
 			{ // including the part that matches the pattern
 			ind = val_mgr->GetCount(++num);
-			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
+			a->Assign(ind, make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			Unref(ind);
 			}
 
@@ -759,7 +759,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 		for ( BroString::VecIt it = result->begin();
 		      it != result->end(); ++it, ++i )
-			result_v->Assign(i, new StringVal(*it));
+			result_v->Assign(i, make_intrusive<StringVal>(*it));
 			// StringVal now possesses string.
 
 		delete result;

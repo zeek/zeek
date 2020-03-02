@@ -603,13 +603,13 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	if ( dns_SOA_reply && ! msg->skip_event )
 		{
 		RecordVal* r = new RecordVal(dns_soa);
-		r->Assign(0, new StringVal(new BroString(mname, mname_end - mname, 1)));
-		r->Assign(1, new StringVal(new BroString(rname, rname_end - rname, 1)));
+		r->Assign(0, make_intrusive<StringVal>(new BroString(mname, mname_end - mname, 1)));
+		r->Assign(1, make_intrusive<StringVal>(new BroString(rname, rname_end - rname, 1)));
 		r->Assign(2, val_mgr->GetCount(serial));
-		r->Assign(3, new IntervalVal(double(refresh), Seconds));
-		r->Assign(4, new IntervalVal(double(retry), Seconds));
-		r->Assign(5, new IntervalVal(double(expire), Seconds));
-		r->Assign(6, new IntervalVal(double(minimum), Seconds));
+		r->Assign(3, make_intrusive<IntervalVal>(double(refresh), Seconds));
+		r->Assign(4, make_intrusive<IntervalVal>(double(retry), Seconds));
+		r->Assign(5, make_intrusive<IntervalVal>(double(expire), Seconds));
+		r->Assign(6, make_intrusive<IntervalVal>(double(minimum), Seconds));
 
 		analyzer->ConnectionEventFast(dns_SOA_reply, {
 			analyzer->BuildConnVal(),
@@ -1029,7 +1029,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 			}
 
 		BroString* bitmap = ExtractStream(data, len, bmlen);
-		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
 		typebitmaps_len = typebitmaps_len - (2 + bmlen);
 		}
 
@@ -1106,7 +1106,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 			}
 
 		BroString* bitmap = ExtractStream(data, len, bmlen);
-		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
 		typebitmaps_len = typebitmaps_len - (2 + bmlen);
 		}
 
@@ -1496,7 +1496,7 @@ Val* DNS_MsgInfo::BuildAnswerVal()
 	r->Assign(1, query_name);
 	r->Assign(2, val_mgr->GetCount(atype));
 	r->Assign(3, val_mgr->GetCount(aclass));
-	r->Assign(4, new IntervalVal(double(ttl), Seconds));
+	r->Assign(4, make_intrusive<IntervalVal>(double(ttl), Seconds));
 
 	return r;
 	}
@@ -1531,7 +1531,7 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 	r->Assign(4, val_mgr->GetCount(return_error));
 	r->Assign(5, val_mgr->GetCount(version));
 	r->Assign(6, val_mgr->GetCount(z));
-	r->Assign(7, new IntervalVal(double(ttl), Seconds));
+	r->Assign(7, make_intrusive<IntervalVal>(double(ttl), Seconds));
 	r->Assign(8, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1546,10 +1546,10 @@ Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	// r->Assign(0, val_mgr->GetCount(int(answer_type)));
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, new StringVal(tsig->alg_name));
-	r->Assign(3, new StringVal(tsig->sig));
-	r->Assign(4, new Val(rtime, TYPE_TIME));
-	r->Assign(5, new Val(double(tsig->fudge), TYPE_TIME));
+	r->Assign(2, make_intrusive<StringVal>(tsig->alg_name));
+	r->Assign(3, make_intrusive<StringVal>(tsig->sig));
+	r->Assign(4, make_intrusive<Val>(rtime, TYPE_TIME));
+	r->Assign(5, make_intrusive<Val>(double(tsig->fudge), TYPE_TIME));
 	r->Assign(6, val_mgr->GetCount(tsig->orig_id));
 	r->Assign(7, val_mgr->GetCount(tsig->rr_error));
 	r->Assign(8, val_mgr->GetCount(is_query));
@@ -1567,12 +1567,12 @@ Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	r->Assign(2, val_mgr->GetCount(rrsig->type_covered));
 	r->Assign(3, val_mgr->GetCount(rrsig->algorithm));
 	r->Assign(4, val_mgr->GetCount(rrsig->labels));
-	r->Assign(5, new IntervalVal(double(rrsig->orig_ttl), Seconds));
-	r->Assign(6, new Val(double(rrsig->sig_exp), TYPE_TIME));
-	r->Assign(7, new Val(double(rrsig->sig_incep), TYPE_TIME));
+	r->Assign(5, make_intrusive<IntervalVal>(double(rrsig->orig_ttl), Seconds));
+	r->Assign(6, make_intrusive<Val>(double(rrsig->sig_exp), TYPE_TIME));
+	r->Assign(7, make_intrusive<Val>(double(rrsig->sig_incep), TYPE_TIME));
 	r->Assign(8, val_mgr->GetCount(rrsig->key_tag));
-	r->Assign(9, new StringVal(rrsig->signer_name));
-	r->Assign(10, new StringVal(rrsig->signature));
+	r->Assign(9, make_intrusive<StringVal>(rrsig->signer_name));
+	r->Assign(10, make_intrusive<StringVal>(rrsig->signature));
 	r->Assign(11, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1588,7 +1588,7 @@ Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	r->Assign(2, val_mgr->GetCount(dnskey->dflags));
 	r->Assign(3, val_mgr->GetCount(dnskey->dprotocol));
 	r->Assign(4, val_mgr->GetCount(dnskey->dalgorithm));
-	r->Assign(5, new StringVal(dnskey->public_key));
+	r->Assign(5, make_intrusive<StringVal>(dnskey->public_key));
 	r->Assign(6, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1605,9 +1605,9 @@ Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	r->Assign(3, val_mgr->GetCount(nsec3->nsec_hash_algo));
 	r->Assign(4, val_mgr->GetCount(nsec3->nsec_iter));
 	r->Assign(5, val_mgr->GetCount(nsec3->nsec_salt_len));
-	r->Assign(6, new StringVal(nsec3->nsec_salt));
+	r->Assign(6, make_intrusive<StringVal>(nsec3->nsec_salt));
 	r->Assign(7, val_mgr->GetCount(nsec3->nsec_hlen));
-	r->Assign(8, new StringVal(nsec3->nsec_hash));
+	r->Assign(8, make_intrusive<StringVal>(nsec3->nsec_hash));
 	r->Assign(9, nsec3->bitmaps);
 	r->Assign(10, val_mgr->GetCount(is_query));
 
@@ -1624,7 +1624,7 @@ Val* DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	r->Assign(2, val_mgr->GetCount(ds->key_tag));
 	r->Assign(3, val_mgr->GetCount(ds->algorithm));
 	r->Assign(4, val_mgr->GetCount(ds->digest_type));
-	r->Assign(5, new StringVal(ds->digest_val));
+	r->Assign(5, make_intrusive<StringVal>(ds->digest_val));
 	r->Assign(6, val_mgr->GetCount(is_query));
 
 	return r;

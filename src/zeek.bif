@@ -1051,11 +1051,11 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
 	return ent_result;
 	%}
 
@@ -1102,11 +1102,11 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
 	RecordVal* ent_result = new RecordVal(entropy_test_result);
-	ent_result->Assign(0, new Val(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, new Val(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, new Val(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, new Val(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, new Val(scc,     TYPE_DOUBLE));
+	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
+	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
+	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
+	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
+	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
 	return ent_result;
 	%}
 
@@ -1833,10 +1833,7 @@ function record_type_to_vector%(rt: string%): string_vec
 	if ( type )
 		{
 		for ( int i = 0; i < type->NumFields(); ++i )
-			{
-			StringVal* val = new StringVal(type->FieldName(i));
-			result->Assign(i+1, val);
-			}
+			result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
 		}
 
 	return result;
@@ -1865,7 +1862,7 @@ function zeek_args%(%): string_vec
 	auto rval = make_intrusive<VectorVal>(sv);
 
 	for ( auto i = 0; i < bro_argc; ++i )
-		rval->Assign(rval->Size(), new StringVal(bro_argv[i]));
+		rval->Assign(rval->Size(), make_intrusive<StringVal>(bro_argv[i]));
 
 	return rval.release();
 	%}
@@ -1906,7 +1903,7 @@ function packet_source%(%): PacketSource
         if ( ps )
 		{
 		r->Assign(0, val_mgr->GetBool(ps->IsLive()));
-		r->Assign(1, new StringVal(ps->Path()));
+		r->Assign(1, make_intrusive<StringVal>(ps->Path()));
 		r->Assign(2, val_mgr->GetInt(ps->LinkType()));
 		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
 		}
@@ -1956,8 +1953,8 @@ function global_ids%(%): id_table
 	for ( const auto& global : globals )
 		{
 		ID* id = global.second;
-		RecordVal* rec = new RecordVal(script_id);
-		rec->Assign(0, new StringVal(type_name(id->Type()->Tag())));
+		auto rec = make_intrusive<RecordVal>(script_id);
+		rec->Assign(0, make_intrusive<StringVal>(type_name(id->Type()->Tag())));
 		rec->Assign(1, val_mgr->GetBool(id->IsExport()));
 		rec->Assign(2, val_mgr->GetBool(id->IsConst()));
 		rec->Assign(3, val_mgr->GetBool(id->IsEnumConst()));
@@ -1971,9 +1968,8 @@ function global_ids%(%): id_table
 			rec->Assign(6, val);
 			}
 
-		Val* id_name = new StringVal(id->Name());
-		ids->Assign(id_name, rec);
-		Unref(id_name);
+		auto id_name = make_intrusive<StringVal>(id->Name());
+		ids->Assign(id_name.get(), std::move(rec));
 		}
 
 	return ids;
@@ -2212,7 +2208,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	while ( len > 0 )
 		{
 		IPAddr a(IPv6, (const uint32_t*) bytes, IPAddr::Network);
-		rval->Assign(rval->Size(), new AddrVal(a));
+		rval->Assign(rval->Size(), make_intrusive<AddrVal>(a));
 		bytes += 16;
 		len -= 16;
 		}
@@ -3316,26 +3312,26 @@ function lookup_connection%(cid: conn_id%): connection
 	RecordVal* c = new RecordVal(connection_type);
 
 	RecordVal* id_val = new RecordVal(conn_id);
-	id_val->Assign(0, new AddrVal((unsigned int) 0));
+	id_val->Assign(0, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(1, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, new AddrVal((unsigned int) 0));
+	id_val->Assign(2, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(3, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
-	RecordVal* orig_endp = new RecordVal(endpoint);
+	auto orig_endp = make_intrusive<RecordVal>(endpoint);
 	orig_endp->Assign(0, val_mgr->GetCount(0));
 	orig_endp->Assign(1, val_mgr->GetCount(int(0)));
 
-	RecordVal* resp_endp = new RecordVal(endpoint);
+	auto resp_endp = make_intrusive<RecordVal>(endpoint);
 	resp_endp->Assign(0, val_mgr->GetCount(0));
 	resp_endp->Assign(1, val_mgr->GetCount(int(0)));
 
-	c->Assign(1, orig_endp);
-	c->Assign(2, resp_endp);
+	c->Assign(1, std::move(orig_endp));
+	c->Assign(2, std::move(resp_endp));
 
-	c->Assign(3, new Val(network_time, TYPE_TIME));
-	c->Assign(4, new Val(0.0, TYPE_INTERVAL));
-	c->Assign(5, new TableVal(string_set));	// service
+	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
+	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
+	c->Assign(5, make_intrusive<TableVal>(string_set));	// service
 	c->Assign(6, val_mgr->GetEmptyString());	// history
 
 	return c;
@@ -3416,7 +3412,7 @@ function get_current_packet%(%) : pcap_packet
 	pkt->Assign(1, val_mgr->GetCount(uint32_t(p->ts.tv_usec)));
 	pkt->Assign(2, val_mgr->GetCount(p->cap_len));
 	pkt->Assign(3, val_mgr->GetCount(p->len));
-	pkt->Assign(4, new StringVal(p->cap_len, (const char*)p->data));
+	pkt->Assign(4, make_intrusive<StringVal>(p->cap_len, (const char*)p->data));
 	pkt->Assign(5, BifType::Enum::link_encap->GetVal(p->link_type));
 
 	return pkt;
@@ -4617,8 +4613,8 @@ function rotate_file%(f: file%): rotate_info
 	info = new RecordVal(rotate_info);
 	info->Assign(0, val_mgr->GetEmptyString());
 	info->Assign(1, val_mgr->GetEmptyString());
-	info->Assign(2, new Val(0.0, TYPE_TIME));
-	info->Assign(3, new Val(0.0, TYPE_TIME));
+	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
+	info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
 
 	return info;
 	%}
@@ -4658,8 +4654,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 		// Record indicating error.
 		info->Assign(0, val_mgr->GetEmptyString());
 		info->Assign(1, val_mgr->GetEmptyString());
-		info->Assign(2, new Val(0.0, TYPE_TIME));
-		info->Assign(3, new Val(0.0, TYPE_TIME));
+		info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
+		info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
 		return info;
 		}
 
@@ -4667,12 +4663,12 @@ function rotate_file_by_name%(f: string%): rotate_info
 
 	if ( is_pkt_dumper )
 		{
-		info->Assign(2, new Val(pkt_dumper->OpenTime(), TYPE_TIME));
+		info->Assign(2, make_intrusive<Val>(pkt_dumper->OpenTime(), TYPE_TIME));
 		pkt_dumper->Open();
 		}
 
 	if ( is_addl_pkt_dumper )
-		info->Assign(2, new Val(addl_pkt_dumper->OpenTime(), TYPE_TIME));
+		info->Assign(2, make_intrusive<Val>(addl_pkt_dumper->OpenTime(), TYPE_TIME));
 
 	return info;
 	%}

@@ -263,12 +263,12 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 		ext_val = new StringVal(0, "");
 
 	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
+	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
+		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
 
-	pX509Ext->Assign(2, new StringVal(oid));
+	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
 	pX509Ext->Assign(3, val_mgr->GetBool(critical));
 	pX509Ext->Assign(4, ext_val);
 

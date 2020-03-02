@@ -365,7 +365,7 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
 			Val* v_i = v_op->Lookup(i);
-			result->Assign(i, v_i ? Fold(v_i).release() : 0);
+			result->Assign(i, v_i ? Fold(v_i) : nullptr);
 			}
 
 		return result;
@@ -460,7 +460,7 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
 				v_result->Assign(i,
 						 Fold(v_op1->Lookup(i),
-						      v_op2->Lookup(i)).release());
+						      v_op2->Lookup(i)));
 			else
 				v_result->Assign(i, nullptr);
 			// SetError("undefined element in vector operation");
@@ -479,8 +479,8 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 			Val* vv_i = vv->Lookup(i);
 			if ( vv_i )
 				v_result->Assign(i, is_vec1 ?
-				    Fold(vv_i, v2.get()).release() :
-				    Fold(v1.get(), vv_i).release());
+				    Fold(vv_i, v2.get()) :
+				    Fold(v1.get(), vv_i));
 			else
 				v_result->Assign(i, nullptr);
 
@@ -981,7 +981,7 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 			Val* elt = v_vec->Lookup(i);
 
 			if ( elt )
-				v_vec->Assign(i, DoSingleEval(f, elt).release());
+				v_vec->Assign(i, DoSingleEval(f, elt));
 			else
 				v_vec->Assign(i, nullptr);
 			}
@@ -1259,7 +1259,7 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 		{
 		VectorVal* vv = v1->AsVectorVal();
 
-		if ( ! vv->Assign(vv->Size(), v2.release()) )
+		if ( ! vv->Assign(vv->Size(), v2) )
 			RuntimeError("type-checking failed in vector append");
 
 		return v1;
@@ -2332,7 +2332,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		auto v = op2->Eval(f);
 
 		if ( v )
-			aggr_r->Assign(field, v.release());
+			aggr_r->Assign(field, std::move(v));
 
 		return;
 		}
@@ -2348,7 +2348,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	if ( ! index || ! v )
 		return;
 
-	if ( ! tv->Assign(index.get(), v.release()) )
+	if ( ! tv->Assign(index.get(), std::move(v)) )
 		RuntimeError("type clash in table assignment");
 	}
 
@@ -2392,7 +2392,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 		if ( ! v )
 			return nullptr;
 
-		aggr_r->Assign(field, v->Ref());
+		aggr_r->Assign(field, v);
 		return v;
 		}
 
@@ -2789,7 +2789,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
 				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
 			}
-		else if ( ! v1_vect->Assign(v2.get(), v.release()) )
+		else if ( ! v1_vect->Assign(v2.get(), std::move(v)) )
 			{
 			v = std::move(v_extra);
 
@@ -2811,7 +2811,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		}
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2.get(), v.release()) )
+		if ( ! v1->AsTableVal()->Assign(v2.get(), std::move(v)) )
 			{
 			v = std::move(v_extra);
 
@@ -2919,7 +2919,7 @@ void FieldExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	if ( op_v )
 		{
 		RecordVal* r = op_v->AsRecordVal();
-		r->Assign(field, v.release());
+		r->Assign(field, std::move(v));
 		}
 	}
 
@@ -3378,9 +3378,8 @@ IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		auto v = e->Eval(f);
 
-		if ( ! vec->Assign(i, v.release()) )
+		if ( ! vec->Assign(i, e->Eval(f)) )
 			{
 			RuntimeError(fmt("type mismatch at index %d", i));
 			return nullptr;
@@ -3406,7 +3405,7 @@ IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 		Expr* e = exprs[i];
 		auto v = check_and_promote(e->Eval(nullptr), t->YieldType(), 1);
 
-		if ( ! v || ! vec->Assign(i, v.release()) )
+		if ( ! v || ! vec->Assign(i, std::move(v)) )
 			{
 			Error(fmt("initialization type mismatch at index %d", i), e);
 			return nullptr;
@@ -3448,7 +3447,7 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 			reporter->InternalError("Missing record field: %s",
 			                        field_name.c_str());
 
-		rec->Assign(idx, v.release());
+		rec->Assign(idx, std::move(v));
 		}
 	}
 
@@ -3542,7 +3541,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 		{
 		Val* elt = vv->Lookup(i);
 		if ( elt )
-			result->Assign(i, FoldSingleVal(elt, t).release());
+			result->Assign(i, FoldSingleVal(elt, t));
 		else
 			result->Assign(i, 0);
 		}
@@ -3733,7 +3732,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 					RuntimeError("Failed type conversion");
 				}
 
-			val->Assign(i, rhs.release());
+			val->Assign(i, std::move(rhs));
 			}
 		else
 			{
@@ -3757,7 +3756,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 						def_val = {AdoptRef{}, tmp};
 					}
 
-				val->Assign(i, def_val.release());
+				val->Assign(i, std::move(def_val));
 				}
 			else
 				val->Assign(i, 0);
@@ -4680,7 +4679,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
 			auto v = e->Eval(nullptr);
 
-			if ( ! vec->Assign(i, v.release()) )
+			if ( ! vec->Assign(i, std::move(v)) )
 				{
 				e->Error(fmt("type mismatch at index %d", i));
 				return nullptr;

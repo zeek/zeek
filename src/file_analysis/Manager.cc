@@ -528,7 +528,7 @@ VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 		      it2 != it->second.end(); ++it2 )
 			{
 			element->Assign(0, val_mgr->GetInt(it->first));
-			element->Assign(1, new StringVal(*it2));
+			element->Assign(1, make_intrusive<StringVal>(*it2));
 			}
 
 		rval->Assign(rval->Size(), element);

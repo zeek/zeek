@@ -321,7 +321,7 @@ struct val_converter {
 			if ( ! value_val )
 				return nullptr;
 
-			rval->Assign(list_val.get(), value_val.release());
+			rval->Assign(list_val.get(), std::move(value_val));
 			}
 
 		return rval.release();
@@ -341,7 +341,7 @@ struct val_converter {
 				if ( ! item_val )
 					return nullptr;
 
-				rval->Assign(rval->Size(), item_val.release());
+				rval->Assign(rval->Size(), std::move(item_val));
 				}
 
 			return rval.release();
@@ -410,7 +410,7 @@ struct val_converter {
 				if ( ! item_val )
 					return nullptr;
 
-				rval->Assign(i, item_val.release());
+				rval->Assign(i, std::move(item_val));
 				++idx;
 				}
 
@@ -1040,7 +1040,7 @@ RecordVal* bro_broker::make_data_val(Val* v)
 	auto data = val_to_data(v);
 
 	if  ( data )
-		rval->Assign(0, new DataVal(move(*data)));
+		rval->Assign(0, make_intrusive<DataVal>(move(*data)));
 	else
 		reporter->Warning("did not get a value from val_to_data");
 
@@ -1050,7 +1050,7 @@ RecordVal* bro_broker::make_data_val(Val* v)
 RecordVal* bro_broker::make_data_val(broker::data d)
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::Data);
-	rval->Assign(0, new DataVal(move(d)));
+	rval->Assign(0, make_intrusive<DataVal>(move(d)));
 	return rval;
 	}
 

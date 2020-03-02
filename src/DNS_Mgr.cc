@@ -745,9 +745,9 @@ Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
 	RecordVal* r = new RecordVal(dm_rec);
 
-	r->Assign(0, new Val(dm->CreationTime(), TYPE_TIME));
-	r->Assign(1, new StringVal(dm->ReqHost() ? dm->ReqHost() : ""));
-	r->Assign(2, new AddrVal(dm->ReqAddr()));
+	r->Assign(0, make_intrusive<Val>(dm->CreationTime(), TYPE_TIME));
+	r->Assign(1, make_intrusive<StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
+	r->Assign(2, make_intrusive<AddrVal>(dm->ReqAddr()));
 	r->Assign(3, val_mgr->GetBool(dm->Valid()));
 
 	Val* h = dm->Host();

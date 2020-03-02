@@ -1544,10 +1544,10 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	// Create the RotationInfo record.
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
-	info->Assign(1, new StringVal(new_name));
-	info->Assign(2, new StringVal(winfo->writer->Info().path));
-	info->Assign(3, new Val(open, TYPE_TIME));
-	info->Assign(4, new Val(close, TYPE_TIME));
+	info->Assign(1, make_intrusive<StringVal>(new_name));
+	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
+	info->Assign(3, make_intrusive<Val>(open, TYPE_TIME));
+	info->Assign(4, make_intrusive<Val>(close, TYPE_TIME));
 	info->Assign(5, val_mgr->GetBool(terminating));
 
 	Func* func = winfo->postprocessor;

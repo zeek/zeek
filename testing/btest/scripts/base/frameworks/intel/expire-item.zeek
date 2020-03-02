@@ -63,5 +63,5 @@ hook Intel::item_expired(indicator: string, indicator_type: Intel::Type,
 
 event zeek_init() &priority=-10
 	{
-	schedule 1.5sec { do_it() };
+	schedule 4sec { do_it() };
 	}

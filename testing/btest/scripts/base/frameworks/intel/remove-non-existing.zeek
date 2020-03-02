@@ -27,5 +27,5 @@ event do_it()
 
 event zeek_init() &priority=-10
 	{
-	schedule 1sec { do_it() };
+	schedule 3sec { do_it() };
 	}

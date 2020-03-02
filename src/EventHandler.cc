@@ -114,7 +114,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		Unref(local->Call(vl));
+		local->Call(vl);
 	else
 		{
 		for ( auto v : *vl )

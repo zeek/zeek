@@ -739,12 +739,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			int result = 1;
 
-			Val* v = filter->pred->Call(&vl);
+			auto v = filter->pred->Call(&vl);
 			if ( v )
-				{
 				result = v->AsBool();
-				Unref(v);
-				}
 
 			if ( ! result )
 				continue;
@@ -773,9 +770,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				rec_arg,
 			};
 
-			Val* v = 0;
-
-			v = filter->path_func->Call(&vl);
+			auto v = filter->path_func->Call(&vl);
 
 			if ( ! v )
 				return false;
@@ -783,7 +778,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			if ( v->Type()->Tag() != TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
-				Unref(v);
 				return false;
 				}
 
@@ -794,7 +788,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				}
 
 			path = v->AsString()->CheckString();
-			Unref(v);
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
@@ -1090,9 +1083,9 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 	if ( filter->num_ext_fields > 0 )
 		{
 		val_list vl{filter->path_val->Ref()};
-		Val* res = filter->ext_func->Call(&vl);
+		auto res = filter->ext_func->Call(&vl);
 		if ( res )
-			ext_rec = res->AsRecordVal();
+			ext_rec = res.release()->AsRecordVal();
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
@@ -1572,12 +1565,9 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	int result = 0;
 
-	Val* v = func->Call(&vl);
+	auto v = func->Call(&vl);
 	if ( v )
-		{
 		result = v->AsBool();
-		Unref(v);
-		}
 
 	return result;
 	}

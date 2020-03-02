@@ -4241,7 +4241,7 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 		if ( f )
 			f->SetCall(this);
 
-		ret = {AdoptRef{}, func->Call(v, f)};
+		ret = func->Call(v, f);
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4307,9 +4307,8 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	::Ref(ingredients->body);
 	BroFunc* dummy_func = new BroFunc(
-		ingredients->id,
+		ingredients->id.get(),
 		ingredients->body,
 		ingredients->body && ingredients->inits && ingredients->inits->length() > 0 ? shallow_copy_id_list(*ingredients->inits).release() : nullptr,
 		ingredients->frame_size,
@@ -4355,9 +4354,8 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	{
-	::Ref(ingredients->body);
 	auto lamb = make_intrusive<BroFunc>(
-		ingredients->id,
+		ingredients->id.get(),
 		ingredients->body,
 		ingredients->body && ingredients->inits && ingredients->inits->length() > 0 ? shallow_copy_id_list(*ingredients->inits).release() : nullptr,
 		ingredients->frame_size,

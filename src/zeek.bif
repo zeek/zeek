@@ -1339,9 +1339,8 @@ bool sort_function(Val* a, Val* b)
 	sort_func_args.push_back(a->Ref());
 	sort_func_args.push_back(b->Ref());
 
-	Val* result = sort_function_comp->Call(&sort_func_args);
+	auto result = sort_function_comp->Call(&sort_func_args);
 	int int_result = result->CoerceToInt();
-	Unref(result);
 
 	return int_result < 0;
 	}

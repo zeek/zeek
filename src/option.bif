@@ -23,7 +23,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 			if ( add_loc )
 				vl.push_back(location->Ref());
 
-			val = handler_function->Call(&vl); // consumed by next call.
+			val = handler_function->Call(&vl).release(); // consumed by next call.
 			if ( ! val )
 				{
 				// Someone messed up, don't change value and just return

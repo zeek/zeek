@@ -179,15 +179,9 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	try
 		{
-		Val* val = id->ID_Val()->AsFunc()->Call(&args);
+		auto val = id->ID_Val()->AsFunc()->Call(&args);
 
-		if ( val )
-			{
-			result = val->AsBool();
-			Unref(val);
-			}
-		else
-			result = false;
+		result = val && val->AsBool();
 		}
 
 	catch ( InterpreterException& e )

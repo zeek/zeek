@@ -1844,12 +1844,9 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 
 	va_end(lP);
 
-	Val* v = pred_func->Call(&vl);
+	auto v = pred_func->Call(&vl);
 	if ( v )
-		{
 		result = v->AsBool();
-		Unref(v);
-		}
 
 	return result;
 	}

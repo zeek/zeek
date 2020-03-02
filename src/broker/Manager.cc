@@ -550,7 +550,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		new StringVal(path),
 	};
 
-	Val* v = log_topic_func->Call(&vl);
+	auto v = log_topic_func->Call(&vl);
 
 	if ( ! v )
 		{
@@ -561,7 +561,6 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		}
 
 	std::string topic = v->AsString()->CheckString();
-	Unref(v);
 
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));

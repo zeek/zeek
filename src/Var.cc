@@ -473,12 +473,11 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 void end_func(IntrusivePtr<Stmt> body)
 	{
-	auto ingredients = std::make_unique<function_ingredients>(
-	        pop_scope().release(), body.release());
+	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
-		OuterIDBindingFinder cb(ingredients->scope);
+		OuterIDBindingFinder cb(ingredients->scope.get());
 		ingredients->body->Traverse(&cb);
 
 		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
@@ -495,7 +494,7 @@ void end_func(IntrusivePtr<Stmt> body)
 	else
 		{
 		Func* f = new BroFunc(
-			ingredients->id,
+			ingredients->id.get(),
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,

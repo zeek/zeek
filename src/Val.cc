@@ -111,12 +111,7 @@ Val* Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			{
-			auto c = AsFunc()->DoClone();
-			auto rval = new Val(c);
-			Unref(c);
-			return rval;
-			}
+			return new Val(AsFunc()->DoClone().get());
 
 		if ( type->Tag() == TYPE_FILE )
 			{
@@ -1793,7 +1788,7 @@ Val* TableVal::Default(Val* index)
 		vl = val_list{index->Ref()};
 		}
 
-	Val* result = 0;
+	IntrusivePtr<Val> result;
 
 	try
 		{
@@ -1809,7 +1804,7 @@ Val* TableVal::Default(Val* index)
 		return 0;
 		}
 
-	return result;
+	return result.release();
 	}
 
 Val* TableVal::Lookup(Val* index, bool use_default_val)
@@ -2456,14 +2451,11 @@ double TableVal::CallExpireFunc(Val* idx)
 		else
 			vl.append(idx);
 
-		Val* result = 0;
-
-		result = f->Call(&vl);
+		auto result = f->Call(&vl);
 
 		if ( result )
 			{
 			secs = result->AsInterval();
-			Unref(result);
 			}
 		}
 

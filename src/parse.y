@@ -1119,7 +1119,7 @@ decl:
 			IntrusivePtr id{AdoptRef{}, $2};
 			IntrusivePtr<Expr> init{AdoptRef{}, $5};
 			add_global(id.get(), {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
-			zeekygen_mgr->Redef(id.get(), ::filename, $4, init.release());
+			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'

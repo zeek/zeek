@@ -1568,10 +1568,9 @@ int TableVal::AddTo(Val* val, int is_first_init, bool propagate_ops) const
 		{
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
-			Val* key = table_hash->RecoverVals(k);
+			auto key = table_hash->RecoverVals(k);
 			// ### Shouldn't complain if their values are equal.
 			key->Warn("multiple initializations for index");
-			Unref(key);
 			continue;
 			}
 
@@ -1959,7 +1958,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 
 ListVal* TableVal::RecoverIndex(const HashKey* k) const
 	{
-	return table_hash->RecoverVals(k);
+	return table_hash->RecoverVals(k).release();
 	}
 
 void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
@@ -2047,10 +2046,9 @@ Val* TableVal::Delete(const HashKey* k)
 
 	if ( subnets )
 		{
-		Val* index = table_hash->RecoverVals(k);
-		if ( ! subnets->Remove(index) )
+		auto index = table_hash->RecoverVals(k);
+		if ( ! subnets->Remove(index.get()) )
 			reporter->InternalWarning("index not in prefix table");
-		Unref(index);
 		}
 
 	delete v;
@@ -2060,8 +2058,7 @@ Val* TableVal::Delete(const HashKey* k)
 	if ( change_func && va )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index, va->Ref(), ELEMENT_REMOVED);
-		Unref(index);
+		CallChangeFunc(index.get(), va->Ref(), ELEMENT_REMOVED);
 		}
 
 	return va;
@@ -2077,19 +2074,17 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
-		ListVal* index = table_hash->RecoverVals(k);
+		auto index = table_hash->RecoverVals(k);
 
 		if ( t == TYPE_ANY )
-			l->Append(index);
+			l->Append(index.release());
 		else
 			{
 			// We're expecting a pure list, flatten the
 			// ListVal.
 			if ( index->Length() != 1 )
 				InternalWarning("bad index in TableVal::ConvertToList");
-			Val* flat_v = index->Index(0)->Ref();
-			Unref(index);
-			l->Append(flat_v);
+			l->Append(index->Index(0)->Ref());
 			}
 
 		delete k;
@@ -2144,7 +2139,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( ! v )
 			reporter->InternalError("hash table underflow in TableVal::Describe");
 
-		ListVal* vl = table_hash->RecoverVals(k);
+		auto vl = table_hash->RecoverVals(k);
 		int dim = vl->Length();
 
 		if ( i > 0 )
@@ -2169,7 +2164,6 @@ void TableVal::Describe(ODesc* d) const
 		vl->Describe(d);
 
 		delete k;
-		Unref(vl);
 
 		if ( table_type->IsSet() )
 			{ // We're a set, not a table.

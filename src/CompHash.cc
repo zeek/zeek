@@ -720,19 +720,19 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 	return offset;
 	}
 
-ListVal* CompositeHash::RecoverVals(const HashKey* k) const
+IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey* k) const
 	{
-	ListVal* l = new ListVal(TYPE_ANY);
+	auto l = make_intrusive<ListVal>(TYPE_ANY);
 	const type_list* tl = type->Types();
 	const char* kp = (const char*) k->Key();
 	const char* const k_end = kp + k->Size();
 
 	for ( const auto& type : *tl )
 		{
-		Val* v = nullptr;
+		IntrusivePtr<Val> v;
 		kp = RecoverOneVal(k, kp, k_end, type, v, false);
 		ASSERT(v);
-		l->Append(v);
+		l->Append(v.release());
 		}
 
 	if ( kp != k_end )
@@ -743,7 +743,7 @@ ListVal* CompositeHash::RecoverVals(const HashKey* k) const
 
 const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 					 const char* const k_end, BroType* t,
-					 Val*& pval, bool optional) const
+					 IntrusivePtr<Val>& pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
 	if ( kp0 >= k_end && k->Size() > 0 )
@@ -772,11 +772,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == TYPE_ENUM )
-			pval = t->AsEnumType()->GetVal(*kp).release();
+			pval = t->AsEnumType()->GetVal(*kp);
 		else if ( tag == TYPE_BOOL )
-			pval = val_mgr->GetBool(*kp);
+			pval = {AdoptRef{}, val_mgr->GetBool(*kp)};
 		else if ( tag == TYPE_INT )
-			pval = val_mgr->GetInt(*kp);
+			pval = {AdoptRef{}, val_mgr->GetInt(*kp)};
 		else
 			{
 			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
@@ -793,11 +793,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		switch ( tag ) {
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			pval = val_mgr->GetCount(*kp);
+			pval = {AdoptRef{}, val_mgr->GetCount(*kp)};
 			break;
 
 		case TYPE_PORT:
-			pval = val_mgr->GetPort(*kp);
+			pval = {AdoptRef{}, val_mgr->GetPort(*kp)};
 			break;
 
 		default:
@@ -814,9 +814,9 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		kp1 = reinterpret_cast<const char*>(kp+1);
 
 		if ( tag == TYPE_INTERVAL )
-			pval = new IntervalVal(*kp, 1.0);
+			pval = make_intrusive<IntervalVal>(*kp, 1.0);
 		else
-			pval = new Val(*kp, tag);
+			pval = make_intrusive<Val>(*kp, tag);
 		}
 		break;
 
@@ -829,7 +829,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 		switch ( tag ) {
 		case TYPE_ADDR:
-			pval = new AddrVal(addr);
+			pval = make_intrusive<AddrVal>(addr);
 			break;
 
 		default:
@@ -844,7 +844,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		{
 		const uint32_t* const kp = AlignType<uint32_t>(kp0);
 		kp1 = reinterpret_cast<const char*>(kp+5);
-		pval = new SubNetVal(kp, kp[4]);
+		pval = make_intrusive<SubNetVal>(kp, kp[4]);
 		}
 		break;
 
@@ -862,7 +862,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
-			pval = new Val(f);
+			pval = make_intrusive<Val>(f);
 
 			if ( ! pval->Type() )
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
@@ -898,7 +898,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				re = new RE_Matcher(kp1, kp1 + len[0]);
 				kp1 += len[0] + len[1];
 				}
-			pval = new PatternVal(re);
+			pval = make_intrusive<PatternVal>(re);
 			}
 			break;
 
@@ -912,7 +912,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			int i;
 			for ( i = 0; i < num_fields; ++i )
 				{
-				Val* v;
+				IntrusivePtr<Val> v;
 
 				Attributes* a = rt->FieldDecl(i)->attrs;
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
@@ -930,17 +930,17 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 					break;
 					}
 
-				values.push_back(v);
+				values.push_back(v.release());
 				}
 
 			ASSERT(int(values.size()) == num_fields);
 
-			RecordVal* rv = new RecordVal(rt);
+			auto rv = make_intrusive<RecordVal>(rt);
 
 			for ( int i = 0; i < num_fields; ++i )
 				rv->Assign(i, values[i]);
 
-			pval = rv;
+			pval = std::move(rv);
 			kp1 = kp;
 			}
 			break;
@@ -952,19 +952,19 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			TableType* tt = t->AsTableType();
-			TableVal* tv = new TableVal(tt);
+			auto tv = make_intrusive<TableVal>(tt);
 			vector<Val*> keys, values;
 			for ( int i = 0; i < n; ++i )
 				{
-				Val* key;
+				IntrusivePtr<Val> key;
 				kp1 = RecoverOneVal(k, kp1, k_end, tt->Indices(), key, false);
-				keys.push_back(key);
+				keys.push_back(key.release());
 				if ( ! t->IsSet() )
 					{
-					Val* value;
+					IntrusivePtr<Val> value;
 					kp1 = RecoverOneVal(k, kp1, k_end, tt->YieldType(), value,
 					                    false);
-					values.push_back(value);
+					values.push_back(value.release());
 					}
 				}
 
@@ -974,7 +974,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				Unref(keys[i]);
 				}
 
-			pval = tv;
+			pval = std::move(tv);
 			}
 			break;
 
@@ -985,7 +985,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			VectorType* vt = t->AsVectorType();
-			VectorVal* vv = new VectorVal(vt);
+			auto vv = make_intrusive<VectorVal>(vt);
 			for ( unsigned int i = 0; i < n; ++i )
 				{
 				kp = AlignType<unsigned int>(kp1);
@@ -994,14 +994,14 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				kp = AlignType<unsigned int>(kp1);
 				unsigned int have_val = *kp;
 				kp1 = reinterpret_cast<const char*>(kp+1);
-				Val* value = 0;
+				IntrusivePtr<Val> value;
 				if ( have_val )
 					kp1 = RecoverOneVal(k, kp1, k_end, vt->YieldType(), value,
 					                    false);
-				vv->Assign(index, value);
+				vv->Assign(index, std::move(value));
 				}
 
-			pval = vv;
+			pval = std::move(vv);
 			}
 			break;
 
@@ -1012,16 +1012,16 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			TypeList* tl = t->AsTypeList();
-			ListVal* lv = new ListVal(TYPE_ANY);
+			auto lv = make_intrusive<ListVal>(TYPE_ANY);
 			for ( int i = 0; i < n; ++i )
 				{
-				Val* v;
+				IntrusivePtr<Val> v;
 				BroType* it = (*tl->Types())[i];
 				kp1 = RecoverOneVal(k, kp1, k_end, it, v, false);
-				lv->Append(v);
+				lv->Append(v.release());
 				}
 
-			pval = lv;
+			pval = std::move(lv);
 			}
 			break;
 
@@ -1051,7 +1051,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			}
 
-		pval = new StringVal(new BroString((const byte_vec) kp1, n, 1));
+		pval = make_intrusive<StringVal>(new BroString((const byte_vec) kp1, n, 1));
 		kp1 += n;
 		}
 		break;

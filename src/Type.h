@@ -477,16 +477,16 @@ protected:
 	IntrusivePtr<BroType> type;
 };
 
-class TypeDecl {
+class TypeDecl final {
 public:
 	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
 	TypeDecl(const TypeDecl& other);
-	virtual ~TypeDecl();
+	~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->FindAttr(a) : 0; }
 
-	virtual void DescribeReST(ODesc* d, bool roles_only = false) const;
+	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	BroType* type;
 	Attributes* attrs;

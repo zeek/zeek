@@ -717,12 +717,12 @@ extern TypeTag max_type(TypeTag t1, TypeTag t2);
 // Given two types, returns the "merge", in which promotable types
 // are promoted to the maximum of the two.  Returns nil (and generates
 // an error message) if the types are incompatible.
-extern BroType* merge_types(const BroType* t1, const BroType* t2);
+IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2);
 
 // Given a list of expressions, returns a (ref'd) type reflecting
 // a merged type consistent across all of them, or nil if this
 // cannot be done.
-BroType* merge_type_list(ListExpr* elements);
+IntrusivePtr<BroType> merge_type_list(ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
 extern BroType* init_type(Expr* init);

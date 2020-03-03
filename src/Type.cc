@@ -398,10 +398,10 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 
 			else
 				{
-				IntrusivePtr<BroType> t{AdoptRef{}, merge_types((*tl)[0], (*tl)[1])};
+				auto t = merge_types((*tl)[0], (*tl)[1]);
 
 				for ( int i = 2; t && i < tl->length(); ++i )
-					t = {AdoptRef{}, merge_types(t.get(), (*tl)[i])};
+					t = merge_types(t.get(), (*tl)[i]);
 
 				if ( ! t )
 					{
@@ -1702,7 +1702,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
-BroType* merge_types(const BroType* t1, const BroType* t2)
+IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 	{
 	t1 = flatten_type(t1);
 	t2 = flatten_type(t2);
@@ -1711,7 +1711,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	TypeTag tg2 = t2->Tag();
 
 	if ( BothArithmetic(tg1, tg2) )
-		return base_type(max_type(tg1, tg2));
+		return {AdoptRef{}, base_type(max_type(tg1, tg2))};
 
 	if ( tg1 != tg2 )
 		{
@@ -1731,7 +1731,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_BOOL:
 	case TYPE_ANY:
 	case TYPE_ERROR:
-		return base_type(tg1);
+		return {AdoptRef{}, base_type(tg1)};
 
 	case TYPE_ENUM:
 		{
@@ -1756,7 +1756,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			// than a copy since it may be redef'd later in parsing.  If we
 			// return a copy, then whoever is using this return value won't
 			// actually see those changes from the redef.
-			return id->AsType()->Ref();
+			return {NewRef{}, id->AsType()};
 
 		std::string msg = fmt("incompatible enum types: '%s' and '%s'"
 		                      " ('%s' enum type ID is invalid)",
@@ -1787,7 +1787,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 			loop_over_list(*tl1, i)
 				{
-				IntrusivePtr<BroType> tl3_i{AdoptRef{}, merge_types((*tl1)[i], (*tl2)[i])};
+				auto tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
 				if ( ! tl3_i )
 					return 0;
 
@@ -1807,15 +1807,15 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 				return 0;
 				}
 
-			y3 = {AdoptRef{}, merge_types(y1, y2)};
+			y3 = merge_types(y1, y2);
 			if ( ! y3 )
 				return 0;
 			}
 
 		if ( t1->IsSet() )
-			return new SetType(std::move(tl3), nullptr);
+			return make_intrusive<SetType>(std::move(tl3), nullptr);
 		else
-			return new TableType(std::move(tl3), std::move(y3));
+			return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 		}
 
 	case TYPE_FUNC:
@@ -1828,11 +1828,11 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		BroType* args = merge_types(ft1->Args(), ft2->Args());
-		BroType* yield = t1->YieldType() ?
+		auto args = merge_types(ft1->Args(), ft2->Args());
+		auto yield = t1->YieldType() ?
 			merge_types(t1->YieldType(), t2->YieldType()) : 0;
 
-		return new FuncType({AdoptRef{}, args->AsRecordType()}, {AdoptRef{}, yield}, ft1->Flavor());
+		return make_intrusive<FuncType>(IntrusivePtr{AdoptRef{}, args.release()->AsRecordType()}, std::move(yield), ft1->Flavor());
 		}
 
 	case TYPE_RECORD:
@@ -1849,7 +1849,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			{
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
-			IntrusivePtr<BroType> tdl3_i{AdoptRef{}, merge_types(td1->type.get(), td2->type.get())};
+			auto tdl3_i = merge_types(td1->type.get(), td2->type.get());
 
 			if ( ! streq(td1->id, td2->id) || ! tdl3_i )
 				{
@@ -1861,7 +1861,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			tdl3->push_back(new TypeDecl(std::move(tdl3_i), copy_string(td1->id)));
 			}
 
-		return new RecordType(tdl3);
+		return make_intrusive<RecordType>(tdl3);
 		}
 
 	case TYPE_LIST:
@@ -1904,9 +1904,9 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return 0;
 			}
 
-		TypeList* tl3 = new TypeList();
+		auto tl3 = make_intrusive<TypeList>();
 		loop_over_list(*l1, i)
-			tl3->Append({AdoptRef{}, merge_types((*l1)[i], (*l2)[i])});
+			tl3->Append(merge_types((*l1)[i], (*l2)[i]));
 
 		return tl3;
 		}
@@ -1918,7 +1918,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return 0;
 			}
 
-		return new VectorType({AdoptRef{}, merge_types(t1->YieldType(), t2->YieldType())});
+		return make_intrusive<VectorType>(merge_types(t1->YieldType(), t2->YieldType()));
 
 	case TYPE_FILE:
 		if ( ! same_type(t1->YieldType(), t2->YieldType()) )
@@ -1927,7 +1927,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return 0;
 			}
 
-		return new FileType({AdoptRef{}, merge_types(t1->YieldType(), t2->YieldType())});
+		return make_intrusive<FileType>(merge_types(t1->YieldType(), t2->YieldType()));
 
 	case TYPE_UNION:
 		reporter->InternalError("union type in merge_types()");
@@ -1939,7 +1939,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	}
 	}
 
-BroType* merge_type_list(ListExpr* elements)
+IntrusivePtr<BroType> merge_type_list(ListExpr* elements)
 	{
 	TypeList* tl_type = elements->Type()->AsTypeList();
 	type_list* tl = tl_type->Types();
@@ -1950,17 +1950,13 @@ BroType* merge_type_list(ListExpr* elements)
 		return 0;
 		}
 
-	BroType* t = (*tl)[0]->Ref();
+	IntrusivePtr<BroType> t{NewRef{}, (*tl)[0]};
 
 	if ( tl->length() == 1 )
 		return t;
 
 	for ( int i = 1; t && i < tl->length(); ++i )
-		{
-		BroType* t_new = merge_types(t, (*tl)[i]);
-		Unref(t);
-		t = t_new;
-		}
+		t = merge_types(t.get(), (*tl)[i]);
 
 	if ( ! t )
 		reporter->Error("inconsistent types in list");
@@ -2042,7 +2038,7 @@ BroType* init_type(Expr* init)
 		if ( same_type(t.get(), ti) )
 			continue;
 
-		t = IntrusivePtr<BroType>{AdoptRef{}, merge_types(t.get(), ti)};
+		t = merge_types(t.get(), ti);
 		}
 
 	if ( ! t )

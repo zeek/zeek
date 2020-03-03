@@ -3347,12 +3347,11 @@ VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			return;
 			}
 
-		BroType* t = merge_type_list(op->AsListExpr());
+		auto t = merge_type_list(op->AsListExpr());
 
 		if ( t )
 			{
-			SetType(make_intrusive<VectorType>(IntrusivePtr{NewRef{}, t}));
-			Unref(t);
+			SetType(make_intrusive<VectorType>(std::move(t)));
 			}
 		else
 			{

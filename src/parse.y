@@ -991,13 +991,13 @@ type:
 	|	TOK_FILE TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new FileType($3);
+				$$ = new FileType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FILE
 				{
 				set_location(@1);
-				$$ = new FileType(base_type(TYPE_STRING));
+				$$ = new FileType({AdoptRef{}, base_type(TYPE_STRING)});
 				}
 
 	|	TOK_OPAQUE TOK_OF TOK_ID

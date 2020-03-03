@@ -49,7 +49,7 @@ static FileType* GetStringFileType() noexcept
 	{
 	static FileType* string_file_type = 0;
 	if ( ! string_file_type )
-		string_file_type = new FileType(base_type(TYPE_STRING));
+		string_file_type = new FileType({AdoptRef{}, base_type(TYPE_STRING)});
 	return string_file_type;
 	}
 

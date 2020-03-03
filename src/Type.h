@@ -567,8 +567,8 @@ public:
 
 class FileType : public BroType {
 public:
-	explicit FileType(BroType* yield_type);
-	FileType* ShallowClone() override { return new FileType(yield->Ref()); }
+	explicit FileType(IntrusivePtr<BroType> yield_type);
+	FileType* ShallowClone() override { return new FileType(yield); }
 	~FileType() override;
 
 	BroType* YieldType() override;
@@ -576,9 +576,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 protected:
-	FileType()	{ yield = 0; }
-
-	BroType* yield;
+	IntrusivePtr<BroType> yield;
 };
 
 class OpaqueType : public BroType {

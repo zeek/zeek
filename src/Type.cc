@@ -1004,20 +1004,16 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 	}
 
-FileType::FileType(BroType* yield_type)
-: BroType(TYPE_FILE)
+FileType::FileType(IntrusivePtr<BroType> yield_type)
+: BroType(TYPE_FILE), yield(std::move(yield_type))
 	{
-	yield = yield_type;
 	}
 
-FileType::~FileType()
-	{
-	Unref(yield);
-	}
+FileType::~FileType() = default;
 
 BroType* FileType::YieldType()
 	{
-	return yield;
+	return yield.get();
 	}
 
 void FileType::Describe(ODesc* d) const
@@ -1949,7 +1945,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return 0;
 			}
 
-		return new FileType(merge_types(t1->YieldType(), t2->YieldType()));
+		return new FileType({AdoptRef{}, merge_types(t1->YieldType(), t2->YieldType())});
 
 	case TYPE_UNION:
 		reporter->InternalError("union type in merge_types()");

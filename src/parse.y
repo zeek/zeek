@@ -1050,7 +1050,7 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
+			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, (in_record > 0));
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
@@ -1079,7 +1079,7 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4, true);
+			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, true);
 			}
 	;
 

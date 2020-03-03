@@ -182,7 +182,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 				{
 				auto rv_i = rv->Lookup(i);
 
-				Attributes* a = rt->FieldDecl(i)->attrs;
+				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				if ( ! (rv_i || optional) )
@@ -519,7 +519,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				Attributes* a = rt->FieldDecl(i)->attrs;
+				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
@@ -914,7 +914,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				{
 				IntrusivePtr<Val> v;
 
-				Attributes* a = rt->FieldDecl(i)->attrs;
+				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				kp = RecoverOneVal(k, kp, k_end,

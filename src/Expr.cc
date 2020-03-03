@@ -2154,7 +2154,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				const TypeDecl* td1 = rt1->FieldDecl(i);
 				const TypeDecl* td2 = rt2->FieldDecl(i);
 
-				if ( same_attrs(td1->attrs, td2->attrs) )
+				if ( same_attrs(td1->attrs.get(), td2->attrs.get()) )
 					// Everything matches.
 					return true;
 				}
@@ -2438,7 +2438,7 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 		if ( td )
 			{
 			const NameExpr* n = (const NameExpr*) op1.get();
-			td->type = op2->Type()->Ref();
+			td->type = {NewRef{}, op2->Type()};
 			td->id = copy_string(n->Id()->Name());
 			}
 
@@ -3034,9 +3034,9 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			}
 
 		FieldAssignExpr* field = (FieldAssignExpr*) e;
-		BroType* field_type = field->Type()->Ref();
+		IntrusivePtr<BroType> field_type{NewRef{}, field->Type()};
 		char* field_name = copy_string(field->FieldName());
-		record_types->push_back(new TypeDecl(field_type, field_name));
+		record_types->push_back(new TypeDecl(std::move(field_type), field_name));
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
@@ -3454,7 +3454,7 @@ bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( td )
 		{
-		td->type = op->Type()->Ref();
+		td->type = {NewRef{}, op->Type()};
 		td->id = copy_string(field_name.c_str());
 		}
 
@@ -5015,7 +5015,7 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 				const TypeDecl* td1 = t_r->FieldDecl(i);
 				const TypeDecl* td2 = et_r->FieldDecl(i);
 
-				if ( same_attrs(td1->attrs, td2->attrs) )
+				if ( same_attrs(td1->attrs.get(), td2->attrs.get()) )
 					// Everything matches perfectly.
 					return 1;
 				}

@@ -363,7 +363,7 @@ TypeList* TableType::ExpandRecordIndex(RecordType* rt) const
 	for ( int i = 0; i < n; ++i )
 		{
 		TypeDecl* td = rt->FieldDecl(i);
-		tl->Append({NewRef{}, td->type});
+		tl->Append(td->type);
 		}
 
 	return tl;
@@ -569,28 +569,23 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
+TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)
+	:type(std::move(t)),
+	 attrs(arg_attrs ? make_intrusive<Attributes>(arg_attrs, type.get(), in_record, false) : nullptr),
+	 id(i)
 	{
-	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record, false) : 0;
-	id = i;
 	}
 
 TypeDecl::TypeDecl(const TypeDecl& other)
 	{
-	type = other.type->Ref();
+	type = other.type;
 	attrs = other.attrs;
-
-	if ( attrs )
-		::Ref(attrs);
 
 	id = copy_string(other.id);
 	}
 
 TypeDecl::~TypeDecl()
 	{
-	Unref(type);
-	Unref(attrs);
 	delete [] id;
 	}
 
@@ -655,7 +650,7 @@ BroType* RecordType::FieldType(const char* field) const
 
 BroType* RecordType::FieldType(int field) const
 	{
-	return (*types)[field]->type;
+	return (*types)[field]->type.get();
 	}
 
 Val* RecordType::FieldDefault(int field) const
@@ -826,7 +821,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = new Attributes(new attr_list, td->type, true, false);
+				td->attrs = make_intrusive<Attributes>(new attr_list, td->type.get(), true, false);
 
 			td->attrs->AddAttr(new Attr(ATTR_LOG));
 			}
@@ -853,7 +848,7 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->Add(td->id);
 			d->Add(":");
 
-			if ( d->FindType(td->type) )
+			if ( d->FindType(td->type.get()) )
 				d->Add("<recursion>");
 			else
 				td->type->Describe(d);
@@ -899,7 +894,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 		const TypeDecl* td = FieldDecl(i);
 
-		if ( d->FindType(td->type) )
+		if ( d->FindType(td->type.get()) )
 			d->Add("<recursion>");
 		else
 			{
@@ -1549,7 +1544,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
 			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
-			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
+			     ! same_type(td1->type.get(), td2->type.get(), is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1876,17 +1871,16 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			{
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
-			BroType* tdl3_i = merge_types(td1->type, td2->type);
+			IntrusivePtr<BroType> tdl3_i{AdoptRef{}, merge_types(td1->type.get(), td2->type.get())};
 
 			if ( ! streq(td1->id, td2->id) || ! tdl3_i )
 				{
 				t1->Error("incompatible record fields", t2);
 				delete tdl3;
-				Unref(tdl3_i);
 				return 0;
 				}
 
-			tdl3->push_back(new TypeDecl(tdl3_i, copy_string(td1->id)));
+			tdl3->push_back(new TypeDecl(std::move(tdl3_i), copy_string(td1->id)));
 			}
 
 		return new RecordType(tdl3);

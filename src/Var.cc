@@ -312,7 +312,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		if ( ! recv_i->attrs )
 			{
 			attr_list* a = new attr_list{def};
-			recv_i->attrs = new Attributes(a, recv_i->type, true, false);
+			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type.get(), true, false);
 			}
 
 		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
@@ -408,7 +408,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			arg_id->Error("argument name used twice");
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType({NewRef{}, arg_i->type});
+		arg_id->SetType(arg_i->type);
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )

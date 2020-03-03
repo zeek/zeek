@@ -479,7 +479,7 @@ protected:
 
 class TypeDecl final {
 public:
-	TypeDecl(BroType* t, const char* i, attr_list* attrs = 0, bool in_record = false);
+	TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* attrs = 0, bool in_record = false);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
@@ -488,8 +488,8 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
-	BroType* type;
-	Attributes* attrs;
+	IntrusivePtr<BroType> type;
+	IntrusivePtr<Attributes> attrs;
 	const char* id;
 };
 

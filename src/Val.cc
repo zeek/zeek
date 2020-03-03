@@ -2550,10 +2550,10 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	// by default).
 	for ( int i = 0; i < n; ++i )
 		{
-		Attributes* a = t->FieldDecl(i)->attrs;
+		Attributes* a = t->FieldDecl(i)->attrs.get();
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
 		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
-		BroType* type = t->FieldDecl(i)->type;
+		BroType* type = t->FieldDecl(i)->type.get();
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->Type()->Tag() == TYPE_RECORD &&

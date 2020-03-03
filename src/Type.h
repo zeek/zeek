@@ -627,8 +627,6 @@ public:
 	IntrusivePtr<EnumVal> GetVal(bro_int_t i);
 
 protected:
-	EnumType() { counter = 0; }
-
 	void AddNameInternal(const std::string& module_name,
 			const char* name, bro_int_t val, bool is_export);
 
@@ -639,7 +637,7 @@ protected:
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
 
-	using ValMap = std::unordered_map<bro_int_t, EnumVal*>;
+	using ValMap = std::unordered_map<bro_int_t, IntrusivePtr<EnumVal>>;
 	ValMap vals;
 
 	// The counter is initialized to 0 and incremented on every implicit

@@ -924,15 +924,15 @@ protected:
 
 class EnumVal : public Val {
 public:
+	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
+		{
+		}
+
 	IntrusivePtr<Val> SizeVal() const override;
 
 protected:
 	friend class Val;
 	friend class EnumType;
-
-	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
-		{
-		}
 
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;

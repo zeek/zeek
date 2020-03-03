@@ -1058,18 +1058,10 @@ EnumType::EnumType(const string& name)
 	}
 
 EnumType::EnumType(const EnumType* e)
-	: BroType(TYPE_ENUM)
+	: BroType(TYPE_ENUM), names(e->names), vals(e->vals)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
-
-	for ( auto it = e->names.begin(); it != e->names.end(); ++it )
-		names[it->first] = it->second;
-
-	vals = e->vals;
-
-	for ( auto& kv : vals )
-		::Ref(kv.second);
 	}
 
 EnumType* EnumType::ShallowClone()
@@ -1080,11 +1072,7 @@ EnumType* EnumType::ShallowClone()
 	return new EnumType(this);
 	}
 
-EnumType::~EnumType()
-	{
-	for ( auto& kv : vals )
-		Unref(kv.second);
-	}
+EnumType::~EnumType() = default;
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
@@ -1157,7 +1145,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = new EnumVal(this, val);
+		vals[val] = make_intrusive<EnumVal>(this, val);
 
 	set<BroType*> types = BroType::GetAliases(GetName());
 	set<BroType*>::const_iterator it;
@@ -1209,17 +1197,17 @@ EnumType::enum_name_list EnumType::Names() const
 IntrusivePtr<EnumVal> EnumType::GetVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
-	EnumVal* rval;
+	IntrusivePtr<EnumVal> rval;
 
 	if ( it == vals.end() )
 		{
-		rval = new EnumVal(this, i);
+		rval = make_intrusive<EnumVal>(this, i);
 		vals[i] = rval;
 		}
 	else
 		rval = it->second;
 
-	return {NewRef{}, rval};
+	return rval;
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

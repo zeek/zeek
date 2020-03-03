@@ -27,8 +27,8 @@ void TopkVal::Typify(BroType* t)
 	{
 	assert(!hash && !type);
 	type = t->Ref();
-	auto tl = make_intrusive<TypeList>(t);
-	tl->Append(t->Ref());
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, t});
+	tl->Append({NewRef{}, t});
 	hash = new CompositeHash(std::move(tl));
 	}
 
@@ -199,8 +199,8 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		return 0;
 		}
 
-	TypeList* vector_index = new TypeList(type);
-	vector_index->Append(type->Ref());
+	TypeList* vector_index = new TypeList({NewRef{}, type});
+	vector_index->Append({NewRef{}, type});
 	VectorType* v = new VectorType(vector_index);
 	VectorVal* t = new VectorVal(v);
 

@@ -173,9 +173,9 @@ void DNS_Mgr_mapping_delete_func(void* v)
 
 static TableVal* empty_addr_set()
 	{
-	BroType* addr_t = base_type(TYPE_ADDR);
+	IntrusivePtr<BroType> addr_t{AdoptRef{}, base_type(TYPE_ADDR)};
 	auto set_index = make_intrusive<TypeList>(addr_t);
-	set_index->Append(addr_t);
+	set_index->Append(std::move(addr_t));
 	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 	return new TableVal(std::move(s));
 	}

@@ -155,8 +155,6 @@ TypeList::~TypeList()
 	{
 	for ( const auto& type : types )
 		Unref(type);
-
-	Unref(pure_type);
 	}
 
 int TypeList::AllMatch(const BroType* t, int is_init) const
@@ -167,23 +165,20 @@ int TypeList::AllMatch(const BroType* t, int is_init) const
 	return 1;
 	}
 
-void TypeList::Append(BroType* t)
+void TypeList::Append(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t, pure_type) )
+	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
 		reporter->InternalError("pure type-list violation");
 
-	types.push_back(t);
+	types.push_back(t.release());
 	}
 
-void TypeList::AppendEvenIfNotPure(BroType* t)
+void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t, pure_type) )
-		{
-		Unref(pure_type);
+	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
 		pure_type = 0;
-		}
 
-	types.push_back(t);
+	types.push_back(t.release());
 	}
 
 void TypeList::Describe(ODesc* d) const
@@ -368,7 +363,7 @@ TypeList* TableType::ExpandRecordIndex(RecordType* rt) const
 	for ( int i = 0; i < n; ++i )
 		{
 		TypeDecl* td = rt->FieldDecl(i);
-		tl->Append(td->type->Ref());
+		tl->Append({NewRef{}, td->type});
 		}
 
 	return tl;
@@ -396,21 +391,17 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 
 			else if ( tl->length() == 1 )
 				{
-				BroType* t = flatten_type((*tl)[0]->Ref());
+				IntrusivePtr<BroType> t{AdoptRef{}, flatten_type((*tl)[0]->Ref())};
 				indices = make_intrusive<TypeList>(t);
-				indices->Append(t->Ref());
+				indices->Append(std::move(t));
 				}
 
 			else
 				{
-				BroType* t = merge_types((*tl)[0], (*tl)[1]);
+				IntrusivePtr<BroType> t{AdoptRef{}, merge_types((*tl)[0], (*tl)[1])};
 
 				for ( int i = 2; t && i < tl->length(); ++i )
-					{
-					BroType* t_new = merge_types(t, (*tl)[i]);
-					Unref(t);
-					t = t_new;
-					}
+					t = {AdoptRef{}, merge_types(t.get(), (*tl)[i])};
 
 				if ( ! t )
 					{
@@ -419,7 +410,7 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 					}
 
 				indices = make_intrusive<TypeList>(t);
-				indices->Append(t);
+				indices->Append(std::move(t));
 				}
 			}
 		}
@@ -457,7 +448,7 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 			args->Error(err_str);
 			}
 
-		arg_types->Append(args->FieldType(i)->Ref());
+		arg_types->Append({NewRef{}, args->FieldType(i)});
 		}
 	}
 
@@ -1832,11 +1823,11 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 			loop_over_list(*tl1, i)
 				{
-				BroType* tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
+				IntrusivePtr<BroType> tl3_i{AdoptRef{}, merge_types((*tl1)[i], (*tl2)[i])};
 				if ( ! tl3_i )
 					return 0;
 
-				tl3->Append(tl3_i);
+				tl3->Append(std::move(tl3_i));
 				}
 			}
 
@@ -1952,7 +1943,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		TypeList* tl3 = new TypeList();
 		loop_over_list(*l1, i)
-			tl3->Append(merge_types((*l1)[i], (*l2)[i]));
+			tl3->Append({AdoptRef{}, merge_types((*l1)[i], (*l2)[i])});
 
 		return tl3;
 		}
@@ -2105,8 +2096,8 @@ BroType* init_type(Expr* init)
 	// it one, as that's what's required for creating a set type.
 	if ( t->Tag() != TYPE_LIST )
 		{
-		auto tl = make_intrusive<TypeList>(t.get()->Ref());
-		tl->Append(t.release());
+		auto tl = make_intrusive<TypeList>(t);
+		tl->Append(std::move(t));
 		t = std::move(tl);
 		}
 

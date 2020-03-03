@@ -1185,7 +1185,7 @@ IntrusivePtr<Val> PatternVal::DoClone(CloneState* state)
 	}
 
 ListVal::ListVal(TypeTag t)
-: Val(new TypeList(t == TYPE_ANY ? 0 : base_type_no_ref(t)))
+: Val(new TypeList({NewRef{}, t == TYPE_ANY ? 0 : base_type_no_ref(t)}))
 	{
 	tag = t;
 	}
@@ -1226,7 +1226,7 @@ void ListVal::Append(Val* v)
 		}
 
 	vals.push_back(v);
-	type->AsTypeList()->Append(v->Type()->Ref());
+	type->AsTypeList()->Append({NewRef{}, v->Type()});
 	}
 
 TableVal* ListVal::ConvertToSet() const
@@ -1234,8 +1234,8 @@ TableVal* ListVal::ConvertToSet() const
 	if ( tag == TYPE_ANY )
 		Internal("conversion of heterogeneous list to set");
 
-	auto set_index = make_intrusive<TypeList>(type->AsTypeList()->PureType());
-	set_index->Append(base_type(tag));
+	auto set_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type->AsTypeList()->PureType()});
+	set_index->Append({AdoptRef{}, base_type(tag)});
 	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 	TableVal* t = new TableVal(std::move(s));
 

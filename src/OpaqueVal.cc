@@ -793,8 +793,8 @@ bool BloomFilterVal::Typify(BroType* arg_type)
 	type = arg_type;
 	type->Ref();
 
-	auto tl = make_intrusive<TypeList>(type);
-	tl->Append(type->Ref());
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+	tl->Append({NewRef{}, type});
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
@@ -963,8 +963,8 @@ bool CardinalityVal::Typify(BroType* arg_type)
 	type = arg_type;
 	type->Ref();
 
-	auto tl = make_intrusive<TypeList>(type);
-	tl->Append(type->Ref());
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+	tl->Append({NewRef{}, type});
 	hash = new CompositeHash(std::move(tl));
 
 	return true;

@@ -347,11 +347,8 @@ private:
 
 class TypeList : public BroType {
 public:
-	explicit TypeList(BroType* arg_pure_type = 0) : BroType(TYPE_LIST)
+	explicit TypeList(IntrusivePtr<BroType> arg_pure_type = nullptr) : BroType(TYPE_LIST), pure_type(std::move(arg_pure_type))
 		{
-		pure_type = arg_pure_type;
-		if ( pure_type )
-			pure_type->Ref();
 		}
 	~TypeList() override;
 
@@ -362,23 +359,23 @@ public:
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
-	BroType* PureType()		{ return pure_type; }
-	const BroType* PureType() const	{ return pure_type; }
+	BroType* PureType()		{ return pure_type.get(); }
+	const BroType* PureType() const	{ return pure_type.get(); }
 
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.
 	int AllMatch(const BroType* t, int is_init) const;
 
-	void Append(BroType* t);
-	void AppendEvenIfNotPure(BroType* t);
+	void Append(IntrusivePtr<BroType> t);
+	void AppendEvenIfNotPure(IntrusivePtr<BroType> t);
 
 	void Describe(ODesc* d) const override;
 
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	BroType* pure_type;
+	IntrusivePtr<BroType> pure_type;
 	type_list types;
 };
 

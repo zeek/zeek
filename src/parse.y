@@ -1027,11 +1027,11 @@ type:
 
 type_list:
 		type_list ',' type
-			{ $1->AppendEvenIfNotPure($3); }
+			{ $1->AppendEvenIfNotPure({AdoptRef{}, $3}); }
 	|	type
 			{
-			$$ = new TypeList($1);
-			$$->Append($1);
+			$$ = new TypeList({NewRef{}, $1});
+			$$->Append({AdoptRef{}, $1});
 			}
 	;
 

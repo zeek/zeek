@@ -3109,7 +3109,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
 		else
 			{
 			SetType({AdoptRef{}, init_type(op.get())});
@@ -3223,7 +3223,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
 		else
 			SetType({AdoptRef{}, init_type(op.get())});
 		}
@@ -3841,7 +3841,7 @@ FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
 	auto tl = make_intrusive<TypeList>();
 
 	for ( int i = 0; i < num_fields; ++i )
-		tl->Append(rt->FieldType(i)->Ref());
+		tl->Append({NewRef{}, rt->FieldType(i)});
 
 	Unref(rt);
 	SetType(std::move(tl));
@@ -4481,7 +4481,7 @@ ListExpr::~ListExpr()
 void ListExpr::Append(IntrusivePtr<Expr> e)
 	{
 	exprs.push_back(e.release());
-	((TypeList*) type.get())->Append(exprs.back()->Type()->Ref());
+	((TypeList*) type.get())->Append({NewRef{}, exprs.back()->Type()});
 	}
 
 bool ListExpr::IsPure() const
@@ -4568,12 +4568,12 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 
 				if ( ! til->IsPure() ||
 				     ! til->AllMatch(til->PureType(), 1) )
-					tl->Append(til->Ref());
+					tl->Append({NewRef{}, til});
 				else
-					tl->Append(til->PureType()->Ref());
+					tl->Append({NewRef{}, til->PureType()});
 				}
 			else
-				tl->Append(ti->Ref());
+				tl->Append({NewRef{}, ti});
 			}
 
 		return tl;
@@ -5121,7 +5121,7 @@ int check_and_promote_args(ListExpr* const args, RecordType* types)
 	TypeList* tl = new TypeList();
 
 	for ( int i = 0; i < types->NumFields(); ++i )
-		tl->Append(types->FieldType(i)->Ref());
+		tl->Append({NewRef{}, types->FieldType(i)});
 
 	int rval = check_and_promote_exprs(args, tl);
 	Unref(tl);

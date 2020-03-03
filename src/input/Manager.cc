@@ -2377,8 +2377,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		{
 		// all entries have to have the same type...
 		BroType* type = request_type->AsTableType()->Indices()->PureType();
-		auto set_index = make_intrusive<TypeList>(type->Ref());
-		set_index->Append(type->Ref());
+		auto set_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+		set_index->Append({NewRef{}, type});
 		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
@@ -2534,7 +2534,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			if ( stag == TYPE_VOID )
 				TypeTag stag = val->val.set_val.vals[0]->type;
 
-			BroType* index_type;
+			IntrusivePtr<BroType> index_type;
 
 			if ( stag == TYPE_ENUM )
 				{
@@ -2552,13 +2552,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 					return nullptr;
 					}
 
-				index_type = enum_id->Type()->AsEnumType();
+				index_type = {NewRef{}, enum_id->Type()->AsEnumType()};
 				}
 			else
-				index_type = base_type_no_ref(stag);
+				index_type = {NewRef{}, base_type_no_ref(stag)};
 
 			set_index = make_intrusive<TypeList>(index_type);
-			set_index->Append(index_type->Ref());
+			set_index->Append(std::move(index_type));
 			}
 
 		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);

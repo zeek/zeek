@@ -725,7 +725,7 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2);
 IntrusivePtr<BroType> merge_type_list(ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
-extern BroType* init_type(Expr* init);
+IntrusivePtr<BroType> init_type(Expr* init);
 
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const BroType* t);

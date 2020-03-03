@@ -3112,7 +3112,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
 		else
 			{
-			SetType({AdoptRef{}, init_type(op.get())});
+			SetType(init_type(op.get()));
 
 			if ( ! type )
 				SetError();
@@ -3225,7 +3225,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 		if ( op->AsListExpr()->Exprs().empty() )
 			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
 		else
-			SetType({AdoptRef{}, init_type(op.get())});
+			SetType(init_type(op.get()));
 		}
 
 	if ( ! type )

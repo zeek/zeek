@@ -64,7 +64,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
-		     (! init || ! do_init || (! t && ! (t = {AdoptRef{}, init_type(init.get())}))) )
+		     (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
 			{
 			id->Error("already defined", init.get());
 			return;
@@ -103,7 +103,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			return;
 			}
 
-		t = {AdoptRef{}, init_type(init.get())};
+		t = init_type(init.get());
 		if ( ! t )
 			{
 			id->SetType({AdoptRef{}, error_type()});

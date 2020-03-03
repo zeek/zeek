@@ -1983,7 +1983,7 @@ static BroType* reduce_type(BroType* t)
 		return t;
 	}
 
-BroType* init_type(Expr* init)
+IntrusivePtr<BroType> init_type(Expr* init)
 	{
 	if ( init->Tag() != EXPR_LIST )
 		{
@@ -1999,7 +1999,7 @@ BroType* init_type(Expr* init)
 			return nullptr;
 			}
 
-		return t.release();
+		return t;
 		}
 
 	ListExpr* init_list = init->AsListExpr();
@@ -2017,7 +2017,7 @@ BroType* init_type(Expr* init)
 	if ( e0->IsRecordElement(0) )
 		// ListExpr's know how to build a record from their
 		// components.
-		return init_list->InitType().release();
+		return init_list->InitType();
 
 	auto t = e0->InitType();
 
@@ -2049,7 +2049,7 @@ BroType* init_type(Expr* init)
 
 	if ( t->Tag() == TYPE_TABLE && ! t->AsTableType()->IsSet() )
 		// A list of table elements.
-		return t.release();
+		return t;
 
 	// A set.  If the index type isn't yet a type list, make
 	// it one, as that's what's required for creating a set type.
@@ -2060,7 +2060,7 @@ BroType* init_type(Expr* init)
 		t = std::move(tl);
 		}
 
-	return new SetType({AdoptRef{}, t.release()->AsTypeList()}, nullptr);
+	return make_intrusive<SetType>(IntrusivePtr{AdoptRef{}, t.release()->AsTypeList()}, nullptr);
 	}
 
 bool is_atomic_type(const BroType* t)

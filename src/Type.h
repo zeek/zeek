@@ -468,16 +468,13 @@ protected:
 
 class TypeType : public BroType {
 public:
-	explicit TypeType(BroType* t) : BroType(TYPE_TYPE)	{ type = t->Ref(); }
+	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
 	TypeType* ShallowClone() override { return new TypeType(type); }
-	~TypeType() override { Unref(type); }
 
-	BroType* Type()	{ return type; }
+	BroType* Type()	{ return type.get(); }
 
 protected:
-	TypeType()	{}
-
-	BroType* type;
+	IntrusivePtr<BroType> type;
 };
 
 class TypeDecl {

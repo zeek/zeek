@@ -218,7 +218,7 @@ NameExpr::NameExpr(IntrusivePtr<ID> arg_id, bool const_init)
 	in_const_init = const_init;
 
 	if ( id->AsType() )
-		SetType(make_intrusive<TypeType>(id->AsType()));
+		SetType(make_intrusive<TypeType>(IntrusivePtr{NewRef{}, id->AsType()}));
 	else
 		SetType({NewRef{}, id->Type()});
 

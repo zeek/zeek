@@ -141,7 +141,7 @@ public:
 
 	// Extra arg to differentiate from protected version.
 	Val(BroType* t, bool type_type)
-		: type(new TypeType(t->Ref()))
+		: type(new TypeType({NewRef{}, t}))
 		{
 		}
 
